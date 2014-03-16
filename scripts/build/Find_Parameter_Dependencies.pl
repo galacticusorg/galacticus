@@ -51,7 +51,9 @@ while ( my $fileName = readdir(sDir) ) {
 		# Detect included files and push onto the stack.
 		if ( $line =~ m/^\s*include\s*[\'\"](.*)[\'\"]/ ) {
 		    if ( exists {map { $_ => 1 } @{$dependencies->{'objectFiles'}}}->{$objectFile} ) {
-			push(@fileStack,"work/build/".$1);
+			my $fileName = $1;
+			push(@fileStack,"work/build/".$1)
+			    unless ( $fileName eq "fftw3.f03" );
 		    }
 		}
 		# Search for XML.

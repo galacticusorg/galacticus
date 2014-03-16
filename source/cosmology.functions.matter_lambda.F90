@@ -97,6 +97,8 @@
      procedure :: dominationEpochMatter        =>matterLambdaDominationEpochMatter
      procedure :: temperatureCMBEpochal        =>matterLambdaTemperatureCMBEpochal
      procedure :: distanceComoving             =>matterLambdaDistanceComoving
+     procedure :: distanceLuminosity           =>matterLambdaDistanceLuminosity
+     procedure :: distanceAngular              =>matterLambdaDistanceAngular
      procedure :: timeAtDistanceComoving       =>matterLambdaTimeAtDistanceComoving
      procedure :: distanceComovingConvert      =>matterLambdaDistanceComovingConvert
      procedure :: expansionFactorTabulate      =>matterLambdaMakeExpansionFactorTable
@@ -900,7 +902,33 @@ contains
          &              reset=self%resetInterpolationDistance  &
          &             )
     return
-   end function matterLambdaDistanceComoving
+  end function matterLambdaDistanceComoving
+
+  double precision function matterLambdaDistanceLuminosity(self,time)
+    !% Returns the luminosity distance to cosmological time {\tt time}.
+    use Numerical_Interpolation
+    use Galacticus_Error
+    implicit none
+    class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
+    double precision                                , intent(in   ) :: time
+
+    ! Compute the luminosity distance.
+    matterLambdaDistanceLuminosity=self%distanceComoving(time)/self%expansionFactor(time)
+    return
+  end function matterLambdaDistanceLuminosity
+
+  double precision function matterLambdaDistanceAngular(self,time)
+    !% Returns the angular diameter distance to cosmological time {\tt time}.
+    use Numerical_Interpolation
+    use Galacticus_Error
+    implicit none
+    class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
+    double precision                                , intent(in   ) :: time
+
+    ! Compute the angular diameter distance.
+    matterLambdaDistanceAngular=self%distanceComoving(time)*self%expansionFactor(time)
+    return
+  end function matterLambdaDistanceAngular
 
   double precision function matterLambdaDistanceComovingConvert(self,output,distanceModulus,redshift)
     !% Convert bewteen different measures of distance.
