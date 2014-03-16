@@ -3,6 +3,7 @@
 package Options;
 use strict;
 use warnings;
+use Scalar::Util 'reftype';
 
 sub Parse_Options {
     # Parses command line options of the form:
@@ -12,6 +13,7 @@ sub Parse_Options {
     my @arguments = @{$_[0]};
     my $options   =   $_[1];
     my $iArg = -1;
+    my %argumentsSeen;
     while ( $iArg < scalar(@arguments)-1 ) {
 	++$iArg;
 	if ( $arguments[$iArg] =~ m/^\-\-(.*)/ ) {
@@ -25,7 +27,16 @@ sub Parse_Options {
 		}
 		$value =~ s/^\"(.*)\"$/$1/;
 	    }
-	    $options->{$argument} = $value;
+	    if ( exists($argumentsSeen{$argument}) ) {
+		if ( reftype($options->{$argument}) && reftype($options->{$argument}) eq "ARRAY" ) {
+		    push(@{$options->{$argument}},$value);
+		} else {
+		    $options->{$argument} = [ $options->{$argument}, $value ];
+		}
+	    } else {
+		$options->{$argument} = $value;
+	    }
+	    $argumentsSeen{$argument} = 1;
 	}
     }
 }
