@@ -123,6 +123,14 @@ contains
           Galacticus_ODE_Algorithm=Fodeiv2_Step_RKCK
        case ('Runge-Kutta-Second-Order')
           Galacticus_ODE_Algorithm=Fodeiv2_Step_RK2
+       case ('Runge-Kutta')
+          Galacticus_ODE_Algorithm=Fodeiv2_Step_RK4
+       case ('Runge-Kutta-Fehlberg')
+          Galacticus_ODE_Algorithm=Fodeiv2_Step_RKF45
+       case ('Runge-Kutta-Prince-Dormand')
+          Galacticus_ODE_Algorithm=Fodeiv2_Step_RK8PD
+       case ('multistepAdams')
+          Galacticus_ODE_Algorithm=Fodeiv2_Step_msAdams
        case default
           call Galacticus_Error_Report('Tree_Node_Evolve_Initialize','odeAlgorithm is unrecognized')
        end select
