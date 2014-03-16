@@ -31,7 +31,7 @@ sub Module_Name {
 	open(my $moduleHandle,$moduleFileName);
 	($moduleName =<$moduleHandle>) =~ s/\.\/work\/build\/(.*)\.mod\n$/$1/
 	    unless ( eof($moduleHandle) );
-	close(jHndl);
+	close($moduleHandle);
     }
     return $moduleName;
 }
