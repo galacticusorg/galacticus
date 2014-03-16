@@ -1,0 +1,9 @@
+<!-- Defines a constraint to match to the Caputi et al. (2011) stellar mass functions. -->
+<constraint>
+  <outputRedshift>3.250</outputRedshift>
+  <outputRedshift>3.875</outputRedshift>
+  <outputRedshift>4.625</outputRedshift>
+  <haloMassMinimum>1.0e10</haloMassMinimum>
+  <haloMassMaximum>1.0e15</haloMassMaximum>
+  <analysis>constraints/scripts/stellarMassFunction_UKIDSS_UDS_2011.pl</analysis>
+</constraint>
