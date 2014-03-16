@@ -310,13 +310,21 @@ contains
                          select case (thisNode%isPrimaryProgenitor())
                          case (.false.)
                             ! It is not the major progenitor, so this could be a halo merger event unless the halo is already a
-                            ! satellite. Check for satellite status and, if it's not a satellite, process this halo merging event.
-                            if (.not.thisNode%isSatellite()) call Events_Node_Merger(currentTree,thisNode)
+                            ! satellite. Check for satellite status and, if it's not a satellite, process this halo merging
+                            ! event. Also record that the tree is not deadlock, as we are changing the tree state.
+                            if (.not.thisNode%isSatellite()) then
+                               deadlockStatus=isNotDeadlocked
+                               call Events_Node_Merger(currentTree,thisNode)
+                            end if
                          case (.true.)
-                            ! This is the major progenitor, so promote the node to its parent as it is the main progenitor providing
-                            ! that the node has no siblings - this ensures that any siblings have already been evolved and become
-                            ! satellites of the parent halo.
-                            if (.not.associated(thisNode%sibling)) call Tree_Node_Promote(currentTree,thisNode)
+                            ! This is the major progenitor, so promote the node to its parent as it is the main progenitor
+                            ! providing that the node has no siblings - this ensures that any siblings have already been evolved
+                            ! and become satellites of the parent halo. Also record that the tree is not deadlock, as we are
+                            ! changing the tree state.
+                            if (.not.associated(thisNode%sibling)) then
+                               deadlockStatus=isNotDeadlocked
+                               call Tree_Node_Promote(currentTree,thisNode)
+                            end if
                          end select
                       end if
                    end if
@@ -484,7 +492,7 @@ contains
           if (present(lockType)) lockType =  "satellite in host"
           Evolve_To_Time=hostTimeLimit
        end if
-       if (report) call Evolve_To_Time_Report("satellite in host limit: ",Evolve_To_Time)
+       if (report) call Evolve_To_Time_Report("satellite in host limit: ",Evolve_To_Time,thisNode%parent%index())
     end select
 
     ! Also ensure that this node is not evolved beyond the time of any of its current satellites.
