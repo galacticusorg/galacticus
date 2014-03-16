@@ -98,6 +98,7 @@ foreach my $fileName ( @fileNames ) {
 	    # Detect include files, and recurse into them.
 	    if ( defined($processedLine) && $processedLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
 		my $includeFile = $1;
+		$includeFile =~ s/\.inc/.Inc/;
 		if ( -e $sourceDir."/../work/build/".$includeFile ) {
 		    $filePositions[0] = tell($fileHandle);
 		    unshift(@fileNames,$sourceDir."/../work/build/".$includeFile);
