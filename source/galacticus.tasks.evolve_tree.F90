@@ -85,6 +85,9 @@ contains
     character       (len=32        )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
          &                                                  success
     !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeCanEvolve,treeIsFinished,evolutionIsEventLimited,success)
+    type            (semaphore     ), pointer            :: galacticusMutex
+    character       (len=32        )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
+
     type            (universe      )                     :: universeWaiting                 , universeProcessed
     type            (universeEvent ), pointer     , save :: thisEvent
     !$omp threadprivate(thisEvent)
@@ -211,8 +214,8 @@ contains
 
        ! If locking threads, claim one.
        if (treeEvolveThreadLock) call galacticusMutex%wait()
-
-              ! Attempt to get a new tree to process. We first tree to get a new tree. If no new trees exist, we will look for a tree on
+       
+       ! Attempt to get a new tree to process. We first tree to get a new tree. If no new trees exist, we will look for a tree on
        ! the stack waiting to be processed.
        if (treeEvolveWorkerCount == 1) then
           call Get_Tree(iTree,skipTree,thisTree,finished)
