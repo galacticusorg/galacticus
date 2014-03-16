@@ -14,6 +14,7 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 require Galacticus::Constraints::Parameters;
+require Galacticus::Constraints::DiscrepancySystematics;
 
 # Run calculations to determine the model discrepancy arising from the use of less scatter in
 # the merging timescale for satellite galaxies in the Jiang2008 model than is recommended.
@@ -182,6 +183,24 @@ foreach my $constraint ( @constraints ) {
     my $ySize                 = nelem($defaultY);
     $defaultCovariance        = reshape($defaultCovariance    ,$ySize,$ySize);
     $recommendedCovariance    = reshape($recommendedCovariance,$ySize,$ySize);
+    # Apply any systematics models.
+    my %systematicResults;
+    foreach my $argument ( keys(%arguments) ) {
+	if ( $argument =~ m/^systematic(.*)/ ) {
+	    my $model = $1;
+	    if ( exists($DiscrepancySystematics::models{$model}) ) {
+		%{$systematicResults{$model}} =
+		    &{$DiscrepancySystematics::models{$model}}(
+		    \%arguments           ,
+		    $defaultX             ,
+		    $defaultY             ,
+		    $defaultCovariance    ,
+		    $recommendedY         ,
+		    $recommendedCovariance
+		);
+	    }
+	}
+    }
     # Find the multiplicative discrepancy between these two models.
     (my $nonZero, my $zero)            = which_both($defaultY > 0.0);
     my $modelDiscrepancyMultiplicative = $recommendedY->copy();
@@ -198,6 +217,15 @@ foreach my $constraint ( @constraints ) {
     $outputFile->attrSet(
 	description => "Model discrepancy for ".$constraintDefinition->{'name'}." due to use non-recommended scatter in halo merger times in the Jiang2008 implementation."
 	);
+    # Add results of systematics models.
+    my $systematicGroup = $outputFile->group("systematicModels");
+    foreach my $model ( keys(%systematicResults) ) {
+	my $modelGroup = $systematicGroup->group($model);
+	my %modelResults = %{$systematicResults{$model}};
+	foreach my $parameter ( keys(%modelResults) ) {
+	    $modelGroup->attrSet($parameter => $modelResults{$parameter});
+	}
+    }
 }
 
 exit;

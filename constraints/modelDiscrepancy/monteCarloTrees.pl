@@ -15,6 +15,7 @@ use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use Switch;
 require Galacticus::Constraints::Parameters;
+require Galacticus::Constraints::DiscrepancySystematics;
 require Galacticus::HDF5;
 
 # Run calculations to determine the model discrepancy arising from the use of Monte Carlo merger trees.
@@ -175,7 +176,7 @@ $parameters->{'parameter'}->{'treeEvolveThreadLock'}->{'value'} = "false";
 my @pbsStack;
 
 # Define a path name for the models.
-(my $modelsDirectory = $workDirectory."/modelDiscrepancyNew/monteCarloTrees.noJumpNoPromoteNoMonotonic.".$arguments{'trees'}."/") =~ s/:/_/g;
+(my $modelsDirectory = $workDirectory."/modelDiscrepancy/monteCarloTrees.noJumpNoPromoteNoMonotonic.".$arguments{'trees'}."/") =~ s/:/_/g;
 
 # Specify models to run.
 my @models;
@@ -812,11 +813,6 @@ foreach my $constraint ( @constraints ) {
     } else {
 	$nBodyMassFunction = $nBodyMassFunctions[0];	
     }
-    # Find the multiplicative between these two models.
-    (my $nonZero, my $zero)                      = which_both($monteCarloMassFunction > 0.0);
-    my $modelDiscrepancyMultiplicative           = $nBodyMassFunction->copy();
-    $modelDiscrepancyMultiplicative->($nonZero) /= $monteCarloMassFunction->($nonZero);
-    $modelDiscrepancyMultiplicative->($zero   ) .= 1.0;
     # Find the covariance remaining in the complete set of subvolumes.
     my $modelDiscrepancyCovariance;
     if ( $haveSubvolumes == 1 ) {
@@ -827,17 +823,47 @@ foreach my $constraint ( @constraints ) {
     } else {
 	$modelDiscrepancyCovariance               = $nBodyMassFunctionCovariances[0];
     }
+    # Apply any systematics models.
+    my %systematicResults;
+    foreach my $argument ( keys(%arguments) ) {
+	if ( $argument =~ m/^systematic(.*)/ ) {
+	    my $model = $1;
+	    if ( exists($DiscrepancySystematics::models{$model}) ) {
+		%{$systematicResults{$model}} =
+		    &{$DiscrepancySystematics::models{$model}}(
+		    \%arguments                ,
+		    $nBodyMass                 ,
+		    $monteCarloMassFunction    ,
+		    $monteCarloCovariance      ,
+		    $nBodyMassFunction         ,
+		    $modelDiscrepancyCovariance
+		);
+	    }
+	}
+    }
     # Compute the covariance.
     my $modelDiscrepancyCovarianceMultiplicative = 
-	 $monteCarloCovariance      *outer($nBodyMassFunction/$monteCarloMassFunction**2,$nBodyMassFunction/$monteCarloMassFunction**2)
-	+$modelDiscrepancyCovariance*outer(               1.0/$monteCarloMassFunction   ,               1.0/$monteCarloMassFunction   );
+	+$monteCarloCovariance      
+	  *outer($nBodyMassFunction/$monteCarloMassFunction**2,$nBodyMassFunction/$monteCarloMassFunction**2)
+	+$modelDiscrepancyCovariance
+	  *outer(               1.0/$monteCarloMassFunction   ,               1.0/$monteCarloMassFunction   )
+	+outer($monteCarloMassFunction-$nBodyMassFunction,$monteCarloMassFunction-$nBodyMassFunction)
+	  *outer(               1.0/$monteCarloMassFunction   ,               1.0/$monteCarloMassFunction   );
     # Output the model discrepancy to file.
     my $outputFile = new PDL::IO::HDF5(">".$modelsDirectory."discrepancy".ucfirst($constraintDefinition->{'label'}).".hdf5");
-    $outputFile->dataset('multiplicative'          )->set($modelDiscrepancyMultiplicative          );
     $outputFile->dataset('multiplicativeCovariance')->set($modelDiscrepancyCovarianceMultiplicative);
     $outputFile->attrSet(
      	description => "Model discrepancy for ".$constraintDefinition->{'name'}." due to use of Monte Carlo merger trees."
      	);
+    # Add results of systematics models.
+    my $systematicGroup = $outputFile->group("systematicModels");
+    foreach my $model ( keys(%systematicResults) ) {
+	my $modelGroup = $systematicGroup->group($model);
+	my %modelResults = %{$systematicResults{$model}};
+	foreach my $parameter ( keys(%modelResults) ) {
+	    $modelGroup->attrSet($parameter => $modelResults{$parameter});
+	}
+    }
 }
 
 exit;
