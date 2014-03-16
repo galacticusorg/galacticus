@@ -45,7 +45,7 @@ Once you've committed your changes, you can contribute them back to the \glc\ pr
 
 \subsubsection{Via E-mail}
 
-If you just cloned the \glc\ repository directly you can send a patch containing your changes by e-mail to \href{mailto:abenson@obs.carnegiescience.edu}{abenson\@obs.carnegiescience.edu}. First, create the patch file using:
+If you just cloned the \glc\ repository directly you can send a patch containing your changes by e-mail to \href{mailto:abenson@obs.carnegiescience.edu}{abenson{@}obs.carnegiescience.edu}. First, create the patch file using:
 \begin{verbatim}
  hg export -r begin:end > changes.diff
 \end{verbatim}
@@ -106,4 +106,4 @@ replacing the version number with whichever version you want. To get back to the
 
 \subsection{Bug Fixes In Releases}
 
-To make a bugfix in a release, simply {\tt hg update} to that release, fix the bug, and commit your changes. In many cases you'll want to fix the same bug in later releases and also in {\tt default}. To do that, just {\tt hg update} to each branch in turn, use {\tt hg merge fixedBranch} (where ``{\tt fixedBranch}'' is the name of the branch in which you fixed the branch, and then commit the merge. Once the bgu has been fixed you can contribute the fix back to the \glc\ project using the methods described above.
+To make a bugfix in a release, simply {\tt hg update} to that release, fix the bug, and commit your changes. In many cases you'll want to fix the same bug in later releases and also in {\tt default}. To do that, just {\tt hg update} to each branch in turn, use {\tt hg merge fixedBranch} (where ``{\tt fixedBranch}'' is the name of the branch in which you fixed the branch, and then commit the merge. Once the bug has been fixed you can contribute the fix back to the \glc\ project using the methods described above.
