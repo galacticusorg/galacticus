@@ -257,6 +257,8 @@ The method by which to launch jobs must be specified in the {\tt launchMethod} e
 \item[{\tt mpiRun}] The path to the {\tt mpirun} executable (optional---if not present, {\tt mpirun} must be in {\tt PATH});
 \item[{\tt environment}] Any settings here are set in each {\sc PBS} job in order to set appropriate environment variables on the machine where a job is executed;
 \item[{\tt analyze}] If set to ``{\tt yes}'' then analysis (if any) will be performed as part of the PBS job. Otherwise, analysis is performed by the submitting machine.
+\item[{\tt postSubmitSleepDuration}] The time (in seconds) to wait after submitting each job. This prevents flooding the PBS queue manager with a large number of jobs in rapid succession.
+\item[{\tt jobWaitSleepDuration}] The time (in seconds) to sleep between successive checks of the PBS queue to see if any of the submitted jobs have finished.
 \end{description}
 
 \item[{\tt condor}] Jobs will be submitted to a {\tt Condor} cluster. The following options are available and can be specified within a {\tt condor} XML block:
