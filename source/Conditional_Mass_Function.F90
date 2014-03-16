@@ -67,7 +67,7 @@ program Conditional_Mass_Function
   ! Read parameters controlling the calculation.
   !@ <inputParameter>
   !@   <name>conditionalMassFunctionOutputFileName</name>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <description>
   !@     The name of the file to which the computed conditional mass function should be output.
   !@   </description>
@@ -77,7 +77,7 @@ program Conditional_Mass_Function
   call Get_Input_Parameter('conditionalMassFunctionOutputFileName',conditionalMassFunctionOutputFileName)
   !@ <inputParameter>
   !@   <name>conditionalMassFunctionHaloMass</name>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <defaultValue>all</defaultValue>
   !@   <description>
   !@     The halo mass for which to compute the conditional mass function. A value of ``all'' will cause the conditional mass function to be integrated over the halo mass function, giving the mass function.
@@ -88,7 +88,7 @@ program Conditional_Mass_Function
   call Get_Input_Parameter('conditionalMassFunctionHaloMass',conditionalMassFunctionHaloMassText,defaultValue="all")
   !@ <inputParameter>
   !@   <name>conditionalMassFunctionMassMinimum</name>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <defaultValue>$10^8M_\odot$</defaultValue>
   !@   <description>
   !@     The minimum mass for which to compute the conditional mass function.
@@ -99,7 +99,7 @@ program Conditional_Mass_Function
   call Get_Input_Parameter('conditionalMassFunctionMassMinimum',conditionalMassFunctionMassMinimum,defaultValue=1.0d8)
   !@ <inputParameter>
   !@   <name>conditionalMassFunctionMassMaximum</name>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <defaultValue>$10^{12}M_\odot$</defaultValue>
   !@   <description>
   !@     The maximum mass for which to compute the conditional mass function.
@@ -110,7 +110,7 @@ program Conditional_Mass_Function
   call Get_Input_Parameter('conditionalMassFunctionMassMaximum',conditionalMassFunctionMassMaximum,defaultValue=1.0d12)
   !@ <inputParameter>
   !@   <name>conditionalMassFunctionMassCount</name>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <defaultValue>21</defaultValue>
   !@   <description>
   !@     The number of bins for which to compute the conditional mass function.
@@ -121,7 +121,7 @@ program Conditional_Mass_Function
   call Get_Input_Parameter('conditionalMassFunctionMassCount',conditionalMassFunctionMassCount,defaultValue=21)
   !@ <inputParameter>
   !@   <name>conditionalMassFunctionRedshiftMinimum</name>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <defaultValue>0</defaultValue>
   !@   <description>
   !@     The minimum redshift for which to compute the conditional mass function.
@@ -132,7 +132,7 @@ program Conditional_Mass_Function
   call Get_Input_Parameter('conditionalMassFunctionRedshiftMinimum',conditionalMassFunctionRedshiftMinimum,defaultValue=0.0d0)
   !@ <inputParameter>
   !@   <name>conditionalMassFunctionRedshiftMaximum</name>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <defaultValue>0</defaultValue>
   !@   <description>
   !@     The maximum redshift for which to compute the conditional mass function.
@@ -143,7 +143,7 @@ program Conditional_Mass_Function
   call Get_Input_Parameter('conditionalMassFunctionRedshiftMaximum',conditionalMassFunctionRedshiftMaximum,defaultValue=0.0d0)
   !@ <inputParameter>
   !@   <name>conditionalMassFunctionUseSurveyLimits</name>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <defaultValue>false</defaultValue>
   !@   <description>
   !@     Specifies whether the limiting redshifts for integrating over the halo mass function should be limited by those of a galaxy survey.
@@ -154,7 +154,7 @@ program Conditional_Mass_Function
   call Get_Input_Parameter('conditionalMassFunctionUseSurveyLimits',conditionalMassFunctionUseSurveyLimits,defaultValue=.false.)
   !@ <inputParameter>
   !@   <name>conditionalMassFunctionHaloMassMinimum</name>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <defaultValue>$10^6M_\odot$</defaultValue>
   !@   <description>
   !@     The minimum halo mass to use when integrating over the halo mass function.
@@ -165,7 +165,7 @@ program Conditional_Mass_Function
   call Get_Input_Parameter('conditionalMassFunctionHaloMassMinimum',conditionalMassFunctionHaloMassMinimum,defaultValue=1.0d6)
   !@ <inputParameter>
   !@   <name>conditionalMassFunctionHaloMassMaximum</name>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
   !@   <description>
   !@     The maximum halo mass to use when integrating over the halo mass function.
