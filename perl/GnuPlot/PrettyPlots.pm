@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use PDL;
 use Switch;
+use Imager::Color;
 
 # A set of color definitions in #RRGGBB format.
 our %colors = (
@@ -203,6 +204,20 @@ our %colorPairSequences = (
     ]
     );
 
+sub Color_Gradient {
+    my $f       =   shift() ;
+    my @start   = @{shift()};
+    my @end     = @{shift()};
+    my @thisHSV = 
+	(
+	 $start[0]+($end[0]-$start[0])*$f,
+	 $start[1]+($end[1]-$start[1])*$f,
+	 $start[2]+($end[2]-$start[2])*$f
+	);
+    my $hsv = Imager::Color->new(hsv => \@thisHSV);
+    return sprintf("#%02lx%02lx%02lx", $hsv->rgba() );
+}
+
 # Subroutine to generate plotting commands for a specified dataset and accumulate them to a buffer for later writing to GnuPlot.
 sub Prepare_Dataset {
     # Extract the plot structure and datasets to plot.
@@ -362,15 +377,17 @@ sub Prepare_Dataset {
 		} else {
 		    my $level = "upper";
 		    ${$plot}->{$phase}->{'data'} .= "set style fill solid 1.0 noborder\n";
-		    ${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." fill border\n";
-		    ${$plot}->{$phase}->{'data'} .= $x->index(0)." ".$y->index(0)." ".$y->index(0)."\n";
+		    ${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve ".$options{'filledCurve'}." notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." fill border\n";
+		    ${$plot}->{$phase}->{'data'} .= $x->index(0)." ".$y->index(0)." ".$y->index(0)."\n"
+			if ( $options{'filledCurve'} eq "closed" );
 		    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
 			${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint);
 			${$plot}->{$phase}->{'data'} .= " ".$options{'y2'}->index($iPoint)
 			    if ( $options{'filledCurve'} eq "closed" );
 			${$plot}->{$phase}->{'data'} .= "\n";
 		    }
-		    ${$plot}->{$phase}->{'data'} .= $x->index(nelem($x)-1)." ".$y->index(nelem($x)-1)." ".$y->index(nelem($x)-1)."\n";
+		    ${$plot}->{$phase}->{'data'} .= $x->index(nelem($x)-1)." ".$y->index(nelem($x)-1)." ".$y->index(nelem($x)-1)."\n"
+			if ( $options{'filledCurve'} eq "closed" );
 		    ${$plot}->{$phase}->{'data'} .= $endPoint;
 		}
 	    }
