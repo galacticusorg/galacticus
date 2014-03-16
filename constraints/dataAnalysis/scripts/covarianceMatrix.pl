@@ -372,7 +372,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    style      => "point",
 	    weight     => [5,3],
 	    symbol     => [6,7],
-	    pointSize  => 1.0,
+	    pointSize  => 0.5,
 	    color      => $PrettyPlots::colorPairs{'redYellow'},
 	    title      => "Maximum likelihood fit"
 	    );
