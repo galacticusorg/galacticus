@@ -29,8 +29,8 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
      !% A merger tree importer class for \glc\ format merger tree files.
      private
-     type   (hdf5Object     )                            :: file                  , haloTrees
-     type   (statefulInteger)                            :: hasSubhalos           , areSelfContained      , &
+     type   (hdf5Object     )                            :: file              , haloTrees
+     type   (statefulInteger)                            :: hasSubhalos       , areSelfContained , &
           &                                                 includesHubbleFlow    , periodicPositions     , &
           &                                                 lengthStatus
      type   (statefulLogical)                            :: massesAreInclusive
@@ -39,9 +39,10 @@
           &                                                 timeUnit              , velocityUnit
      logical                                             :: fatalMismatches       , treeIndicesRead       , &
           &                                                 angularMomentaIsScalar, angularMomentaIsVector, &
-          &                                                 spinIsScalar          , spinIsVector
+          &                                                 spinIsScalar          , spinIsVector          , &
+          &                                                 reweightTrees
      integer                                             :: treesCount
-     integer                 , allocatable, dimension(:) :: firstNodes            , nodeCounts
+     integer                 , allocatable, dimension(:) :: firstNodes        , nodeCounts
      integer(kind=kind_int8 ), allocatable, dimension(:) :: treeIndices
      double precision        , allocatable, dimension(:) :: weights
      type   (hdf5Object     )                            :: particles
@@ -86,7 +87,7 @@
   logical            :: galacticusInitialized                     =.false.
 
   ! Default settings.
-  logical            :: mergerTreeImportGalacticusMismatchIsFatal
+  logical            :: mergerTreeImportGalacticusMismatchIsFatal, mergerTreeImportGalacticusReweightTrees
 
   ! Particle epoch enumeration.
   integer, parameter :: galacticusParticleEpochTypeTime           =0
@@ -116,6 +117,17 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeImportGalacticusMismatchIsFatal',mergerTreeImportGalacticusMismatchIsFatal,defaultValue=.true.)
+          !@ <inputParameter>
+          !@   <name>mergerTreeImportGalacticusReweightTrees</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <defaultValue>false</defaultValue>
+          !@   <description>
+          !@     Specifies whether merger tree weights should be recomputed from the halo mass function.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeImportGalacticusReweightTrees',mergerTreeImportGalacticusReweightTrees,defaultValue=.false.)
           galacticusInitialized=.true.
        end if
        !$omp end critical (mergerTreeImporterGalacticusInitialize)
@@ -128,6 +140,7 @@ contains
     galacticusDefaultConstructor%length            %isSet=.false.
     galacticusDefaultConstructor%treeIndicesRead         =.false.
     galacticusDefaultConstructor%fatalMismatches         =mergerTreeImportGalacticusMismatchIsFatal
+    galacticusDefaultConstructor%reweightTrees           =mergerTreeImportGalacticusReweightTrees
     return
   end function galacticusDefaultConstructor
 
@@ -531,17 +544,97 @@ contains
   subroutine galacticusTreeIndicesRead(self)
     !% Read the tree indices.
     use Galacticus_Error
+    use HDF5
+    use Sort
+    use Cosmology_Functions
+    use Numerical_Constants_Astronomical
+    use Halo_Mass_Function
     implicit none
-    class(mergerTreeImporterGalacticus), intent(inout) :: self
-    type (hdf5Object                  )                :: treeIndexGroup
-
+    class           (mergerTreeImporterGalacticus), intent(inout)             :: self
+    type            (hdf5Object                  )                            :: treeIndexGroup
+    integer         (kind=kind_int8              ), allocatable, dimension(:) :: descendentIndex
+    double precision                              , allocatable, dimension(:) :: nodeMass       , treeMass , nodeTime, treeTime
+    integer         (kind=HSIZE_T                )             , dimension(1) :: firstNodeIndex , nodeCount
+    integer         (kind=c_size_t               ), allocatable, dimension(:) :: sortOrder
+    class           (cosmologyFunctionsClass     ), pointer                   :: cosmologyFunctionsDefault
+    integer                                                                   :: i              , iNode
+    double precision                                                          :: massMinimum    , massMaximum
+    
     if (self%treeIndicesRead) return
     if (self%file%hasGroup("treeIndex")) then
        treeIndexGroup=self%file%openGroup("treeIndex")
        call treeIndexGroup%readDataset("firstNode"    ,self%firstNodes )
        call treeIndexGroup%readDataset("numberOfNodes",self%nodeCounts )
        call treeIndexGroup%readDataset("treeIndex"    ,self%treeIndices)
-       if (treeIndexGroup%hasDataset("treeWeight")) call treeIndexGroup%readDataset("treeWeight",self%weights)
+       if (self%reweightTrees) then
+          cosmologyFunctionsDefault => cosmologyFunctions()
+          allocate(self%weights(size(self%firstNodes)))
+          allocate(treeMass    (size(self%firstNodes)))
+          allocate(treeTime    (size(self%firstNodes)))
+          do i=1,size(self%firstNodes)
+             firstNodeIndex(1)=self%firstNodes(i)+1
+             nodeCount     (1)=self%nodeCounts(i)
+             ! Allocate the nodes array.
+             allocate(descendentIndex(nodeCount(1)))
+             allocate(nodeMass       (nodeCount(1)))
+             allocate(nodeTime       (nodeCount(1)))
+             !$omp critical(HDF5_Access)
+             call self%haloTrees%readDatasetStatic("descendentIndex",descendentIndex,firstNodeIndex,nodeCount)
+             call self%haloTrees%readDatasetStatic("nodeMass"       ,nodeMass       ,firstNodeIndex,nodeCount)
+             if      (self%haloTrees%hasDataset("time"           )) then
+                ! Time is present, so read it.
+                call self%haloTrees%readDatasetStatic("time"           ,nodeTime,firstNodeIndex,nodeCount)
+                nodeTime=importerUnitConvert(nodeTime,nodeTime,self%timeUnit,gigaYear)
+             else if (self%haloTrees%hasDataset("expansionFactor")) then
+                ! Expansion factor is present, read it instead.
+                call self%haloTrees%readDatasetStatic("expansionFactor",nodeTime,firstNodeIndex,nodeCount)
+                ! Convert expansion factors to times.
+                do iNode=1,nodeCount(1)
+                   nodeTime(iNode)=cosmologyFunctionsDefault%cosmicTime(nodeTime(iNode))
+                end do
+             else if (self%haloTrees%hasDataset("redshift"       )) then
+                ! Redshift is present, read it instead.
+                call self%haloTrees%readDatasetStatic("redshift"       ,nodeTime,firstNodeIndex,nodeCount)
+                ! Convert redshifts to times.
+                do iNode=1,nodeCount(1)
+                   nodeTime(iNode)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodeTime(iNode)))
+                end do
+             else
+                call Galacticus_Error_Report("galacticusImport","one of time, redshift or expansionFactor data sets must be present in haloTrees group")
+             end if
+             !$omp end critical(HDF5_Access)
+             if (count(descendentIndex == -1) /= 1) call Galacticus_Error_Report('galacticusTreeIndicesRead','reweighting trees requires there to be only only root node')
+             treeMass(i)=sum(nodeMass,mask=descendentIndex == -1)
+             treeTime(i)=sum(nodeTime,mask=descendentIndex == -1)
+             deallocate(descendentIndex)
+             deallocate(nodeMass       )
+             deallocate(nodeTime       )
+          end do
+          ! Sort the trees into mass order.
+          sortOrder=Sort_Index_Do(treeMass)
+          ! Compute the weight for each tree.
+          do i=1,size(self%firstNodes)
+             ! Get the minimum mass of the interval occupied by this tree.
+             if (i == 1) then
+                massMinimum=treeMass(sortOrder(i))*sqrt(treeMass(sortOrder(i))/treeMass(sortOrder(i+1)))
+             else
+                massMinimum=sqrt(treeMass(sortOrder(i))*treeMass(sortOrder(i-1)))
+             end if
+             ! Get the maximum mass of the interval occupied by this tree.
+             if (i == size(self%firstNodes)) then
+                massMaximum=treeMass(sortOrder(i))*sqrt(treeMass(sortOrder(i))/treeMass(sortOrder(i-1)))
+             else
+                massMaximum=sqrt(treeMass(sortOrder(i))*treeMass(sortOrder(i+1)))
+             end if
+             ! Get the integral of the halo mass function over this range.
+             self%weights(sortOrder(i))=Halo_Mass_Function_Integrated(treeTime(sortOrder(i)),massMinimum,massMaximum)
+          end do
+          call treeIndexGroup%readDatasetStatic("treeWeight",self%weights)
+          deallocate(treeMass)
+          deallocate(treeTime)
+       else if (treeIndexGroup%hasDataset("treeWeight")) then
+          call treeIndexGroup%readDataset("treeWeight",self%weights)
+       end if
        call treeIndexGroup%close()
        self%treesCount=size(self%treeIndices)
        ! Reset first node indices to Fortran array standard.
@@ -621,7 +714,7 @@ contains
     !% Return true if particle counts are available.
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
-
+    
     !$omp critical(HDF5_Access)
     galacticusParticleCountAvailable=self%haloTrees%hasDataset("particleCount")
     !$omp end critical(HDF5_Access)
@@ -663,7 +756,7 @@ contains
     !% Return true if angular momenta vectors are available.
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
-
+    
     galacticusAngularMomenta3DAvailable=self%angularMomentaIsVector
     return
   end function galacticusAngularMomenta3DAvailable
@@ -672,7 +765,7 @@ contains
     !% Return true if spins are available.
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
-    
+
     galacticusSpinAvailable=self%spinIsScalar.or.self%spinIsVector
     return
   end function galacticusSpinAvailable
@@ -844,8 +937,8 @@ contains
     if (present(requireAngularMomenta).and.requireAngularMomenta) then
        if (self%angularMomentaIsVector) then
           call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
-          ! Transfer to nodes.
-          forall(iNode=1:nodeCount(1))
+       ! Transfer to nodes.
+       forall(iNode=1:nodeCount(1))
              nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum3D(:,iNode))
           end forall
           call Dealloc_Array(angularMomentum3D)
@@ -854,8 +947,8 @@ contains
           ! Transfer to nodes.
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum(iNode))
-          end forall
-          call Dealloc_Array(angularMomentum)
+       end forall
+       call Dealloc_Array(angularMomentum)
        else
           call Galacticus_Error_Report("galacticusImport","scalar angular momentum is not available")
        end if
