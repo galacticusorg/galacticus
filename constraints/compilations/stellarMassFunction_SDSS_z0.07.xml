@@ -4,6 +4,7 @@
 
   <!-- z=0.07 stellar mass function -->
   <constraint>
+    <name>$z=0.07$ SDDS stellar mass function</name>
     <definition>constraints/constraints/stellarMassFunction_SDSS_z0.07.xml</definition>
     <weight>1.0</weight>
   </constraint>
