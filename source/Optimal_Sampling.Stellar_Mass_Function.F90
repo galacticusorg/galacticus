@@ -126,7 +126,7 @@ contains
 
   function Stellar_Mass_Function_Integrand(mass,parameterPointer) bind(c)
     !% The integrand (as a function of halo mass) giving the stellar mass function.
-    use Conditional_Stellar_Mass_Functions
+    use Conditional_Mass_Functions
     implicit none
     real            (kind=c_double)            :: Stellar_Mass_Function_Integrand
     real            (kind=c_double), value     :: mass
@@ -135,8 +135,8 @@ contains
     double precision                           :: conditionalStellarMassFunction
 
     conditionalStellarMassFunction=&
-         & (Cumulative_Conditional_Stellar_Mass_Function(mass,stellarMass*(10.0d0**(+0.5d0*deltaLogMass))) &
-         & -Cumulative_Conditional_Stellar_Mass_Function(mass,stellarMass*(10.0d0**(-0.5d0*deltaLogMass))) &
+         & (Cumulative_Conditional_Mass_Function(mass,stellarMass*(10.0d0**(+0.5d0*deltaLogMass))) &
+         & -Cumulative_Conditional_Mass_Function(mass,stellarMass*(10.0d0**(-0.5d0*deltaLogMass))) &
          & /(10.0d0**(+0.5d0*deltaLogMass)-10.0d0**(-0.5d0*deltaLogMass)))
 
     Stellar_Mass_Function_Integrand=Halo_Mass_Function_Differential(time,mass)*conditionalStellarMassFunction
