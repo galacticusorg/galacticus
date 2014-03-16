@@ -61,7 +61,8 @@ contains
     type            (mergerTree              ), intent(in   ), target                                 :: thisTree
     integer                                                                               , parameter :: hdfChunkSize                   =1024, hdfCompressionLevel=9
     double precision                                         , allocatable, dimension(:  )            :: nodeMass                            , nodeRedshift         , &
-         &                                                                                               snapshotTime                        , snapshotTimeTemp
+         &                                                                                               snapshotTime                        , snapshotTimeTemp     , &
+         &                                                                                               treeWeight
     double precision                                         , allocatable, dimension(:,:)            :: nodePosition                        , nodeVelocity
     integer         (kind=kind_int8          )               , allocatable, dimension(:  )            :: descendentIndex                     , nodeIndex            , &
          &                                                                                               nodeSnapshot                        , treeIndex
@@ -179,6 +180,7 @@ contains
 
           ! Allocate arrays for serialization.
           call Alloc_Array(treeIndex      ,[nodeCount])
+          call Alloc_Array(treeWeight     ,[nodeCount])
           call Alloc_Array(nodeIndex      ,[nodeCount])
           call Alloc_Array(descendentIndex,[nodeCount])
           call Alloc_Array(nodeMass       ,[nodeCount])
@@ -213,9 +215,10 @@ contains
           ! Get the default cosmology functions object.
           cosmologyFunctionsDefault => cosmologyFunctions()
           ! Serialize node data to arrays and write to merger tree data structure.
-          treeIndex=currentTree%index
-          nodeCount=0
-          thisNode => currentTree%baseNode
+          treeIndex =currentTree%index
+          treeWeight=currentTree%volumeWeight
+          nodeCount =0
+          thisNode  => currentTree%baseNode
           snapshotInterpolatorReset=.true.
           do while (associated(thisNode))
              nodeCount=nodeCount+1
@@ -232,6 +235,7 @@ contains
              call thisNode%walkTree(thisNode)
           end do
           call Interpolate_Done(interpolationAccelerator=snapshotInterpolatorAccelerator,reset=snapshotInterpolatorReset)
+          call mergerTrees%setProperty(propertyTypeTreeWeight     ,treeWeight     )
           call mergerTrees%setProperty(propertyTypeTreeIndex      ,treeIndex      )
           call mergerTrees%setProperty(propertyTypeNodeIndex      ,nodeIndex      )
           call mergerTrees%setProperty(propertyTypeHostIndex      ,nodeIndex      )
@@ -258,6 +262,7 @@ contains
 
           ! Deallocate arrays.
           call Dealloc_Array(treeIndex      )
+          call Dealloc_Array(treeWeight     )
           call Dealloc_Array(nodeIndex      )
           call Dealloc_Array(descendentIndex)
           call Dealloc_Array(nodeMass       )
