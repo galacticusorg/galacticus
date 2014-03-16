@@ -30,7 +30,6 @@ module Sort
      module procedure Sort_Index_Do_Double
      module procedure Sort_Index_Do_Integer8
      module procedure Sort_Index_Do_Integer
-     module procedure Sort_Index_Do_Double
   end interface
 
   interface Sort_Do
