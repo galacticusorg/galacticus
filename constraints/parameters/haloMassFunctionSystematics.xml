@@ -1,0 +1,40 @@
+<!-- Definition of halo mass function systematic error model. The model assumes that     -->
+<!-- the fractional residual in the halo mass function can be described by a first-order -->
+<!-- polynomial in the log of halo mass. The priors of the two coefficients in that      -->
+<!-- polynomial is modelled as a mutltivariate Gaussian. This file defines two variables -->
+<!-- with unit normal priors, and defines the coefficients of the halo mass function     -->
+<!-- systematic error model as a linear transformation of these two variables. The       -->
+<!-- covariance of the parameters was determined by fitting the simple systematic error  -->
+<!-- model to the residuals reported in the lower panel of Figure 17 of Knebe et al.     -->
+<!-- (2011; http://adsabs.harvard.edu/abs/2011MNRAS.415.2293K).                          -->
+
+<parameters>
+  <parameter>
+    <name>haloMassFunctionSystematic1</name>
+    <prior>
+      <distribution>normal</distribution>
+      <mean>0</mean>
+      <variance>1</variance>
+      <lowerLimit>-5</lowerLimit>
+      <upperLimit>+5</upperLimit>
+    </prior>
+  </parameter>
+  <parameter>
+    <name>haloMassFunctionSystematic2</name>
+    <prior>
+      <distribution>normal</distribution>
+      <mean>0</mean>
+      <variance>1</variance>
+      <lowerLimit>-5</lowerLimit>
+      <upperLimit>+5</upperLimit>
+    </prior>
+  </parameter>
+  <parameter>
+    <name>haloMassFunctionSimpleSystematicAlpha</name>
+    <define>-0.0197873321812387+0.0955749996544321*%haloMassFunctionSystematic1</define>
+  </parameter>
+  <parameter>
+    <name>haloMassFunctionSimpleSystematicBeta</name>
+    <define>0.00986021548527724-0.0496307985720269*%haloMassFunctionSystematic1+0.0272354978362647*%haloMassFunctionSystematic2</define>
+  </parameter>
+</parameters>
