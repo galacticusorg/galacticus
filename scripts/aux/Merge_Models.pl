@@ -268,7 +268,7 @@ foreach my $outputGroup ( keys(%outputRules) ) {
 		# Place the base group on a stack.
 		my @groupStack = ( $outputGroup );
 		# Process groups until none remain.
-		while ( scalar(@groupStack) > 1 ) {
+		while ( scalar(@groupStack) > 0 ) {
 		    # Pop a group from the stack.
 		    my $thisGroup = shift @groupStack;
 		    # Get a list of groups.

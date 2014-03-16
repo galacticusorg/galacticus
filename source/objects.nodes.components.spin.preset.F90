@@ -141,7 +141,7 @@ contains
     class(nodeComponentSpin )               , pointer :: parentSpinComponent , thisSpinComponent
     class(nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent
 
-    ! Ensure that the spin component is of the random class.
+    ! Ensure that the spin component is of the preset class.
     thisSpinComponent => thisNode%spin()
     select type (thisSpinComponent)
     class is (nodeComponentSpinPreset)

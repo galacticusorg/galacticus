@@ -15,35 +15,41 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements postprocessing of stellar spectra to keep only recent populations.
+  !% An implementation of a spectrum postprocessor that does nothing.
 
-module Stellar_Population_Spectra_Postprocessing_Identity
-  !% Implements postprocessing of stellar spectra to keep only identity populations.
-  use ISO_Varying_String
-  public :: Stellar_Population_Spectra_Postprocess_Identity_Init
+  !# <spectraPostprocessor name="spectraPostprocessorIdentity">
+  !#  <description>Performs an indentity postprocessing of spectra.</description>
+  !# </spectraPostprocessor>
+
+  type, extends(spectraPostprocessorClass) :: spectraPostprocessorIdentity
+     !% An identity spectrum postprocessor.
+     private
+   contains
+     procedure :: apply => identityApply
+  end type spectraPostprocessorIdentity
+
+  interface spectraPostprocessorIdentity
+     !% Constructors for the identity spectrum postprocessor class.
+     module procedure identityDefaultConstructor
+  end interface spectraPostprocessorIdentity
 
 contains
 
-  !# <stellarPopulationSpectraPostprocessInitialize>
-  !#  <unitName>Stellar_Population_Spectra_Postprocess_Identity_Init</unitName>
-  !# </stellarPopulationSpectraPostprocessInitialize>
-  subroutine Stellar_Population_Spectra_Postprocess_Identity_Init(stellarPopulationSpectraPostprocessMethod,postprocessingFunction)
-    !% Initializes the ``identity'' stellar spectrum postprocessing module.
+  function identityDefaultConstructor()
+    !% Default constructor for the identity spectrum postprocessor class.
     implicit none
-    type     (varying_string), intent(in   )          :: stellarPopulationSpectraPostprocessMethod
-    procedure(              ), intent(inout), pointer :: postprocessingFunction
-
-    if (stellarPopulationSpectraPostprocessMethod == 'identity') postprocessingFunction => Stellar_Population_Spectra_Postprocess_Identity
-    return
-  end subroutine Stellar_Population_Spectra_Postprocess_Identity_Init
-
-  subroutine Stellar_Population_Spectra_Postprocess_Identity(wavelength,age,redshift,modifier)
-    !% An identity operator for postprocessing of stellar spectra (i.e. does nothing).
-    implicit none
-    double precision, intent(in   ) :: age     , redshift, wavelength
-    double precision, intent(inout) :: modifier
+    type(spectraPostprocessorIdentity), target :: identityDefaultConstructor
 
     return
-  end subroutine Stellar_Population_Spectra_Postprocess_Identity
+  end function identityDefaultConstructor
 
-end module Stellar_Population_Spectra_Postprocessing_Identity
+  subroutine identityApply(self,wavelength,age,redshift,modifier)
+    !% Perform an identity postprocessing on a spectrum.
+    implicit none
+    class           (spectraPostprocessorIdentity), intent(inout) :: self
+    double precision                              , intent(in   ) :: age     , redshift, wavelength
+    double precision                              , intent(inout) :: modifier
+
+    modifier=modifier
+    return
+  end subroutine identityApply

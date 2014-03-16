@@ -90,7 +90,7 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
     my $heliumAbundanceSolar      = 0.100;
     
     # Specify Cloudy version.
-    my $cloudyVersion = "c13.02";
+    my $cloudyVersion = "c13.03";
 
     # Download the code.
     unless ( -e "aux/".$cloudyVersion.".tar.gz" ) {

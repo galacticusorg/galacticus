@@ -22,8 +22,8 @@ module Node_Component_Inter_Output_Standard
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Inter_Output_Standard_Rate_Compute    , Node_Component_Inter_Output_Standard_Reset, &
-       &    Node_Component_Inter_Output_Standard_Satellite_Merger
+  public :: Node_Component_Inter_Output_Standard_Rate_Compute    , Node_Component_Inter_Output_Standard_Reset    , &
+       &    Node_Component_Inter_Output_Standard_Satellite_Merger, Node_Component_Inter_Output_Standard_Scale_Set
 
   !# <component>
   !#  <class>interOutput</class>
@@ -51,6 +51,36 @@ module Node_Component_Inter_Output_Standard
 
 contains
 
+  !# <scaleSetTask>
+  !#  <unitName>Node_Component_Inter_Output_Standard_Scale_Set</unitName>
+  !# </scaleSetTask>
+  subroutine Node_Component_Inter_Output_Standard_Scale_Set(thisNode)
+    !% Set scales for properties of {\tt thisNode}.
+    implicit none
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    class           (nodeComponentInterOutput)               , pointer :: thisInterOutput
+    class           (nodeComponentDisk       )               , pointer :: thisDisk
+    class           (nodeComponentSpheroid   )               , pointer :: thisSpheroid
+    double precision                          , parameter              :: massMinimum    =1.0d0
+    double precision                          , parameter              :: timeScale      =1.0d0
+    double precision                                                   :: mass
+
+    ! Get the interoutput component.
+    thisInterOutput => thisNode%interOutput()
+    ! Check if component is of standard class.
+    select type (thisInterOutput)
+    class is (nodeComponentInterOutputStandard)
+       ! Get disk and spheroid components.
+       thisDisk     => thisNode%disk    ()
+       thisSpheroid => thisNode%spheroid()       
+       ! Set scale for masses.
+       mass   = thisDisk%massGas    ()+thisSpheroid%massGas    () &
+            &  +thisDisk%massStellar()+thisSpheroid%massStellar()
+       call thisInterOutput%    diskStarFormationRateScale(max(mass,massMinimum)/timeScale)
+       call thisInterOutput%spheroidStarFormationRateScale(max(mass,massMinimum)/timeScale)
+    end select
+    return
+  end subroutine Node_Component_Inter_Output_Standard_Scale_Set
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Inter_Output_Standard_Rate_Compute</unitName>

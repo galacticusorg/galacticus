@@ -28,7 +28,7 @@ sub Get_Host_Node_Mass {
     &HDF5::Get_Dataset($model,[
 			   $nodeMassDataSet,
 			   "nodeIndex",
-			   "parentNode",
+			   "parentIndex",
 			   "nodeIsIsolated"
 		       ]
 	);

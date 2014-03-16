@@ -107,6 +107,7 @@ foreach my $srcdir ( @sourcedirs ) {
 				$directive = ${$data}{'name'}
 				   if ( exists(${$data}{'name'}) );
 				$directive .= ".".${$data}{'type'};
+				${$includeDirectives{$directive}}{'source'  } = $fileNames[0];
 				${$includeDirectives{$directive}}{'fileName'} = $fileName;
 				${$includeDirectives{$directive}}{'xml'     } = $xmlOutput->XMLout($data);
 			    }

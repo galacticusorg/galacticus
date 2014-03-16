@@ -18,7 +18,9 @@
   !% Implements calculations of satellite merging times using the \cite{lacey_merger_1993} method with a parameterization of
   !% orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}.
  
-  !# <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993Tormen" />
+  !# <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993Tormen">
+  !#  <description>Computes the merging timescale using the method of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}.</description>
+  !# </satelliteMergingTimescales>
   use FGSL
 
   type, extends(satelliteMergingTimescalesLaceyCole1993) :: satelliteMergingTimescalesLaceyCole1993Tormen

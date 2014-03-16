@@ -10,7 +10,7 @@ use File::Which;
 system("cd ..; make Galacticus.exe");
 
 # Run models.
-system("cd ..; mkdir -p testSuite/outputs/test-merger-tree-write; scripts/aux/Run_Galacticus.pl testSuite/parameters/test-merger-tree-write.xml");
+system("cd ..; mkdir -p testSuite/outputs/test-merger-tree-write; scripts/aux/launch.pl testSuite/parameters/test-merger-tree-write.xml");
 
 # Validate the IRATE-format output.
 my $validator = which('iratevalidate');

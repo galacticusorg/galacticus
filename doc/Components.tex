@@ -762,6 +762,36 @@ with $\dot{M}_{\rm node,bound}$ set to the rate given by the {\tt darkMatterHalo
 
 \noindent\emph{Node promotion:} Not applicable (component only exists for satellite nodes).\\
 
+\section{N-body Halo Properties}
+
+This component is intended for tracking of miscellaneous properties derived from N-body simulation merger trees.
+
+\subsection{``Standard'' Implementation}
+
+\subsubsection{Properties}
+
+The standard N-body component implementation defines the following properties:
+\begin{description}
+ \item [{\tt particleCount}] The number of particles in the N-body halo [{\tt nbodyParticleCount}].
+ \item [{\tt velocityMaximum}] The maximum of the N-body halo's rotation curve (in units of km/s) [{\tt nbodyVelocityMaximum}].
+ \item [{\tt velocityDispersion}] The velocity dispersion of the N-body halo (in units of km/s) [{\tt nbodyVelocityDispersion}].
+\end{description}
+
+\subsubsection{Initialization}
+
+The N-body properties of each \gls{node} are assumed to have been preset prior to merger tree initialization. They are assumed to remain constant along each branch of the tree.
+
+\subsubsection{Differential Evolution}
+
+None.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} The properties are updated to equal those of the parent node.\\
 
 \section{Dark Matter Halo Spin}\label{sec:DarkMatterHaloSpinComponent}
 
@@ -816,6 +846,34 @@ The spin parameter evolves linearly with time between \gls{node} and parent node
 
 \noindent\emph{Node promotion:} The spin and growth rate are updated to equal those of the parent node.\\
 
+\subsection{``Preset3D'' Implementation}
+
+The type extends the {\tt preset} spin component implementation, and so provides all properties of that implementation plus those described below.
+
+\subsubsection{Properties}
+
+The preset dark matter halo spin implementation defines the following properties:
+\begin{description}
+ \item [{\tt spinVector}] The spin vector of the halo: $\lambda$ [{\tt spinSpinVector}].
+ \item [{\tt spinVectorGrowthRate}] The growth rate of the spin vector of the halo (in units of Gyr$^{-1}$).
+\end{description}
+
+\subsubsection{Initialization}
+
+The spin vector of each \gls{node} is assumed to have been preset prior to merger tree initialization. The growth rate is comptued assuming linear growth with time along each branch.
+
+\subsubsection{Differential Evolution}
+
+The spin parameter evolves linearly with time between \gls{node} and parent node.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} The spin vector and growth rate are updated to equal those of the parent node.\\
+
 \section{Dark Matter Profile}\label{sec:DarkMatterProfileComponent}
 
 This \gls{component} stores dynamic properties associated with dark matter halo density profiles.
@@ -836,7 +894,33 @@ The scale length of each node, if not already assigned, is assigned using the co
 
 \subsubsection{Differential Evolution}
 
-The scale radius does not evolve.
+The scale radius grows linearly with time to interpolate between the scale radii of child and parent halos.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} None.\\
+
+\subsection{``Scale Preset'' Implementation}\label{sec:DarkMatterProfileScalePreset}
+
+\subsubsection{Properties}
+
+The ``scale preset'' dark matter profile implementation defines the following properties:
+\begin{description}
+ \item [{\tt scale}] The scale length of the density profile [{\tt darkMatterProfileScale}];
+ \item [{\tt scaleGrowthRate}] The growth rate of the scale length of the density profile.
+\end{description}
+
+\subsubsection{Initialization}
+
+The scale length of each node is assumed to be assigned udirng tree construction.
+
+\subsubsection{Differential Evolution}
+
+The scale radius grows linearly with time to interpolate between the scale radii of child and parent halos.
 
 \subsubsection{Event Evolution}
 
@@ -864,7 +948,7 @@ The scale length of each node, if not already assigned, is assigned using the co
 
 \subsubsection{Differential Evolution}
 
-The scale radius and shape parameters do not evolve.
+The scale radius and shape parameter of each node grow linearly with time to interpolate between the scale radii and shape parameters of child and parent halos.
 
 \subsubsection{Event Evolution}
 
@@ -929,6 +1013,44 @@ The number of recent mergers do not evolve.
 \noindent\emph{Node mergers:} If the merger is major and occurs within $\Delta t$ of an output time, the number of recent major mergers is increased by one.\\
 
 \noindent\emph{Satellite merging:} N/A.\\
+
+\noindent\emph{Node promotion:} N/A.\\
+
+\section{Age Statistics}
+
+This \gls{component} records statistics associated with galaxy or halo age.
+
+\subsection{``Standard'' Implementation}
+
+\subsubsection{Properties}
+
+The standard age statistics implementation defines the following properties:
+\begin{description}
+ \item [{\tt (disk|spheroid)TimeWeightedIntegratedSFR}] A time-weighted integral over the star formation rate of the specified component [{\tt ageStatistics(Disk|Spheroid)TimeWeightedIntegratedSFR}];
+ \item [{\tt (disk|spheroid)IntegratedSFR}] A unweighted integral over the star formation rate of the specified component [{\tt ageStatistics(Disk|Spheroid)IntegratedSFR}];
+\end{description}
+
+\subsubsection{Initialization}
+
+The integrals are all initialized to zero.
+
+\subsubsection{Differential Evolution}
+
+The time-weighted integrals evolve as:
+\begin{equation}
+{{\rm d}({M\tau})_\star\over{\rm d}t} = t \phi(t),
+\end{equation}
+where $t$ is cosmic time and $\phi(t)$ is the star formation rate in the component. The unweighted integrals evolve as:
+\begin{equation}
+{{\rm d}{M}_\star\over{\rm d}t} = \phi(t).
+\end{equation}
+The mean cosmic time of formation for the stars in either component can be found by taking the ratio of time-weighted to unweighted integrals. The mean age can then be found by subtracting the mean cosmic time of formation from the present time.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} N/A.\\
+
+\noindent\emph{Satellite merging:} The values of the integrals are removed from the merging galaxy and transferred to the appropriate component of the target galaxy. Additionally, in a major merger, the values of the integral are transferred between components in the target galaxy as dictated by the merging rules.\\
 
 \noindent\emph{Node promotion:} N/A.\\
 

@@ -140,14 +140,15 @@ contains
     use Cooling_Times_Available
     use Chemical_Reaction_Rates_Utilities
     use Cooling_Times
-    use Hot_Halo_Density_Profile
+    use Hot_Halo_Mass_Distributions
     use Hot_Halo_Temperature_Profile
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
-    double precision                                               :: coolingTime         , coolingTimeAvailable   , &
-         &                                                            density             , massToDensityConversion, &
-         &                                                            temperature         , virialRadius
+    type            (treeNode                    ), intent(inout), pointer :: thisNode
+    class           (nodeComponentHotHalo        )               , pointer :: thisHotHaloComponent
+    class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
+    double precision                                                       :: coolingTime                   , coolingTimeAvailable   , &
+         &                                                                    density                       , massToDensityConversion, &
+         &                                                                    temperature                   , virialRadius
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Isothermal_Reset(thisNode)
@@ -185,8 +186,9 @@ contains
        virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode             )
 
        ! Compute density, temperature and abundances.
-       density     =Hot_Halo_Density              (thisNode,virialRadius)
-       temperature =Hot_Halo_Temperature          (thisNode,virialRadius)
+       defaultHotHaloMassDistribution => hotHaloMassDistribution               (                     )
+       density                        =  defaultHotHaloMassDistribution%density(thisNode,virialRadius)
+       temperature                    =  Hot_Halo_Temperature                  (thisNode,virialRadius)
 
        ! Compute the cooling time at the virial radius.
        coolingTime=Cooling_Time(temperature,density,hotAbundances,chemicalDensities,radiation)

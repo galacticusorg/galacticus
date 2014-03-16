@@ -17,7 +17,7 @@
 
   !% An implementation of the merger tree importer class for \glc\ format merger tree files.
 
-  !# <mergerTreeImporter name="mergerTreeImporterGalacticus" />
+  !# <mergerTreeImporter name="mergerTreeImporterGalacticus" description="Importer for \glc\ format merger tree files." />
   use IO_HDF5
   use Stateful_Types
 
@@ -29,17 +29,19 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
      !% A merger tree importer class for \glc\ format merger tree files.
      private
-     type   (hdf5Object     )                            :: file              , haloTrees
-     type   (statefulInteger)                            :: hasSubhalos       , areSelfContained , &
-          &                                                 includesHubbleFlow, periodicPositions, &
+     type   (hdf5Object     )                            :: file                  , haloTrees
+     type   (statefulInteger)                            :: hasSubhalos           , areSelfContained      , &
+          &                                                 includesHubbleFlow    , periodicPositions     , &
           &                                                 lengthStatus
      type   (statefulLogical)                            :: massesAreInclusive
      type   (statefulDouble )                            :: length
-     type   (importerUnits  )                            :: massUnit          , lengthUnit       , &
-          &                                                 timeUnit          , velocityUnit
-     logical                                             :: fatalMismatches   , treeIndicesRead
+     type   (importerUnits  )                            :: massUnit              , lengthUnit            , &
+          &                                                 timeUnit              , velocityUnit
+     logical                                             :: fatalMismatches       , treeIndicesRead       , &
+          &                                                 angularMomentaIsScalar, angularMomentaIsVector, &
+          &                                                 spinIsScalar          , spinIsVector
      integer                                             :: treesCount
-     integer                 , allocatable, dimension(:) :: firstNodes        , nodeCounts
+     integer                 , allocatable, dimension(:) :: firstNodes            , nodeCounts
      integer(kind=kind_int8 ), allocatable, dimension(:) :: treeIndices
      double precision        , allocatable, dimension(:) :: weights
      type   (hdf5Object     )                            :: particles
@@ -63,7 +65,13 @@
      procedure :: nodeCount                   => galacticusNodeCount
      procedure :: positionsAvailable          => galacticusPositionsAvailable
      procedure :: scaleRadiiAvailable         => galacticusScaleRadiiAvailable
+     procedure :: particleCountAvailable      => galacticusParticleCountAvailable
+     procedure :: velocityMaximumAvailable    => galacticusVelocityMaximumAvailable
+     procedure :: velocityDispersionAvailable => galacticusVelocityDispersionAvailable
      procedure :: angularMomentaAvailable     => galacticusAngularMomentaAvailable
+     procedure :: angularMomenta3DAvailable   => galacticusAngularMomenta3DAvailable
+     procedure :: spinAvailable               => galacticusSpinAvailable
+     procedure :: spin3DAvailable             => galacticusSpin3DAvailable
      procedure :: import                      => galacticusImport
      procedure :: subhaloTrace                => galacticusSubhaloTrace
      procedure :: subhaloTraceCount           => galacticusSubhaloTraceCount
@@ -73,13 +81,6 @@
      !% Constructors for the \glc\ format merger tree importer class.
      module procedure galacticusDefaultConstructor
   end interface mergerTreeImporterGalacticus
-
-  interface galacticusUnitConvert
-     !% Unit convertors for \glc\ format tree importer.
-     module procedure galacticusUnitConvertScalar
-     module procedure galacticusUnitConvert1D
-     module procedure galacticusUnitConvert2D
-  end interface galacticusUnitConvert
 
   ! Record of implementation initialization state.
   logical            :: galacticusInitialized                     =.false.
@@ -150,7 +151,7 @@ contains
     class           (mergerTreeImporterGalacticus), intent(inout) :: self
     type            (varying_string              ), intent(in   ) :: fileName
     class           (cosmologyParametersClass    ), pointer       :: thisCosmologyParameters
-    type            (hdf5Object                  )                :: cosmologicalParametersGroup, unitsGroup
+    type            (hdf5Object                  )                :: cosmologicalParametersGroup, unitsGroup, angularMomentumDataset, spinDataset
     type            (varying_string              )                :: message
     character       (len=14                      )                :: valueString
     double precision                                              :: localLittleH0, localOmegaMatter, localOmegaDE, localOmegaBaryon, localSigma8, cosmologicalParameter
@@ -304,6 +305,38 @@ contains
           call Galacticus_Error_Report("galacticusOpen","particles group must have one of time, redshift or expansionFactor datasets")
        end if
     end if
+    ! Check for type of angular momenta data available.
+    self%angularMomentaIsScalar=.false.
+    self%angularMomentaIsVector=.false.
+    if (self%haloTrees%hasDataset("angularMomentum")) then     
+       angularMomentumDataset=self%haloTrees%openDataset("angularMomentum")
+       select case (angularMomentumDataset%rank())
+       case (1)
+          self%angularMomentaIsScalar=.true.
+       case (2)
+          if (angularMomentumDataset%size(1) /= 3) call Galacticus_Error_Report('galacticusOpen','2nd dimension of rank-2 angularMomentum dataset must be 3')
+          self%angularMomentaIsVector=.true.
+       case default
+          call Galacticus_Error_Report('galacticusOpen','angularMomentum dataset must be rank 1 or 2')
+       end select
+       call angularMomentumDataset%close()
+    end if
+    ! Check for type of spin data available.
+    self%spinIsScalar=.false.
+    self%spinIsVector=.false.
+    if (self%haloTrees%hasDataset("spin")) then     
+       spinDataset=self%haloTrees%openDataset("spin")
+       select case (spinDataset%rank())
+       case (1)
+          self%spinIsScalar=.true.
+       case (2)
+          if (spinDataset%size(1) /= 3) call Galacticus_Error_Report('galacticusOpen','2nd dimension of rank-2 spin dataset must be 3')
+          self%spinIsVector=.true.
+       case default
+          call Galacticus_Error_Report('galacticusOpen','spin dataset must be rank 1 or 2')
+       end select
+       call spinDataset%close()
+    end if
     !$omp end critical(HDF5_Access)
     return
   end subroutine galacticusOpen
@@ -454,7 +487,7 @@ contains
        self%length      %isSet=.true.
        self%lengthStatus%isSet=.true.
     end if
-    if (self%lengthStatus%value == booleanTrue) galacticusCubeLength=galacticusUnitConvert(self%length%value,time,self%lengthUnit,megaParsec)
+    if (self%lengthStatus%value == booleanTrue) galacticusCubeLength=importerUnitConvert(self%length%value,time,self%lengthUnit,megaParsec)
     if (present(status)) then
        status=self%lengthStatus%value
     else
@@ -541,13 +574,13 @@ contains
     ! Do we have an array of weights for trees?
     if (allocated(self%weights)) then
        ! We do, so simply return the appropriate weight.
-       galacticusTreeWeight=galacticusUnitConvert(self%weights(i),timePresent,self%lengthUnit**(-3),1.0d0/megaParsec**3)
+       galacticusTreeWeight=importerUnitConvert(self%weights(i),timePresent,self%lengthUnit**(-3),1.0d0/megaParsec**3)
     else
        ! We do not, so attempt to find the volume of the simulation cube.
        lengthSimulationBox=self%cubeLength(timePresent,statusActual)
        if (statusActual == booleanTrue) then
           ! Simulation cube length found, compute the inverse volume.
-          galacticusTreeWeight=galacticusUnitConvert(1.0d0/lengthSimulationBox**3,timePresent,self%lengthUnit**(-3),1.0d0/megaParsec**3)
+          galacticusTreeWeight=1.0d0/lengthSimulationBox**3
        else
           ! No method exists to determine the weight. Return unity.
           galacticusTreeWeight=1.0d0
@@ -584,16 +617,74 @@ contains
     return
   end function galacticusScaleRadiiAvailable
 
+  logical function galacticusParticleCountAvailable(self)
+    !% Return true if particle counts are available.
+    implicit none
+    class(mergerTreeImporterGalacticus), intent(inout) :: self
+
+    !$omp critical(HDF5_Access)
+    galacticusParticleCountAvailable=self%haloTrees%hasDataset("particleCount")
+    !$omp end critical(HDF5_Access)
+    return
+  end function galacticusParticleCountAvailable
+
+  logical function galacticusVelocityMaximumAvailable(self)
+    !% Return true if halo rotation curve velocity maxima are available.
+    implicit none
+    class(mergerTreeImporterGalacticus), intent(inout) :: self
+
+    !$omp critical(HDF5_Access)
+    galacticusVelocityMaximumAvailable=self%haloTrees%hasDataset("velocityMaximum")
+    !$omp end critical(HDF5_Access)
+    return
+  end function galacticusVelocityMaximumAvailable
+
+  logical function galacticusVelocityDispersionAvailable(self)
+    !% Return true if halo velocity dispersions are available.
+    implicit none
+    class(mergerTreeImporterGalacticus), intent(inout) :: self
+
+    !$omp critical(HDF5_Access)
+    galacticusVelocityDispersionAvailable=self%haloTrees%hasDataset("velocityDispersion")
+    !$omp end critical(HDF5_Access)
+    return
+  end function galacticusVelocityDispersionAvailable
+
   logical function galacticusAngularMomentaAvailable(self)
     !% Return true if angular momenta are available.
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
     
-    !$omp critical(HDF5_Access)
-    galacticusAngularMomentaAvailable=self%haloTrees%hasDataset("angularMomentum")
-    !$omp end critical(HDF5_Access)
+    galacticusAngularMomentaAvailable=self%angularMomentaIsScalar.or.self%angularMomentaIsVector
     return
   end function galacticusAngularMomentaAvailable
+
+  logical function galacticusAngularMomenta3DAvailable(self)
+    !% Return true if angular momenta vectors are available.
+    implicit none
+    class(mergerTreeImporterGalacticus), intent(inout) :: self
+
+    galacticusAngularMomenta3DAvailable=self%angularMomentaIsVector
+    return
+  end function galacticusAngularMomenta3DAvailable
+
+  logical function galacticusSpinAvailable(self)
+    !% Return true if spins are available.
+    implicit none
+    class(mergerTreeImporterGalacticus), intent(inout) :: self
+    
+    galacticusSpinAvailable=self%spinIsScalar.or.self%spinIsVector
+    return
+  end function galacticusSpinAvailable
+
+  logical function galacticusSpin3DAvailable(self)
+    !% Return true if spins vectors are available.
+    implicit none
+    class(mergerTreeImporterGalacticus), intent(inout) :: self
+
+    galacticusSpin3DAvailable=self%spinIsVector
+    return
+  end function galacticusSpin3DAvailable
 
   subroutine galacticusSubhaloTrace(self,node,time,position,velocity)
     !% Returns a trace of subhalo position/velocity.
@@ -620,7 +711,7 @@ contains
        cosmologyFunctionsDefault => cosmologyFunctions()
        select case (self%particleEpochType)
        case (galacticusParticleEpochTypeTime           )
-          time=galacticusUnitConvert(time,time,self%timeUnit,gigaYear)
+          time=importerUnitConvert(time,time,self%timeUnit,gigaYear)
        case (galacticusParticleEpochTypeExpansionFactor)
           do i=1,size(time)
              time(i)=cosmologyFunctionsDefault%cosmicTime(                                                      time(i) )
@@ -631,8 +722,8 @@ contains
           end do
        end select
        ! Convert units of position and velocity into Galacticus internal units.
-       position=galacticusUnitConvert(position,time,self%lengthUnit  ,megaParsec)
-       velocity=galacticusUnitConvert(velocity,time,self%velocityUnit,kilo      )
+       position=importerUnitConvert(position,time,self%lengthUnit  ,megaParsec)
+       velocity=importerUnitConvert(velocity,time,self%velocityUnit,kilo      )
     class default
        call Galacticus_Error_Report('galacticusSubhaloTrace','node should be of type nodeDataGalacticus')
     end select
@@ -655,12 +746,13 @@ contains
     return
   end function galacticusSubhaloTraceCount
 
-  subroutine galacticusImport(self,i,nodes,requireScaleRadii,requireAngularMomenta,requirePositions)
+  subroutine galacticusImport(self,i,nodes,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions)
     !% Import the $i^{\rm th}$ merger tree.
     use Memory_Management
     use Cosmology_Functions
     use HDF5
     use Galacticus_Error
+    use Galacticus_Display
     use Vectors
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
@@ -669,12 +761,16 @@ contains
     integer                                       , intent(in   )                              :: i
     class           (nodeData                    ), intent(  out), allocatable, dimension(:  ) :: nodes
     logical                                       , intent(in   ), optional                    :: requireScaleRadii        , requireAngularMomenta, &
-         &                                                                                        requirePositions
+         &                                                                                        requireAngularMomenta3D  , requirePositions     , &
+         &                                                                                        requireParticleCounts    , requireVelocityMaxima, &
+         &                                                                                        requireVelocityDispersions, requireSpin         , &
+         &                                                                                        requireSpin3D
     class           (cosmologyFunctionsClass     ), pointer                                    :: cosmologyFunctionsDefault
     integer         (kind=HSIZE_T                )                            , dimension(1  ) :: firstNodeIndex           , nodeCount
     integer         (kind=kind_int8              )                                             :: iNode
-    double precision                                             , allocatable, dimension(:,:) :: angularMomentum          , position             , &
-         &                                                                                        velocity
+    double precision                                             , allocatable, dimension(  :) :: angularMomentum          , spin
+    double precision                                             , allocatable, dimension(:,:) :: angularMomentum3D        , position             , &
+         &                                                                                        velocity                 , spin3D
     logical                                                                                    :: timesAreInternal
 
     ! Get the default cosmology functions object.
@@ -705,6 +801,9 @@ contains
     else if (self%haloTrees%hasDataset("expansionFactor")) then
        ! Expansion factor is present, read it instead.
        call self%haloTrees%readDatasetStatic("expansionFactor",nodes%nodeTime,firstNodeIndex,nodeCount)
+       ! Validate expansion factors.
+       if (any(nodes%nodeTime <= 0.0d0)) call Galacticus_Error_Report("galacticusImport","expansionFactor dataset values must be >0")
+       if (any(nodes%nodeTime >  1.0d0)) call Galacticus_Display_Message("WARNING: some expansion factors are in the future when importing merger tree",verbosityWarn)
        ! Convert expansion factors to times.
        do iNode=1,nodeCount(1)
           nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(nodes(iNode)%nodeTime)
@@ -712,6 +811,9 @@ contains
     else if (self%haloTrees%hasDataset("redshift"       )) then
        ! Redshift is present, read it instead.
        call self%haloTrees%readDatasetStatic("redshift"       ,nodes%nodeTime,firstNodeIndex,nodeCount)
+      ! Validate redshifts.
+       if (any(nodes%nodeTime <= -1.0d0)) call Galacticus_Error_Report("galacticusImport","redshift dataset values must be >-1")
+       if (any(nodes%nodeTime <   0.0d0)) call Galacticus_Display_Message("WARNING: some redshifts are in the future when importing merger tree",verbosityWarn)
        ! Convert redshifts to times.
        do iNode=1,nodeCount(1)
           nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodes(iNode)%nodeTime))
@@ -722,20 +824,69 @@ contains
     ! Scale or half-mass radius.
     if (present(requireScaleRadii).and.requireScaleRadii) then
        if (self%haloTrees%hasDataset("scaleRadius")) then
+          nodes%halfMassRadius=-1.0d0
           call self%haloTrees%readDatasetStatic("scaleRadius"   ,nodes%scaleRadius   ,firstNodeIndex,nodeCount)
        else
-          nodes%scaleRadius=-1.0d0
+          nodes%scaleRadius   =-1.0d0
           call self%haloTrees%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount)
        end if
     end if
-    ! Halo spin.
+    ! Particle count.
+    if (present(requireParticleCounts     ).and.requireParticleCounts     )                                              &
+         & call self%haloTrees%readDatasetStatic("particleCount"     ,nodes%particleCount     ,firstNodeIndex,nodeCount)
+    ! Velocity maximum.
+    if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                              &
+         & call self%haloTrees%readDatasetStatic("velocityMaximum"   ,nodes%velocityMaximum   ,firstNodeIndex,nodeCount)
+    ! Velocity dispersion.
+    if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                              &
+         & call self%haloTrees%readDatasetStatic("velocityDispersion",nodes%velocityDispersion,firstNodeIndex,nodeCount)
+    ! Halo angular momenta.
     if (present(requireAngularMomenta).and.requireAngularMomenta) then
-       call self%haloTrees%readDataset("angularMomentum",angularMomentum,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
-       ! Transfer to nodes.
-       forall(iNode=1:nodeCount(1))
-          nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum(:,iNode))
-       end forall
-       call Dealloc_Array(angularMomentum)
+       if (self%angularMomentaIsVector) then
+          call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+          ! Transfer to nodes.
+          forall(iNode=1:nodeCount(1))
+             nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum3D(:,iNode))
+          end forall
+          call Dealloc_Array(angularMomentum3D)
+       else if (self%angularMomentaIsScalar) then
+          call self%haloTrees%readDataset("angularMomentum",angularMomentum,[firstNodeIndex(1)],[nodeCount(1)])
+          ! Transfer to nodes.
+          forall(iNode=1:nodeCount(1))
+             nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum(iNode))
+          end forall
+          call Dealloc_Array(angularMomentum)
+       else
+          call Galacticus_Error_Report("galacticusImport","scalar angular momentum is not available")
+       end if
+    end if
+    if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
+       if (.not.self%angularMomentaIsVector) call Galacticus_Error_Report("galacticusImport","vector angular momentum is not available")
+       call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+    end if
+    ! Halo spins.
+    if (present(requireSpin).and.requireSpin) then
+       if (self%spinIsVector) then
+          call self%haloTrees%readDataset("spin",spin3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+          ! Transfer to nodes.
+          forall(iNode=1:nodeCount(1))
+             nodes(iNode)%spin=Vector_Magnitude(spin3D(:,iNode))
+          end forall
+          call Dealloc_Array(spin3D)
+       else if (self%spinIsScalar) then
+          call self%haloTrees%readDataset("spin",spin,[firstNodeIndex(1)],[nodeCount(1)])
+          ! Transfer to nodes.
+          forall(iNode=1:nodeCount(1))
+             nodes(iNode)%spin=Vector_Magnitude(spin(iNode))
+          end forall
+          call Dealloc_Array(spin)
+       else
+          call Galacticus_Error_Report("galacticusImport","scalar spin is not available")
+       end if
+    end if
+    if (present(requireSpin3D).and.requireSpin3D) then
+       if (.not.self%spinIsVector) call Galacticus_Error_Report("galacticusImport","vector spin is not available")
+       call self%haloTrees%readDataset("spin",spin3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
     end if
     ! Positions (and velocities).
     if (present(requirePositions).and.requirePositions) then
@@ -785,17 +936,29 @@ contains
     if (self%velocityUnit%status.and.self%velocityUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for velocity')
     if (self%    timeUnit%status.and.self%    timeUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for time'    )
     if (.not.timesAreInternal)                                                                                                                                         &
-         & nodes%nodeTime       =galacticusUnitConvert(nodes%nodeTime       ,nodes%nodeTime,self%timeUnit                                  ,gigaYear                 )
-    nodes       %nodeMass       =galacticusUnitConvert(nodes%nodeMass       ,nodes%nodeTime,                                  self%massUnit,                massSolar)
+         & nodes%nodeTime       =importerUnitConvert(nodes%nodeTime       ,nodes%nodeTime,self%timeUnit                                  ,gigaYear                 )
+    nodes       %nodeMass       =importerUnitConvert(nodes%nodeMass       ,nodes%nodeTime,                                  self%massUnit,                massSolar)
     if (present(requireScaleRadii).and.requireScaleRadii) then
-       nodes    %scaleRadius    =galacticusUnitConvert(nodes%scaleRadius    ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
-       nodes    %halfMassRadius =galacticusUnitConvert(nodes%halfMassRadius ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
+       nodes    %scaleRadius    =importerUnitConvert(nodes%scaleRadius    ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
+       nodes    %halfMassRadius =importerUnitConvert(nodes%halfMassRadius ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
     end if
-    if (present(requireAngularMomenta).and.requireAngularMomenta)                                                                                                      &
-         & nodes%angularMomentum=galacticusUnitConvert(nodes%angularMomentum,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
+    if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                                                                                  &
+         &  nodes%velocityMaximum  =importerUnitConvert(nodes%velocityMaximum   ,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
+    if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                                                                                  &
+         & nodes%velocityDispersion=importerUnitConvert(nodes%velocityDispersion,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
+    if (present(requireAngularMomenta     ).and.requireAngularMomenta     )                                                                                                  &
+         & nodes%angularMomentum   =importerUnitConvert(nodes%angularMomentum   ,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
+    if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
+       angularmomentum3d=importerUnitConvert(angularmomentum3d,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
+       ! Transfer to nodes.
+       forall(iNode=1:nodeCount(1))
+          nodes(iNode)%angularMomentum3D=angularMomentum3D(:,iNode)
+       end forall
+       call Dealloc_Array(angularMomentum3D)
+    end if
     if (present(requirePositions).and.requirePositions) then
-       position=galacticusUnitConvert(position,nodes%nodeTime,self%  lengthUnit,megaParsec)
-       velocity=galacticusUnitConvert(velocity,nodes%nodeTime,self%velocityUnit,kilo      )
+       position=importerUnitConvert(position,nodes%nodeTime,self%  lengthUnit,megaParsec)
+       velocity=importerUnitConvert(velocity,nodes%nodeTime,self%velocityUnit,kilo      )
        ! Transfer to the nodes.  
        forall(iNode=1:self%nodeCounts(i))
           nodes(iNode)%position=position(:,iNode)
@@ -806,81 +969,3 @@ contains
     end if
     return
   end subroutine galacticusImport
-
-  function galacticusUnitConvertScalar(values,times,units,requiredUnits)
-    !% Convert a set of values for \glc\ internal units.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Galacticus_Error
-    implicit none
-    double precision                          , intent(in   ) :: values                    , times
-    type            (importerUnits           ), intent(in   ) :: units
-    double precision                          , intent(in   ) :: requiredUnits
-    double precision                                          :: galacticusUnitConvertScalar
-    class           (cosmologyParametersClass), pointer       :: cosmologyParametersDefault
-    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctionsDefault
-
-    if (.not.units%status) call Galacticus_Error_Report('galacticusUnitConvertScalar','units are not defined')
-    cosmologyParametersDefault => cosmologyParameters()
-    galacticusUnitConvertScalar=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
-    if (units%scaleFactorExponent /= 0) then
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       galacticusUnitConvertScalar=galacticusUnitConvertScalar*cosmologyFunctionsDefault%expansionFactor(times)**units%scaleFactorExponent
-    end if
-    return
-  end function galacticusUnitConvertScalar
-  
-  function galacticusUnitConvert1D(values,times,units,requiredUnits)
-    !% Convert a set of values for \glc\ internal units.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Galacticus_Error
-    implicit none
-    double precision                          , intent(in   ), dimension(           :) :: values                    , times
-    type            (importerUnits           ), intent(in   )                          :: units
-    double precision                          , intent(in   )                          :: requiredUnits
-    double precision                                         , dimension(size(values)) :: galacticusUnitConvert1D
-    class           (cosmologyParametersClass), pointer                                :: cosmologyParametersDefault
-    class           (cosmologyFunctionsClass ), pointer                                :: cosmologyFunctionsDefault
-    integer                                                                            :: i
-
-    if (.not.units%status) call Galacticus_Error_Report('galacticusUnitConvert1D','units are not defined')
-    cosmologyParametersDefault => cosmologyParameters()
-    galacticusUnitConvert1D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
-    if (units%scaleFactorExponent /= 0) then
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       do i=1,size(values)
-          galacticusUnitConvert1D(i)=galacticusUnitConvert1D(i)*cosmologyFunctionsDefault%expansionFactor(times(i))**units%scaleFactorExponent
-       end do
-    end if
-    return
-  end function galacticusUnitConvert1D
-  
-  function galacticusUnitConvert2D(values,times,units,requiredUnits)
-    !% Convert a set of values for \glc\ internal units.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Galacticus_Error
-    implicit none
-    double precision                          , intent(in   ), dimension(                 :,                 :) :: values
-    double precision                          , intent(in   ), dimension(                                    :) :: times
-    type            (importerUnits           ), intent(in   )                                                   :: units
-    double precision                          , intent(in   )                                                   :: requiredUnits
-    double precision                                         , dimension(size(values,dim=1),size(values,dim=2)) :: galacticusUnitConvert2D
-    class           (cosmologyParametersClass), pointer                                                         :: cosmologyParametersDefault
-    class           (cosmologyFunctionsClass ), pointer                                                         :: cosmologyFunctionsDefault
-    integer                                                                                                     :: i
-
-    if (.not.units%status) call Galacticus_Error_Report('galacticusUnitConvert2D','units are not defined')
-    cosmologyParametersDefault => cosmologyParameters()
-    galacticusUnitConvert2D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
-    if (units%scaleFactorExponent /= 0) then
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       do i=1,size(values,dim=2)
-          galacticusUnitConvert2D(:,i)=galacticusUnitConvert2D(:,i)*cosmologyFunctionsDefault%expansionFactor(times(i))**units%scaleFactorExponent
-       end do
-    end if
-    return
-  end function galacticusUnitConvert2D
-  
-  

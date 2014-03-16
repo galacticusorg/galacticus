@@ -37,7 +37,7 @@
     <value>Zhao2009</value>
   </parameter>
   <parameter>
-    <name>darkMatterConcentrationMethod</name>
-    <value>Zhao2009</value>
+    <name>darkMatterProfileConcentrationMethod</name>
+    <value>zhao2009</value>
   </parameter>
 </parameters>

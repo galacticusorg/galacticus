@@ -15,62 +15,63 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{munoz-cuartas_redshift_2011} NFW halo concentration algorithm.
+  !% An implementation of dark matter halo profile concentrations using the \cite{munoz-cuartas_redshift_2011} algorithm.
 
-module Dark_Matter_Profiles_Concentrations_MunozCuartas2011
-  !% Implements the \cite{munoz-cuartas_redshift_2011} NFW halo concentration algorithm.
-  implicit none
-  private
-  public :: Dark_Matter_Concentrations_MunozCuartas2011_Initialize
+  !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationMunozCuartas2011">
+  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{munoz-cuartas_redshift_2011}.</description>
+  !# </darkMatterProfileConcentration>
+
+  type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationMunozCuartas2011
+     !% A dark matter halo profile concentration class implementing the algorithm of \cite{munoz-cuartas_redshift_2011}.
+     private
+   contains
+     procedure :: concentration => munozCuartas2011Concentration
+  end type darkMatterProfileConcentrationMunozCuartas2011
+
+  interface darkMatterProfileConcentrationMunozCuartas2011
+     !% Constructors for the {\tt munozCuartas2011} dark matter halo profile concentration class.
+     module procedure munozCuartas2011DefaultConstructor
+  end interface darkMatterProfileConcentrationMunozCuartas2011
 
 contains
 
-  !# <darkMatterConcentrationMethod>
-  !#  <unitName>Dark_Matter_Concentrations_MunozCuartas2011_Initialize</unitName>
-  !# </darkMatterConcentrationMethod>
-  subroutine Dark_Matter_Concentrations_MunozCuartas2011_Initialize(darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get)
-    !% Initializes the ``Munoz-Cuartas2011'' halo concentration module.
-    use ISO_Varying_String
+  function munozCuartas2011DefaultConstructor()
+    !% Default constructor for the {\tt munozCuartas2011} dark matter halo profile concentration class.
     implicit none
-    type     (varying_string                                    ), intent(in   )          :: darkMatterConcentrationMethod
-    procedure(Dark_Matter_Profile_Concentration_MunozCuartas2011), intent(inout), pointer :: Dark_Matter_Profile_Concentration_Get
-
-    if (darkMatterConcentrationMethod == 'Munoz-Cuartas2011') Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_MunozCuartas2011
+    type(darkMatterProfileConcentrationMunozCuartas2011), target  :: munozCuartas2011DefaultConstructor
 
     return
-  end subroutine Dark_Matter_Concentrations_MunozCuartas2011_Initialize
+  end function munozCuartas2011DefaultConstructor
 
-  double precision function Dark_Matter_Profile_Concentration_MunozCuartas2011(thisNode)
-    !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{munoz-cuartas_redshift_2011}.
-    use Galacticus_Nodes
+  double precision function munozCuartas2011Concentration(self,node)
+    !% Return the concentration of the dark matter halo profile of {\tt node} using the \cite{munoz-cuartas_redshift_2011} algorithm.
     use Cosmology_Functions
     use Cosmology_Parameters
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
-    double precision                          , parameter              :: alpha                    =-110.001d0, beta               =2469.720d0, &
-         &                                                                gamma                    =16.885d0  , m                  =0.097d0   , &
-         &                                                                w                        =0.029d0
-    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
-    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
-    class           (cosmologyFunctionsClass )               , pointer :: cosmologyFunctionsDefault
-    double precision                                                   :: a                                   , b                             , &
-         &                                                                concentrationLogarithmic            , haloMassLogarithmic           , &
-         &                                                                redshift
+    class           (darkMatterProfileConcentrationMunozCuartas2011), intent(inout)          :: self
+    type            (treeNode                                      ), intent(inout), pointer :: node
+    class           (nodeComponentBasic                            )               , pointer :: basic
+    class           (cosmologyFunctionsClass                       )               , pointer :: cosmologyFunctions_
+    class           (cosmologyParametersClass                      )               , pointer :: cosmologyParameters_
+    double precision                                                , parameter              :: alpha               =-110.001d0, beta               =2469.720d0, &
+         &                                                                                      gamma               =16.885d0  , m                  =0.097d0   , &
+         &                                                                                      w                   =0.029d0
+    double precision                                                                         :: a                                           , b                             , &
+         &                                                                                      concentrationLogarithmic                    , haloMassLogarithmic           , &
+         &                                                                                      redshift
 
     ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
+    cosmologyParameters_ => cosmologyParameters()
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
+    cosmologyFunctions_  => cosmologyFunctions ()
     ! Get the basic component.
-    thisBasicComponent => thisNode%basic()
+    basic                => node%basic         ()
     ! Compute the concentration.
-    redshift                =cosmologyFunctionsDefault%redshiftFromExpansionFactor(cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time()))
-    a                       =w*redshift-m
-    b                       =alpha/(redshift+gamma)+beta/(redshift+gamma)**2
-    haloMassLogarithmic     =log10(thisBasicComponent%mass()*thisCosmologyParameters%HubbleConstant(unitsLittleH))
-    concentrationLogarithmic=a*haloMassLogarithmic+b
-    Dark_Matter_Profile_Concentration_MunozCuartas2011=10.0d0**concentrationLogarithmic
+    redshift                     =cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(basic%time()))
+    a                            =w*redshift-m
+    b                            =alpha/(redshift+gamma)+beta/(redshift+gamma)**2
+    haloMassLogarithmic          =log10(basic%mass()*cosmologyParameters_%HubbleConstant(unitsLittleH))
+    concentrationLogarithmic     =a*haloMassLogarithmic+b
+    munozCuartas2011Concentration=10.0d0**concentrationLogarithmic
     return
-  end function Dark_Matter_Profile_Concentration_MunozCuartas2011
-
-end module Dark_Matter_Profiles_Concentrations_MunozCuartas2011
+  end function munozCuartas2011Concentration

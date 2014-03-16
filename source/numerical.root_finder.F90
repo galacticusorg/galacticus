@@ -136,18 +136,20 @@ contains
     return
   end function Root_Finder_Is_Initialized
 
-  recursive double precision function Root_Finder_Find(self,rootGuess,rootRange)
+  recursive double precision function Root_Finder_Find(self,rootGuess,rootRange,status)
     !% Finds the root of the supplied {\tt root} function.
     use Galacticus_Error
+    use Galacticus_Display
     use ISO_Varying_String
     implicit none
     class           (rootFinder    )              , intent(inout), target   :: self
     real            (kind=c_double )              , intent(in   ), optional :: rootGuess
     real            (kind=c_double ), dimension(2), intent(in   ), optional :: rootRange
+    integer                                       , intent(  out), optional :: status
     class           (rootFinder    ), pointer                               :: previousFinder
     integer                         , parameter                             :: iterationMaximum=1000
     logical                                                                 :: rangeChanged         , rangeLowerAsExpected, rangeUpperAsExpected
-    integer                                                                 :: iteration            , status
+    integer                                                                 :: iteration            , statusActual
     double precision                                                        :: xHigh                , xLow                , xRoot
     type            (c_ptr         )                                        :: parameterPointer
     type            (varying_string)                                        :: message
@@ -305,27 +307,47 @@ contains
           end if
           if (self%rangeUpwardLimitSet  ) then
              write (label,'(e12.6)') self%rangeUpwardLimit
-             message=message//char(10)//"xHigh > "//trim(label)//" being enforced"
+             message=message//char(10)//"xHigh < "//trim(label)//" being enforced"
           end if
-          call Galacticus_Error_Report('Root_Finder_Find',message)
+          if (present(status)) then
+             call Galacticus_Display_Message(message)
+             status=errorStatusOutOfRange
+             return
+          else
+             call Galacticus_Error_Report('Root_Finder_Find',message)
+          end if
        end if
     end do
     ! Find the root.
     currentFinder => self
-    status=FGSL_Root_fSolver_Set(self%solver,self%fgslFunction,xLow,xHigh)
-    if (status /= FGSL_Success) call Galacticus_Error_Report('Root_Finder_Find','failed to initialize solver')
+    statusActual=FGSL_Root_fSolver_Set(self%solver,self%fgslFunction,xLow,xHigh)
+    if (statusActual /= FGSL_Success) then
+       if (present(status)) then
+          status=statusActual
+          return
+       else
+          call Galacticus_Error_Report('Root_Finder_Find','failed to initialize solver')
+       end if
+    end if
     iteration=0
     do
        iteration=iteration+1
-       status=FGSL_Root_fSolver_Iterate(self%solver)
-       if (status /= FGSL_Success .or. iteration > iterationMaximum) exit
+       statusActual=FGSL_Root_fSolver_Iterate(self%solver)
+       if (statusActual /= FGSL_Success .or. iteration > iterationMaximum) exit
        xRoot =FGSL_Root_fSolver_Root   (self%solver)
        xLow  =FGSL_Root_fSolver_x_Lower(self%solver)
        xHigh =FGSL_Root_fSolver_x_Upper(self%solver)
-       status=FGSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
-       if (status == FGSL_Success) exit
+       statusActual=FGSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
+       if (statusActual == FGSL_Success) exit
     end do
-    if (status /= FGSL_Success) call Galacticus_Error_Report('Root_Finder_Find','failed to find root')
+    if (statusActual /= FGSL_Success) then
+       if (present(status)) then
+          status=statusActual
+          return
+       else
+          call Galacticus_Error_Report('Root_Finder_Find','failed to find root')
+       end if
+    end if
     Root_Finder_Find=xRoot
     ! Restore state.
     currentFinder => previousFinder
@@ -368,6 +390,7 @@ contains
 
   subroutine Root_Finder_Range_Expand(self,rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect)
     !% Sets the rules for range expansion to use in a {\tt rootFinder} object.
+    use Galacticus_Error
     implicit none
     class           (rootFinder), intent(inout)           :: self
     integer                     , intent(in   ), optional :: rangeExpandDownwardSignExpect, rangeExpandType    , &

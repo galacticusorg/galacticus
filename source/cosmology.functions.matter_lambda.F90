@@ -18,7 +18,9 @@
   !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
   !% matter plus a cosmological constant.
 
-  !# <cosmologyFunctions name="cosmologyFunctionsMatterLambda" />
+  !# <cosmologyFunctions name="cosmologyFunctionsMatterLambda">
+  !#  <description>Cosmological relations are computed assuming a universe that contains only matter and a cosmological constant.</description>
+  !# </cosmologyFunctions>
   use FGSL
   use Cosmology_Parameters
 
@@ -62,7 +64,7 @@
      !@ <objectMethods>
      !@   <object>cosmologyFunctionsMatterLambda</object>
      !@   <objectMethod>
-     !@     <method>distancetabulate</method>
+     !@     <method>distanceTabulate</method>
      !@     <type>void</type>
      !@     <arguments>\doublezero\ time\argin</arguments>
      !@     <description>Tabulate comoving distance as a function of cosmic time.</description>

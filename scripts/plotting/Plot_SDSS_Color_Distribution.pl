@@ -14,6 +14,7 @@ use PDL::NiceSlice;
 use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
+use File::Which;
 require Galacticus::HDF5;
 require Galacticus::Magnitudes;
 require GnuPlot::PrettyPlots;
@@ -56,7 +57,7 @@ $dataSet->{'store'} = 0;
 
 # Read the XML data file.
 my $xml = new XML::Simple;
-my $data = $xml->XMLin("data/observations/galaxyColors/Galaxy_Colors_SDSS_Weinmann_2006.xml");
+my $data = $xml->XMLin($galacticusPath."data/observations/galaxyColors/Galaxy_Colors_SDSS_Weinmann_2006.xml");
 my $columns = $data->{'galaxyColors'}->{'columns'};
 my $magnitude = pdl @{$columns->{'magnitude'}->{'data'}};
 my $color = pdl @{$columns->{'color'}->{'data'}};
@@ -223,6 +224,8 @@ for(my $iMagnitude=0;$iMagnitude<$magnitudePoints;++$iMagnitude) {
 close(pHndl);
 system("ps2pdf tmp.ps tmp2.pdf");
 unlink($outputFile);
+die("Plot_SDSS_Color_Distribution.pl: 'pdfmerge' tool is required")
+    unless ( which("pdfmerge") );
 &SystemRedirect::tofile("pdfmerge tmp.pdf tmp2.pdf ".$outputFile,"/dev/null");
 unlink("tmp.ps","tmp.pdf","tmp2.pdf");
 &MetaData::Write($outputFile,$galacticusFile,$self);

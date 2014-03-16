@@ -17,7 +17,9 @@
 
   !% Implements calculations of satellite merging times that are always zero.
  
-  !# <satelliteMergingTimescales name="satelliteMergingTimescalesNull" />
+  !# <satelliteMergingTimescales name="satelliteMergingTimescalesNull">
+  !#  <description>Returns a zero timescale for merging.</description>
+  !# </satelliteMergingTimescales>
 
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesNull
      !% A class implementing satellite merging timescales that are always zero.

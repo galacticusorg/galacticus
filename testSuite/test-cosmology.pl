@@ -6,6 +6,6 @@ use warnings;
 # Andrew Benson (05-Sep-2010)
 
 # Simply run the models.
-system("cd ..; scripts/aux/Run_Galacticus.pl testSuite/test-cosmology.xml");
+system("cd ..; scripts/aux/launch.pl testSuite/test-cosmology.xml");
 
 exit;

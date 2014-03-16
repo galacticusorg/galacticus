@@ -145,15 +145,9 @@ perl -MCPAN -e 'install Data::Dumper'
 In addition to the tools listed in \S\ref{sec:requirementsEssential} a typical install (allowing you to run typical analysis tasks for example) requires the following tools to be installed:
 
 \begin{description}
-\item [\href{http://users.obs.carnegiescience.edu/abenson/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz}{{\tt PDL::IO::HDF5}}] Provides a simple Perl interface to HDF5 files\footnote{This is a modified version of the  original \protect\href{http://search.cpan.org/~cerney/PDL-IO-HDF5-0.63/}{{\tt PDL::IO::HDF5}} module. It supports creation and automatic de-referencing of HDF5 region references and also supports reading of numerical attributes and 1-D attribute arrays.}. It is used by analysis scripts to extract data from \glc\ output files. Follow the following instructions (as root) to install this module:
+\item [\href{http://search.cpan.org/~chm/PDL-IO-HDF5-0.6501/hdf5.pd}{{\tt PDL::IO::HDF5}}] Provides a simple Perl interface to HDF5 files. It is used by analysis scripts to extract data from \glc\ output files. It can be installed from CPAN using:
 \begin{verbatim}
- wget http://users.obs.carnegiescience.edu/abenson/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz
- tar xvfz PDL-IO-HDF5-0.6.tar.gz
- cd PDL-IO-HDF5-0.6
- perl Makefile.PL
- make
- make test
- make install
+ perl -MCPAN -e 'install PDL::IO::HDF5'
 \end{verbatim}
 
 \item [poppler] \href{http://poppler.freedesktop.org/}{poppler} is a set of tools for working with PDF files. We use v0.22.2 and recommend the following build sequence. 
@@ -490,16 +484,7 @@ perl -MCPAN -e 'install PDL'
 perl -MCPAN -e 'install PDL::LinearAlgebra'
 perl -MCPAN -e 'install PDL::MatrixOps'
 perl -MCPAN -e 'install PDL::NiceSlice'
-
-! Install PDL::IO::HDF5:
-
-wget http://users.obs.carnegiescience.edu/abenson/galacticus/tools/PDL-IO-HDF5-0.6.tar.gz
-tar xvfz PDL-IO-HDF5-0.6.tar.gz
-cd PDL-IO-HDF5-0.6
-perl Makefile.PL
-make
-make test
-make install
+perl -MCPAN -e 'install PDL::IO::HDF5
 
 ! Install GnuPlot:
 

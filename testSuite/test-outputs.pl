@@ -7,6 +7,6 @@ use warnings;
 # Andrew Benson (26-Jan-2011)
 
 # Simply run the models.
-system("cd ..; scripts/aux/Run_Galacticus.pl testSuite/test-outputs.xml");
+system("cd ..; scripts/aux/launch.pl testSuite/test-outputs.xml");
 
 exit;

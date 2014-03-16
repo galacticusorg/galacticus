@@ -15,7 +15,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-! S\'ersic functions.
+! Sersic functions.
 subroutine Mass_Distribution_Sersic_Initialize(self,index,halfMassRadius,densityNormalization,mass,isDimensionless)
   !% Initialize a S\'ersic mass distribution.
   use Numerical_Constants_Math
@@ -72,7 +72,7 @@ subroutine Mass_Distribution_Sersic_Initialize(self,index,halfMassRadius,density
 end subroutine Mass_Distribution_Sersic_Initialize
 
 double precision function Mass_Distribution_Sersic_Density(self,coordinates)
-  !% Return the density at the specified {\tt coordinates} in a Sersic mass distribution.
+  !% Return the density at the specified {\tt coordinates} in a S\'ersic mass distribution.
   use Coordinates
   use Numerical_Interpolation
   implicit none
@@ -94,27 +94,42 @@ double precision function Mass_Distribution_Sersic_Density(self,coordinates)
   return
 end function Mass_Distribution_Sersic_Density
 
-double precision function Mass_Distribution_Sersic_Density_Radial_Moment(self,moment,isInfinite)
-  !% Returns a radial density moment for the Sersic mass distribution.
+double precision function Mass_Distribution_Sersic_Density_Radial_Moment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
+  !% Returns a radial density moment for the S\'ersic mass distribution.
   use Numerical_Constants_Math
   use Numerical_Comparison
   use Galacticus_Error
   implicit none
   class           (massDistributionSersic), intent(in   )           :: self
-  double precision                        , intent(in   )           :: moment
+  double precision                        , intent(in   )           :: moment    
+  double precision                        , intent(in   ), optional :: radiusMinimum, radiusMaximum
   logical                                 , intent(  out), optional :: isInfinite
   integer                                                           :: iRadius
-  double precision                                                  :: deltaRadius, integrand, previousIntegrand
+  double precision                                                  :: deltaRadius, integrand, previousIntegrand, fractionalRadiusMinimum, fractionalRadiusMaximum
 
   isInfinite=.false.
   Mass_Distribution_Sersic_Density_Radial_Moment=0.0d0
+  if (present(radiusMinimum)) then
+     fractionalRadiusMinimum=radiusMinimum/self%radiusHalfMass
+  else
+     fractionalRadiusMinimum=0.0d0
+  end if
+  if (present(radiusMaximum)) then
+     fractionalRadiusMaximum=radiusMaximum/self%radiusHalfMass
+  else
+     fractionalRadiusMaximum=sersicTableRadius(size(sersicTableRadius))
+  end if
   !$omp critical (Sersic_Profile_Tabulation)
   do iRadius=1,sersicTableCount
      if (iRadius == 1) then
-        deltaRadius      =sersicTableRadius(iRadius)
+        deltaRadius=                                                                                   &
+             & +max(min(sersicTableRadius(iRadius  ),fractionalRadiusMaximum),fractionalRadiusMinimum) &
+             & -max(min(                       0.0d0,fractionalRadiusMaximum),fractionalRadiusMinimum)
         previousIntegrand=0.0d0
      else
-        deltaRadius      =sersicTableRadius(iRadius)-sersicTableRadius(iRadius-1)
+        deltaRadius=                                                                                   &
+             & +max(min(sersicTableRadius(iRadius  ),fractionalRadiusMaximum),fractionalRadiusMinimum) &
+             & -max(min(sersicTableRadius(iRadius-1),fractionalRadiusMaximum),fractionalRadiusMinimum)
         previousIntegrand=sersicTableRadius(iRadius-1)**moment*sersicTableDensity(iRadius-1)
      end if
      integrand=sersicTableRadius(iRadius)**moment*sersicTableDensity(iRadius)
@@ -128,7 +143,7 @@ double precision function Mass_Distribution_Sersic_Density_Radial_Moment(self,mo
 end function Mass_Distribution_Sersic_Density_Radial_Moment
 
 double precision function Mass_Distribution_Sersic_Mass_Enc_By_Sphere(self,radius)
-  !% Computes the mass enclosed within a sphere of given {\tt radius} for Sersic mass distributions.
+  !% Computes the mass enclosed within a sphere of given {\tt radius} for S\'ersic mass distributions.
   use Numerical_Constants_Math
   use Numerical_Interpolation
   implicit none
@@ -151,7 +166,7 @@ double precision function Mass_Distribution_Sersic_Mass_Enc_By_Sphere(self,radiu
 end function Mass_Distribution_Sersic_Mass_Enc_By_Sphere
 
 double precision function Mass_Distribution_Sersic_Potential(self,coordinates)
-  !% Return the potential at the specified {\tt coordinates} in a Sersic mass distribution.
+  !% Return the potential at the specified {\tt coordinates} in a S\'ersic mass distribution.
   use Numerical_Constants_Physical
   use Coordinates
   use Numerical_Interpolation
@@ -181,7 +196,7 @@ double precision function Mass_Distribution_Sersic_Potential(self,coordinates)
 end function Mass_Distribution_Sersic_Potential
 
 double precision function Mass_Distribution_Sersic_Half_Mass_Radius(self)
-  !% Return the half-mass radius of a Sersic mass distribution.
+  !% Return the half-mass radius of a S\'ersic mass distribution.
   implicit none
   class(massDistributionSersic), intent(in   ) :: self
 
@@ -192,7 +207,7 @@ double precision function Mass_Distribution_Sersic_Half_Mass_Radius(self)
 end function Mass_Distribution_Sersic_Half_Mass_Radius
 
 double precision function Mass_Distribution_Sersic_Half_Mass_Radius_Projected(self)
-  !% Return the half-mass radius in projection of a Sersic mass distribution.
+  !% Return the half-mass radius in projection of a S\'ersic mass distribution.
   implicit none
   class(massDistributionSersic), intent(in   ) :: self
 

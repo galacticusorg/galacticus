@@ -11,6 +11,8 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
 unshift(@INC,$galacticusPath."perl"); 
 use List::Uniq ':all';
 use Data::Dumper;
+use XML::Simple;
+require List::ExtraUtils;
 
 # Locate source files which have dependencies on modules.
 
@@ -24,6 +26,13 @@ $make = $ARGV[1]
 
 # Specify work directory.
 my $workDir = "/work/build/";
+
+# Load the file of directive locations.
+my $locations;
+if ( -e "./work/build/Code_Directive_Locations.xml" ) {
+    my $xml    = new XML::Simple;
+    $locations = $xml->XMLin("./work/build/Code_Directive_Locations.xml");
+}
 
 # List of modules to ignore (as they're external to the source code).
 my %ignoreList = (
@@ -230,13 +239,14 @@ foreach my $srcdir ( @sourcedirs ) {
 				push(@scanfiles,$sourcedir."/source/".$Ifile);
 			    } elsif ( -e $sourcedir."/work/build/".$ifile ) {
 				push(@scanfiles,$sourcedir."/work/build/".$ifile);
+			    } elsif ( $ifile =~ m/(.*)\.type\.inc/ ) {
+				&ExtraUtils::smart_push(\@scanfiles,$locations->{$1}->{'file'});
 			    }
 			}
 		    }
 		}
 		close($infile);
 	    }
-
 	    # Output library file rule.
 	    unless ( $oname =~ m/\.Inc$/ ) {
 		my $lname = $oname;
@@ -259,10 +269,9 @@ foreach my $srcdir ( @sourcedirs ) {
 		my @sortedinc = sort @incfiles;
 		# Remove any duplicate entries
 		@sortedinc = uniq(@sortedinc);
-		
 		for (my $i = 0; $i < scalar(@sortedinc); $i += 1) {
 		    foreach my $item (@modfiles) {
-			if ( $sortedinc[$i] eq $item ) {
+			if ( $sortedinc[$i] eq $item ) {	
 			    if ( $i < scalar(@sortedinc)-1 ) {
 				for (my $j = $i; $j < scalar(@sortedinc)-1; $j += 1) {
 				    $sortedinc[$j] = $sortedinc[$j+1];
