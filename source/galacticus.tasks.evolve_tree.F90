@@ -81,6 +81,8 @@ contains
     double precision                , dimension(3), save :: loadAverage
     logical                                       , save :: overloaded                      , treeCanEvolve          , &
          &                                                  treeIsFinished                  , evolutionIsEventLimited, &
+    type            (semaphore     ), pointer            :: galacticusMutex
+    character       (len=32        )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
          &                                                  success
     !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeCanEvolve,treeIsFinished,evolutionIsEventLimited,success)
     type            (semaphore     ), pointer            :: galacticusMutex
