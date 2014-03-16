@@ -27,6 +27,7 @@ module Sort
 
   interface Sort_Index_Do
      !% Generic interface to index sort routines.
+     module procedure Sort_Index_Do_Double
      module procedure Sort_Index_Do_Integer8
   end interface
 
@@ -67,6 +68,18 @@ contains
     Sort_Index_Do_Integer8=Sort_Index_Do_Integer8+1
     return
   end function Sort_Index_Do_Integer8
+
+  function Sort_Index_Do_Double(array)
+    !% Given an unsorted double {\tt array}, sorts it in place.
+    use Kind_Numbers
+    implicit none
+    double precision                , dimension(:)          , intent(in   ) :: array
+    integer         (kind=c_size_t ), dimension(size(array))                :: Sort_Index_Do_Double
+
+    call Sort_Index_Do_Double_C(size(array),array,Sort_Index_Do_Double)
+    Sort_Index_Do_Double=Sort_Index_Do_Double+1
+    return
+  end function Sort_Index_Do_Double
 
   subroutine Sort_Do_Double_C(arraySize,array)
     !% Do a double precision sort.
@@ -112,6 +125,23 @@ contains
     status=FGSL_HeapSort_Index(idx,arrayPointer,arraySizeC,sizeof(1_kind_int8),Compare_Integer8)
     return
   end subroutine Sort_Index_Do_Integer8_C
+
+  subroutine Sort_Index_Do_Double_C(arraySize,array,idx)
+    !% Do a integer sort.
+    use Kind_Numbers
+    implicit none
+    integer                         , intent(in   )         :: arraySize
+    double precision                , intent(in   ), target :: array       (arraySize)
+    integer         (kind=c_size_t ), intent(inout)         :: idx         (arraySize)
+    integer         (kind=c_size_t )                        :: arraySizeC
+    integer                                                 :: status
+    type            (c_ptr         )                        :: arrayPointer
+
+    arrayPointer=c_loc(array)
+    arraySizeC=arraySize
+    status=FGSL_HeapSort_Index(idx,arrayPointer,arraySizeC,sizeof(1_kind_int8),Compare_Double)
+    return
+  end subroutine Sort_Index_Do_Double_C
 
   function Compare_Double(x,y) bind(c)
     !% Comparison function for double precision data.
