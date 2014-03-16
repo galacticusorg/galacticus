@@ -63,6 +63,7 @@ contains
     use Cosmology_Functions
     use FGSL
     use Quasi_Random
+    use Pseudo_Random
     use Halo_Mass_Function
     use Sort
     use Galacticus_Error
@@ -81,24 +82,25 @@ contains
     type            (Node                      )                            , pointer :: doc
     class           (cosmologyFunctionsClass   )                            , pointer :: cosmologyFunctionsDefault
     integer                                     , parameter                           :: massFunctionSamplePerDecade  =100
-    double precision                            , parameter                           :: toleranceAbsolute            =0.0d0 , toleranceRelative                 =1.0d-3
-    double precision                            , allocatable, dimension(:)           :: massFunctionSampleLogMass           , massFunctionSampleLogMassMonotonic       , &
+    double precision                            , parameter                           :: toleranceAbsolute            =1.0d-12, toleranceRelative                 =1.0d-3
+    double precision                            , allocatable, dimension(:)           :: massFunctionSampleLogMass            , massFunctionSampleLogMassMonotonic       , &
          &                                                                               massFunctionSampleProbability
     logical                                                                           :: computeTreeWeights
-    integer                                                                           :: ioErr                               , jSample                                  , &
-         &                                                                               massFunctionSampleCount             , iSample                                  , &
+    integer                                                                           :: ioErr                                , jSample                                  , &
+         &                                                                               massFunctionSampleCount              , iSample                                  , &
          &                                                                               iTree
     type            (fgsl_qrng                 )                                      :: quasiSequenceObject
-    logical                                                                           :: quasiSequenceReset           =.true.
-    double precision                                                                  :: expansionFactor                     , massFunctionSampleLogPrevious            , &
-         &                                                                               massMaximum                         , massMinimum                              , &
+    type            (fgsl_rng                  )                                      :: pseudoSequenceObject
+    logical                                                                           :: quasiSequenceReset           =.true. , pseudoSequenceReset               =.true.
+    double precision                                                                  :: expansionFactor                      , massFunctionSampleLogPrevious            , &
+         &                                                                               massMaximum                          , massMinimum                              , &
          &                                                                               probability
     type            (fgsl_function             )                                      :: integrandFunction
     type            (fgsl_integration_workspace)                                      :: integrationWorkspace
     type            (fgsl_interp               )                                      :: interpolationObject
     type            (fgsl_interp_accel         )                                      :: interpolationAccelerator
     type            (c_ptr                     )                                      :: parameterPointer
-    logical                                                                           :: integrandReset               =.true., interpolationReset                =.true.
+    logical                                                                           :: integrandReset               =.true. , interpolationReset                =.true.
     type(hdf5Object)                                :: treeFile
 
     ! Check if our method is to be used.
@@ -208,7 +210,7 @@ contains
        ! Determine how to compute the tree root masses.
        computeTreeWeights=.true.
        select case (char(mergerTreeBuildTreesHaloMassDistribution))
-       case ("quasi","uniform")
+       case ("quasi","random","uniform")
           ! Generate a randomly sampled set of halo masses.
           treeCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
           call Alloc_Array(treeHaloMass,[treeCount])
@@ -223,6 +225,13 @@ contains
              end do
              call Quasi_Random_Free(quasiSequenceObject)
              call Sort_Do(treeHaloMass)
+          case ("random")
+             ! Use a pseudo-random sequence to generate halo masses.
+             do iTree=1,treeCount
+                treeHaloMass(iTree)=Pseudo_Random_Get(pseudoSequenceObject,reset=pseudoSequenceReset)
+             end do
+             call Pseudo_Random_Free(pseudoSequenceObject)
+             call Sort_Do(treeHaloMass)
           case ("uniform")
              ! Use a uniform distribution in logarithm of halo mass.
              treeHaloMass=Make_Range(0.0d0,1.0d0,treeCount,rangeType=rangeTypeLinear)
@@ -234,13 +243,17 @@ contains
           call Alloc_Array(massFunctionSampleLogMass         ,[massFunctionSampleCount])
           call Alloc_Array(massFunctionSampleLogMassMonotonic,[massFunctionSampleCount])
           call Alloc_Array(massFunctionSampleProbability     ,[massFunctionSampleCount])
-          massFunctionSampleLogMass=Make_Range(log10(mergerTreeBuildHaloMassMinimum),log10(mergerTreeBuildHaloMassMaximum),massFunctionSampleCount,rangeType=rangeTypeLogarithmic)
+          massFunctionSampleLogMass=Make_Range(log10(mergerTreeBuildHaloMassMinimum),log10(mergerTreeBuildHaloMassMaximum),massFunctionSampleCount,rangeType=rangeTypeLinear)
           massFunctionSampleLogPrevious=log10(mergerTreeBuildHaloMassMinimum)
           jSample=0
           do iSample=1,massFunctionSampleCount
-             probability=Integrate(massFunctionSampleLogPrevious&
-                  &,massFunctionSampleLogMass(iSample),Mass_Function_Sampling_Integrand,parameterPointer,integrandFunction &
-                  &,integrationWorkspace,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative,reset=integrandReset)
+             if (massFunctionSampleLogMass(iSample) > massFunctionSampleLogPrevious) then
+                probability=Integrate(massFunctionSampleLogPrevious&
+                     &,massFunctionSampleLogMass(iSample),Mass_Function_Sampling_Integrand,parameterPointer,integrandFunction &
+                     &,integrationWorkspace,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative,reset=integrandReset)
+             else
+                probability=0.0d0
+             end if
              if (iSample == 1 .or. probability > 0.0d0) then
                 jSample=jSample+1
                 massFunctionSampleProbability     (jSample)=probability
