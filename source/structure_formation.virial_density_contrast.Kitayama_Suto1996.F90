@@ -86,7 +86,7 @@ contains
        call deltaVirialTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
        ! Evaluate the fitting formulae of Kitayama & Suto at each time to get the density contrast.
        do iTime=1,deltaTableNumberPoints
-          omegaf=1.0d0/cosmologyFunctionsDefault%omegaMatterEpochal(deltaVirialTable%x(iTime))-1.0d0
+          omegaf=max(0.0d0,1.0d0/cosmologyFunctionsDefault%omegaMatterEpochal(deltaVirialTable%x(iTime))-1.0d0)
           call deltaVirialTable%populate(18.0d0*Pi**2*(1.0d0+0.4093d0*omegaf**0.9052d0),iTime)
        end do
     end select
