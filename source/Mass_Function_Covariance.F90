@@ -54,7 +54,7 @@ program Mass_Function_Covariance
   !@ <inputParameter>
   !@   <name>massFunctionCovarianceOutputFileName</name>
   !@   <defaultValue>covariance.hdf5</defaultValue>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <description>
   !@     The name of the file to which the covariance matrix should be written.
   !@   </description>
@@ -70,7 +70,7 @@ program Mass_Function_Covariance
   !@ <inputParameter>
   !@   <name>massFunctionCovarianceRedshiftMinimum</name>
   !@   <defaultValue>0.0</defaultValue>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <description>
   !@     The minimum redshift at which calculations of the mass function covariance should be carried out.
   !@   </description>
@@ -82,7 +82,7 @@ program Mass_Function_Covariance
   !@ <inputParameter>
   !@   <name>massFunctionCovarianceRedshiftMaximum</name>
   !@   <defaultValue>0.0</defaultValue>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <description>
   !@     The maximum redshift at which calculations of the mass function covariance should be carried out.
   !@   </description>
@@ -94,7 +94,7 @@ program Mass_Function_Covariance
  !@ <inputParameter>
   !@   <name>massFunctionCovarianceBinCount</name>
   !@   <defaultValue>0.0</defaultValue>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <description>
   !@     The number of bins in the mass function for covariance calculations.
   !@   </description>
@@ -106,7 +106,7 @@ program Mass_Function_Covariance
   !@ <inputParameter>
   !@   <name>massFunctionCovarianceMassMinimum</name>
   !@   <defaultValue>$10^8M_\odot$</defaultValue>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <description>
   !@     The minimum mass in the mass function for covariance calculations.
   !@   </description>
@@ -118,7 +118,7 @@ program Mass_Function_Covariance
   !@ <inputParameter>
   !@   <name>massFunctionCovarianceMassMaximum</name>
   !@   <defaultValue>$10^8M_\odot$</defaultValue>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <description>
   !@     The maximum mass in the mass function for covariance calculations.
   !@   </description>
@@ -130,7 +130,7 @@ program Mass_Function_Covariance
   !@ <inputParameter>
   !@   <name>massFunctionCovarianceIncludePoisson</name>
   !@   <defaultValue>true</defaultValue>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <description>
   !@     Specifies whether or not to include the Poisson contribution to mass function covariance matrices.
   !@   </description>
@@ -142,7 +142,7 @@ program Mass_Function_Covariance
   !@ <inputParameter>
   !@   <name>massFunctionCovarianceIncludeHalo</name>
   !@   <defaultValue>true</defaultValue>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <description>
   !@     Specifies whether or not to include the halo contribution to mass function covariance matrices.
   !@   </description>
@@ -154,7 +154,7 @@ program Mass_Function_Covariance
   !@ <inputParameter>
   !@   <name>massFunctionCovarianceIncludeLSS</name>
   !@   <defaultValue>true</defaultValue>
-  !@   <attachedTo>module</attachedTo>
+  !@   <attachedTo>program</attachedTo>
   !@   <description>
   !@     Specifies whether or not to include the large-scale structure contribution to mass function covariance matrices.
   !@   </description>
