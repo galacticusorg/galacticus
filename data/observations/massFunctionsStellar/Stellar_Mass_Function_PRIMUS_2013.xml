@@ -261,6 +261,43 @@
 	<description>Upper error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
 	<scaling>log10</scaling>
+	<datum>0.054</datum>
+	<datum>0.056</datum>
+	<datum>0.045</datum>
+	<datum>0.050</datum>
+	<datum>0.066</datum>
+	<datum>0.061</datum>
+	<datum>0.038</datum>
+	<datum>0.036</datum>
+	<datum>0.036</datum>
+	<datum>0.037</datum>
+	<datum>0.034</datum>
+	<datum>0.034</datum>
+	<datum>0.038</datum>
+	<datum>0.037</datum>
+	<datum>0.035</datum>
+	<datum>0.038</datum>
+	<datum>0.038</datum>
+	<datum>0.039</datum>
+	<datum>0.041</datum>
+	<datum>0.043</datum>
+	<datum>0.052</datum>
+	<datum>0.063</datum>
+	<datum>0.089</datum>
+	<datum>0.100</datum>
+	<datum>0.400</datum>
+	<datum>0.300</datum>
+     </upperError>
+    </columns>
+  </stellarMassFunction>
+  <stellarMassFunction>
+    <redshift minimum="0.30" maximum="0.40" />
+    <columns>
+      <stellarMass>
+	<description>Galaxy stellar mass</description>
+	<units>Solar masses</units>
+	<scaling>log10</scaling>
+	<cosmologyScaling>luminosity</cosmologyScaling>
 	<datum>9.2</datum>
 	<datum>9.3</datum>
 	<datum>9.4</datum>
