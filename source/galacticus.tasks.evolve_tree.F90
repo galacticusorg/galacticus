@@ -29,9 +29,10 @@ module Galacticus_Tasks_Evolve_Tree
   ! Parameters controlling which trees will be processed.
   integer          :: treeEvolveWorkerCount               , treeEvolveWorkerNumber
 
-  ! Parameters controlling load average.
-  logical          :: treeEvolveLimitLoadAverage
+  ! Parameters controlling load averaging and thread locking.
+  logical          :: treeEvolveLimitLoadAverage          , treeEvolveThreadLock
   double precision :: treeEvolveLoadAverageMaximum
+  integer          :: treeEvolveThreadsMaximum
 
 contains
 
@@ -53,6 +54,7 @@ contains
     use Galacticus_Error
     use Memory_Management
     use System_Load
+    use Semaphores
     !$ use omp_lib
     ! Include modules needed for pre- and post-evolution and pre-construction tasks.
     !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
@@ -81,7 +83,9 @@ contains
          &                                                  treeIsFinished                  , evolutionIsEventLimited, &
          &                                                  success
     !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeCanEvolve,treeIsFinished,evolutionIsEventLimited,success)
-    character       (len=32        )                     :: treeEvolveLoadAverageMaximumText
+    type            (semaphore     ), pointer            :: galacticusMutex
+    character       (len=32        )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
+
     type            (universe      )                     :: universeWaiting                 , universeProcessed
     type            (universeEvent ), pointer     , save :: thisEvent
     !$omp threadprivate(thisEvent)
@@ -89,6 +93,7 @@ contains
     ! Initialize the task if necessary.
     if (.not.treeEvolveInitialized) then
        !$omp critical (Tasks_Evolve_Tree_Initialize)
+
        if (.not.treeEvolveInitialized) then
 
           ! Get parameters controlling which trees will be processed.
@@ -141,6 +146,33 @@ contains
           else
              read (treeEvolveLoadAverageMaximumText,*) treeEvolveLoadAverageMaximum
           end if
+          !@ <inputParameter>
+          !@   <name>treeEvolveThreadLock</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not to limit the number of threads across all \glc\ processes.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeEvolveThreadLock',treeEvolveThreadLock,defaultValue=.true.)
+          !@ <inputParameter>
+          !@   <name>treeEvolveThreadsMaximum</name>
+          !@   <defaultValue>processorCount</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The maximum number of active threads across all \glc\ processes.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeEvolveThreadsMaximum',treeEvolveThreadsMaximumText,defaultValue="processorCount")
+          if (treeEvolveThreadsMaximumText == "processorCount") then
+             treeEvolveThreadsMaximum=System_Processor_Count()
+          else
+             read (treeEvolveThreadsMaximumText,*) treeEvolveThreadsMaximum
+          end if
           ! Flag that this task is now initialized.
           treeEvolveInitialized=.true.
        end if
@@ -166,6 +198,9 @@ contains
     finished=.false.
     iTree   =0
 
+    ! Create a semaphore if threads are being locked.
+    if (treeEvolveThreadLock) galacticusMutex => Semaphore_Open("/galacticus",treeEvolveThreadsMaximum)
+    
     ! Initialize universes which will act as tree stacks. We use two stacks: one for trees waiting to be processed, one for trees
     ! that have already been processed.
     universeWaiting%trees   => null()
@@ -175,6 +210,9 @@ contains
     !$omp parallel copyin(finished)
     do while (.not.finished)
 
+       ! If locking threads, claim one.
+       if (treeEvolveThreadLock) call galacticusMutex%wait()
+       
        ! Attempt to get a new tree to process. We first tree to get a new tree. If no new trees exist, we will look for a tree on
        ! the stack waiting to be processed.
        if (treeEvolveWorkerCount == 1) then
@@ -335,8 +373,14 @@ contains
           !$omp end single copyprivate(finished)
        end if
 
+       ! If locking threads, release ours.
+       if (treeEvolveThreadLock) call galacticusMutex%post()
+
     end do
     !$omp end parallel
+
+    ! Close the semaphore.
+    if (treeEvolveThreadLock) call galacticusMutex%close()
 
     Galacticus_Task_Evolve_Tree=.false.
     return
