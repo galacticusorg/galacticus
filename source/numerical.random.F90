@@ -59,7 +59,7 @@ contains
     !$ use OMP_Lib
     implicit none
     type   (fgsl_rng), intent(inout)           :: pseudoSequenceObject
-    logical          , intent(inout), optional :: reset
+    logical          , intent(inout), optional :: reset,ompThreadOffset
     logical          , intent(in   ), optional :: ompThreadOffset     , mpiRankOffset
     integer          , intent(in   ), optional :: incrementSeed
     logical                                    :: resetActual
