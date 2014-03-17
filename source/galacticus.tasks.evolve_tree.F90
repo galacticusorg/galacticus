@@ -155,7 +155,7 @@ contains
           !@   <type>boolean</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter('treeEvolveThreadLock',treeEvolveThreadLock,defaultValue=.true.)
+          call Get_Input_Parameter('treeEvolveThreadLock',treeEvolveThreadLock,defaultValue=.false.)
           !@ <inputParameter>
           !@   <name>treeEvolveThreadsMaximum</name>
           !@   <defaultValue>processorCount</defaultValue>
