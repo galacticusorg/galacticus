@@ -82,10 +82,9 @@ contains
     logical                                       , save :: overloaded                      , treeCanEvolve          , &
          &                                                  treeIsFinished                  , evolutionIsEventLimited, &
          &                                                  success
-    !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeCanEvolve,treeIsFinished,evolutionIsEventLimited,success)
     type            (semaphore     ), pointer            :: galacticusMutex
     character       (len=32        )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
-
+    !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeCanEvolve,treeIsFinished,evolutionIsEventLimited,success)
     type            (universe      )                     :: universeWaiting                 , universeProcessed
     type            (universeEvent ), pointer     , save :: thisEvent
     !$omp threadprivate(thisEvent)
