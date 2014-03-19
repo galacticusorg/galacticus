@@ -45,17 +45,18 @@ my $mpiRank        = $ARGV[1];
 my $likelihoodFile = $ARGV[2];
 
 # Get the temperature.
-my $likelihoodFile = $ARGV[3];
+my $temperature    = $ARGV[3];
 
 # Convert command line arguments to a parameter structure.
 die("constrainGalacticusWrapper.pl: number of supplied arguments does not match number of parameters") 
-    unless ( scalar(@ARGV) == $parameterCount+3 );
+    unless ( scalar(@ARGV) == $parameterCount+4 );
+
 my $j = -1;
 my %parameterValues;
 for(my $i=0;$i<scalar(@parameters);++$i) {
     if ( exists($parameters[$i]->{'prior'}) ) {
 	++$j;
-	$parameterValues{$parameters[$i]->{'name'}} = $ARGV[$j+3];
+	$parameterValues{$parameters[$i]->{'name'}} = $ARGV[$j+4];
     }
 }
 
@@ -156,7 +157,6 @@ if ( exists($config->{'likelihood'}->{'storeResults'}) ) {
     $runCommand .= " --storeResults ".$config->{'likelihood'}->{'workDirectory'}."/mcmc/"
 	if ( $config->{'likelihood'}->{'storeResults'} eq "yes" );
 }
-$runCommand .= " --reuseTrees ".$config->{'likelihood'}->{'reuseTrees'} if ( exists($config->{'likelihood'}->{'reuseTrees'}) );
 $runCommand .= " --cleanUp "   .$config->{'likelihood'}->{'cleanUp'   } if ( exists($config->{'likelihood'}->{'cleanUp'   }) );
 $runCommand .= " --randomize " .$config->{'likelihood'}->{'randomize' } if ( exists($config->{'likelihood'}->{'randomize' }) );
 system($runCommand);

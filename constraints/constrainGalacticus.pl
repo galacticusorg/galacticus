@@ -13,6 +13,7 @@ use XML::Simple;
 use Data::Dumper;
 use Fcntl qw(:DEFAULT :flock);
 use MIME::Lite;
+use List::Util qw(min max);
 require File::Which;
 require File::NFSLock;
 require System::Redirect;
@@ -43,7 +44,6 @@ my %arguments = (
     galacticusFile      => "constrainGalacticus.hdf5",
     saveState           => "no",
     threads             => 1,
-    reuseTrees          => "",
     suffix              => "",
     cleanUp             => "yes",
     randomize           => "yes",
@@ -95,21 +95,6 @@ $parameters->{'parameter'}->{'randomSeed'}->{'value'} = int(rand(10000))+1
 $parameters->{'parameter'}->{'metaCollectTimingData'}->{'value'} = "true"
     if ( $arguments{'timing'} eq "yes" );
 
-# Parse the modifications to the parameters.
-my $xml              = new XML::Simple;
-my $newParameterData = $xml->XMLin($parameterFile, KeyAttr => "");
-if ( defined($newParameterData->{'parameter'}) ) {
-    my @newParameters;
-    if ( ref($newParameterData->{'parameter'}) eq "ARRAY" ) {
-	@newParameters = @{$newParameterData->{'parameter'}};
-    } else {
-	push(@newParameters,$newParameterData->{'parameter'});
-    }
-    for my $newParameter ( @newParameters ) {
-	$parameters->{'parameter'}->{$newParameter->{'name'}}->{'value'} = $newParameter->{'value'};
-    }
-}
-
 # If running at a high temperature, modify the number of merger trees per decade.
 my $temperatureEffective = 1.0;
 if ( 
@@ -125,38 +110,44 @@ if (
 	    )
 	    ,$config->{'likelihood'}->{'treesPerDecadeMinimum'}
 	);
-    $temperatureEffective = $treesPerDecadeEffective/$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'};
+    $temperatureEffective = $parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}/$treesPerDecadeEffective;
     $parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $treesPerDecadeEffective;
 }
 
-# If trees are to be reused, create them, and store to a file.
-unless ( $arguments{'reuseTrees'} eq "" ) {
+# If fixed sets of trees are to be used, create them as necessary, and store to a file.
+if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood'}->{'useFixedTrees'} eq "yes" ) {
     # Record the required set of output redshifts.
-    my $outputRedshifts = $parameters->{'parameter'}->{'outputRedshifts'}->{'value'};
+    my $outputRedshifts = $parameters->{'parameter'}->{'outputRedshifts'   }->{'value'};
     # Record and remove any analyses.
-    my $savedAnalyses = $parameters->{'parameter'}->{'mergerTreeAnalyses'}->{'value'};
+    my $savedAnalyses   = $parameters->{'parameter'}->{'mergerTreeAnalyses'}->{'value'};
     delete($parameters->{'parameter'}->{'mergerTreeAnalyses'});
     # Get a lock on the tree file.
+    my $fixedTreeDirectory;
+    if ( exists($config->{'likelihood'}->{'fixedTreesInScratch'}) && $config->{'likelihood'}->{'fixedTreesInScratch'} eq "yes" ) {
+	$fixedTreeDirectory = $config->{'likelihood'}->{'scratchDirectory'}."/";
+    } else {
+	$fixedTreeDirectory = $config->{'likelihood'}->{'workDirectory'   }."/";
+    }
+    my $fixedTreeFile = $fixedTreeDirectory."fixedTrees".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
     if ( 
 	my $lock = new File::NFSLock {
-	    file               => $arguments{'reuseTrees'},
+	    file               => $fixedTreeFile,
 	    lock_type          => LOCK_EX
 	}
 	)
     {
-	unless ( -e $arguments{'reuseTrees'} ) {
+	unless ( -e $fixedTreeFile ) {
 	    # Create the tree file if necessary. (Set output redshift to a very large value to avoid any galaxy formation
 	    # calculation being carried out - we only want to build the trees.)
 	    $parameters->{'parameter'}->{'outputRedshifts'             }->{'value'} = "10000.0";
 	    $parameters->{'parameter'}->{'mergerTreesWrite'            }->{'value'} = "true";
-	    $parameters->{'parameter'}->{'mergerTreeExportFileName'    }->{'value'} = $arguments{'reuseTrees'};
-	    $parameters->{'parameter'}->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
+	    $parameters->{'parameter'}->{'mergerTreeExportFileName'    }->{'value'} = $fixedTreeFile;
 	    $parameters->{'parameter'}->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
 	    my $treeParameters;
 	    push(@{$treeParameters->{'parameter'}},{name => $_, value => $parameters->{'parameter'}->{$_}->{'value'}})
 		foreach ( keys(%{$parameters->{'parameter'}}) );
 	    my $treeXML = new XML::Simple (RootName=>"parameters", NoAttr => 1);
-	    open(pHndl,">".$workDirectory."/treeBuildParameters.xml");
+	    open(pHndl,">".$fixedTreeDirectory."/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml");
 	    print pHndl $treeXML->XMLout($treeParameters);
 	    close pHndl;
 	    if ( $arguments{'make'} eq "yes" ) {
@@ -165,21 +156,39 @@ unless ( $arguments{'reuseTrees'} eq "" ) {
 	    }
 	    my $treeCommand;
 	    $treeCommand .= "ulimit -t ".$arguments{'cpulimit'}."; " if ( exists($arguments{'cpulimit'}) );
-	    $treeCommand .= "ulimit -c unlimited; GFORTRAN_ERROR_DUMPCORE=YES; ./Galacticus.exe ".$workDirectory."/treeBuildParameters.xml";
-	    my $treeLog = $workDirectory."/treeBuildParameters.log";
+	    $treeCommand .= "ulimit -c unlimited; GFORTRAN_ERROR_DUMPCORE=YES; ./Galacticus.exe ".$fixedTreeDirectory."/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
+	    my $treeLog = $fixedTreeDirectory."/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".log";
 	    SystemRedirect::tofile($treeCommand,$treeLog);
 	    unless ( $? == 0 ) {
 		system("mv ".$treeLog." ".$treeLog.".failed.".$$);
-		die("constrainGalacticus.pl: Galacticus model failed");
+		die("constrainGalacticus.pl: Galacticus model failed");		
 	    }
+	    sleep(1)
+		until ( -e $fixedTreeFile );
 	}
 	$lock->unlock();
     }
     # Modify parameters to use the tree file.
     $parameters->{'parameter'}->{'mergerTreeConstructMethod'}->{'value'} = "read";
-    $parameters->{'parameter'}->{'mergerTreeReadFileName'   }->{'value'} = $arguments{'reuseTrees'};
+    $parameters->{'parameter'}->{'mergerTreeReadFileName'   }->{'value'} = $fixedTreeFile;
     $parameters->{'parameter'}->{'outputRedshifts'          }->{'value'} = $outputRedshifts;
     $parameters->{'parameter'}->{'mergerTreeAnalyses'       }->{'value'} = $savedAnalyses;
+    $parameters->{'parameter'}->{'mergerTreesWrite'         }->{'value'} = "false";
+}
+
+# Parse the modifications to the parameters.
+my $xml              = new XML::Simple;
+my $newParameterData = $xml->XMLin($parameterFile, KeyAttr => "");
+if ( defined($newParameterData->{'parameter'}) ) {
+    my @newParameters;
+    if ( ref($newParameterData->{'parameter'}) eq "ARRAY" ) {
+	@newParameters = @{$newParameterData->{'parameter'}};
+    } else {
+	push(@newParameters,$newParameterData->{'parameter'});
+    }
+    for my $newParameter ( @newParameters ) {
+	$parameters->{'parameter'}->{$newParameter->{'name'}}->{'value'} = $newParameter->{'value'};
+    }
 }
 
 # Write the modified parameters to file.
