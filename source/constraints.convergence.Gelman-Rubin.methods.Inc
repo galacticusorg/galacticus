@@ -73,7 +73,7 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   double precision                                                      :: grubbsCriticalValue          , tStatisticCriticalValue, &
        &                                                                   logLikelihoodMaximum         , deviationMaximum
   type            (varying_string        )                              :: message
-  character       (len=7                 )                              :: label
+  character       (len=16                )                              :: label
 
   ! If no aguments were provided, return current convergence status without updating.
   if (.not.(present(simulationState).and.present(logLikelihood))) then
@@ -273,8 +273,10 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   ! Report.
   self%estimateCount=self%estimateCount+1
   if (mpiSelf%isMaster() .and. mod(self%estimateCount,self%reportCount) == 0 .and. .not.self%converged) then
+     write (label,'(i16)') simulationState%count()
+     message="Gelman-Rubin ̂R at "//trim(adjustl(label))
      write (label,'(f6.2)') minval(self%correctedHatR)
-     message="Gelman-Rubin ̂R min/max="//trim(adjustl(label))//"/"
+     message=message//" steps min/max="//trim(adjustl(label))//"/"
      write (label,'(f6.2)') maxval(self%correctedHatR)
      message=message//trim(adjustl(label))//")"
      call Galacticus_Display_Message(message)
