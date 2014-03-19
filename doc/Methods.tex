@@ -2747,6 +2747,7 @@ Currently defined virial density contrast methods are:
  \item [{\tt Bryan-Norman1998}] The virial density contrast is computed using the fitting functions of \cite{bryan_statistical_1998}. As such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_{\rm M}+\Omega_\Lambda=1$ cosmologies and will abort on other cosmologies.
  \item [{\tt fixed}] The virial density contrast is fixed at {\tt [virialDensityConstrastFixed]}, defined relative to {\tt criticalDensity} and {\tt meanDensity} as specified by {\tt [virialDensityConstrastFixedType]}.
  \item [{\tt Kitayama-Suto1996}] The virial density constrast is computed using the fitting formula of \cite{kitayama_semianalytic_1996}, and is therefore valid only for flat cosmological models.
+ \item [{\tt friendsOfFriends}] The virial density constrast is computed to be consistent with that of halos found by a friends-of-friends algorithm in N-body simulations, given the linking length of that algorithm.
 \end{description}
 
 \subsubsection{Initial Mass Function Functions}\label{sec:IMF_functions}
