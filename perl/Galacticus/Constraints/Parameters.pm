@@ -4,6 +4,14 @@
 package Parameters;
 use strict;
 use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use XML::Simple;
 use XML::SAX;
 use XML::SAX::Writer;
@@ -14,7 +22,7 @@ use PDL::NiceSlice;
 use Data::Dumper;
 use Clone qw(clone);
 use List::Util;
-use File::Path qw(mkpath);
+require List::ExtraUtils;
 
 sub Parse_Config {
     # Get the config file name.
@@ -34,8 +42,8 @@ sub Parse_Config {
     my $config = $xml->XMLin($contentCommentless, KeyAttr => 0);
     if ( UNIVERSAL::isa($config->{'parameters'},"ARRAY") ) {
 	my @parameters;
-	push(@parameters,@{$_->{'parameter'}})
-	    foreach ( @{$config->{'parameters'}} );
+	push(@parameters,&ExtraUtils::as_array($_->{'parameter'}))
+	    foreach (  &ExtraUtils::as_array($config->{'parameters'}) );
 	delete($config->{'parameters'});
 	@{$config->{'parameters'}->{'parameter'}} = @parameters;
     }
@@ -53,8 +61,7 @@ sub Output {
     push(@{$outputParameters->{'parameter'}},{name => $_, value => $parameters->{'parameter'}->{$_}->{'value'}})
 	foreach ( keys(%{$parameters->{'parameter'}}) );
     # Output the parameters to file.
-    open(pHndl,">".$fileName)
-	or die $!;
+    open(pHndl,">".$fileName);
     print pHndl $xmlOutput->XMLout($outputParameters);
     close pHndl;
 }
@@ -275,19 +282,24 @@ sub Convert_BIE_Parameters_To_Galacticus {
     return $newParameters;
 }
 
-sub Read_Chains {
-    # Reads MCMC chains and retain viable parameter sets.
+sub Sample_Models {
+    # Generate a sample of models from the posterior distribution.
     my $config    = shift;
     my %arguments = %{$_[0]};
     # Find the work directory.
-    my $workDirectory = $config->{'workDirectory'};
+    my $workDirectory = $config->{'likelihood'}->{'workDirectory'};
+    # Get a hash of the parameter values.
+    my $compilationFile;
+    if ( exists($arguments{'compilationOverride'}) ) {
+	$compilationFile = $arguments{'compilationOverride'};
+    } else {
+	$compilationFile = $config->{'likelihood'}->{'compilation'};
+    }
+    (my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$config->{'likelihood'}->{'baseParameters'});
+    my @constraints = @{$constraintsRef};
     # Parse the statefile to find all parameter values sampled by the chains.
     my @chainParameters;
-    my $statelog = "galacticusBIE.statelog";
-    $statelog = $arguments{'statelog'}
-        if ( exists($arguments{'statelog'}) );
-    open(iHndl,$workDirectory."/mcmc/".$statelog)
-	or die $!;
+    open(iHndl,$workDirectory."/mcmc/galacticusBIE.statelog");
     while ( my $line = <iHndl> ) {
 	unless ( $line =~ m/^\"/ ) {
 	    $line =~ s/^\s*//;
@@ -300,7 +312,8 @@ sub Read_Chains {
     # Select viable parameter sets.
     my @outlierChains = split(/,/,$arguments{'outliers'});
     my @chainParametersViable;
-    my $chainCount = $config->{'nodes'}*$config->{'bieThreads'};
+    my $chainCount = 0;
+    die('this code needs reimplementing to figure out the number of chains used');
     for(my $i=0;$i<scalar(@chainParameters);++$i) {
 	my $accept = 1;
 	$accept = 0
@@ -313,26 +326,6 @@ sub Read_Chains {
 	push(@{$chainParametersViable[++$#chainParametersViable]},@{$chainParameters[$i]})
 	    if ( $accept == 1 );
     }
-    return @chainParametersViable;
-}
-
-sub Sample_Models {
-    # Generate a sample of models from the posterior distribution.
-    my $config    = shift;
-    my %arguments = %{$_[0]};
-    # Find the work directory.
-    my $workDirectory = $config->{'workDirectory'};
-    # Get a hash of the parameter values.
-    my $compilationFile;
-    if ( exists($arguments{'compilationOverride'}) ) {
-	$compilationFile = $arguments{'compilationOverride'};
-    } else {
-	$compilationFile = $config->{'compilation'};
-    }
-    (my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$config->{'baseParameters'});
-    my @constraints = @{$constraintsRef};
-    # Get viable parameter chains.
-    my @chainParametersViable = &Read_Chains($config,\%arguments);
     # Sample parameters.
     $arguments{'sampleCount'} = scalar(@chainParametersViable)
 	if ( $arguments{'sampleCount'} < 0 );
@@ -345,8 +338,7 @@ sub Sample_Models {
     for (my $i=0;$i<nelem($sampleIndex);++$i) {
 	# Create an output directory.
 	my $modelDirectory = $sampleDirectory.$i."/";
-	print "Making ".$modelDirectory."\n";
-	mkpath($modelDirectory);
+	system("mkdir -p ".$modelDirectory);
 	my $galacticusFileName = $modelDirectory."/galacticus.hdf5";
 	# Check if the model has already been run.
 	unless ( -e $galacticusFileName ) {
@@ -355,7 +347,7 @@ sub Sample_Models {
 	    my $currentConfig = clone($config);
 	    my $newParameters = &Convert_BIE_Parameters_To_Galacticus($currentConfig,@{$chainParametersViable[$j]});    
 	    # Increment the random number seed.
-	    $parameters->{'parameter'}->{'randomSeed'}->{'value'} += $config->{'threadsPerNode'};
+	    $parameters->{'parameter'}->{'randomSeed'}->{'value'} += $config->{'likelihood'}->{'threads'};
 	    # Clone parameters.
 	    my $currentParameters = clone($parameters);
 	    # Apply to parameters.
@@ -365,12 +357,7 @@ sub Sample_Models {
 	    foreach ( keys(%arguments) ) {
 		if ( $_ =~ m/^parameterOverride:(.+)/ ) {
 		    my $parameterName = $1;
-		    if ( $arguments{$_} =~ m/^\%\%(.*)\%\%$/ ) {
-			my $copyParameter = $1;
-			$currentParameters->{'parameter'}->{$parameterName}->{'value'} = $currentParameters->{'parameter'}->{$copyParameter}->{'value'};
-		    } else {
-			$currentParameters->{'parameter'}->{$parameterName}->{'value'} = $arguments{$_};
-		    }
+		    $currentParameters->{'parameter'}->{$parameterName}->{'value'} = $arguments{$_};
 		}
 	    }
 	    # Specify the output file name.
@@ -379,28 +366,27 @@ sub Sample_Models {
 	    &Output($currentParameters,$modelDirectory."parameters.xml");
 	    # Create a batch script for PBS.
 	    my $batchScriptFileName = $modelDirectory."/launch.pbs";
-	    open(oHndl,">".$batchScriptFileName)
-		or die $!;
+	    open(oHndl,">".$batchScriptFileName);
 	    print oHndl "#!/bin/bash\n";
-	    print oHndl "#PBS -N ".$config->{'name'}."_ppc".$i."\n";
-	    print oHndl "#PBS -l walltime=".$config->{'walltimeLimit'}."\n"
-		if ( exists($config->{'walltimeLimit'}) );
-	    print oHndl "#PBS -l mem=".$config->{'memoryLimit'}."\n"
-		if ( exists($config->{'memoryLimit'}) );
-	    my $threadsPerNode = 1;
-	    $threadsPerNode = $config->{'threadsPerNode'}
-	    if ( exists($config->{'threadsPerNode'}) );
-	    print oHndl "#PBS -l nodes=1:ppn=".$threadsPerNode."\n";
+	    print oHndl "#PBS -N ".$config->{'likelihood'}->{'name'}."_ppc".$i."\n";
+	    print oHndl "#PBS -l walltime=".$config->{'likelihood'}->{'walltimeLimit'}."\n"
+		if ( exists($config->{'likelihood'}->{'walltimeLimit'}) );
+	    print oHndl "#PBS -l mem=".$config->{'likelihood'}->{'memoryLimit'}."\n"
+		if ( exists($config->{'likelihood'}->{'memoryLimit'}) );
+	    my $threads = 1;
+	    $threads = $config->{'likelihood'}->{'threads'}
+	    if ( exists($config->{'likelihood'}->{'threads'}) );
+	    print oHndl "#PBS -l nodes=1:ppn=".$threads."\n";
 	    print oHndl "#PBS -j oe\n";
 	    print oHndl "#PBS -o ".$modelDirectory."/launch.log\n";
 	    print oHndl "#PBS -V\n";
 	    print oHndl "cd \$PBS_O_WORKDIR\n";
-	    if ( exists($config->{'environment'}) ) {
+	    if ( exists($config->{'likelihood'}->{'environment'}) ) {
 		my @environment;
-		if ( UNIVERSAL::isa($config->{'environment'},"ARRAY") ) {
-		    push(@environment,@{$config->{'environment'}});
+		if ( UNIVERSAL::isa($config->{'likelihood'}->{'environment'},"ARRAY") ) {
+		    push(@environment,@{$config->{'likelihood'}->{'environment'}});
 		} else {
-		    push(@environment,  $config->{'environment'} );
+		    push(@environment,  $config->{'likelihood'}->{'environment'} );
 		}
 		foreach ( @environment ) {
 		    print oHndl "export ".$_."\n";
@@ -408,8 +394,8 @@ sub Sample_Models {
 	    }
 	    print oHndl "ulimit -t unlimited\n";
 	    print oHndl "ulimit -c unlimited\n";
-	    print oHndl "export OMP_NUM_THREADS=".$config->{'threadsPerNode'}."\n";
-	    print oHndl "mpirun --bynode -np 1 ./Galacticus.exe ".$modelDirectory."parameters.xml\n";
+	    print oHndl "export OMP_NUM_THREADS=".$config->{'likelihood'}->{'threads'}."\n";
+	    print oHndl "mpirun --bynode -np 1 Galacticus.exe ".$modelDirectory."parameters.xml\n";
 	    foreach my $constraint ( @constraints ) {
 		# Parse the definition file.
 		my $xml = new XML::Simple;
@@ -427,8 +413,6 @@ sub Sample_Models {
 		);
 	}
     }
-    # Destroy the chains.
-    undef(@chainParametersViable);
     # Send jobs to PBS.
     my $jobMaximum = 10;
     $jobMaximum = $arguments{'pbsJobMaximum'}
@@ -450,8 +434,7 @@ sub PBS_Submit {
 	# Find all PBS jobs that are running.
 	my %runningPBSJobs;
 	undef(%runningPBSJobs);
-	open(pHndl,"qstat -f|")
-	    or die $!;
+	open(pHndl,"qstat -f|");
 	while ( my $line = <pHndl> ) {
 	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$runningPBSJobs{$1} = 1};
 	}
@@ -467,8 +450,7 @@ sub PBS_Submit {
 	if ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < $jobMaximum ) {
 	    my $batchScript = pop(@pbsStack);
 	    # Submit the PBS job.
-	    open(pHndl,"qsub ".$batchScript."|")
-		or die $!;
+	    open(pHndl,"qsub ".$batchScript."|");
 	    my $jobID = "";
 	    while ( my $line = <pHndl> ) {
 	    	if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
@@ -481,7 +463,7 @@ sub PBS_Submit {
 	    sleep 1;
 	} else {
 	    # Wait.
-	    sleep 3;
+	    sleep 5;
 	}
     }
 }
