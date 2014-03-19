@@ -124,8 +124,10 @@ contains
     double precision                                   :: randomDeviate
 
     randomDeviate=Pseudo_Random_Get(randomSequenceObject,resetRandomSequence)
+    !$omp critical(Halo_Spin_Distribution_Bett2007)
     Halo_Spin_Distribution_Bett2007=spinDistributionTableInverse%interpolate(randomDeviate)
-    return
+    !$omp end critical(Halo_Spin_Distribution_Bett2007)
+   return
   end function Halo_Spin_Distribution_Bett2007
 
   !# <galacticusStateSnapshotTask>
