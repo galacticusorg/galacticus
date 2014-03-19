@@ -72,7 +72,7 @@ contains
 
     ! Run the config file through an external XInclude filter to include any Xinclude'd files.
     filteredFile="/dev/shm/"//trim(configFile)//"_"//mpiSelf%rankLabel()
-    filterCommand="scripts/aux/xmlInclude.pl "//trim(configFile)//" "//filteredFile
+    filterCommand="mkdir -p `dirname "//filteredFile//"`; scripts/aux/xmlInclude.pl "//trim(configFile)//" "//filteredFile
     call System_Command_Do(filterCommand)
     ! Parse the simulation config file.
     configDoc => parseFile(char(filteredFile),iostat=ioError)
