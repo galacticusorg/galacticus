@@ -40,8 +40,9 @@
           &                                                             logLikelihoodBuffer        , logLikelihoodErrorTolerance
      logical                                                         :: emulateOutliers
    contains
-     final     ::             likelihoodGaussianRegressionDestructor
-     procedure :: evaluate => likelihoodGaussianRegressionEvaluate
+     final     ::                    likelihoodGaussianRegressionDestructor
+     procedure :: evaluate        => likelihoodGaussianRegressionEvaluate
+     procedure :: functionChanged => likelihoodGaussianRegressionFunctionChanged
   end type likelihoodGaussianRegression
   
   interface likelihoodGaussianRegression

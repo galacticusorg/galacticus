@@ -69,3 +69,11 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,simu
   close(likelihoodFileUnit,status='delete')
   return
 end function likelihoodGalacticusEvaluate
+
+subroutine likelihoodGalacticusFunctionChanged(self)
+  !% Respond to possible changes in the likelihood function.
+  implicit none
+  class(likelihoodGalacticus), intent(inout) :: self
+  
+  return
+end subroutine likelihoodGalacticusFunctionChanged

@@ -22,7 +22,8 @@
      type(vector) :: means
      type(matrix) :: covariance, inverseCovariance
    contains
-     procedure :: evaluate => likelihoodMultivariateNormalEvaluate
+     procedure :: evaluate        => likelihoodMultivariateNormalEvaluate
+     procedure :: functionChanged => likelihoodMultivariateNormalFunctionChanged
   end type likelihoodMultivariateNormal
   
   interface likelihoodMultivariateNormal

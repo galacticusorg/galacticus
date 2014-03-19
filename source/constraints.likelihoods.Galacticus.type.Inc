@@ -21,7 +21,8 @@
      private
      type(varying_string) :: configFileName
    contains
-     procedure :: evaluate => likelihoodGalacticusEvaluate
+     procedure :: evaluate        => likelihoodGalacticusEvaluate
+     procedure :: functionChanged => likelihoodGalacticusFunctionChanged
   end type likelihoodGalacticus
   
   interface likelihoodGalacticus

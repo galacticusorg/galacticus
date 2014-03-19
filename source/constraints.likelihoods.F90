@@ -42,8 +42,15 @@ module Constraints_Likelihoods
      !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin, \doublezero\ temperature\argin, \doublezero\ logLikelihoodCurrent\argin</arguments>
      !@     <description>Evaluate the model likelihood at the given {\tt simulationState} and return the log-likelihood.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>likelihoodFunctionChange</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Informs the likelihood object that the likelihood function may have changed.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure(likelihoodEvaluate), deferred :: evaluate
+     procedure(likelihoodEvaluate       ), deferred :: evaluate
+     procedure(likelihoodFunctionChanged), deferred :: functionChanged
   end type likelihood
 
   ! Interface for deferred functions.
@@ -56,6 +63,12 @@ module Constraints_Likelihoods
        double precision             , intent(in   ) :: temperature          , logLikelihoodCurrent, &
             &                                          logPriorCurrent      , logPriorProposed
      end function likelihoodEvaluate
+  end interface
+  abstract interface
+     subroutine likelihoodFunctionChanged(self)
+       import :: likelihood
+       class(likelihood ), intent(inout) :: self
+     end subroutine likelihoodFunctionChanged
   end interface
 
   ! Include all likelihood types.

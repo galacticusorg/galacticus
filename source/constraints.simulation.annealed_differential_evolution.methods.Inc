@@ -93,6 +93,8 @@ subroutine simulatorAnnealedDifferentialEvolutionUpdate(self,stateVector)
      call self%simulationState      %reset()
      call self%simulationConvergence%reset()
      self%isConverged=.false.
+     ! Inform likelihood object that likelihood function may have changed.
+     call self%modelLikelihood%functionChanged()
      ! Report.
      if (mpiSelf%isMaster()) then
         write (label,'(f7.2)') self%temperature()

@@ -22,7 +22,8 @@
      integer               :: realizationCount    , realizationCountMinimum
      type   (pseudoRandom) :: pseudoRandomSequence
    contains
-     procedure :: evaluate => likelihoodMultivariateNormalStochasticEvaluate
+     procedure :: evaluate        => likelihoodMultivariateNormalStochasticEvaluate
+     procedure :: functionChanged => likelihoodMultivariateNormalStochasticFunctionChanged
   end type likelihoodMultivariateNormalStochastic
   
   interface likelihoodMultivariateNormalStochastic
