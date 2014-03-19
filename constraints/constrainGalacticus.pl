@@ -128,7 +128,8 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
     } else {
 	$fixedTreeDirectory = $config->{'likelihood'}->{'workDirectory'   }."/";
     }
-    my $fixedTreeFile = $fixedTreeDirectory."fixedTrees".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
+    my $fixedTreeFile      = $fixedTreeDirectory                           ."fixedTrees".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
+    my $buildFixedTreeFile = $config->{'likelihood'}->{'workDirectory'}."/"."fixedTrees".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
     if ( 
 	my $lock = new File::NFSLock {
 	    file               => $fixedTreeFile,
@@ -137,34 +138,46 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 	)
     {
 	unless ( -e $fixedTreeFile ) {
-	    # Create the tree file if necessary. (Set output redshift to a very large value to avoid any galaxy formation
-	    # calculation being carried out - we only want to build the trees.)
-	    $parameters->{'parameter'}->{'outputRedshifts'             }->{'value'} = "10000.0";
-	    $parameters->{'parameter'}->{'mergerTreesWrite'            }->{'value'} = "true";
-	    $parameters->{'parameter'}->{'mergerTreeExportFileName'    }->{'value'} = $fixedTreeFile;
-	    $parameters->{'parameter'}->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
-	    my $treeParameters;
-	    push(@{$treeParameters->{'parameter'}},{name => $_, value => $parameters->{'parameter'}->{$_}->{'value'}})
-		foreach ( keys(%{$parameters->{'parameter'}}) );
-	    my $treeXML = new XML::Simple (RootName=>"parameters", NoAttr => 1);
-	    open(pHndl,">".$fixedTreeDirectory."/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml");
-	    print pHndl $treeXML->XMLout($treeParameters);
-	    close pHndl;
-	    if ( $arguments{'make'} eq "yes" ) {
-		system("make Galacticus.exe");
-		die("constrainGalacticus.pl: failed to build Galacticus.exe") unless ( $? == 0 );
+	    if ( 
+		my $buildLock = new File::NFSLock {
+		    file               => $buildFixedTreeFile,
+		    lock_type          => LOCK_EX
+		}
+		)
+	    {
+		unless ( -e $buildFixedTreeFile ) {
+		    # Create the tree file if necessary. (Set output redshift to a very large value to avoid any galaxy formation
+		    # calculation being carried out - we only want to build the trees.)
+		    $parameters->{'parameter'}->{'outputRedshifts'             }->{'value'} = "10000.0";
+		    $parameters->{'parameter'}->{'mergerTreesWrite'            }->{'value'} = "true";
+		    $parameters->{'parameter'}->{'mergerTreeExportFileName'    }->{'value'} = $buildFixedTreeFile;
+		    $parameters->{'parameter'}->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
+		    my $treeParameters;
+		    push(@{$treeParameters->{'parameter'}},{name => $_, value => $parameters->{'parameter'}->{$_}->{'value'}})
+			foreach ( keys(%{$parameters->{'parameter'}}) );
+		    my $treeXML = new XML::Simple (RootName=>"parameters", NoAttr => 1);
+		    open(pHndl,">".$config->{'likelihood'}->{'workDirectory'}."/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml");
+		    print pHndl $treeXML->XMLout($treeParameters);
+		    close pHndl;
+		    if ( $arguments{'make'} eq "yes" ) {
+			system("make Galacticus.exe");
+			die("constrainGalacticus.pl: failed to build Galacticus.exe") unless ( $? == 0 );
+		    }
+		    my $treeCommand;
+		    $treeCommand .= "ulimit -t ".$arguments{'cpulimit'}."; " if ( exists($arguments{'cpulimit'}) );
+		    $treeCommand .= "ulimit -c unlimited; GFORTRAN_ERROR_DUMPCORE=YES; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
+		    my $treeLog = $config->{'likelihood'}->{'workDirectory'}."/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".log";
+		    SystemRedirect::tofile($treeCommand,$treeLog);
+		    unless ( $? == 0 ) {
+			system("mv ".$treeLog." ".$treeLog.".failed.".$$);
+			die("constrainGalacticus.pl: Galacticus model failed");		
+		    }
+		    sleep(1)
+			until ( -e $buildFixedTreeFile );
+		}
+		$buildLock->unlock();
 	    }
-	    my $treeCommand;
-	    $treeCommand .= "ulimit -t ".$arguments{'cpulimit'}."; " if ( exists($arguments{'cpulimit'}) );
-	    $treeCommand .= "ulimit -c unlimited; GFORTRAN_ERROR_DUMPCORE=YES; ./Galacticus.exe ".$fixedTreeDirectory."/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
-	    my $treeLog = $fixedTreeDirectory."/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".log";
-	    SystemRedirect::tofile($treeCommand,$treeLog);
-	    unless ( $? == 0 ) {
-		system("mv ".$treeLog." ".$treeLog.".failed.".$$);
-		die("constrainGalacticus.pl: Galacticus model failed");		
-	    }
-	    sleep(1)
-		until ( -e $fixedTreeFile );
+	    system("cp -f ".$buildFixedTreeFile." ".$fixedTreeFile);
 	}
 	$lock->unlock();
     }
