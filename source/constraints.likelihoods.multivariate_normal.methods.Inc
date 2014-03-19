@@ -32,19 +32,26 @@ function likelihoodMultivariateNormalConstructor(means,covariance)
   return
 end function likelihoodMultivariateNormalConstructor
 
-double precision function likelihoodMultivariateNormalEvaluate(self,simulationState,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+double precision function likelihoodMultivariateNormalEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
   !% Return the log-likelihood for a multivariate-normal likelihood function.
   use Constraints_State
   use Constraints_Convergence
   implicit none
-  class           (likelihoodMultivariateNormal), intent(inout) :: self
-  class           (state                       ), intent(in   ) :: simulationState
-  class           (convergence                 ), intent(inout) :: simulationConvergence
-  double precision                              , intent(in   ) :: temperature    , logLikelihoodCurrent, &
-       &                                                           logPriorCurrent, logPriorProposed
-  type            (vector                      )                :: stateVector    , difference
+  class           (likelihoodMultivariateNormal), intent(inout)               :: self
+  class           (state                       ), intent(in   )               :: simulationState
+  type            (mappingList                 ), intent(in   ), dimension(:) :: parameterMappings
+  class           (convergence                 ), intent(inout)               :: simulationConvergence
+  double precision                              , intent(in   )               :: temperature    , logLikelihoodCurrent, &
+       &                                                                         logPriorCurrent, logPriorProposed
+  double precision                              , allocatable  , dimension(:) :: stateArray
+  integer                                                                     :: i
+  type            (vector                      )                              :: stateVector    , difference
 
-  stateVector                         =simulationState%get()
+  stateArray =simulationState%get()
+  do i=1,size(stateArray)
+     stateArray(i)=parameterMappings(i)%thisMapping%unmap(stateArray(i))
+  end do
+  stateVector                         =stateArray
   difference                          =stateVector-self%means
   likelihoodMultivariateNormalEvaluate=-0.5d0*(difference*(self%inverseCovariance*difference))
   return

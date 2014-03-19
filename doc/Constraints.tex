@@ -682,6 +682,9 @@ The configuration file specifies the details of the constraint simulation to be 
 	  <maximum>+0.0</maximum>
 	</distribution>
       </prior>
+      <mapping>
+        <type>linear</type>
+      </mapping>
       <random>
 	<type>Cauchy</type>
 	<median>0.0</median>
@@ -697,6 +700,9 @@ The configuration file specifies the details of the constraint simulation to be 
 	  <maximum>+4.0</maximum>
 	</distribution> 
       </prior>
+      <mapping>
+        <type>linear</type>
+      </mapping>
       <random>
 	<type>Cauchy</type>
 	<median>0.0</median>
@@ -985,7 +991,14 @@ where $T_{\rm max}=${\tt temperatureMaximum} and $N=${\tt temperatureLevels}.
 
 \subsection{Parameters and Priors}\label{sec:ParametersPriors}
 
-The {\tt parameters} section contains a list of all parameters to be varied in the analysis. Each parameter is described by one {\tt parameter} element. That element must contain a {\tt name} element, which gives the name of the parameter, a {\tt prior} element that contains a {\tt distribution} element defining the distribution for this prior, and (for differential evolution simulations) a {\tt random} element that defines the distribution to be used for the random perturbation to be added to this parameter in proposals.
+The {\tt parameters} section contains a list of all parameters to be varied in the analysis. Each parameter is described by one {\tt parameter} element. That element must contain a {\tt name} element, which gives the name of the parameter, a {\tt prior} element that contains a {\tt distribution} element defining the distribution for this prior, a {\tt mapping} element that describes the mapping of the parameter into the internal state used in \gls{mcmc} calculations, and (for differential evolution simulations) a {\tt random} element that defines the distribution to be used for the random perturbation to be added to this parameter in proposals.
+
+Currently allowed mappings are:
+\begin{itemize}
+\item[{\tt linear}] Effectively a null mapping, as the parameter is mapped into itself: $x \rightarrow x$.
+\item[{\tt logarithmic}] The parameter is mapped logarithmically: $x \rightarrow \log(x)$. This mapping can be applied only to uniform priors.
+\end{itemize}
+Note that the mapping will map the values of the prior. For example, if you specify a uniform prior with a logarithmic mapping, the upper and lower limits of the prior should be specified on $x$, not on $\log(x)$. These limits will be mapped appropriately internally.
 
 \subsubsection{Loading External Parameters/Priors}
 

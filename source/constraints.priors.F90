@@ -140,7 +140,7 @@ contains
 
   double precision function priorLogDensity(self,simulationState)
     !% Return the logarithm of the density of the prior at the given {\tt simulationState}.
-    use Constraints_Likelihoods
+    use Constraints_Constants
     use Constraints_State
     implicit none
     class           (prior), intent(in   )             :: self
@@ -164,7 +164,7 @@ contains
 
   double precision function priorsEvaluateLog(priors,simulationState)
     !% Evaluate the logarithm of the prior for the given {\tt state}.
-    use Constraints_Likelihoods
+    use Constraints_Constants
     use Constraints_State
     implicit none
     class           (state), intent(in   )               :: simulationState

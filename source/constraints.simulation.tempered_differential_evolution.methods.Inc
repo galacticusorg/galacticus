@@ -17,7 +17,7 @@
 
 !% Defines methods for the ``differentialEvolution'' simulator class.
 
-function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,modelLikelihood,simulationConvergence &
+function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence &
           &,simulationState,simulationStateInitializor,proposalSize,proposalSizeTemperatureExponent,randomJump,stepsMaximum,stepsPostConvergence&
           &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum ,untemperedStepCount,temperingLevelCount&
           &,stepsPerLevel,sampleOutliers)
@@ -26,6 +26,7 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   type            (simulatorTemperedDifferentialEvolution)                                      :: simulatorTemperedDifferentialEvolutionConstructor
   type            (prior                                 ), intent(in   ), target, dimension(:) :: parameterPriors
   type            (distributionList                      ), intent(in   ), target, dimension(:) :: randomDistributions
+  type            (mappingList                           ), intent(in   ), target, dimension(:) :: parameterMappings
   class           (likelihood                            ), intent(in   ), target               :: modelLikelihood
   class           (convergence                           ), intent(in   ), target               :: simulationConvergence
   class           (state                                 ), intent(in   ), target               :: simulationState
@@ -45,6 +46,7 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   simulatorTemperedDifferentialEvolutionConstructor%parameterCount                  =  size(parameterPriors)
   simulatorTemperedDifferentialEvolutionConstructor%parameterPriors                 => parameterPriors
   simulatorTemperedDifferentialEvolutionConstructor%randomDistributions             => randomDistributions
+  simulatorTemperedDifferentialEvolutionConstructor%parameterMappings               => parameterMappings
   simulatorTemperedDifferentialEvolutionConstructor%modelLikelihood                 => modelLikelihood
   simulatorTemperedDifferentialEvolutionConstructor%simulationConvergence           => simulationConvergence
   simulatorTemperedDifferentialEvolutionConstructor%simulationState                 => simulationState

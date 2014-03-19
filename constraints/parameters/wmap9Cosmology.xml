@@ -13,6 +13,9 @@
 	<maximum>+5</maximum>
       </distribution>
     </prior>
+    <mapping>
+      <type>linear</type>
+    </mapping>
     <random>
       <type>Cauchy</type>
       <median>0.0</median>
@@ -30,6 +33,9 @@
 	<maximum>+5</maximum>
       </distribution>
     </prior>
+    <mapping>
+      <type>linear</type>
+    </mapping>
     <random>
       <type>Cauchy</type>
       <median>0.0</median>
@@ -47,6 +53,9 @@
 	<maximum>+5</maximum>
       </distribution>
     </prior>
+    <mapping>
+      <type>linear</type>
+    </mapping>
     <random>
       <type>Cauchy</type>
       <median>0.0</median>
@@ -64,6 +73,9 @@
 	<maximum>+5</maximum>
       </distribution>
     </prior>
+    <mapping>
+      <type>linear</type>
+    </mapping>
     <random>
       <type>Cauchy</type>
       <median>0.0</median>
@@ -81,6 +93,9 @@
 	<maximum>+5</maximum>
       </distribution>
     </prior>
+    <mapping>
+      <type>linear</type>
+    </mapping>
     <random>
       <type>Cauchy</type>
       <median>0.0</median>
@@ -98,6 +113,9 @@
 	<maximum>+5</maximum>
       </distribution>
     </prior>
+    <mapping>
+      <type>linear</type>
+    </mapping>
     <random>
       <type>Cauchy</type>
       <median>0.0</median>
