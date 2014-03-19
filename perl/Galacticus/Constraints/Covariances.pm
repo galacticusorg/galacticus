@@ -111,8 +111,9 @@ sub ComputeLikelihood {
     my $logLikelihoodLog              = -0.5*$vCv->((0),(0))-0.5*nelem($y1)*log(2.0*3.1415927)-0.5*$logDeterminant;
     $logLikelihoodLog                 = $vCv->((0),(0))
 	if ( exists($options{'normalized'}) && $options{'normalized'} == 0 );
-    return $logLikelihoodLog->sclr();
+    ${$options{'determinant'}} = $logDeterminant
+	if ( exists($options{'determinant'}) );
+     return $logLikelihoodLog->sclr();
 }
 
 1;
-}
