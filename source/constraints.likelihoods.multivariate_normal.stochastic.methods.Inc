@@ -111,3 +111,11 @@ double precision function likelihoodMultivariateNormalStochasticEvaluate(self,si
        &  )
   return
 end function likelihoodMultivariateNormalStochasticEvaluate
+
+subroutine likelihoodMultivariateNormalStochasticFunctionChanged(self)
+  !% Respond to possible changes in the likelihood function.
+  implicit none
+  class(likelihoodMultivariateNormalStochastic), intent(inout) :: self
+  
+  return
+end subroutine likelihoodMultivariateNormalStochasticFunctionChanged

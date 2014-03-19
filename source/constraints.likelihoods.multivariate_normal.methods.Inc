@@ -49,3 +49,11 @@ double precision function likelihoodMultivariateNormalEvaluate(self,simulationSt
   likelihoodMultivariateNormalEvaluate=-0.5d0*(difference*(self%inverseCovariance*difference))
   return
 end function likelihoodMultivariateNormalEvaluate
+
+subroutine likelihoodMultivariateNormalFunctionChanged(self)
+  !% Respond to possible changes in the likelihood function.
+  implicit none
+  class(likelihoodMultivariateNormal), intent(inout) :: self
+  
+  return
+end subroutine likelihoodMultivariateNormalFunctionChanged
