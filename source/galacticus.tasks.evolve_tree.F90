@@ -212,7 +212,7 @@ contains
        ! If locking threads, claim one.
        if (treeEvolveThreadLock) call galacticusMutex%wait()
        
-       ! Attempt to get a new tree to process. We first tree to get a new tree. If no new trees exist, we will look for a tree on
+       ! Attempt to get a new tree to process. We first try to get a new tree. If no new trees exist, we will look for a tree on
        ! the stack waiting to be processed.
        if (treeEvolveWorkerCount == 1) then
           call Get_Tree(iTree,skipTree,thisTree,finished)
@@ -344,6 +344,9 @@ contains
 
        end if
 
+       ! If locking threads, release ours.
+       if (treeEvolveThreadLock) call galacticusMutex%post()
+
        ! If any trees were pushed onto the processed stack, then there must be an event to process.
        if (finished) then
           !$omp barrier
@@ -371,9 +374,6 @@ contains
           !$omp end critical(universeTransform)
           !$omp end single copyprivate(finished)
        end if
-
-       ! If locking threads, release ours.
-       if (treeEvolveThreadLock) call galacticusMutex%post()
 
     end do
     !$omp end parallel
