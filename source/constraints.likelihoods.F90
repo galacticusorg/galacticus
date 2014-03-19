@@ -22,6 +22,7 @@ module Constraints_Likelihoods
   use Linear_Algebra
   use Constraints_State
   use Constraints_Convergence
+  use Constraints_Mappings
   use ISO_Varying_String
   use Pseudo_Random
   use FGSL
@@ -55,13 +56,14 @@ module Constraints_Likelihoods
 
   ! Interface for deferred functions.
   abstract interface
-     double precision function likelihoodEvaluate(self,simulationState,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
-       import :: likelihood, state, convergence
-       class           (likelihood ), intent(inout) :: self
-       class           (state      ), intent(in   ) :: simulationState
-       class           (convergence), intent(inout) :: simulationConvergence
-       double precision             , intent(in   ) :: temperature          , logLikelihoodCurrent, &
-            &                                          logPriorCurrent      , logPriorProposed
+     double precision function likelihoodEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+       import :: likelihood, state, convergence, mappingList
+       class           (likelihood ), intent(inout)               :: self
+       class           (state      ), intent(in   )               :: simulationState
+       type            (mappingList), intent(in   ), dimension(:) :: parameterMappings
+       class           (convergence), intent(inout)               :: simulationConvergence
+       double precision             , intent(in   )               :: temperature          , logLikelihoodCurrent, &
+            &                                                        logPriorCurrent      , logPriorProposed
      end function likelihoodEvaluate
   end interface
   abstract interface

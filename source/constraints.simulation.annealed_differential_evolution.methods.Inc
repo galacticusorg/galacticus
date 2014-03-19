@@ -17,7 +17,7 @@
 
 !% Defines methods for the ``annealedDifferentialEvolution'' simulator class.
 
-function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,modelLikelihood,simulationConvergence &
+function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence &
           &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum,stepsPostConvergence&
           &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum,temperatureLevelCount,sampleOutliers)
   !% Constructor for ``annealedDifferentialEvolution'' simulator class.
@@ -25,6 +25,7 @@ function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,rando
   type            (simulatorAnnealedDifferentialEvolution)                                      :: simulatorAnnealedDifferentialEvolutionConstructor
   type            (prior                                 ), intent(in   ), target, dimension(:) :: parameterPriors
   type            (distributionList                      ), intent(in   ), target, dimension(:) :: randomDistributions
+  type            (mappingList                           ), intent(in   ), target, dimension(:) :: parameterMappings
   class           (likelihood                            ), intent(in   ), target               :: modelLikelihood
   class           (convergence                           ), intent(in   ), target               :: simulationConvergence
   class           (state                                 ), intent(in   ), target               :: simulationState
@@ -42,6 +43,7 @@ function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,rando
   simulatorAnnealedDifferentialEvolutionConstructor%parameterCount             =  size(parameterPriors)
   simulatorAnnealedDifferentialEvolutionConstructor%parameterPriors            => parameterPriors
   simulatorAnnealedDifferentialEvolutionConstructor%randomDistributions        => randomDistributions
+  simulatorAnnealedDifferentialEvolutionConstructor%parameterMappings          => parameterMappings
   simulatorAnnealedDifferentialEvolutionConstructor%modelLikelihood            => modelLikelihood
   simulatorAnnealedDifferentialEvolutionConstructor%simulationConvergence      => simulationConvergence
   simulatorAnnealedDifferentialEvolutionConstructor%simulationState            => simulationState

@@ -17,13 +17,14 @@
 
 !% Defines methods for the ``differentialEvolution'' simulator class.
 
-function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistributions,modelLikelihood,simulationConvergence&
+function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence&
      &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum,stepsPostConvergence,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers)
   !% Constructor for ``differentialEvolution'' simulator class.
   implicit none
   type     (simulatorDifferentialEvolution)                                      :: simulatorDifferentialEvolutionConstructor
   type     (prior                         ), intent(in   ), target, dimension(:) :: parameterPriors
   type     (distributionList              ), intent(in   ), target, dimension(:) :: randomDistributions
+  type     (mappingList                   ), intent(in   ), target, dimension(:) :: parameterMappings
   class    (likelihood                    ), intent(in   ), target               :: modelLikelihood
   class    (convergence                   ), intent(in   ), target               :: simulationConvergence
   class    (state                         ), intent(in   ), target               :: simulationState
@@ -37,6 +38,7 @@ function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistrib
   simulatorDifferentialEvolutionConstructor%parameterCount             =  size(parameterPriors)
   simulatorDifferentialEvolutionConstructor%parameterPriors            => parameterPriors
   simulatorDifferentialEvolutionConstructor%randomDistributions        => randomDistributions
+  simulatorDifferentialEvolutionConstructor%parameterMappings          => parameterMappings
   simulatorDifferentialEvolutionConstructor%modelLikelihood            => modelLikelihood
   simulatorDifferentialEvolutionConstructor%simulationConvergence      => simulationConvergence
   simulatorDifferentialEvolutionConstructor%simulationState            => simulationState
@@ -59,6 +61,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   use Galacticus_Error
   use Galacticus_Display
   use String_Handling
+  use Constraints_Constants
   implicit none
   class           (simulatorDifferentialEvolution), intent(inout)                    :: self
   integer                                         , dimension(                    2) :: chainPair
@@ -219,7 +222,7 @@ subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikel
   double precision                                                :: logPrior
 
   logPrior     =priorsEvaluateLog            (self%parameterPriors,simulationState                                                                 )
-  logLikelihood=self%modelLikelihood%evaluate(                     simulationState,self%simulationConvergence,self%temperature(),logLikelihoodCurrent,logPriorCurrent,logPrior)
+  logLikelihood=self%modelLikelihood%evaluate(                     simulationState,self%parameterMappings,self%simulationConvergence,self%temperature(),logLikelihoodCurrent,logPriorCurrent,logPrior)
   logPosterior =logPrior+logLikelihood
   return
 end subroutine simulatorDifferentialEvolutionPosterior

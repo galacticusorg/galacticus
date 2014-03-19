@@ -21,6 +21,7 @@ module Constraints_Simulation
   !% Implements simulation algorithms for use when constraining \glc.
   use Statistics_Distributions
   use Constraints_Priors
+  use Constraints_Mappings
   use Constraints_Likelihoods
   use Constraints_Convergence
   use Constraints_State
@@ -62,7 +63,7 @@ module Constraints_Simulation
 
 contains
 
-  function simulatorNew(definition,parameterPriors,randomDistributions,modelLikelihood,simulationConvergence,simulationState,simulationStateInitializor&
+  function simulatorNew(definition,parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationState,simulationStateInitializor&
        &,proposalSize,proposalSizeTemperatureExponent,randomJump) result (newSimulator)
     !% Create a new differential evolution proposal size from an XML definition.
     use FoX_DOM
@@ -74,6 +75,7 @@ contains
     type            (node             ), intent(in   ), pointer                        :: definition
     type            (prior            ), intent(in   ), optional, target, dimension(:) :: parameterPriors
     type            (distributionList ), intent(in   ), optional, target, dimension(:) :: randomDistributions
+    type            (mappingList      ), intent(in   ), optional, target, dimension(:) :: parameterMappings
     class           (likelihood       ), intent(in   ), optional, target               :: modelLikelihood
     class           (convergence      ), intent(in   ), optional, target               :: simulationConvergence
     class           (state            ), intent(in   ), optional, target               :: simulationState
@@ -114,6 +116,7 @@ contains
           newSimulator=simulatorDifferentialEvolution(                                 &
                &                                      parameterPriors                , &
                &                                      randomDistributions            , &
+               &                                      parameterMappings              , &
                &                                      modelLikelihood                , &
                &                                      simulationConvergence          , &
                &                                      simulationState                , &
@@ -155,6 +158,7 @@ contains
           newSimulator=simulatorTemperedDifferentialEvolution(                                 &
                &                                              parameterPriors                , &
                &                                              randomDistributions            , &
+               &                                              parameterMappings              , &
                &                                              modelLikelihood                , &
                &                                              simulationConvergence          , &
                &                                              simulationState                , &
@@ -197,6 +201,7 @@ contains
           newSimulator=simulatorAnnealedDifferentialEvolution(                                 &
                &                                              parameterPriors                , &
                &                                              randomDistributions            , &
+               &                                              parameterMappings              , &
                &                                              modelLikelihood                , &
                &                                              simulationConvergence          , &
                &                                              simulationState                , &

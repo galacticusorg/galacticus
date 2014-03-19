@@ -15,7 +15,6 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
   type, public, extends(simulator) :: simulatorDifferentialEvolution
      !% Defines a simulator class implementing the differential evolution algorithm.
      private
@@ -26,6 +25,7 @@
      logical                                                   :: isConverged          , sampleOutliers
      type            (prior           ), pointer, dimension(:) :: parameterPriors
      type            (distributionList), pointer, dimension(:) :: randomDistributions
+     type            (mappingList     ), pointer, dimension(:) :: parameterMappings
      class           (likelihood      ), pointer               :: modelLikelihood
      class           (convergence     ), pointer               :: simulationConvergence
      class           (state           ), pointer               :: simulationState

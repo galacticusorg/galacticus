@@ -189,6 +189,18 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   B                     =dble(simulationState%count())*interchainMeanVariance
   ! Compute W from Brooks & Gelman (section 1.2).
   W                     = mpiSelf%average(chainVariance   ,self%chainMask)
+  ! Check for zero chain variance.
+  if (any(W <= 0.0d0)) then
+     self%estimateCount=self%estimateCount+1
+     if (mpiSelf%isMaster() .and. mod(self%estimateCount,self%reportCount) == 0) then
+        write (label,'(i16)') simulationState%count()
+        message="Gelman-Rubin statistic at "//trim(adjustl(label))
+        write (label,'(f6.2)') minval(self%correctedHatR)
+        message=message//" steps cannot be computed (zero variances)"
+        call Galacticus_Display_Message(message)
+     end if
+     convergenceGelmanRubinIsConverged=.false.
+  end if
   ! Compute variance of chain variances.
   varianceW             =(                                                  &
        &                  +mpiSelf%average(chainVariance**2,self%chainMask) &

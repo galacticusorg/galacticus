@@ -20,6 +20,9 @@
 	<maximum>+5</maximum>
       </distribution>
     </prior>
+    <mapping>
+      <type>linear</type>
+    </mapping>
     <random>
       <type>Cauchy</type>
       <median>0.0</median>
@@ -36,12 +39,15 @@
 	<minimum>-5</minimum>
 	<maximum>+5</maximum>
       </distribution>
-      <random>
-	<type>Cauchy</type>
-	<median>0.0</median>
-	<scale>1.0e-3</scale>
-      </random>
     </prior>
+    <mapping>
+      <type>linear</type>
+    </mapping>
+    <random>
+      <type>Cauchy</type>
+      <median>0.0</median>
+      <scale>1.0e-3</scale>
+    </random>
   </parameter>
   <parameter>
     <name>haloMassFunctionSimpleSystematicAlpha</name>

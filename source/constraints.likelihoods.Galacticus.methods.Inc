@@ -28,7 +28,7 @@ function likelihoodGalacticusConstructor(configFileName)
   return
 end function likelihoodGalacticusConstructor
 
-double precision function likelihoodGalacticusEvaluate(self,simulationState,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+double precision function likelihoodGalacticusEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
   !% Return the log-likelihood for the \glc\ likelihood function. This function runs an external script that drives \glc\ and
   !% writes the resulting likelihood to file. This function then reads that likelihood from file. We make use of {\tt tmpfs} for
   !% this likelihood file so that no disk I/O is required.
@@ -40,6 +40,7 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,simu
   implicit none
   class           (likelihoodGalacticus), intent(inout)               :: self
   class           (state               ), intent(in   )               :: simulationState
+  type            (mappingList         ), intent(in   ), dimension(:) :: parameterMappings
   class           (convergence         ), intent(inout)               :: simulationConvergence
   double precision                      , intent(in   )               :: temperature    , logLikelihoodCurrent, &
        &                                                                 logPriorCurrent, logPriorProposed
@@ -57,6 +58,7 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,simu
   ! Append the current state.
   stateVector=simulationState%get()
   do i=1,size(stateVector)
+     stateVector(i)=parameterMappings(i)%thisMapping%unmap(stateVector(i))
      write (label,'(1x,e22.15)') stateVector(i)
      wrapperCommand=wrapperCommand//label
   end do

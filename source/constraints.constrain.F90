@@ -34,6 +34,7 @@ contains
     use String_Handling
     use Statistics_Distributions
     use Constraints_Priors
+    use Constraints_Mappings
     use Constraints_Likelihoods
     use Constraints_Convergence
     use Constraints_State
@@ -47,6 +48,7 @@ contains
     implicit none
     type   (varying_string   ), intent(in   )               :: configFile
     type   (prior            ), allocatable  , dimension(:) :: parameterPriors
+    type   (mappingList      ), allocatable  , dimension(:) :: parameterMappings
     type   (distributionList ), allocatable  , dimension(:) :: randomDistributions
     class  (likelihood       ), pointer                     :: modelLikelihood
     class  (convergence      ), pointer                     :: simulationConvergence
@@ -62,7 +64,7 @@ contains
          &                                                     stateDefinition                , proposalSizeDefinition                   , &
          &                                                     simulationDefinition           , parametersElement                        , &
          &                                                     randomJumpDefinition           , proposalSizeTemperatureExponentDefinition, &
-         &                                                     stateInitializorDefinition
+         &                                                     stateInitializorDefinition     , mappingDefinition
     type   (nodeList         ), pointer                     :: parameterDefinitions           , parametersList
     type   (varying_string   )                              :: filterCommand                  , filteredFile                             , &
          &                                                     message
@@ -103,6 +105,7 @@ contains
     ! Initialize priors and random perturbers.
     allocate(parameterPriors    (parameterCount))
     allocate(randomDistributions(parameterCount))
+    allocate(parameterMappings  (parameterCount))
     parametersList => getElementsByTagName(configDoc,"parameters")
     iParameter=0
     do i=0,getLength(parametersList)-1
@@ -116,6 +119,10 @@ contains
              parameterPriors    (iParameter)                  =  prior                            (priorDefinition     ,iParameter)
              randomDefinition                                 => XML_Get_First_Element_By_Tag_Name(parameterDefinition ,"random"  )
              randomDistributions(iParameter)%thisDistribution => distributionNew                  (randomDefinition               )
+             mappingDefinition                                => XML_Get_First_Element_By_Tag_Name(parameterDefinition ,"mapping" )
+             parameterMappings  (iParameter)%thisMapping      => mappingNew                       (mappingDefinition              )
+             ! Apply mapping to prior.
+             call parameterMappings(iParameter)%thisMapping%mapPrior(parameterPriors(iParameter))
           end if
        end do
     end do
@@ -146,6 +153,7 @@ contains
          &                                                            simulationDefinition           , &
          &                                                            parameterPriors                , &
          &                                                            randomDistributions            , &
+         &                                                            parameterMappings              , &
          &                                                            modelLikelihood                , &
          &                                                            simulationConvergence          , &
          &                                                            simulationState                , &
