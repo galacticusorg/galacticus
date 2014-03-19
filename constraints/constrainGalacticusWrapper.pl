@@ -161,4 +161,8 @@ $runCommand .= " --cleanUp "   .$config->{'likelihood'}->{'cleanUp'   } if ( exi
 $runCommand .= " --randomize " .$config->{'likelihood'}->{'randomize' } if ( exists($config->{'likelihood'}->{'randomize' }) );
 system($runCommand);
 
+# Clean up.
+unlink($scratchDirectory."/newParameters_".$mpiRank.".xml")
+    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" );
+    
 exit;
