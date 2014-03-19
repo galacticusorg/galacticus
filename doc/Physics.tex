@@ -265,6 +265,18 @@ Selected with {\tt virialDensityContrastMethod}$=${\tt Kitayama-Suto1996} this m
  \Delta_{\rm virial}(t) = 18 \pi^2 [1+0.4093 \left\{{1\over \Omega_{\rm matter}(t)}-1\right\}(t)^{0.9052}].
 \end{equation}
 
+\subsubsection{Friends-of-Friends}
+
+Selected with {\tt virialDensityContrastMethod}$=${\tt friendsofFriends} this method computes the virial density contrast consistent with a given friends-of-friends algorithm linking length. According to \cite{lacey_merger_1994}, the friends-of-friends algorithm selects objects bounded by an isodensity contour of density contrast
+\begin{equation}
+\Delta_{\rm iso} = {3 \over 2 \pi b^3},
+\end{equation}
+where $b=${\tt [virialDensityContrastFoFLinkingLength]} is the dimensionless linking length of the algorithm (i.e. the linking length in units of the mean interparticle spacing). The virial density contrast is then given by:
+\begin{equation}
+\Delta_{\rm vir} = {\bar{\rho}_{\rm vir} \over \rho(r_{\rm vir})} \Delta_{\rm iso},
+\end{equation}
+where $\bar{\rho}_{\rm vir}$ is the mean density inside the virial radius and $\rho(r_{\rm vir})$ is the density at the virial radius. The ratio $\bar{\rho}_{\rm vir} / \rho(r_{\rm vir})$ is specified via the parameter {\tt [virialDensityContrastFoFDensityRatio]}. Its default value of $4.688$ is appropriate for an \gls{nfw} halo of concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is the approximate critical overdensity for collapse).
+
 \subsection{Halo Bias}\index{halo bias}\index{dark matter halos!bias}\index{bias!halo}
 
 The dark matter halo linear bias method is selected via the {\tt darkMatterHaloBiasMethod} parameter.
