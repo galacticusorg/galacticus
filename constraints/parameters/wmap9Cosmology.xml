@@ -5,62 +5,104 @@
   <parameter>
     <name>cosmology0</name>
     <prior>
-      <distribution>normal</distribution>
-      <mean>0.0</mean>
-      <variance>1.0</variance>
-      <lowerLimit>-5</lowerLimit>
-      <upperLimit>+5</upperLimit>
+      <distribution>
+	<type>normal</type>
+	<mean>0.0</mean>
+	<variance>1.0</variance>
+	<minimum>-5</minimum>
+	<maximum>+5</maximum>
+      </distribution>
     </prior>
+    <random>
+      <type>Cauchy</type>
+      <median>0.0</median>
+      <scale>1.0e-3</scale>
+    </random>
   </parameter>
   <parameter>
     <name>cosmology1</name>
     <prior>
-      <distribution>normal</distribution>
-      <mean>0.0</mean>
-      <variance>1.0</variance>
-      <lowerLimit>-5</lowerLimit>
-      <upperLimit>+5</upperLimit>
+      <distribution>
+	<type>normal</type>
+	<mean>0.0</mean>
+	<variance>1.0</variance>
+	<minimum>-5</minimum>
+	<maximum>+5</maximum>
+      </distribution>
     </prior>
+    <random>
+      <type>Cauchy</type>
+      <median>0.0</median>
+      <scale>1.0e-3</scale>
+    </random>
   </parameter>
   <parameter>
     <name>cosmology2</name>
     <prior>
-      <distribution>normal</distribution>
-      <mean>0.0</mean>
-      <variance>1.0</variance>
-      <lowerLimit>-5</lowerLimit>
-      <upperLimit>+5</upperLimit>
+      <distribution>
+	<type>normal</type>
+	<mean>0.0</mean>
+	<variance>1.0</variance>
+	<minimum>-5</minimum>
+	<maximum>+5</maximum>
+      </distribution>
     </prior>
+    <random>
+      <type>Cauchy</type>
+      <median>0.0</median>
+      <scale>1.0e-3</scale>
+    </random>
   </parameter>
   <parameter>
     <name>cosmology3</name>
     <prior>
-      <distribution>normal</distribution>
-      <mean>0.0</mean>
-      <variance>1.0</variance>
-      <lowerLimit>-5</lowerLimit>
-      <upperLimit>+5</upperLimit>
+      <distribution>
+	<type>normal</type>
+	<mean>0.0</mean>
+	<variance>1.0</variance>
+	<minimum>-5</minimum>
+	<maximum>+5</maximum>
+      </distribution>
     </prior>
+    <random>
+      <type>Cauchy</type>
+      <median>0.0</median>
+      <scale>1.0e-3</scale>
+    </random>
   </parameter>
   <parameter>
     <name>cosmology4</name>
     <prior>
-      <distribution>normal</distribution>
-      <mean>0.0</mean>
-      <variance>1.0</variance>
-      <lowerLimit>-5</lowerLimit>
-      <upperLimit>+5</upperLimit>
+      <distribution>
+	<type>normal</type>
+	<mean>0.0</mean>
+	<variance>1.0</variance>
+	<minimum>-5</minimum>
+	<maximum>+5</maximum>
+      </distribution>
     </prior>
+    <random>
+      <type>Cauchy</type>
+      <median>0.0</median>
+      <scale>1.0e-3</scale>
+    </random>
   </parameter>
   <parameter>
     <name>cosmology5</name>
     <prior>
-      <distribution>normal</distribution>
-      <mean>0.0</mean>
-      <variance>1.0</variance>
-      <lowerLimit>-5</lowerLimit>
-      <upperLimit>+5</upperLimit>
+      <distribution>
+	<type>normal</type>
+	<mean>0.0</mean>
+	<variance>1.0</variance>
+	<minimum>-5</minimum>
+	<maximum>+5</maximum>
+      </distribution>
     </prior>
+    <random>
+      <type>Cauchy</type>
+      <median>0.0</median>
+      <scale>1.0e-3</scale>
+    </random>
   </parameter>
   
   <!-- Derived cosmological parameters -->
