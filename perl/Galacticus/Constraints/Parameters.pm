@@ -469,21 +469,3 @@ sub PBS_Submit {
 }
 
 1;
-	    my $jobID = "";
-	    while ( my $line = <pHndl> ) {
-	    	if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
-	    }
-	    close(pHndl);	    
-	    # Add the job number to the active job hash.
-	    unless ( $jobID eq "" ) {
-	    	$pbsJobs{$jobID} = 1;
-	    }
-	    sleep 1;
-	} else {
-	    # Wait.
-	    sleep 3;
-	}
-    }
-}
-
-1;
