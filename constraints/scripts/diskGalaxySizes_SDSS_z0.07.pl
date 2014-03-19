@@ -2,8 +2,8 @@
 use strict;
 use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V092"};
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath  = $ENV{"GALACTICUS_ROOT_V093"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath  = "./";
@@ -407,6 +407,36 @@ if ( exists($arguments{'plotFile'}) ) {
 				      errorDown => $errorDown,
 				      style     => "point",
 				      symbol    => [6,7], 
+				      weight    => [5,3],
+				      color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
+				      title     => $dataCompilation->{'label'}
+	    );
+	my $errorModel = 
+	    sqrt(
+		$model->{'covariance'}->(
+		    $i*$dataCompilation->{'radiusCount'}:($i+1)*$dataCompilation->{'radiusCount'}-1,
+		    $i*$dataCompilation->{'radiusCount'}:($i+1)*$dataCompilation->{'radiusCount'}-1
+		)
+		->diagonal(0,1)
+	    );
+	&PrettyPlots::Prepare_Dataset(\$plot,
+				      1.0e3*$dataCompilation->{'radius'}->(:,($i)),$model->{'radiusFunction'}->(:,($i)),
+				      errorUp   => $errorModel,
+				      errorDown => $errorModel,
+				      style     => "point",
+				      symbol    => [6,7], 
+				      weight    => [5,3],
+				      color     => $PrettyPlots::colorPairs{'redYellow'},
+				      title     => "Galacticus"
+	    );
+	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	close($gnuPlot);
+	&LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
+    }
+}
+
+
+exit;
 				      weight    => [5,3],
 				      color     => $PrettyPlots::colorPairs{'cornflowerBlue'},
 				      title     => $dataCompilation->{'label'}
