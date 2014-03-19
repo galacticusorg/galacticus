@@ -341,13 +341,14 @@ contains
        if (statusActual == FGSL_Success) exit
     end do
     if (statusActual /= FGSL_Success) then
-       if (present(status)) then
-          status=statusActual
+       if (present(status)) then 
+         status=statusActual
           return
        else
           call Galacticus_Error_Report('Root_Finder_Find','failed to find root')
        end if
     end if
+    if (present(status)) status=FGSL_Success
     Root_Finder_Find=xRoot
     ! Restore state.
     currentFinder => previousFinder
