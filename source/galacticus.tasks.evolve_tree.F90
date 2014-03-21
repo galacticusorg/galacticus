@@ -72,7 +72,7 @@ contains
          &                                                  treeIsNew
     integer                                       , save :: iOutput
     double precision                              , save :: evolveToTime                    , treeTimeEarliest       , &
-         &                                                  universalEvolveToTime
+         &                                                  universalEvolveToTime           , treeTimeLatest
     type            (varying_string)              , save :: message
     character       (len=20        )              , save :: label
     !$omp threadprivate(thisTree,finished,skipTree,iOutput,evolveToTime,message,label,treeIsNew,treeTimeEarliest,universalEvolveToTime)
@@ -81,10 +81,14 @@ contains
     double precision                , dimension(3), save :: loadAverage
     logical                                       , save :: overloaded                      , treeCanEvolve          , &
          &                                                  treeIsFinished                  , evolutionIsEventLimited, &
-         &                                                  success
+         &                                                  success                         , removeTree
+    type            (mergerTree    ), pointer     , save :: currentTree                     , previousTree
+    !$omp threadprivate(currentTree,previousTree)
+    type            (treeNode      ), pointer     , save :: satelliteNode
+    !$omp threadprivate(satelliteNode)
     type            (semaphore     ), pointer            :: galacticusMutex
     character       (len=32        )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
-    !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeCanEvolve,treeIsFinished,evolutionIsEventLimited,success)
+    !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeCanEvolve,treeIsFinished,evolutionIsEventLimited,success,removeTree)
     type            (universe      )                     :: universeWaiting                 , universeProcessed
     type            (universeEvent ), pointer     , save :: thisEvent
     !$omp threadprivate(thisEvent)
@@ -267,23 +271,15 @@ contains
              call Galacticus_Display_Indent(message)
              
              ! Iterate evolving the tree until we can evolve no more.
-             treeCanEvolve =.true.
+             treeTimeEarliest=thisTree%earliestTime()
+             iOutput       =Galacticus_Output_Time_Index(Galacticus_Next_Output_Time(treeTimeEarliest))
+             treeCanEvolve=.true.
              treeIsFinished=.false.
-             treeEvolveLoop : do while (treeCanEvolve)
+             treeEvolveLoop : do while (iOutput <= Galacticus_Output_Time_Count())
                 ! We want to find the maximum time to which we can evolve this tree. This will be the minimum of the next output
                 ! time (at which we must stop and output the tree) and the next universal event time (at which we must stop and
-                ! perform the event task).  Find the earliest time in the tree.
-                treeTimeEarliest=thisTree%earliestTime()
-                ! Find the next output time.
-                evolveToTime=Galacticus_Next_Output_Time (treeTimeEarliest)
-                ! If the tree is at or beyond the final output time, we are done.
-                if (evolveToTime < 0.0d0) then
-                   treeCanEvolve =.false.
-                   treeIsFinished=.true.
-                   cycle
-                end if
-                ! Find the index of this output.
-                iOutput=Galacticus_Output_Time_Index(evolveToTime)
+                ! perform the event task). Find the next output time.
+                evolveToTime=Galacticus_Output_Time(iOutput)
                 ! Find the earliest universe event.
                 !$omp critical(universeTransform)
                 thisEvent               => universeWaiting%event
@@ -299,10 +295,56 @@ contains
                 !$omp end critical(universeTransform)
                 ! Evolve the tree to the computed time.
                 call Merger_Tree_Evolve_To(thisTree,evolveToTime)
+                ! Locate trees which consist of only a base node with no progenitors. These have reached
+                ! the end of their evolution, and can be removed from the forest of trees.
+                previousTree => null()
+                currentTree  => thisTree
+                do while (associated(currentTree))
+                   removeTree=.not.associated(currentTree%baseNode%firstChild)                   
+                   if (removeTree) then
+                      ! Does the node have attached satellites which are about to merge.
+                      satelliteNode => currentTree%baseNode%firstSatellite
+                      do while (associated(satelliteNode))
+                         if (associated(satelliteNode%mergeTarget)) then
+                            removeTree=.false.
+                            exit
+                         end if
+                         satelliteNode => satelliteNode%sibling
+                      end do
+                   end if
+                   if (removeTree) then
+                      message="Removing remnant tree "
+                      message=message//currentTree%index
+                      call Galacticus_Display_Message(message,verbosityInfo)
+                      if (.not.associated(previousTree)) then
+                         thisTree    => currentTree%nextTree
+                         call currentTree%destroy()
+                         currentTree => thisTree
+                      else
+                         previousTree%nextTree => currentTree%nextTree
+                         call currentTree%destroy()
+                         currentTree => previousTree%nextTree
+                      end if
+                   else
+                      previousTree => currentTree
+                      currentTree  => currentTree%nextTree
+                   end if
+                end do
+                ! Check that tree reached required time. If it did not, we can evolve it no further.
+                treeTimeEarliest=thisTree%earliestTime()
+                treeTimeLatest  =thisTree%  latestTime()
+                if     (                                                                        &
+                     &   treeTimeLatest   > evolveToTime                                        &
+                     &  .and.                                                                   &
+                     &   treeTimeEarliest < evolveToTime                                        &
+                     & ) call Galacticus_Error_Report(                                          &
+                     &                                'Galacticus_Task_Evolve_Tree'           , &
+                     &                                'failed to evolve tree to required time'  &
+                     &                               )
                 ! Determine what limited evolution.
                 if (evolutionIsEventLimited) then
-                   ! Tree evolution was limited by a universal event. Therefore it can evolve no further until that event's task
-                   ! is performed.
+                   ! Tree evolution was limited by a universal event. Therefore it can evolve no further
+                   ! until that event's task is performed.
                    treeCanEvolve=.false.
                 else
                    ! Tree reached an output time, so output it. We can then continue evolving.
@@ -310,6 +352,12 @@ contains
                    message="Output tree data at t="//trim(label)//" Gyr"
                    call Galacticus_Display_Message(message)
                    call Galacticus_Merger_Tree_Output(thisTree,iOutput,evolveToTime,.false.)
+                   iOutput=iOutput+1
+                   ! If all output times have been reached, we're finished.
+                   if (iOutput > Galacticus_Output_Time_Count()) then
+                      treeCanEvolve =.false.
+                      treeIsFinished=.true.
+                   end if
                 end if
              end do treeEvolveLoop
              ! If tree could not evolve further, but is not finished, push it to the universe stack.
@@ -329,10 +377,16 @@ contains
 
           ! Destroy the tree.
           if (associated(thisTree)) then
-             call thisTree%destroy()
-             ! Deallocate the tree.
-             call Memory_Usage_Record(sizeof(thisTree),addRemove=-1,memoryType=memoryTypeNodes)
-             deallocate(thisTree)
+             currentTree => thisTree
+             do while (associated(currentTree))
+                previousTree => currentTree
+                currentTree => currentTree%nextTree
+                call previousTree%destroy()
+                ! Deallocate the tree.
+                call Memory_Usage_Record(sizeof(previousTree),addRemove=-1,memoryType=memoryTypeNodes)
+                deallocate(previousTree)
+             end do
+             nullify(thisTree)
           end if
 
           ! Perform any post-evolution tasks on the tree.
