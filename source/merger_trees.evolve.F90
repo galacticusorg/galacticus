@@ -160,7 +160,6 @@ contains
        else
           anyTreeExistsAtOutputTime=.true.
        end if
-
        ! Move to the next tree.
        currentTree => currentTree%nextTree
     end do
@@ -311,7 +310,7 @@ contains
                          case (.false.)
                             ! It is not the major progenitor, so this could be a halo merger event unless the halo is already a
                             ! satellite. Check for satellite status and, if it's not a satellite, process this halo merging
-                            ! event. Also record that the tree is not deadlock, as we are changing the tree state.
+                            ! event. Also record that the tree is not deadlocked, as we are changing the tree state.
                             if (.not.thisNode%isSatellite()) then
                                deadlockStatus=isNotDeadlocked
                                call Events_Node_Merger(currentTree,thisNode)
@@ -375,9 +374,7 @@ contains
              ! No evolution could occur, so the tree is not deadlocked.
              deadlockStatus=isNotDeadlocked
           end if
-
        end do deadlock
-
     end do outerLoop
 
     return
