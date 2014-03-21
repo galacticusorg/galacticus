@@ -4791,7 +4791,7 @@ sub Generate_Node_Copy_Function {
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." =  self%".$_."\n"
 	foreach ( "uniqueIdValue", "indexValue" );
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." => self%".$_."\n"
-	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event" );
+	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event", "hostTree" );
     $functionCode .= "    if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode\n";
     # Loop over all component classes
     if ( $workaround == 1 ) {
