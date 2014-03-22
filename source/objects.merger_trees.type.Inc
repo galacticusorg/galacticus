@@ -68,6 +68,7 @@
      !@     <type>\doublezero</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
      !@    <method>latestTime</method>
      !@    <description>Return the latest time in a merger tree.</description>
      !@     <type>\doublezero</type>
