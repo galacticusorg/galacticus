@@ -310,7 +310,7 @@ contains
              message=message//char(10)//"xHigh < "//trim(label)//" being enforced"
           end if
           if (present(status)) then
-             call Galacticus_Display_Message(message)
+             call Galacticus_Display_Message(message,verbosityWarn)
              status=errorStatusOutOfRange
              return
           else
@@ -342,7 +342,7 @@ contains
     end do
     if (statusActual /= FGSL_Success) then
        if (present(status)) then 
-         status=statusActual
+          status=statusActual
           return
        else
           call Galacticus_Error_Report('Root_Finder_Find','failed to find root')

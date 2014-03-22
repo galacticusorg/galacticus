@@ -68,6 +68,12 @@
      !@     <type>\doublezero</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@    <method>latestTime</method>
+     !@    <description>Return the latest time in a merger tree.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: destroy       => Merger_Tree_Destroy
      procedure :: destroyBranch => Merger_Tree_Destroy_Branch
@@ -75,6 +81,7 @@
      procedure :: createEvent   => Merger_Tree_Create_Event                      
      procedure :: removeEvent   => Merger_Tree_Remove_Event               
      procedure :: earliestTime  => Merger_Tree_Earliest_Time               
+     procedure :: latestTime    => Merger_Tree_Latest_Time               
   end type mergerTree
 
   type, public :: treeEvent
