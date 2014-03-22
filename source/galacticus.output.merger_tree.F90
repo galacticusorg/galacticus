@@ -483,7 +483,7 @@ contains
     if (iOutput > outputGroupsCount) then
        if (allocated(outputGroups)) then
           call Move_Alloc(outputGroups,outputGroupsTemporary)
-          outputGroupsCount=outputGroupsCount+outputGroupsIncrement
+          outputGroupsCount=max(outputGroupsCount+outputGroupsIncrement,(iOutput/outputGroupsIncrement+1)*outputGroupsIncrement)
           allocate(outputGroups(outputGroupsCount))
           outputGroups(1:size(outputGroupsTemporary))=outputGroupsTemporary
           outputGroups(size(outputGroupsTemporary)+1:size(outputGroups))%opened                  =.false.
@@ -493,7 +493,7 @@ contains
           deallocate(outputGroupsTemporary)
           call Memory_Usage_Record(sizeof(outputGroups(1)),blockCount=0)
        else
-          outputGroupsCount=outputGroupsIncrement
+          outputGroupsCount=max(outputGroupsIncrement,(iOutput/outputGroupsIncrement+1)*outputGroupsIncrement)
           allocate(outputGroups(outputGroupsCount))
           outputGroups%opened                  =.false.
           outputGroups%integerAttributesWritten=.false.
@@ -515,7 +515,6 @@ contains
        ! Create a name for the group.
        groupName='Output'
        groupName=groupName//iOutput
-
        ! Create a comment for the group.
        commentText='Data for output number '
        commentText=commentText//iOutput

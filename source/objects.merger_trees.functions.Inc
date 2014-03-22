@@ -190,3 +190,23 @@ double precision function Merger_Tree_Earliest_Time(self)
   end do
   return
 end function Merger_Tree_Earliest_Time
+
+double precision function Merger_Tree_Latest_Time(self)
+  !% Return the latest time in a merger tree.
+  implicit none
+  class           (mergerTree        ), intent(inout), target :: self
+  type            (mergerTree        ), pointer               :: currentTree
+  type            (treeNode          ), pointer               :: thisNode
+  class           (nodeComponentBasic), pointer               :: thisBasic
+  
+  Merger_Tree_Latest_Time =  -1.0d0
+  currentTree             => self
+  do while (associated(currentTree))
+     thisNode                =>                             currentTree%baseNode
+     thisBasic               =>                             thisNode   %basic   ()
+     Merger_Tree_Latest_Time =  max(Merger_Tree_Latest_Time,thisBasic  %time    ())
+     call thisNode%walkTreeWithSatellites(thisNode)
+     currentTree => currentTree%nextTree
+  end do
+  return
+end function Merger_Tree_Latest_Time

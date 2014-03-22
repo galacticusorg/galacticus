@@ -52,12 +52,12 @@ module Merger_Tree_Read
   logical                                                                                         :: mergerTreeReadPresetMergerNodes                                                              
   logical                                                                                         :: mergerTreeReadPresetSubhaloMasses                                                            
   logical                                                                                         :: mergerTreeReadPresetPositions                                                                
-  logical                                                                                         :: mergerTreeReadPresetScaleRadii                                                               
-  double precision                                                                                :: mergerTreeReadPresetScaleRadiiMinimumMass                                                    
+  logical                                                                                         :: mergerTreeReadPresetScaleRadii                   , mergerTreeReadPresetScaleRadiiFailureIsFatal
+  double precision                                                                                :: mergerTreeReadPresetScaleRadiiMinimumMass        , mergerTreeReadPresetScaleRadiiConcentrationMinimum
   logical                                                                                         :: mergerTreeReadPresetSpins                        , mergerTreeReadPresetSpins3D                                                         
-  logical                                                                                         :: mergerTreeReadPresetOrbits                       , mergerTreeReadPresetOrbitsAssertAllSet, & 
+  logical                                                                                         :: mergerTreeReadPresetOrbits                       , mergerTreeReadPresetOrbitsAssertAllSet      , & 
        &                                                                                             mergerTreeReadPresetOrbitsBoundOnly              , mergerTreeReadPresetOrbitsSetAll          
-  logical                                                                                         :: mergerTreeReadPresetParticleCounts               , mergerTreeReadPresetVelocityMaxima    , &
+  logical                                                                                         :: mergerTreeReadPresetParticleCounts               , mergerTreeReadPresetVelocityMaxima          , &
        &                                                                                             mergerTreeReadPresetVelocityDispersions
 
   ! Option controlling fatality of missing host node condition.
@@ -227,6 +227,28 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetScaleRadii',mergerTreeReadPresetScaleRadii,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadPresetScaleRadiiFailureIsFatal</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
+       !@   <description>
+       !@     Specifies whether failure to set a node scale radii should be regarded as a fatal error. (If not, a fallback method to set scale radius is used in such cases.)
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadPresetScaleRadiiFailureIsFatal',mergerTreeReadPresetScaleRadiiFailureIsFatal,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadPresetScaleRadiiConcentrationMinimum</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>3</defaultValue>
+       !@   <description>
+       !@     The lowest concentration ($c=r_{\rm vir}/r_{\rm s}$) allowed when setting scale radii, $r_{\rm s}$.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadPresetScaleRadiiConcentrationMinimum',mergerTreeReadPresetScaleRadiiConcentrationMinimum,defaultValue=3.0d0)
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetScaleRadiiMinimumMass</name>
        !@   <attachedTo>module</attachedTo>
@@ -1398,7 +1420,8 @@ use omp_lib
     logical                                                         , save                              :: excessiveScaleRadiiReported              =.false.                                
     class           (nodeComponentBasic                 ), pointer                                      :: thisBasicComponent                                                    
     class           (nodeComponentDarkMatterProfile     ), pointer                                      :: thisDarkMatterProfileComponent                                        
-    integer                                                                                             :: iNode                                            , status
+    integer                                                                                             :: iNode                                            , status                     , &
+         &                                                                                                 messageVerbosity
     integer         (kind=kind_int8                     )                                               :: iIsolatedNode                                                         
     double precision                                                                                    :: radiusScale                                                           
     logical                                                                                             :: excessiveHalfMassRadii                           , excessiveScaleRadii        , &
@@ -1406,7 +1429,7 @@ use omp_lib
     type            (rootFinder                         )           , save                              :: finder                                                                
     !$omp threadprivate(finder)
     class           (darkMatterProfileConcentrationClass), pointer  , save                              :: fallbackConcentration
-    logical                                                         , save                              :: functionInitialized                      =.false.                             
+    logical                                                         , save                              :: functionInitialized                      =.false.
     type            (varying_string                     )                                               :: mergerTreeReadConcentrationFallbackMethod        , message
     character       (len=16                             )                                               :: label
 
@@ -1455,10 +1478,19 @@ use omp_lib
           thisDarkMatterProfileComponent => nodeList(iIsolatedNode)%node%darkMatterProfile(autoCreate=.true.)          
           if (thisBasicComponent%mass() >= mergerTreeReadPresetScaleRadiiMinimumMass) then
              ! Check if we have scale radii read directly from file.
-             if (nodes(iNode)%scaleRadius         > 0.0d0) then
+             if     (                                                      &
+                  &     nodes(iNode)%scaleRadius                           &
+                  &   >                                                    &
+                  &     0.0d0                                              &
+                  &  .and.                                                 &
+                  &     nodes(iNode)%scaleRadius                           &
+                  &   <                                                    &
+                  &     Dark_Matter_Halo_Virial_Radius(activeNode)         &
+                  &    /mergerTreeReadPresetScaleRadiiConcentrationMinimum &
+                  & ) then
                 ! We do, so simply use them to set the scale radii in tree nodes.
                 call thisDarkMatterProfileComponent%scaleSet(nodes(iNode)%scaleRadius)
-                useFallbackScaleMethod=.true.
+                useFallbackScaleMethod=.false.
              else if (nodes(iNode)%halfMassRadius > 0.0d0) then
                 ! We do not have scale radii read directly. Instead, compute them from half-mass radii.
                 ! Set the active node and target half mass radius.
@@ -1467,39 +1499,49 @@ use omp_lib
                 activeBasicComponent             => activeNode%basic            ()
                 halfMassRadius                   =  nodes(iNode)%halfMassRadius
                 ! Solve for the scale radius.
-                call finder%rangeExpand    (                                                                           &
-                     &                      rangeExpandDownward          =0.5d0                                      , &
-                     &                      rangeExpandUpward            =2.0d0                                      , &
-                     &                      rangeUpwardLimit             = scaleRadiusMaximumAllowed                   &
-                     &                                                    *Dark_Matter_Halo_Virial_Radius(activeNode), &
-                     &                      rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive              , &
-                     &                      rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative              , &
-                     &                      rangeExpandType              =rangeExpandMultiplicative                    &
+                call finder%rangeExpand    (                                                                                   &
+                     &                      rangeExpandDownward          =0.5d0                                              , &
+                     &                      rangeExpandUpward            =2.0d0                                              , &
+                     &                      rangeUpwardLimit             = Dark_Matter_Halo_Virial_Radius(activeNode)          &
+                     &                                                    /mergerTreeReadPresetScaleRadiiConcentrationMinimum, &
+                     &                      rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                      , &
+                     &                      rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                      , &
+                     &                      rangeExpandType              =rangeExpandMultiplicative                            &
                      &                     )
                 radiusScale=finder%find(rootGuess=halfMassRadius,status=status)
-                if (status /= errorStatusSuccess) then
-                   call Galacticus_Display_Indent  ("failed to find scale radius consistent with specified half-mass radius")
+                if (status == errorStatusSuccess) then
+                   call thisDarkMatterProfileComponent%scaleSet(radiusScale)
+                   ! Check for scale radii exceeding the virial radius.
+                   if (radiusScale    > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveScaleRadii   =.true.
+                   ! Check for half-mass radii exceeding the virial radius.
+                   if (halfMassRadius > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveHalfMassRadii=.true.
+                   useFallbackScaleMethod=.false.
+                else
+                   if (mergerTreeReadPresetScaleRadiiFailureIsFatal) then
+                      messageVerbosity=Galacticus_Verbosity_Level()
+                   else
+                      messageVerbosity=verbosityWarn
+                   end if
+                   call Galacticus_Display_Indent  ("failed to find scale radius consistent with specified half-mass radius",messageVerbosity)
                    write (label,'(i16)') activeNode%hostTree%index
                    message="      tree index: "//trim(label)
-                   call Galacticus_Display_Message(message)
+                   call Galacticus_Display_Message(message,messageVerbosity)
                     write (label,'(i16)') activeNode%index()
                    message="      node index: "//trim(label)
-                   call Galacticus_Display_Message(message)
+                   call Galacticus_Display_Message(message,messageVerbosity)
                    write (label,'(e12.6)') Dark_Matter_Halo_Virial_Radius(activeNode)
                    message="   virial radius: "//trim(label)
-                   call Galacticus_Display_Message(message)
+                   call Galacticus_Display_Message(message,messageVerbosity)
                    write (label,'(e12.6)') halfMassRadius
                    message="half-mass radius: "//trim(label)
-                   call Galacticus_Display_Message(message)
-                   call Galacticus_Display_Unindent("")
-                   call Galacticus_Error_Report('Assign_Scale_Radii','aborting')
+                   call Galacticus_Display_Message(message,messageVerbosity)
+                   call Galacticus_Display_Unindent("",messageVerbosity)
+                   if (mergerTreeReadPresetScaleRadiiFailureIsFatal) then
+                      call Galacticus_Error_Report('Assign_Scale_Radii','aborting')
+                   else 
+                     useFallbackScaleMethod=.true.
+                   end if
                 end if
-                call thisDarkMatterProfileComponent%scaleSet(radiusScale)
-                ! Check for scale radii exceeding the virial radius.
-                if (radiusScale    > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveScaleRadii   =.true.
-                ! Check for half-mass radii exceeding the virial radius.
-                if (halfMassRadius > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveHalfMassRadii=.true.
-                useFallbackScaleMethod=.true.
              end if
           end if
           if (useFallbackScaleMethod) then
@@ -1894,9 +1936,9 @@ use omp_lib
     if (mergerTreeReadPresetOrbits) then
        iIsolatedNode=0
        do iNode=1,size(nodes)
-          if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeIsUnreachable) then
+         if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeIsUnreachable) then
              iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
-             ! Set the orbit for this halo.
+            ! Set the orbit for this halo.
              satelliteNode => nodeList(iIsolatedNode)%node
              if (associated(satelliteNode%parent).and..not.satelliteNode%isPrimaryProgenitor()) then
                 ! Find the orbital partner.
