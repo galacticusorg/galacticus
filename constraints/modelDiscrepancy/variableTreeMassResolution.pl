@@ -29,8 +29,9 @@ my $configFile = $ARGV[0];
 my $iArg = -1;
 my %arguments = 
     (
-     make => "yes",
-     plot => "no"
+     make         => "yes" ,
+     plot         => "no"  ,
+     massFraction => 1.0e-3
     );
 while ( $iArg < $#ARGV ) {
     ++$iArg;
@@ -90,7 +91,11 @@ my @models =
 	      # Switch to using fixed mass resolution.
 	      {
 		  name  => "mergerTreesBuildMassResolutionMethod",
-		  value => "fixed"
+		  value => "scaled"
+	      },
+	      {
+		  name  => "mergerTreeBuildMassResolutionScaledFraction",
+		  value => 
 	      }
 	     ]
      },
