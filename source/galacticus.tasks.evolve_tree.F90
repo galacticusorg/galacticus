@@ -72,10 +72,11 @@ contains
          &                                                  treeIsNew
     integer                                       , save :: iOutput
     double precision                              , save :: evolveToTime                    , treeTimeEarliest       , &
-         &                                                  universalEvolveToTime           , treeTimeLatest
+         &                                                  universalEvolveToTime           , treeTimeLatest         , &
+         &                                                  outputTimeNext
     type            (varying_string)              , save :: message
     character       (len=20        )              , save :: label
-    !$omp threadprivate(thisTree,finished,skipTree,iOutput,evolveToTime,message,label,treeIsNew,treeTimeEarliest,universalEvolveToTime)
+    !$omp threadprivate(thisTree,finished,skipTree,iOutput,evolveToTime,message,label,treeIsNew,treeTimeEarliest,universalEvolveToTime,outputTimeNext)
     integer                                              :: iTree
     integer                                       , save :: activeTasks                     , totalTasks
     double precision                , dimension(3), save :: loadAverage
@@ -212,7 +213,6 @@ contains
     ! Begin parallel processing of trees until all work is done.
     !$omp parallel copyin(finished)
     do while (.not.finished)
-
        ! If locking threads, claim one.
        if (treeEvolveThreadLock) call galacticusMutex%wait()
        
@@ -235,7 +235,6 @@ contains
           finished  =  .not.associated(thisTree)
           !$omp end critical(universeTransform)
        end if
-
        ! If we got a tree (i.e. we are not "finished") process it.
        if (.not.finished) then
           treeIsFinished=.false.
@@ -272,9 +271,16 @@ contains
              
              ! Iterate evolving the tree until we can evolve no more.
              treeTimeEarliest=thisTree%earliestTime()
-             iOutput       =Galacticus_Output_Time_Index(Galacticus_Next_Output_Time(treeTimeEarliest))
-             treeCanEvolve=.true.
-             treeIsFinished=.false.
+             outputTimeNext=Galacticus_Next_Output_Time(treeTimeEarliest)
+             if (outputTimeNext > 0.0d0) then
+                iOutput       =Galacticus_Output_Time_Index(outputTimeNext)
+                treeCanEvolve =.true.
+                treeIsFinished=.false.
+             else
+                iOutput      =Galacticus_Output_Time_Count()+1
+                treeCanEvolve =.false.
+                treeIsFinished=.true.
+             end if
              treeEvolveLoop : do while (iOutput <= Galacticus_Output_Time_Count())
                 ! We want to find the maximum time to which we can evolve this tree. This will be the minimum of the next output
                 ! time (at which we must stop and output the tree) and the next universal event time (at which we must stop and
