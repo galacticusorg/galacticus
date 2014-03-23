@@ -54,7 +54,7 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   ! Generate temperature label.
   write (label,'(e12.6)') temperature 
   ! Generate the command to run the Galacticus model.
-  wrapperCommand='./constraints/constrainGalacticusWrapper.pl '//self%configFileName//' '//mpiSelf%rankLabel()//' '//likelihoodFileName//' '//trim(label)
+  wrapperCommand='./constraints/constrainGalacticus.pl '//trim(self%configFileName)//' '//mpiSelf%rankLabel()//' '//likelihoodFileName//' '//trim(label)
   ! Append the current state.
   stateVector=simulationState%get()
   do i=1,size(stateVector)
