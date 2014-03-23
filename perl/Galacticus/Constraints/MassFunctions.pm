@@ -29,9 +29,6 @@ require Galacticus::HIGasMass;
 require Galacticus::GasMass;
 require Galacticus::Constraints::Covariances;
 require Stats::Histograms;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require XMP::MetaData;
 
 sub Construct {
     # Construct a mass function from Galacticus for constraint purposes.
@@ -42,7 +39,6 @@ sub Construct {
     my $galacticus;
     $galacticus->{'file' } = $config->{'galacticusFile'};
     $galacticus->{'store'} = 0;
-    &HDF5::Get_Parameters($galacticus);
 
     # Define an effective temperature if one does not already exist. All non-model covariances
     # (i.e. data covariance and any model discrepancy covariance) will be inflated by this
@@ -104,6 +100,7 @@ sub Construct {
     my $covarianceGalacticus;
 
     # Determine if the model file contains a pre-computed mass function.
+    &HDF5::Open_File($galacticus);
     my $gotModelMassFunction = 0;
     my @rootGroups = $galacticus->{'hdf5File'}->groups();
     if ( grep {$_ eq "analysis"} @rootGroups ) {
@@ -118,6 +115,7 @@ sub Construct {
     # Read galaxy data and construct mass function if necessary.
     if ( $gotModelMassFunction == 0 ) {
 	$galacticus->{'tree'} = "all";
+	&HDF5::Get_Parameters($galacticus);
 	&HDF5::Count_Trees  ($galacticus                      );
 	&HDF5::Select_Output($galacticus,$config->{'redshift'});
 	&HDF5::Get_Dataset  ($galacticus,['mergerTreeWeight',$config->{'massType'}]);
@@ -315,6 +313,9 @@ sub Construct {
 
     # Create a plot of the mass function.
     if ( exists($arguments{'plotFile'}) ) {
+	require GnuPlot::PrettyPlots;
+	require GnuPlot::LaTeX;
+	require XMP::MetaData;
 	# Declare variables for GnuPlot;
 	my ($gnuPlot, $plotFileEPS, $plot);
 	# Open a pipe to GnuPlot.
