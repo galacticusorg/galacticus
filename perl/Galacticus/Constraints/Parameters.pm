@@ -22,30 +22,41 @@ use PDL::NiceSlice;
 use Data::Dumper;
 use Clone qw(clone);
 use List::Util;
+use Storable;
 require List::ExtraUtils;
 
 sub Parse_Config {
     # Get the config file name.
     my $configFile = shift;
-    # Parse the content.
-    my $xml    = new XML::Simple;
-    my $content;
-    my $parser = XML::SAX::ParserFactory->parser(
-	Handler => XML::Filter::XInclude->new(
-	    Handler => XML::SAX::Writer->new(Output => \$content)
-	)
-	);
-    $parser->parse_uri($configFile);
-    my $twig = XML::Twig->new (comments => 'drop', pretty_print => 'indented');
-    $twig->parse($content);
-    my $contentCommentless = $twig->sprint();
-    my $config = $xml->XMLin($contentCommentless, KeyAttr => 0);
-    if ( UNIVERSAL::isa($config->{'parameters'},"ARRAY") ) {
-	my @parameters;
-	push(@parameters,&ExtraUtils::as_array($_->{'parameter'}))
-	    foreach (  &ExtraUtils::as_array($config->{'parameters'}) );
-	delete($config->{'parameters'});
-	@{$config->{'parameters'}->{'parameter'}} = @parameters;
+    # Get any options.
+    my %options;
+    (%options) = @_
+	if ( scalar(@_) > 0 );
+    # Get the config.
+    my $config;
+    if ( exists($options{'useStored'}) && $options{'useStored'} == 1 && -e $configFile.".store" ) {
+	$config = retrieve($configFile.".store");
+    } else {
+	# Parse the content.
+	my $xml    = new XML::Simple;
+	my $content;
+	my $parser = XML::SAX::ParserFactory->parser(
+	    Handler => XML::Filter::XInclude->new(
+		Handler => XML::SAX::Writer->new(Output => \$content)
+	    )
+	    );
+	$parser->parse_uri($configFile);
+	my $twig = XML::Twig->new (comments => 'drop', pretty_print => 'indented');
+	$twig->parse($content);
+	my $contentCommentless = $twig->sprint();
+	$config = $xml->XMLin($contentCommentless, KeyAttr => 0);
+	if ( UNIVERSAL::isa($config->{'parameters'},"ARRAY") ) {
+	    my @parameters;
+	    push(@parameters,&ExtraUtils::as_array($_->{'parameter'}))
+		foreach (  &ExtraUtils::as_array($config->{'parameters'}) );
+	    delete($config->{'parameters'});
+	    @{$config->{'parameters'}->{'parameter'}} = @parameters;
+	}
     }
     return $config;
 }
@@ -72,8 +83,16 @@ sub Compilation {
     my $baseParametersFileName = shift;
     # Create an XML worker object.
     my $xml = new XML::Simple;
-    # Parse the constraint compilation file.
-    my $compilation = $xml->XMLin("constraints/compilations/".$compilationFileName);
+    # Retrieve the compilation file.
+    my $compilationFilePath = "constraints/compilations/".$compilationFileName;
+    my $compilation;
+    if ( -e $compilationFilePath.".store" ) {
+	$compilation = retrieve($compilationFilePath.".store");
+    } else {
+	# Create an XML worker object.
+	# Parse the constraint compilation file.
+	$compilation = $xml->XMLin($compilationFilePath);
+    }
     # Specify default values for parameters which can be adjusted by constraint definitions.
     my %outputRedshifts;
     my %outputLuminosities;
@@ -82,7 +101,12 @@ sub Compilation {
     my $haloMassMinimum;
     my $haloMassMaximum;
     # Parse the base set of parameters.
-    my $parameters = $xml->XMLin($baseParametersFileName);
+    my $parameters;
+    if ( -e $baseParametersFileName.".store" ) {
+	$parameters = retrieve($baseParametersFileName.".store");
+    } else {
+	$parameters = $xml->XMLin($baseParametersFileName);
+    }
     # Scan through all constraints.
     my @constraints;
     if ( ref($compilation->{'constraint'}) eq "ARRAY" ) {
@@ -95,7 +119,12 @@ sub Compilation {
 	die("Compilation(): compilation must specify a definition for each constraint")
 	    unless ( defined($constraint->{'definition'}) );
 	# Parse the definition file.
-	my $constraintDefinition = $xml->XMLin($constraint->{'definition'},KeyAttr => "");
+	my $constraintDefinition;
+	if ( -e $constraint->{'definition'}.".store" ) {
+	    $constraintDefinition = retrieve($constraint->{'definition'}.".store");
+	} else {
+	    $constraintDefinition = $xml->XMLin($constraint->{'definition'},KeyAttr => "");
+	}
 	# Extract any required output redshift.
 	if ( defined($constraintDefinition->{'outputRedshift'}) ) {
 	    my @redshifts;
@@ -209,7 +238,7 @@ sub Compilation {
     return (\@constraints,$parameters);
 }
 
-sub Convert_BIE_Parameters_To_Galacticus {
+sub Convert_Parameters_To_Galacticus {
     my $config = shift;
     my @values = @_;
 
@@ -225,7 +254,7 @@ sub Convert_BIE_Parameters_To_Galacticus {
     for(my $i=0;$i<scalar(@parameters);++$i) {
 	++$parameterCount if ( exists($parameters[$i]->{'prior'}) );
     }
-    die("Convert_BIE_Parameters_To_Galacticus: number of supplied values does not match number of parameters")
+    die("Convert_Parameters_To_Galacticus: number of supplied values does not match number of parameters")
 	unless ( scalar(@values) == $parameterCount );
     # Map values to parameters, undoing any logarithmic mapping.
     my $j = -1;
@@ -233,18 +262,9 @@ sub Convert_BIE_Parameters_To_Galacticus {
     for(my $i=0;$i<scalar(@parameters);++$i) {
 	if ( exists($parameters[$i]->{'prior'}) ) {
 	    ++$j;
-	    $parameterValues{$parameters[$i]->{'name'}} = $values[$j];
-	    # Unmap from logarithmic space if necessary.
-	    if ( $parameters[$i]->{'prior'}->{'distribution'} eq "uniform" ) {
-		if ( exists($parameters[$i]->{'prior'}->{'mapping'}) ) {
-		    if ( $parameters[$i]->{'prior'}->{'mapping'} eq "logarithmic" ) {
-			$parameterValues{$parameters[$i]->{'name'}} = exp($parameterValues{$parameters[$i]->{'name'}});
-		    }
-		}
-	    }
+	    $parameterValues{$parameters[$i]->{'name'}} = $values[$j];	  
 	}
     }
-
     # Set the values of any parameters that are defined in terms of other parameters.
     my $failCount = 1;
     while ( $failCount > 0 ) {
@@ -345,7 +365,7 @@ sub Sample_Models {
 	    # Convert these values into a parameter array.
 	    my $j = $sampleIndex->(($i))->sclr();
 	    my $currentConfig = clone($config);
-	    my $newParameters = &Convert_BIE_Parameters_To_Galacticus($currentConfig,@{$chainParametersViable[$j]});    
+	    my $newParameters = &Convert_Parameters_To_Galacticus($currentConfig,@{$chainParametersViable[$j]});    
 	    # Increment the random number seed.
 	    $parameters->{'parameter'}->{'randomSeed'}->{'value'} += $config->{'likelihood'}->{'threads'};
 	    # Clone parameters.
