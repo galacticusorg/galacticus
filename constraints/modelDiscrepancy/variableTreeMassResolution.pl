@@ -204,11 +204,12 @@ foreach my $constraint ( @constraints ) {
 	    if ( exists($DiscrepancySystematics::models{$model}) ) {
 		%{$systematicResults{$model}} =
 		    &{$DiscrepancySystematics::models{$model}}(
-		    \%arguments        ,
-		    $fixedX            ,
-		    $fixedY            ,
-		    $fixedCovariance   ,
-		    $variableY         ,
+		    \%arguments          ,
+		    $constraintDefinition,
+		    $fixedX              ,
+		    $fixedY              ,
+		    $fixedCovariance     ,
+		    $variableY           ,
 		    $variableCovariance
 		);
 	    }
