@@ -981,13 +981,13 @@ contains
        if (.not.self%spinIsVector) call Galacticus_Error_Report("galacticusImport","vector spin is not available")
        call self%haloTrees%readDataset("spin",spin3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
     end if
-    ! Positions (and velocities).
-    if (present(requirePositions).and.requirePositions) then
-      select type (nodes)
-       type is (nodeDataGalacticus)
-          ! Initialize particle data to null values.
-          nodes%particleIndexStart=-1_kind_int8
-          nodes%particleIndexCount=-1_kind_int8
+    select type (nodes)
+    type is (nodeDataGalacticus)
+       ! Initialize particle data to null values.
+       nodes%particleIndexStart=-1_kind_int8
+       nodes%particleIndexCount=-1_kind_int8
+       ! Positions (and velocities).
+       if (present(requirePositions).and.requirePositions) then
           ! position.
           call self%haloTrees%readDataset("position",position,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
           ! velocity.
@@ -997,10 +997,10 @@ contains
              call self%haloTrees%readDatasetStatic("particleIndexStart",nodes%particleIndexStart,firstNodeIndex,nodeCount)
              call self%haloTrees%readDatasetStatic("particleIndexCount",nodes%particleIndexCount,firstNodeIndex,nodeCount)
           end if
-       class default
-          call Galacticus_Error_Report('galacticusImport','nodes should be of type nodeDataGalacticus')
-       end select
-    end if
+       end if
+    class default
+       call Galacticus_Error_Report('galacticusImport','nodes should be of type nodeDataGalacticus')
+    end select
     !$omp end critical(HDF5_Access)
     ! Unit conversion.
     if     (                                                                              &
