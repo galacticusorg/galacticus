@@ -75,7 +75,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   type            (pseudoRandom                  )                                   :: randomNumberGenerator
   type            (varying_string                )                                   :: logFileName          , message
   integer                                                                            :: logFileUnit          , convergedAtStep      , &
-       &                                                                                convergenceFileUnit
+       &                                                                                convergenceFileUnit  , i
   
   ! Check that we have sufficient chains for differential evolution.
   if (mpiSelf%count() < 3) call Galacticus_Error_Report('simulatorDifferentialEvolutionSimulate','at least 3 chains are required for differential evolution')
@@ -131,6 +131,10 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
         stateVector       =stateVectorProposed
      end if
      call self%update(stateVector)
+     ! Unmap parameters and write to log file.
+     do i=1,size(stateVector)
+        stateVector(i)=self%parameterMappings(i)%thisMapping%unmap(stateVector(i))
+     end do
      if (self%logging()) write (logFileUnit,*) self   %simulationState%count(), &
           &                                    mpiSelf%rank                 (), &
           &                                    timeEvaluate                   , &
