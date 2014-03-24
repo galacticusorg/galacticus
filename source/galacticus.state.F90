@@ -22,6 +22,7 @@ module Galacticus_State
   !% Implements storage and recovery of the Galacticus internal state. Used for restoring random number
   !% generator sequences for example.
   use ISO_Varying_String
+  use Tables
   implicit none
   private
   public :: Galacticus_State_Snapshot, Galacticus_State_Store, Galacticus_State_Retrieve

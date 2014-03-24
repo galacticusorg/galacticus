@@ -712,6 +712,35 @@ x &=& (\Omega_\Lambda/\Omega_{\rm M})^{1/3} a(t),
 \end{eqnarray}
 with the following parameters (default values taken from \cite{prada_halo_2011} given in []): $A=${\tt [prada2011ConcentrationA]}$=2.881$, $b=${\tt [prada2011ConcentrationB]}$=1.257$, $c=${\tt [prada2011ConcentrationC]}$=1.022$, $d=${\tt [prada2011ConcentrationD]}$=0.060$, $c_0=${\tt [prada2011ConcentrationC0]}$=3.681$, $c_1=${\tt [prada2011ConcentrationC1]}$=5.033$, $x_0=${\tt [prada2011ConcentrationX0]}$=0.424$, $x_1=${\tt [prada2011ConcentrationX1]}$=0.526$, $\sigma^{-1}_0=${\tt [prada2011ConcentrationInverseSigma0]}$=1.047$, $\sigma^{-1}_1=${\tt [prada2011ConcentrationInverseSigma1]}$=1.646$, $\alpha=${\tt [prada2011ConcentrationAlpha]}$=6.948$, and $\beta=${\tt [prada2011ConcentrationBeta]}$=7.386$.
 
+\subsubsection{Dutton \& Macci\`o (2014)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationDuttonMaccio2014}
+
+Selected with {\tt darkMatterProfileConcentrationMethod}$=${\tt duttonMaccio2014}, under this method the concentration is computed using a fitting function from \cite{dutton_cold_2014}:
+\begin{equation}
+\log_{10} c = A + B \log_{10} M_{\rm halo}.
+\end{equation}
+The parameters are a functon of redshift, $z$. We use the following fit suggested by \cite{dutton_cold_2014} results:
+\begin{eqnarray}
+A &=& A_1+(A_2-A_1)\exp[A_3 z^{A_4}] \nonumber \\
+B &=& B_1+B_2 z.
+\end{eqnarray}
+The coefficients are chosen from one of the three sets given by \cite{dutton_cold_2014}, controlled via the {\tt [duttonMaccio2014FitType]} parameter, as described in Table~\ref{tb:DuttonMaccioConcentrationCoefficients}.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{lccrrrrrr}
+\hline
+{\bf Fit type} & {\bf Profile} & {\boldmath $\Delta_{\rm vir}$ } & {\boldmath $A_1$} & {\boldmath $A_2$} & {\boldmath $A_3$} & {\boldmath $A_4$} & {\boldmath $B_1$} & {\boldmath $B_2$} \\
+\hline
+{\tt nfwVirial}  & \gls{nfw} & Top-hat & $+0.537$ & $+1.025$ & $-0.718$ & $+1.080$ & $-0.097$ & $+0.024$ \\
+{\tt nfw200}     & \gls{nfw} & 200     & $+0.520$ & $+0.905$ & $-0.617$ & $+1.210$ & $-0.101$ & $+0.026$ \\
+{\tt einasto200} & Einasto   & 200     & $+0.459$ & $+0.977$ & $-0.490$ & $+1.303$ & $-0.130$ & $+0.029$ \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Coefficients appearing in the dark matter halo profile concentration fitting functions of \protect\cite{dutton_cold_2014}. The ``fit type'' is specified by the {\tt [duttonMaccio2014FitType]} parameter.}
+\label{tb:DuttonMaccioConcentrationCoefficients}
+\end{table}
+
 \subsection{Density Profile Shape}\label{sec:DarkMatterProfileShape}\index{dark matter profile!shape}
 
 The method used to compute any shape parameter of dark matter profiles is selected via the {\tt darkMatterShapeMethod} parameter.
