@@ -652,6 +652,8 @@ use omp_lib
           ! volumeWeight
           treeVolumeWeightCurrent=defaultImporter%treeWeight(nextTreeToRead)
           thisTree%volumeWeight=treeVolumeWeightCurrent
+          ! Initialize no events.
+          thisTree%event => null()
           ! Read data from the file.
           call defaultImporter%import(                                                                                                                      &
                &                      nextTreeToRead                                                                                                      , &
@@ -1295,6 +1297,7 @@ use omp_lib
                 end if
                 currentTree   %volumeWeight=  treeVolumeWeightCurrent
                 currentTree   %initialized =  .false.
+                currentTree   %event       => null()
              end if
           else
              ! Node is not isolated, so must be an initial satellite.
