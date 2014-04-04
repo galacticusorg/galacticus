@@ -67,31 +67,32 @@ contains
     include 'galacticus.tasks.evolve_tree.universePreEvolveTask.moduleUse.inc'
     !# </include>
     implicit none
-    type            (mergerTree    ), pointer     , save :: thisTree
-    logical                                       , save :: finished                        , skipTree               , &
-         &                                                  treeIsNew
-    integer                                       , save :: iOutput
-    double precision                              , save :: evolveToTime                    , treeTimeEarliest       , &
-         &                                                  universalEvolveToTime           , treeTimeLatest         , &
-         &                                                  outputTimeNext
-    type            (varying_string)              , save :: message
-    character       (len=20        )              , save :: label
+    type            (mergerTree        ), pointer     , save :: thisTree
+    logical                                           , save :: finished                        , skipTree               , &
+         &                                                      treeIsNew
+    integer                                           , save :: iOutput
+    double precision                                  , save :: evolveToTime                    , treeTimeEarliest       , &
+         &                                                      universalEvolveToTime           , treeTimeLatest         , &
+         &                                                      outputTimeNext
+    type            (varying_string    )              , save :: message
+    character       (len=20            )              , save :: label
     !$omp threadprivate(thisTree,finished,skipTree,iOutput,evolveToTime,message,label,treeIsNew,treeTimeEarliest,universalEvolveToTime,outputTimeNext)
-    integer                                              :: iTree
-    integer                                       , save :: activeTasks                     , totalTasks
-    double precision                , dimension(3), save :: loadAverage
-    logical                                       , save :: overloaded                      , treeCanEvolve          , &
-         &                                                  treeIsFinished                  , evolutionIsEventLimited, &
-         &                                                  success                         , removeTree
-    type            (mergerTree    ), pointer     , save :: currentTree                     , previousTree
+    integer                                                  :: iTree
+    integer                                           , save :: activeTasks                     , totalTasks
+    double precision                    , dimension(3), save :: loadAverage
+    logical                                           , save :: overloaded                      , treeCanEvolve          , &
+         &                                                      treeIsFinished                  , evolutionIsEventLimited, &
+         &                                                      success                         , removeTree
+    type            (mergerTree        ), pointer     , save :: currentTree                     , previousTree
     !$omp threadprivate(currentTree,previousTree)
-    type            (treeNode      ), pointer     , save :: satelliteNode
-    !$omp threadprivate(satelliteNode)
-    type            (semaphore     ), pointer            :: galacticusMutex
-    character       (len=32        )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
+    type            (treeNode          ), pointer     , save :: satelliteNode
+    class           (nodeComponentBasic), pointer, save :: baseNodeBasic
+    !$omp threadprivate(satelliteNode,baseNodeBasic)
+    type            (semaphore         ), pointer            :: galacticusMutex
+    character       (len=32            )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
     !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeCanEvolve,treeIsFinished,evolutionIsEventLimited,success,removeTree)
-    type            (universe      )                     :: universeWaiting                 , universeProcessed
-    type            (universeEvent ), pointer     , save :: thisEvent
+    type            (universe          )                     :: universeWaiting                 , universeProcessed
+    type            (universeEvent     ), pointer     , save :: thisEvent
     !$omp threadprivate(thisEvent)
 
     ! Initialize the task if necessary.
@@ -306,7 +307,10 @@ contains
                 previousTree => null()
                 currentTree  => thisTree
                 do while (associated(currentTree))
-                   removeTree=.not.associated(currentTree%baseNode%firstChild)                   
+                   baseNodeBasic => currentTree%baseNode%basic()                   
+                   removeTree    =   .not.associated(currentTree%baseNode%firstChild) &
+                        &           .and.                                             &
+                        &            (baseNodeBasic%time() < evolveToTime)
                    if (removeTree) then
                       ! Does the node have attached satellites which are about to merge.
                       satelliteNode => currentTree%baseNode%firstSatellite
