@@ -191,27 +191,27 @@ contains
     use Numerical_Comparison
     use Dark_Matter_Halo_Scales
     use String_Handling
-    use FoX_dom
-    use IO_XML
+    use IO_HDF5
     use Vectors
     use Galacticus_Output_Analyses_Cosmology_Scalings
     implicit none
-    type            (mergerTree             ), intent(in   )                 :: thisTree
-    type            (treeNode               ), intent(inout), pointer        :: thisNode
-    integer                                  , intent(in   )                 :: iOutput
-    type            (varying_string         ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
-    class           (nodeComponentBasic     )               , pointer        :: thisBasic
-    class           (nodeComponentSpin      )               , pointer        :: thisSpin
-    type            (node                   )               , pointer        :: doc,sizeFunction,radiusElement,datum,cosmology,cosmologyScalingElement,hubbleElement,omegaDarkEnergyElement,omegaMatterElement,datasetElement
-    type            (nodeList               )               , pointer        :: sizeFunctionList,radiiList,massElement
-    class           (cosmologyFunctionsClass)               , pointer        :: cosmologyFunctionsModel
+    type            (mergerTree                    ), intent(in   )                 :: thisTree
+    type            (treeNode                      ), intent(inout), pointer        :: thisNode
+    integer                                         , intent(in   )                 :: iOutput
+    type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
+    class           (nodeComponentBasic            )               , pointer        :: thisBasic
+    class           (nodeComponentSpin             )               , pointer        :: thisSpin
+    class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
-    integer                                                                  :: i,j,k,currentAnalysis,activeAnalysisCount,ioErr,haloMassBin,iDistribution,iRadius
-    double precision                                                         :: dataHubbleParameter &
-         &,mass,massLogarithmic,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter
-    type            (varying_string                )                         :: parameterName,analysisSizeFunctionCovarianceModelText,cosmologyScalingSizeFunction,cosmologyScalingMass,cosmologyScalingSize
-    character       (len=128                       )                         :: cosmologyScaling
+    integer                                                                         :: i,j,k,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution
+    double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
+         &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter
+    type            (varying_string                )                                :: parameterName&
+         &,analysisSizeFunctionCovarianceModelText,cosmologyScalingSizeFunction,cosmologyScalingMass,cosmologyScalingSize
+    character       (len=128                       )                                :: distributionGroupName
+    logical                                                                         :: groupFound
+    type            (hdf5Object                    )                                :: dataFile,sizeDataset,distributionGroup,cosmologyGroup
 
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
@@ -353,16 +353,30 @@ contains
                       select case (trim(sizeFunctionLabels(j)))
                       case ('sdssSizeFunctionZ0.07')
                          ! SDSS z=0.07 size function.
-                         !$omp critical (FoX_DOM_Access)
-                         doc => parseFile(char(Galacticus_Input_Path())//"data/observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.xml",iostat=ioErr)
-                         if (ioErr /= 0) call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins','Unable to find data file')
-                         sizeFunctionList =>      getElementsByTagname(doc             ,"distribution")
-                         sizeFunction     => item(                     sizeFunctionList                ,0)
-                         radiusElement    => item(getElementsByTagname(sizeFunction    ,"radius"      ),0)
-                         radiiList        =>      getElementsByTagname(radiusElement   ,"datum"       )
+
+                         call dataFile%openFile(char(Galacticus_Input_Path())//"data/observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5",readOnly=.true.)
+                         ! Count number of distributions.
+                         sizeFunctions(currentAnalysis)%massesCount=0
+                         groupFound=.true.
+                         do while (groupFound)
+                            sizeFunctions        (currentAnalysis)%massesCount &
+                                 & =sizeFunctions(currentAnalysis)%massesCount &
+                                 & +1
+                            write (distributionGroupName,'(a,i2.2)')           &
+                                 & "distribution"                            , &
+                                 & sizeFunctions(currentAnalysis)%massesCount
+                            groupFound=dataFile%hasGroup(distributionGroupName)
+                         end do
+                         sizeFunctions        (currentAnalysis)%massesCount &
+                              & =sizeFunctions(currentAnalysis)%massesCount &
+                              & -1
+                         ! Count radii.
+                         distributionGroup=dataFile         %openGroup  ("distribution01")
+                         sizeDataset      =distributionGroup%openDataset("radius"        )
+                         sizeFunctions(currentAnalysis)%radiiCount=sizeDataset%size(dim=1)
+                         call sizeDataset      %close()
+                         call distributionGroup%close()
                          ! Construct arrays.
-                         sizeFunctions(currentAnalysis)%massesCount=getLength(sizeFunctionList)
-                         sizeFunctions(currentAnalysis)% radiiCount=getLength(radiiList       )
                          call Alloc_Array(sizeFunctions(currentAnalysis)%masses                        ,[                                          sizeFunctions(currentAnalysis)%massesCount                                       ])
                          call Alloc_Array(sizeFunctions(currentAnalysis)%massesLogarithmic             ,[                                          sizeFunctions(currentAnalysis)%massesCount                                       ])
                          call Alloc_Array(sizeFunctions(currentAnalysis)%massesLogarithmicMinimum      ,[                                          sizeFunctions(currentAnalysis)%massesCount                                       ])
@@ -380,46 +394,41 @@ contains
                               &          )
                          call Alloc_Array(sizeFunctions(currentAnalysis)%mainBranchGalaxyWeights       ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount,analysisSizeFunctionsHaloMassBinsCount])
                          call Alloc_Array(sizeFunctions(currentAnalysis)%mainBranchGalaxyWeightsSquared,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount,analysisSizeFunctionsHaloMassBinsCount])
-                         do iDistribution=0,getLength(sizeFunctionList)-1
-                            sizeFunction  => item(sizeFunctionList,iDistribution)
-                            massElement   => getElementsByTagName(sizeFunction ,"massMinimum")
-                            datum         => item(massElement,0)
-                            call extractDataContent(datum,sizeFunctions(currentAnalysis)%massesLogarithmicMinimum(iDistribution+1)) 
-                            massElement   => getElementsByTagName(sizeFunction ,"massMaximum")
-                            datum         => item(massElement,0)
-                            call extractDataContent(datum,sizeFunctions(currentAnalysis)%massesLogarithmicMaximum(iDistribution+1))
-                            radiusElement => item(getElementsByTagname(sizeFunction ,"radius"     ),0)
-                            radiiList     =>      getElementsByTagname(radiusElement,"datum"      )
-                            do iRadius=0,getLength(radiiList)-1
-                               datum => item(radiiList,iRadius)
-                               call extractDataContent(datum,sizeFunctions(currentAnalysis)%radii(iRadius+1,iDistribution+1))
-                            end do
-                            if (iDistribution == 0) then
-                               datasetElement          => XML_Get_First_Element_By_Tag_Name(sizeFunction  ,"radius"          )
-                               cosmologyScalingElement => XML_Get_First_Element_By_Tag_Name(datasetElement,"cosmologyScaling")
-                               call extractDataContent(cosmologyScalingElement,cosmologyScaling)
-                               cosmologyScalingSize        =trim(cosmologyScaling)
-                               datasetElement          => XML_Get_First_Element_By_Tag_Name(sizeFunction  ,"mass"            )
-                               cosmologyScalingElement => XML_Get_First_Element_By_Tag_Name(datasetElement,"cosmologyScaling")
-                               call extractDataContent(cosmologyScalingElement,cosmologyScaling)
-                               cosmologyScalingMass        =trim(cosmologyScaling)
-                               datasetElement          => XML_Get_First_Element_By_Tag_Name(sizeFunction  ,"radiusFunction"  )
-                               cosmologyScalingElement => XML_Get_First_Element_By_Tag_Name(datasetElement,"cosmologyScaling")
-                               call extractDataContent(cosmologyScalingElement,cosmologyScaling)
-                               cosmologyScalingSizeFunction=trim(cosmologyScaling)
-                             end if
+                         ! Read datasets.
+                         do iDistribution=1,sizeFunctions(currentAnalysis)%massesCount
+                            write (distributionGroupName,'(a,i2.2)')           &
+                                 & "distribution"                            , &
+                                 & iDistribution
+                            distributionGroup=dataFile%openGroup(distributionGroupName)
+                            call distributionGroup%readAttribute    ("massMinimum",sizeFunctions(currentAnalysis)%massesLogarithmicMinimum(  iDistribution))
+                            call distributionGroup%readAttribute    ("massMaximum",sizeFunctions(currentAnalysis)%massesLogarithmicMaximum(  iDistribution))
+                            call distributionGroup%readDatasetStatic("radius"     ,sizeFunctions(currentAnalysis)%radii                   (:,iDistribution))
+                            call distributionGroup%close()
+                            if (iDistribution == 1) then
+                               distributionGroup=dataFile         %openGroup  (distributionGroupName)
+                               sizeDataset      =distributionGroup%openDataset("radius"             )
+                               call sizeDataset      %readAttribute("cosmologyScaling"    ,cosmologyScalingSize        )
+                               call sizeDataset      %close        (                                                   )
+                               call distributionGroup%readAttribute("massCosmologyScaling",cosmologyScalingMass        )
+                               call sizeDataset      %close        (                                                   )
+                               sizeDataset      =distributionGroup%openDataset("radiusFunction"     )
+                               call sizeDataset      %readAttribute("cosmologyScaling"    ,cosmologyScalingSizeFunction)
+                               call sizeDataset      %close        (                                                   )
+                               call distributionGroup%close        (                                                   )
+                            end if
                          end do
+                         sizeFunctions              (currentAnalysis)%massesLogarithmicMinimum  &
+                              & =log10(sizeFunctions(currentAnalysis)%massesLogarithmicMinimum)
+                         sizeFunctions              (currentAnalysis)%massesLogarithmicMaximum  &
+                              & =log10(sizeFunctions(currentAnalysis)%massesLogarithmicMaximum)
                          ! Extract cosmological parameters.
-                         cosmology              => XML_Get_First_Element_By_Tag_Name(doc      ,"cosmology"      )
-                         hubbleElement          => XML_Get_First_Element_By_Tag_Name(cosmology,"hubble"         )
-                         omegaMatterElement     => XML_Get_First_Element_By_Tag_Name(cosmology,"omegaMatter"    )
-                         omegaDarkEnergyElement => XML_Get_First_Element_By_Tag_Name(cosmology,"omegaDarkEnergy")
-                         call extractDataContent(hubbleElement         ,dataHubbleParameter)
-                         call extractDataContent(omegaMatterElement    ,dataOmegaMatter    )
-                         call extractDataContent(omegaDarkEnergyElement,dataOmegaDarkEnergy)
-                         ! Destroy the document.
-                         call destroy(doc)
-                         !$omp end critical (FoX_DOM_Access)
+                         cosmologyGroup=dataFile%openGroup("cosmology")
+                         call cosmologyGroup%readAttribute("H_0"         ,dataHubbleParameter)
+                         call cosmologyGroup%readAttribute("Omega_Matter",dataOmegaMatter    )
+                         call cosmologyGroup%readAttribute("Omega_DE"    ,dataOmegaDarkEnergy)
+                         call cosmologyGroup%close        (                                  )
+                         ! Finished reading data.
+                         call dataFile%close()
                          ! Create the observed cosmology.
                          cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
                               &                                                     OmegaMatter    =dataOmegaMatter    , &
