@@ -1481,15 +1481,15 @@ use omp_lib
           thisDarkMatterProfileComponent => nodeList(iIsolatedNode)%node%darkMatterProfile(autoCreate=.true.)          
           if (thisBasicComponent%mass() >= mergerTreeReadPresetScaleRadiiMinimumMass) then
              ! Check if we have scale radii read directly from file.
-             if     (                                                      &
-                  &     nodes(iNode)%scaleRadius                           &
-                  &   >                                                    &
-                  &     0.0d0                                              &
-                  &  .and.                                                 &
-                  &     nodes(iNode)%scaleRadius                           &
-                  &   <                                                    &
-                  &     Dark_Matter_Halo_Virial_Radius(activeNode)         &
-                  &    /mergerTreeReadPresetScaleRadiiConcentrationMinimum &
+             if     (                                                                &
+                  &     nodes(iNode)%scaleRadius                                     &
+                  &   >                                                              &
+                  &     0.0d0                                                        &
+                  &  .and.                                                           &
+                  &     nodes(iNode)%scaleRadius                                     &
+                  &   <                                                              &
+                  &     Dark_Matter_Halo_Virial_Radius(nodeList(iIsolatedNode)%node) &
+                  &    /mergerTreeReadPresetScaleRadiiConcentrationMinimum           &
                   & ) then
                 ! We do, so simply use them to set the scale radii in tree nodes.
                 call thisDarkMatterProfileComponent%scaleSet(nodes(iNode)%scaleRadius)
