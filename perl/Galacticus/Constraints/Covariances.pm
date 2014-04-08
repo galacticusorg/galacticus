@@ -6,9 +6,8 @@ use strict;
 use warnings;
 use PDL;
 use PDL::NiceSlice;
-use PDL::MatrixOps;
-use PDL::Matrix;
 use PDL::LinearAlgebra;
+use PDL::LinearAlgebra::Real;
 
 sub LogNormalCovariance {
     # Given a vector, y, and its covariance matrix, C, compute the covariance in log(y). C_ln = ln(1+C/y*y) where "*" indicates
@@ -37,8 +36,12 @@ sub SVDInvert {
     # Set default options.
     $options{'errorTolerant'} = 0
 	unless ( exists($options{'errorTolerant'}) );
-    # Do the Singular Value Decomposition.
-    (my $r1, my $s, my $r2)                             = svd($C);
+    # Do the Singular Value Decomposition.  
+    my $s    = pdl zeroes(float, $C->dim(0)            );
+    my $r1   = pdl zeroes(float, $C->dim(0), $C->dim(1));
+    my $r2   = pdl zeroes(float, $C->dim(0), $C->dim(1));
+    my $info = pdl long(0);
+    &gesdd($C,1,$s,$r1,$r2,$info); 
     # Invert the matrix.
     my $nonZeroSingularValues                           = which($s > 0.0);
     my $sInverse                                        = zeroes($r1);
@@ -49,7 +52,7 @@ sub SVDInvert {
     # Compute the log of the determinant of the covariance matrix.
     my $logDeterminant                                  = sum(log($s->($nonZeroSingularValues)));
     # Perform sanity checks on the inverse covariance matrix and its determinant.
-    (my $eigenVectors, my $eigenValues)                 = eigens_sym($CInverseSPD);
+    (my $eigenValues, my $eigenVectors)                 = msymeigen($CInverseSPD,0,1,'syevd');
     print "SVDInvert: inverse covariance matrix is not semi-positive definite\n"
 	unless ( all(         $eigenValues >= 0.0)  ); 
     unless (     isfinite($logDeterminant)  ) {
@@ -70,7 +73,7 @@ sub MakeSemiPositiveDefinite {
     # zero, and reconstructing the original matric from the eigenvectors and (modified) eigenvalues.
     my $C                               = shift;
     # Decompose into eigenvectors and eigenvalues.
-    (my $eigenVectors, my $eigenValues) = eigens_sym($C);
+    (my $eigenValues, my $eigenVectors) = msymeigen($C,0,1,'syevd');
     # Test for non-semi-positive definiteness.
     if ( any($eigenValues < 0.0) ) {
 	# Force any negative eigenvalues to zero.
