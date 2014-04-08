@@ -200,13 +200,13 @@ contains
     integer                                         , intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     class           (nodeComponentBasic            )               , pointer        :: thisBasic
-    class           (nodeComponentSpin             )               , pointer        :: thisSpin
+    class           (nodeComponentDisk             )               , pointer        :: thisDisk
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
-    integer                                                                         :: i,j,k,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution
+    integer                                                                         :: i,j,k,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution
     double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
-         &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter
+         &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter,sersicIndexMaximum
     type            (varying_string                )                                :: parameterName&
          &,analysisSizeFunctionCovarianceModelText,cosmologyScalingSizeFunction,cosmologyScalingMass,cosmologyScalingSize
     character       (len=128                       )                                :: distributionGroupName
@@ -353,23 +353,27 @@ contains
                       select case (trim(sizeFunctionLabels(j)))
                       case ('sdssSizeFunctionZ0.07')
                          ! SDSS z=0.07 size function.
-
                          call dataFile%openFile(char(Galacticus_Input_Path())//"data/observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5",readOnly=.true.)
                          ! Count number of distributions.
                          sizeFunctions(currentAnalysis)%massesCount=0
                          groupFound=.true.
+                         jDistribution=0
                          do while (groupFound)
-                            sizeFunctions        (currentAnalysis)%massesCount &
-                                 & =sizeFunctions(currentAnalysis)%massesCount &
-                                 & +1
-                            write (distributionGroupName,'(a,i2.2)')           &
-                                 & "distribution"                            , &
-                                 & sizeFunctions(currentAnalysis)%massesCount
+                            jDistribution=jDistribution+1
+                            write (distributionGroupName,'(a,i2.2)')  &
+                                 & "distribution"                   , &
+                                 & jDistribution
                             groupFound=dataFile%hasGroup(distributionGroupName)
+                            if (groupFound) then
+                               distributionGroup=dataFile%openGroup(distributionGroupName)
+                               call distributionGroup%readAttribute("sersicIndexMaximum",sersicIndexMaximum)
+                               call distributionGroup%close        (                                       )
+                               if (sersicIndexMaximum <= 2.5d0) &
+                                    &  sizeFunctions(currentAnalysis)%massesCount &
+                                    & =sizeFunctions(currentAnalysis)%massesCount &
+                                    & +1
+                            end if
                          end do
-                         sizeFunctions        (currentAnalysis)%massesCount &
-                              & =sizeFunctions(currentAnalysis)%massesCount &
-                              & -1
                          ! Count radii.
                          distributionGroup=dataFile         %openGroup  ("distribution01")
                          sizeDataset      =distributionGroup%openDataset("radius"        )
@@ -395,26 +399,35 @@ contains
                          call Alloc_Array(sizeFunctions(currentAnalysis)%mainBranchGalaxyWeights       ,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount,analysisSizeFunctionsHaloMassBinsCount])
                          call Alloc_Array(sizeFunctions(currentAnalysis)%mainBranchGalaxyWeightsSquared,[sizeFunctions(currentAnalysis)%radiiCount,sizeFunctions(currentAnalysis)%massesCount,analysisSizeFunctionsHaloMassBinsCount])
                          ! Read datasets.
-                         do iDistribution=1,sizeFunctions(currentAnalysis)%massesCount
-                            write (distributionGroupName,'(a,i2.2)')           &
-                                 & "distribution"                            , &
-                                 & iDistribution
-                            distributionGroup=dataFile%openGroup(distributionGroupName)
-                            call distributionGroup%readAttribute    ("massMinimum",sizeFunctions(currentAnalysis)%massesLogarithmicMinimum(  iDistribution))
-                            call distributionGroup%readAttribute    ("massMaximum",sizeFunctions(currentAnalysis)%massesLogarithmicMaximum(  iDistribution))
-                            call distributionGroup%readDatasetStatic("radius"     ,sizeFunctions(currentAnalysis)%radii                   (:,iDistribution))
-                            call distributionGroup%close()
-                            if (iDistribution == 1) then
-                               distributionGroup=dataFile         %openGroup  (distributionGroupName)
-                               sizeDataset      =distributionGroup%openDataset("radius"             )
-                               call sizeDataset      %readAttribute("cosmologyScaling"    ,cosmologyScalingSize        )
-                               call sizeDataset      %close        (                                                   )
-                               call distributionGroup%readAttribute("massCosmologyScaling",cosmologyScalingMass        )
-                               call sizeDataset      %close        (                                                   )
-                               sizeDataset      =distributionGroup%openDataset("radiusFunction"     )
-                               call sizeDataset      %readAttribute("cosmologyScaling"    ,cosmologyScalingSizeFunction)
-                               call sizeDataset      %close        (                                                   )
-                               call distributionGroup%close        (                                                   )
+                         jDistribution=0
+                         iDistribution=0
+                         groupFound=.true.
+                         do while (groupFound)
+                            jDistribution=jDistribution+1
+                            write (distributionGroupName,'(a,i2.2)')  &
+                                 & "distribution"                   , &
+                                 & jDistribution
+                            groupFound=dataFile%hasGroup(distributionGroupName)
+                            if (groupFound) then
+                               distributionGroup=dataFile%openGroup(distributionGroupName)
+                               call distributionGroup%readAttribute("sersicIndexMaximum",sersicIndexMaximum)
+                               if (sersicIndexMaximum <= 2.5d0) then
+                                  iDistribution=iDistribution+1
+                                  call distributionGroup%readAttribute    ("massMinimum",sizeFunctions(currentAnalysis)%massesLogarithmicMinimum(  iDistribution))
+                                  call distributionGroup%readAttribute    ("massMaximum",sizeFunctions(currentAnalysis)%massesLogarithmicMaximum(  iDistribution))
+                                  call distributionGroup%readDatasetStatic("radius"     ,sizeFunctions(currentAnalysis)%radii                   (:,iDistribution))
+                                  if (iDistribution == 1) then
+                                     sizeDataset      =distributionGroup%openDataset("radius"             )
+                                     call sizeDataset      %readAttribute("cosmologyScaling"    ,cosmologyScalingSize        )
+                                     call sizeDataset      %close        (                                                   )
+                                     call distributionGroup%readAttribute("massCosmologyScaling",cosmologyScalingMass        )
+                                     call sizeDataset      %close        (                                                   )
+                                     sizeDataset      =distributionGroup%openDataset("radiusFunction"     )
+                                     call sizeDataset      %readAttribute("cosmologyScaling"    ,cosmologyScalingSizeFunction)
+                                     call sizeDataset      %close        (                                                   )
+                                  end if
+                               end if
+                               call distributionGroup%close()
                             end if
                          end do
                          sizeFunctions              (currentAnalysis)%massesLogarithmicMinimum  &
@@ -480,6 +493,17 @@ contains
                   end if
                 end do
              end do
+             ! Ensure that disk component supports radius property.
+             if (.not.defaultDiskComponent%radiusIsGettable()) &
+                  & call Galacticus_Error_Report                                                                   &
+                  & (                                                                                              &
+                  &  'Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins'                                       , &
+                  &  'This analysis requires that the "radius" property of the disk is gettable.'//                &
+                  &  Galacticus_Component_List(                                                                    &
+                  &                            'disk'                                                            , &
+                  &                             defaultDiskComponent%radiusAttributeMatch(requireGettable=.true.)  &
+                  &                           )                                                                    &
+                  & )             
           end if
           ! Record that module is initialized.
           moduleInitialized=.true.
@@ -514,9 +538,9 @@ contains
           massLogarithmic=massLogarithmic+sizeFunctions(i)%massSystematicCoefficients(j)*(log10(mass)-sizeFunctions(i)%descriptor%massSystematicLogM0)**(j-1)
        end do
        if (massLogarithmic <  sizeFunctions(i)%descriptor%massLogarithmicMinimum) return
-       ! Get the galactic radius. Currently this analysis assumes a radius determined from the halo virial radius and spin parameter.
-       thisSpin => thisNode%spin()
-       radius   =  Dark_Matter_Halo_Virial_Radius(thisNode)*thisSpin%spin()/sqrt(2.0d0)
+       ! Get the galactic radius.
+       thisDisk => thisNode%disk  ()
+       radius   =  thisDisk%radius()
        if (associated(sizeFunctions(i)%descriptor%mapRadius)) radius=sizeFunctions(i)%descriptor%mapRadius(radius,thisNode)
        radius=radius*sizeFunctions(i)%cosmologyConversionSize ! Convert for cosmology.
        radiusLogarithmic=log10(radius)
