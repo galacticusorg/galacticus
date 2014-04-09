@@ -353,6 +353,7 @@ contains
                       select case (trim(sizeFunctionLabels(j)))
                       case ('sdssSizeFunctionZ0.07')
                          ! SDSS z=0.07 size function.
+                         !$omp critical(HDF5_Access)
                          call dataFile%openFile(char(Galacticus_Input_Path())//"data/observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5",readOnly=.true.)
                          ! Count number of distributions.
                          sizeFunctions(currentAnalysis)%massesCount=0
@@ -442,7 +443,8 @@ contains
                          call cosmologyGroup%close        (                                  )
                          ! Finished reading data.
                          call dataFile%close()
-                         ! Create the observed cosmology.
+                         !$omp end critical(HDF5_Access)
+                        ! Create the observed cosmology.
                          cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
                               &                                                     OmegaMatter    =dataOmegaMatter    , &
                               &                                                     OmegaDarkEnergy=dataOmegaDarkEnergy, &
