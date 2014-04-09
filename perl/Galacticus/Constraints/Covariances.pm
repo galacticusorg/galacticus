@@ -33,7 +33,7 @@ sub SVDInvert {
     my %options;
     (%options) = @_
 	if ( scalar(@_) > 0 );
-    # Set default options.
+   # Set default options.
     $options{'errorTolerant'} = 0
 	unless ( exists($options{'errorTolerant'}) );
     # Do the Singular Value Decomposition.  
@@ -54,7 +54,7 @@ sub SVDInvert {
     # Perform sanity checks on the inverse covariance matrix and its determinant.
     (my $eigenValues, my $eigenVectors)                 = msymeigen($CInverseSPD,0,1,'syevd');
     print "SVDInvert: inverse covariance matrix is not semi-positive definite\n"
-	unless ( all(         $eigenValues >= 0.0)  ); 
+	unless ( all(         $eigenValues >= 0.0) || ( exists($options{'quiet'}) && $options{'quiet'} == 1 ) ); 
     unless (     isfinite($logDeterminant)  ) {
 	print "SVDInvert: covariance matrix determinant failed\n";
 	die
@@ -106,7 +106,7 @@ sub ComputeLikelihood {
 	$d->($options{'upperLimits'})->($limitTruncate) .= 0.0;
     }
     # Invert the covariance matrix.
-    (my $CInverse,my $logDeterminant) = &SVDInvert($C);
+    (my $CInverse,my $logDeterminant) = &SVDInvert($C,%options);
     # Construct the likelihood.
     my $vCv                           = $d x $CInverse x transpose($d);
     die("ComputeLikelihood: inverse covariance matrix is not semi-positive definite")

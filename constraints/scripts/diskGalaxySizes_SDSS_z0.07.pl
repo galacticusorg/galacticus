@@ -12,6 +12,7 @@ unshift(@INC,$galacticusPath."perl");
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
+use PDL::Constants qw(PI);
 use Astro::Cosmology;
 use XML::Simple;
 use Data::Dumper;
@@ -32,7 +33,11 @@ die("diskGalaxySizes_SDSS_z0.07.pl <galacticusFile> [options]")
 my $galacticusFile = $ARGV[0];
 # Create a hash of named arguments.
 my $iArg = -1;
-my %arguments;
+my %arguments =
+    (
+     quiet       => 0  ,
+     temperature => 1.0
+    );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
 # Define constants.
@@ -259,17 +264,15 @@ if ( exists($arguments{'modelDiscrepancies'}) ) {
 		if ( $dataset eq "multiplicative" ) {
 		    # Read the multiplicative discrepancy
 		    my $multiplier = $discrepancyFile->dataset('multiplicative')->get();
-		    # Adjust the model accordingly.
-
-		    my $covarianceMultiplier = pdl zeroes(nelem($multiplier),nelem($multiplier));
-		    $covarianceMultiplier .= $discrepancyFile->dataset('multiplicativeCovariance')->get()
-			if ( grep {$_ eq "multiplicativeCovariance"} @datasets );
-		    $model->{'covariance'} .=
-		 	 $model->{'covariance'}                      *outer($multiplier  ,$multiplier  )
-			+                       $covarianceMultiplier*outer($model->{'y'},$model->{'y'})
-			+$model->{'covariance'}*$covarianceMultiplier;
-		    $model->{'radiusFunction'     } *= $multiplier;
+		    # Adjust the model accordingly.		  
+		    $model->{'covariance'    } .= $model->{'covariance'}*outer($multiplier,$multiplier);
+		    $model->{'radiusFunction'} *= $multiplier;
 		}
+		if ( $dataset eq "multiplicativeCovariance" ) {
+		    # Adjust the model accordingly.
+		    my $covarianceMultiplier = $discrepancyFile->dataset('multiplicativeCovariance')->get();
+		    $model->{'covariance'} += $arguments{'temperature'}*$covarianceMultiplier*outer($model->{'radiusFunction'},$model->{'radiusFunction'});
+		}		    
 		if ( $dataset eq "additive" ) {
 		    # Read the additive discrepancy
 		    my $addition = $discrepancyFile->dataset('additive')->get();
@@ -280,7 +283,7 @@ if ( exists($arguments{'modelDiscrepancies'}) ) {
 		    # Read the covariance of the discrepancy.
 		    my $covariance = $discrepancyFile->dataset('additiveCovariance')->get();
 		    # Adjust the model discrepancy covariance accordingly.
-		    $model->{'covariance'} += $covariance;
+		    $model->{'covariance'} += $arguments{'temperature'}*$covariance;
 		}
 	    }
 	}
@@ -291,7 +294,7 @@ if ( exists($arguments{'modelDiscrepancies'}) ) {
 if ( exists($arguments{'outputFile'}) ) {
     # Construct the full covariance matrix, which is the covariance matrix of the observations
     # plus that of the model.
-    my $fullCovariance                   = $sizeData->{'covariance'}+$model->{'covariance'};
+    my $fullCovariance                   = $sizeData->{'covariance'}*$arguments{'temperature'}+$model->{'covariance'};
     # Identify upper limits.
     my $upperLimits                      = which($sizeData->{'radiusFunction'} < 0.0);
     my $dataRadiusFunction               =       $sizeData->{'radiusFunction'}->flat()->copy();
@@ -303,7 +306,26 @@ if ( exists($arguments{'outputFile'}) ) {
     $modelRadiusFunction->($modelZero)  .= 1.0e-3*$dataRadiusFunction->($modelZero);
     # Compute the likelihood.
     my $constraint;
-    $constraint->{'logLikelihood'} = &Covariances::ComputeLikelihood($dataRadiusFunction,$modelRadiusFunction,$fullCovariance, upperLimits => $upperLimits);
+    my $logDeterminant;
+    my $logLikelihood = &Covariances::ComputeLikelihood($dataRadiusFunction,$modelRadiusFunction,$fullCovariance, upperLimits => $upperLimits, determinant => \$logDeterminant, quiet => $arguments{'quiet'});
+    # Correct the likelihood to unit temperature.
+    $constraint->{'logLikelihood'} = 
+ 	 $arguments{'temperature'}
+        *$logLikelihood
+	+(
+	    $arguments{'temperature'}
+	    -1.0
+	)
+	*(
+	    0.5
+	    *nelem($modelRadiusFunction)
+	    *log(
+		2.0
+		*PI
+	    )
+	    +0.5
+	    *$logDeterminant
+	);
     # Output the constraint.
     my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
     open(oHndl,">".$arguments{'outputFile'});
