@@ -2034,6 +2034,10 @@ sub Generate_Initialization_Function {
     	}
     	$functionCode .= "    if (.not.allocated(default".padComponentClass(ucfirst($componentClass)."Component",[9,0]).")) then\n";
     	$functionCode .= "       message='unrecognized method \"'//methodSelection//'\" for \"".$componentClass."\" component'\n";
+	$functionCode .= "       message=message//char(10)//'  available methods are:'\n";
+    	foreach my $implementationName ( sort(@{$buildData->{'componentClasses'}->{$componentClass}->{'members'}}) ) {
+	    $functionCode .= "       message=message//char(10)//'    ".$implementationName."'\n";
+	}
     	$functionCode .= "       call Galacticus_Error_Report('Galacticus_Nodes_Initialize',message)\n";
     	$functionCode .= "    end if\n";
     }
