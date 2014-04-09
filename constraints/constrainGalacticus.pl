@@ -218,8 +218,9 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
     } else {
 	$fixedTreeDirectory = $config->{'likelihood'}->{'workDirectory'   }."/";
     }
-    my $fixedTreeFile      = $fixedTreeDirectory                           ."fixedTrees".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
-    my $buildFixedTreeFile = $config->{'likelihood'}->{'workDirectory'}."/"."fixedTrees".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
+    my $fixedTreeFile      = $fixedTreeDirectory                       .       "fixedTrees".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
+    my $buildFixedTreeFile = $config->{'likelihood'}->{'workDirectory'}."/trees/fixedTrees".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
+    system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'}."/trees");
     if ( 
 	my $lock = new File::NFSLock {
 	    file               => $fixedTreeFile,
@@ -246,14 +247,14 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 		    push(@{$treeParameters->{'parameter'}},{name => $_, value => $parameters->{'parameter'}->{$_}->{'value'}})
 			foreach ( keys(%{$parameters->{'parameter'}}) );
 		    my $treeXML = new XML::Simple (RootName=>"parameters", NoAttr => 1);
-		    open(pHndl,">".$config->{'likelihood'}->{'workDirectory'}."/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml");
+		    open(pHndl,">".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml");
 		    print pHndl $treeXML->XMLout($treeParameters);
 		    close pHndl;		  
 		    my $treeCommand;
 		    $treeCommand .= "ulimit -t ".$cpuLimit."; "
 			if ( defined($cpuLimit) );
-		    $treeCommand .= "ulimit -c unlimited; GFORTRAN_ERROR_DUMPCORE=YES; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
-		    my $treeLog = $config->{'likelihood'}->{'workDirectory'}."/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".log";
+		    $treeCommand .= "ulimit -c unlimited; GFORTRAN_ERROR_DUMPCORE=YES; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
+		    my $treeLog = $config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".log";
 		    SystemRedirect::tofile($treeCommand,$treeLog);
 		    unless ( $? == 0 ) {
 			system("mv ".$treeLog." ".$treeLog.".failed.".$$);
@@ -316,6 +317,7 @@ unless ( $? == 0 ) {
 	# Display the final likelihood.
 	&outputLikelihood($config,$badLogLikelihood);
 	print "constrainGalacticus.pl: Galacticus model failed";
+	system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'}."/failures; cat ".$logFile." >> ".$config->{'likelihood'}->{'workDirectory'}."/failures/failure.log");
 	system("rm ".join(" ",@temporaryFiles))
 	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 	exit;
