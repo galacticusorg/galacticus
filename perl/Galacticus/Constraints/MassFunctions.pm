@@ -284,7 +284,7 @@ sub Construct {
 	# Compute the likelihood.
 	my $constraint;
 	my $logDeterminant;
-	my $logLikelihood = &Covariances::ComputeLikelihood($yGalacticus,$config->{'y'},$fullCovariance, determinant => \$logDeterminant);
+	my $logLikelihood = &Covariances::ComputeLikelihood($yGalacticus,$config->{'y'},$fullCovariance, determinant => \$logDeterminant, quiet => $arguments{'quiet'});
 
 	# Correct the likelihood to unit temperature.
 	$constraint->{'logLikelihood'} = 

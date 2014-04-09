@@ -337,7 +337,7 @@ foreach my $constraint ( @constraints ) {
     }
     # Run the analysis code.
     my $analysisCommand = $constraintDefinition->{'analysis'};
-    $analysisCommand   .= " ".$scratchDirectory."/".$galacticusFile." --outputFile ".$scratchDirectory."/likelihood".$mpiRank.".xml";
+    $analysisCommand   .= " ".$scratchDirectory."/".$galacticusFile." --outputFile ".$scratchDirectory."/likelihood".$mpiRank.".xml --quiet 1";
     $analysisCommand .= " --temperature ".$temperatureEffective;
     $analysisCommand .= " --modelDiscrepancies ".$projectDirectory."/modelDiscrepancy"
 	if ( -e $projectDirectory."/modelDiscrepancy" );
