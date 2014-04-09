@@ -30,6 +30,9 @@ while ( $iArg < scalar(@ARGV)-1 ) {
     }
 }
 
+# Make data directory.
+system("mkdir -p ".$dataDirectory);
+
 # Specify user and password.
 my $sqlUser     = "";
 my $sqlPassword = "";
