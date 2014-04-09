@@ -192,6 +192,7 @@ foreach my $constraint ( @constraints ) {
 		%{$systematicResults{$model}} =
 		    &{$DiscrepancySystematics::models{$model}}(
 		    \%arguments           ,
+		    $constraintDefinition ,
 		    $defaultX             ,
 		    $defaultY             ,
 		    $defaultCovariance    ,

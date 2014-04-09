@@ -10,7 +10,6 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
 }
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
-use PDL::NiceSlice;
 use PDL::IO::HDF5;
 require Galacticus::Options;
 require Galacticus::Constraints::MassFunctions;
