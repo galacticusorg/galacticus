@@ -80,7 +80,7 @@ contains
     integer                                                  :: iTree
     integer                                           , save :: activeTasks                     , totalTasks
     double precision                    , dimension(3), save :: loadAverage
-    logical                                           , save :: overloaded                      , treeCanEvolve          , &
+    logical                                           , save :: overloaded                                               , &
          &                                                      treeIsFinished                  , evolutionIsEventLimited, &
          &                                                      success                         , removeTree
     type            (mergerTree        ), pointer     , save :: currentTree                     , previousTree
@@ -90,7 +90,7 @@ contains
     !$omp threadprivate(satelliteNode,baseNodeBasic)
     type            (semaphore         ), pointer            :: galacticusMutex
     character       (len=32            )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
-    !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeCanEvolve,treeIsFinished,evolutionIsEventLimited,success,removeTree)
+    !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeIsFinished,evolutionIsEventLimited,success,removeTree)
     type            (universe          )                     :: universeWaiting                 , universeProcessed
     type            (universeEvent     ), pointer     , save :: thisEvent
     !$omp threadprivate(thisEvent)
@@ -275,11 +275,9 @@ contains
              outputTimeNext=Galacticus_Next_Output_Time(treeTimeEarliest)
              if (outputTimeNext > 0.0d0) then
                 iOutput       =Galacticus_Output_Time_Index(outputTimeNext)
-                treeCanEvolve =.true.
                 treeIsFinished=.false.
              else
                 iOutput      =Galacticus_Output_Time_Count()+1
-                treeCanEvolve =.false.
                 treeIsFinished=.true.
              end if
              treeEvolveLoop : do while (iOutput <= Galacticus_Output_Time_Count())
@@ -355,7 +353,7 @@ contains
                 if (evolutionIsEventLimited) then
                    ! Tree evolution was limited by a universal event. Therefore it can evolve no further
                    ! until that event's task is performed.
-                   treeCanEvolve=.false.
+                   exit
                 else
                    ! Tree reached an output time, so output it. We can then continue evolving.
                    write (label,'(f7.2)') evolveToTime
@@ -365,8 +363,8 @@ contains
                    iOutput=iOutput+1
                    ! If all output times have been reached, we're finished.
                    if (iOutput > Galacticus_Output_Time_Count()) then
-                      treeCanEvolve =.false.
                       treeIsFinished=.true.
+                      exit
                    end if
                 end if
              end do treeEvolveLoop
