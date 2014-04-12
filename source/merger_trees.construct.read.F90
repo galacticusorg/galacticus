@@ -1135,7 +1135,7 @@ use omp_lib
              if (.not.progenitors%exist() .or. .not.isolatedProgenitorExists) then
                 ! Node is isolated, has no isolated node that descends into it. Therefore, our subhalo must be promoted to
                 ! become an isolated halo again.
-                thisNode       => nodeList(nodes(inode)  %isolatedNodeIndex)%node
+                thisNode       => nodeList(nodes(iNode)  %isolatedNodeIndex)%node
                 promotionNode  => nodeList(descendentNode%isolatedNodeIndex)%node
                 newEvent       => thisNode     %createEvent()
                 newEvent %time =  descendentNode%nodeTime
@@ -1257,17 +1257,17 @@ use omp_lib
     use String_Handling
     use Galacticus_Error
     implicit none
-    type     (mergerTree        )                       , intent(inout) , target::                    thisTree 
-    class    (nodeData          )         , dimension(:), intent(inout) ::      nodes                          
-    type     (treeNodeList      )         , dimension(:), intent(inout) ::      nodeList                       
-    class    (nodeComponentBasic), pointer                              ::      nodeBasicComponent             
-    type     (mergerTree        ), pointer                              ::      currentTree                    
-    class    (nodeData          ), pointer                              ::      parentNode                     
-    integer                                                             ::      iNode                          
-    integer  (kind=kind_int8    )                                       ::      iIsolatedNode                  
-    type     (varying_string    )                                       ::      message                        
-    character(len=12            )                                       ::      label                          
-    logical                                                             ::      assignLastIsolatedTime         
+    type     (mergerTree        )                       , intent(inout) , target :: thisTree
+    type     (nodeData          )         , dimension(:), intent(inout)          ::      nodes
+    type     (treeNodeList      )         , dimension(:), intent(inout)          ::      nodeList
+    class    (nodeComponentBasic), pointer                                       ::      nodeBasicComponent
+    type     (mergerTree        ), pointer                                       ::      currentTree
+    type     (nodeData          ), pointer                                       ::      parentNode
+    integer                                                                      ::      iNode
+    integer  (kind=kind_int8    )                                                ::      iIsolatedNode
+    type     (varying_string    )                                                ::      message
+    character(len=12            )                                                ::      label
+    logical                                                                      ::      assignLastIsolatedTime
     
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node (or an initial satellite).
@@ -2510,14 +2510,14 @@ use omp_lib
              style='solid'
           end if
           if (nodes(iNode)%isSubhalo) then
-             write (fileUnit,'(a,i16.16,a,i16.16,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=box   , label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
+             write (fileUnit,'(a,i20.20,a,i20.20,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=box   , label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
              ! If a host node is given, add a link to it as a red line.
-             if (associated(nodes(iNode)%host)) write (fileUnit,'(a,i16.16,a,i16.16,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%host%nodeIndex,'" [color=red];'
+             if (associated(nodes(iNode)%host)) write (fileUnit,'(a,i20.20,a,i20.20,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%host%nodeIndex,'" [color=red];'
           else
-             write (fileUnit,'(a,i16.16,a,i16.16,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=circle, label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
+             write (fileUnit,'(a,i20.20,a,i20.20,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=circle, label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
           endif
           ! Make a link to the descendent node using a black line.
-          if (associated(nodes(iNode)%descendent)) write (fileUnit,'(a,i16.16,a,i16.16,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%descendent%nodeIndex,'" ;'
+          if (associated(nodes(iNode)%descendent)) write (fileUnit,'(a,i20.20,a,i20.20,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%descendent%nodeIndex,'" ;'
        end if
     end do
 

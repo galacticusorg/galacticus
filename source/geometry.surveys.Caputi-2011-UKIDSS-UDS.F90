@@ -34,10 +34,10 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ),          intent(in   ) :: surveyGeometryMethod
+    type     (varying_string                                         ),          intent(in   ) :: surveyGeometryMethod
     procedure(Geometry_Survey_Distance_Maximum_Caputi_2011_UKIDSS_UDS), pointer, intent(inout) :: Geometry_Survey_Distance_Maximum_Get
-    procedure(Geometry_Survey_Solid_Angle_Caputi_2011_UKIDSS_UDS), pointer, intent(inout) :: Geometry_Survey_Solid_Angle_Get
-    procedure(Geometry_Survey_Volume_Maximum_Caputi_2011_UKIDSS_UDS), pointer, intent(inout) :: Geometry_Survey_Volume_Maximum_Get
+    procedure(Geometry_Survey_Solid_Angle_Caputi_2011_UKIDSS_UDS     ), pointer, intent(inout) :: Geometry_Survey_Solid_Angle_Get
+    procedure(Geometry_Survey_Volume_Maximum_Caputi_2011_UKIDSS_UDS  ), pointer, intent(inout) :: Geometry_Survey_Volume_Maximum_Get
     procedure(Geometry_Survey_Window_Functions_Caputi_2011_UKIDSS_UDS), pointer, intent(inout) :: Geometry_Survey_Window_Functions_Get
 
     if (surveyGeometryMethod == 'Caputi-2011-UKIDSS-UDS') then
@@ -54,9 +54,9 @@ contains
     use Cosmology_Functions
     use Cosmology_Functions_Options
     implicit none
-    double precision, intent(in) :: mass
-    class(cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
-    double precision             :: redshift,logarithmicMass
+    double precision                         , intent(in) :: mass
+    class           (cosmologyFunctionsClass), pointer    :: cosmologyFunctionsDefault
+    double precision                                      :: redshift,logarithmicMass
     
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
     ! constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massLuminosityRelation.pl for details.)
@@ -74,7 +74,7 @@ contains
     !% Return the solid angle of the \cite{caputi_stellar_2011} sample. Computed from survey mask (see {\tt
     !% constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.pl}).
     implicit none
-    double precision, parameter :: solidAngleSurvey=1.58898457704161d-4
+    double precision, parameter :: solidAngleSurvey=1.59233703487973d-4
     
     Geometry_Survey_Solid_Angle_Caputi_2011_UKIDSS_UDS=solidAngleSurvey
     return
