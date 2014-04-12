@@ -5,8 +5,8 @@ package MassFunctions;
 use strict;
 use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
-    $galacticusPath  = $ENV{"GALACTICUS_ROOT_V092"};
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+    $galacticusPath  = $ENV{"GALACTICUS_ROOT_V093"};
     $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
     $galacticusPath  = "./";
@@ -14,6 +14,7 @@ if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
+use PDL::Constants qw(PI);
 use PDL::MatrixOps;
 use Math::SigFigs;
 use Data::Dumper;
@@ -28,9 +29,6 @@ require Galacticus::HIGasMass;
 require Galacticus::GasMass;
 require Galacticus::Constraints::Covariances;
 require Stats::Histograms;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
-require XMP::MetaData;
 
 sub Construct {
     # Construct a mass function from Galacticus for constraint purposes.
@@ -41,7 +39,14 @@ sub Construct {
     my $galacticus;
     $galacticus->{'file' } = $config->{'galacticusFile'};
     $galacticus->{'store'} = 0;
-    &HDF5::Get_Parameters($galacticus);
+
+    # Define an effective temperature if one does not already exist. All non-model covariances
+    # (i.e. data covariance and any model discrepancy covariance) will be inflated by this
+    # factor under the assumption that the model covariance has also been inflated by this
+    # factor by virtue of running proportionally fewer merger trees. The final likelihood is
+    # then corrected back to unit temperature.
+    $arguments{'temperature'} = 1.0
+	unless ( exists($arguments{'temperature'}) );
 
     # Make the label LaTeX compliant.
     $config->{'observationLabel'} = latex_encode($config->{'observationLabel'});
@@ -95,6 +100,7 @@ sub Construct {
     my $covarianceGalacticus;
 
     # Determine if the model file contains a pre-computed mass function.
+    &HDF5::Open_File($galacticus);
     my $gotModelMassFunction = 0;
     my @rootGroups = $galacticus->{'hdf5File'}->groups();
     if ( grep {$_ eq "analysis"} @rootGroups ) {
@@ -109,6 +115,7 @@ sub Construct {
     # Read galaxy data and construct mass function if necessary.
     if ( $gotModelMassFunction == 0 ) {
 	$galacticus->{'tree'} = "all";
+	&HDF5::Get_Parameters($galacticus);
 	&HDF5::Count_Trees  ($galacticus                      );
 	&HDF5::Select_Output($galacticus,$config->{'redshift'});
 	&HDF5::Get_Dataset  ($galacticus,['mergerTreeWeight',$config->{'massType'}]);
@@ -197,7 +204,7 @@ sub Construct {
 		    if ( $dataset eq "multiplicativeCovariance" ) {
 		    	# Adjust the model accordingly.
 		    	my $covarianceMultiplier = $discrepancyFile->dataset('multiplicativeCovariance')->get();
-		    	$covarianceGalacticus += $covarianceMultiplier*outer($yGalacticus,$yGalacticus);
+		    	$covarianceGalacticus   += $arguments{'temperature'}*$covarianceMultiplier*outer($yGalacticus,$yGalacticus);
 		    }		    
 		    if ( $dataset eq "additive" ) {
 		    	# Read the additive discrepancy
@@ -209,7 +216,7 @@ sub Construct {
 		    	# Read the covariance of the discrepancy.
 		    	my $covariance = $discrepancyFile->dataset('additiveCovariance')->get();
 		    	# Adjust the model discrepancy covariance accordingly.
-		    	$covarianceGalacticus += $covariance;
+		    	$covarianceGalacticus += $arguments{'temperature'}*$covariance;
 		    }
 		}
 	    }
@@ -273,16 +280,30 @@ sub Construct {
 
 	# Construct the full covariance matrix, which is the covariance matrix of the observations
 	# plus that of the model.
-	my $fullCovariance        = $config->{'covariance'}+$covarianceGalacticus;
-	# Diagonalize the covariance matrix if requested.
-	my $diagonalize = "no";
-	$diagonalize = $arguments{'diagonalize'}
-	    if ( exists($arguments{'diagonalize'}) );
-	$fullCovariance .= stretcher($fullCovariance->diagonal(0,1))
-	    if ( $diagonalize eq "yes" );
+	my $fullCovariance        = $config->{'covariance'}*$arguments{'temperature'}+$covarianceGalacticus;
 	# Compute the likelihood.
 	my $constraint;
-	$constraint->{'logLikelihood'} = &Covariances::ComputeLikelihood($yGalacticus,$config->{'y'},$fullCovariance);
+	my $logDeterminant;
+	my $logLikelihood = &Covariances::ComputeLikelihood($yGalacticus,$config->{'y'},$fullCovariance, determinant => \$logDeterminant, quiet => $arguments{'quiet'});
+
+	# Correct the likelihood to unit temperature.
+	$constraint->{'logLikelihood'} = 
+	     $arguments{'temperature'}
+            *$logLikelihood
+	    +(
+		$arguments{'temperature'}
+		-1.0
+	    )
+	    *(
+		0.5
+		*nelem($yGalacticus)
+		*log(
+		    2.0
+		    *PI
+		)
+		+0.5
+		*$logDeterminant
+	    );
 	# Output the constraint.
 	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
 	open(oHndl,">".$arguments{'outputFile'});
@@ -292,6 +313,9 @@ sub Construct {
 
     # Create a plot of the mass function.
     if ( exists($arguments{'plotFile'}) ) {
+	require GnuPlot::PrettyPlots;
+	require GnuPlot::LaTeX;
+	require XMP::MetaData;
 	# Declare variables for GnuPlot;
 	my ($gnuPlot, $plotFileEPS, $plot);
 	# Open a pipe to GnuPlot.

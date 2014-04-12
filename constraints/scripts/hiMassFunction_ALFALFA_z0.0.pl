@@ -2,8 +2,8 @@
 use strict;
 use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V092"};
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath  = $ENV{"GALACTICUS_ROOT_V093"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath  = "./";
@@ -28,7 +28,10 @@ $massFunctionConfig->{'self'          } = $0;
 $massFunctionConfig->{'galacticusFile'} = $ARGV[0];
 # Create a hash of named arguments.
 my $iArg = -1;
-my %arguments;
+my %arguments =
+    (
+     quiet => 0
+    );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
 # Specify the properties of this mass function.
