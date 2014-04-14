@@ -2,8 +2,8 @@
 use strict;
 use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath  = $ENV{"GALACTICUS_ROOT_V093"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath  = "./";
@@ -23,7 +23,7 @@ require GnuPlot::LaTeX;
 # http://adsabs.harvard.edu/abs/2011MNRAS.413..162C). The mask is defined by a set of boundaries, plus a set of rectangular
 # cut-outs. The boundaries are hard-coded into this script. The rectangles required are found by randomly placing rectangles of an
 # initial minimum size into the field and growing them to be as large as possible while not containing any galaxies. Once enough
-# suqares have been placed, random points are generated and rejected if they lie outside of the bounaries or inside any cut-out
+# squares have been placed, random points are generated and rejected if they lie outside of the bounaries or inside any cut-out
 # rectangle.
 # Andrew Benson (23-August-2012)
 
