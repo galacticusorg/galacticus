@@ -55,39 +55,39 @@
     <value>true</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionMassCount</name>
+    <name>conditionalMassFunctionMassCount</name>
     <value>7</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionMassMinimum</name>
+    <name>conditionalMassFunctionMassMinimum</name>
     <value>2.4975941000e10</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionMassMaximum</name>
+    <name>conditionalMassFunctionMassMaximum</name>
     <value>3.95841980000e11</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionHaloMassMinimum</name>
+    <name>conditionalMassFunctionHaloMassMinimum</name>
     <value>1.0e10</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionHaloMassMaximum</name>
+    <name>conditionalMassFunctionHaloMassMaximum</name>
     <value>1.0e15</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionRedshiftMinimum</name>
+    <name>conditionalMassFunctionRedshiftMinimum</name>
     <value>3.0</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionRedshiftMaximum</name>
+    <name>conditionalMassFunctionRedshiftMaximum</name>
     <value>5.0</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionUseSurveyLimits</name>
+    <name>conditionalMassFunctionUseSurveyLimits</name>
     <value>true</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionHaloMass</name>
+    <name>conditionalMassFunctionHaloMass</name>
     <value>all</value>
   </parameter>
 
