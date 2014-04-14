@@ -871,7 +871,7 @@
       <value>file
       <parameter>
 	<name>intergalaticMediumStateFileName</name>
-	<value>data/intergalacticMedium/recFast_OmegaM0.273_OmegaDE0.728_Omegab0.0455_H070.2_TCMB2.725_YHe0.22.xml</value>
+	<value>data/intergalacticMedium/recFast_OmegaM0.281_OmegaDE0.719_Omegab0.0461_H069.7_TCMB2.725_YHe0.22.xml</value>
       </parameter>
       </value>
       <value>simple</value>
