@@ -52,12 +52,13 @@ module Merger_Tree_Read
   logical                                                                                         :: mergerTreeReadPresetMergerNodes                                                              
   logical                                                                                         :: mergerTreeReadPresetSubhaloMasses                                                            
   logical                                                                                         :: mergerTreeReadPresetPositions                                                                
-  logical                                                                                         :: mergerTreeReadPresetScaleRadii                   , mergerTreeReadPresetScaleRadiiFailureIsFatal
-  double precision                                                                                :: mergerTreeReadPresetScaleRadiiMinimumMass        , mergerTreeReadPresetScaleRadiiConcentrationMinimum
-  logical                                                                                         :: mergerTreeReadPresetSpins                        , mergerTreeReadPresetSpins3D                                                         
-  logical                                                                                         :: mergerTreeReadPresetOrbits                       , mergerTreeReadPresetOrbitsAssertAllSet      , & 
-       &                                                                                             mergerTreeReadPresetOrbitsBoundOnly              , mergerTreeReadPresetOrbitsSetAll          
-  logical                                                                                         :: mergerTreeReadPresetParticleCounts               , mergerTreeReadPresetVelocityMaxima          , &
+  logical                                                                                         :: mergerTreeReadPresetScaleRadii                    , mergerTreeReadPresetScaleRadiiFailureIsFatal
+  double precision                                                                                :: mergerTreeReadPresetScaleRadiiMinimumMass         , mergerTreeReadPresetScaleRadiiConcentrationMinimum, &
+       &                                                                                             mergerTreeReadPresetScaleRadiiConcentrationMaximum
+  logical                                                                                         :: mergerTreeReadPresetSpins                         , mergerTreeReadPresetSpins3D                                                         
+  logical                                                                                         :: mergerTreeReadPresetOrbits                        , mergerTreeReadPresetOrbitsAssertAllSet            , & 
+       &                                                                                             mergerTreeReadPresetOrbitsBoundOnly               , mergerTreeReadPresetOrbitsSetAll          
+  logical                                                                                         :: mergerTreeReadPresetParticleCounts                , mergerTreeReadPresetVelocityMaxima                , &
        &                                                                                             mergerTreeReadPresetVelocityDispersions
 
   ! Option controlling fatality of missing host node condition.
@@ -249,6 +250,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetScaleRadiiConcentrationMinimum',mergerTreeReadPresetScaleRadiiConcentrationMinimum,defaultValue=3.0d0)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadPresetScaleRadiiConcentrationMaximum</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>60</defaultValue>
+       !@   <description>
+       !@     The largest concentration ($c=r_{\rm vir}/r_{\rm s}$) allowed when setting scale radii, $r_{\rm s}$.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadPresetScaleRadiiConcentrationMaximum',mergerTreeReadPresetScaleRadiiConcentrationMaximum,defaultValue=60.0d0)
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetScaleRadiiMinimumMass</name>
        !@   <attachedTo>module</attachedTo>
@@ -1490,6 +1502,11 @@ use omp_lib
                   &   <                                                              &
                   &     Dark_Matter_Halo_Virial_Radius(nodeList(iIsolatedNode)%node) &
                   &    /mergerTreeReadPresetScaleRadiiConcentrationMinimum           &
+                  &  .and.                                                           &
+                  &     nodes(iNode)%scaleRadius                                     &
+                  &   >                                                              &
+                  &     Dark_Matter_Halo_Virial_Radius(nodeList(iIsolatedNode)%node) &
+                  &    /mergerTreeReadPresetScaleRadiiConcentrationMaximum           &
                   & ) then
                 ! We do, so simply use them to set the scale radii in tree nodes.
                 call thisDarkMatterProfileComponent%scaleSet(nodes(iNode)%scaleRadius)
@@ -1505,6 +1522,8 @@ use omp_lib
                 call finder%rangeExpand    (                                                                                   &
                      &                      rangeExpandDownward          =0.5d0                                              , &
                      &                      rangeExpandUpward            =2.0d0                                              , &
+                     &                      rangeDownwardLimit           = Dark_Matter_Halo_Virial_Radius(activeNode)          &
+                     &                                                    /mergerTreeReadPresetScaleRadiiConcentrationMaximum, &
                      &                      rangeUpwardLimit             = Dark_Matter_Halo_Virial_Radius(activeNode)          &
                      &                                                    /mergerTreeReadPresetScaleRadiiConcentrationMinimum, &
                      &                      rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                      , &
