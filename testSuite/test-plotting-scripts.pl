@@ -58,9 +58,9 @@ my @plottingScripts =
 	 constraint => 0
      },
      {
-	 script     => "Plot_SDSS_Galaxy_Sizes.pl",
+	 script     => "diskGalaxySizes_SDSS_z0.07.pl",
 	 model      => "0:1",
-	 constraint => 0
+	 constraint => 1
      },
      {
 	 script     => "Plot_SDSS_Tully_Fisher.pl",
@@ -79,7 +79,7 @@ foreach ( @plottingScripts ) {
 	print "FAILED: plotting script ".$_->{'script'}." failed\n"
 	    unless ( $? == 0 );
     } else {
-	system("cd ..; constraints/scripts/".$_->{'script'}." testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/galacticus.hdf5 testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/tmp.xml testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/tmp.pdf");
+	system("cd ..; constraints/scripts/".$_->{'script'}." testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/galacticus.hdf5 --outputFile testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/tmp.xml --plotFile testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/tmp.pdf");
 	print "FAILED: plotting script ".$_->{'script'}." failed\n"
 	    unless ( $? == 0 );
     }
