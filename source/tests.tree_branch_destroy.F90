@@ -39,6 +39,7 @@ program Tests_Tree_Branch_Destroy
      nodes(iNode)%node => treeNode()
   end do
   thisTree%baseNode => nodes(1)%node
+  thisTree%event    => null()
 
   ! Set indices of nodes.
   call nodes(1)%node%indexSet(1_kind_int8)
