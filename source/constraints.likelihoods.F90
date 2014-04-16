@@ -78,6 +78,7 @@ module Constraints_Likelihoods
   include 'constraints.likelihoods.multivariate_normal.stochastic.type.inc'
   include 'constraints.likelihoods.Galacticus.type.inc'
   include 'constraints.likelihoods.gaussian_regression.type.inc'
+  include 'constraints.likelihoods.mass_function.type.inc'
 
 contains
 
@@ -98,7 +99,10 @@ contains
          &                                                           likelihoodEmulatorRebuildCountDefinition       , likelihoodPolynomialOrderDefinition    , &
          &                                                           likelihoodSigmaBufferDefinition                , likelihoodLogLikelihoodBufferDefinition, &
          &                                                           likelihoodLogLikelihoodErrorToleranceDefinition, likelihoodReportCountDefinition        , &
-         &                                                           likelihoodEmulateOutliersDefinition
+         &                                                           likelihoodEmulateOutliersDefinition            , likelihoodMassCountDefinition          , &
+         &                                                           likelihoodHaloMassMinimumDefinition            , likelihoodHaloMassMaximumDefinition    , &
+         &                                                           likelihoodRedshiftMinimumDefinition            , likelihoodRedshiftMaximumDefinition    , &
+         &                                                           likelihoodUseSurveyLimitsDefinition            , likelihoodMassFunctionFileNameDefinition
     type            (nodeList      ), pointer                     :: covarianceRows
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
@@ -107,8 +111,10 @@ contains
          &                                                           likelihoodEmulatorRebuildCount                 , likelihoodPolynomialOrder              , &
          &                                                           likelihoodReportCount
     double precision                                              :: likelihoodSigmaBuffer                          , likelihoodLogLikelihoodBuffer          , &
+         &                                                           likelihoodHaloMassMinimum                      , likelihoodHaloMassMaximum              , &
+         &                                                           likelihoodRedshiftMinimum                      , likelihoodRedshiftMaximum              , &
          &                                                           likelihoodLogLikelihoodErrorTolerance
-    logical                                                       :: likelihoodEmulateOutliers
+    logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
     case ("multivariateNormal")
@@ -189,6 +195,30 @@ contains
                &                                     configFileName                         &
                &                                    )
        end select
+    case ("massFunction")
+       allocate(likelihoodMassFunction :: newLikelihood)
+       select type (newLikelihood)
+       type is (likelihoodMassFunction)
+          likelihoodHaloMassMinimumDefinition      => XML_Get_First_Element_By_Tag_Name(definition,"haloMassMinimum"     )
+          likelihoodHaloMassMaximumDefinition      => XML_Get_First_Element_By_Tag_Name(definition,"haloMassMaximum"     )
+          likelihoodRedshiftMinimumDefinition      => XML_Get_First_Element_By_Tag_Name(definition,"redshiftMinimum"     )
+          likelihoodRedshiftMaximumDefinition      => XML_Get_First_Element_By_Tag_Name(definition,"redshiftMaximum"     )
+          likelihoodUseSurveyLimitsDefinition      => XML_Get_First_Element_By_Tag_Name(definition,"useSurveyLimits"     )
+          likelihoodMassFunctionFileNameDefinition => XML_Get_First_Element_By_Tag_Name(definition,"massFunctionFileName")
+          call extractDataContent(likelihoodHaloMassMinimumDefinition,likelihoodHaloMassMinimum)
+          call extractDataContent(likelihoodHaloMassMaximumDefinition,likelihoodHaloMassMaximum)
+          call extractDataContent(likelihoodRedshiftMinimumDefinition,likelihoodRedshiftMinimum)
+          call extractDataContent(likelihoodRedshiftMaximumDefinition,likelihoodRedshiftMaximum)
+          call extractDataContent(likelihoodUseSurveyLimitsDefinition,likelihoodUseSurveyLimits)
+          newLikelihood=likelihoodMassFunction(                                                          &
+               &                               likelihoodHaloMassMinimum                               , &
+               &                               likelihoodHaloMassMaximum                               , &
+               &                               likelihoodRedshiftMinimum                               , &
+               &                               likelihoodRedshiftMaximum                               , &
+               &                               likelihoodUseSurveyLimits                               , &
+               &                               getTextContent(likelihoodMassFunctionFileNameDefinition)  &
+               &                              )
+       end select
     case default
        call Galacticus_Error_Report('likelihoodNew','likelihood type is unrecognized')
     end select
@@ -200,5 +230,6 @@ contains
   include 'constraints.likelihoods.multivariate_normal.stochastic.methods.inc'
   include 'constraints.likelihoods.Galacticus.methods.inc'
   include 'constraints.likelihoods.gaussian_regression.methods.inc'
+  include 'constraints.likelihoods.mass_function.methods.inc'
 
 end module Constraints_Likelihoods
