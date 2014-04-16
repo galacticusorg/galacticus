@@ -79,7 +79,7 @@ foreach ( @plottingScripts ) {
 	print "FAILED: plotting script ".$_->{'script'}." failed\n"
 	    unless ( $? == 0 );
     } else {
-	system("cd ..; constraints/scripts/".$_->{'script'}." testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/galacticus.hdf5 --outputFile testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/tmp.xml --plotFile testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/tmp.pdf");
+	system("cd ..; constraints/scripts/".$_->{'script'}." testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/galacticus.hdf5 --plotFile testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/tmp.pdf");
 	print "FAILED: plotting script ".$_->{'script'}." failed\n"
 	    unless ( $? == 0 );
     }

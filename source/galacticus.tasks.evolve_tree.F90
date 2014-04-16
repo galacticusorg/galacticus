@@ -272,9 +272,8 @@ contains
              
              ! Iterate evolving the tree until we can evolve no more.
              treeTimeEarliest=thisTree%earliestTime()
-             outputTimeNext=Galacticus_Next_Output_Time(treeTimeEarliest)
+             outputTimeNext=Galacticus_Next_Output_Time(treeTimeEarliest,outputIndex=iOutput)
              if (outputTimeNext > 0.0d0) then
-                iOutput       =Galacticus_Output_Time_Index(outputTimeNext)
                 treeIsFinished=.false.
              else
                 iOutput      =Galacticus_Output_Time_Count()+1
