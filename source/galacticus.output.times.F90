@@ -137,11 +137,13 @@ contains
     return
   end function Galacticus_Output_Time_Index
 
-  double precision function Galacticus_Next_Output_Time(currentTime)
+  double precision function Galacticus_Next_Output_Time(currentTime,outputIndex)
     !% Returns the time of the next output after {\tt currentTime}.
     use Arrays_Search
     implicit none
-    double precision, intent(in   ) :: currentTime
+    double precision, intent(in   )           :: currentTime
+    integer         , intent(  out), optional :: outputIndex
+    integer                                   :: i
 
     ! Ensure the module is initialized.
     call Output_Times_Initialize()
@@ -149,10 +151,14 @@ contains
     ! If the current time exceeds the last output, return an unphysical value.
     if      (currentTime >= outputTimes(outputCount)) then
        Galacticus_Next_Output_Time=-1.0d0
+       if (present(outputIndex)) outputIndex=-1
     else if (currentTime <  outputTimes(          1)) then
        Galacticus_Next_Output_Time=outputTimes(                                      1)
+       if (present(outputIndex)) outputIndex=+1
     else
-       Galacticus_Next_Output_Time=outputTimes(Search_Array(outputTimes,currentTime)+1)
+       i=Search_Array(outputTimes,currentTime)+1
+       Galacticus_Next_Output_Time=outputTimes(i)
+       if (present(outputIndex)) outputIndex=i
     end if
     return
   end function Galacticus_Next_Output_Time
