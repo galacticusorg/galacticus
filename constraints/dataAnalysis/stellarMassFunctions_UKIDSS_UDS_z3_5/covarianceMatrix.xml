@@ -98,19 +98,19 @@
   </parameter>
   <parameter>
     <name>H_0</name>
-    <value>70.2</value>
+    <value>70.0</value>
   </parameter>
   <parameter>
     <name>Omega_Matter</name>
-    <value>0.2725</value>
+    <value>0.3</value>
   </parameter>
   <parameter>
     <name>Omega_DE</name>
-    <value>0.7275</value>
+    <value>0.7</value>
   </parameter>
   <parameter>
     <name>Omega_b</name>
-    <value>0.0455</value>
+    <value>0.0</value>
   </parameter>
   <parameter>
     <name>T_CMB</name>
