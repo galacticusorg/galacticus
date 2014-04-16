@@ -67,6 +67,7 @@ contains
     use Halo_Mass_Function
     use Sort
     use Galacticus_Error
+    use Galacticus_Display
     use Numerical_Ranges
     use Numerical_Integration
     use Numerical_Interpolation
@@ -195,6 +196,14 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreeMassesFile',mergerTreeBuildTreeMassesFile,defaultValue='null')
+
+       ! Validate input.
+       if (mergerTreeBuildHaloMassMaximum >= 1.0d16)                                                                            &
+            & call Galacticus_Display_Message(                                                                                  &
+            &                                 '[mergerTreeBuildHaloMassMaximum] > 1016 - this seems very large and may lead '// &
+            &                                 'to failures in merger tree construction'                                      ,  &
+            &                                 verbosityWarn                                                                     &
+            &                                )
 
        ! Get the default cosmology functions object.
        cosmologyFunctionsDefault => cosmologyFunctions()
