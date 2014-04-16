@@ -16,6 +16,7 @@ our %galacticusFunctions = ();
 # parameters, and values to be set or appended, to those parameters.
 my %propertyKnowledgeBase = (
     "^nodeVirial(Radius|Velocity)\$" => sub {my ($d,$r)=@_;return {add => {outputVirialData => "true"}} if ($d =~ m/$r/)},
+    "^nodeIsOnMainBranch\$" => sub {my ($d,$r)=@_;return {add => {outputMainBranchStatus => "true"}} if ($d =~ m/$r/)},
     "^nodeBias\$" => sub {my ($d,$r)=@_;return {add => {outputHaloModelData => "true"}} if ($d =~ m/$r/)},
     "^(disk|spheroid)StellarLuminosity:([^:]+):([^:]+):z([0-9\.]+)\$" => sub {my ($d,$r)=@_;return {append => {luminosityFilter => $2, luminosityType => $3, luminosityRedshift => $4}} if ($d =~ m/$r/)},
     "StellarLuminosity:.*:recent\$" => sub {my ($d,$r)=@_;return {advice => "\"recent\" stellar luminosity can be obtained by defining a \"recent\" [luminosityPostprocessSet] and setting [stellarPopulationSpectraPostprocessRecentMethods] to include \"recent\".\n"} if ($d =~ m/$r/)}
