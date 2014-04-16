@@ -89,12 +89,15 @@ contains
     use FoX_dom
     use Galacticus_Input_Paths
     use IO_XML
+    use String_Handling
     implicit none
     type            (varying_string), intent(in   )               :: filterName
     type            (Node          ), pointer                     :: doc
     type            (filterType    ), allocatable  , dimension(:) :: filterResponsesTemporary
-    integer                                                       :: filterIndex                , ioErr
-    type            (varying_string)                              :: filterFileName
+    integer                                                       :: filterIndex             , ioErr
+    type            (varying_string)                              :: filterFileName          , errorMessage
+    type            (DOMException  )                              :: exception
+    logical                                                       :: parseSuccess
 
     ! Allocate space for this filter.
     if (allocated(filterResponses)) then
@@ -119,8 +122,24 @@ contains
 
     ! Parse the XML file.
     !$omp critical (FoX_DOM_Access)
-    doc => parseFile(char(filterFileName),iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('Filter_Response_Load','unable to parse filter response file: '//char(filterFileName))
+    doc => parseFile(char(filterFileName),iostat=ioErr,ex=exception)
+    parseSuccess=.true.
+    errorMessage=''
+    if (inException(exception)) then
+       parseSuccess=.false.
+       errorMessage=errorMessage//char(10)//'exception raised [code='//getExceptionCode(exception)//']'
+    end if
+    if (ioErr /= 0) then
+       parseSuccess=.false.
+       errorMessage=errorMessage//char(10)//'I/O error [code='//ioErr//']'
+    end if
+    if (.not.parseSuccess)                                                                 &
+         & call Galacticus_Error_Report(                                                   &
+         &                              'Filter_Response_Load'                          ,  &
+         &                              'unable to read or parse filter response file: '// &
+         &                              char(filterFileName)                            // &
+         &                                   errorMessage                                  &
+         &                             )
     ! Extract wavelengths and filter response.
     call XML_Array_Read(doc,"datum",filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
     filterResponses(filterIndex)%nPoints=size(filterResponses(filterIndex)%wavelength)
