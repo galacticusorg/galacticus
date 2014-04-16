@@ -291,19 +291,13 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
   end if
   ! Count evaluations.
   self%evaluationCount=self%evaluationCount+1
-  ! If prior probability is impossible, then don't even try to emulate/simulate.
-  if (logPriorProposed <= logImpossible) then
-     self%simulationCount=self%simulationCount+1
-     likelihoodGaussianRegressionEvaluate=logImpossible
-     return
-  end if
   ! Ensure arrays are allocated.
   if (.not.allocated(self%simulatorLikelihood)) then
      call Alloc_Array(self%simulatorLikelihood,[                            self%emulatorRebuildCount])
      call Alloc_Array(self%simulationState    ,[simulationState%dimension(),self%emulatorRebuildCount])
   end if
   likelihoodIsSimulated=.false.
-  if (self%initialized.and..not.self%regressionMatrixIsSingular) then     
+  if (self%initialized.and..not.self%regressionMatrixIsSingular) then
      ! Compute vector D.
      stateCurrent=simulationState%get()
      do i=1,self%emulatorRebuildCount
@@ -339,7 +333,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
         ! Count number of emulator checks and the failure rate.
         self%emulatorCheckCount=self%emulatorCheckCount+1
         if (abs(likelihoodEmulated-likelihoodGaussianRegressionEvaluate) > emulatorFailureSignificance*likelihoodError) self%emulatorFailCount=self%emulatorFailCount+1
-             checksTotal  =mpiSelf%sum(self%emulatorCheckCount)
+        checksTotal  =mpiSelf%sum(self%emulatorCheckCount)
         failuresTotal=mpiSelf%sum(self%emulatorFailCount )
         if (mpiSelf%isMaster()) then
            write (label,'(i8)') failuresTotal
@@ -366,11 +360,18 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
   end if
   ! Evaluate the likelihood using the simulator, unless we have already done so.
   self%simulationCount=self%simulationCount+1
-  if (.not.likelihoodIsSimulated) likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
-  ! Store the likelihood and state.
-  self%accumulatedStateCount                            =self%accumulatedStateCount+1
-  self%simulatorLikelihood(  self%accumulatedStateCount)=likelihoodGaussianRegressionEvaluate
-  self%simulationState    (:,self%accumulatedStateCount)=simulationState%get()
+  if (.not.likelihoodIsSimulated) then
+     ! If prior probability is impossible, then don't even try to simulate.
+     if (logPriorProposed <= logImpossible) then
+        likelihoodGaussianRegressionEvaluate=logImpossible
+     else
+        likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+        ! Store the likelihood and state.
+        self%accumulatedStateCount                            =self%accumulatedStateCount+1
+        self%simulatorLikelihood(  self%accumulatedStateCount)=likelihoodGaussianRegressionEvaluate
+        self%simulationState    (:,self%accumulatedStateCount)=simulationState%get()
+     end if
+  end if
  return
 end function likelihoodGaussianRegressionEvaluate
 
