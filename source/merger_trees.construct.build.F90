@@ -200,7 +200,7 @@ contains
        ! Validate input.
        if (mergerTreeBuildHaloMassMaximum >= 1.0d16)                                                                            &
             & call Galacticus_Display_Message(                                                                                  &
-            &                                 '[mergerTreeBuildHaloMassMaximum] > 1016 - this seems very large and may lead '// &
+            &                                 '[mergerTreeBuildHaloMassMaximum] > 10¹⁶ - this seems very large and may lead '// &
             &                                 'to failures in merger tree construction'                                      ,  &
             &                                 verbosityWarn                                                                     &
             &                                )
