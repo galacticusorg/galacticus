@@ -11,4 +11,12 @@
     <name>mergerTreeBuildHaloMassMinimum</name>
     <value>10000000000</value>
   </parameter>
+  <parameter>
+    <name>outputVirialData</name>
+    <value>true</value>
+  </parameter>
+  <parameter>
+    <name>outputMainBranchStatus</name>
+    <value>true</value>
+  </parameter>
 </parameters>
