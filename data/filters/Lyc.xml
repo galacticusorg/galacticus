@@ -4,7 +4,7 @@
   <origin>definition</origin>
   <note>
     This is a top-hat filter designed to count photons in the Lyman-continuum. As such it is defined to by zero at the
-    Lyman-continuum edge and rise sharply 0.01Å shortward of the edge. The filter cuts off shortward of 10Å to avoid divergences
+    Lyman-continuum edge and rise sharply 0.01 Angstroms shortward of the edge. The filter cuts off shortward of 10 Angstroms to avoid divergences
     in integrations at zero wavelength.
   </note>
   <response>
