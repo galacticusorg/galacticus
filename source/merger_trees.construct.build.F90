@@ -263,7 +263,17 @@ contains
              else
                 probability=0.0d0
              end if
-             if (iSample == 1 .or. probability > 0.0d0) then
+             if     (                                                       &
+                  &     iSample == 1                                        &
+                  &  .or.                                                   &
+                  &   (                                                     &
+                  &     jSample >  0                                        &
+                  &    .and.                                                &
+                  &      massFunctionSampleProbability(jSample)+probability &
+                  &     >                                                   &
+                  &      massFunctionSampleProbability(jSample)             &
+                  &   )                                                     &
+                  & ) then
                 jSample=jSample+1
                 massFunctionSampleProbability     (jSample)=probability
                 massFunctionSampleLogMassMonotonic(jSample)=massFunctionSampleLogMass(iSample)
