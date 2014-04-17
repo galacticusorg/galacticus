@@ -10,13 +10,16 @@ unshift(@INC, $galacticusPath."perl");
 use strict;
 use warnings;
 use Data::Dumper;
+use XML::Simple;
 
-# Visualize the posterior distribution from a BIE statelog file using a triangle arrangement.
+# Visualize the posterior distribution from MCMC chains using a triangle arrangement.
 # Andrew Benson (12-June-2012)
 
 # Get file name to process.
-die("Usage: bieStatelogVisualizeTriangle.pl filename [options]") unless ( scalar(@ARGV) > 0 );
-my $fileName = $ARGV[0];
+die("Usage: mcmcVisualizeTriangle.pl fileRoot configFile [options]")
+    unless ( scalar(@ARGV) > 1 );
+my $fileRoot       = $ARGV[0];
+my $configFileName = $ARGV[1];
 
 # Create a hash of named arguments.
 my %arguments;
@@ -85,17 +88,18 @@ $ngrid = $arguments{'ngrid'}
     if ( exists( $arguments{'ngrid'}) );
 my $options = " --title none --ngood ".$ngood." --ngrid ".$ngrid;
 
-# Open the file and parse the available parameter names.
-open(iHndl,$fileName);
-my $header = <iHndl>;
-close(iHndl);
-$header =~ s/^.*\"Prior\"\s*\"//;
-$header =~ s/\"\s*$//;
-my @propertiesAvailable = split(/\"\s*\"/,$header);
+# Open the config file and parse the available parameter names.
+my $xml    = new XML::Simple;
+my $config = $xml->XMLin($configFileName, KeyAttr => []);
+my @propertiesAvailable;
+foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
+    push(@propertiesAvailable,$parameter->{'name'})
+	 if ( exists($parameter->{'prior'}) );
+}
 my @properties;
 if ( exists($arguments{'property'}) ) {
     @properties = @{$arguments{'property'}};
-    die("bieStatelogVisualizeTriangle.pl: at least 3 properties must be specified")
+    die("mcmcVisualizeTriangle.pl: at least 3 properties must be specified")
 	if ( scalar(@properties) < 3 );
     foreach my $property ( @properties ) {
 	die("Property '".$property->{'name'}."' is not available") unless ( grep {$_ eq $property->{'name'}} @propertiesAvailable );
@@ -118,7 +122,7 @@ if ( exists($arguments{'range'}) ) {
 my $standardWidth;
 my $standardHeight;
 for(my $i=0;$i<scalar(@properties);++$i) {
-    my $command = "constraints/visualization/bieStatelogVisualize.pl ".$fileName." --xProperty '".$properties[$i]->{'name'}."' --xScale ".$properties[$i]->{'scaling'}." --textSize ".$textSize." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i.".pdf --data ".$outputFileName."_".$i.".xml ".$options;
+    my $command = "constraints/visualization/mcmcVisualize.pl ".$fileRoot." ".$configFileName." --xProperty '".$properties[$i]->{'name'}."' --xScale ".$properties[$i]->{'scaling'}." --textSize ".$textSize." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i.".pdf --data ".$outputFileName."_".$i.".xml ".$options;
     $command .= " --xLabel '".$properties[$i]->{'xLabel'}."'"
         if ( exists($properties[$i]->{'xLabel'}) );
     $command .= " --zLabel '".$properties[$i]->{'zLabel'}."'"
@@ -132,7 +136,7 @@ for(my $i=0;$i<scalar(@properties);++$i) {
 	unless ( -e $outputFileName."_".$i.".pdf" );
     if ( $i < scalar(@properties)-1 ) { 
 	for(my $j=$i+1;$j<scalar(@properties);++$j) {
-	    my $command = "constraints/visualization/bieStatelogVisualize.pl ".$fileName." --yProperty '".$properties[$i]->{'name'}."' --yScale ".$properties[$i]->{'scaling'}." --xProperty '".$properties[$j]->{'name'}."' --xScale ".$properties[$j]->{'scaling'}." --textSize ".$textSize." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i."_".$j.".pdf --data ".$outputFileName."_".$i."_".$j.".xml ".$options;
+	    my $command = "constraints/visualization/mcmcVisualize.pl ".$fileRoot." ".$configFileName." --yProperty '".$properties[$i]->{'name'}."' --yScale ".$properties[$i]->{'scaling'}." --xProperty '".$properties[$j]->{'name'}."' --xScale ".$properties[$j]->{'scaling'}." --textSize ".$textSize." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i."_".$j.".pdf --data ".$outputFileName."_".$i."_".$j.".xml ".$options;
 	    $command .= " --xLabel '".$properties[$j]->{'xLabel'}."'"
 		if ( exists($properties[$j]->{'xLabel'}) );
 	    $command .= " --yLabel '".$properties[$i]->{'xLabel'}."'"

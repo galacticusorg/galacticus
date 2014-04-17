@@ -3,10 +3,41 @@
   <!-- Andrew Benson                                                          -->
   <!-- 24-August-2012                                                         -->
 
-  <workDirectory>constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/bin%BINstage%STAGE/</workDirectory>
+  <observedDataFile>data/observations/massFunctionsStellar/Stellar_Mass_Functions_UKIDSS_UDS_2011.xml</observedDataFile>
 
-  <constraintFile>constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/bin%BINstage%STAGE/covarianceMatrix.hdf5</constraintFile>
+  <baseDirectory>constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/</baseDirectory>
 
-  <parameterFile>constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/bin%BINstage%STAGE/covarianceMatrix.xml</parameterFile>
+  <mcmcConfigFile>constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/mcmcConfig.xml</mcmcConfigFile>
+
+  <constraintFile>constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/covarianceMatrix.hdf5</constraintFile>
+
+  <parameterFile>constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/covarianceMatrix.xml</parameterFile>
+
+  <!-- Label for PBS jobs -->
+  <pbsLabel>smfUKIDSS</pbsLabel>
+
+  <!-- Number of stages (iterations) to carry out -->
+  <stageCount>4</stageCount>
+
+  <!-- Source for mass function -->
+  <sourceLabel>Captui et al. (2011)</sourceLabel>
+
+  <!-- Label for mass type -->
+  <massType>stellar</massType>
+  <massVariable>M_\star</massVariable>
+
+  <!-- Redshift ranges -->
+  <redshift>
+    <minimum>3.00</minimum>
+    <maximum>3.50</maximum>
+  </redshift>
+  <redshift>
+    <minimum>3.50</minimum>
+    <maximum>4.25</maximum>
+  </redshift>
+  <redshift>
+    <minimum>4.25</minimum>
+    <maximum>5.00</maximum>
+  </redshift>
 
 </constrain>
