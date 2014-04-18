@@ -9,13 +9,6 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
  $galacticusPath = "./";
 }
 unshift(@INC,$galacticusPath."perl"); 
-use XML::Simple;
-use PDL;
-use PDL::NiceSlice;
-use PDL::IO::HDF5;
-use Data::Dumper;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
 
 # Find the maximum likelihood estimate of the covariance matrix for the Caputi et al. (2011) UKIDSS UDS stellar mass functions.
 # Andrew Benson (05-July-2012)
