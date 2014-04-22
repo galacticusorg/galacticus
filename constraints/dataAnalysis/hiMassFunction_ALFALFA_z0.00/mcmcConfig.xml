@@ -189,7 +189,7 @@
       </random>
     </parameter> 
     <parameter>
-      <name>sigmaLogMStar</name>
+      <name>sigmaLogMstar</name>
       <prior>
 	<distribution>
 	  <type>uniform</type>
