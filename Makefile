@@ -108,6 +108,9 @@ vpath %.cpp source
 # bivar.F90 doesn't like to be compiled with any optimization:
 ./work/build/Bivar/bivar.o : ./source/Bivar/bivar.F90 Makefile
 	$(FCCOMPILER) -c $< -o ./work/build/Bivar/bivar.o $(FCFLAGS_NOOPT)
+# pfq.new.f
+./work/build/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
+	$(FCCOMPILER) -c $< -o ./work/build/pFq/pfq.new.o $(FCFLAGS)
 
 # Rule for running *.Inc files through the preprocessor.
 ./work/build/%.Inc : ./source/%.Inc
@@ -119,6 +122,8 @@ vpath %.cpp source
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
 # Makefile_Use_Deps Makefile_Module_Deps files, but this acts as a fallback rule.
 ./work/build/%.d : ./source/%.F90
+	@echo ./work/build/$*.o > ./work/build/$*.d
+./work/build/%.d : ./source/%.f
 	@echo ./work/build/$*.o > ./work/build/$*.d
 ./work/build/%.d : ./source/%.c
 	@echo ./work/build/$*.o > ./work/build/$*.d
