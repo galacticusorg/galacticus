@@ -12,7 +12,7 @@
     <emulateOutliers>true</emulateOutliers>
     <simulatorLikelihood>
       <type>massFunction</type>
-      <haloMassMinimum>1.0e9</haloMassMinimum>
+      <haloMassMinimum>1.0e10</haloMassMinimum>
       <haloMassMaximum>1.0e15</haloMassMaximum>
       <redshiftMinimum>3.0</redshiftMinimum>
       <redshiftMaximum>3.5</redshiftMaximum>
@@ -72,7 +72,7 @@
   <simulation>
     <type>differentialEvolution</type>
     <stepsMaximum>1000000</stepsMaximum>
-    <stepsPostConvergence>50000</stepsPostConvergence>
+    <stepsPostConvergence>10000</stepsPostConvergence>
     <acceptanceAverageCount>100</acceptanceAverageCount>
     <stateSwapCount>10</stateSwapCount>
     <logFileRoot>./chains</logFileRoot>
@@ -140,7 +140,7 @@
 	<distribution>
 	  <type>uniform</type>
 	  <minimum>0.00</minimum>
-	  <maximum>0.50</maximum>
+	  <maximum>1.00</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -158,7 +158,7 @@
 	<distribution>
 	  <type>uniform</type>
 	  <minimum>0.0</minimum>
-	  <maximum>1.0</maximum>
+	  <maximum>4.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -176,7 +176,7 @@
 	<distribution>
 	  <type>uniform</type>
 	  <minimum>0.0</minimum>
-	  <maximum>2.0</maximum>
+	  <maximum>4.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -189,16 +189,16 @@
       </random>
     </parameter> 
     <parameter>
-      <name>sigmaLogMStar</name>
+      <name>sigmaLogMstar</name>
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>0.1</minimum>
-	  <maximum>2.0</maximum>
+	  <minimum>0.01</minimum>
+	  <maximum>2.00</maximum>
 	</distribution>
       </prior>
       <mapping>
-	<type>linear</type>
+	<type>logarithmic</type>
       </mapping>
       <random>
 	<type>Cauchy</type>
@@ -247,7 +247,7 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>-4.0</minimum>
+	  <minimum>-6.0</minimum>
 	  <maximum>0.0</maximum>
 	</distribution>
       </prior>
@@ -266,7 +266,7 @@
 	<distribution>
 	  <type>uniform</type>
 	  <minimum>-2.0</minimum>
-	  <maximum>2.0</maximum>
+	  <maximum>+4.0</maximum>
 	</distribution>
       </prior>
       <mapping>

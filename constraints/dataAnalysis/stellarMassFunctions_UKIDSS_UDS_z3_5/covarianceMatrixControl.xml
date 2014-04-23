@@ -20,7 +20,7 @@
   <stageCount>4</stageCount>
 
   <!-- Source for mass function -->
-  <sourceLabel>Captui et al. (2011)</sourceLabel>
+  <sourceLabel>Caputi et al. (2011)</sourceLabel>
 
   <!-- Label for mass type -->
   <massType>stellar</massType>
@@ -39,5 +39,9 @@
     <minimum>4.25</minimum>
     <maximum>5.00</maximum>
   </redshift>
+
+  <!-- Thread control -->
+  <nodeCount>1</nodeCount>
+  <threadsPerNode>12</threadsPerNode>
 
 </constrain>
