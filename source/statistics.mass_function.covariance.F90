@@ -51,7 +51,6 @@ module Statistics_Mass_Function_Covariance
   
   ! Cosmological functions.
   class(cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
-  !$omp threadprivate(cosmologyFunctionsDefault)  
 
 contains
 
