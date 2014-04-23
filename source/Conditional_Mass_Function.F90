@@ -337,13 +337,14 @@ contains
 
     conditionalMassFunction_ => conditionalMassFunction()
     mass=10.0d0**logMass
-    Mass_Function_Halo_Mass_Integrand= Halo_Mass_Function_Differential(time,mass)                           &
-         &                                    *                             mass                            &
-         &                                    *log(10.0d0)                                                  &
-         &                                    *(                                                            &
-         &                                       conditionalMassFunction_%massFunction(mass,massBinMinimum) &
-         &                                      -conditionalMassFunction_%massFunction(mass,massBinMaximum) &
-         &                                     )
+    Mass_Function_Halo_Mass_Integrand= Halo_Mass_Function_Differential(time,mass)                              &
+         &                                    *                             mass                               &
+         &                                    *log(10.0d0)                                                     &
+         &                                    *max(                                                            &
+         &                                         +0.0d0,                                                     &
+         &                                         +conditionalMassFunction_%massFunction(mass,massBinMinimum) &
+         &                                         -conditionalMassFunction_%massFunction(mass,massBinMaximum) &
+         &                                        )
     return
   end function Mass_Function_Halo_Mass_Integrand
 
