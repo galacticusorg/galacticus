@@ -28,11 +28,11 @@
   </parameter>
   <parameter>
     <name>massFunctionCovarianceMassMinimum</name>
-    <value>2.4975941000e10</value>
+    <value>2.5118864e+10</value>
   </parameter>
   <parameter>
     <name>massFunctionCovarianceMassMaximum</name>
-    <value>3.95841980000e11</value>
+    <value>3.9810717e+11</value>
   </parameter>
   <parameter>
     <name>massFunctionCovarianceHaloMassMinimum</name>
@@ -60,11 +60,11 @@
   </parameter>
   <parameter>
     <name>conditionalMassFunctionMassMinimum</name>
-    <value>2.4975941000e10</value>
+    <value>2.5118864e+10</value>
   </parameter>
   <parameter>
     <name>conditionalMassFunctionMassMaximum</name>
-    <value>3.95841980000e11</value>
+    <value>3.9810717e+11</value>
   </parameter>
   <parameter>
     <name>conditionalMassFunctionHaloMassMinimum</name>
@@ -93,8 +93,8 @@
 
   <!-- Cosmological parameters and options -->
   <parameter>
-    <name>cosmologyMethod</name>
-    <value>matter-lambda</value>
+    <name>cosmologyFunctionsMethod</name>
+    <value>matterLambda</value>
   </parameter>
   <parameter>
     <name>H_0</name>
