@@ -79,6 +79,11 @@ my $labelStyle = "normalsize";
 $labelStyle = $arguments{'labelStyle'}
     if ( exists($arguments{'labelStyle'}) );
 
+# Set work directory.
+my $workDirectory = ".";
+$workDirectory = $arguments{'workDirectory'}
+    if ( exists($arguments{'workDirectory'}) );
+
 # Construct options to pass to plotting script.
 my $ngood = 1000;
 $ngood = $arguments{'ngood'}
@@ -122,7 +127,7 @@ if ( exists($arguments{'range'}) ) {
 my $standardWidth;
 my $standardHeight;
 for(my $i=0;$i<scalar(@properties);++$i) {
-    my $command = "constraints/visualization/mcmcVisualize.pl ".$fileRoot." ".$configFileName." --xProperty '".$properties[$i]->{'name'}."' --xScale ".$properties[$i]->{'scaling'}." --textSize ".$textSize." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i.".pdf --data ".$outputFileName."_".$i.".xml ".$options;
+    my $command = "constraints/visualization/mcmcVisualize.pl ".$fileRoot." ".$configFileName." --workDirectory ".$workDirectory." --xProperty '".$properties[$i]->{'name'}."' --xScale ".$properties[$i]->{'scaling'}." --textSize ".$textSize." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i.".pdf --data ".$outputFileName."_".$i.".xml ".$options;
     $command .= " --xLabel '".$properties[$i]->{'xLabel'}."'"
         if ( exists($properties[$i]->{'xLabel'}) );
     $command .= " --zLabel '".$properties[$i]->{'zLabel'}."'"

@@ -57,6 +57,9 @@ while ( $iArg < $#ARGV ) {
 }
 
 # Extract options.
+my $workDirectory = ".";
+$workDirectory = $arguments{'workDirectory'}
+    if ( exists($arguments{'workDirectory'}) );
 my $nGrid = 100;
 $nGrid = $arguments{'ngrid'}
     if ( exists($arguments{'ngrid'}) );
@@ -153,7 +156,7 @@ if ( exists($arguments{'range'}) ) {
 }
 
 # Extract only entries within a given range if necessary.
-my $kdeFileName = "tmp.kde";
+my $kdeFileName = $workDirectory."/tmp.kde";
 my @outlierChains;
 @outlierChains = split(/,/,$arguments{'outliers'})
     if ( exists($arguments{'outliers'}) );
@@ -199,7 +202,7 @@ $command .= " ".$yColumn
     if ( $dimensions == 2 );
 $command .= " --ngood=".$arguments{'ngood'}
     if ( exists($arguments{'ngood'}) );
-$command .= " --ngrid=".$nGrid." --output=kde.txt";
+$command .= " --ngrid=".$nGrid." --output=".$workDirectory."/kde.txt";
 system($command);
 unlink($kdeFileName)
     if ( exists($arguments{'range'}) );
@@ -208,7 +211,7 @@ unlink($kdeFileName)
 my $x = pdl [];
 my $y = pdl [];
 my $p = pdl [];
-open(iHndl,"kde.txt");
+open(iHndl,$workDirectory."/kde.txt");
 while ( my $line = <iHndl> ) {
     chomp($line);
     my @columns = split(/\s+/,$line);
@@ -248,7 +251,7 @@ my $pMax = 1.02*$p->max();
 my $pMaxShort = $pMax*0.9;
 
 # Remove temporary file.
-unlink("kde.txt");
+unlink($workDirectory."/kde.txt");
 
 # Plot the posterior.
 # Make plot of redshift evolution.
