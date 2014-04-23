@@ -117,7 +117,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	# For stages after the first, insert the best fit parameters from the previous stage.
 	if ( $stage > 0 ) {
 	    for(my $i=0;$i<scalar(@parameterNames);++$i) {
-		$parameters->{'parameter'}->{$parameterNames[$i]}->{'value'} = $bestFit[$i];
+		$parameters->{'parameter'}->{"conditionalMassFunctionBehroozi".ucfirst($parameterNames[$i])}->{'value'} = $bestFit[$i];
 	    }
 	}
 	# Write out the new parameter file.
@@ -147,7 +147,11 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	unlink($stageDirectory."/correlationMatrix.pdf");
 	# For stages past the 0th, determine how well converged the matrix is.
 	if ( $stage > 0 ) {
-	    my $oldCovarianceMatrixFile = $constraintFilePath."stage".($stage-1)."/".$constraintFileLeaf;
+	    my $oldStageDirectory = $baseDirectory;
+	    $oldStageDirectory   .= "redshift".$redshiftIndex."_"
+		if ( defined($redshiftIndex) );
+	    $oldStageDirectory   .= "stage".($stage-1);
+	    my $oldCovarianceMatrixFile = $oldStageDirectory."/".$constraintFileLeaf;
 	    my $new = new PDL::IO::HDF5(">".$covarianceMatrixFile);
 	    my $old = new PDL::IO::HDF5( $oldCovarianceMatrixFile);
 	    my $newMatrix = $new->dataset("covariance")->get();
@@ -226,16 +230,18 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
      	open(oHndl,">".$stageDirectory."/mcmcConfig.xml");
      	print oHndl $xmlOutput->XMLout($mcmcConfig);
      	close(oHndl);	
+	# Determine number of threads to use.
+	my $threadCount = $config->{'nodeCount'}*$config->{'threadsPerNode'};
     	# Submit the job.
     	my $cmfJob = 
     	{
     	    batchFile  => $stageDirectory."/constrainCMF.pbs",
     	    queue      => "batch",
-    	    nodes      => "nodes=4:ppn=12",
+    	    nodes      => "nodes=".$config->{'nodeCount'}.":ppn=".$config->{'threadsPerNode'},
     	    wallTime   => "300:00:00",
     	    outputFile => $stageDirectory."/constrainCMF.log",
     	    name       => $pbsLabel."Stage".$stage."CMF",
-    	    commands   => "mpirun -np 48 -hostfile \$PBS_NODEFILE Constrain_Galacticus.exe ".$stageDirectory."/".$parameterFileLeaf." ".$stageDirectory."/mcmcConfig.xml"
+    	    commands   => "mpirun -np ".$threadCount." -hostfile \$PBS_NODEFILE Constrain_Galacticus.exe ".$stageDirectory."/".$parameterFileLeaf." ".$stageDirectory."/mcmcConfig.xml"
     	};
     	&Submit_To_PBS($cmfJob);
     	# Since the posterior has been updated, remove the best fit mass function file.
@@ -251,8 +257,9 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
     	$command .= "constraints/visualization/mcmcVisualizeTriangle.pl";
     	$command .= " ".$stageDirectory."/chains ";
 	$command .= " ".$mcmcConfigFile;
+	$command .= " --workDirectory ".$stageDirectory;
     	$command .= " --scale 0.1";
-    	$command .= " --ngood 500000";
+    	$command .= " --ngood 100000";
     	$command .= " --ngrid 100";
     	$command .= " --output ".$stageDirectory."/triangle";
     	$command .= " --property 'alphaSatellite:linear:xLabel=\$\\alpha\$:zLabel=\${\\rm d}p/{\\rm d}\\alpha\$'";
@@ -261,7 +268,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
     	$command .= " --property 'beta:linear:xLabel=\$\\beta\$:zLabel=\${\\rm d}p/{\\rm d}\\beta\$'";
     	$command .= " --property 'delta:linear:xLabel=\$\\delta\$:zLabel=\${\\rm d}p/{\\rm d}\\delta\$'";
     	$command .= " --property 'gamma:linear:xLabel=\$\\gamma\$:zLabel=\${\\rm d}p/{\\rm d}\\gamma\$'";
-    	$command .= " --property 'sigmaLogMStar:linear:xLabel=\$\\sigma_{\\log ".$massVariable."}\$:zLabel=\${\\rm d}p/{\\rm d}\\sigma_{\\log ".$massVariable."}\$'";
+    	$command .= " --property 'sigmaLogMstar:logarithmic:xLabel=\$\\sigma_{\\log ".$massVariable."}\$:zLabel=\${\\rm d}p/{\\rm d}\log \\sigma_{\\log ".$massVariable."}\$'";
     	$command .= " --property 'BCut:linear:xLabel=\$B_{\\rm cut}\$:zLabel=\${\\rm d}p/{\\rm d}B_{\\rm cut}\$'";
     	$command .= " --property 'BSatellite:linear:xLabel=\$B_{\\rm sat}\$:zLabel=\${\\rm d}p/{\\rm d}B_{\\rm sat}\$'";
     	$command .= " --property 'betaCut:linear:xLabel=\$\\beta_{\\rm cut}\$:zLabel=\${\\rm d}p/{\\rm d}\\beta_{\\rm cut}\$'";
@@ -302,7 +309,12 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	closedir($stageHndl);
     	# Write the results to file.
     	my $parameters;
+	my $xml        = new XML::Simple(KeyAttr => []);
+	my $mcmcConfig = $xml->XMLin($mcmcConfigFile);
     	for(my $i=0;$i<scalar(@parameterNames);++$i) {
+	    my $value = $bestFit[$i];
+	    $value = exp($value)
+		if ( ${$mcmcConfig->{'parameters'}->{'parameter'}}[$i]->{'mapping'}->{'type'} eq "logarithmic" );
     	    push(
     		@{$parameters->{'parameter'}},
     		{
@@ -341,6 +353,12 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    my $name = "conditionalMassFunctionBehroozi".ucfirst($parameterNames[$i]);
 	    $parameters->{'parameter'}->{$name}->{'value'} = $bestFit[$i];
 	}
+	# Modify redshift ranges.
+	if ( defined($redshiftIndex) ) {
+	    $parameters->{'parameter'}->{'conditionalMassFunctionRedshiftMinimum'}->{'value'} = ${$config->{'redshift'}}[$redshiftIndex]->{'minimum'};
+	    $parameters->{'parameter'}->{'conditionalMassFunctionRedshiftMaximum'}->{'value'} = ${$config->{'redshift'}}[$redshiftIndex]->{'maximum'};
+	}
+	# Set file name.
 	$parameters->{'parameter'}->{'conditionalMassFunctionOutputFileName'}->{'value'} = $stageDirectory."/massFunctionBestFit.hdf5";
 	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
 	open(oHndl,">".$stageDirectory."/massFunctionGenerate.xml");
@@ -415,7 +433,6 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	close($gnuPlot);
 	&LaTeX::GnuPlot2PDF($plotFileEPS);
     }
-	exit;
 }
 
 exit;
@@ -452,7 +469,7 @@ sub Submit_To_PBS {
     print oHndl "export PERL_MB_OPT=\"--install_base \$HOME/perl5\"\n";
     print oHndl "export PERL_MM_OPT=\"INSTALL_BASE=\$HOME/perl5\"\n";
     print oHndl "export PERL5LIB=\"\$HOME/perl5/lib/perl5/x86_64-linux-thread-multi:\$HOME/perl5/lib/perl5\"\n";
-    print oHndl "export PYTHONPATH=\"\$HOME/Galacticus/Tools/py-lib\"\n";
+    print oHndl "export PYTHONPATH=\"\$HOME/Galacticus/Tools/lib/python:\$HOME/Galacticus/Tools/lib/python2.7:/share/apps/atipa/acms/lib\"\n";
     print oHndl "ulimit -t unlimited\n";
     print oHndl "ulimit -c unlimited\n";
     print oHndl $jobDescriptor->{'commands'};
@@ -480,7 +497,7 @@ sub Submit_To_PBS {
 	    }
 	}
 	close(pHndl);
-	sleep 60;
+	sleep 10;
     }
 
 }
