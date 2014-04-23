@@ -314,11 +314,22 @@ contains
     double precision                                     , intent(in   )         :: massHalo                , mass
     double precision                                     , intent(  out)         :: numberCentrals          , numberSatellites
     double precision                                     , parameter             :: massNormalization=1.0d12
+    double precision                                     , parameter             :: massMinimum      =1.0d-12
     double precision                                                             :: fMassHalo               , massCut         , &
          &                                                                          massSatellite
 
     behroozi2010SelfGlobal => self
-    do while (.not.allocated(self%fMassHaloTable) .or. massHalo < self%fMassHaloTableMinimum .or. massHalo > self%fMassHaloTableMaximum)
+    do while (                                            &
+         &     .not.allocated(self%fMassHaloTable)        &
+         &    .or.                                        &
+         &     (                                          &
+         &       massHalo    < self%fMassHaloTableMinimum &
+         &      .and.                                     &
+         &       massMinimum < self%fMassTableMinimum     &
+         &     )                                          &
+         &    .or.                                        &
+         &       massHalo    > self%fMassHaloTableMaximum &
+         &   )
        if (allocated(self%fMassHaloTable)) then
           if (massHalo < self%fMassHaloTableMinimum) self%fMassTableMinimum=0.5d0*self%fMassTableMinimum
           if (massHalo > self%fMassHaloTableMaximum) self%fMassTableMaximum=2.0d0*self%fMassTableMaximum
@@ -329,7 +340,7 @@ contains
             &                        self%fMassTableMinimum                       , &
             &                        self%fMassTableMaximum                       , &
             &                        self%fMassTableCount                         , &
-            &                        extrapolationType=extrapolationTypeAbort       &
+            &                        extrapolationType=extrapolationTypeFix       &
             &                       )
        call self%fMassTable%populate(                                               &
             &                        behroozi2010fSHMRInverse(self%fMassTable%xs()) &
@@ -354,9 +365,9 @@ contains
        self%massSatelliteStored(2)=self%massSatelliteStored(1)
        self%massCutStored      (2)=self%massCutStored      (1)
        self%massPrevious       (2)=self%massPrevious       (1)
-       fMassHalo             =behroozi2010fSHMRInverse(mass)
-       massSatellite         =massNormalization*self%BSatellite*(fMassHalo/massNormalization)**self%betaSatellite
-       massCut               =massNormalization*self%BCut      *(fMassHalo/massNormalization)**self%betaCut
+       fMassHalo                  =behroozi2010fSHMRInverse(mass)
+       massSatellite              =massNormalization*self%BSatellite*(fMassHalo/massNormalization)**self%betaSatellite
+       massCut                    =massNormalization*self%BCut      *(fMassHalo/massNormalization)**self%betaCut
        self%fMassHaloStored    (1)=fMassHalo
        self%massPrevious       (1)=mass
        self%massSatelliteStored(1)=massSatellite
