@@ -62,7 +62,7 @@ contains
   end function Hypergeometric_2F1
 
   double complex function Hypergeometric_pFq_Complex(a,b,x)
-    !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x), using the algorithm of
+    !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$, using the algorithm of
     !% \cite{perger_numerical_1993}.
     implicit none
     double complex, intent(in   ), dimension(:) :: a    , b
@@ -78,7 +78,7 @@ contains
   end function Hypergeometric_pFq_Complex
 
   double precision function Hypergeometric_pFq_Real(a,b,x)
-    !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x) for real arguments.
+    !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ for real arguments.
     implicit none
     double precision, intent(in   ), dimension(:) :: a  , b
     double precision, intent(in   )               :: x
