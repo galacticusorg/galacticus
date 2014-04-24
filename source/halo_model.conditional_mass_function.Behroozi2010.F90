@@ -47,6 +47,15 @@
      type            (table1DLogarithmicLinear)               :: fMassTable
      class           (table1D                 ), allocatable  :: fMassHaloTable
    contains
+     !@ <objectMethods>
+     !@   <object>conditionalMassFunctionBehroozi2010</object>
+     !@   <objectMethod>
+     !@     <method>compute</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ massHalo\argin, \doublezero\ mass\argin, \doublezero\ numberCentrals\argout, \doublezero\ numberSatellites\argout</arguments>
+     !@     <description>Compute the cumulative conditional mass function, $\langle N(M_\star|M_{\rm halo}) \rangle \equiv \phi(M_\star|M_{\rm halo})$.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final     ::                         behroozi2010Destructor
      procedure :: massFunction         => behroozi2010MassFunction
      procedure :: massFunctionVariance => behroozi2010MassFunctionVariance
@@ -258,7 +267,7 @@ contains
   end function behroozi2010Constructor
 
   subroutine behroozi2010Destructor(self)
-    !% Destructor for the \cite{{behroozi_comprehensive_2010} conditional mass function class.
+    !% Destructor for the \cite{behroozi_comprehensive_2010} conditional mass function class.
      use Gaussian_Random
      implicit none
      type(conditionalMassFunctionBehroozi2010), intent(inout) :: self
