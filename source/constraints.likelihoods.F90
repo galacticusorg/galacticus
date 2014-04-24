@@ -44,7 +44,7 @@ module Constraints_Likelihoods
      !@     <description>Evaluate the model likelihood at the given {\tt simulationState} and return the log-likelihood.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>likelihoodFunctionChange</method>
+     !@     <method>functionChanged</method>
      !@     <type>\void</type>
      !@     <arguments></arguments>
      !@     <description>Informs the likelihood object that the likelihood function may have changed.</description>
