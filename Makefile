@@ -101,7 +101,7 @@ vpath %.cpp source
 	$(CPPCOMPILER) -c $< -o ./work/build/$*.o $(CPPFLAGS)
 
 # Object (*.o) files are built by compiling Fortran (*.f) source files.
-%.o : %.f %.d Makefile
+%.o : %.f ./work/build/%.d ./work/build/%.fl Makefile
 	$(FCCOMPILER) -c $< -o $*.o $(F77FLAGS)
 
 # Special rules required for building some sources (unfortunate, but necessary....)
