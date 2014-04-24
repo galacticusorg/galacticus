@@ -20,131 +20,46 @@
 module Geometry_Surveys
   !% Implements geometries of galaxy surveys.
   use ISO_Varying_String
+  use, intrinsic :: ISO_C_Binding
+  !# <include directive="surveyGeometry" type="functionModules" >
+  include 'surveyGeometry.functionModules.inc'
+  !# </include>
   implicit none
   private
-  public :: Geometry_Survey_Distance_Maximum, Geometry_Survey_Solid_Angle, Geometry_Survey_Volume_Maximum,&
-       & Geometry_Survey_Window_Functions
-  
-  ! Flag to indicate if this module has been initialized.  
-  logical              :: moduleInitialized=.false.
 
-  ! Name of survey geometry method used.
-  type(varying_string) :: surveyGeometryMethod
+  !# <include directive="surveyGeometry" type="function" >
+  !#  <descriptiveName>Survey Geometry</descriptiveName>
+  !#  <description>Object providing galaxy surveys geometries and related functions.</description>
+  !#  <default>liWhite2009</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="distanceMaximum" >
+  !#   <description>Returns the maximum distance (in Mpc) at which a galaxy of the specified {\tt mass} (in $M_\odot$) could be detected.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: mass</argument>
+  !#  </method>
+  !#  <method name="solidAngle" >
+  !#   <description>Return the solid angle (in steradians) of the survey.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="volumeMaximum" >
+  !#   <description>Returns the maximum volume (in Mpc$^3$) at which a galaxy of the specified {\tt mass} (in $M_\odot$) could be detected.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: mass</argument>
+  !#   <code>volumeMaximum=self%solidAngle()*self%distanceMaximum(mass)**3/3.0d0</code>
+  !#  </method>
+  !#  <method name="windowFunctions" >
+  !#   <description>Returns the window functions on a grid of the specified size ({\tt gridCount} cells in each dimension) for galaxies of the specified {\tt mass1} and {\tt mass2} (in $M_\odot$). The {\tt boxLength} should be set to an appropriate value to fully enclose (with sufficient buffering to allow for Fourier transformation) the two window functions.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision                  , intent(in   )                                           :: mass1          , mass2</argument>
+  !#   <argument>integer                           , intent(in   )                                           :: gridCount</argument>
+  !#   <argument>double precision                  , intent(  out)                                           :: boxLength</argument>
+  !#   <argument>complex         (c_double_complex), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1, windowFunction2</argument>
+  !#  </method>
+  include 'surveyGeometry.type.inc'
+  !# </include>
 
-  ! Pointer to the function that actually does the calculation.
-  procedure(Geometry_Survey_Distance_Maximum), pointer :: Geometry_Survey_Distance_Maximum_Get => null()
-  procedure(Geometry_Survey_Solid_Angle     ), pointer :: Geometry_Survey_Solid_Angle_Get      => null()
-  procedure(Geometry_Survey_Volume_Maximum  ), pointer :: Geometry_Survey_Volume_Maximum_Get   => null()
-  procedure(Geometry_Survey_Window_Functions), pointer :: Geometry_Survey_Window_Functions_Get => null()
-
-contains
-
-  subroutine Geometry_Surveys_Initialize
-    !% Initialize the spheroid star formation timecale module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="surveyGeometryMethod" type="moduleUse">
-    include 'geometry.surveys.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.moduleInitialized) then
-       !$omp critical(Geometry_Surveys_Initialization) 
-       if (.not.moduleInitialized) then
-          ! Get the survey geometry method parameter.
-          !@ <inputParameter>
-          !@   <name>surveyGeometryMethod</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing survey geometries.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('surveyGeometryMethod',surveyGeometryMethod)
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="surveyGeometryMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>surveyGeometryMethod,Geometry_Survey_Distance_Maximum_Get,Geometry_Survey_Solid_Angle_Get,Geometry_Survey_Volume_Maximum_Get,Geometry_Survey_Window_Functions_Get</functionArgs>
-          include 'geometry.surveys.inc'
-          !# </include>
-          if     (                                                                                        &
-               &  .not.(                                                                                  &
-               &             associated(Geometry_Survey_Distance_Maximum_Get)                             &
-               &        .and.associated(Geometry_Survey_Volume_Maximum_Get  )                             &
-               &        .and.associated(Geometry_Survey_Window_Functions_Get)                             &
-               &       )                                                                                  &
-               & ) call Galacticus_Error_Report(                                                          &
-               &                                'Geometry_Surveys_Initialize',                            &
-               &                                'method '//char(surveyGeometryMethod)//' is unrecognized' &
-               &                               )
-          moduleInitialized=.true.
-       end if
-       !$omp end critical(Geometry_Surveys_Initialization) 
-    end if
-    return
-  end subroutine Geometry_Surveys_Initialize
-
-  double precision function Geometry_Survey_Distance_Maximum(mass)
-    !% Returns the maximum distance (in Mpc) at which a galaxy of the specified {\tt mass} (in $M_\odot$) could be detected.
-    implicit none
-    double precision, intent(in) :: mass
-
-    ! Initialize the module.
-    call Geometry_Surveys_Initialize()
-
-    ! Get the energy using the selected method.
-    Geometry_Survey_Distance_Maximum=Geometry_Survey_Distance_Maximum_Get(mass)
-    
-    return
-  end function Geometry_Survey_Distance_Maximum
-  
-  double precision function Geometry_Survey_Solid_Angle()
-    !% Returns the solid angle (in steradians) of the survey.
-    implicit none
-
-    ! Initialize the module.
-    call Geometry_Surveys_Initialize()
-
-    ! Get the energy using the selected method.
-    Geometry_Survey_Solid_Angle=Geometry_Survey_Solid_Angle_Get()
-    
-    return
-  end function Geometry_Survey_Solid_Angle
-  
-  double precision function Geometry_Survey_Volume_Maximum(mass)
-    !% Returns the maximum volume (in Mpc$^3$) at which a galaxy of the specified {\tt mass} (in $M_\odot$) could be detected.
-    implicit none
-    double precision, intent(in) :: mass
-
-    ! Initialize the module.
-    call Geometry_Surveys_Initialize()
-
-    ! Get the energy using the selected method.
-    Geometry_Survey_Volume_Maximum=Geometry_Survey_Volume_Maximum_Get(mass)
-    
-    return
-  end function Geometry_Survey_Volume_Maximum
-  
-  subroutine Geometry_Survey_Window_Functions(mass1,mass2,boxLength,gridCount,windowFunction1,windowFunction2)
-    !% Returns the window functions on a grid of the specified size ({\tt gridCount} cells in each dimension) for galaxies of the
-    !% specified {\tt mass1} and {\tt mass2} (in $M_\odot$). The {\tt boxLength} should be set to an appropriate value to fully
-    !% enclose (with sufficient buffering to allow for Fourier transformation) the two window functions.
-    use, intrinsic :: ISO_C_Binding
-    implicit none
-    double precision         , intent(in   )                                           :: mass1,mass2
-    integer                  , intent(in   )                                           :: gridCount
-    double precision         , intent(  out)                                           :: boxLength
-    complex(c_double_complex), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
-
-
-    ! Initialize the module.
-    call Geometry_Surveys_Initialize()
-
-    ! Call the function that does the work.
-    call Geometry_Survey_Window_Functions_Get(mass1,mass2,boxLength,gridCount,windowFunction1,windowFunction2)
-    
-    return
-  end subroutine Geometry_Survey_Window_Functions
-  
 end module Geometry_Surveys

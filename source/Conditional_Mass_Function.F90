@@ -34,24 +34,28 @@ program Conditional_Mass_Function
   use Cosmology_Functions
   use Geometry_Surveys
   implicit none
-  double precision                     , allocatable, dimension(:) :: mass,thisConditionalMassFunction
-  class(cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
-  class            (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
-  type     (varying_string            )                            :: parameterFile,conditionalMassFunctionOutputFileName
-  character(len=32                    )                            :: conditionalMassFunctionHaloMassText
-  integer                                                          :: conditionalMassFunctionMassCount,iMass
-  logical                                                          :: conditionalMassFunctionUseSurveyLimits&
-       &,integrateOverHaloMassFunction,integrationReset=.true.,integrationResetNormalization=.true.
-  double precision                                                 :: conditionalMassFunctionHaloMass &
-       &,conditionalMassFunctionMassMinimum,conditionalMassFunctionMassMaximum &
-       &,conditionalMassFunctionRedshiftMinimum,conditionalMassFunctionRedshiftMaximum &
-       &,conditionalMassFunctionHaloMassMinimum ,conditionalMassFunctionHaloMassMaximum,massLogarithmDelta &
-       &,massBinMinimum,massBinMaximum,timeMinimum,timeMaximum,binTimeMinimum,binTimeMaximum,time,logHaloMassLower&
-       &,logHaloMassUpper,distanceMaximum
-  type     (fgsl_function             )                            :: integrandFunction,integrandFunctionNormalization
-  type     (fgsl_integration_workspace)                            :: integrationWorkspace,integrationWorkspaceNormalization
-  type     (c_ptr                     )                            :: parameterPointer
-  type     (hdf5Object                )                            :: outputFile
+  double precision                              , allocatable, dimension(:) :: mass,thisConditionalMassFunction
+  class           (cosmologyFunctionsClass     ), pointer                   :: cosmologyFunctions_
+  class           (conditionalMassFunctionClass), pointer                   :: conditionalMassFunction_
+  class           (surveyGeometryClass         ), pointer                   :: surveyGeometry_
+  type            (varying_string              )                            :: parameterFile                         , conditionalMassFunctionOutputFileName
+  character       (len=32                      )                            :: conditionalMassFunctionHaloMassText
+  integer                                                                   :: conditionalMassFunctionMassCount,iMass
+  logical                                                                   :: conditionalMassFunctionUseSurveyLimits, integrateOverHaloMassFunction         ,  &
+       &                                                                       integrationReset=.true.               , integrationResetNormalization=.true.
+  double precision                                                          :: conditionalMassFunctionHaloMass       , conditionalMassFunctionMassMinimum    , &
+       &                                                                       conditionalMassFunctionMassMaximum    , conditionalMassFunctionRedshiftMinimum, &
+       &                                                                       conditionalMassFunctionRedshiftMaximum, conditionalMassFunctionHaloMassMinimum, &
+       &                                                                       conditionalMassFunctionHaloMassMaximum, massLogarithmDelta                    , &
+       &                                                                       massBinMinimum                        , massBinMaximum                        , &
+       &                                                                       timeMinimum                           , timeMaximum                           , &
+       &                                                                       binTimeMinimum                        , binTimeMaximum                        , &
+       &                                                                       time                                  , logHaloMassLower                      , &
+       &                                                                       logHaloMassUpper                      , distanceMaximum
+  type     (fgsl_function             )                                     :: integrandFunction                     , integrandFunctionNormalization
+  type     (fgsl_integration_workspace)                                     :: integrationWorkspace                  , integrationWorkspaceNormalization
+  type     (c_ptr                     )                                     :: parameterPointer
+  type     (hdf5Object                )                                     :: outputFile
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Conditional_Mass_Function.size')
@@ -176,17 +180,18 @@ program Conditional_Mass_Function
   !@ </inputParameter>
   call Get_Input_Parameter('conditionalMassFunctionHaloMassMaximum',conditionalMassFunctionHaloMassMaximum,defaultValue=1.0d16)
   
-  ! Get the default cosmology functions and conditional mass functions objects.
-  cosmologyFunctionsDefault => cosmologyFunctions     ()     
-  conditionalMassFunction_  => conditionalMassFunction()
+  ! Get the default cosmology functions, conditional mass function, and survey geometry objects.
+  cosmologyFunctions_      => cosmologyFunctions     ()     
+  conditionalMassFunction_ => conditionalMassFunction()
+  surveyGeometry_          => surveyGeometry         ()
 
   ! Decode the halo mass parameter.
   integrateOverHaloMassFunction=(conditionalMassFunctionHaloMassText == "all")
   if (.not.integrateOverHaloMassFunction) read (conditionalMassFunctionHaloMassText,*) conditionalMassFunctionHaloMass
 
   ! Compute the time corresponding to the specified redshift.
-  timeMinimum=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(conditionalMassFunctionRedshiftMaximum))
-  timeMaximum=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(conditionalMassFunctionRedshiftMinimum))
+  timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(conditionalMassFunctionRedshiftMaximum))
+  timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(conditionalMassFunctionRedshiftMinimum))
 
   ! Find logarithmic limits for halo mass in integrations.
   logHaloMassLower=log10(conditionalMassFunctionHaloMassMinimum)
@@ -222,9 +227,9 @@ program Conditional_Mass_Function
            if (conditionalMassFunctionUseSurveyLimits) then
               ! A survey geometry is imposed. Find the maximum distance at which a galaxy of the present
               ! mass can be detected in this survey.
-              distanceMaximum=Geometry_Survey_Distance_Maximum(sqrt(massBinMinimum*massBinMaximum))
+              distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(massBinMinimum*massBinMaximum))
               ! Set integration limits appropriately.
-              binTimeMinimum=max(timeMinimum,cosmologyFunctionsDefault%timeAtDistanceComoving(distanceMaximum))
+              binTimeMinimum=max(timeMinimum,cosmologyFunctions_%timeAtDistanceComoving(distanceMaximum))
               binTimeMaximum=timeMaximum
            else
               ! No survey geometry is imposed, so use the full range of specified redshifts.
@@ -307,7 +312,7 @@ contains
          &                                           toleranceRelative=1.0d-3          , &
          &                                           reset=integrationResetTime          &
          &                                          )                                    &
-         &                               *cosmologyFunctionsDefault%comovingVolumeElementTime(timePrime)
+         &                               *cosmologyFunctions_%comovingVolumeElementTime(timePrime)
     return
   end function Mass_Function_Time_Integrand
 
@@ -319,7 +324,7 @@ contains
     real(c_double), value :: timePrime
     type(c_ptr),    value :: parameterPointer
 
-    Mass_Function_Time_Normalization_Integrand=cosmologyFunctionsDefault%comovingVolumeElementTime(timePrime)
+    Mass_Function_Time_Normalization_Integrand=cosmologyFunctions_%comovingVolumeElementTime(timePrime)
     return
   end function Mass_Function_Time_Normalization_Integrand
 
@@ -337,14 +342,13 @@ contains
 
     conditionalMassFunction_ => conditionalMassFunction()
     mass=10.0d0**logMass
-    Mass_Function_Halo_Mass_Integrand= Halo_Mass_Function_Differential(time,mass)                              &
-         &                                    *                             mass                               &
-         &                                    *log(10.0d0)                                                     &
-         &                                    *max(                                                            &
-         &                                         +0.0d0,                                                     &
-         &                                         +conditionalMassFunction_%massFunction(mass,massBinMinimum) &
-         &                                         -conditionalMassFunction_%massFunction(mass,massBinMaximum) &
-         &                                        )
+    Mass_Function_Halo_Mass_Integrand= Halo_Mass_Function_Differential(time,mass)                           &
+         &                                    *                             mass                            &
+         &                                    *log(10.0d0)                                                  &
+         &                                    *(                                                            &
+         &                                      +conditionalMassFunction_%massFunction(mass,massBinMinimum) &
+         &                                      -conditionalMassFunction_%massFunction(mass,massBinMaximum) &
+         &                                     )
     return
   end function Mass_Function_Halo_Mass_Integrand
 

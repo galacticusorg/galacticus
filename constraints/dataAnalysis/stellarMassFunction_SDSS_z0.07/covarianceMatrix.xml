@@ -10,7 +10,7 @@
   <!-- Options controlling survey geometry -->
   <parameter>
     <name>surveyGeometryMethod</name>
-    <value>Li-White-2009-SDSS</value>
+    <value>liWhite2009SDSS</value>
   </parameter>
 
   <!-- Options controlling the mass function -->
