@@ -782,10 +782,10 @@ contains
           call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00ErrorC',alfalfaHiMassFunctionZ0_00ErrorC,defaultValue=0.505d0)
           !@ <inputParameter>
           !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionK</name>
-          !@   <defaultValue>11.3 m$^4$ kg$^{-2}$ \citep{obreschkow2009}</defaultValue>
+          !@   <defaultValue>11.3 m$^4$ kg$^{-2}$ \citep{obreschkow_simulation_2009}</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The parameter, $K$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow2009}.
+          !@    The parameter, $K$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>
@@ -794,10 +794,10 @@ contains
           call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionK',alfalfaHiMassFunctionZ0_00MolecularFractionK,defaultValue=11.3d0)
           !@ <inputParameter>
           !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionfSigma</name>
-          !@   <defaultValue>0.4 \citep{obreschkow2009}</defaultValue>
+          !@   <defaultValue>0.4 \citep{obreschkow_simulation_2009}</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The parameter, $\langle f_\sigma \rangle$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow2009}.
+          !@    The parameter, $\langle f_\sigma \rangle$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>
@@ -806,10 +806,10 @@ contains
           call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionfSigma',alfalfaHiMassFunctionZ0_00MolecularFractionfSigma,defaultValue=0.4d0)
           !@ <inputParameter>
           !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionA1</name>
-          !@   <defaultValue>3.44 \citep{obreschkow2009}</defaultValue>
+          !@   <defaultValue>3.44 \citep{obreschkow_simulation_2009}</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The parameter, $A_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow2009}.
+          !@    The parameter, $A_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>
@@ -818,10 +818,10 @@ contains
           call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionA1',alfalfaHiMassFunctionZ0_00MolecularFractionA1,defaultValue=3.44d0)
           !@ <inputParameter>
           !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionA2</name>
-          !@   <defaultValue>4.82 \citep{obreschkow2009}</defaultValue>
+          !@   <defaultValue>4.82 \citep{obreschkow_simulation_2009}</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The parameter, $A_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow2009}.
+          !@    The parameter, $A_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>
@@ -830,10 +830,10 @@ contains
           call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionA2',alfalfaHiMassFunctionZ0_00MolecularFractionA2,defaultValue=4.82d0)
           !@ <inputParameter>
           !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1</name>
-          !@   <defaultValue>$-0.506$ \citep{obreschkow2009}</defaultValue>
+          !@   <defaultValue>$-0.506$ \citep{obreschkow_simulation_2009}</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The parameter, $\alpha_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow2009}.
+          !@    The parameter, $\alpha_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>
@@ -842,10 +842,10 @@ contains
           call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1',alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1,defaultValue=-0.506d0)
           !@ <inputParameter>
           !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2</name>
-          !@   <defaultValue>$-1.054$ \citep{obreschkow2009}</defaultValue>
+          !@   <defaultValue>$-1.054$ \citep{obreschkow_simulation_2009}</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The parameter, $\alpha_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow2009}.
+          !@    The parameter, $\alpha_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>
@@ -854,10 +854,10 @@ contains
           call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2',alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2,defaultValue=-1.054d0)
           !@ <inputParameter>
           !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionBeta</name>
-          !@   <defaultValue>$0.8$ \citep{obreschkow2009}</defaultValue>
+          !@   <defaultValue>$0.8$ \citep{obreschkow_simulation_2009}</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The parameter, $\beta$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow2009}.
+          !@    The parameter, $\beta$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>
