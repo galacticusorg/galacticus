@@ -40,14 +40,6 @@ sub Construct {
     $galacticus->{'file' } = $config->{'galacticusFile'};
     $galacticus->{'store'} = 0;
 
-    # Define an effective temperature if one does not already exist. All non-model covariances
-    # (i.e. data covariance and any model discrepancy covariance) will be inflated by this
-    # factor under the assumption that the model covariance has also been inflated by this
-    # factor by virtue of running proportionally fewer merger trees. The final likelihood is
-    # then corrected back to unit temperature.
-    $arguments{'temperature'} = 1.0
-	unless ( exists($arguments{'temperature'}) );
-
     # Make the label LaTeX compliant.
     $config->{'observationLabel'} = latex_encode($config->{'observationLabel'});
     $config->{'observationLabel'} =~ s/\\/\\\\/g;
@@ -204,7 +196,7 @@ sub Construct {
 		    if ( $dataset eq "multiplicativeCovariance" ) {
 		    	# Adjust the model accordingly.
 		    	my $covarianceMultiplier = $discrepancyFile->dataset('multiplicativeCovariance')->get();
-		    	$covarianceGalacticus   += $arguments{'temperature'}*$covarianceMultiplier*outer($yGalacticus,$yGalacticus);
+		    	$covarianceGalacticus   += $covarianceMultiplier*outer($yGalacticus,$yGalacticus);
 		    }		    
 		    if ( $dataset eq "additive" ) {
 		    	# Read the additive discrepancy
@@ -216,7 +208,7 @@ sub Construct {
 		    	# Read the covariance of the discrepancy.
 		    	my $covariance = $discrepancyFile->dataset('additiveCovariance')->get();
 		    	# Adjust the model discrepancy covariance accordingly.
-		    	$covarianceGalacticus += $arguments{'temperature'}*$covariance;
+		    	$covarianceGalacticus += $covariance;
 		    }
 		}
 	    }
@@ -280,30 +272,12 @@ sub Construct {
 
 	# Construct the full covariance matrix, which is the covariance matrix of the observations
 	# plus that of the model.
-	my $fullCovariance        = $config->{'covariance'}*$arguments{'temperature'}+$covarianceGalacticus;
+	my $fullCovariance        = $config->{'covariance'}+$covarianceGalacticus;
 	# Compute the likelihood.
 	my $constraint;
 	my $logDeterminant;
 	my $logLikelihood = &Covariances::ComputeLikelihood($yGalacticus,$config->{'y'},$fullCovariance, determinant => \$logDeterminant, quiet => $arguments{'quiet'});
-
-	# Correct the likelihood to unit temperature.
-	$constraint->{'logLikelihood'} = 
-	     $arguments{'temperature'}
-            *$logLikelihood
-	    +(
-		$arguments{'temperature'}
-		-1.0
-	    )
-	    *(
-		0.5
-		*nelem($yGalacticus)
-		*log(
-		    2.0
-		    *PI
-		)
-		+0.5
-		*$logDeterminant
-	    );
+	$constraint->{'logLikelihood'} = $logLikelihood;
 	# Output the constraint.
 	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
 	open(oHndl,">".$arguments{'outputFile'});
