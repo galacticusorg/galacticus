@@ -10,7 +10,7 @@
   <!-- Options controlling survey geometry -->
   <parameter>
     <name>surveyGeometryMethod</name>
-    <value>Caputi-2011-UKIDSS-UDS</value>
+    <value>caputi2011UKIDSSUDS</value>
   </parameter>
 
   <!-- Options controlling the mass function -->

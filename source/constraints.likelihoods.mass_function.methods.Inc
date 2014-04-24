@@ -96,7 +96,6 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   use Geometry_Surveys
   use Numerical_Integration
   use Galacticus_Error
-use mpi_utilities
   implicit none
   class           (likelihoodMassFunction             ), intent(inout)               :: self
   class           (state                              ), intent(in   )               :: simulationState
@@ -106,6 +105,7 @@ use mpi_utilities
        &                                                                                logPriorCurrent            , logPriorProposed
   double precision                                     , allocatable  , dimension(:) :: stateVector
   class           (cosmologyFunctionsClass            ), pointer                     :: cosmologyFunctions_
+  class           (surveyGeometryClass                ), pointer                     :: surveyGeometry_
   type            (conditionalMassFunctionBehroozi2010)                              :: thisConditionalMassFunction
   type            (fgsl_function                      )                              :: integrandFunction           , integrandFunctionNormalization
   type            (fgsl_integration_workspace         )                              :: integrationWorkspace        , integrationWorkspaceNormalization
@@ -124,6 +124,8 @@ use mpi_utilities
   end if
   ! Get the default cosmology functions object.
   cosmologyFunctions_ => cosmologyFunctions()     
+  ! Get the default survey geometry object.
+  surveyGeometry_     => surveyGeometry    ()     
   ! Construct the conditional mass function object.
   stateVector=simulationState%get()
   if (size(stateVector) /= 11) call Galacticus_Error_Report('likelihoodMassFunctionEvaluate','11 parameters are required for this likelihood function')
@@ -144,7 +146,6 @@ use mpi_utilities
        &                                      stateVector(10), &
        &                                      stateVector(11)  &
        &                                     )
-  deallocate(stateVector)
   ! Compute the time corresponding to the specified redshifts.
   timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(self%redshiftMaximum))
   timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(self%redshiftMinimum))
@@ -154,12 +155,12 @@ use mpi_utilities
   do i=1,size(self%mass)
      ! A survey geometry is imposed. Find the maximum distance at which a galaxy of the present
      ! mass can be detected in this survey.
-     distanceMaximum=Geometry_Survey_Distance_Maximum(sqrt(self%massMinimum(i)*self%massMaximum(i)))
+     distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(self%massMinimum(i)*self%massMaximum(i)))
      ! Set integration limits appropriately.
      binTimeMinimum=max(timeMinimum,cosmologyFunctions_%timeAtDistanceComoving(distanceMaximum))
      binTimeMaximum=    timeMaximum
      ! Integrate the mass function over this time interval.
-     self%massFunction(i)= Integrate(                                                    &
+     self%massFunction(i)= Integrate(                                                   &
           &                          binTimeMinimum                                   , &
           &                          binTimeMaximum                                   , &
           &                          likelihoodMassFunctionTimeIntegrand              , &
@@ -183,31 +184,38 @@ use mpi_utilities
           &                           self%massMaximum(i)                               &
           &                          /self%massMinimum(i)                               &
           &                         )
- end do
- call Integrate_Done(integrandFunction             ,integrationWorkspace             )
- call Integrate_Done(integrandFunctionNormalization,integrationWorkspaceNormalization)
- ! Evaluate the log-likelihood.
- difference                    =self%massFunction-self%massFunctionObserved
- likelihoodMassFunctionEvaluate=-0.5d0*(difference*(self%inverseCovariance*difference))
- return
- 
+  end do
+  call Integrate_Done(integrandFunction             ,integrationWorkspace             )
+  call Integrate_Done(integrandFunctionNormalization,integrationWorkspaceNormalization)
+  deallocate(stateVector)
+  ! Evaluate the log-likelihood.
+  difference                    =self%massFunction-self%massFunctionObserved
+  likelihoodMassFunctionEvaluate=-0.5d0*(difference*(self%inverseCovariance*difference))
+  
+  return
+  
 contains
   
   function likelihoodMassFunctionTimeIntegrand(timePrime,parameterPointer) bind(c)
     !% Integral over time.
     use, intrinsic :: ISO_C_Binding
+    use Galacticus_Error
+    use String_Handling
     implicit none
-    real(c_double                  )        :: likelihoodMassFunctionTimeIntegrand
-    real(c_double                  ), value :: timePrime
-    type(c_ptr                     ), value :: parameterPointer
-    type(fgsl_function             )        :: integrandFunctionTime
-    type(fgsl_integration_workspace)        :: integrationWorkspaceTime
-    type(c_ptr                     )        :: parameterPointerTime
-    logical                                 :: integrationResetTime
+    real     (c_double                  )        :: likelihoodMassFunctionTimeIntegrand
+    real     (c_double                  ), value :: timePrime
+    type     (c_ptr                     ), value :: parameterPointer
+    type     (fgsl_function             )        :: integrandFunctionTime
+    type     (fgsl_integration_workspace)        :: integrationWorkspaceTime
+    type     (c_ptr                     )        :: parameterPointerTime
+    integer                                      :: errorStatus
+    logical                                      :: integrationResetTime
+    type     (varying_string            )        :: message
+    character(len=14                    )        :: label
 
     time=timePrime
     integrationResetTime=.true.
-    likelihoodMassFunctionTimeIntegrand= Integrate(                                             &
+    likelihoodMassFunctionTimeIntegrand= Integrate(                                            &
          &                                           self%logHaloMassMinimum                 , &
          &                                           self%logHaloMassMaximum                 , &
          &                                           likelihoodMassFunctionHaloMassIntegrand , &
@@ -215,10 +223,20 @@ contains
          &                                           integrandFunctionTime                   , &
          &                                           integrationWorkspaceTime                , &
          &                                           toleranceRelative=1.0d-3                , &
-         &                                           reset=integrationResetTime                &
+         &                                           toleranceAbsolute=1.0d-9                , &
+         &                                           reset      =integrationResetTime        , &
+         &                                           errorStatus=errorStatus                   &
          &                                          )                                          &
          &                               *cosmologyFunctions_%comovingVolumeElementTime(timePrime)
     call Integrate_Done(integrandFunctionTime,integrationWorkspaceTime)
+    if (errorStatus /= errorStatusSuccess) then
+       message='integration failed - state vector follows'
+       do i=1,size(stateVector)
+          write (label,'(e12.6)') stateVector(i)
+          message=message//char(10)//" state ["//i//"] = "//trim(label)
+        end do       
+       call Galacticus_Error_Report('likelihoodMassFunctionTimeIntegrand',message)
+    end if
     return
   end function likelihoodMassFunctionTimeIntegrand
   
@@ -245,12 +263,12 @@ contains
     double precision        :: mass
 
     mass=10.0d0**logMass
-    likelihoodMassFunctionHaloMassIntegrand= Halo_Mass_Function_Differential(time,mass)                             &
-         &                                    *                                   mass                              &
-         &                                    *log(10.0d0)                                                          &
-         &                                    *(                                                                    &
-         &                                       thisConditionalMassFunction%massFunction(mass,self%massMinimum(i)) &
-         &                                      -thisConditionalMassFunction%massFunction(mass,self%massMaximum(i)) &
+    likelihoodMassFunctionHaloMassIntegrand= Halo_Mass_Function_Differential(time,mass)                              &
+         &                                    *                                   mass                               &
+         &                                    *log(10.0d0)                                                           &
+         &                                    *(                                                                     &
+         &                                      +thisConditionalMassFunction%massFunction(mass,self%massMinimum(i))  &
+         &                                      -thisConditionalMassFunction%massFunction(mass,self%massMaximum(i))  &
          &                                     )
     return
   end function likelihoodMassFunctionHaloMassIntegrand

@@ -10,7 +10,7 @@
   <!-- Options controlling survey geometry -->
   <parameter>
     <name>surveyGeometryMethod</name>
-    <value>Martin-2010-ALFALFA</value>
+    <value>martin2010ALFALFA</value>
   </parameter>
 
   <!-- Options controlling the mass function -->
