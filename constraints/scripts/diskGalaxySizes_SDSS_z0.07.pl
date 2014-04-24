@@ -35,8 +35,7 @@ my $galacticusFile = $ARGV[0];
 my $iArg = -1;
 my %arguments =
     (
-     quiet       => 0  ,
-     temperature => 1.0
+     quiet => 0
     );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
@@ -271,7 +270,7 @@ if ( exists($arguments{'modelDiscrepancies'}) ) {
 		if ( $dataset eq "multiplicativeCovariance" ) {
 		    # Adjust the model accordingly.
 		    my $covarianceMultiplier = $discrepancyFile->dataset('multiplicativeCovariance')->get();
-		    $model->{'covariance'} += $arguments{'temperature'}*$covarianceMultiplier*outer($model->{'radiusFunction'},$model->{'radiusFunction'});
+		    $model->{'covariance'} += $covarianceMultiplier*outer($model->{'radiusFunction'},$model->{'radiusFunction'});
 		}		    
 		if ( $dataset eq "additive" ) {
 		    # Read the additive discrepancy
@@ -283,7 +282,7 @@ if ( exists($arguments{'modelDiscrepancies'}) ) {
 		    # Read the covariance of the discrepancy.
 		    my $covariance = $discrepancyFile->dataset('additiveCovariance')->get();
 		    # Adjust the model discrepancy covariance accordingly.
-		    $model->{'covariance'} += $arguments{'temperature'}*$covariance;
+		    $model->{'covariance'} += $covariance;
 		}
 	    }
 	}
@@ -294,7 +293,7 @@ if ( exists($arguments{'modelDiscrepancies'}) ) {
 if ( exists($arguments{'outputFile'}) ) {
     # Construct the full covariance matrix, which is the covariance matrix of the observations
     # plus that of the model.
-    my $fullCovariance                   = $sizeData->{'covariance'}*$arguments{'temperature'}+$model->{'covariance'};
+    my $fullCovariance                   = $sizeData->{'covariance'}+$model->{'covariance'};
     # Identify upper limits.
     my $upperLimits                      = which($sizeData->{'radiusFunction'} < 0.0);
     my $dataRadiusFunction               =       $sizeData->{'radiusFunction'}->flat()->copy();
@@ -308,24 +307,7 @@ if ( exists($arguments{'outputFile'}) ) {
     my $constraint;
     my $logDeterminant;
     my $logLikelihood = &Covariances::ComputeLikelihood($dataRadiusFunction,$modelRadiusFunction,$fullCovariance, upperLimits => $upperLimits, determinant => \$logDeterminant, quiet => $arguments{'quiet'});
-    # Correct the likelihood to unit temperature.
-    $constraint->{'logLikelihood'} = 
- 	 $arguments{'temperature'}
-        *$logLikelihood
-	+(
-	    $arguments{'temperature'}
-	    -1.0
-	)
-	*(
-	    0.5
-	    *nelem($modelRadiusFunction)
-	    *log(
-		2.0
-		*PI
-	    )
-	    +0.5
-	    *$logDeterminant
-	);
+    $constraint->{'logLikelihood'} = $logLikelihood;
     # Output the constraint.
     my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
     open(oHndl,">".$arguments{'outputFile'});
