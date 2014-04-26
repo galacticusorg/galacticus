@@ -290,7 +290,11 @@ contains
     double precision                :: childSigmaSquared
 
     childSigmaSquared=childSigma**2
-    Merging_Rate=(childSigmaSquared/((childSigmaSquared-parentSigmaSquared)**1.5d0))*abs(childAlpha)
+    if (childSigmaSquared > parentSigmaSquared .and. childAlpha < 0.0d0) then
+       Merging_Rate=(childSigmaSquared/((childSigmaSquared-parentSigmaSquared)**1.5d0))*abs(childAlpha)
+    else
+       Merging_Rate=0.0d0
+    end if
     return
   end function Merging_Rate
 
