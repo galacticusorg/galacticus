@@ -8,7 +8,7 @@
 
   <baseDirectory>constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/</baseDirectory>
 
-  <bieFile>constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/covarianceMatrix.bie</bieFile>
+  <mcmcConfigFile>constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/mcmcConfig.xml</mcmcConfigFile>
 
   <constraintFile>constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/covarianceMatrix.hdf5</constraintFile>
 
@@ -26,5 +26,11 @@
   <!-- Label for mass type -->
   <massType>HI</massType>
   <massVariable>M_{\rm HI}</massVariable>
+
+  <!-- Redshift ranges -->
+  <redshift>
+    <minimum>0.00</minimum>
+    <maximum>0.12</maximum>
+  </redshift>
 
 </constrain>

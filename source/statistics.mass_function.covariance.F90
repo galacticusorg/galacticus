@@ -51,7 +51,6 @@ module Statistics_Mass_Function_Covariance
   
   ! Cosmological functions.
   class(cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
-  !$omp threadprivate(cosmologyFunctionsDefault)  
 
 contains
 
@@ -85,6 +84,7 @@ contains
     complex(c_double_complex          ),                allocatable, dimension(:,:,:)         :: windowFunctionI,windowFunctionJ
     double precision                   ,                pointer    , dimension(:    )         :: massFunctionUse
     double precision                   , parameter                                            :: timePointsPerDecade=100
+    class           (surveyGeometryClass), pointer                                            :: surveyGeometry_
     logical                                                                                   :: integrationReset
     integer                                                                                   :: i,j,u,w,v,taskCount,taskTotal &
          &,massFunctionCovarianceFFTGridSize,iTime
@@ -143,6 +143,9 @@ contains
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()     
 
+    ! Get the default survey geometry.
+    surveyGeometry_           => surveyGeometry    ()
+
     ! Determine number of times over which to tabulate bias.
     timeMaximum =cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMinimum))
     timeMinimum =cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMaximum))
@@ -197,7 +200,7 @@ contains
        timeMaximum=    cosmologyFunctionsDefault%cosmicTime            (cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMinimum))
        timeMinimum=max(                                                                                                                          &
             &          cosmologyFunctionsDefault%cosmicTime            (cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMaximum)), &
-            &          cosmologyFunctionsDefault%timeAtDistanceComoving(Geometry_Survey_Distance_Maximum                     (massBinCenterI ))  &
+            &          cosmologyFunctionsDefault%timeAtDistanceComoving(surveyGeometry_%distanceMaximum                      (massBinCenterI ))  &
             &         )
        ! Get the normalizing volume integral.
        integrationReset=.true.
@@ -229,7 +232,7 @@ contains
        call Integrate_Done(integrandFunction,integrationWorkspace)
 
        ! Find the effective volume of the survey at this mass.
-       volume(i)=Geometry_Survey_Volume_Maximum(massBinCenterI)
+       volume(i)=surveyGeometry_%volumeMaximum(massBinCenterI)
 
        ! Tabulate the bias as a function of time in this bin.
        integrationReset=.true.
@@ -285,14 +288,14 @@ contains
              taskCount=taskCount+1
              
              ! Compute window functions for this pair of cells.
-             call Geometry_Survey_Window_Functions(                                   &
-                  &                                massBinCenterI                   , &
-                  &                                massBinCenterJ                   , &
-                  &                                boxLength                        , &
-                  &                                massFunctionCovarianceFFTGridSize, &
-                  &                                windowFunctionI                  , &
-                  &                                windowFunctionJ                    &
-                  &                               )
+             call surveyGeometry_%windowFunctions(                                   &
+                  &                               massBinCenterI                   , &
+                  &                               massBinCenterJ                   , &
+                  &                               massFunctionCovarianceFFTGridSize, &
+                  &                               boxLength                        , &
+                  &                               windowFunctionI                  , &
+                  &                               windowFunctionJ                    &
+                  &                              )
 
              ! Find integration limits for this bin. We want the maximum of the volumes associated with the two bins.
              timeMaximum=    cosmologyFunctionsDefault%cosmicTime            (cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMinimum))
@@ -300,8 +303,8 @@ contains
                   &          cosmologyFunctionsDefault%cosmicTime            (cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMaximum)), &
                   &          cosmologyFunctionsDefault%timeAtDistanceComoving(                                                                         &
                   &                                                           max(                                                                     &
-                  &                                                               Geometry_Survey_Distance_Maximum(massBinCenterI ),                   &
-                  &                                                               Geometry_Survey_Distance_Maximum(massBinCenterJ )                    &
+                  &                                                               surveyGeometry_%distanceMaximum(massBinCenterI ),                    &
+                  &                                                               surveyGeometry_%distanceMaximum(massBinCenterJ )                     &
                   &                                                              )                                                                     &
                   &                                                          )                                                                         &
                   &         )
@@ -402,8 +405,8 @@ contains
                   &          cosmologyFunctionsDefault%cosmicTime            (cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMaximum)), &
                   &          cosmologyFunctionsDefault%timeAtDistanceComoving(                                                                         &
                   &                                      min(                                                                                          &
-                  &                                          Geometry_Survey_Distance_Maximum(massBinCenterI ),                                        &
-                  &                                          Geometry_Survey_Distance_Maximum(massBinCenterJ )                                         &
+                  &                                          surveyGeometry_%distanceMaximum(massBinCenterI ),                                         &
+                  &                                          surveyGeometry_%distanceMaximum(massBinCenterJ )                                          &
                   &                                         )                                                                                          &
                   &                                     )                                                                                              &
                   &         )
@@ -418,7 +421,7 @@ contains
                   &                         toleranceRelative=1.0d-3     , &
                   &                         reset=integrationReset         &
                   &                        )                               &
-                  &              *Geometry_Survey_Solid_Angle()            &
+                  &              *surveyGeometry_%solidAngle()             &
                   &              /logMassBinWidth**2                       &
                   &              /volume(i)                                &
                   &              /volume(j)
@@ -516,18 +519,20 @@ contains
     use Halo_Mass_Function
     use Conditional_Mass_Functions
     implicit none
-    real(c_double)        :: Mass_Function_Integrand_I
-    real(c_double), value :: logMass
-    type(c_ptr),    value :: parameterPointer
-    double precision      :: mass
+    real             (c_double                    )          :: Mass_Function_Integrand_I
+    real             (c_double                    ), value   :: logMass
+    type             (c_ptr                       ), value   :: parameterPointer
+    class            (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
+    double precision                                         :: mass
 
+    conditionalMassFunction_ => conditionalMassFunction()
     mass=10.0d0**logMass
-    Mass_Function_Integrand_I= Halo_Mass_Function_Differential(time,mass)               &
-         &                *                                         mass                &
-         &                *log(10.0d0)                                                  &
-         &                *(                                                            &
-         &                   Cumulative_Conditional_Mass_Function(mass,massBinMinimumI) &
-         &                  -Cumulative_Conditional_Mass_Function(mass,massBinMaximumI) &
+    Mass_Function_Integrand_I= Halo_Mass_Function_Differential(time,mass)                &
+         &                *                                         mass                 &
+         &                *log(10.0d0)                                                   &
+         &                *(                                                             &
+         &                   conditionalMassFunction_%massFunction(mass,massBinMinimumI) &
+         &                  -conditionalMassFunction_%massFunction(mass,massBinMaximumI) &
          &                 )
     return
   end function Mass_Function_Integrand_I
@@ -623,24 +628,26 @@ contains
     use Halo_Mass_Function
     use Conditional_Mass_Functions
     implicit none
-    real(c_double)        :: Halo_Occupancy_Integrand
-    real(c_double), value :: logMass
-    type(c_ptr),    value :: parameterPointer
-    double precision      :: mass
-
+    real             (c_double                    )          :: Halo_Occupancy_Integrand
+    real             (c_double                    ), value   :: logMass
+    type             (c_ptr                       ), value   :: parameterPointer
+    class            (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
+    double precision                                         :: mass
+    
+    conditionalMassFunction_ => conditionalMassFunction()
     mass=10.0d0**logMass
-    Halo_Occupancy_Integrand= Halo_Mass_Function_Differential(time,mass)                       &
-         &                   *                                     mass                        &
-         &                   *log(10.0d0)                                                      &
-         &                   *max(                                                             &
-         &                        +Cumulative_Conditional_Mass_Function(mass,massBinMinimumI)  &
-         &                        -Cumulative_Conditional_Mass_Function(mass,massBinMaximumI), &
-         &                         0.0d0                                                       &
-         &                       )                                                             &
-         &                   *max(                                                             &
-         &                        +Cumulative_Conditional_Mass_Function(mass,massBinMinimumJ)  &
-         &                        -Cumulative_Conditional_Mass_Function(mass,massBinMaximumJ), &
-         &                         0.0d0                                                       &
+    Halo_Occupancy_Integrand= Halo_Mass_Function_Differential(time,mass)                        &
+         &                   *                                     mass                         &
+         &                   *log(10.0d0)                                                       &
+         &                   *max(                                                              &
+         &                        +conditionalMassFunction_%massFunction(mass,massBinMinimumI)  &
+         &                        -conditionalMassFunction_%massFunction(mass,massBinMaximumI), &
+         &                         0.0d0                                                        &
+         &                       )                                                              &
+         &                   *max(                                                              &
+         &                        +conditionalMassFunction_%massFunction(mass,massBinMinimumJ)  &
+         &                        -conditionalMassFunction_%massFunction(mass,massBinMaximumJ), &
+         &                         0.0d0                                                        &
          &                       )
     return
   end function Halo_Occupancy_Integrand
