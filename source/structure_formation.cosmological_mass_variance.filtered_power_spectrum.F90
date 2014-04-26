@@ -32,6 +32,10 @@ module Cosmological_Mass_Variance_Filtered_Power_Spectrum
   ! Smoothing mass scale used in computing variance.
   double precision            :: smoothingMass
 
+  ! Integration tolerances.
+  double precision            :: massVarianceFilteredPowerSpectrumTopHatTolerance
+  double precision            :: massVarianceFilteredPowerSpectrumTolerance
+
 contains
 
   !# <cosmologicalMassVarianceMethod>
@@ -40,13 +44,37 @@ contains
   subroutine Cosmological_Mass_Variance_Filtered_Power_Spectrum_Initialize(cosmologicalMassVarianceMethod&
        &,Cosmological_Mass_Variance_Tabulate)
     !% Initializes the $\sigma(M)$ calculation for the ``filtered power spectrum'' method.
+    use Input_Parameters
     use ISO_Varying_String
     implicit none
     type     (varying_string                                             ), intent(in   )          :: cosmologicalMassVarianceMethod
     procedure(Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate), intent(inout), pointer :: Cosmological_Mass_Variance_Tabulate
 
-    if (cosmologicalMassVarianceMethod == 'filteredPowerSpectrum') Cosmological_Mass_Variance_Tabulate =>&
-         & Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate
+    if (cosmologicalMassVarianceMethod == 'filteredPowerSpectrum') then
+       Cosmological_Mass_Variance_Tabulate => Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate
+       !@ <inputParameter>
+       !@   <name>massVarianceFilteredPowerSpectrumTopHatTolerance</name>
+       !@   <defaultValue>$10^{-6}$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The relative tolerance to use in integrating over the linear power spectrum using a top-hat (real space) window function to compute the cosmological mass variance.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('massVarianceFilteredPowerSpectrumTopHatTolerance',massVarianceFilteredPowerSpectrumTopHatTolerance,defaultValue=1.0d-6)
+       !@ <inputParameter>
+       !@   <name>massVarianceFilteredPowerSpectrumTolerance</name>
+       !@   <defaultValue>$4\times 10^{-6}$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The relative tolerance to use in integrating over the linear power spectrum to compute the cosmological mass variance.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('massVarianceFilteredPowerSpectrumTolerance',massVarianceFilteredPowerSpectrumTolerance,defaultValue=4.0d-6)
+    end if
     return
   end subroutine Cosmological_Mass_Variance_Filtered_Power_Spectrum_Initialize
 
@@ -114,10 +142,10 @@ contains
     wavenumberMaximum=min(1.0d3/topHatRadius,Power_Spectrum_Window_Function_Wavenumber_Maximum(smoothingMass))
     if (useTopHat) then
        Variance_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,Variance_Integrand_TopHat,parameterPointer&
-            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
+            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=massVarianceFilteredPowerSpectrumTopHatTolerance,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
     else
        Variance_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,Variance_Integrand,parameterPointer&
-            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=4.0d-6,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
+            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=massVarianceFilteredPowerSpectrumTolerance,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
     end if
     call Integrate_Done(integrandFunction,integrationWorkspace)
     Variance_Integral=sqrt(Variance_Integral)
