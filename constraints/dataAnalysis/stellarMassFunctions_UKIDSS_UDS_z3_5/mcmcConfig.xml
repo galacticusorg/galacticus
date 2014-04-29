@@ -265,7 +265,7 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>-2.0</minimum>
+	  <minimum>0.0</minimum>
 	  <maximum>+4.0</maximum>
 	</distribution>
       </prior>
