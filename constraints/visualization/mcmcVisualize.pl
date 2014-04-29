@@ -189,8 +189,13 @@ for(my $iChain=0; -e $fileRoot."_".sprintf("%4.4d",$iChain).".log";++$iChain) {
 		    );
 	    }
 	}
-	print oHndl $line
-	    if ( $include == 1 );
+	if ( $include == 1 ) {
+	    $columns[$xColumn] = log($columns[$xColumn])
+		if ( $xScale eq "log" );
+	    $columns[$yColumn] = log($columns[$yColumn])
+		if ( $yScale eq "log" );
+	    print oHndl join("\t",@columns)."\n";
+	}
     }
     close(iHndl);
 }
