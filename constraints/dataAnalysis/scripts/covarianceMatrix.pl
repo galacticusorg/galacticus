@@ -109,6 +109,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    foreach ( "massFunctionCovarianceIncludeHalo", "massFunctionCovarianceIncludeLSS" );
 	# Modify redshift ranges.
 	if ( defined($redshiftIndex) ) {
+	    $parameters->{'parameter'}->{$parameters->{'parameter'}->{'surveyGeometryMethod'}->{'value'}.'RedshiftBin'}->{'value'} = $redshiftIndex;
 	    $parameters->{'parameter'}->{'conditionalMassFunctionRedshiftMinimum'}->{'value'} = ${$config->{'redshift'}}[$redshiftIndex]->{'minimum'};
 	    $parameters->{'parameter'}->{'conditionalMassFunctionRedshiftMaximum'}->{'value'} = ${$config->{'redshift'}}[$redshiftIndex]->{'maximum'};
 	    $parameters->{'parameter'}->{'massFunctionCovarianceRedshiftMinimum' }->{'value'} = ${$config->{'redshift'}}[$redshiftIndex]->{'minimum'};
@@ -209,6 +210,9 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
     unless ( -e $stageDirectory."/chains_0000.log" ) {
     	# Clean up any old files.
     	system("rm ".$stageDirectory."/chains_*.log");
+	# Parse the basic covariance matrix parameter file.
+	my $xmlP       = new XML::Simple;
+	my $parameters = $xmlP->XMLin($parameterFile);
     	# Make stage-specific copies of the MCMC configuration file.
 	my $xml        = new XML::Simple(KeyAttr => []);
 	my $mcmcConfig = $xml->XMLin($mcmcConfigFile);
@@ -223,6 +227,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	}
 	$likelihood->{'massFunctionFileName'} = $covarianceMatrixFile;
 	if ( defined($redshiftIndex) ) {
+	    $likelihood->{$parameters->{'parameter'}->{'surveyGeometryMethod'}->{'value'}.'RedshiftBin'} = $redshiftIndex;
 	    $likelihood->{'redshiftMinimum'} = ${$config->{'redshift'}}[$redshiftIndex]->{'minimum'};
 	    $likelihood->{'redshiftMaximum'} = ${$config->{'redshift'}}[$redshiftIndex]->{'maximum'};
 	}
@@ -268,7 +273,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
     	$command .= " --property 'beta:linear:xLabel=\$\\beta\$:zLabel=\${\\rm d}p/{\\rm d}\\beta\$'";
     	$command .= " --property 'delta:linear:xLabel=\$\\delta\$:zLabel=\${\\rm d}p/{\\rm d}\\delta\$'";
     	$command .= " --property 'gamma:linear:xLabel=\$\\gamma\$:zLabel=\${\\rm d}p/{\\rm d}\\gamma\$'";
-    	$command .= " --property 'sigmaLogMstar:logarithmic:xLabel=\$\\sigma_{\\log ".$massVariable."}\$:zLabel=\${\\rm d}p/{\\rm d}\log \\sigma_{\\log ".$massVariable."}\$'";
+    	$command .= " --property 'sigmaLogMstar:logarithmic:xLabel=\$\\sigma_{\\log ".$massVariable."}\$:zLabel=\${\\rm d}p/{\\rm d}\\log \\sigma_{\\log ".$massVariable."}\$'";
     	$command .= " --property 'BCut:linear:xLabel=\$B_{\\rm cut}\$:zLabel=\${\\rm d}p/{\\rm d}B_{\\rm cut}\$'";
     	$command .= " --property 'BSatellite:linear:xLabel=\$B_{\\rm sat}\$:zLabel=\${\\rm d}p/{\\rm d}B_{\\rm sat}\$'";
     	$command .= " --property 'betaCut:linear:xLabel=\$\\beta_{\\rm cut}\$:zLabel=\${\\rm d}p/{\\rm d}\\beta_{\\rm cut}\$'";
@@ -357,6 +362,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	if ( defined($redshiftIndex) ) {
 	    $parameters->{'parameter'}->{'conditionalMassFunctionRedshiftMinimum'}->{'value'} = ${$config->{'redshift'}}[$redshiftIndex]->{'minimum'};
 	    $parameters->{'parameter'}->{'conditionalMassFunctionRedshiftMaximum'}->{'value'} = ${$config->{'redshift'}}[$redshiftIndex]->{'maximum'};
+	    $parameters->{'parameter'}->{$parameters->{'parameter'}->{'surveyGeometryMethod'}->{'value'}.'RedshiftBin'}->{'value'} = $redshiftIndex;
 	}
 	# Set file name.
 	$parameters->{'parameter'}->{'conditionalMassFunctionOutputFileName'}->{'value'} = $stageDirectory."/massFunctionBestFit.hdf5";
