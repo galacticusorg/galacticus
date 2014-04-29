@@ -143,10 +143,19 @@ sub observedMassFunction {
     } else {
 	die("observedMassFunction(): unrecognized units for massFunction");
     }
-    
+
+    # Determine if completeness information is available.
+    my $completeness;
+    if ( exists($columns->{'completeness'}->{'datum'}) ) {
+	$completeness = pdl @{$columns->{'completeness'}->{'datum'}};
+    } else {
+	$completeness = pdl ones(nelem($massFunction));
+    }
+
     # Store the mass function to file.
     $hdfFile->dataset("massFunctionObserved")->set($massFunction);
     $hdfFile->dataset("massFunctionObserved")->attrSet(hubbleExponent => $columns->{'massFunction'}->{'hubbleExponent'});
+    $hdfFile->dataset("completenessObserved")->set($completeness);
 
 }
 
