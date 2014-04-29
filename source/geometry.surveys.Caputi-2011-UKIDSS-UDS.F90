@@ -22,8 +22,10 @@
   !# </surveyGeometry>
 
   type, extends(surveyGeometryClass) :: surveyGeometryCaputi2011UKIDSSUDS
+     double precision :: binDistanceMinimum, binDistanceMaximum
    contains
      procedure :: distanceMaximum => caputi2011UKIDSSUDSDistanceMaximum
+     procedure :: volumeMaximum   => caputi2011UKIDSSUDSVolumeMaximum
      procedure :: solidAngle      => caputi2011UKIDSSUDSSolidAngle
      procedure :: windowFunctions => caputi2011UKIDSSUDSWindowFunctions
   end type surveyGeometryCaputi2011UKIDSSUDS
@@ -31,7 +33,12 @@
   interface surveyGeometryCaputi2011UKIDSSUDS
      !% Constructors for the \cite{caputi_stellar_2011} survey geometry class.
      module procedure caputi2011UKIDSSUDSDefaultConstructor
+     module procedure caputi2011UKIDSSUDSConstructor
   end interface surveyGeometryCaputi2011UKIDSSUDS
+
+  ! Default redshift bin to use.
+  logical :: caputi2011UKIDSSUDSInitialized=.false.
+  integer :: caputi2011UKIDSSUDSRedshiftBin
 
 contains
 
@@ -41,19 +48,84 @@ contains
     implicit none
     type(surveyGeometryCaputi2011UKIDSSUDS) :: caputi2011UKIDSSUDSDefaultConstructor
 
+    if (.not.caputi2011UKIDSSUDSInitialized) then
+       !$omp critical(caputi2011UKIDSSUDSInitialize)
+       if (.not.caputi2011UKIDSSUDSInitialized) then
+          ! Get the redshift bin to use.
+          !@ <inputParameter>
+          !@   <name>caputi2011UKIDSSUDSRedshiftBin</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The redshift bin (0, 1, or 2) of the \cite{caputi_stellar_2011} to use.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>starFormation</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('caputi2011UKIDSSUDSRedshiftBin',caputi2011UKIDSSUDSRedshiftBin)
+          ! Record that the survey is initialized.
+          caputi2011UKIDSSUDSInitialized=.true.
+       end if
+       !$omp end critical(caputi2011UKIDSSUDSInitialize)
+    end if
+    caputi2011UKIDSSUDSDefaultConstructor=caputi2011UKIDSSUDSConstructor(caputi2011UKIDSSUDSRedshiftBin)
     return
   end function caputi2011UKIDSSUDSDefaultConstructor
 
-  double precision function caputi2011UKIDSSUDSDistanceMaximum(self,mass)
-    !% Compute the maximum distance at which a galaxy is visible.
+  function caputi2011UKIDSSUDSConstructor(redshiftBin)
+    !% Default constructor for the \cite{caputi_stellar_2011} conditional mass function class.
+    use Galacticus_Error
+    use Input_Parameters
     use Cosmology_Functions
     use Cosmology_Functions_Options
     implicit none
-    class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
-    double precision                                   , intent(in   ) :: mass
+    type            (surveyGeometryCaputi2011UKIDSSUDS)                :: caputi2011UKIDSSUDSConstructor
+    integer                                            , intent(in   ) :: redshiftBin
     class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
-    double precision                                                   :: redshift           , logarithmicMass
+    double precision                                                   :: redshiftMinimum               , redshiftMaximum
+
+    ! Find distance limits for this redshift bin.
+    select case (redshiftBin)
+    case(0)
+       redshiftMinimum=3.00d0
+       redshiftMaximum=3.50d0
+    case(1)
+       redshiftMinimum=3.50d0
+       redshiftMaximum=4.25d0
+    case(2)
+       redshiftMinimum=4.25d0
+       redshiftMaximum=5.00d0
+    case default
+       call Galacticus_Error_Report('caputi2011UKIDSSUDSConstructor','0≤redshiftBin≤2 is required')
+    end select
+    cosmologyFunctions_ => cosmologyFunctions()
+    caputi2011UKIDSSUDSConstructor%binDistanceMinimum                                     &
+         & =cosmologyFunctions_%distanceComovingConvert(                                  &
+         &                                                 output  =distanceTypeComoving, &
+         &                                                 redshift=redshiftMinimum       &
+         &                                                )
+    caputi2011UKIDSSUDSConstructor%binDistanceMaximum                                     &
+         & =cosmologyFunctions_%distanceComovingConvert(                                  &
+         &                                                 output  =distanceTypeComoving, &
+         &                                                 redshift=redshiftMaximum       &
+         &                                                )
+    return
+  end function caputi2011UKIDSSUDSConstructor
+
+  double precision function caputi2011UKIDSSUDSDistanceMaximum(self,mass,field)
+    !% Compute the maximum distance at which a galaxy is visible.
+    use Cosmology_Functions
+    use Cosmology_Functions_Options
+    use Galacticus_Error
+    implicit none
+    class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
+    double precision                                   , intent(in   )           :: mass
+    integer                                            , intent(in   ), optional :: field
+    class           (cosmologyFunctionsClass          ), pointer                 :: cosmologyFunctions_
+    double precision                                                             :: redshift           , logarithmicMass
     
+    ! Validate field.
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('caputi2011UKIDSSUDSDistanceMaximum','field = 1 required')
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
     ! constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massLuminosityRelation.pl for details.)
     logarithmicMass=log10(mass)
@@ -66,16 +138,46 @@ contains
          &                                             output  =distanceTypeComoving, &
          &                                             redshift=redshift              &
          &                                            )
+    ! Limit the maximum distance.
+    caputi2011UKIDSSUDSDistanceMaximum=min(caputi2011UKIDSSUDSDistanceMaximum,self%binDistanceMaximum)
     return
   end function caputi2011UKIDSSUDSDistanceMaximum
 
-  double precision function caputi2011UKIDSSUDSSolidAngle(self)
+  double precision function caputi2011UKIDSSUDSVolumeMaximum(self,mass,field)
+    !% Compute the maximum volume within which a galaxy is visible.
+    use Galacticus_Error
+    implicit none
+    class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
+    double precision                                   , intent(in   )           :: mass
+    integer                                            , intent(in   ), optional :: field
+    
+    ! Validate field.
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('caputi2011UKIDSSUDSVolumeMaximum','field = 1 required')
+    ! Compute the volume.
+    caputi2011UKIDSSUDSVolumeMaximum                       &
+         & =max(                                           &
+         &       0.0d0                                   , &
+         &       self%solidAngle(field)                    &
+         &      *(                                         &
+         &        +self%distanceMaximum   (mass,field)**3  &
+         &        -self%binDistanceMinimum            **3  &
+         &       )                                         &
+         &      /3.0d0                                     &
+         &     )
+    return
+  end function caputi2011UKIDSSUDSVolumeMaximum
+
+  double precision function caputi2011UKIDSSUDSSolidAngle(self,field)
     !% Return the solid angle of the \cite{caputi_stellar_2011} sample. Computed from survey mask (see {\tt
     !% constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.pl}).
+    use Galacticus_Error
     implicit none
-    class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
-    double precision                                   , parameter     :: solidAngleSurvey=1.59233703487973d-4
+    class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
+    integer                                            , intent(in   ), optional :: field
+    double precision                                   , parameter               :: solidAngleSurvey=1.59233703487973d-4
     
+    ! Validate field.
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('caputi2011UKIDSSUDSSolidAngle','field = 1 required')
     caputi2011UKIDSSUDSSolidAngle=solidAngleSurvey
     return
   end function caputi2011UKIDSSUDSSolidAngle

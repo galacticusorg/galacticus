@@ -47,26 +47,30 @@ contains
     return
   end function martin2010ALFALFADefaultConstructor
 
-  double precision function martin2010ALFALFADistanceMaximum(self,mass)
+  double precision function martin2010ALFALFADistanceMaximum(self,mass,field)
     !% Compute the maximum distance at which a galaxy is visible.
+    use Galacticus_Error
     use Cosmology_Parameters
     implicit none
-    class           (surveyGeometryMartin2010ALFALFA), intent(inout) :: self
-    double precision                                 , intent(in   ) :: mass
+    class           (surveyGeometryMartin2010ALFALFA), intent(inout)           :: self
+    double precision                                 , intent(in   )           :: mass
+    integer                                          , intent(in   ), optional :: field
     ! The signal-to-noise limit used by Martin et al. (2010).
-    double precision                                 , parameter  :: signalToNoise                    = 6.5d0
+    double precision                                 , parameter               :: signalToNoise                    = 6.5d0
     ! Coefficients of the polynomial approximation for log10(lineWidth) vs. log10(HI mass).
-    double precision                                 , parameter  :: lineWidthCoefficient0            =-0.769635671616885d0, lineWidthCoefficient1=0.314983275066432d0
+    double precision                                 , parameter               :: lineWidthCoefficient0            =-0.769635671616885d0, lineWidthCoefficient1=0.314983275066432d0
     ! Line width characteristic scale.
-    double precision                                 , parameter  :: lineWidthCharacteristic         =200.0d0
+    double precision                                 , parameter               :: lineWidthCharacteristic         =200.0d0
     ! Normalization of the flux limit for unit signal-to-noise at characteristic line width.
-    double precision                                 , parameter  :: integratedFluxLimitNormalization=0.15d0
+    double precision                                 , parameter               :: integratedFluxLimitNormalization=0.15d0
     ! Normalization of the mass-integrated flux-distance relation.
-    double precision                                 , parameter  :: massNormalization               =2.356d5
-    double precision                                              :: logarithmicMass                                       , lineWidth                                , &
-         &                                                           integratedFluxLimit
-    class    (cosmologyParametersClass              ), pointer    :: cosmologyParameters_
+    double precision                                 , parameter               :: massNormalization               =2.356d5
+    double precision                                                           :: logarithmicMass                                       , lineWidth                                , &
+         &                                                                        integratedFluxLimit
+    class    (cosmologyParametersClass              ), pointer                 :: cosmologyParameters_
 
+    ! Validate field.
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('martin2010ALFALFADistanceMaximum','field = 1 required')
     ! Get the logarithm of the mass.
     logarithmicMass=log10(mass)
     ! Find the median line width for this mass. (See
@@ -86,12 +90,16 @@ contains
     return
   end function martin2010ALFALFADistanceMaximum
 
-  double precision function martin2010ALFALFASolidAngle(self)
+  double precision function martin2010ALFALFASolidAngle(self,field)
     !% Return the solid angle of the \cite{martin_arecibo_2010} sample.
+    use Galacticus_Error
     implicit none
-    class           (surveyGeometryMartin2010ALFALFA), intent(inout) :: self
-    double precision                                 , parameter     :: solidAngleSurvey=0.79415674617213461d0 ! Computed from survey bounds in Martin et al. (2010; ApJ; 723; 1359)
+    class           (surveyGeometryMartin2010ALFALFA), intent(inout)           :: self
+    integer                                          , intent(in   ), optional :: field
+    double precision                                 , parameter               :: solidAngleSurvey=0.79415674617213461d0 ! Computed from survey bounds in Martin et al. (2010; ApJ; 723; 1359)
     
+    ! Validate field.
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('martin2010ALFALFASolidAngle','field = 1 required')
     martin2010ALFALFASolidAngle=solidAngleSurvey
     return
   end function martin2010ALFALFASolidAngle
