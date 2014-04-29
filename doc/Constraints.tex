@@ -398,6 +398,25 @@ In this file the {\tt y} elements should give the values of the model result, wh
 
 \subsection{Available Constraints}
 
+\subsubsection{Methodology for Mass Functions}
+
+In general, for constraints corresponding to mass functions (whether stellar mass or HI mass), the covariance matrix of the observational data is determined using the analytic model of \cite{smith_how_2012}. This requires knowledge of both the survey geometry (angular mask and radial extent as a function of mass) and of the \gls{hod} of the observed galaxies.
+
+Details of the survey geometry and depth are given for each individual constraints. Computing the large-scale structure contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier transform of the survey window function. We use the method of \cite{peacock_non-linear_1996} to determine the non-linear matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter power spectrum (e.g. \citealt{lawrence_coyote_2010}) makes negligible difference to our results.
+
+To find a suitable \gls{hod} to describe the observed galaxies we adopt the model of \cite{behroozi_comprehensive_2010}. This is an 11 parameter model which describes separately the numbers of satellite and central galaxies occupying a halo of given mass---the reader is referred to \cite{behroozi_comprehensive_2010} for a complete description of the functional form of this parametric \gls{hod}. An \gls{mcmc} approach is used to to constrain the \gls{hod} parameters to fit the observational data. We use a likelihood
+\begin{equation}
+ \ln \mathcal{L} = -{1\over 2} \Delta\cdot \mathcal{C}^{-1}\cdot \Delta^{\rm T} - {N \over 2} \ln(2\pi) - {\ln |\mathcal{C}| \over 2},
+\end{equation}
+where $N$ is the number of bins in the mass function, $\mathcal{C}$ is the covariance matrix of the observed mass function, and $\Delta_i = \phi_i^{\rm (HOD)} - \phi_i^{\rm (observed)}$. Of course, it is precisely this covariance matrix, $\mathcal{C}$, that we are trying to compute. We therefore adopt an iterative approach as follows:
+\begin{enumerate}
+ \item make an initial estimate of the covariance matrix, assuming that only Poisson errors contribute (the covariance matrix is therefore diagonal, and the terms are easily computed from the measured mass function and the survey volume as a function of stellar mass);
+ \item find the maximum likelihood parameters of the \gls{hod} given the observed mass function and the current estimate of the covariance matrix;
+ \item using this \gls{hod} and the framework of \cite{smith_how_2012}, compute a new estimate of the covariance matrix, including all three contributions;
+ \item repeat steps 2 and 3 until convergence in the covariance matrix is achieved.
+\end{enumerate}
+In practice we find that this procedure often leads to an \gls{hod} and covariance matrix which oscillate between two states in successive iterations. The differences in the covariance matrix are relatively small however, so we choose to conservatively adopt the covariance matrix with the larger values.
+
 \subsubsection{Li \& White (2009) SDSS Stellar Mass Function}
 
 This constraint utilizes the stellar mass function for $z\approx 0.07$ galaxies measured by \cite{li_distribution_2009} from the \gls{sdss}. The mass function reported by \cite{li_distribution_2009} is converted to the appropriate Hubble constant for the given \glc\ model (assuming that masses scale as $H_0^{-2}$ and volumes as $H_0^3$)---no adjustment is made for cosmological parameters given the low redshift of the sample.
@@ -428,22 +447,56 @@ The model likelihood is then computed using:
 \end{equation}
 where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
-Computing the large-scale structure contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier transform of the survey window function. We use the method of \cite{peacock_non-linear_1996} to determine the non-linear matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter power spectrum (e.g. \citealt{lawrence_coyote_2010}) makes negligible difference to our results.
+\subsubsection{Caputi et al. (2011) UKIDSS UDS Stellar Mass Function}\label{sec:ConstraintsUKIDSSUDSStellarMassFunction}
 
-To find a suitable \gls{hod} to describe the galaxies in the \cite{li_distribution_2009} sample we adopt the model of \cite{behroozi_comprehensive_2010}. This is an 11 parameter model which describes separately the numbers of satellite and central galaxies occupying a halo of given mass---the reader is referred to \cite{behroozi_comprehensive_2010} for a complete description of the functional form of this parametric \gls{hod}. 
+This constraint utilizes the stellar mass functions for $z = 3$ to 5 galaxies measured by \cite{caputi_stellar_2011} from the UKISS UDS survey.  If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
 
-To reproduce the mass function of \cite{li_distribution_2009} using this \gls{hod} we use the \gls{bie} \citep{weinberg_computational_2012} to constrain the \gls{hod} parameters. We use a likelihood
+The covariance matrix is computed as
 \begin{equation}
- \ln \mathcal{L} = -{1\over 2} \Delta\cdot \mathcal{C}^{-1}\cdot \Delta^{\rm T} - {N \over 2} \ln(2\pi) - {\ln |\mathcal{C}| \over 2},
+ {\bf C} = {\bf C}_{\rm obs} + {\bf C}_{\rm model,random} + \sum_i {\bf C}_{{\rm discrepancy}, i},
 \end{equation}
-where $N$ is the number of bins in the mass function, $\mathcal{C}$ is the covariance matrix of the observed mass function, and $\Delta_i = \phi_i^{\rm (HOD)} - \phi_i^{\rm (observed)}$. Of course, it is precisely this covariance matrix, $\mathcal{C}$, that we are trying to compute. We therefore adopt an iterative approach as follows:
-\begin{enumerate}
- \item make an initial estimate of the covariance matrix, assuming that only Poisson errors contribute (the covariance matrix is therefore diagonal, and the terms are easily computed from the measured mass function and the survey volume as a function of stellar mass);
- \item find the maximum likelihood parameters of the \gls{hod} given the observed mass function and the current estimate of the covariance matrix;
- \item using this \gls{hod} and the framework of \cite{smith_how_2012}, compute a new estimate of the covariance matrix, including all three contributions;
- \item repeat steps 2 and 3 until convergence in the covariance matrix is achieved.
-\end{enumerate}
-In practice we find that this procedure leads to an \gls{hod} and covariance matrix which oscillate between two states in successive iterations. The differences in the covariance matrix are relatively small however, so we choose to conservatively adopt the covariance matrix with the larger values. In future, adding additional constraints to the \gls{hod} (as described below) should help mitigate this problem.
+where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${\bf C}_{\rm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\bf C}_{{\rm discrepancy}, i}$ is the covariance due to the $i^{\rm th}$ model discrepancy.
+
+The model likelihood is then computed using:
+\begin{equation}
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\bf C}|}} \exp\left[ -{1\over 2} \Delta {\bf C}^{-1} \Delta \right],
+\end{equation}
+where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+
+The survey window function is determined from the set of galaxy positions provided by Caputi (private communication), by finding a suitable bounding box and then cutting out empty regions (corresponding to regions that were removed around bright stars). A set of random points are then found within this mask and are used to find the Fourier transform of the survey volume. 
+
+To estimate the depth of the \cite{caputi_stellar_2011} sample as a function of galaxy stellar mass we make use of semi-analytic models in the Millennium Database. Specifically, we use the \glspl{sam} of \cite{guo_dwarf_2011} and \cite{henriques_confronting_2012} specifically the {\tt Guo2010a..MR} and {\tt Henriques2012a.wmap1.BC03\_001} tables in the Millennium Database. For each snapshot in the database, we extract the stellar masses and observed-frame IRAC 4.5$\mu$m apparent magnitudes (including dust extinction), and determine the median apparent magnitude as a function of stellar mass. Using the limiting apparent magnitude of the \cite{caputi_stellar_2011} sample, $i_{4.5}=24$, we infer the corresponding absolute magnitude at each redshift and, using our derived apparent magnitude--stellar mass relation, infer the corresponding stellar mass.
+
+The end result of this procedure is the limiting stellar mass as a function of redshift, accounting for k-corrections, evolution, and the effects of dust. Figure~\ref{fig:UKIDSSUDSMassRedshift} shows the resulting relation between stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Points indicate measurements from the \gls{sam}, while the line shows a polynomial fit:
+\begin{equation}
+ z(M_\star) = -56.247 + 5.881 m,
+ \label{eq:UKIDSSUDSDepthPolynomial}
+\end{equation}
+where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/UKIDSSUDSMassLuminosityRelation.pdf}
+ \caption{The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{caputi_stellar_2011}. Points show the results obtained using the \protect\cite{henriques_confronting_2012} model from the Millennium Database, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:UKIDSSUDSDepthPolynomial}).}
+ \end{center}
+ \label{fig:UKIDSSUDSMassRedshift}
+\end{figure}
+
+Finally, the incompleteness of the observational sample (which is required when estimating the Poisson contribution to the covariance matrix) is found from the 50\% and 80\% completeness masses, $M_{50}$ and $M_{80}$ respectively, given in Fig.~4 of \cite{caputi_stellar_2011}. Specifically, we assume that, at a given mass $M$, the number of photons being received from a galaxy can be modeled as a Gaussian distribution with mean $f M$ and variance $fM+\mu$, where $\mu$ is the number of photons ariving from the sky. The fraction of sources of mass $M$ that will be detected at more than $n \sigma$ above the background is then
+\begin{eqnarray}
+f(M) & = & \int_{n\sqrt{mu}}^\infty {1 \over \sqrt{2 \pi} \sqrt{f M + \mu}} \exp\left( - {[S-fM]^2 \over 2 [f M + \mu]} \right) {\rm d}S \nonumber \\
+     & = & {1 \over 2}\left[ 1 - \hbox{erf}\left( {x(M) \over \sqrt{2}} \right)  \right],
+\label{eq:incompleteness}
+\end{eqnarray}
+where $x(M) = (n \sqrt{mu} - f M)/(\mu+fM)^{1/2}$. Given $f(M_{\rm 50})=0.5$ and $f(M_{\rm 80})=0.8$ we can solve for $f$ and $\mu$, and then compute the completeness in each mass using eqn.~(\ref{eq:incompleteness}). The resulting completeness curves are shown in Fig.~\ref{fig:UKIDSSUDSCompleteness}. Note that the model of eqn.~(\ref{eq:incompleteness}) is clearly an oversimplification, but should capture the expected behavior of the completeness and, since it is fit to the 50\% and 80\% completenesses reported by \cite{caputi_stellar_2011}---which were computed using detailed simulations---should work sufficiently well.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/UKIDSSUDSCompleteness.pdf}
+ \caption{The completeness as a function of stellar mass in the survey of \protect\cite{caputi_stellar_2011}. Curves are computed using eqn.~(\protect\ref{eq:incompleteness}) with parameters fit to the reported 50\% and 80\% completeness masses from \protect\cite{caputi_stellar_2011}.}
+ \end{center}
+ \label{fig:UKIDSSUDSCompleteness}
+\end{figure}
 
 \subsubsection{Martin et al. (2010) ALFALFA HI Mass Function}\label{sec:AnalysisALFALFAHIMassFunction}
 
