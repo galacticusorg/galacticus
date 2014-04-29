@@ -44,16 +44,20 @@ contains
     return
   end function liWhite2009SDSSDefaultConstructor
 
-  double precision function liWhite2009SDSSDistanceMaximum(self,mass)
+  double precision function liWhite2009SDSSDistanceMaximum(self,mass,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Cosmology_Functions
     use Cosmology_Functions_Options
+    use Galacticus_Error
     implicit none
-    class           (surveyGeometryLiWhite2009SDSS), intent(inout) :: self
-    double precision                               , intent(in   ) :: mass
-    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-    double precision                                               :: redshift                      , logarithmicMass
+    class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
+    double precision                               , intent(in   )           :: mass
+    integer                                        , intent(in   ), optional :: field
+    class           (cosmologyFunctionsClass      ), pointer                 :: cosmologyFunctions_
+    double precision                                                         :: redshift           , logarithmicMass
     
+    ! Validate field.
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('liWhite2009SDSSDistanceMaximum','field = 1 required')
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/massLuminosityRelation.pl for details.)
     logarithmicMass=log10(mass)
@@ -86,12 +90,16 @@ contains
     return
   end function liWhite2009SDSSDistanceMaximum
 
-  double precision function liWhite2009SDSSSolidAngle(self)
+  double precision function liWhite2009SDSSSolidAngle(self,field)
     !% Return the solid angle of the \cite{li_distribution_2009} sample.
+    use Galacticus_Error
     implicit none
-    class           (surveyGeometryLiWhite2009SDSS), intent(inout) :: self
-    double precision                               , parameter     :: solidAngleSurvey=2.1901993d0 ! From Percival et al. (2010; MNRAS; 401; 2148)
+    class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
+    integer                                        , intent(in   ), optional :: field
+    double precision                               , parameter               :: solidAngleSurvey=2.1901993d0 ! From Percival et al. (2010; MNRAS; 401; 2148)
     
+    ! Validate field.
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('liWhite2009SDSSSolidAngle','field = 1 required')
     liWhite2009SDSSSolidAngle=solidAngleSurvey
     return
   end function liWhite2009SDSSSolidAngle

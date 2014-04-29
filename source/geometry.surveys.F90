@@ -32,23 +32,32 @@ module Geometry_Surveys
   !#  <description>Object providing galaxy surveys geometries and related functions.</description>
   !#  <default>liWhite2009</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="fieldCount" >
+  !#   <description>Returns the number of distinct fields included in the survey.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#   <code>fieldCount=1</code>
+  !#  </method>
   !#  <method name="distanceMaximum" >
   !#   <description>Returns the maximum distance (in Mpc) at which a galaxy of the specified {\tt mass} (in $M_\odot$) could be detected.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass</argument>
+  !#   <argument>double precision, intent(in   )           :: mass</argument>
+  !#   <argument>integer         , intent(in   ), optional :: field</argument>
   !#  </method>
   !#  <method name="solidAngle" >
   !#   <description>Return the solid angle (in steradians) of the survey.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ), optional :: field</argument>
   !#  </method>
   !#  <method name="volumeMaximum" >
   !#   <description>Returns the maximum volume (in Mpc$^3$) at which a galaxy of the specified {\tt mass} (in $M_\odot$) could be detected.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass</argument>
-  !#   <code>volumeMaximum=self%solidAngle()*self%distanceMaximum(mass)**3/3.0d0</code>
+  !#   <argument>double precision, intent(in   )           :: mass</argument>
+  !#   <argument>integer         , intent(in   ), optional :: field</argument>
+  !#   <code>volumeMaximum=self%solidAngle(field)*self%distanceMaximum(mass,field)**3/3.0d0</code>
   !#  </method>
   !#  <method name="windowFunctions" >
   !#   <description>Returns the window functions on a grid of the specified size ({\tt gridCount} cells in each dimension) for galaxies of the specified {\tt mass1} and {\tt mass2} (in $M_\odot$). The {\tt boxLength} should be set to an appropriate value to fully enclose (with sufficient buffering to allow for Fourier transformation) the two window functions.</description>
