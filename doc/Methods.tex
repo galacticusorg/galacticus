@@ -482,7 +482,7 @@ Currently defined accretion disk methods are:
 
 \subsubsection{Analysis}
 
-Additional methods foron-the-fly analysis of merger trees can be added using the {\tt mergerTreeAnalysisTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the mass distributions method is described by a directive:
+Additional methods for on-the-fly analysis of merger trees can be added using the {\tt mergerTreeAnalysisTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the mass distributions method is described by a directive:
 \begin{verbatim}
  !# <mergerTreeAnalysisTask>
  !#  <unitName>Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins</unitName>
@@ -504,7 +504,7 @@ Here, {\tt Galacticus\_Output\_Analysis\_Mass\_Dpndnt\_Sz\_Dstrbtins} is the nam
 \end{verbatim}
 This function will be called once for each node in each tree being output. The function is passed the merger tree object as {\tt thisTree}, along with a pointer to the node to be analyzed as {\tt thisNode}. Additionally, the current output number is passed as {\tt iOutput}. Finally, a list of analyses that were requested (by user input) to be performed is given in the {\tt mergerTreeAnalyses} array. The function should check if one or more of the entries in {\tt mergerTreeanalyses} correspond to analyses that it performs. (Note that this need only be done on the first call to this function---the values of {\tt mergerTreeAnalyses} will not change between calls.) If an analysis is matched in this way it should be performed. Typically, an analysis function might accumulate the results of analysis and then finalize and output them prior to completion of the \glc\ model through the use of a {\tt hdfPreCloseTask} (see \S\ref{sec:HDFFileClose}).
 
-Currently defined merger tree analysis methods are:
+Currently defined merger tree analysis methods are (see \S\ref{sec:OnTheFlyAnalysis}):
 \begin{description}
  \item [mass functions] Constructs mass functions for a variety of different surveys. Currently supported analysis names are: {\tt sdssStellarMassFunctionZ0.07}, {\tt alfalfaHiMassFunctionZ0.00}, {\tt primusStellarMassFunctionZ0.100}, {\tt primusStellarMassFunctionZ0.250}, {\tt primusStellarMassFunctionZ0.350}, {\tt primusStellarMassFunctionZ0.450}, {\tt primusStellarMassFunctionZ0.575}, {\tt primusStellarMassFunctionZ0.725}, and {\tt primusStellarMassFunctionZ0.900}. Each such analysis is defined internally to this module through the appropriate redshift, binning, random and systematic errors, and arbitrary mapping of component masses into observed masses. The covariance matrix of the mass function is also computed (see \S\ref{sec:AnalysisALFALFAHIMassFunction} for details).
  \item [mass-dependent size distributions] Constructs a two-dimensional histogram of galaxy sizes in bins of stellar mass. Currently supported analyses are {\tt sdssSizeFunctionZ0.07}. Each such analysis is defined internally to this module through the appropriate redshift, binning, random and systematic errors, and arbitrary mapping of component masses/radii into observed masses/radii. The covariance matrix of the size function is also computed (see \S\ref{sec:SDSSLateTypeGalaxySizeDistribution} for details).
