@@ -253,7 +253,8 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                         alfalfaHiMassFunctionZ0_00ErrorB                       , alfalfaHiMassFunctionZ0_00ErrorC               , &
        &                         alfalfaHiMassFunctionZ0_00MolecularFractionfSigma      , alfalfaHiMassFunctionZ0_00MolecularFractionA1  , &
        &                         alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1      , alfalfaHiMassFunctionZ0_00MolecularFractionA2  , &
-       &                         alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2      , alfalfaHiMassFunctionZ0_00MolecularFractionBeta
+       &                         alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2      , alfalfaHiMassFunctionZ0_00MolecularFractionBeta, &
+       &                         alfalfaHiMassFunctionZ0_00MolecularFractionScatter
 
 contains
 
@@ -864,6 +865,18 @@ contains
           !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionBeta',alfalfaHiMassFunctionZ0_00MolecularFractionBeta,defaultValue=0.8d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionScatter</name>
+          !@   <defaultValue>$0.4$~dex (Obsreschkow, private communication)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The scatter in the molecular ratio $\log_{10}R_{\rm mol}$ of \cite{obreschkow_simulation_2009} compared to observational data.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionScatter',alfalfaHiMassFunctionZ0_00MolecularFractionScatter,defaultValue=0.4d0)
           ! Record that the function is now initialized.
           alfalfaHiMassFunctionZ0_00Initialized=.true.
        end if
@@ -877,7 +890,8 @@ contains
     !% constraints/dataAnalysis/hiMassFunction\_ALFALFA\_z0.00/alfalfaHIMassErrorModel.pl} for details.
     double precision          , intent(in   )          :: mass
     type            (treeNode), intent(inout), pointer :: thisNode
-    double precision                                   :: logarithmicMass
+    double precision                                   :: logarithmicMass, molecularFraction, &
+         &                                                molecularRatio
 
     ! Initialize the mass function.
     call ALFALFA_HI_Mass_Function_Z0_00_Initialize()
@@ -893,19 +907,47 @@ contains
          &              )                                  &
          &             /alfalfaHiMassFunctionZ0_00ErrorC   &
          &            )
+    ! Add in quadrature a term accounting for the scatter in the molecular ratio model.
+    molecularRatio=Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+    Mass_Error_ALFALFA_HI_Mass_Function_Z0_00                             &
+         & =sqrt(                                                         &
+         &       +Mass_Error_ALFALFA_HI_Mass_Function_Z0_00           **2 &
+         &       +(                                                       &
+         &         +alfalfaHiMassFunctionZ0_00MolecularFractionScatter    &
+         &         *molecularFraction                                     &
+         &         /(                                                     &
+         &           +1.0                                                 &
+         &           +molecularFraction                                   &
+         &          )                                                     &
+         &        )                                                   **2 &
+         &      )
     return
   end function Mass_Error_ALFALFA_HI_Mass_Function_Z0_00
 
   double precision function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
-    !% Maps gas masses into HI masses for the ALFALFA survey analysis. Assumes a constant gas to HI mass conversion factor of        
-    !% $0.54$ \citep{power_redshift_2010}.      
+    !% Maps gas masses into HI masses for the ALFALFA survey analysis.
     use Numerical_Constants_Astronomical
     implicit none                                                                                 
+    double precision          , intent(in   )          :: mass
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision                                   :: molecularRatio
+
+    ! Compute the HI mass.
+    molecularRatio=Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+    Map_Mass_ALFALFA_HI_Mass_Function_Z0_00=hydrogenByMassPrimordial*mass/(1.0d0+molecularRatio)
+    return
+  end function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
+
+  double precision function Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+    !% Compute the molecular ratio, $R_{\rm mol}=M_{\rm H_2}/M_{\rm HI}$ for the ALFALFA survey analysis. Assumes the model of
+    !% \cite{obreschkow_simulation_2009}.
+    use Numerical_Constants_Astronomical
+    implicit none
     double precision                   , intent(in   )          :: mass
     type            (treeNode         ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk)               , pointer :: thisDisk
-    double precision                                            :: molecularRatio, molecularRatioCentral, &
-         &                                                         massStellar   , diskRadius
+    double precision                                            :: massStellar, molecularRatioCentral, &
+         &                                                         diskRadius
 
     ! Initialize the mass function.
     call ALFALFA_HI_Mass_Function_Z0_00_Initialize()
@@ -927,7 +969,7 @@ contains
          &    )                                                   &
          &   /diskRadius**4                                       &
          &  )**alfalfaHiMassFunctionZ0_00MolecularFractionBeta
-    molecularRatio                                                                      &
+    Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00                                      &
          & = 1.0d0                                                                      &
          &  /(                                                                          &
          &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA1     &
@@ -935,10 +977,8 @@ contains
          &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA2     &
          &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2 &
          &   )
-    ! Compute the HI mass.
-    Map_Mass_ALFALFA_HI_Mass_Function_Z0_00=hydrogenByMassPrimordial*mass/(1.0d0+molecularRatio)
     return
-  end function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
+  end function Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00
 
   subroutine Load_PRIMUS_Mass_Function(massFunctionIndex,thisMassFunction,cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
     !% Load the specified mass function from the PRIMUS stellar mass function dataset.
