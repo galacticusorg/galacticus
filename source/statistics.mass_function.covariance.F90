@@ -54,7 +54,7 @@ module Statistics_Mass_Function_Covariance
 
 contains
 
-  subroutine Mass_Function_Covariance_Matrix(redshiftMinimum,redshiftMaximum,massBinCount,massMinimum,massMaximum,massFunctionObserved,includePoisson,includeHalo,includeLSS&
+  subroutine Mass_Function_Covariance_Matrix(redshiftMinimum,redshiftMaximum,massBinCount,massMinimum,massMaximum,massFunctionObserved,completenessObserved,includePoisson,includeHalo,includeLSS&
        &,mass,massFunction,covariance ,covariancePoisson,covarianceHalo,covarianceLSS,correlation)
     !% Compute the mass function covariance matrix.
     use, intrinsic :: ISO_C_Binding
@@ -76,10 +76,10 @@ contains
     logical                            , intent(in   )                                        :: includePoisson,includeHalo&
          &,includeLSS
     double precision                   , intent(inout), allocatable, dimension(:    )         :: mass
-    double precision                   , intent(inout), allocatable, dimension(:    ), target :: massFunction,massFunctionObserved
+    double precision                   , intent(inout), allocatable, dimension(:    ), target :: massFunction,massFunctionObserved, completenessObserved
     double precision                   , intent(inout), allocatable, dimension(:,:  )         :: covariance,covariancePoisson &
          &,covarianceHalo,covarianceLSS,correlation
-    double precision                   ,                allocatable, dimension(:    )         :: logMassBinCenter,volume
+    double precision                   ,                allocatable, dimension(:    )         :: logMassBinCenter,volume,completeness
     double precision                   ,                allocatable, dimension(:,:  )         :: varianceLSS
     complex(c_double_complex          ),                allocatable, dimension(:,:,:)         :: windowFunctionI,windowFunctionJ
     double precision                   ,                pointer    , dimension(:    )         :: massFunctionUse
@@ -186,6 +186,15 @@ contains
        massFunctionUse => massFunctionObserved
     else
        massFunctionUse => massFunction
+    end if
+
+    ! Determine completeness.
+    call Alloc_Array(completeness,[massBinCount])
+    if (allocated(completenessObserved)) then
+       if (size(completenessObserved) /= massBinCount) call Galacticus_Error_Report('Mass_Function_Covariance_Matrix','observed completeness has incorrect number of bins')
+       completeness=completenessObserved
+    else
+       completeness=1.0d0
     end if
 
     ! Compute the mass function and bias averaged over each bin.
@@ -394,7 +403,7 @@ contains
           massBinMaximumJ=10.0d0**(logMassBinCenter(j)+0.5d0*log10MassBinWidth)
 
           ! Poisson term.
-          if (includePoisson .and. i == j) covariancePoisson(i,j)=massFunctionUse(i)/volume(i)/logMassBinWidth
+          if (includePoisson .and. i == j) covariancePoisson(i,j)=massFunctionUse(i)/completeness(i)/volume(i)/logMassBinWidth
 
           ! Halo occupancy covariance.
           if (includeHalo) then
