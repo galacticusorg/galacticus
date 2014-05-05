@@ -535,7 +535,10 @@ contains
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     ! Read the content.
-    if (luminosityCount > 0) read (fileHandle) self%luminosityValue
+    if (luminosityCount > 0) then
+       call Stellar_Luminosities_Create(self)
+       read (fileHandle) self%luminosityValue
+    end if
     return
   end subroutine Stellar_Luminosities_Read_Raw
 
