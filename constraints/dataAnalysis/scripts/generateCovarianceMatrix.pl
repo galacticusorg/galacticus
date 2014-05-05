@@ -24,10 +24,13 @@ use Switch;
 our $observedMass;
 
 # Get the parameter file controlling this calculation.
-die("Usage: generateCovarianceMatrix.pl <parameterFile> <configFile>")
-    unless ( scalar(@ARGV) == 2 );
+die("Usage: generateCovarianceMatrix.pl <parameterFile> <configFile> [<redshiftIndex>]")
+    unless ( scalar(@ARGV) == 2 || scalar(@ARGV) == 3 );
 my $parameterFile = $ARGV[0];
 my $configFile    = $ARGV[1];
+my $redshiftIndex;
+$redshiftIndex    = $ARGV[2]
+    if ( scalar(@ARGV) == 3 );
 
 # Read the parameter file for this covariance calculation.
 my $xml          = new XML::Simple;
@@ -54,8 +57,8 @@ if ( nelem($mass) == nelem($observedMass) ) {
 }
 
 # Set cosmology scalings for mass and mass function.
-$hdfFile->dataset->{'mass'        }->attrSet(cosmologyScaling => "luminosity"           );
-$hdfFile->dataset->{'massFunction'}->attrSet(cosmologyScaling => "inverseComovingVolume");
+$hdfFile->dataset('mass'        )->attrSet(cosmologyScaling => "luminosity"           );
+$hdfFile->dataset('massFunction')->attrSet(cosmologyScaling => "inverseComovingVolume");
 
 # Compute the inverse and determinant of the covariance matrix - store to file.
 my $covariance             = $hdfFile->dataset('covariance')->get();
@@ -100,21 +103,27 @@ sub observedMassFunction {
     die("observedMassFunction(): config file must specify observedDataFile")
  	unless ( exists($config->{'observedDataFile'}) );
     my $observed     = $xml->XMLin($config->{'observedDataFile'});
-    $observedMass    = pdl @{$observed->{'massFunction'}->{'columns'}->{'mass'        }->{'datum'}};
-    my $massFunction = pdl @{$observed->{'massFunction'}->{'columns'}->{'massFunction'}->{'datum'}};
+    my $columns;
+    if ( defined($redshiftIndex) ) {
+	$columns = ${$observed->{'massFunction'}->{'columns'}}[$redshiftIndex];
+    } else {
+	$columns =   $observed->{'massFunction'}->{'columns'};
+    }
+    $observedMass    = pdl @{$columns->{'mass'        }->{'datum'}};
+    my $massFunction = pdl @{$columns->{'massFunction'}->{'datum'}};
     
     # Convert to linear scaling.
-    if      ( $observed->{'massFunction'}->{'columns'}->{'mass'}->{'scaling'} eq "linear" ) {
+    if      ( $columns->{'mass'}->{'scaling'} eq "linear" ) {
 	# Nothing to do.
-    } elsif ( $observed->{'massFunction'}->{'columns'}->{'mass'}->{'scaling'} eq "log10"  ) {
+    } elsif ( $columns->{'mass'}->{'scaling'} eq "log10"  ) {
 	$observedMass .= 10.0**$observedMass;
     } else {
 	die('observedMassFunction(): unrecognized scaling for mass');
     }
     
-    if      ( $observed->{'massFunction'}->{'columns'}->{'massFunction'}->{'scaling'} eq "linear" ) {
+    if      ( $columns->{'massFunction'}->{'scaling'} eq "linear" ) {
 	# Nothing to do.
-    } elsif ( $observed->{'massFunction'}->{'columns'}->{'massFunction'}->{'scaling'} eq "log10"  ) {
+    } elsif ( $columns->{'massFunction'}->{'scaling'} eq "log10"  ) {
 	$massFunction .= 10.0**$massFunction;
     } else {
 	die('observedMassFunction(): unrecognized scaling for massFunction');
@@ -122,22 +131,31 @@ sub observedMassFunction {
 
     # Convert to "h-free" units.
     my $H_0        = pdl $parameters->{'parameter'}->{'H_0'}->{'value'};
-    $observedMass *= ($H_0/$observed->{'massFunction'}->{'columns'}->{'mass' }->{'hubble'})**$observed->{'massFunction'}->{'columns'}->{'mass' }->{'hubbleExponent'};
-    $massFunction *= ($H_0/$observed->{'massFunction'}->{'columns'}->{'massFunction'}->{'hubble'})**$observed->{'massFunction'}->{'columns'}->{'massFunction'}->{'hubbleExponent'};
+    $observedMass *= ($H_0/$columns->{'mass'        }->{'hubble'})**$columns->{'mass'        }->{'hubbleExponent'};
+    $massFunction *= ($H_0/$columns->{'massFunction'}->{'hubble'})**$columns->{'massFunction'}->{'hubbleExponent'};
 
     # Convert mass function to per log(M), i.e. per Np ("Neper"; http://en.wikipedia.org/wiki/Neper).
-    if      ( $observed->{'massFunction'}->{'columns'}->{'massFunction'}->{'units'} eq "Mpc^-3 dex^-1" ) {
+    if      ( $columns->{'massFunction'}->{'units'} eq "Mpc^-3 dex^-1" ) {
 	# Convert from per log10(M) to per log(M).
 	$massFunction /= log(10.0);
-    } elsif ( $observed->{'massFunction'}->{'columns'}->{'massFunction'}->{'units'} eq "Mpc^-3 Np^-1"  ) {
+    } elsif ( $columns->{'massFunction'}->{'units'} eq "Mpc^-3 Np^-1"  ) {
 	# Nothing to do.
     } else {
 	die("observedMassFunction(): unrecognized units for massFunction");
     }
-    
+
+    # Determine if completeness information is available.
+    my $completeness;
+    if ( exists($columns->{'completeness'}->{'datum'}) ) {
+	$completeness = pdl @{$columns->{'completeness'}->{'datum'}};
+    } else {
+	$completeness = pdl ones(nelem($massFunction));
+    }
+
     # Store the mass function to file.
     $hdfFile->dataset("massFunctionObserved")->set($massFunction);
-    $hdfFile->dataset("massFunctionObserved")->attrSet(hubbleExponent => $observed->{'massFunction'}->{'columns'}->{'massFunction'}->{'hubbleExponent'});
+    $hdfFile->dataset("massFunctionObserved")->attrSet(hubbleExponent => $columns->{'massFunction'}->{'hubbleExponent'});
+    $hdfFile->dataset("completenessObserved")->set($completeness);
 
 }
 
