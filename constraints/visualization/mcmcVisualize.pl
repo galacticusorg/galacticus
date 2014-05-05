@@ -20,8 +20,10 @@ require GnuPlot::LaTeX;
 # Andrew Benson (10-June-2012)
 
 # Get file name to process.
-die("Usage: bieStatelogVisualize.pl filename [options]") unless ( scalar(@ARGV) > 0 );
-my $fileName = $ARGV[0];
+die("Usage: mcmcVisualize.pl fileRoot configFileName [options]")
+    unless ( scalar(@ARGV) > 1 );
+my $fileRoot       = $ARGV[0];
+my $configFileName = $ARGV[1];
 
 # Create a hash of named arguments.
 my %arguments;
@@ -55,6 +57,9 @@ while ( $iArg < $#ARGV ) {
 }
 
 # Extract options.
+my $workDirectory = ".";
+$workDirectory = $arguments{'workDirectory'}
+    if ( exists($arguments{'workDirectory'}) );
 my $nGrid = 100;
 $nGrid = $arguments{'ngrid'}
     if ( exists($arguments{'ngrid'}) );
@@ -78,7 +83,7 @@ $zLabel = "\${\\rm d}p/{\\rm d}\\log x\$"
     if ( $xScale eq "log" );
 $zLabel = $arguments{'zLabel'}
     if ( exists($arguments{'zLabel'}) );
-my $plotFile = "bieStatelogVisualize.pdf";
+my $plotFile = "mcmcVisualize.pdf";
 $plotFile = $arguments{'output'}
     if ( exists($arguments{'output'}) );
 my $title = "Marginalized posterior";
@@ -95,7 +100,7 @@ $labelStyle = $arguments{'labelStyle'}
     if ( exists($arguments{'labelStyle'}) );
 
 # Validate.
-die("bieStatelogVisualize.pl: if outliers are specified chainCount must also be specified")
+die("mcmcVisualize.pl: if outliers are specified chainCount must also be specified")
     if ( exists($arguments{'outliers'}) && ! exists($arguments{'chainCount'}) );
 
 # Parse label options.
@@ -115,26 +120,29 @@ if ( exists($arguments{'labels'}) ) {
     }
 }
 
-# Parse the header.
-open(iHndl,$fileName);
-my $header = <iHndl>;
-close(iHndl);
-$header =~ s/^\s*\"//;
-$header =~ s/\"\s*$//;
-my @properties = split(/\"\s*\"/,$header);
+# Open the config file and parse the available parameter names.
+my $xml    = new XML::Simple;
+my $config = $xml->XMLin($configFileName, KeyAttr => []);
+my @properties;
+foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
+    push(@properties,$parameter->{'name'})
+	 if ( exists($parameter->{'prior'}) );
+}
+
+# Find which columns to plot.
 my $xColumn = 5;
 my $yColumn = 6;
 my $dimensions = 1;
 if ( exists($arguments{'xProperty'}) ) {
     for(my $i=0;$i<scalar(@properties);++$i) {
-	$xColumn = $i
+	$xColumn = $i+5
 	    if ( $properties[$i] eq $arguments{'xProperty'} );
     } 
  }
 if ( exists($arguments{'yProperty'}) ) {
     $dimensions = 2;
     for(my $i=0;$i<scalar(@properties);++$i) {
-	$yColumn = $i
+	$yColumn = $i+5
 	    if ( $properties[$i] eq $arguments{'yProperty'} );
     } 
 }
@@ -148,22 +156,30 @@ if ( exists($arguments{'range'}) ) {
 }
 
 # Extract only entries within a given range if necessary.
-my $kdeFileName = $fileName;
-if ( exists($arguments{'range'}) ) {
-    my @outlierChains = split(/,/,$arguments{'outliers'});
-    $kdeFileName = "tmp.kde";
-    open(iHndl,$fileName);
-    open(oHndl,">".$kdeFileName);
+my $kdeFileName = $workDirectory."/tmp.kde";
+my @outlierChains;
+@outlierChains = split(/,/,$arguments{'outliers'})
+    if ( exists($arguments{'outliers'}) );
+open(oHndl,">".$kdeFileName);
+for(my $iChain=0; -e $fileRoot."_".sprintf("%4.4d",$iChain).".log";++$iChain) {
+    my $skip = 0;
+    if ( scalar(@outlierChains) > 0 ) {
+	foreach ( @outlierChains ) {
+	    $skip = 1
+		if ( $iChain == $_ );
+	}
+    }
+    next
+	if ( $skip == 1 );
+    open(iHndl,$fileRoot."_".sprintf("%4.4d",$iChain).".log");
     my $i = -1;
     while ( my $line = <iHndl> ) {
-	if ( $line =~ m/^\s*\"/ ) {
-	    print oHndl $line;
-	} else {
-	    my $lineCopy = $line;
-	    $lineCopy =~ s/^\s*//;
-	    $lineCopy =~ s/\s*$//;
-	    my @columns = split(/\s+/,$lineCopy);
-	    my $include = 1;
+	my $lineCopy = $line;
+	$lineCopy =~ s/^\s*//;
+	$lineCopy =~ s/\s*$//;
+	my @columns = split(/\s+/,$lineCopy);
+	my $include = 1;
+	if ( exists($arguments{'range'}) ) {
 	    foreach my $range ( @{$arguments{'range'}} ) {
 		$include = 0
 		    if (
@@ -172,20 +188,18 @@ if ( exists($arguments{'range'}) ) {
 			$columns[$range->{'column'}] > $range->{'upper'}
 		    );
 	    }
-	    if ( scalar(@outlierChains) > 0 ) {
-		++$i;
-		my $chainNumber = $i % $arguments{'chainCount'};
-		foreach ( @outlierChains ) {
-		    $include = 0
-			if ( $chainNumber == $_ );
-		}
-	    }
-	    print oHndl $line
-		if ( $include == 1 );
+	}
+	if ( $include == 1 ) {
+	    $columns[$xColumn] = log($columns[$xColumn])
+		if ( $xScale eq "log" );
+	    $columns[$yColumn] = log($columns[$yColumn])
+		if ( $yScale eq "log" );
+	    print oHndl join("\t",@columns)."\n";
 	}
     }
     close(iHndl);
 }
+close(oHndl);
 
 # Run script to do the kernel density estimation.
 my $command = "python constraints/visualization/kernelDensityEstimation.py ".$kdeFileName." ".$xColumn;
@@ -193,7 +207,7 @@ $command .= " ".$yColumn
     if ( $dimensions == 2 );
 $command .= " --ngood=".$arguments{'ngood'}
     if ( exists($arguments{'ngood'}) );
-$command .= " --ngrid=".$nGrid." --output=kde.txt";
+$command .= " --ngrid=".$nGrid." --output=".$workDirectory."/kde.txt";
 system($command);
 unlink($kdeFileName)
     if ( exists($arguments{'range'}) );
@@ -202,7 +216,7 @@ unlink($kdeFileName)
 my $x = pdl [];
 my $y = pdl [];
 my $p = pdl [];
-open(iHndl,"kde.txt");
+open(iHndl,$workDirectory."/kde.txt");
 while ( my $line = <iHndl> ) {
     chomp($line);
     my @columns = split(/\s+/,$line);
@@ -242,7 +256,7 @@ my $pMax = 1.02*$p->max();
 my $pMaxShort = $pMax*0.9;
 
 # Remove temporary file.
-unlink("kde.txt");
+unlink($workDirectory."/kde.txt");
 
 # Plot the posterior.
 # Make plot of redshift evolution.

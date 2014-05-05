@@ -1,175 +1,221 @@
-<stellarMassFunctions>
-  <description>High-z galaxy stellar mass functions computed using the 1/Vmax method.</description>
-  <url>http://adsabs.harvard.edu/abs/2011MNRAS.413..162C</url>
-  <source>Table 1 of Caputi et al. (2011; MNRAS; 413; 162)</source>
-  <label>Caputi et al. (2011)</label>
-  <cosmology>
-    <omega>0.3</omega>
-    <lambda>0.7</lambda>
-    <hubble>70.0</hubble>
-  </cosmology>
-  <dataset>
-    <redshiftLow>3.0</redshiftLow>
-    <redshiftHigh>3.5</redshiftHigh>
-    <stellarMass>
-      <units>Solar masses</units>
+<dataSets>
+  <massFunction>
+    <columns>
+      <completeness>
+        <datum>0.548282005824112</datum>
+        <datum>0.64509288478687</datum>
+        <datum>0.740213466124716</datum>
+        <datum>0.829161540810683</datum>
+        <datum>0.904678752237639</datum>
+        <datum>0.958750313397335</datum>
+        <datum>0.987983487172042</datum>
+        <description>Completeness in this mass bin.</description>
+        <scaling>linear</scaling>
+      </completeness>
+      <lowerError>
+        <datum>0.05</datum>
+        <datum>0.05</datum>
+        <datum>0.06</datum>
+        <datum>0.07</datum>
+        <datum>0.15</datum>
+        <datum>0.17</datum>
+        <datum>0.30</datum>
+        <description>Lower error on galaxy stellar mass function</description>
+        <hubble>70.0</hubble>
+        <hubbleExponent>3</hubbleExponent>
+        <scaling>log10</scaling>
+        <units>Mpc^-3 dex^-1</units>
+      </lowerError>
+      <mass>
+        <datum>10.40</datum>
+        <datum>10.60</datum>
+        <datum>10.80</datum>
+        <datum>11.00</datum>
+        <datum>11.20</datum>
+        <datum>11.40</datum>
+        <datum>11.60</datum>
+        <description>Galaxy stellar mass</description>
+        <hubble>70.0</hubble>
+        <hubbleExponent>-2</hubbleExponent>
+        <scaling>log10</scaling>
+        <units>Solar masses</units>
+      </mass>
+      <massFunction>
+        <datum>-3.58</datum>
+        <datum>-3.69</datum>
+        <datum>-3.86</datum>
+        <datum>-4.03</datum>
+        <datum>-4.22</datum>
+        <datum>-4.67</datum>
+        <datum>-5.17</datum>
+        <description>Galaxy stellar mass function</description>
+        <hubble>70.0</hubble>
+        <hubbleExponent>3</hubbleExponent>
+        <scaling>log10</scaling>
+        <units>Mpc^-3 dex^-1</units>
+      </massFunction>
+      <redshiftHigh>3.5</redshiftHigh>
+      <redshiftLow>3.0</redshiftLow>
+      <upperError>
+        <datum>0.04</datum>
+        <datum>0.04</datum>
+        <datum>0.05</datum>
+        <datum>0.06</datum>
+        <datum>0.07</datum>
+        <datum>0.11</datum>
+        <datum>0.18</datum>
+        <description>Upper error on galaxy stellar mass function</description>
+        <hubble>70.0</hubble>
+        <hubbleExponent>3</hubbleExponent>
+        <scaling>log10</scaling>
+        <units>Mpc^-3 dex^-1</units>
+      </upperError>
+    </columns>
+    <columns>
+      <completeness>
+        <datum>0.495355865105613</datum>
+        <datum>0.588681564483638</datum>
+        <datum>0.682097926581724</datum>
+        <datum>0.773092586859792</datum>
+        <datum>0.856537801967694</datum>
+        <datum>0.92473250824599</datum>
+        <datum>0.970424282044075</datum>
+        <description>Completeness in this mass bin.</description>
+        <scaling>linear</scaling>
+      </completeness>
+      <lowerError>
+        <datum>0.06</datum>
+        <datum>0.07</datum>
+        <datum>0.09</datum>
+        <datum>0.12</datum>
+        <datum>0.13</datum>
+        <datum>0.53</datum>
+        <datum>0.76</datum>
+        <description>Lower error on galaxy stellar mass function</description>
+        <hubble>70.0</hubble>
+        <hubbleExponent>3</hubbleExponent>
+        <scaling>log10</scaling>
+        <units>Mpc^-3 dex^-1</units>
+      </lowerError>
+      <mass>
+        <datum>10.40</datum>
+        <datum>10.60</datum>
+        <datum>10.80</datum>
+        <datum>11.00</datum>
+        <datum>11.20</datum>
+        <datum>11.40</datum>
+        <datum>11.60</datum>
+        <description>Galaxy stellar mass</description>
+        <hubble>70.0</hubble>
+        <hubbleExponent>-2</hubbleExponent>
+        <scaling>log10</scaling>
+        <units>Solar masses</units>
+      </mass>
+      <massFunction>
+        <datum>-3.92</datum>
+        <datum>-4.05</datum>
+        <datum>-4.34</datum>
+        <datum>-4.55</datum>
+        <datum>-4.66</datum>
+        <datum>-5.49</datum>
+        <datum>-5.92</datum>
+        <description>Galaxy stellar mass function</description>
+        <hubble>70.0</hubble>
+        <hubbleExponent>3</hubbleExponent>
+        <scaling>log10</scaling>
+        <units>Mpc^-3 dex^-1</units>
+      </massFunction>
+      <redshiftHigh>4.25</redshiftHigh>
+      <redshiftLow>3.5</redshiftLow>
+      <upperError>
+        <datum>0.05</datum>
+        <datum>0.06</datum>
+        <datum>0.14</datum>
+        <datum>0.17</datum>
+        <datum>0.10</datum>
+        <datum>0.53</datum>
+        <datum>0.54</datum>
+        <description>Upper error on galaxy stellar mass function</description>
+        <hubble>70.0</hubble>
+        <hubbleExponent>3</hubbleExponent>
+        <scaling>log10</scaling>
+        <units>Mpc^-3 dex^-1</units>
+      </upperError>
+    </columns>
+    <columns>
+      <completeness>
+        <datum>0.450833219386828</datum>
+        <datum>0.540478741882593</datum>
+        <datum>0.630948694396961</datum>
+        <datum>0.721056420450736</datum>
+        <datum>0.807672992120847</datum>
+        <datum>0.884793787696481</datum>
+        <description>Completeness in this mass bin.</description>
+        <scaling>linear</scaling>
+      </completeness>
+      <lowerError>
+        <datum>0.23</datum>
+        <datum>0.23</datum>
+        <datum>0.39</datum>
+        <datum>0.53</datum>
+        <datum>0.53</datum>
+        <datum>0.76</datum>
+        <description>Lower error on galaxy stellar mass function</description>
+        <hubble>70.0</hubble>
+        <hubbleExponent>3</hubbleExponent>
+        <scaling>log10</scaling>
+        <units>Mpc^-3 dex^-1</units>
+      </lowerError>
+      <mass>
+        <datum>10.40</datum>
+        <datum>10.60</datum>
+        <datum>10.80</datum>
+        <datum>11.00</datum>
+        <datum>11.20</datum>
+        <datum>11.40</datum>
+        <description>Galaxy stellar mass</description>
+        <hubble>70.0</hubble>
+        <hubbleExponent>-2</hubbleExponent>
+        <scaling>log10</scaling>
+        <units>Solar masses</units>
+      </mass>
+      <massFunction>
+        <datum>-4.48</datum>
+        <datum>-4.91</datum>
+        <datum>-4.79</datum>
+        <datum>-5.39</datum>
+        <datum>-5.46</datum>
+        <datum>-5.83</datum>
+        <description>Galaxy stellar mass function</description>
+        <hubble>70.0</hubble>
+        <hubbleExponent>3</hubbleExponent>
+        <scaling>log10</scaling>
+        <units>Mpc^-3 dex^-1</units>
+      </massFunction>
+      <redshiftHigh>5.0</redshiftHigh>
+      <redshiftLow>4.25</redshiftLow>
+      <upperError>
+        <datum>0.11</datum>
+        <datum>0.39</datum>
+        <datum>0.14</datum>
+        <datum>0.52</datum>
+        <datum>0.50</datum>
+        <datum>0.60</datum>
+        <description>Upper error on galaxy stellar mass function</description>
+        <hubble>70.0</hubble>
+        <hubbleExponent>3</hubbleExponent>
+        <scaling>log10</scaling>
+        <units>Mpc^-3 dex^-1</units>
+      </upperError>
+    </columns>
+    <cosmology>
       <hubble>70.0</hubble>
-      <hubbleExponent>-2</hubbleExponent>
-      <scaling>log10</scaling>
-      <datum>10.40</datum>
-      <datum>10.60</datum>
-      <datum>10.80</datum>
-      <datum>11.00</datum>
-      <datum>11.20</datum>
-      <datum>11.40</datum>
-      <datum>11.60</datum>
-    </stellarMass>
-    <massFunction>
-      <units>Mpc^-3 dex^-1</units>
-      <hubble>70.0</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <scaling>log10</scaling>
-      <datum>-3.58</datum>
-      <datum>-3.69</datum>
-      <datum>-3.86</datum>
-      <datum>-4.03</datum>
-      <datum>-4.22</datum>
-      <datum>-4.67</datum>
-      <datum>-5.17</datum>
-    </massFunction>
-    <upperError>
-      <units>Mpc^-3 dex^-1</units>
-      <hubble>70.0</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <scaling>log10</scaling>
-      <datum>0.04</datum>
-      <datum>0.04</datum>
-      <datum>0.05</datum>
-      <datum>0.06</datum>
-      <datum>0.07</datum>
-      <datum>0.11</datum>
-      <datum>0.18</datum>
-    </upperError>
-    <lowerError>
-      <units>Mpc^-3 dex^-1</units>
-      <hubble>70.0</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <scaling>log10</scaling>
-      <datum>0.05</datum>
-      <datum>0.05</datum>
-      <datum>0.06</datum>
-      <datum>0.07</datum>
-      <datum>0.15</datum>
-      <datum>0.17</datum>
-      <datum>0.30</datum>
-    </lowerError>
-  </dataset>
-  <dataset>
-    <redshiftLow>3.5</redshiftLow>
-    <redshiftHigh>4.25</redshiftHigh>
-    <stellarMass>
-      <units>Solar masses</units>
-      <hubble>70.0</hubble>
-      <hubbleExponent>-2</hubbleExponent>
-      <scaling>log10</scaling>
-      <datum>10.40</datum>
-      <datum>10.60</datum>
-      <datum>10.80</datum>
-      <datum>11.00</datum>
-      <datum>11.20</datum>
-      <datum>11.40</datum>
-      <datum>11.60</datum>
-    </stellarMass>
-    <massFunction>
-      <units>Mpc^-3 dex^-1</units>
-      <hubble>70.0</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <scaling>log10</scaling>
-      <datum>-3.92</datum>
-      <datum>-4.05</datum>
-      <datum>-4.34</datum>
-      <datum>-4.55</datum>
-      <datum>-4.66</datum>
-      <datum>-5.49</datum>
-      <datum>-5.92</datum>
-    </massFunction>
-    <upperError>
-      <units>Mpc^-3 dex^-1</units>
-      <hubble>70.0</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <scaling>log10</scaling>
-      <datum>0.05</datum>
-      <datum>0.06</datum>
-      <datum>0.14</datum>
-      <datum>0.17</datum>
-      <datum>0.10</datum>
-      <datum>0.53</datum>
-      <datum>0.54</datum>
-    </upperError>
-    <lowerError>
-      <units>Mpc^-3 dex^-1</units>
-      <hubble>70.0</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <scaling>log10</scaling>
-      <datum>0.06</datum>
-      <datum>0.07</datum>
-      <datum>0.09</datum>
-      <datum>0.12</datum>
-      <datum>0.13</datum>
-      <datum>0.53</datum>
-      <datum>0.76</datum>
-    </lowerError>
-  </dataset>
-  <dataset>
-    <redshiftLow>4.25</redshiftLow>
-    <redshiftHigh>5.0</redshiftHigh>
-    <stellarMass>
-      <units>Solar masses</units>
-      <hubble>70.0</hubble>
-      <hubbleExponent>-2</hubbleExponent>
-      <scaling>log10</scaling>
-      <datum>10.40</datum>
-      <datum>10.60</datum>
-      <datum>10.80</datum>
-      <datum>11.00</datum>
-      <datum>11.20</datum>
-      <datum>11.40</datum>
-    </stellarMass>
-    <massFunction>
-      <units>Mpc^-3 dex^-1</units>
-      <hubble>70.0</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <scaling>log10</scaling>
-      <datum>-4.48</datum>
-      <datum>-4.91</datum>
-      <datum>-4.79</datum>
-      <datum>-5.39</datum>
-      <datum>-5.46</datum>
-      <datum>-5.83</datum>
-    </massFunction>
-    <upperError>
-      <units>Mpc^-3 dex^-1</units>
-      <hubble>70.0</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <scaling>log10</scaling>
-      <datum>0.11</datum>
-      <datum>0.39</datum>
-      <datum>0.14</datum>
-      <datum>0.52</datum>
-      <datum>0.50</datum>
-      <datum>0.60</datum>
-    </upperError>
-    <lowerError>
-      <units>Mpc^-3 dex^-1</units>
-      <hubble>70.0</hubble>
-      <hubbleExponent>3</hubbleExponent>
-      <scaling>log10</scaling>
-      <datum>0.23</datum>
-      <datum>0.23</datum>
-      <datum>0.39</datum>
-      <datum>0.53</datum>
-      <datum>0.53</datum>
-      <datum>0.76</datum>
-    </lowerError>
-  </dataset>
-</stellarMassFunctions>
+      <lambda>0.7</lambda>
+      <omega>0.3</omega>
+    </cosmology>
+    <description>High-z galaxy stellar mass functions computed using the 1/Vmax method.</description>
+    <label>Caputi et al. (2011)</label>
+    <source>Table 1 of Caputi et al. (2011; MNRAS; 413; 162)</source>
+    <url>http://adsabs.harvard.edu/abs/2011MNRAS.413..162C</url>
+  </massFunction>
+</dataSets>
