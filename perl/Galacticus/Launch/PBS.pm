@@ -203,4 +203,54 @@ sub mpiDetect {
     }
 }
 
+sub SubmitJobs {
+    # Submit jobs to PBS and wait for them to finish.
+    my %arguments = %{shift()};
+    my @pbsStack  = @_;
+    my %pbsJobs;
+    # Determine maximum number allowed in queue at once.
+    my $jobMaximum = 10;
+    $jobMaximum = $arguments{'pbsJobMaximum'}
+       if ( exists($arguments{'pbsJobMaximum'}) );
+    # Submit jobs and wait.
+    print "Waiting for PBS jobs to finish...\n";
+    while ( scalar(keys %pbsJobs) > 0 || scalar(@pbsStack) > 0 ) {
+	# Find all PBS jobs that are running.
+	my %runningPBSJobs;
+	undef(%runningPBSJobs);
+	open(pHndl,"qstat -f|");
+	while ( my $line = <pHndl> ) {
+	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$runningPBSJobs{$1} = 1};
+	}
+	close(pHndl);
+	foreach my $jobID ( keys(%pbsJobs) ) {
+	    unless ( exists($runningPBSJobs{$jobID}) ) {
+		print "PBS job ".$jobID." has finished.\n";
+		# Remove the job ID from the list of active PBS jobs.
+		delete($pbsJobs{$jobID});
+	    }
+	}
+	# If fewer than ten jobs are in the queue, pop one off the stack.
+	if ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < 20 ) {
+	    my $batchScript = pop(@pbsStack);
+	    # Submit the PBS job.
+	    open(pHndl,"qsub ".$batchScript."|");
+	    my $jobID = "";
+	    while ( my $line = <pHndl> ) {
+	    	if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
+	    }
+	    close(pHndl);	    
+	    # Add the job number to the active job hash.
+	    unless ( $jobID eq "" ) {
+	    	$pbsJobs{$jobID} = 1;
+	    }
+	    sleep 5;
+	} else {
+	    # Wait.
+	    sleep 60;
+	}
+    }
+}
+
+
 1;

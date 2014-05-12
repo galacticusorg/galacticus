@@ -107,7 +107,7 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   0.000d0                                   ,        &
        &                                                   null()                                    ,        &
        &                                                   4.500d0                                   ,        &
-       &                                                   0                                         ,        &
+       &                                                   1                                         ,        &
        &                                                   massTypeGaseous                           ,        &
        &                                                   'alfalfaHiMassFunctionZ0.00'              ,        &
        &                                                   'ALFALFA HI mass function at z=0.00'      ,        &
@@ -249,8 +249,12 @@ module Galacticus_Output_Analyses_Mass_Functions
   logical                     :: alfalfaHiMassFunctionZ0_00Initialized=.false.
 
   ! Parameters for individual mass functions.
-  double precision            :: alfalfaHiMassFunctionZ0_00ConversionError              , alfalfaHiMassFunctionZ0_00MolecularFractionMu  , &
-       &                         alfalfaHiMassFunctionZ0_00MolecularFractionKappa
+  double precision            :: alfalfaHiMassFunctionZ0_00MolecularFractionK           , alfalfaHiMassFunctionZ0_00ErrorA               , &
+       &                         alfalfaHiMassFunctionZ0_00ErrorB                       , alfalfaHiMassFunctionZ0_00ErrorC               , &
+       &                         alfalfaHiMassFunctionZ0_00MolecularFractionfSigma      , alfalfaHiMassFunctionZ0_00MolecularFractionA1  , &
+       &                         alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1      , alfalfaHiMassFunctionZ0_00MolecularFractionA2  , &
+       &                         alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2      , alfalfaHiMassFunctionZ0_00MolecularFractionBeta, &
+       &                         alfalfaHiMassFunctionZ0_00MolecularFractionScatter
 
 contains
 
@@ -392,6 +396,16 @@ contains
                          do k=1,massFunctionDescriptors(j)%systematicCoefficientCount
                             parameterName=trim(massFunctionLabels(j))//'MassSystematic'
                             parameterName=parameterName//(k-1)
+                            !@ <inputParameter>
+                            !@   <regEx>(sdssStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction)Z[0-9\.]+MassSystematic[0-9]+</regEx>
+                            !@   <defaultValue>0</defaultValue>
+                            !@   <attachedTo>module</attachedTo>
+                            !@   <description>
+                            !@     Mass function systematic parameters.
+                            !@   </description>
+                            !@   <type>real</type>
+                            !@   <cardinality>1</cardinality>
+                            !@ </inputParameter>
                             call Get_Input_Parameter(char(parameterName),massFunctions(currentAnalysis)%systematicCoefficients(k),defaultValue=0.0d0)
                          end do
                       end if
@@ -730,45 +744,139 @@ contains
     if (.not.alfalfaHiMassFunctionZ0_00Initialized) then
        !$omp critical(alfalfaHiMassFunctionZ0_00Initialized)
        if (.not.alfalfaHiMassFunctionZ0_00Initialized) then
-          ! Read the error controlling random errors.
-          !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00ConversionError</name>
-          !@   <defaultValue>0.4</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The random error (in dex) to be added to galaxy HI masses when constructing the ALFALFA HI mass function. This error accounts for
-          !@    scatter in the H$_2$/HI mass ratio at fixed total gas mass.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00ConversionError',alfalfaHiMassFunctionZ0_00ConversionError,defaultValue=0.4d0)
           ! Read parameters controlling H2/HI mass ratio calculation.
           !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionMu</name>
-          !@   <defaultValue>0.9</defaultValue>
+          !@   <name>alfalfaHiMassFunctionZ0.00ErrorA</name>
+          !@   <defaultValue>0.1</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The parameter, $\mu$, appearing in the model for the H$_2$/HI mass ratio used when constructing the ALFALFA HI mass function. Specifically, $\log_{10}R_{\rm mol} = \mu + \kappa \log_{10}(M_{\rm gas}/10^9M_\odot)$.
+          !@    The parameter, $a$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\rm obs} = a + \exp\left(-{\log_{10}(M_{\rm HI}/M_\odot)-b\over c}\right)$.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>
           !@   <group>output</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionMu',alfalfaHiMassFunctionZ0_00MolecularFractionMu,defaultValue=0.9d0)
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00ErrorA',alfalfaHiMassFunctionZ0_00ErrorA,defaultValue=0.1d0)
           !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionKappa</name>
-          !@   <defaultValue>1.3</defaultValue>
+          !@   <name>alfalfaHiMassFunctionZ0.00ErrorB</name>
+          !@   <defaultValue>5.885</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The parameter, $\kappa$, appearing in the model for the H$_2$/HI mass ratio used when constructing the ALFALFA HI mass function. Specifically, $\log_{10}R_{\rm mol} = \mu + \kappa \log_{10}(M_{\rm gas}/10^9M_\odot)$.
+          !@    The parameter, $b$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\rm obs} = a + \exp\left(-{\log_{10}(M_{\rm HI}/M_\odot)-b\over c}\right)$.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>
           !@   <group>output</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionKappa',alfalfaHiMassFunctionZ0_00MolecularFractionKappa,defaultValue=1.3d0)
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00ErrorB',alfalfaHiMassFunctionZ0_00ErrorB,defaultValue=5.885d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00ErrorC</name>
+          !@   <defaultValue>0.505</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $c$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\rm obs} = a + \exp\left(-{\log_{10}(M_{\rm HI}/M_\odot)-b\over c}\right)$.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00ErrorC',alfalfaHiMassFunctionZ0_00ErrorC,defaultValue=0.505d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionK</name>
+          !@   <defaultValue>11.3 m$^4$ kg$^{-2}$ \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $K$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionK',alfalfaHiMassFunctionZ0_00MolecularFractionK,defaultValue=11.3d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionfSigma</name>
+          !@   <defaultValue>0.4 \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $\langle f_\sigma \rangle$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionfSigma',alfalfaHiMassFunctionZ0_00MolecularFractionfSigma,defaultValue=0.4d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionA1</name>
+          !@   <defaultValue>3.44 \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $A_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionA1',alfalfaHiMassFunctionZ0_00MolecularFractionA1,defaultValue=3.44d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionA2</name>
+          !@   <defaultValue>4.82 \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $A_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionA2',alfalfaHiMassFunctionZ0_00MolecularFractionA2,defaultValue=4.82d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1</name>
+          !@   <defaultValue>$-0.506$ \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $\alpha_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1',alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1,defaultValue=-0.506d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2</name>
+          !@   <defaultValue>$-1.054$ \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $\alpha_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2',alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2,defaultValue=-1.054d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionBeta</name>
+          !@   <defaultValue>$0.8$ \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $\beta$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionBeta',alfalfaHiMassFunctionZ0_00MolecularFractionBeta,defaultValue=0.8d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionScatter</name>
+          !@   <defaultValue>$0.4$~dex (Obsreschkow, private communication)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The scatter in the molecular ratio $\log_{10}R_{\rm mol}$ of \cite{obreschkow_simulation_2009} compared to observational data.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionScatter',alfalfaHiMassFunctionZ0_00MolecularFractionScatter,defaultValue=0.4d0)
           ! Record that the function is now initialized.
           alfalfaHiMassFunctionZ0_00Initialized=.true.
        end if
@@ -782,40 +890,95 @@ contains
     !% constraints/dataAnalysis/hiMassFunction\_ALFALFA\_z0.00/alfalfaHIMassErrorModel.pl} for details.
     double precision          , intent(in   )          :: mass
     type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , parameter              :: a=0.100d0, b=5.885d0, &
-         &                                                c=0.505d0
-    double precision                                   :: logarithmicMass
+    double precision                                   :: logarithmicMass, molecularFraction, &
+         &                                                molecularRatio
 
     ! Initialize the mass function.
     call ALFALFA_HI_Mass_Function_Z0_00_Initialize()
     ! Get the logarithmic mass.
-    logarithmicMass                          =log10(mass)
+    logarithmicMass=log10(mass)
     ! Compute the random error on the mass.
-    Mass_Error_ALFALFA_HI_Mass_Function_Z0_00=                 &
-         & sqrt(                                               &
-         &       (a+exp(-(max(logarithmicMass,6.0d0)-b)/c))**2 &
-         &      +alfalfaHiMassFunctionZ0_00ConversionError **2 &
-         &     )
+    Mass_Error_ALFALFA_HI_Mass_Function_Z0_00              &
+         &        =alfalfaHiMassFunctionZ0_00ErrorA        &
+         &        +exp(                                    &
+         &             -(                                  &
+         &               +max(logarithmicMass,6.0d0)       &
+         &               -alfalfaHiMassFunctionZ0_00ErrorB &
+         &              )                                  &
+         &             /alfalfaHiMassFunctionZ0_00ErrorC   &
+         &            )
+    ! Add in quadrature a term accounting for the scatter in the molecular ratio model.
+    molecularRatio=Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+    Mass_Error_ALFALFA_HI_Mass_Function_Z0_00                             &
+         & =sqrt(                                                         &
+         &       +Mass_Error_ALFALFA_HI_Mass_Function_Z0_00           **2 &
+         &       +(                                                       &
+         &         +alfalfaHiMassFunctionZ0_00MolecularFractionScatter    &
+         &         *molecularFraction                                     &
+         &         /(                                                     &
+         &           +1.0                                                 &
+         &           +molecularFraction                                   &
+         &          )                                                     &
+         &        )                                                   **2 &
+         &      )
     return
   end function Mass_Error_ALFALFA_HI_Mass_Function_Z0_00
 
   double precision function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
-    !% Maps gas masses into HI masses for the ALFALFA survey analysis. Assumes a constant gas to HI mass conversion factor of        
-    !% $0.54$ \citep{power_redshift_2010}.      
+    !% Maps gas masses into HI masses for the ALFALFA survey analysis.
     use Numerical_Constants_Astronomical
     implicit none                                                                                 
     double precision          , intent(in   )          :: mass
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision                                   :: molecularRatio
 
-    ! Initialize the mass function.
-    call ALFALFA_HI_Mass_Function_Z0_00_Initialize()
-    ! Get the molecular to atomic mass ratio (H2/HI).
-    molecularRatio=max(alfalfaHiMassFunctionZ0_00MolecularFractionMu+alfalfaHiMassFunctionZ0_00MolecularFractionKappa*log10(mass/1.0d9),0.0d0)
     ! Compute the HI mass.
+    molecularRatio=Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
     Map_Mass_ALFALFA_HI_Mass_Function_Z0_00=hydrogenByMassPrimordial*mass/(1.0d0+molecularRatio)
     return
   end function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
+
+  double precision function Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+    !% Compute the molecular ratio, $R_{\rm mol}=M_{\rm H_2}/M_{\rm HI}$ for the ALFALFA survey analysis. Assumes the model of
+    !% \cite{obreschkow_simulation_2009}.
+    use Numerical_Constants_Astronomical
+    implicit none
+    double precision                   , intent(in   )          :: mass
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk)               , pointer :: thisDisk
+    double precision                                            :: massStellar, molecularRatioCentral, &
+         &                                                         diskRadius
+
+    ! Initialize the mass function.
+    call ALFALFA_HI_Mass_Function_Z0_00_Initialize()
+    ! Get disk properties.
+    thisDisk    => thisNode%disk       ()
+    massStellar =  thisDisk%massStellar()
+    diskRadius  =  thisDisk%radius     ()
+    ! Get the molecular to atomic mass ratio (H2/HI).
+    molecularRatioCentral                                         &
+         & =(                                                     &
+         &   massSolar  **2                                       &
+         &   /megaParsec**4                                       &
+         &   *alfalfaHiMassFunctionZ0_00MolecularFractionK        &
+         &   *mass                                                &
+         &   *(                                                   &
+         &     +mass                                              &
+         &     +alfalfaHiMassFunctionZ0_00MolecularFractionfSigma &
+         &     *massStellar                                       &
+         &    )                                                   &
+         &   /diskRadius**4                                       &
+         &  )**alfalfaHiMassFunctionZ0_00MolecularFractionBeta
+    Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00                                      &
+         & = 1.0d0                                                                      &
+         &  /(                                                                          &
+         &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA1     &
+         &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1 &
+         &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA2     &
+         &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2 &
+         &   )
+    return
+  end function Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00
 
   subroutine Load_PRIMUS_Mass_Function(massFunctionIndex,thisMassFunction,cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
     !% Load the specified mass function from the PRIMUS stellar mass function dataset.
