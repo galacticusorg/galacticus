@@ -70,6 +70,20 @@ module Node_Component_Satellite_Preset
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
+  !#   <property>
+  !#     <name>nodeIndexHistory</name>
+  !#     <type>longIntegerHistory</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#   </property>
+  !#   <property>
+  !#     <name>nodeIndex</name>
+  !#     <type>longInteger</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <getFunction>SatellitePresetNodeIndex</getFunction>
+  !#     <output unitsInSI="0.0d0" comment="Index of the satellite node used in preset satellite evolution."/>
+  !#   </property>
   !#  </properties>
   !#  <functions>objects.nodes.components.satellite.preset.bound_functions.inc</functions>
   !# </component>

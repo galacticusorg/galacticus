@@ -81,3 +81,40 @@ double precision function SatellitePresetMergeBoundMass(self)
   call boundMassHistory%destroy()
   return
 end function SatellitePresetMergeBoundMass
+
+function SatellitePresetNodeIndex(self)
+  !% Return the satellite node index.
+  use Kind_Numbers
+  use Histories
+  use FGSL
+  use Numerical_Interpolation
+  implicit none
+  integer(kind=kind_int8              )                :: SatellitePresetNodeIndex
+  class  (nodeComponentSatellitePreset), intent(inout) :: self
+  class  (nodeComponentBasic          ), pointer       :: selfBasicComponent
+  type   (treeNode                    ), pointer       :: selfNode
+  integer                                              :: iTime
+  logical                                              :: interpolationReset
+  type   (longIntegerHistory          )                :: nodeIndexHistory
+  type   (fgsl_interp_accel           )                :: interpolationAccelerator
+
+  ! Get the node.
+  selfNode         => self%host            ()
+  ! Get the preset history.
+  nodeIndexHistory =  self%nodeIndexHistory()
+  ! Check if the history exists.
+  if (nodeIndexHistory%exists()) then
+     ! It does, so find the preset time closest to the present one and return the index at that time.
+     selfBasicComponent => selfNode%basic()
+     interpolationReset=.true.
+     iTime=Interpolate_Locate(size(nodeIndexHistory%time),nodeIndexHistory%time,interpolationAccelerator&
+          &,selfBasicComponent%time(),reset=interpolationReset,closest=.true.)
+     SatellitePresetNodeIndex=nodeIndexHistory%data(iTime,1)
+     call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
+  else
+     ! It does not, so return standard node index.
+     SatellitePresetNodeIndex=selfNode%index()
+  end if
+  call nodeIndexHistory%destroy()
+  return
+end function SatellitePresetNodeIndex

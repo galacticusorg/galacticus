@@ -19,9 +19,10 @@
 
 module Histories
   !% Defines the history object type.
+  use Kind_Numbers
   implicit none
   private
-  public :: history, History_Set_Times, Histories_State_Store, Histories_State_Retrieve
+  public :: history, longIntegerHistory, History_Set_Times, Histories_State_Store, Histories_State_Retrieve
 
   type history
      !% The history object type.
@@ -191,6 +192,87 @@ module Histories
      procedure :: deserialize   =>History_Deserialize
   end type history
 
+  type longIntegerHistory
+     !% The history object type.
+     double precision                , allocatable, dimension(:  ) :: time
+     integer         (kind=kind_int8), allocatable, dimension(:,:) :: data
+     integer                                                       :: rangeType
+   contains
+     !@ <objectMethods>
+     !@   <object>longIntegerHistory</object>
+     !@   <objectMethod>
+     !@     <method>create</method>
+     !@     <description>Creates a history object with a specified range of times.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ historyCount\argin, \intzero\ timesCount\argin, \doublezero\ [timeBegin]\argin, \doublezero\ [timeEnd]\argin, \intzero\ [rangeType]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>builder</method>
+     !@     <description>Build a history object from an XML definition.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless *type(node)\textgreater} historyDefinition\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>dump</method>
+     !@     <description>Dump a history object.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>dumpRaw</method>
+     !@     <description>Dump a history object in binary.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ fileHandle\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>readRaw</method>
+     !@     <description>Read a history object in binary.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ fileHandle\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>clone</method>
+     !@     <description>Clone a history object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} historyToClone\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <description>Destroys a history object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} historyToClone\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>trim</method>
+     !@     <description>Removes any times in a history which have become outdated.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ currentTime\argin, \intzero\ [minimumPointsToRemove]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>reset</method>
+     !@     <description>Resets all entries in a history to zero.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>exists</method>
+     !@     <description>Returns true if the given history has been created.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: builder       =>History_Long_Integer_Builder
+     procedure :: dump          =>History_Long_Integer_Dump
+     procedure :: dumpRaw       =>History_Long_Integer_Dump_Raw
+     procedure :: readRaw       =>History_Long_Integer_Read_Raw
+     procedure :: create        =>History_Long_Integer_Create
+     procedure :: clone         =>History_Long_Integer_Clone
+     procedure :: destroy       =>History_Long_Integer_Destroy
+     procedure :: trim          =>History_Long_Integer_Trim
+     procedure :: reset         =>History_Long_Integer_Reset
+     procedure :: exists        =>History_Long_Integer_Exists
+  end type longIntegerHistory
+
   ! A null history object.
   type            (history)           , public :: nullHistory
 
@@ -280,6 +362,71 @@ contains
     return
   end subroutine History_Destroy
 
+  subroutine History_Long_Integer_Create(thisHistory,historyCount,timesCount,timeBegin,timeEnd,rangeType)
+    !% Create a history object.
+    use Memory_Management
+    use Numerical_Ranges
+    use Galacticus_Error
+    implicit none
+    class           (longIntegerHistory), intent(inout)           :: thisHistory
+    integer                             , intent(in   )           :: historyCount   , timesCount
+    double precision                    , intent(in   ), optional :: timeBegin      , timeEnd
+    integer                             , intent(in   ), optional :: rangeType
+    integer                                                       :: rangeTypeActual
+
+    if (allocated(thisHistory%time)) then
+       call Galacticus_Error_Report('History_Long_Integer_Create','this history appears to have been created already')
+    else
+       allocate(thisHistory%time  (timesCount             ))
+       allocate(thisHistory%data  (timesCount,historyCount))
+       if (timesCount > 0) then
+          call Memory_Usage_Record(sizeof(thisHistory%time)+sizeof(thisHistory%data),memoryType=memoryTypeNodes,blockCount=3)
+          if (present(timeBegin)) then
+             if (.not.present(timeEnd)) call Galacticus_Error_Report('History_Long_Integer_Create','an end time must be given if a begin time is given')
+             if (present(rangeType)) then
+                rangeTypeActual=rangeType
+             else
+                rangeTypeActual=rangeTypeLogarithmic
+             end if
+             thisHistory%time     =Make_Range(timeBegin,timeEnd,timesCount,rangeTypeActual)
+             thisHistory%rangeType=rangeTypeActual
+          else
+             thisHistory%rangeType=rangeTypeUndefined
+             thisHistory%time=0.0d0
+          end if
+          if (historyCount > 0) thisHistory%data=0.0d0
+       end if
+    end if
+    return
+  end subroutine History_Long_Integer_Create
+
+  subroutine History_Long_Integer_Destroy(thisHistory,recordMemory)
+    !% Destroy a history.
+    use Memory_Management
+    implicit none
+    class  (longIntegerHistory), intent(inout)           :: thisHistory
+    logical                    , intent(in   ), optional :: recordMemory
+    logical                                              :: recordMemoryActual
+
+    if (allocated(thisHistory%time)) then
+       if (present(recordMemory)) then
+          recordMemoryActual=recordMemory
+       else
+          recordMemoryActual=.true.
+       end if
+       if (recordMemoryActual) call Memory_Usage_Record(                             &
+            &                                             sizeof(thisHistory%time  ) &
+            &                                            +sizeof(thisHistory%data  ) &
+            &                                           ,memoryType=memoryTypeNodes  &
+            &                                           ,addRemove =-1               &
+            &                                           ,blockCount= 3               &
+            &                                          )
+       deallocate(thisHistory%time)
+       if (allocated(thisHistory%data)) deallocate(thisHistory%data)
+    end if
+    return
+  end subroutine History_Long_Integer_Destroy
+
   subroutine History_Builder(self,historyDefinition)
     !% Build a {\tt history} object from the given XML {\tt historyDefinition}.
     use FoX_DOM
@@ -291,6 +438,18 @@ contains
     call Galacticus_Error_Report('History_Builder','building of history objects is not yet supported')
     return
   end subroutine History_Builder
+
+  subroutine History_Long_Integer_Builder(self,historyDefinition)
+    !% Build a {\tt longIntegerHistory} object from the given XML {\tt historyDefinition}.
+    use FoX_DOM
+    use Galacticus_Error
+    implicit none
+    class(longIntegerHistory), intent(inout) :: self
+    type (node              ), pointer       :: historyDefinition
+
+    call Galacticus_Error_Report('History_Long_Integer_Builder','building of history objects is not yet supported')
+    return
+  end subroutine History_Long_Integer_Builder
 
   subroutine History_Dump(self)
     !% Dumps a history object.
@@ -364,6 +523,78 @@ contains
     return
   end subroutine History_Reset
 
+  subroutine History_Long_Integer_Dump(self)
+    !% Dumps a history object.
+    use Galacticus_Display
+    use ISO_Varying_String
+    implicit none
+    class    (longIntegerHistory), intent(in   ) :: self
+    integer                                      :: i      , j
+    type     (varying_string    )                :: message
+    character(len=12            )                :: label
+
+    if (allocated(self%time)) then
+       do i=1,size(self%time)
+          write (label,'(i3)') i
+          message="("//trim(label)//") "
+          write (label,'(e12.6)') self%time(i)
+          message=message//label//" :"
+          do j=1,size(self%data,dim=2)
+             write (label,'(i16)') self%data(i,j)
+             message=message//" "//label
+          end do
+          call Galacticus_Display_Message(message)
+       end do
+    end if
+    return
+  end subroutine History_Long_Integer_Dump
+
+  subroutine History_Long_Integer_Dump_Raw(self,fileHandle)
+    !% Dumps a history object in binary.
+    implicit none
+    class  (longIntegerHistory), intent(in   ) :: self
+    integer                    , intent(in   ) :: fileHandle
+
+    write (fileHandle) self%rangeType
+    write (fileHandle) allocated(self%time)
+    if (allocated(self%time)) then
+       write (fileHandle) shape(self%data)
+       write (fileHandle) self%time
+       write (fileHandle) self%data
+    end if
+    return
+  end subroutine History_Long_Integer_Dump_Raw
+
+  subroutine History_Long_Integer_Read_Raw(self,fileHandle)
+    !% Read a history object in binary.
+    use Memory_Management
+    implicit none
+    class  (longIntegerHistory), intent(inout) :: self
+    integer                    , intent(in   ) :: fileHandle
+    logical                                    :: isAllocated
+    integer                    , dimension(2)  :: historyShape
+
+    read (fileHandle) self%rangeType
+    read (fileHandle) isAllocated
+    if (isAllocated) then
+       read (fileHandle) historyShape
+       call Alloc_Array(self%time,[historyShape(1)])
+       call Alloc_Array(self%data, historyShape    )
+       read (fileHandle) self%time
+       read (fileHandle) self%data
+    end if
+    return
+  end subroutine History_Long_Integer_Read_Raw
+
+  subroutine History_Long_Integer_Reset(thisHistory)
+    !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
+    implicit none
+    class(longIntegerHistory), intent(inout) :: thisHistory
+
+    if (allocated(thisHistory%time)) thisHistory%data=0_kind_int8
+    return
+  end subroutine History_Long_Integer_Reset
+
   subroutine History_Set_To_Unity(thisHistory)
     !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
     implicit none
@@ -402,6 +633,36 @@ contains
     self%rangeType=historyToClone%rangeType
     return
   end subroutine History_Clone
+
+  logical function History_Long_Integer_Exists(thisHistory)
+    !% Returns true if the history has been created.
+    implicit none
+    class(longIntegerHistory), intent(in   ) :: thisHistory
+
+    History_Long_Integer_Exists=allocated(thisHistory%time)
+    return
+  end function History_Long_Integer_Exists
+
+  subroutine History_Long_Integer_Clone(self,historyToClone)
+    !% Clone a longIntegerHistory object.
+    use Memory_Management
+    implicit none
+    class(longIntegerHistory), intent(inout) :: self
+    type (longIntegerHistory), intent(in   ) :: historyToClone
+
+    if (allocated(self%time)) call Dealloc_Array(self%time,memoryType=memoryTypeNodes)
+    if (allocated(self%data)) call Dealloc_Array(self%data,memoryType=memoryTypeNodes)
+    if (allocated(historyToClone%time)) then
+       call Alloc_Array(self%time,shape(historyToClone%time),memoryType=memoryTypeNodes)
+       self%time=historyToClone%time
+    end if
+    if (allocated(historyToClone%data)) then
+       call Alloc_Array(self%data,shape(historyToClone%data),memoryType=memoryTypeNodes)
+       self%data=historyToClone%data
+    end if
+    self%rangeType=historyToClone%rangeType
+    return
+  end subroutine History_Long_Integer_Clone
 
   logical function History_Is_Zero(self)
     !% Test whether a history object is all zero.
@@ -555,6 +816,71 @@ contains
     end if
     return
   end subroutine History_Trim
+
+  subroutine History_Long_Integer_Trim(thisHistory,currentTime,minimumPointsToRemove)
+    !% Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
+    !% but one entry prior to the given {\tt currentTime} (this allows for interpolation of the history to the current
+    !% time). Optionally, the remove is done only if it will remove more than {\tt minimumPointsToRemove} entries (since the
+    !% removal can be slow this allows for some optimization).
+    use Galacticus_Error
+    use Memory_Management
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    class           (longIntegerHistory), intent(inout)           :: thisHistory
+    double precision                    , intent(in   )           :: currentTime
+    integer                             , intent(in   ), optional :: minimumPointsToRemove
+    type            (longIntegerHistory)                          :: temporaryHistory
+    integer                                                       :: currentPointCount    , historyCount               , &
+         &                                                           iTrim                , minimumPointsToRemoveActual, &
+         &                                                           newPointCount
+
+    ! Return if no history exists.
+    if (.not.allocated(thisHistory%time)) return
+
+    ! Find points to remove.
+    currentPointCount=size(thisHistory%time)
+
+    ! Return is nothing to trim.
+    if (currentPointCount == 0) return
+
+    ! Decide on the minimum number of points that we will remove.
+    if (present(minimumPointsToRemove)) then
+       if (minimumPointsToRemove < 1) call Galacticus_Error_Report('History_Long_Integer_Trim','minimum number of points to remove must be >= 1')
+       minimumPointsToRemoveActual=minimumPointsToRemove
+    else
+       minimumPointsToRemoveActual=1
+    end if
+
+    ! Find how much we can trim. Never trim the final two point as they might be needed to extrapolate beyond the end of the
+    ! future history. Having found a point which exceeds the current time, pull back two points, so that we leave one point prior
+    ! to the current time.
+    iTrim=1
+    do while (thisHistory%time(iTrim) < currentTime .and. iTrim <= currentPointCount-2)
+       iTrim=iTrim+1
+    end do
+    iTrim=iTrim-2
+
+    ! Check if there are enough removable points to warrant actually doing the removal.
+    if (iTrim >= minimumPointsToRemoveActual) then
+       ! Move current history to temporary storage.
+       call Move_Alloc(thisHistory%time  ,temporaryHistory%time  )
+       call Move_Alloc(thisHistory%data  ,temporaryHistory%data  )
+       ! Reallocate the history arrays.
+       newPointCount=currentPointCount-iTrim
+       historyCount =size(temporaryHistory%data,dim=2)
+       allocate(thisHistory%time(newPointCount             ))
+       allocate(thisHistory%data(newPointCount,historyCount))
+       ! Copy the data back into the new arrays.
+       thisHistory%time(:  )=temporaryHistory%time(iTrim+1:currentPointCount  )
+       thisHistory%data(:,:)=temporaryHistory%data(iTrim+1:currentPointCount,:)
+       ! Deallocate the temporary arrays.
+       deallocate(temporaryHistory%time  )
+       deallocate(temporaryHistory%data  )
+       ! Account for change in memory usage.
+       call Memory_Usage_Record(int(iTrim*(1+historyCount),C_SIZE_T)*sizeof(thisHistory%time(1)),memoryType=memoryTypeNodes,addRemove=-1,blockCount=0)
+    end if
+    return
+  end subroutine History_Long_Integer_Trim
 
    subroutine History_Increment(thisHistory,addHistory)
      !% Adds the data in {\tt addHistory} to that in {\tt thisHistory}. This function is designed for histories that track
