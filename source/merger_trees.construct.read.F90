@@ -718,11 +718,26 @@ contains
           ! Find cases where something that was a subhalo stops being a subhalo and prevent them if necessary.
           call Enforce_Subhalo_Status(nodes)
 
-          ! If necessary, add masses of subhalos to host halos.
+          ! If necessary, add masses and angular momenta of subhalos to host halos.
+          if (.not.defaultImporter%angularMomentaIncludeSubhalos()) then
+             do iNode=1,size(nodes)
+                if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) nodes  (iNode)%angularMomentum &
+                     &                                                      =nodes(iNode)%angularMomentum &
+                     &                                                      /nodes(iNode)%nodeMass
+             end do
+          end if
           if (.not.defaultImporter%massesIncludeSubhalos()) then
              do iNode=1,size(nodes)
-                if (nodes(iNode)%host%nodeIndex /= nodes(iNode)%nodeIndex) nodes(iNode)%host%nodeMass= &
-                     &                                                     nodes(iNode)%host%nodeMass+nodes(iNode)%nodeMass
+                if (nodes(iNode)%host%nodeIndex /= nodes(iNode)%nodeIndex) nodes  (iNode)%host%nodeMass &
+                     &                                                      =nodes(iNode)%host%nodeMass &
+                     &                                                      +nodes(iNode)%nodeMass
+             end do
+          end if
+          if (.not.defaultImporter%angularMomentaIncludeSubhalos()) then
+             do iNode=1,size(nodes)
+                if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) nodes  (iNode)%angularMomentum &
+                     &                                                      =nodes(iNode)%angularMomentum &
+                     &                                                      *nodes(iNode)%nodeMass
              end do
           end if
 

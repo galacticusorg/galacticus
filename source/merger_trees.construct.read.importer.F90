@@ -108,7 +108,12 @@ module Merger_Tree_Read_Importers
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#  </method>
-  !#  <method name="treesAreSelfContained" >
+  !#  <method name="angularMomentaIncludeSubhalos" >
+  !#   <description>Returns a Boolean specifying whether halo angular momenta (or spins) include the contribution from their subhalos.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+   !#  <method name="treesAreSelfContained" >
   !#   <description>Returns a Boolean integer specifying whether trees are self-contained.</description>
   !#   <type>integer</type>
   !#   <pass>yes</pass>
