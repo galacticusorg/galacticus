@@ -29,20 +29,20 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
      !% A merger tree importer class for \glc\ format merger tree files.
      private
-     type   (hdf5Object     )                            :: file              , haloTrees
-     type   (statefulInteger)                            :: hasSubhalos       , areSelfContained , &
-          &                                                 includesHubbleFlow    , periodicPositions     , &
+     type   (hdf5Object     )                            :: file                  , haloTrees
+     type   (statefulInteger)                            :: hasSubhalos           , areSelfContained          , &
+          &                                                 includesHubbleFlow    , periodicPositions         , &
           &                                                 lengthStatus
-     type   (statefulLogical)                            :: massesAreInclusive
+     type   (statefulLogical)                            :: massesAreInclusive    , angularMomentaAreInclusive
      type   (statefulDouble )                            :: length
-     type   (importerUnits  )                            :: massUnit              , lengthUnit            , &
+     type   (importerUnits  )                            :: massUnit              , lengthUnit                , &
           &                                                 timeUnit              , velocityUnit
-     logical                                             :: fatalMismatches       , treeIndicesRead       , &
-          &                                                 angularMomentaIsScalar, angularMomentaIsVector, &
-          &                                                 spinIsScalar          , spinIsVector          , &
+     logical                                             :: fatalMismatches       , treeIndicesRead           , &
+          &                                                 angularMomentaIsScalar, angularMomentaIsVector    , &
+          &                                                 spinIsScalar          , spinIsVector              , &
           &                                                 reweightTrees
      integer                                             :: treesCount
-     integer                 , allocatable, dimension(:) :: firstNodes        , nodeCounts
+     integer                 , allocatable, dimension(:) :: firstNodes            , nodeCounts
      integer(kind=kind_int8 ), allocatable, dimension(:) :: treeIndices
      double precision        , allocatable, dimension(:) :: weights
      type   (hdf5Object     )                            :: particles
@@ -52,30 +52,31 @@
      !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
      !# final     :: galacticusDestructor
      !# </workaround>
-     procedure :: open                        => galacticusOpen
-     procedure :: close                       => galacticusClose
-     procedure :: treesHaveSubhalos           => galacticusTreesHaveSubhalos
-     procedure :: massesIncludeSubhalos       => galacticusMassesIncludeSubhalos
-     procedure :: treesAreSelfContained       => galacticusTreesAreSelfContained
-     procedure :: velocitiesIncludeHubbleFlow => galacticusVelocitiesIncludeHubbleFlow
-     procedure :: positionsArePeriodic        => galacticusPositionsArePeriodic
-     procedure :: cubeLength                  => galacticusCubeLength
-     procedure :: treeWeight                  => galacticusTreeWeight
-     procedure :: treeCount                   => galacticusTreeCount
-     procedure :: treeIndex                   => galacticusTreeIndex
-     procedure :: nodeCount                   => galacticusNodeCount
-     procedure :: positionsAvailable          => galacticusPositionsAvailable
-     procedure :: scaleRadiiAvailable         => galacticusScaleRadiiAvailable
-     procedure :: particleCountAvailable      => galacticusParticleCountAvailable
-     procedure :: velocityMaximumAvailable    => galacticusVelocityMaximumAvailable
-     procedure :: velocityDispersionAvailable => galacticusVelocityDispersionAvailable
-     procedure :: angularMomentaAvailable     => galacticusAngularMomentaAvailable
-     procedure :: angularMomenta3DAvailable   => galacticusAngularMomenta3DAvailable
-     procedure :: spinAvailable               => galacticusSpinAvailable
-     procedure :: spin3DAvailable             => galacticusSpin3DAvailable
-     procedure :: import                      => galacticusImport
-     procedure :: subhaloTrace                => galacticusSubhaloTrace
-     procedure :: subhaloTraceCount           => galacticusSubhaloTraceCount
+     procedure :: open                          => galacticusOpen
+     procedure :: close                         => galacticusClose
+     procedure :: treesHaveSubhalos             => galacticusTreesHaveSubhalos
+     procedure :: massesIncludeSubhalos         => galacticusMassesIncludeSubhalos
+     procedure :: angularMomentaIncludeSubhalos => galacticusAngularMomentaIncludeSubhalos
+     procedure :: treesAreSelfContained         => galacticusTreesAreSelfContained
+     procedure :: velocitiesIncludeHubbleFlow   => galacticusVelocitiesIncludeHubbleFlow
+     procedure :: positionsArePeriodic          => galacticusPositionsArePeriodic
+     procedure :: cubeLength                    => galacticusCubeLength
+     procedure :: treeWeight                    => galacticusTreeWeight
+     procedure :: treeCount                     => galacticusTreeCount
+     procedure :: treeIndex                     => galacticusTreeIndex
+     procedure :: nodeCount                     => galacticusNodeCount
+     procedure :: positionsAvailable            => galacticusPositionsAvailable
+     procedure :: scaleRadiiAvailable           => galacticusScaleRadiiAvailable
+     procedure :: particleCountAvailable        => galacticusParticleCountAvailable
+     procedure :: velocityMaximumAvailable      => galacticusVelocityMaximumAvailable
+     procedure :: velocityDispersionAvailable   => galacticusVelocityDispersionAvailable
+     procedure :: angularMomentaAvailable       => galacticusAngularMomentaAvailable
+     procedure :: angularMomenta3DAvailable     => galacticusAngularMomenta3DAvailable
+     procedure :: spinAvailable                 => galacticusSpinAvailable
+     procedure :: spin3DAvailable               => galacticusSpin3DAvailable
+     procedure :: import                        => galacticusImport
+     procedure :: subhaloTrace                  => galacticusSubhaloTrace
+     procedure :: subhaloTraceCount             => galacticusSubhaloTraceCount
   end type mergerTreeImporterGalacticus
 
   interface mergerTreeImporterGalacticus
@@ -408,6 +409,28 @@ contains
     galacticusMassesIncludeSubhalos=self%massesAreInclusive%value
     return
   end function galacticusMassesIncludeSubhalos
+
+  logical function galacticusAngularMomentaIncludeSubhalos(self)
+    !% Return a Boolean specifying whether or not the halo momenta include the contribution from subhalos.
+    use Galacticus_Error
+    implicit none
+    class  (mergerTreeImporterGalacticus), intent(inout) :: self
+    integer                                              :: haloAngularMomentaIncludeSubhalosInteger
+
+    if (.not.self%angularMomentaAreInclusive%isSet) then
+       !$omp critical(HDF5_Access)
+       if (self%haloTrees%hasAttribute("haloAngularMomentaIncludeSubhalos")) then
+          call self%haloTrees%readAttribute("haloAngularMomentaIncludeSubhalos",haloAngularMomentaIncludeSubhalosInteger,allowPseudoScalar=.true.)
+          self%angularMomentaAreInclusive%value=(haloAngularMomentaIncludeSubhalosInteger == 1)
+       else
+          self%angularMomentaAreInclusive%value=self%massesIncludeSubhalos()
+       end if
+       !$omp end critical(HDF5_Access)
+       self%angularMomentaAreInclusive%isSet=.true.
+    end if
+    galacticusAngularMomentaIncludeSubhalos=self%angularMomentaAreInclusive%value
+    return
+  end function galacticusAngularMomentaIncludeSubhalos
 
   integer function galacticusTreesAreSelfContained(self)
     !% Return a Boolean integer specifying whether or not the trees are self-contained.
