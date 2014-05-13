@@ -260,6 +260,9 @@ sub Get_Suffix {
 	case ( "history"             ) {
 	    $suffix = "_History"             ;
 	}
+	case ( "longIntegerHistory"  ) {
+	    $suffix = "_History_Long_Integer";
+	}
 	case ( "abundances"          ) {
 	    $suffix = "_Abundances"          ;
 	}
@@ -294,6 +297,7 @@ sub dataObjectDocName {
 	    case ( "chemicals"           ) {$name .= "type(chemicalAbundances)" }
 	    case ( "abundances"          ) {$name .= "type(abundances)"         }
 	    case ( "history"             ) {$name .= "type(history)"            }
+	    case ( "longIntegerHistory"  ) {$name .= "type(longIntegerHistory)" }
 	    case ( "keplerOrbit"         ) {$name .= "type(keplerOrbit)"        }
 	    case ( "stellarLuminosities" ) {$name .= "type(stellarLuminosities)"}
 	    else {die "Build_Include_File.pl::dataObjectDocName: 'type' specifier is unknown"}
@@ -329,6 +333,7 @@ sub dataObjectName {
 	    case ( "chemicals"           ) {$name .= "ChemicalAbundances" }
 	    case ( "abundances"          ) {$name .= "Abundances"         }
 	    case ( "history"             ) {$name .= "History"            }
+	    case ( "longIntegerHistory"  ) {$name .= "LongIntegerHistory" }
 	    case ( "keplerOrbit"         ) {$name .= "KeplerOrbit"        }
 	    case ( "stellarLuminosities" ) {$name .= "StellarLuminosities"}
 	    else {die "Build_Include_File.pl::dataObjectName: 'type' specifier is unknown"}
@@ -385,6 +390,10 @@ sub dataObjectPrimitiveName {
 	    case ( "history"             ) {
 		$name = "type(history)"            ;
 		$type = "History"                  ;
+	    }
+	    case ( "longIntegerHistory"  ) {
+		$name = "type(longIntegerHistory)" ;
+		$type = "LongIntegerHistory"       ;
 	    }
 	    case ( "chemicals"           ) {
 		$name = "type(chemicalAbundances)" ;
@@ -459,6 +468,11 @@ sub Data_Object_Definition {
 		$intrinsicName = "type"                   ;
 		$type          = "history"                ;
 		$label         = "History"                ;
+	    }
+	    case ( "longIntegerHistory"  ) {
+		$intrinsicName = "type"                   ;
+		$type          = "longIntegerHistory"     ;
+		$label         = "LongIntegerHistory"     ;
 	    }
 	    case ( "chemicals"           ) {
 		$intrinsicName = "type"                   ;
