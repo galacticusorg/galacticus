@@ -40,6 +40,9 @@
      integer                         , allocatable, dimension(:) :: treeSizes      , treeBegins
      type            (nodeData      ), allocatable, dimension(:) :: nodes
      double precision                , allocatable, dimension(:) :: snapshotTimes
+     integer                                                     :: subvolumeCount
+     integer                                      , dimension(3) :: subvolumeIndex
+     double precision                                            :: subvolumeBuffer
     contains
      !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
      !# final     :: sussingDestructor
@@ -68,6 +71,8 @@
      procedure :: import                      => sussingImport
      procedure :: subhaloTrace                => sussingSubhaloTrace
      procedure :: subhaloTraceCount           => sussingSubhaloTraceCount
+     procedure :: inSubvolume                 => sussingInSubvolume
+     procedure :: inSubvolume1D               => sussingInSubvolume1D
   end type mergerTreeImporterSussing
 
   interface mergerTreeImporterSussing
@@ -76,10 +81,13 @@
   end interface mergerTreeImporterSussing
 
   ! Record of implementation initialization state.
-  logical :: sussingInitialized                     =.false.
+  logical                        :: sussingInitialized                     =.false.
 
   ! Default settings.
-  logical :: mergerTreeImportSussingMismatchIsFatal
+  logical                        :: mergerTreeImportSussingMismatchIsFatal
+  integer                        :: mergerTreeImportSussingSubvolumeCount
+  double precision               :: mergerTreeImportSussingSubvolumeBuffer
+  integer         , dimension(3) :: mergerTreeImportSussingSubvolumeIndex
 
 contains
 
@@ -103,12 +111,48 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeImportSussingMismatchIsFatal',mergerTreeImportSussingMismatchIsFatal,defaultValue=.true.)
+          !@ <inputParameter>
+          !@   <name>mergerTreeImportSussingSubvolumeCount</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <defaultValue>1</defaultValue>
+          !@   <description>
+          !@    Specifies the number of subvolumes \emph{along each axis} into which a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree files should be split for processing through \glc.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeImportSussingSubvolumeCount',mergerTreeImportSussingSubvolumeCount,defaultValue=1)
+          !@ <inputParameter>
+          !@   <name>mergerTreeImportSussingSubvolumeBuffer</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <defaultValue>$0.0$</defaultValue>
+          !@   <description>
+          !@     Specifies the buffer region (in units of Mpc$/h$ to follow the format convention) around subvolumes of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file which should be read in to ensure that no halos are missed from trees.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeImportSussingSubvolumeBuffer',mergerTreeImportSussingSubvolumeBuffer,defaultValue=0.0d0)
+          !@ <inputParameter>
+          !@   <name>mergerTreeImportSussingSubvolumeIndex</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <defaultValue>[0,0,0]</defaultValue>
+          !@   <description>
+          !@     Specifies the index (in each dimension) of the subvolume of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file to process. Indices range from 0 to {\tt [mergerTreeImportSussingSubvolumeCount]}$-1$.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeImportSussingSubvolumeIndex',mergerTreeImportSussingSubvolumeIndex,defaultValue=[0,0,0])
           sussingInitialized=.true.
        end if
        !$omp end critical (mergerTreeImporterSussingInitialize)
     end if
     sussingDefaultConstructor%treeIndicesRead=.false.
     sussingDefaultConstructor%fatalMismatches=mergerTreeImportSussingMismatchIsFatal
+    sussingDefaultConstructor%subvolumeCount =mergerTreeImportSussingSubvolumeCount
+    sussingDefaultConstructor%subvolumeBuffer=mergerTreeImportSussingSubvolumeBuffer
+    sussingDefaultConstructor%subvolumeIndex =mergerTreeImportSussingSubvolumeIndex
     return
   end function sussingDefaultConstructor
 
@@ -188,7 +232,7 @@ contains
     read (fileUnit,*)
     do i=1,snapshotFileCount
        read (fileUnit,*) snapshotNumber,expansionFactor,redshift,timeNormalized,time
-       self%snapshotTimes(snapshotNumber)=                               &
+       self%snapshotTimes(i)=                                            &
             & cosmologyFunctions_ %cosmicTime                 (          &
             &  cosmologyFunctions_%expansionFactorFromRedshift (         &
             &                                                   redshift &
@@ -380,15 +424,20 @@ contains
     class    (mergerTreeImporterSussing), intent(inout)               :: self
     integer  (kind=c_size_t            ), allocatable  , dimension(:) :: nodeIndexRanks            , nodeNodeLocations
     integer  (kind=kind_int8           ), allocatable  , dimension(:) :: nodeSelfIndices           , nodeTreeIndices  , &
-         &                                                               nodeDescendentLocations
+         &                                                               nodeDescendentLocations   , nodesInSubvolume , &
+         &                                                               nodesInSubvolumeTmp
+    logical                             , allocatable  , dimension(:) :: nodeIncomplete
     integer                             , parameter                   :: fileFormatVersionCurrent=1
+    logical                                                           :: nodeIsActive
     integer                                                           :: fileUnit                  , progenitorCount  , &
          &                                                               ioStat                    , lineStat         , &
          &                                                               i                         , nodeCount        , &
          &                                                               fileFormatVersion         , iProgenitor      , &
-         &                                                               l                         , j                , &
-         &                                                               snapshotUnit              , k
+         &                                                               snapshotUnit              , k                , &
+         &                                                               nodeCountSubvolume        , iNode            , &
+         &                                                               j
     character(len=32                   )                              :: line
+    integer  (kind=c_size_t            )                              :: l
     integer  (kind=kind_int8           )                              :: nodeIndex                 , treeIndexPrevious
     type     (varying_string           )                              :: message
     integer  (kind=kind_int8           )                              :: ID                        , hostHalo         , &
@@ -422,37 +471,84 @@ contains
     self%treeIndicesRead=.true.
     ! Display counter.
     call Galacticus_Display_Indent ('Parsing "Sussing Merger Trees" format merger tree file',verbosityWorking)
-    call Galacticus_Display_Counter(0,.true.,verbosityWorking)
     ! Open the merger tree file.
     open(newUnit=fileUnit,file=char(self%mergerTreeFile),status='old',form='formatted',ioStat=ioStat)
     ! Read header information.
-    call Galacticus_Display_Message('Reading nodes',verbosityWorking)
+    call Galacticus_Display_Message('Reading header',verbosityWorking)
     read (fileUnit,*,ioStat=ioStat) fileFormatVersion
     read (fileUnit,*,ioStat=ioStat) line
     read (fileUnit,*,ioStat=ioStat) nodeCount
     ! Validate file format version/
     if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('sussingTreeIndicesRead','incorrect file format version')
-    ! Allocate workspaces for merger trees.
-    call Alloc_Array(nodeSelfIndices        ,[nodeCount])
-    call Alloc_Array(nodeTreeIndices        ,[nodeCount])
-    call Alloc_Array(nodeNodeLocations      ,[nodeCount])
-    call Alloc_Array(nodeDescendentLocations,[nodeCount])
-    message='  -> Found '
-    message=message//nodeCount//' total nodes'
+    ! Allocate storage for list of nodes in subvolume.
+    nodeCountSubVolume=int(dble(nodeCount)/dble(self%subvolumeCount)**3)+1
+    call Alloc_Array(nodesInSubvolume,[nodeCountSubVolume])
+    ! Read snapshot halo catalogs.
+    call Galacticus_Display_Indent('Finding halos in subvolume from AHF format snapshot halo catalogs',verbosityWorking)
+    j                 =0
+    nodeCountSubVolume=0
+    do i=1,size(self%snapshotFileName)
+       call Galacticus_Display_Message(self%snapshotFileName(i),verbosityWorking)
+       open(newUnit=snapshotUnit,file=char(self%snapshotFileName(i)),status='old',form='formatted',ioStat=ioStat)
+       read (snapshotUnit,*,ioStat=ioStat) line
+       do while (ioStat == 0)
+          read (snapshotUnit,*,ioStat=ioStat) &
+               & ID          ,                &
+               & hostHalo    ,                &
+               & numSubStruct,                &
+               & Mvir        ,                &
+               & npart       ,                &
+               & Xc          ,                &
+               & Yc          ,                &
+               & Zc
+          if (ioStat /= 0) exit
+          ! Check if halo is in our subvolume.
+          if (self%inSubVolume(Xc,Yc,Zc,buffered=.true.)) then
+             nodeCountSubvolume=nodeCountSubvolume+1
+             if (nodeCountSubvolume > size(nodesInSubvolume)) then
+                call Move_Alloc(nodesInSubvolume,nodesInSubvolumeTmp)
+                call Alloc_Array(nodesInSubvolume,int(dble(shape(nodesInSubvolumeTmp))*1.4d0)+1)
+                nodesInSubvolume(1:size(nodesInSubvolumeTmp))=nodesInSubvolumeTmp
+                call Dealloc_Array(nodesInSubvolumeTmp)
+             end if
+             nodesInSubvolume(nodeCountSubvolume)=ID
+          end if
+          ! Update the counter.
+          j=j+1
+          call Galacticus_Display_Counter(int(100.0d0*dble(j)/dble(nodeCount)),j == 1,verbosityWorking)
+       end do
+       close(snapshotUnit)
+    end do
+    call Galacticus_Display_Counter_Clear(verbosityWorking)
+    call Sort_Do(nodesInSubvolume(1:nodeCountSubvolume))
+    message='Found '
+    message=message//nodeCountSubvolume//' nodes in subvolume [from '//nodeCount//' total nodes]'
     call Galacticus_Display_Message(message,verbosityWorking)
+    ! Allocate workspaces for merger trees.
+    call Alloc_Array(nodeSelfIndices        ,[nodeCountSubvolume])
+    call Alloc_Array(nodeTreeIndices        ,[nodeCountSubvolume])
+    call Alloc_Array(nodeNodeLocations      ,[nodeCountSubvolume])
+    call Alloc_Array(nodeDescendentLocations,[nodeCountSubvolume])
+    call Alloc_Array(nodeIncomplete         ,[nodeCountSubvolume])
     ! Read node indices.
+    call Galacticus_Display_Message("Rading node indices",verbosityWorking)
     i     =0
     ioStat=0
+    call Galacticus_Display_Counter(0,.true.,verbosityWorking)
     do while (ioStat == 0)
        read (fileUnit,'(a)',ioStat=ioStat) line
        if (ioStat /= 0) exit
        read (line,*,ioStat=lineStat) nodeIndex,progenitorCount
        if (lineStat == 0) then
-          ! This line represents a node in the tree.
-          i                 =i+1
-          nodeSelfIndices(i)=nodeIndex
-          call Galacticus_Display_Counter(int(50.0d0*dble(i)/dble(nodeCount)),.false.,verbosityWorking)
+          ! Locate this node in the list of nodes in our subvolume.
+          iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
+          if (iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == nodeIndex) then
+             ! This line represents a node in the tree.
+             i                 =i+1
+             nodeSelfIndices(i)=nodeIndex
+          end if
        end if
+       call Galacticus_Display_Counter(int(50.0d0*dble(i)/dble(nodeCountSubvolume)),.false.,verbosityWorking)
     end do
     rewind(fileUnit)
     ! Get a sorted index into the list of nodes.
@@ -465,28 +561,48 @@ contains
     read (fileUnit,*,ioStat=ioStat) nodeCount
     i                      = 0
     nodeDescendentLocations=-1
+    nodeIncomplete         =.false.
+    nodeIsActive           =.false.
     do while (ioStat == 0)
        read (fileUnit,'(a)',ioStat=ioStat) line
        if (ioStat /= 0 .or. trim(line) == "END") exit
        read (line,*,ioStat=lineStat) nodeIndex,progenitorCount
        if (lineStat == 0) then
-          ! This line represents a node in the tree.
-          i                 =i+1
-          nodeSelfIndices(i)=nodeIndex
-          call Galacticus_Display_Counter(int(50.0d0+50.0d0*dble(i)/dble(nodeCount)),.false.,verbosityWorking)
-       else
+          ! Locate this node in the list of nodes in our subvolume.
+          iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
+          nodeIsActive=(iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == nodeIndex)
+          if (nodeIsActive) then
+             ! This line represents a node in the tree.
+             i                 =i+1
+             nodeSelfIndices(i)=nodeIndex
+             call Galacticus_Display_Counter(int(50.0d0+50.0d0*dble(i)/dble(nodeCountSubvolume)),.false.,verbosityWorking)
+          end if
+       else if (nodeIsActive) then
           ! This line represents a progenitor. Locate the progenitor in the list of halos.
           iProgenitor=Search_Indexed(nodeSelfIndices,nodeIndexRanks,nodeIndex)
-          if (nodeDescendentLocations(nodeIndexRanks(iProgenitor)) /= -1) call Galacticus_Error_Report('sussingTreeIndicesRead','multiple descendent trees not allowed')
-          nodeDescendentLocations(nodeIndexRanks(iProgenitor))=i
+          ! Does this progenitor exist within our subvolume?
+          if (iProgenitor <= 0 .or. iProgenitor > nodeCountSubvolume .or. nodeSelfIndices(nodeIndexRanks(iProgenitor)) /= nodeIndex) then
+             nodeIncomplete(i)=.true.
+          else
+             if (nodeDescendentLocations(nodeIndexRanks(iProgenitor)) /= -1) then
+                message="multiple descendent trees not allowed"
+                message=message//char(10)//" first descendent: "//nodeSelfIndices(nodeDescendentLocations(nodeIndexRanks(iProgenitor)))
+                message=message//char(10)//"   new descendent: "//nodeSelfIndices(i)
+                message=message//char(10)//" progenitor index: "//nodeIndex
+                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+             end if
+             nodeDescendentLocations(nodeIndexRanks(iProgenitor))=i
+          end if
        end if
     end do
+    ! Close the merger tree file.
+    close(fileUnit)
     ! Clear counter.
     call Galacticus_Display_Counter_Clear(       verbosityWorking)
     call Galacticus_Display_Unindent     ('done',verbosityWorking)
     ! Transfer tree structure to nodes array.
-    allocate(self%nodes(nodeCount))
-    do i=1,nodeCount
+    allocate(self%nodes(nodeCountSubvolume))
+    do i=1,nodeCountSubvolume
        self   %nodes(i)%nodeIndex      =nodeSelfIndices(                        i )
        if (nodeDescendentLocations(i) >= 0) then
           self%nodes(i)%descendentIndex=nodeSelfIndices(nodeDescendentLocations(i))
@@ -547,58 +663,51 @@ contains
                & Phi0        ,                &
                & cNFW
           if (ioStat /= 0) exit
-          ! Locate this node in the node list.
-          l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,ID)
-          l=nodeIndexRanks(l)
-          if (ID /= nodeSelfIndices(l)) call Galacticus_Error_Report('sussingTreeIndicesRead','node indexing failure')
-          ! Store properties to node array.
-          if (hostHalo <= 0) then
-             self%nodes(l)%hostIndex         =ID
-          else
-             self%nodes(l)%hostIndex         =hostHalo
+          ! Locate this node in the list of nodes in our subvolume.
+          iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),ID)
+          if (iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == ID) then
+             ! Locate this node in the node list.
+             l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,ID)
+             l=nodeIndexRanks(l)
+             if (ID /= nodeSelfIndices(l)) call Galacticus_Error_Report('sussingTreeIndicesRead','node indexing failure')
+             ! Store properties to node array.
+             if (hostHalo <= 0) then
+                self%nodes(l)%hostIndex         =ID
+             else
+                self%nodes(l)%hostIndex         =hostHalo
+             end if
+             self   %nodes(l)%particleCount     =npart
+             self   %nodes(l)%nodeMass          =Mvir
+             self   %nodes(l)%nodeTime          =self%snapshotTimes(i-1)
+             self   %nodes(l)%scaleRadius       =Rvir/cNFW
+             self   %nodes(l)%halfMassRadius    =-1.0d0
+             self   %nodes(l)%velocityMaximum   =Vmax
+             self   %nodes(l)%velocityDispersion=sigV
+             self   %nodes(l)%spin              =              lambdaE
+             self   %nodes(l)%spin3D            =[Lx ,Ly ,Lz ]*lambdaE
+             self   %nodes(l)%position          =[ Xc, Yc, Zc]
+             self   %nodes(l)%velocity          =[VXc,VYc,VZc]
+             ! Update the counter.
+             j=j+1
+             call Galacticus_Display_Counter(int(100.0d0*dble(j)/dble(nodeCountSubvolume)),j == 1,verbosityWorking)
           end if
-          self   %nodes(l)%particleCount     =npart
-          self   %nodes(l)%nodeMass          =Mvir
-          self   %nodes(l)%nodeTime          =self%snapshotTimes(i-1)
-          self   %nodes(l)%scaleRadius       =Rvir/cNFW
-          self   %nodes(l)%halfMassRadius    =-1.0d0
-          self   %nodes(l)%velocityMaximum   =Vmax
-          self   %nodes(l)%velocityDispersion=sigV
-          self   %nodes(l)%spin              =              lambdaE
-          self   %nodes(l)%spin3D            =[Lx ,Ly ,Lz ]*lambdaE
-          self   %nodes(l)%position          =[ Xc, Yc, Zc]
-          self   %nodes(l)%velocity          =[VXc,VYc,VZc]
-          ! Update the counter.
-          j=j+1
-          call Galacticus_Display_Counter(int(100.0d0*dble(j)/dble(nodeCount)),j == 1,verbosityWorking)
        end do
-       close(fileUnit)
+       close(snapshotUnit)
     end do
-    ! Do unit conversion.
-    massUnits                          =importerUnits(.true.,massSolar ,-1, 0)
-    lengthUnits                        =importerUnits(.true.,kiloParsec,-1,+1)
-    velocityUnits                      =importerUnits(.true.,kilo      , 0, 0)
-    self   %nodes%nodeMass             =importerUnitConvert(self%nodes%nodeMass             ,self%nodes%nodeTime,massUnits    ,massSolar )
-    self   %nodes%scaleRadius          =importerUnitConvert(self%nodes%scaleRadius          ,self%nodes%nodeTime,lengthUnits  ,megaParsec)
-    self   %nodes%velocityMaximum      =importerUnitConvert(self%nodes%velocityMaximum      ,self%nodes%nodeTime,velocityUnits,kilo      )
-    self   %nodes%velocityDispersion   =importerUnitConvert(self%nodes%velocityDispersion   ,self%nodes%nodeTime,velocityUnits,kilo      )
-    do i=1,3
-       self%nodes%position          (i)=importerUnitConvert(self%nodes%position          (i),self%nodes%nodeTime,lengthUnits  ,megaParsec)
-       self%nodes%velocity          (i)=importerUnitConvert(self%nodes%velocity          (i),self%nodes%nodeTime,velocityUnits,kilo      )
-    end do
+    call Dealloc_Array(nodesInSubvolume)
     ! Clean up display.
     call Galacticus_Display_Counter_Clear(       verbosityWorking)
     call Galacticus_Display_Unindent     ('done',verbosityWorking)
     ! Assign tree indices.
     call Galacticus_Display_Message('Assigning tree indices',verbosityWorking)
     nodeTreeIndices=-1
-    do i=1,nodeCount
-       call Galacticus_Display_Counter(int(50.0d0*dble(i)/dble(nodeCount)),i==1,verbosityWorking)
+    do i=1,nodeCountSubvolume
+       call Galacticus_Display_Counter(int(50.0d0*dble(i)/dble(nodeCountSubvolume)),i==1,verbosityWorking)
        l=nodeDescendentLocations(i)
        if (l == -1 .and. self%nodes(i)%hostIndex == self%nodes(i)%nodeIndex) nodeTreeIndices(i)=nodeSelfIndices(i)
     end do
-    do i=1,nodeCount
-       call Galacticus_Display_Counter(int(50.0d0+50.0d0*dble(i)/dble(nodeCount)),.false.,verbosityWorking)
+    do i=1,nodeCountSubvolume
+       call Galacticus_Display_Counter(int(50.0d0+50.0d0*dble(i)/dble(nodeCountSubvolume)),.false.,verbosityWorking)
        l=i
        do while (l /= -1 .and. self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex) 
           k=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
@@ -614,7 +723,7 @@ contains
        end do
     end do
     ! Check for nodes jumping between trees and join any such trees.
-    do i=1,nodeCount
+    do i=1,nodeCountSubvolume
        l=nodeDescendentLocations(i)
        if (l /= -1) then
           if (nodeTreeIndices(i) /= nodeTreeIndices(l)) then
@@ -632,7 +741,7 @@ contains
           end if
        end if
     end do
-    do i=1,nodeCount
+    do i=1,nodeCountSubvolume
        l=nodeDescendentLocations(i)
        if (l /= -1) then
           if (nodeTreeIndices(i) /= nodeTreeIndices(l))                                              &
@@ -640,14 +749,38 @@ contains
        end if
     end do
     call Galacticus_Display_Counter_Clear(verbosityWorking)
-    ! Close the merger tree file.
-    close(fileUnit)
+    ! Identify trees which contain incomplete nodes.
+    call Galacticus_Display_Message('Checking for incomplete trees',verbosityWorking)
+    do i=1,nodeCountSubvolume
+       if (nodeIncomplete(i)) then
+          where (nodeTreeIndices == nodeTreeIndices(i))
+             nodeIncomplete=.true.
+          end where
+       end if
+       call Galacticus_Display_Counter(int(50.0d0*dble(i)/dble(nodeCountSubvolume)),i==1,verbosityWorking)
+    end do
+    ! Check for incomplete trees not in the buffer zone.
+    do i=1,nodeCountSubvolume
+       if (nodeTreeIndices(i) == nodeSelfIndices(i)) then
+          if (self%inSubVolume(self%nodes(i)%position(1),self%nodes(i)%position(2),self%nodes(i)%position(3),buffered=.false.)) then
+             ! Tree root is in subvolume. Check if the tree is incomplete.
+             if (nodeIncomplete(i)) call Galacticus_Error_Report('sussingTreeIndicesRead','tree in subvolume is incomplete - try increasing buffer size')
+          else
+             ! Tree is not in subvolume. Set index to -1 to indicate that we should ignore it.
+             where (nodeTreeIndices == nodeTreeIndices(i))
+                nodeTreeIndices=-1
+             end where
+          end if
+       end if
+       call Galacticus_Display_Counter(int(50.0d0+50.0d0*dble(i)/dble(nodeCountSubvolume)),.false.,verbosityWorking)
+    end do
+    call Galacticus_Display_Counter_Clear(verbosityWorking)
     ! Generate an index into nodes sorted by tree index.
     self%treeIndexRanks=Sort_Index_Do(nodeTreeIndices)
     ! Create a list of tree indices, sizes, and start locations.
     self%treesCount=0
     treeIndexPrevious=-1
-    do i=1,nodeCount
+    do i=1,nodeCountSubvolume
        if (nodeTreeIndices(self%treeIndexRanks(i)) /= treeIndexPrevious) then
           treeIndexPrevious=nodeTreeIndices(self%treeIndexRanks(i))
           self%treesCount=self%treesCount+1
@@ -662,23 +795,37 @@ contains
     treeIndexPrevious=-1
     j                = 0
     self%treeSizes   = 0
-    do i=1,nodeCount
+    do i=1,nodeCountSubvolume
        if (nodeTreeIndices(self%treeIndexRanks(i)) /= treeIndexPrevious) then
           treeIndexPrevious=nodeTreeIndices(self%treeIndexRanks(i))
           j=j+1
           self%treeIndices(j)=nodeTreeIndices(self%treeIndexRanks(i))
           self%treeBegins (j)=i
        end if
-       self%treeSizes(j)=self%treeSizes(j)+1
+       if (j > 0) self%treeSizes(j)=self%treeSizes(j)+1
     end do
     ! Clean up display.
     call Galacticus_Display_Counter_Clear(verbosityWorking)
+    ! Do unit conversion.
+    massUnits                          =importerUnits(.true.,massSolar ,-1, 0)
+    lengthUnits                        =importerUnits(.true.,kiloParsec,-1,+1)
+    velocityUnits                      =importerUnits(.true.,kilo      , 0, 0)
+    self   %nodes%nodeMass             =importerUnitConvert(self%nodes%nodeMass             ,self%nodes%nodeTime,massUnits    ,massSolar )
+    self   %nodes%scaleRadius          =importerUnitConvert(self%nodes%scaleRadius          ,self%nodes%nodeTime,lengthUnits  ,megaParsec)
+    self   %nodes%velocityMaximum      =importerUnitConvert(self%nodes%velocityMaximum      ,self%nodes%nodeTime,velocityUnits,kilo      )
+    self   %nodes%velocityDispersion   =importerUnitConvert(self%nodes%velocityDispersion   ,self%nodes%nodeTime,velocityUnits,kilo      )
+    do i=1,3
+       self%nodes%position          (i)=importerUnitConvert(self%nodes%position          (i),self%nodes%nodeTime,lengthUnits  ,megaParsec)
+       self%nodes%velocity          (i)=importerUnitConvert(self%nodes%velocity          (i),self%nodes%nodeTime,velocityUnits,kilo      )
+    end do
     ! Destroy temporary workspace.
     call Dealloc_Array(nodeSelfIndices        )
     call Dealloc_Array(nodeTreeIndices        )
     call Dealloc_Array(nodeNodeLocations      )
     call Dealloc_Array(nodeDescendentLocations)
-    return
+    ! Write completion message.
+    call Galacticus_Display_Unindent('done',verbosityWorking)
+   return
   end subroutine sussingTreeIndicesRead
 
   double precision function sussingTreeWeight(self,i)
@@ -830,3 +977,60 @@ contains
     end select
     return
   end subroutine sussingImport
+
+  logical function sussingInSubvolume(self,x,y,z,buffered)
+    !% Determine if a point lies within a subvolume of the simulation box (possibly with some buffering).
+    implicit none
+    class           (mergerTreeImporterSussing), intent(inout) :: self
+    double precision                           , intent(in   ) :: x,y,z
+    logical                                    , intent(in   ) :: buffered
+    
+    sussingInSubvolume=                                                       &
+         &              self%inSubvolume1D(x,self%subvolumeIndex(1),buffered) &
+         &             .and.                                                  &
+         &              self%inSubvolume1D(y,self%subvolumeIndex(2),buffered) &
+         &             .and.                                                  &
+         &              self%inSubvolume1D(z,self%subvolumeIndex(3),buffered)
+    return
+  end function sussingInSubvolume
+
+  logical function sussingInSubvolume1D(self,x,iSubvolume,buffered)
+    !% Determine if a point lies within the 1-D range of a subvolume of the simulation box (possibly with some buffering).
+    use Numerical_Constants_Astronomical
+    implicit none
+    class           (mergerTreeImporterSussing), intent(inout) :: self
+    double precision                           , intent(in   ) :: x
+    integer                                    , intent(in   ) :: iSubvolume
+    logical                                    , intent(in   ) :: buffered
+    double precision                                           :: subvolumeCenter, boxLength, &
+         &                                                        buffer
+  
+    boxLength=self%boxLength*megaParsec/kiloParsec
+    if (buffered) then
+       buffer=self%subvolumeBuffer*megaParsec/kiloParsec
+    else
+       buffer=0.0d0
+    end if
+    subvolumeCenter=boxLength*(dble(iSubvolume)+0.5d0)/dble(self%subvolumeCount)
+    sussingInSubvolume1D=                                                             &
+         &                abs(sussingPeriodicSeparation(x,subvolumeCenter,boxLength)) &
+         &               <                                                            &
+         &                boxLength/2.0d0/dble(self%subvolumeCount)+buffer
+    return
+  end function sussingInSubvolume1D
+  
+  double precision function sussingPeriodicSeparation(x1,x2,periodicLength)
+    !% Determine the separation between two points in a periodic cube.
+    implicit none
+    double precision, intent(in   ) :: x1,x2,periodicLength
+    
+    sussingPeriodicSeparation=x1-x2
+    do while (sussingPeriodicSeparation > 0.5d0*periodicLength)
+       sussingPeriodicSeparation=sussingPeriodicSeparation-periodicLength
+    end do
+    do while (sussingPeriodicSeparation < -0.5d0*periodicLength)
+       sussingPeriodicSeparation=sussingPeriodicSeparation+periodicLength
+    end do
+    return
+  end function sussingPeriodicSeparation
+  

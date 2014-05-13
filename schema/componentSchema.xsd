@@ -64,6 +64,7 @@
 			<xs:enumeration value="chemicals"          />
 			<xs:enumeration value="abundances"         />
 			<xs:enumeration value="history"            />
+			<xs:enumeration value="longIntegerHistory" />
 			<xs:enumeration value="keplerOrbit"        />
 			<xs:enumeration value="stellarLuminosities"/>
 		      </xs:restriction>

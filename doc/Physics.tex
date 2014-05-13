@@ -1801,6 +1801,8 @@ This file must contain one line for each snapshot of the simulation, giving the 
 
 Subsequent lines identify the \gls{ahf} halo files for each snapshot (files can be listed in any order).
 
+Merger tree files of this type can be split into subvolumes before processing. This is useful if the file is too large to read into memory in one go. The number of subvolumes to use (in each of the three dimensions of the simulation cube) is specified by the {\tt [mergerTreeImportSussingSubvolumeCount]} parameter. The specific subvolume to process is specified by the {\tt [mergerTreeImportSussingSubvolumeIndex]} parameter, which should give the index (running from $0$ to {\tt [mergerTreeImportSussingSubvolumeCount]}$-1$) in each dimension (whitespace separated). To ensure that no halos are missed from trees near the edge of the subvolume, a buffer region around the subvolume is also read. The width of this buffer (in units of Mpc$/h$ to follow the format convention) is specified via the {\tt [mergerTreeImportSussingSubvolumeBuffer]} parameter. 
+
 \section{Merger Tree Pre-evolution Processing}
 
 Arbitrary processing of merger trees prior to their evolution can be carried out using the {\tt mergerTreePreEvolveTask} directive (see \S\ref{sec:MergerTreePreEvolveTask}). Currently defined tasks are defined below.
