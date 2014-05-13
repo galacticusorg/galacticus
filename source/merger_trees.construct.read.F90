@@ -51,6 +51,7 @@ module Merger_Tree_Read
   logical                                                                                         :: mergerTreeReadPresetMergerTimes                                                              
   logical                                                                                         :: mergerTreeReadPresetMergerNodes                                                              
   logical                                                                                         :: mergerTreeReadPresetSubhaloMasses                                                            
+  logical                                                                                         :: mergerTreeReadPresetSubhaloIndices
   logical                                                                                         :: mergerTreeReadPresetPositions                                                                
   logical                                                                                         :: mergerTreeReadPresetScaleRadii                    , mergerTreeReadPresetScaleRadiiFailureIsFatal
   double precision                                                                                :: mergerTreeReadPresetScaleRadiiMinimumMass         , mergerTreeReadPresetScaleRadiiConcentrationMinimum, &
@@ -206,6 +207,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetSubhaloMasses',mergerTreeReadPresetSubhaloMasses,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadPresetSubhaloIndices</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
+       !@   <description>
+       !@     Specifies whether subhalo indices should be preset when reading merger trees from a file.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadPresetSubhaloIndices',mergerTreeReadPresetSubhaloIndices,defaultValue=.true.)
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetPositions</name>
        !@   <attachedTo>module</attachedTo>
@@ -485,9 +497,10 @@ contains
 
        ! Perform sanity checks if subhalos are not included.
        if (defaultimporter%treesHaveSubhalos() == booleanFalse) then
-          if (mergerTreeReadPresetMergerTimes  ) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset merger times as no subhalos are present; try setting [mergerTreeReadPresetMergerTimes]=false')
-          if (mergerTreeReadPresetMergerNodes  ) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset merger nodes as no subhalos are present; try setting [mergerTreeReadPresetMergerNodes]=false')
-          if (mergerTreeReadPresetSubhaloMasses) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset subhalo masses as no subhalos are present; try setting [mergerTreeReadPresetSubhaloMasses]=false')
+          if (mergerTreeReadPresetMergerTimes   ) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset merger times as no subhalos are present; try setting [mergerTreeReadPresetMergerTimes]=false'      )
+          if (mergerTreeReadPresetMergerNodes   ) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset merger nodes as no subhalos are present; try setting [mergerTreeReadPresetMergerNodes]=false'      )
+          if (mergerTreeReadPresetSubhaloMasses ) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset subhalo masses as no subhalos are present; try setting [mergerTreeReadPresetSubhaloMasses]=false'  )
+          if (mergerTreeReadPresetSubhaloIndices) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset subhalo indices as no subhalos are present; try setting [mergerTreeReadPresetSubhaloIndices]=false')
        end if
        ! Determine if subhalo masses have been included in halo masses.   
        if (defaultImporter%treesAreSelfContained() == booleanFalse) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','only self-contained trees are supported')   
@@ -595,10 +608,10 @@ contains
     use Arrays_Search
     use Array_Utilities
     use Numerical_Comparison
-use omp_lib
     implicit none
     type            (mergerTree                    )                             , intent(inout), target :: thisTree                               
     logical                                                                      , intent(in   )         :: skipTree                               
+    integer         (kind=kind_int8                ), allocatable, dimension(:  )                        :: historyIndex
     double precision                                , allocatable, dimension(:  )                        :: historyMass        , historyTime       
     double precision                                , allocatable, dimension(:,:)                        :: position           , velocity          
     class           (nodeData                      ), allocatable, dimension(:  )               , target :: nodes                                  
@@ -893,22 +906,24 @@ use omp_lib
              if (allocated(position)) call Dealloc_Array(position)
              if (allocated(velocity)) call Dealloc_Array(velocity)
              call Alloc_Array(historyTime,[int(historyCountMaximum)])
-             if (mergerTreeReadPresetSubhaloMasses                              ) call Alloc_Array(historyMass,[  int(historyCountMaximum)])
-             if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(position   ,[3,int(historyCountMaximum)])
-             if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(velocity   ,[3,int(historyCountMaximum)])
+             if (mergerTreeReadPresetSubhaloIndices                             ) call Alloc_Array(historyIndex,[  int(historyCountMaximum)])
+             if (mergerTreeReadPresetSubhaloMasses                              ) call Alloc_Array(historyMass ,[  int(historyCountMaximum)])
+             if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(position    ,[3,int(historyCountMaximum)])
+             if (mergerTreeReadPresetPositions    .or.mergerTreeReadPresetOrbits) call Alloc_Array(velocity    ,[3,int(historyCountMaximum)])
           end if
 
           ! Build subhalo mass histories if required.
-          call Build_Subhalo_Mass_Histories(nodes,thisNodeList,historyTime,historyMass,position,velocity)
+          call Build_Subhalo_Mass_Histories(nodes,thisNodeList,historyTime,historyIndex,historyMass,position,velocity)
 
           ! Assign new uniqueIDs to any cloned nodes inserted into the trees.
           call Assign_UniqueIDs_To_Clones(thisNodeList)
 
           ! Deallocate history building arrays.
-          if (allocated(historyTime)) call Dealloc_Array(historyTime)
-          if (allocated(historyMass)) call Dealloc_Array(historyMass)
-          if (allocated(position   )) call Dealloc_Array(position   )
-          if (allocated(velocity   )) call Dealloc_Array(velocity   )
+          if (allocated(historyTime)) call Dealloc_Array(historyTime )
+          if (allocated(historyMass)) call Dealloc_Array(historyIndex)
+          if (allocated(historyMass)) call Dealloc_Array(historyMass )
+          if (allocated(position   )) call Dealloc_Array(position    )
+          if (allocated(velocity   )) call Dealloc_Array(velocity    )
 
           ! Deallocate the temporary arrays.
           call Memory_Usage_Record(sizeof(nodes       ),addRemove=-1)
@@ -2263,7 +2278,7 @@ use omp_lib
     return
   end subroutine Create_Branch_Jump_Event
 
-  subroutine Build_Subhalo_Mass_Histories(nodes,nodeList,historyTime,historyMass,position,velocity)
+  subroutine Build_Subhalo_Mass_Histories(nodes,nodeList,historyTime,historyIndex,historyMass,position,velocity)
     !% Build and attached bound mass histories to subhalos.
     use Galacticus_Error
     use String_Handling
@@ -2272,6 +2287,7 @@ use omp_lib
     implicit none
     class           (nodeData               )         , dimension(:  ), intent(inout), target :: nodes                                    
     type            (treeNodeList           )         , dimension(:  ), intent(inout)         :: nodeList                                 
+    integer         (kind=kind_int8         )         , dimension(:  ), intent(inout)         :: historyIndex
     double precision                                  , dimension(:  ), intent(inout)         :: historyMass              , historyTime   
     double precision                                  , dimension(:,:), intent(inout)         :: position                 , velocity      
     class           (nodeData               ), pointer                                        :: progenitorNode           , thisNode      
@@ -2284,12 +2300,16 @@ use omp_lib
     logical                                                                                   :: endOfBranch                              
     type            (varying_string         )                                                 :: message                                  
     type            (history                )                                                 :: subhaloHistory                           
-    type            (progenitorIterator     )                                                 :: progenitors                              
+    type            (longIntegerHistory     )                                                 :: subhaloIndexHistory                           
+    type            (progenitorIterator     )                                                 :: progenitors
     
-    if (mergerTreeReadPresetSubhaloMasses.or.mergerTreeReadPresetPositions) then
+    if (mergerTreeReadPresetSubhaloMasses.or.mergerTreeReadPresetPositions.or.mergerTreeReadPresetSubhaloIndices) then
        ! Check that preset subhalo masses are supported.
-       if (mergerTreeReadPresetSubhaloMasses.and..not.defaultSatelliteComponent%boundMassHistoryIsSettable()) &
+       if (mergerTreeReadPresetSubhaloMasses .and..not.defaultSatelliteComponent%boundMassHistoryIsSettable()) &
             & call Galacticus_Error_Report('Merger_Tree_Read_Do','presetting subhalo masses requires a component that supports setting of node bound mass histories')
+       ! Check that preset subhalo masses are supported.
+       if (mergerTreeReadPresetSubhaloIndices.and..not.defaultSatelliteComponent%nodeIndexHistoryIsSettable()) &
+            & call Galacticus_Error_Report('Merger_Tree_Read_Do','presetting subhalo indices requires a component that supports setting of node index histories')
        ! Get the default cosmology functions object.
        cosmologyFunctionsDefault => cosmologyFunctions()
        historyBuildNodeLoop: do iNode=1,size(nodes)
@@ -2311,9 +2331,10 @@ use omp_lib
                       historyCount=historyCount+1
                       ! Store the history.
                       historyTime(historyCount)=thisNode%nodeTime
-                      if (mergerTreeReadPresetSubhaloMasses) historyMass(  historyCount)=thisNode%nodeMass
-                      if (mergerTreeReadPresetPositions    ) position   (:,historyCount)=thisNode%position
-                      if (mergerTreeReadPresetPositions    ) velocity   (:,historyCount)=thisNode%velocity
+                      if (mergerTreeReadPresetSubhaloIndices) historyIndex(  historyCount)=thisNode%nodeIndex
+                      if (mergerTreeReadPresetSubhaloMasses ) historyMass (  historyCount)=thisNode%nodeMass
+                      if (mergerTreeReadPresetPositions     ) position    (:,historyCount)=thisNode%position
+                      if (mergerTreeReadPresetPositions     ) velocity    (:,historyCount)=thisNode%velocity
                       ! Test the branch.
                       if (.not.associated(thisNode%descendent).or..not.thisNode%descendent%isSubhalo) then
                          ! End of branch reached.
@@ -2347,6 +2368,16 @@ use omp_lib
                       firstProgenitor        => nodeList(iIsolatedNode)%node%earliestProgenitor()
                       thisSatelliteComponent => firstProgenitor%satellite()
                       call thisSatelliteComponent%boundMassHistorySet(subhaloHistory)
+                   end if
+                   ! Set the node index history for this node.
+                   if (mergerTreeReadPresetSubhaloIndices) then
+                      call subhaloIndexHistory%destroy()
+                      call subhaloIndexHistory%create(1,int(historyCount))
+                      subhaloIndexHistory%time(:  )=historyTime (1:historyCount)
+                      subhaloIndexHistory%data(:,1)=historyIndex(1:historyCount)
+                      firstProgenitor              => nodeList(iIsolatedNode)%node%earliestProgenitor()
+                      thisSatelliteComponent       => firstProgenitor%satellite()
+                      call thisSatelliteComponent%nodeIndexHistorySet(subhaloIndexHistory)
                    end if
                 end if historyBuildSubhaloSelect
 
