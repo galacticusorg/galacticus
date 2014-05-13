@@ -96,6 +96,11 @@ module Galacticus_Nodes
      type(history            ) :: value
   end type nodeDataHistoryScalar
 
+  type, private :: nodeDataLongIntegerHistoryScalar
+     !% Type describing an non-evolvable scalar {\\tt longIntegerHistory} property of a node component.
+     type(longIntegerHistory ) :: value
+  end type nodeDataLongIntegerHistoryScalar
+
   type, private :: nodeDataKeplerOrbitScalar
      !% Type describing a non-evolvable scalar {\\tt keplerOrbit} property of a node component.
      type(keplerOrbit        ) :: value
