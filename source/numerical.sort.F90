@@ -35,6 +35,7 @@ module Sort
      !% Generic interface to in-place sort routines.
      module procedure Sort_Do_Double
      module procedure Sort_Do_Integer
+     module procedure Sort_Do_Integer8
   end interface
 
 contains
@@ -56,6 +57,16 @@ contains
     call Sort_Do_Integer_C(size(array),array)
     return
   end subroutine Sort_Do_Integer
+
+  subroutine Sort_Do_Integer8(array)
+    !% Given an unsorted long integer {\tt array}, sorts it in place.
+    use Kind_Numbers
+    implicit none
+    integer(kind=kind_int8), dimension(:), intent(inout) :: array
+
+    call Sort_Do_Integer8_C(size(array),array)
+    return
+  end subroutine Sort_Do_Integer8
 
   function Sort_Index_Do_Integer8(array)
     !% Given an unsorted integer {\tt array}, sorts it in place.
@@ -108,6 +119,21 @@ contains
     call FGSL_HeapSort(arrayPointer,arraySizeC,FGSL_SizeOf(1),Compare_Integer)
     return
   end subroutine Sort_Do_Integer_C
+
+  subroutine Sort_Do_Integer8_C(arraySize,array)
+    !% Do a long integer sort.
+    use Kind_Numbers
+    implicit none
+    integer                  , intent(in   )         :: arraySize
+    integer(kind=c_long_long), intent(inout), target :: array       (arraySize)
+    integer(kind=c_size_t   )                        :: arraySizeC
+    type   (c_ptr           )                        :: arrayPointer
+
+    arrayPointer=c_loc(array)
+    arraySizeC=arraySize
+    call FGSL_HeapSort(arrayPointer,arraySizeC,FGSL_SizeOf(1_kind_int8),Compare_Integer8)
+    return
+  end subroutine Sort_Do_Integer8_C
 
   subroutine Sort_Index_Do_Integer8_C(arraySize,array,idx)
     !% Do a integer sort.
@@ -169,9 +195,9 @@ contains
 
   function Compare_Integer8(x,y) bind(c)
     !% Comparison function for integer data.
-    type   (c_ptr      ), value   :: x               , y
-    integer(kind=c_int )          :: Compare_Integer8
-    integer(kind=c_long), pointer :: rx              , ry
+    type   (c_ptr           ), value   :: x               , y
+    integer(kind=c_int      )          :: Compare_Integer8
+    integer(kind=c_long_long), pointer :: rx              , ry
 
     call c_f_pointer(x,rx)
     call c_f_pointer(y,ry)
