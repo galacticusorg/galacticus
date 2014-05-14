@@ -56,11 +56,14 @@ module Merger_Tree_Read
   logical                                                                                         :: mergerTreeReadPresetScaleRadii                    , mergerTreeReadPresetScaleRadiiFailureIsFatal
   double precision                                                                                :: mergerTreeReadPresetScaleRadiiMinimumMass         , mergerTreeReadPresetScaleRadiiConcentrationMinimum, &
        &                                                                                             mergerTreeReadPresetScaleRadiiConcentrationMaximum
-  logical                                                                                         :: mergerTreeReadPresetSpins                         , mergerTreeReadPresetSpins3D                                                         
+  logical                                                                                         :: mergerTreeReadPresetSpins                         , mergerTreeReadPresetSpins3D  
   logical                                                                                         :: mergerTreeReadPresetOrbits                        , mergerTreeReadPresetOrbitsAssertAllSet            , & 
        &                                                                                             mergerTreeReadPresetOrbitsBoundOnly               , mergerTreeReadPresetOrbitsSetAll          
   logical                                                                                         :: mergerTreeReadPresetParticleCounts                , mergerTreeReadPresetVelocityMaxima                , &
        &                                                                                             mergerTreeReadPresetVelocityDispersions
+  integer                                                                                         :: mergerTreeReadSubhaloAngularMomentaMethod
+  integer                                                                    , parameter          :: mergerTreeReadSubhaloAngularMomentaScale    =0
+  integer                                                                    , parameter          :: mergerTreeReadSubhaloAngularMomentaSummation=1
 
   ! Option controlling fatality of missing host node condition.
   logical                                                                                         :: mergerTreeReadMissingHostsAreFatal                                                           
@@ -70,7 +73,7 @@ module Merger_Tree_Read
   
   ! Labels used for node properties.
   integer                                                                    , parameter          :: nodeIsUnreachable                        =-1                                                 
-  integer                                                                    , parameter          :: nodeIsReachable                          =0                                                  
+  integer                                                                    , parameter          :: nodeIsReachable                          = 0                                                  
   
   ! Internal list of output times and the relative tolerance used to "snap" nodes to output times.
   integer                                                                                         :: outputTimesCount                                                                             
@@ -157,7 +160,7 @@ contains
     type     (varying_string          ), intent(in   )          :: mergerTreeConstructMethod 
     procedure(Merger_Tree_Read_Do     ), intent(inout), pointer :: Merger_Tree_Construct     
     integer                                                     :: iOutput                   
-    type     (varying_string          )                         :: message                   
+    type     (varying_string          )                         :: message                  ,  mergerTreeReadSubhaloAngularMomentaMethodText
     
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'read') then
@@ -207,6 +210,25 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetSubhaloMasses',mergerTreeReadPresetSubhaloMasses,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadSubhaloAngularMomentaMethod</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>true</defaultValue>
+       !@   <description>
+       !@     Specifies whether subhalo mass should be preset when reading merger trees from a file.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadSubhaloAngularMomentaMethod',mergerTreeReadSubhaloAngularMomentaMethodText,defaultValue="summation")
+       select case (char(mergerTreeReadSubhaloAngularMomentaMethodText))
+       case ("scale"    )
+          mergerTreeReadSubhaloAngularMomentaMethod=mergerTreeReadSubhaloAngularMomentaScale
+       case ("summation")
+          mergerTreeReadSubhaloAngularMomentaMethod=mergerTreeReadSubhaloAngularMomentaSummation
+       case default
+          call Galacticus_Error_Report('Merger_Tree_Read_Initialize','[mergerTreeReadSubhaloAngularMomentaMethod] must be either "scale" or "summation"')
+       end select       
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetSubhaloIndices</name>
        !@   <attachedTo>module</attachedTo>
@@ -608,20 +630,23 @@ contains
     use Arrays_Search
     use Array_Utilities
     use Numerical_Comparison
+    use Vectors
     implicit none
     type            (mergerTree                    )                             , intent(inout), target :: thisTree                               
     logical                                                                      , intent(in   )         :: skipTree                               
     integer         (kind=kind_int8                ), allocatable, dimension(:  )                        :: historyIndex
-    double precision                                , allocatable, dimension(:  )                        :: historyMass        , historyTime       
-    double precision                                , allocatable, dimension(:,:)                        :: position           , velocity          
+    double precision                                , allocatable, dimension(:  )                        :: historyMass           , historyTime       
+    double precision                                , allocatable, dimension(:,:)                        :: position              , velocity          
     class           (nodeData                      ), allocatable, dimension(:  )               , target :: nodes                                  
     type            (treeNodeList                  ), allocatable, dimension(:  )                        :: thisNodeList                           
     logical                                         , allocatable, dimension(:  )                        :: childIsSubhalo                         
-    integer                                                                                              :: iOutput            , isolatedNodeCount 
-    integer         (kind=kind_int8                )                                                     :: historyCountMaximum, iNode             
+    double precision                                             , dimension(3  )                        :: relativePosition      , relativeVelocity , &
+         &                                                                                                  orbitalAngularMomentum
+    integer                                                                                              :: iOutput               , isolatedNodeCount 
+    integer         (kind=kind_int8                )                                                     :: historyCountMaximum   , iNode             
     logical                                                                                              :: haveTree                               
-    type            (varying_string                )                                                     :: message                                
-    
+    type            (varying_string                )                                                     :: message
+
     !$omp critical(mergerTreeReadTree)
     ! Increment the tree to read index.
     nextTreeToRead=nextTreeToRead+1
@@ -719,11 +744,18 @@ contains
           call Enforce_Subhalo_Status(nodes)
 
           ! If necessary, add masses and angular momenta of subhalos to host halos.
-          if (.not.defaultImporter%angularMomentaIncludeSubhalos()) then
+          if (.not.defaultImporter%angularMomentaIncludeSubhalos().and.mergerTreeReadSubhaloAngularMomentaMethod == mergerTreeReadSubhaloAngularMomentaScale) then
+             ! This method requires 3D angular momenta to be available.
+             if (.not.defaultImporter%angularMomentaAvailable()) call Galacticus_Error_Report('Merger_Tree_Read_Do','scaling parent angular momentum for subhalo masses requires angular momenta availability')
              do iNode=1,size(nodes)
-                if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) nodes  (iNode)%angularMomentum &
-                     &                                                      =nodes(iNode)%angularMomentum &
-                     &                                                      /nodes(iNode)%nodeMass
+                if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) then
+                   nodes        (iNode)%angularMomentum   &
+                        & =nodes(iNode)%angularMomentum   &
+                        & /nodes(iNode)%nodeMass
+                   nodes        (iNode)%angularMomentum3D &
+                        & =nodes(iNode)%angularMomentum3D &
+                        & /nodes(iNode)%nodeMass
+                end if
              end do
           end if
           if (.not.defaultImporter%massesIncludeSubhalos()) then
@@ -733,12 +765,50 @@ contains
                      &                                                      +nodes(iNode)%nodeMass
              end do
           end if
-          if (.not.defaultImporter%angularMomentaIncludeSubhalos()) then
+          if (.not.defaultImporter%angularMomentaIncludeSubhalos().and.mergerTreeReadSubhaloAngularMomentaMethod == mergerTreeReadSubhaloAngularMomentaScale) then
              do iNode=1,size(nodes)
-                if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) nodes  (iNode)%angularMomentum &
-                     &                                                      =nodes(iNode)%angularMomentum &
-                     &                                                      *nodes(iNode)%nodeMass
+                if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) then
+                   nodes        (iNode)%angularMomentum   &
+                        & =nodes(iNode)%angularMomentum   &
+                        & *nodes(iNode)%nodeMass
+                   
+                   nodes        (iNode)%angularMomentum3D &
+                        & =nodes(iNode)%angularMomentum3D &
+                        & *nodes(iNode)%nodeMass
+                   
+                end if
              end do
+          end if
+          if (.not.defaultImporter%angularMomentaIncludeSubhalos().and.mergerTreeReadSubhaloAngularMomentaMethod == mergerTreeReadSubhaloAngularMomentaSummation) then
+             ! This method requires 3D angular momenta to be available.
+             if (.not.defaultImporter%angularMomenta3DAvailable()) &
+                  & call Galacticus_Error_Report(                                                                                                      &
+                  &                              'Merger_Tree_Read_Do'                                                                               , &
+                  &                              'adding subhalo angular momenta to parent angular momentum requires 3D angular momenta availability'  &
+                  &                             )
+             do iNode=1,size(nodes)
+                if (nodes(iNode)%host%nodeIndex /= nodes(iNode)%nodeIndex) then
+                   ! Find relative position and velocity.
+                   relativePosition=nodes(iNode)%position-nodes(iNode)%host%position
+                   relativeVelocity=nodes(iNode)%velocity-nodes(iNode)%host%velocity
+                   ! Update position/velocity for periodicity and Hubble flow.
+                   call Phase_Space_Position_Realize(nodes(iNode)%nodeTime,relativePosition,relativeVelocity)
+                   ! Compute orbital angular momentum of subhalo.
+                   orbitalAngularMomentum=+nodes(iNode)%nodeMass                             &
+                        &                 *Vector_Product(relativePosition,relativeVelocity)
+                   ! Sum orbital and internal angular momenta.
+                   nodes        (iNode)%host%angularMomentum3D &
+                        & =nodes(iNode)%host%angularMomentum3D &
+                        & +nodes(iNode)     %angularMomentum3D &
+                        & +orbitalAngularMomentum
+                end if
+             end do
+             ! Update scalar angular momenta.
+             do iNode=1,size(nodes)
+                if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) &
+                     & nodes(iNode)%angularMomentum=Vector_Magnitude(nodes(iNode)%angularMomentum3D)
+             end do
+             ! Update scalar angular momenta.
           end if
 
           ! Associate parent pointers with the descendent host.
