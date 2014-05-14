@@ -44,36 +44,50 @@
      integer                                      , dimension(3) :: subvolumeIndex
      double precision                                            :: subvolumeBuffer
     contains
+      !@ <objectMethods>
+      !@   <object>mergerTreeImporterSussing</object>
+      !@   <objectMethod>
+      !@     <method>inSubvolume</method>
+      !@     <type>\logicalzero</type>
+      !@     <arguments>\doublezero\ x\argin, \doublezero\ y\argin, \doublezero\ z\argin, \logicalzero\ [buffered]\argin</arguments>
+      !@     <description>Return true if the given {\tt x,y,z} position lies within the current subvolume (plus the buffer region if {\tt buffered} is true.</description>
+      !@   </objectMethod>
+      !@   <objectMethod>
+      !@     <method>inSubvolume1D</method>
+      !@     <type>\logicalzero</type>
+      !@     <arguments>\doublezero\ x\argin, \intzero\ iSubvolume\argin, \logicalzero\ [buffered]\argin</arguments>
+      !@     <description>Return true if the given {\tt x} position lies within the {\tt iSubvolume}$^{\rm th}$ subvolume (plus the buffer region if {\tt buffered} is true.</description>
+      !@   </objectMethod>
+      !@ </objectMethods>
      !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
      !# final     :: sussingDestructor
      !# </workaround>
-     procedure :: open                          => sussingOpen
-     procedure :: close                         => sussingClose
-     procedure :: treesHaveSubhalos             => sussingTreesHaveSubhalos
-     procedure :: massesIncludeSubhalos         => sussingMassesIncludeSubhalos
-     procedure :: angularMomentaIncludeSubhalos => sussingAngularMomentaIncludeSubhalos
-     procedure :: treesAreSelfContained         => sussingTreesAreSelfContained
-     procedure :: velocitiesIncludeHubbleFlow   => sussingVelocitiesIncludeHubbleFlow
-     procedure :: positionsArePeriodic          => sussingPositionsArePeriodic
-     procedure :: cubeLength                    => sussingCubeLength
-     procedure :: treeWeight                    => sussingTreeWeight
-     procedure :: treeCount                     => sussingTreeCount
-     procedure :: treeIndex                     => sussingTreeIndex
-     procedure :: nodeCount                     => sussingNodeCount
-     procedure :: positionsAvailable            => sussingPositionsAvailable
-     procedure :: scaleRadiiAvailable           => sussingScaleRadiiAvailable
-     procedure :: particleCountAvailable        => sussingParticleCountAvailable
-     procedure :: velocityMaximumAvailable      => sussingVelocityMaximumAvailable
-     procedure :: velocityDispersionAvailable   => sussingVelocityDispersionAvailable
-     procedure :: angularMomentaAvailable       => sussingAngularMomentaAvailable
-     procedure :: angularMomenta3DAvailable     => sussingAngularMomenta3DAvailable
-     procedure :: spinAvailable                 => sussingSpinAvailable
-     procedure :: spin3DAvailable               => sussingSpin3DAvailable
-     procedure :: import                        => sussingImport
-     procedure :: subhaloTrace                  => sussingSubhaloTrace
-     procedure :: subhaloTraceCount             => sussingSubhaloTraceCount
-     procedure :: inSubvolume                   => sussingInSubvolume
-     procedure :: inSubvolume1D                 => sussingInSubvolume1D
+     procedure :: open                        => sussingOpen
+     procedure :: close                       => sussingClose
+     procedure :: treesHaveSubhalos           => sussingTreesHaveSubhalos
+     procedure :: massesIncludeSubhalos       => sussingMassesIncludeSubhalos
+     procedure :: treesAreSelfContained       => sussingTreesAreSelfContained
+     procedure :: velocitiesIncludeHubbleFlow => sussingVelocitiesIncludeHubbleFlow
+     procedure :: positionsArePeriodic        => sussingPositionsArePeriodic
+     procedure :: cubeLength                  => sussingCubeLength
+     procedure :: treeWeight                  => sussingTreeWeight
+     procedure :: treeCount                   => sussingTreeCount
+     procedure :: treeIndex                   => sussingTreeIndex
+     procedure :: nodeCount                   => sussingNodeCount
+     procedure :: positionsAvailable          => sussingPositionsAvailable
+     procedure :: scaleRadiiAvailable         => sussingScaleRadiiAvailable
+     procedure :: particleCountAvailable      => sussingParticleCountAvailable
+     procedure :: velocityMaximumAvailable    => sussingVelocityMaximumAvailable
+     procedure :: velocityDispersionAvailable => sussingVelocityDispersionAvailable
+     procedure :: angularMomentaAvailable     => sussingAngularMomentaAvailable
+     procedure :: angularMomenta3DAvailable   => sussingAngularMomenta3DAvailable
+     procedure :: spinAvailable               => sussingSpinAvailable
+     procedure :: spin3DAvailable             => sussingSpin3DAvailable
+     procedure :: import                      => sussingImport
+     procedure :: subhaloTrace                => sussingSubhaloTrace
+     procedure :: subhaloTraceCount           => sussingSubhaloTraceCount
+     procedure :: inSubvolume                 => sussingInSubvolume
+     procedure :: inSubvolume1D               => sussingInSubvolume1D
   end type mergerTreeImporterSussing
 
   interface mergerTreeImporterSussing
@@ -332,16 +346,6 @@ contains
     sussingMassesIncludeSubhalos=.true.
     return
   end function sussingMassesIncludeSubhalos
-
-  logical function sussingAngularMomentaIncludeSubhalos(self)
-    !% Return a Boolean specifying whether or not the halo angular momenta include the contribution from subhalos.
-    use Galacticus_Error
-    implicit none
-    class  (mergerTreeImporterSussing), intent(inout) :: self
-
-    sussingAngularMomentaIncludeSubhalos=.true.
-    return
-  end function sussingAngularMomentaIncludeSubhalos
 
   integer function sussingTreesAreSelfContained(self)
     !% Return a Boolean integer specifying whether or not the trees are self-contained.
