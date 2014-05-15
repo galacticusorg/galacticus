@@ -163,6 +163,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    $new->attrSet(covarianceErrorMaximum => $errorMaximum);
 	}
     }
+
     # Generate a plot of the correlation matrix.
     unless ( -e $stageDirectory."/correlationMatrix.pdf" ) {
 	# Read the covariance matrix.
@@ -261,8 +262,8 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
     	my $command;
     	$command .= "constraints/visualization/mcmcVisualizeTriangle.pl";
     	$command .= " ".$stageDirectory."/chains ";
-	$command .= " ".$mcmcConfigFile;
-	$command .= " --workDirectory ".$stageDirectory;
+    	$command .= " ".$mcmcConfigFile;
+    	$command .= " --workDirectory ".$stageDirectory;
     	$command .= " --scale 0.1";
     	$command .= " --ngood 100000";
     	$command .= " --ngrid 100";
@@ -353,7 +354,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    if ( -e $covarianceMatrixFileNext );	
 	# Generate the maximum likelihood mass function.
 	my $xml        = new XML::Simple;
-	my $parameters = $xml->XMLin($parameterFile);
+	my $parameters = $xml->XMLin($stageDirectory."/".$parameterFileLeaf);
 	for(my $i=0;$i<scalar(@parameterNames);++$i) {
 	    my $name = "conditionalMassFunctionBehroozi".ucfirst($parameterNames[$i]);
 	    $parameters->{'parameter'}->{$name}->{'value'} = $bestFit[$i];
@@ -439,6 +440,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	close($gnuPlot);
 	&LaTeX::GnuPlot2PDF($plotFileEPS);
     }
+
 }
 
 exit;
