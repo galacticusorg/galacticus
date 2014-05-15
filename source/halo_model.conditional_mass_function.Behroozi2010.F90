@@ -344,7 +344,8 @@ contains
           if (massHalo > self%fMassHaloTableMaximum) self%fMassTableMaximum=2.0d0*self%fMassTableMaximum
        end if
        self%fMassTableCount=int(log10(self%fMassTableMaximum/self%fMassTableMinimum)*behroozi2010MassTablePointsPerDecade)+1
-       call self%fMassTable%destroy ()
+       call                                     self%fMassTable    %destroy()
+       if (allocated(self%fMassHaloTable)) call self%fMassHaloTable%destroy()
        call self%fMassTable%create  (                                               &
             &                        self%fMassTableMinimum                       , &
             &                        self%fMassTableMaximum                       , &
