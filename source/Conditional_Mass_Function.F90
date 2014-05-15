@@ -40,8 +40,9 @@ program Conditional_Mass_Function
   class           (surveyGeometryClass         ), pointer                   :: surveyGeometry_
   type            (varying_string              )                            :: parameterFile                         , conditionalMassFunctionOutputFileName
   character       (len=32                      )                            :: conditionalMassFunctionHaloMassText
-  integer                                                                   :: conditionalMassFunctionMassCount,iMass
-  logical                                                                   :: conditionalMassFunctionUseSurveyLimits, integrateOverHaloMassFunction         ,  &
+  integer                                                                   :: conditionalMassFunctionMassCount      , iMass                                 , &
+       &                                                                       fieldCount                            , iField
+  logical                                                                   :: conditionalMassFunctionUseSurveyLimits, integrateOverHaloMassFunction         , &
        &                                                                       integrationReset=.true.               , integrationResetNormalization=.true.
   double precision                                                          :: conditionalMassFunctionHaloMass       , conditionalMassFunctionMassMinimum    , &
        &                                                                       conditionalMassFunctionMassMaximum    , conditionalMassFunctionRedshiftMinimum, &
@@ -51,7 +52,8 @@ program Conditional_Mass_Function
        &                                                                       timeMinimum                           , timeMaximum                           , &
        &                                                                       binTimeMinimum                        , binTimeMaximum                        , &
        &                                                                       time                                  , logHaloMassLower                      , &
-       &                                                                       logHaloMassUpper                      , distanceMaximum
+       &                                                                       logHaloMassUpper                      , distanceMaximum                       , &
+       &                                                                       massFunctionIntegrand                 , volumeIntegrand
   type     (fgsl_function             )                                     :: integrandFunction                     , integrandFunctionNormalization
   type     (fgsl_integration_workspace)                                     :: integrationWorkspace                  , integrationWorkspaceNormalization
   type     (c_ptr                     )                                     :: parameterPointer
@@ -224,39 +226,54 @@ program Conditional_Mass_Function
                 &                                       reset=integrationReset              &
                 &                                      )
         else
+           ! Determine number of fields to integrate over.
            if (conditionalMassFunctionUseSurveyLimits) then
-              ! A survey geometry is imposed. Find the maximum distance at which a galaxy of the present
-              ! mass can be detected in this survey.
-              distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(massBinMinimum*massBinMaximum))
-              ! Set integration limits appropriately.
-              binTimeMinimum=max(timeMinimum,cosmologyFunctions_%timeAtDistanceComoving(distanceMaximum))
-              binTimeMaximum=timeMaximum
+              fieldCount=surveyGeometry_%fieldCount()
            else
-              ! No survey geometry is imposed, so use the full range of specified redshifts.
-              binTimeMinimum=timeMinimum
-              binTimeMaximum=timeMaximum
+              fieldCount=1
            end if
-           ! Range of redshifts was given, integrate the mass function over this time interval.
-           thisConditionalMassFunction(iMass)= Integrate(                                             &
-                &                                        binTimeMinimum                             , &
-                &                                        binTimeMaximum                             , &
-                &                                        Mass_Function_Time_Integrand               , &
-                &                                        parameterPointer                           , &
-                &                                        integrandFunction                          , &
-                &                                        integrationWorkspace                       , &
-                &                                        toleranceRelative=1.0d-3                   , &
-                &                                        reset=integrationReset                       &
-                &                                       )                                             &
-                &                                /Integrate(                                          &
-                &                                        binTimeMinimum                             , &
-                &                                        binTimeMaximum                             , &
-                &                                        Mass_Function_Time_Normalization_Integrand , &
-                &                                        parameterPointer                           , &
-                &                                        integrandFunctionNormalization             , &
-                &                                        integrationWorkspaceNormalization          , &
-                &                                        toleranceRelative=1.0d-3                   , &
-                &                                        reset=integrationResetNormalization          &
-                &                                       )
+           massFunctionIntegrand=0.0d0
+           volumeIntegrand      =0.0d0
+           do iField=1,fieldCount
+              if (conditionalMassFunctionUseSurveyLimits) then
+                 ! A survey geometry is imposed. Find the maximum distance at which a galaxy of the present
+                 ! mass can be detected in this survey.
+                 distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(massBinMinimum*massBinMaximum))
+                 ! Set integration limits appropriately.
+                 binTimeMinimum=max(timeMinimum,cosmologyFunctions_%timeAtDistanceComoving(distanceMaximum))
+                 binTimeMaximum=timeMaximum
+              else
+                 ! No survey geometry is imposed, so use the full range of specified redshifts.
+                 binTimeMinimum=timeMinimum
+                 binTimeMaximum=timeMaximum
+              end if
+              ! Range of redshifts was given, integrate the mass function over this time interval.
+              massFunctionIntegrand=                                                        &
+                   &                +massFunctionIntegrand                                  &
+                   &                +Integrate(                                             &
+                   &                           binTimeMinimum                             , &
+                   &                           binTimeMaximum                             , &
+                   &                           Mass_Function_Time_Integrand               , &
+                   &                           parameterPointer                           , &
+                   &                           integrandFunction                          , &
+                   &                           integrationWorkspace                       , &
+                   &                           toleranceRelative=1.0d-3                   , &
+                   &                           reset=integrationReset                       &
+                   &                          )
+              volumeIntegrand      =                                                        &
+                   &                +volumeIntegrand                                        &
+                   &                +Integrate(                                             &
+                   &                           binTimeMinimum                             , &
+                   &                           binTimeMaximum                             , &
+                   &                           Mass_Function_Time_Normalization_Integrand , &
+                   &                           parameterPointer                           , &
+                   &                           integrandFunctionNormalization             , &
+                   &                           integrationWorkspaceNormalization          , &
+                   &                           toleranceRelative=1.0d-3                   , &
+                   &                           reset=integrationResetNormalization          &
+                   &                          )
+           end do
+           thisConditionalMassFunction(iMass)=massFunctionIntegrand/volumeIntegrand
         end if
      else
         thisConditionalMassFunction(iMass)=                                                                         &
