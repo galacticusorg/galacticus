@@ -451,6 +451,16 @@ where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the diffe
 
 This constraint utilizes the stellar mass functions for $z = 3$ to 5 galaxies measured by \cite{caputi_stellar_2011} from the UKISS UDS survey.  If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
 
+Given a \glc\ model, total stellar masses of model galaxies are adjusted using:
+\begin{equation}
+ M_\star \rightarrow {\bf G} {\bf S} M_\star 
+\end{equation}
+where the ${\bf S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is equal to \citep{behroozi_comprehensive_2010}
+\begin{equation}
+ \log_{\rm 10} S = \mu + \kappa \log_{\rm 10} \left({M_\star \over 10^{11.3}M_\odot}\right)
+\end{equation}
+where $\mu=${\tt [ukidssUdsStellarMassFunctionZX.XXXStellarMassSystematicMu]}, $\kappa=${\tt [ukidssUdsStellarMassFunctionZX.XXXStellarMassSystematiKappa]}, and the {\bf G} operator is a multiplicative factor drawn from a log-normal distribution of width $0.173$~dex for each galaxy to mimic the effects of random errors on stellar masses (which accounts for errors in photometric redshifts, $\delta z/(1+z)$ of $\sigma=0.05$ as reported by \cite{caputi_stellar_2011} along with an additional 0.087~dex added in quadrature to account for SED fitting errors, judged from Figure 8 of \cite{caputi_stellar_2011}).
+
 The covariance matrix is computed as
 \begin{equation}
  {\bf C} = {\bf C}_{\rm obs} + {\bf C}_{\rm model,random} + \sum_i {\bf C}_{{\rm discrepancy}, i},
@@ -498,6 +508,24 @@ where $x(M) = (n \sqrt{mu} - f M)/(\mu+fM)^{1/2}$. Given $f(M_{\rm 50})=0.5$ and
  \label{fig:UKIDSSUDSCompleteness}
 \end{figure}
 
+\subsubsection{Bernardi et al. (2013) SDSS Stellar Mass Function}\label{sec:AnalysisBernardiSDSSStellarMassFunction}
+
+This constraint utilizes the stellar mass mass function for $z\approx 0.07$ galaxies measured by \cite{bernardi_massive_2013} from the SDSS survey. The mass function, and its covariance matrix ${\bf C}_{\rm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+
+The covariance matrix is computed as
+\begin{equation}
+ {\bf C} = {\bf C}_{\rm obs} + {\bf C}_{\rm model,random} + \sum_i {\bf C}_{{\rm discrepancy}, i},
+\end{equation}
+where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${\bf C}_{\rm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\bf C}_{{\rm discrepancy}, i}$ is the covariance due to the $i^{\rm th}$ model discrepancy.
+
+The model likelihood is then computed using:
+\begin{equation}
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\bf C}|}} \exp\left[ -{1\over 2} \Delta {\bf C}^{-1} \Delta \right],
+\end{equation}
+where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+
+When computing the Poisson term in the covariance matrix, the number of galaxies per bin is determined ???????????. The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryBernardi2013SDSS}.
+
 \subsubsection{Martin et al. (2010) ALFALFA HI Mass Function}\label{sec:AnalysisALFALFAHIMassFunction}
 
 This constraint utilizes the HI mass function for $z\approx 0.0$ galaxies measured by \cite{martin_arecibo_2010} from the ALFALFA survey. The mass function, and its covariance matrix ${\bf C}_{\rm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
@@ -514,22 +542,21 @@ The model likelihood is then computed using:
 \end{equation}
 where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
-Computing the large-scale structure contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier transform of the survey window function. We use the method of \cite{peacock_non-linear_1996} to determine the non-linear matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter power spectrum (e.g. \citealt{lawrence_coyote_2010}) makes negligible difference to our results.
+When computing the Poisson term in the covariance matrix, the number of galaxies per bin is taken directly from Fig.~5 of \cite{martin_arecibo_2010} such that incompleteness is automatically accounted for. The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryMartin2010ALFALFA}.
 
-To find a suitable \gls{hod} to describe the galaxies in the \cite{martin_arecibo_2010} sample we adopt the model of \cite{behroozi_comprehensive_2010}. This is an 11 parameter model which describes separately the numbers of satellite and central galaxies occupying a halo of given mass---the reader is referred to \cite{behroozi_comprehensive_2010} for a complete description of the functional form of this parametric \gls{hod}. 
+The resulting maximum likelihood mass function is shown in Fig.~\ref{fig:MaximumLikelihoodMassFunctionHOD}, clearly illustrating that this parametric \gls{hod} can produce an excellent match to the observed mass function. The resulting correlation matrix is shown in Fig.~\ref{fig:CorrelationMatrixALFALFA}. As expected, at the higher masses the correlation matrix is dominated by the on-diagonal terms---arising from the Poisson fluctuations in the number of galaxies due to the scarcity of these massive systems. At lower masses the matrix has significant off-diagonal amplitude, indicating strong correlations between nearby bins, arising from both large-scale structure and halo contributions to the covariance. This structure significantly weakens the constraint arising from the low-mass end of the mass function.
 
-To reproduce the mass function of \cite{martin_arecibo_2010} using this \gls{hod} we use the \gls{bie} \citep{weinberg_computational_2012} to constrain the \gls{hod} parameters. We use a likelihood
-\begin{equation}
- \ln \mathcal{L} = -{1\over 2} \Delta\cdot \mathcal{C}^{-1}\cdot \Delta^{\rm T} - {N \over 2} \ln(2\pi) - {\ln |\mathcal{C}| \over 2},
-\end{equation}
-where $N$ is the number of bins in the mass function, $\mathcal{C}$ is the covariance matrix of the observed mass function, and $\Delta_i = \phi_i^{\rm (HOD)} - \phi_i^{\rm (observed)}$. Of course, it is precisely this covariance matrix, $\mathcal{C}$, that we are trying to compute. We therefore adopt an iterative approach as follows:
-\begin{enumerate}
- \item make an initial estimate of the covariance matrix, assuming that only Poisson errors contribute (the covariance matrix is therefore diagonal, and the terms are easily computed from the measured mass function and the survey volume as a function of stellar mass);
- \item find the maximum likelihood parameters of the \gls{hod} given the observed mass function and the current estimate of the covariance matrix;
- \item using this \gls{hod} and the framework of \cite{smith_how_2012}, compute a new estimate of the covariance matrix, including all three contributions;
- \item repeat steps 2 and 3 until convergence in the covariance matrix is achieved.
-\end{enumerate}
-In practice we find that this procedure leads to an \gls{hod} and covariance matrix which oscillate between two states in successive iterations. The differences in the covariance matrix are relatively small however, so we choose to conservatively adopt the covariance matrix with the larger values. In future, adding additional constraints to the \gls{hod} (as described below) should help mitigate this problem.
+\begin{figure}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 2.5mm,clip]{Plots/DataAnalysis/alfalfaHIMassFunctionBestFit.pdf}
+ \caption{The maximum likelihood mass function obtained from our parametric \protect\gls{hod} (yellow points), compared to the observed HI mass function of \protect\citeauthor{martin_arecibo_2010}~(\citeyear{martin_arecibo_2010}; green points).}
+ \label{fig:MaximumLikelihoodMassFunctionHOD}
+\end{figure}
+
+\begin{figure}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 0mm,clip]{Plots/DataAnalysis/alfalfaHICorrelationmatrix.pdf}
+ \caption{The correlation matrix of the observed galaxy HI mass function of \protect\cite{martin_arecibo_2010}. Color indicates the strength of correlation between bins, according to the scale shown on the right.}
+ \label{fig:CorrelationMatrixALFALFA}
+\end{figure}
 
 \subsubsection{Shen et al. (2003) Late-Type Galaxy Size Distribution}\label{sec:SDSSLateTypeGalaxySizeDistribution}
 
