@@ -213,6 +213,12 @@
       <lambda>0.7</lambda>
       <omega>0.3</omega>
     </cosmology>
+    <imf>
+      <name>Salpeter</name>
+      <citation>Salpeter, E. E.; 1955; ApJ; 121; 161</citation>
+      <url>http://adsabs.harvard.edu/abs/1955ApJ...121..161S</url>
+      <mass lower="0.1" upper="100" units="Solar masses" unitsInSI="1.9891e30" />
+    </imf>
     <description>High-z galaxy stellar mass functions computed using the 1/Vmax method.</description>
     <label>Caputi et al. (2011)</label>
     <source>Table 1 of Caputi et al. (2011; MNRAS; 413; 162)</source>

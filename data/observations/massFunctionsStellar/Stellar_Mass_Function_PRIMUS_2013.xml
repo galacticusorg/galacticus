@@ -8,9 +8,50 @@
     <omegaMatter>0.3</omegaMatter>
     <omegaDarkEnergy>0.7</omegaDarkEnergy>
   </cosmology>
+  <imf>
+    <name>Chabrier</name>
+    <citation>Chabrier, G.; 2003; PASP; 115; 763</citation>
+    <url>http://www.jstor.org/stable/10.1086/376392</url>
+    <mass lower="0.1" upper="100" units="Solar masses" unitsInSI="1.9891e30" />
+  </imf>
   <stellarMassFunction>
     <redshift minimum="0.0" maximum="0.1" />
     <columns>
+      <number>
+	<description>Number of observed galaxies per bin</description>
+	<scaling>linear</scaling>
+	<datum>1040</datum>
+	<datum>1239</datum>
+	<datum>1397</datum>
+	<datum>1594</datum>
+	<datum>1874</datum>
+	<datum>2106</datum>
+	<datum>2465</datum>
+	<datum>2820</datum>
+	<datum>3434</datum>
+	<datum>3971</datum>
+	<datum>4667</datum>
+	<datum>5631</datum>
+	<datum>6601</datum>
+	<datum>8096</datum>
+	<datum>9341</datum>
+	<datum>10901</datum>
+	<datum>12177</datum>
+	<datum>13594</datum>
+	<datum>14172</datum>
+	<datum>14148</datum>
+	<datum>13361</datum>
+	<datum>11592</datum>
+	<datum>8682</datum>
+	<datum>5717</datum>
+	<datum>3119</datum>
+	<datum>1398</datum>
+	<datum>535</datum>
+	<datum>201</datum>
+	<datum>67</datum>
+	<datum>16</datum>
+	<datum>4</datum>
+      </number>
       <stellarMass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
@@ -162,6 +203,36 @@
   <stellarMassFunction>
     <redshift minimum="0.20" maximum="0.30" />
     <columns>
+      <number>
+	<description>Number of observed galaxies per bin</description>
+	<scaling>linear</scaling>
+	<datum>172</datum>
+	<datum>157</datum>
+	<datum>146</datum>
+	<datum>140</datum>
+	<datum>160</datum>
+	<datum>170</datum>
+	<datum>190</datum>
+	<datum>202</datum>
+	<datum>227</datum>
+	<datum>206</datum>
+	<datum>207</datum>
+	<datum>197</datum>
+	<datum>199</datum>
+	<datum>169</datum>
+	<datum>184</datum>
+	<datum>166</datum>
+	<datum>158</datum>
+	<datum>154</datum>
+	<datum>145</datum>
+	<datum>132</datum>
+	<datum>94</datum>
+	<datum>69</datum>
+	<datum>39</datum>
+	<datum>30</datum>
+	<datum>8</datum>
+	<datum>6</datum>
+      </number>
       <stellarMass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
@@ -287,12 +358,40 @@
 	<datum>0.100</datum>
 	<datum>0.400</datum>
 	<datum>0.300</datum>
-     </upperError>
+      </upperError>
     </columns>
   </stellarMassFunction>
   <stellarMassFunction>
     <redshift minimum="0.30" maximum="0.40" />
     <columns>
+      <number>
+	<description>Number of observed galaxies per bin</description>
+	<scaling>linear</scaling>
+	<datum>240</datum>
+	<datum>218</datum>
+	<datum>200</datum>
+	<datum>238</datum>
+	<datum>237</datum>
+	<datum>263</datum>
+	<datum>288</datum>
+	<datum>290</datum>
+	<datum>327</datum>
+	<datum>288</datum>
+	<datum>338</datum>
+	<datum>341</datum>
+	<datum>316</datum>
+	<datum>309</datum>
+	<datum>278</datum>
+	<datum>238</datum>
+	<datum>199</datum>
+	<datum>150</datum>
+	<datum>117</datum>
+	<datum>90</datum>
+	<datum>46</datum>
+	<datum>27</datum>
+	<datum>12</datum>
+	<datum>3</datum>
+      </number>
       <stellarMass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
@@ -416,6 +515,33 @@
   <stellarMassFunction>
     <redshift minimum="0.40" maximum="0.50" />
     <columns>
+      <number>
+	<description>Number of observed galaxies per bin</description>
+	<scaling>linear</scaling>
+	<datum>243</datum>
+	<datum>268</datum>
+	<datum>311</datum>
+	<datum>308</datum>
+	<datum>328</datum>
+	<datum>342</datum>
+	<datum>322</datum>
+	<datum>326</datum>
+	<datum>357</datum>
+	<datum>369</datum>
+	<datum>336</datum>
+	<datum>331</datum>
+	<datum>265</datum>
+	<datum>187</datum>
+	<datum>159</datum>
+	<datum>93</datum>
+	<datum>64</datum>
+	<datum>30</datum>
+	<datum>17</datum>
+	<datum>6</datum>
+	<datum>4</datum>
+	<datum>1</datum>
+	<datum>1</datum>
+      </number>
       <stellarMass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
@@ -535,6 +661,28 @@
   <stellarMassFunction>
     <redshift minimum="0.50" maximum="0.65" />
     <columns>
+      <number>
+	<description>Number of observed galaxies per bin</description>
+	<scaling>linear</scaling>
+	<datum>459</datum>
+	<datum>499</datum>
+	<datum>550</datum>
+	<datum>550</datum>
+	<datum>588</datum>
+	<datum>667</datum>
+	<datum>614</datum>
+	<datum>609</datum>
+	<datum>525</datum>
+	<datum>428</datum>
+	<datum>329</datum>
+	<datum>212</datum>
+	<datum>139</datum>
+	<datum>82</datum>
+	<datum>42</datum>
+	<datum>23</datum>
+	<datum>7</datum>
+	<datum>8</datum>
+      </number>
       <stellarMass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
@@ -634,6 +782,27 @@
   <stellarMassFunction>
     <redshift minimum="0.65" maximum="0.80" />
     <columns>
+      <number>
+	<description>Number of observed galaxies per bin</description>
+	<scaling>linear</scaling>
+	<datum>593</datum>
+	<datum>672</datum>
+	<datum>673</datum>
+	<datum>673</datum>
+	<datum>667</datum>
+	<datum>626</datum>
+	<datum>473</datum>
+	<datum>352</datum>
+	<datum>235</datum>
+	<datum>133</datum>
+	<datum>81</datum>
+	<datum>22</datum>
+	<datum>11</datum>
+	<datum>5</datum>
+	<datum>1</datum>
+	<datum>1</datum>
+	<datum>1</datum>
+      </number>
       <stellarMass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
@@ -729,6 +898,23 @@
   <stellarMassFunction>
     <redshift minimum="0.80" maximum="1.00" />
     <columns>
+      <number>
+	<description>Number of observed galaxies per bin</description>
+	<scaling>linear</scaling>
+	<datum>521</datum>
+	<datum>517</datum>
+	<datum>499</datum>
+	<datum>398</datum>
+	<datum>274</datum>
+	<datum>169</datum>
+	<datum>100</datum>
+	<datum>50</datum>
+	<datum>19</datum>
+	<datum>11</datum>
+	<datum>3</datum>
+	<datum>1</datum>
+	<datum>1</datum>
+      </number>
       <stellarMass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
