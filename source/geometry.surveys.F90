@@ -59,6 +59,16 @@ module Geometry_Surveys
   !#   <argument>integer         , intent(in   ), optional :: field</argument>
   !#   <code>volumeMaximum=self%solidAngle(field)*self%distanceMaximum(mass,field)**3/3.0d0</code>
   !#  </method>
+  !#  <method name="windowFunctionAvailable" >
+  !#   <description>Returns true if survey 3-D window functions are available.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="angularPowerAvailable" >
+  !#   <description>Returns true if angular power spectrum of survey window function is available.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
   !#  <method name="windowFunctions" >
   !#   <description>Returns the window functions on a grid of the specified size ({\tt gridCount} cells in each dimension) for galaxies of the specified {\tt mass1} and {\tt mass2} (in $M_\odot$). The {\tt boxLength} should be set to an appropriate value to fully enclose (with sufficient buffering to allow for Fourier transformation) the two window functions.</description>
   !#   <type>void</type>
@@ -68,7 +78,19 @@ module Geometry_Surveys
   !#   <argument>double precision                  , intent(  out)                                           :: boxLength</argument>
   !#   <argument>complex         (c_double_complex), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1, windowFunction2</argument>
   !#  </method>
-  include 'surveyGeometry.type.inc'
+  !#  <method name="angularPower" >
+  !#   <description>Return $C^{ij}_\ell$, where $(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}$, and $\Psi^i_{\ell m}$ are the cofficients of the spherical harmonic expansion of the $i^{\rm th}$ field.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ) :: i,j,l</argument>
+  !#  </method>
+  !#  <method name="angularPowerMaximumDegree" >
+  !#   <description>Return the maximum degree, $\ell_{\rm max}$, for which the angular power is available.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#   <code>angularPowerMaximumDegree=-1</code>
+  !#  </method>
+ include 'surveyGeometry.type.inc'
   !# </include>
 
 end module Geometry_Surveys

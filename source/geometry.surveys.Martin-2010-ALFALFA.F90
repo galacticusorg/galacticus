@@ -23,9 +23,12 @@
 
   type, extends(surveyGeometryClass) :: surveyGeometryMartin2010ALFALFA
    contains
-     procedure :: distanceMaximum => martin2010ALFALFADistanceMaximum
-     procedure :: solidAngle      => martin2010ALFALFASolidAngle
-     procedure :: windowFunctions => martin2010ALFALFAWindowFunctions
+     procedure :: windowFunctionAvailable => martin2010ALFALFAWindowFunctionAvailable
+     procedure :: angularPowerAvailable   => martin2010ALFALFAAngularPowerAvailable
+     procedure :: distanceMaximum         => martin2010ALFALFADistanceMaximum
+     procedure :: solidAngle              => martin2010ALFALFASolidAngle
+     procedure :: windowFunctions         => martin2010ALFALFAWindowFunctions
+     procedure :: angularPower            => martin2010ALFALFAAngularPower
   end type surveyGeometryMartin2010ALFALFA
 
   interface surveyGeometryMartin2010ALFALFA
@@ -46,6 +49,24 @@ contains
 
     return
   end function martin2010ALFALFADefaultConstructor
+
+  logical function martin2010ALFALFAWindowFunctionAvailable(self)
+    !% Return true to indicate that survey window function is available.
+    implicit none
+    class(surveyGeometryMartin2010ALFALFA), intent(inout) :: self
+
+    martin2010ALFALFAWindowFunctionAvailable=.true.
+    return
+  end function martin2010ALFALFAWindowFunctionAvailable
+
+  logical function martin2010ALFALFAAngularPowerAvailable(self)
+    !% Return false to indicate that survey angular power is not available.
+    implicit none
+    class(surveyGeometryMartin2010ALFALFA), intent(inout) :: self
+
+    martin2010ALFALFAAngularPowerAvailable=.false.
+    return
+  end function martin2010ALFALFAAngularPowerAvailable
 
   double precision function martin2010ALFALFADistanceMaximum(self,mass,field)
     !% Compute the maximum distance at which a galaxy is visible.
@@ -233,3 +254,14 @@ contains
     if (real(normalization) > 0.0d0) windowFunction2=windowFunction2/normalization
     return
   end subroutine martin2010ALFALFAWindowFunctions
+
+  double precision function martin2010ALFALFAAngularPower(self,i,j,l)
+    !% Angular power is not available, so simply aborts.
+    use Galacticus_Error
+    implicit none
+    class  (surveyGeometryMartin2010ALFALFA), intent(inout) :: self
+    integer                                 , intent(in   ) :: i   , j, l
+
+    call Galacticus_Error_Report('martin2010ALFALFAAngularPower','angular power is not available')
+    return
+  end function martin2010ALFALFAAngularPower

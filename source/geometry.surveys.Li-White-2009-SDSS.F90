@@ -23,9 +23,12 @@
 
   type, extends(surveyGeometryClass) :: surveyGeometryLiWhite2009SDSS
    contains
-     procedure :: distanceMaximum => liWhite2009SDSSDistanceMaximum
-     procedure :: solidAngle      => liWhite2009SDSSSolidAngle
-     procedure :: windowFunctions => liWhite2009SDSSWindowFunctions
+     procedure :: windowFunctionAvailable => liWhite2009SDSSWindowFunctionAvailable
+     procedure :: angularPowerAvailable   => liWhite2009SDSSAngularPowerAvailable
+     procedure :: distanceMaximum         => liWhite2009SDSSDistanceMaximum
+     procedure :: solidAngle              => liWhite2009SDSSSolidAngle
+     procedure :: windowFunctions         => liWhite2009SDSSWindowFunctions
+     procedure :: angularPower            => liWhite2009SDSSAngularPower
   end type surveyGeometryLiWhite2009SDSS
 
   interface surveyGeometryLiWhite2009SDSS
@@ -44,6 +47,24 @@ contains
     return
   end function liWhite2009SDSSDefaultConstructor
 
+  logical function liWhite2009SDSSWindowFunctionAvailable(self)
+    !% Return true to indicate that survey window function is available.
+    implicit none
+    class(surveyGeometryLiWhite2009SDSS), intent(inout) :: self
+
+    liWhite2009SDSSWindowFunctionAvailable=.true.
+    return
+  end function liWhite2009SDSSWindowFunctionAvailable
+
+  logical function liWhite2009SDSSAngularPowerAvailable(self)
+    !% Return false to indicate that survey angular power is not available.
+    implicit none
+    class(surveyGeometryLiWhite2009SDSS), intent(inout) :: self
+
+    liWhite2009SDSSAngularPowerAvailable=.false.
+    return
+  end function liWhite2009SDSSAngularPowerAvailable
+
   double precision function liWhite2009SDSSDistanceMaximum(self,mass,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Cosmology_Functions
@@ -56,6 +77,13 @@ contains
     class           (cosmologyFunctionsClass      ), pointer                 :: cosmologyFunctions_
     double precision                                                         :: redshift           , logarithmicMass
     
+!! AJB HACK
+type(surveyGeometryBernardi2013SDSS) :: b
+b=surveyGeometryBernardi2013SDSS()
+liWhite2009SDSSDistanceMaximum=b%distanceMaximum(mass,field)
+return
+
+
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('liWhite2009SDSSDistanceMaximum','field = 1 required')
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
@@ -156,10 +184,10 @@ contains
           call System_Command_Do("wget http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat -O "//Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")
           if (.not.File_Exists(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")) call Galacticus_Error_Report('liWhite2009SDSSWindowFunctions','unable to download SDSS survey geometry randoms file')
        end if
-       randomsCount=Count_Lines_In_File("lss_random-0.dr72.dat")
+       randomsCount=Count_Lines_In_File(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")
        call Alloc_Array(randomTheta,[randomsCount])
        call Alloc_Array(randomPhi  ,[randomsCount])
-       open(newUnit=randomUnit,file="lss_random-0.dr72.dat",status="old",form="formatted")
+       open(newUnit=randomUnit,file=char(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat"),status="old",form="formatted")
        j=0
        do i=1,randomsCount
           read (randomUnit,*) rightAscension,declination
@@ -223,7 +251,6 @@ contains
     call fftw_execute_dft(plan,selectionFunction1,windowFunction1)
     call fftw_execute_dft(plan,selectionFunction2,windowFunction2)
     call fftw_destroy_plan(plan)
-
     ! Normalize the window function.
     normalization=windowFunction1(1,1,1)
     if (real(normalization) > 0.0d0) windowFunction1=windowFunction1/normalization
@@ -232,3 +259,14 @@ contains
 
     return
   end subroutine liWhite2009SDSSWindowFunctions
+
+  double precision function liWhite2009SDSSAngularPower(self,i,j,l)
+    !% Angular power is not available, so simply aborts.
+    use Galacticus_Error
+    implicit none
+    class  (surveyGeometryLiWhite2009SDSS), intent(inout) :: self
+    integer                               , intent(in   ) :: i   , j, l
+
+    call Galacticus_Error_Report('liWhite2009SDSSAngularPower','angular power is not available')
+    return
+  end function liWhite2009SDSSAngularPower
