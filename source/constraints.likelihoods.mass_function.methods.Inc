@@ -213,7 +213,7 @@ contains
     type     (varying_string            )        :: message
     character(len=14                    )        :: label
 
-    time=timePrime
+    time                =timePrime
     integrationResetTime=.true.
     likelihoodMassFunctionTimeIntegrand= Integrate(                                            &
          &                                           self%logHaloMassMinimum                 , &
@@ -263,13 +263,14 @@ contains
     double precision        :: mass
 
     mass=10.0d0**logMass
-    likelihoodMassFunctionHaloMassIntegrand= Halo_Mass_Function_Differential(time,mass)                              &
-         &                                    *                                   mass                               &
-         &                                    *log(10.0d0)                                                           &
-         &                                    *(                                                                     &
-         &                                      +thisConditionalMassFunction%massFunction(mass,self%massMinimum(i))  &
-         &                                      -thisConditionalMassFunction%massFunction(mass,self%massMaximum(i))  &
-         &                                     )
+    likelihoodMassFunctionHaloMassIntegrand= Halo_Mass_Function_Differential(time,mass)                                 &
+         &                                    *                                   mass                                  &
+         &                                    *log(10.0d0)                                                              &
+         &                                    *max(                                                                     &
+         &                                         +0.0d0                                                             , &
+         &                                         +thisConditionalMassFunction%massFunction(mass,self%massMinimum(i))  &
+         &                                         -thisConditionalMassFunction%massFunction(mass,self%massMaximum(i))  &
+         &                                        )
     return
   end function likelihoodMassFunctionHaloMassIntegrand
     
