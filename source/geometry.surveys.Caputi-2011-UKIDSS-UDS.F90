@@ -24,10 +24,13 @@
   type, extends(surveyGeometryClass) :: surveyGeometryCaputi2011UKIDSSUDS
      double precision :: binDistanceMinimum, binDistanceMaximum
    contains
-     procedure :: distanceMaximum => caputi2011UKIDSSUDSDistanceMaximum
-     procedure :: volumeMaximum   => caputi2011UKIDSSUDSVolumeMaximum
-     procedure :: solidAngle      => caputi2011UKIDSSUDSSolidAngle
-     procedure :: windowFunctions => caputi2011UKIDSSUDSWindowFunctions
+     procedure :: windowFunctionAvailable => caputi2011UKIDSSUDSWindowFunctionAvailable
+     procedure :: angularPowerAvailable   => caputi2011UKIDSSUDSAngularPowerAvailable
+     procedure :: distanceMaximum         => caputi2011UKIDSSUDSDistanceMaximum
+     procedure :: volumeMaximum           => caputi2011UKIDSSUDSVolumeMaximum
+     procedure :: solidAngle              => caputi2011UKIDSSUDSSolidAngle
+     procedure :: windowFunctions         => caputi2011UKIDSSUDSWindowFunctions
+     procedure :: angularPower            => caputi2011UKIDSSUDSAngularPower
   end type surveyGeometryCaputi2011UKIDSSUDS
 
   interface surveyGeometryCaputi2011UKIDSSUDS
@@ -111,6 +114,24 @@ contains
          &                                                )
     return
   end function caputi2011UKIDSSUDSConstructor
+  
+  logical function caputi2011UKIDSSUDSWindowFunctionAvailable(self)
+    !% Return true to indicate that survey window function is available.
+    implicit none
+    class(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
+
+    caputi2011UKIDSSUDSWindowFunctionAvailable=.true.
+    return
+  end function caputi2011UKIDSSUDSWindowFunctionAvailable
+
+  logical function caputi2011UKIDSSUDSAngularPowerAvailable(self)
+    !% Return false to indicate that survey angular power is not available.
+    implicit none
+    class(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
+
+    caputi2011UKIDSSUDSAngularPowerAvailable=.false.
+    return
+  end function caputi2011UKIDSSUDSAngularPowerAvailable
 
   double precision function caputi2011UKIDSSUDSDistanceMaximum(self,mass,field)
     !% Compute the maximum distance at which a galaxy is visible.
@@ -296,3 +317,13 @@ contains
     return
   end subroutine caputi2011UKIDSSUDSWindowFunctions
 
+  double precision function caputi2011UKIDSSUDSAngularPower(self,i,j,l)
+    !% Angular power is not available, so simply aborts.
+    use Galacticus_Error
+    implicit none
+    class  (surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
+    integer                                   , intent(in   ) :: i   , j, l
+
+    call Galacticus_Error_Report('caputi2011UKIDSSUDSAngularPower','angular power is not available')
+    return
+  end function caputi2011UKIDSSUDSAngularPower
