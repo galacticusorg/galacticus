@@ -32,13 +32,12 @@ my $redshiftIndex;
 $redshiftIndex    = $ARGV[2]
     if ( scalar(@ARGV) == 3 );
 
+# Create an HDF5 file containing the observed mass function.
+&observedMassFunction($parameterFile,$configFile);
+
 # Read the parameter file for this covariance calculation.
 my $xml          = new XML::Simple;
 my $parameters   = $xml->XMLin($parameterFile);
-
-# Create an HDF5 file containing the observed mass function.
-unlink($parameters->{'parameter'}->{'massFunctionCovarianceOutputFileName'}->{'value'});
-&observedMassFunction($parameterFile,$configFile);
 
 # Compute the covariance matrix.
 system("cd ".$galacticusPath."; make Mass_Function_Covariance.exe");
@@ -96,6 +95,9 @@ sub observedMassFunction {
     my $parameters   = $xml->XMLin($parameterFile);
     my $config       = $xml->XMLin($configFile   );
 
+    # Remove the old covariance matrix file.
+    unlink($parameters->{'parameter'}->{'massFunctionCovarianceOutputFileName'}->{'value'});
+
     # Open the covariance HDF5 file.
     my $hdfFile      = new PDL::IO::HDF5(">".$parameters->{'parameter'}->{'massFunctionCovarianceOutputFileName'}->{'value'});
 
@@ -146,16 +148,33 @@ sub observedMassFunction {
 
     # Determine if completeness information is available.
     my $completeness;
-    if ( exists($columns->{'completeness'}->{'datum'}) ) {
-	$completeness = pdl @{$columns->{'completeness'}->{'datum'}};
-    } else {
-	$completeness = pdl ones(nelem($massFunction));
-    }
+    $completeness = pdl @{$columns->{'completeness'}->{'datum'}}
+        if ( exists($columns->{'completeness'}->{'datum'}) );
+    
+    # Determine if number information is available.
+    my $number;
+    $number = pdl @{$columns->{'number'}->{'datum'}}
+        if ( exists($columns->{'number'}->{'datum'}) );
 
     # Store the mass function to file.
     $hdfFile->dataset("massFunctionObserved")->set($massFunction);
     $hdfFile->dataset("massFunctionObserved")->attrSet(hubbleExponent => $columns->{'massFunction'}->{'hubbleExponent'});
-    $hdfFile->dataset("completenessObserved")->set($completeness);
+    $hdfFile->dataset("completenessObserved")->set($completeness)
+	if ( defined($completeness) );
+    $hdfFile->dataset("numberObserved"      )->set($number      )
+	if ( defined($number      ) );
+
+    # Update the mass bins in the parameter file.
+    $parameters->{'parameter'}->{'conditionalMassFunctionMassMinimum'}->{'value'} =  sclr($observedMass->(( 0)));
+    $parameters->{'parameter'}->{'conditionalMassFunctionMassMaximum'}->{'value'} =  sclr($observedMass->((-1)));
+    $parameters->{'parameter'}->{'conditionalMassFunctionMassCount'  }->{'value'} = nelem($observedMass        );
+    $parameters->{'parameter'}->{'massFunctionCovarianceMassMinimum' }->{'value'} =  sclr($observedMass->(( 0)));
+    $parameters->{'parameter'}->{'massFunctionCovarianceMassMaximum' }->{'value'} =  sclr($observedMass->((-1)));
+    $parameters->{'parameter'}->{'massFunctionCovarianceBinCount'    }->{'value'} = nelem($observedMass        );
+    my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
+    open(oHndl,">".$parameterFile);
+    print oHndl $xmlOutput->XMLout($parameters);
+    close(oHndl);
 
 }
 
