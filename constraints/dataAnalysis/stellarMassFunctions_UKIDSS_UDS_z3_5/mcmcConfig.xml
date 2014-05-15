@@ -82,7 +82,7 @@
   <parameters>
     <parameter>
       <name>alphaSatellite</name>
-      <prior>
+      <prior> <!-- Prior from Kravtsov et al. (2004) -->
 	<distribution>
 	  <type>normal</type>
 	  <mean>0.98</mean>
