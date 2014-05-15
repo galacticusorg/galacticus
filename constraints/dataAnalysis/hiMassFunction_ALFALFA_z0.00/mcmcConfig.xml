@@ -72,7 +72,7 @@
   <simulation>
     <type>differentialEvolution</type>
     <stepsMaximum>1000000</stepsMaximum>
-    <stepsPostConvergence>50000</stepsPostConvergence>
+    <stepsPostConvergence>10000</stepsPostConvergence>
     <acceptanceAverageCount>100</acceptanceAverageCount>
     <stateSwapCount>10</stateSwapCount>
     <logFileRoot>./chains</logFileRoot>
@@ -103,8 +103,8 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>11.2</minimum>
-	  <maximum>11.8</maximum>
+	  <minimum>10.0</minimum>
+	  <maximum>14.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -121,8 +121,8 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>9.1</minimum>
-	  <maximum>9.7</maximum>
+	  <minimum>9.0</minimum>
+	  <maximum>13.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -139,8 +139,8 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>0.3</minimum>
-	  <maximum>0.7</maximum>
+	  <minimum>0.0</minimum>
+	  <maximum>1.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -157,8 +157,8 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>0.35</minimum>
-	  <maximum>0.75</maximum>
+	  <minimum>0.0</minimum>
+	  <maximum>4.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -175,8 +175,8 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>0.1</minimum>
-	  <maximum>1.5</maximum>
+	  <minimum>0.0</minimum>
+	  <maximum>4.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -193,12 +193,12 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>0.02</minimum>
-	  <maximum>0.30</maximum>
+	  <minimum>0.01</minimum>
+	  <maximum>2.00</maximum>
 	</distribution>
       </prior>
       <mapping>
-	<type>linear</type>
+	<type>logarithmic</type>
       </mapping>
       <random>
 	<type>Cauchy</type>
@@ -229,7 +229,7 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>0.1</minimum>
+	  <minimum>0.0</minimum>
 	  <maximum>20.0</maximum>
 	</distribution>
       </prior>
@@ -247,7 +247,7 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>-4.0</minimum>
+	  <minimum>-6.0</minimum>
 	  <maximum>+0.0</maximum>
 	</distribution>
       </prior>
@@ -266,7 +266,7 @@
 	<distribution>
 	  <type>uniform</type>
 	  <minimum>0.0</minimum>
-	  <maximum>2.0</maximum>
+	  <maximum>4.0</maximum>
 	</distribution>
       </prior>
       <mapping>
