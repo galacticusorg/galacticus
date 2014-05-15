@@ -72,7 +72,7 @@
   <simulation>
     <type>differentialEvolution</type>
     <stepsMaximum>1000000</stepsMaximum>
-    <stepsPostConvergence>50000</stepsPostConvergence>
+    <stepsPostConvergence>10000</stepsPostConvergence>
     <acceptanceAverageCount>100</acceptanceAverageCount>
     <stateSwapCount>10</stateSwapCount>
     <logFileRoot>./chains</logFileRoot>
@@ -198,7 +198,7 @@
 	</distribution>
       </prior>
       <mapping>
-	<type>linear</type>
+	<type>logarithmic</type>
       </mapping>
       <random>
 	<type>Cauchy</type>

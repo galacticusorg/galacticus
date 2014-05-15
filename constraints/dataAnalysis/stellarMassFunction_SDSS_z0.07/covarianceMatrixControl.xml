@@ -32,4 +32,8 @@
     <maximum>0.5</maximum>
   </redshift>
 
+  <!-- Thread control -->
+  <nodeCount>1</nodeCount>
+  <threadsPerNode>12</threadsPerNode>
+
 </constrain>
