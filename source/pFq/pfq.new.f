@@ -84,6 +84,7 @@ C
 	COMMON/IO/NOUT
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION DNUM,PRECIS,ARGI,ARGR,DIFF
+      !$omp threadprivate(/CONSTS/,/IO/)
       
 	NOUT=6
       IF (Z .EQ. CMPLX(ZERO,ZERO)) THEN
@@ -262,7 +263,8 @@ C     ****************************************************************
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
 	COMMON/IO/NOUT
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
-      
+      !$omp threadprivate(/CONSTS/,/IO/)
+  
       zero=0.0d0
       LOG2=LOG10(TWO)
       IBIT=INT(BITS())                                                       
@@ -659,6 +661,7 @@ C     ****************************************************************
       INTEGER EDIFF,I,J                                                 
       DIMENSION A(-1:*),B(-1:*),C(-1:*),Z(-1:*)                 
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
+      !$omp threadprivate(/CONSTS/)
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
       
       DO 10 I=0,L+1                                                    
@@ -863,6 +866,7 @@ C     ****************************************************************
       DIMENSION A(-1:*),B(-1:*),C(-1:*),WK1(-1:*),WK2(-1:*)
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
+      !$omp threadprivate(/CONSTS/)
       
       DO 10 I=-1,L+1                                                   
          WK2(I)=B(I)                                                      
@@ -895,7 +899,8 @@ C     ****************************************************************
       INTEGER I                                                         
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
-      
+      !$omp threadprivate(/CONSTS/)
+
       Z(-1)=SIGN(ONE,B)*A(-1)                                        
       B2=ABS(B)                                                        
       Z(L+1)=A(L+1)                                                     
@@ -1056,6 +1061,7 @@ C     ****************************************************************
       DIMENSION AE(2,2),BE(2,2),CE(2,2)                                 
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
+      !$omp threadprivate(/CONSTS/)
       
       REXP=IBIT/2                                                        
       X=REXP*(AR(L+1)-2)                                                
@@ -1151,7 +1157,8 @@ C     ****************************************************************
       DOUBLE PRECISION N1,E1,N2,E2,NF,EF
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
-      
+      !$omp threadprivate(/CONSTS/)
+     
       NF=N1*N2                                                          
       EF=E1+E2                                                          
       IF (ABS(NF) .GE. TEN) THEN                                    
@@ -1179,7 +1186,8 @@ C     ****************************************************************
       DOUBLE PRECISION N1,E1,N2,E2,NF,EF
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
-      
+      !$omp threadprivate(/CONSTS/)
+ 
       NF=N1/N2                                                          
       EF=E1-E2                                                          
       IF ((ABS(NF) .LT. ONE) .AND. (NF .NE. ZERO)) THEN             
@@ -1207,6 +1215,7 @@ C     ****************************************************************
       DOUBLE PRECISION N1,E1,N2,E2,NF,EF,EDIFF
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
+      !$omp threadprivate(/CONSTS/)
       
       EDIFF=E1-E2                                                       
       IF (EDIFF .GT. 36.0D0) THEN                                       
@@ -1247,6 +1256,7 @@ C     ****************************************************************
       DOUBLE PRECISION N1,E1,N2,E2,NF,EF
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
+      !$omp threadprivate(/CONSTS/)
       
       CALL EADD(N1,E1,N2*(-ONE),E2,NF,EF)                             
       RETURN                                                            
@@ -1272,7 +1282,8 @@ C     ****************************************************************
       DIMENSION CAE(2,2)                                                
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
-      
+      !$omp threadprivate(/CONSTS/)
+     
       CAE(1,1)=DBLE(CN)                                                
       CAE(1,2)=ZERO                                                    
  10   IF (ABS(CAE(1,1)) .LT. TEN) GOTO 20
@@ -1319,6 +1330,7 @@ C     ****************************************************************
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
 	COMMON/IO/NOUT
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
+      !$omp threadprivate(/CONSTS/,/IO/)
 *     
 *     TENMAX - MAXIMUM SIZE OF EXPONENT OF 10
 *     
@@ -1397,6 +1409,7 @@ C     ****************************************************************
       DIMENSION A(2,2),B(2,2),C(2,2),B2(2,2),C2(2,2)                    
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
+      !$omp threadprivate(/CONSTS/)
       
       B2(1,1)=B(1,1)                                                    
       B2(1,2)=B(1,2)                                                    
@@ -1430,6 +1443,7 @@ C     ****************************************************************
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION EXPON,XL,XTERM,XMAX
       DIMENSION A(IP),B(IQ)
+      !$omp threadprivate(/CONSTS/,/IO/)
 *     
       XTERM=0
       DO 10 J=1,100000
@@ -1471,6 +1485,7 @@ C     ****************************************************************
       DOUBLE PRECISION PI
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
+      !$omp threadprivate(/CONSTS/)
 C     
       IF (((DBLE(Z) .EQ. ONE) .AND. (DIMAG(Z) .EQ. ZERO))
      :     .OR. (ABS(Z) .EQ. ZERO)) THEN
@@ -1507,6 +1522,7 @@ C     ****************************************************************
       DOUBLE PRECISION TENTH
       COMMON/CONSTS/ZERO,HALF,ONE,TWO,TEN,EPS
 	COMMON/IO/NOUT
+      !$omp threadprivate(/CONSTS/,/IO/)
       DIMENSION FN(7),FD(7)
 *     
 *----------------------------------------------------------------------*
@@ -1745,4 +1761,5 @@ C
       DOUBLE PRECISION ZERO,HALF,ONE,TWO,TEN,EPS
       DATA ZERO,HALF,ONE,TWO,TEN,EPS/0.0D0,0.5D0,1.0D0,2.0D0,
      :     10.0D0,1.0D-10/
+      !$omp threadprivate(/CONSTS/)
       END
