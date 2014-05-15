@@ -155,7 +155,7 @@ if ( exists($arguments{'range'}) ) {
     } 
 }
 
-# Extract only entries within a given range if necessary.
+# Extract only converged entries and entries within a given range if necessary.
 my $kdeFileName = $workDirectory."/tmp.kde";
 my @outlierChains;
 @outlierChains = split(/,/,$arguments{'outliers'})
@@ -179,6 +179,8 @@ for(my $iChain=0; -e $fileRoot."_".sprintf("%4.4d",$iChain).".log";++$iChain) {
 	$lineCopy =~ s/\s*$//;
 	my @columns = split(/\s+/,$lineCopy);
 	my $include = 1;
+	$include = 0
+	    if ( $columns[3] eq "F" );
 	if ( exists($arguments{'range'}) ) {
 	    foreach my $range ( @{$arguments{'range'}} ) {
 		$include = 0
