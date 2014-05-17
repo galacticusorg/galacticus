@@ -416,16 +416,20 @@ contains
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                              :: haloAngularMomentaIncludeSubhalosInteger
+    logical                                              :: attributeExists
 
     if (.not.self%angularMomentaAreInclusive%isSet) then
        !$omp critical(HDF5_Access)
-       if (self%haloTrees%hasAttribute("haloAngularMomentaIncludeSubhalos")) then
+       attributeExists=self%haloTrees%hasAttribute("haloAngularMomentaIncludeSubhalos")
+       !$omp end critical(HDF5_Access)
+       if (attributeExists) then
+          !$omp critical(HDF5_Access)
           call self%haloTrees%readAttribute("haloAngularMomentaIncludeSubhalos",haloAngularMomentaIncludeSubhalosInteger,allowPseudoScalar=.true.)
+          !$omp end critical(HDF5_Access)
           self%angularMomentaAreInclusive%value=(haloAngularMomentaIncludeSubhalosInteger == 1)
        else
           self%angularMomentaAreInclusive%value=self%massesIncludeSubhalos()
        end if
-       !$omp end critical(HDF5_Access)
        self%angularMomentaAreInclusive%isSet=.true.
     end if
     galacticusAngularMomentaIncludeSubhalos=self%angularMomentaAreInclusive%value
