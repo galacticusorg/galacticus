@@ -28,7 +28,7 @@ program Mass_Function_Covariance
   use Numerical_Constants_Astronomical
   implicit none
   integer                             , parameter                   :: fileNameLengthMaximum=1024
-  double precision                    , allocatable, dimension(:  ) :: mass,massFunction,massFunctionObserved, completenessObserved
+  double precision                    , allocatable, dimension(:  ) :: mass,massFunction,massFunctionObserved, completenessObserved,numberObserved
   double precision                    , allocatable, dimension(:,:) :: covariance,covariancePoisson,covarianceHalo,covarianceLSS&
        &,correlation
   logical                                                           :: massFunctionCovarianceIncludePoisson,massFunctionCovarianceIncludeHalo,massFunctionCovarianceIncludeLSS
@@ -167,10 +167,11 @@ program Mass_Function_Covariance
   ! Read the observed mass function if available.
   if (outputFile%hasDataset("massFunctionObserved")) call outputFile%readDataset("massFunctionObserved",massFunctionObserved)
   if (outputFile%hasDataset("completenessObserved")) call outputFile%readDataset("completenessObserved",completenessObserved)
+  if (outputFile%hasDataset("numberObserved"      )) call outputFile%readDataset("numberObserved"      ,numberObserved      )
 
   ! Compute the covariance matrix.
   call Mass_Function_Covariance_Matrix(massFunctionCovarianceRedshiftMinimum,massFunctionCovarianceRedshiftMaximum&
-       &,massFunctionCovarianceBinCount ,massFunctionCovarianceMassMinimum,massFunctionCovarianceMassMaximum,massFunctionObserved,completenessObserved&
+       &,massFunctionCovarianceBinCount ,massFunctionCovarianceMassMinimum,massFunctionCovarianceMassMaximum,massFunctionObserved,completenessObserved,numberObserved&
        & ,massFunctionCovarianceIncludePoisson ,massFunctionCovarianceIncludeHalo,massFunctionCovarianceIncludeLSS,mass &
        &,massFunction,covariance,covariancePoisson ,covarianceHalo,covarianceLSS,correlation)
 
