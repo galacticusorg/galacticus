@@ -402,7 +402,15 @@ In this file the {\tt y} elements should give the values of the model result, wh
 
 In general, for constraints corresponding to mass functions (whether stellar mass or HI mass), the covariance matrix of the observational data is determined using the analytic model of \cite{smith_how_2012}. This requires knowledge of both the survey geometry (angular mask and radial extent as a function of mass) and of the \gls{hod} of the observed galaxies.
 
-Details of the survey geometry and depth are given for each individual constraints. Computing the large-scale structure contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier transform of the survey window function. We use the method of \cite{peacock_non-linear_1996} to determine the non-linear matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter power spectrum (e.g. \citealt{lawrence_coyote_2010}) makes negligible difference to our results.
+Details of the survey geometry and depth are given for each individual constraints. Computing the large-scale structure contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier transform of the survey window function. We use the method of \cite{peacock_non-linear_1996} to determine the non-linear matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter power spectrum (e.g. \citealt{lawrence_coyote_2010}) makes negligible difference to our results. If the angular power spectrum of the survey mask is available\footnote{Typically if the survey geometry is defined by \protect\gls{mangle} polygons, allowing the angular power spectrum to be found using the \protect\gls{mangle} {\tt harmonize} utility.}, this is used to compute the relation
+\begin{equation}
+  \sigma^2(M_\mu,M_\nu) = {2 \over \pi V_\mu V_\nu}\int_0^\infty {\rm d} k\, k^{-4} P(k) \sum_i \sum_j \sum_{\ell=0}^\infty (2\ell+1) C^{ij}_\ell R^i_{\ell}(kr_{\mu 0},kr_{\mu 1}) R^j_{\ell}(kr_{\nu 0},kr_{\nu 1}),
+\end{equation}
+where $(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}$, $\Psi^i_{\ell m}$ are the spherical harmonic coefficients of the $i^{\rm th}$ field of the survey, $V$ is the maximum distance to which a galaxy of mass $M$ can be seen, $P(k)$ is the nonlinear power spectrum and
+\begin{equation}
+ R_{\ell}(x_0,x_1) \equiv \int_{x_0}^{x_1} x^2 j_\ell(x) {\rm d}x = \sqrt{\pi} 2^{-2-\ell} \Gamma\left({1\over 2}[3+\ell]\right) \left[ x^{3+\ell} \tensor*[_1]{\stackrel{\sim}{F}}{_2} \left({1\over 2}[3+\ell]; \ell+{3\over 2},{1\over 2}(5+\ell);-{x^2\over 4}\right)\right]_{x_0}^{x_1},
+\end{equation}
+where $\tensor*[_1]{\stackrel{\sim}{F}}{_2}$ is the regularized generalized hypergeometric function. In other cases, where the angular power spectrum is not available, the survey geometry is realized on a grid which is when Fourier transformed to obtain the appropriate window function.
 
 To find a suitable \gls{hod} to describe the observed galaxies we adopt the model of \cite{behroozi_comprehensive_2010}. This is an 11 parameter model which describes separately the numbers of satellite and central galaxies occupying a halo of given mass---the reader is referred to \cite{behroozi_comprehensive_2010} for a complete description of the functional form of this parametric \gls{hod}. An \gls{mcmc} approach is used to to constrain the \gls{hod} parameters to fit the observational data. We use a likelihood
 \begin{equation}
@@ -510,7 +518,7 @@ where $x(M) = (n \sqrt{mu} - f M)/(\mu+fM)^{1/2}$. Given $f(M_{\rm 50})=0.5$ and
 
 \subsubsection{Bernardi et al. (2013) SDSS Stellar Mass Function}\label{sec:AnalysisBernardiSDSSStellarMassFunction}
 
-This constraint utilizes the stellar mass mass function for $z\approx 0.07$ galaxies measured by \cite{bernardi_massive_2013} from the SDSS survey. The mass function, and its covariance matrix ${\bf C}_{\rm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+This constraint utilizes the stellar mass function for $z\approx 0.07$ galaxies measured by \cite{bernardi_massive_2013} from the SDSS survey. The mass function, and its covariance matrix ${\bf C}_{\rm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
 
 The covariance matrix is computed as
 \begin{equation}
@@ -524,7 +532,25 @@ The model likelihood is then computed using:
 \end{equation}
 where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
-When computing the Poisson term in the covariance matrix, the number of galaxies per bin is determined ???????????. The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryBernardi2013SDSS}.
+When computing the Poisson term in the covariance matrix, the number of galaxies per bin is determined directly from the mass function, assuming a 91\% completeness\footnote{7\% arising from fiber collisions, 2\% from failures in the Pymorph pipeline (M.~Bernardi, private communication).}. The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryBernardi2013SDSS}.
+
+\subsubsection{Moustakas et al. (2013) PRIMUS Stellar Mass Functions}\label{sec:AnalysisMoustakasPRIMUSSStellarMassFunctions}
+
+This constraint utilizes the stellar mass functions for $z\approx 0.2$ to $z\approx 1$ galaxies measured by \cite{moustakas_primus:_2013} from the PRIMUS survey. The mass functions, and their covariance matrices ${\bf C}_{\rm model}$, are calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+
+The covariance matrix is computed as
+\begin{equation}
+ {\bf C} = {\bf C}_{\rm obs} + {\bf C}_{\rm model,random} + \sum_i {\bf C}_{{\rm discrepancy}, i},
+\end{equation}
+where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${\bf C}_{\rm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\bf C}_{{\rm discrepancy}, i}$ is the covariance due to the $i^{\rm th}$ model discrepancy.
+
+The model likelihood is then computed using:
+\begin{equation}
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\bf C}|}} \exp\left[ -{1\over 2} \Delta {\bf C}^{-1} \Delta \right],
+\end{equation}
+where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+
+When computing the Poisson term in the covariance matrix, the number of galaxies per bin is taken directly from \cite{moustakas_primus:_2013}. The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryMoustakas2013PRIMUS}.
 
 \subsubsection{Martin et al. (2010) ALFALFA HI Mass Function}\label{sec:AnalysisALFALFAHIMassFunction}
 
