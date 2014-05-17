@@ -46,6 +46,10 @@
 	  <value>false</value>
 	</parameter>
 	<parameter>
+	  <name>mergerTreeReadPresetSubhaloIndices</name>
+	  <value>false</value>
+	</parameter>
+	<parameter>
 	  <name>mergerTreeReadPresetPositions</name>
 	  <value>false</value>
 	</parameter>

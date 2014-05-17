@@ -187,6 +187,10 @@
 	<name>mergerTreeReadPresetSubhaloMasses</name>
 	<value>false</value>
       </parameter>
+      <parameter>
+	<name>mergerTreeReadPresetSubhaloIndices</name>
+	<value>false</value>
+      </parameter>
       </value>
     </parameter>
     <parameter>
