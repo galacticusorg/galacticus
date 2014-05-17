@@ -51,7 +51,7 @@ my @fields =
 # Create a plot.
 my $plot;
 my $gnuPlot;
-my $plotFile = "redshifts.pdf";
+my $plotFile = "constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/massRedshiftRelation.pdf";
 (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
 open($gnuPlot,"|gnuplot");
 print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
