@@ -749,12 +749,14 @@ contains
              if (.not.defaultImporter%angularMomentaAvailable()) call Galacticus_Error_Report('Merger_Tree_Read_Do','scaling parent angular momentum for subhalo masses requires angular momenta availability')
              do iNode=1,size(nodes)
                 if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) then
-                   nodes        (iNode)%angularMomentum   &
-                        & =nodes(iNode)%angularMomentum   &
-                        & /nodes(iNode)%nodeMass
-                   nodes        (iNode)%angularMomentum3D &
-                        & =nodes(iNode)%angularMomentum3D &
-                        & /nodes(iNode)%nodeMass
+                   if (mergerTreeReadPresetSpins  )            &
+                        & nodes      (iNode)%angularMomentum   &
+                        &      =nodes(iNode)%angularMomentum   &
+                        &      /nodes(iNode)%nodeMass
+                   if (mergerTreeReadPresetSpins3D)            &
+                        & nodes      (iNode)%angularMomentum3D &
+                        &      =nodes(iNode)%angularMomentum3D &
+                        &      /nodes(iNode)%nodeMass
                 end if
              end do
           end if
@@ -768,18 +770,30 @@ contains
           if (.not.defaultImporter%angularMomentaIncludeSubhalos().and.mergerTreeReadSubhaloAngularMomentaMethod == mergerTreeReadSubhaloAngularMomentaScale) then
              do iNode=1,size(nodes)
                 if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) then
-                   nodes        (iNode)%angularMomentum   &
-                        & =nodes(iNode)%angularMomentum   &
-                        & *nodes(iNode)%nodeMass
+                   if (mergerTreeReadPresetSpins)              &
+                        & nodes      (iNode)%angularMomentum   &
+                        &      =nodes(iNode)%angularMomentum   &
+                        &      *nodes(iNode)%nodeMass
                    
-                   nodes        (iNode)%angularMomentum3D &
-                        & =nodes(iNode)%angularMomentum3D &
-                        & *nodes(iNode)%nodeMass
+                   if (mergerTreeReadPresetSpins3D)            & 
+                        & nodes      (iNode)%angularMomentum3D &
+                        &      =nodes(iNode)%angularMomentum3D &
+                        &      *nodes(iNode)%nodeMass
                    
                 end if
              end do
           end if
-          if (.not.defaultImporter%angularMomentaIncludeSubhalos().and.mergerTreeReadSubhaloAngularMomentaMethod == mergerTreeReadSubhaloAngularMomentaSummation) then
+          if     (                                                                                           &
+               &  (                                                                                          &
+               &    mergerTreeReadPresetSpins3D                                                              &
+               &   .or.                                                                                      &
+               &    mergerTreeReadPresetSpins                                                                &
+               &  )                                                                                          &
+               &  .and.                                                                                      &
+               &   .not.defaultImporter%angularMomentaIncludeSubhalos()                                      &
+               &  .and.                                                                                      &
+               &   mergerTreeReadSubhaloAngularMomentaMethod == mergerTreeReadSubhaloAngularMomentaSummation &
+               & ) then
              ! This method requires 3D angular momenta to be available.
              if (.not.defaultImporter%angularMomenta3DAvailable()) &
                   & call Galacticus_Error_Report(                                                                                                      &
@@ -805,7 +819,7 @@ contains
              end do
              ! Update scalar angular momenta.
              do iNode=1,size(nodes)
-                if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) &
+               if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) &
                      & nodes(iNode)%angularMomentum=Vector_Magnitude(nodes(iNode)%angularMomentum3D)
              end do
              ! Update scalar angular momenta.
