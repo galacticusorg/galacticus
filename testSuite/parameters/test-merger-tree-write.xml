@@ -30,6 +30,10 @@
 	  <value>testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5</value>
 	</parameter>
 	<parameter>
+	  <name>mergerTreeReadPresetSubhaloIndices</name>
+	  <value>false</value>
+	</parameter>
+	<parameter>
 	  <name>mergerTreeReadPresetOrbits</name>
 	  <value>false</value>
 	</parameter>
