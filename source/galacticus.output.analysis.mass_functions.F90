@@ -37,20 +37,23 @@ module Galacticus_Output_Analyses_Mass_Functions
   logical                                                   :: analysisActive
 
   ! Number of supported mass functions.
-  integer          , parameter                              :: massFunctionsSupportedCount=9
+  integer          , parameter                              :: massFunctionsSupportedCount=12
 
   ! Labels for supported mass functions.
-  character(len=32), dimension(massFunctionsSupportedCount) :: massFunctionLabels= &
-       & [                                                                         &
-       &  'sdssStellarMassFunctionZ0.07   ',                                       &
-       &  'alfalfaHiMassFunctionZ0.00     ',                                       &
-       &  'primusStellarMassFunctionZ0.100',                                       &
-       &  'primusStellarMassFunctionZ0.250',                                       &
-       &  'primusStellarMassFunctionZ0.350',                                       &
-       &  'primusStellarMassFunctionZ0.450',                                       &
-       &  'primusStellarMassFunctionZ0.575',                                       &
-       &  'primusStellarMassFunctionZ0.725',                                       &
-       &  'primusStellarMassFunctionZ0.900'                                        &
+  character(len=35), dimension(massFunctionsSupportedCount) :: massFunctionLabels=    &
+       & [                                                                            &
+       &  'sdssStellarMassFunctionZ0.07      ',                                       &
+       &  'alfalfaHiMassFunctionZ0.00        ',                                       &
+       &  'primusStellarMassFunctionZ0.100   ',                                       &
+       &  'primusStellarMassFunctionZ0.250   ',                                       &
+       &  'primusStellarMassFunctionZ0.350   ',                                       &
+       &  'primusStellarMassFunctionZ0.450   ',                                       &
+       &  'primusStellarMassFunctionZ0.575   ',                                       &
+       &  'primusStellarMassFunctionZ0.725   ',                                       &
+       &  'primusStellarMassFunctionZ0.900   ',                                       &
+       &  'ukidssUdsStellarMassFunctionZ3.250',                                       &
+       &  'ukidssUdsStellarMassFunctionZ3.875',                                       &
+       &  'ukidssUdsStellarMassFunctionZ4.625'                                        &
        & ]
 
   ! Interface for mass mapping functions.
@@ -80,123 +83,162 @@ module Galacticus_Output_Analyses_Mass_Functions
      double precision                      :: massLogarithmicMinimum
      integer                               :: systematicCoefficientCount
      integer                               :: massType
-     character       (len= 32   )          :: label
+     character       (len= 35   )          :: label
      character       (len=128   )          :: comment
      procedure       (Map_Mass  ), pointer :: mapMass
   end type massFunctionDescriptor
 
   ! Mass function descriptors.
-  type(massFunctionDescriptor), dimension(massFunctionsSupportedCount), target :: massFunctionDescriptors=    &
-       & [ &
-       &                           massFunctionDescriptor(                                                    &
-       &                                                   0.07d00                                   ,        &
-       &                                                  11.300d0                                   ,        &
-       &                                                   0.070d0                                   ,        &
-       &                                                   null()                                    ,        &
-       &                                                   6.500d0                                   ,        &
-       &                                                   2                                         ,        &
-       &                                                   massTypeStellar                           ,        &
-       &                                                   'sdssStellarMassFunctionZ0.07'            ,        &
-       &                                                   'SDSS stellar mass function at z=0.07'    ,        &
-       &                                                   null()                                             &
-       &                                                 )                                                  , &
-       ! ALFALFA survey. Note that HI/total gas mass fraction must be taken into account by the systematic errors model.
-       &                           massFunctionDescriptor(                                                    &
-       &                                                   0.000d0                                   ,        &
-       &                                                   9.000d0                                   ,        &
-       &                                                   0.000d0                                   ,        &
-       &                                                   null()                                    ,        &
-       &                                                   4.500d0                                   ,        &
-       &                                                   0                                         ,        &
-       &                                                   massTypeGaseous                           ,        &
-       &                                                   'alfalfaHiMassFunctionZ0.00'              ,        &
-       &                                                   'ALFALFA HI mass function at z=0.00'      ,        &
-       &                                                   null()                                             &
-       &                                                 )                                           ,        &
-       &                           massFunctionDescriptor(                                                    &
-       &                                                   0.100d0                                   ,        &
-       &                                                  11.300d0                                   ,        &
-       &                                                   0.070d0                                   ,        &
-       &                                                   null()                                    ,        &
-       &                                                   6.500d0                                   ,        &
-       &                                                   2                                         ,        &
-       &                                                   massTypeStellar                           ,        &
-       &                                                   'primusStellarMassFunctionZ0.100'         ,        &
-       &                                                   'PRMIUS stellar mass function at z=0.100' ,        &
-       &                                                   null()                                             &
-       &                                                 )                                                  , &
-       &                           massFunctionDescriptor(                                                    &
-       &                                                   0.250d0                                   ,        &
-       &                                                  11.300d0                                   ,        &
-       &                                                   0.070d0                                   ,        &
-       &                                                   null()                                    ,        &
-       &                                                   6.500d0                                   ,        &
-       &                                                   2                                         ,        &
-       &                                                   massTypeStellar                           ,        &
-       &                                                   'primusStellarMassFunctionZ0.250'         ,        &
-       &                                                   'PRMIUS stellar mass function at z=0.250' ,        &
-       &                                                   null()                                             &
-       &                                                 )                                                  , &
-       &                           massFunctionDescriptor(                                                    &
-       &                                                   0.350d0                                   ,        &
-       &                                                  11.300d0                                   ,        &
-       &                                                   0.070d0                                   ,        &
-       &                                                   null()                                    ,        &
-       &                                                   6.500d0                                   ,        &
-       &                                                   2                                         ,        &
-       &                                                   massTypeStellar                           ,        &
-       &                                                   'primusStellarMassFunctionZ0.350'         ,        &
-       &                                                   'PRMIUS stellar mass function at z=0.350' ,        &
-       &                                                   null()                                             &
-       &                                                 )                                                  , &
-       &                           massFunctionDescriptor(                                                    &
-       &                                                   0.450d0                                   ,        &
-       &                                                  11.300d0                                   ,        &
-       &                                                   0.070d0                                   ,        &
-       &                                                   null()                                    ,        &
-       &                                                   6.500d0                                   ,        &
-       &                                                   2                                         ,        &
-       &                                                   massTypeStellar                           ,        &
-       &                                                   'primusStellarMassFunctionZ0.450'         ,        &
-       &                                                   'PRMIUS stellar mass function at z=0.450' ,        &
-       &                                                   null()                                             &
-       &                                                 )                                                  , &
-       &                           massFunctionDescriptor(                                                    &
-       &                                                   0.575d0                                   ,        &
-       &                                                  11.300d0                                   ,        &
-       &                                                   0.070d0                                   ,        &
-       &                                                   null()                                    ,        &
-       &                                                   6.500d0                                   ,        &
-       &                                                   2                                         ,        &
-       &                                                   massTypeStellar                           ,        &
-       &                                                   'primusStellarMassFunctionZ0.575'         ,        &
-       &                                                   'PRMIUS stellar mass function at z=0.575' ,        &
-       &                                                   null()                                             &
-       &                                                 )                                                  , &
-       &                           massFunctionDescriptor(                                                    &
-       &                                                   0.725d0                                   ,        &
-       &                                                  11.300d0                                   ,        &
-       &                                                   0.070d0                                   ,        &
-       &                                                   null()                                    ,        &
-       &                                                   6.500d0                                   ,        &
-       &                                                   2                                         ,        &
-       &                                                   massTypeStellar                           ,        &
-       &                                                   'primusStellarMassFunctionZ0.725'         ,        &
-       &                                                   'PRMIUS stellar mass function at z=0.725' ,        &
-       &                                                   null()                                             &
-       &                                                 )                                                  , &
-       &                           massFunctionDescriptor(                                                    &
-       &                                                   0.90d0                                    ,        &
-       &                                                  11.30d0                                    ,        &
-       &                                                   0.07d0                                    ,        &
-       &                                                   null()                                    ,        &
-       &                                                   6.50d0                                    ,        &
-       &                                                   2                                         ,        &
-       &                                                   massTypeStellar                           ,        &
-       &                                                   'primusStellarMassFunctionZ0.900'         ,        &
-       &                                                   'PRMIUS stellar mass function at z=0.900' ,        &
-       &                                                   null()                                             &
-       &                                                 )                                                    &
+  type(massFunctionDescriptor), dimension(massFunctionsSupportedCount), target :: massFunctionDescriptors=     &
+       & [                                                                                                     &
+                                ! SDSS survey, Li & White measurement.
+       &                           massFunctionDescriptor(                                                     &
+       &                                                   0.07d00                                    ,        &
+       &                                                  11.300d0                                    ,        &
+       &                                                   0.070d0                                    ,        &
+       &                                                   null()                                     ,        &
+       &                                                   6.500d0                                    ,        &
+       &                                                   2                                          ,        &
+       &                                                   massTypeStellar                            ,        &
+       &                                                   'sdssStellarMassFunctionZ0.07'             ,        &
+       &                                                   'SDSS stellar mass function at z=0.07'     ,        &
+       &                                                   null()                                              &
+       &                                                 )                                                   , &
+                                ! ALFALFA survey. Note that HI/total gas mass fraction must be taken into account by the systematic errors model.
+       &                           massFunctionDescriptor(                                                     &
+       &                                                   0.000d0                                    ,        &
+       &                                                   9.000d0                                    ,        &
+       &                                                   0.000d0                                    ,        &
+       &                                                   null()                                     ,        &
+       &                                                   4.500d0                                    ,        &
+       &                                                   1                                          ,        &
+       &                                                   massTypeGaseous                            ,        &
+       &                                                   'alfalfaHiMassFunctionZ0.00'               ,        &
+       &                                                   'ALFALFA HI mass function at z=0.00'       ,        &
+       &                                                   null()                                              &
+       &                                                 )                                            ,        &
+                                ! PRIMUS survey .
+       &                           massFunctionDescriptor(                                                     &
+       &                                                   0.100d0                                    ,        &
+       &                                                  11.300d0                                    ,        &
+       &                                                   0.070d0                                    ,        &
+       &                                                   null()                                     ,        &
+       &                                                   6.500d0                                    ,        &
+       &                                                   2                                          ,        &
+       &                                                   massTypeStellar                            ,        &
+       &                                                   'primusStellarMassFunctionZ0.100'          ,        &
+       &                                                   'PRMIUS stellar mass function at z=0.100'  ,        &
+       &                                                   null()                                              &
+       &                                                 )                                                   , &
+       &                           massFunctionDescriptor(                                                     &
+       &                                                   0.250d0                                    ,        &
+       &                                                  11.300d0                                    ,        &
+       &                                                   0.070d0                                    ,        &
+       &                                                   null()                                     ,        &
+       &                                                   6.500d0                                    ,        &
+       &                                                   2                                          ,        &
+       &                                                   massTypeStellar                            ,        &
+       &                                                   'primusStellarMassFunctionZ0.250'          ,        &
+       &                                                   'PRMIUS stellar mass function at z=0.250'  ,        &
+       &                                                   null()                                              &
+       &                                                 )                                                   , &
+       &                           massFunctionDescriptor(                                                     &
+       &                                                   0.350d0                                    ,        &
+       &                                                  11.300d0                                    ,        &
+       &                                                   0.070d0                                    ,        &
+       &                                                   null()                                     ,        &
+       &                                                   6.500d0                                    ,        &
+       &                                                   2                                          ,        &
+       &                                                   massTypeStellar                            ,        &
+       &                                                   'primusStellarMassFunctionZ0.350'          ,        &
+       &                                                   'PRMIUS stellar mass function at z=0.350'  ,        &
+       &                                                   null()                                              &
+       &                                                 )                                                   , &
+       &                           massFunctionDescriptor(                                                     &
+       &                                                   0.450d0                                    ,        &
+       &                                                  11.300d0                                    ,        &
+       &                                                   0.070d0                                    ,        &
+       &                                                   null()                                     ,        &
+       &                                                   6.500d0                                    ,        &
+       &                                                   2                                          ,        &
+       &                                                   massTypeStellar                            ,        &
+       &                                                   'primusStellarMassFunctionZ0.450'          ,        &
+       &                                                   'PRMIUS stellar mass function at z=0.450'  ,        &
+       &                                                   null()                                              &
+       &                                                 )                                                   , &
+       &                           massFunctionDescriptor(                                                     &
+       &                                                   0.575d0                                    ,        &
+       &                                                  11.300d0                                    ,        &
+       &                                                   0.070d0                                    ,        &
+       &                                                   null()                                     ,        &
+       &                                                   6.500d0                                    ,        &
+       &                                                   2                                          ,        &
+       &                                                   massTypeStellar                            ,        &
+       &                                                   'primusStellarMassFunctionZ0.575'          ,        &
+       &                                                   'PRMIUS stellar mass function at z=0.575'  ,        &
+       &                                                   null()                                              &
+       &                                                 )                                                   , &
+       &                           massFunctionDescriptor(                                                     &
+       &                                                   0.725d0                                    ,        &
+       &                                                  11.300d0                                    ,        &
+       &                                                   0.070d0                                    ,        &
+       &                                                   null()                                     ,        &
+       &                                                   6.500d0                                    ,        &
+       &                                                   2                                          ,        &
+       &                                                   massTypeStellar                            ,        &
+       &                                                   'primusStellarMassFunctionZ0.725'          ,        &
+       &                                                   'PRMIUS stellar mass function at z=0.725'  ,        &
+       &                                                   null()                                              &
+       &                                                 )                                                   , &
+       &                           massFunctionDescriptor(                                                     &
+       &                                                   0.90d0                                     ,        &
+       &                                                  11.30d0                                     ,        &
+       &                                                   0.07d0                                     ,        &
+       &                                                   null()                                     ,        &
+       &                                                   6.50d0                                     ,        &
+       &                                                   2                                          ,        &
+       &                                                   massTypeStellar                            ,        &
+       &                                                   'primusStellarMassFunctionZ0.900'          ,        &
+       &                                                   'PRMIUS stellar mass function at z=0.900'  ,        &
+       &                                                   null()                                              &
+       &                                                 )                                                   , &
+                                ! UKISS UDS survey. Random error is estimated by constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massErrors.pl
+       &                           massFunctionDescriptor(                                                     &
+       &                                                   3.250d0                                    ,        &
+       &                                                  11.300d0                                    ,        &
+       &                                                   0.173d0                                    ,        &
+       &                                                   null()                                     ,        &
+       &                                                   6.500d0                                    ,        &
+       &                                                   2                                          ,        &
+       &                                                   massTypeStellar                            ,        &
+       &                                                   'ukidssUdsStellarMassFunctionZ3.25'        ,        &
+       &                                                   'UKSS UDS stellar mass function at z=3.25' ,        &
+       &                                                   null()                                              &
+       &                                                 )                                                   , &
+       &                           massFunctionDescriptor(                                                     &
+       &                                                   3.875d0                                    ,        &
+       &                                                  11.300d0                                    ,        &
+       &                                                   0.173d0                                    ,        &
+       &                                                   null()                                     ,        &
+       &                                                   6.500d0                                    ,        &
+       &                                                   2                                          ,        &
+       &                                                   massTypeStellar                            ,        &
+       &                                                   'ukidssUdsStellarMassFunctionZ3.875'       ,        &
+       &                                                   'UKSS UDS stellar mass function at z=3.875',        &
+       &                                                   null()                                              &
+       &                                                 )                                                   , &
+       &                           massFunctionDescriptor(                                                     &
+       &                                                   4.625d0                                    ,        &
+       &                                                  11.300d0                                    ,        &
+       &                                                   0.173d0                                    ,        &
+       &                                                   null()                                     ,        &
+       &                                                   6.500d0                                    ,        &
+       &                                                   2                                          ,        &
+       &                                                   massTypeStellar                            ,        &
+       &                                                   'ukidssUdsStellarMassFunctionZ4.625'       ,        &
+       &                                                   'UKSS UDS stellar mass function at z=4.625',        &
+       &                                                   null()                                              &
+       &                                                 )                                                     &
        & ]
 
   ! Type to store mass functions.
@@ -249,8 +291,12 @@ module Galacticus_Output_Analyses_Mass_Functions
   logical                     :: alfalfaHiMassFunctionZ0_00Initialized=.false.
 
   ! Parameters for individual mass functions.
-  double precision            :: alfalfaHiMassFunctionZ0_00ConversionError              , alfalfaHiMassFunctionZ0_00MolecularFractionMu  , &
-       &                         alfalfaHiMassFunctionZ0_00MolecularFractionKappa
+  double precision            :: alfalfaHiMassFunctionZ0_00MolecularFractionK           , alfalfaHiMassFunctionZ0_00ErrorA               , &
+       &                         alfalfaHiMassFunctionZ0_00ErrorB                       , alfalfaHiMassFunctionZ0_00ErrorC               , &
+       &                         alfalfaHiMassFunctionZ0_00MolecularFractionfSigma      , alfalfaHiMassFunctionZ0_00MolecularFractionA1  , &
+       &                         alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1      , alfalfaHiMassFunctionZ0_00MolecularFractionA2  , &
+       &                         alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2      , alfalfaHiMassFunctionZ0_00MolecularFractionBeta, &
+       &                         alfalfaHiMassFunctionZ0_00MolecularFractionScatter
 
 contains
 
@@ -392,6 +438,16 @@ contains
                          do k=1,massFunctionDescriptors(j)%systematicCoefficientCount
                             parameterName=trim(massFunctionLabels(j))//'MassSystematic'
                             parameterName=parameterName//(k-1)
+                            !@ <inputParameter>
+                            !@   <regEx>(sdssStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|ukidssUdsStellarMassFunction)Z[0-9\.]+MassSystematic[0-9]+</regEx>
+                            !@   <defaultValue>0</defaultValue>
+                            !@   <attachedTo>module</attachedTo>
+                            !@   <description>
+                            !@     Mass function systematic parameters.
+                            !@   </description>
+                            !@   <type>real</type>
+                            !@   <cardinality>1</cardinality>
+                            !@ </inputParameter>
                             call Get_Input_Parameter(char(parameterName),massFunctions(currentAnalysis)%systematicCoefficients(k),defaultValue=0.0d0)
                          end do
                       end if
@@ -525,20 +581,26 @@ contains
                                massFunctions(currentAnalysis)%massesLogarithmicMaximum(k)=                                                   +0.5d0*(massFunctions(currentAnalysis)%massesLogarithmic(k+1)+massFunctions(currentAnalysis)%massesLogarithmic(k  ))
                             end if
                          end do
-                      case ('primusStellarMassFunctionZ0.100')
+                      case ('primusStellarMassFunctionZ0.100'   )
                          call Load_PRIMUS_Mass_Function(0,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
-                      case ('primusStellarMassFunctionZ0.250')
+                      case ('primusStellarMassFunctionZ0.250'   )
                          call Load_PRIMUS_Mass_Function(1,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
-                      case ('primusStellarMassFunctionZ0.350')
+                      case ('primusStellarMassFunctionZ0.350'   )
                          call Load_PRIMUS_Mass_Function(2,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
-                      case ('primusStellarMassFunctionZ0.450')
+                      case ('primusStellarMassFunctionZ0.450'   )
                          call Load_PRIMUS_Mass_Function(3,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
-                      case ('primusStellarMassFunctionZ0.575')
+                      case ('primusStellarMassFunctionZ0.575'   )
                          call Load_PRIMUS_Mass_Function(4,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
-                      case ('primusStellarMassFunctionZ0.725')
+                      case ('primusStellarMassFunctionZ0.725'   )
                          call Load_PRIMUS_Mass_Function(5,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
-                      case ('primusStellarMassFunctionZ0.900')
+                      case ('primusStellarMassFunctionZ0.900'   )
                          call Load_PRIMUS_Mass_Function(6,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('ukidssUdsStellarMassFunctionZ3.250')
+                         call Load_UKIDSS_Mass_Function(0,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('ukidssUdsStellarMassFunctionZ3.875')
+                         call Load_UKIDSS_Mass_Function(1,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('ukidssUdsStellarMassFunctionZ4.625')
+                         call Load_UKIDSS_Mass_Function(2,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case default
                          call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Functions','unknown mass function')
                       end select
@@ -606,7 +668,7 @@ contains
           haloMassBin=floor((log10(thisBasic%mass())-analysisMassFunctionsHaloMassMinimumLogarithmic)*analysisMassFunctionsHaloMassIntervalLogarithmicInverse)+1
           ! Accumulate weights to halo mass arrays.
           if (haloMassBin >= 1 .and. haloMassBin <= analysisMassFunctionsHaloMassBinsCount) then
-            !$omp critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
+             !$omp critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
              massFunctions        (i)%mainBranchGalaxyWeights       (:,haloMassBin)= &
                   &  massFunctions(i)%mainBranchGalaxyWeights       (:,haloMassBin)  &
                   &  +thisGalaxy  (i)%massFunction
@@ -635,7 +697,7 @@ contains
   !#  <unitName>Galacticus_Output_Analysis_Mass_Functions_Output</unitName>
   !# </hdfPreCloseTask>
   subroutine Galacticus_Output_Analysis_Mass_Functions_Output
-    !% Outputs SDSS $z\approx 0.07$ stellar mass function to file.
+    !% Outputs galaxy mass functions to file.
     use Galacticus_HDF5
     use Numerical_Constants_Astronomical
     implicit none
@@ -730,45 +792,139 @@ contains
     if (.not.alfalfaHiMassFunctionZ0_00Initialized) then
        !$omp critical(alfalfaHiMassFunctionZ0_00Initialized)
        if (.not.alfalfaHiMassFunctionZ0_00Initialized) then
-          ! Read the error controlling random errors.
-          !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00ConversionError</name>
-          !@   <defaultValue>0.4</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The random error (in dex) to be added to galaxy HI masses when constructing the ALFALFA HI mass function. This error accounts for
-          !@    scatter in the H$_2$/HI mass ratio at fixed total gas mass.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00ConversionError',alfalfaHiMassFunctionZ0_00ConversionError,defaultValue=0.4d0)
           ! Read parameters controlling H2/HI mass ratio calculation.
           !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionMu</name>
-          !@   <defaultValue>0.9</defaultValue>
+          !@   <name>alfalfaHiMassFunctionZ0.00ErrorA</name>
+          !@   <defaultValue>0.1</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The parameter, $\mu$, appearing in the model for the H$_2$/HI mass ratio used when constructing the ALFALFA HI mass function. Specifically, $\log_{10}R_{\rm mol} = \mu + \kappa \log_{10}(M_{\rm gas}/10^9M_\odot)$.
+          !@    The parameter, $a$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\rm obs} = a + \exp\left(-{\log_{10}(M_{\rm HI}/M_\odot)-b\over c}\right)$.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>
           !@   <group>output</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionMu',alfalfaHiMassFunctionZ0_00MolecularFractionMu,defaultValue=0.9d0)
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00ErrorA',alfalfaHiMassFunctionZ0_00ErrorA,defaultValue=0.1d0)
           !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionKappa</name>
-          !@   <defaultValue>1.3</defaultValue>
+          !@   <name>alfalfaHiMassFunctionZ0.00ErrorB</name>
+          !@   <defaultValue>5.885</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The parameter, $\kappa$, appearing in the model for the H$_2$/HI mass ratio used when constructing the ALFALFA HI mass function. Specifically, $\log_{10}R_{\rm mol} = \mu + \kappa \log_{10}(M_{\rm gas}/10^9M_\odot)$.
+          !@    The parameter, $b$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\rm obs} = a + \exp\left(-{\log_{10}(M_{\rm HI}/M_\odot)-b\over c}\right)$.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>
           !@   <group>output</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionKappa',alfalfaHiMassFunctionZ0_00MolecularFractionKappa,defaultValue=1.3d0)
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00ErrorB',alfalfaHiMassFunctionZ0_00ErrorB,defaultValue=5.885d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00ErrorC</name>
+          !@   <defaultValue>0.505</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $c$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\rm obs} = a + \exp\left(-{\log_{10}(M_{\rm HI}/M_\odot)-b\over c}\right)$.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00ErrorC',alfalfaHiMassFunctionZ0_00ErrorC,defaultValue=0.505d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionK</name>
+          !@   <defaultValue>11.3 m$^4$ kg$^{-2}$ \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $K$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionK',alfalfaHiMassFunctionZ0_00MolecularFractionK,defaultValue=11.3d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionfSigma</name>
+          !@   <defaultValue>0.4 \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $\langle f_\sigma \rangle$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionfSigma',alfalfaHiMassFunctionZ0_00MolecularFractionfSigma,defaultValue=0.4d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionA1</name>
+          !@   <defaultValue>3.44 \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $A_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionA1',alfalfaHiMassFunctionZ0_00MolecularFractionA1,defaultValue=3.44d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionA2</name>
+          !@   <defaultValue>4.82 \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $A_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionA2',alfalfaHiMassFunctionZ0_00MolecularFractionA2,defaultValue=4.82d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1</name>
+          !@   <defaultValue>$-0.506$ \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $\alpha_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1',alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1,defaultValue=-0.506d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2</name>
+          !@   <defaultValue>$-1.054$ \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $\alpha_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2',alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2,defaultValue=-1.054d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionBeta</name>
+          !@   <defaultValue>$0.8$ \citep{obreschkow_simulation_2009}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $\beta$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionBeta',alfalfaHiMassFunctionZ0_00MolecularFractionBeta,defaultValue=0.8d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionScatter</name>
+          !@   <defaultValue>$0.4$~dex (Obsreschkow, private communication)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The scatter in the molecular ratio $\log_{10}R_{\rm mol}$ of \cite{obreschkow_simulation_2009} compared to observational data.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionScatter',alfalfaHiMassFunctionZ0_00MolecularFractionScatter,defaultValue=0.4d0)
           ! Record that the function is now initialized.
           alfalfaHiMassFunctionZ0_00Initialized=.true.
        end if
@@ -782,40 +938,95 @@ contains
     !% constraints/dataAnalysis/hiMassFunction\_ALFALFA\_z0.00/alfalfaHIMassErrorModel.pl} for details.
     double precision          , intent(in   )          :: mass
     type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , parameter              :: a=0.100d0, b=5.885d0, &
-         &                                                c=0.505d0
-    double precision                                   :: logarithmicMass
+    double precision                                   :: logarithmicMass, molecularFraction, &
+         &                                                molecularRatio
 
     ! Initialize the mass function.
     call ALFALFA_HI_Mass_Function_Z0_00_Initialize()
     ! Get the logarithmic mass.
-    logarithmicMass                          =log10(mass)
+    logarithmicMass=log10(mass)
     ! Compute the random error on the mass.
-    Mass_Error_ALFALFA_HI_Mass_Function_Z0_00=                 &
-         & sqrt(                                               &
-         &       (a+exp(-(max(logarithmicMass,6.0d0)-b)/c))**2 &
-         &      +alfalfaHiMassFunctionZ0_00ConversionError **2 &
-         &     )
+    Mass_Error_ALFALFA_HI_Mass_Function_Z0_00              &
+         &        =alfalfaHiMassFunctionZ0_00ErrorA        &
+         &        +exp(                                    &
+         &             -(                                  &
+         &               +max(logarithmicMass,6.0d0)       &
+         &               -alfalfaHiMassFunctionZ0_00ErrorB &
+         &              )                                  &
+         &             /alfalfaHiMassFunctionZ0_00ErrorC   &
+         &            )
+    ! Add in quadrature a term accounting for the scatter in the molecular ratio model.
+    molecularRatio=Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+    Mass_Error_ALFALFA_HI_Mass_Function_Z0_00                             &
+         & =sqrt(                                                         &
+         &       +Mass_Error_ALFALFA_HI_Mass_Function_Z0_00           **2 &
+         &       +(                                                       &
+         &         +alfalfaHiMassFunctionZ0_00MolecularFractionScatter    &
+         &         *molecularFraction                                     &
+         &         /(                                                     &
+         &           +1.0                                                 &
+         &           +molecularFraction                                   &
+         &          )                                                     &
+         &        )                                                   **2 &
+         &      )
     return
   end function Mass_Error_ALFALFA_HI_Mass_Function_Z0_00
 
   double precision function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
-    !% Maps gas masses into HI masses for the ALFALFA survey analysis. Assumes a constant gas to HI mass conversion factor of        
-    !% $0.54$ \citep{power_redshift_2010}.      
+    !% Maps gas masses into HI masses for the ALFALFA survey analysis.
     use Numerical_Constants_Astronomical
     implicit none                                                                                 
     double precision          , intent(in   )          :: mass
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision                                   :: molecularRatio
 
-    ! Initialize the mass function.
-    call ALFALFA_HI_Mass_Function_Z0_00_Initialize()
-    ! Get the molecular to atomic mass ratio (H2/HI).
-    molecularRatio=max(alfalfaHiMassFunctionZ0_00MolecularFractionMu+alfalfaHiMassFunctionZ0_00MolecularFractionKappa*log10(mass/1.0d9),0.0d0)
     ! Compute the HI mass.
+    molecularRatio=Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
     Map_Mass_ALFALFA_HI_Mass_Function_Z0_00=hydrogenByMassPrimordial*mass/(1.0d0+molecularRatio)
     return
   end function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
+
+  double precision function Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+    !% Compute the molecular ratio, $R_{\rm mol}=M_{\rm H_2}/M_{\rm HI}$ for the ALFALFA survey analysis. Assumes the model of
+    !% \cite{obreschkow_simulation_2009}.
+    use Numerical_Constants_Astronomical
+    implicit none
+    double precision                   , intent(in   )          :: mass
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk)               , pointer :: thisDisk
+    double precision                                            :: massStellar, molecularRatioCentral, &
+         &                                                         diskRadius
+
+    ! Initialize the mass function.
+    call ALFALFA_HI_Mass_Function_Z0_00_Initialize()
+    ! Get disk properties.
+    thisDisk    => thisNode%disk       ()
+    massStellar =  thisDisk%massStellar()
+    diskRadius  =  thisDisk%radius     ()
+    ! Get the molecular to atomic mass ratio (H2/HI).
+    molecularRatioCentral                                         &
+         & =(                                                     &
+         &   massSolar  **2                                       &
+         &   /megaParsec**4                                       &
+         &   *alfalfaHiMassFunctionZ0_00MolecularFractionK        &
+         &   *mass                                                &
+         &   *(                                                   &
+         &     +mass                                              &
+         &     +alfalfaHiMassFunctionZ0_00MolecularFractionfSigma &
+         &     *massStellar                                       &
+         &    )                                                   &
+         &   /diskRadius**4                                       &
+         &  )**alfalfaHiMassFunctionZ0_00MolecularFractionBeta
+    Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00                                      &
+         & = 1.0d0                                                                      &
+         &  /(                                                                          &
+         &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA1     &
+         &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1 &
+         &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA2     &
+         &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2 &
+         &   )
+    return
+  end function Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00
 
   subroutine Load_PRIMUS_Mass_Function(massFunctionIndex,thisMassFunction,cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
     !% Load the specified mass function from the PRIMUS stellar mass function dataset.
@@ -907,5 +1118,95 @@ contains
     end do
     return
   end subroutine Load_PRIMUS_Mass_Function
+
+  subroutine Load_UKIDSS_Mass_Function(massFunctionIndex,thisMassFunction,cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+    !% Load the specified mass function from the UKDSS UDS stellar mass function dataset.
+    use ISO_Varying_String
+    use Galacticus_Error
+    use Cosmology_Functions
+    use Cosmology_Parameters
+    use Galacticus_Input_Paths
+    use Memory_Management
+    use IO_HDF5
+    implicit none
+    integer                                         , intent(in   ) :: massFunctionIndex
+    type            (massFunction                  ), intent(inout) :: thisMassFunction
+    type            (cosmologyFunctionsMatterLambda), intent(inout) :: cosmologyFunctionsObserved
+    type            (cosmologyParametersSimple     ), intent(inout) :: cosmologyParametersObserved
+    type            (varying_string                ), intent(  out) :: cosmologyScalingMass       , cosmologyScalingMassFunction
+    type            (varying_string                )                :: massFunctionFileName
+    type            (hdf5Object                    )                :: dataFile                   , massDataset                 , &
+         &                                                             parameters
+    double precision                                                :: dataHubbleParameter        , dataOmegaMatter             , &
+         &                                                             dataOmegaDarkEnergy
+    integer                                                         :: k
+
+    ! Select the appropriate file.
+    select case (massFunctionIndex)
+    case (0)
+       massFunctionFileName="Stellar_Mass_Function_UKIDSS_UDS_2011_z3.0_3.5.hdf5"
+    case (1)
+       massFunctionFileName="Stellar_Mass_Function_UKIDSS_UDS_2011_z3.5_4.25.hdf5"
+    case (2)
+       massFunctionFileName="Stellar_Mass_Function_UKIDSS_UDS_2011_z4.25_5.0.hdf5"
+    case default
+       call Galacticus_Error_Report('Load_UKIDSS_Mass_Function','index out of range')
+    end select
+    !$omp critical(HDF5_Access)
+    call dataFile%openFile(char(Galacticus_Input_Path()//'/data/observations/massFunctionsStellar/'//massFunctionFileName),readOnly=.true.)
+    call dataFile   %readDataset  ('mass'          ,thisMassFunction%masses)
+    massDataset=dataFile%openDataset('mass'        )
+    call massDataset%readAttribute('cosmologyScaling',cosmologyScalingMass               ,allowPseudoScalar=.true.)
+    call massDataset%close()
+    massDataset=dataFile%openDataset('massFunction')
+    call massDataset%readAttribute('cosmologyScaling',cosmologyScalingMassFunction       ,allowPseudoScalar=.true.)
+    call massDataset%close()
+    parameters =dataFile%openGroup  ('Parameters'  )
+    parameters =dataFile%openGroup  ('Parameters'  )
+    call parameters %readAttribute('H_0'             ,dataHubbleParameter                                         )
+    call parameters %readAttribute('Omega_Matter'    ,dataOmegaMatter                                             )
+    call parameters %readAttribute('Omega_DE'        ,dataOmegaDarkEnergy                                         )
+    call parameters %close()
+    call dataFile   %close()
+    !$omp end critical(HDF5_Access)
+    ! Create the observed cosmology.
+    cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
+         &                                                     OmegaMatter    =dataOmegaMatter    , &
+         &                                                     OmegaDarkEnergy=dataOmegaDarkEnergy, &
+         &                                                     HubbleConstant =dataHubbleParameter, &
+         &                                                     temperatureCMB =0.0d0              , &
+         &                                                     OmegaBaryon    =0.0d0                &
+         &                                                    )
+    cosmologyFunctionsObserved =cosmologyFunctionsMatterLambda(                                     &
+         &                                                     cosmologyParametersObserved          &
+         &                                                    )
+    ! Construct mass function array.
+    thisMassFunction%massesCount=size(thisMassFunction%masses)
+    call Alloc_Array(thisMassFunction%massesLogarithmic             ,[thisMassFunction%massesCount                                       ])
+    call Alloc_Array(thisMassFunction%massesLogarithmicMinimum      ,[thisMassFunction%massesCount                                       ])
+    call Alloc_Array(thisMassFunction%massesLogarithmicMaximum      ,[thisMassFunction%massesCount                                       ])
+    call Alloc_Array(thisMassFunction%massFunction                  ,[thisMassFunction%massesCount                                       ])
+    call Alloc_Array(thisMassFunction%massFunctionCovariance        ,[thisMassFunction%massesCount,thisMassFunction%massesCount          ])
+    call Alloc_Array(thisMassFunction%mainBranchGalaxyWeights       ,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount])
+    call Alloc_Array(thisMassFunction%mainBranchGalaxyWeightsSquared,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount])
+    thisMassFunction%massesLogarithmic             =log10(thisMassFunction%masses)
+    thisMassFunction%massFunction                  =0.0d0
+    thisMassFunction%massFunctionCovariance        =0.0d0
+    thisMassFunction%mainBranchGalaxyWeights       =0.0d0
+    thisMassFunction%mainBranchGalaxyWeightsSquared=0.0d0
+    do k=1,thisMassFunction%massesCount
+       if (k ==                            1) then
+          thisMassFunction%massesLogarithmicMinimum(k)=thisMassFunction%massesLogarithmic(k)-0.5d0*(thisMassFunction%massesLogarithmic(k+1)-thisMassFunction%massesLogarithmic(k  ))
+       else
+          thisMassFunction%massesLogarithmicMinimum(k)=                                     +0.5d0*(thisMassFunction%massesLogarithmic(k-1)+thisMassFunction%massesLogarithmic(k  ))
+       end if
+       if (k == thisMassFunction%massesCount) then
+          thisMassFunction%massesLogarithmicMaximum(k)=thisMassFunction%massesLogarithmic(k)+0.5d0*(thisMassFunction%massesLogarithmic(k  )-thisMassFunction%massesLogarithmic(k-1))
+       else
+          thisMassFunction%massesLogarithmicMaximum(k)=                                     +0.5d0*(thisMassFunction%massesLogarithmic(k+1)+thisMassFunction%massesLogarithmic(k  ))
+       end if
+    end do
+    return
+  end subroutine Load_UKIDSS_Mass_Function
 
 end module Galacticus_Output_Analyses_Mass_Functions
