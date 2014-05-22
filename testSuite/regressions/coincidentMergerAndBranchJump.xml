@@ -152,6 +152,10 @@
     <value>false</value>
   </parameter>
   <parameter>
+    <name>mergerTreeReadPresetSpins</name>
+    <value>false</value>
+  </parameter>
+  <parameter>
     <name>mergerTreeReadPresetOrbits</name>
     <value>false</value>
   </parameter>
