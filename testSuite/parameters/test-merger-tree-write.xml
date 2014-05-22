@@ -120,6 +120,10 @@
 	  <value>false</value>
 	</parameter>
 	<parameter>
+	  <name>mergerTreeReadPresetSubhaloIndices</name>
+	  <value>false</value>
+	</parameter>
+	<parameter>
 	  <name>mergerTreeReadPresetMergerNodes</name>
 	  <value>false</value>
 	</parameter>

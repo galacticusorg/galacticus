@@ -156,6 +156,10 @@
     <value>false</value>
   </parameter>
   <parameter>
+    <name>mergerTreeReadPresetSpins</name>
+    <value>false</value>
+  </parameter>
+  <parameter>
     <name>mergerTreeReadPresetMergerTimes</name>
     <value>true</value>
   </parameter>
