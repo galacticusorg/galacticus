@@ -888,7 +888,6 @@ contains
     class           (cosmologyFunctionsClass     ), pointer                                    :: cosmologyFunctionsDefault
     integer         (kind=HSIZE_T                )                            , dimension(1  ) :: firstNodeIndex           , nodeCount
     integer         (kind=kind_int8              )                                             :: iNode
-    double precision                                             , allocatable, dimension(  :) :: angularMomentum          , spin
     double precision                                             , allocatable, dimension(:,:) :: angularMomentum3D        , position             , &
          &                                                                                        velocity                 , spin3D
     logical                                                                                    :: timesAreInternal
@@ -964,18 +963,13 @@ contains
     if (present(requireAngularMomenta).and.requireAngularMomenta) then
        if (self%angularMomentaIsVector) then
           call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
-       ! Transfer to nodes.
-       forall(iNode=1:nodeCount(1))
+          ! Transfer to nodes.
+          forall(iNode=1:nodeCount(1))
              nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum3D(:,iNode))
           end forall
           call Dealloc_Array(angularMomentum3D)
        else if (self%angularMomentaIsScalar) then
-          call self%haloTrees%readDataset("angularMomentum",angularMomentum,[firstNodeIndex(1)],[nodeCount(1)])
-          ! Transfer to nodes.
-          forall(iNode=1:nodeCount(1))
-             nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum(iNode))
-       end forall
-       call Dealloc_Array(angularMomentum)
+          call self%haloTrees%readDatasetStatic("angularMomentum",nodes%angularMomentum,[firstNodeIndex(1)],[nodeCount(1)])
        else
           call Galacticus_Error_Report("galacticusImport","scalar angular momentum is not available")
        end if
@@ -983,6 +977,11 @@ contains
     if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
        if (.not.self%angularMomentaIsVector) call Galacticus_Error_Report("galacticusImport","vector angular momentum is not available")
        call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+       ! Transfer to nodes.
+       forall(iNode=1:nodeCount(1))
+          nodes(iNode)%angularMomentum3D=angularMomentum3D(:,iNode)
+       end forall
+       call Dealloc_Array(angularMomentum3D)
     end if
     ! Halo spins.
     if (present(requireSpin).and.requireSpin) then
@@ -994,12 +993,7 @@ contains
           end forall
           call Dealloc_Array(spin3D)
        else if (self%spinIsScalar) then
-          call self%haloTrees%readDataset("spin",spin,[firstNodeIndex(1)],[nodeCount(1)])
-          ! Transfer to nodes.
-          forall(iNode=1:nodeCount(1))
-             nodes(iNode)%spin=Vector_Magnitude(spin(iNode))
-          end forall
-          call Dealloc_Array(spin)
+          call self%haloTrees%readDatasetStatic("spin",nodes%spin,[firstNodeIndex(1)],[nodeCount(1)])
        else
           call Galacticus_Error_Report("galacticusImport","scalar spin is not available")
        end if
@@ -1007,6 +1001,11 @@ contains
     if (present(requireSpin3D).and.requireSpin3D) then
        if (.not.self%spinIsVector) call Galacticus_Error_Report("galacticusImport","vector spin is not available")
        call self%haloTrees%readDataset("spin",spin3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+       ! Transfer to nodes.
+       forall(iNode=1:nodeCount(1))
+          nodes(iNode)%spin3D=spin3D(:,iNode)
+       end forall
+       call Dealloc_Array(spin3D)
     end if
     select type (nodes)
     type is (nodeDataGalacticus)
