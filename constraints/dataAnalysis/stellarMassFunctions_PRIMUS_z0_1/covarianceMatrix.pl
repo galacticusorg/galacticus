@@ -10,17 +10,17 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
 }
 unshift(@INC,$galacticusPath."perl"); 
 
-# Find the maximum likelihood estimate of the covariance matrix for the Caputi et al. (2011) UKIDSS UDS stellar mass functions.
-# Andrew Benson (05-July-2012)
+# Find the maximum likelihood estimate of the covariance matrix for the Moustakas et al. (2013) PRIMUS stellar mass functions.
+# Andrew Benson (18-May-2014)
 
 # Get the argument specifying which redshift bin to use.
 die("Usage: covarianceMatrix.pl <redshiftBin>")
     unless ( scalar(@ARGV) == 1 );
 my $redshiftBin = $ARGV[0];
-die("covarianceMatrix.pl: redshiftBin must be 0, 1, or 2")
-    if ( $redshiftBin < 0 || $redshiftBin > 2 );
+die("covarianceMatrix.pl: redshiftBin must be 0, 1, 3, 4, 5 or 6")
+    if ( $redshiftBin < 0 || $redshiftBin > 6 );
 
 # Simply run the generic script with our config file as argument.
-system($galacticusPath."constraints/dataAnalysis/scripts/covarianceMatrix.pl ".$galacticusPath."constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/covarianceMatrixControl.xml ".$redshiftBin);
+system($galacticusPath."constraints/dataAnalysis/scripts/covarianceMatrix.pl ".$galacticusPath."constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/covarianceMatrixControl.xml ".$redshiftBin);
 
 exit;
