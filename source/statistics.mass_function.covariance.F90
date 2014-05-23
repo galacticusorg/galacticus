@@ -227,7 +227,7 @@ contains
                &                         toleranceRelative=1.0d-3, &
                &                         reset=integrationReset    &
                &                        ) 
-          
+
           ! Integrate mass function over the bin.
           integrationReset=.true.
           massFunction(i)=                                            &
@@ -246,9 +246,9 @@ contains
           
           ! Find the effective volume of the survey at this mass.
           volume(i,iField)=surveyGeometry_%volumeMaximum(massBinCenterI,iField)
-          
+
        end do
-       
+
        ! Normalize the mass function.
        massFunction(i)=massFunction(i)/logMassBinWidth/volumeNormalization
 
@@ -835,12 +835,6 @@ contains
     end if
     ! Allocate arrays for times and volume normalizations.
     fieldCount=surveyGeometry_%fieldCount()
-    call Alloc_Array(volumeNormalizationI,[fieldCount])
-    call Alloc_Array(volumeNormalizationJ,[fieldCount])
-    call Alloc_Array(timeMinimumI        ,[fieldCount])
-    call Alloc_Array(timeMinimumJ        ,[fieldCount])
-    call Alloc_Array(timeMaximumI        ,[fieldCount])
-    call Alloc_Array(timeMaximumJ        ,[fieldCount])
     ! Allocate arrays for survey window functions if these will be used.
     allocate(windowFunctionI(                                   &
          &                   massFunctionCovarianceFFTGridSize, &
@@ -861,29 +855,11 @@ contains
        massBinCenterI =10.0d0** logMassBinCenter(i)
        massBinMinimumI=10.0d0**(logMassBinCenter(i)-0.5d0*log10MassBinWidth)
        massBinMaximumI=10.0d0**(logMassBinCenter(i)+0.5d0*log10MassBinWidth)
-       call Compute_Volume_Normalizations(&
-            &                             logMassBinCenter    (i), &
-            &                             surveyGeometry_        , &
-            &                             redshiftMinimum        , &
-            &                             redshiftMaximum        , &
-            &                             timeMinimumI           , &
-            &                             timeMaximumI           , &
-            &                             volumeNormalizationI     &
-            &                            )   
        do j=i,massBinCount
           binJ=j
           massBinCenterJ =10.0d0** logMassBinCenter(j)
           massBinMinimumJ=10.0d0**(logMassBinCenter(j)-0.5d0*log10MassBinWidth)
           massBinMaximumJ=10.0d0**(logMassBinCenter(j)+0.5d0*log10MassBinWidth)
-          call Compute_Volume_Normalizations(                         &
-               &                             logMassBinCenter    (j), &
-               &                             surveyGeometry_        , &
-               &                             redshiftMinimum        , &
-               &                             redshiftMaximum        , &
-               &                             timeMinimumJ           , &
-               &                             timeMaximumJ           , &
-               &                             volumeNormalizationJ     &
-               &                            )
           ! Update progress.
           call Galacticus_Display_Counter(                                              &
                &                          int(100.0d0*dble(taskCount)/dble(taskTotal)), &
@@ -908,7 +884,32 @@ contains
           ! inverse wavelengths, if we associated T with the total box length, L. In terms of
           ! wavenumber, that means that each cell of the FFT has side of length 2π/L.
           variance=0.0d0
-          !$omp parallel do private (u,v,w,waveNumberU,waveNumberV,waveNumberW,multiplier,normalizationI,normalizationJ,powerSpectrumI,powerSpectrumJ,iField), reduction (+:variance)
+          !$omp parallel private (u,v,w,waveNumberU,waveNumberV,waveNumberW,multiplier,normalizationI,normalizationJ,powerSpectrumI,powerSpectrumJ,iField)
+          call Alloc_Array(volumeNormalizationI,[fieldCount])
+          call Alloc_Array(volumeNormalizationJ,[fieldCount])
+          call Alloc_Array(timeMinimumI        ,[fieldCount])
+          call Alloc_Array(timeMinimumJ        ,[fieldCount])
+          call Alloc_Array(timeMaximumI        ,[fieldCount])
+          call Alloc_Array(timeMaximumJ        ,[fieldCount])
+          call Compute_Volume_Normalizations(                         &
+               &                             logMassBinCenter    (i), &
+               &                             surveyGeometry_        , &
+               &                             redshiftMinimum        , &
+               &                             redshiftMaximum        , &
+               &                             timeMinimumI           , &
+               &                             timeMaximumI           , &
+               &                             volumeNormalizationI     &
+               &                            )   
+          call Compute_Volume_Normalizations(                         &
+               &                             logMassBinCenter    (j), &
+               &                             surveyGeometry_        , &
+               &                             redshiftMinimum        , &
+               &                             redshiftMaximum        , &
+               &                             timeMinimumJ           , &
+               &                             timeMaximumJ           , &
+               &                             volumeNormalizationJ     &
+               &                            )
+          !$omp do reduction(+:variance)
           do u      =1,massFunctionCovarianceFFTGridSize/2+1
              waveNumberU      =FFTW_Wavenumber(u,massFunctionCovarianceFFTGridSize)*2.0d0*Pi/boxLength
              do v   =1,massFunctionCovarianceFFTGridSize/2+1
@@ -974,7 +975,14 @@ contains
                 end do
              end do
           end do
-          !$omp end parallel do
+          !$omp end do
+          call Dealloc_Array(volumeNormalizationI)
+          call Dealloc_Array(volumeNormalizationJ)
+          call Dealloc_Array(timeMinimumI        )
+          call Dealloc_Array(timeMinimumJ        )
+          call Dealloc_Array(timeMaximumI        )
+          call Dealloc_Array(timeMaximumJ        )
+          !$omp end parallel
           ! Normalize the variance. We multiply by (2π/L)³ to account for the volume of each FFT
           ! cell, and divide by (2π)³ as defined in eqn. (66) of Smith (2012; MNRAS; 426; 531).
           varianceLSS(i,j)=real(variance)/boxLength**3
@@ -982,12 +990,6 @@ contains
     end do
     if (allocated(windowFunctionI)) deallocate(windowFunctionI)
     if (allocated(windowFunctionJ)) deallocate(windowFunctionJ)
-    call Dealloc_Array(volumeNormalizationI)
-    call Dealloc_Array(volumeNormalizationJ)
-    call Dealloc_Array(timeMinimumI        )
-    call Dealloc_Array(timeMinimumJ        )
-    call Dealloc_Array(timeMaximumI        )
-    call Dealloc_Array(timeMaximumJ        )
     call Galacticus_Display_Counter_Clear()
     return
   end subroutine Variance_LSS_Window_Function
@@ -1006,8 +1008,8 @@ contains
     ! Dimensionless factor controlling the highest wavenumber to be used when integrating over
     ! angular power spectra.
     double precision                            , parameter                       :: wavenumberMaximumFactor=1.0d0
-    integer                                                                       :: i,j,fieldCount
-    double precision                                                              :: wavenumberMinimum,wavenumberMaximum
+    integer                                                                       :: i,j,fieldCount,iField
+    double precision                                                              :: wavenumberMinimum,wavenumberMaximum,distanceMaximum
     logical                                                                       :: integrationReset
     type            (fgsl_function             )                                  :: integrandFunction
     type            (fgsl_integration_workspace)                                  :: integrationWorkspace
@@ -1047,6 +1049,10 @@ contains
                &                             timeMaximumJ          , &
                &                             volumeNormalizationJ    &
                &                            )
+          distanceMaximum=1.0d30
+          do iField=1,surveyGeometry_%fieldCount()
+             distanceMaximum=min(distanceMaximum,surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binI),iField),surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binJ),iField))
+          end do
           wavenumberMinimum=0.0d0
           wavenumberMaximum=wavenumberMaximumFactor                                               &
                &            *max(                                                                 &
@@ -1055,10 +1061,7 @@ contains
                &                 /2.0d0                                                           &
                &                 /Pi                                                              &
                &                )                                                                 &
-               &            /min(                                                                 &
-               &                 surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binI)), &
-               &                 surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binJ))  &
-               &                )
+               &            /distanceMaximum
           integrationReset=.true.
           varianceLSS(binI,binJ)=                                               &
                &           +2.0d0                                               &
