@@ -14,9 +14,10 @@
     <url>http://www.jstor.org/stable/10.1086/376392</url>
     <mass lower="0.1" upper="100" units="Solar masses" unitsInSI="1.9891e30" />
   </imf>
-  <stellarMassFunction>
-    <redshift minimum="0.0" maximum="0.1" />
+  <massFunction>
     <columns>
+      <redshiftHigh>0.1</redshiftHigh>
+      <redshiftLow>0.0</redshiftLow>
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
@@ -52,7 +53,7 @@
 	<datum>16</datum>
 	<datum>4</datum>
       </number>
-      <stellarMass>
+      <mass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
 	<scaling>log10</scaling>
@@ -88,7 +89,7 @@
 	<datum>11.8</datum>
 	<datum>11.9</datum>
 	<datum>12.0</datum>
-      </stellarMass>
+      </mass>
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
@@ -199,10 +200,9 @@
 	<datum>0.20</datum>
       </upperError>
     </columns>
-  </stellarMassFunction>
-  <stellarMassFunction>
-    <redshift minimum="0.20" maximum="0.30" />
     <columns>
+      <redshiftHigh>0.30</redshiftHigh>
+      <redshiftLow>0.20</redshiftLow>
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
@@ -233,7 +233,7 @@
 	<datum>8</datum>
 	<datum>6</datum>
       </number>
-      <stellarMass>
+      <mass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
 	<scaling>log10</scaling>
@@ -264,7 +264,7 @@
 	<datum>11.1</datum>
 	<datum>11.2</datum>
 	<datum>11.3</datum>
-      </stellarMass>
+      </mass>
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
@@ -360,10 +360,9 @@
 	<datum>0.300</datum>
       </upperError>
     </columns>
-  </stellarMassFunction>
-  <stellarMassFunction>
-    <redshift minimum="0.30" maximum="0.40" />
     <columns>
+      <redshiftHigh>0.40</redshiftHigh>
+      <redshiftLow>0.30</redshiftLow>
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
@@ -392,7 +391,7 @@
 	<datum>12</datum>
 	<datum>3</datum>
       </number>
-      <stellarMass>
+      <mass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
 	<scaling>log10</scaling>
@@ -421,7 +420,7 @@
 	<datum>11.3</datum>
 	<datum>11.4</datum>
 	<datum>11.5</datum>
-      </stellarMass>
+      </mass>
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
@@ -511,10 +510,9 @@
 	<datum>0.40</datum>
       </upperError>
     </columns>
-  </stellarMassFunction>
-  <stellarMassFunction>
-    <redshift minimum="0.40" maximum="0.50" />
     <columns>
+      <redshiftHigh>0.50</redshiftHigh>
+      <redshiftLow>0.40</redshiftLow>
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
@@ -542,7 +540,7 @@
 	<datum>1</datum>
 	<datum>1</datum>
       </number>
-      <stellarMass>
+      <mass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
 	<scaling>log10</scaling>
@@ -570,7 +568,7 @@
 	<datum>11.6</datum>
 	<datum>11.7</datum>
 	<datum>11.8</datum>
-      </stellarMass>
+      </mass>
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
@@ -657,10 +655,9 @@
 	<datum>1.00</datum>
       </upperError>
     </columns>
-  </stellarMassFunction>
-  <stellarMassFunction>
-    <redshift minimum="0.50" maximum="0.65" />
     <columns>
+      <redshiftHigh>0.65</redshiftHigh>
+      <redshiftLow>0.50</redshiftLow>
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
@@ -683,7 +680,7 @@
 	<datum>7</datum>
 	<datum>8</datum>
       </number>
-      <stellarMass>
+      <mass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
 	<scaling>log10</scaling>
@@ -706,7 +703,7 @@
 	<datum>11.5</datum>
 	<datum>11.6</datum>
 	<datum>11.7</datum>
-      </stellarMass>
+      </mass>
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
@@ -778,10 +775,9 @@
 	<datum>0.20</datum>
       </upperError>
     </columns>
-  </stellarMassFunction>
-  <stellarMassFunction>
-    <redshift minimum="0.65" maximum="0.80" />
     <columns>
+      <redshiftHigh>0.80</redshiftHigh>
+      <redshiftLow>0.65</redshiftLow>
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
@@ -803,7 +799,7 @@
 	<datum>1</datum>
 	<datum>1</datum>
       </number>
-      <stellarMass>
+      <mass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
 	<scaling>log10</scaling>
@@ -825,7 +821,7 @@
 	<datum>11.8</datum>
 	<datum>11.9</datum>
 	<datum>12.0</datum>
-      </stellarMass>
+      </mass>
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
@@ -894,10 +890,9 @@
 	<datum>1.00</datum>
       </upperError>
     </columns>
-  </stellarMassFunction>
-  <stellarMassFunction>
-    <redshift minimum="0.80" maximum="1.00" />
     <columns>
+      <redshiftHigh>1.00</redshiftHigh>
+      <redshiftLow>0.80</redshiftLow>
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
@@ -915,7 +910,7 @@
 	<datum>1</datum>
 	<datum>1</datum>
       </number>
-      <stellarMass>
+      <mass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
 	<scaling>log10</scaling>
@@ -933,7 +928,7 @@
 	<datum>11.8</datum>
 	<datum>11.9</datum>
 	<datum>12.0</datum>
-      </stellarMass>
+      </mass>
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
@@ -990,5 +985,5 @@
 	<datum>1.00</datum>
       </upperError>
     </columns>
-  </stellarMassFunction>
+  </massFunction>
 </dataSets>
