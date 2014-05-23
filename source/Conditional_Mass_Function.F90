@@ -238,7 +238,7 @@ program Conditional_Mass_Function
               if (conditionalMassFunctionUseSurveyLimits) then
                  ! A survey geometry is imposed. Find the maximum distance at which a galaxy of the present
                  ! mass can be detected in this survey.
-                 distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(massBinMinimum*massBinMaximum))
+                 distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(massBinMinimum*massBinMaximum),iField)
                  ! Set integration limits appropriately.
                  binTimeMinimum=max(timeMinimum,cosmologyFunctions_%timeAtDistanceComoving(distanceMaximum))
                  binTimeMaximum=timeMaximum
@@ -250,7 +250,8 @@ program Conditional_Mass_Function
               ! Range of redshifts was given, integrate the mass function over this time interval.
               massFunctionIntegrand=                                                        &
                    &                +massFunctionIntegrand                                  &
-                   &                +Integrate(                                             &
+                   &                +surveyGeometry_%solidAngle(iField)                     &
+                   &                *Integrate(                                             &
                    &                           binTimeMinimum                             , &
                    &                           binTimeMaximum                             , &
                    &                           Mass_Function_Time_Integrand               , &
@@ -262,7 +263,8 @@ program Conditional_Mass_Function
                    &                          )
               volumeIntegrand      =                                                        &
                    &                +volumeIntegrand                                        &
-                   &                +Integrate(                                             &
+                   &                +surveyGeometry_%solidAngle(iField)                     &
+                   &                *Integrate(                                             &
                    &                           binTimeMinimum                             , &
                    &                           binTimeMaximum                             , &
                    &                           Mass_Function_Time_Normalization_Integrand , &
