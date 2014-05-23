@@ -76,13 +76,6 @@ contains
     integer                                        , intent(in   ), optional :: field
     class           (cosmologyFunctionsClass      ), pointer                 :: cosmologyFunctions_
     double precision                                                         :: redshift           , logarithmicMass
-    
-!! AJB HACK
-type(surveyGeometryBernardi2013SDSS) :: b
-b=surveyGeometryBernardi2013SDSS()
-liWhite2009SDSSDistanceMaximum=b%distanceMaximum(mass,field)
-return
-
 
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('liWhite2009SDSSDistanceMaximum','field = 1 required')
