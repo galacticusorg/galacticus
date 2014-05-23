@@ -111,11 +111,12 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   type            (fgsl_integration_workspace         )                              :: integrationWorkspace        , integrationWorkspaceNormalization
   type            (c_ptr                              )                              :: parameterPointer
   type            (vector                             )                              :: difference
-  integer                                                                            :: i
-  double precision                                                                   :: binTimeMinimum             , binTimeMaximum                    , &
-       &                                                                                timeMinimum                , timeMaximum                       , &
-       &                                                                                distanceMaximum            , time
-  logical                                                                            :: integrationReset           , integrationResetNormalization
+  integer                                                                            :: i                           , j
+  double precision                                                                   :: binTimeMinimum              , binTimeMaximum                    , &
+       &                                                                                timeMinimum                 , timeMaximum                       , &
+       &                                                                                distanceMaximum             , time                              , &
+       &                                                                                massFunction                , normalization
+  logical                                                                            :: integrationReset            , integrationResetNormalization
 
   ! Do not evaluate if the proposed prior is impossible.
   if (logPriorProposed <= logImpossible) then
@@ -153,37 +154,50 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   integrationReset             =.true.
   integrationResetNormalization=.true.
   do i=1,size(self%mass)
-     ! A survey geometry is imposed. Find the maximum distance at which a galaxy of the present
-     ! mass can be detected in this survey.
-     distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(self%massMinimum(i)*self%massMaximum(i)))
-     ! Set integration limits appropriately.
-     binTimeMinimum=max(timeMinimum,cosmologyFunctions_%timeAtDistanceComoving(distanceMaximum))
-     binTimeMaximum=    timeMaximum
-     ! Integrate the mass function over this time interval.
-     self%massFunction(i)= Integrate(                                                   &
-          &                          binTimeMinimum                                   , &
-          &                          binTimeMaximum                                   , &
-          &                          likelihoodMassFunctionTimeIntegrand              , &
-          &                          parameterPointer                                 , &
-          &                          integrandFunction                                , &
-          &                          integrationWorkspace                             , &
-          &                          toleranceRelative=1.0d-3                         , &
-          &                          reset=integrationReset                             &
-          &                         )                                                   &
-          &               /Integrate(                                                   &
-          &                          binTimeMinimum                                   , &
-          &                          binTimeMaximum                                   , &
-          &                          likelihoodMassFunctionTimeNormalizationIntegrand , &
-          &                          parameterPointer                                 , &
-          &                          integrandFunctionNormalization                   , &
-          &                          integrationWorkspaceNormalization                , &
-          &                          toleranceRelative=1.0d-3                         , &
-          &                          reset=integrationResetNormalization                &
-          &                         )                                                   &
-          &               /log      (                                                   &
-          &                           self%massMaximum(i)                               &
-          &                          /self%massMinimum(i)                               &
-          &                         )
+     ! A survey geometry is imposed - sum over fields.
+     massFunction =0.0d0
+     normalization=0.0d0
+     do j=1,surveyGeometry_%fieldCount()
+        ! Find the maximum distance at which a galaxy of the present mass can be detected in this survey.
+        distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(self%massMinimum(i)*self%massMaximum(i)),j)
+        ! Set integration limits appropriately.
+        binTimeMinimum=max(timeMinimum,cosmologyFunctions_%timeAtDistanceComoving(distanceMaximum))
+        binTimeMaximum=    timeMaximum
+        ! Integrate the mass function over this time interval.
+        massFunction=                                                               &
+             &       +massFunction                                                  &
+             &       +surveyGeometry_%solidAngle(j)                                 &
+             &       *Integrate(                                                    &
+             &                   binTimeMinimum                                   , &
+             &                   binTimeMaximum                                   , &
+             &                   likelihoodMassFunctionTimeIntegrand              , &
+             &                   parameterPointer                                 , &
+             &                   integrandFunction                                , &
+             &                   integrationWorkspace                             , &
+             &                   toleranceRelative=1.0d-3                         , &
+             &                   reset=integrationReset                             &
+             &                  )
+        normalization=                                                              &
+             &        +normalization                                                &
+             &        +surveyGeometry_%solidAngle(j)                                &
+             &        *Integrate(                                                   &
+             &                   binTimeMinimum                                   , &
+             &                   binTimeMaximum                                   , &
+             &                   likelihoodMassFunctionTimeNormalizationIntegrand , &
+             &                   parameterPointer                                 , &
+             &                   integrandFunctionNormalization                   , &
+             &                   integrationWorkspaceNormalization                , &
+             &                   toleranceRelative=1.0d-3                         , &
+             &                   reset=integrationResetNormalization                &
+             &                  )
+     end do
+     self%massFunction(i)=                          &
+          &               +massFunction             &
+          &               /normalization            &
+          &               /log(                     &
+          &                     self%massMaximum(i) &
+          &                    /self%massMinimum(i) &
+          &                   )
   end do
   call Integrate_Done(integrandFunction             ,integrationWorkspace             )
   call Integrate_Done(integrandFunctionNormalization,integrationWorkspaceNormalization)
@@ -191,7 +205,6 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   ! Evaluate the log-likelihood.
   difference                    =self%massFunction-self%massFunctionObserved
   likelihoodMassFunctionEvaluate=-0.5d0*(difference*(self%inverseCovariance*difference))
-  
   return
   
 contains
