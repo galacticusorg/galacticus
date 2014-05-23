@@ -38,6 +38,14 @@ module Geometry_Surveys
   !#   <pass>yes</pass>
   !#   <code>fieldCount=1</code>
   !#  </method>
+  !#  <method name="distanceMinimum" >
+  !#   <description>Returns the minimum distance (in Mpc) at which a galaxy of the specified {\tt mass} (in $M_\odot$) would be included in the survey.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   )           :: mass</argument>
+  !#   <argument>integer         , intent(in   ), optional :: field</argument>
+  !#   <code>distanceMinimum=0.0d0</code>
+  !#  </method>
   !#  <method name="distanceMaximum" >
   !#   <description>Returns the maximum distance (in Mpc) at which a galaxy of the specified {\tt mass} (in $M_\odot$) could be detected.</description>
   !#   <type>double precision</type>

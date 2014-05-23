@@ -26,6 +26,7 @@
    contains
      procedure :: windowFunctionAvailable => caputi2011UKIDSSUDSWindowFunctionAvailable
      procedure :: angularPowerAvailable   => caputi2011UKIDSSUDSAngularPowerAvailable
+     procedure :: distanceMinimum         => caputi2011UKIDSSUDSDistanceMinimum
      procedure :: distanceMaximum         => caputi2011UKIDSSUDSDistanceMaximum
      procedure :: volumeMaximum           => caputi2011UKIDSSUDSVolumeMaximum
      procedure :: solidAngle              => caputi2011UKIDSSUDSSolidAngle
@@ -132,6 +133,17 @@ contains
     caputi2011UKIDSSUDSAngularPowerAvailable=.false.
     return
   end function caputi2011UKIDSSUDSAngularPowerAvailable
+
+  double precision function caputi2011UKIDSSUDSDistanceMinimum(self,mass,field)
+    !% Compute the minimum distance at which a galaxy is included.
+    implicit none
+    class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
+    double precision                                   , intent(in   )           :: mass
+    integer                                            , intent(in   ), optional :: field
+    
+    caputi2011UKIDSSUDSDistanceMinimum=self%binDistanceMinimum
+    return
+  end function caputi2011UKIDSSUDSDistanceMinimum
 
   double precision function caputi2011UKIDSSUDSDistanceMaximum(self,mass,field)
     !% Compute the maximum distance at which a galaxy is visible.
