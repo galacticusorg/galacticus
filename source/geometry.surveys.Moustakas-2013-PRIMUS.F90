@@ -29,6 +29,7 @@
      procedure :: windowFunctionAvailable   => moustakas2013PRIMUSWindowFunctionAvailable
      procedure :: angularPowerAvailable     => moustakas2013PRIMUSAngularPowerAvailable
      procedure :: fieldCount                => moustakas2013PRIMUSFieldCount
+     procedure :: distanceMinimum           => moustakas2013PRIMUSDistanceMinimum
      procedure :: distanceMaximum           => moustakas2013PRIMUSDistanceMaximum
      procedure :: volumeMaximum             => moustakas2013PRIMUSVolumeMaximum
      procedure :: solidAngle                => moustakas2013PRIMUSSolidAngle
@@ -171,6 +172,17 @@ contains
     moustakas2013PRIMUSAngularPowerAvailable=.true.
     return
   end function moustakas2013PRIMUSAngularPowerAvailable
+
+  double precision function moustakas2013PRIMUSDistanceMinimum(self,mass,field)
+    !% Compute the minimum distance at which a galaxy is included.
+    implicit none
+    class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
+    double precision                                   , intent(in   )           :: mass
+    integer                                            , intent(in   ), optional :: field
+
+    moustakas2013PRIMUSDistanceMinimum=self%binDistanceMinimum
+    return
+  end function moustakas2013PRIMUSDistanceMinimum
 
   double precision function moustakas2013PRIMUSDistanceMaximum(self,mass,field)
     !% Compute the maximum distance at which a galaxy is visible.
