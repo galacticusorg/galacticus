@@ -56,7 +56,8 @@ module Merger_Tree_Read
   logical                                                                                         :: mergerTreeReadPresetScaleRadii                    , mergerTreeReadPresetScaleRadiiFailureIsFatal
   double precision                                                                                :: mergerTreeReadPresetScaleRadiiMinimumMass         , mergerTreeReadPresetScaleRadiiConcentrationMinimum, &
        &                                                                                             mergerTreeReadPresetScaleRadiiConcentrationMaximum
-  logical                                                                                         :: mergerTreeReadPresetSpins                         , mergerTreeReadPresetSpins3D  
+  logical                                                                                         :: mergerTreeReadPresetSpins                         , mergerTreeReadPresetSpins3D                       , &
+       &                                                                                             mergerTreeReadPresetUnphysicalSpins
   logical                                                                                         :: mergerTreeReadPresetOrbits                        , mergerTreeReadPresetOrbitsAssertAllSet            , & 
        &                                                                                             mergerTreeReadPresetOrbitsBoundOnly               , mergerTreeReadPresetOrbitsSetAll          
   logical                                                                                         :: mergerTreeReadPresetParticleCounts                , mergerTreeReadPresetVelocityMaxima                , &
@@ -306,6 +307,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadPresetScaleRadiiMinimumMass',mergerTreeReadPresetScaleRadiiMinimumMass,defaultValue=0.0d0)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadPresetUnphysicalSpins</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <defaultValue>false</defaultValue>
+       !@   <description>
+       !@     When reading merger trees from file and presetting halo spins, detect unphysical (&lt;=0) spins and preset them using the selected halo spin method.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadPresetUnphysicalSpins',mergerTreeReadPresetUnphysicalSpins,defaultValue=.false.)
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetSpins</name>
        !@   <attachedTo>module</attachedTo>
@@ -1708,6 +1720,7 @@ contains
     use Numerical_Constants_Physical
     use Dark_Matter_Profiles
     use Galacticus_Error
+    use Halo_Spin_Distributions
     implicit none
     class           (nodeData          )         , dimension(:), intent(inout) :: nodes              
     type            (treeNodeList      )         , dimension(:), intent(inout) :: nodeList           
@@ -1740,6 +1753,8 @@ contains
              else
                 call Galacticus_Error_Report('Assign_Spin_Parameters','no method exists to set spins')
              end if
+             if (mergerTreeReadPresetUnphysicalSpins.and.thisSpinComponent%spin() <= 0.0d0) &
+                  & call thisSpinComponent%spinSet(Halo_Spin_Distribution_Sample(nodeList(iIsolatedNode)%node))
           end if
           if (mergerTreeReadPresetSpins3D) then
              if      (defaultImporter%          spin3DAvailable()) then
