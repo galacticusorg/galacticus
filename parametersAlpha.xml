@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Parameters of Galacticus model Alpha -->
+<!-- 17-March-2014                        -->
+<parameters>
+
+  <!-- Component selection -->
+  <parameter>
+    <name>treeNodeMethodBasic</name>
+    <value>standard</value>
+  </parameter>
+  <parameter>
+    <name>treeNodeMethodBlackHole</name>
+    <value>null</value>
+  </parameter>
+  <parameter>
+    <name>treeNodeMethodDarkMatterProfile</name>
+    <value>null</value>
+  </parameter>
+  <parameter>
+    <name>treeNodeMethodDisk</name>
+    <value>verySimple</value>
+  </parameter>
+  <parameter>
+    <name>treeNodeMethodHotHalo</name>
+    <value>verySimple</value>
+  </parameter>
+  <parameter>
+    <name>treeNodeMethodSatellite</name>
+    <value>verySimple</value>
+  </parameter>
+  <parameter>
+    <name>treeNodeMethodSpheroid</name>
+    <value>standard</value>
+  </parameter>
+  <parameter>
+    <name>treeNodeMethodSpin</name>
+    <value>null</value>
+  </parameter>
+
+  <!-- Cosmological parameters and options -->
+  <parameter>
+    <name>cosmologyParametersMethod</name>
+    <value>simple</value>
+  </parameter>
+  <parameter>
+    <name>cosmologyFunctionsMethod</name>
+    <value>matterLambda</value>
+  </parameter>
+  <parameter>
+    <name>H_0</name>
+    <value>69.5723630486537</value>
+  </parameter>
+  <parameter>
+    <name>Omega_Matter</name>
+    <value>0.283812448723631</value>
+  </parameter>
+  <parameter>
+    <name>Omega_DE</name>
+    <value>0.716187551276369</value>
+  </parameter>
+  <parameter>
+    <name>Omega_b</name>
+    <value>0.0457967023357349</value>
+  </parameter>
+  <parameter>
+    <name>T_CMB</name>
+    <value>2.72548</value>
+  </parameter>
+
+  <!-- Power spectrum options -->
+  <parameter>
+    <name>sigma_8</name>
+    <value>0.818975624707821</value>
+  </parameter>
+  <parameter>
+    <name>cosmologicalMassVarianceMethod</name>
+    <value>filteredPowerSpectrum</value>
+  </parameter>
+  <parameter>
+    <name>transferFunctionMethod</name>
+    <value>Eisenstein-Hu1999</value>
+  </parameter>
+  <parameter>
+    <name>powerSpectrumMethod</name>
+    <value>powerLaw</value>
+  </parameter>
+  <parameter>
+    <name>powerSpectrumIndex</name>
+    <value>0.955314462667311</value>
+  </parameter>
+  <parameter>
+    <name>powerSpectrumReferenceWavenumber</name>
+    <value>1.0</value>
+  </parameter>
+  <parameter>
+    <name>powerSpectrumRunning</name>
+    <value>0.0</value>
+  </parameter>
+  <parameter>
+    <name>effectiveNumberNeutrinos</name>
+    <value>3.04</value>
+  </parameter>
+  <parameter>
+    <name>summedNeutrinoMasses</name>
+    <value>0.0</value>
+  </parameter>
+
+  <!-- Structure formation options -->
+  <parameter>
+    <name>linearGrowthMethod</name>
+    <value>simple</value>
+  </parameter>
+  <parameter>
+    <name>haloMassFunctionMethod</name>
+    <value>Tinker2008</value>
+  </parameter>
+  <parameter>
+    <name>criticalOverdensityMethod</name>
+    <value>Kitayama-Suto1996</value>
+  </parameter>
+  <parameter>
+    <name>virialDensityContrastMethod</name>
+    <value>Kitayama-Suto1996</value>
+  </parameter>
+
+  <!-- Merger tree building options -->
+  <parameter>
+    <name>mergerTreeConstructMethod</name>
+    <value>build</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildMethod</name>
+    <value>Cole2000</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildCole2000AccretionLimit</name>
+    <value>0.1</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildCole2000MergeProbability</name>
+    <value>0.1</value>
+  </parameter>
+  <parameter>
+    <name>treeBranchingMethod</name>
+    <value>modifiedPress-Schechter</value>
+  </parameter>
+  <parameter>
+    <name>modifiedPressSchechterG0</name>
+    <value>0.57</value>
+  </parameter>
+  <parameter>
+    <name>modifiedPressSchechterGamma1</name>
+    <value>0.38</value>
+  </parameter>
+  <parameter>
+    <name>modifiedPressSchechterGamma2</name>
+    <value>-0.01</value>
+  </parameter>
+  <parameter>
+    <name>modifiedPressSchechterFirstOrderAccuracy</name>
+    <value>0.025</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreesBuildMassResolutionMethod</name>
+    <value>scaled</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildMassResolutionScaledMinimum</name>
+    <value>1.0e8</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildMassResolutionScaledFraction</name>
+    <value>1.0e-1</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildMassResolutionFixed</name>
+    <value>1.0e8</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildTreesPerDecade</name>
+    <value>250</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildHaloMassMinimum</name>
+    <value>2.0e08</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildHaloMassMaximum</name>
+    <value>1.0e15</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildTreesHaloMassDistribution</name>
+    <value>uniform</value>
+  </parameter>
+  <parameter>
+    <name>haloMassFunctionSamplingMethod</name>
+    <value>haloMassFunction</value>
+  </parameter>
+  <parameter>
+    <name>haloMassFunctionSamplingAbundanceMaximum</name>
+    <value>1.0e-4</value>
+  </parameter>
+  <parameter>
+    <name>haloMassFunctionSamplingAbundanceMinimum</name>
+    <value>1.0e-7</value>
+  </parameter>
+  <parameter>
+    <name>haloMassFunctionSimpleSystematicAlpha</name>
+    <value>-0.127240525851282</value>
+  </parameter>
+  <parameter>
+    <name>haloMassFunctionSimpleSystematicBeta</name>
+    <value>0.0654435853813416</value>
+  </parameter>
+
+  <!-- Substructure hierarchy options -->
+  <parameter>
+    <name>nodeMergersMethod</name>
+    <value>singleLevelHierarchy</value>
+  </parameter>
+
+  <!-- Dark matter halo structure options -->
+  <parameter>
+    <name>darkMatterProfileMethod</name>
+    <value>isothermal</value>
+  </parameter>
+
+  <!-- Halo accretion options -->
+  <parameter>
+    <name>accretionHalosMethod</name>
+    <value>simple</value>
+  </parameter>
+  <parameter>
+    <name>reionizationSuppressionOpticalDepth</name>
+    <value>0.0845240757566554</value>
+  </parameter>
+  <parameter>
+    <name>reionizationSuppressionVelocity</name>
+    <value>38.8165530377</value>
+  </parameter>
+
+  <!-- Hot halo gas cooling model options -->
+  <parameter>
+    <name>coolingRateMethod</name>
+    <value>simpleScaling</value>
+  </parameter>
+  <parameter>
+    <name>coolingTimeMethod</name>
+    <value>simple</value>
+  </parameter>
+  <parameter>
+    <name>starveSatellites</name>
+    <value>true</value>
+  </parameter>
+  <parameter>
+    <name>zeroCoolingRateAboveVelocity</name>
+    <value>10000</value>
+  </parameter>
+  <parameter>
+    <name>coolingRateSimpleScalingCutOffExponent</name>
+    <value>0.646736423258</value>
+  </parameter>
+  <parameter>
+    <name>coolingRateSimpleScalingTimescale</name>
+    <value>13.1613654864108</value>
+  </parameter>
+  <parameter>
+    <name>coolingRateSimpleScalingTimescaleExponent</name>
+    <value>-1.19351808068</value>
+  </parameter>
+  <parameter>
+    <name>coolingRateSimpleScalingCutOffWidth</name>
+    <value>0.469296451798381</value>
+  </parameter>
+  <parameter>
+    <name>coolingRateSimpleScalingCutOffMass</name>
+    <value>25175271578.01</value>
+  </parameter>
+
+  <!-- Galactic structure solver options -->
+  <parameter>
+    <name>galacticStructureRadiusSolverMethod</name>
+    <value>fixed</value>
+  </parameter>
+
+  <!-- Galactic disk dynamics options -->
+  <parameter>
+    <name>barInstabilityMethod</name>
+    <value>null</value>
+  </parameter>
+
+  <!-- Star formation rate options -->
+  <parameter>
+    <name>starFormationTimescaleDisksMethod</name>
+    <value>haloScaling</value>
+  </parameter>
+  <parameter>
+    <name>starFormationTimescaleDisksHaloScalingRedshiftExponent</name>
+    <value>0.316329039863</value>
+  </parameter>
+  <parameter>
+    <name>starFormationTimescaleDisksHaloScalingVirialVelocityExponent</name>
+    <value>-3.34818453376</value>
+  </parameter>
+  <parameter>
+    <name>starFormationTimescaleDisksHaloScalingTimescale</name>
+    <value>0.680886564265287</value>
+  </parameter>
+  <parameter>
+    <name>diskStarFormationTimescaleMinimum</name>
+    <value>0.000129182223339982</value>
+  </parameter>
+
+  <!-- Stellar populations options -->
+  <parameter>
+    <name>stellarPopulationPropertiesMethod</name>
+    <value>Conroy-White-Gunn2009</value>
+  </parameter>
+
+  <!-- Supernovae feedback options -->
+  <parameter>
+    <name>starFormationFeedbackDisksMethod</name>
+    <value>haloScaling</value>
+  </parameter>
+  <parameter>
+    <name>diskOutflowVirialVelocityExponent</name>
+    <value>-16.4687643864</value>
+  </parameter>
+  <parameter>
+    <name>diskOutflowRedshiftExponent</name>
+    <value>-7.53946527906</value>
+  </parameter>
+  <parameter>
+    <name>diskOutflowFraction</name>
+    <value>4.61431940043366e-05</value>
+  </parameter>
+  <parameter>
+    <name>diskOutflowTimescaleMinimum</name>
+    <value>0.0032937916041941</value>
+  </parameter>
+
+  <!-- Galaxy merger options -->
+  <parameter>
+    <name>virialOrbitsMethod</name>
+    <value>fixed</value>
+  </parameter>
+  <parameter>
+    <name>virialOrbitsFixedTangentialVelocity</name>
+    <value>0.75</value>
+  </parameter>
+  <parameter>
+    <name>virialOrbitsFixedRadialVelocity</name>
+    <value>0.90</value>
+  </parameter>
+  <parameter>
+    <name>satelliteMergingTimescalesMethod</name>
+    <value>jiang2008</value>
+  </parameter>
+  <parameter>
+    <name>mergingTimescaleMultiplier</name>
+    <value>0.114092219110171</value>
+  </parameter>
+  <parameter>
+    <name>satelliteMergingMassMovementsMethod</name>
+    <value>verySimple</value>
+  </parameter>
+  <parameter>
+    <name>satelliteMergingRemnantSizeMethod</name>
+    <value>null</value>
+  </parameter>
+
+  <!-- Numerical tolerances -->
+  <parameter>
+    <name>odeAlgorithm</name>
+    <value>Runge-Kutta-Second-Order</value>
+  </parameter>
+  <parameter>
+    <name>odeToleranceAbsolute</name>
+    <value>0.01</value>
+  </parameter>
+  <parameter>
+    <name>odeToleranceRelative</name>
+    <value>0.01</value>
+  </parameter>
+  <parameter>
+    <name>diskMassToleranceAbsolute</name>
+    <value>1.0e-6</value>
+  </parameter>
+  <parameter>
+    <name>timestepHostAbsolute</name>
+    <value>1.0</value>
+  </parameter>
+  <parameter>
+    <name>timestepHostRelative</name>
+    <value>0.1</value>
+  </parameter>
+  <parameter>
+    <name>timestepSimpleAbsolute</name>
+    <value>1.0</value>
+  </parameter>
+  <parameter>
+    <name>timestepSimpleRelative</name>
+    <value>0.1</value>
+  </parameter>
+
+  <!-- Output options -->
+  <parameter>
+    <name>mergerTreeOutputReferences</name>
+    <value>false</value>
+  </parameter>
+
+  <!-- Analyses -->
+  <parameter>
+    <name>sdssStellarMassFunctionZ0.07MassSystematic0</name>
+    <value>0.41457726715</value>
+  </parameter>
+  <parameter>
+    <name>sdssStellarMassFunctionZ0.07MassSystematic1</name>
+    <value>0.0777732492214</value>
+  </parameter>
+  <parameter>
+    <name>analysisMassFunctionCovarianceModel</name>
+    <value>binomial</value>
+  </parameter>
+  <parameter>
+    <name>analysisMassFunctionsCorrelationTruncateLevel</name>
+    <value>0.0</value>
+  </parameter>
+
+</parameters>
