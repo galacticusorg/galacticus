@@ -21,7 +21,7 @@ module Tables
   !% Defines a {\tt table} class with optimized interpolation operators.
   use FGSL
   private
-  public :: table,table1D,table1DLinearLinear,table1DLogarithmicLinear,table1DLinearCSpline,table1DLogarithmicCSpline
+  public :: table,table1D,table1DGeneric,table1DLinearLinear,table1DLogarithmicLinear,table1DLinearCSpline,table1DLogarithmicCSpline
 
   !@ <enumeration>
   !@  <name>extrapolationType</name>
@@ -523,6 +523,7 @@ contains
     call Alloc_Array(self%yv,[xCount,tableCountActual])
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%inverseDeltaX=1.0d0/(self%xv(2)-self%xv(1))
+    self%tablePrevious=-1
     ! Set extrapolation type.
     if (present(extrapolationType)) then
        self%extrapolationType=extrapolationType
@@ -611,6 +612,7 @@ contains
        ! Compute the interpolating factor.
        h=(xEffective-self%xv(i))*self%inverseDeltaX
        ! Interpolate in the table.
+       self%xPrevious    =xEffective
        self%tablePrevious=tableActual
        self%    yPrevious=self%yv(i,tableActual)*(1.0d0-h)+self%yv(i+1,tableActual)*h
     end if
@@ -643,6 +645,7 @@ contains
           i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
        end if
        ! Interpolate in the table.
+       self%dxPrevious    =xEffective
        self%dTablePrevious=tableActual
        self%    dyPrevious=(self%yv(i+1,tableActual)-self%yv(i,tableActual))*self%inverseDeltaX
     end if
@@ -735,6 +738,7 @@ contains
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%       deltaX=self%xv(2)-self%xv(1)
     self%inverseDeltaX=1.0d0/self%deltaX
+    self%tablePrevious=-1
     ! Set extrapolation type.
     if (present(extrapolationType)) then
        self%extrapolationType=extrapolationType
@@ -907,6 +911,7 @@ contains
        ! Compute polynomial coefficients.
        call Table_Linear_CSpline_1D_Coefficients(self,tableActual,xEffective,i,a,b,c,d,dx)
        ! Interpolate in the table.
+       self%xPrevious    =xEffective
        self%tablePrevious=tableActual
        self%    yPrevious=a+dx*(b+dx*(c+dx*d))
     end if
@@ -941,6 +946,7 @@ contains
        ! Compute polynomial coefficients.
        call Table_Linear_CSpline_1D_Coefficients(self,tableActual,xEffective,i,a,b,c,d,dx)
        ! Interpolate in the table.
+       self%dxPrevious    =xEffective
        self%dTablePrevious=tableActual
        self%    dyPrevious=b+dx*(2.0d0*c+dx*3.0d0*d)
     end if
