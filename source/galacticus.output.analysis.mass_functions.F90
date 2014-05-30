@@ -77,7 +77,6 @@ module Galacticus_Output_Analyses_Mass_Functions
 
   ! Type for descriptors of mass functions.
   type :: massFunctionDescriptor
-     double precision                                           :: redshift
      double precision                                           :: systematicLogM0
      double precision                                           :: randomError
      procedure       (Mass_Error         ), pointer    , nopass :: randomErrorFunction
@@ -95,7 +94,6 @@ module Galacticus_Output_Analyses_Mass_Functions
        & [                                                                                                       &
                                 ! SDSS survey, Li & White measurement.
        &                           massFunctionDescriptor(                                                       &
-       &                                                   0.07d00                                      ,        &
        &                                                  11.300d0                                      ,        &
        &                                                   0.070d0                                      ,        &
        &                                                   null()                                       ,        &
@@ -109,7 +107,6 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
                                 ! ALFALFA survey. Note that HI/total gas mass fraction must be taken into account by the systematic errors model.
        &                           massFunctionDescriptor(                                                       &
-       &                                                   0.000d0                                      ,        &
        &                                                   9.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   null()                                       ,        &
@@ -123,7 +120,6 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                              ,        &
                                 ! PRIMUS survey.
        &                           massFunctionDescriptor(                                                       &
-       &                                                   0.250d0                                      ,        &
        &                                                  11.300d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   null()                                       ,        &
@@ -136,7 +132,6 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   null()                                                &
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
-       &                                                   0.350d0                                      ,        &
        &                                                  11.300d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   null()                                       ,        &
@@ -149,7 +144,6 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   null()                                                &
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
-       &                                                   0.450d0                                      ,        &
        &                                                  11.300d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   null()                                       ,        &
@@ -162,7 +156,6 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   null()                                                &
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
-       &                                                   0.575d0                                      ,        &
        &                                                  11.300d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   null()                                       ,        &
@@ -175,7 +168,6 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   null()                                                &
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
-       &                                                   0.725d0                                      ,        &
        &                                                  11.300d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   null()                                       ,        &
@@ -188,7 +180,6 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   null()                                                &
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
-       &                                                   0.90d0                                       ,        &
        &                                                  11.30d0                                       ,        &
        &                                                   0.00d0                                       ,        &
        &                                                   null()                                       ,        &
@@ -202,7 +193,6 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        ! UKIDSS UDS survey. Random error is estimated by constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massErrors.pl
        &                           massFunctionDescriptor(                                                       &
-       &                                                   3.250d0                                      ,        &
        &                                                  11.300d0                                      ,        &
        &                                                   0.173d0                                      ,        &
        &                                                   null()                                       ,        &
@@ -215,7 +205,6 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   null()                                                &
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
-       &                                                   3.875d0                                      ,        &
        &                                                  11.300d0                                      ,        &
        &                                                   0.173d0                                      ,        &
        &                                                   null()                                       ,        &
@@ -228,7 +217,6 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   null()                                                &
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
-       &                                                   4.625d0                                      ,        &
        &                                                  11.300d0                                      ,        &
        &                                                   0.173d0                                      ,        &
        &                                                   null()                                       ,        &
@@ -245,22 +233,28 @@ module Galacticus_Output_Analyses_Mass_Functions
   ! Type to store mass functions.
   type :: massFunction
      ! Copy of the mass function descriptor for this mass function.
-     type            (massFunctionDescriptor), pointer                     :: descriptor
+     type            (massFunctionDescriptor), pointer                       :: descriptor
      ! Parameters for the systematic error model.
-     double precision                        , allocatable, dimension(:  ) :: systematicCoefficients
+     double precision                        , allocatable, dimension(:    ) :: systematicCoefficients
      ! The number of mass bins.
-     integer                                                               :: massesCount
+     integer                                                                 :: massesCount
      ! Arrays for the masses and mass function.
-     double precision                        , allocatable, dimension(:  ) :: masses                  , massesLogarithmic              , &
-          &                                                                   massesLogarithmicMinimum, massesLogarithmicMaximum       , &
-          &                                                                   massFunction
-     double precision                        , allocatable, dimension(:,:) :: outputWeight
+     double precision                        , allocatable, dimension(:    ) :: masses                          , massesLogarithmic              , &
+          &                                                                     massesLogarithmicMinimum        , massesLogarithmicMaximum       , &
+          &                                                                     massFunction
+     double precision                        , allocatable, dimension(:,:  ) :: outputWeight
      ! Arrays for accumulation of of main branch galaxies
-     double precision                        , allocatable, dimension(:,:) :: mainBranchGalaxyWeights , mainBranchGalaxyWeightsSquared
+     double precision                        , allocatable, dimension(:,:  ) :: mainBranchGalaxyWeights         , mainBranchGalaxyWeightsSquared
      ! Array for the covariance matrix.
-     double precision                        , allocatable, dimension(:,:) :: massFunctionCovariance
+     double precision                        , allocatable, dimension(:,:  ) :: massFunctionCovariance
      ! Cosmology conversion factors.
-     double precision                                                      :: cosmologyConversionMass , cosmologyConversionMassFunction
+     double precision                        , allocatable, dimension(:    ) :: cosmologyConversionMass         , cosmologyConversionMassFunction
+     ! Gravitational lensing transfer matrix.
+     double precision                        , allocatable, dimension(:,:,:) :: lensingTransfer
+     ! Number of mass bins used as buffer when computing lensing transfer.
+     integer                                                                 :: massesBufferCount
+     ! Buffered masses.
+     double precision                        , allocatable, dimension(:    ) :: massesLogarithmicMaximumBuffered, massesLogarithmicMinimumBuffered
   end type massFunction
 
   ! Mass functions.
@@ -287,6 +281,9 @@ module Galacticus_Output_Analyses_Mass_Functions
   ! Options controlling covariance matrix construction.
   double precision            :: analysisMassFunctionsCorrelationTruncateLevel
 
+  ! Options controlling gravitational lensing.
+  logical                     :: analysisMassFunctionsApplyGravitationalLensing
+
   ! Initializations for individual mass functions.
   logical                     :: alfalfaHiMassFunctionZ0_00Initialized=.false.
 
@@ -305,6 +302,9 @@ contains
   !# </mergerTreeAnalysisTask>
   subroutine Galacticus_Output_Analysis_Mass_Functions(thisTree,thisNode,iOutput,mergerTreeAnalyses)
     !% Construct a mass functions to compare to various observational determinations.
+    use, intrinsic :: ISO_C_Binding
+    use FGSL
+    use Numerical_Integration
     use Galacticus_Nodes
     use Galacticus_Input_Paths
     use IO_HDF5
@@ -319,6 +319,7 @@ contains
     use Numerical_Comparison
     use String_Handling
     use Galacticus_Output_Analyses_Cosmology_Scalings
+    use Gravitational_Lensing
     implicit none
     type            (mergerTree                    ), intent(in   )                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
@@ -326,14 +327,21 @@ contains
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     class           (nodeComponentBasic            )               , pointer        :: thisBasic
     double precision                                , allocatable  , dimension(:  ) :: randomError, randomErrorWeight
+    class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
+    class           (gravitationalLensingClass     )               , pointer        :: gravitationalLensing_
+    double precision                                , parameter                     :: gravitationalLensingGalaxySize=  1.0d-3
+    double precision                                , parameter                     :: massBufferFactor              =100.0d+0 ! Multiplicative buffer size in mass to add below/above observed masses.
     type            (hdf5Object                    )                                :: dataFile,massDataset,parameters
     integer                                                                         :: i,j,k,currentAnalysis,activeAnalysisCount,haloMassBin,jOutput,iError
     double precision                                                                :: dataHubbleParameter &
-         &,mass,massLogarithmic,dataOmegaMatter,dataOmegaDarkEnergy,distanceMinimum,distanceMaximum,timeMinimum,timeMaximum
+         &,mass,massLogarithmic,dataOmegaMatter,dataOmegaDarkEnergy,distanceMinimum,distanceMaximum,timeMinimum,timeMaximum,galaxySize,redshift
     type            (varying_string                )                                :: parameterName,analysisMassFunctionCovarianceModelText,cosmologyScalingMass,cosmologyScalingMassFunction,message
-    class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
+    type            (fgsl_function                 )                                :: integrandFunction
+    type            (fgsl_integration_workspace    )                                :: integrationWorkspace
+    type            (c_ptr                         )                                :: parameterPointer
+    logical                                                                         :: integrationReset
 
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
@@ -410,6 +418,18 @@ contains
           !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('analysisMassFunctionsCorrelationTruncateLevel',analysisMassFunctionsCorrelationTruncateLevel,defaultValue=0.0d0)
+          !@ <inputParameter>
+          !@   <name>analysisMassFunctionsApplyGravitationalLensing</name>
+          !@   <defaultValue>true</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    If true, apply the effects of gravitational lensing by large-scale structure to mass functions.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('analysisMassFunctionsApplyGravitationalLensing',analysisMassFunctionsApplyGravitationalLensing,defaultValue=.true.)
           ! Establish mass mapping functions for mass function descriptors.
           massFunctionDescriptors(2)%mapMass             => Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
           ! Establish mass error functions for mass function descriptors.
@@ -649,15 +669,25 @@ contains
                          call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Functions','unknown mass function')
                       end select
                       ! Get cosmological conversion factors.
-                      call Cosmology_Conversion_Factors(                                                                                                &
-                           &                            massFunctions(currentAnalysis)%descriptor%redshift                                            , &
-                           &                            cosmologyFunctionsModel                                                                       , &
-                           &                            cosmologyFunctionsObserved                                                                    , &
-                           &                            cosmologyScalingMass           =cosmologyScalingMass                                          , &
-                           &                            cosmologyScalingMassFunction   =cosmologyScalingMassFunction                                  , &
-                           &                            cosmologyConversionMass        =massFunctions(currentAnalysis)%cosmologyConversionMass        , &
-                           &                            cosmologyConversionMassFunction=massFunctions(currentAnalysis)%cosmologyConversionMassFunction  &
-                           &                           )
+                      call Alloc_Array(massFunctions(currentAnalysis)%cosmologyConversionMass        ,[Galacticus_Output_Time_Count()])
+                      call Alloc_Array(massFunctions(currentAnalysis)%cosmologyConversionMassFunction,[Galacticus_Output_Time_Count()])
+                      do jOutput=1,Galacticus_Output_Time_Count()
+                         redshift=                                                                                      &
+                              &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
+                              &    cosmologyFunctionsModel%expansionFactor             (                                &
+                              &                                                         Galacticus_Output_Time(jOutput) &
+                              &                                                        )                                &
+                              &                                                       )
+                        call Cosmology_Conversion_Factors(                                                                                                          &
+                              &                            redshift                                                                                               , &
+                              &                            cosmologyFunctionsModel                                                                                , &
+                              &                            cosmologyFunctionsObserved                                                                             , &
+                              &                            cosmologyScalingMass           =cosmologyScalingMass                                                   , &
+                              &                            cosmologyScalingMassFunction   =cosmologyScalingMassFunction                                           , &
+                              &                            cosmologyConversionMass        =massFunctions(currentAnalysis)%cosmologyConversionMass        (jOutput), &
+                              &                            cosmologyConversionMassFunction=massFunctions(currentAnalysis)%cosmologyConversionMassFunction(jOutput)  &
+                              &                           )
+                      end do
                       exit
                    end if
                 end do
@@ -711,6 +741,78 @@ contains
                    end if
                 end do
              end do
+             ! Construct gravitational lensing transfer matrices.
+             do i=1,size(massFunctions)
+                if (analysisMassFunctionsApplyGravitationalLensing) then
+                   massFunctions(i)%massesBufferCount=int(log10(massBufferFactor)/(massFunctions(i)%massesLogarithmicMaximum(1)-massFunctions(i)%massesLogarithmicMinimum(1)))+1
+                   call Alloc_Array(massFunctions(i)%lensingTransfer                 ,[                                                                   &
+                        &                                                              massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount, &
+                        &                                                              massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount, &
+                        &                                                              Galacticus_Output_Time_Count()                                     &
+                        &                                                             ]                                                                   &
+                        &          )
+                else
+                   massFunctions(i)%massesBufferCount=0
+                end if
+                ! Construct buffered arrays of masses.
+                call Alloc_Array(massFunctions(i)%massesLogarithmicMinimumBuffered,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
+                call Alloc_Array(massFunctions(i)%massesLogarithmicMaximumBuffered,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
+                do j=1,massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount
+                   massFunctions           (i)%massesLogarithmicMinimumBuffered(j                                      )  &
+                        & =+massFunctions  (i)%massesLogarithmicMinimum        (                                      1)  &
+                        &  +dble                                               (j-(massFunctions(i)%massesBufferCount+1)) &
+                        &  *(                                                                                             &
+                        &    +massFunctions(i)%massesLogarithmicMinimum        (                                      2)  &
+                        &    -massFunctions(i)%massesLogarithmicMinimum        (                                      1)  &
+                        &   )
+                   massFunctions           (i)%massesLogarithmicMaximumBuffered(j                                      )  &
+                        & =+massFunctions  (i)%massesLogarithmicMaximum        (                                      1)  &
+                        &  +dble                                               (j-(massFunctions(i)%massesBufferCount+1)) &
+                        &  *(                                                                                             &
+                        &    +massFunctions(i)%massesLogarithmicMaximum        (                                      2)  &
+                        &    -massFunctions(i)%massesLogarithmicMaximum        (                                      1)  &
+                        &   )
+                end do
+             end do
+             if (analysisMassFunctionsApplyGravitationalLensing) then
+                gravitationalLensing_ => gravitationalLensing()
+                do jOutput=1,Galacticus_Output_Time_Count()
+                   redshift=                                                                                      &
+                        &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
+                        &    cosmologyFunctionsModel%expansionFactor             (                                &
+                        &                                                         Galacticus_Output_Time(jOutput) &
+                        &                                                        )                                &
+                        &                                                       )
+                   do i=1,size(massFunctions)
+                      do j=1,size(massFunctions(i)%massesLogarithmicMaximumBuffered)
+                         do k=1,size(massFunctions(i)%massesLogarithmicMaximumBuffered)
+                            if (j > 1 .and. k > 1) then
+                               ! Transfer matrix elements are identical along diagonals of the matrix.
+                               massFunctions(i)%lensingTransfer(j,k,jOutput)=massFunctions(i)%lensingTransfer(j-1,k-1,jOutput)
+                            else
+                               integrationReset=.true.
+                               massFunctions(i)%lensingTransfer(j,k,jOutput)                           &
+                                    & =Integrate(                                                      &
+                                    &            massFunctions(i)%massesLogarithmicMinimumBuffered(j), &
+                                    &            massFunctions(i)%massesLogarithmicMaximumBuffered(j), &
+                                    &            magnificationCDFIntegrand                           , &
+                                    &            parameterPointer                                    , &
+                                    &            integrandFunction                                   , &
+                                    &            integrationWorkspace                                , &
+                                    &            toleranceRelative=1.0d-3                            , &
+                                    &            reset=integrationReset                                &
+                                    &           )                                                      &
+                                    & /(                                                               &
+                                    &   +massFunctions(i)%massesLogarithmicMaximumBuffered(j)          &
+                                    &   -massFunctions(i)%massesLogarithmicMinimumBuffered(j)          &
+                                    &  )
+                               call Integrate_Done(integrandFunction,integrationWorkspace)
+                           end if
+                         end do
+                      end do
+                   end do
+                end do
+             end if
           end if
           ! Record that module is initialized.
           moduleInitialized=.true.
@@ -726,15 +828,21 @@ contains
        ! Return if this mass function receives no contribution from this output number.
        if (all(massFunctions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
-       if (.not.allocated(thisGalaxy(i)%massFunction)) call Alloc_Array(thisGalaxy(i)%massFunction         ,[massFunctions(i)%massesCount                             ])
-       if (.not.allocated(thisGalaxy(i)%covariance  )) call Alloc_Array(thisGalaxy(i)%covariance           ,[massFunctions(i)%massesCount,massFunctions(i)%massesCount])
+       if (.not.allocated(thisGalaxy(i)%massFunction)) then
+          call Alloc_Array(thisGalaxy(i)%massFunction,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
+          call Alloc_Array(thisGalaxy(i)%covariance  ,[                                                                   &
+               &                                       massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount, &
+               &                                       massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount  &
+               &                                      ]                                                                   &
+               &          )
+       end if
        ! Get the galactic mass.
        mass=                                                                                                                &
             &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=massFunctions(i)%descriptor%massType) &
             & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=massFunctions(i)%descriptor%massType)
        if (mass            <=                  0.0d0) return
        if (associated(massFunctions(i)%descriptor%mapMass)) mass=massFunctions(i)%descriptor%mapMass(mass,thisNode)
-       mass=mass*massFunctions(i)%cosmologyConversionMass ! Convert for cosmology.
+       mass=mass*massFunctions(i)%cosmologyConversionMass(iOutput) ! Convert for cosmology.
        massLogarithmic=log10(mass)
        do j=1,massFunctions(i)%descriptor%systematicCoefficientCount
           massLogarithmic=massLogarithmic+massFunctions(i)%systematicCoefficients(j)*(log10(mass)-massFunctions(i)%descriptor%systematicLogM0)**(j-1)
@@ -749,25 +857,34 @@ contains
        end if
        thisGalaxy(i)%massFunction=0.0d0
        do iError=1,size(randomError)
-          thisGalaxy        (i)%massFunction=                                                                        &
-               & +thisGalaxy(i)%massFunction                                                                         &
-               & +randomErrorWeight(iError)                                                                          &
-               & *(                                                                                                  &
-               &   +erf((massFunctions(i)%massesLogarithmicMaximum-massLogarithmic)/randomError(iError)/sqrt(2.0d0)) &
-               &   -erf((massFunctions(i)%massesLogarithmicMinimum-massLogarithmic)/randomError(iError)/sqrt(2.0d0)) &
+          thisGalaxy        (i)%massFunction=                                                                                &
+               & +thisGalaxy(i)%massFunction                                                                                 &
+               & +randomErrorWeight(iError)                                                                                  &
+               & *(                                                                                                          &
+               &   +erf((massFunctions(i)%massesLogarithmicMaximumBuffered-massLogarithmic)/randomError(iError)/sqrt(2.0d0)) &
+               &   -erf((massFunctions(i)%massesLogarithmicMinimumBuffered-massLogarithmic)/randomError(iError)/sqrt(2.0d0)) &
                &  )
        end do
-       thisGalaxy        (i)%massFunction=                      &
-            & +thisGalaxy(i)%massFunction                       &
-            & /2.0d0                                            &
-            & *thisTree%volumeWeight                            &
-            & *massFunctions(i)%cosmologyConversionMassFunction &
-            & *massFunctions(i)%outputWeight(:,iOutput)
+       thisGalaxy        (i)%massFunction=                               &
+            & +thisGalaxy(i)%massFunction                                &
+            & /2.0d0                                                     &
+            & *thisTree%volumeWeight                                     &
+            & *massFunctions(i)%cosmologyConversionMassFunction(iOutput)
        deallocate(randomError      )
        deallocate(randomErrorWeight)
+       ! Convolve the galaxy's contribution to the mass function with the gravitational lensing
+       ! transfer matrix.
+       if (analysisMassFunctionsApplyGravitationalLensing) &
+            & thisGalaxy(i)%massFunction=matmul(thisGalaxy(i)%massFunction,massFunctions(i)%lensingTransfer(:,:,iOutput))
+       ! Apply output weights.
+       thisGalaxy           (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount        ) &
+            & =thisGalaxy   (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount        ) &
+            & *massFunctions(i)%outputWeight(                                    :                                                               ,iOutput)
        ! Accumulate mass function.
        !$omp critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
-       massFunctions(i)%massFunction          =massFunctions(i)%massFunction          +thisGalaxy(i)%massFunction
+       massFunctions(i)%massFunction                                                                                                                       &
+            & =massFunctions(i)%massFunction                                                                                                               &
+            & +thisGalaxy   (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount)
        !$omp end critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
        ! Treat main branch and other galaxies differently.
        if (thisNode%isOnMainBranch().and.analysisMassFunctionCovarianceModel == analysisMassFunctionCovarianceModelBinomial) then
@@ -779,28 +896,67 @@ contains
              !$omp critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
              massFunctions        (i)%mainBranchGalaxyWeights       (:,haloMassBin)= &
                   &  massFunctions(i)%mainBranchGalaxyWeights       (:,haloMassBin)  &
-                  &  +thisGalaxy  (i)%massFunction
+                  &  +thisGalaxy  (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount)
              massFunctions        (i)%mainBranchGalaxyWeightsSquared(:,haloMassBin)= &
                   &  massFunctions(i)%mainBranchGalaxyWeightsSquared(:,haloMassBin)  &
-                  &  +thisGalaxy  (i)%massFunction**2
+                  &  +thisGalaxy  (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount)**2
              !$omp end critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
           end if
        else
-          forall(j=1:massFunctions(i)%massesCount)
-             forall(k=j:massFunctions(i)%massesCount)
+          forall(j=1:massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount)
+             forall(k=j:massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount)
                 thisGalaxy(i)%covariance(j,k)=thisGalaxy(i)%massFunction(j)*thisGalaxy(i)%massFunction(k)
                 thisGalaxy(i)%covariance(k,j)=thisGalaxy(i)%covariance(j,k)
              end forall
           end forall
           ! Accumulate covariance.
           !$omp critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
-          massFunctions(i)%massFunctionCovariance=massFunctions(i)%massFunctionCovariance+thisGalaxy(i)%covariance
+          massFunctions        (i)%massFunctionCovariance                                                                                           &
+               & =massFunctions(i)%massFunctionCovariance                                                                                           &
+               & +thisGalaxy   (i)%covariance(                                                                                                      &
+               &                              massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount, &
+               &                              massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount  &
+               &                             )
           !$omp end critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
        end if
     end do
     return
-  end subroutine Galacticus_Output_Analysis_Mass_Functions
 
+  contains
+
+    function magnificationCDFIntegrand(logMass,parameterPointer) bind(c)
+      !% Integrand over the gravitational lensing magnification cumulative distribution.
+      use, intrinsic :: ISO_C_Binding
+      implicit none
+      real            (c_double)        :: magnificationCDFIntegrand
+      real            (c_double), value :: logMass
+      type            (c_ptr   ), value :: parameterPointer
+      
+      magnificationCDFIntegrand=                                                                                         &
+           & max(                                                                                                        &
+           &     +0.0d0                                                                                                , &
+           &     +gravitationalLensing_%magnificationCDF(                                                                &
+           &                                             10.0d0**(                                                       &
+           &                                                      +massFunctions(i)%massesLogarithmicMaximumBuffered(k)  &
+           &                                                      -logMass                                               &
+           &                                                     )                                                     , &
+           &                                             redshift                                                      , &
+           &                                             gravitationalLensingGalaxySize                                  &
+           &                                            )                                                                &
+           &     -gravitationalLensing_%magnificationCDF(                                                                &
+           &                                             10.0d0**(                                                       &
+           &                                                      +massFunctions(i)%massesLogarithmicMinimumBuffered(k)  &
+           &                                                      -logMass                                               &
+           &                                                     )                                                     , &
+           &                                             redshift                                                      , &
+           &                                             gravitationalLensingGalaxySize                                  &
+           &                                            )                                                                &
+           &    )
+      return
+    end function magnificationCDFIntegrand
+    
+  end subroutine Galacticus_Output_Analysis_Mass_Functions
+  
   !# <hdfPreCloseTask>
   !#  <unitName>Galacticus_Output_Analysis_Mass_Functions_Output</unitName>
   !# </hdfPreCloseTask>
@@ -853,8 +1009,11 @@ contains
                   &  <                                                          &
                   &    analysisMassFunctionsCorrelationTruncateLevel            &
                   &   *sqrt(                                                    &
-                  &          massFunctions(k)%massFunctionCovariance(i,i)       &
-                  &         *massFunctions(k)%massFunctionCovariance(j,j)       &
+                  &         max(                                                &
+                  &              0.0d0                                       ,  &
+                  &              massFunctions(k)%massFunctionCovariance(i,i)   &
+                  &             *massFunctions(k)%massFunctionCovariance(j,j)   &
+                  &            )                                                &
                   &        )                                                    &
                   & )        massFunctions(k)%massFunctionCovariance(i,j)=0.0d0
           end do
@@ -1362,7 +1521,6 @@ contains
     massDataset=dataFile%openDataset('massFunction')
     call massDataset%readAttribute('cosmologyScaling',cosmologyScalingMassFunction       ,allowPseudoScalar=.true.)
     call massDataset%close()
-    parameters =dataFile%openGroup  ('Parameters'  )
     parameters =dataFile%openGroup  ('Parameters'  )
     call parameters %readAttribute('H_0'             ,dataHubbleParameter                                         )
     call parameters %readAttribute('Omega_Matter'    ,dataOmegaMatter                                             )
