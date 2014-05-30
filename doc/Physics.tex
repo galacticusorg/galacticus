@@ -1261,6 +1261,14 @@ Finally, the angular momentum factor is set to
 \end{equation}
 where $J_{i,j}$ is the angular momentum or pseudo-angular momentum of mass type $j$ in \gls{component} $i$.
 
+\section{Gravitational Lensing}\label{phys:gravitationalLensing}\index{gravitational lensing}
+
+The method to be used for computing the effects of gravitational lensing by large-scale structure is specified by the {\tt gravitationalLensingMethod} parameter.
+
+\subsection{Takahashi et al. (2011)}\label{phys:gravitationalLensing:gravitationalLensingTakahashi2011}
+
+Selected with {\tt gravitationalLensingMethod}$=${\tt takahashi2011}, this method utilizes the fitting functions of \cite{takahashi_probability_2011} to compute the effects of gravitational lensing. Specifically, eqn.~11 of \cite{takahashi_probability_2011} is used. The parameters $\kappa_{\rm empty}$ and $\langle \kappa^2 \rangle$ are computed from the assumed cosmology and non-linear power spectrum as described by \cite[][eqns.~5 and 2 respectively]{takahashi_probability_2011}. The parameters, $N_\kappa$, $A_\kappa$, and $\omega_\kappa$ of the lensing convergence distribution are determined using the conditions given by \cite[][eqn.~9]{takahashi_probability_2011}.
+
 \section{Hot Halo Mass Distribution}\index{hot halo!mass distribution}\index{mass distribution profile!hot halo}
 
 The algorithm to be used when determining the hot halo mass distribution is selected via the {\tt hotHaloMassDistributionMethod} parameter.
@@ -2420,7 +2428,7 @@ is the gravitational restoring force in the disk/spheroid at the half-mass radiu
 
 Selected with {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method}$=${\tt null} this method assumes zero mass loss rate always.
 
-\section{Survey Geometry}\index{surveys!geometry}
+\section{Survey Geometry}\label{phys:surveyGeometry}\index{surveys!geometry}
 
 The method to be used for computing the geometry of surveys for data analysis is specified by the {\tt surveyGeometryMethod} parameter.
 
