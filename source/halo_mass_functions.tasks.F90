@@ -109,20 +109,6 @@ contains
     call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
     call Galacticus_Verbosity_Level_Set(verbosityLevel)
 
-    ! Get the verbosity level parameter.
-    !@ <inputParameter>
-    !@   <name>verbosityLevel</name>
-    !@   <defaultValue>1</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The level of verbosity for \glc\ (higher values give more verbosity).
-    !@   </description>
-    !@   <type>integer</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
-    call Galacticus_Verbosity_Level_Set(verbosityLevel)
-
     ! Get the requested output redshifts.
     outputCount=max(Get_Input_Parameter_Array_Size('outputRedshifts'),1)
     call Alloc_Array(outputTimes                ,[outputCount])
