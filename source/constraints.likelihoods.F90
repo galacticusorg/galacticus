@@ -79,6 +79,7 @@ module Constraints_Likelihoods
   include 'constraints.likelihoods.Galacticus.type.inc'
   include 'constraints.likelihoods.gaussian_regression.type.inc'
   include 'constraints.likelihoods.mass_function.type.inc'
+  include 'constraints.likelihoods.SED_fit.type.inc'
 
 contains
 
@@ -219,6 +220,12 @@ contains
                &                               getTextContent(likelihoodMassFunctionFileNameDefinition)  &
                &                              )
        end select
+    case ("sedFit")
+       allocate(likelihoodSEDFit :: newLikelihood)
+       select type (newLikelihood)
+       type is (likelihoodSEDFit)
+          newLikelihood=likelihoodSEDFit(definition)
+       end select
     case default
        call Galacticus_Error_Report('likelihoodNew','likelihood type is unrecognized')
     end select
@@ -231,5 +238,6 @@ contains
   include 'constraints.likelihoods.Galacticus.methods.inc'
   include 'constraints.likelihoods.gaussian_regression.methods.inc'
   include 'constraints.likelihoods.mass_function.methods.inc'
+  include 'constraints.likelihoods.SED_fit.methods.inc'
 
 end module Constraints_Likelihoods
