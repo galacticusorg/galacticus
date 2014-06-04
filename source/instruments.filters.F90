@@ -23,13 +23,15 @@ module Instruments_Filters
   use FGSL
   implicit none
   private
-  public :: Filter_Get_Index, Filter_Response, Filter_Extent
+  public :: Filter_Get_Index, Filter_Response, Filter_Extent, Filter_Vega_Offset, Filter_Name
 
   type filterType
      !% A structure which holds filter response curves.
      integer                                                        :: nPoints
      double precision                   , allocatable, dimension(:) :: response                       , wavelength
      type            (varying_string   )                            :: name
+     logical                                                        :: vegaOffsetAvailable
+     double precision                                               :: vegaOffset
      ! Interpolation structures.
      logical                                                        :: reset                   =.true.
      type            (fgsl_interp_accel)                            :: interpolationAccelerator
@@ -69,6 +71,16 @@ contains
     return
   end function Filter_Get_Index
 
+  function Filter_Name(filterIndex)
+    !% Return the name of the specified filter.
+    implicit none
+    type   (varying_string)                :: Filter_Name
+    integer                , intent(in   ) :: filterIndex
+
+    Filter_Name=filterResponses(filterIndex)%name
+    return
+  end function Filter_Name
+
   function Filter_Extent(filterIndex)
     !% Return an array containing the minimum and maximum wavelengths tabulated for this specified filter.
     implicit none
@@ -94,6 +106,7 @@ contains
     type            (varying_string), intent(in   )               :: filterName
     type            (Node          ), pointer                     :: doc
     type            (filterType    ), allocatable  , dimension(:) :: filterResponsesTemporary
+    type            (node          ), pointer                     :: vegaElement
     integer                                                       :: filterIndex             , ioErr
     type            (varying_string)                              :: filterFileName          , errorMessage
     type            (DOMException  )                              :: exception
@@ -143,6 +156,14 @@ contains
     ! Extract wavelengths and filter response.
     call XML_Array_Read(doc,"datum",filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
     filterResponses(filterIndex)%nPoints=size(filterResponses(filterIndex)%wavelength)
+    ! Extract the Vega offset.
+    filterResponses(filterIndex)%vegaOffsetAvailable=XML_Path_Exists(doc,"vegaOffset")
+    if (filterResponses(filterIndex)%vegaOffsetAvailable) then
+       vegaElement => XML_Get_First_Element_By_Tag_Name(doc,"vegaOffset")
+       call extractDataContent(vegaElement,filterResponses(filterIndex)%vegaOffset)
+    else
+       filterResponses(filterIndex)%vegaOffset=0.0d0
+    end if
     ! Destroy the document.
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)
@@ -167,5 +188,16 @@ contains
     !$omp end critical (Filter_Get_Index_Lock)
     return
   end function Filter_Response
+
+  double precision function Filter_Vega_Offset(filterIndex)
+    !% Return the Vega to AB magnitude offset for the specified filter.
+    use Galacticus_Error
+    implicit none
+    integer, intent(in   ) :: filterIndex
+
+    if (.not.filterResponses(filterIndex)%vegaOffsetAvailable) call Galacticus_Error_Report('Filter_Vega_Offset','Vega offset is not available')
+    Filter_Vega_Offset=filterResponses(filterIndex)%vegaOffset
+    return
+  end function Filter_Vega_Offset
 
 end module Instruments_Filters
