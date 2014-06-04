@@ -234,6 +234,9 @@ CODE
 	    }
 	    # Extract any input parameters from this file.
 	    foreach my $directive ( &Directives::Extract_Directives($sourceFile,"inputParameter",comment => qr/^\s*(\!|\/\/)@/) ) {
+		# Use parameter regEx as name if no name is defined.
+		$directive->{'name'} = $directive->{'regEx'}
+		    unless ( exists($directive->{'name'}) );
 		# Ignore parameters that match an ignored name or regex.
 		unless ( exists($ignoreParameters{$directive->{'name'}}) || map {$directive->{'name'} =~ m/$_/} @ignorePatterns ) {
 		    $hasParameters = 1;
