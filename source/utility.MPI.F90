@@ -37,6 +37,12 @@ module MPI_Utilities
      !@     <description>Return true if this is the master process (i.e. rank-0 process).</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>isActive</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return true if MPI is active.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>rank</method>
      !@     <type>\intzero</type>
      !@     <arguments></arguments>
@@ -110,6 +116,7 @@ module MPI_Utilities
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: isMaster       => mpiIsMaster
+     procedure :: isActive       => mpiIsActive
      procedure :: rank           => mpiGetRank
      procedure :: rankLabel      => mpiGetRankLabel
      procedure :: count          => mpiGetCount
@@ -137,6 +144,9 @@ module MPI_Utilities
   ! Declare an object for interaction with MPI.
   type(mpiObject) :: mpiSelf
 
+  ! Record of whether we're running under MPI or not.
+  logical         :: mpiIsActiveValue=.false.
+
   ! Tags.
   integer, parameter :: tagRequestForData=1, tagState=2
 
@@ -161,6 +171,8 @@ contains
     forall(i=0:mpiSelf%countValue-1)
        mpiSelf%allRanks(i)=i
     end forall
+    ! Record that MPI is active.
+    mpiIsActiveValue=.true.
     return
   end subroutine mpiInitialize
   
@@ -173,6 +185,8 @@ contains
     
     call MPI_Finalize(iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiFinalize','failed to finalize MPI')
+    ! Record that MPI is inactive.
+    mpiIsActiveValue=.false.
     return
   end subroutine mpiFinalize
   
@@ -188,12 +202,21 @@ contains
     return
   end subroutine mpiBarrier
   
+  logical function mpiIsActive(self)
+    !% Return true if MPI is active.
+    implicit none
+    class(mpiObject), intent(in   ) :: self
+    
+    mpiIsActive=mpiIsActiveValue
+    return
+  end function mpiIsActive
+  
   logical function mpiIsMaster(self)
     !% Return true if this is the master process.
     implicit none
     class(mpiObject), intent(in   ) :: self
     
-    mpiIsMaster=(self%rank() == 0)
+    mpiIsMaster=(.not.self%isActive() .or. self%rank() == 0)
     return
   end function mpiIsMaster
   
