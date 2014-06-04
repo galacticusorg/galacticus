@@ -25,14 +25,15 @@ module Stellar_Population_Spectra_Postprocess
   include 'spectraPostprocessor.functionModules.inc'
   !# </include>
   private
-  public :: Stellar_Population_Spectrum_Postprocess, Stellar_Population_Spectrum_Postprocess_Index
+  public :: Stellar_Population_Spectrum_Postprocess, Stellar_Population_Spectrum_Postprocess_Index, Stellar_Population_Spectrum_Postprocess_Chain_Methods
 
   ! A chain of postprocessing algorithms.
   type postprocessor
      class(spectraPostprocessorClass), pointer :: method
   end type postprocessor
   type postprocessors
-     type(postprocessor), allocatable, dimension(:) :: postprocess
+     type(varying_string)                            :: methodsLabel
+     type(postprocessor ), allocatable, dimension(:) :: postprocess
   end type postprocessors
   ! Initialization state.
   logical                                            :: stellarPopulationSpectraPostprocessInitialized=.false.
@@ -55,6 +56,16 @@ module Stellar_Population_Spectra_Postprocess
   !#  </method>
   include 'spectraPostprocessor.type.inc'
   !# </include>
+
+  function Stellar_Population_Spectrum_Postprocess_Chain_Methods(postprocessingChainIndex)
+    !% Return a label describing the postprocessing methods used in the indicated chain.
+    implicit none
+    type   (varying_string)                :: Stellar_Population_Spectrum_Postprocess_Chain_Methods
+    integer                , intent(in   ) :: postprocessingChainIndex
+
+    Stellar_Population_Spectrum_Postprocess_Chain_Methods=postprocessingChains(postprocessingChainIndex)%methodsLabel
+    return
+  end function Stellar_Population_Spectrum_Postprocess_Chain_Methods
 
   integer function Stellar_Population_Spectrum_Postprocess_Index(postprocessingChain)
     !% Return the index to the specified postprocessing chain.
@@ -128,6 +139,8 @@ module Stellar_Population_Spectra_Postprocess
           call Galacticus_Error_Report('Stellar_Population_Spectrum_Postprocess_Index','parameter ['//parameterName//'] is not present in parameter file')
        end if
     end if
+    ! Store the list of method names.
+    postprocessingChains(Stellar_Population_Spectrum_Postprocess_Index)%methodsLabel=String_Join(postprocessingChainNamesTemporary,":")
     ! Allocate postprocessors.
     allocate(postprocessingChains(Stellar_Population_Spectrum_Postprocess_Index)%postprocess(methodCount))
     do i=1,methodCount
