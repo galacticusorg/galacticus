@@ -226,12 +226,12 @@ contains
           currentTagName=path
           path          =""
        else
-          currentTagName=path(             1:          pathPosition-1)
-          path          =path(pathPosition+1:len(path)-pathPosition  )
+          currentTagName=path(             1:pathPosition-1)
+          path          =path(pathPosition+1:len(path)     )
        endif
        elementList => getElementsByTagName(XML_Get_First_Element_By_Tag_Name,currentTagName)
        if (getLength(elementList) < 1) then
-          call Galacticus_Error_Report('XML_Get_First_Element_By_Tag_Name','no elements match tag name')
+          call Galacticus_Error_Report('XML_Get_First_Element_By_Tag_Name','no elements match tag name "'//trim(currentTagName)//'"')
        else
           XML_Get_First_Element_By_Tag_Name => item(elementList,0)
        end if
