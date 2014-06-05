@@ -717,18 +717,29 @@ contains
           ! Initialize no events.
           thisTree%event => null()
           ! Read data from the file.
-          call defaultImporter%import(                                                                                                                      &
-               &                      nextTreeToRead                                                                                                      , &
-               &                      nodes                                                                                                               , &
-               &                      requireScaleRadii         = mergerTreeReadPresetScaleRadii                                                          , &
-               &                      requireParticleCounts     = mergerTreeReadPresetParticleCounts                                                      , &
-               &                      requireVelocityMaxima     = mergerTreeReadPresetVelocityMaxima                                                      , &
-               &                      requireVelocityDispersions= mergerTreeReadPresetVelocityDispersions                                                 , &
-               &                      requireAngularMomenta     =(mergerTreeReadPresetSpins              .and.defaultImporter%angularMomentaAvailable  ()), &
-               &                      requireAngularMomenta3D   =(mergerTreeReadPresetSpins3D            .and.defaultImporter%angularMomenta3DAvailable()), &
-               &                      requireSpin               =(mergerTreeReadPresetSpins              .and.defaultImporter%spinAvailable            ()), &
-               &                      requireSpin3D             =(mergerTreeReadPresetSpins3D            .and.defaultImporter%spin3DAvailable          ()), &
-               &                      requirePositions          =(mergerTreeReadPresetPositions          .or. mergerTreeReadPresetOrbits                 )  &
+          call defaultImporter%import(                                                                                                                           &
+               &                      nextTreeToRead                                                                                                           , &
+               &                      nodes                                                                                                                    , &
+               &                      requireScaleRadii         = mergerTreeReadPresetScaleRadii                                                               , &
+               &                      requireParticleCounts     = mergerTreeReadPresetParticleCounts                                                           , &
+               &                      requireVelocityMaxima     = mergerTreeReadPresetVelocityMaxima                                                           , &
+               &                      requireVelocityDispersions= mergerTreeReadPresetVelocityDispersions                                                      , &
+               &                      requireAngularMomenta     =(mergerTreeReadPresetSpins              .and.defaultImporter%angularMomentaAvailable  ())     , &
+               &                      requireAngularMomenta3D   =                                                                                                &
+               &                                                 (                                                                                               &
+               &                                                    mergerTreeReadPresetSpins3D                                                                  &
+               &                                                   .or.                                                                                          &
+               &                                                    (                                                                                            &
+               &                                                      mergerTreeReadPresetSpins                                                                  &
+               &                                                     .and.                                                                                       &
+               &                                                      mergerTreeReadSubhaloAngularMomentaMethod == mergerTreeReadSubhaloAngularMomentaSummation  &
+               &                                                    )                                                                                            &
+               &                                                  )                                                                                              &
+               &                                                 .and.                                                                                           &
+               &                                                  defaultImporter%angularMomenta3DAvailable()                                                  , &
+               &                      requireSpin               =(mergerTreeReadPresetSpins              .and.defaultImporter%spinAvailable            ())     , &
+               &                      requireSpin3D             =(mergerTreeReadPresetSpins3D            .and.defaultImporter%spin3DAvailable          ())     , &
+               &                      requirePositions          =(mergerTreeReadPresetPositions          .or. mergerTreeReadPresetOrbits                 )       &
                &                     )
 
           ! Snap node times to output times if a tolerance has been specified.
@@ -757,7 +768,7 @@ contains
 
           ! If necessary, add masses and angular momenta of subhalos to host halos.
           if (.not.defaultImporter%angularMomentaIncludeSubhalos().and.mergerTreeReadSubhaloAngularMomentaMethod == mergerTreeReadSubhaloAngularMomentaScale) then
-             ! This method requires 3D angular momenta to be available.
+             ! This method requires angular momenta to be available.
              if (.not.defaultImporter%angularMomentaAvailable()) call Galacticus_Error_Report('Merger_Tree_Read_Do','scaling parent angular momentum for subhalo masses requires angular momenta availability')
              do iNode=1,size(nodes)
                 if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) then
@@ -834,7 +845,6 @@ contains
                if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) &
                      & nodes(iNode)%angularMomentum=Vector_Magnitude(nodes(iNode)%angularMomentum3D)
              end do
-             ! Update scalar angular momenta.
           end if
 
           ! Associate parent pointers with the descendent host.
