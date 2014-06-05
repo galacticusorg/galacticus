@@ -64,6 +64,7 @@ contains
     use Cosmology_Parameters
     use Galacticus_Error
     use Memory_Management
+    use Vectors
     implicit none
     type            (varying_string          ), dimension(:), intent(in   ) :: filterNames
     type            (Node                    ), pointer                     :: doc                            , thisItem
@@ -119,8 +120,9 @@ contains
           ! Get the unit vectors of the lightcone.
           do iAxis=1,3
              write (tagName,'(a,i1)') "unitVector",iAxis
-             thisItem => XML_Get_First_Element_By_Tag_Name(doc,tagName)
+             thisItem => XML_Get_First_Element_By_Tag_Name(doc,trim(tagName))
              lightconeUnitVector(:,iAxis)=Filter_Lightcone_Get_Coordinates(thisItem)
+             lightconeUnitVector(:,iAxis)=lightconeUnitVector(:,iAxis)/Vector_Magnitude(lightconeUnitVector(:,iAxis))
           end do
           ! Get the default cosmology functions object.
           cosmologyFunctionsDefault => cosmologyFunctions()
@@ -298,7 +300,7 @@ contains
     double precision          , dimension(3)           :: Filter_Lightcone_Get_Coordinates
     type            (Node    ), intent(in   ), pointer :: enclosingItem
 
-    if (XML_Array_Length(enclosingItem,"coordinates") /= 3) call Galacticus_Error_Report('Filter_Lightcone_Get_Coordinates'&
+    if (XML_Array_Length(enclosingItem,"coordinate") /= 3) call Galacticus_Error_Report('Filter_Lightcone_Get_Coordinates'&
          &,'three axes must be specified')
     call XML_Array_Read_Static(enclosingItem,"coordinate",Filter_Lightcone_Get_Coordinates)
     return
