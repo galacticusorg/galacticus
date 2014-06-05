@@ -1261,6 +1261,14 @@ Finally, the angular momentum factor is set to
 \end{equation}
 where $J_{i,j}$ is the angular momentum or pseudo-angular momentum of mass type $j$ in \gls{component} $i$.
 
+\section{Gravitational Lensing}\label{phys:gravitationalLensing}\index{gravitational lensing}
+
+The method to be used for computing the effects of gravitational lensing by large-scale structure is specified by the {\tt gravitationalLensingMethod} parameter.
+
+\subsection{Takahashi et al. (2011)}\label{phys:gravitationalLensing:gravitationalLensingTakahashi2011}
+
+Selected with {\tt gravitationalLensingMethod}$=${\tt takahashi2011}, this method utilizes the fitting functions of \cite{takahashi_probability_2011} to compute the effects of gravitational lensing. Specifically, eqn.~11 of \cite{takahashi_probability_2011} is used. The parameters $\kappa_{\rm empty}$ and $\langle \kappa^2 \rangle$ are computed from the assumed cosmology and non-linear power spectrum as described by \cite[][eqns.~5 and 2 respectively]{takahashi_probability_2011}. The parameters, $N_\kappa$, $A_\kappa$, and $\omega_\kappa$ of the lensing convergence distribution are determined using the conditions given by \cite[][eqn.~9]{takahashi_probability_2011}.
+
 \section{Hot Halo Mass Distribution}\index{hot halo!mass distribution}\index{mass distribution profile!hot halo}
 
 The algorithm to be used when determining the hot halo mass distribution is selected via the {\tt hotHaloMassDistributionMethod} parameter.
@@ -1383,6 +1391,16 @@ The {\tt Baugh2005TopHeavy} \gls{imf} is defined by \citep{baugh_can_2005}:
 \begin{equation}
  \phi(M) \propto 
  M^{-1} \hbox{ for } 0.15M_\odot < M < 125M_\odot
+\end{equation}
+
+\subsubsection{BPASS}
+
+The \href{http://www.bpass.org.uk/}{\tt BPASS} \gls{imf} is defined by:
+\begin{equation}
+ \phi(M) \propto \left\{ \begin{array}{ll}
+ M^{-1.30} & \hbox{ for } 0.1M_\odot < M < 0.5M_\odot \\ 
+ M^{-2.35} & \hbox{ for } 1M_\odot < M < 120M_\odot \\ 
+0 & \hbox {otherwise.} \end{array} \right.
 \end{equation}
 
 \subsubsection{Chabrier}
@@ -2420,13 +2438,13 @@ is the gravitational restoring force in the disk/spheroid at the half-mass radiu
 
 Selected with {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method}$=${\tt null} this method assumes zero mass loss rate always.
 
-\section{Survey Geometry}\index{surveys!geometry}
+\section{Survey Geometry}\label{phys:surveyGeometry}\index{surveys!geometry}
 
 The method to be used for computing the geometry of surveys for data analysis is specified by the {\tt surveyGeometryMethod} parameter.
 
-\subsection{Li \& White (2009)}
+\subsection{Li \& White (2009)}\label{phys:surveyGeometry:surveyGeometryLiWhite2009SDSS}
 
-Selected with {\tt surveyGeometryMethod}$=${\tt Li-White-2009-SDSS}, this method describes the survey geometry of \cite{li_distribution_2009}. 
+Selected with {\tt surveyGeometryMethod}$=${\tt liWhite2009SDSS}, this method describes the survey geometry of \cite{li_distribution_2009}. 
 
 For the angular mask, we make use of the catalog of random points within the survey footprint provided by the NYU-VAGC\footnote{Specifically, \href{http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat}{http://sdss.physics.nyu.edu/lss/dr72/random/lss\_random-0.dr72.dat}.} (\citealt{blanton_new_2005}; see also \citealt{adelman-mccarthy_sixth_2008,padmanabhan_improved_2008}). \cite{li_distribution_2009} consider only the main, contiguous region and so we keep only those points which satisfy RA$>100^\circ$, RA$<300^\circ$, and RA$<247^\circ$ or $\delta< 51^\circ$. When the survey window function is needed, these points are used to determine which elements of a 3D grid fall within the window function.
 
@@ -2441,14 +2459,62 @@ The end result of this procedure is the limiting stellar mass as a function of r
 where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass. We adopt a solid angle of $2.1901993$~sr \citep{percival_shape_2007} for the sample.
 
 \begin{figure}
+ \begin{center}
  \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/SDSSMassLuminosityRelation.pdf}
+ \end{center}
  \caption{The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{li_distribution_2009}. Points show the results obtained using the \protect\cite{de_lucia_hierarchical_2007} model from the Millennium Database, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:DepthPolynomial}).}
  \label{fig:SDSSDepthFit}
 \end{figure}
 
-\subsection{Martin et al. (2010)}
+\subsection{Bernardi et al. (2013)}\label{phys:surveyGeometry:surveyGeometryBernardi2013SDSS}
 
-Selected with {\tt surveyGeometryMethod}$=${\tt Martin-2010-ALFALFA}, this method describes the survey geometry of \cite{martin_arecibo_2010}. 
+Selected with {\tt surveyGeometryMethod}$=${\tt bernardi2013SDSS}, this method describes the survey geometry of \cite{bernardi_massive_2013}. 
+
+For the angular mask, we make use of the \gls{mangle} polygon file provided by the \gls{mangle} project\footnote{Specifically, \href{http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz}{http://space.mit.edu/~molly/mangle/download/data/sdss\_dr72safe0\_res6d.pol.gz}.} The solid angle of this mask, computed using the \gls{mangle} {\tt harmonize} command is 2.232262776405~sr.
+
+To determine the depth as a function of stellar mass, we make use of results provided by M. Bernardi (private communication), giving the mean maximum volume, $V_{\rm max}$, as a function of stellar mass for galaxies in this sample. These maximum volumes are converted to maximum distances using the solid angle quoted above. The results mass vs. distance relation is fit with a $5^{\rm th}$-order polynomial. Figure~\ref{fig:BernardiSDSSDepthFit} shows the resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the sample. Points indicate results from Bernardi, while the line shows a polynomial fit:
+\begin{equation}
+ \log_{10} \left[ {D_{\rm max}(M_\star) \over \hbox{Mpc}}\right] = 1282.11+m (-626.644+m (122.091+m (-11.8431+m (0.572399+m (-0.0110301)))))
+ \label{eq:BernardiDepthPolynomial}
+\end{equation}
+where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/BernardiSDSSMassLuminosityRelation.pdf}
+ \end{center}
+ \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{bernardi_massive_2013}. Points show the results obtained from data provided by Bernardi, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:BernardiDepthPolynomial}).}
+ \label{fig:BernardiSDSSDepthFit}
+\end{figure}
+
+\subsection{Moustakas et al. (2013)}\label{phys:surveyGeometry:surveyGeometryMoustakas2013PRIMUS}
+
+Selected with {\tt surveyGeometryMethod}$=${\tt moustakas2013PRIMUS}, this method describes the survey geometry of \cite{moustakas_primus:_2013}. 
+
+For the angular mask, we make use of \gls{mangle} polygon files provided by J.~Moustakas (private communication)  corresponding to the give PRIMUS fields. The solid angle of each mask is computed using the \gls{mangle} {\tt harmonize} command.
+
+To determine the depth as a function of stellar mass, we make use of completeness limits for ``All'' galaxies given in Table~2 of \cite{moustakas_primus:_2013}. These are fit, for each field with a second order polynomial to give the limiting redshift as a function of stellar mass. Figure~\ref{fig:MoustakasPRIMUSDepthFit} shows the resulting relation between stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Points indicate results from \cite{moustakas_primus:_2013}, while the line shows a polynomial fits:
+\begin{eqnarray}
+z_{\rm max}(M_\star) = +3.51+m(-0.941+m(+0.0651)) & & \hbox{COSMOS} \\
+z_{\rm max}(M_\star) = +2.46+m(-0.730+m(+0.0542)) & & \hbox{XMM-SXDS} \\
+z_{\rm max}(M_\star) = -3.60+m(+0.500+m(-0.0078)) & & \hbox{XMM-CFHTLS} \\
+z_{\rm max}(M_\star) = +5.87+m(-1.528+m(+0.0982)) & & \hbox{CDFS} \\
+z_{\rm max}(M_\star) = +6.87+m(-1.656+m(+0.1003)) & & \hbox{ELAIS-S1}
+ \label{eq:MoustakasDepthPolynomial}
+\end{eqnarray}
+where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/MoustakasPRIMUSMassRedshiftRelation.pdf}
+ \end{center}
+ \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{moustakas_primus:_2013}. Points show the results obtained from completeness limit data taken from Table~2 of \protect\cite{moustakas_primus:_2013}, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:MoustakasDepthPolynomial}).}
+ \label{fig:MoustakasPRIMUSDepthFit}
+\end{figure}
+
+\subsection{Martin et al. (2010)}\label{phys:surveyGeometry:surveyGeometryMartin2010ALFALFA}
+
+Selected with {\tt surveyGeometryMethod}$=${\tt martin2010ALFALFA}, this method describes the survey geometry of \cite{martin_arecibo_2010}. 
 
 For the angular mask we use the three disjoint regions defined by 07$^{\rm h}$30$^{\rm m}$ $<$ R.A. $<$ 16$^{\rm h}$30$^{\rm m}$, +04$^\circ$ $<$ decl. $<$ +16$^\circ$, and +24$^\circ$ $<$ decl. $<$ +28$^\circ$ and 22$^{\rm h}$ $<$ R.A. $<$ 03$^{\rm h}$, +14$^\circ$ $<$ decl. $<$ +16$^\circ$, and +24$^\circ$ $<$ decl. $<$ +32$^\circ$ corresponding to the sample of \cite{martin_arecibo_2010}. When the survey window function is needed we generate randomly distributed points within this angular mask and out to the survey depth. These points are used to determine which elements of a 3D grid fall within the window function.
 
@@ -2463,7 +2529,53 @@ with $c_0=-0.770$ and $c_1=0.315$. Given the line width, the corresponding integ
 \end{equation}
 
 \begin{figure}
- \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/alfalfaHILineWidthMassRelation.pdf}
+ \begin{center}
+  \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/alfalfaHILineWidthMassRelation.pdf}
+ \end{center}
  \caption{HI line width vs. HI mass as measured from the $\alpha.40$ survey of \protect\cite{martin_arecibo_2010}. Red points with error bars show individual measurements, while the larger circles indicate the running median of these data. The green line is a power-law fit to the running median as described in eqn.~(\protect\ref{eq:ALFALFALineWidthMassRelation}).}
  \label{fig:ALFALFALineWidthMassRelation}
+\end{figure}
+
+\subsection{Caputi et al. (2011)}\label{phys:surveyGeometry:surveyGeometryCaputi2011UKIDSSUDS}
+
+Selected with {\tt surveyGeometryMethod}$=${\tt caputi2011UKIDSSUDS}, this method describes the survey geometry of \cite{caputi_stellar_2011}. 
+
+The angular mask is defined by the boundaries given in Table~\ref{tb:CaputiSurveyBoundaries} together with a set of rectangular holes fitted to gaps in the galaxy distribution provided by Karina Caputi (private communication). In particular, a set of points randomly distributed in the survey mask is constructed by the script {\tt constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.pl}. These points are used to determine which elements of a 3D grid fall within the window function. We compute a solid angle of $1.592\times 10^{-4}$~sr for the sample from this window function.
+
+\begin{table}
+\caption{Boundaries of the angular mask for the survey of \protect\cite{caputi_stellar_2011}. Each boundary consists of a great circle segment defined by start and end coordinates (given in tuples of right acesension and declination in units of degrees), together with a ``type'' which specifies whether points above, below, to the right or left of the boundary are part of the survey (where ``above'' and ``below'' refer to declination, and ``left'' and ``right'' refer to right acsension).}
+\label{tb:CaputiSurveyBoundaries}
+\begin{center}
+\begin{tabular}{@{(}r@{,}l@{)\;(}r@{,}l@{)\;}l}
+\hline
+\multicolumn{2}{c}{\bf Start} & \multicolumn{2}{c}{\bf End} & {\bf Type} \\
+\hline
+ 34.460 & -4.648 & 34.750 & -4.648 & above \\
+ 34.000 & -4.908 & 34.460 & -4.648 & above \\
+ 34.900 & -4.920 & 34.750 & -4.648 & above \\
+ 34.440 & -5.518 & 34.905 & -5.255 & below \\
+ 34.210 & -5.518 & 34.440 & -5.518 & below \\
+ 34.210 & -5.518 & 34.000 & -5.150 & below \\
+ 34.000 & -4.908 & 34.000 & -5.150 & left  \\
+ 34.900 & -4.920 & 34.905 & -5.255 & right \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+To estimate the depth of the \cite{caputi_stellar_2011} sample as a function of galaxy stellar mass we make use of semi-analytic models in the Millennium Database. Specifically, we use the \glspl{sam} of \cite{henriques_confronting_2012} and \citeauthor{guo_dwarf_2011}~(\citeyear{guo_dwarf_2011}; specifically the {\tt Henriques2012a.wmap1.BC03\_001} and {\tt Guo2010a..MR} tables in the Millennium Database). For each snapshot in the database, we extract the stellar masses and observed-frame IRAC $4.5\mu$m apparent magnitudes (including dust extinction), and determine the median apparent magnitude as a function of stellar mass. Using the limiting apparent magnitude of the \cite{caputi_stellar_2011} sample, $24.0$, we infer the corresponding stellar mass.
+
+The end result of this procedure is the limiting stellar mass as a function of redshift, accounting for k-corrections, evolution, and the effects of dust. Figure~\ref{fig:UKIDSSUDSDepthFit} shows the resulting relation between stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Points indicate measurements from the \gls{sam}, while the line shows a polynomial fit:
+\begin{eqnarray}
+ z(M_\star) &=& -56.247 + 5.881 \log_{10}(M_\star/M_\odot).
+ \label{eq:UKIDSSDepthPolynomial}
+\end{eqnarray}
+We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/UKIDSSUDSMassLuminosityRelation.pdf}
+ \end{center}
+ \caption{The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{caputi_stellar_2011}. Points show the results obtained using the \protect\cite{henriques_confronting_2012} and \protect\cite{guo_dwarf_2011} models from the Millennium Database, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:UKIDSSDepthPolynomial}).}
+ \label{fig:UKIDSSUDSDepthFit}
 \end{figure}
