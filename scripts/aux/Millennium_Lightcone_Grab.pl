@@ -187,6 +187,9 @@ if ( $gotGeometry == 0 ) {
     $unitVector1->index(2) .= $m*$n/sqrt($n**2+$m**2+($n*$m)**2);
     $unitVector2 = crossp($unitVector1,$xAxis      );
     $unitVector3 = crossp($unitVector1,$unitVector2);
+    $unitVector1 /= sqrt(sum($unitVector1**2));
+    $unitVector2 /= sqrt(sum($unitVector2**2));
+    $unitVector3 /= sqrt(sum($unitVector3**2));
     @{$geometryData->{'unitVector1'}->{'coordinate'}} = $unitVector1->list();
     @{$geometryData->{'unitVector2'}->{'coordinate'}} = $unitVector2->list();
     @{$geometryData->{'unitVector3'}->{'coordinate'}} = $unitVector3->list();
