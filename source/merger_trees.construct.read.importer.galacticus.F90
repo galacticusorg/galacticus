@@ -977,11 +977,6 @@ contains
     if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
        if (.not.self%angularMomentaIsVector) call Galacticus_Error_Report("galacticusImport","vector angular momentum is not available")
        call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
-       ! Transfer to nodes.
-       forall(iNode=1:nodeCount(1))
-          nodes(iNode)%angularMomentum3D=angularMomentum3D(:,iNode)
-       end forall
-       call Dealloc_Array(angularMomentum3D)
     end if
     ! Halo spins.
     if (present(requireSpin).and.requireSpin) then
