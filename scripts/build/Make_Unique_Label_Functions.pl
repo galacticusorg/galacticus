@@ -240,9 +240,30 @@ CODE
 		# Ignore parameters that match an ignored name or regex.
 		unless ( exists($ignoreParameters{$directive->{'name'}}) || map {$directive->{'name'} =~ m/$_/} @ignorePatterns ) {
 		    $hasParameters = 1;
-		    # Determine the default value for this parameter.
-		    my $defaultValue = exists($defaultValues{$directive->{'name'}}) ? $defaultValues{$directive->{'name'}} : "";
-		    $moduleCode .=
+		    # Handle special cases of parameter names that depend on other directives.
+		    if ( $directive->{'name'} =~ m/\(\#([a-zA-Z0-9]+)\->([a-z]+)\)/ ) {
+			my $dependentDirectiveName = $1;
+			my $dependentPropertyName  = $2;
+			foreach my $dependentFileName ( @{$codeDirectiveLocations->{$dependentDirectiveName}->{'file'}} ) {
+			    foreach my $dependentDirective ( &Directives::Extract_Directives($dependentFileName,$dependentDirectiveName) ) {
+				my $dependentProperty = $dependentDirective->{$dependentPropertyName};
+				(my $parameterName = $directive->{'name'}) =~ s/\(\#[a-zA-Z0-9]+\->[a-z]+\)/$dependentProperty/;
+				$moduleCode .=
+<<CODE;
+  if (Input_Parameter_Is_Present('$parameterName')) then
+   call Get_Input_Parameter_VarString('$parameterName',parameterValue,writeOutput=.false.)
+   $labelFunction=$labelFunction//'#$parameterName\['//parameterValue//']'
+   if (present(parameters)) then
+     call parameters%add("$parameterName",char(parameterValue))
+   end if
+  end if
+CODE
+			    }
+			}
+		    } else {
+			# Determine the default value for this parameter.
+			my $defaultValue = exists($defaultValues{$directive->{'name'}}) ? $defaultValues{$directive->{'name'}} : "";
+			$moduleCode .=
 <<CODE;
   call Get_Input_Parameter_VarString('$directive->{'name'}',parameterValue,defaultValue='$defaultValue',writeOutput=.false.)
   $labelFunction=$labelFunction//'#$directive->{'name'}\['//parameterValue//']'
@@ -250,6 +271,7 @@ CODE
     call parameters%add("$directive->{'name'}",char(parameterValue))
   end if
 CODE
+		    }
 		}
 	    }
 	    # Add a source MD5 digest for this file.
