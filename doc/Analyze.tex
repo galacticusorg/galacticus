@@ -517,3 +517,75 @@ The following options are available:
  \item [{\tt differential}] [Default: {\tt 0}] If set to {\tt 1}, then the histogram will be divided through by the bin width, to make it differential;
  \item[{\tt gaussianSmooth}] [Default: no smoothing] If present, this option must specify a PDL which gives, for each point, the value of $\sigma$ in a Gaussian smoothing to be applied to that point before it is added to the histogram. As such, each point will contribute a fraction of its weight to each bin in the histogram.
 \end{description}
+
+\section{On-The-Fly Analysis}\label{sec:OnTheFlyAnalysis}\index{analysis!on-the-fly}
+
+\glc\ can perform various analyses on-the-fly (i.e. as it is running), outputting the expectation for a particular observed dataset. Analyses are selected by adding the appropriate label to the {\tt [mergerTreeAnalyses]} parameter (multiple, space-separated labels can be added to this parameter). Available on-the-fly analyses are described below.
+
+On-the-fly analyses exist for several different stellar and gas mass functions. These analyses share several common features which are described below. In general, the model masses are used to construct a mass function by binning into a histogram using the same bins as the observational dataset as the centers of the bins (with bin boundaries placed at the geometric means of consecutive bin centers), and with each galaxy contributing a weight equal to the volume weight of its merger tree. Typically the bins will be uniformly spaced in the logarithm of mass. Before accumulation to the histogram, galaxy masses are adjusted to account for two effects:
+\begin{enumerate}
+\item \emph{Cosmological parameters:} Typically the observational data will have been analyzed assuming some specific set of cosmological parameters which will differ from that in the current model. Therefore, the mass of the galaxy and the weight assigned to it are both adjusted to match what would be inferred if they were assessed using the same cosmological parameters as were used for the observational data. Typically, this will mean that masses are scaled in proportion to $D_{\rm L}^2(\bar{z})$, where $D_{\rm L}(z)$ is the luminosity distance to redshift $z$ and $\bar{z}$ is the median redshift of observational sample, while weights are scaled in proportional to $D_{\rm c}^2 H^{-1}(z)$, where $D_{\rm c}(z)$ is the comoving distance to redshift $z$ and $H(z)$ is the Hubble parameter at redshift $z$. These scalings are typical for galaxies where masses are determined from luminosities, but may vary in other cases.
+\item \emph{Systematic errors:} Each mass function allows for a systematic shift in model masses (to account for systematic uncertainties in the observational analysis) using a simple model. Specifically, model masses are mapped by this model as follows
+\begin{equation}
+\log_{\rm 10} M \rightarrow \log_{10} M + \sum_{i=0}^N \alpha_i \log^i_{10}(M/M_0),
+\end{equation}
+where $M_0$ is a mass scale defined for each analysis, $N$ is fixed integer for each analysis, and the coefficients $\alpha_i$ are input parameters {\tt [\textless label\textgreater MassSystematic\textless i\textgreater]}, where {\tt \textless label\textgreater} is the label of the analysis and {\tt \textless i\textgreater} is an integer in the range 0\ldots$N$.
+\end{enumerate}
+Individual analyses may defined additional transformations of the galaxy mass. These are detailed below.
+
+When the weight of each galaxy is accumulated to the mass function histogram, the logarithm of the galaxy mass is modeled as a Gaussian kernel with width specified by each analysis to account for random errors in the observations and/or scatter in model masses. That is, the weight of each galaxy is spread over every bin of the histogram using this Gaussian kernel. Additionally, if {\tt [analysisMassFunctionsApplyGravitationalLensing]}$=${\tt true} then the mass of each galaxy is convolved with the magnification distribution expected due to gravitational lensing from large-scale structure (see \S\ref{phys:gravitationalLensing}).
+
+The contribution to the mass function from each model output redshift is computed from the volume associated with that output redshift, given the angular geometry and depth of the survey as determined from the appropriate survey geometry (see \S\ref{phys:surveyGeometry}) and assuming that each output redshift represents a range of redshifts running between the geometric means of the times corresponding to each output redshift. 
+
+In addition to the mass function, the covariance matrix, ${\bf C}_{\rm model}$, of the mass function is also computed. The assumptions used when constructing the covariance matrix are controlled by the parameter {\tt [analysisMassFunctionCovarianceModel]}. If set to {\tt binomial}, them to construct ${\bf C}_{\rm model}$ we make use of the fact that \glc\ works by sampling a set of tree ``root masses'' from the $z=0$ dark matter halo mass function. From each root, a tree is grown, within which the physics of galaxy formation is then solved. Root masses are sampled uniformly from the halo mass function. That is, the cumulative halo mass function, $N(M)$, is constructed between the maximum and minimum halo masses to be simulated. The number of root masses, $N_{\rm r}$, to be used in a model evaluation is then determined. Root masses are then chosen such that
+\begin{equation}
+ N(M_i) = N(M_{\rm min}) {i-1 \over N_{\rm r}-1}
+\end{equation}
+for $i=1\ldots N_{\rm r}$ (noting that $N(M_{\rm max})=0$ by construction). 
+
+Consider first those galaxies which form in the main branch of each tree (i.e. those galaxies which are destined to become the central galaxy of the $z=0$ halo). Suppose that we simulate $N_k$ halos of root mass $M_k$ at $z=0$. In such halos the main branch galaxies will, at any time, have stellar masses drawn from some distribution $p_k(M_\star|t)$. The number of such galaxies contributing to bin $i$ of the mass function is therefore binomially distributed with success probability $p_{ik} = \int_{M_{i,\rm min}}^{M_{i,\rm max}} p_k(M_\star|t) \d M_\star$ and a sample size of $N_k$. The contribution to the covariance matrix from these main branch galaxies is therefore:
+\begin{equation}
+ \mathcal{C}_{ij} = \left\{ \begin{array}{ll} p_{ik}(1-p_{ik}) N_k w_k^2 & \hbox{ if } i = j \\ -p_{ik} p_{jk} N_k w_k^2 & \hbox{ otherwise,} \end{array} \right.
+\end{equation}
+where $w_k$ is the weight to be assigned to each tree. To compute this covariance requires knowledge of the probabilities, $p_{ik}$. We estimate these directly from the model. To do this, we bin trees into narrow bins of root mass and assume that $p_{ik}$ does not vary significantly across the mass range of each bin. Using all realizations of trees that fall within a given bin, $k$, we can directly estimate $p_{ik}$. In computing $p_{ik}$, the range of halo masses considered and the fineness of binning in halo mass are determined by the parameters {\tt [analysisMassFunctionsHaloMassMinimum]}, {\tt [analysisMassFunctionsHaloMassMaximum]}, and {\tt [analysisMassFunctionsHaloMassBinsPerDecade]}.
+
+If instead, {\tt [analysisMassFunctionCovarianceModel]}$=${\tt Poisson}, the main branch galaxies are modeled as being sampled from a Poisson distribution (and so off-diagonal terms in the covariance matrix will be zero). 
+
+In addition to the main branch galaxies, each tree will contain a number of other galaxies (these will be ``satellite'' galaxies at $z=0$, but at higher redshifts may still be central galaxies in their own halos). Tests have established that the number of satellites in halos is well described by a Poisson process. Note that, as described above, each galaxy contributes a Gaussian distribution to the mass function due to modelling of random errors in stellar mass determinations. For main branch galaxies this is simply accounted for when accumulating the probabilities, $p_{ik}$. For satellite galaxies, off-diagonal contributions to the covariance matrix arise as a result, $C_{ij} = w_k f_i f_j$, where $f_i$ is the fraction of the galaxy contributing to bin $i$ of the mass function.
+
+The parameter {\tt [analysisMassFunctionsCorrelationTruncateLevel]} allows off-diagonal elements in the model covariance matrix whose correlation is less than the specified value to be truncated to zero. This helps avoid remove numerical noise from the covariance matrix.
+
+\subsection{ALFALFA HI Mass Function}\label{sec:otfAnalysis:ALFALFA}
+
+This analysis, selected using label {\tt alfalfaHiMassFunctionZ0.00}, computes the model expectation for the HI gas mass function of \cite{martin_arecibo_2010}. Calculation of the mass function follows the basic methdology outlined above. Model galaxy masses and weights are mapped for differences in cosmological parameters as described above, and the simple systematic mass error model is employed with parameter $N=1$ and $M_0=10^9M_\odot$.
+
+The analysis assumes that only the total \gls{ism} mass of each galaxy is available, along with the disk radius (assuming an exponential disk). To infer the HI mass the model of \cite{obreschkow_simulation_2009} is used. Specifically, the molecular ratio, $R_{\rm mol}\equiv M_{\rm H_2}/M_{\rm HI}$, is given by:
+\begin{equation}
+ R_{\rm mol} = \left( A_1 R_{\rm mol}^{\rm c\,\alpha_1} + A_2 R_{\rm mol}^{\rm c\,\alpha_2} \right)^{-1},
+ \label{eq:HIMassSystematic}
+\end{equation}
+where the ratio at the disk center is given by
+\begin{equation}
+ R_{\rm mol}^{\rm c} = [ K r_{\rm disk}^{-4} M_{\rm gas} (M_{\rm gas} + \langle f_\sigma \rangle M_\star)]^\beta.
+\end{equation}
+Here, $R_{\rm mol}$ is the mass ratio of H$_2$ to HI, $M_\star$ is the stellar mass of the disk, $r_{\rm disk}$ is the disk exponential scale length, $\langle f_\sigma \rangle$ is the average ratio of the vertical velocity dispersions of gas to stars, and $K={\rm G}/(8\pi P_\star)$. The HI mass is then determined from:
+\begin{equation}
+M_{\rm HI} = X_{\rm H} M_{\rm gas} / ( 1 + R_{\rm mol} ),
+\end{equation}
+where $X_{\rm H}=0.778$ is the primordial hydrogen fraction by mass. In the above $K=${\tt [alfalfaHiMassFunctionZ0.00MolecularFractionK]}, $\langle f_\sigma \rangle=${\tt [alfalfaHiMassFunctionZ0.00MolecularFractionfSigma]}, $A_1=${\tt [alfalfaHiMassFunctionZ0.00MolecularFractionA1]}, $A_2=${\tt [alfalfaHiMassFunctionZ0.00MolecularFractionA2]}, $\alpha_1=${\tt [alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1]}, $\alpha_2=${\tt [alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2]}, and $\beta=${\tt [alfalfaHiMassFunctionZ0.00MolecularFractionBeta]}. Default values for these parameters are taken from \cite{obreschkow_simulation_2009}. According to Obreschkow (private communication), there remains significant scatter of $\sigma_{R_{\rm mol}}=0.4$~dex between the predicted $R_{\rm mol}$ from this model and that observed. This is accounted for in when constructing the mass function (see below).
+
+To account for both observational errors and scatter in $R_{\rm mol}$ not captured by the above model, the HI mass of each galaxy is modeled as a Gaussian in $\log_{10}M_{\rm HI}$ when constructing the mass function. Observational random errors on HI mass, including those arising from flux density uncertainties and errors in the assumed distance to each source, are taken from Fig.~19 of \cite{haynes_arecibo_2011}. The magnitude of the error as a function of HI mass is fit using a functional form:
+\begin{equation}
+ \sigma_{\rm obs} = a + \exp\left(-{\log_{10}(M_{\rm HI}/M_\odot)-b\over c}\right),
+\end{equation}
+where $\sigma_{\rm obs}$ is the error on $\log_{10}(M_{\rm HI}/M_\odot)$. We find a reasonable fit using values\footnote{This should not be regarded as a formal good fit. Error estimates are approximate---we have simply found a functional form that roughly describes them, along with conservative errors on the parameters of this function which are included in the priors.} of $a=0.100 \pm 0.010$, $b=5.885 \pm 0.100$, and $c=0.505 \pm 0.020$ as shown in Fig.~\ref{fig:ALFALFAErrorModel}. The total random error on the logarithm of each galaxy mass is given by $\sigma^2 = \sigma_{R_{\rm mol}}^2+\sigma_{\rm obs}^2$, and is used as the width of the Gaussian kernal when applying each galaxy to the mass function histogram (as described above).
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/alfalfaHIMassErrorModel.pdf}
+ \caption{The observational random error in galaxy HI mass as a function of HI mass for the ALFALFA survey. Points show the errors reported by \protect\cite{haynes_arecibo_2011}, while the line shows a simple functional form fit to these errors.}
+ \end{center}
+ \label{fig:ALFALFAErrorModel}
+\end{figure}
+
+Additionally, HI mass estimates can be affected by HI self-absorption for highly inclined galaxies. \cite[][see also \protect\citealt{zwaan_hipass_2005}]{zwaan_h_1997} estimate that this effect would lead to a mean underestimation of HI masses by a factor $1.1$ for a randomly oriented galaxy sample. Therefore, a value of $-0.0414$ for the systematic parameter {\tt [alfalfaHiMassFunctionZ0.00MassSystematic0]} is recommended.
