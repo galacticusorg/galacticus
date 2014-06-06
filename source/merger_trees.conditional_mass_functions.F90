@@ -407,8 +407,9 @@ contains
                         &           )                                                      &
                         &        +1
                    if    (binMassParent >= 1 .and. binMassParent <= mergerTreeComputeConditionalMassFunctionParentMassCount) then
-                      !$omp atomic
+                      !$omp critical(conditionalMassFunctionAccumulate)
                       normalization(i,binMassParent)=normalization(i,binMassParent)+currentTree%volumeWeight
+                      !$omp end critical(conditionalMassFunctionAccumulate)
                    end if
                 end if
                 ! Check if the branch spans the progenitor time.
@@ -477,14 +478,14 @@ contains
                          ! Check if within binned ranges.
                          if    (binMassParent >= 1 .and. binMassParent <= mergerTreeComputeConditionalMassFunctionParentMassCount) then
                             if (binMassRatio  >= 1 .and. binMassRatio  <= mergerTreeComputeConditionalMassFunctionMassRatioCount) then
-                               !$omp atomic
+                               !$omp critical(conditionalMassFunctionAccumulate)
                                conditionalMassFunction             (i,binMassParent,binMassRatio) &
                                     & =conditionalMassFunction     (i,binMassParent,binMassRatio) &
                                     & + massRatio*currentTree%volumeWeight
-                               !$omp atomic
                                conditionalMassFunctionError        (i,binMassParent,binMassRatio) &
                                     & =conditionalMassFunctionError(i,binMassParent,binMassRatio) &
                                     & +(massRatio*currentTree%volumeWeight)**2
+                               !$omp end critical(conditionalMassFunctionAccumulate)
                             end if
                             ! Check for formation.
                             if (branchBegin > timeProgenitors(i)*(1.0d0-mergerTreeConditionalMassFunctionFormationRateTimeFraction) .and. .not.associated(childNode%firstChild)) then
@@ -499,10 +500,10 @@ contains
                                     &                  )                                                              &
                                     &               +1
                                if (binMassRatioCreation >= 1 .and. binMassRatioCreation <= mergerTreeComputeConditionalMassFunctionMassRatioCount) then
-                                  !$omp atomic
+                                  !$omp critical(conditionalMassFunctionAccumulate)
                                   formationRateFunction     (i,binMassParent,binMassRatioCreation,1)=formationRateFunction     (i,binMassParent,binMassRatioCreation,1)+ massRatioCreation*currentTree%volumeWeight
-                                  !$omp atomic
                                   formationRateFunctionError(i,binMassParent,binMassRatioCreation,1)=formationRateFunctionError(i,binMassParent,binMassRatioCreation,1)+(massRatioCreation*currentTree%volumeWeight)**2
+                                  !$omp end critical(conditionalMassFunctionAccumulate)
                                end if
                                ! Find the mass of this node just prior to it becoming a subhalo.
                                descendentNode => thisNode
@@ -519,10 +520,10 @@ contains
                                     &                    )                                                              &
                                     &                 +1
                                if (binMassRatioDescendent >= 1 .and. binMassRatioDescendent <= mergerTreeComputeConditionalMassFunctionMassRatioCount) then
-                                  !$omp atomic
+                                  !$omp critical(conditionalMassFunctionAccumulate)
                                   formationRateFunction     (i,binMassParent,binMassRatioDescendent,2)=formationRateFunction     (i,binMassParent,binMassRatioDescendent,2)+ massRatioDescendent*currentTree%volumeWeight
-                                  !$omp atomic
                                   formationRateFunctionError(i,binMassParent,binMassRatioDescendent,2)=formationRateFunctionError(i,binMassParent,binMassRatioDescendent,2)+(massRatioDescendent*currentTree%volumeWeight)**2
+                                  !$omp end critical(conditionalMassFunctionAccumulate)
                                end if
                             end if
                             ! Accumulate to the primary progenitor mass array if necessary.
@@ -566,18 +567,18 @@ contains
                         &                   )                                                      &
                         &                +1
                    if (binMassRatio  >= 1 .and. binMassRatio  <= mergerTreeComputeConditionalMassFunctionMassRatioCount) then
-                      !$omp atomic
+                      !$omp critical(conditionalMassFunctionAccumulate)
                       primaryProgenitorMassFunction             (i,binMassParent,binMassRatio,iPrimary)= &
                            &  primaryProgenitorMassFunction     (i,binMassParent,binMassRatio,iPrimary)  &
                            & +primaryProgenitorMass             (i,binMassParent,             iPrimary)  &
                            & *currentTree%volumeWeight
-                      !$omp atomic
                       primaryProgenitorMassFunctionError          (i,binMassParent,binMassRatio,iPrimary)= &
                            &    primaryProgenitorMassFunctionError(i,binMassParent,binMassRatio,iPrimary)  &
                            & +(                                                                            &
                            &    primaryProgenitorMass             (i,binMassParent,             iPrimary)  &
                            &   *currentTree%volumeWeight                                                   &
                            &  )**2
+                      !$omp end critical(conditionalMassFunctionAccumulate)
                    end if
                 end if
              end do
