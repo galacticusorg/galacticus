@@ -151,9 +151,11 @@ for(my $i=0;$i<nelem($redshifts);++$i) {
 
 # Compute the values of m and n. Here we assume n=m+1 (to keep n and m as small as
 # possible. According to Kitzbichler & White (2007; MNRAS; 376; 2) this will give a field of
-# dimensions 1/m^2/ by 1/m/n^2 radians. Given the inverse anglular size of the survey "invAngle"
+# dimensions 1/m^2/n by 1/m/n^2 radians. Given the inverse anglular size of the survey "invAngle"
 # we can solve the resulting cubic equation for m.
 my $m = int((8.0+108.0*$invAngle+12.0*sqrt(12.0*$invAngle+81.0*$invAngle**2))**(1.0/3.0)/6.0+2.0/3.0*(8.0+108.0*$invAngle+12.0*sqrt(12.0*$invAngle+81.0*$invAngle**2))**(-1.0/3.0)-2.0/3.0);
+die("Millennium_Lightcone_Grab.pl: lightcone angle is too large")
+    if ( $m < 1 );
 my $n = $m+1;
 my $angle1   = 1.0/$m/$n/$n/$degreesToRadians;
 my $angle2   = 1.0/$m/$m/$n/$degreesToRadians;
