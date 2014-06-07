@@ -10,13 +10,13 @@ use warnings;
 # correctly).
 #
 # FSPS stellar population synthesis code and associated file.
-system("rm -f data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.1_imfSalpeter.hdf5");
-system("rm -rf aux/FSPS_v2.3");
+system("rm -f ../data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.3_imfSalpeter.hdf5");
+system("rm -rf ../aux/FSPS_v2.3");
 # Noninstantaneous recycling files (older than 14 days).
-system("find data/stellarPopulations -name '".$_."' -ctime +14 -exec rm {} \\;")
+system("find ../data/stellarPopulations -name '".$_."' -ctime +14 -exec rm {} \\;")
     foreach ( "Stellar_*_Yield_*_*.xml", "Stellar_Recycled_Fraction_*_*.xml", "Stellar_Energy_Input_*_*.xml" );
 # CMBFast transfer function files (older than 14 days).
-system("find data/largeScaleStructure -name 'transfer_function_CMBFast_*.xml' -ctime +14 -exec rm {} \\;");
+system("find ../data/largeScaleStructure -name 'transfer_function_CMBFast_*.xml' -ctime +14 -exec rm {} \\;");
 
 # Simply run the models.
 system("cd ..; scripts/aux/Run_Galacticus.pl testSuite/test-methods.xml");
