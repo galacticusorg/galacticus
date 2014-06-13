@@ -687,7 +687,7 @@ contains
     ! Set the mass and spin of the central black hole.
     call Node_Component_Black_Hole_Standard_Output_Merger(thisNode,massBlackHole1,massBlackHole2)
     call thisBlackHoleComponent1%massSet(blackHoleMassNew)
-    call thisBlackHoleComponent2%spinSet(blackHoleSpinNew)
+    call thisBlackHoleComponent1%spinSet(blackHoleSpinNew)
     ! Remove the merging black hole from the list.
     call thisNode%blackHoleRemove(mergingInstance)
     return
