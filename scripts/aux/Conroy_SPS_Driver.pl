@@ -95,7 +95,7 @@ if ( $makeFile == 1 ) {
     # Build the code.
     unless ( -e $galacticusPath."aux/FSPS_v2.4/src/autosps.exe" ) {
  	print "Conroy_SPS_Driver.pl: compiling autosps.exe code.\n";
- 	system("cd ".$galacticusPath."aux/FSPS_v2.4/src; export SPS_HOME=`pwd`; make clean; make -j 1");
+ 	system("cd ".$galacticusPath."aux/FSPS_v2.4/src; export SPS_HOME=".$galacticusPath."aux/FSPS_v2.4/; make clean; make -j 1");
  	die("Conroy_SPS_Driver.pl: FATAL - failed to build autosps.exe code.") unless ( -e $galacticusPath."aux/FSPS_v2.4/src/autosps.exe" );
     }
     
@@ -111,7 +111,7 @@ if ( $makeFile == 1 ) {
     # Run the code.
     my $pwd = `pwd`;
     chomp($pwd);
-    $ENV{'SPS_HOME'} = $galacticusPath."aux/FSPS_v2.4";
+    $ENV{'SPS_HOME'} = $galacticusPath."aux/FSPS_v2.4/";
     my $iMetallicity = -1;
 
     # Add a description and other metadata to the file.
