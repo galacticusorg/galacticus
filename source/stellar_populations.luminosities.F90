@@ -77,6 +77,7 @@ contains
     use String_Handling
     use IO_HDF5
     use File_Utilities
+    use MPI_Utilities
     implicit none
     integer                                                                                    , intent(in   ) :: filterIndex                  (:), imfIndex                   , &
          &                                                                                                        luminosityIndex              (:), postprocessingChainIndex(:)
@@ -279,7 +280,7 @@ contains
              luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:) &
                   &=luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:)/normalization
              ! Store the luminosities to file.
-             if (stellarPopulationLuminosityStoreToFile) then
+             if (stellarPopulationLuminosityStoreToFile.and.mpiSelf%isMaster()) then
                 ! Construct the dataset name.
                 write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
