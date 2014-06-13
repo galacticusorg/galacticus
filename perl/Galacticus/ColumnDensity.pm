@@ -37,9 +37,9 @@ sub Get_Column_Density {
 
     # Ensure that we have all of the datasets that we need.
     my @requiredDatasets = ( 'nodeIndex' );
-    push(@requiredDatasets,'diskScaleLength','diskGasMass','inclination')
+    push(@requiredDatasets,'diskRadius','diskMassGas','inclination')
 	if ( $includeDisk     == 1 );
-    push(@requiredDatasets,'spheroidGasMass', 'spheroidScaleLength')
+    push(@requiredDatasets,'spheroidMassGas', 'spheroidRadius')
 	if ( $includeSpheroid == 1 );
     &HDF5::Get_Dataset($model,\@requiredDatasets);
     my $dataSets = $model->{'dataSets'};
@@ -47,32 +47,32 @@ sub Get_Column_Density {
     my $sigmaSpheroid = pdl zeroes(nelem($dataSets->{'nodeIndex'}));
     if ( $includeSpheroid == 1 ) {
 	# Compute central density of spheroid component.
-	my $spheroidGasMass        = $dataSets->{'spheroidGasMass'    };
-	my $spheroidScaleLength    = $dataSets->{'spheroidScaleLength'};
-	my $spheroidDensityCentral = $spheroidGasMass/(2.0*PI*$spheroidScaleLength**3);
+	my $spheroidMassGas        = $dataSets->{'spheroidMassGas'    };
+	my $spheroidRadius    = $dataSets->{'spheroidRadius'};
+	my $spheroidDensityCentral = $spheroidMassGas/(2.0*PI*$spheroidRadius**3);
 	# Using 0.1*(scale length) for inner spheroid cutoff
-	my $spheroidRadiusMinimum              = 0.1*$spheroidScaleLength;
-	my $spheroidRadiusMinimumDimensionless = $spheroidRadiusMinimum/$spheroidScaleLength;
+	my $spheroidRadiusMinimum              = 0.1*$spheroidRadius;
+	my $spheroidRadiusMinimumDimensionless = $spheroidRadiusMinimum/$spheroidRadius;
 	# Compute column density to center of spheroid.
 	$sigmaSpheroid                        .=
 	    0.5
 	    *$spheroidDensityCentral
-	    *$spheroidScaleLength
+	    *$spheroidRadius
 	    *(
-		-$spheroidScaleLength
+		-$spheroidRadius
 		*(3.0+2.0*$spheroidRadiusMinimumDimensionless)
 		/(2.0*(1.0+$spheroidRadiusMinimumDimensionless)**2)
 		+2.0*log(1.0+1.0/$spheroidRadiusMinimumDimensionless)
 	    );
-	$sigmaSpheroid->where($spheroidScaleLength == 0.0) .= 0.0;
+	$sigmaSpheroid->where($spheroidRadius == 0.0) .= 0.0;
     }
     # Compute disk column density if necessary.
     my $sigmaDisk = pdl zeroes(nelem($dataSets->{'nodeIndex'}));
     if ( $includeDisk == 1 ) {
 	# Compute central density of disk component.
-	my $diskGasMass        = $dataSets->{'diskGasMass'    };
-	my $diskScaleLength    = $dataSets->{'diskScaleLength'};
-	my $diskDensityCentral = $diskGasMass/(0.4*PI*$diskScaleLength**3);
+	my $diskMassGas        = $dataSets->{'diskMassGas'    };
+	my $diskRadius    = $dataSets->{'diskRadius'};
+	my $diskDensityCentral = $diskMassGas/(0.4*PI*$diskRadius**3);
 	# Compute column density to center of disk.
 	my $diskInclination    = ($dataSets->{'inclination'})*(PI/180.0);
 	my $tangentInclination = abs(tan($diskInclination));
@@ -81,10 +81,10 @@ sub Get_Column_Density {
 	$sigmaDisk            .= 
 	    (1.0/200.0)
 	    *$diskDensityCentral
-	    *$diskScaleLength
+	    *$diskRadius
 	    *sqrt($tangentInclination**2+1.0)
 	    *($tangentInclination*($digamma1-$digamma2)-20.0);
-	$sigmaDisk->where($diskScaleLength == 0.0) .= 0.0;
+	$sigmaDisk->where($diskRadius == 0.0) .= 0.0;
     }
     # Evaluate conversion factor from mass column density to hydrogen column density.
     my $hydrogenFactor = (0.76)*$massSolar/($massHydrogen*($megaParsec*$hecto)**2);

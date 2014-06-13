@@ -55,7 +55,7 @@ foreach my $srcdir ( @sourcedirs ) {
 	    my $exclude = 0;
 	    while (my $line = <$infile>) {
 		$exclude = 1
-		    if ( $line =~ m/^\s*!;\s+exclude/ );
+		    if ( $line =~ m/^\s*!\/\s+exclude/ );
 		if ( $line =~ m/^\s*program\s/i ) {
 		    my $ename = $fname;
 		    $ename =~ s/\.[fF](90)?t?$/\.exe/;

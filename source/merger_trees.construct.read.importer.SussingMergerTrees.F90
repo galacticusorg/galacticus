@@ -43,6 +43,7 @@
      integer                                                     :: subvolumeCount
      integer                                      , dimension(3) :: subvolumeIndex
      double precision                                            :: subvolumeBuffer
+     logical                                                     :: convertToBinary
     contains
       !@ <objectMethods>
       !@   <object>mergerTreeImporterSussing</object>
@@ -62,32 +63,33 @@
      !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
      !# final     :: sussingDestructor
      !# </workaround>
-     procedure :: open                        => sussingOpen
-     procedure :: close                       => sussingClose
-     procedure :: treesHaveSubhalos           => sussingTreesHaveSubhalos
-     procedure :: massesIncludeSubhalos       => sussingMassesIncludeSubhalos
-     procedure :: treesAreSelfContained       => sussingTreesAreSelfContained
-     procedure :: velocitiesIncludeHubbleFlow => sussingVelocitiesIncludeHubbleFlow
-     procedure :: positionsArePeriodic        => sussingPositionsArePeriodic
-     procedure :: cubeLength                  => sussingCubeLength
-     procedure :: treeWeight                  => sussingTreeWeight
-     procedure :: treeCount                   => sussingTreeCount
-     procedure :: treeIndex                   => sussingTreeIndex
-     procedure :: nodeCount                   => sussingNodeCount
-     procedure :: positionsAvailable          => sussingPositionsAvailable
-     procedure :: scaleRadiiAvailable         => sussingScaleRadiiAvailable
-     procedure :: particleCountAvailable      => sussingParticleCountAvailable
-     procedure :: velocityMaximumAvailable    => sussingVelocityMaximumAvailable
-     procedure :: velocityDispersionAvailable => sussingVelocityDispersionAvailable
-     procedure :: angularMomentaAvailable     => sussingAngularMomentaAvailable
-     procedure :: angularMomenta3DAvailable   => sussingAngularMomenta3DAvailable
-     procedure :: spinAvailable               => sussingSpinAvailable
-     procedure :: spin3DAvailable             => sussingSpin3DAvailable
-     procedure :: import                      => sussingImport
-     procedure :: subhaloTrace                => sussingSubhaloTrace
-     procedure :: subhaloTraceCount           => sussingSubhaloTraceCount
-     procedure :: inSubvolume                 => sussingInSubvolume
-     procedure :: inSubvolume1D               => sussingInSubvolume1D
+     procedure :: open                          => sussingOpen
+     procedure :: close                         => sussingClose
+     procedure :: treesHaveSubhalos             => sussingTreesHaveSubhalos
+     procedure :: massesIncludeSubhalos         => sussingMassesIncludeSubhalos
+     procedure :: angularMomentaIncludeSubhalos => sussingAngularMomentaIncludeSubhalos
+     procedure :: treesAreSelfContained         => sussingTreesAreSelfContained
+     procedure :: velocitiesIncludeHubbleFlow   => sussingVelocitiesIncludeHubbleFlow
+     procedure :: positionsArePeriodic          => sussingPositionsArePeriodic
+     procedure :: cubeLength                    => sussingCubeLength
+     procedure :: treeWeight                    => sussingTreeWeight
+     procedure :: treeCount                     => sussingTreeCount
+     procedure :: treeIndex                     => sussingTreeIndex
+     procedure :: nodeCount                     => sussingNodeCount
+     procedure :: positionsAvailable            => sussingPositionsAvailable
+     procedure :: scaleRadiiAvailable           => sussingScaleRadiiAvailable
+     procedure :: particleCountAvailable        => sussingParticleCountAvailable
+     procedure :: velocityMaximumAvailable      => sussingVelocityMaximumAvailable
+     procedure :: velocityDispersionAvailable   => sussingVelocityDispersionAvailable
+     procedure :: angularMomentaAvailable       => sussingAngularMomentaAvailable
+     procedure :: angularMomenta3DAvailable     => sussingAngularMomenta3DAvailable
+     procedure :: spinAvailable                 => sussingSpinAvailable
+     procedure :: spin3DAvailable               => sussingSpin3DAvailable
+     procedure :: import                        => sussingImport
+     procedure :: subhaloTrace                  => sussingSubhaloTrace
+     procedure :: subhaloTraceCount             => sussingSubhaloTraceCount
+     procedure :: inSubvolume                   => sussingInSubvolume
+     procedure :: inSubvolume1D                 => sussingInSubvolume1D
   end type mergerTreeImporterSussing
 
   interface mergerTreeImporterSussing
@@ -100,9 +102,11 @@
 
   ! Default settings.
   logical                        :: mergerTreeImportSussingMismatchIsFatal
+  logical                        :: mergerTreeImportSussingNonTreeNodeIsFatal
   integer                        :: mergerTreeImportSussingSubvolumeCount
   double precision               :: mergerTreeImportSussingSubvolumeBuffer
   integer         , dimension(3) :: mergerTreeImportSussingSubvolumeIndex
+  logical                        :: mergerTreeImportSussingConvertToBinary
 
 contains
 
@@ -111,7 +115,7 @@ contains
     use Input_Parameters
     implicit none
     type (mergerTreeImporterSussing), target :: sussingDefaultConstructor
-        
+
     if (.not.sussingInitialized) then
        !$omp critical (mergerTreeImporterSussingInitialize)
        if (.not.sussingInitialized) then
@@ -126,6 +130,17 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeImportSussingMismatchIsFatal',mergerTreeImportSussingMismatchIsFatal,defaultValue=.true.)
+          !@ <inputParameter>
+          !@   <name>mergerTreeImportSussingNonTreeNodeIsFatal</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <defaultValue>true</defaultValue>
+          !@   <description>
+          !@     Specifies whether nodes in snapshot files but not in the merger tree file should be considered fatal when importing from the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013}.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeImportSussingNonTreeNodeIsFatal',mergerTreeImportSussingNonTreeNodeIsFatal,defaultValue=.true.)
           !@ <inputParameter>
           !@   <name>mergerTreeImportSussingSubvolumeCount</name>
           !@   <attachedTo>module</attachedTo>
@@ -159,6 +174,17 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeImportSussingSubvolumeIndex',mergerTreeImportSussingSubvolumeIndex,defaultValue=[0,0,0])
+          !@ <inputParameter>
+          !@   <name>mergerTreeImportSussingConvertToBinary</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <defaultValue>true</defaultValue>
+          !@   <description>
+          !@     Specifies whether halo and tree files in the ``Sussing'' format should be converted to binary the first time they are read and stored to file. This allows rapid re-reading in future.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeImportSussingToConvertBinary',mergerTreeImportSussingConvertToBinary,defaultValue=.true.)
           sussingInitialized=.true.
        end if
        !$omp end critical (mergerTreeImporterSussingInitialize)
@@ -168,7 +194,8 @@ contains
     sussingDefaultConstructor%subvolumeCount =mergerTreeImportSussingSubvolumeCount
     sussingDefaultConstructor%subvolumeBuffer=mergerTreeImportSussingSubvolumeBuffer
     sussingDefaultConstructor%subvolumeIndex =mergerTreeImportSussingSubvolumeIndex
-    return
+    sussingDefaultConstructor%convertToBinary=mergerTreeImportSussingConvertToBinary
+   return
   end function sussingDefaultConstructor
 
   subroutine sussingDestructor(self)
@@ -242,7 +269,7 @@ contains
     end do
     close(fileUnit)
     ! Read the snapshots times file.
-    call Alloc_Array(self%snapshotTimes,[snapshotFileCount],lowerBounds=[0])
+    call Alloc_Array(self%snapshotTimes,[snapshotFileCount])
     open(newUnit=fileUnit,file=char(snapshotTimesFile),status='old',form='formatted',ioStat=ioStat)
     read (fileUnit,*)
     do i=1,snapshotFileCount
@@ -347,6 +374,16 @@ contains
     return
   end function sussingMassesIncludeSubhalos
 
+  logical function sussingAngularMomentaIncludeSubhalos(self)
+    !% Return a Boolean specifying whether or not the halo angular momenta include the contribution from subhalos.
+    use Galacticus_Error
+    implicit none
+    class  (mergerTreeImporterSussing), intent(inout) :: self
+
+    sussingAngularMomentaIncludeSubhalos=.true.
+    return
+  end function sussingAngularMomentaIncludeSubhalos
+
   integer function sussingTreesAreSelfContained(self)
     !% Return a Boolean integer specifying whether or not the trees are self-contained.
     use Numerical_Constants_Boolean
@@ -430,6 +467,7 @@ contains
     use Kind_Numbers
     use String_Handling
     use Sort
+    use File_Utilities
     use Memory_Management
     use Arrays_Search
     use Numerical_Constants_Astronomical
@@ -437,48 +475,55 @@ contains
     use, intrinsic :: ISO_C_Binding
     implicit none
     class    (mergerTreeImporterSussing), intent(inout)               :: self
-    integer  (kind=c_size_t            ), allocatable  , dimension(:) :: nodeIndexRanks            , nodeNodeLocations
-    integer  (kind=kind_int8           ), allocatable  , dimension(:) :: nodeSelfIndices           , nodeTreeIndices  , &
-         &                                                               nodeDescendentLocations   , nodesInSubvolume , &
-         &                                                               nodesInSubvolumeTmp
+    integer  (kind=c_size_t            ), allocatable  , dimension(:) :: nodeIndexRanks
+    integer  (kind=kind_int8           ), allocatable  , dimension(:) :: nodeSelfIndices           , nodeTreeIndices       , &
+         &                                                               nodeDescendentLocations   , nodesInSubvolume      , &
+         &                                                               nodesTmp
     logical                             , allocatable  , dimension(:) :: nodeIncomplete
     integer                             , parameter                   :: fileFormatVersionCurrent=1
-    logical                                                           :: nodeIsActive
-    integer                                                           :: fileUnit                  , progenitorCount  , &
-         &                                                               ioStat                    , lineStat         , &
-         &                                                               i                         , nodeCount        , &
-         &                                                               fileFormatVersion         , iProgenitor      , &
-         &                                                               snapshotUnit              , k                , &
-         &                                                               nodeCountSubvolume        , iNode            , &
-         &                                                               j
-    character(len=32                   )                              :: line
+    integer                             , parameter                   :: stepCountMaximum        =1000000
+    logical                                                           :: nodeIsActive              , doBinaryConversion    , &
+         &                                                               readBinary                , mergerTreeFileIsBinary, &
+         &                                                               mergerTreeFileConvert
+    integer                                                           :: fileUnit                  , progenitorCount       , &
+         &                                                               ioStat                    , lineStat              , &
+         &                                                               nodeCountSubvolume        , nodeCount             , &
+         &                                                               fileFormatVersion         , iProgenitor           , &
+         &                                                               snapshotUnit              , snapshotOutUnit       , &
+         &                                                               fileUnitOut               , nodeCountTrees
+    character(len=32                   )                              :: line                      , label
     integer  (kind=c_size_t            )                              :: l
-    integer  (kind=kind_int8           )                              :: nodeIndex                 , treeIndexPrevious
+    integer  (kind=kind_int8           )                              :: nodeIndex                 , treeIndexPrevious     , &
+         &                                                               treeIndexCurrent          , i                     , &
+         &                                                               j                         , k                     , &
+         &                                                               iNode                     , iStart
     type     (varying_string           )                              :: message
-    integer  (kind=kind_int8           )                              :: ID                        , hostHalo         , &
-         &                                                               treeIndexFrom             , treeIndexTo
-    integer                                                           :: numSubStruct              , npart            , &
-         &                                                               nbins
-    double precision                                                  :: Mvir                      , Xc               , &
-               &                                                         Yc                        , Zc               , &
-               &                                                         VXc                       , Vyc              , &
-               &                                                         VZc                       , Rvir             , &
-               &                                                         Rmax                      , r2               , &
-               &                                                         mbp_offset                , com_offset       , &
-               &                                                         Vmax                      , v_esc            , &
-               &                                                         sigV                      , lambda           , &
-               &                                                         lambdaE                   , Lx               , &
-               &                                                         Ly                        , Lz               , &
-               &                                                         b                         , c                , &
-               &                                                         Eax                       , Eay              , &
-               &                                                         Eaz                       , Ebx              , &
-               &                                                         Eby                       , Ebz              , &
-               &                                                         Ecx                       , Ecy              , &
-               &                                                         Ecz                       , ovdens           , &
-               &                                                         fMhires                   , Ekin             , &
-               &                                                         Epot                      , SurfP            , &
+    integer  (kind=kind_int8           )                              :: ID                        , hostHalo              , &
+         &                                                               treeIndexFrom             , treeIndexTo           , &
+         &                                                               progenitorIndex
+    integer                                                           :: numSubStruct              , npart                 , &
+         &                                                               nbins                     , hostStepCount         , &
+         &                                                               descendentStepCount
+    double precision                                                  :: Mvir                      , Xc                    , &
+               &                                                         Yc                        , Zc                    , &
+               &                                                         VXc                       , Vyc                   , &
+               &                                                         VZc                       , Rvir                  , &
+               &                                                         Rmax                      , r2                    , &
+               &                                                         mbp_offset                , com_offset            , &
+               &                                                         Vmax                      , v_esc                 , &
+               &                                                         sigV                      , lambda                , &
+               &                                                         lambdaE                   , Lx                    , &
+               &                                                         Ly                        , Lz                    , &
+               &                                                         b                         , c                     , &
+               &                                                         Eax                       , Eay                   , &
+               &                                                         Eaz                       , Ebx                   , &
+               &                                                         Eby                       , Ebz                   , &
+               &                                                         Ecx                       , Ecy                   , &
+               &                                                         Ecz                       , ovdens                , &
+               &                                                         fMhires                   , Ekin                  , &
+               &                                                         Epot                      , SurfP                 , &
                &                                                         Phi0                      , cNFW
-    type            (importerUnits     )                              :: massUnits                 , lengthUnits      , &
+    type            (importerUnits     )                              :: massUnits                 , lengthUnits           , &
          &                                                               velocityUnits
      
     ! Return if indices have been read previously.
@@ -487,12 +532,31 @@ contains
     ! Display counter.
     call Galacticus_Display_Indent ('Parsing "Sussing Merger Trees" format merger tree file',verbosityWorking)
     ! Open the merger tree file.
-    open(newUnit=fileUnit,file=char(self%mergerTreeFile),status='old',form='formatted',ioStat=ioStat)
+    mergerTreeFileIsBinary=File_Exists(char(self%mergerTreeFile//".bin"))
+    mergerTreeFileConvert =.false.
+    if (mergerTreeFileIsBinary) then
+       open   (newUnit=fileUnit   ,file=char(self%mergerTreeFile//".bin"),status='old'    ,form='unformatted',ioStat=ioStat)
+    else
+       open   (newUnit=fileUnit   ,file=char(self%mergerTreeFile        ),status='old'    ,form='formatted'  ,ioStat=ioStat)
+       if (self%convertToBinary) then
+          mergerTreeFileConvert=.true.
+          open(newUnit=fileUnitOut,file=char(self%mergerTreeFile//".bin"),status='unknown',form='unformatted'              )
+       end if
+    end if
     ! Read header information.
     call Galacticus_Display_Message('Reading header',verbosityWorking)
-    read (fileUnit,*,ioStat=ioStat) fileFormatVersion
-    read (fileUnit,*,ioStat=ioStat) line
-    read (fileUnit,*,ioStat=ioStat) nodeCount
+    if (mergerTreeFileIsBinary) then
+       read     (fileUnit     ,ioStat=ioStat) fileFormatVersion
+       read     (fileUnit     ,ioStat=ioStat) nodeCount
+    else
+       read     (fileUnit   ,*,ioStat=ioStat) fileFormatVersion
+       read     (fileUnit   ,*,ioStat=ioStat) line
+       read     (fileUnit   ,*,ioStat=ioStat) nodeCount
+       if (mergerTreeFileConvert) then
+          write (fileUnitOut                ) fileFormatVersion
+          write (fileUnitOut                ) nodeCount
+       end if
+    end if
     ! Validate file format version/
     if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('sussingTreeIndicesRead','incorrect file format version')
     ! Allocate storage for list of nodes in subvolume.
@@ -504,27 +568,169 @@ contains
     nodeCountSubVolume=0
     do i=1,size(self%snapshotFileName)
        call Galacticus_Display_Message(self%snapshotFileName(i),verbosityWorking)
-       open(newUnit=snapshotUnit,file=char(self%snapshotFileName(i)),status='old',form='formatted',ioStat=ioStat)
-       read (snapshotUnit,*,ioStat=ioStat) line
+       doBinaryConversion=.false.
+       readBinary        =.false.
+       if (File_Exists(self%snapshotFileName(i)//".bin")) then
+          ! A binary version of this file exists, use it.
+          open   (newUnit=snapshotUnit   ,file=char(self%snapshotFileName(i)//".bin"),status='old'    ,form='unformatted',ioStat=ioStat)
+          readBinary=.true.
+       else
+          ! No binary version of this file exists, use the ASCII version.
+          open   (newUnit=snapshotUnit   ,file=char(self%snapshotFileName(i)        ),status='old'    ,form='formatted'  ,ioStat=ioStat)
+          if (self%convertToBinary) then
+             ! Open a binary file to write the converted halo data to.
+             open(newUnit=snapshotOutUnit,file=char(self%snapshotFileName(i)//".bin"),status='unknown',form='unformatted'              )
+             doBinaryConversion=.true.
+          end if
+          read (snapshotUnit,*,ioStat=ioStat) line
+       end if
        do while (ioStat == 0)
-          read (snapshotUnit,*,ioStat=ioStat) &
-               & ID          ,                &
-               & hostHalo    ,                &
-               & numSubStruct,                &
-               & Mvir        ,                &
-               & npart       ,                &
-               & Xc          ,                &
-               & Yc          ,                &
-               & Zc
+          if (readBinary) then
+             read          (snapshotUnit     ,ioStat=ioStat) &
+                  &   ID          ,                          &
+                  &   hostHalo    ,                          &
+                  &   numSubStruct,                          &
+                  &   Mvir        ,                          &
+                  &   npart       ,                          &
+                  &   Xc          ,                          &
+                  &   Yc          ,                          &
+                  &   Zc          ,                          &
+                  &   VXc         ,                          &
+                  &   Vyc         ,                          &
+                  &   VZc         ,                          &
+                  &   Rvir        ,                          &
+                  &   Rmax        ,                          &
+                  &   r2          ,                          &
+                  &   mbp_offset  ,                          &
+                  &   com_offset  ,                          &
+                  &   Vmax        ,                          &
+                  &   v_esc       ,                          &
+                  &   sigV        ,                          &
+                  &   lambda      ,                          &
+                  &   lambdaE     ,                          &
+                  &   Lx          ,                          &
+                  &   Ly          ,                          &
+                  &   Lz          ,                          &
+                  &   b           ,                          &
+                  &   c           ,                          &
+                  &   Eax         ,                          &
+                  &   Eay         ,                          &
+                  &   Eaz         ,                          &
+                  &   Ebx         ,                          &
+                  &   Eby         ,                          &
+                  &   Ebz         ,                          &
+                  &   Ecx         ,                          &
+                  &   Ecy         ,                          &
+                  &   Ecz         ,                          &
+                  &   ovdens      ,                          &
+                  &   nbins       ,                          &
+                  &   fMhires     ,                          &
+                  &   Ekin        ,                          &
+                  &   Epot        ,                          &
+                  &   SurfP       ,                          &
+                  &   Phi0        ,                          &
+                  &   cNFW
+          else
+             read          (snapshotUnit   ,*,ioStat=ioStat) &
+                  &   ID          ,                          &
+                  &   hostHalo    ,                          &
+                  &   numSubStruct,                          &
+                  &   Mvir        ,                          &
+                  &   npart       ,                          &
+                  &   Xc          ,                          &
+                  &   Yc          ,                          &
+                  &   Zc          ,                          &
+                  &   VXc         ,                          &
+                  &   Vyc         ,                          &
+                  &   VZc         ,                          &
+                  &   Rvir        ,                          &
+                  &   Rmax        ,                          &
+                  &   r2          ,                          &
+                  &   mbp_offset  ,                          &
+                  &   com_offset  ,                          &
+                  &   Vmax        ,                          &
+                  &   v_esc       ,                          &
+                  &   sigV        ,                          &
+                  &   lambda      ,                          &
+                  &   lambdaE     ,                          &
+                  &   Lx          ,                          &
+                  &   Ly          ,                          &
+                  &   Lz          ,                          &
+                  &   b           ,                          &
+                  &   c           ,                          &
+                  &   Eax         ,                          &
+                  &   Eay         ,                          &
+                  &   Eaz         ,                          &
+                  &   Ebx         ,                          &
+                  &   Eby         ,                          &
+                  &   Ebz         ,                          &
+                  &   Ecx         ,                          &
+                  &   Ecy         ,                          &
+                  &   Ecz         ,                          &
+                  &   ovdens      ,                          &
+                  &   nbins       ,                          &
+                  &   fMhires     ,                          &
+                  &   Ekin        ,                          &
+                  &   Epot        ,                          &
+                  &   SurfP       ,                          &
+                  &   Phi0        ,                          &
+                  &   cNFW
+          end if
           if (ioStat /= 0) exit
+          ! Write back in binary.
+          if (doBinaryConversion)                         &
+               &  write (snapshotOutUnit                ) &
+               &   ID          ,                          &
+               &   hostHalo    ,                          &
+               &   numSubStruct,                          &
+               &   Mvir        ,                          &
+               &   npart       ,                          &
+               &   Xc          ,                          &
+               &   Yc          ,                          &
+               &   Zc          ,                          &
+               &   VXc         ,                          &
+               &   Vyc         ,                          &
+               &   VZc         ,                          &
+               &   Rvir        ,                          &
+               &   Rmax        ,                          &
+               &   r2          ,                          &
+               &   mbp_offset  ,                          &
+               &   com_offset  ,                          &
+               &   Vmax        ,                          &
+               &   v_esc       ,                          &
+               &   sigV        ,                          &
+               &   lambda      ,                          &
+               &   lambdaE     ,                          &
+               &   Lx          ,                          &
+               &   Ly          ,                          &
+               &   Lz          ,                          &
+               &   b           ,                          &
+               &   c           ,                          &
+               &   Eax         ,                          &
+               &   Eay         ,                          &
+               &   Eaz         ,                          &
+               &   Ebx         ,                          &
+               &   Eby         ,                          &
+               &   Ebz         ,                          &
+               &   Ecx         ,                          &
+               &   Ecy         ,                          &
+               &   Ecz         ,                          &
+               &   ovdens      ,                          &
+               &   nbins       ,                          &
+               &   fMhires     ,                          &
+               &   Ekin        ,                          &
+               &   Epot        ,                          &
+               &   SurfP       ,                          &
+               &   Phi0        ,                          &
+               &   cNFW
           ! Check if halo is in our subvolume.
           if (self%inSubVolume(Xc,Yc,Zc,buffered=.true.)) then
              nodeCountSubvolume=nodeCountSubvolume+1
              if (nodeCountSubvolume > size(nodesInSubvolume)) then
-                call Move_Alloc(nodesInSubvolume,nodesInSubvolumeTmp)
-                call Alloc_Array(nodesInSubvolume,int(dble(shape(nodesInSubvolumeTmp))*1.4d0)+1)
-                nodesInSubvolume(1:size(nodesInSubvolumeTmp))=nodesInSubvolumeTmp
-                call Dealloc_Array(nodesInSubvolumeTmp)
+                call Move_Alloc(nodesInSubvolume,nodesTmp)
+                call Alloc_Array(nodesInSubvolume,int(dble(shape(nodesTmp))*1.4d0)+1)
+                nodesInSubvolume(1:size(nodesTmp))=nodesTmp
+                call Dealloc_Array(nodesTmp)
              end if
              nodesInSubvolume(nodeCountSubvolume)=ID
           end if
@@ -532,7 +738,8 @@ contains
           j=j+1
           call Galacticus_Display_Counter(int(100.0d0*dble(j)/dble(nodeCount)),j == 1,verbosityWorking)
        end do
-       close(snapshotUnit)
+       close                        (snapshotUnit   )
+       if (doBinaryConversion) close(snapshotOutUnit)
     end do
     call Galacticus_Display_Counter_Clear(verbosityWorking)
     call Sort_Do(nodesInSubvolume(1:nodeCountSubvolume))
@@ -540,75 +747,129 @@ contains
     message=message//nodeCountSubvolume//' nodes in subvolume [from '//nodeCount//' total nodes]'
     call Galacticus_Display_Message(message,verbosityWorking)
     ! Allocate workspaces for merger trees.
-    call Alloc_Array(nodeSelfIndices        ,[nodeCountSubvolume])
-    call Alloc_Array(nodeTreeIndices        ,[nodeCountSubvolume])
-    call Alloc_Array(nodeNodeLocations      ,[nodeCountSubvolume])
-    call Alloc_Array(nodeDescendentLocations,[nodeCountSubvolume])
-    call Alloc_Array(nodeIncomplete         ,[nodeCountSubvolume])
+    call Alloc_Array(nodeSelfIndices,[nodeCountSubvolume])
     ! Read node indices.
-    call Galacticus_Display_Message("Rading node indices",verbosityWorking)
+    call Galacticus_Display_Message("Reading node indices",verbosityWorking)
     i     =0
     ioStat=0
     call Galacticus_Display_Counter(0,.true.,verbosityWorking)
     do while (ioStat == 0)
-       read (fileUnit,'(a)',ioStat=ioStat) line
-       if (ioStat /= 0) exit
-       read (line,*,ioStat=lineStat) nodeIndex,progenitorCount
-       if (lineStat == 0) then
-          ! Locate this node in the list of nodes in our subvolume.
-          iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
-          if (iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == nodeIndex) then
-             ! This line represents a node in the tree.
-             i                 =i+1
-             nodeSelfIndices(i)=nodeIndex
-          end if
+       if (mergerTreeFileIsBinary) then
+          read         (fileUnit         ,ioStat=ioStat) nodeIndex,progenitorCount
+          if (ioStat /= 0                         ) exit
+       else
+          read         (fileUnit   ,'(a)',ioStat=ioStat) line
+          if (ioStat /= 0 .or. trim(line) == "END") exit
+          read         (line       ,  *                ) nodeIndex,progenitorCount
+          if (mergerTreeFileConvert)                                               &
+               & write (fileUnitOut                    ) nodeIndex,progenitorCount
+       end if
+       ! Skip progenitors.
+       if (mergerTreeFileIsBinary) then
+          do j=1,progenitorCount
+             read         (fileUnit     ,ioStat=ioStat) progenitorIndex
+          end do
+       else
+          do j=1,progenitorCount
+             read         (fileUnit   ,*,ioStat=ioStat) progenitorIndex
+             if (mergerTreeFileConvert) &
+                  & write (fileUnitOut                ) progenitorIndex
+         end do
+       end if
+       ! Locate this node in the list of nodes in our subvolume.
+       iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
+       if (iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == nodeIndex) then
+          ! This line represents a node in the tree.
+          i                 =i+1
+          nodeSelfIndices(i)=nodeIndex
        end if
        call Galacticus_Display_Counter(int(50.0d0*dble(i)/dble(nodeCountSubvolume)),.false.,verbosityWorking)
+       if (i == nodeCount) exit
     end do
-    rewind(fileUnit)
+    close(fileUnit)
+    ! Some halos in our subvolume might not be part of any tree. Adjust number of halos accordingly.
+    nodeCountTrees=i
+    if (nodeCountTrees < nodeCountSubvolume) then
+       message='Found '
+       message=message//nodeCountTrees//' nodes in subvolume trees [from '//nodeCountSubvolume//' total nodes in subvolume]'
+       call Galacticus_Display_Message(message,verbosityWorking)
+       call Move_Alloc(nodeSelfIndices,nodesTmp)       
+       call Alloc_Array(nodeSelfIndices,[nodeCountTrees])
+       nodeSelfIndices(1:nodeCountTrees)=nodesTmp(1:nodeCountTrees)
+       call Dealloc_Array(nodesTmp)
+    end if
+    call Galacticus_Display_Message(message,verbosityWorking)
+    ! Allocate workspaces for merger trees.
+    call Alloc_Array(nodeTreeIndices        ,[nodeCountTrees])
+    call Alloc_Array(nodeDescendentLocations,[nodeCountTrees])
+    call Alloc_Array(nodeIncomplete         ,[nodeCountTrees])
     ! Get a sorted index into the list of nodes.
     call Galacticus_Display_Message('Building node index',verbosityWorking)
     nodeIndexRanks=Sort_Index_Do(nodeSelfIndices)
+    ! Re-open the merger tree file. 
+    mergerTreeFileIsBinary=File_Exists(char(self%mergerTreeFile//".bin"))
+    if (mergerTreeFileIsBinary) then
+       open(newUnit=fileUnit,file=char(self%mergerTreeFile//".bin"),status='old',form='unformatted',ioStat=ioStat)
+    else
+       open(newUnit=fileUnit,file=char(self%mergerTreeFile        ),status='old',form='formatted'  ,ioStat=ioStat)
+    end if
     ! Read progenitor indices and make links.
     call Galacticus_Display_Message('Reading trees',verbosityWorking)
-    read (fileUnit,*,ioStat=ioStat) fileFormatVersion
-    read (fileUnit,*,ioStat=ioStat) line
-    read (fileUnit,*,ioStat=ioStat) nodeCount
+    if (mergerTreeFileIsBinary) then
+       read (fileUnit  ,ioStat=ioStat) fileFormatVersion
+       read (fileUnit  ,ioStat=ioStat) nodeCount
+    else
+       read (fileUnit,*,ioStat=ioStat) fileFormatVersion
+       read (fileUnit,*,ioStat=ioStat) line
+       read (fileUnit,*,ioStat=ioStat) nodeCount
+    end if
     i                      = 0
     nodeDescendentLocations=-1
     nodeIncomplete         =.false.
     nodeIsActive           =.false.
+    line                   =""
     do while (ioStat == 0)
-       read (fileUnit,'(a)',ioStat=ioStat) line
-       if (ioStat /= 0 .or. trim(line) == "END") exit
-       read (line,*,ioStat=lineStat) nodeIndex,progenitorCount
-       if (lineStat == 0) then
-          ! Locate this node in the list of nodes in our subvolume.
-          iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
-          nodeIsActive=(iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == nodeIndex)
-          if (nodeIsActive) then
-             ! This line represents a node in the tree.
-             i                 =i+1
-             nodeSelfIndices(i)=nodeIndex
-             call Galacticus_Display_Counter(int(50.0d0+50.0d0*dble(i)/dble(nodeCountSubvolume)),.false.,verbosityWorking)
-          end if
-       else if (nodeIsActive) then
-          ! This line represents a progenitor. Locate the progenitor in the list of halos.
-          iProgenitor=Search_Indexed(nodeSelfIndices,nodeIndexRanks,nodeIndex)
-          ! Does this progenitor exist within our subvolume?
-          if (iProgenitor <= 0 .or. iProgenitor > nodeCountSubvolume .or. nodeSelfIndices(nodeIndexRanks(iProgenitor)) /= nodeIndex) then
-             nodeIncomplete(i)=.true.
-          else
-             if (nodeDescendentLocations(nodeIndexRanks(iProgenitor)) /= -1) then
-                message="multiple descendent trees not allowed"
-                message=message//char(10)//" first descendent: "//nodeSelfIndices(nodeDescendentLocations(nodeIndexRanks(iProgenitor)))
-                message=message//char(10)//"   new descendent: "//nodeSelfIndices(i)
-                message=message//char(10)//" progenitor index: "//nodeIndex
-                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
-             end if
-             nodeDescendentLocations(nodeIndexRanks(iProgenitor))=i
-          end if
+       if (mergerTreeFileIsBinary) then
+          read (fileUnit     ,ioStat=ioStat) nodeIndex,progenitorCount
+          if (ioStat /= 0                         ) exit
+       else
+          read (fileUnit,'(a)',ioStat=ioStat) line
+          if (ioStat /= 0 .or. trim(line) == "END") exit
+          read (line,*) nodeIndex,progenitorCount
        end if
+       ! Locate this node in the list of nodes in our subvolume.
+       iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
+       nodeIsActive=(iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == nodeIndex)
+       if (nodeIsActive) then
+          ! This line represents a node in the tree.
+          i                 =i+1
+          nodeSelfIndices(i)=nodeIndex
+          call Galacticus_Display_Counter(int(50.0d0+50.0d0*dble(i)/dble(nodeCountTrees)),.false.,verbosityWorking)
+       end if
+       do j=1,progenitorCount
+          if (mergerTreeFileIsBinary) then
+             read (fileUnit  ,ioStat=ioStat) nodeIndex
+          else
+             read (fileUnit,*,ioStat=ioStat) nodeIndex
+          end if          
+          if (nodeIsActive) then
+             ! This line represents a progenitor. Locate the progenitor in the list of halos.
+             iProgenitor=Search_Indexed(nodeSelfIndices,nodeIndexRanks,nodeIndex)
+             ! Does this progenitor exist within our subvolume?
+             if (iProgenitor <= 0 .or. iProgenitor > nodeCountTrees .or. nodeSelfIndices(nodeIndexRanks(iProgenitor)) /= nodeIndex) then
+                nodeIncomplete(i)=.true.
+             else
+                if (nodeDescendentLocations(nodeIndexRanks(iProgenitor)) /= -1) then
+                   message="multiple descendent trees not allowed"
+                   message=message//char(10)//" first descendent: "//nodeSelfIndices(nodeDescendentLocations(nodeIndexRanks(iProgenitor)))
+                   message=message//char(10)//"   new descendent: "//nodeSelfIndices(i)
+                   message=message//char(10)//" progenitor index: "//nodeIndex
+                   call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                end if
+                nodeDescendentLocations(nodeIndexRanks(iProgenitor))=i
+             end if
+          end if
+       end do
     end do
     ! Close the merger tree file.
     close(fileUnit)
@@ -616,8 +877,8 @@ contains
     call Galacticus_Display_Counter_Clear(       verbosityWorking)
     call Galacticus_Display_Unindent     ('done',verbosityWorking)
     ! Transfer tree structure to nodes array.
-    allocate(self%nodes(nodeCountSubvolume))
-    do i=1,nodeCountSubvolume
+    allocate(self%nodes(nodeCountTrees))
+    do i=1,nodeCountTrees
        self   %nodes(i)%nodeIndex      =nodeSelfIndices(                        i )
        if (nodeDescendentLocations(i) >= 0) then
           self%nodes(i)%descendentIndex=nodeSelfIndices(nodeDescendentLocations(i))
@@ -630,53 +891,108 @@ contains
     j=0
     do i=1,size(self%snapshotFileName)
        call Galacticus_Display_Message(self%snapshotFileName(i),verbosityWorking)
-       open(newUnit=snapshotUnit,file=char(self%snapshotFileName(i)),status='old',form='formatted',ioStat=ioStat)
-       read (snapshotUnit,*,ioStat=ioStat) line
+       readBinary=.false.
+       if (File_Exists(self%snapshotFileName(i)//".bin")) then
+          ! A binary version of this file exists, use it.
+          open(newUnit=snapshotUnit,file=char(self%snapshotFileName(i)//".bin"),status='old',form='unformatted',ioStat=ioStat)
+          readBinary=.true.
+       else
+          ! No binary version of this file exists, use the ASCII version.
+          open(newUnit=snapshotUnit,file=char(self%snapshotFileName(i)        ),status='old',form='formatted'  ,ioStat=ioStat)
+          read (snapshotUnit,*,ioStat=ioStat) line
+       end if
        do while (ioStat == 0)
-          read (snapshotUnit,*,ioStat=ioStat) &
-               & ID          ,                &
-               & hostHalo    ,                &
-               & numSubStruct,                &
-               & Mvir        ,                &
-               & npart       ,                &
-               & Xc          ,                &
-               & Yc          ,                &
-               & Zc          ,                &
-               & VXc         ,                &
-               & Vyc         ,                &
-               & VZc         ,                &
-               & Rvir        ,                &
-               & Rmax        ,                &
-               & r2          ,                &
-               & mbp_offset  ,                &
-               & com_offset  ,                &
-               & Vmax        ,                &
-               & v_esc       ,                &
-               & sigV        ,                &
-               & lambda      ,                &
-               & lambdaE     ,                &
-               & Lx          ,                &
-               & Ly          ,                &
-               & Lz          ,                &
-               & b           ,                &
-               & c           ,                &
-               & Eax         ,                &
-               & Eay         ,                &
-               & Eaz         ,                &
-               & Ebx         ,                &
-               & Eby         ,                &
-               & Ebz         ,                &
-               & Ecx         ,                &
-               & Ecy         ,                &
-               & Ecz         ,                &
-               & ovdens      ,                &
-               & nbins       ,                &
-               & fMhires     ,                &
-               & Ekin        ,                &
-               & Epot        ,                &
-               & SurfP       ,                &
-               & Phi0        ,                &
-               & cNFW
+          if (readBinary) then
+             read (snapshotUnit  ,ioStat=ioStat) &
+                  & ID          ,                &
+                  & hostHalo    ,                &
+                  & numSubStruct,                &
+                  & Mvir        ,                &
+                  & npart       ,                &
+                  & Xc          ,                &
+                  & Yc          ,                &
+                  & Zc          ,                &
+                  & VXc         ,                &
+                  & Vyc         ,                &
+                  & VZc         ,                &
+                  & Rvir        ,                &
+                  & Rmax        ,                &
+                  & r2          ,                &
+                  & mbp_offset  ,                &
+                  & com_offset  ,                &
+                  & Vmax        ,                &
+                  & v_esc       ,                &
+                  & sigV        ,                &
+                  & lambda      ,                &
+                  & lambdaE     ,                &
+                  & Lx          ,                &
+                  & Ly          ,                &
+                  & Lz          ,                &
+                  & b           ,                &
+                  & c           ,                &
+                  & Eax         ,                &
+                  & Eay         ,                &
+                  & Eaz         ,                &
+                  & Ebx         ,                &
+                  & Eby         ,                &
+                  & Ebz         ,                &
+                  & Ecx         ,                &
+                  & Ecy         ,                &
+                  & Ecz         ,                &
+                  & ovdens      ,                &
+                  & nbins       ,                &
+                  & fMhires     ,                &
+                  & Ekin        ,                &
+                  & Epot        ,                &
+                  & SurfP       ,                &
+                  & Phi0        ,                &
+                  & cNFW
+          else
+             read (snapshotUnit,*,ioStat=ioStat) &
+                  & ID          ,                &
+                  & hostHalo    ,                &
+                  & numSubStruct,                &
+                  & Mvir        ,                &
+                  & npart       ,                &
+                  & Xc          ,                &
+                  & Yc          ,                &
+                  & Zc          ,                &
+                  & VXc         ,                &
+                  & Vyc         ,                &
+                  & VZc         ,                &
+                  & Rvir        ,                &
+                  & Rmax        ,                &
+                  & r2          ,                &
+                  & mbp_offset  ,                &
+                  & com_offset  ,                &
+                  & Vmax        ,                &
+                  & v_esc       ,                &
+                  & sigV        ,                &
+                  & lambda      ,                &
+                  & lambdaE     ,                &
+                  & Lx          ,                &
+                  & Ly          ,                &
+                  & Lz          ,                &
+                  & b           ,                &
+                  & c           ,                &
+                  & Eax         ,                &
+                  & Eay         ,                &
+                  & Eaz         ,                &
+                  & Ebx         ,                &
+                  & Eby         ,                &
+                  & Ebz         ,                &
+                  & Ecx         ,                &
+                  & Ecy         ,                &
+                  & Ecz         ,                &
+                  & ovdens      ,                &
+                  & nbins       ,                &
+                  & fMhires     ,                &
+                  & Ekin        ,                &
+                  & Epot        ,                &
+                  & SurfP       ,                &
+                  & Phi0        ,                &
+                  & cNFW
+          end if
           if (ioStat /= 0) exit
           ! Locate this node in the list of nodes in our subvolume.
           iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),ID)
@@ -684,16 +1000,31 @@ contains
              ! Locate this node in the node list.
              l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,ID)
              l=nodeIndexRanks(l)
-             if (ID /= nodeSelfIndices(l)) call Galacticus_Error_Report('sussingTreeIndicesRead','node indexing failure')
+             if (ID /= nodeSelfIndices(l)) then
+                if (mergerTreeImportSussingNonTreeNodeIsFatal) then
+                   ! Node cannot be found.
+                   message="node indexing failure"
+                   message=message//char(10)//"     node index: "//ID
+                   message=message//char(10)//"    found index: "//nodeSelfIndices(l)
+                   message=message//char(10)//" found location: "//l
+                   call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                else
+                   ! Just skip this node.
+                   cycle
+                end if
+             end if
              ! Store properties to node array.
              if (hostHalo <= 0) then
                 self%nodes(l)%hostIndex         =ID
              else
-                self%nodes(l)%hostIndex         =hostHalo
+                self%nodes(l)%hostIndex         =hostHalo                
+                ! Check that the host halo is in the subvolume.
+                iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),hostHalo)
+                if (.not.(iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == hostHalo)) nodeIncomplete(l)=.true. 
              end if
              self   %nodes(l)%particleCount     =npart
              self   %nodes(l)%nodeMass          =Mvir
-             self   %nodes(l)%nodeTime          =self%snapshotTimes(i-1)
+             self   %nodes(l)%nodeTime          =self%snapshotTimes(i)
              self   %nodes(l)%scaleRadius       =Rvir/cNFW
              self   %nodes(l)%halfMassRadius    =-1.0d0
              self   %nodes(l)%velocityMaximum   =Vmax
@@ -704,7 +1035,7 @@ contains
              self   %nodes(l)%velocity          =[VXc,VYc,VZc]
              ! Update the counter.
              j=j+1
-             call Galacticus_Display_Counter(int(100.0d0*dble(j)/dble(nodeCountSubvolume)),j == 1,verbosityWorking)
+             call Galacticus_Display_Counter(int(100.0d0*dble(j)/dble(nodeCountTrees)),j == 1,verbosityWorking)
           end if
        end do
        close(snapshotUnit)
@@ -713,32 +1044,167 @@ contains
     ! Clean up display.
     call Galacticus_Display_Counter_Clear(       verbosityWorking)
     call Galacticus_Display_Unindent     ('done',verbosityWorking)
+    ! Search for and resolve hosting loops.
+    do i=1,nodeCountTrees
+       if (self%nodes(i)%hostIndex /= self%nodes(i)%nodeIndex) then
+          l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%hostIndex)
+          ! Detect missing host.          
+          if (l < 1 .or. l > nodeCountTrees) cycle
+          l=nodeIndexRanks(l)
+          if (self%nodes(l)%nodeIndex /= self%nodes(i)%hostIndex) cycle
+          ! Detect lops.
+          if (self%nodes(l)%hostIndex == self%nodes(i)%nodeIndex) then
+             ! Hosting loop detected. Reset the more massive halo to be self-hosting.
+             if (self%nodes(l)%nodeMass > self%nodes(i)%nodeMass) then
+                self%nodes(l)%hostIndex=self%nodes(l)%nodeIndex
+             else
+                self%nodes(i)%hostIndex=self%nodes(i)%nodeIndex
+             end if
+          end if
+       end if
+    end do
+    ! Search for deep hosting hierarchies and reset to single level hierarchies.
+    do i=1,nodeCountTrees
+       if (self%nodes(i)%hostIndex /= self%nodes(i)%nodeIndex) then
+          ! Find the host.
+          l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%hostIndex)
+          ! Detect missing host.          
+          if (l < 1 .or. l > nodeCountTrees) cycle
+          l=nodeIndexRanks(l)
+          if (self%nodes(l)%nodeIndex /= self%nodes(i)%hostIndex) cycle
+          ! Detect hosted host.
+          hostStepCount=0
+          do while (self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex)
+             ! Find the host.
+             j=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
+             ! Detect missing host.          
+             if (j < 1 .or. j > nodeCountTrees) exit
+             j=nodeIndexRanks(j)
+             if (self%nodes(j)%nodeIndex /= self%nodes(l)%hostIndex) exit
+             ! Detect infinite loops.
+             hostStepCount=hostStepCount+1
+             if (hostStepCount > stepCountMaximum) then
+                message='infinite (or at least, very large) loop detect in halo hosting [#2]'
+                message=message//char(10)//' hosted node index: '//self%nodes(l)%nodeIndex
+                message=message//char(10)//'   host node index: '//self%nodes(j)%nodeIndex
+                write (label,'(f7.4)') self%nodes(l)%nodeTime
+                message=message//char(10)//'  hosted node time: '//label
+                write (label,'(f7.4)') self%nodes(j)%nodeTime
+                message=message//char(10)//'    host node time: '//label
+                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+             end if
+             ! Move to the new host.
+             l=j
+          end do
+          self%nodes(i)%hostIndex=self%nodes(l)%nodeIndex
+       end if
+    end do
     ! Assign tree indices.
     call Galacticus_Display_Message('Assigning tree indices',verbosityWorking)
-    nodeTreeIndices=-1
-    do i=1,nodeCountSubvolume
-       call Galacticus_Display_Counter(int(50.0d0*dble(i)/dble(nodeCountSubvolume)),i==1,verbosityWorking)
-       l=nodeDescendentLocations(i)
-       if (l == -1 .and. self%nodes(i)%hostIndex == self%nodes(i)%nodeIndex) nodeTreeIndices(i)=nodeSelfIndices(i)
-    end do
-    do i=1,nodeCountSubvolume
-       call Galacticus_Display_Counter(int(50.0d0+50.0d0*dble(i)/dble(nodeCountSubvolume)),.false.,verbosityWorking)
+    nodeTreeIndices=nodeSelfIndices
+    do i=1,nodeCountTrees
+       call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(nodeCountTrees)),i==1,verbosityWorking)
        l=i
+       hostStepCount=0
        do while (l /= -1 .and. self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex) 
+          ! Find the host halo.
           k=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
+          ! Check for missing hosts.
+          if (k < 1 .or. k > nodeCountTrees .or. self%nodes(l)%hostIndex /= self%nodes(nodeIndexRanks(k))%nodeIndex) then
+             ! No host can be found (it must be outside of the buffered subvolume). Assign this node its own index as a tree
+             ! index, and skip looking for hosts.
+             nodeTreeIndices(i)=self%nodes(i)%nodeIndex
+             exit
+          end if
+          ! Perform sanity checks.
+          if (k >= 0 .and. self%nodes(nodeIndexRanks(k))%nodeTime /= self%nodes(l)%nodeTime) then
+             message='host exists at different time from hosted node'
+             message=message//char(10)//' hosted node index: '//self%nodes(               l )%nodeIndex
+             message=message//char(10)//'   host node index: '//self%nodes(nodeIndexRanks(k))%nodeIndex
+             write (label,'(f7.4)') self%nodes(               l )%nodeTime
+             message=message//char(10)//'  hosted node time: '//label
+             write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
+             message=message//char(10)//'    host node time: '//label
+             call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+          end if
+          hostStepCount=hostStepCount+1
+          if (hostStepCount > stepCountMaximum) then
+             message='infinite (or at least, very large) loop detect in halo hosting'
+             message=message//char(10)//' hosted node index: '//self%nodes(               l )%nodeIndex
+             message=message//char(10)//'   host node index: '//self%nodes(nodeIndexRanks(k))%nodeIndex
+             write (label,'(f7.4)') self%nodes(               l )%nodeTime
+             message=message//char(10)//'  hosted node time: '//label
+             write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
+             message=message//char(10)//'    host node time: '//label
+             call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+          end if
           l=nodeIndexRanks(k)
        end do
+       descendentStepCount=0
        do while (l /= -1)
           nodeTreeIndices(i)=nodeTreeIndices(l)
-          l=nodeDescendentLocations(l)
+          k=nodeDescendentLocations(l)
+          ! Check for missing descendents.
+          if (self%nodes(l)%descendentIndex /= self%nodes(k)%nodeIndex) exit
+          ! Perform sanity checks.
+          if (k >= 0 .and. self%nodes(k)%nodeTime <= self%nodes(l)%nodeTime) then
+             message='descendent exists before progenitor node'
+             message=message//char(10)//' progenitor node index: '//self%nodes(l)%nodeIndex
+             message=message//char(10)//' descendent node index: '//self%nodes(k)%nodeIndex
+             write (label,'(f7.4)') self%nodes(l)%nodeTime
+             message=message//char(10)//'  progenitor node time: '//label
+             write (label,'(f7.4)') self%nodes(k)%nodeTime
+             message=message//char(10)//'  descendent node time: '//label
+             call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+          end if
+          descendentStepCount=descendentStepCount+1
+          if (descendentStepCount > stepCountMaximum) then
+             message='infinite (or at least, very large) loop detect in halo descent'
+             message=message//char(10)//' progenitor node index: '//self%nodes(l)%nodeIndex
+             message=message//char(10)//' descendent node index: '//self%nodes(k)%nodeIndex
+             write (label,'(f7.4)') self%nodes(l)%nodeTime
+             message=message//char(10)//'  progenitor node time: '//label
+             write (label,'(f7.4)') self%nodes(k)%nodeTime
+             message=message//char(10)//'  descendent node time: '//label
+             call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+          end if
+          l=k
+          hostStepCount=0
           do while (l /= -1 .and. self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex) 
              k=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
+             ! Check for missing hosts.
+             if (self%nodes(l)%hostIndex /= self%nodes(nodeIndexRanks(k))%nodeIndex) exit
+             ! Perform sanity checks. 
+             if (k >= 0 .and. self%nodes(nodeIndexRanks(k))%nodeTime /= self%nodes(l)%nodeTime) then
+                message='host exists at different time from hosted node'
+                message=message//char(10)//' hosted node index: '//self%nodes(               l )%nodeIndex
+                message=message//char(10)//'   host node index: '//self%nodes(nodeIndexRanks(k))%nodeIndex
+                write (label,'(f7.4)') self%nodes(               l )%nodeTime
+                message=message//char(10)//'  hosted node time: '//label
+                write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
+                message=message//char(10)//'    host node time: '//label
+                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+             end if
+             hostStepCount=hostStepCount+1
+             if (hostStepCount > stepCountMaximum) then
+                message='infinite (or at least, very large) loop detect in halo hosting'
+                message=message//char(10)//' hosted node index: '//self%nodes(               l )%nodeIndex
+                message=message//char(10)//'   host node index: '//self%nodes(nodeIndexRanks(k))%nodeIndex
+                write (label,'(f7.4)') self%nodes(               l )%nodeTime
+                message=message//char(10)//'  hosted node time: '//label
+                write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
+                message=message//char(10)//'    host node time: '//label
+                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+             end if
              l=nodeIndexRanks(k)
           end do
        end do
     end do
+    call Galacticus_Display_Counter_Clear(       verbosityWorking)
     ! Check for nodes jumping between trees and join any such trees.
-    do i=1,nodeCountSubvolume
+    call Galacticus_Display_Message('Checking for branch jumps',verbosityWorking)
+    do i=1,nodeCountTrees
+       call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(nodeCountTrees)),i==1,verbosityWorking)
        l=nodeDescendentLocations(i)
        if (l /= -1) then
           if (nodeTreeIndices(i) /= nodeTreeIndices(l)) then
@@ -756,7 +1222,7 @@ contains
           end if
        end if
     end do
-    do i=1,nodeCountSubvolume
+    do i=1,nodeCountTrees
        l=nodeDescendentLocations(i)
        if (l /= -1) then
           if (nodeTreeIndices(i) /= nodeTreeIndices(l))                                              &
@@ -764,43 +1230,103 @@ contains
        end if
     end do
     call Galacticus_Display_Counter_Clear(verbosityWorking)
+    ! Generate an index into nodes sorted by tree index.
+    self%treeIndexRanks=Sort_Index_Do(nodeTreeIndices)
     ! Identify trees which contain incomplete nodes.
     call Galacticus_Display_Message('Checking for incomplete trees',verbosityWorking)
-    do i=1,nodeCountSubvolume
-       if (nodeIncomplete(i)) then
-          where (nodeTreeIndices == nodeTreeIndices(i))
-             nodeIncomplete=.true.
-          end where
+    i               =0
+    iStart          =0
+    treeIndexCurrent=-1
+    do while (i < nodeCountTrees)
+       i     =i+1
+       ! Check if we started a new tree, and record the index at which it began.
+       if (treeIndexCurrent /= nodeTreeIndices(self%treeIndexRanks(i))) iStart=i
+       treeIndexCurrent=nodeTreeIndices(self%treeIndexRanks(i))
+       if (nodeIncomplete(self%treeIndexRanks(i))) then
+          if (Galacticus_Verbosity_Level() >= verbosityWorking) then
+             j=self%treeIndexRanks(i)
+             message='Marking tree '
+             message=message//treeIndexCurrent//' as incomplete due to node '//nodeSelfIndices(j)//' at position:'
+             write (label,'(e12.6)') self%nodes(j)%position(1)
+             message=message//char(10)//'  x: '//trim(label)
+             write (label,'(e12.6)') self%nodes(j)%position(2)
+             message=message//char(10)//'  y: '//trim(label)
+             write (label,'(e12.6)') self%nodes(j)%position(3)
+             message=message//char(10)//'  z: '//trim(label)
+             call Galacticus_Display_Message(message,verbosityWorking)
+          end if
+          ! Reset index to the start of this tree.
+          i=iStart-1
+          ! Mark all nodes in the tree as incomplete.
+          do while (i < nodeCountTrees)
+             i=i+1
+             if (nodeTreeIndices(self%treeIndexRanks(i)) == treeIndexCurrent) then
+                nodeIncomplete(self%treeIndexRanks(i))=.true.
+             else
+                i=i-1
+                exit
+             end if
+          end do
        end if
-       call Galacticus_Display_Counter(int(50.0d0*dble(i)/dble(nodeCountSubvolume)),i==1,verbosityWorking)
+       call Galacticus_Display_Counter(int(50.0d0*dble(i)/dble(nodeCountTrees)),i==1,verbosityWorking)
     end do
     ! Check for incomplete trees not in the buffer zone.
-    do i=1,nodeCountSubvolume
-       if (nodeTreeIndices(i) == nodeSelfIndices(i)) then
-          if (self%inSubVolume(self%nodes(i)%position(1),self%nodes(i)%position(2),self%nodes(i)%position(3),buffered=.false.)) then
+    i               = 0
+    iStart          = 0
+    treeIndexCurrent=-1
+    do while (i<nodeCountTrees)
+       i=i+1
+       j=self%treeIndexRanks(i)
+       ! Check if we started a new tree, and record the index at which it began.
+       if (treeIndexCurrent /= nodeTreeIndices(j)) iStart=i
+       treeIndexCurrent=nodeTreeIndices(j)
+       if (nodeTreeIndices(j) == nodeSelfIndices(j)) then
+          if (self%inSubVolume(self%nodes(j)%position(1),self%nodes(j)%position(2),self%nodes(j)%position(3),buffered=.false.)) then
              ! Tree root is in subvolume. Check if the tree is incomplete.
-             if (nodeIncomplete(i)) call Galacticus_Error_Report('sussingTreeIndicesRead','tree in subvolume is incomplete - try increasing buffer size')
+             if (nodeIncomplete(j)) then
+                message='tree in subvolume is incomplete - try increasing buffer size'
+                message=message//char(10)//' tree index: '//treeIndexCurrent
+                write (label,'(e12.6)') self%nodes(j)%position(1)
+                message=message//char(10)//'          x: '//label
+                write (label,'(e12.6)') self%nodes(j)%position(2)
+                message=message//char(10)//'          y: '//label
+                write (label,'(e12.6)') self%nodes(j)%position(3)
+                message=message//char(10)//'          z: '//label
+                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+             end if
           else
+             ! Reset index to the start of this tree.
+             i=iStart-1
              ! Tree is not in subvolume. Set index to -1 to indicate that we should ignore it.
-             where (nodeTreeIndices == nodeTreeIndices(i))
-                nodeTreeIndices=-1
-             end where
+             do while (i < nodeCountTrees)
+                i=i+1
+                j=self%treeIndexRanks(i)
+                if (nodeTreeIndices(j) == treeIndexCurrent) then
+                   nodeTreeIndices(j)=-1
+                else
+                   i=i-1
+                   exit
+                end if
+             end do
           end if
        end if
-       call Galacticus_Display_Counter(int(50.0d0+50.0d0*dble(i)/dble(nodeCountSubvolume)),.false.,verbosityWorking)
+       call Galacticus_Display_Counter(int(50.0d0+50.0d0*dble(i)/dble(nodeCountTrees)),.false.,verbosityWorking)
     end do
     call Galacticus_Display_Counter_Clear(verbosityWorking)
     ! Generate an index into nodes sorted by tree index.
     self%treeIndexRanks=Sort_Index_Do(nodeTreeIndices)
     ! Create a list of tree indices, sizes, and start locations.
+    call Galacticus_Display_Message('Generating tree list',verbosityWorking)
     self%treesCount=0
     treeIndexPrevious=-1
-    do i=1,nodeCountSubvolume
+    do i=1,nodeCountTrees
+       call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(nodeCountTrees)),i==1,verbosityWorking)
        if (nodeTreeIndices(self%treeIndexRanks(i)) /= treeIndexPrevious) then
           treeIndexPrevious=nodeTreeIndices(self%treeIndexRanks(i))
           self%treesCount=self%treesCount+1
        end if
     end do
+    call Galacticus_Display_Counter_Clear(       verbosityWorking)
     message='Found '
     message=message//self%treesCount//' trees'
     call Galacticus_Display_Message(message,verbosityWorking)
@@ -810,7 +1336,7 @@ contains
     treeIndexPrevious=-1
     j                = 0
     self%treeSizes   = 0
-    do i=1,nodeCountSubvolume
+    do i=1,nodeCountTrees
        if (nodeTreeIndices(self%treeIndexRanks(i)) /= treeIndexPrevious) then
           treeIndexPrevious=nodeTreeIndices(self%treeIndexRanks(i))
           j=j+1
@@ -836,7 +1362,6 @@ contains
     ! Destroy temporary workspace.
     call Dealloc_Array(nodeSelfIndices        )
     call Dealloc_Array(nodeTreeIndices        )
-    call Dealloc_Array(nodeNodeLocations      )
     call Dealloc_Array(nodeDescendentLocations)
     ! Write completion message.
     call Galacticus_Display_Unindent('done',verbosityWorking)
@@ -1033,7 +1558,7 @@ contains
          &                boxLength/2.0d0/dble(self%subvolumeCount)+buffer
     return
   end function sussingInSubvolume1D
-  
+
   double precision function sussingPeriodicSeparation(x1,x2,periodicLength)
     !% Determine the separation between two points in a periodic cube.
     implicit none
