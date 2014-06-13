@@ -211,12 +211,12 @@ sub Get_AGN_Luminosity {
 	    unless ( defined($noAbsorption) );
 
 	# Get the AGN bolometric luminosities (in units of Solar luminosities).
-	&HDF5::Get_Dataset($model,['blackHoleAccretionRate','blackHoleRadiativeEfficiency', 'columnDensityDisk', 'columnDensitySpheroid', 'diskGasMass', 'diskGasMetals', 'spheroidGasMass', 'spheroidGasMetals' ]);
+	&HDF5::Get_Dataset($model,['blackHoleAccretionRate','blackHoleRadiativeEfficiency', 'columnDensityDisk', 'columnDensitySpheroid', 'diskMassGas', 'diskAbundancesGasMetals', 'spheroidMassGas', 'spheroidAbundancesGasMetals' ]);
 	my $dataSets = $model->{'dataSets'};
 	my $columnDensityDisk     = $dataSets->{'columnDensityDisk'    };
 	my $columnDensitySpheroid = $dataSets->{'columnDensitySpheroid'};
-	my $metallicityDisk       = $dataSets->{'diskGasMetals'    }/$dataSets->{'diskGasMass'    };
-	my $metallicitySpheroid   = $dataSets->{'spheroidGasMetals'}/$dataSets->{'spheroidGasMass'};
+	my $metallicityDisk       = $dataSets->{'diskAbundancesGasMetals'    }/$dataSets->{'diskMassGas'    };
+	my $metallicitySpheroid   = $dataSets->{'spheroidAbundancesGasMetals'}/$dataSets->{'spheroidMassGas'};
 	my $bolometricLuminosity = 
 	    $dataSets->{'blackHoleRadiativeEfficiency'}
 	*$dataSets->{'blackHoleAccretionRate'      }
