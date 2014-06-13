@@ -8,7 +8,7 @@ use XML::Simple;
 require Galacticus::HDF5;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^(disk|spheroid)LymanContinuumLuminosity:z[\\d\\.]+\$" => \&Lyc::Get_Lyc_Luminosity
+    "^(disk|spheroid|total)LymanContinuumLuminosity:z[\\d\\.]+\$" => \&Lyc::Get_Lyc_Luminosity
     );
 
 sub Get_Lyc_Luminosity {
@@ -44,15 +44,29 @@ sub Get_Lyc_Luminosity {
     }
 
     # Check that the dataset name matches the expected regular expression.
-    if ( $dataSetName =~ m/^(disk|spheroid)LymanContinuumLuminosity:z([\d\.]+)$/ ) {
+    if ( $dataSetName =~ m/^(disk|spheroid|total)LymanContinuumLuminosity:z([\d\.]+)$/ ) {
 	# Extract the name of the component and redshift.
 	my $component = $1;
 	my $redshift  = $2;
-	# Construct the name of the corresponding luminosity property.
-	my $luminosityDataset = $component."LuminositiesStellar:Lyc:rest:z".$redshift.$postprocessingChain;
-	&HDF5::Get_Dataset($model,[$luminosityDataset]);
+	# Construct the name of the corresponding luminosity properties.
+	my @luminosityDatasets;
+	if ( $component eq "total" ) {
+	    push(
+		@luminosityDatasets,
+		"diskLuminositiesStellar:Lyc:rest:z".$redshift.$postprocessingChain,
+		"spheroidLuminositiesStellar:Lyc:rest:z".$redshift.$postprocessingChain
+		);
+	} else {
+	    push(
+		@luminosityDatasets,
+		$component."LuminositiesStellar:Lyc:rest:z".$redshift.$postprocessingChain
+		);
+	}
+	&HDF5::Get_Dataset($model,\@luminosityDatasets);
 	my $dataSets = $model->{'dataSets'};
-	$dataSets->{$dataSetName} = $dataSets->{$luminosityDataset}*($luminosityAB/$plancksConstant/$lycUnits)*log($wavelengthMaximum/$wavelengthMinimum);
+	foreach ( @luminosityDatasets ) {
+	    $dataSets->{$dataSetName} += $dataSets->{$_}*($luminosityAB/$plancksConstant/$lycUnits)*log($wavelengthMaximum/$wavelengthMinimum);
+	}
     } else {
 	die("Get_Luminosity(): unable to parse data set: ".$dataSetName);
     }
