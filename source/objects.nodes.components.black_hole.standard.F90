@@ -622,8 +622,8 @@ contains
              call hostCentralBlackHoleComponent%massSet(blackHoleMassNew)
              call hostCentralBlackHoleComponent%spinSet(blackHoleSpinNew)
              ! Reset the satellite black hole to zero mass.
-             call thisBlackHoleComponent%massSet(0.0d0)
-             call thisBlackHoleComponent%spinSet(0.0d0)
+             call thisBlackHoleComponent%massSet(thisBlackHoleComponent%massSeed())
+             call thisBlackHoleComponent%spinSet(thisBlackHoleComponent%spinSeed())
           end do
        else
           ! Adjust the radii of the black holes in the satellite galaxy.
@@ -684,13 +684,13 @@ contains
     ! Compare the recoil velocity to the potential and determine wether the binary is ejected or stays in the galaxy.
     if (0.5d0*recoilVelocity**2+Galactic_Structure_Potential(thisNode,0.0d0)-Galactic_Structure_Potential(thisNode&
          &,0.0d0,componentType=componentTypeBlackHole) > 0.0d0) then
-       blackHoleMassNew=0.0d0
-       blackHoleSpinNew=0.0d0
+       blackHoleMassNew=thisBlackHoleComponent1%massSeed()
+       blackHoleSpinNew=thisBlackHoleComponent1%spinSeed()
     end if
     ! Set the mass and spin of the central black hole.
     call Node_Component_Black_Hole_Standard_Output_Merger(thisNode,massBlackHole1,massBlackHole2)
     call thisBlackHoleComponent1%massSet(blackHoleMassNew)
-    call thisBlackHoleComponent2%spinSet(blackHoleSpinNew)
+    call thisBlackHoleComponent1%spinSet(blackHoleSpinNew)
     ! Remove the merging black hole from the list.
     call thisNode%blackHoleRemove(mergingInstance)
     return
