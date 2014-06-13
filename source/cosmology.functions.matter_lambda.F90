@@ -1033,6 +1033,7 @@ contains
             & = self%distanceTableComovingDistance                       (iTime)  &
             &  /self%expansionFactor              (self%distanceTableTime(iTime))
     end do
+    call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Make a negated copy of the distances so that we have an increasing array for use in interpolation routines.
     self%distanceTableComovingDistanceNegated  =-self%distanceTableComovingDistance
     self%distanceTableLuminosityDistanceNegated=-self%distanceTableLuminosityDistanceNegated
