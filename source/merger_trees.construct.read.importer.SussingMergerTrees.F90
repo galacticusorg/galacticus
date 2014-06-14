@@ -184,7 +184,7 @@ contains
           !@   <type>boolean</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingToConvertBinary',mergerTreeImportSussingConvertToBinary,defaultValue=.true.)
+          call Get_Input_Parameter('mergerTreeImportSussingConvertToBinary',mergerTreeImportSussingConvertToBinary,defaultValue=.true.)
           sussingInitialized=.true.
        end if
        !$omp end critical (mergerTreeImporterSussingInitialize)
