@@ -1,0 +1,42 @@
+<filter>
+  <description>IR K filter + Palomar 200 IR detectors + atmosphere.57</description>
+  <name>IR K</name>
+  <origin>converted by Markus Haider from Bruzual and Charlot bc03/src/filterfrm.res</origin>
+  <response>
+    <datum> 19000.0     0.00000 </datum>
+    <datum> 19200.0     0.00000 </datum>
+    <datum> 19400.0     0.00600 </datum>
+    <datum> 19600.0     0.02300 </datum>
+    <datum> 19800.0     0.07800 </datum>
+    <datum> 20000.0     0.17700 </datum>
+    <datum> 20200.0     0.62800 </datum>
+    <datum> 20400.0     1.07200 </datum>
+    <datum> 20600.0     1.34200 </datum>
+    <datum> 20800.0     1.39500 </datum>
+    <datum> 21000.0     1.38300 </datum>
+    <datum> 21200.0     1.49600 </datum>
+    <datum> 21400.0     1.44100 </datum>
+    <datum> 21600.0     1.37600 </datum>
+    <datum> 21800.0     1.46700 </datum>
+    <datum> 22000.0     1.50800 </datum>
+    <datum> 22200.0     1.61900 </datum>
+    <datum> 22400.0     1.60900 </datum>
+    <datum> 22600.0     1.46000 </datum>
+    <datum> 22800.0     1.48400 </datum>
+    <datum> 23000.0     1.51700 </datum>
+    <datum> 23200.0     1.44000 </datum>
+    <datum> 23400.0     1.39200 </datum>
+    <datum> 23600.0     1.40400 </datum>
+    <datum> 23800.0     1.30000 </datum>
+    <datum> 24000.0     1.41600 </datum>
+    <datum> 24200.0     0.92500 </datum>
+    <datum> 24400.0     0.22100 </datum>
+    <datum> 24600.0     0.06700 </datum>
+    <datum> 24800.0     0.01400 </datum>
+    <datum> 25000.0     0.00000 </datum>
+    <datum> 25200.0     0.00000 </datum>
+    <datum> 25400.0     0.00000 </datum>
+  </response>
+  <effectiveWavelength>22243.971291866</effectiveWavelength>
+  <vegaOffset>-1.90604719123014</vegaOffset>
+</filter>
