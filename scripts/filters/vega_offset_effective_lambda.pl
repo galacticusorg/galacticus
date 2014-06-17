@@ -38,7 +38,7 @@ if ( scalar(@ARGV) == 2 ) {
     unless ( -e $vegaSpectrumFile ) {
 	print "Cannot find A0V_Castelli.xml file - will attempt to download data and create it....\n";
 	my %vegaSpectrum;
-	my $castelliURL = "http://wwwuser.oat.ts.astro.it/castelli/grids/gridp00k2odfnew/fp00t9500g40k2odfnew.dat";
+	my $castelliURL = "http://wwwuser.oats.inaf.it/castelli/grids/gridp00k2odfnew/fp00t9500g40k2odfnew.dat";
 	open(pipeHndl,"wget ".$castelliURL." -O - |");
 	while ( my $line = <pipeHndl> ) {
 	    if ( $line =~ m/^\s*FLUX/ ) {

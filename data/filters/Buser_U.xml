@@ -1,0 +1,33 @@
+<filter>
+  <description>Buser's U filter</description>
+  <name>Buser U</name>
+  <origin>converted by Markus Haider from Bruzual and Charlot bc03/src/filterfrm.res</origin>
+  <response>
+    <datum> 3050.0     0.00000 </datum>
+    <datum> 3100.0     0.02000 </datum>
+    <datum> 3150.0     0.07700 </datum>
+    <datum> 3200.0     0.13500 </datum>
+    <datum> 3250.0     0.20400 </datum>
+    <datum> 3300.0     0.28200 </datum>
+    <datum> 3350.0     0.38500 </datum>
+    <datum> 3400.0     0.49300 </datum>
+    <datum> 3450.0     0.60000 </datum>
+    <datum> 3500.0     0.70500 </datum>
+    <datum> 3550.0     0.82000 </datum>
+    <datum> 3600.0     0.90000 </datum>
+    <datum> 3650.0     0.95900 </datum>
+    <datum> 3700.0     0.99300 </datum>
+    <datum> 3750.0     1.00000 </datum>
+    <datum> 3800.0     0.97500 </datum>
+    <datum> 3850.0     0.85000 </datum>
+    <datum> 3900.0     0.64500 </datum>
+    <datum> 3950.0     0.40000 </datum>
+    <datum> 4000.0     0.22300 </datum>
+    <datum> 4050.0     0.12500 </datum>
+    <datum> 4100.0     0.05700 </datum>
+    <datum> 4150.0     0.00500 </datum>
+    <datum> 4200.0     0.00000 </datum>
+  </response>
+  <effectiveWavelength>3651.96259098867</effectiveWavelength>
+  <vegaOffset>-0.700212715847679</vegaOffset>
+</filter>
