@@ -1,0 +1,49 @@
+<filter>
+  <description>Buser's B3 filter</description>
+  <name>Buser B3</name>
+  <origin>converted by Markus Haider from Bruzual and Charlot bc03/src/filterfrm.res</origin>
+  <response>
+    <datum> 3600.0     0.00000 </datum>
+    <datum> 3650.0     0.00600 </datum>
+    <datum> 3700.0     0.03000 </datum>
+    <datum> 3750.0     0.06000 </datum>
+    <datum> 3800.0     0.13400 </datum>
+    <datum> 3850.0     0.30200 </datum>
+    <datum> 3900.0     0.56700 </datum>
+    <datum> 3950.0     0.84100 </datum>
+    <datum> 4000.0     0.95900 </datum>
+    <datum> 4050.0     0.98300 </datum>
+    <datum> 4100.0     0.99600 </datum>
+    <datum> 4150.0     1.00000 </datum>
+    <datum> 4200.0     0.99600 </datum>
+    <datum> 4250.0     0.98700 </datum>
+    <datum> 4300.0     0.97400 </datum>
+    <datum> 4350.0     0.95700 </datum>
+    <datum> 4400.0     0.93100 </datum>
+    <datum> 4450.0     0.89700 </datum>
+    <datum> 4500.0     0.84900 </datum>
+    <datum> 4550.0     0.80000 </datum>
+    <datum> 4600.0     0.74800 </datum>
+    <datum> 4650.0     0.69800 </datum>
+    <datum> 4700.0     0.64800 </datum>
+    <datum> 4750.0     0.59700 </datum>
+    <datum> 4800.0     0.54500 </datum>
+    <datum> 4850.0     0.49700 </datum>
+    <datum> 4900.0     0.44700 </datum>
+    <datum> 4950.0     0.39700 </datum>
+    <datum> 5000.0     0.34500 </datum>
+    <datum> 5050.0     0.29700 </datum>
+    <datum> 5100.0     0.25200 </datum>
+    <datum> 5150.0     0.20700 </datum>
+    <datum> 5200.0     0.16600 </datum>
+    <datum> 5250.0     0.12900 </datum>
+    <datum> 5300.0     0.09500 </datum>
+    <datum> 5350.0     0.06900 </datum>
+    <datum> 5400.0     0.04300 </datum>
+    <datum> 5450.0     0.02400 </datum>
+    <datum> 5500.0     0.00900 </datum>
+    <datum> 5550.0     0.00000 </datum>
+  </response>
+  <effectiveWavelength>4416.5332101427</effectiveWavelength>
+  <vegaOffset>0.115437994992306</vegaOffset>
+</filter>
