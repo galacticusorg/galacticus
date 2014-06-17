@@ -1,0 +1,98 @@
+<filter>
+  <description>SDSS Camera g Response Function, airmass = 1.3 (June 2001)</description>
+  <name>SDSS g</name>
+  <origin>converted by Markus Haider from Bruzual and Charlot bc03/src/filterfrm.res</origin>
+  <response>
+    <datum> 3630.0     0.00000 </datum>
+    <datum> 3655.0     0.00030 </datum>
+    <datum> 3680.0     0.00080 </datum>
+    <datum> 3705.0     0.00130 </datum>
+    <datum> 3730.0     0.00190 </datum>
+    <datum> 3755.0     0.00240 </datum>
+    <datum> 3780.0     0.00340 </datum>
+    <datum> 3805.0     0.00550 </datum>
+    <datum> 3830.0     0.01030 </datum>
+    <datum> 3855.0     0.01940 </datum>
+    <datum> 3880.0     0.03260 </datum>
+    <datum> 3905.0     0.04920 </datum>
+    <datum> 3930.0     0.06860 </datum>
+    <datum> 3955.0     0.09000 </datum>
+    <datum> 3980.0     0.11230 </datum>
+    <datum> 4005.0     0.13420 </datum>
+    <datum> 4030.0     0.15450 </datum>
+    <datum> 4055.0     0.17220 </datum>
+    <datum> 4080.0     0.18730 </datum>
+    <datum> 4105.0     0.20030 </datum>
+    <datum> 4130.0     0.21160 </datum>
+    <datum> 4155.0     0.22140 </datum>
+    <datum> 4180.0     0.23010 </datum>
+    <datum> 4205.0     0.23780 </datum>
+    <datum> 4230.0     0.24480 </datum>
+    <datum> 4255.0     0.25130 </datum>
+    <datum> 4280.0     0.25740 </datum>
+    <datum> 4305.0     0.26330 </datum>
+    <datum> 4330.0     0.26910 </datum>
+    <datum> 4355.0     0.27470 </datum>
+    <datum> 4380.0     0.28010 </datum>
+    <datum> 4405.0     0.28520 </datum>
+    <datum> 4430.0     0.28990 </datum>
+    <datum> 4455.0     0.29400 </datum>
+    <datum> 4480.0     0.29790 </datum>
+    <datum> 4505.0     0.30160 </datum>
+    <datum> 4530.0     0.30550 </datum>
+    <datum> 4555.0     0.30970 </datum>
+    <datum> 4580.0     0.31410 </datum>
+    <datum> 4605.0     0.31840 </datum>
+    <datum> 4630.0     0.32240 </datum>
+    <datum> 4655.0     0.32570 </datum>
+    <datum> 4680.0     0.32840 </datum>
+    <datum> 4705.0     0.33070 </datum>
+    <datum> 4730.0     0.33270 </datum>
+    <datum> 4755.0     0.33460 </datum>
+    <datum> 4780.0     0.33640 </datum>
+    <datum> 4805.0     0.33830 </datum>
+    <datum> 4830.0     0.34030 </datum>
+    <datum> 4855.0     0.34250 </datum>
+    <datum> 4880.0     0.34480 </datum>
+    <datum> 4905.0     0.34720 </datum>
+    <datum> 4930.0     0.34950 </datum>
+    <datum> 4955.0     0.35190 </datum>
+    <datum> 4980.0     0.35410 </datum>
+    <datum> 5005.0     0.35620 </datum>
+    <datum> 5030.0     0.35810 </datum>
+    <datum> 5055.0     0.35970 </datum>
+    <datum> 5080.0     0.36090 </datum>
+    <datum> 5105.0     0.36130 </datum>
+    <datum> 5130.0     0.36090 </datum>
+    <datum> 5155.0     0.35950 </datum>
+    <datum> 5180.0     0.35810 </datum>
+    <datum> 5205.0     0.35580 </datum>
+    <datum> 5230.0     0.34520 </datum>
+    <datum> 5255.0     0.31940 </datum>
+    <datum> 5280.0     0.28070 </datum>
+    <datum> 5305.0     0.23390 </datum>
+    <datum> 5330.0     0.18390 </datum>
+    <datum> 5355.0     0.13520 </datum>
+    <datum> 5380.0     0.09110 </datum>
+    <datum> 5405.0     0.05480 </datum>
+    <datum> 5430.0     0.02950 </datum>
+    <datum> 5455.0     0.01660 </datum>
+    <datum> 5480.0     0.01120 </datum>
+    <datum> 5505.0     0.00770 </datum>
+    <datum> 5530.0     0.00500 </datum>
+    <datum> 5555.0     0.00320 </datum>
+    <datum> 5580.0     0.00210 </datum>
+    <datum> 5605.0     0.00150 </datum>
+    <datum> 5630.0     0.00120 </datum>
+    <datum> 5655.0     0.00100 </datum>
+    <datum> 5680.0     0.00090 </datum>
+    <datum> 5705.0     0.00080 </datum>
+    <datum> 5730.0     0.00060 </datum>
+    <datum> 5755.0     0.00050 </datum>
+    <datum> 5780.0     0.00030 </datum>
+    <datum> 5805.0     0.00010 </datum>
+    <datum> 5830.0     0.00000 </datum>
+  </response>
+  <effectiveWavelength>4718.87224624868</effectiveWavelength>
+  <vegaOffset>0.108835972197283</vegaOffset>
+</filter>
