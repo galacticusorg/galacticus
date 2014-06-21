@@ -34,7 +34,8 @@ module Galacticus_Display
   logical                                      :: displayInitialized        =.false.
   integer                                      :: verbosityLevel            =1
   integer          , parameter  , public       :: verbosityDebug            =5      , verbosityInfo   =4, &
-       &                                          verbosityWarn             =3      , verbosityWorking=2
+       &                                          verbosityWarn             =3      , verbosityWorking=2, &
+       &                                          verbositySilent           =0
 
   ! Progress bar state.
   logical                                      :: barVisible                =.false.
@@ -120,9 +121,9 @@ contains
     !$omp critical(Galacticus_Message_Lock)
     call Initialize_Display
     if (present(verbosity)) then
-       showMessage=(verbosity<=verbosityLevel)
+       showMessage=(verbosity       <= verbosityLevel)
     else
-       showMessage=.true.
+       showMessage=(verbositySilent <  verbosityLevel)
     end if
     if (showMessage) then
        !$ if (omp_in_parallel()) then
@@ -156,9 +157,9 @@ contains
     !$omp critical(Galacticus_Message_Lock)
     call Initialize_Display
     if (present(verbosity)) then
-       showMessage=(verbosity<=verbosityLevel)
+       showMessage=(verbosity       <= verbosityLevel)
     else
-       showMessage=.true.
+       showMessage=(verbositySilent <  verbosityLevel)
     end if
     if (showMessage) then
        !$ if (omp_in_parallel()) then
@@ -192,9 +193,9 @@ contains
     !$omp critical(Galacticus_Message_Lock)
     call Initialize_Display
     if (present(verbosity)) then
-       showMessage=(verbosity<=verbosityLevel)
+       showMessage=(verbosity       <= verbosityLevel)
     else
-       showMessage=.true.
+       showMessage=(verbositySilent <  verbosityLevel)
     end if
     if (showMessage) then
        if (barVisible) call Galacticus_Display_Counter_Clear_Lockless()
@@ -223,9 +224,9 @@ contains
     !$omp critical(Galacticus_Message_Lock)
     call Initialize_Display
     if (present(verbosity)) then
-       showMessage=(verbosity<=verbosityLevel)
+       showMessage=(verbosity       <= verbosityLevel)
     else
-       showMessage=.true.
+       showMessage=(verbositySilent <  verbosityLevel)
     end if
     if (showMessage) then
        if (barVisible) call Galacticus_Display_Counter_Clear_Lockless()
@@ -295,9 +296,9 @@ contains
 
     call Initialize_Display
     if (present(verbosity)) then
-       showMessage=(verbosity<=verbosityLevel)
+       showMessage=(verbosity       <= verbosityLevel)
     else
-       showMessage=.true.
+       showMessage=(verbositySilent <  verbosityLevel)
     end if
     if (showMessage) then
        if (percentageComplete == barPercentage) return
@@ -333,9 +334,9 @@ contains
 
     call Initialize_Display
     if (present(verbosity)) then
-       showMessage=(verbosity<=verbosityLevel)
+       showMessage=(verbosity       <= verbosityLevel)
     else
-       showMessage=.true.
+       showMessage=(verbositySilent <  verbosityLevel)
     end if
     if (showMessage) then
        write (0,'(a58,$)') repeat(char(8),58)
