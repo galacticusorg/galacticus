@@ -36,6 +36,7 @@ module Sort
      module procedure Sort_Do_Double
      module procedure Sort_Do_Integer
      module procedure Sort_Do_Integer8
+     module procedure Sort_Do_Integer8_Both
   end interface
 
 contains
@@ -67,6 +68,27 @@ contains
     call Sort_Do_Integer8_C(size(array),array)
     return
   end subroutine Sort_Do_Integer8
+
+  subroutine Sort_Do_Integer8_Both(array,array2)
+    !% Given an unsorted long integer {\tt array}, sorts it in place while also rearraning {\tt array2} in the same way.
+    use Kind_Numbers
+    implicit none
+    integer(kind=kind_int8), dimension(:          ), intent(inout) :: array    , array2
+    integer(kind=c_size_t ), dimension(size(array))                :: sortIndex
+    integer(kind=kind_int8), dimension(size(array))                :: tmp
+    integer                                                        :: i
+
+    sortIndex=Sort_Index_Do(array)
+    forall(i=1:size(array))
+       tmp(i)=array(sortIndex(i))
+    end forall
+    array=tmp
+    forall(i=1:size(array))
+       tmp(i)=array2(sortIndex(i))
+    end forall
+    array2=tmp
+    return
+  end subroutine Sort_Do_Integer8_Both
 
   function Sort_Index_Do_Integer8(array)
     !% Given an unsorted integer {\tt array}, sorts it in place.
@@ -134,7 +156,6 @@ contains
     call FGSL_HeapSort(arrayPointer,arraySizeC,FGSL_SizeOf(1_kind_int8),Compare_Integer8)
     return
   end subroutine Sort_Do_Integer8_C
-
   subroutine Sort_Index_Do_Integer8_C(arraySize,array,idx)
     !% Do a integer sort.
     use Kind_Numbers
@@ -177,8 +198,14 @@ contains
 
     call c_f_pointer(x,rx)
     call c_f_pointer(y,ry)
-    Compare_Double=0
-    if (rx < ry) Compare_Double=-1
+    if      (rx > ry) then
+       Compare_Double=+1
+    else if (rx < ry) then
+       Compare_Double=-1
+    else
+       Compare_Double= 0
+    end if
+    return
   end function Compare_Double
 
   function Compare_Integer(x,y) bind(c)
@@ -189,8 +216,14 @@ contains
 
     call c_f_pointer(x,rx)
     call c_f_pointer(y,ry)
-    Compare_Integer=0
-    if (rx < ry) Compare_Integer=-1
+    if      (rx > ry) then
+       Compare_Integer=+1
+    else if (rx < ry) then
+       Compare_Integer=-1
+    else
+       Compare_Integer= 0
+    end if
+    return
   end function Compare_Integer
 
   function Compare_Integer8(x,y) bind(c)
@@ -201,8 +234,14 @@ contains
 
     call c_f_pointer(x,rx)
     call c_f_pointer(y,ry)
-    Compare_Integer8=0
-    if (rx < ry) Compare_Integer8=-1
+    if      (rx > ry) then
+       Compare_Integer8=+1
+    else if (rx < ry) then
+       Compare_Integer8=-1
+    else
+       Compare_Integer8= 0
+    end if
+    return
   end function Compare_Integer8
 
 end module Sort
