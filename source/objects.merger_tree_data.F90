@@ -1412,10 +1412,12 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Export(mergerTrees,outputFileName,outputFormat,hdfChunkSize,hdfCompressionLevel,append)
     !% Output a set of merger trees to an HDF5 file.
+    use HDF5
     use Galacticus_Error
     use String_Handling
     implicit none
-    integer                  , intent(in   )           :: hdfChunkSize  , hdfCompressionLevel
+    integer  (kind=size_t   ), intent(in   )           :: hdfChunkSize
+    integer                  , intent(in   )           :: hdfCompressionLevel
     class    (mergerTreeData), intent(inout)           :: mergerTrees
     character(len=*         ), intent(in   )           :: outputFileName, outputFormat
     logical                  , intent(in   ), optional :: append
@@ -1439,12 +1441,14 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Export_Galacticus(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
     !% Output a set of merger trees to a Galacticus-format HDF5 file.
+    use, intrinsic :: ISO_C_Binding
     use HDF5
     use IO_HDF5
     use String_Handling
     use Memory_Management
     implicit none
-    integer                                             , intent(in   ) ::        hdfChunkSize          , hdfCompressionLevel
+    integer  (kind=size_t  )                            , intent(in   ) ::        hdfChunkSize
+    integer                                             , intent(in   ) ::        hdfCompressionLevel
     class    (mergerTreeData)                           , intent(inout) ::        mergerTrees
     character(len=*         )                           , intent(in   ) ::        outputFileName
     logical                                             , intent(in   ) , optional::              append
@@ -1685,12 +1689,14 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Export_IRATE(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
     !% Output a set of merger trees to an IRATE-format HDF5 file.
+    use HDF5
     use IO_HDF5
     use Galacticus_Error
     use Memory_Management
     use Array_Utilities
     implicit none
-    integer                                                    , intent(in   ) ::        hdfChunkSize                  , hdfCompressionLevel
+    integer         (kind=size_t   )                           , intent(in   ) ::        hdfChunkSize
+    integer                                                    , intent(in   ) ::        hdfCompressionLevel
     class           (mergerTreeData)                           , intent(inout) ::        mergerTrees
     character       (len=*         )                           , intent(in   ) ::        outputFileName
     logical                                                    , intent(in   ) , optional::                      append

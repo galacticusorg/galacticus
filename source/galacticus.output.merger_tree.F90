@@ -29,10 +29,11 @@ module Galacticus_Output_Merger_Tree
   ! Output groups.
   type outputGroup
      !% Type used for output group information.
-     logical                 :: doubleAttributesWritten, integerAttributesWritten, &
-          &                     opened
-     type   (hdf5Object    ) :: hdf5Group              , nodeDataGroup
-     integer(kind=kind_int8) :: length
+     logical                                            :: doubleAttributesWritten, integerAttributesWritten, &
+          &                                                opened
+     type   (hdf5Object    )                            :: hdf5Group              , nodeDataGroup
+     integer(kind=kind_int8)                            :: length
+     type   (hdf5Object    ), allocatable, dimension(:) :: integerDataset         , doubleDataset
   end type outputGroup
   type            (hdf5Object          )                                         :: outputsGroup
   logical                                                                        :: outputsGroupOpened         =.false.
@@ -174,7 +175,7 @@ contains
           ! Count up the number of properties to be output.
           call Count_Properties        (time,thisNode)          
           ! Ensure buffers are allocated for temporary property storage.
-          call Allocate_Buffers        (             )
+          call Allocate_Buffers        (iOutput      )
           ! Get names for all properties to be output.
           call Establish_Property_Names(time,thisNode)
        end if
@@ -292,12 +293,22 @@ contains
   subroutine Galacticus_Merger_Tree_Output_Finalize()
     !% Finalize merger tree output by closing any open groups.
     implicit none
-    integer :: iGroup
+    integer :: iGroup, iDataset
 
     ! Close any open output groups.
     !$omp critical(HDF5_Access)
     do iGroup=1,outputGroupsCount
        if (outputGroups(iGroup)%opened) then
+          if (allocated(outputGroups(iGroup)%integerDataset)) then
+             do iDataset=1,size(outputGroups(iGroup)%integerDataset)
+                if (outputGroups(iGroup)%integerDataset(iDataset)%isOpen()) call outputGroups(iGroup)%integerDataset(iDataset)%close()
+             end do
+          end if
+          if (allocated(outputGroups(iGroup)% doubleDataset)) then
+             do iDataset=1,size(outputGroups(iGroup)% doubleDataset)
+                if (outputGroups(iGroup)% doubleDataset(iDataset)%isOpen()) call outputGroups(iGroup)% doubleDataset(iDataset)%close()
+             end do
+          end if
           if (outputGroups(iGroup)%nodeDataGroup%isOpen()) call outputGroups(iGroup)%nodeDataGroup%close()
           if (outputGroups(iGroup)%hdf5Group    %isOpen()) call outputGroups(iGroup)%hdf5Group    %close()
        end if
@@ -337,21 +348,26 @@ contains
   subroutine Integer_Buffer_Dump(iOutput)
     !% Dump the contents of the integer properties buffer to the \glc\ output file.
     implicit none
-    integer            , intent(in   ) :: iOutput
-    integer                            :: iProperty
-    type   (hdf5Object)                :: thisDataset
+    integer, intent(in   ) :: iOutput
+    integer                :: iProperty
 
     ! Write integer data from the buffer.
     if (integerPropertyCount > 0) then
        !$omp critical(HDF5_Access)
        do iProperty=1,integerPropertyCount
-          call outputGroups(iOutput)%nodeDataGroup%writeDataset(integerBuffer(1:integerBufferCount,iProperty),integerPropertyNames(iProperty) &
+          if (.not.outputGroups(iOutput)%                          integerDataset         (iProperty)%isOpen())             &
+               &   outputGroups(iOutput)%                          integerDataset         (iProperty)=                      &
+               &   outputGroups(iOutput)%nodeDataGroup%openDataset(                                                         &
+               &                                                   integerPropertyNames   (iProperty)                     , &
+               &                                                   integerPropertyComments(iProperty)                     , &
+               &                                                   datasetDataType                   =hdf5DataTypeInteger8, &
+               &                                                   datasetDimensions                 =[0_kind_int8]       , &
+               &                                                   appendTo                          =.true.                &
+               &                                                  )
+          call outputGroups(iOutput)%integerDataset(iProperty)%writeDataset(integerBuffer(1:integerBufferCount,iProperty),integerPropertyNames(iProperty) &
                &,integerPropertyComments(iProperty),appendTo=.true.)
-          if (.not.outputGroups(iOutput)%integerAttributesWritten.and.integerPropertyUnitsSI(iProperty) /= 0.0d0) then
-             thisDataset=outputGroups(iOutput)%nodeDataGroup%openDataset(integerPropertyNames(iProperty))
-             call thisDataset%writeAttribute(integerPropertyUnitsSI(iProperty),"unitsInSI")
-             call thisDataset%close()
-          end if
+          if (.not.outputGroups(iOutput)%integerAttributesWritten.and.integerPropertyUnitsSI(iProperty) /= 0.0d0) &
+               & call outputGroups(iOutput)%integerDataset(iProperty)%writeAttribute(integerPropertyUnitsSI(iProperty),"unitsInSI")
        end do
        integerPropertiesWritten=integerPropertiesWritten+integerBufferCount
        integerBufferCount=0
@@ -372,13 +388,19 @@ contains
     if (doublePropertyCount > 0) then
        !$omp critical(HDF5_Access)
        do iProperty=1,doublePropertyCount
-          call outputGroups(iOutput)%nodeDataGroup%writeDataset(doubleBuffer(1:doubleBufferCount,iProperty),doublePropertyNames(iProperty) &
-               &,doublePropertyComments(iProperty),appendTo=.true.)
-          if (.not.outputGroups(iOutput)%doubleAttributesWritten.and.doublePropertyUnitsSI(iProperty) /= 0.0d0) then
-             thisDataset=outputGroups(iOutput)%nodeDataGroup%openDataset(doublePropertyNames(iProperty))
-             call thisDataset%writeAttribute(doublePropertyUnitsSI(iProperty),"unitsInSI")
-             call thisDataset%close()
-          end if
+          if (.not.outputGroups(iOutput)%                           doubleDataset         (iProperty)%isOpen())             &
+               &   outputGroups(iOutput)%                           doubleDataset         (iProperty)=                      &
+               &   outputGroups(iOutput)%nodeDataGroup%openDataset(                                                         &
+               &                                                    doublePropertyNames   (iProperty)                     , &
+               &                                                    doublePropertyComments(iProperty)                     , &
+               &                                                   datasetDataType                   =hdf5DataTypeDouble  , &
+               &                                                   datasetDimensions                 =[0_kind_int8]       , &
+               &                                                   appendTo                          =.true.                &
+               &                                                  )
+          call outputGroups(iOutput)% doubleDataset(iProperty)%writeDataset( doubleBuffer(1: doubleBufferCount,iProperty), doublePropertyNames(iProperty) &
+               &, doublePropertyComments(iProperty),appendTo=.true.)
+          if (.not.outputGroups(iOutput)% doubleAttributesWritten.and. doublePropertyUnitsSI(iProperty) /= 0.0d0) &
+               & call outputGroups(iOutput)% doubleDataset(iProperty)%writeAttribute( doublePropertyUnitsSI(iProperty),"unitsInSI")
        end do
        doublePropertiesWritten=doublePropertiesWritten+doubleBufferCount
        doubleBufferCount=0
@@ -408,10 +430,11 @@ contains
     return
   end subroutine Count_Properties
 
-  subroutine Allocate_Buffers
+  subroutine Allocate_Buffers(iOutput)
     !% Allocate buffers for storage of properties.
     use Memory_Management
     implicit none
+    integer, intent(in   ) :: iOutput
 
     if (integerPropertyCount > 0 .and. (.not.allocated(integerBuffer) .or. integerPropertyCount > size(integerPropertyNames)) ) then
        if (allocated(integerBuffer)) then
@@ -437,6 +460,9 @@ contains
        call Alloc_Array(doublePropertyComments            ,[doublePropertyCount])
        call Alloc_Array(doublePropertyUnitsSI             ,[doublePropertyCount])
     end if
+    ! Allocate datasets.
+    if (.not.allocated(outputGroups(iOutput)%integerDataset)) allocate(outputGroups(iOutput)%integerDataset(integerPropertyCount))
+    if (.not.allocated(outputGroups(iOutput)% doubleDataset)) allocate(outputGroups(iOutput)% doubleDataset( doublePropertyCount))
     return
   end subroutine Allocate_Buffers
 

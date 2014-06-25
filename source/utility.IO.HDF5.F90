@@ -422,7 +422,6 @@ contains
        H5T_NATIVE_INTEGER_8AS(1:5)=H5T_NATIVE_INTEGERS
        H5T_NATIVE_INTEGER_8AS(6:8)=H5T_NATIVE_INTEGER_8S
 
-
        ! Flag that the hdf5 system is now initialized.
        hdf5IsInitalized=.true.
     end if
@@ -634,7 +633,7 @@ contains
 
   !! File routines.
 
-  subroutine IO_HDF5_Open_File(fileObject,fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel)
+  subroutine IO_HDF5_Open_File(fileObject,fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes)
     !% Open a file and return an appropriate HDF5 object. The file name can be provided as an input parameter or, if not
     !% provided, will be taken from the stored object name in {\tt fileObject}.
     use Galacticus_Error
@@ -643,7 +642,10 @@ contains
     class    (hdf5Object    ), intent(inout)           :: fileObject
     character(len=*         ), intent(in   ), optional :: fileName
     logical                  , intent(in   ), optional :: objectsOverwritable, overWrite       , readOnly
-    integer                  , intent(in   ), optional :: chunkSize          , compressionLevel
+    integer  (kind=size_t   ), intent(in   ), optional :: chunkSize          , sieveBufferSize , cacheElementsCount, &
+         &                                                cacheSizeBytes
+    integer                  , intent(in   ), optional :: compressionLevel
+    logical                  , intent(in   ), optional :: useLatestFormat
     integer                                            :: errorCode          , fileAccess
     logical                                            :: overWriteActual
     type     (varying_string)                          :: message
@@ -679,7 +681,37 @@ contains
        message="failed to set close degree for HDF5 file '"//fileObject%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Open_File',message)
     end if
-
+    ! Specify file driver (buffered I/O).
+    call h5pset_fapl_stdio_f(accessList,errorCode)
+    if (errorCode /= 0) then
+       message="failed to set I/O driver for HDF5 file '"//fileObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Open_File',message)
+    end if
+    ! Set sieve buffer size.
+    if (present(sieveBufferSize)) then
+       call h5pset_sieve_buf_size_f(accessList,sieveBufferSize,errorCode)
+       if (errorCode /= 0) then
+          message="failed to set sieve buffer size for HDF5 file '"//fileObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Open_File',message)
+       end if
+    end if
+    ! Set file format.
+    if (present(useLatestFormat)) then
+       if (useLatestFormat) then
+          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_EARLIEST_F,H5F_LIBVER_LATEST_F,errorCode)
+       else
+          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_LATEST_F  ,H5F_LIBVER_LATEST_F,errorCode)
+       end if
+       if (errorCode /= 0) then
+          message="failed to set file format for HDF5 file '"//fileObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Open_File',message)
+       end if
+    end if
+    if (present(cacheElementsCount).or.present(cacheSizeBytes)) then
+       if (.not.(present(cacheElementsCount).and.present(cacheSizeBytes))) call Galacticus_Error_Report('IO_HDF5_Open_File','both or neither of "cacheElementsCount" and "cacheSizeBytes" must be specified')
+       call h5pset_cache_f(accessList,0,cacheElementsCount,cacheSizeBytes,0.75,errorCode)
+    end if
+    
     ! Check if the file exists.
     if (File_Exists(fileName).and..not.overWriteActual) then
        ! Determine access for file.
@@ -3933,11 +3965,12 @@ contains
     else
        appendToActual=.false.
     end if
-
+    ! Determine dataset dimensions
+    datasetDimensions=shape(datasetValue)
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! If this dataset if not overwritable, report an error.
-       if (.not.thisObject%isOverwritable) then
+       if (.not.(thisObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Integer_1D',message)
        else
@@ -3959,7 +3992,6 @@ contains
        ! Record if dataset already exists.
        preExisted=thisObject%hasDataset(datasetName)
        ! Open the dataset.
-       datasetDimensions=shape(datasetValue)
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeInteger,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D integer.
@@ -4672,11 +4704,12 @@ contains
     else
        appendToActual=.false.
     end if
-
+    ! Determine dataset dimensions
+    datasetDimensions=shape(datasetValue)
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! If this dataset if not overwritable, report an error.
-       if (.not.thisObject%isOverwritable) then
+       if (.not.(thisObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Integer8_1D',message)
        else
@@ -4698,7 +4731,6 @@ contains
        ! Record if dataset already exists.
        preExisted=thisObject%hasDataset(datasetName)
        ! Open the dataset.
-       datasetDimensions=shape(datasetValue)
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeInteger8,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D long integer.
@@ -5418,11 +5450,12 @@ contains
     else
        appendToActual=.false.
     end if
-
+    ! Determine dataset dimensions
+    datasetDimensions=shape(datasetValue)
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! If this dataset if not overwritable, report an error.
-       if (.not.thisObject%isOverwritable) then
+       if (.not.(thisObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_1D',message)
        else
@@ -5444,7 +5477,6 @@ contains
        ! Record if dataset already exists.
        preExisted=thisObject%hasDataset(datasetName)
        ! Open the dataset.
-       datasetDimensions=shape(datasetValue)
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D double.
@@ -6160,11 +6192,12 @@ contains
     else
        appendToActual=.false.
     end if
-
+    ! Determine dataset dimensions
+    datasetDimensions=shape(datasetValue)
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! If this dataset if not overwritable, report an error.
-       if (.not.thisObject%isOverwritable) then
+       if (.not.(thisObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_2D',message)
        else
@@ -6186,7 +6219,6 @@ contains
        ! Record if dataset already exists.
        preExisted=thisObject%hasDataset(datasetName)
        ! Open the dataset.
-       datasetDimensions=shape(datasetValue)
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 2D double.
@@ -6909,11 +6941,12 @@ contains
     else
        appendToActual=.false.
     end if
-
+    ! Determine dataset dimensions
+    datasetDimensions=shape(datasetValue)
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! If this dataset if not overwritable, report an error.
-       if (.not.thisObject%isOverwritable) then
+       if (.not.(thisObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_3D',message)
        else
@@ -6935,7 +6968,6 @@ contains
        ! Record if dataset already exists.
        preExisted=thisObject%hasDataset(datasetName)
        ! Open the dataset.
-       datasetDimensions=shape(datasetValue)
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 3D double.
@@ -7658,11 +7690,12 @@ contains
     else
        appendToActual=.false.
     end if
-
+    ! Determine dataset dimensions
+    datasetDimensions=shape(datasetValue)
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! If this dataset if not overwritable, report an error.
-       if (.not.thisObject%isOverwritable) then
+       if (.not.(thisObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_4D',message)
        else
@@ -7684,7 +7717,6 @@ contains
        ! Record if dataset already exists.
        preExisted=thisObject%hasDataset(datasetName)
        ! Open the dataset.
-       datasetDimensions=shape(datasetValue)
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 4D double.
@@ -8407,11 +8439,12 @@ contains
     else
        appendToActual=.false.
     end if
-
+    ! Determine dataset dimensions
+    datasetDimensions=shape(datasetValue)
     ! Check if the object is an dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! If this dataset if not overwritable, report an error.
-       if (.not.thisObject%isOverwritable) then
+       if (.not.(thisObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_5D',message)
        else
@@ -8433,7 +8466,6 @@ contains
        ! Record if dataset already exists.
        preExisted=thisObject%hasDataset(datasetName)
        ! Open the dataset.
-       datasetDimensions=shape(datasetValue)
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 5D double.
@@ -9154,7 +9186,8 @@ contains
     else
        appendToActual=.false.
     end if
-
+    ! Determine dataset dimensions
+    datasetDimensions=shape(datasetValue)
     ! Create a custom datatype.
     call h5tcopy_f(H5T_NATIVE_CHARACTER,dataTypeID,errorCode)
     if (errorCode < 0) then
@@ -9170,7 +9203,7 @@ contains
     ! Check if the object is a dataset, or something else.
     if (thisObject%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! If this dataset if not overwritable, report an error.
-       if (.not.thisObject%isOverwritable) then
+       if (.not.(thisObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Character_1D',message)
        else
@@ -9192,7 +9225,6 @@ contains
        ! Record if dataset already exists.
        preExisted=thisObject%hasDataset(datasetName)
        ! Open the dataset.
-       datasetDimensions=shape(datasetValue)
        datasetObject=IO_HDF5_Open_Dataset(thisObject,datasetName,commentText,hdf5DataTypeCharacter,datasetDimensions,useDataType&
             &=dataTypeID,appendTo =appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D integer.
