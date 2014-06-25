@@ -370,7 +370,7 @@ contains
                    end do
                 end if
              end if
-             call thisNode%walkTreewithsatellites(thisNode)
+             call thisNode%walkTreeWithSatellites(thisNode)
           end do
           thisTree => thisTree%nextTree
        end do
