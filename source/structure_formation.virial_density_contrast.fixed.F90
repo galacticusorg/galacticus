@@ -82,7 +82,7 @@ contains
        case ("meanDensity"    )
           densityType=densityTypeMean
        case default
-          call Galacticus_Error_Report('Virial_Density_Fixed_Initialize','[virialDensityContrastFixedType] must be either "critical density" or "mean density"')
+          call Galacticus_Error_Report('Virial_Density_Fixed_Initialize','[virialDensityContrastFixedType] must be either "criticalDensity" or "meanDensity"')
        end select
     end if
     return
