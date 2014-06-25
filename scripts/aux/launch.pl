@@ -202,10 +202,11 @@ sub Construct_Models {
 		    push(
 			@jobs,
 			{
-			    label      => $modelLabel               ,
-			    directory  => $galacticusOutputDirectory,
-			    analysis   => $analysisCode             ,
-			    mergeGroup => $mergeGroup
+			    label        => $modelLabel                    ,
+			    directory    => $galacticusOutputDirectory     ,
+			    analysis     => $analysisCode                  ,
+			    mergeGroup   => $mergeGroup                    ,
+			    modelCounter => $launchScript->{'modelCounter'}
 			}
 			);
 		}	    
