@@ -21,7 +21,6 @@ use Data::Dumper;
 use LaTeX::Encode;
 use XML::Simple;
 use Scalar::Util 'reftype';
-use Switch;
 use Astro::Cosmology;
 require Galacticus::HDF5;
 require Galacticus::StellarMass;

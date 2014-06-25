@@ -11,7 +11,6 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
 unshift(@INC, $galacticusPath."perl"); 
 use strict;
 use warnings;
-use Switch;
 
 sub Module_Name {
     # Return the module name associated with a file.
@@ -20,10 +19,8 @@ sub Module_Name {
 	if ( scalar(@_) > 1 );
     my $moduleName;
     if ( exists($options{'default'}) ) {
-	switch ( $options{'default'} ) {
-	    case ( 'self' ) {
-		$moduleName = $fileName;
-	    }
+	if ( $options{'default'} eq 'self' ) {
+	    $moduleName = $fileName;
 	}
     }
     my $moduleFileName = "./work/build/".$fileName.".m";

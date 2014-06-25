@@ -12,7 +12,6 @@ unshift(@INC, $galacticusPath."perl");
 use strict;
 use warnings;
 use utf8;
-use Switch;
 use DateTime;
 use Data::Dumper;
 require Galacticus::Build::Hooks;

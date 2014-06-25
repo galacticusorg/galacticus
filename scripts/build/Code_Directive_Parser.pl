@@ -12,7 +12,6 @@ unshift(@INC, $galacticusPath."perl");
 use Fcntl qw(SEEK_SET);
 use XML::Simple;
 use Data::Dumper;
-use Switch;
 require System::Redirect;
 
 # Scans source code for "!#" directives and generates a Makefile.
@@ -95,25 +94,22 @@ foreach my $srcdir ( @sourcedirs ) {
 			}
 			# Act on the directive.
 			my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>$xmlTag);
-			switch ( $xmlTag ) {
-			    case ( "include" ) {
-				my $fileName;
-				if ( ${$data}{'content'} =~ m/^\s*\#??include\s*["'<](.+)["'>]/i ) {
-				    ($fileName = "work/build/".$1) =~ s/\.inc$/\.Inc/;
-				    ${$data}{'fileName'} = $fileName;
-				}
-				delete(${$data}{'content'});
-				my $directive = ${$data}{'directive'};
-				$directive = ${$data}{'name'}
-				   if ( exists(${$data}{'name'}) );
-				$directive .= ".".${$data}{'type'};
-				${$includeDirectives{$directive}}{'source'  } = $fileNames[0];
-				${$includeDirectives{$directive}}{'fileName'} = $fileName;
-				${$includeDirectives{$directive}}{'xml'     } = $xmlOutput->XMLout($data);
+			if ( $xmlTag eq "include" ) {
+			    my $fileName;
+			    if ( ${$data}{'content'} =~ m/^\s*\#??include\s*["'<](.+)["'>]/i ) {
+				($fileName = "work/build/".$1) =~ s/\.inc$/\.Inc/;
+				${$data}{'fileName'} = $fileName;
 			    }
-			    else {
-				$otherDirectives->{$xmlTag}->{$srcdir."/".$fname} = 1;
-			    }
+			    delete(${$data}{'content'});
+			    my $directive = ${$data}{'directive'};
+			    $directive = ${$data}{'name'}
+			    if ( exists(${$data}{'name'}) );
+			    $directive .= ".".${$data}{'type'};
+			    ${$includeDirectives{$directive}}{'source'  } = $fileNames[0];
+			    ${$includeDirectives{$directive}}{'fileName'} = $fileName;
+			    ${$includeDirectives{$directive}}{'xml'     } = $xmlOutput->XMLout($data);
+			} else {
+			    $otherDirectives->{$xmlTag}->{$srcdir."/".$fname} = 1;
 			}
 		    }
 		}

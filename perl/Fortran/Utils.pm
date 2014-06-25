@@ -14,7 +14,6 @@ unshift(@INC,$galacticusPath."perl");
 use File::Copy;
 use Text::Balanced qw (extract_bracketed);
 use Text::Table;
-use Switch;
 use Data::Dumper;
 use Fcntl qw(SEEK_SET);
 
@@ -233,10 +232,12 @@ sub read_file {
 	    }
 	    # Process the line.
 	    my $line;
-	    switch ( $returnType ) {
-		case ( "raw"       ) {$line = $rawLine         }
-		case ( "processed" ) {$line = $processedLine   }
-		case ( "comments"  ) {$line = $bufferedComments}
+	    if      ( $returnType eq "raw"       ) {
+		$line = $rawLine;
+	    } elsif ( $returnType eq "processed" ) {
+		$line = $processedLine;
+	    } elsif ( $returnType eq "comments"  ) {
+		$line = $bufferedComments;		
 	    }
 	    $line =~ s/$stripRegEx//
 		if ( defined($stripRegEx) );
