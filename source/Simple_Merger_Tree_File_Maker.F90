@@ -25,6 +25,7 @@ program Simple_Merger_Tree_File_Maker
   use Memory_Management
   use ISO_Varying_String
   use Input_Parameters
+  use HDF5
   implicit none
   integer                   :: hdfChunkSize =1024, hdfCompressionLevel=9
   character(len=1024      ) :: nodesFile         , outputFile           , outputFormat
@@ -50,7 +51,7 @@ program Simple_Merger_Tree_File_Maker
   call Merger_Trees_Simple_Process(nodesFile,mergerTrees)
 
   ! Output HDF5 file.
-  call mergerTrees%export(outputFile,outputFormat,hdfChunkSize,hdfCompressionLevel)
+  call mergerTrees%export(outputFile,outputFormat,int(hdfChunkSize,kind=hsize_t),hdfCompressionLevel)
 
   ! Close the parameter file.
   call Input_Parameters_File_Close

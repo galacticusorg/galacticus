@@ -25,6 +25,7 @@ program Millennium_Merger_Tree_File_Maker
   use Merger_Trees_Millennium
   use Command_Arguments
   use Memory_Management
+  use HDF5
   implicit none
   integer                   :: generation   , hdfChunkSize=1024, hdfCompressionLevel=9
   character(len=1024      ) :: nodesFile    , outputFile       , outputFormat          , &
@@ -48,6 +49,6 @@ program Millennium_Merger_Tree_File_Maker
   call Merger_Trees_Millennium_Process(nodesFile,particlesFile,mergerTrees,generation)
 
   ! Output HDF5 file.
-  call mergerTrees%export(outputFile,outputFormat,hdfChunkSize,hdfCompressionLevel)
+  call mergerTrees%export(outputFile,outputFormat,int(hdfChunkSize,kind=hsize_t),hdfCompressionLevel)
 
 end program Millennium_Merger_Tree_File_Maker
