@@ -9,6 +9,7 @@ use File::Which;
 require Galacticus::Launch::Hooks;
 require Galacticus::Launch::PostProcess;
 require System::Redirect;
+require List::ExtraUtils;
 
 # Insert hooks for our functions.
 %Hooks::moduleHooks = 
@@ -76,7 +77,7 @@ sub Launch {
 	print $pbsFile "#!/bin/bash\n";
 	print $pbsFile "#PBS -N Galacticus_".$job->{'label'}."\n";
 	if ( exists($launchScript->{'config'}->{'contact'}->{'email'}) ) {
-	    if ( $launchScript->{'config'}->{'contact'}->{'email'} =~ m/\@/ && $launchScript->{'emailReport'} eq "yes" ) {
+	    if ( $launchScript->{'config'}->{'contact'}->{'email'} =~ m/\@/ && exists($launchScript->{'emailReport'}) && $launchScript->{'emailReport'} eq "yes" ) {
 		print $pbsFile "#PBS -M ".$launchScript->{'config'}->{'contact'}->{'email'}."\n";
 		print $pbsFile "#PBS -m bea\n";
 	    }
@@ -106,23 +107,36 @@ sub Launch {
 		print $pbsFile "export ".$environment."\n";
 	    }
 	}
-	print $pbsFile "export GFORTRAN_ERROR_DUMPCORE=YES\n";
+	my $coreDump = "no";
+	$coreDump = $launchScript->{'pbs'}->{'coreDump'}
+	if ( exists($launchScript->{'pbs'}->{'coreDump'}) );
+	if ( $coreDump eq "yes" ) {
+	    print $pbsFile "ulimit -c unlimited\n";
+	    print $pbsFile "export GFORTRAN_ERROR_DUMPCORE=YES\n";
+	} else {
+	    print $pbsFile "ulimit -c 0\n";
+	    print $pbsFile "export GFORTRAN_ERROR_DUMPCORE=NO\n";
+	}
 	print $pbsFile "ulimit -t unlimited\n";
-	print $pbsFile "ulimit -c unlimited\n";
 	print $pbsFile "export OMP_NUM_THREADS=".$launchScript->{'pbs'}->{'ompThreads'}."\n"
 	    if ( exists($launchScript->{'pbs'}->{'ompThreads'}) );
 	if ( exists($launchScript->{'pbs'}->{'scratchPath'}) ) {
-	    my $scratchPath = $launchScript->{'pbs'}->{'scratchPath'}."/model_".$launchScript->{'modelCounter'}."_".$$."/";
+	    my $scratchPath = $launchScript->{'pbs'}->{'scratchPath'}."/model_".$job->{'modelCounter'}."_".$$."/";
 	    print $pbsFile "mkdir -p ".$scratchPath."\n";
+	}
+	if ( exists($launchScript->{'pbs'}->{'preCommand'}) ) {
+	    foreach my $command ( &ExtraUtils::as_array($launchScript->{'pbs'}->{'preCommand'}) ) {
+		print $pbsFile $command."\n";
+	    }
 	}
 	print $pbsFile $launchScript->{'pbs'}->{'mpiRun'}." -np 1 "
 	    if ( $launchScript->{'pbs'}->{'mpiLaunch'} eq "yes" );
 	print $pbsFile "./Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
 	if ( exists($launchScript->{'pbs'}->{'scratchPath'}) ) {
-	    print $pbsFile "mv ".$launchScript->{'pbs'}->{'scratchPath'}."galacticus.hdf5 ".$job->{'directory'}."/galacticus.hdf5\n";
+	    print $pbsFile "mv ".$launchScript->{'pbs'}->{'scratchPath'}."/model_".$job->{'modelCounter'}."_".$$."/galacticus.hdf5 ".$job->{'directory'}."/galacticus.hdf5\n";
 	    if ( $launchScript->{'useStateFile'} eq "yes" ) {
-		print $pbsFile "mv ".$launchScript->{'pbs'}->{'scratchPath'}."galacticus_".$launchScript->{'modelCounter'}."_".$$.".state* ".$job->{'directory'}."/\n";
-		print $pbsFile "mv ".$launchScript->{'pbs'}->{'scratchPath'}."galacticus_".$launchScript->{'modelCounter'}."_".$$.".fgsl.state* ".$job->{'directory'}."/\n";
+		print $pbsFile "mv ".$launchScript->{'pbs'}->{'scratchPath'}."/model_".$job->{'modelCounter'}."_".$$."/galacticus_".$job->{'modelCounter'}."_".$$.".state* ".$job->{'directory'}."/\n";
+		print $pbsFile "mv ".$launchScript->{'pbs'}->{'scratchPath'}."/model_".$job->{'modelCounter'}."_".$$."/galacticus_".$job->{'modelCounter'}."_".$$.".fgsl.state* ".$job->{'directory'}."/\n";
 	    }
 	}
 	print $pbsFile "mv core* ".$job->{'directory'}."/\n";
