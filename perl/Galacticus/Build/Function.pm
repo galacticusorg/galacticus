@@ -14,10 +14,8 @@ use warnings;
 use utf8;
 use DateTime;
 use Data::Dumper;
-use Switch;
 use Scalar::Util 'reftype';
 use Sort::Topological qw(toposort);
-use Fortran::Utils;
 require Galacticus::Build::Hooks;
 require Galacticus::Build::Dependencies;
 require Fortran::Utils;
@@ -45,7 +43,10 @@ sub Functions_Parse_Directive {
     my $directive = $buildData->{'directive'};
     my $className = $buildData->{'currentDocument'}->{'name'};
     my $fileName  = $buildData->{'currentFileName'};
-    push(@{$buildData->{$directive}->{'classes'}},{name => $className, file => $fileName, description => $buildData->{'currentDocument'}->{'description'}});
+    my $abstract  = "no";
+    $abstract     = $buildData->{'currentDocument'}->{'abstract'}
+        if ( exists($buildData->{'currentDocument'}->{'abstract'}) );
+    push(@{$buildData->{$directive}->{'classes'}},{name => $className, file => $fileName, description => $buildData->{'currentDocument'}->{'description'}, abstract => $abstract});
 
 }
 
@@ -164,6 +165,16 @@ sub Functions_Generate_Output {
 	    if ( exists($_->{'bindC'}) && $_->{'bindC'} eq "true" );
     }
 
+    # Create a list of non-abstract classes.
+    my @nonAbstractClasses;
+    foreach ( @{$buildData->{$directive}->{'classes'}}) {
+	push(
+	    @nonAbstractClasses,
+	    $_
+	    )
+	    unless ( $_->{'abstract'} eq "yes" );
+    }
+
     # Add a header.
     $buildData->{'content'}  = "! Generated automatically by Galacticus::Build::Function\n";
     $buildData->{'content'} .= "!  From: ".$buildData->{'fileName'}."\n";
@@ -172,7 +183,7 @@ sub Functions_Generate_Output {
     # Add public functions.
     $buildData->{'content'} .= "   public :: ".$directive.",".$directive."Class";
     $buildData->{'content'} .= ", ".$_->{'name'}
-	foreach ( @{$buildData->{$directive}->{'classes'}});
+	foreach ( @nonAbstractClasses );
     $buildData->{'content'} .= ", ".$directive."StateStore, ".$directive."StateRestore"
 	if ( exists($buildData->{'stateful'}) && $buildData->{'stateful'} eq "yes" );
     $buildData->{'content'} .= "\n\n";
@@ -377,7 +388,7 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "      character(len=*), intent(in   ) :: typeName\n";
     $buildData->{'content'} .= "      type(varying_string) :: message\n\n";
     $buildData->{'content'} .= "      select case (trim(typeName))\n";
-    foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
+    foreach my $class ( @nonAbstractClasses ) {
 	(my $name = $class->{'name'}) =~ s/^$directive//;
 	$name = lcfirst($name)
 	    unless ( $name =~ m/^[A-Z]{2,}/ );
@@ -392,7 +403,7 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "         message='Unrecognized type \"'//trim(typeName)//'\" Available options are:'\n";
     my @classNames;
     push(@classNames,$_->{'name'})
-	foreach ( @{$buildData->{$directive}->{'classes'}} );
+	foreach ( @nonAbstractClasses );
     foreach ( sort(@classNames) ) {
 	(my $name = $_) =~ s/^$directive//;
 	$name = lcfirst($name)
@@ -431,7 +442,7 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "         !\$omp end critical (".$directive."Initialization)\n";
     $buildData->{'content'} .= "      end if\n";
     $buildData->{'content'} .= "      select case (char(".$directive."Method))\n";
-    foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
+    foreach my $class ( @nonAbstractClasses ) {
 	(my $name = $class->{'name'}) =~ s/^$directive//;
 	$name = lcfirst($name)
 	    unless ( $name =~ m/^[A-Z]{2,}/ );
@@ -646,13 +657,10 @@ sub Functions_Generate_Output {
 	my $methodCode;
 	foreach ( @methodsCBound ) {
 	    my $type;
-	    switch ( $_->{'type'} ) {
-		case ( "double precision" ) {
-		    $type = "double";
-		}
-		else {
-		    die("Galacticus::Build::Functions::Functions_Generate_Output: type unsupported for C++-binding");
-		}
+	    if ( $_->{'type'} eq "double precision" ) {
+		$type = "double";
+	    } else {
+		die("Galacticus::Build::Functions::Functions_Generate_Output: type unsupported for C++-binding");
 	    }
 	    my $separator     = "";
 	    my $fullSeparator = "";
@@ -690,13 +698,10 @@ sub Functions_Generate_Output {
 			die("Galacticus::Build::Functions::Functions_Generate_Output: non-standard kinds are not supported for C++-binding")
 			    if ( defined($type) );
 			my $cType;
-			switch ( $intrinsicName ) {
-			    case ( "double precision" ) {
-				$cType = "double";
-			    }
-			    else {
-				die("Galacticus::Build::Functions::Functions_Generate_Output: type not supported for C++-binding");
-			    }
+			if ( $intrinsicName eq "double precision" ) {
+			    $cType = "double";
+			} else {
+			    die("Galacticus::Build::Functions::Functions_Generate_Output: type not supported for C++-binding");
 			}
 			$argumentList .=     $separator.join(",",map($cType       ,1..scalar(@variables)));
 			$variableList .=     $separator.join(",",                            @variables  );

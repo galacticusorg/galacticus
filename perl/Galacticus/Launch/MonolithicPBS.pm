@@ -13,7 +13,6 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
 unshift(@INC,$galacticusPath."perl"); 
 use Data::Dumper;
 use Sys::CPU;
-use Switch;
 require Galacticus::Launch::Hooks;
 require Galacticus::Launch::PostProcess;
 require Galacticus::Launch::PBS;
@@ -51,13 +50,10 @@ sub Validate {
     } else {
 	$mpiIs = &PBS::mpiDetect();
     }
-    switch ( $mpiIs ) {
-	case ( "OpenMPI" ) {
-	    $defaults{'mpiRun'} = "mpirun --bynode";
-	}
-	case ( "SGI MPT" ) {
-	    $defaults{'mpiRun'} = "mpiexec omplace";
-	}
+    if ( $mpiIs eq "OpenMPI" ) {
+	$defaults{'mpiRun'} = "mpirun --bynode";
+    } elsif ( $mpiIs eq "SGI MPT" ) {
+	$defaults{'mpiRun'} = "mpiexec omplace";
     }    
     # Apply defaults.
     foreach ( keys(%defaults) ) {

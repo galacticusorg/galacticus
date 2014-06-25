@@ -12,7 +12,6 @@ unshift(@INC, $galacticusPath."perl");
 use strict;
 use warnings;
 use utf8;
-use Switch;
 use DateTime;
 use Data::Dumper;
 require Galacticus::Build::Hooks;
@@ -37,20 +36,17 @@ sub ModuleUse_Parse_Directive {
 	unless ( exists($buildData->{'codeType'       }) );
 
     # Determine the type of file being processed.
-    switch ( $buildData->{'codeType'} ) {
-	case ( "fortran" ) {
-	    my $include = 1;
-	    if ( exists($buildData->{'exclude'}) ) {
-		$include = 0
-		    if ( $buildData->{'exclude'} eq $buildData->{'moduleName'} );
-	    }
-	    $buildData->{'moduleUses'}->{$buildData->{'moduleName'}} = "use ".$buildData->{'moduleName'}."\n"
-		if ( $include == 1 );
+    if ( $buildData->{'codeType'} eq "fortran" ) {
+	my $include = 1;
+	if ( exists($buildData->{'exclude'}) ) {
+	    $include = 0
+		if ( $buildData->{'exclude'} eq $buildData->{'moduleName'} );
 	}
-	case ( "c" ) {
-	    (my $leafName = $buildData->{'currentFileName'}) =~ s/.*?([^\/]+)\.c(pp)??$/$1.o/;
-	    $buildData->{'moduleUses'}->{$buildData->{'moduleName'}} = "!: ./work/build/".$leafName."\n";
-	}
+	$buildData->{'moduleUses'}->{$buildData->{'moduleName'}} = "use ".$buildData->{'moduleName'}."\n"
+	    if ( $include == 1 );
+    } elsif ( $buildData->{'codeType'} eq "c" ) {
+	(my $leafName = $buildData->{'currentFileName'}) =~ s/.*?([^\/]+)\.c(pp)??$/$1.o/;
+	$buildData->{'moduleUses'}->{$buildData->{'moduleName'}} = "!: ./work/build/".$leafName."\n";
     }
 }
 

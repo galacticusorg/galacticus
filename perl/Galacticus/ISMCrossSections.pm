@@ -8,7 +8,6 @@ use PDL;
 use PDL::IO::HDF5;
 use PDL::NiceSlice;
 use XML::Simple;
-use Switch;
 
 # Variables to hold fitting function data.
 our $mm83Energy;
@@ -41,79 +40,75 @@ sub Cross_Sections {
     my $crossSection;
 
     # Branch on model selection.
-    switch($model) {
-	case("Morrison-McCammon1983") {
-	    unless ( defined($mm83Energy) ) {
-		my $xml           = new XML::Simple;
-		my $absorptionFit = $xml->XMLin("data/atomic/Interstellar_Photoelectric_Absorption_Morrison_McCammon_1983.xml");
-		$mm83Energy       = pdl @{$absorptionFit->{'energy'}->{'datum'}};
-		$mm83C0           = pdl @{$absorptionFit->{'c0'    }->{'datum'}};
-		$mm83C1           = pdl @{$absorptionFit->{'c1'    }->{'datum'}};
-		$mm83C2           = pdl @{$absorptionFit->{'c2'    }->{'datum'}};
-	    }    
-	    my $energyRanges  = vsearch($energy,$mm83Energy);
-	    # Photo-electric absorption cross-section (cm^2).
-	    $crossSection    = 
-		(
-		 ($mm83C0->index($energyRanges))           + 
-		 ($mm83C1->index($energyRanges))*$energy   + 
-		 ($mm83C2->index($energyRanges))*$energy**2
-		)*($energy**(-3))*1.0e-24;
-
-	    # Add Thompson cross-section assuming 1.2 electrons per hydrogen atom.
-	    $crossSection += 1.2*$thomsonCrossSection;
-	}
-	case("Wilms2000") {
-	    # Specify the files to download.
-	    my @files = (
-		{
-		    name => "dotbvabs.f",
-		    url  => "ftp://heasarc.gsfc.nasa.gov/software/lheasoft/release/current/Xspec/src/XSFunctions/"
-		},
-		{
-		    name => "gphoto.f",
-		    url  => "ftp://heasarc.gsfc.nasa.gov/software/lheasoft/release/current/Xspec/src/XSFunctions/"
-		},
-		{
-		    name => "phfit2.f",
-		    url  => "ftp://heasarc.gsfc.nasa.gov/software/lheasoft/release/current/Xspec/src/XSFunctions/"
-		},
-		{
-		    name => "j4save.f",
-		    url  => "http://www.netlib.org/alliant/quad/"
-		}
-		);
-	    # Download the files that we need to compute the absorption.
-	    foreach my $file ( @files ) {
-		system("mkdir -p aux/XSpec; wget ".$file->{'url'}.$file->{'name'}." -O aux/XSpec/".$file->{'name'})
-		    unless ( -e "aux/XSpec/".$file->{'name'} );
+    if ( $model eq "Morrison-McCammon1983" ) {
+	unless ( defined($mm83Energy) ) {
+	    my $xml           = new XML::Simple;
+	    my $absorptionFit = $xml->XMLin("data/atomic/Interstellar_Photoelectric_Absorption_Morrison_McCammon_1983.xml");
+	    $mm83Energy       = pdl @{$absorptionFit->{'energy'}->{'datum'}};
+	    $mm83C0           = pdl @{$absorptionFit->{'c0'    }->{'datum'}};
+	    $mm83C1           = pdl @{$absorptionFit->{'c1'    }->{'datum'}};
+	    $mm83C2           = pdl @{$absorptionFit->{'c2'    }->{'datum'}};
+	}    
+	my $energyRanges  = vsearch($energy,$mm83Energy);
+	# Photo-electric absorption cross-section (cm^2).
+	$crossSection    = 
+	    (
+	     ($mm83C0->index($energyRanges))           + 
+	     ($mm83C1->index($energyRanges))*$energy   + 
+	     ($mm83C2->index($energyRanges))*$energy**2
+	    )*($energy**(-3))*1.0e-24;
+	
+	# Add Thompson cross-section assuming 1.2 electrons per hydrogen atom.
+	$crossSection += 1.2*$thomsonCrossSection;
+    } elsif ( $model eq "Wilms2000" ) {
+	# Specify the files to download.
+	my @files = (
+	    {
+		name => "dotbvabs.f",
+		url  => "ftp://heasarc.gsfc.nasa.gov/software/lheasoft/release/current/Xspec/src/XSFunctions/"
+	    },
+	    {
+		name => "gphoto.f",
+		url  => "ftp://heasarc.gsfc.nasa.gov/software/lheasoft/release/current/Xspec/src/XSFunctions/"
+	    },
+	    {
+		name => "phfit2.f",
+		url  => "ftp://heasarc.gsfc.nasa.gov/software/lheasoft/release/current/Xspec/src/XSFunctions/"
+	    },
+	    {
+		name => "j4save.f",
+		url  => "http://www.netlib.org/alliant/quad/"
 	    }
-	    # Build the wrapper code that will be used to generate the table of absorptions.
-	    system("make XRay_Absorption_ISM_Wilms2000.exe")
-		unless ( -e "XRay_Absorption_ISM_Wilms2000.exe" );
-	    die("Unable to build XRay_Absorption_ISM_Wilms2000.exe")
-		unless ( -e "XRay_Absorption_ISM_Wilms2000.exe" );
-	    # Build the absorption table.
-	    system("XRay_Absorption_ISM_Wilms2000.exe")
-		unless ( -e "data/atomic/Interstellar_Absorption_Wilms_2000.hdf5" );
-	    # Read the data file.
-	    unless ( defined($w00Energy) ) {
-		my $absorptionFile = new PDL::IO::HDF5("data/atomic/Interstellar_Absorption_Wilms_2000.hdf5");
-		$w00Energy       = $absorptionFile->dataset('energy'      )->get();
-		$w00Metallicity  = $absorptionFile->dataset('metallicity' )->get();
-		$w00CrossSection = $absorptionFile->dataset('crossSection')->get();
-	    }
-	    # Interpolate in metallicity and energy to get cross-sections.
-	    (my $energyIndices   ,my $energyError     ) = interpolate($energy     ,$w00Energy     ,sequence(nelem($w00Energy     )));
-	    (my $metallicityIndex,my $metallicityError) = interpolate($metallicity,$w00Metallicity,sequence(nelem($w00Metallicity)));
-	    my $interpIndices = pdl zeroes(2,nelem($energy));
-	    $interpIndices->((0),:) .= $energyIndices;
-	    $interpIndices->((1),:) .= $metallicityIndex;
-	    $crossSection = $w00CrossSection->interpND($interpIndices);
+	    );
+	# Download the files that we need to compute the absorption.
+	foreach my $file ( @files ) {
+	    system("mkdir -p aux/XSpec; wget ".$file->{'url'}.$file->{'name'}." -O aux/XSpec/".$file->{'name'})
+		unless ( -e "aux/XSpec/".$file->{'name'} );
 	}
-	else {
-	    die('ISMCrossSections::Cross_Sections(): unknown model')
+	# Build the wrapper code that will be used to generate the table of absorptions.
+	system("make XRay_Absorption_ISM_Wilms2000.exe")
+	    unless ( -e "XRay_Absorption_ISM_Wilms2000.exe" );
+	die("Unable to build XRay_Absorption_ISM_Wilms2000.exe")
+	    unless ( -e "XRay_Absorption_ISM_Wilms2000.exe" );
+	# Build the absorption table.
+	system("XRay_Absorption_ISM_Wilms2000.exe")
+	    unless ( -e "data/atomic/Interstellar_Absorption_Wilms_2000.hdf5" );
+	# Read the data file.
+	unless ( defined($w00Energy) ) {
+	    my $absorptionFile = new PDL::IO::HDF5("data/atomic/Interstellar_Absorption_Wilms_2000.hdf5");
+	    $w00Energy       = $absorptionFile->dataset('energy'      )->get();
+	    $w00Metallicity  = $absorptionFile->dataset('metallicity' )->get();
+	    $w00CrossSection = $absorptionFile->dataset('crossSection')->get();
 	}
+	# Interpolate in metallicity and energy to get cross-sections.
+	(my $energyIndices   ,my $energyError     ) = interpolate($energy     ,$w00Energy     ,sequence(nelem($w00Energy     )));
+	(my $metallicityIndex,my $metallicityError) = interpolate($metallicity,$w00Metallicity,sequence(nelem($w00Metallicity)));
+	my $interpIndices = pdl zeroes(2,nelem($energy));
+	$interpIndices->((0),:) .= $energyIndices;
+	$interpIndices->((1),:) .= $metallicityIndex;
+	$crossSection = $w00CrossSection->interpND($interpIndices);
+    } else {
+	die('ISMCrossSections::Cross_Sections(): unknown model')
     }
 
     # Return the computed cross-sections.
