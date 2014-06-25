@@ -4,6 +4,12 @@
     <url>http://adsabs.harvard.edu/abs/2009MNRAS.398.2177L</url>
     <label>Li and White (2009)</label>
     <source>Table supplied by Rob Crain (r.a.crain@gmail.com)</source>
+    <imf>
+      <name>Chabrier</name>
+      <citation>Chabrier, G.; 2003; PASP; 115; 763</citation>
+      <url>http://www.jstor.org/stable/10.1086/376392</url>
+      <mass lower="0.1" upper="100" units="Solar masses" unitsInSI="1.9891e30" />
+    </imf>
     <columns>
       <mass>
 	<description>Galaxy stellar mass</description>
