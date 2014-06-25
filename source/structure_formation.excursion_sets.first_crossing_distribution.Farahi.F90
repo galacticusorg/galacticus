@@ -745,6 +745,7 @@ contains
 
   subroutine Excursion_Sets_First_Crossing_Farahi_Write_File()
     !% Write tabulated data on excursion set first crossing probabilities to file.
+    use HDF5
     use IO_HDF5
     implicit none
     type(hdf5Object) :: dataFile, dataGroup
@@ -752,7 +753,7 @@ contains
     ! Don't write anything if neither table is initialized.
     if (.not.(tableInitialized.or.tableInitializedRate)) return
     ! Open the data file.
-    call dataFile%openFile(char(excursionSetFirstCrossingFarahiFileName),overWrite=.true.,chunkSize=100,compressionLevel=9)
+    call dataFile%openFile(char(excursionSetFirstCrossingFarahiFileName),overWrite=.true.,chunkSize=100_size_t,compressionLevel=9)
     ! Check if the standard table is populated.
     if (tableInitialized) then
        dataGroup=dataFile%openGroup("probability")

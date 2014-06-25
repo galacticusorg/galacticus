@@ -36,4 +36,13 @@ module Galacticus_HDF5
   ! Compression level (-1 means no compression, 0-9 means GNU gzip compression with higher numbers giving more compression).
   integer                       :: hdf5CompressionLevel      =-1
 
+  ! Sieve buffer size.
+  integer(kind=HSIZE_T)         :: hdf5SieveBufferSize
+
+  ! File format to use.
+  logical                       :: hdf5UseLatestFormat
+ 
+  ! Cache size.
+  integer(kind=size_t )         :: hdf5CacheElementsCount, hdf5CacheSizeBytes
+
 end module Galacticus_HDF5

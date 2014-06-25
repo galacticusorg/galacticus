@@ -37,7 +37,7 @@ contains
     include 'galacticus.output.open.modules.inc'
     !# </include>
     implicit none
-    integer :: chunkSize
+    integer :: chunkSize, sieveBufferSize, cacheElementsCount, cacheSizeBytes
 
     if (.not.galacticusOutputFileIsOpen) then
        ! Get file name parameter.
@@ -66,13 +66,76 @@ contains
        !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('galacticusOutputScratchFileName',galacticusOutputScratchFileName,defaultValue=char(galacticusOutputFileName),writeOutput=.false.)
+       !@ <inputParameter>
+       !@   <name>hdf5SieveBufferSize</name>
+       !@   <defaultValue>65536</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The compression level used for outputting HDF5 datasets.
+       !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hdf5SieveBufferSize',sieveBufferSize,defaultValue=65536,writeOutput=.false.)
+       hdf5SieveBufferSize=sieveBufferSize
+       !@ <inputParameter>
+       !@   <name>hdf5UseLatestFormat</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether to use the latest HDF5 file format.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hdf5UseLatestFormat',hdf5UseLatestFormat,defaultValue=.false.,writeOutput=.false.)
+       !@ <inputParameter>
+       !@   <name>hdf5CacheElementsCount</name>
+       !@   <defaultValue>521</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Number of elements in the raw data chunk cache.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hdf5CacheElementsCount',cacheElementsCount,defaultValue=521,writeOutput=.false.)
+       hdf5CacheElementsCount=cacheElementsCount
+       !@ <inputParameter>
+       !@   <name>hdf5CacheSizeBytes</name>
+       !@   <defaultValue>1048576</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Size of the raw data chunk cache in bytes.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hdf5CacheSizeBytes',cacheSizeBytes,defaultValue=1048576,writeOutput=.false.)
+       hdf5CacheSizeBytes=cacheSizeBytes
        ! Open the file.
        !$omp critical(HDF5_Access)
-       call galacticusOutputFile%openFile(char(galacticusOutputScratchFileName),overWrite=.true.,objectsOverwritable=.false.)
+       call galacticusOutputFile%openFile(                                            &
+            &                             char(galacticusOutputScratchFileName)     , &
+            &                             overWrite          =.true.                , &
+            &                             objectsOverwritable=.false.               , &
+            &                             sieveBufferSize    =hdf5SieveBufferSize   , &
+            &                             useLatestFormat    =hdf5UseLatestFormat   , &
+            &                             cacheElementsCount =hdf5CacheElementsCount, &
+            &                             cacheSizeBytes     =hdf5CacheSizeBytes      &
+            &                            )
        !$omp end critical(HDF5_Access)
        ! Get file name parameter again and write it to the output file.
        call Get_Input_Parameter('galacticusOutputFileName'       ,galacticusOutputFileName       ,defaultValue='galacticus.hdf5'             )
        call Get_Input_Parameter('galacticusOutputScratchFileName',galacticusOutputScratchFileName,defaultValue=char(galacticusOutputFileName))
+       call Get_Input_Parameter('hdf5SieveBufferSize'            ,sieveBufferSize                ,defaultValue=65536                         )
+       call Get_Input_Parameter('hdf5UseLatestFormat'            ,hdf5UseLatestFormat            ,defaultValue=.false.                       )
+       call Get_Input_Parameter('hdf5CacheElementsCount'         ,cacheElementsCount             ,defaultValue=521                           )
+       call Get_Input_Parameter('hdf5CacheSizeBytes'             ,cacheSizeBytes                 ,defaultValue=1048576                       )
        ! Read parameters.
        !@ <inputParameter>
        !@   <name>hdf5ChunkSize</name>

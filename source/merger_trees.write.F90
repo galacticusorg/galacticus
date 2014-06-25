@@ -46,6 +46,7 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Write(thisTree)
     !% Output the structure of {\tt thisTree}.
+    use HDF5
     use Cosmology_Parameters
     use Cosmology_Functions
     use Dates_and_Times
@@ -59,7 +60,8 @@ contains
     use Sort
     implicit none
     type            (mergerTree              ), intent(in   ), target                                 :: thisTree
-    integer                                                                               , parameter :: hdfChunkSize                   =1024, hdfCompressionLevel=9
+    integer         (kind=size_t             )                                            , parameter :: hdfChunkSize       =1024
+    integer                                                                               , parameter :: hdfCompressionLevel=9
     double precision                                         , allocatable, dimension(:  )            :: nodeMass                            , nodeRedshift         , &
          &                                                                                               snapshotTime                        , snapshotTimeTemp     , &
          &                                                                                               treeWeight
