@@ -82,7 +82,7 @@ my %unitOpeners = (
     # Find subroutine openings, allowing for pure, elemental and recursive subroutines.
     subroutine         => { unitName => 2, regEx => "^\\s*(pure\\s+|elemental\\s+|recursive\\s+)*\\s*subroutine\\s+([a-z0-9_]+)"},
     # Find function openings, allowing for pure, elemental and recursive functions, and different function types.
-    function           => { unitName => 5, regEx => "^\\s*(pure\\s+|elemental\\s+|recursive\\s+)*\\s*(real|integer|double\\s+precision|character|logical)*\\s*(\\((kind|len)=[\\w\\d]*\\))*\\s*function\\s+([a-z0-9_]+)"},
+    function           => { unitName => 5, regEx => "^\\s*(pure\\s+|elemental\\s+|recursive\\s+)*\\s*(real|integer|double\\s+precision|double\\s+complex|character|logical)*\\s*(\\((kind|len)=[\\w\\d]*\\))*\\s*function\\s+([a-z0-9_]+)"},
     # Find interfaces.
     interface          => { unitName => 2, regEx => "^\\s*(abstract\\s+)??interface\\s+([a-z0-9_\\(\\)\\/\\+\\-\\*\\.=]*)"},
     # Find types.
