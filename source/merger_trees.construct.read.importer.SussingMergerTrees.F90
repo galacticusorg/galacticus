@@ -29,7 +29,8 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterSussing
      !% A merger tree importer class for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.
      private
-     logical                                                     :: fatalMismatches, treeIndicesRead
+     logical                                                     :: fatalMismatches         , treeIndicesRead    , &
+          &                                                         scaleRadiiAvailableValue, spinsAvailableValue
      integer                                                     :: treesCount
      double precision                                            :: boxLength
      type            (importerUnits )                            :: boxLengthUnits
@@ -44,22 +45,24 @@
      integer                                      , dimension(3) :: subvolumeIndex
      double precision                                            :: subvolumeBuffer
      logical                                                     :: convertToBinary
-    contains
-      !@ <objectMethods>
-      !@   <object>mergerTreeImporterSussing</object>
-      !@   <objectMethod>
-      !@     <method>inSubvolume</method>
-      !@     <type>\logicalzero</type>
-      !@     <arguments>\doublezero\ x\argin, \doublezero\ y\argin, \doublezero\ z\argin, \logicalzero\ [buffered]\argin</arguments>
-      !@     <description>Return true if the given {\tt x,y,z} position lies within the current subvolume (plus the buffer region if {\tt buffered} is true.</description>
-      !@   </objectMethod>
-      !@   <objectMethod>
-      !@     <method>inSubvolume1D</method>
-      !@     <type>\logicalzero</type>
-      !@     <arguments>\doublezero\ x\argin, \intzero\ iSubvolume\argin, \logicalzero\ [buffered]\argin</arguments>
-      !@     <description>Return true if the given {\tt x} position lies within the {\tt iSubvolume}$^{\rm th}$ subvolume (plus the buffer region if {\tt buffered} is true.</description>
-      !@   </objectMethod>
-      !@ </objectMethods>
+     double precision                                            :: badValue
+     integer                                                     :: badTest
+   contains
+     !@ <objectMethods>
+     !@   <object>mergerTreeImporterSussing</object>
+     !@   <objectMethod>
+     !@     <method>inSubvolume</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\doublezero\ x\argin, \doublezero\ y\argin, \doublezero\ z\argin, \logicalzero\ [buffered]\argin</arguments>
+     !@     <description>Return true if the given {\tt x,y,z} position lies within the current subvolume (plus the buffer region if {\tt buffered} is true.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>inSubvolume1D</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\doublezero\ x\argin, \intzero\ iSubvolume\argin, \logicalzero\ [buffered]\argin</arguments>
+     !@     <description>Return true if the given {\tt x} position lies within the {\tt iSubvolume}$^{\rm th}$ subvolume (plus the buffer region if {\tt buffered} is true.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
      !# final     :: sussingDestructor
      !# </workaround>
@@ -90,6 +93,7 @@
      procedure :: subhaloTraceCount             => sussingSubhaloTraceCount
      procedure :: inSubvolume                   => sussingInSubvolume
      procedure :: inSubvolume1D                 => sussingInSubvolume1D
+     procedure :: valueIsBad                    => sussingValueIsBad
   end type mergerTreeImporterSussing
 
   interface mergerTreeImporterSussing
@@ -107,14 +111,22 @@
   double precision               :: mergerTreeImportSussingSubvolumeBuffer
   integer         , dimension(3) :: mergerTreeImportSussingSubvolumeIndex
   logical                        :: mergerTreeImportSussingConvertToBinary
+  double precision               :: mergerTreeImportSussingBadValue
+  integer                        :: mergerTreeImportSussingBadValueTest
+
+  ! Bad value detection limits.
+  integer         , parameter    :: sussingBadValueLessThan   =-1
+  integer         , parameter    :: sussingBadValueGreaterThan=+1
 
 contains
 
   function sussingDefaultConstructor()
     !% Default constructor for the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree importer.
     use Input_Parameters
+    use Galacticus_Error
     implicit none
-    type (mergerTreeImporterSussing), target :: sussingDefaultConstructor
+    type(mergerTreeImporterSussing), target :: sussingDefaultConstructor
+    type(varying_string           )         :: mergerTreeImportSussingBadValueTestText
 
     if (.not.sussingInitialized) then
        !$omp critical (mergerTreeImporterSussingInitialize)
@@ -185,16 +197,50 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeImportSussingConvertToBinary',mergerTreeImportSussingConvertToBinary,defaultValue=.true.)
+          !@ <inputParameter>
+          !@   <name>mergerTreeImportSussingBadValue</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <defaultValue>-0.5</defaultValue>
+          !@   <description>
+          !@     Use for bad value detection in ``Sussing'' merger trees. Values for scale radius and halo spin which exceed this threshold are assumed to be bad.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeImportSussingBadValue',mergerTreeImportSussingBadValue,defaultValue=-0.5d0)
+          !@ <inputParameter>
+          !@   <name>mergerTreeImportSussingBadValueTest</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <defaultValue>lessThan</defaultValue>
+          !@   <description>
+          !@     Use for bad value detection in ``Sussing'' merger trees. Values which exceed the threshold in ths specified direction are assumed to be bad.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeImportSussingBadValueTest',mergerTreeImportSussingBadValueTestText,defaultValue="lessThan")
+          select case (char(mergerTreeImportSussingBadValueTestText))
+          case ("lessThan"   )
+             mergerTreeImportSussingBadValueTest=sussingBadValueLessThan
+          case ("greaterThan")
+             mergerTreeImportSussingBadValueTest=sussingBadValueGreaterThan
+          case default
+             call Galacticus_Error_Report('sussingDefaultConstructor','[mergerTreeImportSussingBadValueTest must be either "lessThan" or "greaterThan"]')
+          end select
           sussingInitialized=.true.
        end if
        !$omp end critical (mergerTreeImporterSussingInitialize)
     end if
-    sussingDefaultConstructor%treeIndicesRead=.false.
-    sussingDefaultConstructor%fatalMismatches=mergerTreeImportSussingMismatchIsFatal
-    sussingDefaultConstructor%subvolumeCount =mergerTreeImportSussingSubvolumeCount
-    sussingDefaultConstructor%subvolumeBuffer=mergerTreeImportSussingSubvolumeBuffer
-    sussingDefaultConstructor%subvolumeIndex =mergerTreeImportSussingSubvolumeIndex
-    sussingDefaultConstructor%convertToBinary=mergerTreeImportSussingConvertToBinary
+    sussingDefaultConstructor%treeIndicesRead         =.false.
+    sussingDefaultConstructor%fatalMismatches         =mergerTreeImportSussingMismatchIsFatal
+    sussingDefaultConstructor%subvolumeCount          =mergerTreeImportSussingSubvolumeCount
+    sussingDefaultConstructor%subvolumeBuffer         =mergerTreeImportSussingSubvolumeBuffer
+    sussingDefaultConstructor%subvolumeIndex          =mergerTreeImportSussingSubvolumeIndex
+    sussingDefaultConstructor%convertToBinary         =mergerTreeImportSussingConvertToBinary
+    sussingDefaultConstructor%badValue                =mergerTreeImportSussingBadValue
+    sussingDefaultConstructor%badTest                 =mergerTreeImportSussingBadValueTest
+    sussingDefaultConstructor%spinsAvailableValue     =.true.
+    sussingDefaultConstructor%scaleRadiiAvailableValue=.true.
    return
   end function sussingDefaultConstructor
 
@@ -478,8 +524,8 @@ contains
     integer  (kind=c_size_t            ), allocatable  , dimension(:) :: nodeIndexRanks
     integer  (kind=kind_int8           ), allocatable  , dimension(:) :: nodeSelfIndices           , nodeTreeIndices       , &
          &                                                               nodeDescendentLocations   , nodesInSubvolume      , &
-         &                                                               nodesTmp
-    logical                             , allocatable  , dimension(:) :: nodeIncomplete
+         &                                                               nodesTmp                  , hostsInSubvolume
+    logical                             , allocatable  , dimension(:) :: nodeIncomplete            , nodeIncompleteTmp
     integer                             , parameter                   :: fileFormatVersionCurrent=1
     integer                             , parameter                   :: stepCountMaximum        =1000000
     logical                                                           :: nodeIsActive              , doBinaryConversion    , &
@@ -496,14 +542,15 @@ contains
     integer  (kind=kind_int8           )                              :: nodeIndex                 , treeIndexPrevious     , &
          &                                                               treeIndexCurrent          , i                     , &
          &                                                               j                         , k                     , &
-         &                                                               iNode                     , iStart
+         &                                                               iNode                     , iStart                , &
+         &                                                               jNode
     type     (varying_string           )                              :: message
     integer  (kind=kind_int8           )                              :: ID                        , hostHalo              , &
          &                                                               treeIndexFrom             , treeIndexTo           , &
          &                                                               progenitorIndex
     integer                                                           :: numSubStruct              , npart                 , &
-         &                                                               nbins                     , hostStepCount         , &
-         &                                                               descendentStepCount
+         &                                                               descendentStepCount       , hostStepCount
+         &                                                               
     double precision                                                  :: Mvir                      , Xc                    , &
                &                                                         Yc                        , Zc                    , &
                &                                                         VXc                       , Vyc                   , &
@@ -522,7 +569,8 @@ contains
                &                                                         Ecz                       , ovdens                , &
                &                                                         fMhires                   , Ekin                  , &
                &                                                         Epot                      , SurfP                 , &
-               &                                                         Phi0                      , cNFW
+               &                                                         Phi0                      , cNFW                  , &
+               &                                                         nbins
     type            (importerUnits     )                              :: massUnits                 , lengthUnits           , &
          &                                                               velocityUnits
      
@@ -562,6 +610,7 @@ contains
     ! Allocate storage for list of nodes in subvolume.
     nodeCountSubVolume=int(dble(nodeCount)/dble(self%subvolumeCount)**3)+1
     call Alloc_Array(nodesInSubvolume,[nodeCountSubVolume])
+    call Alloc_Array(hostsInSubvolume,[nodeCountSubVolume])
     ! Read snapshot halo catalogs.
     call Galacticus_Display_Indent('Finding halos in subvolume from AHF format snapshot halo catalogs',verbosityWorking)
     j                 =0
@@ -731,8 +780,17 @@ contains
                 call Alloc_Array(nodesInSubvolume,int(dble(shape(nodesTmp))*1.4d0)+1)
                 nodesInSubvolume(1:size(nodesTmp))=nodesTmp
                 call Dealloc_Array(nodesTmp)
+                call Move_Alloc(hostsInSubvolume,nodesTmp)
+                call Alloc_Array(hostsInSubvolume,int(dble(shape(nodesTmp))*1.4d0)+1)
+                hostsInSubvolume(1:size(nodesTmp))=nodesTmp
+                call Dealloc_Array(nodesTmp)
              end if
              nodesInSubvolume(nodeCountSubvolume)=ID
+             if (hostHalo <= 0) then
+                hostsInSubvolume(nodeCountSubvolume)=ID
+             else
+                hostsInSubvolume(nodeCountSubvolume)=hostHalo
+             end if
           end if
           ! Update the counter.
           j=j+1
@@ -742,7 +800,7 @@ contains
        if (doBinaryConversion) close(snapshotOutUnit)
     end do
     call Galacticus_Display_Counter_Clear(verbosityWorking)
-    call Sort_Do(nodesInSubvolume(1:nodeCountSubvolume))
+    call Sort_Do(nodesInSubvolume(1:nodeCountSubvolume),hostsInSubvolume(1:nodeCountSubvolume))
     message='Found '
     message=message//nodeCountSubvolume//' nodes in subvolume [from '//nodeCount//' total nodes]'
     call Galacticus_Display_Message(message,verbosityWorking)
@@ -763,7 +821,7 @@ contains
           read         (line       ,  *                ) nodeIndex,progenitorCount
           if (mergerTreeFileConvert)                                               &
                & write (fileUnitOut                    ) nodeIndex,progenitorCount
-       end if
+      end if
        ! Skip progenitors.
        if (mergerTreeFileIsBinary) then
           do j=1,progenitorCount
@@ -787,6 +845,7 @@ contains
        if (i == nodeCount) exit
     end do
     close(fileUnit)
+    if (mergerTreeFileConvert) close(fileUnitOut)
     ! Some halos in our subvolume might not be part of any tree. Adjust number of halos accordingly.
     nodeCountTrees=i
     if (nodeCountTrees < nodeCountSubvolume) then
@@ -798,9 +857,7 @@ contains
        nodeSelfIndices(1:nodeCountTrees)=nodesTmp(1:nodeCountTrees)
        call Dealloc_Array(nodesTmp)
     end if
-    call Galacticus_Display_Message(message,verbosityWorking)
     ! Allocate workspaces for merger trees.
-    call Alloc_Array(nodeTreeIndices        ,[nodeCountTrees])
     call Alloc_Array(nodeDescendentLocations,[nodeCountTrees])
     call Alloc_Array(nodeIncomplete         ,[nodeCountTrees])
     ! Get a sorted index into the list of nodes.
@@ -867,10 +924,57 @@ contains
                    call Galacticus_Error_Report('sussingTreeIndicesRead',message)
                 end if
                 nodeDescendentLocations(nodeIndexRanks(iProgenitor))=i
+                ! Find the progenitor node in the list of halos in the subvolume.
+                iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),nodeIndex)
+                if (iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == nodeIndex) then
+                   ! Find hosted halos.
+                   hostHalo=hostsInSubvolume(iNode)
+                   if (hostHalo /= nodeIndex) then
+                      ! Check if the host halo is in the subvolume.
+                      jNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),hostHalo)
+                      if (jNode > 0 .and. jNode <= nodeCountSubvolume .and. nodesInSubvolume(jNode) == hostHalo) then
+                         ! Check if the host halo is in the trees.
+                         jNode=Search_Indexed(nodeSelfIndices,nodeIndexRanks,hostHalo)
+                         if (.not.(jNode > 0 .and. jNode <= nodeCountTrees .and. nodeSelfIndices(nodeIndexRanks(jNode)) == hostHalo)) then
+                            ! Host halo is in subvolume, but not in trees. Add it to the trees now.
+                            message='host halo ['
+                            message=message//hostHalo//'] in subvolume but not in trees - adding it now'
+                            call Galacticus_Display_Message(message,verbosityWorking)
+                            ! Expand arrays.
+                            call Move_Alloc   (nodeSelfIndices        ,nodesTmp          )
+                            call Alloc_Array  (nodeSelfIndices        ,[nodeCountTrees+1])
+                            nodeSelfIndices        (1:nodeCountTrees)=nodesTmp
+                            call Dealloc_Array(nodesTmp                                  )
+                            call Move_Alloc   (nodeDescendentLocations,nodesTmp          )
+                            call Alloc_Array  (nodeDescendentLocations,[nodeCountTrees+1])
+                            nodeDescendentLocations(1:nodeCountTrees)=nodesTmp
+                            call Dealloc_Array(nodesTmp                                  )
+                            call Move_Alloc   (nodeIncomplete         ,nodeIncompleteTmp )
+                            call Alloc_Array  (nodeIncomplete         ,[nodeCountTrees+1])
+                            nodeIncomplete         (1:nodeCountTrees)=nodeIncompleteTmp
+                            call Dealloc_Array(nodeIncompleteTmp                         )
+                            ! Increment the number of halos in trees.
+                            nodeCountTrees=nodeCountTrees+1
+                            ! Insert the new halo, assigning the same descendent as its hosted halo.
+                            nodeSelfIndices        (nodeCountTrees)=hostHalo
+                            nodeDescendentLocations(nodeCountTrees)=i
+                            nodeIncomplete         (nodeCountTrees)=.false.
+                            ! Recompute the sort index into the node self indices.
+                            deallocate(nodeIndexRanks)
+                            nodeIndexRanks=Sort_Index_Do(nodeSelfIndices)
+                         end if
+                      end if
+                   end if
+                else
+                   message='can not find halo ['
+                   message=message//nodeIndex//'] in subvolume'
+                   call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                end if
              end if
           end if
        end do
     end do
+    call Dealloc_Array(hostsInSubvolume)
     ! Close the merger tree file.
     close(fileUnit)
     ! Clear counter.
@@ -1020,17 +1124,28 @@ contains
                 self%nodes(l)%hostIndex         =hostHalo                
                 ! Check that the host halo is in the subvolume.
                 iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),hostHalo)
-                if (.not.(iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == hostHalo)) nodeIncomplete(l)=.true. 
+                if (.not.(iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == hostHalo)) nodeIncomplete(l)=.true.
              end if
              self   %nodes(l)%particleCount     =npart
              self   %nodes(l)%nodeMass          =Mvir
              self   %nodes(l)%nodeTime          =self%snapshotTimes(i)
-             self   %nodes(l)%scaleRadius       =Rvir/cNFW
+             if (.not.self%valueIsBad(cNFW)) then
+                self%nodes(l)%scaleRadius       =Rvir/cNFW
+             else
+                self%scaleRadiiAvailableValue   =.false.
+                self%nodes(l)%scaleRadius       =-1.0d0
+             end if
              self   %nodes(l)%halfMassRadius    =-1.0d0
              self   %nodes(l)%velocityMaximum   =Vmax
              self   %nodes(l)%velocityDispersion=sigV
-             self   %nodes(l)%spin              =              lambdaE
-             self   %nodes(l)%spin3D            =[Lx ,Ly ,Lz ]*lambdaE
+             if (.not.self%valueIsBad(lambdaE)) then
+                self%nodes(l)%spin              =              lambdaE
+                self%nodes(l)%spin3D            =[Lx ,Ly ,Lz ]*lambdaE
+             else
+                self%spinsAvailableValue        =.false.
+                self%nodes(l)%spin              =-1.0d0
+                self%nodes(l)%spin3D            =-1.0d0
+             end if
              self   %nodes(l)%position          =[ Xc, Yc, Zc]
              self   %nodes(l)%velocity          =[VXc,VYc,VZc]
              ! Update the counter.
@@ -1045,6 +1160,7 @@ contains
     call Galacticus_Display_Counter_Clear(       verbosityWorking)
     call Galacticus_Display_Unindent     ('done',verbosityWorking)
     ! Search for and resolve hosting loops.
+    call Galacticus_Display_Indent('Resolving hosting loops',verbosityWorking)
     do i=1,nodeCountTrees
        if (self%nodes(i)%hostIndex /= self%nodes(i)%nodeIndex) then
           l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%hostIndex)
@@ -1052,7 +1168,7 @@ contains
           if (l < 1 .or. l > nodeCountTrees) cycle
           l=nodeIndexRanks(l)
           if (self%nodes(l)%nodeIndex /= self%nodes(i)%hostIndex) cycle
-          ! Detect lops.
+          ! Detect loops.
           if (self%nodes(l)%hostIndex == self%nodes(i)%nodeIndex) then
              ! Hosting loop detected. Reset the more massive halo to be self-hosting.
              if (self%nodes(l)%nodeMass > self%nodes(i)%nodeMass) then
@@ -1063,7 +1179,9 @@ contains
           end if
        end if
     end do
+    call Galacticus_Display_Unindent('done',verbosityWorking)
     ! Search for deep hosting hierarchies and reset to single level hierarchies.
+    call Galacticus_Display_Indent('Resolving deep hosting',verbosityWorking)
     do i=1,nodeCountTrees
        if (self%nodes(i)%hostIndex /= self%nodes(i)%nodeIndex) then
           ! Find the host.
@@ -1099,8 +1217,10 @@ contains
           self%nodes(i)%hostIndex=self%nodes(l)%nodeIndex
        end if
     end do
+    call Galacticus_Display_Unindent('done',verbosityWorking)
     ! Assign tree indices.
     call Galacticus_Display_Message('Assigning tree indices',verbosityWorking)
+    call Alloc_Array(nodeTreeIndices,[nodeCountTrees])
     nodeTreeIndices=nodeSelfIndices
     do i=1,nodeCountTrees
        call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(nodeCountTrees)),i==1,verbosityWorking)
@@ -1145,7 +1265,7 @@ contains
           nodeTreeIndices(i)=nodeTreeIndices(l)
           k=nodeDescendentLocations(l)
           ! Check for missing descendents.
-          if (self%nodes(l)%descendentIndex /= self%nodes(k)%nodeIndex) exit
+          if (k < 0 .or. self%nodes(l)%descendentIndex /= self%nodes(k)%nodeIndex) exit
           ! Perform sanity checks.
           if (k >= 0 .and. self%nodes(k)%nodeTime <= self%nodes(l)%nodeTime) then
              message='descendent exists before progenitor node'
@@ -1400,7 +1520,8 @@ contains
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
 
-    sussingScaleRadiiAvailable=.true.
+    call sussingTreeIndicesRead(self)
+    sussingScaleRadiiAvailable=self%scaleRadiiAvailableValue
     return
   end function sussingScaleRadiiAvailable
 
@@ -1454,7 +1575,8 @@ contains
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
     
-    sussingSpinAvailable=.true.
+    call sussingTreeIndicesRead(self)
+    sussingSpinAvailable=self%spinsAvailableValue
     return
   end function sussingSpinAvailable
 
@@ -1463,7 +1585,8 @@ contains
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
 
-    sussingSpin3DAvailable=.true.
+    call sussingTreeIndicesRead(self)
+    sussingSpin3DAvailable=self%spinsAvailableValue
     return
   end function sussingSpin3DAvailable
 
@@ -1545,17 +1668,21 @@ contains
     double precision                                           :: subvolumeCenter, boxLength, &
          &                                                        buffer
   
-    boxLength=self%boxLength*megaParsec/kiloParsec
-    if (buffered) then
-       buffer=self%subvolumeBuffer*megaParsec/kiloParsec
+    if (self%subvolumeCount <= 1) then
+       sussingInSubvolume1D=.true.
     else
-       buffer=0.0d0
+       boxLength=self%boxLength*megaParsec/kiloParsec
+       if (buffered) then
+          buffer=self%subvolumeBuffer*megaParsec/kiloParsec
+       else
+          buffer=0.0d0
+       end if
+       subvolumeCenter=boxLength*(dble(iSubvolume)+0.5d0)/dble(self%subvolumeCount)
+       sussingInSubvolume1D=                                                             &
+            &                abs(sussingPeriodicSeparation(x,subvolumeCenter,boxLength)) &
+            &               <=                                                           &
+            &                boxLength/2.0d0/dble(self%subvolumeCount)+buffer
     end if
-    subvolumeCenter=boxLength*(dble(iSubvolume)+0.5d0)/dble(self%subvolumeCount)
-    sussingInSubvolume1D=                                                             &
-         &                abs(sussingPeriodicSeparation(x,subvolumeCenter,boxLength)) &
-         &               <                                                            &
-         &                boxLength/2.0d0/dble(self%subvolumeCount)+buffer
     return
   end function sussingInSubvolume1D
 
@@ -1574,3 +1701,18 @@ contains
     return
   end function sussingPeriodicSeparation
   
+  logical function sussingValueIsBad(self,x)
+    !% Determine if a value in a ``Sussing'' merger tree file is bad
+    implicit none
+    class           (mergerTreeImporterSussing), intent(inout) :: self
+    double precision                           , intent(in   ) :: x
+  
+    select case (self%badTest)
+    case (sussingBadValueLessThan   )
+       sussingValueIsBad=(x < self%badValue)
+    case (sussingBadValueGreaterThan)
+       sussingValueIsBad=(x > self%badValue)
+    end select
+    return
+  end function sussingValueIsBad
+
