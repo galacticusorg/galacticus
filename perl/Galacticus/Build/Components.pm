@@ -13,7 +13,6 @@ use strict;
 use warnings;
 use utf8;
 use DateTime;
-use Switch;
 use Data::Dumper;
 use Text::Table;
 use Sort::Topological qw(toposort);
@@ -250,34 +249,32 @@ sub Get_Suffix {
     my $propertyType = shift;
     # Determine the suffix to use.
     my $suffix = "";
-    switch ( $propertyType ) {
-	case ( "scalar"              ) {
-	    $suffix = ""                     ;
-	}
-	case ( "array"               ) {
-	    $suffix = "_Array"               ;
-	}
-	case ( "history"             ) {
-	    $suffix = "_History"             ;
-	}
-	case ( "longIntegerHistory"  ) {
-	    $suffix = "_History_Long_Integer";
-	}
-	case ( "abundances"          ) {
-	    $suffix = "_Abundances"          ;
-	}
-	case ( "chemicalAbundances"  ) {
-	    $suffix = "_Chemical_Abundances" ;
-	}
-	case ( "keplerOrbit"         ) {
-	    $suffix = "_Kepler_Orbit"        ;
-	}
-	case ( "stellarLuminosities" ) {
-	    $suffix = "_Stellar_Luminosities";
-	}
-	else {
-	    die("Build_Include_File.pl: unrecognized property type");
-	}
+    if    ( $propertyType eq "scalar"              ) {
+	$suffix = ""                     ;
+    }
+    elsif ( $propertyType eq "array"               ) {
+	$suffix = "_Array"               ;
+    }
+    elsif ( $propertyType eq "history"             ) {
+	$suffix = "_History"             ;
+    }
+    elsif ( $propertyType eq "longIntegerHistory"  ) {
+	$suffix = "_History_Long_Integer";
+    }
+    elsif ( $propertyType eq "abundances"          ) {
+	$suffix = "_Abundances"          ;
+    }
+    elsif ( $propertyType eq "chemicalAbundances"  ) {
+	$suffix = "_Chemical_Abundances" ;
+    }
+    elsif ( $propertyType eq "keplerOrbit"         ) {
+	$suffix = "_Kepler_Orbit"        ;
+    }
+    elsif ( $propertyType eq "stellarLuminosities" ) {
+	$suffix = "_Stellar_Luminosities";
+    }
+    else {
+	die("Build_Include_File.pl: unrecognized property type");
     }
     return $suffix;
 }
@@ -289,28 +286,24 @@ sub dataObjectDocName {
     my $name = "\\textcolor{red}{\\textless ";
     # Extract the type.
     if ( exists($dataObject->{'type'}) ) {
-	switch ( $dataObject->{'type'} ) {
-	    case ( "integer"             ) {$name .= "integer"                  }
-	    case ( "longInteger"         ) {$name .= "integer(kind=kind\\_int8)"}
-	    case ( "logical"             ) {$name .= "logical"                  }
-	    case ( "real"                ) {$name .= "double"                   }
-	    case ( "chemicals"           ) {$name .= "type(chemicalAbundances)" }
-	    case ( "abundances"          ) {$name .= "type(abundances)"         }
-	    case ( "history"             ) {$name .= "type(history)"            }
-	    case ( "longIntegerHistory"  ) {$name .= "type(longIntegerHistory)" }
-	    case ( "keplerOrbit"         ) {$name .= "type(keplerOrbit)"        }
-	    case ( "stellarLuminosities" ) {$name .= "type(stellarLuminosities)"}
-	    else {die "Build_Include_File.pl::dataObjectDocName: 'type' specifier is unknown"}
-	}
+	if    ( $dataObject->{'type'} eq "integer"             ) {$name .= "integer"                  }
+	elsif ( $dataObject->{'type'} eq "longInteger"         ) {$name .= "integer(kind=kind\\_int8)"}
+	elsif ( $dataObject->{'type'} eq "logical"             ) {$name .= "logical"                  }
+	elsif ( $dataObject->{'type'} eq "real"                ) {$name .= "double"                   }
+	elsif ( $dataObject->{'type'} eq "chemicals"           ) {$name .= "type(chemicalAbundances)" }
+	elsif ( $dataObject->{'type'} eq "abundances"          ) {$name .= "type(abundances)"         }
+	elsif ( $dataObject->{'type'} eq "history"             ) {$name .= "type(history)"            }
+	elsif ( $dataObject->{'type'} eq "longIntegerHistory"  ) {$name .= "type(longIntegerHistory)" }
+	elsif ( $dataObject->{'type'} eq "keplerOrbit"         ) {$name .= "type(keplerOrbit)"        }
+	elsif ( $dataObject->{'type'} eq "stellarLuminosities" ) {$name .= "type(stellarLuminosities)"}
+	else {die "Build_Include_File.pl::dataObjectDocName: 'type' specifier is unknown"}
     } else {
 	die "Build_Include_File.pl::dataObjectDocName: no 'type' specifier present";
     }
     if ( exists($dataObject->{'rank'}) ) {
-	switch ( $dataObject->{'rank'} ) {
-	    case ( 0 ) {$name .= ""}
-	    case ( 1 ) {$name .= "(:)"}
-	    else {die "Build_Include_File.pl::dataObjectName: 'rank' specifier is unknown"}
-	}
+	if    ( $dataObject->{'rank'} == 0 ) {$name .= ""   }
+	elsif ( $dataObject->{'rank'} == 1 ) {$name .= "(:)"}
+	else {die "Build_Include_File.pl::dataObjectName: 'rank' specifier is unknown"}
     } else {
 	die "Build_Include_File.pl::dataObjectDocName: no 'rank' specifier present";
     }
@@ -325,28 +318,24 @@ sub dataObjectName {
     my $name = "nodeData";
     # Extract the type.
     if ( exists($dataObject->{'type'}) ) {
-	switch ( $dataObject->{'type'} ) {
-	    case ( "integer"             ) {$name .= "Integer"            }
-	    case ( "longInteger"         ) {$name .= "LongInteger"        }
-	    case ( "logical"             ) {$name .= "Logical"            }
-	    case ( "real"                ) {$name .= "Double"             }
-	    case ( "chemicals"           ) {$name .= "ChemicalAbundances" }
-	    case ( "abundances"          ) {$name .= "Abundances"         }
-	    case ( "history"             ) {$name .= "History"            }
-	    case ( "longIntegerHistory"  ) {$name .= "LongIntegerHistory" }
-	    case ( "keplerOrbit"         ) {$name .= "KeplerOrbit"        }
-	    case ( "stellarLuminosities" ) {$name .= "StellarLuminosities"}
-	    else {die "Build_Include_File.pl::dataObjectName: 'type' specifier is unknown"}
-	}
+	if    ( $dataObject->{'type'} eq "integer"             ) {$name .= "Integer"            }
+	elsif ( $dataObject->{'type'} eq "longInteger"         ) {$name .= "LongInteger"        }
+	elsif ( $dataObject->{'type'} eq "logical"             ) {$name .= "Logical"            }
+	elsif ( $dataObject->{'type'} eq "real"                ) {$name .= "Double"             }
+	elsif ( $dataObject->{'type'} eq "chemicals"           ) {$name .= "ChemicalAbundances" }
+	elsif ( $dataObject->{'type'} eq "abundances"          ) {$name .= "Abundances"         }
+	elsif ( $dataObject->{'type'} eq "history"             ) {$name .= "History"            }
+	elsif ( $dataObject->{'type'} eq "longIntegerHistory"  ) {$name .= "LongIntegerHistory" }
+	elsif ( $dataObject->{'type'} eq "keplerOrbit"         ) {$name .= "KeplerOrbit"        }
+	elsif ( $dataObject->{'type'} eq "stellarLuminosities" ) {$name .= "StellarLuminosities"}
+	else {die "Build_Include_File.pl::dataObjectName: 'type' specifier is unknown"}
     } else {
 	die "Build_Include_File.pl::dataObjectName: no 'type' specifier present";
     }
     if ( exists($dataObject->{'rank'}) ) {
-	switch ( $dataObject->{'rank'} ) {
-	    case ( 0 ) {$name .= "Scalar"}
-	    case ( 1 ) {$name .= "1d"}
-	    else {die "Build_Include_File.pl::dataObjectName: 'rank' specifier is unknown"}
-	}
+	if    ( $dataObject->{'rank'} == 0 ) {$name .= "Scalar"}
+	elsif ( $dataObject->{'rank'} == 1 ) {$name .= "1d"}
+	else {die "Build_Include_File.pl::dataObjectName: 'rank' specifier is unknown"}
     } else {
 	die "Build_Include_File.pl::dataObjectName: no 'rank' specifier present";
     }
@@ -366,61 +355,57 @@ sub dataObjectPrimitiveName {
     my @attributes;
     # Extract the type.
     if ( exists($dataObject->{'type'}) ) {
-	switch ( $dataObject->{'type'} ) {
-	    case ( "integer"             ) {
-		$name = "integer"                  ;
-		$type = "Integer"                  ;
-	    }
-	    case ( "longInteger"         ) {
-		$name = "integer(kind=kind_int8)"  ;
-		$type = "LongInteger"              ;
-	    }
-	    case ( "logical"             ) {
-		$name = "logical"                  ;
-		$type = "Logical"                  ;
-	    }
-	    case ( "real"                ) {
-		$name = "double precision"         ;
-		$type = "Double"                   ;
-	    }
-	    case ( "abundances"          ) {
-		$name = "type(abundances)"         ;
-		$type = "Abundances"               ;
-	    }
-	    case ( "history"             ) {
-		$name = "type(history)"            ;
-		$type = "History"                  ;
-	    }
-	    case ( "longIntegerHistory"  ) {
-		$name = "type(longIntegerHistory)" ;
-		$type = "LongIntegerHistory"       ;
-	    }
-	    case ( "chemicals"           ) {
-		$name = "type(chemicalAbundances)" ;
-		$type = "ChemicalAbundances"       ;
-	    }
-	    case ( "keplerOrbit"         ) {
-		$name = "type(keplerOrbit)"        ;
-		$type = "KeplerOrbit"              ;
-	    }
-	    case ( "stellarLuminosities" ) {
-		$name = "type(stellarLuminosities)";
-		$type = "StellarLuminosities"      ;
-	    }
-	    else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'type' specifier [".$dataObject->{'type'}."] is unknown"}
+	if    ( $dataObject->{'type'} eq "integer"             ) {
+	    $name = "integer"                  ;
+	    $type = "Integer"                  ;
 	}
+	elsif ( $dataObject->{'type'} eq "longInteger"         ) {
+	    $name = "integer(kind=kind_int8)"  ;
+	    $type = "LongInteger"              ;
+	}
+	elsif ( $dataObject->{'type'} eq "logical"             ) {
+	    $name = "logical"                  ;
+	    $type = "Logical"                  ;
+	}
+	elsif ( $dataObject->{'type'} eq "real"                ) {
+	    $name = "double precision"         ;
+	    $type = "Double"                   ;
+	}
+	elsif ( $dataObject->{'type'} eq "abundances"          ) {
+	    $name = "type(abundances)"         ;
+	    $type = "Abundances"               ;
+	}
+	elsif ( $dataObject->{'type'} eq "history"             ) {
+	    $name = "type(history)"            ;
+	    $type = "History"                  ;
+	}
+	elsif ( $dataObject->{'type'} eq "longIntegerHistory"  ) {
+	    $name = "type(longIntegerHistory)" ;
+	    $type = "LongIntegerHistory"       ;
+	}
+	elsif ( $dataObject->{'type'} eq "chemicals"           ) {
+	    $name = "type(chemicalAbundances)" ;
+	    $type = "ChemicalAbundances"       ;
+	}
+	elsif ( $dataObject->{'type'} eq "keplerOrbit"         ) {
+	    $name = "type(keplerOrbit)"        ;
+	    $type = "KeplerOrbit"              ;
+	}
+	elsif ( $dataObject->{'type'} eq "stellarLuminosities" ) {
+	    $name = "type(stellarLuminosities)";
+	    $type = "StellarLuminosities"      ;
+	}
+	else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'type' specifier [".$dataObject->{'type'}."] is unknown"}
     } else {
 	die "Build_Include_File.pl::dataObjectPrimitiveName: no 'type' specifier present";
     }
     if ( exists($dataObject->{'rank'}) ) {
-	switch ( $dataObject->{'rank'} ) {
-	    case ( 0 ) {} # Nothing to do.
-	    case ( 1 ) {
-		push(@attributes,"dimension(:)");
-		push(@attributes,"allocatable" ) unless ( exists($options{'matchOnly'}) && $options{'matchOnly'} == 1 );
-	    }
-	    else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'rank' specifier is unknown"}
+	if    ( $dataObject->{'rank'} == 0 ) {} # Nothing to do.
+	elsif ( $dataObject->{'rank'} == 1 ) {
+	    push(@attributes,"dimension(:)");
+	    push(@attributes,"allocatable" ) unless ( exists($options{'matchOnly'}) && $options{'matchOnly'} == 1 );
 	}
+	else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'rank' specifier is unknown"}
     } else {
 	die "Build_Include_File.pl::dataObjectPrimitveName: no 'rank' specifier present";
     }
@@ -442,68 +427,64 @@ sub Data_Object_Definition {
     my @attributes   ;
     # Extract the type.
     if ( exists($dataObject->{'type'}) ) {
-	switch ( $dataObject->{'type'} ) {
-	    case ( "integer"             ) {
-		$intrinsicName = "integer"                ;
-		$label         = "Integer"                ;
-	    }
-	    case ( "longInteger"         ) {
-		$intrinsicName = "integer(kind=kind_int8)";
-		$label         = "LongInteger"            ;
-	    }
-	    case ( "logical"             ) {
-		$intrinsicName = "logical"                ;
-		$label         = "Logical"                ;
-	    }
-	    case ( "real"                ) {
-		$intrinsicName = "double precision"       ;
-		$label         = "Double"                 ;
-	    }
-	    case ( "abundances"          ) {
-		$intrinsicName = "type"                   ;
-		$type          = "abundances"             ;
-		$label         = "Abundances"             ;
-	    }
-	    case ( "history"             ) {
-		$intrinsicName = "type"                   ;
-		$type          = "history"                ;
-		$label         = "History"                ;
-	    }
-	    case ( "longIntegerHistory"  ) {
-		$intrinsicName = "type"                   ;
-		$type          = "longIntegerHistory"     ;
-		$label         = "LongIntegerHistory"     ;
-	    }
-	    case ( "chemicals"           ) {
-		$intrinsicName = "type"                   ;
-		$type          = "chemicalAbundances"     ;
-		$label         = "ChemicalAbundances"     ;
-	    }
-	    case ( "keplerOrbit"         ) {
-		$intrinsicName = "type"                   ;
-		$type          = "keplerOrbit"            ;
-		$label         = "KeplerOrbit"            ;
-	    }
-	    case ( "stellarLuminosities" ) {
-		$intrinsicName = "type"                   ;
-		$type          = "stellarLuminosities"    ;
-		$label         = "StellarLuminosities"    ;
-	    }
-	    else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'type' specifier [".$dataObject->{'type'}."] is unknown"}
+	if    ( $dataObject->{'type'} eq "integer"             ) {
+	    $intrinsicName = "integer"                ;
+	    $label         = "Integer"                ;
 	}
+	elsif ( $dataObject->{'type'} eq "longInteger"         ) {
+	    $intrinsicName = "integer(kind=kind_int8)";
+	    $label         = "LongInteger"            ;
+	}
+	elsif ( $dataObject->{'type'} eq "logical"             ) {
+	    $intrinsicName = "logical"                ;
+	    $label         = "Logical"                ;
+	}
+	elsif ( $dataObject->{'type'} eq "real"                ) {
+	    $intrinsicName = "double precision"       ;
+	    $label         = "Double"                 ;
+	}
+	elsif ( $dataObject->{'type'} eq "abundances"          ) {
+	    $intrinsicName = "type"                   ;
+	    $type          = "abundances"             ;
+	    $label         = "Abundances"             ;
+	}
+	elsif ( $dataObject->{'type'} eq "history"             ) {
+	    $intrinsicName = "type"                   ;
+	    $type          = "history"                ;
+	    $label         = "History"                ;
+	}
+	elsif ( $dataObject->{'type'} eq "longIntegerHistory"  ) {
+	    $intrinsicName = "type"                   ;
+	    $type          = "longIntegerHistory"     ;
+	    $label         = "LongIntegerHistory"     ;
+	}
+	elsif ( $dataObject->{'type'} eq "chemicals"           ) {
+	    $intrinsicName = "type"                   ;
+	    $type          = "chemicalAbundances"     ;
+	    $label         = "ChemicalAbundances"     ;
+	}
+	elsif ( $dataObject->{'type'} eq "keplerOrbit"         ) {
+	    $intrinsicName = "type"                   ;
+	    $type          = "keplerOrbit"            ;
+	    $label         = "KeplerOrbit"            ;
+	}
+	elsif ( $dataObject->{'type'} eq "stellarLuminosities" ) {
+	    $intrinsicName = "type"                   ;
+	    $type          = "stellarLuminosities"    ;
+	    $label         = "StellarLuminosities"    ;
+	}
+	else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'type' specifier [".$dataObject->{'type'}."] is unknown"}
     } else {
 	die "Build_Include_File.pl::dataObjectPrimitiveName: no 'type' specifier present";
     }
     if ( exists($dataObject->{'rank'}) ) {
-	switch ( $dataObject->{'rank'} ) {
-	    case ( 0 ) {} # Nothing to do.
-	    case ( 1 ) {
-		push(@attributes,"dimension(:)");
-		push(@attributes,"allocatable" )
-		    unless ( exists($options{'matchOnly'}) && $options{'matchOnly'} == 1 );
-	    }
-	    else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'rank' specifier is unknown"}
+	if    ( $dataObject->{'rank'} == 0 ) {} # Nothing to do.
+	elsif ( $dataObject->{'rank'} == 1 ) {
+	    push(@attributes,"dimension(:)");
+	    push(@attributes,"allocatable" )
+		unless ( exists($options{'matchOnly'}) && $options{'matchOnly'} == 1 );
 	}
+	else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'rank' specifier is unknown"}
     } else {
 	die "Build_Include_File.pl::dataObjectPrimitveName: no 'rank' specifier present";
     }
@@ -3016,40 +2997,52 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
-			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
-				$functionCode .= "    write (label,".$formatLabel{$linkedData->{'type'}}.") self%".padLinkedData($linkedDataName,[0,0])."%value\n";
-				$functionCode .= "    message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))."'//label\n";
-				$functionCode .= "    call Galacticus_Display_Message(message)\n";
-			    }
-			    else {
-				$functionCode .= "    message='".$propertyName.":'\n";
-				$functionCode .= "    call Galacticus_Display_Indent(message)\n";
-				$functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%dump()\n";
-				$functionCode .= "    call Galacticus_Display_Unindent('end')\n";
-			    }
+			if (
+			    $linkedData->{'type'} eq "real"
+			    ||
+			    $linkedData->{'type'} eq "integer"
+			    ||
+			    $linkedData->{'type'} eq "longInteger"
+			    ||
+			    $linkedData->{'type'} eq "logical"
+			    ) {
+			    $functionCode .= "    write (label,".$formatLabel{$linkedData->{'type'}}.") self%".padLinkedData($linkedDataName,[0,0])."%value\n";
+			    $functionCode .= "    message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))."'//label\n";
+			    $functionCode .= "    call Galacticus_Display_Message(message)\n";
+			}
+			else {
+			    $functionCode .= "    message='".$propertyName.":'\n";
+			    $functionCode .= "    call Galacticus_Display_Indent(message)\n";
+			    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%dump()\n";
+			    $functionCode .= "    call Galacticus_Display_Unindent('end')\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
-			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
-				$functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
-				$functionCode .= "       write (label,'(i3)') i\n";
-				$functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
-				$functionCode .= "       write (label,".$formatLabel{$linkedData->{'type'}}.") self%".$linkedDataName."%value(i)\n";
-				$functionCode .= "       message=message//': '//label\n";
-				$functionCode .= "       call Galacticus_Display_Message(message)\n";
-				$functionCode .= "    end do\n";
-			    }
-			    else {
-				$functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
-				$functionCode .= "       write (label,'(i3)') i\n";
-				$functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
-				$functionCode .= "       call Galacticus_Display_Indent(message)\n";
-				$functionCode .= "       call self%".$linkedDataName."%value(i)%dump()\n";
-				$functionCode .= "       call Galacticus_Display_Unindent('end')\n";
-				$functionCode .= "    end do\n";
-			    }
-			}			
+			if (
+			    $linkedData->{'type'} eq "real"
+			    ||
+			    $linkedData->{'type'} eq "integer"
+			    ||
+			    $linkedData->{'type'} eq "longInteger"
+			    ||
+			    $linkedData->{'type'} eq "logical"
+			    ) {
+			    $functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
+			    $functionCode .= "       write (label,'(i3)') i\n";
+			    $functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
+			    $functionCode .= "       write (label,".$formatLabel{$linkedData->{'type'}}.") self%".$linkedDataName."%value(i)\n";
+			    $functionCode .= "       message=message//': '//label\n";
+			    $functionCode .= "       call Galacticus_Display_Message(message)\n";
+			    $functionCode .= "    end do\n";
+			}
+			else {
+			    $functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
+			    $functionCode .= "       write (label,'(i3)') i\n";
+			    $functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
+			    $functionCode .= "       call Galacticus_Display_Indent(message)\n";
+			    $functionCode .= "       call self%".$linkedDataName."%value(i)%dump()\n";
+			    $functionCode .= "       call Galacticus_Display_Unindent('end')\n";
+			    $functionCode .= "    end do\n";
+			}
 		    }
 		}
 	    }
@@ -3091,20 +3084,26 @@ sub Generate_Implementation_Dump_Functions {
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'rank'} == 1 && $counterAdded == 0) {
-		    switch ( $linkedData->{'type'} ) {
-			case ( [ "real", "integer", "longInteger", "logical" ] ) {
-			    # Nothing to do in these cases.
-			}
-			else {
-			    push(
-				@dataContent,
-				{
-				    intrinsic  => "integer",
-				    variables  => [ "i" ]
-				}
-				);
-			    $counterAdded = 1;
-			}
+		    if (
+			$linkedData->{'type'} eq "real"
+			||
+			$linkedData->{'type'} eq "integer"
+			||
+			$linkedData->{'type'} eq "longInteger"
+			||
+			$linkedData->{'type'} eq "logical"
+			) {
+			# Nothing to do in these cases.
+		    }
+		    else {
+			push(
+			    @dataContent,
+			    {
+				intrinsic  => "integer",
+				variables  => [ "i" ]
+			    }
+			    );
+			$counterAdded = 1;
 		    }
 		}
 	    }
@@ -3125,28 +3124,40 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
-			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
-				$functionCode .= "    write (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."%value\n";
-			    }
-			    else {
-				$functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%dumpRaw(fileHandle)\n";
-			    }
+			if (
+			    $linkedData->{'type'} eq "real"
+			    ||
+			    $linkedData->{'type'} eq "integer"
+			    ||
+			    $linkedData->{'type'} eq "longInteger"
+			    ||
+			    $linkedData->{'type'} eq "logical"
+			    ) {
+			    $functionCode .= "    write (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."%value\n";
+			}
+			else {
+			    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%dumpRaw(fileHandle)\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			$functionCode .= "    write (fileHandle) allocated(self%".$linkedDataName."%value)\n";
 			$functionCode .= "    if (allocated(self%".$linkedDataName."%value)) then\n";
 			$functionCode .= "       write (fileHandle) size(self%".$linkedDataName."%value)\n";
-			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
-				$functionCode .= "      write (fileHandle) self%".$linkedDataName."%value\n";
-			    }
-			    else {
-				$functionCode .= "       do i=1,size(self%".$linkedDataName."%value)\n";
-				$functionCode .= "          call self%".$linkedDataName."%value(i)%dumpRaw(fileHandle)\n";
-				$functionCode .= "       end do\n";
-			    }
-			}			
+			if (
+			    $linkedData->{'type'} eq "real"
+			    ||
+			    $linkedData->{'type'} eq "integer"
+			    ||
+			    $linkedData->{'type'} eq "longInteger"
+			    ||
+			    $linkedData->{'type'} eq "logical"
+			    ) {
+			    $functionCode .= "      write (fileHandle) self%".$linkedDataName."%value\n";
+			}
+			else {
+			    $functionCode .= "       do i=1,size(self%".$linkedDataName."%value)\n";
+			    $functionCode .= "          call self%".$linkedDataName."%value(i)%dumpRaw(fileHandle)\n";
+			    $functionCode .= "       end do\n";
+			}
 			$functionCode .= "    end if\n";
 		    }
 		}
@@ -3204,19 +3215,25 @@ sub Generate_Implementation_Dump_Functions {
 			$readArraysAdded = 1;
 		    }
 		    if ( $readCounterAdded == 0 ) {
-			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
-			    }
-			    else {
-				push(
-				    @dataContent,
-				    {
-					intrinsic  => "integer",
-					variables  => [ "i" ]
-				    }
-				    );
-				$readCounterAdded = 1;
-			    }
+			if (
+			    $linkedData->{'type'} eq "real"
+			    ||
+			    $linkedData->{'type'} eq "integer"
+			    ||
+			    $linkedData->{'type'} eq "longInteger"
+			    ||
+			    $linkedData->{'type'} eq "logical"
+			    ) {
+			}
+			else {
+			    push(
+				@dataContent,
+				{
+				    intrinsic  => "integer",
+				    variables  => [ "i" ]
+				}
+				);
+			    $readCounterAdded = 1;
 			}
 		    }
 		}
@@ -3239,13 +3256,19 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
-			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
-				$functionCode .= "    read (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."%value\n";
-			    }
-			    else {
-				$functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%readRaw(fileHandle)\n";
-			    }
+			if (
+			    $linkedData->{'type'} eq "real"
+			    ||
+			    $linkedData->{'type'} eq "integer"
+			    ||
+			    $linkedData->{'type'} eq "longInteger"
+			    ||
+			    $linkedData->{'type'} eq "logical"
+			    ) {
+			    $functionCode .= "    read (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."%value\n";
+			}
+			else {
+			    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%readRaw(fileHandle)\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			$functionCode .= "    read (fileHandle) isAllocated\n";
@@ -3254,20 +3277,26 @@ sub Generate_Implementation_Dump_Functions {
 			my @toAllocate = ( "value" );
 			push(@toAllocate,"rate ", "scale" )
 			    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
-			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
-				$functionCode .= "      call Alloc_Array(self%".$linkedDataName."%".$_.",[arraySize])\n"
-				    foreach ( @toAllocate );
-				$functionCode .= "      read (fileHandle) self%".$linkedDataName."%value\n";
-			    }
-			    else {
-				$functionCode .= "       allocate(self%".$linkedDataName."%".$_."(arraySize))\n"
-				    foreach ( @toAllocate );
-				$functionCode .= "       do i=1,arraySize)\n";
-				$functionCode .= "          call self%".$linkedDataName."%value(i)%readRaw(fileHandle)\n";
-				$functionCode .= "       end do\n";
-			    }
-			}			
+			if (
+			    $linkedData->{'type'} eq "real"
+			    ||
+			    $linkedData->{'type'} eq "integer"
+			    ||
+			    $linkedData->{'type'} eq "longInteger"
+			    ||
+			    $linkedData->{'type'} eq "logical"
+			    ) {
+			    $functionCode .= "      call Alloc_Array(self%".$linkedDataName."%".$_.",[arraySize])\n"
+				foreach ( @toAllocate );
+			    $functionCode .= "      read (fileHandle) self%".$linkedDataName."%value\n";
+			}
+			else {
+			    $functionCode .= "       allocate(self%".$linkedDataName."%".$_."(arraySize))\n"
+				foreach ( @toAllocate );
+			    $functionCode .= "       do i=1,arraySize)\n";
+			    $functionCode .= "          call self%".$linkedDataName."%value(i)%readRaw(fileHandle)\n";
+			    $functionCode .= "       end do\n";
+			}
 			$functionCode .= "    end if\n";
 		    }
 		}
@@ -3339,26 +3368,24 @@ sub Generate_Implementation_Initializor_Functions {
 		    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=".$default."\n";
 		} else {
 		    # Set to null.
-		    switch ( $linkedData->{'type'} ) {
-			case ( "real"        ) {
-			    if ( $linkedData->{'rank'} == 0 ) {
-				$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0.0d0\n";
-			    } else {
-				$initializeCode .= "            call Alloc_Array(self%".padLinkedData($linkedDataName,[0,0])."%value,[".join(",","0" x $linkedData->{'rank'})."])\n";
-			    }
+		    if    ( $linkedData->{'type'} eq"real"        ) {
+			if ( $linkedData->{'rank'} == 0 ) {
+			    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0.0d0\n";
+			} else {
+			    $initializeCode .= "            call Alloc_Array(self%".padLinkedData($linkedDataName,[0,0])."%value,[".join(",","0" x $linkedData->{'rank'})."])\n";
 			}
-			case ( "integer"     ) {
-			    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0\n";
-			}
-			case ( "longInteger" ) {
-			    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0_kind_int8\n";
-			}
-			case ( "logical"     ) {
-			    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=.false.\n";
-			}
-			else {
-			    $initializeCode .= "       call self%".padLinkedData($linkedDataName,[0,0])."%value%reset()\n";			    
-			}
+		    }
+		    elsif ( $linkedData->{'type'} eq"integer"     ) {
+			$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0\n";
+		    }
+		    elsif ( $linkedData->{'type'} eq"longInteger" ) {
+			$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0_kind_int8\n";
+		    }
+		    elsif ( $linkedData->{'type'} eq"logical"     ) {
+			$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=.false.\n";
+		    }
+		    else {
+			$initializeCode .= "       call self%".padLinkedData($linkedDataName,[0,0])."%value%reset()\n";			    
 		    }
 		}
 	    }
@@ -3503,16 +3530,19 @@ sub Generate_Implementation_Builder_Functions {
 			$functionCode .= "    if (getLength(propertyList) > 1) call Galacticus_Error_Report('Node_Component_".ucfirst($componentID)."_Builder','scalar property must have precisely one value')\n";
 			$functionCode .= "    if (getLength(propertyList) == 1) then\n";
 			$functionCode .= "      property => item(propertyList,0)\n";
-			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "logical" ] ) {
-				$functionCode .= "      call extractDataContent(property,self%".padLinkedData($linkedDataName,[0,0])."%value)\n";
-			    }
-			    case ( [ "longInteger" ] ) {
-				$functionCode .= "      call Galacticus_Error_Report('Node_Component_".ucfirst($componentID)."_Builder','building of long integer properties currently not supported')\n";
-			    }
-			    else {
-				$functionCode .= "      call self%".padLinkedData($linkedDataName,[0,0])."%value%builder(property)\n";
-			    }
+			if (
+			    $linkedData->{'type'} eq "real"
+			    ||
+			    $linkedData->{'type'} eq "integer"
+			    ||
+			    $linkedData->{'type'} eq "logical"
+			    ) {
+			    $functionCode .= "      call extractDataContent(property,self%".padLinkedData($linkedDataName,[0,0])."%value)\n";
+			} elsif ( $linkedData->{'type'} eq "longInteger" ) {
+			    $functionCode .= "      call Galacticus_Error_Report('Node_Component_".ucfirst($componentID)."_Builder','building of long integer properties currently not supported')\n";
+			}
+			else {
+			    $functionCode .= "      call self%".padLinkedData($linkedDataName,[0,0])."%value%builder(property)\n";
 			}
 			$functionCode .= "    end if\n";
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
@@ -3525,23 +3555,29 @@ sub Generate_Implementation_Builder_Functions {
 			    )
 			    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
 			$functionCode .= "    if (getLength(propertyList) >= 1) then\n";
-			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
-				$functionCode .= "      call Alloc_Array(self%".$linkedDataName."%".$_.",[getLength(propertyList)])\n"
-				    foreach ( @gsr );
-				$functionCode .= "      do i=1,getLength(propertyList)\n";
-				$functionCode .= "        property => item(propertyList,i-1)\n";
-				$functionCode .= "        call extractDataContent(property,self%".$linkedDataName."%value(i))\n";
-				$functionCode .= "      end do\n";
-			    }
-			    else {
-				$functionCode .= "      allocate(self%".$linkedDataName."%".$_."(getLength(propertyList)))\n"
-				    foreach ( @gsr );
-				$functionCode .= "      do i=1,getLength(propertyList)\n";
-				$functionCode .= "        property => item(propertyList,i-1)\n";
-				$functionCode .= "        call self%".$linkedDataName."%value(i)%builder(property)\n";
-				$functionCode .= "      end do\n";
-			    }
+			if (
+			    $linkedData->{'type'} eq "real"
+			    ||
+			    $linkedData->{'type'} eq "integer"
+			    ||
+			    $linkedData->{'type'} eq "longInteger"
+			    ||
+			    $linkedData->{'type'} eq "logical"
+			    ) {
+			    $functionCode .= "      call Alloc_Array(self%".$linkedDataName."%".$_.",[getLength(propertyList)])\n"
+				foreach ( @gsr );
+			    $functionCode .= "      do i=1,getLength(propertyList)\n";
+			    $functionCode .= "        property => item(propertyList,i-1)\n";
+			    $functionCode .= "        call extractDataContent(property,self%".$linkedDataName."%value(i))\n";
+			    $functionCode .= "      end do\n";
+			}
+			else {
+			    $functionCode .= "      allocate(self%".$linkedDataName."%".$_."(getLength(propertyList)))\n"
+				foreach ( @gsr );
+			    $functionCode .= "      do i=1,getLength(propertyList)\n";
+			    $functionCode .= "        property => item(propertyList,i-1)\n";
+			    $functionCode .= "        call self%".$linkedDataName."%value(i)%builder(property)\n";
+			    $functionCode .= "      end do\n";
 			}
 			$functionCode .= "    end if\n";
 		    }
@@ -3636,18 +3672,22 @@ sub Generate_Implementation_Output_Functions {
 		    die("Generate_Implementation_Output_Functions(): can not output [".$propertyName."]");
 		}
 		# Increment the counters.
-		switch ( $type ) {
-		    case ( [ "real", "integer", "longInteger" ] ) {
-			if ( $rank == 1 && exists($property->{'output'}->{'condition'}) && $counterAdded == 0 ) {
-			    push(
-				@dataContent,
-				{
-				    intrinsic  => "integer",
-				    variables  => [ "i" ]
-				}
-				);
-			    $counterAdded = 1;
-			}
+		if (
+		    $type eq "real"
+		    ||
+		    $type eq "integer"
+		    ||
+		    $type eq "longInteger"
+		    ) {
+		    if ( $rank == 1 && exists($property->{'output'}->{'condition'}) && $counterAdded == 0 ) {
+			push(
+			    @dataContent,
+			    {
+				intrinsic  => "integer",
+				variables  => [ "i" ]
+			    }
+			    );
+			$counterAdded = 1;
 		    }
 		}
 	    }
@@ -3758,46 +3798,50 @@ sub Generate_Implementation_Output_Functions {
 			die("Generate_Implementation_Output_Functions(): output of rank>1 arrays not supported");
 		    }
 		    # Increment the counters.
-		    switch ( $type ) {
-			case ( [ "real", "integer", "longInteger" ] ) {
-			    if ( $rank == 0 ) {
-				if ( exists($property->{'output'}->{'condition'}) ) {
-				    my $condition = $property->{'output'}->{'condition'};
-				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-				    $functionCode .= "    if (".$condition.") ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
-				} elsif ( $count =~ m/^\d/ ) {
-				    $typeCount{$typeMap{$type}} += $count;
-				} else {
-				    $functionCode .= "    ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
-				}
-			    } elsif ( $rank == 1 ) {
-				if ( exists($property->{'output'}->{'condition'}) ) {
-				    my $condition = $property->{'output'}->{'condition'};
-				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-				    $condition =~ s/\{i\}/i/g;
-				    $functionCode .= "    do i=1,".$count."\n";
-				    $functionCode .= "    if (".$condition.") ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+1\n";
-				    $functionCode .= "    end do\n";
-				} else {
-				    if ( $count =~ m/^\d/ ) {
-					$typeCount{$typeMap{$type}} += $count;
-				    } else {
-					$functionCode .= "    ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
-				    }  
-				}
-			    }
-			}
-			else {
+		    if (
+			$type eq "real"
+			||
+			$type eq "integer"
+			||
+			$type eq "longInteger"
+			) {
+			if ( $rank == 0 ) {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
 				my $condition = $property->{'output'}->{'condition'};
 				$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-				$functionCode .= "    if (".$condition.") then\n";
+				$functionCode .= "    if (".$condition.") ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
+			    } elsif ( $count =~ m/^\d/ ) {
+				$typeCount{$typeMap{$type}} += $count;
+			    } else {
+				$functionCode .= "    ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
 			    }
-			    $functionCode .= "    output".ucfirst($type)."=self%".$propertyName."()\n";
-			    $functionCode .= "    call output".ucfirst($type)."%outputCount(integerPropertyCount,doublePropertyCount,time)\n";
-			    $functionCode .= "    end if\n"
-				if ( exists($property->{'output'}->{'condition'}) );
+			} elsif ( $rank == 1 ) {
+			    if ( exists($property->{'output'}->{'condition'}) ) {
+				my $condition = $property->{'output'}->{'condition'};
+				$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
+				$condition =~ s/\{i\}/i/g;
+				$functionCode .= "    do i=1,".$count."\n";
+				$functionCode .= "    if (".$condition.") ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+1\n";
+				$functionCode .= "    end do\n";
+			    } else {
+				if ( $count =~ m/^\d/ ) {
+				    $typeCount{$typeMap{$type}} += $count;
+				} else {
+				    $functionCode .= "    ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
+				}  
+			    }
 			}
+		    }
+		    else {
+			if ( exists($property->{'output'}->{'condition'}) ) {
+			    my $condition = $property->{'output'}->{'condition'};
+			    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
+			    $functionCode .= "    if (".$condition.") then\n";
+			}
+			$functionCode .= "    output".ucfirst($type)."=self%".$propertyName."()\n";
+			$functionCode .= "    call output".ucfirst($type)."%outputCount(integerPropertyCount,doublePropertyCount,time)\n";
+			$functionCode .= "    end if\n"
+			    if ( exists($property->{'output'}->{'condition'}) );
 		    }
 		}
 	    }
@@ -3913,105 +3957,109 @@ sub Generate_Implementation_Output_Functions {
 			 integer     => "integer",
 			 longInteger => "integer"
 			);
-		    switch ( $type ) {
-			case ( [ "real", "integer", "longInteger" ] ) {
-			    # Insert metadata for SimDB.
-			    $functionBody .= "       !@ <outputProperty>\n";
-			    $functionBody .= "       !@   <name>".$component->{'class'}.ucfirst($propertyName)."</name>\n";
-			    $functionBody .= "       !@   <datatype>".$simDbTypeMap{$type}."</datatype>\n";
-			    if ( $rank == 0 ) {
-				$functionBody .= "       !@   <cardinality>0..1</cardinality>\n";
-			    } else {
-				$functionBody .= "       !@   <cardinality>0..*</cardinality>\n";
-			    }
-			    $functionBody .= "       !@   <description>".$property->{'output'}->{'comment'}."</description>\n";
-			    $functionBody .= "       !@   <label>???</label>\n";
-			    $functionBody .= "       !@   <outputType>nodeData</outputType>\n";
-			    $functionBody .= "       !@   <group>".$component->{'class'}."</group>\n";
-			    $functionBody .= "       !@ </outputProperty>\n";
-			    if ( $rank == 0 ) {
-				if ( exists($property->{'output'}->{'condition'}) ) {
-				    my $condition = $property->{'output'}->{'condition'};
-				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-				    $functionBody .= "    if (".$condition.") then\n";
-				}
-				$functionBody .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-				$functionBody .= "       ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName)."'\n";
-				$functionBody .= "       ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }."'\n";
-				$functionBody .= "       ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";
-				$functionBody .= "    end if\n"
-				    if ( exists($property->{'output'}->{'condition'}) );
-			    } elsif ( $rank == 1 ) {
-				die("Generate_Implementation_Output_Functions(): output of rank>0 objects requires a labels attribute")
-				    unless ( exists($property->{'output'}->{'labels'}) );
-
-				if ( $property->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ ) {
-				    if ( exists($property->{'output'}->{'condition'}) ) {
-					my $condition = $property->{'output'}->{'condition'};
-					$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-					$functionBody .= "    if (".$condition.") then\n";
-				    }
-				    my $labelText = $1;
-				    $labelText =~ s/^\s*//;
-				    $labelText =~ s/\s*$//;
-				    my @labels    = split(/\s*,\s*/,$labelText);
-				    foreach my $label ( @labels ) {
-					$functionBody .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-					$functionBody .= "       ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName).$label."'\n";
-					$functionBody .= "       ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }." [".$label."]'\n";
-					$functionBody .= "       ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";	
-				    }
-				    $functionBody .= "    end if\n"
-					if ( exists($property->{'output'}->{'condition'}) );
-				} elsif ( exists($property->{'output'}->{'count'}) ) {
-				    my $count = $property->{'output'}->{'count' };
-				    my $label = $property->{'output'}->{'labels'};
-				    $label =~ s/\{i\}/i/g;
-				    if ( $nameCounterAdded == 0 ) {
-					push(
-					    @dataContent,
-					    {
-						intrinsic  => "integer",
-						variables  => [ "i" ]
-					    }
-					    );
-					$nameCounterAdded = 1;
-				    }
-				    $functionBody .= "       do i=1,".$count."\n";
-				    if ( exists($property->{'output'}->{'condition'}) ) {
-					my $condition = $property->{'output'}->{'condition'};
-					$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-					$condition =~ s/\{i\}/i/g;
-					$functionBody .= "    if (".$condition.") then\n";
-				    }
-				    $functionBody .= "         ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-				    $functionBody .= "         ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName)."'//".$label."\n";
-				    $functionBody .= "         ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }." ['//".$label."//']'\n";
-				    $functionBody .= "         ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";	
-				    $functionBody .= "    end if\n"
-					if ( exists($property->{'output'}->{'condition'}) );
-				    $functionBody .= "end do\n";
-				} else {
-				    die('Generate_Implementation_Output_Functions(): no method to determine output count of property');
-				}
-			    } else {
-				die("Generate_Implementation_Output_Functions(): can not output rank>1 properties");
-			    }
+		    if (
+			$type eq "real"
+			||
+			$type eq "integer"
+			||
+			$type eq "longInteger"
+			) {
+			# Insert metadata for SimDB.
+			$functionBody .= "       !@ <outputProperty>\n";
+			$functionBody .= "       !@   <name>".$component->{'class'}.ucfirst($propertyName)."</name>\n";
+			$functionBody .= "       !@   <datatype>".$simDbTypeMap{$type}."</datatype>\n";
+			if ( $rank == 0 ) {
+			    $functionBody .= "       !@   <cardinality>0..1</cardinality>\n";
+			} else {
+			    $functionBody .= "       !@   <cardinality>0..*</cardinality>\n";
 			}
-			else {
-			    my $unitsInSI = "0.0d0";
-			    $unitsInSI = $property->{'output'}->{'unitsInSI'}
-			    if ( exists($property->{'output'}->{'unitsInSI'}) );
+			$functionBody .= "       !@   <description>".$property->{'output'}->{'comment'}."</description>\n";
+			$functionBody .= "       !@   <label>???</label>\n";
+			$functionBody .= "       !@   <outputType>nodeData</outputType>\n";
+			$functionBody .= "       !@   <group>".$component->{'class'}."</group>\n";
+			$functionBody .= "       !@ </outputProperty>\n";
+			if ( $rank == 0 ) {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
 				my $condition = $property->{'output'}->{'condition'};
 				$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 				$functionBody .= "    if (".$condition.") then\n";
 			    }
-			    $functionBody .= "    output".ucfirst($type)."=self%".$propertyName."()\n";			   
-			    $functionBody .= "    call output".ucfirst($type)."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,'".$component->{'class'}.ucfirst($propertyName)."','".$property->{'output'}->{'comment'}."',".$unitsInSI.")\n";
+			    $functionBody .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
+			    $functionBody .= "       ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName)."'\n";
+			    $functionBody .= "       ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }."'\n";
+			    $functionBody .= "       ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";
 			    $functionBody .= "    end if\n"
 				if ( exists($property->{'output'}->{'condition'}) );
+			} elsif ( $rank == 1 ) {
+			    die("Generate_Implementation_Output_Functions(): output of rank>0 objects requires a labels attribute")
+				unless ( exists($property->{'output'}->{'labels'}) );
+			    
+			    if ( $property->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ ) {
+				if ( exists($property->{'output'}->{'condition'}) ) {
+				    my $condition = $property->{'output'}->{'condition'};
+				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
+				    $functionBody .= "    if (".$condition.") then\n";
+				}
+				my $labelText = $1;
+				$labelText =~ s/^\s*//;
+				$labelText =~ s/\s*$//;
+				my @labels    = split(/\s*,\s*/,$labelText);
+				foreach my $label ( @labels ) {
+				    $functionBody .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
+				    $functionBody .= "       ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName).$label."'\n";
+				    $functionBody .= "       ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }." [".$label."]'\n";
+				    $functionBody .= "       ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";	
+				}
+				$functionBody .= "    end if\n"
+				    if ( exists($property->{'output'}->{'condition'}) );
+			    } elsif ( exists($property->{'output'}->{'count'}) ) {
+				my $count = $property->{'output'}->{'count' };
+				my $label = $property->{'output'}->{'labels'};
+				$label =~ s/\{i\}/i/g;
+				if ( $nameCounterAdded == 0 ) {
+				    push(
+					@dataContent,
+					{
+					    intrinsic  => "integer",
+					    variables  => [ "i" ]
+					}
+					);
+				    $nameCounterAdded = 1;
+				}
+				$functionBody .= "       do i=1,".$count."\n";
+				if ( exists($property->{'output'}->{'condition'}) ) {
+				    my $condition = $property->{'output'}->{'condition'};
+				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
+				    $condition =~ s/\{i\}/i/g;
+				    $functionBody .= "    if (".$condition.") then\n";
+				}
+				$functionBody .= "         ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
+				$functionBody .= "         ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName)."'//".$label."\n";
+				$functionBody .= "         ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }." ['//".$label."//']'\n";
+				$functionBody .= "         ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";	
+				$functionBody .= "    end if\n"
+				    if ( exists($property->{'output'}->{'condition'}) );
+				$functionBody .= "end do\n";
+			    } else {
+				die('Generate_Implementation_Output_Functions(): no method to determine output count of property');
+			    }
+			} else {
+			    die("Generate_Implementation_Output_Functions(): can not output rank>1 properties");
 			}
+		    }
+		    else {
+			my $unitsInSI = "0.0d0";
+			$unitsInSI = $property->{'output'}->{'unitsInSI'}
+			if ( exists($property->{'output'}->{'unitsInSI'}) );
+			if ( exists($property->{'output'}->{'condition'}) ) {
+			    my $condition = $property->{'output'}->{'condition'};
+			    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
+			    $functionBody .= "    if (".$condition.") then\n";
+			}
+			$functionBody .= "    output".ucfirst($type)."=self%".$propertyName."()\n";			   
+			$functionBody .= "    call output".ucfirst($type)."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,'".$component->{'class'}.ucfirst($propertyName)."','".$property->{'output'}->{'comment'}."',".$unitsInSI.")\n";
+			$functionBody .= "    end if\n"
+			    if ( exists($property->{'output'}->{'condition'}) );
 		    }
 		}
 	    }
@@ -4089,13 +4137,11 @@ sub Generate_Implementation_Name_From_Index_Functions {
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'isEvolvable'} eq "true" ) {
 		    if ( $linkedData->{'rank'} == 0 ) {
-			switch ( $linkedData->{'type'} ) {
-			    case ( "real" ) {
-				$functionCode .= "    count=count-1\n";
-			    }
-			    else {
-				$functionCode .= "    count=count-self%".padLinkedData($linkedDataName,[0,0])."%value%serializeCount()\n";
-			    }
+			if ( $linkedData->{'type'} eq "real" ) {
+			    $functionCode .= "    count=count-1\n";
+			}
+			else {
+			    $functionCode .= "    count=count-self%".padLinkedData($linkedDataName,[0,0])."%value%serializeCount()\n";
 			}
 		    } else {
 			$functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0])."%value)) count=count-size(self%".padLinkedData($linkedDataName,[0,0])."%value)\n";
@@ -4207,13 +4253,11 @@ sub Generate_Implementation_Serialization_Functions {
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'isEvolvable'} eq "true" ) {
 		    if ( $linkedData->{'rank'} == 0 ) {
-			switch ( $linkedData->{'type'} ) {
-			    case ( "real" ) {
-				++$scalarPropertyCount;
-			    }
-			    else {
-				$functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+self%".padLinkedData($linkedDataName,[0,0])."%value%serializeCount()\n";
-			    }
+			if ( $linkedData->{'type'} eq "real" ) {
+			    ++$scalarPropertyCount;
+			}
+			else {
+			    $functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+self%".padLinkedData($linkedDataName,[0,0])."%value%serializeCount()\n";
 			}
 		    } else {
 			$functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0])."%value)) Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+size(self%".padLinkedData($linkedDataName,[0,0])."%value)\n";
@@ -4277,26 +4321,24 @@ sub Generate_Implementation_Serialization_Functions {
 	    	    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 	    	    if ( $linkedData->{'isEvolvable'} eq "true" ) {
 	    		if ( $linkedData->{'rank'} == 0 ) {
-	    		    switch ( $linkedData->{'type'} ) {
-	    			case ( "real" ) {
-				    $serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s -> ".$linkedDataName."',offset,size(array)\n"
-					if ( $debugging == 1 );
-	    			    $serializationCode .= "    array(offset)=self%".padLinkedData($linkedDataName,[0,0])."%".$content."\n";
-				    $serializationCode .= "    if (array(offset) <= 0.0d0) write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s: non-positive scale found for ".$linkedDataName."'\n"
-					if ( $content eq "scale" && $debugging == 1 );
-	    			    $serializationCode .= "    offset=offset+1\n";
-	    			}
-	    			else {
-	    			    $serializationCode .= "    count=self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."%serializeCount(                            )\n";
-				    $serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s -> ".$linkedDataName."',offset,count,size(array)\n"
-					if ( $debugging == 1 );
-	    			    $serializationCode .= "    if (count > 0) call  self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."%serialize     (array(offset:offset+count-1))\n";
-				    $serializationCode .= "    if (count > 0 .and. any(array(offset:offset+count-1) <= 0.0d0)) write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s: non-positive scale found for ".$linkedDataName."'\n"
-					if ( $content eq "scale" && $debugging == 1 );
-	    			    $serializationCode .= "    offset=offset+count\n";
-				    $needCount = 1;
-	    			}
-	    		    }
+	    		    if ( $linkedData->{'type'} eq "real" ) {
+				$serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s -> ".$linkedDataName."',offset,size(array)\n"
+				    if ( $debugging == 1 );
+				$serializationCode .= "    array(offset)=self%".padLinkedData($linkedDataName,[0,0])."%".$content."\n";
+				$serializationCode .= "    if (array(offset) <= 0.0d0) write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s: non-positive scale found for ".$linkedDataName."'\n"
+				    if ( $content eq "scale" && $debugging == 1 );
+				$serializationCode .= "    offset=offset+1\n";
+			    }
+			    else {
+				$serializationCode .= "    count=self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."%serializeCount(                            )\n";
+				$serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s -> ".$linkedDataName."',offset,count,size(array)\n"
+				    if ( $debugging == 1 );
+				$serializationCode .= "    if (count > 0) call  self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."%serialize     (array(offset:offset+count-1))\n";
+				$serializationCode .= "    if (count > 0 .and. any(array(offset:offset+count-1) <= 0.0d0)) write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s: non-positive scale found for ".$linkedDataName."'\n"
+				    if ( $content eq "scale" && $debugging == 1 );
+				$serializationCode .= "    offset=offset+count\n";
+				$needCount = 1;
+			    }
 	    		} else {
 	    		    $serializationCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5).")) then\n";
 	    		    $serializationCode .= "       count=size(self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5).")\n";
@@ -4380,17 +4422,15 @@ sub Generate_Implementation_Serialization_Functions {
 	    	    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 	    	    if ( $linkedData->{'isEvolvable'} eq "true" ) {
 	    		if ( $linkedData->{'rank'} == 0 ) {
-	    		    switch ( $linkedData->{'type'} ) {
-	    			case ( "real" ) {
-	    			    $deserializationCode .= "    self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."=array(offset)\n";
-	    			    $deserializationCode .= "    offset=offset+1\n";
-	    			}
-	    			else {
-	    			    $deserializationCode .= "    count=self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."%serializeCount(                            )\n";
-	    			    $deserializationCode .= "    call  self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."%deserialize   (array(offset:offset+count-1))\n";
-	    			    $deserializationCode .= "    offset=offset+count\n";
-				    $needCount = 1;
-	    			}
+			    if ( $linkedData->{'type'} eq  "real" ) {
+				$deserializationCode .= "    self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."=array(offset)\n";
+				$deserializationCode .= "    offset=offset+1\n";
+			    }
+			    else {
+				$deserializationCode .= "    count=self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."%serializeCount(                            )\n";
+				$deserializationCode .= "    call  self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."%deserialize   (array(offset:offset+count-1))\n";
+				$deserializationCode .= "    offset=offset+count\n";
+				$needCount = 1;
 	    		    }
 	    		} else {
 	    		    $deserializationCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5).")) then\n";
@@ -4536,26 +4576,23 @@ sub Generate_Component_Get_Functions {
 	$functionCode .= "    use Galacticus_Error\n";   
  	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    	$functionCode .= "    select type (self)\n";
-    	$functionCode .= "    class is (treeNode)\n";
-    	$functionCode .= "       instanceActual=1\n";
-    	$functionCode .= "       if (present(instance)) instanceActual=instance\n";
-    	$functionCode .= "       autoCreateActual=.false.\n";
-    	$functionCode .= "       if (present(autoCreate)) autoCreateActual=autoCreate\n";
-	$functionCode .= "       if (autoCreateActual.and.allocated(self%component".ucfirst($componentClassName).")) then\n";
+    	$functionCode .= "    instanceActual=1\n";
+    	$functionCode .= "    if (present(instance)) instanceActual=instance\n";
+    	$functionCode .= "    autoCreateActual=.false.\n";
+    	$functionCode .= "    if (present(autoCreate)) autoCreateActual=autoCreate\n";
+	$functionCode .= "    if (autoCreateActual.and.allocated(self%component".ucfirst($componentClassName).")) then\n";
 	# If we are allowed to autocreate the component and it still has generic type then deallocate it to
 	# force it to be created later.
-	$functionCode .= "         if (same_type_as(self%component".ucfirst($componentClassName)."(1),".ucfirst($componentClassName)."Class)) deallocate(self%component".ucfirst($componentClassName).")\n";
-	$functionCode .= "       end if\n";
-    	$functionCode .= "       if (.not.allocated(self%component".ucfirst($componentClassName).")) then\n";
-    	$functionCode .= "         if (autoCreateActual) then\n";
-	$functionCode .= "            call self%".lc($componentClassName)."Create"."()\n";
-	$functionCode .= "         else\n";
-	$functionCode .= "            call Galacticus_Error_Report('".$componentClassName."Get','component is not allocated')\n";
-	$functionCode .= "         end if\n";
-    	$functionCode .= "       end if\n";
-    	$functionCode .= "       ".$componentClassName."Get => self%component".ucfirst($componentClassName)."(instanceActual)\n";
-    	$functionCode .= "    end select\n";
+	$functionCode .= "      if (same_type_as(self%component".ucfirst($componentClassName)."(1),".ucfirst($componentClassName)."Class)) deallocate(self%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "    end if\n";
+    	$functionCode .= "    if (.not.allocated(self%component".ucfirst($componentClassName).")) then\n";
+    	$functionCode .= "      if (autoCreateActual) then\n";
+	$functionCode .= "         call self%".lc($componentClassName)."Create"."()\n";
+	$functionCode .= "      else\n";
+	$functionCode .= "         call Galacticus_Error_Report('".$componentClassName."Get','component is not allocated')\n";
+	$functionCode .= "      end if\n";
+    	$functionCode .= "    end if\n";
+    	$functionCode .= "    ".$componentClassName."Get => self%component".ucfirst($componentClassName)."(instanceActual)\n";
     	$functionCode .= "    return\n";
     	$functionCode .= "  end function ".$componentClassName."Get\n";
 	# Insert into the function list.
@@ -5302,25 +5339,23 @@ sub Generate_GSR_Functions {
 			my @setContent = ( "value" );
 			push(@setContent,"rate","scale")
 			    if ( $property->{'attributes' }->{'isEvolvable'} eq "true" );
-			switch ( $linkedData->{'rank'} ) {
-			    case ( 0 ) {
-				$functionCode .= "    self%".$linkedDataName."%".pad($_,5)."=setValue\n"
-				    foreach ( @setContent );
+			if ( $linkedData->{'rank'} == 0 ) {
+			    $functionCode .= "    self%".$linkedDataName."%".pad($_,5)."=setValue\n"
+				foreach ( @setContent );
+			}
+			elsif ( $linkedData->{'rank'} == 1 ) {
+			    foreach ( @setContent ) {
+				$functionCode .= "    if (.not.allocated(self%".$linkedDataName."%".pad($_,5).")) then\n";
+				$functionCode .= "       call    Alloc_Array  (self%".$linkedDataName."%".pad($_,5).",shape(setValue))\n";
+				$functionCode .= "    else\n";
+				$functionCode .= "       if (size(self%".$linkedDataName."%".pad($_,5).") /= size(setValue)) then\n";
+				$functionCode .= "          call Dealloc_Array(self%".$linkedDataName."%".pad($_,5)."                )\n";
+				$functionCode .= "          call Alloc_Array  (self%".$linkedDataName."%".pad($_,5).",shape(setValue))\n";
+				$functionCode .= "       end if\n";
+				$functionCode .= "    end if\n";
 			    }
-			    case ( 1 ) {
-				foreach ( @setContent ) {
-				    $functionCode .= "    if (.not.allocated(self%".$linkedDataName."%".pad($_,5).")) then\n";
-				    $functionCode .= "       call    Alloc_Array  (self%".$linkedDataName."%".pad($_,5).",shape(setValue))\n";
-				    $functionCode .= "    else\n";
-				    $functionCode .= "       if (size(self%".$linkedDataName."%".pad($_,5).") /= size(setValue)) then\n";
-				    $functionCode .= "          call Dealloc_Array(self%".$linkedDataName."%".pad($_,5)."                )\n";
-				    $functionCode .= "          call Alloc_Array  (self%".$linkedDataName."%".pad($_,5).",shape(setValue))\n";
-				    $functionCode .= "       end if\n";
-				    $functionCode .= "    end if\n";
-				}
-				$functionCode .= "    self%".$linkedDataName."%".pad($_,5)."=setValue\n"
-				    foreach ( @setContent );
-			    }
+			    $functionCode .= "    self%".$linkedDataName."%".pad($_,5)."=setValue\n"
+				foreach ( @setContent );
 			}
 			$functionCode .= "    return\n";
 			$functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Set".$suffix."\n\n";
@@ -5352,17 +5387,15 @@ sub Generate_GSR_Functions {
 		    $functionCode .= "    !% Return a count of the number of scalar properties in the {\\tt ".$propertyName."} property of the {\\tt ".lcfirst($componentID)."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-		    switch ( $linkedData->{'rank'} ) {
-			case ( 0 ) {
-			    $functionCode .= "    ".$componentID.$propertyName."Count=1\n";
-			}
-			case ( 1 ) {
-			    $functionCode .= "    if (allocated(self%".$linkedDataName."%value)) then\n";
-			    $functionCode .= "    ".$componentID.$propertyName."Count=size(self%".$linkedDataName."%value)\n";
-			    $functionCode .= "    else\n";
-			    $functionCode .= "    ".$componentID.$propertyName."Count=0\n";
-			    $functionCode .= "    end if\n";
-			}
+		    if ( $linkedData->{'rank'} ==  0 ) {
+			$functionCode .= "    ".$componentID.$propertyName."Count=1\n";
+		    }
+		    elsif ( $linkedData->{'rank'} == 1 ) {
+			$functionCode .= "    if (allocated(self%".$linkedDataName."%value)) then\n";
+			$functionCode .= "    ".$componentID.$propertyName."Count=size(self%".$linkedDataName."%value)\n";
+			$functionCode .= "    else\n";
+			$functionCode .= "    ".$componentID.$propertyName."Count=0\n";
+			$functionCode .= "    end if\n";
 		    }
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end function ".$componentID.ucfirst($propertyName)."Count\n\n";
@@ -5476,40 +5509,36 @@ sub Generate_GSR_Functions {
 			    $functionCode .= "    type is (nodeComponent".ucfirst($componentClassName).")\n";
 			    $functionCode .= "      ! No specific component exists, we must interrupt and create one.\n";
 			    if ( $linkedData->{'rank'} == 0 ) {
-				switch ( $linkedData->{'type'} ) {
-				    case ( "real"        ) {
-					$functionCode .= "   if (setValue == 0.0d0) return\n";
-				    }
-				    case ( "integer"     ) {
-					die('integer should not be evolvable')
-				    }
-				    case ( "longInteger" ) {
-					die('longInteger should not be evolvable')
-				    }
-				    case ( "logical"     ) {
-					die('logical should not be evolvable')
-				    }
-				    else {
-					$functionCode .= "   if (setValue%isZero()) return\n";
-				    }
+				if    ( $linkedData->{'type'} eq"real"        ) {
+				    $functionCode .= "   if (setValue == 0.0d0) return\n";
+				}
+				elsif ( $linkedData->{'type'} eq"integer"     ) {
+				    die('integer should not be evolvable')
+				}
+				elsif ( $linkedData->{'type'} eq"longInteger" ) {
+				    die('longInteger should not be evolvable')
+				}
+				elsif ( $linkedData->{'type'} eq"logical"     ) {
+				    die('logical should not be evolvable')
+				}
+				else {
+				    $functionCode .= "   if (setValue%isZero()) return\n";
 				}
 			    } else {
-				switch ( $linkedData->{'type'} ) {
-				    case ( "real"        ) {
-					$functionCode .= "   if (all(setValue == 0.0d0)) return\n";
-				    }
-				    case ( "integer"     ) {
-					die('integer should not be evolvable')
-				    }
-				    case ( "longInteger" ) {
-					die('integer should not be evolvable')
-				    }
-				    case ( "logical"     ) {
-					die('logical should not be evolvable')
-				    }
-				    else {
-					die('auto-create of rank>0 objects not supported');
-				    }
+				if    ( $linkedData->{'type'} eq"real"        ) {
+				    $functionCode .= "   if (all(setValue == 0.0d0)) return\n";
+				}
+				elsif ( $linkedData->{'type'} eq"integer"     ) {
+				    die('integer should not be evolvable')
+				}
+				elsif ( $linkedData->{'type'} eq"longInteger" ) {
+				    die('integer should not be evolvable')
+				}
+				elsif ( $linkedData->{'type'} eq"logical"     ) {
+				    die('logical should not be evolvable')
+				}
+				else {
+				    die('auto-create of rank>0 objects not supported');
 				}
 			    }
 			    $functionCode .= "      if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('".$componentID.ucfirst($propertyName)."RateGeneric','interrupt required, but optional arguments missing')\n";
@@ -5561,40 +5590,36 @@ sub Generate_GSR_Functions {
 			    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			    $functionCode .= "    ! No specific component exists, so we must interrupt and create one unless the rate is zero.\n";
 			    if ( $linkedData->{'rank'} == 0 ) {
-				switch ( $linkedData->{'type'} ) {
-				    case ( "real"        ) {
-					$functionCode .= "   if (setValue == 0.0d0) return\n";
-				    }
-				    case ( "integer"     ) {
-					die('integer should not be evolvable')
-				    }
-				    case ( "longInteger" ) {
-					die('longInteger should not be evolvable')
-				    }
-				    case ( "logical"     ) {
-					die('logical should not be evolvable')
-				    }
-				    else {
-					$functionCode .= "   if (setValue%isZero()) return\n";
-				    }
+				if    ( $linkedData->{'type'} eq"real"        ) {
+				    $functionCode .= "   if (setValue == 0.0d0) return\n";
+				}
+				elsif ( $linkedData->{'type'} eq"integer"     ) {
+				    die('integer should not be evolvable')
+				}
+				elsif ( $linkedData->{'type'} eq"longInteger" ) {
+				    die('longInteger should not be evolvable')
+				}
+				elsif ( $linkedData->{'type'} eq"logical"     ) {
+				    die('logical should not be evolvable')
+				}
+				else {
+				    $functionCode .= "   if (setValue%isZero()) return\n";
 				}
 			    } else {
-				switch ( $linkedData->{'type'} ) {
-				    case ( "real"        ) {
-					$functionCode .= "   if (all(setValue == 0.0d0)) return\n";
-				    }
-				    case ( "integer"     ) {
-					die('integer should not be evolvable')
-				    }
-				    case ( "longInteger" ) {
-					die('longInteger should not be evolvable')
-				    }
-				    case ( "logical"     ) {
-					die('logical should not be evolvable')
-				    }
-				    else {
-					die('auto-create of rank>0 objects not supported');
-				    }
+				if    ( $linkedData->{'type'} eq"real"        ) {
+				    $functionCode .= "   if (all(setValue == 0.0d0)) return\n";
+				}
+				elsif ( $linkedData->{'type'} eq"integer"     ) {
+				    die('integer should not be evolvable')
+				}
+				elsif ( $linkedData->{'type'} eq"longInteger" ) {
+				    die('longInteger should not be evolvable')
+				}
+				elsif ( $linkedData->{'type'} eq"logical"     ) {
+				    die('logical should not be evolvable')
+				}
+				else {
+				    die('auto-create of rank>0 objects not supported');
 				}
 			    }
 			    $functionCode .= "    if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('".$componentClassName.ucfirst($propertyName)."Rate','interrupt required, but optional arguments missing')\n";
@@ -6075,26 +6100,24 @@ sub Generate_Component_Assignment_Function {
 		my @contents = ( "value" );
 		push(@contents,"rate ","scale")
 		    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
-		switch ( $linkedData->{'type'} ) {
-		    case ( "real"        ) {
-			# Deallocate if necessary.
-			foreach ( @contents ) {
-			    $functionCode .= "   if (allocated(to%".padLinkedData($linkedDataName,[0,0])."%".$_.")) call Dealloc_Array(to%".padLinkedData($linkedDataName,[0,0])."%".$_.") \n"
-				if ( $linkedData->{'rank'} > 0 );
-			}
+		if ( $linkedData->{'type'} eq"real"        ) {
+		    # Deallocate if necessary.
+		    foreach ( @contents ) {
+			$functionCode .= "   if (allocated(to%".padLinkedData($linkedDataName,[0,0])."%".$_.")) call Dealloc_Array(to%".padLinkedData($linkedDataName,[0,0])."%".$_.") \n"
+			    if ( $linkedData->{'rank'} > 0 );
 		    }
-		    case ( "integer"     ) {
-			# Nothing to do in this case.
-		    }
-		    case ( "longInteger" ) {
-			# Nothing to do in this case.
-		    }
-		    case ( "logical"     ) {
-			# Nothing to do in this case.
-		    }
-		    else {
-			$functionCode .= "    call to%".padLinkedData($linkedDataName,[0,0])."%value%destroy()\n";
-		    }
+		}
+		elsif ( $linkedData->{'type'} eq"integer"     ) {
+		    # Nothing to do in this case.
+		}
+		elsif ( $linkedData->{'type'} eq"longInteger" ) {
+		    # Nothing to do in this case.
+		}
+		elsif ( $linkedData->{'type'} eq"logical"     ) {
+		    # Nothing to do in this case.
+		}
+		else {
+		    $functionCode .= "    call to%".padLinkedData($linkedDataName,[0,0])."%value%destroy()\n";
 		}
 		$functionCode .= "          to%".padLinkedData($linkedDataName,[0,0])."%value=from%".padLinkedData($linkedDataName,[0,0])."%value\n";
 	    }
@@ -6776,50 +6799,54 @@ sub Generate_Component_Class_Output_Functions {
 			die("Generate_Component_Class_Output_Functions(): output of rank>1 arrays not supported");
 		    }
 		    # Increment the counters.
-		    switch ( $type ) {
-			case ( [ "real", "integer", "longInteger" ] ) {
-			    if ( $rank == 0 ) {
-				if ( exists($property->{'output'}->{'condition'}) ) {
-				    my $condition = $property->{'output'}->{'condition'};
-				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-				    $functionCode .= "    if (".$condition.") then\n";
-				}
-				$functionCode .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-				$functionCode .= "       ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property)=self%".$propertyName."()\n";
-				$functionCode .= "    end if\n"
-				    if ( exists($property->{'output'}->{'condition'}) );
-			    } else {
-				if ( exists($property->{'output'}->{'condition'}) ) {
-				    die("Generate_Component_Class_Output_Functions(): conditions for rank>1 properties not supported")
-					unless ( $rank == 1 );
-				    my $condition = $property->{'output'}->{'condition'};
-				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-				    $condition =~ s/\{i\}/i/g;
-				    $functionCode .= "    outputRank1".ucfirst($typeMap{$type})."=self%".$propertyName."()\n";
-				    $functionCode .= "    do i=1,".$property->{'output'}->{'count'}."\n";
-				    $functionCode .= "      if (".$condition.") then\n";
-				    $functionCode .= "        ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-				    $functionCode .= "        ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property)=outputRank1".ucfirst($typeMap{$type})."(i)\n";
-				    $functionCode .= "      end if\n";
-				    $functionCode .= "    end do\n";
-				    $functionCode .= "    deallocate(outputRank1".ucfirst($typeMap{$type}).")\n";
-				} else {
-				    $functionCode .= "       ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property+1:".$typeMap{$type}."Property+".$count.")=reshape(self%".$propertyName."(),[".$count."])\n";
-				    $functionCode .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+".$count."\n";
-				}
-			    }
-			}
-			else {
+		    if (
+			$type eq "real"
+			||
+			$type eq "integer"
+			||
+			$type eq "longInteger"
+			) {
+			if ( $rank == 0 ) {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
 				my $condition = $property->{'output'}->{'condition'};
 				$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 				$functionCode .= "    if (".$condition.") then\n";
 			    }
-			    $functionCode .= "      output".ucfirst($type)."=self%".$propertyName."()\n";
-			    $functionCode .= "      call output".ucfirst($type)."%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)\n";
+			    $functionCode .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
+			    $functionCode .= "       ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property)=self%".$propertyName."()\n";
 			    $functionCode .= "    end if\n"
-				if ( exists($property->{'output'}->{'condition'}) );			 
+				if ( exists($property->{'output'}->{'condition'}) );
+			} else {
+			    if ( exists($property->{'output'}->{'condition'}) ) {
+				die("Generate_Component_Class_Output_Functions(): conditions for rank>1 properties not supported")
+				    unless ( $rank == 1 );
+				my $condition = $property->{'output'}->{'condition'};
+				$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
+				$condition =~ s/\{i\}/i/g;
+				$functionCode .= "    outputRank1".ucfirst($typeMap{$type})."=self%".$propertyName."()\n";
+				$functionCode .= "    do i=1,".$property->{'output'}->{'count'}."\n";
+				$functionCode .= "      if (".$condition.") then\n";
+				$functionCode .= "        ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
+				$functionCode .= "        ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property)=outputRank1".ucfirst($typeMap{$type})."(i)\n";
+				$functionCode .= "      end if\n";
+				$functionCode .= "    end do\n";
+				$functionCode .= "    deallocate(outputRank1".ucfirst($typeMap{$type}).")\n";
+			    } else {
+				$functionCode .= "       ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property+1:".$typeMap{$type}."Property+".$count.")=reshape(self%".$propertyName."(),[".$count."])\n";
+				$functionCode .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+".$count."\n";
+			    }
 			}
+		    }
+		    else {
+			if ( exists($property->{'output'}->{'condition'}) ) {
+			    my $condition = $property->{'output'}->{'condition'};
+			    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
+			    $functionCode .= "    if (".$condition.") then\n";
+			}
+			$functionCode .= "      output".ucfirst($type)."=self%".$propertyName."()\n";
+			$functionCode .= "      call output".ucfirst($type)."%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)\n";
+			$functionCode .= "    end if\n"
+			    if ( exists($property->{'output'}->{'condition'}) );			 
 		    }
 		}
 	    }
@@ -6899,26 +6926,24 @@ sub Generate_Component_Implementation_Destruction_Functions {
 		# For each linked datum deallocate if necessary.
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		switch ( $linkedData->{'type'} ) {
-		    case ( "real"        ) {
-			# Nothing to do in this case.
-		    }
-		    case ( "integer"     ) {
-			# Nothing to do in this case.
-		    }
-		    case ( "longInteger" ) {
-			# Nothing to do in this case.
-		    }
-		    case ( "logical"     ) {
-			# Nothing to do in this case.
-		    }
-		    else {
-			my @contents = ( "value" );
-			push(@contents,"rate ","scale")
-			    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
-			$functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%".$_."%destroy()\n"
-			    foreach ( @contents );
-		    }
+		if    ( $linkedData->{'type'} eq"real"        ) {
+		    # Nothing to do in this case.
+		}
+		elsif ( $linkedData->{'type'} eq"integer"     ) {
+		    # Nothing to do in this case.
+		}
+		elsif ( $linkedData->{'type'} eq"longInteger" ) {
+		    # Nothing to do in this case.
+		}
+		elsif ( $linkedData->{'type'} eq"logical"     ) {
+		    # Nothing to do in this case.
+		}
+		else {
+		    my @contents = ( "value" );
+		    push(@contents,"rate ","scale")
+			if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
+		    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%".$_."%destroy()\n"
+			foreach ( @contents );
 		}
 		if ( $linkedData->{'rank'} > 0 ) {
 		    my @contents = ( "value" );
@@ -6980,26 +7005,24 @@ sub Generate_ODE_Initialization_Functions {
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $component->{'content'}->{'data'}->{$linkedDataName}->{'isEvolvable'} eq "true" ) {
-		    switch ( $linkedData->{'type'} ) {
-			case ( "real"    ) {
-			    if ( $linkedData->{'rank'} == 0 ) {
-				$functionCode .= "         self%".$linkedDataName."%rate =0.0d0\n";
-			    } else {
-				$functionCode .= "         if (allocated(self%".$linkedDataName."%rate)) self%".$linkedDataName."%rate =0.0d0\n";
-			    }
+		    if    ( $linkedData->{'type'} eq"real"    ) {
+			if ( $linkedData->{'rank'} == 0 ) {
+			    $functionCode .= "         self%".$linkedDataName."%rate =0.0d0\n";
+			} else {
+			    $functionCode .= "         if (allocated(self%".$linkedDataName."%rate)) self%".$linkedDataName."%rate =0.0d0\n";
 			}
-			case ( "integer" ) {
-			    die "Build_Include_File.pl: integer data type should not be evolvable";
-			}
-			case ( "longInteger" ) {
-			    die "Build_Include_File.pl: longInteger data type should not be evolvable";
-			}
-			case ( "logical" ) {
-			    die "Build_Include_File.pl: logical data type should not be evolvable";
-			}
-			else {
-			    $functionCode .= "    call self%".$linkedDataName."%rate %reset()\n";
-			}
+		    }
+		    elsif ( $linkedData->{'type'} eq"integer" ) {
+			die "Build_Include_File.pl: integer data type should not be evolvable";
+		    }
+		    elsif ( $linkedData->{'type'} eq"longInteger" ) {
+			die "Build_Include_File.pl: longInteger data type should not be evolvable";
+		    }
+		    elsif ( $linkedData->{'type'} eq"logical" ) {
+			die "Build_Include_File.pl: logical data type should not be evolvable";
+		    }
+		    else {
+			$functionCode .= "    call self%".$linkedDataName."%rate %reset()\n";
 		    }
 		}
 	    }
@@ -7032,26 +7055,24 @@ sub Generate_ODE_Initialization_Functions {
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $component->{'content'}->{'data'}->{$linkedDataName}->{'isEvolvable'} eq "true" ) {
-		    switch ( $linkedData->{'type'} ) {
-			case ( "real"    ) {
-			    if ( $linkedData->{'rank'} == 0 ) {
-				$functionCode .= "         self%".$linkedDataName."%scale=1.0d0\n";
-			    } else {
-				$functionCode .= "         if (allocated(self%".$linkedDataName."%scale)) self%".$linkedDataName."%scale=1.0d0\n";
-			    }
+		    if    ( $linkedData->{'type'} eq"real"    ) {
+			if ( $linkedData->{'rank'} == 0 ) {
+			    $functionCode .= "         self%".$linkedDataName."%scale=1.0d0\n";
+			} else {
+			    $functionCode .= "         if (allocated(self%".$linkedDataName."%scale)) self%".$linkedDataName."%scale=1.0d0\n";
 			}
-			case ( "integer" ) {
-			    die "Integer data type should not be evolvable";
-			}
-			case ( "longInteger" ) {
-			    die "longInteger data type should not be evolvable";
-			}
-			case ( "logical" ) {
-			    die "Logical data type should not be evolvable";
-			}
-			else {
-			    $functionCode .= "    call self%".$linkedDataName."%scale%setToUnity()\n";
-			}
+		    }
+		    elsif ( $linkedData->{'type'} eq"integer" ) {
+			die "Integer data type should not be evolvable";
+		    }
+		    elsif ( $linkedData->{'type'} eq"longInteger" ) {
+			die "longInteger data type should not be evolvable";
+		    }
+		    elsif ( $linkedData->{'type'} eq"logical" ) {
+			die "Logical data type should not be evolvable";
+		    }
+		    else {
+			$functionCode .= "    call self%".$linkedDataName."%scale%setToUnity()\n";
 		    }
 		}
 	    }
@@ -7316,22 +7337,20 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    $functionCode .= $defaultLines;
 		    # Insert code to return zero values by default.
 		    if ( $linkedData->{'rank'} == 0 ) {
-			switch ( $linkedData->{'type'} ) {
-			    case ( "real"        ) {
-				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0.0d0\n";
-			    }
-			    case ( "integer"     ) {
-				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0\n";
-			    }
-			    case ( "longInteger" ) {
-				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0_kind_int8\n";
-			    }
-			    case ( "logical"     ) {
-				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=.false.\n";
-			    }
-			    else {
-				$functionCode .= "     call ".ucfirst($componentClassName).ucfirst($propertyName)."%reset()\n";
-			    }
+			if    ( $linkedData->{'type'} eq"real"        ) {
+			    $functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0.0d0\n";
+			}
+			elsif ( $linkedData->{'type'} eq"integer"     ) {
+			    $functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0\n";
+			}
+			elsif ( $linkedData->{'type'} eq"longInteger" ) {
+			    $functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0_kind_int8\n";
+			}
+			elsif ( $linkedData->{'type'} eq"logical"     ) {
+			    $functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=.false.\n";
+			}
+			else {
+			    $functionCode .= "     call ".ucfirst($componentClassName).ucfirst($propertyName)."%reset()\n";
 			}
 		    } else {
 			$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=null".$label.$linkedData->{'rank'}."d\n";

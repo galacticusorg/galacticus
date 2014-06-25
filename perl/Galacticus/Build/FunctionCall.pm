@@ -14,7 +14,6 @@ use warnings;
 use utf8;
 use DateTime;
 use Data::Dumper;
-use Switch;
 use Scalar::Util 'reftype';
 require Galacticus::Build::Hooks;
 require Galacticus::Build::Dependencies;
@@ -49,79 +48,75 @@ sub Function_Calls_Parse_Directive {
 
     # Determine the type of function call.
     my $include = 1;
-    switch ( $buildData->{'functionType'} ) {
+    if ( $buildData->{'functionType'} eq "pointer" ) {
 	# Action is to assign a procedure pointer.
-	case ( "pointer" ) {
-	    $buildData->{'functionCall'}->{$unitName}->{'code'} = $buildData->{'pointerName'}." => ".$unitName."\n";
-	}
+	$buildData->{'functionCall'}->{$unitName}->{'code'} = $buildData->{'pointerName'}." => ".$unitName."\n";
+    } elsif ( $buildData->{'functionType'} eq "void" ) {
      	# Action is to call a void function.
-     	case ( "void" ) {
-	    if ( exists($buildData->{'exclude'}) ) {
-		$include = 0
-		    if ( $buildData->{'exclude'} eq $buildData->{'currentDocument'}->{'unitName'} );
-	    }
-	    if ( $include == 1 ) {
-		$buildData->{'functionCall'}->{$unitName}->{'code'} = "call ".$buildData->{'currentDocument'}->{'unitName'}."(";
-		# If we have function arguments, append them to the call.
-		my $arguments = "";
-		if ( exists($buildData->{'functionArgs'}) ) {
-		    if ( defined(reftype($buildData->{'functionArgs'})) && reftype($buildData->{'functionArgs'}) eq "HASH" ) {
-			if ( exists($buildData->{'functionArgs'}->{$buildData->{'codeType'}}) ) {
-			    $arguments = $buildData->{'functionArgs'}->{$buildData->{'codeType'}};
-			} else {
-			    die ("Galacticus::Build::FunctionCall::Function_Calls_Parse_Directive: function arguments not given for this language")
-			}
+	if ( exists($buildData->{'exclude'}) ) {
+	    $include = 0
+		if ( $buildData->{'exclude'} eq $buildData->{'currentDocument'}->{'unitName'} );
+	}
+	if ( $include == 1 ) {
+	    $buildData->{'functionCall'}->{$unitName}->{'code'} = "call ".$buildData->{'currentDocument'}->{'unitName'}."(";
+	    # If we have function arguments, append them to the call.
+	    my $arguments = "";
+	    if ( exists($buildData->{'functionArgs'}) ) {
+		if ( defined(reftype($buildData->{'functionArgs'})) && reftype($buildData->{'functionArgs'}) eq "HASH" ) {
+		    if ( exists($buildData->{'functionArgs'}->{$buildData->{'codeType'}}) ) {
+			$arguments = $buildData->{'functionArgs'}->{$buildData->{'codeType'}};
 		    } else {
 			die ("Galacticus::Build::FunctionCall::Function_Calls_Parse_Directive: function arguments not given for this language")
-			    unless ( $buildData->{'codeType'} eq "fortran" );
-			$arguments = $buildData->{'functionArgs'};
 		    }
+		} else {
+		    die ("Galacticus::Build::FunctionCall::Function_Calls_Parse_Directive: function arguments not given for this language")
+			unless ( $buildData->{'codeType'} eq "fortran" );
+		    $arguments = $buildData->{'functionArgs'};
 		}
-		# Replace any "#label" placeholder with the actual label.
-		unless ( $arguments eq "" ) {
-		    $buildData->{'functionCall'}->{$unitName}->{'code'} .= ","
-			unless ( $buildData->{'functionCall'}->{$unitName}->{'code'} =~ m/\($/ );
-		    $arguments =~ s/\#label/$buildData->{'currentDocument'}->{'label'}/g;
-		    $buildData->{'functionCall'}->{$unitName}->{'code'} .= $arguments;
-		}
-		$buildData->{'functionCall'}->{$unitName}->{'code'} .= ")\n";	       
 	    }
-     	}
+	    # Replace any "#label" placeholder with the actual label.
+	    unless ( $arguments eq "" ) {
+		$buildData->{'functionCall'}->{$unitName}->{'code'} .= ","
+		    unless ( $buildData->{'functionCall'}->{$unitName}->{'code'} =~ m/\($/ );
+		$arguments =~ s/\#label/$buildData->{'currentDocument'}->{'label'}/g;
+		$buildData->{'functionCall'}->{$unitName}->{'code'} .= $arguments;
+	    }
+	    $buildData->{'functionCall'}->{$unitName}->{'code'} .= ")\n";	       
+	}
+    } elsif ( $buildData->{'functionType'} eq "function" ) {
      	# Action is to call a function that returns a result.
-     	case ( "function" ) {
-	    if ( exists($buildData->{'exclude'}) ) {
-		$include = 0
-		    if ( $buildData->{'exclude'} eq $buildData->{'currentDocument'}->{'unitName'} );
-	    }
-	    if ( $include == 1 ) {
-		die('Galacticus::Build::FunctionCall: no return parameter specified')
-		    unless ( exists($buildData->{'returnParameter'}) );
-		$buildData->{'functionCall'}->{$unitName}->{'code'} = $buildData->{'returnParameter'}."=".$buildData->{'currentDocument'}->{'unitName'}."(";
-		# If we have function arguments, append them to the call.
-		my $arguments = "";
-		if ( exists($buildData->{'functionArgs'}) ) {
-		    if ( defined(reftype($buildData->{'functionArgs'})) && reftype($buildData->{'functionArgs'}) eq "HASH" ) {
-			if ( exists($buildData->{'functionArgs'}->{$buildData->{'codeType'}}) ) {
-			    $arguments = $buildData->{'functionArgs'}->{$buildData->{'codeType'}};
-			} else {
-			    die ("Galacticus::Build::FunctionCall::Function_Calls_Parse_Directive: function arguments not given for this language")
-			}
+	if ( exists($buildData->{'exclude'}) ) {
+	    $include = 0
+		if ( $buildData->{'exclude'} eq $buildData->{'currentDocument'}->{'unitName'} );
+	}
+	if ( $include == 1 ) {
+	    die('Galacticus::Build::FunctionCall: no return parameter specified')
+		unless ( exists($buildData->{'returnParameter'}) );
+	    $buildData->{'functionCall'}->{$unitName}->{'code'} = $buildData->{'returnParameter'}."=".$buildData->{'currentDocument'}->{'unitName'}."(";
+	    # If we have function arguments, append them to the call.
+	    my $arguments = "";
+	    if ( exists($buildData->{'functionArgs'}) ) {
+		if ( defined(reftype($buildData->{'functionArgs'})) && reftype($buildData->{'functionArgs'}) eq "HASH" ) {
+		    if ( exists($buildData->{'functionArgs'}->{$buildData->{'codeType'}}) ) {
+			$arguments = $buildData->{'functionArgs'}->{$buildData->{'codeType'}};
 		    } else {
 			die ("Galacticus::Build::FunctionCall::Function_Calls_Parse_Directive: function arguments not given for this language")
-			    unless ( $buildData->{'codeType'} eq "fortran" );
-			$arguments = $buildData->{'functionArgs'};
 		    }
+		} else {
+		    die ("Galacticus::Build::FunctionCall::Function_Calls_Parse_Directive: function arguments not given for this language")
+			unless ( $buildData->{'codeType'} eq "fortran" );
+		    $arguments = $buildData->{'functionArgs'};
 		}
-		# Replace any "#label" placeholder with the actual label.
-		unless ( $arguments eq "" ) {
-		    $buildData->{'functionCall'}->{$unitName}->{'code'} .= ","
-			unless ( $buildData->{'functionCall'}->{$unitName}->{'code'} =~ m/\($/ );
-		    $arguments =~ s/\#label/$buildData->{'currentDocument'}->{'label'}/g;
-		    $buildData->{'functionCall'}->{$unitName}->{'code'} .= $arguments;
-		}
-		$buildData->{'functionCall'}->{$unitName}->{'code'} .= ")\n";	       
 	    }
-     	}
+	    # Replace any "#label" placeholder with the actual label.
+	    unless ( $arguments eq "" ) {
+		$buildData->{'functionCall'}->{$unitName}->{'code'} .= ","
+		    unless ( $buildData->{'functionCall'}->{$unitName}->{'code'} =~ m/\($/ );
+		$arguments =~ s/\#label/$buildData->{'currentDocument'}->{'label'}/g;
+		$buildData->{'functionCall'}->{$unitName}->{'code'} .= $arguments;
+	    }
+	    $buildData->{'functionCall'}->{$unitName}->{'code'} .= ")\n";	       
+	}
     }
 
     # Add in any dependency sort information.

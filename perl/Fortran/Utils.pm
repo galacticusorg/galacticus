@@ -14,13 +14,12 @@ unshift(@INC,$galacticusPath."perl");
 use File::Copy;
 use Text::Balanced qw (extract_bracketed);
 use Text::Table;
-use Switch;
 use Data::Dumper;
 use Fcntl qw(SEEK_SET);
 
 # RegEx's useful for matching Fortran code.
 our $classDeclarationRegEx = qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i;
-our $variableDeclarationRegEx = qr/^\s*(?i)(integer|real|double precision|logical|character|type|class)(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
+our $variableDeclarationRegEx = qr/^\s*(?i)(integer|real|double precision|logical|character|type|class|complex)(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
 
 sub Truncate_Fortran_Lines {
     # Scans a Fortran file and truncates source lines to be less than 132 characters in length as (still) required by some compilers.
@@ -233,10 +232,12 @@ sub read_file {
 	    }
 	    # Process the line.
 	    my $line;
-	    switch ( $returnType ) {
-		case ( "raw"       ) {$line = $rawLine         }
-		case ( "processed" ) {$line = $processedLine   }
-		case ( "comments"  ) {$line = $bufferedComments}
+	    if      ( $returnType eq "raw"       ) {
+		$line = $rawLine;
+	    } elsif ( $returnType eq "processed" ) {
+		$line = $processedLine;
+	    } elsif ( $returnType eq "comments"  ) {
+		$line = $bufferedComments;		
 	    }
 	    $line =~ s/$stripRegEx//
 		if ( defined($stripRegEx) );

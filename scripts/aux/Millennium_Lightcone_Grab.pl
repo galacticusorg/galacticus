@@ -6,7 +6,6 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::LinearAlgebra;
 use Astro::Cosmology;
-use Switch;
 use XML::Simple;
 
 # Extract a set of trees from the Millennium Simulation database that are required to populate a lightcone.

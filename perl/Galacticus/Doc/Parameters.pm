@@ -14,7 +14,6 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
 unshift(@INC, $galacticusPath."perl"); 
 use XML::Simple;
 use Fcntl qw(SEEK_SET);
-use Switch;
 require Fortran::Utils;
 
 sub ExpandRegEx {
@@ -70,16 +69,13 @@ sub ExpandRegEx {
 		    my $rawLine;
 		    my $processedLine;
 		    my $bufferedComments;
-		    switch ( $codeType ) {
-			case ( "fortran" ) {
-			    # Get next line from the Fortran source.
-			    &Fortran_Utils::Get_Fortran_Line($infile,$rawLine,$processedLine,$bufferedComments);
-			}
-			case ( "c" ) {
-			    # Get the next line from a C(++) source.
-			    $processedLine = <$infile>;
-			    $rawLine       = $processedLine;	
-			}
+		    if ( $codeType eq "fortran" ) {
+			# Get next line from the Fortran source.
+			&Fortran_Utils::Get_Fortran_Line($infile,$rawLine,$processedLine,$bufferedComments);
+		    } elsif ( $codeType eq "c" ) {
+			# Get the next line from a C(++) source.
+			$processedLine = <$infile>;
+			$rawLine       = $processedLine;	
 		    }
 		    my $lineNumber = $.;	    
 		    # Detect include files, and recurse into them.
@@ -100,13 +96,10 @@ sub ExpandRegEx {
 			unless ( $xmlCode =~  m/\/>/ ) {
 			    my $nextLine = "";
 			    until ( $nextLine =~ m/<\/$xmlTag>/ || eof($infile) ) {
-				switch ( $codeType) {
-				    case ( "fortran" ) {
-					&Fortran_Utils::Get_Fortran_Line($infile,$nextLine,$processedLine,$bufferedComments);
-				    }
-				    case ( "c" ) {
-					$nextLine = <$infile>;
-				    }
+				if ( $codeType eq "fortran" ) {
+				    &Fortran_Utils::Get_Fortran_Line($infile,$nextLine,$processedLine,$bufferedComments);
+				} elsif ( $codeType eq "c" ) {
+				    $nextLine = <$infile>;
 				}
 				$nextLine =~ s/^\s*(!|\/\/)\#\s+//;
 				$xmlCode .= $nextLine;

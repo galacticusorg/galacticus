@@ -11,7 +11,6 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
 unshift(@INC, $galacticusPath."perl"); 
 use XML::Simple;
 use Data::Dumper;
-use Switch;
 use Scalar::Util 'reftype';
 use Fcntl qw(SEEK_SET);
 use UNIVERSAL;
@@ -99,16 +98,13 @@ foreach my $currentFileName ( @filesToScan ) {
 	    my $rawLine;
 	    my $processedLine;
 	    my $bufferedComments;
-	    switch ( $buildData->{'codeType'} ) {
-		case ( "fortran" ) {
-		    # Get next line from the Fortran source.
-		    &Fortran_Utils::Get_Fortran_Line($infile,$rawLine,$processedLine,$bufferedComments);
-		}
-		case ( "c" ) {
-		    # Get the next line from a C(++) source.
-		    $processedLine = <$infile>;
-		    $rawLine       = $processedLine;	
-		}
+	    if ( $buildData->{'codeType'} eq "fortran" ) {
+		# Get next line from the Fortran source.
+		&Fortran_Utils::Get_Fortran_Line($infile,$rawLine,$processedLine,$bufferedComments);
+	    } elsif ( $buildData->{'codeType'} eq "c" ) {
+		# Get the next line from a C(++) source.
+		$processedLine = <$infile>;
+		$rawLine       = $processedLine;	
 	    }
 	    my $lineNumber = $.;
 	    
@@ -135,13 +131,10 @@ foreach my $currentFileName ( @filesToScan ) {
 		unless ( $xmlCode =~  m/\/>/ ) {
 		    my $nextLine = "";
 		    until ( $nextLine =~ m/<\/$xmlTag>/ || eof($infile) ) {
-			switch ( $buildData->{'codeType'}) {
-			    case ( "fortran" ) {
+			if ( $buildData->{'codeType'} eq "fortran" ) {
 				&Fortran_Utils::Get_Fortran_Line($infile,$nextLine,$processedLine,$bufferedComments);
-			    }
-			    case ( "c" ) {
-				$nextLine = <$infile>;
-			    }
+			} elsif ( $buildData->{'codeType'} eq "c" ) {
+			    $nextLine = <$infile>;
 			}
 			$nextLine =~ s/^\s*(!|\/\/)\#\s+//;
 			$xmlCode .= $nextLine;
