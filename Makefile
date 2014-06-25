@@ -6,10 +6,10 @@
 PREPROCESSOR ?= cpp
 
 # Fortran compiler:
-FCCOMPILER ?= gfortran
+FCCOMPILER ?= mpif90
 
 # C compiler:
-CCOMPILER ?= gcc
+CCOMPILER ?= mpicc
 
 # C++ compiler:
 CPPCOMPILER ?= g++
@@ -22,11 +22,11 @@ CONDORLINKER =
 MODULETYPE ?= GCC-f95-on-LINUX
 
 # Fortran compiler flags:
-FCFLAGS += -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules
+FCFLAGS += -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib
 # Fortran77 compiler flags:
 F77FLAGS = -g
 # Error checking flags
-FCFLAGS += -Wall -g -fbacktrace -ffpe-trap=invalid,zero,overflow
+FCFLAGS += -Wall -g -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core
 # Add bounds checking.
 #FCFLAGS += -fbounds-check
 # Add profiling.
@@ -101,13 +101,16 @@ vpath %.cpp source
 	$(CPPCOMPILER) -c $< -o ./work/build/$*.o $(CPPFLAGS)
 
 # Object (*.o) files are built by compiling Fortran (*.f) source files.
-%.o : %.f %.d Makefile
+%.o : %.f ./work/build/%.d ./work/build/%.fl Makefile
 	$(FCCOMPILER) -c $< -o $*.o $(F77FLAGS)
 
 # Special rules required for building some sources (unfortunate, but necessary....)
 # bivar.F90 doesn't like to be compiled with any optimization:
 ./work/build/Bivar/bivar.o : ./source/Bivar/bivar.F90 Makefile
 	$(FCCOMPILER) -c $< -o ./work/build/Bivar/bivar.o $(FCFLAGS_NOOPT)
+# pfq.new.f
+./work/build/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
+	$(FCCOMPILER) -c $< -o ./work/build/pFq/pfq.new.o $(FCFLAGS)
 
 # Rule for running *.Inc files through the preprocessor.
 ./work/build/%.Inc : ./source/%.Inc
@@ -119,6 +122,8 @@ vpath %.cpp source
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
 # Makefile_Use_Deps Makefile_Module_Deps files, but this acts as a fallback rule.
 ./work/build/%.d : ./source/%.F90
+	@echo ./work/build/$*.o > ./work/build/$*.d
+./work/build/%.d : ./source/%.f
 	@echo ./work/build/$*.o > ./work/build/$*.d
 ./work/build/%.d : ./source/%.c
 	@echo ./work/build/$*.o > ./work/build/$*.d
