@@ -9,7 +9,6 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
  $galacticusPath = "./";
 }
 unshift(@INC,$galacticusPath."perl"); 
-use Switch;
 use XML::Simple;
 require Fortran::Utils;
 require File::Changes;
@@ -69,11 +68,9 @@ foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
     $type    =~ s/\s/_/g;                   # Convert spaces to underscores.
     my $typeLowerCase = lc($type);          # All lower case version of type name.
     my $typeSize = "";
-    switch ( $typeName ) {
-	case ( "character"        ) {
-	    $typeSize = "len(thisArray)";
-	    $typeName .= "(len=*)";
-	}
+    if ( $typeName eq "character" ) {
+	$typeSize = "len(thisArray)";
+	$typeName .= "(len=*)";
     }
 
     # Create "kind" label if necessary.

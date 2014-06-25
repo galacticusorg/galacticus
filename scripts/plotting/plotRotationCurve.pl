@@ -9,7 +9,6 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
  $galacticusPath = "./";
 }
 unshift(@INC,$galacticusPath."perl"); 
-use Switch;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
@@ -103,34 +102,26 @@ foreach ( @rotationCurveDataSets ) {
 	my $type   = $2;
 	my $radius = $3;
 	my $scaleFactor = 1.0;
-	switch ( $scale ) {
-	    case ( "diskRadius"             ) {
-		$scaleFactor = $galacticus->{'dataSets'}->{'diskRadius'            }->(($selected))                ;
-	    }
-	    case ( "spheroidRadius"         ) {
-		$scaleFactor = $galacticus->{'dataSets'}->{'spheroidRadius'        }->(($selected))                ;
-	    }
-	    case ( "diskHalfMassRadius"     ) {
-		# Ensure that exponential disks are being used.
-		die('plotRotationCurve.pl: only exponential disks are supported at present')
-		    unless ( $galacticus->{'parameters'}->{'treeNodeMethodDisk'} eq "exponential" );
-		$scaleFactor = $galacticus->{'dataSets'}->{'diskRadius'            }->(($selected))*1.678346990    ;
-	    }
-	    case ( "spheroidHalfMassRadius" ) {
-		# Ensure that Hernquist spheroids are being used.
-		die('plotRotationCurve.pl: only Hernquist spheroids are supported at present')
-		    unless ( $galacticus->{'parameters'}->{'spheroidMassDistribution'} eq "hernquist" );
-		$scaleFactor = $galacticus->{'dataSets'}->{'spheroidRadius'        }->(($selected))/(sqrt(2.0)-1.0);
-	    }
-	    case ( "virialRadius"           ) {
-		$scaleFactor = $galacticus->{'dataSets'}->{'nodeVirialRadius'      }->(($selected))                ;
-	    }
-	    case ( "darkMatterScaleRadius"  ) {
-		$scaleFactor = $galacticus->{'dataSets'}->{'darkMatterProfileScale'}->(($selected))                ;
-	    }
-	    else { 
-		die('plotRotationCurve.pl: unrecognized scale');
-	    }
+	if ( $scale eq "diskRadius"             ) {
+	    $scaleFactor = $galacticus->{'dataSets'}->{'diskRadius'            }->(($selected))                ;
+	} elsif ( $scale eq "spheroidRadius"         ) {
+	    $scaleFactor = $galacticus->{'dataSets'}->{'spheroidRadius'        }->(($selected))                ;
+	} elsif ( $scale eq "diskHalfMassRadius"     ) {
+	    # Ensure that exponential disks are being used.
+	    die('plotRotationCurve.pl: only exponential disks are supported at present')
+		unless ( $galacticus->{'parameters'}->{'treeNodeMethodDisk'} eq "exponential" );
+	    $scaleFactor = $galacticus->{'dataSets'}->{'diskRadius'            }->(($selected))*1.678346990    ;
+	} elsif ( $scale eq "spheroidHalfMassRadius" ) {
+	    # Ensure that Hernquist spheroids are being used.
+	    die('plotRotationCurve.pl: only Hernquist spheroids are supported at present')
+		unless ( $galacticus->{'parameters'}->{'spheroidMassDistribution'} eq "hernquist" );
+	    $scaleFactor = $galacticus->{'dataSets'}->{'spheroidRadius'        }->(($selected))/(sqrt(2.0)-1.0);
+	} elsif ( $scale eq "virialRadius"           ) {
+	    $scaleFactor = $galacticus->{'dataSets'}->{'nodeVirialRadius'      }->(($selected))                ;
+	} elsif ( $scale eq "darkMatterScaleRadius"  ) {
+	    $scaleFactor = $galacticus->{'dataSets'}->{'darkMatterProfileScale'}->(($selected))                ;
+	} else { 
+	    die('plotRotationCurve.pl: unrecognized scale');
 	}
 	$radius *= 1000.0*$scaleFactor;
 	my $velocity = $galacticus->{'dataSets'}->{$_}->(($selected));

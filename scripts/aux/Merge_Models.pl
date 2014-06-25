@@ -5,7 +5,6 @@ use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use PDL::IO::HDF5::Group;
-use Switch;
 use Data::UUID;
 use Data::Dumper;
 
@@ -302,65 +301,60 @@ foreach my $outputGroup ( keys(%outputRules) ) {
 			foreach my $instruction ( keys(%instructions) ) {
 			    $action = $instructions{$instruction} if ( $fullPath =~ m/$instruction/ );
 			}
-			switch ($action) {
-			    case ( "singleCopy" ) {
-				if ( $isFirstFile == 1 ) {
-				    my $thisGroupObject = $outputFile->group($thisGroup);
-				    my $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
-										 parent  => $thisGroupObject,
-										 fileObj => $outputFile
-										 );
-				    my $originalDataset = $mergeFile->group($thisGroup)->dataset($dataset);
-				    my $datasetValues = $originalDataset->get;
-				    $newDataset->set($datasetValues);
-				    &Copy_Attributes($originalDataset,$newDataset);
-				}
-			    }
-			    case ( "copy" ) {
+			if ( $action eq "singleCopy" ) {
+			    if ( $isFirstFile == 1 ) {
 				my $thisGroupObject = $outputFile->group($thisGroup);
 				my $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
 									     parent  => $thisGroupObject,
 									     fileObj => $outputFile
-									     );
+				    );
 				my $originalDataset = $mergeFile->group($thisGroup)->dataset($dataset);
 				my $datasetValues = $originalDataset->get;
 				$newDataset->set($datasetValues);
 				&Copy_Attributes($originalDataset,$newDataset);
 			    }
-			    case ( "cumulate" ) {
-				my $thisGroupObject = $outputFile->group($thisGroup);
-				my $originalDataset = $mergeFile->group($thisGroup)->dataset($dataset);
-				my $datasetValues = $originalDataset->get;
-				my $newDataset;
-				if ( $isFirstFile == 1 ) {
-				    $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
-									      parent  => $thisGroupObject,
-									      fileObj => $outputFile
-									      );
-				} else {
-				    $newDataset = $thisGroupObject->dataset($dataset);
-				    $datasetValues += $newDataset->get;
-				}
-				$newDataset->set($datasetValues);
-				&Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
+			} elsif ( $action eq "copy" ) {
+			    my $thisGroupObject = $outputFile->group($thisGroup);
+			    my $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+									 parent  => $thisGroupObject,
+									 fileObj => $outputFile
+				);
+			    my $originalDataset = $mergeFile->group($thisGroup)->dataset($dataset);
+			    my $datasetValues = $originalDataset->get;
+			    $newDataset->set($datasetValues);
+			    &Copy_Attributes($originalDataset,$newDataset);
+			} elsif ( $action eq "cumulate" ) {
+			    my $thisGroupObject = $outputFile->group($thisGroup);
+			    my $originalDataset = $mergeFile->group($thisGroup)->dataset($dataset);
+			    my $datasetValues = $originalDataset->get;
+			    my $newDataset;
+			    if ( $isFirstFile == 1 ) {
+				$newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+									  parent  => $thisGroupObject,
+									  fileObj => $outputFile
+				    );
+			    } else {
+				$newDataset = $thisGroupObject->dataset($dataset);
+				$datasetValues += $newDataset->get;
 			    }
-			    case ( "append" ) {
-				my $thisGroupObject = $outputFile->group($thisGroup);
-				my $originalDataset = $mergeFile ->group($thisGroup)->dataset($dataset);
-				my $datasetValues   = $originalDataset->get();
-				my $newDataset;
-				if ( $isFirstFile == 1 ) {
-				    $newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
-									      parent  => $thisGroupObject,
-									      fileObj => $outputFile
-									      );
-				} else {
-				    $newDataset    = $thisGroupObject->dataset($dataset);
-				    $datasetValues = $datasetValues->append($newDataset->get());
-				}
-				$newDataset->set($datasetValues,unlimited => 1);
-				&Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
+			    $newDataset->set($datasetValues);
+			    &Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
+			} elsif ( $action eq "append" ) {
+			    my $thisGroupObject = $outputFile->group($thisGroup);
+			    my $originalDataset = $mergeFile ->group($thisGroup)->dataset($dataset);
+			    my $datasetValues   = $originalDataset->get();
+			    my $newDataset;
+			    if ( $isFirstFile == 1 ) {
+				$newDataset = new PDL::IO::HDF5::Dataset( name    => $dataset,
+									  parent  => $thisGroupObject,
+									  fileObj => $outputFile
+				    );
+			    } else {
+				$newDataset    = $thisGroupObject->dataset($dataset);
+				$datasetValues = $datasetValues->append($newDataset->get());
 			    }
+			    $newDataset->set($datasetValues,unlimited => 1);
+			    &Copy_Attributes($originalDataset,$newDataset) if ( $isFirstFile == 1 );
 			}
 		    }
 		}

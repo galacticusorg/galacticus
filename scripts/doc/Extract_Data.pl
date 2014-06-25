@@ -10,7 +10,6 @@ unshift(@INC,$galacticusPath."perl");
 use lib './perl';
 use strict;
 use warnings;
-use Switch;
 use XML::Simple;
 use Data::Dumper;
 use LaTeX::Encode;
@@ -178,139 +177,134 @@ foreach my $fileName ( @fileNames ) {
 		# Loop over all data types found.
 		foreach my $dataType ( keys(%{$data}) ) {
 		    my $contents = $data->{$dataType};
-		    switch ( $dataType ) {
-			case ( "enumeration" ) {
-			    foreach ( @{$contents->{'entry'}}) {
-				push(@{$enumerations{$contents->{'name'}}->{'entry'}},$_->{'label'});
-			    }
+		    if ( $dataType eq "enumeration" ) {
+			foreach ( @{$contents->{'entry'}}) {
+			    push(@{$enumerations{$contents->{'name'}}->{'entry'}},$_->{'label'});
+			}
+			my $programUnitIndex = scalar(@programUnits)-1;
+			$programUnitIndex = -1 
+			    unless ( defined($programUnits[$programUnitIndex]) );
+			my $regEx = "^module";
+			until ( $programUnitIndex == -1 || $programUnits[$programUnitIndex] =~ m/$regEx/ ) {
+			    --$programUnitIndex
+			}
+			($enumerations{$contents->{'name'}}->{'module'     } = $programUnits[$programUnitIndex]) =~ s/^module://;
+			$enumerations {$contents->{'name'}}->{'file'       } = $leafName;
+			    $enumerations {$contents->{'name'}}->{'description'} = $contents->{'description'};
+		    } elsif ( $dataType eq "inputParameter" ) {
+			# Handle parameters defined as regular expressions.
+			if ( exists($contents->{'regEx'}) ) {
+			    $contents->{'name'} = "[regEx] ".latex_encode(&Parameters::ExpandRegEx($contents->{'regEx'},$sourceDir));
+			}
+			# Construct output data for this parameter.
+			(my $printName = $contents->{'name'}) =~ s/([^\\])_/$1\\_/g;
+			my $buffer  = "\\noindent {\\bf Name:} {\\tt ".$printName."}\\\\\n";
+			$buffer .= "{\\bf Attached to:} ";
+			my $attachedTo;
+			my $attachedAt;
+			# Detect empty "defaultValue" elements.
+			if ( exists($contents->{'defaultValue'}) && UNIVERSAL::isa($contents->{'defaultValue'},"HASH") ) {
+			    push(
+				@emptyDefaults,
+				{
+				    name => $contents->{'name'},
+				    file => $fileNames[0]
+				}
+				);
+			    delete($contents->{'defaultValue'});
+			}
+			# Determine to what the parameter is attached.
+			if ( exists($contents->{'attachedTo'}) ) {
 			    my $programUnitIndex = scalar(@programUnits)-1;
+			    my $regEx = $contents->{'attachedTo'}.":";
 			    $programUnitIndex = -1 
 				unless ( defined($programUnits[$programUnitIndex]) );
-			    my $regEx = "^module";
 			    until ( $programUnitIndex == -1 || $programUnits[$programUnitIndex] =~ m/$regEx/ ) {
 				--$programUnitIndex
 			    }
-			    ($enumerations{$contents->{'name'}}->{'module'     } = $programUnits[$programUnitIndex]) =~ s/^module://;
-			    $enumerations {$contents->{'name'}}->{'file'       } = $leafName;
-			    $enumerations {$contents->{'name'}}->{'description'} = $contents->{'description'};
+			    if ( $programUnitIndex >= 0 ) {
+				$attachedTo = "{\\tt ".$programUnits[$programUnitIndex]."}";
+				$attachedAt = $programUnitIndex;
+			    } else {
+				$attachedTo = "unknown";
+				$attachedAt = -1;
+			    }
+			} else {
+			    $attachedTo = "{\\tt ".$programUnits[-1]."}";
+			    $attachedAt = scalar(@programUnits)-1;
 			}
-			case ( "inputParameter" ) {
-			    # Handle parameters defined as regular expressions.
-			    if ( exists($contents->{'regEx'}) ) {
-				$contents->{'name'} = "[regEx] ".latex_encode(&Parameters::ExpandRegEx($contents->{'regEx'},$sourceDir));
+			my $attachedLink = $leafName.":";
+			for(my $iAttach=0;$iAttach<=$attachedAt;++$iAttach) {
+			    if ( $programUnits[$iAttach] =~ m/^[^:]+:(.*)/ ) {
+				my $unitName = lc($1);
+				$unitName =~ s/\\_/_/g;
+				$attachedLink .= $unitName.":";
 			    }
-			    # Construct output data for this parameter.
-			    (my $printName = $contents->{'name'}) =~ s/([^\\])_/$1\\_/g;
-			    my $buffer  = "\\noindent {\\bf Name:} {\\tt ".$printName."}\\\\\n";
-			    $buffer .= "{\\bf Attached to:} ";
-			    my $attachedTo;
-			    my $attachedAt;
-			    # Detect empty "defaultValue" elements.
-			    if ( exists($contents->{'defaultValue'}) && UNIVERSAL::isa($contents->{'defaultValue'},"HASH") ) {
-				push(
-				    @emptyDefaults,
-				    {
-					name => $contents->{'name'},
-					file => $fileNames[0]
-				    }
-				    );
-				delete($contents->{'defaultValue'});
-			    }
-			    # Determine to what the parameter is attached.
-			    if ( exists($contents->{'attachedTo'}) ) {
-				my $programUnitIndex = scalar(@programUnits)-1;
-				my $regEx = $contents->{'attachedTo'}.":";
-				$programUnitIndex = -1 
-				    unless ( defined($programUnits[$programUnitIndex]) );
-				until ( $programUnitIndex == -1 || $programUnits[$programUnitIndex] =~ m/$regEx/ ) {
-				    --$programUnitIndex
-				}
-				if ( $programUnitIndex >= 0 ) {
-				    $attachedTo = "{\\tt ".$programUnits[$programUnitIndex]."}";
-				    $attachedAt = $programUnitIndex;
-				} else {
-				    $attachedTo = "unknown";
-				    $attachedAt = -1;
-				}
-			    } else {
-				$attachedTo = "{\\tt ".$programUnits[-1]."}";
-				$attachedAt = scalar(@programUnits)-1;
-			    }
-			    my $attachedLink = $leafName.":";
-			    for(my $iAttach=0;$iAttach<=$attachedAt;++$iAttach) {
-				if ( $programUnits[$iAttach] =~ m/^[^:]+:(.*)/ ) {
-				    my $unitName = lc($1);
-				    $unitName =~ s/\\_/_/g;
-				    $attachedLink .= $unitName.":";
-				}
-			    }
-			    $attachedLink =~ s/:$//;
-			    my $targetPrefix;
-			    my $targetSuffix;
-			    if ( $attachedTo =~ m/:/ ) {
-				$targetPrefix = "\\hyperlink{".$attachedLink."}{";
-				$targetPrefix =~ s/\{\\tt\s+([^\}]+)\}/$1/;
-				$targetPrefix =~ s/program:/prog:/;
-				$targetPrefix =~ s/module:/mod:/;
-				$targetPrefix =~ s/subroutine:/sub:/;
-				$targetPrefix =~ s/function:/func:/;
-				$targetSuffix = "}";
-			    } else {
-				$targetPrefix = "";
-				$targetSuffix = "";
-			    }
-			    $attachedTo =~ s/_/\\_/g;
-			    $buffer .= $targetPrefix.$attachedTo.$targetSuffix."\\\\\n";
-			    $buffer .= "{\\bf File:} \\hyperlink{".$leafName."}{{\\tt ".$leafNamePrint."}}\\\\\n";
-			    $buffer .= "{\\bf Default value:} ";
-			    if ( exists($contents->{'defaultValue'}) ) {
-				$buffer .= $contents->{'defaultValue'};
-			    } else {
-				$buffer .= "none";
-			    }
-			    $buffer .= "\\\\\n";
-			    $buffer .= "{\\bf Description:} ".$contents->{'description'};
-			    $buffer .= "\\\\" unless ( $buffer =~ m/\}\s*$/ );
-			    $buffer .= "\n\n";
-			    my $descriptor = 
-			    {
-				description      => $buffer      ,
-				file             => $fileNames[0],
-				attachmentStatus => $attachedTo 
-			    };
-			    # Use this instance of this parameter description if it is the first
-			    # instance seen, or if previous instances had unknown attachment status.
-			    my $useThisInstance = 1;
-			    $useThisInstance = 0
-				if ( exists($parametersData{$contents->{'name'}}) && $parametersData{$contents->{'name'}}->{'attachmentStatus'} ne "unknown" );
-			    $parametersData{$contents->{'name'}} = $descriptor
-				if ( $useThisInstance == 1 );
 			}
-			case ( "objectMethod" ) {
-			    my $object = lc($contents->{'object'});
-			    $objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'method'     } = $contents->{'method'     };
-			    $objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'description'} = $contents->{'description'};
-			    $objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'arguments'  } = $contents->{'arguments'  }
-			    if ( exists($contents->{'arguments'}) );
-			    $objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'type'       } = $contents->{'type'       }
-			    if ( exists($contents->{'type'}) );
+			$attachedLink =~ s/:$//;
+			my $targetPrefix;
+			my $targetSuffix;
+			if ( $attachedTo =~ m/:/ ) {
+			    $targetPrefix = "\\hyperlink{".$attachedLink."}{";
+			    $targetPrefix =~ s/\{\\tt\s+([^\}]+)\}/$1/;
+			    $targetPrefix =~ s/program:/prog:/;
+			    $targetPrefix =~ s/module:/mod:/;
+			    $targetPrefix =~ s/subroutine:/sub:/;
+			    $targetPrefix =~ s/function:/func:/;
+			    $targetSuffix = "}";
+			} else {
+			    $targetPrefix = "";
+			    $targetSuffix = "";
 			}
-			case ( "objectMethods" ) {
-			    my $object = lc($contents->{'object'});
-			    my @methods;
-			    if ( UNIVERSAL::isa($contents->{'objectMethod'},"ARRAY") ) {
-				@methods = @{$contents->{'objectMethod'}};
-			    } else {
-				push(@methods,$contents->{'objectMethod'});
-			    }
-			    foreach my $method ( @methods ) {
-				$objects{$object}->{'methods'}->{lc($method->{'method'})}->{'method'     } = $method->{'method'     };
-				$objects{$object}->{'methods'}->{lc($method->{'method'})}->{'description'} = $method->{'description'};
-				$objects{$object}->{'methods'}->{lc($method->{'method'})}->{'arguments'  } = $method->{'arguments'  }
-				if ( exists($method->{'arguments'}) );
-				$objects{$object}->{'methods'}->{lc($method->{'method'})}->{'type'       } = $method->{'type'       }
-				if ( exists($method->{'type'}) );
-			    }
+			$attachedTo =~ s/_/\\_/g;
+			$buffer .= $targetPrefix.$attachedTo.$targetSuffix."\\\\\n";
+			$buffer .= "{\\bf File:} \\hyperlink{".$leafName."}{{\\tt ".$leafNamePrint."}}\\\\\n";
+			$buffer .= "{\\bf Default value:} ";
+			if ( exists($contents->{'defaultValue'}) ) {
+			    $buffer .= $contents->{'defaultValue'};
+			} else {
+			    $buffer .= "none";
+			}
+			$buffer .= "\\\\\n";
+			$buffer .= "{\\bf Description:} ".$contents->{'description'};
+			$buffer .= "\\\\" unless ( $buffer =~ m/\}\s*$/ );
+			$buffer .= "\n\n";
+			my $descriptor = 
+			{
+			    description      => $buffer      ,
+			    file             => $fileNames[0],
+			    attachmentStatus => $attachedTo 
+			};
+			# Use this instance of this parameter description if it is the first
+			# instance seen, or if previous instances had unknown attachment status.
+			my $useThisInstance = 1;
+			$useThisInstance = 0
+			    if ( exists($parametersData{$contents->{'name'}}) && $parametersData{$contents->{'name'}}->{'attachmentStatus'} ne "unknown" );
+			$parametersData{$contents->{'name'}} = $descriptor
+			    if ( $useThisInstance == 1 );
+		    } elsif ( $dataType eq "objectMethod" ) {
+			my $object = lc($contents->{'object'});
+			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'method'     } = $contents->{'method'     };
+			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'description'} = $contents->{'description'};
+			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'arguments'  } = $contents->{'arguments'  }
+			if ( exists($contents->{'arguments'}) );
+			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'type'       } = $contents->{'type'       }
+			if ( exists($contents->{'type'}) );
+		    } elsif ( $dataType eq "objectMethods" ) {
+			my $object = lc($contents->{'object'});
+			my @methods;
+			if ( UNIVERSAL::isa($contents->{'objectMethod'},"ARRAY") ) {
+			    @methods = @{$contents->{'objectMethod'}};
+			} else {
+			    push(@methods,$contents->{'objectMethod'});
+			}
+			foreach my $method ( @methods ) {
+			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'method'     } = $method->{'method'     };
+			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'description'} = $method->{'description'};
+			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'arguments'  } = $method->{'arguments'  }
+			    if ( exists($method->{'arguments'}) );
+			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'type'       } = $method->{'type'       }
+			    if ( exists($method->{'type'}) );
 			}
 		    }
 		}

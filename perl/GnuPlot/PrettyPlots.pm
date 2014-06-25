@@ -4,7 +4,6 @@ package PrettyPlots;
 use strict;
 use warnings;
 use PDL;
-use Switch;
 use Imager::Color;
 
 # A set of color definitions in #RRGGBB format.
@@ -197,7 +196,7 @@ our %colorPairSequences = (
         ,"thistle"
     ],
     sequence2 => [
-	 "redYellow"  ,"hotPink"
+	 "redYellow"  ,"hotPink", "indianRed"
     ],
     slideSequence => [
 	 "yellowGreen", "thistle", "orange", "lightGoldenrod"
@@ -330,22 +329,137 @@ sub Prepare_Dataset {
 	# Initialize phase prefix if necessary.
 	${$plot}->{$phase}->{'prefix'} = "plot" unless ( exists(${$plot}->{$phase}->{'prefix'}) );
 	# Branch depending on style of dataset, points, boxes or lines.
-	switch ( $style ) {
-	    case ("line") {
-		# Check if we are asked to plot just a single level.
-		if ( exists($phaseRules{$phase}->{'level'}) ) {
-		    # Plot just a single level, no real data.
-		    ${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with lines".$title
-			.$lineType  {$phaseRules{$phase}->{'level'}}
-		        .$lineColor {$phaseRules{$phase}->{'level'}}
-		        .$lineWeight{$phaseRules{$phase}->{'level'}};
-		    ${$plot}->{$phase}->{'data'   } .= $dummyPoint;
-		    ${$plot}->{$phase}->{'data'   } .= $endPoint;
-		    ${$plot}->{$phase}->{'prefix'} = ",";
-		} else {
-		    # Plot the actual data.
-		    foreach my $level ( 'lower', 'upper' ) {
-			${$plot}->{$phase}->{'data'} .= "plot '-' with lines notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
+	if ( $style eq "line" ) {
+	    # Check if we are asked to plot just a single level.
+	    if ( exists($phaseRules{$phase}->{'level'}) ) {
+		# Plot just a single level, no real data.
+		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with lines".$title
+		    .$lineType  {$phaseRules{$phase}->{'level'}}
+		.$lineColor {$phaseRules{$phase}->{'level'}}
+		.$lineWeight{$phaseRules{$phase}->{'level'}};
+		${$plot}->{$phase}->{'data'   } .= $dummyPoint;
+		${$plot}->{$phase}->{'data'   } .= $endPoint;
+		${$plot}->{$phase}->{'prefix'} = ",";
+	    } else {
+		# Plot the actual data.
+		foreach my $level ( 'lower', 'upper' ) {
+		    ${$plot}->{$phase}->{'data'} .= "plot '-' with lines notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
+		    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
+			${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)."\n";
+		    }
+		    ${$plot}->{$phase}->{'data'} .= $endPoint;
+		}
+	    }
+	} elsif ( $style eq "filledCurve" ) {
+	    # Draw a filled curve - using the "y2" option as the second set of y points.
+	    $options{'filledCurve'} = "closed"
+		unless ( exists($options{'filledCurve'}) );
+	    if ( $options{'filledCurve'} eq "closed" ) {
+		die ("GnuPlot::PrettyPlots - filledCurve requires a 'y2' vector")
+		    unless ( exists($options{'y2'}) );
+	    }
+	    if ( exists($phaseRules{$phase}->{'level'}) ) {
+		# Plot just a single level, no real data.
+		my $level = "upper";
+		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with filledcurve "
+		    .$options{'filledCurve'}
+		.$title
+		    .$lineType  {$level}
+		.$lineColor {$level}
+		.$lineWeight{$level}
+		." fill noborder";
+		${$plot}->{$phase}->{'data'   } .= $dummyPoint;
+		${$plot}->{$phase}->{'data'   } .= $endPoint;
+		${$plot}->{$phase}->{'prefix'} = ",";
+	    } else {
+		my $level = "upper";
+		${$plot}->{$phase}->{'data'} .= "set style fill solid 1.0 noborder\n";
+		${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve ".$options{'filledCurve'}." notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." fill border\n";
+		${$plot}->{$phase}->{'data'} .= $x->index(0)." ".$y->index(0)." ".$y->index(0)."\n"
+		    if ( $options{'filledCurve'} eq "closed" );
+		for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
+		    ${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint);
+		    ${$plot}->{$phase}->{'data'} .= " ".$options{'y2'}->index($iPoint)
+			if ( $options{'filledCurve'} eq "closed" );
+		    ${$plot}->{$phase}->{'data'} .= "\n";
+		}
+		${$plot}->{$phase}->{'data'} .= $x->index(nelem($x)-1)." ".$y->index(nelem($x)-1)." ".$y->index(nelem($x)-1)."\n"
+		    if ( $options{'filledCurve'} eq "closed" );
+		${$plot}->{$phase}->{'data'} .= $endPoint;
+	    }
+	} elsif ( $style eq "boxes") {
+	    # Check if we are asked to plot just a single level.
+	    if ( exists($phaseRules{$phase}->{'level'}) ) {
+		# Plot just a single level, no real data.
+		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with boxes".$title
+		    .$lineType  {$phaseRules{$phase}->{'level'}}
+		.$lineColor {$phaseRules{$phase}->{'level'}}
+		.$lineWeight{$phaseRules{$phase}->{'level'}};
+		${$plot}->{$phase}->{'data'   } .= $dummyPoint;
+		${$plot}->{$phase}->{'data'   } .= $endPoint;
+		${$plot}->{$phase}->{'prefix'} = ",";
+	    } else {
+		# Plot the actual data.
+		foreach my $level ( 'lower', 'upper' ) {
+		    ${$plot}->{$phase}->{'data'} .= "set boxwidth 0.9 relative\n";
+		    ${$plot}->{$phase}->{'data'} .= "set style fill solid 1.0\n";
+		    # If the "shading" option is specified we make
+		    # the bar color vary with height and add some
+		    # highlighting toward the center of the bar.
+		    if ( exists($options{'shading'}) && $options{'shading'} == 1 ) {
+			# Number of steps to take in shading.
+			my $stepCount = 64;
+			# Maximum y-value of bars.
+			my $maximumY  = maximum($y);
+			$maximumY .= 1.0 
+			    if ( $maximumY > 1.0 );
+			# Extract the RGB components of the start and end colors.
+			my $colorStart = ${$options{'color'}}[0];
+			my $redStart   = hex(substr($colorStart,1,2));
+			my $greenStart = hex(substr($colorStart,3,2));
+			my $blueStart  = hex(substr($colorStart,5,2));
+			my $colorEnd   = ${$options{'color'}}[1];
+			my $redEnd     = hex(substr($colorEnd  ,1,2));
+			my $greenEnd   = hex(substr($colorEnd  ,3,2));
+			my $blueEnd    = hex(substr($colorEnd  ,5,2));
+			# Loop through steps.
+			for(my $i=$stepCount;$i>=1;--$i) {
+			    # Compute the fractional step.
+			    my $fraction = $i/$stepCount;
+			    # Specify number of box "radii" for highlighting.
+			    my $rCount   = 32;
+			    # Loop through radii steps.
+			    for(my $j=0;$j<$rCount;++$j) {
+				# Determine the width of the box to draw for this step.
+				my $boxWidth = 0.9*cos($j/$rCount*3.1415927/2.0);
+				${$plot}->{$phase}->{'data'} .= "set boxwidth ".$boxWidth." relative\n";
+				# Compute the fraction of gray to mix in to the color, then mix it.
+				my $grayFraction = 0.7*$j/$rCount;
+				my $red      = int(($redStart  *(1.0-$fraction)+$redEnd  *$fraction)*(1.0-$grayFraction)+255.0*$grayFraction); 
+				my $green    = int(($greenStart*(1.0-$fraction)+$greenEnd*$fraction)*(1.0-$grayFraction)+255.0*$grayFraction); 
+				my $blue     = int(($blueStart *(1.0-$fraction)+$blueEnd *$fraction)*(1.0-$grayFraction)+255.0*$grayFraction);  
+				# Set the color for the boxes.
+				my $color = " lc rgbcolor \"#".sprintf("%2.2X%2.2X%2.2X",$red,$green,$blue)."\"";
+				# Plot the boxes.
+				${$plot}->{$phase}->{'data'} .= "plot '-' with boxes notitle".$lineType{$level}.$color.$lineWeight{$level}."\n";
+				for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
+				    # Maximum height allowed on this step.
+				    my $yHeightMaximum = $maximumY*$fraction;
+				    # Compute the height of the bar, with a little rounding.
+				    my $yHeight = $y->index($iPoint)+(-0.02+0.02*sin($j/$rCount*3.1415927/2.0))*$maximumY;
+				    # Limit the height of the bar to be within range.
+				    $yHeight = 0.0
+					if ( $yHeight < 0.0 );
+				    $yHeight = $yHeightMaximum
+					if ( $yHeight > $yHeightMaximum );
+				    # Plot the bar.
+				    ${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$yHeight."\n";
+				}
+				${$plot}->{$phase}->{'data'} .= $endPoint;
+			    }
+			}
+		    } else {
+			${$plot}->{$phase}->{'data'} .= "plot '-' with boxes notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
 			for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
 			    ${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)."\n";
 			}
@@ -353,243 +467,123 @@ sub Prepare_Dataset {
 		    }
 		}
 	    }
-	    case ("filledCurve") {
-		# Draw a filled curve - using the "y2" option as the second set of y points.
-		$options{'filledCurve'} = "closed"
-		    unless ( exists($options{'filledCurve'}) );
-		if ( $options{'filledCurve'} eq "closed" ) {
-		    die ("GnuPlot::PrettyPlots - filledCurve requires a 'y2' vector")
-			unless ( exists($options{'y2'}) );
-		}
-		if ( exists($phaseRules{$phase}->{'level'}) ) {
-		    # Plot just a single level, no real data.
-		    my $level = "upper";
-		    ${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with filledcurve "
-			.$options{'filledCurve'}
-			.$title
-			.$lineType  {$level}
-		        .$lineColor {$level}
-		        .$lineWeight{$level}
-		        ." fill noborder";
-		    ${$plot}->{$phase}->{'data'   } .= $dummyPoint;
-		    ${$plot}->{$phase}->{'data'   } .= $endPoint;
-		    ${$plot}->{$phase}->{'prefix'} = ",";
-		} else {
-		    my $level = "upper";
-		    ${$plot}->{$phase}->{'data'} .= "set style fill solid 1.0 noborder\n";
-		    ${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve ".$options{'filledCurve'}." notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." fill border\n";
-		    ${$plot}->{$phase}->{'data'} .= $x->index(0)." ".$y->index(0)." ".$y->index(0)."\n"
-			if ( $options{'filledCurve'} eq "closed" );
-		    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
-			${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint);
-			${$plot}->{$phase}->{'data'} .= " ".$options{'y2'}->index($iPoint)
-			    if ( $options{'filledCurve'} eq "closed" );
-			${$plot}->{$phase}->{'data'} .= "\n";
-		    }
-		    ${$plot}->{$phase}->{'data'} .= $x->index(nelem($x)-1)." ".$y->index(nelem($x)-1)." ".$y->index(nelem($x)-1)."\n"
-			if ( $options{'filledCurve'} eq "closed" );
-		    ${$plot}->{$phase}->{'data'} .= $endPoint;
-		}
-	    }
-	    case ("boxes") {
-		# Check if we are asked to plot just a single level.
-		if ( exists($phaseRules{$phase}->{'level'}) ) {
-		    # Plot just a single level, no real data.
-		    ${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with boxes".$title
-			.$lineType  {$phaseRules{$phase}->{'level'}}
-		        .$lineColor {$phaseRules{$phase}->{'level'}}
-		        .$lineWeight{$phaseRules{$phase}->{'level'}};
-		    ${$plot}->{$phase}->{'data'   } .= $dummyPoint;
-		    ${$plot}->{$phase}->{'data'   } .= $endPoint;
-		    ${$plot}->{$phase}->{'prefix'} = ",";
-		} else {
-		    # Plot the actual data.
-		    foreach my $level ( 'lower', 'upper' ) {
-			${$plot}->{$phase}->{'data'} .= "set boxwidth 0.9 relative\n";
-			${$plot}->{$phase}->{'data'} .= "set style fill solid 1.0\n";
-			# If the "shading" option is specified we make
-			# the bar color vary with height and add some
-			# highlighting toward the center of the bar.
-			if ( exists($options{'shading'}) && $options{'shading'} == 1 ) {
-			    # Number of steps to take in shading.
-			    my $stepCount = 64;
-			    # Maximum y-value of bars.
-			    my $maximumY  = maximum($y);
-			    $maximumY .= 1.0 
-				if ( $maximumY > 1.0 );
-			    # Extract the RGB components of the start and end colors.
-			    my $colorStart = ${$options{'color'}}[0];
-			    my $redStart   = hex(substr($colorStart,1,2));
-			    my $greenStart = hex(substr($colorStart,3,2));
-			    my $blueStart  = hex(substr($colorStart,5,2));
-			    my $colorEnd   = ${$options{'color'}}[1];
-			    my $redEnd     = hex(substr($colorEnd  ,1,2));
-			    my $greenEnd   = hex(substr($colorEnd  ,3,2));
-			    my $blueEnd    = hex(substr($colorEnd  ,5,2));
-			    # Loop through steps.
-			    for(my $i=$stepCount;$i>=1;--$i) {
-				# Compute the fractional step.
-				my $fraction = $i/$stepCount;
-				# Specify number of box "radii" for highlighting.
-				my $rCount   = 32;
-				# Loop through radii steps.
-				for(my $j=0;$j<$rCount;++$j) {
-				    # Determine the width of the box to draw for this step.
-				    my $boxWidth = 0.9*cos($j/$rCount*3.1415927/2.0);
-				    ${$plot}->{$phase}->{'data'} .= "set boxwidth ".$boxWidth." relative\n";
-				    # Compute the fraction of gray to mix in to the color, then mix it.
-				    my $grayFraction = 0.7*$j/$rCount;
-				    my $red      = int(($redStart  *(1.0-$fraction)+$redEnd  *$fraction)*(1.0-$grayFraction)+255.0*$grayFraction); 
-				    my $green    = int(($greenStart*(1.0-$fraction)+$greenEnd*$fraction)*(1.0-$grayFraction)+255.0*$grayFraction); 
-				    my $blue     = int(($blueStart *(1.0-$fraction)+$blueEnd *$fraction)*(1.0-$grayFraction)+255.0*$grayFraction);  
-				    # Set the color for the boxes.
-				    my $color = " lc rgbcolor \"#".sprintf("%2.2X%2.2X%2.2X",$red,$green,$blue)."\"";
-				    # Plot the boxes.
-				    ${$plot}->{$phase}->{'data'} .= "plot '-' with boxes notitle".$lineType{$level}.$color.$lineWeight{$level}."\n";
-				    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
-					# Maximum height allowed on this step.
-					my $yHeightMaximum = $maximumY*$fraction;
-					# Compute the height of the bar, with a little rounding.
-					my $yHeight = $y->index($iPoint)+(-0.02+0.02*sin($j/$rCount*3.1415927/2.0))*$maximumY;
-					# Limit the height of the bar to be within range.
-					$yHeight = 0.0
-					    if ( $yHeight < 0.0 );
-					$yHeight = $yHeightMaximum
-					    if ( $yHeight > $yHeightMaximum );
-					# Plot the bar.
-					${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$yHeight."\n";
-				    }
-				    ${$plot}->{$phase}->{'data'} .= $endPoint;
-				}
-			    }
-			} else {
-			    ${$plot}->{$phase}->{'data'} .= "plot '-' with boxes notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
-			    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
-				${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)."\n";
-			    }
-			    ${$plot}->{$phase}->{'data'} .= $endPoint;
-			}
-		    }
-		}
-	    }
-	    case ( "point" ) {
-		# Check if we are asked to plot just a single level.
-		if ( exists($phaseRules{$phase}->{'level'}) ) {
-		    # Plot just a single level, no real data.
-		    ${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-'".$title
-			.$pointType{$phaseRules{$phase}->{'level'}}.$pointSize{$phaseRules{$phase}->{'level'}}.$lineColor{$phaseRules{$phase}->{'level'}}.$lineWeight{$phaseRules{$phase}->{'level'}};
-		    ${$plot}->{$phase}->{'data'   } .= $dummyPoint;
-		    ${$plot}->{$phase}->{'data'   } .= $endPoint;
-		    ${$plot}->{$phase}->{'prefix'} = ",";
-		} else {
-		    # Plot the actual data.
-		    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
-			# Determine if vertical errors are present.
-			my $showVerticalErrors = 0;
-			$showVerticalErrors = 1 if (
-			    ( exists($options{'errorDown' }) && $options{'errorDown' }->index($iPoint) > 0.0 )
-			    ||
-			    ( exists($options{'errorUp'   }) && $options{'errorUp'   }->index($iPoint) > 0.0 )
-			    );
-			my $showHorizontalErrors = 0;
-			$showHorizontalErrors = 1 if (
-			    ( exists($options{'errorLeft' }) && $options{'errorLeft' }->index($iPoint) > 0.0 )
-			    ||
-			    ( exists($options{'errorRight'}) && $options{'errorRight'}->index($iPoint) > 0.0 )
-			    );
-			my $errorCommand;
-			if ( $showVerticalErrors == 1 ) {
-			    if ( $showHorizontalErrors == 1 ) {
-				$errorCommand = " with xyerrorbars";
-			    } else {
-				$errorCommand = " with errorbars";
-			    }
-			} else {
-			    if ( $showHorizontalErrors == 1 ) {
-				$errorCommand = " with xerrorbars";
-			    } else {
-				$errorCommand = "";
-			    }
-			}
-			
-			# Add error bar data.
-			my $errors = "";
+	} elsif ( $style eq "point" ) {
+	    # Check if we are asked to plot just a single level.
+	    if ( exists($phaseRules{$phase}->{'level'}) ) {
+		# Plot just a single level, no real data.
+		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-'".$title
+		    .$pointType{$phaseRules{$phase}->{'level'}}.$pointSize{$phaseRules{$phase}->{'level'}}.$lineColor{$phaseRules{$phase}->{'level'}}.$lineWeight{$phaseRules{$phase}->{'level'}};
+		${$plot}->{$phase}->{'data'   } .= $dummyPoint;
+		${$plot}->{$phase}->{'data'   } .= $endPoint;
+		${$plot}->{$phase}->{'prefix'} = ",";
+	    } else {
+		# Plot the actual data.
+		for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
+		    # Determine if vertical errors are present.
+		    my $showVerticalErrors = 0;
+		    $showVerticalErrors = 1 if (
+			( exists($options{'errorDown' }) && $options{'errorDown' }->index($iPoint) > 0.0 )
+			||
+			( exists($options{'errorUp'   }) && $options{'errorUp'   }->index($iPoint) > 0.0 )
+			);
+		    my $showHorizontalErrors = 0;
+		    $showHorizontalErrors = 1 if (
+			( exists($options{'errorLeft' }) && $options{'errorLeft' }->index($iPoint) > 0.0 )
+			||
+			( exists($options{'errorRight'}) && $options{'errorRight'}->index($iPoint) > 0.0 )
+			);
+		    my $errorCommand;
+		    if ( $showVerticalErrors == 1 ) {
 			if ( $showHorizontalErrors == 1 ) {
-			    if ( exists($options{'errorLeft'}) && $options{'errorLeft'}->index($iPoint) > 0.0 ) {
-				# Add a standard leftware error bar.
-				my $errorPosition = $x->index($iPoint)-$options{'errorLeft'}->index($iPoint);
-				$errors .= " ".$errorPosition;
-			    } else  {
-				# No leftward error bar.
-				$errors .= " ".$x->index($iPoint);
-			    }
-			    if ( exists($options{'errorRight'}) && $options{'errorRight'}->index($iPoint) > 0.0 ) {
-				# Add a standard rightward error bar.
-				my $errorPosition = $x->index($iPoint)+$options{'errorRight'}->index($iPoint);
-				$errors .= " ".$errorPosition;
-			    } else  {
-				# No rightward error bar.
-				$errors .= " ".$x->index($iPoint);
-			    }
+			    $errorCommand = " with xyerrorbars";
+			} else {
+			    $errorCommand = " with errorbars";
 			}
-			if ( $showVerticalErrors == 1 ) {
-			    if ( exists($options{'errorDown'}) && $options{'errorDown'}->index($iPoint) > 0.0 ) {
-				# Add a standard downward error bar.
-				my $errorPosition = $y->index($iPoint)-$options{'errorDown'}->index($iPoint);
-				$errors .= " ".$errorPosition;
-			    } else  {
-				# No downward error bar.
-				$errors .= " ".$y->index($iPoint);
-			    }
-			    if ( exists($options{'errorUp'}) && $options{'errorUp'}->index($iPoint) > 0.0 ) {
-				# Add a standard upward error bar.
-				my $errorPosition = $y->index($iPoint)+$options{'errorUp'}->index($iPoint);
-				$errors .= " ".$errorPosition;
-			    } else  {
-				# No upward error bar.
-				$errors .= " ".$y->index($iPoint);
-			    }
-			}
-
-			# Add arrows.
-			my $arrows      = "";
-			my $clearArrows = "";
-			if ( exists($options{'errorLeft'}) && $options{'errorLeft'}->index($iPoint) < 0.0 ) {
-			    my $tipX = $x->index($iPoint)+$options{'errorLeft'}->index($iPoint);
-			    $arrows .= "set arrow from first ".$x->index($iPoint).",".$y->index($iPoint)." to first "
-				.$tipX.",".$y->index($iPoint)." filled back ".$lineColor{'lower'}.$lineWeight{'upper'}."\n";
-			    $clearArrows = "unset arrow\n";
-			}
-			if ( exists($options{'errorRight'}) && $options{'errorRight'}->index($iPoint) < 0.0 ) {
-			    my $tipX = $x->index($iPoint)-$options{'errorRight'}->index($iPoint);
-			    $arrows .= "set arrow from first ".$x->index($iPoint).",".$y->index($iPoint)." to first "
-				.$tipX.",".$y->index($iPoint)." filled back ".$lineColor{'lower'}.$lineWeight{'upper'}."\n";
-			    $clearArrows = "unset arrow\n";
-			}
-			if ( exists($options{'errorDown'}) && $options{'errorDown'}->index($iPoint) < 0.0 ) {
-			    my $tipY = $y->index($iPoint)+$options{'errorDown'}->index($iPoint);
-			    $arrows .= "set arrow from first ".$x->index($iPoint).",".$y->index($iPoint)." to first "
-				.$x->index($iPoint).",".$tipY." filled back ".$lineColor{'lower'}.$lineWeight{'upper'}."\n";
-			    $clearArrows = "unset arrow\n";
-			}
-			if ( exists($options{'errorUp'}) && $options{'errorUp'}->index($iPoint) < 0.0 ) {
-			    my $tipY = $y->index($iPoint)-$options{'errorUp'}->index($iPoint);
-			    $arrows .= "set arrow from first ".$x->index($iPoint).",".$y->index($iPoint)." to first "
-				.$x->index($iPoint).",".$tipY." filled back ".$lineColor{'lower'}.$lineWeight{'upper'}."\n";
-			    $clearArrows = "unset arrow\n";
-			}
-
-			# Output the point.
-			foreach my $level ( 'lower', 'upper' ) {
-			    ${$plot}->{$phase}->{'data'} .= $arrows if ( $level eq "lower" );
-			    ${$plot}->{$phase}->{'data'} .= "plot '-' notitle".$errorCommand.$pointType{$level}.$pointSize{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
-			    ${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint).$errors."\n";
-			    ${$plot}->{$phase}->{'data'} .= $endPoint;
-			    ${$plot}->{$phase}->{'data'} .= $clearArrows if ( $level eq "lower" );
-			    # Clear any error bars after lower layer plot.
+		    } else {
+			if ( $showHorizontalErrors == 1 ) {
+			    $errorCommand = " with xerrorbars";
+			} else {
 			    $errorCommand = "";
-			    $errors       = "";	
 			}
+		    }
+		    
+		    # Add error bar data.
+		    my $errors = "";
+		    if ( $showHorizontalErrors == 1 ) {
+			if ( exists($options{'errorLeft'}) && $options{'errorLeft'}->index($iPoint) > 0.0 ) {
+			    # Add a standard leftware error bar.
+			    my $errorPosition = $x->index($iPoint)-$options{'errorLeft'}->index($iPoint);
+			    $errors .= " ".$errorPosition;
+			} else  {
+			    # No leftward error bar.
+			    $errors .= " ".$x->index($iPoint);
+			}
+			if ( exists($options{'errorRight'}) && $options{'errorRight'}->index($iPoint) > 0.0 ) {
+			    # Add a standard rightward error bar.
+			    my $errorPosition = $x->index($iPoint)+$options{'errorRight'}->index($iPoint);
+			    $errors .= " ".$errorPosition;
+			} else  {
+			    # No rightward error bar.
+			    $errors .= " ".$x->index($iPoint);
+			}
+		    }
+		    if ( $showVerticalErrors == 1 ) {
+			if ( exists($options{'errorDown'}) && $options{'errorDown'}->index($iPoint) > 0.0 ) {
+			    # Add a standard downward error bar.
+			    my $errorPosition = $y->index($iPoint)-$options{'errorDown'}->index($iPoint);
+			    $errors .= " ".$errorPosition;
+			} else  {
+			    # No downward error bar.
+			    $errors .= " ".$y->index($iPoint);
+			}
+			if ( exists($options{'errorUp'}) && $options{'errorUp'}->index($iPoint) > 0.0 ) {
+			    # Add a standard upward error bar.
+			    my $errorPosition = $y->index($iPoint)+$options{'errorUp'}->index($iPoint);
+			    $errors .= " ".$errorPosition;
+			} else  {
+			    # No upward error bar.
+			    $errors .= " ".$y->index($iPoint);
+			}
+		    }
+		    
+		    # Add arrows.
+		    my $arrows      = "";
+		    my $clearArrows = "";
+		    if ( exists($options{'errorLeft'}) && $options{'errorLeft'}->index($iPoint) < 0.0 ) {
+			my $tipX = $x->index($iPoint)+$options{'errorLeft'}->index($iPoint);
+			$arrows .= "set arrow from first ".$x->index($iPoint).",".$y->index($iPoint)." to first "
+			    .$tipX.",".$y->index($iPoint)." filled back ".$lineColor{'lower'}.$lineWeight{'upper'}."\n";
+			$clearArrows = "unset arrow\n";
+		    }
+		    if ( exists($options{'errorRight'}) && $options{'errorRight'}->index($iPoint) < 0.0 ) {
+			my $tipX = $x->index($iPoint)-$options{'errorRight'}->index($iPoint);
+			$arrows .= "set arrow from first ".$x->index($iPoint).",".$y->index($iPoint)." to first "
+			    .$tipX.",".$y->index($iPoint)." filled back ".$lineColor{'lower'}.$lineWeight{'upper'}."\n";
+			$clearArrows = "unset arrow\n";
+		    }
+		    if ( exists($options{'errorDown'}) && $options{'errorDown'}->index($iPoint) < 0.0 ) {
+			my $tipY = $y->index($iPoint)+$options{'errorDown'}->index($iPoint);
+			$arrows .= "set arrow from first ".$x->index($iPoint).",".$y->index($iPoint)." to first "
+			    .$x->index($iPoint).",".$tipY." filled back ".$lineColor{'lower'}.$lineWeight{'upper'}."\n";
+			$clearArrows = "unset arrow\n";
+		    }
+		    if ( exists($options{'errorUp'}) && $options{'errorUp'}->index($iPoint) < 0.0 ) {
+			my $tipY = $y->index($iPoint)-$options{'errorUp'}->index($iPoint);
+			$arrows .= "set arrow from first ".$x->index($iPoint).",".$y->index($iPoint)." to first "
+			    .$x->index($iPoint).",".$tipY." filled back ".$lineColor{'lower'}.$lineWeight{'upper'}."\n";
+			$clearArrows = "unset arrow\n";
+		    }
+		    
+		    # Output the point.
+		    foreach my $level ( 'lower', 'upper' ) {
+			${$plot}->{$phase}->{'data'} .= $arrows if ( $level eq "lower" );
+			${$plot}->{$phase}->{'data'} .= "plot '-' notitle".$errorCommand.$pointType{$level}.$pointSize{$level}.$lineColor{$level}.$lineWeight{$level}."\n";
+			${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint).$errors."\n";
+			${$plot}->{$phase}->{'data'} .= $endPoint;
+			${$plot}->{$phase}->{'data'} .= $clearArrows if ( $level eq "lower" );
+			# Clear any error bars after lower layer plot.
+			$errorCommand = "";
+			$errors       = "";	
 		    }
 		}
 	    }

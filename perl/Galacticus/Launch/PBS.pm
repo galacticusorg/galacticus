@@ -6,7 +6,6 @@ use warnings;
 use Data::Dumper;
 use Sys::CPU;
 use File::Which;
-use Switch;
 require Galacticus::Launch::Hooks;
 require Galacticus::Launch::PostProcess;
 require System::Redirect;
@@ -38,11 +37,9 @@ sub Validate {
 	);
     # Attempt to detect MPI implementation.
     my $mpiIs = &mpiDetect();
-    switch ( $mpiIs ) {
-	case ( "OpenMPI" ) {
-	    $defaults{'mpiLaunch'} = "yes"            ;
-	    $defaults{'mpiRun'   } = "mpirun --bynode";
-	}
+    if ( $mpiIs eq "OpenMPI" ) {
+	$defaults{'mpiLaunch'} = "yes"            ;
+	$defaults{'mpiRun'   } = "mpirun --bynode";
     }    
     # Apply defaults.
     foreach ( keys(%defaults) ) {

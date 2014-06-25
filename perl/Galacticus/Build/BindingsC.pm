@@ -15,7 +15,6 @@ use warnings;
 use utf8;
 use DateTime;
 use Data::Dumper;
-use Switch;
 use Scalar::Util 'reftype';
 require Galacticus::Build::Hooks;
 require Galacticus::Build::Dependencies;
