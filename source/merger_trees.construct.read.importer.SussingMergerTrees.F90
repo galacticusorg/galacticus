@@ -62,6 +62,12 @@
      !@     <arguments>\doublezero\ x\argin, \intzero\ iSubvolume\argin, \logicalzero\ [buffered]\argin</arguments>
      !@     <description>Return true if the given {\tt x} position lies within the {\tt iSubvolume}$^{\rm th}$ subvolume (plus the buffer region if {\tt buffered} is true.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>valueIsBad</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\doublezero\ x\argin</arguments>
+     !@     <description>Return true if the given {\tt x} value is bad.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
      !# final     :: sussingDestructor
