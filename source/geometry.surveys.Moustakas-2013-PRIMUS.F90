@@ -23,19 +23,16 @@
 
   use Galacticus_Input_Paths
 
-  type, extends(surveyGeometryClass) :: surveyGeometryMoustakas2013PRIMUS
+  type, extends(surveyGeometryMangle) :: surveyGeometryMoustakas2013PRIMUS
      double precision :: binDistanceMinimum, binDistanceMaximum
    contains
-     procedure :: windowFunctionAvailable   => moustakas2013PRIMUSWindowFunctionAvailable
-     procedure :: angularPowerAvailable     => moustakas2013PRIMUSAngularPowerAvailable
      procedure :: fieldCount                => moustakas2013PRIMUSFieldCount
      procedure :: distanceMinimum           => moustakas2013PRIMUSDistanceMinimum
      procedure :: distanceMaximum           => moustakas2013PRIMUSDistanceMaximum
      procedure :: volumeMaximum             => moustakas2013PRIMUSVolumeMaximum
-     procedure :: solidAngle                => moustakas2013PRIMUSSolidAngle
-     procedure :: windowFunctions           => moustakas2013PRIMUSWindowFunctions
-     procedure :: angularPower              => moustakas2013PRIMUSAngularPower
      procedure :: angularPowerMaximumDegree => moustakas2013PRIMUSAngularPowerMaximumDegree
+     procedure :: mangleDirectory           => moustakas2013PRIMUSMangleDirectory
+     procedure :: mangleFiles               => moustakas2013PRIMUSMangleFiles
   end type surveyGeometryMoustakas2013PRIMUS
 
   interface surveyGeometryMoustakas2013PRIMUS
@@ -45,24 +42,12 @@
   end interface surveyGeometryMoustakas2013PRIMUS
 
   ! Paths and file names for mangle polygon files.
-  integer                         , parameter                                                                     :: moustakas2013PRIMUSFields                =5
-  integer                         , parameter                                                                     :: moustakas2013PRIMUSFieldPairs            =  moustakas2013PRIMUSFields     &
-       &                                                                                                                                                       *(moustakas2013PRIMUSFields+1)  &
-       &                                                                                                                                                       /2
-  logical                                                                                                         :: moustakas2013PRIMUSInitialized           =.false.                       , &
-       &                                                                                                             moustakas2013PRIMUSBinInitialized        =.false.
-  integer                                                                                                         :: moustakas2013PRIMUSRedshiftBin
-  type            (varying_string)                                                                                :: moustakas2013PRIMUSPath
-  type            (varying_string), dimension(                                     moustakas2013PRIMUSFields    ) :: moustakas2013PRIMUSMangleFiles
-
-  ! Solid angles.
-  logical                                                                                                         :: moustakas2013PRIMUSSolidAnglesInitialized=.false.
-  double precision                , dimension(                                     moustakas2013PRIMUSFields    ) :: moustakas2013PRIMUSSolidAngles
+  integer, parameter :: moustakas2013PRIMUSFields        =5
+  logical            :: moustakas2013PRIMUSBinInitialized=.false.
+  integer            :: moustakas2013PRIMUSRedshiftBin
 
   ! Angular power spectra.
-  integer                         , parameter                                                                     :: moustaskas2013AngularPowerMaximumL        =3000
-  logical                                                                                                         :: moustakas2013PRIMUSAngularPowerInitialized=.false.
-  double precision                , dimension(moustaskas2013AngularPowerMaximumL+1,moustakas2013PRIMUSFieldPairs) :: moustakas2013PRIMUSAngularPowerSpectra
+  integer, parameter :: moustaskas2013AngularPowerMaximumL=3000
 
 contains
 
@@ -72,7 +57,6 @@ contains
     implicit none
     type(surveyGeometryMoustakas2013PRIMUS) :: moustakas2013PRIMUSDefaultConstructor
 
-    call moustakas2013PRIMUSInitialize()
     if (.not.moustakas2013PRIMUSBinInitialized) then
        !$omp critical(moustakas2013PRIMUSBinInitialize)
        if (.not.moustakas2013PRIMUSBinInitialized) then
@@ -81,7 +65,7 @@ contains
           !@   <name>moustakas2013PRIMUSRedshiftBin</name>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     The redshift bin (0, 1, or 2) of the \cite{caputi_stellar_2011} to use.
+          !@     The redshift bin (0, 1, 2, 3, 4, 5, or 6) of the \cite{moustakas_primus:_2013} mass function to use.
           !@   </description>
           !@   <type>string</type>
           !@   <cardinality>1</cardinality>
@@ -108,29 +92,31 @@ contains
     class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     double precision                                                   :: redshiftMinimum               , redshiftMaximum
 
-    call moustakas2013PRIMUSInitialize()
     ! Find distance limits for this redshift bin.
     select case (redshiftBin)
     case(0)
+       redshiftMinimum=0.00d0
+       redshiftMaximum=0.10d0
+    case(1)
        redshiftMinimum=0.20d0
        redshiftMaximum=0.30d0
-    case(1)
+    case(2)
        redshiftMinimum=0.30d0
        redshiftMaximum=0.40d0
-    case(2)
+    case(3)
        redshiftMinimum=0.40d0
        redshiftMaximum=0.50d0
-    case(3)
+    case(4)
        redshiftMinimum=0.50d0
        redshiftMaximum=0.65d0
-    case(4)
+    case(5)
        redshiftMinimum=0.65d0
        redshiftMaximum=0.80d0
-    case(5)
+    case(6)
        redshiftMinimum=0.80d0
        redshiftMaximum=1.00d0
     case default
-       call Galacticus_Error_Report('moustakas2013PRIMUSConstructor','0≤redshiftBin≤5 is required')
+       call Galacticus_Error_Report('moustakas2013PRIMUSConstructor','0≤redshiftBin≤6 is required')
     end select
     cosmologyFunctions_ => cosmologyFunctions()
     moustakas2013PRIMUSConstructor%binDistanceMinimum                                     &
@@ -143,6 +129,8 @@ contains
          &                                                 output  =distanceTypeComoving, &
          &                                                 redshift=redshiftMaximum       &
          &                                                )
+    moustakas2013PRIMUSConstructor%solidAnglesInitialized =.false.
+    moustakas2013PRIMUSConstructor%angularPowerInitialized=.false.
     return
   end function moustakas2013PRIMUSConstructor
   
@@ -154,24 +142,6 @@ contains
     moustakas2013PRIMUSFieldCount=moustakas2013PRIMUSFields
     return
   end function moustakas2013PRIMUSFieldCount
-    
-  logical function moustakas2013PRIMUSWindowFunctionAvailable(self)
-    !% Return false to indicate that survey window function is available.
-    implicit none
-    class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
-
-    moustakas2013PRIMUSWindowFunctionAvailable=.false.
-    return
-  end function moustakas2013PRIMUSWindowFunctionAvailable
-
-  logical function moustakas2013PRIMUSAngularPowerAvailable(self)
-    !% Return true to indicate that survey angular power is not available.
-    implicit none
-    class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
-
-    moustakas2013PRIMUSAngularPowerAvailable=.true.
-    return
-  end function moustakas2013PRIMUSAngularPowerAvailable
 
   double precision function moustakas2013PRIMUSDistanceMinimum(self,mass,field)
     !% Compute the minimum distance at which a galaxy is included.
@@ -249,7 +219,7 @@ contains
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
     double precision                                   , intent(in   )           :: mass
     integer                                            , intent(in   ), optional :: field
-    
+
     ! Validate field.
     if (.not.present(field)) call Galacticus_Error_Report('moustakas2013PRIMUSDistanceMaximum','field must be specified')
     if (field < 1 .or. field > 5) call Galacticus_Error_Report('moustakas2013PRIMUSDistanceMaximum','1 ≤ field ≤ 5 required')
@@ -267,148 +237,41 @@ contains
     return
   end function moustakas2013PRIMUSVolumeMaximum
 
-  subroutine moustakas2013PRIMUSInitialize()
-    !% Establish data paths and file names for the {\tt moustakas2013PRIMUS} survey geometry class.
+  function moustakas2013PRIMUSMangleDirectory(self)
+    !% Return the path to the directory containing \gls{mangle} files.
     implicit none
-    
-    if (.not.moustakas2013PRIMUSInitialized) then
-       !$omp critical(moustakas2013PRIMUSInitialize)
-       if (.not.moustakas2013PRIMUSInitialized) then
-          ! Specify input paths and files.
-          moustakas2013PRIMUSPath=Galacticus_Input_Path()                                     // &
-               &                  "constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/"
-          moustakas2013PRIMUSMangleFiles(1)=moustakas2013PRIMUSPath//"cosmos_field_galex_window_2mask.ply"
-          moustakas2013PRIMUSMangleFiles(2)=moustakas2013PRIMUSPath//"xmm_swire_field_galex_window_2mask.ply"
-          moustakas2013PRIMUSMangleFiles(3)=moustakas2013PRIMUSPath//"cfhtls_xmm_field_galex_window_2mask.ply"
-          moustakas2013PRIMUSMangleFiles(4)=moustakas2013PRIMUSPath//"cdfs_field_galex_window_2mask.ply"
-          moustakas2013PRIMUSMangleFiles(5)=moustakas2013PRIMUSPath//"es1_field_galex_window_2mask.ply"
-          moustakas2013PRIMUSInitialized   =.true.
-       end if
-       !$omp end critical(moustakas2013PRIMUSInitialize)
-    end if
-    return
-  end subroutine moustakas2013PRIMUSInitialize
+    class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
+    type (varying_string                   )                :: moustakas2013PRIMUSMangleDirectory
 
-  double precision function moustakas2013PRIMUSSolidAngle(self,field)
-    !% Return the solid angle of the \cite{moustakas_primus:_2013} sample.
-    use Galacticus_Error
-    use File_Utilities
-    use String_Handling
-    use System_Command
-    use IO_HDF5
+    moustakas2013PRIMUSMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/"
+    return
+  end function moustakas2013PRIMUSMangleDirectory
+  
+  subroutine moustakas2013PRIMUSMangleFiles(self,mangleFiles)
+    !% Return a list of \gls{mangle} files.
     implicit none
-    class  (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
-    integer                                   , intent(in   ), optional :: field
-    type   (hdf5Object                       )                          :: solidAngleFile
-    
-    ! Validate field.
-    if (.not.present(field)) call Galacticus_Error_Report('moustakas2013PRIMUSDistanceMaximum','field must be specified')
-    if (field < 1 .or. field > 5) &
-         & call Galacticus_Error_Report('moustakas2013PRIMUSDistanceMaximum','1 ≤ field ≤ 5 required')
-    ! Read solid angles for the fields.
-    if (.not.moustakas2013PRIMUSSolidAnglesInitialized) then
-       !$omp critical(moustakas2013PRIMUSSolidAnglesInitialize)
-       if (.not.moustakas2013PRIMUSSolidAnglesInitialized) then
-          ! Construct a solid angle file if one does not already exist.
-          if (.not.File_Exists(moustakas2013PRIMUSPath//"solidAngles.hdf5")) then
-             call System_Command_Do(Galacticus_Input_Path()//"scripts/aux/mangleRansack.pl "//String_Join(moustakas2013PRIMUSMangleFiles," ")//" "//moustakas2013PRIMUSPath//"solidAngles.hdf5 0")
-             if (.not.File_Exists(moustakas2013PRIMUSPath//"solidAngles.hdf5")) &
-                  & call Galacticus_Error_Report('moustakas2013PRIMUSSolidAngle','unable to generate solid angles from mangle files')
-          end if
-          ! Read the solid angles.
-          !$omp critical(HDF5_Access)
-          call solidAngleFile%openFile         (char(moustakas2013PRIMUSPath//"solidAngles.hdf5"))
-          call solidAngleFile%readDatasetStatic('solidAngle',moustakas2013PRIMUSSolidAngles      )
-          call solidAngleFile%close            (                                                 )
-          !$omp end critical(HDF5_Access)
-          ! Record that solid angles are now initialized.
-          moustakas2013PRIMUSSolidAnglesInitialized=.true.
-       end if
-       !$omp end critical(moustakas2013PRIMUSSolidAnglesInitialize)
-    end if
-    moustakas2013PRIMUSSolidAngle=moustakas2013PRIMUSSolidAngles(field)
-    return
-  end function moustakas2013PRIMUSSolidAngle
+    class(surveyGeometryMoustakas2013PRIMUS)                           , intent(inout) :: self
+    type (varying_string                   ), allocatable, dimension(:), intent(  out) :: mangleFiles
 
-  subroutine moustakas2013PRIMUSWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
-    !% Compute the window function for the survey.
-    use, intrinsic :: ISO_C_Binding
-    use Galacticus_Error
+    mangleFiles=                                                                    &
+         &      [                                                                   &
+         &       self%mangleDirectory()//"cosmos_field_galex_window_2mask.ply"    , &
+         &       self%mangleDirectory()//"xmm_swire_field_galex_window_2mask.ply" , &
+         &       self%mangleDirectory()//"cfhtls_xmm_field_galex_window_2mask.ply", &
+         &       self%mangleDirectory()//"cdfs_field_galex_window_2mask.ply"      , &
+         &       self%mangleDirectory()//"es1_field_galex_window_2mask.ply"         &
+         &      ]
+    return
+  end subroutine moustakas2013PRIMUSMangleFiles
+
+  integer function moustakas2013PRIMUSAngularPowerMaximumDegree(self)
+    !% Return the maximum degree for which angular power is computed for the \cite{moustakas_primus:_2013} survey.
     implicit none
-    class           (surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
-    double precision                                   , intent(in   )                                               :: mass1,mass2
-    integer                                            , intent(in   )                                               :: gridCount
-    double precision                                   , intent(  out)                                               :: boxLength
-    complex         (c_double_complex                 ), intent(  out),     dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
+    class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
 
-    call Galacticus_Error_Report('moustakas2013PRIMUSWindowFunctions','window function construction is not supported')
+    moustakas2013PRIMUSAngularPowerMaximumDegree=moustaskas2013AngularPowerMaximumL
     return
-  end subroutine moustakas2013PRIMUSWindowFunctions
-
-  double precision function moustakas2013PRIMUSAngularPower(self,i,j,l)
-    !% Return the angular power $C^{ij}_\ell$ for the \cite{moustakas_primus:_2013} survey.
-    use Galacticus_Error
-    use File_Utilities
-    use String_Handling
-    use System_Command
-    use IO_HDF5
-    implicit none
-    class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)             :: self
-    integer                                            , intent(in   )             :: i               , j, &
-         &                                                                            l
-    integer                                                                        :: m               , n
-    double precision                                   , allocatable, dimension(:) :: degree
-    type            (varying_string                   )                            :: datasetName
-    type            (hdf5Object                       )                            :: angularPowerFile
-
-    ! Validate fields.
-    if     (                                                                                        &
-         &   i < 1 .or. i > 5                                                                       &
-         &  .or.                                                                                    &
-         &   j < 1 .or. j > 5                                                                       &
-         & )                                                                                        &
-         & call Galacticus_Error_Report('moustakas2013PRIMUSAngularPower','1 ≤ field ≤ 5 required')
-    ! Read angular power spectra.
-    if (.not.moustakas2013PRIMUSAngularPowerInitialized) then
-       !$omp critical(moustakas2013PRIMUSAngularPowerInitialize)
-       if (.not.moustakas2013PRIMUSAngularPowerInitialized) then
-          ! Construct an angular power file if one does not already exist.
-          if (.not.File_Exists(moustakas2013PRIMUSPath//"angularPower.hdf5")) then
-             call System_Command_Do(Galacticus_Input_Path()//"scripts/aux/mangleHarmonize.pl "//String_Join(moustakas2013PRIMUSMangleFiles," ")//" "//moustakas2013PRIMUSPath//"angularPower.hdf5 "//moustaskas2013AngularPowerMaximumL)
-             if (.not.File_Exists(moustakas2013PRIMUSPath//"angularPower.hdf5")) &
-                  & call Galacticus_Error_Report('moustakas2013PRIMUSAngularPower','unable to generate angular power spectra from mangle files')
-          end if
-          ! Read the angular power spectra.
-          !$omp critical(HDF5_Access)
-          call angularPowerFile%openFile(char(moustakas2013PRIMUSPath//"angularPower.hdf5"))
-          call angularPowerFile%readDataset('l',degree)
-          if (degree(1) /= 0 .or. degree(size(degree)) /= moustaskas2013AngularPowerMaximumL)        &
-               & call Galacticus_Error_Report(                                                       &
-               &                              'moustakas2013PRIMUSAngularPower'                    , &
-               &                              'power spectra do not span expected range of degrees'  &
-               &                             )
-          do m=1,moustakas2013PRIMUSFields
-             do n=m,moustakas2013PRIMUSFields
-                datasetName="Cl_"
-                datasetName=datasetName//(m-1)//"_"//(n-1)
-                call angularPowerFile%readDatasetStatic(char(datasetName),moustakas2013PRIMUSAngularPowerSpectra(:,moustakas2013PRIMUSFieldPairIndex(m,n)))
-             end do
-          end do
-          call angularPowerFile%close()
-          !$omp end critical(HDF5_Access)
-          ! Record that solid angles are now initialized.
-          moustakas2013PRIMUSAngularPowerInitialized=.true.
-       end if
-       !$omp end critical(moustakas2013PRIMUSAngularPowerInitialize)
-    end if
-    ! Return the appropriate angular power.
-    if (l > moustaskas2013AngularPowerMaximumL) then
-       moustakas2013PRIMUSAngularPower=0.0d0
-    else
-       moustakas2013PRIMUSAngularPower=moustakas2013PRIMUSAngularPowerSpectra(l+1,moustakas2013PRIMUSFieldPairIndex(i,j))
-    end if
-    return
-  end function moustakas2013PRIMUSAngularPower
+  end function moustakas2013PRIMUSAngularPowerMaximumDegree
   
   integer function moustakas2013PRIMUSFieldPairIndex(i,j)
     !% Compute the index of a pair of fields in the \cite{moustakas_primus:_2013} survey.
@@ -421,13 +284,4 @@ contains
     moustakas2013PRIMUSFieldPairIndex=(ii-1)*(2*moustakas2013PRIMUSFields-ii+2)/2+(jj-ii+1)
     return
   end function moustakas2013PRIMUSFieldPairIndex
-  
-  integer function moustakas2013PRIMUSAngularPowerMaximumDegree(self)
-    !% Return the maximum degree for which angular power is computed for the \cite{moustakas_primus:_2013} survey.
-    implicit none
-    class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
-
-    moustakas2013PRIMUSAngularPowerMaximumDegree=moustaskas2013AngularPowerMaximumL
-    return
-  end function moustakas2013PRIMUSAngularPowerMaximumDegree
   
