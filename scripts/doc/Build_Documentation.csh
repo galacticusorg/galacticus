@@ -18,7 +18,7 @@ if ( $? != 0 ) then
 endif
 
 # Extract contributor data.
-scripts/doc/Extract_Contributors.pl source doc/contributions.tex
+scripts/doc/Extract_Contributors.pl . doc/contributions.tex
 if ( $? != 0 ) then
  echo Failed to extract contributor data
  exit 1
