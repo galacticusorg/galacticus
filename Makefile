@@ -101,8 +101,9 @@ vpath %.cpp source
 	$(CPPCOMPILER) -c $< -o ./work/build/$*.o $(CPPFLAGS)
 
 # Object (*.o) files are built by compiling Fortran (*.f) source files.
-%.o : %.f ./work/build/%.d ./work/build/%.fl Makefile
-	$(FCCOMPILER) -c $< -o $*.o $(F77FLAGS)
+vpath %.f source
+./work/build/%.o : %.f ./work/build/%.d ./work/build/%.fl Makefile
+	$(FCCOMPILER) -c $< -o ./work/build/$*.o $(F77FLAGS)
 
 # Special rules required for building some sources (unfortunate, but necessary....)
 # bivar.F90 doesn't like to be compiled with any optimization:
@@ -135,10 +136,11 @@ vpath %.cpp source
 	@mkdir -p `dirname $*.d`
 	@touch $*.d
 
-
 # Library files (*.fl) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
 # Makefile_Use_Deps file, but this acts as a fallback rule.
 ./work/build/%.fl : ./source/%.F90
+	@touch ./work/build/$*.fl
+./work/build/%.fl : ./source/%.f
 	@touch ./work/build/$*.fl
 ./work/build/%.fl : ./source/%.c
 	@touch ./work/build/$*.fl
@@ -267,3 +269,18 @@ all: deps $(all_exes)
 	./scripts/build/Find_Programs.pl `pwd`
 
 deps: $(MAKE_DEPS) ./work/build/Makefile_All_Execs
+
+# Rules for FFTLog library.
+source/FFTlog/fftlog.f:
+	mkdir -p source/FFTlog
+	wget http://casa.colorado.edu/~ajsh/FFTLog/fftlog.tar.gz -O - | tar xvz -C source/FFTlog -f -
+	if [ ! -e source/FFTlog/fftlog.f ]; then
+	 echo "subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" > source/FFTlog/fftlog.f
+	 echo " stop 'FFTlog was not downloaded'" > source/FFTlog/fftlog.f
+	 echo "end subroutine fhti" >> source/FFTlog/fftlog.f
+	 touch source/FFTlog/cdgamma.f
+	 touch source/FFTlog/drfftb.f 
+	 touch source/FFTlog/drfftf.f 
+	 touch source/FFTlog/drffti.f 
+	fi
+
