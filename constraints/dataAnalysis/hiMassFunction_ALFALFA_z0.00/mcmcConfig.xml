@@ -230,7 +230,7 @@
 	<distribution>
 	  <type>uniform</type>
 	  <minimum>0.0</minimum>
-	  <maximum>20.0</maximum>
+	  <maximum>15.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -266,7 +266,7 @@
 	<distribution>
 	  <type>uniform</type>
 	  <minimum>0.0</minimum>
-	  <maximum>4.0</maximum>
+	  <maximum>1.6</maximum>
 	</distribution>
       </prior>
       <mapping>
