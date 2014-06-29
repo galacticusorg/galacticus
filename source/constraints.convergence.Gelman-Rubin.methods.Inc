@@ -143,15 +143,15 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
           &                     )                            &
           &                   )
      ! Test for outliers using the Grubb's statistic.
-     hasOutlier=                                         &
-          &        chainDeviationMaximum                 &
-          &      >                                       &
-          &        grubbsCriticalValue                   &
-          &     .and.                                    &
-          &        logLikelihoods(chainDeviationIndex+1) &
-          &      <                                       &
-          &        logLikelihoodMaximum                  &
-          &       -                                      &
+     hasOutlier=                                       &
+          &        chainDeviationMaximum               &
+          &      >                                     &
+          &        grubbsCriticalValue                 &
+          &     .and.                                  &
+          &        logLikelihoods(chainDeviationIndex) &
+          &      <                                     &
+          &        logLikelihoodMaximum                &
+          &       -                                    &
           &        self%outlierLogLikelihoodOffset
      ! Mask chains with outliers.
      newOutliersFound=any(hasOutlier)
@@ -195,11 +195,11 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
      if (mpiSelf%isMaster() .and. mod(self%estimateCount,self%reportCount) == 0) then
         write (label,'(i16)') simulationState%count()
         message="Gelman-Rubin statistic at "//trim(adjustl(label))
-        write (label,'(f6.2)') minval(self%correctedHatR)
         message=message//" steps cannot be computed (zero variances)"
         call Galacticus_Display_Message(message)
      end if
      convergenceGelmanRubinIsConverged=.false.
+     return
   end if
   ! Compute variance of chain variances.
   varianceW             =(                                                  &
