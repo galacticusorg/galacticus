@@ -94,28 +94,30 @@ contains
     class           (likelihood    ), pointer                     :: newLikelihood
     type            (node          ), pointer    , intent(in   )  :: definition
     type            (varying_string), optional   , intent(in   )  :: configFileName
-    type            (node          ), pointer                     :: likelihoodMeanDefinition                       , likelihoodCovarianceDefinition         , &
-         &                                                           covarianceRow                                  , likelihoodRealizationCountDefinition   , &
-         &                                                           likelihoodRealizationCountMinimumDefinition    , likelihoodDefinition                   , &
-         &                                                           likelihoodEmulatorRebuildCountDefinition       , likelihoodPolynomialOrderDefinition    , &
-         &                                                           likelihoodSigmaBufferDefinition                , likelihoodLogLikelihoodBufferDefinition, &
-         &                                                           likelihoodLogLikelihoodErrorToleranceDefinition, likelihoodReportCountDefinition        , &
-         &                                                           likelihoodEmulateOutliersDefinition            , likelihoodMassCountDefinition          , &
-         &                                                           likelihoodHaloMassMinimumDefinition            , likelihoodHaloMassMaximumDefinition    , &
-         &                                                           likelihoodRedshiftMinimumDefinition            , likelihoodRedshiftMaximumDefinition    , &
-         &                                                           likelihoodUseSurveyLimitsDefinition            , likelihoodMassFunctionFileNameDefinition
+    type            (node          ), pointer                     :: likelihoodMeanDefinition                       , likelihoodCovarianceDefinition            , &
+         &                                                           covarianceRow                                  , likelihoodRealizationCountDefinition      , &
+         &                                                           likelihoodRealizationCountMinimumDefinition    , likelihoodDefinition                      , &
+         &                                                           likelihoodEmulatorRebuildCountDefinition       , likelihoodPolynomialOrderDefinition       , &
+         &                                                           likelihoodSigmaBufferDefinition                , likelihoodLogLikelihoodBufferDefinition   , &
+         &                                                           likelihoodLogLikelihoodErrorToleranceDefinition, likelihoodReportCountDefinition           , &
+         &                                                           likelihoodEmulateOutliersDefinition            , likelihoodMassCountDefinition             , &
+         &                                                           likelihoodHaloMassMinimumDefinition            , likelihoodHaloMassMaximumDefinition       , &
+         &                                                           likelihoodRedshiftMinimumDefinition            , likelihoodRedshiftMaximumDefinition       , &
+         &                                                           likelihoodUseSurveyLimitsDefinition            , likelihoodMassFunctionFileNameDefinition  , &
+         &                                                           likelihoodModelSurfaceBrightnessDefinition     , likelihoodSurfaceBrightnessLimitDefinition
     type            (nodeList      ), pointer                     :: covarianceRows
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
-    integer                                                       :: i                                              , dimensionCount                         , &
-         &                                                           likelihoodRealizationCount                     , likelihoodRealizationCountMinimum      , &
-         &                                                           likelihoodEmulatorRebuildCount                 , likelihoodPolynomialOrder              , &
+    integer                                                       :: i                                              , dimensionCount                            , &
+         &                                                           likelihoodRealizationCount                     , likelihoodRealizationCountMinimum         , &
+         &                                                           likelihoodEmulatorRebuildCount                 , likelihoodPolynomialOrder                 , &
          &                                                           likelihoodReportCount
-    double precision                                              :: likelihoodSigmaBuffer                          , likelihoodLogLikelihoodBuffer          , &
-         &                                                           likelihoodHaloMassMinimum                      , likelihoodHaloMassMaximum              , &
-         &                                                           likelihoodRedshiftMinimum                      , likelihoodRedshiftMaximum              , &
-         &                                                           likelihoodLogLikelihoodErrorTolerance
-    logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits
+    double precision                                              :: likelihoodSigmaBuffer                          , likelihoodLogLikelihoodBuffer             , &
+         &                                                           likelihoodHaloMassMinimum                      , likelihoodHaloMassMaximum                 , &
+         &                                                           likelihoodRedshiftMinimum                      , likelihoodRedshiftMaximum                 , &
+         &                                                           likelihoodLogLikelihoodErrorTolerance          , likelihoodSurfaceBrightnessLimit
+    logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits                 , &
+         &                                                           likelihoodModelSurfaceBrightness
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
     case ("multivariateNormal")
@@ -200,24 +202,35 @@ contains
        allocate(likelihoodMassFunction :: newLikelihood)
        select type (newLikelihood)
        type is (likelihoodMassFunction)
-          likelihoodHaloMassMinimumDefinition      => XML_Get_First_Element_By_Tag_Name(definition,"haloMassMinimum"     )
-          likelihoodHaloMassMaximumDefinition      => XML_Get_First_Element_By_Tag_Name(definition,"haloMassMaximum"     )
-          likelihoodRedshiftMinimumDefinition      => XML_Get_First_Element_By_Tag_Name(definition,"redshiftMinimum"     )
-          likelihoodRedshiftMaximumDefinition      => XML_Get_First_Element_By_Tag_Name(definition,"redshiftMaximum"     )
-          likelihoodUseSurveyLimitsDefinition      => XML_Get_First_Element_By_Tag_Name(definition,"useSurveyLimits"     )
-          likelihoodMassFunctionFileNameDefinition => XML_Get_First_Element_By_Tag_Name(definition,"massFunctionFileName")
-          call extractDataContent(likelihoodHaloMassMinimumDefinition,likelihoodHaloMassMinimum)
-          call extractDataContent(likelihoodHaloMassMaximumDefinition,likelihoodHaloMassMaximum)
-          call extractDataContent(likelihoodRedshiftMinimumDefinition,likelihoodRedshiftMinimum)
-          call extractDataContent(likelihoodRedshiftMaximumDefinition,likelihoodRedshiftMaximum)
-          call extractDataContent(likelihoodUseSurveyLimitsDefinition,likelihoodUseSurveyLimits)
+          likelihoodHaloMassMinimumDefinition        => XML_Get_First_Element_By_Tag_Name(definition,"haloMassMinimum"       )
+          likelihoodHaloMassMaximumDefinition        => XML_Get_First_Element_By_Tag_Name(definition,"haloMassMaximum"       )
+          likelihoodRedshiftMinimumDefinition        => XML_Get_First_Element_By_Tag_Name(definition,"redshiftMinimum"       )
+          likelihoodRedshiftMaximumDefinition        => XML_Get_First_Element_By_Tag_Name(definition,"redshiftMaximum"       )
+          likelihoodUseSurveyLimitsDefinition        => XML_Get_First_Element_By_Tag_Name(definition,"useSurveyLimits"       )
+          likelihoodMassFunctionFileNameDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"massFunctionFileName"  )
+          call extractDataContent(likelihoodHaloMassMinimumDefinition       ,likelihoodHaloMassMinimum       )
+          call extractDataContent(likelihoodHaloMassMaximumDefinition       ,likelihoodHaloMassMaximum       )
+          call extractDataContent(likelihoodRedshiftMinimumDefinition       ,likelihoodRedshiftMinimum       )
+          call extractDataContent(likelihoodRedshiftMaximumDefinition       ,likelihoodRedshiftMaximum       )
+          call extractDataContent(likelihoodUseSurveyLimitsDefinition       ,likelihoodUseSurveyLimits       )
+          if (XML_Path_Exists(definition,"modelSurfaceBrightness")) then
+             likelihoodModelSurfaceBrightnessDefinition => XML_Get_First_Element_By_Tag_Name(definition,"modelSurfaceBrightness")
+             likelihoodSurfaceBrightnessLimitDefinition => XML_Get_First_Element_By_Tag_Name(definition,"surfaceBrightnessLimit")
+             call extractDataContent(likelihoodModelSurfaceBrightnessDefinition,likelihoodModelSurfaceBrightness)
+             call extractDataContent(likelihoodSurfaceBrightnessLimitDefinition,likelihoodSurfaceBrightnessLimit)
+          else
+             likelihoodModelSurfaceBrightness=.false.
+             likelihoodSurfaceBrightnessLimit=0.0d0
+          end if
           newLikelihood=likelihoodMassFunction(                                                          &
                &                               likelihoodHaloMassMinimum                               , &
                &                               likelihoodHaloMassMaximum                               , &
                &                               likelihoodRedshiftMinimum                               , &
                &                               likelihoodRedshiftMaximum                               , &
                &                               likelihoodUseSurveyLimits                               , &
-               &                               getTextContent(likelihoodMassFunctionFileNameDefinition)  &
+               &                               getTextContent(likelihoodMassFunctionFileNameDefinition), &
+               &                               likelihoodModelSurfaceBrightness                        , &
+               &                               likelihoodSurfaceBrightnessLimit                          &
                &                              )
        end select
     case ("sedFit")
