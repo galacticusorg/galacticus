@@ -353,8 +353,19 @@ where $R_{\rm dust}$ is the dust-to-metals ratio, $\dot{M}_\star$ is the total s
  \item[{\tt \textasciicircum agnLuminosity:[\textasciicircum:]+:[\textasciicircum:]+:z[$\backslash$d$\backslash$.]+(:alpha[0-9$\backslash$-$\backslash$+$\backslash$.]+)??\$}] The luminosity of the AGN in the specified filter, frame and redshift (specified as the first, second and third elements of the ``{\tt :}'' separated label) in units of the zero-point luminosity of the AB-magnitude system. (Note that, consistent with \glc's definitions for continuum luminosities, observed frame luminosities do not include the $1+z$ factor arising from the compression of photon frequencies due to redshifting. As such, when observed frame line luminosities are converted to observed fluxes an additional multiplicative factor of $1+z$ must be included.) The bolometric luminosity is computed from the black hole rest mass accretion rate and radiative efficiency. An SED for an AGN of this bolometric luminosity is then computed using the model of \cite{hopkins_observational_2007}. If the final {\tt alpha[0-9$\backslash$-$\backslash$+$\backslash$.]+} option is provided, then the luminosity computed will be a broad band luminosity (in units of Watts) converted from the photon count rate in the filter assuming a spectrum of the form $f_\nu \propto \nu^\alpha$, as is typically assumed in converting observed AGN X-ray count rates to luminosities. Provided by: {\tt Galacticus::AGNLuminosities}.\index{AGN}
 
 
- \item[{\tt \textasciicircum columnDensity(disk|Spheroid)??\$}] The column density of hydrogen (in units of cm$^{-2}$) along the line of sight to the center of the galaxy. If a component is specified the calculation is performed for that component, otherwise the sum of disk and spheroid column densities is computed. Provided by: {\tt Galacticus::ColumnDensity}.
-
+ \item[{\tt \textasciicircum columnDensity(disk|Spheroid)??\$}] The column density of hydrogen (in units of cm$^{-2}$) along the line of sight to the center of the galaxy. If a component is specified the calculation is performed for that component, otherwise the sum of disk and spheroid column densities is computed. Provided by: {\tt Galacticus::ColumnDensity}. For the exponential disk, the column density is given by:
+\begin{equation}
+N_{\rm H} = {X_{\rm H} \over m_{\rm H}} {M_{\rm ISM} \over 4 \pi h r_{\rm d}^3} \int_0^\infty \exp(-r/r_{\rm d}) {\rm sech}^2(z/h r_{\rm d}) {\rm d} l,
+\end{equation}
+where $r_{\rm d}$ is the disk scale length, $h$ is the ratio of vertical scale height to radial scale length, $X_{\rm H}$ is the mass fraction in hydrogen, $m_{\rm H}$ is the mass of the hydrogen atom and $l$ is distance along the line of sight. Writing $z = r/\tan i$ for a disk at inclination $i$, and $l = \sqrt{r^2+z^2} = r\sqrt{1+1/\tan^2i}$ this becomes:
+\begin{equation}
+N_{\rm H} = {X_{\rm H} \over m_{\rm H}} {M_{\rm ISM} \over 4 \pi h r_{\rm d}^2} \sqrt{1+1/\tan^2i} \int_0^\infty \exp(-x) {\rm sech}^2(x/h \tan i) {\rm d} x.
+\end{equation}
+The integral can be evaluated to give:
+\begin{equation}
+N_{\rm H} = {X_{\rm H} \over m_{\rm H}} {M_{\rm ISM} \over 8 \pi h r_{\rm d}^2} \sqrt{1+1/\tan^2i} H \left\{ H \left[\psi\left(-{H\over4}\right) - \psi\left({1\over2}-{H\over4}\right) \right] - 2 \right\},
+\end{equation}
+where $H = h \tan i$ and $\psi(x)$ is the digamma function.
 
 
  \item[{\tt \textasciicircum peakSFR\$}] The peak star formation rate for each galaxy, measured from the {\tt starFormationHistories} output group  (see \S\ref{sec:StarFormationHistoryTasks}). The peak star formation rate reported is therefore that when averaged over the bins used by the star formation history output method (see \S\ref{sec:StarFormationHistoryTasks}). Provided by: {\tt Galacticus::SFH}.\index{star formation rate!peak}
