@@ -98,7 +98,7 @@ module Geometry_Surveys
   !#   <pass>yes</pass>
   !#   <code>angularPowerMaximumDegree=-1</code>
   !#  </method>
- include 'surveyGeometry.type.inc'
+  include 'surveyGeometry.type.inc'
   !# </include>
 
 end module Geometry_Surveys

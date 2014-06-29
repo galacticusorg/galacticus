@@ -21,14 +21,11 @@
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{martin_arecibo_2010}.</description>
   !# </surveyGeometry>
 
-  type, extends(surveyGeometryClass) :: surveyGeometryMartin2010ALFALFA
+  type, extends(surveyGeometryRandomPoints) :: surveyGeometryMartin2010ALFALFA
    contains
-     procedure :: windowFunctionAvailable => martin2010ALFALFAWindowFunctionAvailable
-     procedure :: angularPowerAvailable   => martin2010ALFALFAAngularPowerAvailable
-     procedure :: distanceMaximum         => martin2010ALFALFADistanceMaximum
-     procedure :: solidAngle              => martin2010ALFALFASolidAngle
-     procedure :: windowFunctions         => martin2010ALFALFAWindowFunctions
-     procedure :: angularPower            => martin2010ALFALFAAngularPower
+     procedure :: distanceMaximum   => martin2010ALFALFADistanceMaximum
+     procedure :: solidAngle        => martin2010ALFALFASolidAngle
+     procedure :: randomsInitialize => martin2010ALFALFARandomsInitialize
   end type surveyGeometryMartin2010ALFALFA
 
   interface surveyGeometryMartin2010ALFALFA
@@ -47,26 +44,9 @@ contains
     implicit none
     type(surveyGeometryMartin2010ALFALFA) :: martin2010ALFALFADefaultConstructor
 
+    martin2010ALFALFADefaultConstructor%geometryInitialized=.false.
     return
   end function martin2010ALFALFADefaultConstructor
-
-  logical function martin2010ALFALFAWindowFunctionAvailable(self)
-    !% Return true to indicate that survey window function is available.
-    implicit none
-    class(surveyGeometryMartin2010ALFALFA), intent(inout) :: self
-
-    martin2010ALFALFAWindowFunctionAvailable=.true.
-    return
-  end function martin2010ALFALFAWindowFunctionAvailable
-
-  logical function martin2010ALFALFAAngularPowerAvailable(self)
-    !% Return false to indicate that survey angular power is not available.
-    implicit none
-    class(surveyGeometryMartin2010ALFALFA), intent(inout) :: self
-
-    martin2010ALFALFAAngularPowerAvailable=.false.
-    return
-  end function martin2010ALFALFAAngularPowerAvailable
 
   double precision function martin2010ALFALFADistanceMaximum(self,mass,field)
     !% Compute the maximum distance at which a galaxy is visible.
@@ -125,8 +105,8 @@ contains
     return
   end function martin2010ALFALFASolidAngle
   
-  subroutine martin2010ALFALFAWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
-    !% Compute the window function for the survey.
+  subroutine martin2010ALFALFARandomsInitialize(self)
+    !% Initialize random points for the survey.
     use FFTW3
     use Vectors
     use Pseudo_Random
@@ -148,120 +128,46 @@ contains
     use Galacticus_Error
     use Pseudo_Random
     implicit none
-    class           (surveyGeometryMartin2010ALFALFA), intent(inout) :: self
-    double precision                                 , intent(in   )                                               :: mass1,mass2
-    integer                                          , intent(in   )                                               :: gridCount
-    double precision                                 , intent(  out)                                               :: boxLength
-    complex         (c_double_complex               ), intent(  out),     dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
-    double precision                                 ,                    dimension(3                            ) :: origin,position1,position2
-    double precision                                 ,                    dimension(2                            ) :: phiRange,thetaRange
-    type            (c_ptr                          )                                                              :: plan
-    complex         (c_double_complex               ),                    dimension(gridCount,gridCount,gridCount) :: selectionFunction1,selectionFunction2
-    complex         (c_double_complex               )                                                              :: normalization
-    logical                                          , save                                                        :: geometryInitialized=.false.
-    double precision                                 , save, allocatable, dimension(:                            ) :: randomTheta,randomPhi
-    integer                                          , parameter                                                   :: randomsCount=1000000
-    type            (fgsl_rng                       ), save                                                        :: pseudoSequenceObject
-    logical                                          , save                                                        :: reset=.true.
-    type            (varying_string                 )                                                              :: message
-    double precision                                 , save                                                        :: surveyDistanceMinimum&
-         &,surveyDistanceMaximum
-    integer                                          , parameter                                                   :: regionCount=3
+    class           (surveyGeometryMartin2010ALFALFA), intent(inout)                           :: self
+    integer                                          , parameter                               :: randomsCount=1000000
+    type            (fgsl_rng                       ), save                                    :: pseudoSequenceObject
+    logical                                          , save                                    :: reset=.true.
+    integer                                          , parameter                               :: regionCount=3
     ! Survey geometry from Haynes et al. (2011; http://adsabs.harvard.edu/abs/2011AJ....142..170H).
-    double precision                                 , parameter        , dimension(2,regionCount                ) :: regionRightAscensionRange=reshape([22.0d0,03.0d0,07.5d0,16.5d0,07.5d0,16.5d0],[2,regionCount]), &
-         &                                                                                                            regionDeclinationRange   =reshape([24.0d0,32.0d0,04.0d0,16.0d0,24.0d0,28.0d0],[2,regionCount])
-    double precision                                                    , dimension(2,regionCount                ) :: regionPhiRange,regionThetaRange
-    double precision                                                    , dimension(  regionCount                ) :: regionSolidAngle
-    integer                                                                                                        :: i,j,iRegion,iRandom
-    double precision                                                                                               :: comovingDistanceMaximum1, comovingDistanceMaximum2, &
-         &                                                                                                            comovingDistanceMinimum1, comovingDistanceMinimum2, &
-         &                                                                                                            rightAscension          , declination             , &
-         &                                                                                                            distance1               , distance2               , &
-         &                                                                                                            uniformRandom
-    class           (cosmologyParametersClass       ), pointer                                                      :: cosmologyParameters_
+    double precision                                 , parameter    , dimension(2,regionCount) :: regionRightAscensionRange=reshape([22.0d0,03.0d0,07.5d0,16.5d0,07.5d0,16.5d0],[2,regionCount]), &
+         &                                                                                        regionDeclinationRange   =reshape([24.0d0,32.0d0,04.0d0,16.0d0,24.0d0,28.0d0],[2,regionCount])
+    double precision                                                , dimension(2,regionCount) :: regionPhiRange,regionThetaRange
+    double precision                                                , dimension(  regionCount) :: regionSolidAngle
+    integer                                                                                    :: iRegion,iRandom
+    double precision                                                                           :: uniformRandom
 
-    ! Initialize geometry if necessary.
-    if (.not.geometryInitialized) then       
-       ! Determine the solid angles of the different survey regions.
-       regionPhiRange  =        +regionRightAscensionRange*  hoursToRadians
-       regionThetaRange=0.5d0*Pi-   regionDeclinationRange*degreesToRadians
-       do iRegion=1,regionCount
-          if (regionPhiRange(2,iRegion) < regionPhiRange(1,iRegion)) regionPhiRange(2,iRegion)=regionPhiRange(2,iRegion)+2.0d0*Pi
-       end do
-       regionSolidAngle=(regionPhiRange(2,:)-regionPhiRange(1,:))*(cos(regionThetaRange(2,:))-cos(regionThetaRange(1,:)))
-       ! Cumulate and normalize the region solid angles.
-       do iRegion=2,regionCount
-          regionSolidAngle(iRegion)=regionSolidAngle(iRegion)+regionSolidAngle(iRegion-1)
-       end do
-       regionSolidAngle=regionSolidAngle/regionSolidAngle(regionCount)
-       ! Generate random points.
-       call Alloc_Array(randomTheta,[randomsCount])
-       call Alloc_Array(randomPhi  ,[randomsCount])
-       do iRandom=1,randomsCount
-          ! Select a region at random.
-          uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)
-          iRegion=1
-          do while (uniformRandom > regionSolidAngle(iRegion))
-             iRegion=iRegion+1
-          end do
-          ! Select coordinates at random within this region.
-          uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)
-          randomPhi  (iRandom)=     uniformRandom*(    regionPhiRange  (2,iRegion) -    regionPhiRange  (1,iRegion)) +    regionPhiRange  (1,iRegion)
-          uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)
-          randomTheta(iRandom)=acos(uniformRandom*(cos(regionThetaRange(2,iRegion))-cos(regionThetaRange(1,iRegion)))+cos(regionThetaRange(1,iRegion)))
-          uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)
-       end do
-       ! Get the default cosmology.
-       cosmologyParameters_ => cosmologyParameters()
-      ! Compute the distances corresponding to the minimum and maximum redshifts.
-       surveyDistanceMinimum=martin2010ALFALFASampleVelocityMinimum/cosmologyParameters_%hubbleConstant()
-       surveyDistanceMaximum=martin2010ALFALFASampleVelocityMaximum/cosmologyParameters_%hubbleConstant()
-       geometryInitialized=.true.
-    end if
-    ! Find the comoving distance corresponding to this distance module.
-    comovingDistanceMaximum1=min(self%distanceMaximum(mass1),surveyDistanceMaximum)
-    comovingDistanceMaximum2=min(self%distanceMaximum(mass2),surveyDistanceMaximum)
-    comovingDistanceMinimum1=surveyDistanceMinimum
-    comovingDistanceMinimum2=surveyDistanceMinimum
-    ! Determine a suitable box length for the window function calculation.
-    boxLength=3.0d0*max(comovingDistanceMaximum1,comovingDistanceMaximum2)
-    ! Set up origin.
-    origin=([0.5d0,0.5d0,0.5d0]/dble(gridCount)+[0.5d0,0.5d0,0.5d0])*dble(boxLength)
-    ! Populate the cube with the survey selection function.
-    selectionFunction1=cmplx(0.0d0,0.0d0,kind=c_double_complex)
-    selectionFunction2=cmplx(0.0d0,0.0d0,kind=c_double_complex)
-    ! Loop over randoms.
-    do i=1,randomsCount
-       ! Choose random distances.
-       distance1=(Pseudo_Random_Get(pseudoSequenceObject,reset)*(comovingDistanceMaximum1**3-comovingDistanceMinimum1**3)+comovingDistanceMinimum1**3)**(1.0d0/3.0d0)
-       distance2=(Pseudo_Random_Get(pseudoSequenceObject,reset)*(comovingDistanceMaximum2**3-comovingDistanceMinimum2**3)+comovingDistanceMinimum2**3)**(1.0d0/3.0d0)
-       ! Convert to Cartesian coordinates.
-       position1=distance1*[sin(randomTheta(i))*cos(randomPhi(i)),sin(randomTheta(i))*sin(randomPhi(i)),cos(randomTheta(i))]+origin
-       position2=distance2*[sin(randomTheta(i))*cos(randomPhi(i)),sin(randomTheta(i))*sin(randomPhi(i)),cos(randomTheta(i))]+origin
-       ! Apply to the mesh.
-       call Meshes_Apply_Point(selectionFunction1,boxLength,position1,pointWeight=cmplx(1.0d0,0.0d0,kind=c_double_complex),cloudType=cloudTypeTriangular)
-       call Meshes_Apply_Point(selectionFunction2,boxLength,position2,pointWeight=cmplx(1.0d0,0.0d0,kind=c_double_complex),cloudType=cloudTypeTriangular)
+    ! Determine the solid angles of the different survey regions.
+    regionPhiRange  =        +regionRightAscensionRange*  hoursToRadians
+    regionThetaRange=0.5d0*Pi-   regionDeclinationRange*degreesToRadians
+    do iRegion=1,regionCount
+       if (regionPhiRange(2,iRegion) < regionPhiRange(1,iRegion)) regionPhiRange(2,iRegion)=regionPhiRange(2,iRegion)+2.0d0*Pi
     end do
-    ! Take the Fourier transform of the selection function.
-    plan=fftw_plan_dft_3d(gridCount,gridCount,gridCount,selectionFunction1,windowFunction1,FFTW_FORWARD,FFTW_ESTIMATE)
-    call fftw_execute_dft(plan,selectionFunction1,windowFunction1)
-    call fftw_execute_dft(plan,selectionFunction2,windowFunction2)
-    call fftw_destroy_plan(plan)
-    ! Normalize the window function.
-    normalization=windowFunction1(1,1,1)
-    if (real(normalization) > 0.0d0) windowFunction1=windowFunction1/normalization
-    normalization=windowFunction2(1,1,1)
-    if (real(normalization) > 0.0d0) windowFunction2=windowFunction2/normalization
+    regionSolidAngle=(regionPhiRange(2,:)-regionPhiRange(1,:))*(cos(regionThetaRange(2,:))-cos(regionThetaRange(1,:)))
+    ! Cumulate and normalize the region solid angles.
+    do iRegion=2,regionCount
+       regionSolidAngle(iRegion)=regionSolidAngle(iRegion)+regionSolidAngle(iRegion-1)
+    end do
+    regionSolidAngle=regionSolidAngle/regionSolidAngle(regionCount)
+    ! Generate random points.
+    call Alloc_Array(self%randomTheta,[randomsCount])
+    call Alloc_Array(self%randomPhi  ,[randomsCount])
+    do iRandom=1,randomsCount
+       ! Select a region at random.
+       uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)
+       iRegion=1
+       do while (uniformRandom > regionSolidAngle(iRegion))
+          iRegion=iRegion+1
+       end do
+       ! Select coordinates at random within this region.
+       uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)
+       self%randomPhi  (iRandom)=     uniformRandom*(    regionPhiRange  (2,iRegion) -    regionPhiRange  (1,iRegion)) +    regionPhiRange  (1,iRegion)
+       uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)
+       self%randomTheta(iRandom)=acos(uniformRandom*(cos(regionThetaRange(2,iRegion))-cos(regionThetaRange(1,iRegion)))+cos(regionThetaRange(1,iRegion)))
+    end do
     return
-  end subroutine martin2010ALFALFAWindowFunctions
-
-  double precision function martin2010ALFALFAAngularPower(self,i,j,l)
-    !% Angular power is not available, so simply aborts.
-    use Galacticus_Error
-    implicit none
-    class  (surveyGeometryMartin2010ALFALFA), intent(inout) :: self
-    integer                                 , intent(in   ) :: i   , j, l
-
-    call Galacticus_Error_Report('martin2010ALFALFAAngularPower','angular power is not available')
-    return
-  end function martin2010ALFALFAAngularPower
+  end subroutine martin2010ALFALFARandomsInitialize

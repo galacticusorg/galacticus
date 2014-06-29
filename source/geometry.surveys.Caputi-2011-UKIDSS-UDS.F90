@@ -21,17 +21,14 @@
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{caputi_stellar_2011}.</description>
   !# </surveyGeometry>
 
-  type, extends(surveyGeometryClass) :: surveyGeometryCaputi2011UKIDSSUDS
+  type, extends(surveyGeometryRandomPoints) :: surveyGeometryCaputi2011UKIDSSUDS
      double precision :: binDistanceMinimum, binDistanceMaximum
    contains
-     procedure :: windowFunctionAvailable => caputi2011UKIDSSUDSWindowFunctionAvailable
-     procedure :: angularPowerAvailable   => caputi2011UKIDSSUDSAngularPowerAvailable
-     procedure :: distanceMinimum         => caputi2011UKIDSSUDSDistanceMinimum
-     procedure :: distanceMaximum         => caputi2011UKIDSSUDSDistanceMaximum
-     procedure :: volumeMaximum           => caputi2011UKIDSSUDSVolumeMaximum
-     procedure :: solidAngle              => caputi2011UKIDSSUDSSolidAngle
-     procedure :: windowFunctions         => caputi2011UKIDSSUDSWindowFunctions
-     procedure :: angularPower            => caputi2011UKIDSSUDSAngularPower
+     procedure :: distanceMinimum   => caputi2011UKIDSSUDSDistanceMinimum
+     procedure :: distanceMaximum   => caputi2011UKIDSSUDSDistanceMaximum
+     procedure :: volumeMaximum     => caputi2011UKIDSSUDSVolumeMaximum
+     procedure :: solidAngle        => caputi2011UKIDSSUDSSolidAngle
+     procedure :: randomsInitialize => caputi2011UKIDSSUDSRandomsInitialize
   end type surveyGeometryCaputi2011UKIDSSUDS
 
   interface surveyGeometryCaputi2011UKIDSSUDS
@@ -113,27 +110,10 @@ contains
          &                                                 output  =distanceTypeComoving, &
          &                                                 redshift=redshiftMaximum       &
          &                                                )
+    caputi2011UKIDSSUDSConstructor%geometryInitialized=.false.
     return
   end function caputi2011UKIDSSUDSConstructor
   
-  logical function caputi2011UKIDSSUDSWindowFunctionAvailable(self)
-    !% Return true to indicate that survey window function is available.
-    implicit none
-    class(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
-
-    caputi2011UKIDSSUDSWindowFunctionAvailable=.true.
-    return
-  end function caputi2011UKIDSSUDSWindowFunctionAvailable
-
-  logical function caputi2011UKIDSSUDSAngularPowerAvailable(self)
-    !% Return false to indicate that survey angular power is not available.
-    implicit none
-    class(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
-
-    caputi2011UKIDSSUDSAngularPowerAvailable=.false.
-    return
-  end function caputi2011UKIDSSUDSAngularPowerAvailable
-
   double precision function caputi2011UKIDSSUDSDistanceMinimum(self,mass,field)
     !% Compute the minimum distance at which a galaxy is included.
     implicit none
@@ -215,19 +195,12 @@ contains
     return
   end function caputi2011UKIDSSUDSSolidAngle
 
-  subroutine caputi2011UKIDSSUDSWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
-    !% Compute the window function for the survey.
-    use FFTW3
-    use Vectors
-    use Pseudo_Random
-    use FGSL
-    use Meshes
-    use, intrinsic :: ISO_C_Binding
+  subroutine caputi2011UKIDSSUDSRandomsInitialize(self)
+    !% Load random points for the survey.
     use Numerical_Constants_Math
     use Memory_Management
     use Galacticus_Display
     use ISO_Varying_String
-    use Cosmology_Functions
     use String_Handling
     use Galacticus_Input_Paths
     use System_Command
@@ -235,107 +208,23 @@ contains
     use IO_HDF5
     use File_Utilities
     implicit none
-    class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
-    double precision                                   , intent(in   )                                               :: mass1,mass2
-    integer                                            , intent(in   )                                               :: gridCount
-    double precision                                   , intent(  out)                                               :: boxLength
-    complex         (c_double_complex                 ), intent(  out),     dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
-    double precision                                   ,                    dimension(3                            ) :: origin,position1,position2
-    integer                                                                                                          :: i,j
-    double precision                                                                                                 :: comovingDistanceMaximum1, comovingDistanceMaximum2, &
-         &                                                                                                              comovingDistanceMinimum1, comovingDistanceMinimum2
-    type            (c_ptr                            )                                                              :: plan
-    complex         (c_double_complex                 ),                    dimension(gridCount,gridCount,gridCount) :: selectionFunction1,selectionFunction2
-    complex         (c_double_complex                 )                                                              :: normalization
-    logical                                            , save                                                        :: geometryInitialized=.false.
-    double precision                                                                                                 :: rightAscension,declination,distance1,distance2
-    double precision                                   , save, allocatable, dimension(:                            ) :: randomTheta,randomPhi
-    integer                                            , save                                                        :: randomsCount
-    type            (fgsl_rng                         ), save                                                        :: pseudoSequenceObject
-    logical                                            , save                                                        :: reset=.true.
-    type            (varying_string                   )                                                              :: message
-    double precision                                   , save                                                        :: surveyDistanceMinimum, surveyDistanceMaximum
-    type          (hdf5Object                         )                                                              :: surveyGeometryRandomsFile
-    class         (cosmologyFunctionsClass            ), pointer                                                     :: cosmologyFunctions_
+    class(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
+    type (hdf5Object                       )                :: surveyGeometryRandomsFile
 
-    ! Initialize geometry if necessary.
-    if (.not.geometryInitialized) then
-       ! Generate the randoms file if necessary.
-       if (.not.File_Exists(Galacticus_Input_Path()//&
-            &"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) then
-          call System_Command_Do(Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/surveyGeometryRandoms.pl")
-          if (.not.File_Exists(Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) call Galacticus_Error_Report('caputi2011UKIDSSUDSWindowFunctions','unable to create survey geometry randoms file')
-       end if
-       
-       ! Read the distribution of random points from file.
-       !$omp critical(HDF5_Access)
-       call surveyGeometryRandomsFile%openFile(char(Galacticus_Input_Path()//&
-            &'constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5')&
-            &,readOnly=.true.)
-       call surveyGeometryRandomsFile%readDataset('theta',randomTheta)
-       call surveyGeometryRandomsFile%readDataset('phi'  ,randomPhi  )
-       call surveyGeometryRandomsFile%close()
-       randomsCount=size(randomTheta)
-       !$omp end critical(HDF5_Access)
-       
-       ! Get the default cosmology functions object.
-       cosmologyFunctions_ => cosmologyFunctions()
-       ! Compute the distances corresponding to the minimum and maximum redshifts.
-       surveyDistanceMinimum=cosmologyFunctions_%distanceComoving(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(0.001d0)))
-       surveyDistanceMaximum=cosmologyFunctions_%distanceComoving(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(0.500d0)))
-       geometryInitialized=.true.
+    ! Generate the randoms file if necessary.
+    if (.not.File_Exists(Galacticus_Input_Path()//&
+         &"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) then
+       call System_Command_Do(Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/surveyGeometryRandoms.pl")
+       if (.not.File_Exists(Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) call Galacticus_Error_Report('caputi2011UKIDSSUDSWindowFunctions','unable to create survey geometry randoms file')
     end if
-
-    ! Find the comoving distance corresponding to this distance module.
-    comovingDistanceMaximum1=min(self%distanceMaximum(mass1),surveyDistanceMaximum)
-    comovingDistanceMaximum2=min(self%distanceMaximum(mass2),surveyDistanceMaximum)
-    comovingDistanceMinimum1=surveyDistanceMinimum
-    comovingDistanceMinimum2=surveyDistanceMinimum
-
-    ! Determine a suitable box length for the window function calculation.
-    boxLength=3.0d0*max(comovingDistanceMaximum1,comovingDistanceMaximum2)
-
-    ! Set up origin.
-    origin=([0.5d0,0.5d0,0.0d0]/dble(gridCount)+[0.5d0,0.5d0,0.5d0])*dble(boxLength)
-
-    ! Populate the cube with the survey selection function.
-    selectionFunction1=cmplx(0.0d0,0.0d0)
-    selectionFunction2=cmplx(0.0d0,0.0d0)
-
-    ! Loop over randoms.
-    do i=1,randomsCount
-       ! Choose random distances.
-       distance1=(Pseudo_Random_Get(pseudoSequenceObject,reset)*(comovingDistanceMaximum1**3-comovingDistanceMinimum1**3)+comovingDistanceMinimum1**3)**(1.0d0/3.0d0)
-       distance2=(Pseudo_Random_Get(pseudoSequenceObject,reset)*(comovingDistanceMaximum2**3-comovingDistanceMinimum2**3)+comovingDistanceMinimum2**3)**(1.0d0/3.0d0)
-       ! Convert to Cartesian coordinates.
-       position1=distance1*[sin(randomTheta(i))*cos(randomPhi(i)),sin(randomTheta(i))*sin(randomPhi(i)),cos(randomTheta(i))]+origin
-       position2=distance2*[sin(randomTheta(i))*cos(randomPhi(i)),sin(randomTheta(i))*sin(randomPhi(i)),cos(randomTheta(i))]+origin
-       ! Apply to the mesh.
-       call Meshes_Apply_Point(selectionFunction1,boxLength,position1,pointWeight=cmplx(1.0d0,0.0d0,kind=c_double_complex),cloudType=cloudTypeTriangular)
-       call Meshes_Apply_Point(selectionFunction2,boxLength,position2,pointWeight=cmplx(1.0d0,0.0d0,kind=c_double_complex),cloudType=cloudTypeTriangular)
-    end do
-    ! Take the Fourier transform of the selection function.
-    plan=fftw_plan_dft_3d(gridCount,gridCount,gridCount,selectionFunction1,windowFunction1,FFTW_FORWARD,FFTW_ESTIMATE)
-    call fftw_execute_dft(plan,selectionFunction1,windowFunction1)
-    call fftw_execute_dft(plan,selectionFunction2,windowFunction2)
-    call fftw_destroy_plan(plan)
-
-    ! Normalize the window function.
-    normalization=windowFunction1(1,1,1)
-    if (real(normalization) > 0.0d0) windowFunction1=windowFunction1/normalization
-    normalization=windowFunction2(1,1,1)
-    if (real(normalization) > 0.0d0) windowFunction2=windowFunction2/normalization
-
+    ! Read the distribution of random points from file.
+    !$omp critical(HDF5_Access)
+    call surveyGeometryRandomsFile%openFile(char(Galacticus_Input_Path()//&
+         &'constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5')&
+         &,readOnly=.true.)
+    call surveyGeometryRandomsFile%readDataset('theta',self%randomTheta)
+    call surveyGeometryRandomsFile%readDataset('phi'  ,self%randomPhi  )
+    call surveyGeometryRandomsFile%close()
+    !$omp end critical(HDF5_Access)    
     return
-  end subroutine caputi2011UKIDSSUDSWindowFunctions
-
-  double precision function caputi2011UKIDSSUDSAngularPower(self,i,j,l)
-    !% Angular power is not available, so simply aborts.
-    use Galacticus_Error
-    implicit none
-    class  (surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
-    integer                                   , intent(in   ) :: i   , j, l
-
-    call Galacticus_Error_Report('caputi2011UKIDSSUDSAngularPower','angular power is not available')
-    return
-  end function caputi2011UKIDSSUDSAngularPower
+  end subroutine caputi2011UKIDSSUDSRandomsInitialize
