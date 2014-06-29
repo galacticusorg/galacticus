@@ -40,7 +40,7 @@ module Statistics_Mass_Function_Covariance
   double precision :: logMassLower,logMassUpper
 
   ! Minimum and maximum masses for the bins being considered.
-  double precision :: log10MassBinWidth,logMassBinWidth
+  double precision, dimension(:), allocatable :: log10MassBinWidth,logMassBinWidth
   integer          :: binI,binJ,lssBin
   !$omp threadprivate(lssBin,binI,binJ)
   double precision :: massBinCenterI,massBinMinimumI,massBinMaximumI
@@ -65,7 +65,7 @@ module Statistics_Mass_Function_Covariance
 
 contains
 
-  subroutine Mass_Function_Covariance_Matrix(redshiftMinimum,redshiftMaximum,massBinCount,massMinimum,massMaximum,massFunctionObserved,completenessObserved,numberObserved,includePoisson,includeHalo,includeLSS&
+  subroutine Mass_Function_Covariance_Matrix(redshiftMinimum,redshiftMaximum,massBinCount,massMinimum,massMaximum,massObserved,massWidthObserved,massFunctionObserved,completenessObserved,numberObserved,completenessErrorObserved,includePoisson,includeHalo,includeLSS&
        &,mass,massFunction,covariance ,covariancePoisson,covarianceHalo,covarianceLSS,correlation)
     !% Compute the mass function covariance matrix.
     use, intrinsic :: ISO_C_Binding
@@ -82,11 +82,11 @@ contains
     implicit none
     integer                            , intent(in   )                                        :: massBinCount
     double precision                   , intent(in   )                                        :: redshiftMinimum,redshiftMaximum&
-         &,massMinimum,massMaximum
+         &,massMinimum,massMaximum,completenessErrorObserved
     logical                            , intent(in   )                                        :: includePoisson,includeHalo&
          &,includeLSS
     double precision                   , intent(inout), allocatable, dimension(:    )         :: mass
-    double precision                   , intent(inout), allocatable, dimension(:    ), target :: massFunction,massFunctionObserved, completenessObserved, numberObserved
+    double precision                   , intent(inout), allocatable, dimension(:    ), target :: massFunction,massFunctionObserved, completenessObserved, numberObserved, massObserved, massWidthObserved
     double precision                   , intent(inout), allocatable, dimension(:,:  )         :: covariance,covariancePoisson &
          &,covarianceHalo,covarianceLSS,correlation
     double precision                   ,                allocatable, dimension(:,:  )         :: varianceLSS    , volume
@@ -152,6 +152,8 @@ contains
     ! Allocate arrays.
     call Alloc_Array(mass             ,[massBinCount             ])
     call Alloc_Array(logMassBinCenter ,[massBinCount             ])
+    call Alloc_Array(log10MassBinWidth,[massBinCount             ])
+    call Alloc_Array(logMassBinWidth  ,[massBinCount             ])
     call Alloc_Array(massFunction     ,[massBinCount             ])
     call Alloc_Array(volume           ,[massBinCount,fieldCount  ])
     call Alloc_Array(covariance       ,[massBinCount,massBinCount])
@@ -167,12 +169,19 @@ contains
     timeTable=Make_Range(timeMinimum,timeMaximum,timeBinCount,rangeType=rangeTypeLogarithmic)
 
     ! Create mass bins.
-    logMassMinimum   =log10(massMinimum)
-    logMassMaximum   =log10(massMaximum)
-    logMassBinCenter =Make_Range(logMassMinimum,logMassMaximum,massBinCount,rangeType=rangeTypeLinear)
-    log10MassBinWidth=logMassBinCenter(2)-logMassBinCenter(1)
-    logMassBinWidth  =log(10.0d0)*log10MassBinWidth
-    mass             =10.0d0**logMassBinCenter
+    if (allocated(massWidthObserved)) then
+       mass             =massObserved
+       log10MassBinWidth=log10(massWidthObserved)
+       logMassBinWidth  =log(10.0d0)*log10MassBinWidth
+       logMassBinCenter =log10(mass)
+    else
+       logMassMinimum   =log10(massMinimum)
+       logMassMaximum   =log10(massMaximum)
+       logMassBinCenter =Make_Range(logMassMinimum,logMassMaximum,massBinCount,rangeType=rangeTypeLinear)
+       log10MassBinWidth=logMassBinCenter(2)-logMassBinCenter(1)
+       logMassBinWidth  =log(10.0d0)*log10MassBinWidth
+       mass             =10.0d0**logMassBinCenter
+    end if
 
     ! Halo mass limits for integrations.
     logMassLower    =log10(massFunctionCovarianceHaloMassMinimum)
@@ -200,8 +209,8 @@ contains
 
        ! Find limits on mass for this bin.
        massBinCenterI =10.0** logMassBinCenter(i)
-       massBinMinimumI=10.0**(logMassBinCenter(i)-0.5d0*log10MassBinWidth)
-       massBinMaximumI=10.0**(logMassBinCenter(i)+0.5d0*log10MassBinWidth)
+       massBinMinimumI=10.0**(logMassBinCenter(i)-0.5d0*log10MassBinWidth(i))
+       massBinMaximumI=10.0**(logMassBinCenter(i)+0.5d0*log10MassBinWidth(i))
 
        ! Iterate over fields.
        volumeNormalization=0.0d0
@@ -250,8 +259,7 @@ contains
        end do
 
        ! Normalize the mass function.
-       massFunction(i)=massFunction(i)/logMassBinWidth/volumeNormalization
-
+       massFunction(i)=massFunction(i)/logMassBinWidth(i)/volumeNormalization
        ! Tabulate the bias as a function of time in this bin.
        integrationReset=.true.
        do iTime=1,timeBinCount
@@ -266,10 +274,9 @@ contains
                &                 toleranceRelative=1.0d-2, &
                &                 reset=integrationReset    &
                &                )                          &
-               & /logMassBinWidth
+               & /logMassBinWidth(i)
        end do
        call Integrate_Done(integrandFunction,integrationWorkspace)
-
     end do
 
     ! Compute LSS variance if necessary.
@@ -293,12 +300,12 @@ contains
     covarianceLSS    =0.0d0
     do i   =1,massBinCount
        massBinCenterI    =10.0d0** logMassBinCenter(i)
-       massBinMinimumI   =10.0d0**(logMassBinCenter(i)-0.5d0*log10MassBinWidth)
-       massBinMaximumI   =10.0d0**(logMassBinCenter(i)+0.5d0*log10MassBinWidth)
+       massBinMinimumI   =10.0d0**(logMassBinCenter(i)-0.5d0*log10MassBinWidth(i))
+       massBinMaximumI   =10.0d0**(logMassBinCenter(i)+0.5d0*log10MassBinWidth(i))
        do j=i,massBinCount
           massBinCenterJ =10.0d0** logMassBinCenter(j)
-          massBinMinimumJ=10.0d0**(logMassBinCenter(j)-0.5d0*log10MassBinWidth)
-          massBinMaximumJ=10.0d0**(logMassBinCenter(j)+0.5d0*log10MassBinWidth)
+          massBinMinimumJ=10.0d0**(logMassBinCenter(j)-0.5d0*log10MassBinWidth(j))
+          massBinMaximumJ=10.0d0**(logMassBinCenter(j)+0.5d0*log10MassBinWidth(j))
           ! Poisson term.
           if (includePoisson .and. i == j) then
              if      (useCompleteness) then
@@ -307,11 +314,11 @@ contains
                 binCompleteness=     numberObserved     (i  )  &
                      &          /    massFunctionUse    (i  )  &
                      &          /sum(volume             (i,:)) &
-                     &          /    logMassBinWidth
+                     &          /    logMassBinWidth(i)
              else
                 binCompleteness=1.0d0
              end if
-             covariancePoisson(i,j)=massFunctionUse(i)/binCompleteness/sum(volume(i,:))/logMassBinWidth
+             covariancePoisson(i,j)=massFunctionUse(i)/binCompleteness/sum(volume(i,:))/logMassBinWidth(i)
           end if
           
           ! Halo occupancy covariance.
@@ -344,16 +351,26 @@ contains
                      &                         reset=integrationReset         &
                      &                        )                               &
                      &              *surveyGeometry_%solidAngle(iField)       &
-                     &              /logMassBinWidth**2                       &
+                     &              /logMassBinWidth(i)                       &
+                     &              /logMassBinWidth(j)                       &
                      &              /volume(i,iField)                         &
-                     &              /volume(j,iField)
+                     &              /volume(j,iField)                         &
+                     &              *massFunctionUse(i)                       & ! Renormalize to actual mass function.
+                     &              /massFunction   (i)                       & ! Accounts for any difference between model and data.
+                     &              *massFunctionUse(j)                       & ! Including incompleteness.
+                     &              /massFunction   (j)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
              end do
           end if
 
           ! Large-scale structure term.
-          if (includeLSS) covarianceLSS(i,j)=varianceLSS(i,j)
-
+          if (includeLSS) covarianceLSS    (i,j) &
+               &           =varianceLSS    (i,j) &
+               &           *massFunctionUse(i  ) & ! Renormalize to actual mass function.
+               &           /massFunction   (i  ) & ! Accounts for any difference between model and data.
+               &           *massFunctionUse(  j) & ! Including incompleteness.
+               &           /massFunction   (  j)
+          
        end do
     end do
 
@@ -371,6 +388,13 @@ contains
     ! Sum covariances.
     covariance=covariancePoisson+covarianceHalo+covarianceLSS      
     
+    ! Add in any covariance arising from uncertainty in the incompleteness.
+    do i   =1,massBinCount
+       do j=1,massBinCount
+          covariance(i,j)=covariance(i,j)+completenessErrorObserved**2*massFunctionUse(i)*massFunctionUse(j)
+       end do
+    end do
+
     ! Compute the corresponding correlation matrix.
     do i   =1,massBinCount
        do j=1,massBinCount
@@ -428,17 +452,35 @@ contains
     real            (c_double)        :: Angular_Power_Integrand
     real            (c_double), value :: wavenumber
     type            (c_ptr   ), value :: parameterPointer
-    integer                           :: iField                 , jField        , &
+    integer                           :: iField                 , jField               , &
          &                               l
-    double precision                  :: x0i                    , x1i           , &
-         &                               x0j                    , x1j           , &
-         &                               powerSpectrumI         , powerSpectrumJ, &
+    double precision                  :: x0i                    , x1i                  , &
+         &                               x0j                    , x1j                  , &
+         &                               powerSpectrumI         , powerSpectrumJ       , &
+         &                               surveyDistanceMinimum  , surveyDistanceMaximum, &
          &                               angularFactor
 
     Angular_Power_Integrand=0.0d0
     if (wavenumber <= 0.0d0) return
     wavenumberGlobal=wavenumber
+    surveyDistanceMinimum                                                                 &
+         &     =cosmologyFunctions_  %distanceComoving           (                        &
+         &       cosmologyFunctions_ %cosmicTime                  (                       &
+         &        cosmologyFunctions_%expansionFactorFromRedshift  (                      &
+         &                                                          surveyRedshiftMinimum &
+         &                                                         )                      &
+         &                                                        )                       &
+         &                                                       )
+    surveyDistanceMaximum                                                                 &
+         &     =cosmologyFunctions_  %distanceComoving           (                        &
+         &       cosmologyFunctions_ %cosmicTime                  (                       &
+         &        cosmologyFunctions_%expansionFactorFromRedshift  (                      &
+         &                                                          surveyRedshiftMaximum &
+         &                                                         )                      &
+         &                                                        )                       &
+         &                                                       )
     do iField=1,surveyGeometry_%fieldCount()
+       if (timeMinimumI(iField) >= timeMaximumI(iField)) cycle
        powerSpectrumI=+surveyGeometry_%solidAngle(             iField)   &
             &         *Galaxy_Root_Power_Spectrum(                       &
             &                                                  binI    , &
@@ -448,62 +490,38 @@ contains
        if (surveyRedshiftMinimum <= 0.0d0) then
           x0i=   +0.0d0
        else
-          x0i=                                                                                  &
-               & +wavenumberGlobal                                                              &
-               & *    cosmologyFunctions_  %distanceComoving           (                        &
-               &       cosmologyFunctions_ %cosmicTime                  (                       &
-               &        cosmologyFunctions_%expansionFactorFromRedshift  (                      &
-               &                                                          surveyRedshiftMinimum &
-               &                                                         )                      &
-               &                                                        )                       &
-               &                                                       )
+          x0i=                                                                                &
+               & +wavenumberGlobal                                                            &
+               & *    surveyDistanceMinimum  
        end if
-       x1i=                                                                                     &
-            &    +wavenumberGlobal                                                              &
-            &    *min(                                                                          &
-            &         cosmologyFunctions_  %distanceComoving           (                        &
-            &          cosmologyFunctions_ %cosmicTime                  (                       &
-            &           cosmologyFunctions_%expansionFactorFromRedshift  (                      &
-            &                                                             surveyRedshiftMaximum &
-            &                                                            )                      &
-            &                                                           )                       &
-            &                                                          )                      , &
-            &         surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binI),iField)    &
+       x1i=                                                                                   &
+            &    +wavenumberGlobal                                                            &
+            &    *min(                                                                        &
+            &         surveyDistanceMaximum                                                 , &
+            &         surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binI),iField)  &
             &        )
-      do jField=1,surveyGeometry_%fieldCount()
+       do jField=1,surveyGeometry_%fieldCount()
+          if (timeMinimumJ(jField) >= timeMaximumJ(jField)) cycle
           powerSpectrumJ=+surveyGeometry_%solidAngle(             jField)   &
                &         *Galaxy_Root_Power_Spectrum(                       &
                &                                                  binJ    , &
                &                                     timeMinimumJ(jField) , &
                &                                     timeMaximumJ(jField)   &
-               &                                    )          
-        if (surveyRedshiftMinimum <= 0.0d0) then
+               &                                    )
+          if (surveyRedshiftMinimum <= 0.0d0) then
              x0j=   +0.0d0
           else
-             x0j=                                                                                  &
-                  & +wavenumberGlobal                                                              &
-                  & *    cosmologyFunctions_  %distanceComoving           (                        &
-                  &       cosmologyFunctions_ %cosmicTime                  (                       &
-                  &        cosmologyFunctions_%expansionFactorFromRedshift  (                      &
-                  &                                                          surveyRedshiftMinimum &
-                  &                                                         )                      &
-                  &                                                        )                       &
-                  &                                                       )
+             x0j=                                                                                &
+                  & +wavenumberGlobal                                                            &
+                  & *    surveyDistanceMinimum
           end if
-          x1j=                                                                                     &
-               &    +wavenumberGlobal                                                              &
-               &    *min(                                                                          &
-               &         cosmologyFunctions_  %distanceComoving           (                        &
-               &          cosmologyFunctions_ %cosmicTime                  (                       &
-               &           cosmologyFunctions_%expansionFactorFromRedshift  (                      &
-               &                                                             surveyRedshiftMaximum &
-               &                                                            )                      &
-               &                                                           )                       &
-               &                                                          )                      , &
-               &         surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binJ),jField)    &
+          x1j=                                                                                   &
+               &    +wavenumberGlobal                                                            &
+               &    *min(                                                                        &
+               &         surveyDistanceMaximum                                                 , &
+               &         surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binJ),jField)  &
                &       )
           angularFactor=0.0d0
-          !$omp parallel do reduction(+:angularFactor)
           do l=0,surveyGeometry_%angularPowerMaximumDegree()
              angularFactor=                                               &
                   &        +angularFactor                                 &
@@ -512,8 +530,7 @@ contains
                   &        *Angular_Power_Radial_Term   (x0i   ,x1i   ,l) &
                   &        *Angular_Power_Radial_Term   (x0j   ,x1j   ,l)
           end do
-          !$omp end parallel do
-         Angular_Power_Integrand=Angular_Power_Integrand+powerSpectrumI*powerSpectrumJ*angularFactor
+          Angular_Power_Integrand=Angular_Power_Integrand+powerSpectrumI*powerSpectrumJ*angularFactor
        end do
     end do
     Angular_Power_Integrand=Angular_Power_Integrand/wavenumberGlobal**4
@@ -526,50 +543,72 @@ contains
     use Gamma_Functions
     use Hypergeometric_Functions
     implicit none
-    double precision, intent(in   ) :: x0              , x1
+    double precision, intent(in   ) :: x0                , x1
     integer         , intent(in   ) :: l
-    double precision, parameter     :: xMaximum=512.0d0
-    double precision                :: h0              , h1, &
+    double precision, parameter     :: xMaximum  = 512.0d0
+    double precision, parameter     :: aMinimum  =-750.0d0
+    integer         , save          :: lPrevious =-1
+    double precision, save          :: x0Previous=-1.0d0 , x1Previous=-1.0d0
+    !$omp threadprivate(lPrevious,x0Previous,x1Previous)
+    double precision, save          :: h0                , h1, &
          &                             logGammas
+    !$omp threadprivate(h0,h1,logGammas)
+    double precision                :: a0                , a1
 
     ! Evaluate combination of logarithms of Gamma functions.
-    logGammas=+Gamma_Function_Logarithmic(0.5d0*(3.0d0+dble(l))) &
-         &    -Gamma_Function_Logarithmic(       1.5d0+dble(l) ) &
-         &    -Gamma_Function_Logarithmic(0.5d0*(5.0d0+dble(l)))
-    ! Evaluate hypergeometric terms and power-law terms, catching the x=0 special case.
-    if (x0 <= 0.0d0 .or. x0 > xMaximum) then 
-       h0     =0.0d0
-    else
-       h0     =                                                          &
-            & +Hypergeometric_pFq(                                       &
-            &                     [              0.5d0*(3.0d0+dble(l))], &
-            &                     [1.5d0+dble(l),0.5d0*(5.0d0+dble(l))], &
-            &                     -x0**2/4.0d0                           &
-            &                    )                                       &
-            & *exp(                                                      &
-            &      +logGammas                                            &
-            &      +dble(3+l)                                            &
-            &      *log (x0 )                                            &
-            &      -dble(2+l)                                            &
-            &      *ln2                                                  &
-            &     )
+    if (l /= lPrevious) then
+       logGammas=+Gamma_Function_Logarithmic(0.5d0*(3.0d0+dble(l))) &
+            &    -Gamma_Function_Logarithmic(       1.5d0+dble(l) ) &
+            &    -Gamma_Function_Logarithmic(0.5d0*(5.0d0+dble(l)))
     end if
-    if (x1 <= 0.0d0 .or. x1 > xMaximum) then 
-       h1     =0.0d0
-    else
-       h1     =                                                          &
-            & +Hypergeometric_pFq(                                       &
-            &                     [              0.5d0*(3.0d0+dble(l))], &
-            &                     [1.5d0+dble(l),0.5d0*(5.0d0+dble(l))], &
-            &                     -x1**2/4.0d0                           &
-            &                    )                                       &
-            & *exp(                                                      &
-            &      +logGammas                                            &
-            &      +dble(3+l)                                            &
-            &      *log (x1 )                                            &
-            &      -dble(2+l)                                            &
-            &      *ln2                                                  &
-            &     )
+    ! Evaluate hypergeometric terms and power-law terms, catching the x=0 special case.
+    if (l /= lPrevious .or. x0 /= x0Previous) then
+       if (x0 <= 0.0d0 .or. x0 > xMaximum) then 
+          h0     =0.0d0
+       else
+          a0=                                                               &
+               &      +logGammas                                            &
+               &      +dble(3+l)                                            &
+               &      *log (x0 )                                            &
+               &      -dble(2+l)                                            &
+               &      *ln2
+          if (a0 > aMinimum) then
+             h0     =                                                          &
+                  & +Hypergeometric_pFq(                                       &
+                  &                     [              0.5d0*(3.0d0+dble(l))], &
+                  &                     [1.5d0+dble(l),0.5d0*(5.0d0+dble(l))], &
+                  &                     -x0**2/4.0d0                           &
+                  &                    )                                       &
+                  & *exp(a0)
+          else
+             h0=0.0d0
+          end if
+       end if
+       x0Previous=x0
+    end if
+    if (l /= lPrevious .or. x1 /= x1Previous) then
+       if (x1 <= 0.0d0 .or. x1 > xMaximum) then 
+          h1     =0.0d0
+       else
+          a1=                                                               &
+               &      +logGammas                                            &
+               &      +dble(3+l)                                            &
+               &      *log (x1 )                                            &
+               &      -dble(2+l)                                            &
+               &      *ln2
+          if (a1 > aMinimum) then
+             h1     =                                                          &
+                  & +Hypergeometric_pFq(                                       &
+                  &                     [              0.5d0*(3.0d0+dble(l))], &
+                  &                     [1.5d0+dble(l),0.5d0*(5.0d0+dble(l))], &
+                  &                     -x1**2/4.0d0                           &
+                  &                    )                                       &
+                  & *exp(a1)
+          else
+             h1=0.0d0
+          end if
+       end if
+       x1Previous=x1
     end if
     Angular_Power_Radial_Term=          &
          &                    +sqrt(Pi) &
@@ -577,6 +616,7 @@ contains
          &                      +h1     &
          &                      -h0     &
          &                     )
+    lPrevious=l
     return
   end function Angular_Power_Radial_Term
   
@@ -639,13 +679,14 @@ contains
 
     conditionalMassFunction_ => conditionalMassFunction()
     mass=10.0d0**logMass
-    Mass_Function_Integrand_I= Halo_Mass_Function_Differential(time,mass)                &
-         &                *                                         mass                 &
-         &                *log(10.0d0)                                                   &
-         &                *(                                                             &
-         &                   conditionalMassFunction_%massFunction(mass,massBinMinimumI) &
-         &                  -conditionalMassFunction_%massFunction(mass,massBinMaximumI) &
-         &                 )
+    Mass_Function_Integrand_I= Halo_Mass_Function_Differential(time,mass)                    &
+         &                *                                         mass                     &
+         &                *log(10.0d0)                                                       &
+         &                *max(                                                              &
+         &                     +conditionalMassFunction_%massFunction(mass,massBinMinimumI)  &
+         &                     -conditionalMassFunction_%massFunction(mass,massBinMaximumI), &
+         &                      0.0d0                                                        &
+         &                    )
     return
   end function Mass_Function_Integrand_I
 
@@ -776,9 +817,12 @@ contains
     do iField=1,surveyGeometry_%fieldCount() 
        ! Find integration limits for this bin. We want the maximum of the volumes associated with the two bins.
        timeMaximum(iField)=    cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum       ))
-       timeMinimum(iField)=max(                                                                                                                     &
-            &                  cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum       )), &
-            &                  cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_    %distanceMaximum            (10.0d0**logMass,iField))  &
+       timeMinimum(iField)=min(                                                                                                                         &
+            &                  max(                                                                                                                     &
+            &                      cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum       )), &
+            &                      cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_    %distanceMaximum            (10.0d0**logMass,iField))  &
+            &                     )                                                                                                                   , &
+            &                  timeMaximum(iField)                                                                                                      &
             &                 )
        ! Get the normalizing volume integral for bin i.
        integrationReset=.true.
@@ -791,7 +835,7 @@ contains
             &                                 integrationWorkspace    , &
             &                                 toleranceRelative=1.0d-3, &
             &                                 reset=integrationReset    &
-            &                                ) &
+            &                                )                          &
             &                      *surveyGeometry_%solidAngle(iField)
       call Integrate_Done(integrandFunction,integrationWorkspace)
     end do
@@ -848,18 +892,19 @@ contains
          &                   massFunctionCovarianceFFTGridSize  &
          &                  )                                   &
          &  )
-    taskTotal=massBinCount*(massBinCount+1)/2
-    taskCount=0
+    taskTotal  =massBinCount*(massBinCount+1)/2
+    taskCount  =0
+    varianceLSS=0.0d0
     do i   =1,massBinCount
        binI=i
        massBinCenterI =10.0d0** logMassBinCenter(i)
-       massBinMinimumI=10.0d0**(logMassBinCenter(i)-0.5d0*log10MassBinWidth)
-       massBinMaximumI=10.0d0**(logMassBinCenter(i)+0.5d0*log10MassBinWidth)
+       massBinMinimumI=10.0d0**(logMassBinCenter(i)-0.5d0*log10MassBinWidth(i))
+       massBinMaximumI=10.0d0**(logMassBinCenter(i)+0.5d0*log10MassBinWidth(i))
        do j=i,massBinCount
           binJ=j
           massBinCenterJ =10.0d0** logMassBinCenter(j)
-          massBinMinimumJ=10.0d0**(logMassBinCenter(j)-0.5d0*log10MassBinWidth)
-          massBinMaximumJ=10.0d0**(logMassBinCenter(j)+0.5d0*log10MassBinWidth)
+          massBinMinimumJ=10.0d0**(logMassBinCenter(j)-0.5d0*log10MassBinWidth(j))
+          massBinMaximumJ=10.0d0**(logMassBinCenter(j)+0.5d0*log10MassBinWidth(j))
           ! Update progress.
           call Galacticus_Display_Counter(                                              &
                &                          int(100.0d0*dble(taskCount)/dble(taskTotal)), &
@@ -884,7 +929,7 @@ contains
           ! inverse wavelengths, if we associated T with the total box length, L. In terms of
           ! wavenumber, that means that each cell of the FFT has side of length 2π/L.
           variance=0.0d0
-          !$omp parallel private (u,v,w,waveNumberU,waveNumberV,waveNumberW,multiplier,normalizationI,normalizationJ,powerSpectrumI,powerSpectrumJ,iField)
+          !$omp parallel private (u,v,w,waveNumberU,waveNumberV,waveNumberW,multiplier,normalizationI,normalizationJ,powerSpectrumI,powerSpectrumJ,powerSpectrum,iField)
           call Alloc_Array(volumeNormalizationI,[fieldCount])
           call Alloc_Array(volumeNormalizationJ,[fieldCount])
           call Alloc_Array(timeMinimumI        ,[fieldCount])
@@ -985,7 +1030,7 @@ contains
           !$omp end parallel
           ! Normalize the variance. We multiply by (2π/L)³ to account for the volume of each FFT
           ! cell, and divide by (2π)³ as defined in eqn. (66) of Smith (2012; MNRAS; 426; 531).
-          varianceLSS(i,j)=real(variance)/boxLength**3
+          varianceLSS(i,j)=dble(variance)/boxLength**3
        end do
     end do
     if (allocated(windowFunctionI)) deallocate(windowFunctionI)
@@ -998,6 +1043,7 @@ contains
     !% Compute variance due to large scale structure by integration over the angular power spectrum.
     use, intrinsic :: ISO_C_Binding
     use FGSL
+    use Galacticus_Display
     use Numerical_Constants_Math
     use Numerical_Integration
     use Memory_Management
@@ -1008,7 +1054,7 @@ contains
     ! Dimensionless factor controlling the highest wavenumber to be used when integrating over
     ! angular power spectra.
     double precision                            , parameter                       :: wavenumberMaximumFactor=1.0d0
-    integer                                                                       :: i,j,fieldCount,iField
+    integer                                                                       :: i,j,fieldCount,iField,taskCount,taskTotal
     double precision                                                              :: wavenumberMinimum,wavenumberMaximum,distanceMaximum
     logical                                                                       :: integrationReset
     type            (fgsl_function             )                                  :: integrandFunction
@@ -1017,6 +1063,8 @@ contains
 
     fieldCount=surveyGeometry_%fieldCount()
     call omp_set_nested(.true.)
+    taskTotal  =massBinCount*(massBinCount+1)/2
+    taskCount  =0
     !$omp parallel do private (i,j,wavenumberMinimum,wavenumberMaximum,integrationReset,integrandFunction,integrationWorkspace) schedule (dynamic)
     do i=1,massBinCount
        ! Allocate arrays for times and volume normalizations.
@@ -1039,6 +1087,11 @@ contains
             &                             volumeNormalizationI    &
             &                            )
        do j=binI,massBinCount
+          ! Update progress.
+          call Galacticus_Display_Counter(                                              &
+               &                          int(100.0d0*dble(taskCount)/dble(taskTotal)), &
+               &                          isNew=(taskCount==0)                          &
+               &                         )
           binJ=j
           call Compute_Volume_Normalizations(                        &
                &                             logMassBinCenter(binJ), &
@@ -1079,6 +1132,8 @@ contains
                &                      reset                  =integrationReset  &
                &                     )
           call Integrate_Done(integrandFunction,integrationWorkspace)
+          !$omp atomic
+          taskCount=taskCount+1
        end do
        ! Allocate arrays for times and volume normalizations.
        if (allocated(volumeNormalizationI)) then
