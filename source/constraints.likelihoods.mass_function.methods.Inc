@@ -17,72 +17,85 @@
 
 !% Defines methods for a mass function likelihood function.
 
-function likelihoodMassFunctionConstructor(haloMassMinimum,haloMassMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,massFunctionFileName)
+function likelihoodMassFunctionConstructor(haloMassMinimum,haloMassMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,massFunctionFileName,modelSurfaceBrightness,surfaceBrightnessLimit)
   !% Constructor for the mass function likelihood class.
   use Galacticus_Input_Paths
   use IO_HDF5
   use Memory_Management
   implicit none
-  type            (likelihoodMassFunction)                :: likelihoodMassFunctionConstructor
-  double precision                        , intent(in   ) :: redshiftMinimum                  , redshiftMaximum, &
-       &                                                     haloMassMinimum                  , haloMassMaximum
-  logical                                 , intent(in   ) :: useSurveyLimits
-  character       (len=*                 ), intent(in   ) :: massFunctionFileName
-  type            (hdf5Object            )                :: massFunctionFile
-  integer                                                 :: i
+  type            (likelihoodMassFunction)                              :: likelihoodMassFunctionConstructor
+  double precision                        , intent(in   )               :: redshiftMinimum                  , redshiftMaximum       , &
+       &                                                                   haloMassMinimum                  , haloMassMaximum       , &
+       &                                                                   surfaceBrightnessLimit
+  logical                                 , intent(in   )               :: useSurveyLimits                  , modelSurfaceBrightness
+  character       (len=*                 ), intent(in   )               :: massFunctionFileName
+  double precision                        , allocatable  , dimension(:) :: massBinWidth
+  type            (hdf5Object            )                              :: massFunctionFile
+  integer                                                               :: i
 
   likelihoodMassFunctionConstructor%useSurveyLimits=useSurveyLimits
-  likelihoodMassFunctionConstructor%   haloMassMinimum=      haloMassMinimum
-  likelihoodMassFunctionConstructor%   haloMassMaximum=      haloMassMaximum
-  likelihoodMassFunctionConstructor%logHaloMassMinimum=log10(haloMassMinimum)
-  likelihoodMassFunctionConstructor%logHaloMassMaximum=log10(haloMassMaximum)
-  likelihoodMassFunctionConstructor%   redshiftMinimum=      redshiftMinimum
-  likelihoodMassFunctionConstructor%   redshiftMaximum=      redshiftMaximum
+  likelihoodMassFunctionConstructor%       haloMassMinimum=      haloMassMinimum
+  likelihoodMassFunctionConstructor%       haloMassMaximum=      haloMassMaximum
+  likelihoodMassFunctionConstructor%    logHaloMassMinimum=log10(haloMassMinimum)
+  likelihoodMassFunctionConstructor%    logHaloMassMaximum=log10(haloMassMaximum)
+  likelihoodMassFunctionConstructor%       redshiftMinimum=      redshiftMinimum
+  likelihoodMassFunctionConstructor%       redshiftMaximum=      redshiftMaximum
+  likelihoodMassFunctionConstructor%modelSurfaceBrightness=      modelSurfaceBrightness
+  likelihoodMassFunctionConstructor%surfaceBrightnessLimit=      surfaceBrightnessLimit
   ! Read the mass function file.
   !$omp critical(HDF5_Access)
   call massFunctionFile%openFile(char(Galacticus_Input_Path())//massFunctionFileName,readOnly=.true.)
   call massFunctionFile%readDataset("mass"                ,likelihoodMassFunctionConstructor%mass                )
   call massFunctionFile%readDataset("massFunctionObserved",likelihoodMassFunctionConstructor%massFunctionObserved)
   call massFunctionFile%readDataset("covariance"          ,likelihoodMassFunctionConstructor%covarianceMatrix    )
+  ! Compute mass bin limits.
+  call Alloc_Array(likelihoodMassFunctionConstructor%massFunction,shape(likelihoodMassFunctionConstructor%mass))
+  call Alloc_Array(likelihoodMassFunctionConstructor%massMinimum ,shape(likelihoodMassFunctionConstructor%mass))
+  call Alloc_Array(likelihoodMassFunctionConstructor%massMaximum ,shape(likelihoodMassFunctionConstructor%mass))
+  if (massFunctionFile%hasDataset("massWidthObserved")) then
+     call massFunctionFile%readDataset("massWidthObserved",massBinWidth)
+     do i=1,size(likelihoodMassFunctionConstructor%mass)
+        likelihoodMassFunctionConstructor%massMinimum(i)=likelihoodMassFunctionConstructor%mass(i)/sqrt(massBinWidth(i))
+        likelihoodMassFunctionConstructor%massMaximum(i)=likelihoodMassFunctionConstructor%mass(i)*sqrt(massBinWidth(i))
+     end do
+     call Dealloc_Array(massBinWidth)
+  else
+     do i=1,size(likelihoodMassFunctionConstructor%mass)
+        if (i ==                                            1) then
+           likelihoodMassFunctionConstructor              %massMinimum(i  ) &
+                & =      likelihoodMassFunctionConstructor%mass       (i  ) &
+                & *sqrt(                                                    &
+                &        likelihoodMassFunctionConstructor%mass       (i  ) &
+                &       /likelihoodMassFunctionConstructor%mass       (i+1) &
+                &      )
+        else
+           likelihoodMassFunctionConstructor              %massMinimum(i  ) &
+                & =sqrt(                                                    &
+                &        likelihoodMassFunctionConstructor%mass       (i-1) &
+                &       *likelihoodMassFunctionConstructor%mass       (i  ) &
+                &      )
+        end if
+        if (i == size(likelihoodMassFunctionConstructor%mass)) then
+           likelihoodMassFunctionConstructor              %massMaximum(i  ) &
+                & =      likelihoodMassFunctionConstructor%mass       (i  ) &
+                & *sqrt(                                                    &
+                &        likelihoodMassFunctionConstructor%mass       (i  ) &
+                &       /likelihoodMassFunctionConstructor%mass       (i-1) &
+                &      )
+        else
+           likelihoodMassFunctionConstructor              %massMaximum(i  ) &
+                & =sqrt(                                                    &
+                &        likelihoodMassFunctionConstructor%mass       (i  ) &
+                &       *likelihoodMassFunctionConstructor%mass       (i+1) &
+                &      )
+        end if
+     end do
+  end if
   call massFunctionFile%close()
   !$omp end critical(HDF5_Access)
   ! Find the inverse covariance matrix.
   likelihoodMassFunctionConstructor%covariance       =likelihoodMassFunctionConstructor%covarianceMatrix
   likelihoodMassFunctionConstructor%inverseCovariance=likelihoodMassFunctionConstructor%covariance      %invert()
-  ! Compute mass bin limits.
-  call Alloc_Array(likelihoodMassFunctionConstructor%massFunction,shape(likelihoodMassFunctionConstructor%mass))
-  call Alloc_Array(likelihoodMassFunctionConstructor%massMinimum ,shape(likelihoodMassFunctionConstructor%mass))
-  call Alloc_Array(likelihoodMassFunctionConstructor%massMaximum ,shape(likelihoodMassFunctionConstructor%mass))
-  do i=1,size(likelihoodMassFunctionConstructor%mass)
-     if (i ==                                            1) then
-        likelihoodMassFunctionConstructor              %massMinimum(i  ) &
-             & =      likelihoodMassFunctionConstructor%mass       (i  ) &
-             & *sqrt(                                                    &
-             &        likelihoodMassFunctionConstructor%mass       (i  ) &
-             &       /likelihoodMassFunctionConstructor%mass       (i+1) &
-             &      )
-     else
-        likelihoodMassFunctionConstructor              %massMinimum(i  ) &
-             & =sqrt(                                                    &
-             &        likelihoodMassFunctionConstructor%mass       (i-1) &
-             &       *likelihoodMassFunctionConstructor%mass       (i  ) &
-             &      )
-     end if
-     if (i == size(likelihoodMassFunctionConstructor%mass)) then
-        likelihoodMassFunctionConstructor              %massMaximum(i  ) &
-             & =      likelihoodMassFunctionConstructor%mass       (i  ) &
-             & *sqrt(                                                    &
-             &        likelihoodMassFunctionConstructor%mass       (i  ) &
-             &       /likelihoodMassFunctionConstructor%mass       (i-1) &
-             &      )
-     else
-        likelihoodMassFunctionConstructor              %massMaximum(i  ) &
-             & =sqrt(                                                    &
-             &        likelihoodMassFunctionConstructor%mass       (i  ) &
-             &       *likelihoodMassFunctionConstructor%mass       (i+1) &
-             &      )
-     end if
-  end do
   return
 end function likelihoodMassFunctionConstructor
 
@@ -96,27 +109,29 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   use Geometry_Surveys
   use Numerical_Integration
   use Galacticus_Error
+  use Mass_Function_Incompletenesses
   implicit none
-  class           (likelihoodMassFunction             ), intent(inout)               :: self
-  class           (state                              ), intent(in   )               :: simulationState
-  type            (mappingList                        ), intent(in   ), dimension(:) :: parameterMappings
-  class           (convergence                        ), intent(inout)               :: simulationConvergence
-  double precision                                     , intent(in   )               :: temperature                , logLikelihoodCurrent              , &
-       &                                                                                logPriorCurrent            , logPriorProposed
-  double precision                                     , allocatable  , dimension(:) :: stateVector
-  class           (cosmologyFunctionsClass            ), pointer                     :: cosmologyFunctions_
-  class           (surveyGeometryClass                ), pointer                     :: surveyGeometry_
-  type            (conditionalMassFunctionBehroozi2010)                              :: thisConditionalMassFunction
-  type            (fgsl_function                      )                              :: integrandFunction           , integrandFunctionNormalization
-  type            (fgsl_integration_workspace         )                              :: integrationWorkspace        , integrationWorkspaceNormalization
-  type            (c_ptr                              )                              :: parameterPointer
-  type            (vector                             )                              :: difference
-  integer                                                                            :: i                           , j
-  double precision                                                                   :: binTimeMinimum              , binTimeMaximum                    , &
-       &                                                                                timeMinimum                 , timeMaximum                       , &
-       &                                                                                distanceMaximum             , time                              , &
-       &                                                                                massFunction                , normalization
-  logical                                                                            :: integrationReset            , integrationResetNormalization
+  class           (likelihoodMassFunction                     ), intent(inout)               :: self
+  class           (state                                      ), intent(in   )               :: simulationState
+  type            (mappingList                                ), intent(in   ), dimension(:) :: parameterMappings
+  class           (convergence                                ), intent(inout)               :: simulationConvergence
+  double precision                                             , intent(in   )               :: temperature                    , logLikelihoodCurrent              , &
+       &                                                                                        logPriorCurrent                , logPriorProposed
+  double precision                                             , allocatable  , dimension(:) :: stateVector
+  class           (cosmologyFunctionsClass                    ), pointer                     :: cosmologyFunctions_
+  class           (surveyGeometryClass                        ), pointer                     :: surveyGeometry_
+  type            (conditionalMassFunctionBehroozi2010        )                              :: thisConditionalMassFunction
+  type            (massFunctionIncompletenessSurfaceBrightness)                              :: massFunctionIncompletenessModel
+  type            (fgsl_function                              )                              :: integrandFunction               , integrandFunctionNormalization
+  type            (fgsl_integration_workspace                 )                              :: integrationWorkspace            , integrationWorkspaceNormalization
+  type            (c_ptr                                      )                              :: parameterPointer
+  type            (vector                                     )                              :: difference
+  integer                                                                                    :: i                               , j
+  double precision                                                                           :: binTimeMinimum                  , binTimeMaximum                    , &
+       &                                                                                        timeMinimum                     , timeMaximum                       , &
+       &                                                                                        distanceMaximum                 , time                              , &
+       &                                                                                        massFunction                    , normalization
+  logical                                                                                    :: integrationReset                , integrationResetNormalization
 
   ! Do not evaluate if the proposed prior is impossible.
   if (logPriorProposed <= logImpossible) then
@@ -129,7 +144,12 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   surveyGeometry_     => surveyGeometry    ()     
   ! Construct the conditional mass function object.
   stateVector=simulationState%get()
-  if (size(stateVector) /= 11) call Galacticus_Error_Report('likelihoodMassFunctionEvaluate','11 parameters are required for this likelihood function')
+  if     (                                                                  &
+       &   (.not.self%modelSurfaceBrightness .and. size(stateVector) /= 11) &
+       &  .or.                                                              &
+       &   (     self%modelSurfaceBrightness .and. size(stateVector) /= 14) &
+       & )                                                                  &
+       & call Galacticus_Error_Report('likelihoodMassFunctionEvaluate','11 or 14 parameters are required for this likelihood function')
   do i=1,size(stateVector)
      stateVector(i)=parameterMappings(i)%thisMapping%unmap(stateVector(i))
   end do
@@ -147,6 +167,16 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
        &                                      stateVector(10), &
        &                                      stateVector(11)  &
        &                                     )
+  ! Extract surface brightness parameters and get an incompleteness model.
+  if (self%modelSurfaceBrightness)                                                  &
+       & massFunctionIncompletenessModel                                            &
+       &  =massFunctionIncompletenessSurfaceBrightness(                             &
+       &                                               self%surfaceBrightnessLimit, &
+       &                                               1.0d0                      , &
+       &                                               stateVector(12)            , &
+       &                                               stateVector(13)            , &
+       &                                               stateVector(14)              &
+       &                                               )
   ! Compute the time corresponding to the specified redshifts.
   timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(self%redshiftMaximum))
   timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(self%redshiftMinimum))
@@ -161,8 +191,14 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
         ! Find the maximum distance at which a galaxy of the present mass can be detected in this survey.
         distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(self%massMinimum(i)*self%massMaximum(i)),j)
         ! Set integration limits appropriately.
-        binTimeMinimum=max(timeMinimum,cosmologyFunctions_%timeAtDistanceComoving(distanceMaximum))
-        binTimeMaximum=    timeMaximum
+        binTimeMaximum=                                                       timeMaximum
+        binTimeMinimum=min(                                                                 &
+             &                                                                timeMaximum , &
+             &             max(                                                             &
+             &                                                                timeMinimum , &
+             &                 cosmologyFunctions_%timeAtDistanceComoving(distanceMaximum)  &
+             &                )                                                             &
+             &            )
         ! Integrate the mass function over this time interval.
         massFunction=                                                               &
              &       +massFunction                                                  &
@@ -198,6 +234,8 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
           &                     self%massMaximum(i) &
           &                    /self%massMinimum(i) &
           &                   )
+     ! Account for surface brightness incompleteness if required.
+     if (self%modelSurfaceBrightness) self%massFunction(i)=self%massFunction(i)*massFunctionIncompletenessModel%completeness(self%mass(i))
   end do
   call Integrate_Done(integrandFunction             ,integrationWorkspace             )
   call Integrate_Done(integrandFunctionNormalization,integrationWorkspaceNormalization)

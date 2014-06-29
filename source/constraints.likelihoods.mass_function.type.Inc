@@ -1,3 +1,4 @@
+
 !! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,16 +20,17 @@
 
   type, public, extends(likelihood) :: likelihoodMassFunction
      private
-     logical                                               :: useSurveyLimits
-     double precision                                      :: haloMassMinimum   , haloMassMaximum     , &
-          &                                                   redshiftMinimum   , redshiftMaximum     , &
-          &                                                   logHaloMassMinimum, logHaloMassMaximum
-     double precision        , dimension(:  ), allocatable :: mass              , massFunctionObserved, &
-          &                                                   massMinimum       , massMaximum         , &
+     logical                                               :: useSurveyLimits       , modelSurfaceBrightness
+     double precision                                      :: haloMassMinimum       , haloMassMaximum       , &
+          &                                                   redshiftMinimum       , redshiftMaximum       , &
+          &                                                   logHaloMassMinimum    , logHaloMassMaximum    , &
+          &                                                   surfaceBrightnessLimit
+     double precision        , dimension(:  ), allocatable :: mass                  , massFunctionObserved  , &
+          &                                                   massMinimum           , massMaximum           , &
           &                                                   massFunction
      double precision        , dimension(:,:), allocatable :: covarianceMatrix
      type            (vector)                              :: means
-     type            (matrix)                              :: covariance        , inverseCovariance
+     type            (matrix)                              :: covariance            , inverseCovariance
    contains
      procedure :: evaluate        => likelihoodMassFunctionEvaluate
      procedure :: functionChanged => likelihoodMassFunctionFunctionChanged
