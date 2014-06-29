@@ -85,6 +85,7 @@ module Linear_Algebra
      procedure :: invert                 => matrixInvert
      procedure :: logarithmicDeterminant => matrixLogarithmicDeterminant
      procedure :: linearSystemSolve      => matrixLinearSystemSolve
+     procedure :: transpose              => matrixTranspose
   end type matrix
   
   ! Assignment interfaces.
@@ -100,6 +101,7 @@ module Linear_Algebra
   interface operator(*)
      module procedure vectorVectorMultiply
      module procedure matrixVectorMultiply
+     module procedure matrixMatrixMultiply
   end interface operator(*)
 
 contains
@@ -110,6 +112,7 @@ contains
     type            (vector), intent(  out)               :: self
     double precision        , intent(in   ), dimension(:) :: array
 
+    if (allocated(self%elements)) deallocate(self%elements)
     self%elements=array
     return
   end subroutine arrayToVectorAssign
@@ -130,6 +133,7 @@ contains
     type            (vector), intent(  out)                 :: vector1
     type            (vector), intent(in   )                 :: vector2
   
+    if (allocated(vector1%elements)) deallocate(vector1%elements)
     vector1%elements=vector2%elements
     return
   end subroutine vectorToVectorAssign
@@ -169,6 +173,7 @@ contains
     type            (matrix), intent(  out)                 :: self
     double precision        , intent(in   ), dimension(:,:) :: array
 
+    if (allocated(self%elements)) deallocate(self%elements)
     self%elements=array
     return
   end subroutine arrayToMatrixAssign
@@ -271,6 +276,20 @@ contains
     return
   end function matrixVectorMultiply
 
+  function matrixMatrixMultiply(matrix1,matrix2)
+    !% Multiply a matrix by a matrix, returning a matrix.
+    use Galacticus_Error
+    implicit none   
+    type   (matrix)                :: matrixMatrixMultiply
+    class  (matrix), intent(in   ) :: matrix1, matrix2
+    integer                        :: i      , j
+
+    if (size(matrix1%elements,dim=2) /= size(matrix2%elements,dim=1)) call Galacticus_Error_Report('matrixMatrixMultiply','dimension mismatch')
+    allocate(matrixMatrixMultiply%elements(size(matrix1%elements,dim=1),size(matrix2%elements,dim=2)))
+    matrixMatrixMultiply%elements=matmul(matrix1%elements,matrix2%elements)
+    return
+  end function matrixMatrixMultiply
+
   function matrixLinearSystemSolve(self,y)
     !% Solve the linear system $y = A \cdot x$.
     implicit none
@@ -305,4 +324,14 @@ contains
     return
   end function matrixLinearSystemSolve
   
+  function matrixTranspose(self)
+    !% Transpose a matrix.
+    implicit none
+    type (matrix)                :: matrixTranspose
+    class(matrix), intent(inout) :: self
+  
+    matrixTranspose%elements=transpose(self%elements)
+    return
+  end function matrixTranspose
+
 end module Linear_Algebra
