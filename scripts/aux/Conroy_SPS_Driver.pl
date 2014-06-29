@@ -275,7 +275,7 @@ if ( $makeFile == 1 ) {
     $spectraDataSet->set($spectra);
     $spectraDataSet->attrSet(
 	units     => "Lsolar/Hz",
-	unitsInSI => 3.827e33
+	unitsInSI => 3.827e26
 	);
 
 }
