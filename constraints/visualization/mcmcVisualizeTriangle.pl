@@ -141,7 +141,7 @@ for(my $i=0;$i<scalar(@properties);++$i) {
 	unless ( -e $outputFileName."_".$i.".pdf" );
     if ( $i < scalar(@properties)-1 ) { 
 	for(my $j=$i+1;$j<scalar(@properties);++$j) {
-	    my $command = "constraints/visualization/mcmcVisualize.pl ".$fileRoot." ".$configFileName." --yProperty '".$properties[$i]->{'name'}."' --yScale ".$properties[$i]->{'scaling'}." --xProperty '".$properties[$j]->{'name'}."' --xScale ".$properties[$j]->{'scaling'}." --textSize ".$textSize." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i."_".$j.".pdf --data ".$outputFileName."_".$i."_".$j.".xml ".$options;
+	    my $command = "constraints/visualization/mcmcVisualize.pl ".$fileRoot." ".$configFileName." --workDirectory ".$workDirectory." --yProperty '".$properties[$i]->{'name'}."' --yScale ".$properties[$i]->{'scaling'}." --xProperty '".$properties[$j]->{'name'}."' --xScale ".$properties[$j]->{'scaling'}." --textSize ".$textSize." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i."_".$j.".pdf --data ".$outputFileName."_".$i."_".$j.".xml ".$options;
 	    $command .= " --xLabel '".$properties[$j]->{'xLabel'}."'"
 		if ( exists($properties[$j]->{'xLabel'}) );
 	    $command .= " --yLabel '".$properties[$i]->{'xLabel'}."'"
