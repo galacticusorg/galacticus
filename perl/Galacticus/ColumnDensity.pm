@@ -1,5 +1,7 @@
 # Calculate column density of hydrogen in cm^{-2} to the center of each galaxy.
 
+#+ Contributions to this file made by: Andrea Kulier, Andrew Benson.
+
 package ColumnDensity;
 use strict;
 use warnings;
@@ -60,9 +62,8 @@ sub Get_Column_Density {
 	    *$spheroidDensityCentral
 	    *$spheroidRadius
 	    *(
-		-$spheroidRadius
-		*(3.0+2.0*$spheroidRadiusMinimumDimensionless)
-		/(2.0*(1.0+$spheroidRadiusMinimumDimensionless)**2)
+		-(3.0+2.0*$spheroidRadiusMinimumDimensionless)
+		/(1.0+$spheroidRadiusMinimumDimensionless)**2
 		+2.0*log(1.0+1.0/$spheroidRadiusMinimumDimensionless)
 	    );
 	$sigmaSpheroid->where($spheroidRadius == 0.0) .= 0.0;
