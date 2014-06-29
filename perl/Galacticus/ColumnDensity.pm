@@ -22,10 +22,11 @@ sub Get_Column_Density {
     my $model       = shift;
     my $dataSetName = $_[0];
     # Define constants.
-    my $massHydrogen = pdl 1.67262158000e-27; # kg
-    my $massSolar    = pdl 1.98892000000e+30; # kg
-    my $megaParsec   = pdl 3.08568024000e+22; # m
-    my $hecto        = pdl 1.00000000000e+02;
+    my $massHydrogen             = pdl 1.67262158000e-27; # kg
+    my $massSolar                = pdl 1.98892000000e+30; # kg
+    my $megaParsec               = pdl 3.08568024000e+22; # m
+    my $hecto                    = pdl 1.00000000000e+02;
+    my $hydrogenByMassPrimordial = pdl 0.76000000000e+00;
 
     # Determine which components are needed.
     my $includeDisk     = 0;
@@ -69,25 +70,29 @@ sub Get_Column_Density {
     # Compute disk column density if necessary.
     my $sigmaDisk = pdl zeroes(nelem($dataSets->{'nodeIndex'}));
     if ( $includeDisk == 1 ) {
+	# Specify disk scale height in units of disk scale length.
+	my $diskHeightRatio    = pdl 0.1;
 	# Compute central density of disk component.
 	my $diskMassGas        = $dataSets->{'diskMassGas'    };
-	my $diskRadius    = $dataSets->{'diskRadius'};
-	my $diskDensityCentral = $diskMassGas/(0.4*PI*$diskRadius**3);
+	my $diskRadius         = $dataSets->{'diskRadius'};
+	my $diskDensityCentral = $diskMassGas/(4.0*PI*$diskRadius**3*$diskHeightRatio);
 	# Compute column density to center of disk.
 	my $diskInclination    = ($dataSets->{'inclination'})*(PI/180.0);
 	my $tangentInclination = abs(tan($diskInclination));
-	my $digamma1           = (gsl_sf_psi($tangentInclination/40.0+0.5))[0];
-	my $digamma2           = (gsl_sf_psi($tangentInclination/40.0    ))[0];
+	my $inclinationHeight  = $tangentInclination*$diskHeightRatio;
+	my $digamma1           = (gsl_sf_psi(   -$inclinationHeight/4.0))[0];
+	my $digamma2           = (gsl_sf_psi(0.5-$inclinationHeight/4.0))[0];	
 	$sigmaDisk            .= 
-	    (1.0/200.0)
+	    (1.0/2.0)
 	    *$diskDensityCentral
 	    *$diskRadius
-	    *sqrt($tangentInclination**2+1.0)
-	    *($tangentInclination*($digamma1-$digamma2)-20.0);
+	    *sqrt(1.0+1.0/$tangentInclination**2)
+	    *$inclinationHeight
+	    *($inclinationHeight*($digamma1-$digamma2)-2.0);
 	$sigmaDisk->where($diskRadius == 0.0) .= 0.0;
     }
     # Evaluate conversion factor from mass column density to hydrogen column density.
-    my $hydrogenFactor = (0.76)*$massSolar/($massHydrogen*($megaParsec*$hecto)**2);
+    my $hydrogenFactor = $hydrogenByMassPrimordial*$massSolar/($massHydrogen*($megaParsec*$hecto)**2);
     # Compute the column density.
     $dataSets->{$dataSetName} = ($sigmaDisk+$sigmaSpheroid)*$hydrogenFactor;
 
