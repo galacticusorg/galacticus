@@ -9,16 +9,16 @@ use Data::Dumper;
 # Andrew Benson 25-Mar-2012
 
 # Get source directory
-die 'Usage: Extract_Contributors.pl <sourceDir> <outputFile>'
+die 'Usage: Extract_Contributors.pl <galacticusDir> <outputFile>'
     unless ( scalar(@ARGV) ==  2);
-my $sourceDir  = $ARGV[0];
+my $galacticusDir  = $ARGV[0];
 my $outputFile = $ARGV[1];
 
 # Data structure for contributions.
 my $contributions;
 
 # Open the source directory.
-opendir(dirHndl,$sourceDir);
+opendir(dirHndl,$galacticusDir."/source");
 
 # Read files from the source directory.
 while ( my $fileName = readdir(dirHndl) ) {
@@ -27,7 +27,7 @@ while ( my $fileName = readdir(dirHndl) ) {
     if ( ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.Inc$/ || $fileName =~ m/\.cpp$/ ) && $fileName !~ m/^\.\#/ ) {
 
 	# Open the file.
-	open(fileHndl,$sourceDir."/".$fileName);
+	open(fileHndl,$galacticusDir."/source/".$fileName);
 
 	# Scan the file.
 	while ( my $line = <fileHndl> ) {
@@ -54,6 +54,31 @@ while ( my $fileName = readdir(dirHndl) ) {
 
     }
 
+}
+
+my @perlModules = split(/\s+/,`find $galacticusDir/perl -name "*.pm"`);
+foreach my $perlModule ( @perlModules ) {
+    # Open the file.
+    open(fileHndl,$perlModule);
+    # Scan the file.
+    while ( my $line = <fileHndl> ) {
+	if ( $line =~ m/^\s*#\+\s*(.*)/ ) {
+	    # Capture the contributors.
+	    my $contributors = $1;
+	    # Strip any leading text.
+	    $contributors =~ s/^.*:\s*//;
+	    # Strip any trailing period.
+	    $contributors =~ s/\.\s*$//;
+	    # Split into contributors.
+	    my @people = split(/\s*,\s*/,$contributors);
+	    # Store file by contributor.
+	    foreach my $person ( @people ) {
+		$contributions->{$person}->{$perlModule} = 1;
+	    }
+	}
+    }
+    # Close the file.
+    close(fileHndl);
 }
 
 # Close the source directory.
