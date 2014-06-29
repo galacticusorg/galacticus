@@ -22,6 +22,6 @@ module Constraints_Constants
   public
   
   ! A very small log likelihood which is used as an approximation to zero likelihood.
-  double precision, parameter :: logImpossible=-1.0d30
+  double precision, parameter :: logImpossible=-HUGE(1.0d0)
 
 end module Constraints_Constants
