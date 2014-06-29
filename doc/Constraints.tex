@@ -425,6 +425,18 @@ where $N$ is the number of bins in the mass function, $\mathcal{C}$ is the covar
 \end{enumerate}
 In practice we find that this procedure often leads to an \gls{hod} and covariance matrix which oscillate between two states in successive iterations. The differences in the covariance matrix are relatively small however, so we choose to conservatively adopt the covariance matrix with the larger values.
 
+\subsubsection{Methodology for Correlation Functions}
+
+For constraints corresponding to (possibly, projected) correlation functions, the model expectation is computed using the halo model \cite{cooray_halo_2002}. For each model halo, each galaxy (satellite and central) is assessed to see if it meets the criteria for inclusion in the sample. Where the sample includes mass limits (either just a lower limit, or lower and upper limits) each galaxy is assigned a probability of inclusion in the sample based on its mass and the random error in mass. Thus, each halo is characterized by the probability of having a central galaxy in the sample, $p^{\rm (c)}$, and $N$ probabilities, $p_i^{\rm (s)}$, of each satellite galaxy being in the sample. We assume binomial statistics for each galaxy's probability of inclusion, and further assume that these probabilities are uncorrelated. Therefore, the contribution of the halo to the one- and two-halo terms of the power spectrum in the halo model are:
+\begin{equation}
+\Delta P^{\rm 1h}(k) = {w \over n_{\rm gal}^2} \left[ p^{\rm (c)} \sum_{i=1}^N p^{\rm (s)} u(k|M) + \sum_{k=0}^N k(k-1) P\left(p_i^{\rm (s)},\ldots,p_N^{(s)}\right) u(k|M)^2 \right]
+\end{equation}
+and
+\begin{equation}
+\Delta \sqrt{P^{\rm 2h}}(k) = {w \over n_{\rm gal}} \sqrt{P^{\rm lin}}(k) b(M) u(k|M) \left[ p^{\rm (c)} + \sum_{i=1}^N p_i^{\rm (s)} \right],
+\end{equation}
+respectively, where $w$ is the weight of the halo (i.e. the number of such model halos expected per unit volume), $b(M)$ is the bias of halos of mass $M$, $u(k|M)$ is the Fourier-transform of the halo density profile, and $P_{\rm lin}(k)$ is the linear theory power spectrum, and $P(p_1,\ldots,p_N)$ is the Poisson binomial distribution for $N$ events with probabities $p_1,\ldots,p_N$. The contribution of the halo to the galaxy density, $n_{\rm gal}$, is simply $\Delta n_{\rm gal} = w \left[ p^{\rm (c)} + \sum_{i=1}^N p_i^{\rm (s)} \right]$.
+
 \subsubsection{Li \& White (2009) SDSS Stellar Mass Function}
 
 This constraint utilizes the stellar mass function for $z\approx 0.07$ galaxies measured by \cite{li_distribution_2009} from the \gls{sdss}. The mass function reported by \cite{li_distribution_2009} is converted to the appropriate Hubble constant for the given \glc\ model (assuming that masses scale as $H_0^{-2}$ and volumes as $H_0^3$)---no adjustment is made for cosmological parameters given the low redshift of the sample.
@@ -533,6 +545,62 @@ The model likelihood is then computed using:
 where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
 When computing the Poisson term in the covariance matrix, the number of galaxies per bin is determined directly from the mass function, assuming a 91\% completeness\footnote{7\% arising from fiber collisions, 2\% from failures in the Pymorph pipeline (M.~Bernardi, private communication).}. The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryBernardi2013SDSS}.
+
+\subsubsection{Baldry et al. (2012) GAMA Stellar Mass Function}\label{sec:AnalysisBaldryGAMAStellarMassFunction}
+
+This constraint utilizes the stellar mass function for $z< 0.06$ galaxies measured by \cite{baldry_galaxy_2012} from the GAMA survey. The mass function, and its covariance matrix ${\bf C}_{\rm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+
+The covariance matrix is computed as
+\begin{equation}
+ {\bf C} = {\bf C}_{\rm obs} + {\bf C}_{\rm model,random} + \sum_i {\bf C}_{{\rm discrepancy}, i},
+\end{equation}
+where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${\bf C}_{\rm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\bf C}_{{\rm discrepancy}, i}$ is the covariance due to the $i^{\rm th}$ model discrepancy.
+
+The model likelihood is then computed using:
+\begin{equation}
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\bf C}|}} \exp\left[ -{1\over 2} \Delta {\bf C}^{-1} \Delta \right],
+\end{equation}
+where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+
+When computing the Poisson term in the covariance matrix, the number of galaxies per bin is taken from data supplied by I.~Baldry (private communication). The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryBaldry2012GAMA}.
+
+Finally, the completeness of the observational sample is estimated to be greater than 98\% (P.~Norberg, private communication). Therefore we add an additional contribution to the observed covariance matrix equal to $\mathcal{C}_{ij} = 0.02 \phi_i \phi_j$ where $\phi$ is the observed mass function.
+
+\subsubsection{Tomczak et al. (2014) ZFOURGE Stellar Mass Functions}\label{sec:AnalysisTomczakZFOURGEStellarMassFunction}
+
+This constraint utilizes the stellar mass function for $0.2 < z< 3$ galaxies measured by \cite{tomczak_galaxy_2014} from the ZFOURGE survey. The mass function, and its covariance matrix ${\bf C}_{\rm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+
+The covariance matrix is computed as
+\begin{equation}
+ {\bf C} = {\bf C}_{\rm obs} + {\bf C}_{\rm model,random} + \sum_i {\bf C}_{{\rm discrepancy}, i},
+\end{equation}
+where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${\bf C}_{\rm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\bf C}_{{\rm discrepancy}, i}$ is the covariance due to the $i^{\rm th}$ model discrepancy.
+
+The model likelihood is then computed using:
+\begin{equation}
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\bf C}|}} \exp\left[ -{1\over 2} \Delta {\bf C}^{-1} \Delta \right],
+\end{equation}
+where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+
+When computing the Poisson term in the covariance matrix, the number of galaxies per bin is ?????????????
+
+\subsubsection{Davidzon et al. (2013) VIPERS Stellar Mass Functions}\label{sec:AnalysisDavidzonVIPERSStellarMassFunction}
+
+This constraint utilizes the stellar mass function for $0.5 < z< 1.0$ galaxies measured by \cite{davidzon_vimos_2013} from the VIPERS survey. The mass function, and its covariance matrix ${\bf C}_{\rm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+
+The covariance matrix is computed as
+\begin{equation}
+ {\bf C} = {\bf C}_{\rm obs} + {\bf C}_{\rm model,random} + \sum_i {\bf C}_{{\rm discrepancy}, i},
+\end{equation}
+where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${\bf C}_{\rm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\bf C}_{{\rm discrepancy}, i}$ is the covariance due to the $i^{\rm th}$ model discrepancy.
+
+The model likelihood is then computed using:
+\begin{equation}
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\bf C}|}} \exp\left[ -{1\over 2} \Delta {\bf C}^{-1} \Delta \right],
+\end{equation}
+where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+
+When computing the Poisson term in the covariance matrix, the number of galaxies per bin is taken directly from tables supplied by I.~Davidzon (private communication).
 
 \subsubsection{Moustakas et al. (2013) PRIMUS Stellar Mass Functions}\label{sec:AnalysisMoustakasPRIMUSSStellarMassFunctions}
 
