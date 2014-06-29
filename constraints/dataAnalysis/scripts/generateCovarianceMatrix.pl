@@ -79,10 +79,6 @@ if ( all($covarianceZeroDiagonal == 0.0) ) {
 $hdfFile->dataset("inverseCovariance"       )->set($inverseCovariance       );
 $hdfFile->dataset("logDeterminantCovariance")->set($logDeterminantCovariance);
 
-# Add a label for the dataset to the file.
-$hdfFile->attrSet(label => $parameters->{'sourceLabel'})
-    if ( exists($parameters->{'sourceLabel'}) );
-
 exit;
 
 sub observedMassFunction {
@@ -122,7 +118,6 @@ sub observedMassFunction {
     } else {
 	die('observedMassFunction(): unrecognized scaling for mass');
     }
-    
     if      ( $columns->{'massFunction'}->{'scaling'} eq "linear" ) {
 	# Nothing to do.
     } elsif ( $columns->{'massFunction'}->{'scaling'} eq "log10"  ) {
@@ -146,10 +141,26 @@ sub observedMassFunction {
 	die("observedMassFunction(): unrecognized units for massFunction");
     }
 
+    # Get bin widths if present.
+    my $massWidth;
+    if ( exists($columns->{'massWidth'}) ) {
+	$massWidth = pdl @{$columns->{'massWidth'}->{'datum'}};
+	if      ( $columns->{'massWidth'}->{'scaling'} eq "linear" ) {
+	    # Nothing to do.
+	} elsif ( $columns->{'massWidth'}->{'scaling'} eq "log10"  ) {
+	    $massWidth .= 10.0**$massWidth;
+	} else {
+	    die('observedMassFunction(): unrecognized scaling for massWidth');
+	}
+    }
+
     # Determine if completeness information is available.
     my $completeness;
     $completeness = pdl @{$columns->{'completeness'}->{'datum'}}
         if ( exists($columns->{'completeness'}->{'datum'}) );
+    my $completenessError;
+    $completenessError = pdl $columns->{'completenessError'}
+        if ( exists($columns->{'completenessError'}) );
     
     # Determine if number information is available.
     my $number;
@@ -157,12 +168,22 @@ sub observedMassFunction {
         if ( exists($columns->{'number'}->{'datum'}) );
 
     # Store the mass function to file.
-    $hdfFile->dataset("massFunctionObserved")->set($massFunction);
-    $hdfFile->dataset("massFunctionObserved")->attrSet(hubbleExponent => $columns->{'massFunction'}->{'hubbleExponent'});
-    $hdfFile->dataset("completenessObserved")->set($completeness)
-	if ( defined($completeness) );
-    $hdfFile->dataset("numberObserved"      )->set($number      )
-	if ( defined($number      ) );
+    $hdfFile->dataset("massFunctionObserved"     )->set($massFunction);
+    $hdfFile->dataset("massFunctionObserved"     )->attrSet(hubbleExponent => $columns->{'massFunction'}->{'hubbleExponent'});
+    $hdfFile->dataset("completenessObserved"     )->set($completeness)
+	if ( defined($completeness     ) );
+    $hdfFile                                      ->attrSet(completenessError => $completenessError)
+	if ( defined($completenessError) );
+    $hdfFile->dataset("numberObserved"           )->set($number      )
+	if ( defined($number           ) );
+    if ( defined($massWidth) ) {
+	$hdfFile->dataset("massObserved"     )->set($observedMass);
+	$hdfFile->dataset("massWidthObserved")->set($massWidth   );
+    }
+    
+    # Add a label for the dataset to the file.
+    $hdfFile->attrSet(label => $config->{'sourceLabel'})
+	if ( exists($config->{'sourceLabel'}) );
 
     # Update the mass bins in the parameter file.
     $parameters->{'parameter'}->{'conditionalMassFunctionMassMinimum'}->{'value'} =  sclr($observedMass->(( 0)));

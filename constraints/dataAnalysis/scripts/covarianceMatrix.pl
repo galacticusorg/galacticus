@@ -13,9 +13,11 @@ use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
+use PDL::Math;
 use Data::Dumper;
 use LaTeX::Encode;
 use Clone qw(clone);
+use Switch;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
 
@@ -136,7 +138,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    batchFile  => $stageDirectory."/generateMatrix.pbs",
 	    queue      => "batch",
 	    nodes      => "nodes=1:ppn=12",
-	    wallTime   => "200:00:00",
+	    wallTime   => "1000:00:00",
 	    outputFile => $stageDirectory."/generateMatrix.log",
 	    name       => $pbsLabel."Stage".$stage."MatrixGen",
 	    commands   => $command
@@ -279,6 +281,18 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
     	$command .= " --property 'BSatellite:linear:xLabel=\$B_{\\rm sat}\$:zLabel=\${\\rm d}p/{\\rm d}B_{\\rm sat}\$'";
     	$command .= " --property 'betaCut:linear:xLabel=\$\\beta_{\\rm cut}\$:zLabel=\${\\rm d}p/{\\rm d}\\beta_{\\rm cut}\$'";
     	$command .= " --property 'betaSatellite:linear:xLabel=\$\\beta_{\\rm sat}\$:zLabel=\${\\rm d}p/{\\rm d}\\beta_{\\rm sat}\$'";
+	# Append parameters for surface brightness model if required.
+	my $likelihood;
+	if ( $mcmcConfig->{'likelihood'}->{'type'} eq "gaussianRegression" ) {
+	    $likelihood = $mcmcConfig->{'likelihood'}->{'simulatorLikelihood'};
+	} else {
+	    $likelihood = $mcmcConfig->{'likelihood'}                         ;
+	}
+	if ( $likelihood->{'modelSurfaceBrightness'} eq "true" ) {
+	    $command .= " --property 'alphaSurfaceBrightness:linear:xLabel=\$\\alpha_{\\rm SB}\$:zLabel=\${\\rm d}p/{\\rm d}\\alpha_{\\rm SB}\$'";
+	    $command .= " --property 'betaSurfaceBrightness:linear:xLabel=\$\\beta_{\\rm SB}\$:zLabel=\${\\rm d}p/{\\rm d}\\beta_{\\rm SB}\$'";
+	    $command .= " --property 'sigmaSurfaceBrightness:linear:xLabel=\$\\sigma_{\\rm SB}\$:zLabel=\${\\rm d}p/{\\rm d}\\sigma_{\\rm SB}\$'";
+	}
     	# Submit the job.
     	my $triangleJob = 
     	{
@@ -352,12 +366,45 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	(my $covarianceMatrixFileNext = $stageDirectory."/".$constraintFileLeaf) =~ s/stage$stage/stage$stageNext/;
 	system("rm -f ".$covarianceMatrixFileNext)
 	    if ( -e $covarianceMatrixFileNext );	
+	# Get the likelihood definition.
+	my $likelihood;
+	if ( $mcmcConfig->{'likelihood'}->{'type'} eq "gaussianRegression" ) {
+	    $likelihood = $mcmcConfig->{'likelihood'}->{'simulatorLikelihood'};
+	} else {
+	    $likelihood = $mcmcConfig->{'likelihood'}                         ;
+	}
 	# Generate the maximum likelihood mass function.
 	my $xml        = new XML::Simple;
 	my $parameters = $xml->XMLin($stageDirectory."/".$parameterFileLeaf);
 	for(my $i=0;$i<scalar(@parameterNames);++$i) {
 	    my $name = "conditionalMassFunctionBehroozi".ucfirst($parameterNames[$i]);
-	    $parameters->{'parameter'}->{$name}->{'value'} = $bestFit[$i];
+	    my $setName = $name;
+	    if ( $parameterNames[$i] =~ m/SurfaceBrightness$/ ) {
+		$parameters->{'parameter'}->{'massFunctionIncompletenessMethod'                    }->{'value'} = "surfaceBrightness";
+		$parameters->{'parameter'}->{'massFunctionIncompletenessSurfaceBrightnessLimit'    }->{'value'} = $likelihood->{'surfaceBrightnessLimit'};
+		$parameters->{'parameter'}->{'massFunctionIncompletenessSurfaceBrightnessZeroPoint'}->{'value'} = 1.0;
+		switch ( $parameterNames[$i] ) {
+		    case ( "alphaSurfaceBrightness" ) {
+			$setName = "massFunctionIncompletenessSurfaceBrightnessModelSlope";
+		    }
+		    case ( "betaSurfaceBrightness"  ) {
+			$setName = "massFunctionIncompletenessSurfaceBrightnessModelOffset";
+		    }
+		    case ( "sigmaSurfaceBrightness" ) {
+			$setName = "massFunctionIncompletenessSurfaceBrightnessModelScatter";
+		    }
+		}			
+	    }
+	    $parameters->{'parameter'}->{$setName}->{'value'} = $bestFit[$i];
+	}
+	# Specify any non-uniform mass bin widths.
+	my $covarianceMatrixFile = new PDL::IO::HDF5($stageDirectory."/covarianceMatrix.hdf5");
+	my @datasets             = $covarianceMatrixFile->datasets();
+	if ( grep {$_ eq "massWidthObserved"} @datasets ) {
+	    my $massBinCenters = $covarianceMatrixFile->dataset('mass'             )->get();
+	    my $massBinWidths  = $covarianceMatrixFile->dataset('massWidthObserved')->get();
+	    $parameters->{'parameter'}->{'conditionalMassFunctionMassBinCenters'}->{'value'} = join(" ",$massBinCenters->list());
+	    $parameters->{'parameter'}->{'conditionalMassFunctionMassBinWidths' }->{'value'} = join(" ",$massBinWidths ->list());
 	}
 	# Modify redshift ranges.
 	if ( defined($redshiftIndex) ) {
@@ -376,6 +423,10 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	my $bestFit      = new PDL::IO::HDF5($stageDirectory."/massFunctionBestFit.hdf5");
 	my $mass         = $bestFit->dataset('mass'        )->get();
 	my $massFunction = $bestFit->dataset('massFunction')->get();
+	# Construct mass function with surface brightness incompleteness if required.
+	my $massFunctionIncomplete = $massFunction->copy();
+	$massFunctionIncomplete = $bestFit->dataset('massFunctionIncomplete')->get()
+	    if ( exists($likelihood->{'modelSurfaceBrightness'}) && $likelihood->{'modelSurfaceBrightness'} eq "true" );
 	# Read the observational data.
 	my $observed             = new PDL::IO::HDF5($stageDirectory."/".$constraintFileLeaf);
 	my $massObserved         = $observed->dataset('mass'                )->get();
@@ -406,10 +457,11 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	print $gnuPlot "set mytics 10\n";
 	print $gnuPlot "set format x '\$10^{\%L}\$'\n";
 	print $gnuPlot "set format y '\$10^{\%L}\$'\n";
-	my $xMinimum = 0.5*minimum($massObserved        );
-	my $xMaximum = 2.0*maximum($massObserved        );
-	my $yMinimum = 0.5*minimum($massFunctionObserved);
-	my $yMaximum = 2.0*maximum($massFunctionObserved);
+	my $nonZeroBins = which($massFunctionObserved > 1.0e-30);
+	my $xMinimum = 0.5*minimum($massObserved                        );
+	my $xMaximum = 2.0*maximum($massObserved                        );
+	my $yMinimum = 0.5*minimum($massFunctionObserved->($nonZeroBins));
+	my $yMaximum = 2.0*maximum($massFunctionObserved                );
 	print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
 	print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
 	print $gnuPlot "set pointsize 2.0\n";
@@ -425,6 +477,19 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    color      => $PrettyPlots::colorPairs{'mediumSeaGreen'},
 	    title      => $sourceLabel
 	    );
+	if ( exists($likelihood->{'modelSurfaceBrightness'}) && $likelihood->{'modelSurfaceBrightness'} eq "true" ) {
+	    &PrettyPlots::Prepare_Dataset(
+		 \$plot,
+		 $mass,
+		 $massFunctionIncomplete,
+		 style      => "point",
+		 weight     => [5,3],
+		 symbol     => [6,7],
+		 pointSize  => 0.5,
+		 color      => $PrettyPlots::colorPairs{'peachPuff'},
+		 title      => "Maximum likelihood fit (incomplete)"
+		);	 
+	}
 	&PrettyPlots::Prepare_Dataset(
 	    \$plot,
 	    $mass,
@@ -440,7 +505,6 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	close($gnuPlot);
 	&LaTeX::GnuPlot2PDF($plotFileEPS);
     }
-
 }
 
 exit;
