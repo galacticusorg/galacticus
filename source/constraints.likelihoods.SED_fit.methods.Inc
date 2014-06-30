@@ -25,13 +25,11 @@ function likelihoodSEDFitConstructor(definition)
   use ISO_Varying_String
   use Memory_Management
   use Stellar_Population_Spectra_Postprocess
-  use Cosmology_Functions
   implicit none
   type     (likelihoodSEDFit       )                         :: likelihoodSEDFitConstructor
   type     (node                   ), pointer, intent(in   ) :: definition
   type     (node                   ), pointer                :: thisPhotometry             , thisElement
   type     (nodeList               ), pointer                :: photometry
-  class    (cosmologyFunctionsClass), pointer                :: cosmologyFunctions_
   character(len=128                )                         :: filterName                 , systemName
   integer                                                    :: i
   double precision                                           :: redshift
@@ -71,17 +69,6 @@ function likelihoodSEDFitConstructor(definition)
   end do
   ! Find stellar spectra postprocessing chain to use.
   likelihoodSEDFitConstructor%postprocessingChainIndex=Stellar_Population_Spectrum_Postprocess_Index(var_str('default'))
-  ! Find the time at the observed redshift.
-  thisElement => XML_Get_First_Element_By_Tag_Name(definition,"redshift")
-  call extractDataContent(thisElement,redshift)
-  cosmologyFunctions_ => cosmologyFunctions()
-  likelihoodSEDFitConstructor%timeObserved                           &
-       & =cosmologyFunctions_ %cosmicTime                 (          &
-       &   cosmologyFunctions_%expansionFactorFromRedshift (         &
-       &                                                    redshift &
-       &                                                   )         &
-       &                                                  )
-  likelihoodSEDFitConstructor%redshift=redshift
   return
 end function likelihoodSEDFitConstructor
 
@@ -94,6 +81,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   use Numerical_Integration
   use Galactic_Structure_Options
   use Abundances_Structure
+  use Cosmology_Functions
   implicit none
   class           (likelihoodSEDFit          ), intent(inout)               :: self
   class           (state                     ), intent(in   )               :: simulationState
@@ -103,10 +91,12 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
        &                                                                       logPriorCurrent                     , logPriorProposed
   double precision                            , parameter                   :: timeStart                     =0.0d0
   double precision                            , allocatable  , dimension(:) :: stateVector
+  class           (cosmologyFunctionsClass   ), pointer                     :: cosmologyFunctions_
   integer                                                                   :: iMagnitude                          , i
   double precision                                                          :: mass                                , timeScale           , &
        &                                                                       starFormationRateNormalization      , magnitude           , &
-       &                                                                       luminosity                          , metallicity
+       &                                                                       luminosity                          , metallicity         , &
+       &                                                                       redshift                            , timeObserved
   type            (abundances                )                              :: abundancesStars
   type            (fgsl_function             )                              :: integrandFunction
   type            (fgsl_integration_workspace)                              :: integrationWorkspace
@@ -126,6 +116,14 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   mass       =stateVector(1)
   timeScale  =stateVector(2)
   metallicity=stateVector(3)
+  redshift   =stateVector(4)
+  ! Determine time observed.
+  cosmologyFunctions_ => cosmologyFunctions()
+  timeObserved        =  cosmologyFunctions_ %cosmicTime                 (          &
+       &                  cosmologyFunctions_%expansionFactorFromRedshift (         &
+       &                                                                   redshift &
+       &                                                                  )         &
+       &                                                                 )
   ! Construct the abundances object.
   call abundancesStars%metallicitySet(metallicity,metallicityType=linearByMassSolar)
   ! Iterate over bands.
@@ -136,7 +134,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
      integrationReset=.true.
      luminosity=Integrate(                               &
           &               timeStart                    , &
-          &               self%timeObserved            , &
+          &               timeObserved                 , &
           &               luminosityIntegrand          , &
           &               parameterPointer             , &
           &               integrandFunction            , &
@@ -183,7 +181,7 @@ contains
     double precision      :: recycledFractionInstantaneous, starFormationRate
     
     ! Find stellar population age.
-    self%age         =self%timeObserved-time
+    self%age         =timeObserved-time
     ! Find star formation rate.
     starFormationRate=starFormationRateNormalization*exp(-(time-timeStart)/timeScale)
     ! Find the IMF.
