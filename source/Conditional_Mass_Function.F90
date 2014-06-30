@@ -192,7 +192,25 @@ program Conditional_Mass_Function
   if (Input_Parameter_Is_Present('conditionalMassFunctionMassBinCenters')) then
      ! Read masses directly.
      if (.not.Input_Parameter_Is_Present('conditionalMassFunctionMassBinWidths')) call Galacticus_Error_Report('Conditional_Mass_Function','[conditionalMassFunctionMassBinWidths] must be present')
+     !@ <inputParameter>
+     !@   <name>conditionalMassFunctionMassBinCenters</name>
+     !@   <attachedTo>program</attachedTo>
+     !@   <description>
+     !@     Logarithmic mass bins centers for conditional mass function calculations.
+     !@   </description>
+     !@   <type>real</type>
+     !@   <cardinality>1</cardinality>
+     !@ </inputParameter>
      call Get_Input_Parameter('conditionalMassFunctionMassBinCenters',mass              )
+     !@ <inputParameter>
+     !@   <name>conditionalMassFunctionMassBinWidths</name>
+     !@   <attachedTo>program</attachedTo>
+     !@   <description>
+     !@     Logarithmic widths of mass bins for conditional mass function calculations.
+     !@   </description>
+     !@   <type>real</type>
+     !@   <cardinality>1</cardinality>
+     !@ </inputParameter>
      call Get_Input_Parameter('conditionalMassFunctionMassBinWidths' ,massLogarithmDelta)
      massLogarithmDelta=log(massLogarithmDelta)
   else

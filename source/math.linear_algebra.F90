@@ -81,6 +81,12 @@ module Linear_Algebra
      !@     <arguments>\textcolor{red}{\textless type(vector) y\argin \textgreater}</arguments>
      !@     <description>Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>transpose</method>
+     !@     <type>\textcolor{red}{\textless type(matrix)</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the transpose of a matrix.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: invert                 => matrixInvert
      procedure :: logarithmicDeterminant => matrixLogarithmicDeterminant

@@ -29,6 +29,21 @@
      double precision, allocatable, dimension(:  ) :: solidAngles
      double precision, allocatable, dimension(:,:) :: angularPowerSpectra
    contains
+     !@ <objectMethods>
+     !@   <object>surveyGeometryMangle</object>
+     !@   <objectMethod>
+     !@     <method>mangleDirectory</method>
+     !@     <type>\textcolor{red}{\textless type(varying\_string) \textgreater}</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the directory containing \gls{mangle} files for this survey geometry.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>mangleFiles</method>
+     !@     <type>\textcolor{red}{\textless type(varying\_string)(:) \textgreater}</type>
+     !@     <arguments></arguments>
+     !@     <description>Return array of \gls{mangle} filenames for this survey geometry.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure                                  :: windowFunctionAvailable => mangleWindowFunctionAvailable
      procedure                                  :: angularPowerAvailable   => mangleAngularPowerAvailable
      procedure                                  :: solidAngle              => mangleSolidAngle
