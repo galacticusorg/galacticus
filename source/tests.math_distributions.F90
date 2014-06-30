@@ -22,13 +22,15 @@ program Test_Math_Distributions
   use Unit_Tests
   use Math_Distributions_Poisson_Binomial
   use Pseudo_Random
+  use Statistics_Distributions
   implicit none
-  double precision              , dimension(  10) :: p
-  integer                       , dimension(0:10) :: trials
-  double precision              , dimension(0:10) :: Pk               , PkMonteCarlo, errorMonteCarlo
-  integer                       , parameter       :: trialCount=100000
-  integer                                         :: i                , j           , k
-  type            (pseudoRandom)                  :: prng
+  double precision                   , dimension(  10) :: p                , x           , y
+  integer                            , dimension(0:10) :: trials
+  double precision                   , dimension(0:10) :: Pk               , PkMonteCarlo, errorMonteCarlo
+  integer                            , parameter       :: trialCount=100000
+  type            (distributionGamma)                  :: distributionGamma_
+  integer                                              :: i                , j           , k
+  type            (pseudoRandom     )                  :: prng
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: distributions")
@@ -57,6 +59,15 @@ program Test_Math_Distributions
   ! Test Poisson binomial mean pairs in the trivial case.
   p=1.0d0
   call Assert("Poisson binomial: mean pairs",Poisson_Binomial_Distribution_Mean_Pairs(p),90.0d0,absTol=1.0d-4)
+
+  ! Gamma distribution.
+  distributionGamma_=distributionGamma(2.0d0,1.2d0,limitLower=0.3d0,limitUpper=6.0d0)
+  x=[0.3d0,0.8d0,1.3d0,1.8d0,2.3d0,2.8d0,3.3d0,3.8d0,5.0d0,5.9d0]
+  do i=1,10
+     p(i)=distributionGamma_%cumulative(x(i))
+     y(i)=distributionGamma_%inverse(p(i))
+  end do
+  call Assert("Gamma: inversion",x,y,relTol=1.0d-4)
 
   ! End unit tests.
   call Unit_Tests_End_Group()
