@@ -90,6 +90,7 @@ module Statistics_Distributions
   include 'statistics.distributions.normal.type.inc'
   include 'statistics.distributions.Cauchy.type.inc'
   include 'statistics.distributions.Student-t.type.inc'
+  include 'statistics.distributions.Gamma.type.inc'
 
 contains
 
@@ -106,7 +107,7 @@ contains
     double precision                                       :: distributionMinimum         , distributionMaximum      , &
          &                                                    distributionMean            , distributionVariance     , &
          &                                                    distributionScale           , distributionMedian       , &
-         &                                                    distributionDegreesOfFreedom
+         &                                                    distributionDegreesOfFreedom, distributionOrder
     logical                                                :: distributionMinimumExists   , distributionMaximumExists
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
@@ -159,6 +160,42 @@ contains
              newDistribution=distributionNormal(                                          &
                   &                             distributionMean                        , &
                   &                             distributionVariance                      &
+                  &                            )
+          end if
+       end select
+    case ("Gamma")
+       allocate(distributionGamma :: newDistribution)
+       select type (newDistribution)
+       type is (distributionGamma)
+          call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"mean" ),distributionMean )
+          call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"order"),distributionOrder)
+          distributionMinimumExists=XML_Path_Exists(definition,"minimum")
+          distributionMaximumExists=XML_Path_Exists(definition,"maximum")
+          if (distributionMinimumExists) call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"minimum"),distributionMinimum)
+          if (distributionMaximumExists) call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"maximum"),distributionMaximum)
+          if      (     distributionMinimumExists.and.     distributionMaximumExists) then
+             newDistribution=distributionGamma(                                           &
+                  &                             distributionOrder                       , &
+                  &                             distributionMean                        , &
+                  &                             limitLower          =distributionMinimum, &
+                  &                             limitUpper          =distributionMaximum  &
+                  &                            )
+          else if (     distributionMinimumExists.and..not.distributionMaximumExists) then
+             newDistribution=distributionGamma(                                           &
+                  &                             distributionOrder                       , &
+                  &                             distributionMean                        , &
+                  &                             limitLower          =distributionMinimum  &
+                  &                            )
+          else if (.not.distributionMinimumExists.and.     distributionMaximumExists) then
+             newDistribution=distributionGamma(                                           &
+                  &                             distributionOrder                       , &
+                  &                             distributionMean                        , &
+                  &                             limitUpper          =distributionMaximum  &
+                  &                            )
+          else if (.not.distributionMinimumExists.and..not.distributionMaximumExists) then
+             newDistribution=distributionGamma(                                           &
+                  &                             distributionOrder                       , &
+                  &                             distributionMean                          &
                   &                            )
           end if
        end select
@@ -217,5 +254,6 @@ contains
   include 'statistics.distributions.normal.methods.inc'
   include 'statistics.distributions.Cauchy.methods.inc'
   include 'statistics.distributions.Student-t.methods.inc'
+  include 'statistics.distributions.Gamma.methods.inc'
 
 end module Statistics_Distributions
