@@ -26,6 +26,15 @@
      logical                                     :: geometryInitialized
      double precision, allocatable, dimension(:) :: randomTheta        , randomPhi
    contains
+     !@ <objectMethods>
+     !@   <object>surveyGeometryRandomPoints</object>
+     !@   <objectMethod>
+     !@     <method>randomsInitialize</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Initialize arrays of random points to define the survey angular geometry.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure                                          :: windowFunctionAvailable => randomPointsWindowFunctionAvailable
      procedure                                          :: angularPowerAvailable   => randomPointsAngularPowerAvailable
      procedure                                          :: windowFunctions         => randomPointsWindowFunctions
