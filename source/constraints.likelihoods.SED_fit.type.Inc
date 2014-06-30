@@ -20,7 +20,6 @@
   type, public, extends(likelihood) :: likelihoodSEDFit
      private
      integer                                     :: photometryCount
-     double precision                            :: timeObserved
      integer         , allocatable, dimension(:) :: filterIndex             , luminosityIndex         , &
           &                                         postprocessingChainIndex
      double precision, allocatable, dimension(:) :: magnitude               , error                   , &
