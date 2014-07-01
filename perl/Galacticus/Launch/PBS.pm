@@ -241,8 +241,8 @@ sub SubmitJobs {
 		delete($pbsJobs{$jobID});
 	    }
 	}
-	# If fewer than ten jobs are in the queue, pop one off the stack.
-	if ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < 20 ) {
+	# If fewer than maximum number of jobs are in the queue, pop one off the stack.
+	if ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < $jobMaximum ) {
 	    my $batchScript = pop(@pbsStack);
 	    # Submit the PBS job.
 	    open(pHndl,"qsub ".$batchScript."|");
