@@ -68,7 +68,7 @@ sub Build_AGN_Spectra {
 
 	    # Download the AGN SED code.
 	    unless ( -e "aux/AGN_Spectrum/agn_spectrum.c" ) {
-		system("mkdir -p aux/AGN_Spectrum; wget --no-check-certificate http://www.cfa.harvard.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O aux/AGN_Spectrum/agn_spectrum.c");
+		system("mkdir -p aux/AGN_Spectrum; wget --no-check-certificate http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O aux/AGN_Spectrum/agn_spectrum.c");
 	    }
 	    die("Get_AGN_Luminosity(): failed to download agn_spectrum.c")
 		unless ( -e "aux/AGN_Spectrum/agn_spectrum.c" );
