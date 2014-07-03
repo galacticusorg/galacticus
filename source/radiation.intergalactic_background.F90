@@ -22,16 +22,15 @@ module Radiation_Intergalactic_Background
   use Galacticus_Nodes
   implicit none
   private
-  public :: Radiation_Set_Intergalactic_Background, Radiation_Temperature_Intergalactic_Background, Radiation_Flux_Intergalactic_Background
+  public :: Radiation_Set_Intergalactic_Background, Radiation_Set_Time_Intergalactic_Background, Radiation_Temperature_Intergalactic_Background, Radiation_Flux_Intergalactic_Background
 
   ! Pointer to the functions that actually do the calculation.
   procedure(Radiation_Set_Template ), pointer :: Radiation_Set_Intergalactic_Background_Do =>null()
   procedure(Radiation_Flux_Template), pointer :: Radiation_Flux_Intergalactic_Background_Do=>null()
   abstract interface
-     subroutine Radiation_Set_Template(thisNode,radiationProperties)
-       import treeNode
-       type            (treeNode)                           , intent(inout), pointer :: thisNode
-       double precision          , allocatable, dimension(:), intent(inout)          :: radiationProperties
+     subroutine Radiation_Set_Template(time,radiationProperties)
+       double precision                           , intent(in   ) :: time
+       double precision, allocatable, dimension(:), intent(inout) :: radiationProperties
      end subroutine Radiation_Set_Template
   end interface
   abstract interface
@@ -92,16 +91,16 @@ contains
     return
   end subroutine Radiation_Initialize_Intergalactic_Background
 
-  !# <radiationSet>
-  !#  <unitName>Radiation_Set_Intergalactic_Background</unitName>
+  !# <radiationSetTime>
+  !#  <unitName>Radiation_Set_Time_Intergalactic_Background</unitName>
   !#  <label>IGB</label>
-  !# </radiationSet>
-  subroutine Radiation_Set_Intergalactic_Background(componentMatched,thisNode,radiationProperties)
+  !# </radiationSetTime>
+  subroutine Radiation_Set_Time_Intergalactic_Background(componentMatched,time,radiationProperties)
     !% Property setting routine for the radiation component from file method.
     implicit none
-    logical                                              , intent(in   )          :: componentMatched
-    type            (treeNode)                           , intent(inout), pointer :: thisNode
-    double precision          , allocatable, dimension(:), intent(inout)          :: radiationProperties
+    logical                                    , intent(in   ) :: componentMatched
+    double precision                           , intent(in   ) :: time
+    double precision, allocatable, dimension(:), intent(inout) :: radiationProperties
 
     ! Return immediately if this component was not matched.
     if (.not.componentMatched) return
@@ -110,7 +109,30 @@ contains
     call Radiation_Initialize_Intergalactic_Background
 
     ! Call the routine to do the calculation.
-    call Radiation_Set_Intergalactic_Background_Do(thisNode,radiationProperties)
+    call Radiation_Set_Intergalactic_Background_Do(time,radiationProperties)
+    return
+  end subroutine Radiation_Set_Time_Intergalactic_Background
+
+  !# <radiationSet>
+  !#  <unitName>Radiation_Set_Intergalactic_Background</unitName>
+  !#  <label>IGB</label>
+  !# </radiationSet>
+  subroutine Radiation_Set_Intergalactic_Background(componentMatched,thisNode,radiationProperties)
+    !% Property setting routine for the radiation component from file method.
+    implicit none
+    logical                                                        , intent(in   )          :: componentMatched
+    type            (treeNode          )                           , intent(inout), pointer :: thisNode
+    double precision                    , allocatable, dimension(:), intent(inout)          :: radiationProperties
+    class           (nodeComponentBasic)                                          , pointer :: thisBasic
+
+    ! Return immediately if this component was not matched.
+    if (.not.componentMatched) return
+
+    ! Ensure that the module is initialized.
+    call Radiation_Initialize_Intergalactic_Background
+    ! Call the routine to do the calculation.
+    thisBasic => thisNode%basic()
+    call Radiation_Set_Intergalactic_Background_Do(thisBasic%time(),radiationProperties)
 
     return
   end subroutine Radiation_Set_Intergalactic_Background
