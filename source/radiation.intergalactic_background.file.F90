@@ -90,7 +90,6 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('radiationIGBFileName',radiationIGBFileName,defaultValue=char(Galacticus_Input_Path())//"data/radiation/Cosmic_Background_Radiation_Haardt_Madau_2005_Quasars_Galaxies.xml")
-
        !$omp critical (FoX_DOM_Access)
        ! Parse the XML file.
        doc => parseFile(char(radiationIGBFileName),iostat=ioErr)
@@ -101,25 +100,16 @@ contains
        if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Radiation_IGB_File_Initialize','file format version is out of date')
        ! Get a list of all spectra.
        spectraList => getElementsByTagname(doc,"spectra")
-       ! Get the times from the file.
-       call XML_Array_Read(spectraList,"redshift",spectraTimes)
        ! Get the default cosmology functions object.
        cosmologyFunctionsDefault => cosmologyFunctions()
-       ! Convert redshift to a time.
-       do iSpectrum=1,spectraTimesCount
-          spectraTimes(iSpectrum)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(spectraTimes(iSpectrum)))
-       end do
-       ! Check if the times are monotonically ordered.
-       if (.not.Array_Is_Monotonic(spectraTimes)) call Galacticus_Error_Report('Radiation_Initialize_File','spectra must be monotonically ordered in time')
-       timesIncreasing=Array_Is_Monotonic(spectraTimes,direction=directionIncreasing)
-       ! Reverse times if necessary.
-       if (.not.timesIncreasing) spectraTimes=Array_Reverse(spectraTimes)
        ! Get the wavelengths.
        thisWavelength => XML_Get_First_Element_By_Tag_Name(doc,"wavelengths")
        call XML_Array_Read(thisWavelength,"datum",spectraWavelengths)
        spectraWavelengthsCount=size(spectraWavelengths)
        ! Allocate array for spectra.
-       call Alloc_Array(spectra,[spectraWavelengthsCount,spectraTimesCount])
+       spectraTimesCount=getLength(spectraList)
+       call Alloc_Array(spectra     ,[spectraWavelengthsCount,spectraTimesCount])
+       call Alloc_Array(spectraTimes,[                        spectraTimesCount])
        ! Read spectra into arrays.
        do iSpectrum=1,spectraTimesCount
           ! Determine where to store this spectrum, depending on whether the times were stored in increasing or decreasing order.
@@ -134,7 +124,16 @@ contains
           if (XML_Array_Length(thisSpectrum,"datum") /= spectraWavelengthsCount) call Galacticus_Error_Report('Radiation_Initialize_File','all spectra must contain the same number of wavelengths')
           ! Extract the data.
           call XML_Array_Read_Static(thisSpectrum,"datum",spectra(:,jSpectrum))
-       end do
+          ! Extract the redshift.
+          call extractDataContent(XML_Get_First_Element_By_Tag_Name(thisSpectrum,"redshift"),spectraTimes(iSpectrum))
+          ! Convert redshift to a time.
+          spectraTimes(iSpectrum)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(spectraTimes(iSpectrum)))
+       end do     
+       ! Check if the times are monotonically ordered.
+       if (.not.Array_Is_Monotonic(spectraTimes)) call Galacticus_Error_Report('Radiation_Initialize_File','spectra must be monotonically ordered in time')
+       timesIncreasing=Array_Is_Monotonic(spectraTimes,direction=directionIncreasing)
+       ! Reverse times if necessary.
+       if (.not.timesIncreasing) spectraTimes=Array_Reverse(spectraTimes)
        ! Destroy the document.
        call destroy(doc)
        !$omp end critical (FoX_DOM_Access)
@@ -146,22 +145,19 @@ contains
     return
   end subroutine Radiation_IGB_File_Initialize
 
-  subroutine Radiation_IGB_File_Set(thisNode,radiationProperties)
+  subroutine Radiation_IGB_File_Set(time,radiationProperties)
     !% Property setting routine for the radiation component from file method.
     use Galacticus_Nodes
     use Memory_Management
     implicit none
-    type            (treeNode          )                           , intent(inout), pointer :: thisNode
-    double precision                    , allocatable, dimension(:), intent(inout)          :: radiationProperties
-    class           (nodeComponentBasic)             , pointer                              :: thisBasicComponent
+    double precision                                               , intent(in   ) :: time
+    double precision                    , allocatable, dimension(:), intent(inout) :: radiationProperties
 
     ! Ensure that the properties array is allocated.
     if (.not.allocated(radiationProperties)) call Alloc_Array(radiationProperties,[1])
 
     ! Store the time for the radiation field.
-    thisBasicComponent => thisNode%basic()
-    radiationProperties(1)=thisBasicComponent%time()
-
+    radiationProperties(1)=time
     return
   end subroutine Radiation_IGB_File_Set
 
