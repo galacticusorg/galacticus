@@ -840,7 +840,7 @@ contains
     logical                                                         :: remakeTable
 
     ! Quit on invalid input.
-    if (comovingDistance < 0.0d0) call Galacticus_Error_Report('matterLambdaTimeFromComovingDistance','comoving distance must be positive')
+    if (comovingDistance < 0.0d0) call Galacticus_Error_Report('matterLambdaTimeAtDistanceComoving','comoving distance must be positive')
     ! Check if we need to recompute our table.
     remakeTable=.true.
     do while (remakeTable)
