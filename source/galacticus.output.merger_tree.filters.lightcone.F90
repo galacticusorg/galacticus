@@ -23,22 +23,24 @@ module Galacticus_Merger_Tree_Output_Filter_Lightcones
   private
   public :: Galacticus_Merger_Tree_Output_Filter_Lightcone,Galacticus_Output_Tree_Lightcone,&
        & Galacticus_Output_Tree_Lightcone_Property_Count, Galacticus_Output_Tree_Lightcone_Names,&
-       & Galacticus_Merger_Tree_Output_Filter_Lightcone_Initialize
+       & Galacticus_Merger_Tree_Output_Filter_Lightcone_Initialize, Merger_Tree_Prune_Lightcone
 
   ! Number of lightcone properties.
   integer                                      , parameter :: lightconePropertyCount    =8
 
   ! Flags indicating if the module has been initialized and if this filter is active.
-  logical                                                  :: lightconeFilterInitialized=.false.
+  logical                                                  :: lightconeFilterInitialized  =.false.
+  logical                                                  :: lightconeGeometryInitialized=.false.
+  logical                                                  :: lightconePruningInitialized =.false.
   logical                                                  :: lightconeFilterActive
+  logical                                                  :: filterLightconePruneTrees
 
   ! Variables used to describe the lightcone geometry.
   double precision             , dimension(3  )            :: lightconeOrigin
   double precision             , dimension(3,3)            :: lightconeUnitVector
   double precision, allocatable, dimension(:)              :: lightconeMaximumDistance          , lightconeMinimumDistance        , &
        &                                                      lightconeTime
-  double precision                                         :: lightconeFieldOfViewLength        , lightconeFieldOfViewTanHalfAngle, &
-       &                                                      lightconeReplicationPeriod
+  double precision                                         :: lightconeFieldOfViewLength        , lightconeReplicationPeriod
   double precision                                         :: angularWeight
   integer                                                  :: lightconeGeometry
   integer                                      , parameter :: lightconeGeometrySquare   =1
@@ -48,14 +50,11 @@ module Galacticus_Merger_Tree_Output_Filter_Lightcones
   double precision             , dimension(3  )            :: lightconePosition                 , lightconeVelocity
   double precision                                         :: lightconeRedshift
   !$omp threadprivate(lightconePosition,lightconeVelocity,lightconeRedshift)
+
 contains
 
-  !# <mergerTreeOutputFilterInitialize>
-  !#   <unitName>Galacticus_Merger_Tree_Output_Filter_Lightcone_Initialize</unitName>
-  !# </mergerTreeOutputFilterInitialize>
-  subroutine Galacticus_Merger_Tree_Output_Filter_Lightcone_Initialize(filterNames)
-    !% Initializes the lightcone filter module.
-    use ISO_Varying_String
+  subroutine Galacticus_Merger_Tree_Lightcone_Geometry_Initialize()
+    !% Initialize geometry for lightcone output.
     use Input_Parameters
     use FoX_dom
     use IO_XML
@@ -65,28 +64,28 @@ contains
     use Galacticus_Error
     use Memory_Management
     use Vectors
+    use Trigonometric_Functions
     implicit none
-    type            (varying_string          ), dimension(:), intent(in   ) :: filterNames
-    type            (Node                    ), pointer                     :: doc                            , thisItem
-    type            (NodeList                ), pointer                     :: itemList
-    class           (cosmologyParametersClass), pointer                     :: thisCosmologyParameters
-    class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctionsDefault
-    integer                                                                 :: iAxis                          , iOutput                     , &
-         &                                                                     ioErr                          , lengthUnitsHubbleExponent
-    double precision                                                        :: lengthUnitsInSI                , lightconeMaximumDistanceTemp, &
-         &                                                                     lightconeMinimumDistanceTemp   , lightconeTimeTemp           , &
-         &                                                                     unitConversionLength
-    type            (varying_string          )                              :: filterLightconeGeometryFileName
-    logical                                                                 :: filterLightconeFixedTime
-    character       (len=11                  )                              :: tagName
-    character       (len=10                  )                              :: geometryLabel
+    type            (Node                    ), pointer   :: doc                            , thisItem
+    type            (NodeList                ), pointer   :: itemList
+    class           (cosmologyParametersClass), pointer   :: thisCosmologyParameters
+    class           (cosmologyFunctionsClass ), pointer   :: cosmologyFunctionsDefault
+    ! Angle below which the solid angle of square geometries is computed using an approximate method.
+    double precision                          , parameter :: lightconeFieldOfViewLengthSmall=0.017d0
+    integer                                               :: iAxis                          , iOutput                     , &
+         &                                                   ioErr                          , lengthUnitsHubbleExponent
+    double precision                                      :: lengthUnitsInSI                , lightconeMaximumDistanceTemp, &
+         &                                                   lightconeMinimumDistanceTemp   , lightconeTimeTemp           , &
+         &                                                   unitConversionLength           , tanHalfAngle                , &
+         &                                                   solidAngle
+    type            (varying_string          )            :: filterLightconeGeometryFileName
+    logical                                               :: filterLightconeFixedTime
+    character       (len=11                  )            :: tagName
+    character       (len=10                  )            :: geometryLabel
 
-    ! Initialize the filter if necessary.
-    if (.not.lightconeFilterInitialized) then
-       ! Determine if this filter has been selected.
-       lightconeFilterActive=any(filterNames == "lightcone")
-       ! If this filter is active, read the geometric constraints.
-       if (lightconeFilterActive) then
+    if (.not.lightconeGeometryInitialized) then
+       !$omp critical(lightconeGeometryInitialize)
+       if (.not.lightconeGeometryInitialized) then
           ! Get name of lightcone geometry specification file.
           !@ <inputParameter>
           !@   <name>filterLightconeGeometryFileName</name>
@@ -111,8 +110,7 @@ contains
           !@   <cardinality>1</cardinality>
           !@   <group>output</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('filterLightconeFixedTime',filterLightconeFixedTime,defaultValue=.false.)
-
+          call Get_Input_Parameter('filterLightconeFixedTime',filterLightconeFixedTime,defaultValue=.false.)          
           ! Extract data from geometry specification file.
           !$omp critical (FoX_DOM_Access)
           doc => parseFile(char(filterLightconeGeometryFileName),iostat=ioErr)
@@ -149,8 +147,33 @@ contains
              lightconeGeometry=lightconeGeometrySquare
              thisItem => XML_Get_First_Element_By_Tag_Name(doc     ,"fieldOfView/length")
              call extractDataContent(thisItem,lightconeFieldOfViewLength)
-             lightconeFieldOfViewTanHalfAngle=tan(0.5d0*lightconeFieldOfViewLength)
-             angularWeight=1.0d0/(lightconeFieldOfViewLength*(180.0d0/Pi))**2
+             ! Determine the angular weight of this field.
+             if (lightconeFieldOfViewLength < lightconeFieldOfViewLengthSmall) then
+                solidAngle=lightconeFieldOfViewLength**2
+             else
+                tanHalfAngle=tan(lightconeFieldOfViewLength/2.0d0)
+                solidAngle=                                           &
+                     &     +2.0d0                                     &
+                     &     *Pi                                        &
+                     &     *(                                         &
+                     &       +3.0d0                                   &
+                     &       -cos(                                    &
+                     &            atan(                               &
+                     &                  sqrt(2.0d0)                   &
+                     &                 *tanHalfAngle                  &
+                     &                )                               &
+                     &           )                                    &
+                     &      )                                         &
+                     &     -8.0d0                                     &
+                     &     *inverseCosineIntegral(                    &
+                     &                            tanHalfAngle      , &
+                     &                            atan(               &
+                     &                                  sqrt(2.0d0)   &
+                     &                                 *tanHalfAngle  &
+                     &                                )               &
+                     &                           )
+             end if
+             angularWeight=(Pi/180.0d0)**2/solidAngle
           case default
              call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone','unknown field of view geometry')
           end select
@@ -188,7 +211,47 @@ contains
              lightConeMaximumDistance(1)=lightconeMaximumDistanceTemp
           end if
           !$omp end critical (FoX_DOM_Access)
+          ! Record that geometry is initialized.
+          lightconeGeometryInitialized=.true.
        end if
+       !$omp end critical(lightconeGeometryInitialize)
+    end if
+    return
+
+contains
+
+  double precision function inverseCosineIntegral(a,x)
+    !% Integral of $\sin(x)*\cos^{-1}[a/tan(x)]$ evaluated using Wolfram Alpha.
+    implicit none
+    double precision, intent(in) :: a , x
+    double complex               :: aa, xx
+
+    aa=a
+    xx=x
+    inverseCosineIntegral=(sin(xx)*(sqrt((aa**2+1.0d0)*cos(2.0d0*xx)+aa**2-1.0d0)*(log(aa*(sqrt(2.0d0)*sqrt(2.0d0*aa**2*cos(xx)&
+         &**2+cos(2.0d0*xx)-1.0d0)+2.0d0*aa))-log(sqrt(cos(2.0d0*xx)-1.0d0)))*sqrt(cosec(xx)**2*(-((aa**2+1.0d0)*cos(2.0d0*xx)+aa&
+         &**2-1.0d0)))-cot(xx)*((aa**2+1.0d0)*cos(2.0d0*xx)+aa**2-1.0d0)*acos(aa*cot(xx))))/((aa**2+1.0d0)*cos(2.0d0*xx)+aa**2&
+         &-1.0d0)
+    return
+  end function inverseCosineIntegral
+  
+  end subroutine Galacticus_Merger_Tree_Lightcone_Geometry_Initialize
+
+  !# <mergerTreeOutputFilterInitialize>
+  !#   <unitName>Galacticus_Merger_Tree_Output_Filter_Lightcone_Initialize</unitName>
+  !# </mergerTreeOutputFilterInitialize>
+  subroutine Galacticus_Merger_Tree_Output_Filter_Lightcone_Initialize(filterNames)
+    !% Initializes the lightcone filter module.
+    use ISO_Varying_String
+    implicit none
+    type(varying_string), dimension(:), intent(in   ) :: filterNames
+
+    ! Initialize the filter if necessary.
+    if (.not.lightconeFilterInitialized) then
+       ! Determine if this filter has been selected.
+       lightconeFilterActive=any(filterNames == "lightcone")
+       ! If this filter is active, read the geometric constraints.
+       if (lightconeFilterActive) call Galacticus_Merger_Tree_Lightcone_Geometry_Initialize()
        ! Flag that this filter is now initialized.
        lightconeFilterInitialized=.true.
     end if
@@ -203,6 +266,7 @@ contains
     use Galacticus_Nodes
     use Arrays_Search
     use Cosmology_Functions
+    use Vectors
     implicit none
     type            (treeNode               )                , intent(inout), pointer :: thisNode
     logical                                                  , intent(inout)          :: doOutput
@@ -216,6 +280,7 @@ contains
     integer                                                                           :: i                               , iAxis              , &
          &                                                                               iOutput                         , j                  , &
          &                                                                               k
+    double precision                                                                  :: lightconeRadialDistance
 
     ! Return immediately if this filter is not active.
     if (.not.lightconeFilterActive) return
@@ -253,16 +318,17 @@ contains
                 ! Test if galaxy lies within the correct angular window.
                 select case (lightconeGeometry)
                 case (lightconeGeometrySquare)
-                   galaxyIsInFieldOfView=                                                                    &
-                        & abs(lightconePosition(2)/lightconePosition(1)) < lightconeFieldOfViewTanHalfAngle &
-                        &  .and.                                                                             &
-                        & abs(lightconePosition(3)/lightconePosition(1)) < lightconeFieldOfViewTanHalfAngle
+                   galaxyIsInFieldOfView=                                                                          &
+                        & abs(atan2(lightconePosition(2),lightconePosition(1))) < 0.5d0*lightconeFieldOfViewLength &
+                        &  .and.                                                                                   &
+                        & abs(atan2(lightconePosition(3),lightconePosition(1))) < 0.5d0*lightconeFieldOfViewLength
                 end select
 
                 ! Test if galaxy lies within appropriate radial range.
-                galaxyIsInLightcone=      galaxyIsInFieldOfView                                     &
-                     &              .and. lightconePosition(1) >  lightconeMinimumDistance(iOutput) &
-                     &              .and. lightconePosition(1) <= lightconeMaximumDistance(iOutput)
+                lightconeRadialDistance=Vector_Magnitude(lightconePosition)
+                galaxyIsInLightcone=      galaxyIsInFieldOfView                                        &
+                     &              .and. lightconeRadialDistance >  lightconeMinimumDistance(iOutput) &
+                     &              .and. lightconeRadialDistance <= lightconeMaximumDistance(iOutput)
 
                 ! If the galaxy is in the lightcone compute also its velocity in the lightcone coordinate system and the redshift.
                 if (galaxyIsInLightcone) then
@@ -273,12 +339,12 @@ contains
                    end forall
                    ! Get redshift of the galaxy.
                    lightconeRedshift=cosmologyFunctionsDefault%redshiftFromExpansionFactor(   &
-                        &             cosmologyFunctionsDefault%expansionFactor              (  &
-                        &              cosmologyFunctionsDefault%timeAtDistanceComoving   ( &
-                        &               lightconePosition(1)           &
-                        &                                            ) &
-                        &                                           )  &
-                        &                                          )
+                        &             cosmologyFunctionsDefault%expansionFactor            (  &
+                        &              cosmologyFunctionsDefault%timeAtDistanceComoving     ( &
+                        &               lightconeRadialDistance                               &
+                        &                                                                   ) &
+                        &                                                                  )  &
+                        &                                                                 )
                 end if
 
              end if
@@ -485,5 +551,67 @@ contains
     end if
     return
   end subroutine Galacticus_Output_Tree_Lightcone
+
+  !# <mergerTreePreEvolveTask>
+  !#   <unitName>Merger_Tree_Prune_Lightcone</unitName>
+  !# </mergerTreePreEvolveTask>
+  subroutine Merger_Tree_Prune_Lightcone(thisTree)
+    !% Prune branches from {\tt thisTree}.
+    use Galacticus_Nodes
+    use Input_Parameters
+    implicit none
+    type   (mergerTree           ), intent(in   ), target :: thisTree
+    type   (treeNode             ), pointer               :: thisNode
+    type   (mergerTree           ), pointer               :: currentTree
+    logical                                               :: doOutput
+
+    ! Initialize.
+    if (.not.lightconePruningInitialized) then
+       !$omp critical (lightconePruningInitialize)
+       if (.not.lightconePruningInitialized) then
+          !@ <inputParameter>
+          !@   <name>filterLightconePruneTrees</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Specifies whether trees which lie wholly outside of the lightcone geometry should be pruned.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('filterLightconePruneTrees',filterLightconePruneTrees,defaultValue=.false.)
+          if (filterLightconePruneTrees) call Galacticus_Merger_Tree_Lightcone_Geometry_Initialize()
+       end if
+       ! Record that lightcone pruning has been initialized.
+       lightconePruningInitialized=.true.
+       !$omp end critical (lightconePruningInitialize)
+    end if
+    ! Check if tree can be pruned.
+    if (filterLightconePruneTrees) then
+       ! Iterate over trees.
+       currentTree => thisTree
+       do while (associated(currentTree))
+          thisNode => currentTree%baseNode
+          do while (associated(thisNode))
+             ! Check if node is included in lightcone.
+             doOutput=.true.
+             call Galacticus_Merger_Tree_Output_Filter_Lightcone(thisNode,doOutput)
+             ! If node is in lightcone, do not prune this tree - simply return.
+             if (doOutput) return
+             ! Move to the next node.
+             call thisNode%walkTree(thisNode)
+          end do
+          ! Move to the next tree.
+          currentTree => currentTree%nextTree
+       end do
+       ! No node was in the lightcone, so this tree can be pruned (i.e. destroy primary branch of each tree)
+       currentTree => thisTree
+       do while (associated(currentTree))
+          call currentTree%destroyBranch(currentTree%baseNode)
+          currentTree => currentTree%nextTree
+       end do
+    end if
+    return
+  end subroutine Merger_Tree_Prune_Lightcone
 
 end module Galacticus_Merger_Tree_Output_Filter_Lightcones
