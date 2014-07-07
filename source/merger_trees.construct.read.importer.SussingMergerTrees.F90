@@ -119,11 +119,19 @@
   logical                        :: mergerTreeImportSussingConvertToBinary
   double precision               :: mergerTreeImportSussingBadValue
   integer                        :: mergerTreeImportSussingBadValueTest
+  logical                        :: mergerTreeImportSussingUseForestFile
+  type(varying_string)           :: mergerTreeImportSussingForestFile
+  integer                        :: mergerTreeImportSussingForestFirst
+  integer                        :: mergerTreeImportSussingForestLast
 
   ! Bad value detection limits.
   integer         , parameter    :: sussingBadValueLessThan   =-1
   integer         , parameter    :: sussingBadValueGreaterThan=+1
-
+ 
+  ! File format identifiers.
+  integer         , parameter    :: sussingHaloFormatOld      =1
+  integer         , parameter    :: sussingHaloFormatNew      =2
+ 
 contains
 
   function sussingDefaultConstructor()
@@ -233,6 +241,42 @@ contains
           case default
              call Galacticus_Error_Report('sussingDefaultConstructor','[mergerTreeImportSussingBadValueTest must be either "lessThan" or "greaterThan"]')
           end select
+          ! Check for a forest file.
+          mergerTreeImportSussingUseForestFile=Input_Parameter_Is_Present('mergerTreeImportSussingForestFile')
+          if (mergerTreeImportSussingUseForestFile) then
+             !@ <inputParameter>
+             !@   <name>mergerTreeImportSussingForestFile</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     Name of file containing data on number of halos in each forest.
+             !@   </description>
+             !@   <type>string</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeImportSussingForestFile',mergerTreeImportSussingForestFile)
+             !@ <inputParameter>
+             !@   <name>mergerTreeImportSussingForestFirst</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <defaultValue>1</defaultValue>
+             !@   <description>
+             !@     Index of first forest to include.
+             !@   </description>
+             !@   <type>integer</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeImportSussingForestFirst',mergerTreeImportSussingForestFirst,defaultValue=1)
+             !@ <inputParameter>
+             !@   <name>mergerTreeImportSussingForestLast</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <defaultValue>-1</defaultValue>
+             !@   <description>
+             !@     Index of last forest to include.
+             !@   </description>
+             !@   <type>integer</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeImportSussingForestLast',mergerTreeImportSussingForestLast,defaultValue=-1)
+          end if
           sussingInitialized=.true.
        end if
        !$omp end critical (mergerTreeImporterSussingInitialize)
@@ -532,31 +576,37 @@ contains
          &                                                               nodeDescendentLocations   , nodesInSubvolume      , &
          &                                                               nodesTmp                  , hostsInSubvolume
     logical                             , allocatable  , dimension(:) :: nodeIncomplete            , nodeIncompleteTmp
+    integer  (kind=kind_int8           ), allocatable  , dimension(:) :: forestSnapshotHaloCount   , forestSnapshotHaloCountFirst, &
+         &                                                               forestSnapshotHaloCountLast
     integer                             , parameter                   :: fileFormatVersionCurrent=1
     integer                             , parameter                   :: stepCountMaximum        =1000000
     logical                                                           :: nodeIsActive              , doBinaryConversion    , &
          &                                                               readBinary                , mergerTreeFileIsBinary, &
-         &                                                               mergerTreeFileConvert
+         &                                                               mergerTreeFileConvert     , processHalo
     integer                                                           :: fileUnit                  , progenitorCount       , &
          &                                                               ioStat                    , lineStat              , &
          &                                                               nodeCountSubvolume        , nodeCount             , &
          &                                                               fileFormatVersion         , iProgenitor           , &
          &                                                               snapshotUnit              , snapshotOutUnit       , &
          &                                                               fileUnitOut               , nodeCountTrees
-    character(len=32                   )                              :: line                      , label
+    character(len=1024                 )                              :: line
+    character(len=32                   )                              :: label
     integer  (kind=c_size_t            )                              :: l
     integer  (kind=kind_int8           )                              :: nodeIndex                 , treeIndexPrevious     , &
          &                                                               treeIndexCurrent          , i                     , &
          &                                                               j                         , k                     , &
          &                                                               iNode                     , iStart                , &
-         &                                                               jNode
+         &                                                               jNode                     , iCount
     type     (varying_string           )                              :: message
     integer  (kind=kind_int8           )                              :: ID                        , hostHalo              , &
          &                                                               treeIndexFrom             , treeIndexTo           , &
-         &                                                               progenitorIndex
+         &                                                               progenitorIndex           , forestCount           , &
+         &                                                               forestFirst               , forestLast            , &
+         &                                                               forestHaloCountLast       , forestHaloCountFirst  , &
+         &                                                               forestHaloCount
     integer                                                           :: numSubStruct              , npart                 , &
-         &                                                               descendentStepCount       , hostStepCount
-         &                                                               
+         &                                                               descendentStepCount       , hostStepCount         , &
+         &                                                               haloFormat
     double precision                                                  :: Mvir                      , Xc                    , &
                &                                                         Yc                        , Zc                    , &
                &                                                         VXc                       , Vyc                   , &
@@ -585,6 +635,33 @@ contains
     self%treeIndicesRead=.true.
     ! Display counter.
     call Galacticus_Display_Indent ('Parsing "Sussing Merger Trees" format merger tree file',verbosityWorking)
+    ! If a forest field is provided, scan it now to find the ranges to read from subsequent files.
+    if (mergerTreeImportSussingUseForestFile) then
+       forestCount=Count_Lines_in_File(mergerTreeImportSussingForestFile,'#')
+       call Alloc_Array(forestSnapshotHaloCount     ,shape(self%snapshotFileName))
+       call Alloc_Array(forestSnapshotHaloCountFirst,shape(self%snapshotFileName))
+       call Alloc_Array(forestSnapshotHaloCountLast ,shape(self%snapshotFileName))
+       forestHaloCountFirst        =0
+       forestHaloCountLast         =0
+       forestSnapshotHaloCountFirst=0
+       forestSnapshotHaloCountLast =0
+       forestFirst=mergerTreeImportSussingForestFirst
+       forestLast =mergerTreeImportSussingForestLast
+       if (forestLast < 0) forestLast=forestCount
+       open(newUnit=fileUnit,file=char(mergerTreeImportSussingForestFile),status='old',form='formatted')
+       read (fileUnit,'(a)') line
+       do i=1,forestLast
+          read (fileUnit,*) ID,forestHaloCount,forestSnapshotHaloCount
+          forestHaloCountLast        =forestHaloCountLast        +forestHaloCount
+          forestSnapshotHaloCountLast=forestSnapshotHaloCountLast+forestSnapshotHaloCount
+          if (i < forestFirst) then
+             forestHaloCountFirst        =forestHaloCountLast        +1
+             forestSnapshotHaloCountFirst=forestSnapshotHaloCountLast+1
+          end if
+       end do
+       close(fileUnit)
+       call Dealloc_Array(forestSnapshotHaloCount)
+    end if
     ! Open the merger tree file.
     mergerTreeFileIsBinary=File_Exists(char(self%mergerTreeFile//".bin"))
     mergerTreeFileConvert =.false.
@@ -632,61 +709,93 @@ contains
        else
           ! No binary version of this file exists, use the ASCII version.
           open   (newUnit=snapshotUnit   ,file=char(self%snapshotFileName(i)        ),status='old'    ,form='formatted'  ,ioStat=ioStat)
-          if (self%convertToBinary) then
+          if (self%convertToBinary.and..not.mergerTreeImportSussingUseForestFile) then
              ! Open a binary file to write the converted halo data to.
              open(newUnit=snapshotOutUnit,file=char(self%snapshotFileName(i)//".bin"),status='unknown',form='unformatted'              )
              doBinaryConversion=.true.
           end if
-          read (snapshotUnit,*,ioStat=ioStat) line
-       end if
-       do while (ioStat == 0)
-          if (readBinary) then
-             read          (snapshotUnit     ,ioStat=ioStat) &
-                  &   ID          ,                          &
-                  &   hostHalo    ,                          &
-                  &   numSubStruct,                          &
-                  &   Mvir        ,                          &
-                  &   npart       ,                          &
-                  &   Xc          ,                          &
-                  &   Yc          ,                          &
-                  &   Zc          ,                          &
-                  &   VXc         ,                          &
-                  &   Vyc         ,                          &
-                  &   VZc         ,                          &
-                  &   Rvir        ,                          &
-                  &   Rmax        ,                          &
-                  &   r2          ,                          &
-                  &   mbp_offset  ,                          &
-                  &   com_offset  ,                          &
-                  &   Vmax        ,                          &
-                  &   v_esc       ,                          &
-                  &   sigV        ,                          &
-                  &   lambda      ,                          &
-                  &   lambdaE     ,                          &
-                  &   Lx          ,                          &
-                  &   Ly          ,                          &
-                  &   Lz          ,                          &
-                  &   b           ,                          &
-                  &   c           ,                          &
-                  &   Eax         ,                          &
-                  &   Eay         ,                          &
-                  &   Eaz         ,                          &
-                  &   Ebx         ,                          &
-                  &   Eby         ,                          &
-                  &   Ebz         ,                          &
-                  &   Ecx         ,                          &
-                  &   Ecy         ,                          &
-                  &   Ecz         ,                          &
-                  &   ovdens      ,                          &
-                  &   nbins       ,                          &
-                  &   fMhires     ,                          &
-                  &   Ekin        ,                          &
-                  &   Epot        ,                          &
-                  &   SurfP       ,                          &
-                  &   Phi0        ,                          &
-                  &   cNFW
+          read (snapshotUnit,'(a)',ioStat=ioStat) line
+          ! Test for format of halo files here. If "cNFW(25)" appears, it's a "new" format file, if "cNFW(43)" appears it's old
+          ! format. Otherwise, we don't recognize it
+          if      (index(line,"cNFW(43)") /= 0) then
+             ! Old format file.
+             haloFormat=sussingHaloFormatOld
+          else if (index(line,"cNFW(25)") /= 0) then
+             ! New format file.
+             haloFormat=sussingHaloFormatNew
           else
-             read          (snapshotUnit   ,*,ioStat=ioStat) &
+             ! Unrecognized format.
+             call Galacticus_Error_Report('sussingTreeIndicesRead','unrecognized format for halo files')
+          end if         
+       end if
+       iCount=0
+       do while (ioStat == 0)
+          ! Increment count of number of halos read.
+          iCount=iCount+1
+          processHalo=                                             &
+               &       (                                           &
+               &            mergerTreeImportSussingUseForestFile   &
+               &        .and.                                      &
+               &         iCount >= forestSnapshotHaloCountFirst(i) &
+               &        .and.                                      &
+               &         iCount <= forestSnapshotHaloCountLast (i) &
+               &       )                                           &
+               &      .or.                                         &
+               &       .not.mergerTreeImportSussingUseForestFile
+          if (readBinary) then
+             if (processHalo) then
+                read          (snapshotUnit     ,ioStat=ioStat) &
+                  &   ID          ,                             &
+                  &   hostHalo    ,                             &
+                  &   numSubStruct,                             &
+                  &   Mvir        ,                             &
+                  &   npart       ,                             &
+                  &   Xc          ,                             &
+                  &   Yc          ,                             &
+                  &   Zc          ,                             &
+                  &   VXc         ,                             &
+                  &   Vyc         ,                             &
+                  &   VZc         ,                             &
+                  &   Rvir        ,                             &
+                  &   Rmax        ,                             &
+                  &   r2          ,                             &
+                  &   mbp_offset  ,                             &
+                  &   com_offset  ,                             &
+                  &   Vmax        ,                             &
+                  &   v_esc       ,                             &
+                  &   sigV        ,                             &
+                  &   lambda      ,                             &
+                  &   lambdaE     ,                             &
+                  &   Lx          ,                             &
+                  &   Ly          ,                             &
+                  &   Lz          ,                             &
+                  &   b           ,                             &
+                  &   c           ,                             &
+                  &   Eax         ,                             &
+                  &   Eay         ,                             &
+                  &   Eaz         ,                             &
+                  &   Ebx         ,                             &
+                  &   Eby         ,                             &
+                  &   Ebz         ,                             &
+                  &   Ecx         ,                             &
+                  &   Ecy         ,                             &
+                  &   Ecz         ,                             &
+                  &   ovdens      ,                             &
+                  &   nbins       ,                             &
+                  &   fMhires     ,                             &
+                  &   Ekin        ,                             &
+                  &   Epot        ,                             &
+                  &   SurfP       ,                             &
+                  &   Phi0        ,                             &
+                  &   cNFW
+             else
+                read (snapshotUnit,ioStat=ioStat)
+             end if
+          else
+             call sussingReadHaloASCII(                      &
+                  &   haloFormat  ,                          &
+                  &   snapshotUnit,                          &
+                  &   ioStat      ,                          &
                   &   ID          ,                          &
                   &   hostHalo    ,                          &
                   &   numSubStruct,                          &
@@ -729,7 +838,9 @@ contains
                   &   Epot        ,                          &
                   &   SurfP       ,                          &
                   &   Phi0        ,                          &
-                  &   cNFW
+                  &   cNFW        ,                          &
+                  &   quickRead=.not.processHalo             &
+                  & )
           end if
           if (ioStat /= 0) exit
           ! Write back in binary.
@@ -779,7 +890,11 @@ contains
                &   Phi0        ,                          &
                &   cNFW
           ! Check if halo is in our subvolume.
-          if (self%inSubVolume(Xc,Yc,Zc,buffered=.true.)) then
+          if     (                                            &
+               &   processHalo                                &
+               &  .and.                                       &
+               &   self%inSubVolume(Xc,Yc,Zc,buffered=.true.) &
+               & ) then
              nodeCountSubvolume=nodeCountSubvolume+1
              if (nodeCountSubvolume > size(nodesInSubvolume)) then
                 call Move_Alloc(nodesInSubvolume,nodesTmp)
@@ -801,6 +916,8 @@ contains
           ! Update the counter.
           j=j+1
           call Galacticus_Display_Counter(int(100.0d0*dble(j)/dble(nodeCount)),j == 1,verbosityWorking)
+          ! If all required forests are processed, exit.
+          if (mergerTreeImportSussingUseForestFile .and. iCount == forestSnapshotHaloCountLast(i)) exit
        end do
        close                        (snapshotUnit   )
        if (doBinaryConversion) close(snapshotOutUnit)
@@ -815,6 +932,7 @@ contains
     ! Read node indices.
     call Galacticus_Display_Message("Reading node indices",verbosityWorking)
     i     =0
+    iCount=0
     ioStat=0
     call Galacticus_Display_Counter(0,.true.,verbosityWorking)
     do while (ioStat == 0)
@@ -848,7 +966,9 @@ contains
           nodeSelfIndices(i)=nodeIndex
        end if
        call Galacticus_Display_Counter(int(50.0d0*dble(i)/dble(nodeCountSubvolume)),.false.,verbosityWorking)
-       if (i == nodeCount) exit
+       if (i      == nodeCount          ) exit
+       iCount=iCount+1
+       if (mergerTreeImportSussingUseForestFile .and. iCount == forestHaloCountLast) exit
     end do
     close(fileUnit)
     if (mergerTreeFileConvert) close(fileUnitOut)
@@ -1011,153 +1131,180 @@ contains
           open(newUnit=snapshotUnit,file=char(self%snapshotFileName(i)        ),status='old',form='formatted'  ,ioStat=ioStat)
           read (snapshotUnit,*,ioStat=ioStat) line
        end if
+       iCount=0
        do while (ioStat == 0)
+          ! Increment count of number of halos read.
+          iCount=iCount+1
+          processHalo=                                             &
+               &       (                                           &
+               &            mergerTreeImportSussingUseForestFile   &
+               &        .and.                                      &
+               &         iCount >= forestSnapshotHaloCountFirst(i) &
+               &        .and.                                      &
+               &         iCount <= forestSnapshotHaloCountLast (i) &
+               &       )                                           &
+               &      .or.                                         &
+               &       .not.mergerTreeImportSussingUseForestFile
           if (readBinary) then
-             read (snapshotUnit  ,ioStat=ioStat) &
-                  & ID          ,                &
-                  & hostHalo    ,                &
-                  & numSubStruct,                &
-                  & Mvir        ,                &
-                  & npart       ,                &
-                  & Xc          ,                &
-                  & Yc          ,                &
-                  & Zc          ,                &
-                  & VXc         ,                &
-                  & Vyc         ,                &
-                  & VZc         ,                &
-                  & Rvir        ,                &
-                  & Rmax        ,                &
-                  & r2          ,                &
-                  & mbp_offset  ,                &
-                  & com_offset  ,                &
-                  & Vmax        ,                &
-                  & v_esc       ,                &
-                  & sigV        ,                &
-                  & lambda      ,                &
-                  & lambdaE     ,                &
-                  & Lx          ,                &
-                  & Ly          ,                &
-                  & Lz          ,                &
-                  & b           ,                &
-                  & c           ,                &
-                  & Eax         ,                &
-                  & Eay         ,                &
-                  & Eaz         ,                &
-                  & Ebx         ,                &
-                  & Eby         ,                &
-                  & Ebz         ,                &
-                  & Ecx         ,                &
-                  & Ecy         ,                &
-                  & Ecz         ,                &
-                  & ovdens      ,                &
-                  & nbins       ,                &
-                  & fMhires     ,                &
-                  & Ekin        ,                &
-                  & Epot        ,                &
-                  & SurfP       ,                &
-                  & Phi0        ,                &
-                  & cNFW
+             if (processHalo) then
+                read (snapshotUnit  ,ioStat=ioStat) &
+                     & ID          ,                &
+                     & hostHalo    ,                &
+                     & numSubStruct,                &
+                     & Mvir        ,                &
+                     & npart       ,                &
+                     & Xc          ,                &
+                     & Yc          ,                &
+                     & Zc          ,                &
+                     & VXc         ,                &
+                     & Vyc         ,                &
+                     & VZc         ,                &
+                     & Rvir        ,                &
+                     & Rmax        ,                &
+                     & r2          ,                &
+                     & mbp_offset  ,                &
+                     & com_offset  ,                &
+                     & Vmax        ,                &
+                     & v_esc       ,                &
+                     & sigV        ,                &
+                     & lambda      ,                &
+                     & lambdaE     ,                &
+                     & Lx          ,                &
+                     & Ly          ,                &
+                     & Lz          ,                &
+                     & b           ,                &
+                     & c           ,                &
+                     & Eax         ,                &
+                     & Eay         ,                &
+                     & Eaz         ,                &
+                     & Ebx         ,                &
+                     & Eby         ,                &
+                     & Ebz         ,                &
+                     & Ecx         ,                &
+                     & Ecy         ,                &
+                     & Ecz         ,                &
+                     & ovdens      ,                &
+                     & nbins       ,                &
+                     & fMhires     ,                &
+                     & Ekin        ,                &
+                     & Epot        ,                &
+                     & SurfP       ,                &
+                     & Phi0        ,                &
+                     & cNFW
+             else
+                read (snapshotUnit,ioStat=ioStat)
+             end if
           else
-             read (snapshotUnit,*,ioStat=ioStat) &
-                  & ID          ,                &
-                  & hostHalo    ,                &
-                  & numSubStruct,                &
-                  & Mvir        ,                &
-                  & npart       ,                &
-                  & Xc          ,                &
-                  & Yc          ,                &
-                  & Zc          ,                &
-                  & VXc         ,                &
-                  & Vyc         ,                &
-                  & VZc         ,                &
-                  & Rvir        ,                &
-                  & Rmax        ,                &
-                  & r2          ,                &
-                  & mbp_offset  ,                &
-                  & com_offset  ,                &
-                  & Vmax        ,                &
-                  & v_esc       ,                &
-                  & sigV        ,                &
-                  & lambda      ,                &
-                  & lambdaE     ,                &
-                  & Lx          ,                &
-                  & Ly          ,                &
-                  & Lz          ,                &
-                  & b           ,                &
-                  & c           ,                &
-                  & Eax         ,                &
-                  & Eay         ,                &
-                  & Eaz         ,                &
-                  & Ebx         ,                &
-                  & Eby         ,                &
-                  & Ebz         ,                &
-                  & Ecx         ,                &
-                  & Ecy         ,                &
-                  & Ecz         ,                &
-                  & ovdens      ,                &
-                  & nbins       ,                &
-                  & fMhires     ,                &
-                  & Ekin        ,                &
-                  & Epot        ,                &
-                  & SurfP       ,                &
-                  & Phi0        ,                &
-                  & cNFW
+             call sussingReadHaloASCII(                      &
+                  &   haloFormat  ,                          &
+                  &   snapshotUnit,                          &
+                  &   ioStat      ,                          &
+                  &   ID          ,                          &
+                  &   hostHalo    ,                          &
+                  &   numSubStruct,                          &
+                  &   Mvir        ,                          &
+                  &   npart       ,                          &
+                  &   Xc          ,                          &
+                  &   Yc          ,                          &
+                  &   Zc          ,                          &
+                  &   VXc         ,                          &
+                  &   Vyc         ,                          &
+                  &   VZc         ,                          &
+                  &   Rvir        ,                          &
+                  &   Rmax        ,                          &
+                  &   r2          ,                          &
+                  &   mbp_offset  ,                          &
+                  &   com_offset  ,                          &
+                  &   Vmax        ,                          &
+                  &   v_esc       ,                          &
+                  &   sigV        ,                          &
+                  &   lambda      ,                          &
+                  &   lambdaE     ,                          &
+                  &   Lx          ,                          &
+                  &   Ly          ,                          &
+                  &   Lz          ,                          &
+                  &   b           ,                          &
+                  &   c           ,                          &
+                  &   Eax         ,                          &
+                  &   Eay         ,                          &
+                  &   Eaz         ,                          &
+                  &   Ebx         ,                          &
+                  &   Eby         ,                          &
+                  &   Ebz         ,                          &
+                  &   Ecx         ,                          &
+                  &   Ecy         ,                          &
+                  &   Ecz         ,                          &
+                  &   ovdens      ,                          &
+                  &   nbins       ,                          &
+                  &   fMhires     ,                          &
+                  &   Ekin        ,                          &
+                  &   Epot        ,                          &
+                  &   SurfP       ,                          &
+                  &   Phi0        ,                          &
+                  &   cNFW        ,                          &
+                  &   quickRead=.not.processHalo             &
+                  & )
           end if
           if (ioStat /= 0) exit
-          ! Locate this node in the list of nodes in our subvolume.
-          iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),ID)
-          if (iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == ID) then
-             ! Locate this node in the node list.
-             l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,ID)
-             l=nodeIndexRanks(l)
-             if (ID /= nodeSelfIndices(l)) then
-                if (mergerTreeImportSussingNonTreeNodeIsFatal) then
-                   ! Node cannot be found.
-                   message="node indexing failure"
-                   message=message//char(10)//"     node index: "//ID
-                   message=message//char(10)//"    found index: "//nodeSelfIndices(l)
-                   message=message//char(10)//" found location: "//l
-                   call Galacticus_Error_Report('sussingTreeIndicesRead',message)
-                else
-                   ! Just skip this node.
-                   cycle
+          ! Check if halo is to be processed.
+          if (processHalo) then 
+             ! Locate this node in the list of nodes in our subvolume.
+             iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),ID)
+             if (iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == ID) then
+                ! Locate this node in the node list.
+                l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,ID)
+                l=nodeIndexRanks(l)
+                if (ID /= nodeSelfIndices(l)) then
+                   if (mergerTreeImportSussingNonTreeNodeIsFatal) then
+                      ! Node cannot be found.
+                      message="node indexing failure"
+                      message=message//char(10)//"     node index: "//ID
+                      message=message//char(10)//"    found index: "//nodeSelfIndices(l)
+                      message=message//char(10)//" found location: "//l
+                      call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                   else
+                      ! Just skip this node.
+                      cycle
+                   end if
                 end if
+                ! Store properties to node array.
+                if (hostHalo <= 0) then
+                   self%nodes(l)%hostIndex         =ID
+                else
+                   self%nodes(l)%hostIndex         =hostHalo                
+                   ! Check that the host halo is in the subvolume.
+                   iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),hostHalo)
+                   if (.not.(iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == hostHalo)) nodeIncomplete(l)=.true.
+                end if
+                self   %nodes(l)%particleCount     =npart
+                self   %nodes(l)%nodeMass          =Mvir
+                self   %nodes(l)%nodeTime          =self%snapshotTimes(i)
+                if (.not.self%valueIsBad(cNFW)) then
+                   self%nodes(l)%scaleRadius       =Rvir/cNFW
+                else
+                   self%scaleRadiiAvailableValue   =.false.
+                   self%nodes(l)%scaleRadius       =-1.0d0
+                end if
+                self   %nodes(l)%halfMassRadius    =-1.0d0
+                self   %nodes(l)%velocityMaximum   =Vmax
+                self   %nodes(l)%velocityDispersion=sigV
+                if (.not.self%valueIsBad(lambdaE)) then
+                   self%nodes(l)%spin              =              lambdaE
+                   self%nodes(l)%spin3D            =[Lx ,Ly ,Lz ]*lambdaE
+                else
+                   self%spinsAvailableValue        =.false.
+                   self%nodes(l)%spin              =-1.0d0
+                   self%nodes(l)%spin3D            =-1.0d0
+                end if
+                self   %nodes(l)%position          =[ Xc, Yc, Zc]
+                self   %nodes(l)%velocity          =[VXc,VYc,VZc]
+                ! Update the counter.
+                j=j+1
+                call Galacticus_Display_Counter(int(100.0d0*dble(j)/dble(nodeCountTrees)),j == 1,verbosityWorking)
              end if
-             ! Store properties to node array.
-             if (hostHalo <= 0) then
-                self%nodes(l)%hostIndex         =ID
-             else
-                self%nodes(l)%hostIndex         =hostHalo                
-                ! Check that the host halo is in the subvolume.
-                iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),hostHalo)
-                if (.not.(iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == hostHalo)) nodeIncomplete(l)=.true.
-             end if
-             self   %nodes(l)%particleCount     =npart
-             self   %nodes(l)%nodeMass          =Mvir
-             self   %nodes(l)%nodeTime          =self%snapshotTimes(i)
-             if (.not.self%valueIsBad(cNFW)) then
-                self%nodes(l)%scaleRadius       =Rvir/cNFW
-             else
-                self%scaleRadiiAvailableValue   =.false.
-                self%nodes(l)%scaleRadius       =-1.0d0
-             end if
-             self   %nodes(l)%halfMassRadius    =-1.0d0
-             self   %nodes(l)%velocityMaximum   =Vmax
-             self   %nodes(l)%velocityDispersion=sigV
-             if (.not.self%valueIsBad(lambdaE)) then
-                self%nodes(l)%spin              =              lambdaE
-                self%nodes(l)%spin3D            =[Lx ,Ly ,Lz ]*lambdaE
-             else
-                self%spinsAvailableValue        =.false.
-                self%nodes(l)%spin              =-1.0d0
-                self%nodes(l)%spin3D            =-1.0d0
-             end if
-             self   %nodes(l)%position          =[ Xc, Yc, Zc]
-             self   %nodes(l)%velocity          =[VXc,VYc,VZc]
-             ! Update the counter.
-             j=j+1
-             call Galacticus_Display_Counter(int(100.0d0*dble(j)/dble(nodeCountTrees)),j == 1,verbosityWorking)
           end if
+          ! If all required forests are processed, exit.
+          if (mergerTreeImportSussingUseForestFile .and. iCount == forestSnapshotHaloCountLast(i)) exit
        end do
        close(snapshotUnit)
     end do
@@ -1721,4 +1868,182 @@ contains
     end select
     return
   end function sussingValueIsBad
-
+  
+  subroutine sussingReadHaloASCII                 &
+       &  (                                       &
+       &   haloFormat  ,                          &
+       &   snapshotUnit,                          &
+       &   ioStat      ,                          &
+       &   ID          ,                          &
+       &   hostHalo    ,                          &
+       &   numSubStruct,                          &
+       &   Mvir        ,                          &
+       &   npart       ,                          &
+       &   Xc          ,                          &
+       &   Yc          ,                          &
+       &   Zc          ,                          &
+       &   VXc         ,                          &
+       &   Vyc         ,                          &
+       &   VZc         ,                          &
+       &   Rvir        ,                          &
+       &   Rmax        ,                          &
+       &   r2          ,                          &
+       &   mbp_offset  ,                          &
+       &   com_offset  ,                          &
+       &   Vmax        ,                          &
+       &   v_esc       ,                          &
+       &   sigV        ,                          &
+       &   lambda      ,                          &
+       &   lambdaE     ,                          &
+       &   Lx          ,                          &
+       &   Ly          ,                          &
+       &   Lz          ,                          &
+       &   b           ,                          &
+       &   c           ,                          &
+       &   Eax         ,                          &
+       &   Eay         ,                          &
+       &   Eaz         ,                          &
+       &   Ebx         ,                          &
+       &   Eby         ,                          &
+       &   Ebz         ,                          &
+       &   Ecx         ,                          &
+       &   Ecy         ,                          &
+       &   Ecz         ,                          &
+       &   ovdens      ,                          &
+       &   nbins       ,                          &
+       &   fMhires     ,                          &
+       &   Ekin        ,                          &
+       &   Epot        ,                          &
+       &   SurfP       ,                          &
+       &   Phi0        ,                          &
+       &   cNFW        ,                           & 
+& quickRead &
+       & )
+    !% Read an ASCII halo definition.
+    use Galacticus_Error
+    implicit none
+    integer                         , intent(in   ) :: haloFormat  , snapshotUnit
+    double precision                                :: Mvir        , Xc          , &
+         &                                             Yc          , Zc          , &
+         &                                             VXc         , Vyc         , &
+         &                                             VZc         , Rvir        , &
+         &                                             Rmax        , r2          , &
+         &                                             mbp_offset  , com_offset  , &
+         &                                             Vmax        , v_esc       , &
+         &                                             sigV        , lambda      , &
+         &                                             lambdaE     , Lx          , &
+         &                                             Ly          , Lz          , &
+         &                                             b           , c           , &
+         &                                             Eax         , Eay         , &
+         &                                             Eaz         , Ebx         , &
+         &                                             Eby         , Ebz         , &
+         &                                             Ecx         , Ecy         , &
+         &                                             Ecz         , ovdens      , &
+         &                                             fMhires     , Ekin        , &
+         &                                             Epot        , SurfP       , &
+         &                                             Phi0        , cNFW        , &
+         &                                             nbins
+    integer         (kind=kind_int8), intent(  out) :: ID          , hostHalo
+    integer                         , intent(  out) :: numSubStruct, npart       , &
+         &                                             ioStat
+    logical                         , intent(in   ), optional :: quickRead
+    
+    if (present(quickRead).and.quickRead) then
+read (snapshotUnit,*,ioStat=ioStat)
+else
+    if (haloFormat == sussingHaloFormatOld) then
+       read          (snapshotUnit   ,*,ioStat=ioStat) &
+            &   ID          ,                          &
+            &   hostHalo    ,                          &
+            &   numSubStruct,                          &
+            &   Mvir        ,                          &
+            &   npart       ,                          &
+            &   Xc          ,                          &
+            &   Yc          ,                          &
+            &   Zc          ,                          &
+            &   VXc         ,                          &
+            &   Vyc         ,                          &
+            &   VZc         ,                          &
+            &   Rvir        ,                          &
+            &   Rmax        ,                          &
+            &   r2          ,                          &
+            &   mbp_offset  ,                          &
+            &   com_offset  ,                          &
+            &   Vmax        ,                          &
+            &   v_esc       ,                          &
+            &   sigV        ,                          &
+            &   lambda      ,                          &
+            &   lambdaE     ,                          &
+            &   Lx          ,                          &
+            &   Ly          ,                          &
+            &   Lz          ,                          &
+            &   b           ,                          &
+            &   c           ,                          &
+            &   Eax         ,                          &
+            &   Eay         ,                          &
+            &   Eaz         ,                          &
+            &   Ebx         ,                          &
+            &   Eby         ,                          &
+            &   Ebz         ,                          &
+            &   Ecx         ,                          &
+            &   Ecy         ,                          &
+            &   Ecz         ,                          &
+            &   ovdens      ,                          &
+            &   nbins       ,                          &
+            &   fMhires     ,                          &
+            &   Ekin        ,                          &
+            &   Epot        ,                          &
+            &   SurfP       ,                          &
+            &   Phi0        ,                          &
+            &   cNFW
+    else if (haloFormat == sussingHaloFormatNew) then
+       read          (snapshotUnit   ,*,ioStat=ioStat) &
+            &   ID          ,                          &
+            &   hostHalo    ,                          &
+            &   numSubStruct,                          &
+            &   Mvir        ,                          &
+            &   npart       ,                          &
+            &   Xc          ,                          &
+            &   Yc          ,                          &
+            &   Zc          ,                          &
+            &   VXc         ,                          &
+            &   Vyc         ,                          &
+            &   VZc         ,                          &
+            &   Rvir        ,                          &
+            &   Rmax        ,                          &
+            &   r2          ,                          &
+            &   mbp_offset  ,                          &
+            &   com_offset  ,                          &
+            &   Vmax        ,                          &
+            &   v_esc       ,                          &
+            &   sigV        ,                          &
+            &   lambda      ,                          &
+            &   lambdaE     ,                          &
+            &   Lx          ,                          &
+            &   Ly          ,                          &
+            &   Lz          ,                          &
+            &   cNFW
+       b      =0.0d0
+       c      =0.0d0
+       Eax    =0.0d0
+       Eay    =0.0d0
+       Eaz    =0.0d0
+       Ebx    =0.0d0
+       Eby    =0.0d0
+       Ebz    =0.0d0
+       Ecx    =0.0d0
+       Ecy    =0.0d0
+       Ecz    =0.0d0
+       ovdens =0.0d0
+       nbins  =0.0d0
+       fMhires=0.0d0
+       Ekin   =0.0d0
+       Epot   =0.0d0
+       SurfP  =0.0d0
+       Phi0   =0.0d0
+    else
+       call Galacticus_Error_Report('sussingReadHaloASCII','unknown halo file format')
+    end if
+ end if
+    return
+  end subroutine sussingReadHaloASCII
