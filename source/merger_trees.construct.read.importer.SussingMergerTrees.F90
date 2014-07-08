@@ -38,7 +38,7 @@
      type            (varying_string), allocatable, dimension(:) :: snapshotFileName
      integer         (kind=kind_int8), allocatable, dimension(:) :: treeIndices
      integer         (kind=c_size_t ), allocatable, dimension(:) :: treeIndexRanks
-     integer                         , allocatable, dimension(:) :: treeSizes      , treeBegins
+     integer                         , allocatable, dimension(:) :: treeSizes               , treeBegins
      type            (nodeData      ), allocatable, dimension(:) :: nodes
      double precision                , allocatable, dimension(:) :: snapshotTimes
      integer                                                     :: subvolumeCount
@@ -108,29 +108,38 @@
   end interface mergerTreeImporterSussing
 
   ! Record of implementation initialization state.
-  logical                        :: sussingInitialized                     =.false.
+  logical                                        :: sussingInitialized                       =.false.
 
   ! Default settings.
-  logical                        :: mergerTreeImportSussingMismatchIsFatal
-  logical                        :: mergerTreeImportSussingNonTreeNodeIsFatal
-  integer                        :: mergerTreeImportSussingSubvolumeCount
-  double precision               :: mergerTreeImportSussingSubvolumeBuffer
-  integer         , dimension(3) :: mergerTreeImportSussingSubvolumeIndex
-  logical                        :: mergerTreeImportSussingConvertToBinary
-  double precision               :: mergerTreeImportSussingBadValue
-  integer                        :: mergerTreeImportSussingBadValueTest
-  logical                        :: mergerTreeImportSussingUseForestFile
-  type(varying_string)           :: mergerTreeImportSussingForestFile
-  integer                        :: mergerTreeImportSussingForestFirst
-  integer                        :: mergerTreeImportSussingForestLast
+  logical                                        :: mergerTreeImportSussingMismatchIsFatal
+  logical                                        :: mergerTreeImportSussingNonTreeNodeIsFatal
+  integer                                        :: mergerTreeImportSussingSubvolumeCount
+  double precision                               :: mergerTreeImportSussingSubvolumeBuffer
+  integer                         , dimension(3) :: mergerTreeImportSussingSubvolumeIndex
+  logical                                        :: mergerTreeImportSussingConvertToBinary
+  double precision                               :: mergerTreeImportSussingBadValue
+  integer                                        :: mergerTreeImportSussingBadValueTest
+  logical                                        :: mergerTreeImportSussingUseForestFile
+  type            (varying_string)               :: mergerTreeImportSussingForestFile
+  integer                                        :: mergerTreeImportSussingForestFirst
+  integer                                        :: mergerTreeImportSussingForestLast
+  integer                                        :: mergerTreeImportSussingMassOption
 
   ! Bad value detection limits.
-  integer         , parameter    :: sussingBadValueLessThan   =-1
-  integer         , parameter    :: sussingBadValueGreaterThan=+1
+  integer                         , parameter    :: sussingBadValueLessThan                  =-1
+  integer                         , parameter    :: sussingBadValueGreaterThan               =+1
  
   ! File format identifiers.
-  integer         , parameter    :: sussingHaloFormatOld      =1
-  integer         , parameter    :: sussingHaloFormatNew      =2
+  integer                         , parameter    :: sussingHaloFormatOld                     = 1
+  integer                         , parameter    :: sussingHaloFormatNew                     = 2
+  integer                         , parameter    :: sussingHaloFormatAll                     = 3
+ 
+  ! Mass options.
+  integer                         , parameter    :: sussingMassDefault                       = 1
+  integer                         , parameter    :: sussingMassFoF                           = 2
+  integer                         , parameter    :: sussingMass200Mean                       = 3
+  integer                         , parameter    :: sussingMass200Crit                       = 4
+  integer                         , parameter    :: sussingMassTopHat                        = 5
  
 contains
 
@@ -140,7 +149,7 @@ contains
     use Galacticus_Error
     implicit none
     type(mergerTreeImporterSussing), target :: sussingDefaultConstructor
-    type(varying_string           )         :: mergerTreeImportSussingBadValueTestText
+    type(varying_string           )         :: mergerTreeImportSussingBadValueTestText, mergerTreeImportSussingMassOptionText
 
     if (.not.sussingInitialized) then
        !$omp critical (mergerTreeImporterSussingInitialize)
@@ -276,6 +285,31 @@ contains
              !@   <cardinality>1</cardinality>
              !@ </inputParameter>
              call Get_Input_Parameter('mergerTreeImportSussingForestLast',mergerTreeImportSussingForestLast,defaultValue=-1)
+             !@ <inputParameter>
+             !@   <name>mergerTreeImportSussingMassOption</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <defaultValue>default</defaultValue>
+             !@   <description>
+             !@     Mass option for Sussing merger trees.
+             !@   </description>
+             !@   <type>string</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeImportSussingMassOption',mergerTreeImportSussingMassOptionText,defaultValue="default")
+             select case (char(mergerTreeImportSussingMassOptionText))
+             case ("default")
+                mergerTreeImportSussingMassOption=sussingMassDefault
+             case ("FoF"    )
+                mergerTreeImportSussingMassOption=sussingMassFoF
+             case ("200Mean")
+                mergerTreeImportSussingMassOption=sussingMass200Mean
+             case ("200Crit")
+                mergerTreeImportSussingMassOption=sussingMass200Crit
+             case ("TopHat" )
+                mergerTreeImportSussingMassOption=sussingMassTopHat
+             case default
+                call Galacticus_Error_Report('sussingDefaultConstructor','unrecognized mass option')
+             end select
           end if
           sussingInitialized=.true.
        end if
@@ -626,7 +660,15 @@ contains
                &                                                         fMhires                   , Ekin                  , &
                &                                                         Epot                      , SurfP                 , &
                &                                                         Phi0                      , cNFW                  , &
-               &                                                         nbins
+               &                                                         nbins                     , FoFMass               , &
+               &                                                         M_200Mean                 , M_200Crit             , &
+               &                                                         M_TopHat                  , R_200Mean             , &
+               &                                                         R_200Crit                 , R_TopHat              , &
+               &                                                         HalfMassRadius            , sigV_200Mean          , &
+               &                                                         sigV_200Crit              , sigV_TopHat           , &
+               &                                                         Xcm                       , Ycm                   , &
+               &                                                         Zcm                       , Xgroup                , &
+               &                                                         Ygroup                    , Zgroup
     type            (importerUnits     )                              :: massUnits                 , lengthUnits           , &
          &                                                               velocityUnits
      
@@ -717,12 +759,15 @@ contains
           read (snapshotUnit,'(a)',ioStat=ioStat) line
           ! Test for format of halo files here. If "cNFW(25)" appears, it's a "new" format file, if "cNFW(43)" appears it's old
           ! format. Otherwise, we don't recognize it
-          if      (index(line,"cNFW(43)") /= 0) then
+          if      (index(line,"cNFW(43)"   ) /= 0) then
              ! Old format file.
              haloFormat=sussingHaloFormatOld
-          else if (index(line,"cNFW(25)") /= 0) then
+          else if (index(line,"cNFW(25)"   ) /= 0) then
              ! New format file.
              haloFormat=sussingHaloFormatNew
+          else if (index(line,"FoFMass(44)") /= 0) then
+             ! New format file.
+             haloFormat=sussingHaloFormatAll
           else
              ! Unrecognized format.
              call Galacticus_Error_Report('sussingTreeIndicesRead','unrecognized format for halo files')
@@ -745,151 +790,202 @@ contains
           if (readBinary) then
              if (processHalo) then
                 read          (snapshotUnit     ,ioStat=ioStat) &
-                  &   ID          ,                             &
-                  &   hostHalo    ,                             &
-                  &   numSubStruct,                             &
-                  &   Mvir        ,                             &
-                  &   npart       ,                             &
-                  &   Xc          ,                             &
-                  &   Yc          ,                             &
-                  &   Zc          ,                             &
-                  &   VXc         ,                             &
-                  &   Vyc         ,                             &
-                  &   VZc         ,                             &
-                  &   Rvir        ,                             &
-                  &   Rmax        ,                             &
-                  &   r2          ,                             &
-                  &   mbp_offset  ,                             &
-                  &   com_offset  ,                             &
-                  &   Vmax        ,                             &
-                  &   v_esc       ,                             &
-                  &   sigV        ,                             &
-                  &   lambda      ,                             &
-                  &   lambdaE     ,                             &
-                  &   Lx          ,                             &
-                  &   Ly          ,                             &
-                  &   Lz          ,                             &
-                  &   b           ,                             &
-                  &   c           ,                             &
-                  &   Eax         ,                             &
-                  &   Eay         ,                             &
-                  &   Eaz         ,                             &
-                  &   Ebx         ,                             &
-                  &   Eby         ,                             &
-                  &   Ebz         ,                             &
-                  &   Ecx         ,                             &
-                  &   Ecy         ,                             &
-                  &   Ecz         ,                             &
-                  &   ovdens      ,                             &
-                  &   nbins       ,                             &
-                  &   fMhires     ,                             &
-                  &   Ekin        ,                             &
-                  &   Epot        ,                             &
-                  &   SurfP       ,                             &
-                  &   Phi0        ,                             &
-                  &   cNFW
-             else
+                  &   ID            ,                           &
+                  &   hostHalo      ,                           &
+                  &   numSubStruct  ,                           &
+                  &   Mvir          ,                           &
+                  &   npart         ,                           &
+                  &   Xc            ,                           &
+                  &   Yc            ,                           &
+                  &   Zc            ,                           &
+                  &   VXc           ,                           &
+                  &   Vyc           ,                           &
+                  &   VZc           ,                           &
+                  &   Rvir          ,                           &
+                  &   Rmax          ,                           &
+                  &   r2            ,                           &
+                  &   mbp_offset    ,                           &
+                  &   com_offset    ,                           &
+                  &   Vmax          ,                           &
+                  &   v_esc         ,                           &
+                  &   sigV          ,                           &
+                  &   lambda        ,                           &
+                  &   lambdaE       ,                           &
+                  &   Lx            ,                           &
+                  &   Ly            ,                           &
+                  &   Lz            ,                           &
+                  &   b             ,                           &
+                  &   c             ,                           &
+                  &   Eax           ,                           &
+                  &   Eay           ,                           &
+                  &   Eaz           ,                           &
+                  &   Ebx           ,                           &
+                  &   Eby           ,                           &
+                  &   Ebz           ,                           &
+                  &   Ecx           ,                           &
+                  &   Ecy           ,                           &
+                  &   Ecz           ,                           &
+                  &   ovdens        ,                           &
+                  &   nbins         ,                           &
+                  &   fMhires       ,                           &
+                  &   Ekin          ,                           &
+                  &   Epot          ,                           &
+                  &   SurfP         ,                           &
+                  &   Phi0          ,                           &
+                  &   cNFW          ,                           &
+                  &   FoFMass       ,                           &
+                  &   M_200Mean     ,                           &
+                  &   M_200Crit     ,                           &
+                  &   M_TopHat      ,                           &
+                  &   R_200Mean     ,                           &
+                  &   R_200Crit     ,                           &
+                  &   R_TopHat      ,                           &
+                  &   HalfMassRadius,                           &
+                  &   sigV_200Mean  ,                           &
+                  &   sigV_200Crit  ,                           &
+                  &   sigV_TopHat   ,                           &
+                  &   Xcm           ,                           &
+                  &   Ycm           ,                           &
+                  &   Zcm           ,                           &
+                  &   Xgroup        ,                           &
+                  &   Ygroup        ,                           &
+                  &   Zgroup
+              else
                 read (snapshotUnit,ioStat=ioStat)
              end if
           else
-             call sussingReadHaloASCII(                      &
-                  &   haloFormat  ,                          &
-                  &   snapshotUnit,                          &
-                  &   ioStat      ,                          &
-                  &   ID          ,                          &
-                  &   hostHalo    ,                          &
-                  &   numSubStruct,                          &
-                  &   Mvir        ,                          &
-                  &   npart       ,                          &
-                  &   Xc          ,                          &
-                  &   Yc          ,                          &
-                  &   Zc          ,                          &
-                  &   VXc         ,                          &
-                  &   Vyc         ,                          &
-                  &   VZc         ,                          &
-                  &   Rvir        ,                          &
-                  &   Rmax        ,                          &
-                  &   r2          ,                          &
-                  &   mbp_offset  ,                          &
-                  &   com_offset  ,                          &
-                  &   Vmax        ,                          &
-                  &   v_esc       ,                          &
-                  &   sigV        ,                          &
-                  &   lambda      ,                          &
-                  &   lambdaE     ,                          &
-                  &   Lx          ,                          &
-                  &   Ly          ,                          &
-                  &   Lz          ,                          &
-                  &   b           ,                          &
-                  &   c           ,                          &
-                  &   Eax         ,                          &
-                  &   Eay         ,                          &
-                  &   Eaz         ,                          &
-                  &   Ebx         ,                          &
-                  &   Eby         ,                          &
-                  &   Ebz         ,                          &
-                  &   Ecx         ,                          &
-                  &   Ecy         ,                          &
-                  &   Ecz         ,                          &
-                  &   ovdens      ,                          &
-                  &   nbins       ,                          &
-                  &   fMhires     ,                          &
-                  &   Ekin        ,                          &
-                  &   Epot        ,                          &
-                  &   SurfP       ,                          &
-                  &   Phi0        ,                          &
-                  &   cNFW        ,                          &
-                  &   quickRead=.not.processHalo             &
+             call sussingReadHaloASCII(                         &
+                  &   haloFormat    ,                           &
+                  &   snapshotUnit  ,                           &
+                  &   ioStat        ,                           &
+                  &   ID            ,                           &
+                  &   hostHalo      ,                           &
+                  &   numSubStruct  ,                           &
+                  &   Mvir          ,                           &
+                  &   npart         ,                           &
+                  &   Xc            ,                           &
+                  &   Yc            ,                           &
+                  &   Zc            ,                           &
+                  &   VXc           ,                           &
+                  &   Vyc           ,                           &
+                  &   VZc           ,                           &
+                  &   Rvir          ,                           &
+                  &   Rmax          ,                           &
+                  &   r2            ,                           &
+                  &   mbp_offset    ,                           &
+                  &   com_offset    ,                           &
+                  &   Vmax          ,                           &
+                  &   v_esc         ,                           &
+                  &   sigV          ,                           &
+                  &   lambda        ,                           &
+                  &   lambdaE       ,                           &
+                  &   Lx            ,                           &
+                  &   Ly            ,                           &
+                  &   Lz            ,                           &
+                  &   b             ,                           &
+                  &   c             ,                           &
+                  &   Eax           ,                           &
+                  &   Eay           ,                           &
+                  &   Eaz           ,                           &
+                  &   Ebx           ,                           &
+                  &   Eby           ,                           &
+                  &   Ebz           ,                           &
+                  &   Ecx           ,                           &
+                  &   Ecy           ,                           &
+                  &   Ecz           ,                           &
+                  &   ovdens        ,                           &
+                  &   nbins         ,                           &
+                  &   fMhires       ,                           &
+                  &   Ekin          ,                           &
+                  &   Epot          ,                           &
+                  &   SurfP         ,                           &
+                  &   Phi0          ,                           &
+                  &   cNFW          ,                           &
+                  &   FoFMass       ,                           &
+                  &   M_200Mean     ,                           &
+                  &   M_200Crit     ,                           &
+                  &   M_TopHat      ,                           &
+                  &   R_200Mean     ,                           &
+                  &   R_200Crit     ,                           &
+                  &   R_TopHat      ,                           &
+                  &   HalfMassRadius,                           &
+                  &   sigV_200Mean  ,                           &
+                  &   sigV_200Crit  ,                           &
+                  &   sigV_TopHat   ,                           &
+                  &   Xcm           ,                           &
+                  &   Ycm           ,                           &
+                  &   Zcm           ,                           &
+                  &   Xgroup        ,                           &
+                  &   Ygroup        ,                           &
+                  &   Zgroup        ,                           &
+                  &   quickRead=.not.processHalo                &
                   & )
           end if
           if (ioStat /= 0) exit
           ! Write back in binary.
-          if (doBinaryConversion)                         &
-               &  write (snapshotOutUnit                ) &
-               &   ID          ,                          &
-               &   hostHalo    ,                          &
-               &   numSubStruct,                          &
-               &   Mvir        ,                          &
-               &   npart       ,                          &
-               &   Xc          ,                          &
-               &   Yc          ,                          &
-               &   Zc          ,                          &
-               &   VXc         ,                          &
-               &   Vyc         ,                          &
-               &   VZc         ,                          &
-               &   Rvir        ,                          &
-               &   Rmax        ,                          &
-               &   r2          ,                          &
-               &   mbp_offset  ,                          &
-               &   com_offset  ,                          &
-               &   Vmax        ,                          &
-               &   v_esc       ,                          &
-               &   sigV        ,                          &
-               &   lambda      ,                          &
-               &   lambdaE     ,                          &
-               &   Lx          ,                          &
-               &   Ly          ,                          &
-               &   Lz          ,                          &
-               &   b           ,                          &
-               &   c           ,                          &
-               &   Eax         ,                          &
-               &   Eay         ,                          &
-               &   Eaz         ,                          &
-               &   Ebx         ,                          &
-               &   Eby         ,                          &
-               &   Ebz         ,                          &
-               &   Ecx         ,                          &
-               &   Ecy         ,                          &
-               &   Ecz         ,                          &
-               &   ovdens      ,                          &
-               &   nbins       ,                          &
-               &   fMhires     ,                          &
-               &   Ekin        ,                          &
-               &   Epot        ,                          &
-               &   SurfP       ,                          &
-               &   Phi0        ,                          &
-               &   cNFW
-          ! Check if halo is in our subvolume.
+          if (doBinaryConversion)                            &
+               &  write (snapshotOutUnit                   ) &
+               &   ID            ,                           &
+               &   hostHalo      ,                           &
+               &   numSubStruct  ,                           &
+               &   Mvir          ,                           &
+               &   npart         ,                           &
+               &   Xc            ,                           &
+               &   Yc            ,                           &
+               &   Zc            ,                           &
+               &   VXc           ,                           &
+               &   Vyc           ,                           &
+               &   VZc           ,                           &
+               &   Rvir          ,                           &
+               &   Rmax          ,                           &
+               &   r2            ,                           &
+               &   mbp_offset    ,                           &
+               &   com_offset    ,                           &
+               &   Vmax          ,                           &
+               &   v_esc         ,                           &
+               &   sigV          ,                           &
+               &   lambda        ,                           &
+               &   lambdaE       ,                           &
+               &   Lx            ,                           &
+               &   Ly            ,                           &
+               &   Lz            ,                           &
+               &   b             ,                           &
+               &   c             ,                           &
+               &   Eax           ,                           &
+               &   Eay           ,                           &
+               &   Eaz           ,                           &
+               &   Ebx           ,                           &
+               &   Eby           ,                           &
+               &   Ebz           ,                           &
+               &   Ecx           ,                           &
+               &   Ecy           ,                           &
+               &   Ecz           ,                           &
+               &   ovdens        ,                           &
+               &   nbins         ,                           &
+               &   fMhires       ,                           &
+               &   Ekin          ,                           &
+               &   Epot          ,                           &
+               &   SurfP         ,                           &
+               &   Phi0          ,                           &
+               &   cNFW          ,                           &
+               &   FoFMass       ,                           &
+               &   M_200Mean     ,                           &
+               &   M_200Crit     ,                           &
+               &   M_TopHat      ,                           &
+               &   R_200Mean     ,                           &
+               &   R_200Crit     ,                           &
+               &   R_TopHat      ,                           &
+               &   HalfMassRadius,                           &
+               &   sigV_200Mean  ,                           &
+               &   sigV_200Crit  ,                           &
+               &   sigV_TopHat   ,                           &
+               &   Xcm           ,                           &
+               &   Ycm           ,                           &
+               &   Zcm           ,                           &
+               &   Xgroup        ,                           &
+               &   Ygroup        ,                           &
+               &   Zgroup
+           ! Check if halo is in our subvolume.
           if     (                                            &
                &   processHalo                                &
                &  .and.                                       &
@@ -1147,102 +1243,136 @@ contains
                &       .not.mergerTreeImportSussingUseForestFile
           if (readBinary) then
              if (processHalo) then
-                read (snapshotUnit  ,ioStat=ioStat) &
-                     & ID          ,                &
-                     & hostHalo    ,                &
-                     & numSubStruct,                &
-                     & Mvir        ,                &
-                     & npart       ,                &
-                     & Xc          ,                &
-                     & Yc          ,                &
-                     & Zc          ,                &
-                     & VXc         ,                &
-                     & Vyc         ,                &
-                     & VZc         ,                &
-                     & Rvir        ,                &
-                     & Rmax        ,                &
-                     & r2          ,                &
-                     & mbp_offset  ,                &
-                     & com_offset  ,                &
-                     & Vmax        ,                &
-                     & v_esc       ,                &
-                     & sigV        ,                &
-                     & lambda      ,                &
-                     & lambdaE     ,                &
-                     & Lx          ,                &
-                     & Ly          ,                &
-                     & Lz          ,                &
-                     & b           ,                &
-                     & c           ,                &
-                     & Eax         ,                &
-                     & Eay         ,                &
-                     & Eaz         ,                &
-                     & Ebx         ,                &
-                     & Eby         ,                &
-                     & Ebz         ,                &
-                     & Ecx         ,                &
-                     & Ecy         ,                &
-                     & Ecz         ,                &
-                     & ovdens      ,                &
-                     & nbins       ,                &
-                     & fMhires     ,                &
-                     & Ekin        ,                &
-                     & Epot        ,                &
-                     & SurfP       ,                &
-                     & Phi0        ,                &
-                     & cNFW
+                read (snapshotUnit  ,ioStat=ioStat)                &
+                     &   ID            ,                           &
+                     &   hostHalo      ,                           &
+                     &   numSubStruct  ,                           &
+                     &   Mvir          ,                           &
+                     &   npart         ,                           &
+                     &   Xc            ,                           &
+                     &   Yc            ,                           &
+                     &   Zc            ,                           &
+                     &   VXc           ,                           &
+                     &   Vyc           ,                           &
+                     &   VZc           ,                           &
+                     &   Rvir          ,                           &
+                     &   Rmax          ,                           &
+                     &   r2            ,                           &
+                     &   mbp_offset    ,                           &
+                     &   com_offset    ,                           &
+                     &   Vmax          ,                           &
+                     &   v_esc         ,                           &
+                     &   sigV          ,                           &
+                     &   lambda        ,                           &
+                     &   lambdaE       ,                           &
+                     &   Lx            ,                           &
+                     &   Ly            ,                           &
+                     &   Lz            ,                           &
+                     &   b             ,                           &
+                     &   c             ,                           &
+                     &   Eax           ,                           &
+                     &   Eay           ,                           &
+                     &   Eaz           ,                           &
+                     &   Ebx           ,                           &
+                     &   Eby           ,                           &
+                     &   Ebz           ,                           &
+                     &   Ecx           ,                           &
+                     &   Ecy           ,                           &
+                     &   Ecz           ,                           &
+                     &   ovdens        ,                           &
+                     &   nbins         ,                           &
+                     &   fMhires       ,                           &
+                     &   Ekin          ,                           &
+                     &   Epot          ,                           &
+                     &   SurfP         ,                           &
+                     &   Phi0          ,                           &
+                     &   cNFW          ,                           &
+                     &   FoFMass       ,                           &
+                     &   M_200Mean     ,                           &
+                     &   M_200Crit     ,                           &
+                     &   M_TopHat      ,                           &
+                     &   R_200Mean     ,                           &
+                     &   R_200Crit     ,                           &
+                     &   R_TopHat      ,                           &
+                     &   HalfMassRadius,                           &
+                     &   sigV_200Mean  ,                           &
+                     &   sigV_200Crit  ,                           &
+                     &   sigV_TopHat   ,                           &
+                     &   Xcm           ,                           &
+                     &   Ycm           ,                           &
+                     &   Zcm           ,                           &
+                     &   Xgroup        ,                           &
+                     &   Ygroup        ,                           &
+                     &   Zgroup
              else
                 read (snapshotUnit,ioStat=ioStat)
              end if
           else
-             call sussingReadHaloASCII(                      &
-                  &   haloFormat  ,                          &
-                  &   snapshotUnit,                          &
-                  &   ioStat      ,                          &
-                  &   ID          ,                          &
-                  &   hostHalo    ,                          &
-                  &   numSubStruct,                          &
-                  &   Mvir        ,                          &
-                  &   npart       ,                          &
-                  &   Xc          ,                          &
-                  &   Yc          ,                          &
-                  &   Zc          ,                          &
-                  &   VXc         ,                          &
-                  &   Vyc         ,                          &
-                  &   VZc         ,                          &
-                  &   Rvir        ,                          &
-                  &   Rmax        ,                          &
-                  &   r2          ,                          &
-                  &   mbp_offset  ,                          &
-                  &   com_offset  ,                          &
-                  &   Vmax        ,                          &
-                  &   v_esc       ,                          &
-                  &   sigV        ,                          &
-                  &   lambda      ,                          &
-                  &   lambdaE     ,                          &
-                  &   Lx          ,                          &
-                  &   Ly          ,                          &
-                  &   Lz          ,                          &
-                  &   b           ,                          &
-                  &   c           ,                          &
-                  &   Eax         ,                          &
-                  &   Eay         ,                          &
-                  &   Eaz         ,                          &
-                  &   Ebx         ,                          &
-                  &   Eby         ,                          &
-                  &   Ebz         ,                          &
-                  &   Ecx         ,                          &
-                  &   Ecy         ,                          &
-                  &   Ecz         ,                          &
-                  &   ovdens      ,                          &
-                  &   nbins       ,                          &
-                  &   fMhires     ,                          &
-                  &   Ekin        ,                          &
-                  &   Epot        ,                          &
-                  &   SurfP       ,                          &
-                  &   Phi0        ,                          &
-                  &   cNFW        ,                          &
-                  &   quickRead=.not.processHalo             &
+             call sussingReadHaloASCII(                         &
+                  &   haloFormat    ,                           &
+                  &   snapshotUnit  ,                           &
+                  &   ioStat        ,                           &
+                  &   ID            ,                           &
+                  &   hostHalo      ,                           &
+                  &   numSubStruct  ,                           &
+                  &   Mvir          ,                           &
+                  &   npart         ,                           &
+                  &   Xc            ,                           &
+                  &   Yc            ,                           &
+                  &   Zc            ,                           &
+                  &   VXc           ,                           &
+                  &   Vyc           ,                           &
+                  &   VZc           ,                           &
+                  &   Rvir          ,                           &
+                  &   Rmax          ,                           &
+                  &   r2            ,                           &
+                  &   mbp_offset    ,                           &
+                  &   com_offset    ,                           &
+                  &   Vmax          ,                           &
+                  &   v_esc         ,                           &
+                  &   sigV          ,                           &
+                  &   lambda        ,                           &
+                  &   lambdaE       ,                           &
+                  &   Lx            ,                           &
+                  &   Ly            ,                           &
+                  &   Lz            ,                           &
+                  &   b             ,                           &
+                  &   c             ,                           &
+                  &   Eax           ,                           &
+                  &   Eay           ,                           &
+                  &   Eaz           ,                           &
+                  &   Ebx           ,                           &
+                  &   Eby           ,                           &
+                  &   Ebz           ,                           &
+                  &   Ecx           ,                           &
+                  &   Ecy           ,                           &
+                  &   Ecz           ,                           &
+                  &   ovdens        ,                           &
+                  &   nbins         ,                           &
+                  &   fMhires       ,                           &
+                  &   Ekin          ,                           &
+                  &   Epot          ,                           &
+                  &   SurfP         ,                           &
+                  &   Phi0          ,                           &
+                  &   cNFW          ,                           &
+                  &   FoFMass       ,                           &
+                  &   M_200Mean     ,                           &
+                  &   M_200Crit     ,                           &
+                  &   M_TopHat      ,                           &
+                  &   R_200Mean     ,                           &
+                  &   R_200Crit     ,                           &
+                  &   R_TopHat      ,                           &
+                  &   HalfMassRadius,                           &
+                  &   sigV_200Mean  ,                           &
+                  &   sigV_200Crit  ,                           &
+                  &   sigV_TopHat   ,                           &
+                  &   Xcm           ,                           &
+                  &   Ycm           ,                           &
+                  &   Zcm           ,                           &
+                  &   Xgroup        ,                           &
+                  &   Ygroup        ,                           &
+                  &   Zgroup        ,                           &
+                  &   quickRead=.not.processHalo                &
                   & )
           end if
           if (ioStat /= 0) exit
@@ -1277,7 +1407,20 @@ contains
                    if (.not.(iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == hostHalo)) nodeIncomplete(l)=.true.
                 end if
                 self   %nodes(l)%particleCount     =npart
-                self   %nodes(l)%nodeMass          =Mvir
+                ! Select a mass to use.
+                select case (mergerTreeImportSussingMassOption)
+                case (sussingMassDefault)
+                   self%nodes(l)%nodeMass          =Mvir
+                case (sussingMassFoF    )
+                   self%nodes(l)%nodeMass          =FoFMass
+                case (sussingMass200Mean)
+                   self%nodes(l)%nodeMass          =M_200Mean
+                case (sussingMass200Crit)
+                   self%nodes(l)%nodeMass          =M_200Crit
+                case (sussingMassTopHat )
+                   self%nodes(l)%nodeMass          =M_TopHat
+                end select
+                if (self%nodes(l)%nodeMass == 0.0d0) self%nodes(l)%nodeMass=Mvir
                 self   %nodes(l)%nodeTime          =self%snapshotTimes(i)
                 if (.not.self%valueIsBad(cNFW)) then
                    self%nodes(l)%scaleRadius       =Rvir/cNFW
@@ -1599,7 +1742,7 @@ contains
           self%treesCount=self%treesCount+1
        end if
     end do
-    call Galacticus_Display_Counter_Clear(       verbosityWorking)
+    call Galacticus_Display_Counter_Clear(verbosityWorking)
     message='Found '
     message=message//self%treesCount//' trees'
     call Galacticus_Display_Message(message,verbosityWorking)
@@ -1871,179 +2014,300 @@ contains
   
   subroutine sussingReadHaloASCII                 &
        &  (                                       &
-       &   haloFormat  ,                          &
-       &   snapshotUnit,                          &
-       &   ioStat      ,                          &
-       &   ID          ,                          &
-       &   hostHalo    ,                          &
-       &   numSubStruct,                          &
-       &   Mvir        ,                          &
-       &   npart       ,                          &
-       &   Xc          ,                          &
-       &   Yc          ,                          &
-       &   Zc          ,                          &
-       &   VXc         ,                          &
-       &   Vyc         ,                          &
-       &   VZc         ,                          &
-       &   Rvir        ,                          &
-       &   Rmax        ,                          &
-       &   r2          ,                          &
-       &   mbp_offset  ,                          &
-       &   com_offset  ,                          &
-       &   Vmax        ,                          &
-       &   v_esc       ,                          &
-       &   sigV        ,                          &
-       &   lambda      ,                          &
-       &   lambdaE     ,                          &
-       &   Lx          ,                          &
-       &   Ly          ,                          &
-       &   Lz          ,                          &
-       &   b           ,                          &
-       &   c           ,                          &
-       &   Eax         ,                          &
-       &   Eay         ,                          &
-       &   Eaz         ,                          &
-       &   Ebx         ,                          &
-       &   Eby         ,                          &
-       &   Ebz         ,                          &
-       &   Ecx         ,                          &
-       &   Ecy         ,                          &
-       &   Ecz         ,                          &
-       &   ovdens      ,                          &
-       &   nbins       ,                          &
-       &   fMhires     ,                          &
-       &   Ekin        ,                          &
-       &   Epot        ,                          &
-       &   SurfP       ,                          &
-       &   Phi0        ,                          &
-       &   cNFW        ,                           & 
-& quickRead &
+       &   haloFormat    ,                        &
+       &   snapshotUnit  ,                        &
+       &   ioStat        ,                        &
+       &   ID            ,                        &
+       &   hostHalo      ,                        &
+       &   numSubStruct  ,                        &
+       &   Mvir          ,                        &
+       &   npart         ,                        &
+       &   Xc            ,                        &
+       &   Yc            ,                        &
+       &   Zc            ,                        &
+       &   VXc           ,                        &
+       &   Vyc           ,                        &
+       &   VZc           ,                        &
+       &   Rvir          ,                        &
+       &   Rmax          ,                        &
+       &   r2            ,                        &
+       &   mbp_offset    ,                        &
+       &   com_offset    ,                        &
+       &   Vmax          ,                        &
+       &   v_esc         ,                        &
+       &   sigV          ,                        &
+       &   lambda        ,                        &
+       &   lambdaE       ,                        &
+       &   Lx            ,                        &
+       &   Ly            ,                        &
+       &   Lz            ,                        &
+       &   b             ,                        &
+       &   c             ,                        &
+       &   Eax           ,                        &
+       &   Eay           ,                        &
+       &   Eaz           ,                        &
+       &   Ebx           ,                        &
+       &   Eby           ,                        &
+       &   Ebz           ,                        &
+       &   Ecx           ,                        &
+       &   Ecy           ,                        &
+       &   Ecz           ,                        &
+       &   ovdens        ,                        &
+       &   nbins         ,                        &
+       &   fMhires       ,                        &
+       &   Ekin          ,                        &
+       &   Epot          ,                        &
+       &   SurfP         ,                        &
+       &   Phi0          ,                        &
+       &   cNFW          ,                        & 
+       &   FoFMass       ,                        &
+       &   M_200Mean     ,                        &
+       &   M_200Crit     ,                        &
+       &   M_TopHat      ,                        &
+       &   R_200Mean     ,                        &
+       &   R_200Crit     ,                        &
+       &   R_TopHat      ,                        &
+       &   HalfMassRadius,                        &
+       &   sigV_200Mean  ,                        &
+       &   sigV_200Crit  ,                        &
+       &   sigV_TopHat   ,                        &
+       &   Xcm           ,                        &
+       &   Ycm           ,                        &
+       &   Zcm           ,                        &
+       &   Xgroup        ,                        &
+       &   Ygroup        ,                        &
+       &   Zgroup        ,                        &
+       &   quickRead                              &
        & )
     !% Read an ASCII halo definition.
     use Galacticus_Error
     implicit none
-    integer                         , intent(in   ) :: haloFormat  , snapshotUnit
-    double precision                                :: Mvir        , Xc          , &
-         &                                             Yc          , Zc          , &
-         &                                             VXc         , Vyc         , &
-         &                                             VZc         , Rvir        , &
-         &                                             Rmax        , r2          , &
-         &                                             mbp_offset  , com_offset  , &
-         &                                             Vmax        , v_esc       , &
-         &                                             sigV        , lambda      , &
-         &                                             lambdaE     , Lx          , &
-         &                                             Ly          , Lz          , &
-         &                                             b           , c           , &
-         &                                             Eax         , Eay         , &
-         &                                             Eaz         , Ebx         , &
-         &                                             Eby         , Ebz         , &
-         &                                             Ecx         , Ecy         , &
-         &                                             Ecz         , ovdens      , &
-         &                                             fMhires     , Ekin        , &
-         &                                             Epot        , SurfP       , &
-         &                                             Phi0        , cNFW        , &
-         &                                             nbins
-    integer         (kind=kind_int8), intent(  out) :: ID          , hostHalo
-    integer                         , intent(  out) :: numSubStruct, npart       , &
-         &                                             ioStat
+    integer                         , intent(in   )           :: haloFormat    , snapshotUnit
+    double precision                                          :: Mvir          , Xc          , &
+         &                                                       Yc            , Zc          , &
+         &                                                       VXc           , Vyc         , &
+         &                                                       VZc           , Rvir        , &
+         &                                                       Rmax          , r2          , &
+         &                                                       mbp_offset    , com_offset  , &
+         &                                                       Vmax          , v_esc       , &
+         &                                                       sigV          , lambda      , &
+         &                                                       lambdaE       , Lx          , &
+         &                                                       Ly            , Lz          , &
+         &                                                       b             , c           , &
+         &                                                       Eax           , Eay         , &
+         &                                                       Eaz           , Ebx         , &
+         &                                                       Eby           , Ebz         , &
+         &                                                       Ecx           , Ecy         , &
+         &                                                       Ecz           , ovdens      , &
+         &                                                       fMhires       , Ekin        , &
+         &                                                       Epot          , SurfP       , &
+         &                                                       Phi0          , cNFW        , &
+         &                                                       nbins         , FoFMass     , &
+         &                                                       M_200Mean     , M_200Crit   , &
+         &                                                       M_TopHat      , R_200Mean   , &
+         &                                                       R_200Crit     , R_TopHat    , &
+         &                                                       HalfMassRadius, sigV_200Mean, &
+         &                                                       sigV_200Crit  , sigV_TopHat , &
+         &                                                       Xcm           , Ycm         , &
+         &                                                       Zcm           , Xgroup      , &
+         &                                                       Ygroup        , Zgroup
+    integer         (kind=kind_int8), intent(  out)           :: ID            , hostHalo
+    integer                         , intent(  out)           :: numSubStruct  , npart       , &
+         &                                                       ioStat
     logical                         , intent(in   ), optional :: quickRead
     
     if (present(quickRead).and.quickRead) then
-read (snapshotUnit,*,ioStat=ioStat)
-else
-    if (haloFormat == sussingHaloFormatOld) then
-       read          (snapshotUnit   ,*,ioStat=ioStat) &
-            &   ID          ,                          &
-            &   hostHalo    ,                          &
-            &   numSubStruct,                          &
-            &   Mvir        ,                          &
-            &   npart       ,                          &
-            &   Xc          ,                          &
-            &   Yc          ,                          &
-            &   Zc          ,                          &
-            &   VXc         ,                          &
-            &   Vyc         ,                          &
-            &   VZc         ,                          &
-            &   Rvir        ,                          &
-            &   Rmax        ,                          &
-            &   r2          ,                          &
-            &   mbp_offset  ,                          &
-            &   com_offset  ,                          &
-            &   Vmax        ,                          &
-            &   v_esc       ,                          &
-            &   sigV        ,                          &
-            &   lambda      ,                          &
-            &   lambdaE     ,                          &
-            &   Lx          ,                          &
-            &   Ly          ,                          &
-            &   Lz          ,                          &
-            &   b           ,                          &
-            &   c           ,                          &
-            &   Eax         ,                          &
-            &   Eay         ,                          &
-            &   Eaz         ,                          &
-            &   Ebx         ,                          &
-            &   Eby         ,                          &
-            &   Ebz         ,                          &
-            &   Ecx         ,                          &
-            &   Ecy         ,                          &
-            &   Ecz         ,                          &
-            &   ovdens      ,                          &
-            &   nbins       ,                          &
-            &   fMhires     ,                          &
-            &   Ekin        ,                          &
-            &   Epot        ,                          &
-            &   SurfP       ,                          &
-            &   Phi0        ,                          &
-            &   cNFW
-    else if (haloFormat == sussingHaloFormatNew) then
-       read          (snapshotUnit   ,*,ioStat=ioStat) &
-            &   ID          ,                          &
-            &   hostHalo    ,                          &
-            &   numSubStruct,                          &
-            &   Mvir        ,                          &
-            &   npart       ,                          &
-            &   Xc          ,                          &
-            &   Yc          ,                          &
-            &   Zc          ,                          &
-            &   VXc         ,                          &
-            &   Vyc         ,                          &
-            &   VZc         ,                          &
-            &   Rvir        ,                          &
-            &   Rmax        ,                          &
-            &   r2          ,                          &
-            &   mbp_offset  ,                          &
-            &   com_offset  ,                          &
-            &   Vmax        ,                          &
-            &   v_esc       ,                          &
-            &   sigV        ,                          &
-            &   lambda      ,                          &
-            &   lambdaE     ,                          &
-            &   Lx          ,                          &
-            &   Ly          ,                          &
-            &   Lz          ,                          &
-            &   cNFW
-       b      =0.0d0
-       c      =0.0d0
-       Eax    =0.0d0
-       Eay    =0.0d0
-       Eaz    =0.0d0
-       Ebx    =0.0d0
-       Eby    =0.0d0
-       Ebz    =0.0d0
-       Ecx    =0.0d0
-       Ecy    =0.0d0
-       Ecz    =0.0d0
-       ovdens =0.0d0
-       nbins  =0.0d0
-       fMhires=0.0d0
-       Ekin   =0.0d0
-       Epot   =0.0d0
-       SurfP  =0.0d0
-       Phi0   =0.0d0
+       read (snapshotUnit,*,ioStat=ioStat)
     else
-       call Galacticus_Error_Report('sussingReadHaloASCII','unknown halo file format')
+       if (haloFormat == sussingHaloFormatOld) then
+          read          (snapshotUnit   ,*,ioStat=ioStat) &
+               &   ID          ,                          &
+               &   hostHalo    ,                          &
+               &   numSubStruct,                          &
+               &   Mvir        ,                          &
+               &   npart       ,                          &
+               &   Xc          ,                          &
+               &   Yc          ,                          &
+               &   Zc          ,                          &
+               &   VXc         ,                          &
+               &   Vyc         ,                          &
+               &   VZc         ,                          &
+               &   Rvir        ,                          &
+               &   Rmax        ,                          &
+               &   r2          ,                          &
+               &   mbp_offset  ,                          &
+               &   com_offset  ,                          &
+               &   Vmax        ,                          &
+               &   v_esc       ,                          &
+               &   sigV        ,                          &
+               &   lambda      ,                          &
+               &   lambdaE     ,                          &
+               &   Lx          ,                          &
+               &   Ly          ,                          &
+               &   Lz          ,                          &
+               &   b           ,                          &
+               &   c           ,                          &
+               &   Eax         ,                          &
+               &   Eay         ,                          &
+               &   Eaz         ,                          &
+               &   Ebx         ,                          &
+               &   Eby         ,                          &
+               &   Ebz         ,                          &
+               &   Ecx         ,                          &
+               &   Ecy         ,                          &
+               &   Ecz         ,                          &
+               &   ovdens      ,                          &
+               &   nbins       ,                          &
+               &   fMhires     ,                          &
+               &   Ekin        ,                          &
+               &   Epot        ,                          &
+               &   SurfP       ,                          &
+               &   Phi0        ,                          &
+               &   cNFW
+          FoFMass       =0.0d0
+          M_200Mean     =0.0d0
+          M_200Crit     =0.0d0
+          M_TopHat      =0.0d0
+          R_200Mean     =0.0d0
+          R_200Crit     =0.0d0
+          R_TopHat      =0.0d0
+          HalfMassRadius=0.0d0
+          sigV_200Mean  =0.0d0
+          sigV_200Crit  =0.0d0
+          sigV_TopHat   =0.0d0
+          Xcm           =0.0d0
+          Ycm           =0.0d0
+          Zcm           =0.0d0
+          Xgroup        =0.0d0
+          Ygroup        =0.0d0
+          Zgroup        =0.0d0
+        else if (haloFormat == sussingHaloFormatNew) then
+          read          (snapshotUnit   ,*,ioStat=ioStat) &
+               &   ID          ,                          &
+               &   hostHalo    ,                          &
+               &   numSubStruct,                          &
+               &   Mvir        ,                          &
+               &   npart       ,                          &
+               &   Xc          ,                          &
+               &   Yc          ,                          &
+               &   Zc          ,                          &
+               &   VXc         ,                          &
+               &   Vyc         ,                          &
+               &   VZc         ,                          &
+               &   Rvir        ,                          &
+               &   Rmax        ,                          &
+               &   r2          ,                          &
+               &   mbp_offset  ,                          &
+               &   com_offset  ,                          &
+               &   Vmax        ,                          &
+               &   v_esc       ,                          &
+               &   sigV        ,                          &
+               &   lambda      ,                          &
+               &   lambdaE     ,                          &
+               &   Lx          ,                          &
+               &   Ly          ,                          &
+               &   Lz          ,                          &
+               &   cNFW
+          b             =0.0d0
+          c             =0.0d0
+          Eax           =0.0d0
+          Eay           =0.0d0
+          Eaz           =0.0d0
+          Ebx           =0.0d0
+          Eby           =0.0d0
+          Ebz           =0.0d0
+          Ecx           =0.0d0
+          Ecy           =0.0d0
+          Ecz           =0.0d0
+          ovdens        =0.0d0
+          nbins         =0.0d0
+          fMhires       =0.0d0
+          Ekin          =0.0d0
+          Epot          =0.0d0
+          SurfP         =0.0d0
+          Phi0          =0.0d0
+          FoFMass       =0.0d0
+          M_200Mean     =0.0d0
+          M_200Crit     =0.0d0
+          M_TopHat      =0.0d0
+          R_200Mean     =0.0d0
+          R_200Crit     =0.0d0
+          R_TopHat      =0.0d0
+          HalfMassRadius=0.0d0
+          sigV_200Mean  =0.0d0
+          sigV_200Crit  =0.0d0
+          sigV_TopHat   =0.0d0
+          Xcm           =0.0d0
+          Ycm           =0.0d0
+          Zcm           =0.0d0
+          Xgroup        =0.0d0
+          Ygroup        =0.0d0
+          Zgroup        =0.0d0
+      else if (haloFormat == sussingHaloFormatAll) then
+          read          (snapshotUnit   ,*,ioStat=ioStat) &
+               &   ID            ,                        &
+               &   hostHalo      ,                        &
+               &   numSubStruct  ,                        &
+               &   Mvir          ,                        &
+               &   npart         ,                        &
+               &   Xc            ,                        &
+               &   Yc            ,                        &
+               &   Zc            ,                        &
+               &   VXc           ,                        &
+               &   Vyc           ,                        &
+               &   VZc           ,                        &
+               &   Rvir          ,                        &
+               &   Rmax          ,                        &
+               &   r2            ,                        &
+               &   mbp_offset    ,                        &
+               &   com_offset    ,                        &
+               &   Vmax          ,                        &
+               &   v_esc         ,                        &
+               &   sigV          ,                        &
+               &   lambda        ,                        &
+               &   lambdaE       ,                        &
+               &   Lx            ,                        &
+               &   Ly            ,                        &
+               &   Lz            ,                        &
+               &   b             ,                        &
+               &   c             ,                        &
+               &   Eax           ,                        &
+               &   Eay           ,                        &
+               &   Eaz           ,                        &
+               &   Ebx           ,                        &
+               &   Eby           ,                        &
+               &   Ebz           ,                        &
+               &   Ecx           ,                        &
+               &   Ecy           ,                        &
+               &   Ecz           ,                        &
+               &   ovdens        ,                        &
+               &   nbins         ,                        &
+               &   fMhires       ,                        &
+               &   Ekin          ,                        &
+               &   Epot          ,                        &
+               &   SurfP         ,                        &
+               &   Phi0          ,                        &
+               &   cNFW          ,                        &
+               &   FoFMass       ,                        &
+               &   M_200Mean     ,                        &
+               &   M_200Crit     ,                        &
+               &   M_TopHat      ,                        &
+               &   R_200Mean     ,                        &
+               &   R_200Crit     ,                        &
+               &   R_TopHat      ,                        &
+               &   HalfMassRadius,                        &
+               &   sigV_200Mean  ,                        &
+               &   sigV_200Crit  ,                        &
+               &   sigV_TopHat   ,                        &
+               &   Xcm           ,                        &
+               &   Ycm           ,                        &
+               &   Zcm           ,                        &
+               &   Xgroup        ,                        &
+               &   Ygroup        ,                        &
+               &   Zgroup
+    else
+          call Galacticus_Error_Report('sussingReadHaloASCII','unknown halo file format')
+       end if
     end if
- end if
     return
   end subroutine sussingReadHaloASCII
