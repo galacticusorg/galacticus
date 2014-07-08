@@ -106,11 +106,15 @@ contains
     type            (varying_string), intent(in   )               :: filterName
     type            (Node          ), pointer                     :: doc
     type            (filterType    ), allocatable  , dimension(:) :: filterResponsesTemporary
+    type            (varying_string)               , dimension(3) :: specialFilterWords
     type            (node          ), pointer                     :: vegaElement
+    double precision                , parameter                   :: cutOffResolution=1.0d4
     integer                                                       :: filterIndex             , ioErr
     type            (varying_string)                              :: filterFileName          , errorMessage
     type            (DOMException  )                              :: exception
     logical                                                       :: parseSuccess
+    character       (len=32        )                              :: word
+    double precision                                              :: centralWavelength       , resolution
 
     ! Allocate space for this filter.
     if (allocated(filterResponses)) then
@@ -123,50 +127,75 @@ contains
        allocate(filterResponses(1))
        call Memory_Usage_Record(sizeof(filterResponses))
     end if
-
     ! Index in array to load into.
     filterIndex=size(filterResponses)
-
     ! Store the name of the filter.
     filterResponses(filterIndex)%name=filterName
-
-    ! Construct a file name for the filter.
-    filterFileName=char(Galacticus_Input_Path())//'data/filters/'//filterName//'.xml'
-
-    ! Parse the XML file.
-    !$omp critical (FoX_DOM_Access)
-    doc => parseFile(char(filterFileName),iostat=ioErr,ex=exception)
-    parseSuccess=.true.
-    errorMessage=''
-    if (inException(exception)) then
-       parseSuccess=.false.
-       errorMessage=errorMessage//char(10)//'exception raised [code='//getExceptionCode(exception)//']'
-    end if
-    if (ioErr /= 0) then
-       parseSuccess=.false.
-       errorMessage=errorMessage//char(10)//'I/O error [code='//ioErr//']'
-    end if
-    if (.not.parseSuccess)                                                                 &
-         & call Galacticus_Error_Report(                                                   &
-         &                              'Filter_Response_Load'                          ,  &
-         &                              'unable to read or parse filter response file: '// &
-         &                              char(filterFileName)                            // &
-         &                                   errorMessage                                  &
-         &                             )
-    ! Extract wavelengths and filter response.
-    call XML_Array_Read(doc,"datum",filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
-    filterResponses(filterIndex)%nPoints=size(filterResponses(filterIndex)%wavelength)
-    ! Extract the Vega offset.
-    filterResponses(filterIndex)%vegaOffsetAvailable=XML_Path_Exists(doc,"vegaOffset")
-    if (filterResponses(filterIndex)%vegaOffsetAvailable) then
-       vegaElement => XML_Get_First_Element_By_Tag_Name(doc,"vegaOffset")
-       call extractDataContent(vegaElement,filterResponses(filterIndex)%vegaOffset)
+    ! Check for special filters.
+    if (extract(filterName,1,7) == "topHat_") then
+       ! Construct a top-hat filter. Extract central wavelength and resolution.
+       call String_Split_Words(specialFilterWords,char(filterName),separator="_")
+       word=char(specialFilterWords(2))
+       read (word,*) centralWavelength
+       word=char(specialFilterWords(3))
+       read (word,*) resolution
+       filterResponses(filterIndex)%vegaOffsetAvailable=.false.
+       filterResponses(filterIndex)%vegaOffset         =0.0d0
+       filterResponses(filterIndex)%nPoints            =4
+       call Alloc_Array(filterResponses(filterIndex)%wavelength,[4])
+       call Alloc_Array(filterResponses(filterIndex)%response  ,[4])
+       filterResponses(filterIndex)%wavelength         =                                                                &
+            & [                                                                                                         &
+            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution/(1.0+1.0d0/cutOffResolution), &
+            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution                             , &
+            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)+1.0d0)/2.0d0/resolution                             , &
+            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)+1.0d0)/2.0d0/resolution*(1.0+1.0d0/cutOffResolution)  &
+            & ]
+       filterResponses(filterIndex)%response           =                                                                &
+            & [                                                                                                         &
+            &  0.0d0                                                                                                  , &
+            &  1.0d0                                                                                                  , &
+            &  1.0d0                                                                                                  , &
+            &  0.0d0                                                                                                    &
+            & ]
     else
-       filterResponses(filterIndex)%vegaOffset=0.0d0
+       ! Construct a file name for the filter.
+       filterFileName=char(Galacticus_Input_Path())//'data/filters/'//filterName//'.xml'
+       ! Parse the XML file.
+       !$omp critical (FoX_DOM_Access)
+       doc => parseFile(char(filterFileName),iostat=ioErr,ex=exception)
+       parseSuccess=.true.
+       errorMessage=''
+       if (inException(exception)) then
+          parseSuccess=.false.
+          errorMessage=errorMessage//char(10)//'exception raised [code='//getExceptionCode(exception)//']'
+       end if
+       if (ioErr /= 0) then
+          parseSuccess=.false.
+          errorMessage=errorMessage//char(10)//'I/O error [code='//ioErr//']'
+       end if
+       if (.not.parseSuccess)                                                                 &
+            & call Galacticus_Error_Report(                                                   &
+            &                              'Filter_Response_Load'                          ,  &
+            &                              'unable to read or parse filter response file: '// &
+            &                              char(filterFileName)                            // &
+            &                                   errorMessage                                  &
+            &                             )
+       ! Extract wavelengths and filter response.
+       call XML_Array_Read(doc,"datum",filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
+       filterResponses(filterIndex)%nPoints=size(filterResponses(filterIndex)%wavelength)
+       ! Extract the Vega offset.
+       filterResponses(filterIndex)%vegaOffsetAvailable=XML_Path_Exists(doc,"vegaOffset")
+       if (filterResponses(filterIndex)%vegaOffsetAvailable) then
+          vegaElement => XML_Get_First_Element_By_Tag_Name(doc,"vegaOffset")
+          call extractDataContent(vegaElement,filterResponses(filterIndex)%vegaOffset)
+       else
+          filterResponses(filterIndex)%vegaOffset=0.0d0
+       end if
+       ! Destroy the document.
+       call destroy(doc)
+       !$omp end critical (FoX_DOM_Access)
     end if
-    ! Destroy the document.
-    call destroy(doc)
-    !$omp end critical (FoX_DOM_Access)
     return
   end subroutine Filter_Response_Load
 
