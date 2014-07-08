@@ -1,0 +1,39 @@
+<constrain>
+  <!-- Configuration file for fitting of CSMF to Bernardi et al. (2013) mass function -->
+  <!-- Andrew Benson                                                                  -->
+  <!-- 12-May-2014                                                                    -->
+
+  <observedDataFile>data/observations/massFunctionsStellar/Stellar_Mass_Function_Bernardi_2013.xml</observedDataFile>
+
+  <baseDirectory>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/</baseDirectory>
+
+  <mcmcConfigFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/mcmcConfig.xml</mcmcConfigFile>
+
+  <constraintFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/covarianceMatrix.hdf5</constraintFile>
+
+  <parameterFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/covarianceMatrix.xml</parameterFile>
+
+  <!-- Label for PBS jobs -->
+  <pbsLabel>smfBernardi</pbsLabel>
+
+  <!-- Number of stages (iterations) to carry out -->
+  <stageCount>4</stageCount>
+
+  <!-- Source for mass function -->
+  <sourceLabel>Bernardi et al. (2013)</sourceLabel>
+
+  <!-- Label for mass type -->
+  <massType>stellar</massType>
+  <massVariable>M_\star</massVariable>
+
+  <!-- Redshift ranges -->
+  <redshift>
+    <minimum>0.0</minimum>
+    <maximum>0.5</maximum>
+  </redshift>
+
+  <!-- Thread control -->
+  <nodeCount>1</nodeCount>
+  <threadsPerNode>12</threadsPerNode>
+
+</constrain>

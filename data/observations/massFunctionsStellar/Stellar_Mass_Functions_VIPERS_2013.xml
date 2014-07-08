@@ -1,0 +1,254 @@
+<dataSets>
+  <description>The stellar mass function of galaxies at 0.5&lt;z&lt;1/3 from the VIPERS survey as reported by Davidzon et al. (2013)</description>
+  <url>http://adsabs.harvard.edu/abs/2013A%26A...558A..23D</url>
+  <label>Davidzon et al. (2013)</label>
+  <source>Data supplied by I. Davidzon (private communication).</source>
+  <cosmology>
+    <hubble>70.0</hubble>
+    <omegaMatter>0.3</omegaMatter>
+    <omegaDarkEnergy>0.7</omegaDarkEnergy>
+  </cosmology>
+  <imf>
+    <name>Chabrier</name>
+    <citation>Chabrier, G.; 2003; PASP; 115; 763</citation>
+    <url>http://www.jstor.org/stable/10.1086/376392</url>
+    <mass lower="0.1" upper="100" units="Solar masses" unitsInSI="1.9891e30" />
+  </imf>
+  <massFunction>
+    <columns>
+      <redshiftHigh>0.6</redshiftHigh>
+      <redshiftLow>0.5</redshiftLow>
+      <number>
+	<description>Number of observed galaxies per bin</description>
+	<scaling>linear</scaling>
+	<datum>808</datum>
+	<datum>755</datum>
+	<datum>774</datum>
+	<datum>823</datum>
+	<datum>727</datum>
+	<datum>463</datum>
+	<datum>203</datum>
+	<datum>89</datum>
+	<datum>23</datum>
+	<datum>3</datum>
+	<datum>0</datum>
+	<datum>1</datum>
+      </number>
+      <mass>
+	<description>Galaxy stellar mass</description>
+	<units>Solar masses</units>
+	<scaling>log10</scaling>
+	<cosmologyScaling>luminosity</cosmologyScaling>
+	<datum>9.9</datum>
+	<datum>10.1</datum>
+	<datum>10.3</datum>
+	<datum>10.5</datum>
+	<datum>10.7</datum>
+	<datum>10.9</datum>
+	<datum>11.1</datum>
+	<datum>11.3</datum>
+	<datum>11.5</datum>
+	<datum>11.7</datum>
+	<datum>11.9</datum>
+	<datum>12.1</datum>
+      </mass>
+      <massFunction>
+	<description>Galaxy stellar mass function</description>
+	<units>Mpc^-3 dex^-1</units>
+	<scaling>linear</scaling>
+	<cosmologyScaling>inverseComovingVolume</cosmologyScaling>
+	<datum>0.29413E-02</datum>
+	<datum>0.25605E-02</datum>
+	<datum>0.25301E-02</datum>
+	<datum>0.25872E-02</datum>
+	<datum>0.21912E-02</datum>
+	<datum>0.13767E-02</datum>
+	<datum>0.59219E-03</datum>
+	<datum>0.25641E-03</datum>
+	<datum>0.66584E-04</datum>
+	<datum>0.80227E-05</datum>
+	<datum>0.00000E-05</datum>
+	<datum>0.27239E-05</datum>
+      </massFunction>
+      <lowerError>
+	<description>Lower error on galaxy stellar mass function</description>
+	<units>Mpc^-3 dex^-1</units>
+	<scaling>linear</scaling>
+	<datum>0.12380E-03</datum>
+	<datum>0.97175E-04</datum>
+	<datum>0.91929E-04</datum>
+	<datum>0.90623E-04</datum>
+	<datum>0.81572E-04</datum>
+	<datum>0.64119E-04</datum>
+	<datum>0.41633E-04</datum>
+	<datum>0.27268E-04</datum>
+	<datum>0.13950E-04</datum>
+	<datum>0.46386E-05</datum>
+	<datum>0.12836E-04</datum>
+	<datum>0.27239E-05</datum>
+      </lowerError>
+      <upperError>
+	<description>Upper error on galaxy stellar mass function</description>
+	<units>Mpc^-3 dex^-1</units>
+	<scaling>linear</scaling>
+	<datum>0.12380E-03</datum>
+	<datum>0.97175E-04</datum>
+	<datum>0.91929E-04</datum>
+	<datum>0.90623E-04</datum>
+	<datum>0.81572E-04</datum>
+	<datum>0.64119E-04</datum>
+	<datum>0.41633E-04</datum>
+	<datum>0.27268E-04</datum>
+	<datum>0.13950E-04</datum>
+	<datum>0.46386E-05</datum>
+	<datum>0.12836E-04</datum>
+	<datum>0.27239E-05</datum>
+      </upperError>
+    </columns>
+    <columns>
+      <redshiftHigh>0.8</redshiftHigh>
+      <redshiftLow>0.6</redshiftLow>
+      <number>
+	<description>Number of observed galaxies per bin</description>
+	<scaling>linear</scaling>
+	<datum>2077</datum>
+	<datum>2137</datum>
+	<datum>2126</datum>
+	<datum>1988</datum>
+	<datum>1512</datum>
+	<datum>730</datum>
+	<datum>287</datum>
+	<datum>68</datum>
+	<datum>7</datum>
+	<datum>0</datum>
+	<datum>1</datum>
+      </number>
+      <mass>
+	<description>Galaxy stellar mass</description>
+	<units>Solar masses</units>
+	<scaling>log10</scaling>
+	<cosmologyScaling>luminosity</cosmologyScaling>
+	<datum>10.1</datum>
+	<datum>10.3</datum>
+	<datum>10.5</datum>
+	<datum>10.7</datum>
+	<datum>10.9</datum>
+	<datum>11.1</datum>
+	<datum>11.3</datum>
+	<datum>11.5</datum>
+	<datum>11.7</datum>
+	<datum>11.9</datum>
+	<datum>12.1</datum>
+      </mass>
+      <massFunction>
+	<description>Galaxy stellar mass function</description>
+	<units>Mpc^-3 dex^-1</units>
+	<scaling>linear</scaling>
+	<cosmologyScaling>inverseComovingVolume</cosmologyScaling>
+	<datum>0.30285E-02</datum>
+	<datum>0.29056E-02</datum>
+	<datum>0.26122E-02</datum>
+	<datum>0.22635E-02</datum>
+	<datum>0.16289E-02</datum>
+	<datum>0.75887E-03</datum>
+	<datum>0.29484E-03</datum>
+	<datum>0.68222E-04</datum>
+	<datum>0.70821E-05</datum>
+	<datum>0.00000E-05</datum>
+	<datum>0.11551E-05</datum>
+      </massFunction>
+      <lowerError>
+	<description>Lower error on galaxy stellar mass function</description>
+	<units>Mpc^-3 dex^-1</units>
+	<scaling>linear</scaling>
+	<datum>0.10325E-03</datum>
+	<datum>0.75391E-04</datum>
+	<datum>0.61780E-04</datum>
+	<datum>0.52200E-04</datum>
+	<datum>0.42484E-04</datum>
+	<datum>0.28141E-04</datum>
+	<datum>0.17537E-04</datum>
+	<datum>0.82809E-05</datum>
+	<datum>0.26836E-05</datum>
+	<datum>0.46133E-05</datum>
+	<datum>0.11551E-05</datum>
+      </lowerError>
+      <upperError>
+	<description>Upper error on galaxy stellar mass function</description>
+	<units>Mpc^-3 dex^-1</units>
+	<scaling>linear</scaling>
+	<datum>0.10325E-03</datum>
+	<datum>0.75391E-04</datum>
+	<datum>0.61780E-04</datum>
+	<datum>0.52200E-04</datum>
+	<datum>0.42484E-04</datum>
+	<datum>0.28141E-04</datum>
+	<datum>0.17537E-04</datum>
+	<datum>0.82809E-05</datum>
+	<datum>0.26836E-05</datum>
+	<datum>0.46133E-05</datum>
+	<datum>0.11551E-05</datum>
+      </upperError>
+    </columns>
+    <columns>
+      <redshiftHigh>1.0</redshiftHigh>
+      <redshiftLow>0.8</redshiftLow>
+      <number>
+	<description>Number of observed galaxies per bin</description>
+	<scaling>linear</scaling>
+	<datum>1292</datum>
+	<datum>1053</datum>
+	<datum>541</datum>
+	<datum>190</datum>
+	<datum>39</datum>
+	<datum>6</datum>
+      </number>
+      <mass>
+	<description>Galaxy stellar mass</description>
+	<units>Solar masses</units>
+	<scaling>log10</scaling>
+	<cosmologyScaling>luminosity</cosmologyScaling>
+	<datum>10.7</datum>
+	<datum>10.9</datum>
+	<datum>11.1</datum>
+	<datum>11.3</datum>
+	<datum>11.5</datum>
+	<datum>11.7</datum>
+      </mass>
+      <massFunction>
+	<description>Galaxy stellar mass function</description>
+	<units>Mpc^-3 dex^-1</units>
+	<scaling>linear</scaling>
+	<cosmologyScaling>inverseComovingVolume</cosmologyScaling>
+	<datum>0.15923E-02</datum>
+	<datum>0.11309E-02</datum>
+	<datum>0.53192E-03</datum>
+	<datum>0.17356E-03</datum>
+	<datum>0.34252E-04</datum>
+	<datum>0.50893E-05</datum>
+      </massFunction>
+      <lowerError>
+	<description>Lower error on galaxy stellar mass function</description>
+	<units>Mpc^-3 dex^-1</units>
+	<scaling>linear</scaling>
+	<datum>0.67557E-04</datum>
+	<datum>0.39712E-04</datum>
+	<datum>0.25013E-04</datum>
+	<datum>0.12879E-04</datum>
+	<datum>0.55181E-05</datum>
+	<datum>0.20787E-05</datum>
+      </lowerError>
+      <upperError>
+	<description>Upper error on galaxy stellar mass function</description>
+	<units>Mpc^-3 dex^-1</units>
+	<scaling>linear</scaling>
+	<datum>0.67557E-04</datum>
+	<datum>0.39712E-04</datum>
+	<datum>0.25013E-04</datum>
+	<datum>0.12879E-04</datum>
+	<datum>0.55181E-05</datum>
+	<datum>0.20787E-05</datum>
+      </upperError>
+    </columns>
+  </massFunction>
+</dataSets>
