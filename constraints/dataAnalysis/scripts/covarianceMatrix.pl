@@ -13,9 +13,11 @@ use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
+use PDL::Math;
 use Data::Dumper;
 use LaTeX::Encode;
 use Clone qw(clone);
+use Switch;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
 
@@ -23,9 +25,12 @@ require GnuPlot::LaTeX;
 # Andrew Benson (05-July-2012)
 
 # Get the config file.
-die("Usage: covarianceMatrix.pl <configFile>")
-    unless ( scalar(@ARGV) == 1 );
-my $configFile = $ARGV[0];
+die("Usage: covarianceMatrix.pl <configFile> [<redshiftIndex>]")
+    unless ( scalar(@ARGV) == 1 || scalar(@ARGV) == 2 );
+my $configFile    = $ARGV[0];
+my $redshiftIndex;
+$redshiftIndex    = $ARGV[1]
+    if ( scalar(@ARGV) == 2 );
 my $xml        = new XML::Simple;
 my $config     = $xml->XMLin($configFile);
 
@@ -36,8 +41,8 @@ die("covarianceMatrix.pl: config file must specify parameterFile" )
     unless ( exists($config->{'parameterFile' }) );
 die("covarianceMatrix.pl: config file must specify constraintFile")
     unless ( exists($config->{'constraintFile'}) );
-die("covarianceMatrix.pl: config file must specify bieFile"       )
-    unless ( exists($config->{'bieFile'       }) );
+die("covarianceMatrix.pl: config file must specify mcmcConfigFile")
+    unless ( exists($config->{'mcmcConfigFile'}) );
 
 # Set any defaults.
 my $pbsLabel = "covariance";
@@ -59,20 +64,26 @@ my $baseDirectory = $config->{'baseDirectory'};
 # Extract leaf and path for parameter and constraint files.
 my $parameterFile  = $config->{'parameterFile' };
 my $constraintFile = $config->{'constraintFile'};
-my $bieFile        = $config->{'bieFile'       };
+my $mcmcConfigFile = $config->{'mcmcConfigFile'};
 (my $parameterFileLeaf  = $parameterFile ) =~ s/^.*\/([^\/]+)$/$1/;
 (my $parameterFilePath  = $parameterFile ) =~ s/^(.*\/).*$/$1/;
 (my $constraintFileLeaf = $constraintFile) =~ s/^.*\/([^\/]+)$/$1/;
 (my $constraintFilePath = $constraintFile) =~ s/^(.*\/).*$/$1/;
-(my $bieFileLeaf        = $bieFile       ) =~ s/^.*\/([^\/]+)$/$1/;
-(my $bieFilePath        = $bieFile       ) =~ s/^(.*\/).*$/$1/;
+(my $mcmcConfigFileLeaf = $mcmcConfigFile) =~ s/^.*\/([^\/]+)$/$1/;
+(my $mcmcConfigFilePath = $mcmcConfigFile) =~ s/^(.*\/).*$/$1/;
 
-# Ensure that the covariance matrix and mass function codes are built.
-system("make Mass_Function_Covariance.exe Conditional_Mass_Function.exe");
+# Ensure that the covariance matrix, mass function, and constraint codes are built.
+system("make Mass_Function_Covariance.exe Conditional_Mass_Function.exe Constrain_Galacticus.exe");
+die("covarianceMatrix.pl: unable to build executables")
+    unless ( $? == 0 );
 
-# Lists that will be used to store the best fit parameter names and values from one stage to the next.
-my @parameterNames;
+# List that will be used to store the best fit values from one stage to the next.
 my @bestFit;
+
+# Get parameter names
+my $xmlNames       = new XML::Simple(KeyAttr => []);
+my $mcmcConfig     = $xmlNames->XMLin($mcmcConfigFile);
+my @parameterNames = map {$_->{'name'}} @{$mcmcConfig->{'parameters'}->{'parameter'}};
 
 # Perform a specified number of stages of the algorithm.
 my $stageCount = 4;
@@ -80,9 +91,13 @@ $stageCount = $config->{'stageCount'}
    if ( exists($config->{'stageCount'}) );
 for(my $stage=0;$stage<=$stageCount;++$stage) {
     # Create an output folder for this stage.
-    system("mkdir -p ".$baseDirectory."stage".$stage);
+    my $stageDirectory = $baseDirectory;
+    $stageDirectory   .= "redshift".$redshiftIndex."_"
+	if ( defined($redshiftIndex) );
+    $stageDirectory   .= "stage".$stage;
+    system("mkdir -p ".$stageDirectory);
     # Generate the covariance matrix file.
-    my $covarianceMatrixFile = $baseDirectory."stage".$stage."/".$constraintFileLeaf;
+    my $covarianceMatrixFile = $stageDirectory."/".$constraintFileLeaf;
     unless ( -e $covarianceMatrixFile ) {
 	# Parse the basic covariance matrix parameter file.
 	my $xml        = new XML::Simple;
@@ -94,37 +109,52 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    if ( $stage == 0 );
 	$parameters->{'parameter'}->{$_}->{'value'} = $include
 	    foreach ( "massFunctionCovarianceIncludeHalo", "massFunctionCovarianceIncludeLSS" );
+	# Modify redshift ranges.
+	if ( defined($redshiftIndex) ) {
+	    $parameters->{'parameter'}->{$parameters->{'parameter'}->{'surveyGeometryMethod'}->{'value'}.'RedshiftBin'}->{'value'} = $redshiftIndex;
+	    $parameters->{'parameter'}->{'conditionalMassFunctionRedshiftMinimum'}->{'value'} = ${$config->{'redshift'}}[$redshiftIndex]->{'minimum'};
+	    $parameters->{'parameter'}->{'conditionalMassFunctionRedshiftMaximum'}->{'value'} = ${$config->{'redshift'}}[$redshiftIndex]->{'maximum'};
+	    $parameters->{'parameter'}->{'massFunctionCovarianceRedshiftMinimum' }->{'value'} = ${$config->{'redshift'}}[$redshiftIndex]->{'minimum'};
+	    $parameters->{'parameter'}->{'massFunctionCovarianceRedshiftMaximum' }->{'value'} = ${$config->{'redshift'}}[$redshiftIndex]->{'maximum'};
+	}
 	# For stages after the first, insert the best fit parameters from the previous stage.
 	if ( $stage > 0 ) {
 	    for(my $i=0;$i<scalar(@parameterNames);++$i) {
-		$parameters->{'parameter'}->{$parameterNames[$i]}->{'value'} = $bestFit[$i];
+		$parameters->{'parameter'}->{"conditionalMassFunctionBehroozi".ucfirst($parameterNames[$i])}->{'value'} = $bestFit[$i];
 	    }
 	}
 	# Write out the new parameter file.
-	my $covarianceMatrixParameterFile = $baseDirectory."stage".$stage."/".$parameterFileLeaf;
+	my $covarianceMatrixParameterFile = $stageDirectory."/".$parameterFileLeaf;
 	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
 	open(oHndl,">".$covarianceMatrixParameterFile);
 	print oHndl $xmlOutput->XMLout($parameters);
 	close(oHndl);
 	# Generate the covariance matrix.
+	my $command = "mpirun -np 1 -hostfile \$PBS_NODEFILE ".$galacticusPath."constraints/dataAnalysis/scripts/generateCovarianceMatrix.pl ".$stageDirectory."/".$parameterFileLeaf." ".$configFile;
+	$command .= " ".$redshiftIndex
+	    if ( defined($redshiftIndex) );
 	my $matrixJob = 
 	{
-	    batchFile  => $baseDirectory."stage".$stage."/generateMatrix.pbs",
+	    batchFile  => $stageDirectory."/generateMatrix.pbs",
 	    queue      => "batch",
 	    nodes      => "nodes=1:ppn=12",
-	    wallTime   => "200:00:00",
-	    outputFile => $baseDirectory."stage".$stage."/generateMatrix.log",
+	    wallTime   => "1000:00:00",
+	    outputFile => $stageDirectory."/generateMatrix.log",
 	    name       => $pbsLabel."Stage".$stage."MatrixGen",
-	    commands   => "mpirun -np 1 -hostfile \$PBS_NODEFILE ".$galacticusPath."constraints/dataAnalysis/scripts/generateCovarianceMatrix.pl ".$parameterFilePath."stage".$stage."/".$parameterFileLeaf." ".$configFile
+	    commands   => $command
 	};
 	&Submit_To_PBS($matrixJob);
-	# Since we have a new covariance matrix file, remove the BIE statelog to force it to be regenerated.
-	unlink($baseDirectory."stage".$stage."/bie.statelog");
+	# Since we have a new covariance matrix file, remove the MCMC chains to force it to be regenerated.
+	unlink($stageDirectory."/chains_*.log");
 	# Also remove any plot of the correlation matrix.
-	unlink($baseDirectory."stage".$stage."/correlationMatrix.pdf");
+	unlink($stageDirectory."/correlationMatrix.pdf");
 	# For stages past the 0th, determine how well converged the matrix is.
 	if ( $stage > 0 ) {
-	    my $oldCovarianceMatrixFile = $constraintFilePath."stage".($stage-1)."/".$constraintFileLeaf;
+	    my $oldStageDirectory = $baseDirectory;
+	    $oldStageDirectory   .= "redshift".$redshiftIndex."_"
+		if ( defined($redshiftIndex) );
+	    $oldStageDirectory   .= "stage".($stage-1);
+	    my $oldCovarianceMatrixFile = $oldStageDirectory."/".$constraintFileLeaf;
 	    my $new = new PDL::IO::HDF5(">".$covarianceMatrixFile);
 	    my $old = new PDL::IO::HDF5( $oldCovarianceMatrixFile);
 	    my $newMatrix = $new->dataset("covariance")->get();
@@ -137,18 +167,17 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
     }
 
     # Generate a plot of the correlation matrix.
-    unless ( -e $baseDirectory."stage".$stage."/correlationMatrix.pdf" ) {
+    unless ( -e $stageDirectory."/correlationMatrix.pdf" ) {
 	# Read the covariance matrix.
 	my $hdfFile      = new PDL::IO::HDF5($covarianceMatrixFile);
 	my $correlation  = $hdfFile->dataset("correlation")->get();
 	my $mass         = $hdfFile->dataset("mass"       )->get();
-
 	# Declare variables for GnuPlot;
 	my ($gnuPlot, $plotFileEPS, $plot);
 	# Open a pipe to GnuPlot.
 	my $rangeLow  = $mass->(( 0));
 	my $rangeHigh = $mass->((-1));
-	$plotFileEPS = $baseDirectory."stage".$stage."/correlationMatrix.eps";
+	$plotFileEPS = $stageDirectory."/correlationMatrix.eps";
 	open($gnuPlot,"|gnuplot");
 	print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
 	print $gnuPlot "set output '".$plotFileEPS."'\n";
@@ -180,74 +209,98 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	&LaTeX::GnuPlot2PDF($plotFileEPS);
     }
 
-    # Launch BIE to find parameters which give a good fit to this mass function.
-    unless ( -e $baseDirectory."stage".$stage."/bie.statelog" ) {
+    # Launch MCMC simulation to find parameters which give a good fit to this mass function.
+    unless ( -e $stageDirectory."/chains_0000.log" ) {
     	# Clean up any old files.
-    	system("rm ".$baseDirectory."stage".$stage."/bie*");
-    	# Make stage-specific copies of the bie and control scripts.
-    	&Make_Stage_Specific
-    	    (
-    	     $stage,
-    	     $bieFile,
-    	     $baseDirectory."stage".$stage."/covarianceMatrix.bie"
-    	    );
-	
-        my $configCopy = clone($config);
-     	$configCopy->{'bieFile'       } = $baseDirectory."stage".$stage."/covarianceMatrix.bie";
-     	$configCopy->{'constraintFile'} = $baseDirectory."stage".$stage."/".$constraintFileLeaf;
-     	$configCopy->{'parameterFile' } = $baseDirectory."stage".$stage."/".$parameterFileLeaf;
-     	$configCopy->{'workDirectory' } = $baseDirectory."stage".$stage."/";
-     	my $xml = new XML::Simple(RootName => 'constrain');
-     	open(oHndl,">".$baseDirectory."stage".$stage."/covarianceMatrixControl.xml");
-     	print oHndl $xml->XMLout($configCopy);
+    	system("rm ".$stageDirectory."/chains_*.log");
+	# Parse the basic covariance matrix parameter file.
+	my $xmlP       = new XML::Simple;
+	my $parameters = $xmlP->XMLin($parameterFile);
+    	# Make stage-specific copies of the MCMC configuration file.
+	my $xml        = new XML::Simple(KeyAttr => []);
+	my $mcmcConfig = $xml->XMLin($mcmcConfigFile);
+	@parameterNames = map {$_->{'name'}} @{$mcmcConfig->{'parameters'}->{'parameter'}};
+	$mcmcConfig->{'simulation'}->{'logFileRoot'         } = $stageDirectory."/chains";
+	# Locate the likelihood descriptor associated with the mass function likelihood function.
+	my $likelihood;
+	if ( $mcmcConfig->{'likelihood'}->{'type'} eq "gaussianRegression" ) {
+	    $likelihood = $mcmcConfig->{'likelihood'}->{'simulatorLikelihood'};
+	} else {
+	    $likelihood = $mcmcConfig->{'likelihood'}                         ;
+	}
+	$likelihood->{'massFunctionFileName'} = $covarianceMatrixFile;
+	if ( defined($redshiftIndex) ) {
+	    $likelihood->{$parameters->{'parameter'}->{'surveyGeometryMethod'}->{'value'}.'RedshiftBin'} = $redshiftIndex;
+	    $likelihood->{'redshiftMinimum'} = ${$config->{'redshift'}}[$redshiftIndex]->{'minimum'};
+	    $likelihood->{'redshiftMaximum'} = ${$config->{'redshift'}}[$redshiftIndex]->{'maximum'};
+	}
+	my $xmlOutput = new XML::Simple (NoAttr => 1, KeyAttr => [], RootName=>"simulationConfig");
+     	open(oHndl,">".$stageDirectory."/mcmcConfig.xml");
+     	print oHndl $xmlOutput->XMLout($mcmcConfig);
      	close(oHndl);	
+	# Determine number of threads to use.
+	my $threadCount = $config->{'nodeCount'}*$config->{'threadsPerNode'};
     	# Submit the job.
     	my $cmfJob = 
     	{
-    	    batchFile  => $baseDirectory."stage".$stage."/constrainCMF.pbs",
+    	    batchFile  => $stageDirectory."/constrainCMF.pbs",
     	    queue      => "batch",
-    	    nodes      => "nodes=4:ppn=12",
+    	    nodes      => "nodes=".$config->{'nodeCount'}.":ppn=".$config->{'threadsPerNode'},
     	    wallTime   => "300:00:00",
-    	    outputFile => $baseDirectory."stage".$stage."/constrainCMF.log",
+    	    outputFile => $stageDirectory."/constrainCMF.log",
     	    name       => $pbsLabel."Stage".$stage."CMF",
-    	    commands   => "rm -rf pdir/covarianceMatrixStage".$stage."\nmpirun -np 48 -hostfile \$PBS_NODEFILE bie -f ".$baseDirectory."stage".$stage."/covarianceMatrix.bie"
+    	    commands   => "mpirun -np ".$threadCount." -hostfile \$PBS_NODEFILE Constrain_Galacticus.exe ".$stageDirectory."/".$parameterFileLeaf." ".$stageDirectory."/mcmcConfig.xml"
     	};
     	&Submit_To_PBS($cmfJob);
     	# Since the posterior has been updated, remove the best fit mass function file.
-    	unlink($baseDirectory."stage".$stage."/massFunctionBestFit.hdf5");
+    	unlink($stageDirectory."/massFunctionBestFit.hdf5");
     	# Since the posterior has been updated, remove the triangle plot files.
-    	system("rm -f ".$baseDirectory."stage".$stage."/triangle*");
+    	system("rm -f ".$stageDirectory."/triangle*");
     }
 
     # Generate a triangle plot.
-    unless ( -e $baseDirectory."stage".$stage."/triangle.tex" ) {
+    unless ( -e $stageDirectory."/triangle.tex" ) {
     	# Construct the command to generate the triangle plot.
     	my $command;
-    	$command .= "constraints/visualization/bieStatelogVisualizeTriangle.pl";
-    	$command .= " ".$baseDirectory."stage".$stage."/bie.statelog ";
+    	$command .= "constraints/visualization/mcmcVisualizeTriangle.pl";
+    	$command .= " ".$stageDirectory."/chains ";
+    	$command .= " ".$mcmcConfigFile;
+    	$command .= " --workDirectory ".$stageDirectory;
     	$command .= " --scale 0.1";
-    	$command .= " --ngood 500000";
+    	$command .= " --ngood 100000";
     	$command .= " --ngrid 100";
-    	$command .= " --output ".$baseDirectory."stage".$stage."/triangle";
-    	$command .= " --property 'conditionalMassFunctionBehrooziAlphaSatellite:linear:xLabel=\$\\alpha\$:zLabel=\${\\rm d}p/{\\rm d}\\alpha\$'";
-    	$command .= " --property 'conditionalMassFunctionBehrooziLog10M1:linear:xLabel=\$\\log_{10}(M_1/M_\\odot)\$:zLabel=\${\\rm d}p/{\\rm d}\\log_{10} M_1\$'";
-    	$command .= " --property 'conditionalMassFunctionBehrooziLog10Mstar0:linear:xLabel=\$\\log_{10}(M_{\\star,0}/M_\\odot)\$:zLabel=\${\\rm d}p/{\rm d}\\log_{10} M_{\\star,0}\$'";
-    	$command .= " --property 'conditionalMassFunctionBehrooziBeta:linear:xLabel=\$\\beta\$:zLabel=\${\\rm d}p/{\\rm d}\\beta\$'";
-    	$command .= " --property 'conditionalMassFunctionBehrooziDelta:linear:xLabel=\$\\delta\$:zLabel=\${\\rm d}p/{\\rm d}\\delta\$'";
-    	$command .= " --property 'conditionalMassFunctionBehrooziGamma:linear:xLabel=\$\\gamma\$:zLabel=\${\\rm d}p/{\\rm d}\\gamma\$'";
-    	$command .= " --property 'conditionalMassFunctionBehrooziSigmaLogMstar:linear:xLabel=\$\\sigma_{\\log ".$massVariable."}\$:zLabel=\${\\rm d}p/{\\rm d}\\sigma_{\\log ".$massVariable."}\$'";
-    	$command .= " --property 'conditionalMassFunctionBehrooziBCut:linear:xLabel=\$B_{\\rm cut}\$:zLabel=\${\\rm d}p/{\\rm d}B_{\\rm cut}\$'";
-    	$command .= " --property 'conditionalMassFunctionBehrooziBSatellite:linear:xLabel=\$B_{\\rm sat}\$:zLabel=\${\\rm d}p/{\\rm d}B_{\\rm sat}\$'";
-    	$command .= " --property 'conditionalMassFunctionBehrooziBetaCut:linear:xLabel=\$\\beta_{\\rm cut}\$:zLabel=\${\\rm d}p/{\\rm d}\\beta_{\\rm cut}\$'";
-    	$command .= " --property 'conditionalMassFunctionBehrooziBetaSatellite:linear:xLabel=\$\\beta_{\\rm sat}\$:zLabel=\${\\rm d}p/{\\rm d}\\beta_{\\rm sat}\$'";
+    	$command .= " --output ".$stageDirectory."/triangle";
+    	$command .= " --property 'alphaSatellite:linear:xLabel=\$\\alpha\$:zLabel=\${\\rm d}p/{\\rm d}\\alpha\$'";
+    	$command .= " --property 'log10M1:linear:xLabel=\$\\log_{10}(M_1/M_\\odot)\$:zLabel=\${\\rm d}p/{\\rm d}\\log_{10} M_1\$'";
+    	$command .= " --property 'log10Mstar0:linear:xLabel=\$\\log_{10}(M_{\\star,0}/M_\\odot)\$:zLabel=\${\\rm d}p/{\\rm d}\\log_{10} M_{\\star,0}\$'";
+    	$command .= " --property 'beta:linear:xLabel=\$\\beta\$:zLabel=\${\\rm d}p/{\\rm d}\\beta\$'";
+    	$command .= " --property 'delta:linear:xLabel=\$\\delta\$:zLabel=\${\\rm d}p/{\\rm d}\\delta\$'";
+    	$command .= " --property 'gamma:linear:xLabel=\$\\gamma\$:zLabel=\${\\rm d}p/{\\rm d}\\gamma\$'";
+    	$command .= " --property 'sigmaLogMstar:logarithmic:xLabel=\$\\sigma_{\\log ".$massVariable."}\$:zLabel=\${\\rm d}p/{\\rm d}\\log \\sigma_{\\log ".$massVariable."}\$'";
+    	$command .= " --property 'BCut:linear:xLabel=\$B_{\\rm cut}\$:zLabel=\${\\rm d}p/{\\rm d}B_{\\rm cut}\$'";
+    	$command .= " --property 'BSatellite:linear:xLabel=\$B_{\\rm sat}\$:zLabel=\${\\rm d}p/{\\rm d}B_{\\rm sat}\$'";
+    	$command .= " --property 'betaCut:linear:xLabel=\$\\beta_{\\rm cut}\$:zLabel=\${\\rm d}p/{\\rm d}\\beta_{\\rm cut}\$'";
+    	$command .= " --property 'betaSatellite:linear:xLabel=\$\\beta_{\\rm sat}\$:zLabel=\${\\rm d}p/{\\rm d}\\beta_{\\rm sat}\$'";
+	# Append parameters for surface brightness model if required.
+	my $likelihood;
+	if ( $mcmcConfig->{'likelihood'}->{'type'} eq "gaussianRegression" ) {
+	    $likelihood = $mcmcConfig->{'likelihood'}->{'simulatorLikelihood'};
+	} else {
+	    $likelihood = $mcmcConfig->{'likelihood'}                         ;
+	}
+	if ( $likelihood->{'modelSurfaceBrightness'} eq "true" ) {
+	    $command .= " --property 'alphaSurfaceBrightness:linear:xLabel=\$\\alpha_{\\rm SB}\$:zLabel=\${\\rm d}p/{\\rm d}\\alpha_{\\rm SB}\$'";
+	    $command .= " --property 'betaSurfaceBrightness:linear:xLabel=\$\\beta_{\\rm SB}\$:zLabel=\${\\rm d}p/{\\rm d}\\beta_{\\rm SB}\$'";
+	    $command .= " --property 'sigmaSurfaceBrightness:linear:xLabel=\$\\sigma_{\\rm SB}\$:zLabel=\${\\rm d}p/{\\rm d}\\sigma_{\\rm SB}\$'";
+	}
     	# Submit the job.
     	my $triangleJob = 
     	{
-    	    batchFile  => $baseDirectory."stage".$stage."/triangle.pbs",
+    	    batchFile  => $stageDirectory."/triangle.pbs",
     	    queue      => "batch",
     	    nodes      => "nodes=1:ppn=1",
     	    wallTime   => "20:00:00",
-    	    outputFile => $baseDirectory."stage".$stage."/triangle.log",
+    	    outputFile => $stageDirectory."/triangle.log",
     	    name       => $pbsLabel."Stage".$stage."Triangle",
     	    commands   => "mpirun -np 1 -hostfile \$PBS_NODEFILE ".$command
     	};
@@ -255,69 +308,127 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
     }
 
     # Find the maximum likelihood parameters.
-    unless ( -e $baseDirectory."stage".$stage."/massFunctionBestFit.xml" ) {
-    	open(iHndl,$baseDirectory."stage".$stage."/bie.statelog");
-    	my $maximumLikelihood = -1.0e30;
-    	while ( my $line = <iHndl> ) {
-    	    $line =~ s/^\s+//;
-    	    if ( $line =~ m/^\"/ ) {
-    		$line =~ s/\"/ /g;
-    		$line =~ s/^\s+//;
-    		my @columns = split(/\s+/,$line);
-    		@parameterNames = @columns[5..$#columns];
-    	    } else {
-    		my @columns = split(/\s+/,$line);
-    		if ( $columns[2] > $maximumLikelihood ) {
-    		    $maximumLikelihood = $columns[2];
-    		    @bestFit = @columns[5..$#columns];
-    		}
-    	    }
-    	}
-    	close(iHndl);
+    unless ( -e $stageDirectory."/massFunctionBestFit.xml" ) {
+	my $maximumLikelihood = -1.0e30;
+	opendir(my $stageHndl,$stageDirectory);
+	while ( my $file = readdir($stageHndl) ) {
+	    if( $file =~ m/chains_\d+\.log/ ) {
+		open(iHndl,$stageDirectory."/".$file);
+		while ( my $line = <iHndl> ) {
+		    $line =~ s/^\s*//;
+		    $line =~ s/\s*$//;
+		    my @columns = split(/\s+/,$line);
+		    if ( $columns[4] > $maximumLikelihood ) {
+			$maximumLikelihood = $columns[4];
+			@bestFit = @columns[5..$#columns];
+		    }
+		}
+		close(iHndl);
+	    }
+	}
+	closedir($stageHndl);
     	# Write the results to file.
     	my $parameters;
+	my $xml        = new XML::Simple(KeyAttr => []);
+	my $mcmcConfig = $xml->XMLin($mcmcConfigFile);
     	for(my $i=0;$i<scalar(@parameterNames);++$i) {
+	    my $value = $bestFit[$i];
+	    $value = exp($value)
+		if ( ${$mcmcConfig->{'parameters'}->{'parameter'}}[$i]->{'mapping'}->{'type'} eq "logarithmic" );
     	    push(
     		@{$parameters->{'parameter'}},
     		{
     		    name  => $parameterNames[$i],
-    		    value => $bestFit[$i]
+    		    value => $bestFit       [$i]
     		}
     		);
     	}
     	# Output the best fit parameters.
     	my $xmlOutput = new XML::Simple(NoAttr=>1, RootName=>"parameters");
-    	open(oHndl,">".$baseDirectory."stage".$stage."/massFunctionBestFit.xml");
+    	open(oHndl,">".$stageDirectory."/massFunctionBestFit.xml");
     	print oHndl $xmlOutput->XMLout($parameters);
     	close(oHndl);
     } else {
     	# Read in the best-fit parameters.
     	my $xmlIn      = new XML::Simple;
-    	my $parameters = $xmlIn->XMLin($baseDirectory."stage".$stage."/massFunctionBestFit.xml", KeyAttr => []);
+    	my $parameters = $xmlIn->XMLin($stageDirectory."/massFunctionBestFit.xml", KeyAttr => []);
     	# Extract to arrays.
     	foreach my $parameter ( @{$parameters->{'parameter'}} ) {
-    	    push(@parameterNames,$parameter->{'name' });
-    	    push(@bestFit       ,$parameter->{'value'});
+    	    push(@bestFit ,$parameter->{'value'});
     	}
     }
 
     # Generate the maximum likelihood mass function.
-    unless ( -e $baseDirectory."stage".$stage."/massFunctionBestFit.hdf5" ) {
+    unless ( -e $stageDirectory."/massFunctionBestFit.hdf5" ) {
 	# The maximum likelihood mass function has changed, so remove the covariance matrix
 	# for the next stage, forcing it to be updated.
 	my $stageNext = $stage+1;
-	my $covarianceMatrixFileNext = $baseDirectory."stage".$stageNext."/".$constraintFileLeaf;
+	(my $covarianceMatrixFileNext = $stageDirectory."/".$constraintFileLeaf) =~ s/stage$stage/stage$stageNext/;
 	system("rm -f ".$covarianceMatrixFileNext)
 	    if ( -e $covarianceMatrixFileNext );	
+	# Get the likelihood definition.
+	my $likelihood;
+	if ( $mcmcConfig->{'likelihood'}->{'type'} eq "gaussianRegression" ) {
+	    $likelihood = $mcmcConfig->{'likelihood'}->{'simulatorLikelihood'};
+	} else {
+	    $likelihood = $mcmcConfig->{'likelihood'}                         ;
+	}
 	# Generate the maximum likelihood mass function.
-	system($galacticusPath."constraints/dataAnalysis/scripts/computeLikelihood.pl ".$baseDirectory."stage".$stage."/covarianceMatrixControl.xml 0 ".join(" ",@bestFit));
-	system("mv ".$baseDirectory."stage".$stage."/massFunction_0000.hdf5 ".$baseDirectory."stage".$stage."/massFunctionBestFit.hdf5");
+	my $xml        = new XML::Simple;
+	my $parameters = $xml->XMLin($stageDirectory."/".$parameterFileLeaf);
+	for(my $i=0;$i<scalar(@parameterNames);++$i) {
+	    my $name = "conditionalMassFunctionBehroozi".ucfirst($parameterNames[$i]);
+	    my $setName = $name;
+	    if ( $parameterNames[$i] =~ m/SurfaceBrightness$/ ) {
+		$parameters->{'parameter'}->{'massFunctionIncompletenessMethod'                    }->{'value'} = "surfaceBrightness";
+		$parameters->{'parameter'}->{'massFunctionIncompletenessSurfaceBrightnessLimit'    }->{'value'} = $likelihood->{'surfaceBrightnessLimit'};
+		$parameters->{'parameter'}->{'massFunctionIncompletenessSurfaceBrightnessZeroPoint'}->{'value'} = 1.0;
+		switch ( $parameterNames[$i] ) {
+		    case ( "alphaSurfaceBrightness" ) {
+			$setName = "massFunctionIncompletenessSurfaceBrightnessModelSlope";
+		    }
+		    case ( "betaSurfaceBrightness"  ) {
+			$setName = "massFunctionIncompletenessSurfaceBrightnessModelOffset";
+		    }
+		    case ( "sigmaSurfaceBrightness" ) {
+			$setName = "massFunctionIncompletenessSurfaceBrightnessModelScatter";
+		    }
+		}			
+	    }
+	    $parameters->{'parameter'}->{$setName}->{'value'} = $bestFit[$i];
+	}
+	# Specify any non-uniform mass bin widths.
+	my $covarianceMatrixFile = new PDL::IO::HDF5($stageDirectory."/covarianceMatrix.hdf5");
+	my @datasets             = $covarianceMatrixFile->datasets();
+	if ( grep {$_ eq "massWidthObserved"} @datasets ) {
+	    my $massBinCenters = $covarianceMatrixFile->dataset('mass'             )->get();
+	    my $massBinWidths  = $covarianceMatrixFile->dataset('massWidthObserved')->get();
+	    $parameters->{'parameter'}->{'conditionalMassFunctionMassBinCenters'}->{'value'} = join(" ",$massBinCenters->list());
+	    $parameters->{'parameter'}->{'conditionalMassFunctionMassBinWidths' }->{'value'} = join(" ",$massBinWidths ->list());
+	}
+	# Modify redshift ranges.
+	if ( defined($redshiftIndex) ) {
+	    $parameters->{'parameter'}->{'conditionalMassFunctionRedshiftMinimum'}->{'value'} = ${$config->{'redshift'}}[$redshiftIndex]->{'minimum'};
+	    $parameters->{'parameter'}->{'conditionalMassFunctionRedshiftMaximum'}->{'value'} = ${$config->{'redshift'}}[$redshiftIndex]->{'maximum'};
+	    $parameters->{'parameter'}->{$parameters->{'parameter'}->{'surveyGeometryMethod'}->{'value'}.'RedshiftBin'}->{'value'} = $redshiftIndex;
+	}
+	# Set file name.
+	$parameters->{'parameter'}->{'conditionalMassFunctionOutputFileName'}->{'value'} = $stageDirectory."/massFunctionBestFit.hdf5";
+	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
+	open(oHndl,">".$stageDirectory."/massFunctionGenerate.xml");
+	print oHndl $xmlOutput->XMLout($parameters);
+	close(oHndl);
+	system($galacticusPath."Conditional_Mass_Function.exe ".$stageDirectory."/massFunctionGenerate.xml");
 	# Read the best fit mass function data.
-	my $bestFit      = new PDL::IO::HDF5($baseDirectory."stage".$stage."/massFunctionBestFit.hdf5");
+	my $bestFit      = new PDL::IO::HDF5($stageDirectory."/massFunctionBestFit.hdf5");
 	my $mass         = $bestFit->dataset('mass'        )->get();
 	my $massFunction = $bestFit->dataset('massFunction')->get();
+	# Construct mass function with surface brightness incompleteness if required.
+	my $massFunctionIncomplete = $massFunction->copy();
+	$massFunctionIncomplete = $bestFit->dataset('massFunctionIncomplete')->get()
+	    if ( exists($likelihood->{'modelSurfaceBrightness'}) && $likelihood->{'modelSurfaceBrightness'} eq "true" );
 	# Read the observational data.
-	my $observed             = new PDL::IO::HDF5($baseDirectory."stage".$stage."/".$constraintFileLeaf);
+	my $observed             = new PDL::IO::HDF5($stageDirectory."/".$constraintFileLeaf);
 	my $massObserved         = $observed->dataset('mass'                )->get();
 	my $massFunctionObserved = $observed->dataset('massFunctionObserved')->get();
 	my $covariance           = $observed->dataset('covariance'          )->get();
@@ -325,7 +436,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	# Create a plot of this.
 	my $plot;
 	my $gnuPlot;
-	my $plotFile = $baseDirectory."stage".$stage."/massFunctionBestFit.pdf";
+	my $plotFile = $stageDirectory."/massFunctionBestFit.pdf";
 	(my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
 	open($gnuPlot,"|gnuplot");
 	print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
@@ -346,10 +457,11 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	print $gnuPlot "set mytics 10\n";
 	print $gnuPlot "set format x '\$10^{\%L}\$'\n";
 	print $gnuPlot "set format y '\$10^{\%L}\$'\n";
-	my $xMinimum = 0.5*minimum($massObserved        );
-	my $xMaximum = 2.0*maximum($massObserved        );
-	my $yMinimum = 0.5*minimum($massFunctionObserved);
-	my $yMaximum = 2.0*maximum($massFunctionObserved);
+	my $nonZeroBins = which($massFunctionObserved > 1.0e-30);
+	my $xMinimum = 0.5*minimum($massObserved                        );
+	my $xMaximum = 2.0*maximum($massObserved                        );
+	my $yMinimum = 0.5*minimum($massFunctionObserved->($nonZeroBins));
+	my $yMaximum = 2.0*maximum($massFunctionObserved                );
 	print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
 	print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
 	print $gnuPlot "set pointsize 2.0\n";
@@ -365,6 +477,19 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    color      => $PrettyPlots::colorPairs{'mediumSeaGreen'},
 	    title      => $sourceLabel
 	    );
+	if ( exists($likelihood->{'modelSurfaceBrightness'}) && $likelihood->{'modelSurfaceBrightness'} eq "true" ) {
+	    &PrettyPlots::Prepare_Dataset(
+		 \$plot,
+		 $mass,
+		 $massFunctionIncomplete,
+		 style      => "point",
+		 weight     => [5,3],
+		 symbol     => [6,7],
+		 pointSize  => 0.5,
+		 color      => $PrettyPlots::colorPairs{'peachPuff'},
+		 title      => "Maximum likelihood fit (incomplete)"
+		);	 
+	}
 	&PrettyPlots::Prepare_Dataset(
 	    \$plot,
 	    $mass,
@@ -409,14 +534,14 @@ sub Submit_To_PBS {
 	if ( exists($jobDescriptor->{'name'}) );
     print oHndl "#PBS -V\n";
     print oHndl "cd \$PBS_O_WORKDIR\n";
-    print oHndl "export LD_LIBRARY_PATH=\$HOME/Galacticus/Tools/lib:\$HOME/Galacticus/Tools/lib64:\$LD_LIBRARY_PATH\n";
-    print oHndl "export PATH=\$HOME/Galacticus/Tools/bin:\$HOME/perl5/bin:\$PATH\n";
+    print oHndl "export LD_LIBRARY_PATH=\$HOME/Galacticus/OpenMPI/lib:\$HOME/Galacticus/Tools/lib:\$HOME/Galacticus/Tools/lib64:\$LD_LIBRARY_PATH\n";
+    print oHndl "export PATH=\$HOME/Galacticus/OpenMPI/bin:\$HOME/Galacticus/Tools/bin:\$HOME/perl5/bin:\$PATH\n";
     print oHndl "export GFORTRAN_ERROR_DUMPCORE=YES\n";
     print oHndl "export PERL_LOCAL_LIB_ROOT=\"\$HOME/perl5\"\n";
     print oHndl "export PERL_MB_OPT=\"--install_base \$HOME/perl5\"\n";
     print oHndl "export PERL_MM_OPT=\"INSTALL_BASE=\$HOME/perl5\"\n";
     print oHndl "export PERL5LIB=\"\$HOME/perl5/lib/perl5/x86_64-linux-thread-multi:\$HOME/perl5/lib/perl5\"\n";
-    print oHndl "export PYTHONPATH=\"\$HOME/Galacticus/Tools/py-lib\"\n";
+    print oHndl "export PYTHONPATH=\"\$HOME/Galacticus/Tools/lib/python:\$HOME/Galacticus/Tools/lib/python2.7:/share/apps/atipa/acms/lib\"\n";
     print oHndl "ulimit -t unlimited\n";
     print oHndl "ulimit -c unlimited\n";
     print oHndl $jobDescriptor->{'commands'};
@@ -444,23 +569,7 @@ sub Submit_To_PBS {
 	    }
 	}
 	close(pHndl);
-	sleep 60;
+	sleep 10;
     }
 
-}
-
-sub Make_Stage_Specific {
-    # Make a copy of a file that is specific to the given stage.
-    my $stage = shift;
-    my $from  = shift;
-    my $to    = shift;
-    # Copy the file, inserting the stage number where necessary.
-    open(iHndl,$from);
-    open(oHndl,">".$to);
-    while ( my $line = <iHndl> ) {
-	$line =~ s/\%STAGE/$stage/g;
-	print oHndl $line;
-    }
-    close(iHndl);
-    close(oHndl);
 }
