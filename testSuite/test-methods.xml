@@ -772,6 +772,26 @@
     </parameter>
   </parameters>
 
+  <!-- Calculation of luminosities at all output redshifts -->
+  <parameters>
+    <parameter>
+      <name>luminosityFilter</name>
+      <value>RGO_I SDSS_g SDSS_r SDSS_i</value>
+    </parameter> 
+    <parameter>
+      <name>luminosityType</name>
+      <value>rest observed observed observed</value>
+    </parameter> 
+    <parameter>
+      <name>luminosityRedshift</name>
+      <value>all all all all</value>
+    </parameter>
+    <parameter>
+      <name>outputRedshifts</name>
+      <value>0.064 0.041 0.020 0.000</value>
+    </parameter>
+  </parameters>
+
   <!-- Black hole wind efficiencies -->
   <parameters>
     <parameter>
