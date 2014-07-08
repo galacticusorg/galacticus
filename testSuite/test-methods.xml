@@ -792,6 +792,26 @@
     </parameter>
   </parameters>
 
+  <!-- Calculation of luminosities with top-hat filters -->
+  <parameters>
+    <parameter>
+      <name>luminosityFilter</name>
+      <value>topHat_2000_10 topHat_4000_5 topHat_6000_3 topHat_7000_2</value>
+    </parameter> 
+    <parameter>
+      <name>luminosityType</name>
+      <value>rest rest rest rest</value>
+    </parameter> 
+    <parameter>
+      <name>luminosityRedshift</name>
+      <value>0.0 0.0 0.0 0.0</value>
+    </parameter>
+    <parameter>
+      <name>outputRedshifts</name>
+      <value>0.0</value>
+    </parameter>
+  </parameters>
+
   <!-- Black hole wind efficiencies -->
   <parameters>
     <parameter>
