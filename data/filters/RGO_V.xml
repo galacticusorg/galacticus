@@ -1,0 +1,90 @@
+<filter>
+  <description>RGO V filter</description>
+  <name>RGO V</name>
+  <origin>unknown</origin>
+  <response>
+    <datum>   4600.000      0.0000000E+00</datum>
+    <datum>   4625.000      0.0000000E+00</datum>
+    <datum>   4650.000      0.0000000E+00</datum>
+    <datum>   4675.000      0.0000000E+00</datum>
+    <datum>   4700.000      0.0000000E+00</datum>
+    <datum>   4725.000      0.0000000E+00</datum>
+    <datum>   4750.000      0.0000000E+00</datum>
+    <datum>   4775.000      0.0000000E+00</datum>
+    <datum>   4800.000      2.9999999E-02</datum>
+    <datum>   4825.000      9.6015617E-02</datum>
+    <datum>   4850.000      0.1653125    </datum>
+    <datum>   4875.000      0.2378906    </datum>
+    <datum>   4900.000      0.3137500    </datum>
+    <datum>   4925.000      0.3928906    </datum>
+    <datum>   4950.000      0.4753125    </datum>
+    <datum>   4975.000      0.5610156    </datum>
+    <datum>   5000.000      0.6500000    </datum>
+    <datum>   5025.000      0.7226562    </datum>
+    <datum>   5050.000      0.7906250    </datum>
+    <datum>   5075.000      0.8539063    </datum>
+    <datum>   5100.000      0.9125000    </datum>
+    <datum>   5125.000      0.9664062    </datum>
+    <datum>   5150.000       1.015625    </datum>
+    <datum>   5175.000       1.060156    </datum>
+    <datum>   5200.000       1.100000    </datum>
+    <datum>   5225.000       1.120000    </datum>
+    <datum>   5250.000       1.135000    </datum>
+    <datum>   5275.000       1.145000    </datum>
+    <datum>   5300.000       1.150000    </datum>
+    <datum>   5325.000       1.150000    </datum>
+    <datum>   5350.000       1.145000    </datum>
+    <datum>   5375.000       1.135000    </datum>
+    <datum>   5400.000       1.120000    </datum>
+    <datum>   5425.000       1.105820    </datum>
+    <datum>   5450.000       1.088906    </datum>
+    <datum>   5475.000       1.069258    </datum>
+    <datum>   5500.000       1.046875    </datum>
+    <datum>   5525.000       1.021758    </datum>
+    <datum>   5550.000      0.9939063    </datum>
+    <datum>   5575.000      0.9633204    </datum>
+    <datum>   5600.000      0.9300000    </datum>
+    <datum>   5625.000      0.8925781    </datum>
+    <datum>   5650.000      0.8540626    </datum>
+    <datum>   5675.000      0.8144531    </datum>
+    <datum>   5700.000      0.7737501    </datum>
+    <datum>   5725.000      0.7319531    </datum>
+    <datum>   5750.000      0.6890625    </datum>
+    <datum>   5775.000      0.6450782    </datum>
+    <datum>   5800.000      0.6000000    </datum>
+    <datum>   5825.000      0.5543751    </datum>
+    <datum>   5850.000      0.5100000    </datum>
+    <datum>   5875.000      0.4668750    </datum>
+    <datum>   5900.000      0.4250000    </datum>
+    <datum>   5925.000      0.3843750    </datum>
+    <datum>   5950.000      0.3450000    </datum>
+    <datum>   5975.000      0.3068750    </datum>
+    <datum>   6000.000      0.2700000    </datum>
+    <datum>   6025.000      0.2416406    </datum>
+    <datum>   6050.000      0.2153125    </datum>
+    <datum>   6075.000      0.1910156    </datum>
+    <datum>   6100.000      0.1687500    </datum>
+    <datum>   6125.000      0.1485156    </datum>
+    <datum>   6150.000      0.1303125    </datum>
+    <datum>   6175.000      0.1141406    </datum>
+    <datum>   6200.000      0.1000000    </datum>
+    <datum>   6225.000      8.7421872E-02</datum>
+    <datum>   6250.000      7.5937502E-02</datum>
+    <datum>   6275.000      6.5546870E-02</datum>
+    <datum>   6300.000      5.6249995E-02</datum>
+    <datum>   6325.000      4.8046872E-02</datum>
+    <datum>   6350.000      4.0937498E-02</datum>
+    <datum>   6375.000      3.4921873E-02</datum>
+    <datum>   6400.000      2.9999999E-02</datum>
+    <datum>   6425.000      2.4062498E-02</datum>
+    <datum>   6450.000      1.8750001E-02</datum>
+    <datum>   6475.000      1.4062500E-02</datum>
+    <datum>   6500.000      9.9999998E-03</datum>
+    <datum>   6525.000      6.5624993E-03</datum>
+    <datum>   6550.000      3.7500001E-03</datum>
+    <datum>   6575.000      1.5624999E-03</datum>
+    <datum>   6600.000      0.0000000E+00</datum>
+  </response>
+  <effectiveWavelength>5439.44789621543</effectiveWavelength>
+  <vegaOffset>0.00798067813225093</vegaOffset>
+</filter>
