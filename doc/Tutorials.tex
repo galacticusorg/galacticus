@@ -426,7 +426,7 @@ will plot the \gls{sed} of node 217, in merger tree 9, at output 5 from the {\tt
   <value>observed</value>
  </parameter>
 \end{verbatim}
-This would result in a dataset called {\tt diskLuminositiesStellar:SDSS\_r:observed:z0.1000} being output (along with a similar dataset for the spheroid component), corresponding to the luminosity in the SDSS r-band filter, as observed at $z=0.1$. To get the same filter but in the rest-frame of the galaxy, change the {\tt luminosityType} to ``{\tt rest}''. Available filters can be found in the {\tt data/filters} folder. Luminosities are always output in units of the zero-point of the AB magnitude system, such that $-2.5\log_{10}L$ (where $L$ is the output luminosity) gives the AB absolute magnitude of the galaxy.
+This would result in a dataset called {\tt diskLuminositiesStellar:SDSS\_r:observed:z0.1000} being output (along with a similar dataset for the spheroid component), corresponding to the luminosity in the SDSS r-band filter, as observed at $z=0.1$. To get the same filter but in the rest-frame of the galaxy, change the {\tt luminosityType} to ``{\tt rest}''. If instead of specifying a unique redshift you instead specify ``{\tt all}'' for a filter in the {\tt luminosityRedshift} element, then the filter will be replicated to all output redshifts. Available filters can be found in the {\tt data/filters} folder. Luminosities are always output in units of the zero-point of the AB magnitude system, such that $-2.5\log_{10}L$ (where $L$ is the output luminosity) gives the AB absolute magnitude of the galaxy.
 
 You can add additional luminosities by simply adding more entries in these parameter values. For example:
 \begin{verbatim}
