@@ -949,18 +949,25 @@ contains
     use Galacticus_Output_Times
     use Cosmology_Functions
     use Memory_Management
+    use String_Handling
     implicit none
     type            (varying_string         ), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
          &                                                                                 luminosityType           , luminosityPostprocessSet
     double precision                         , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
     integer                                                                             :: i                        , outputCount                , &
-         &                                                                                 luminosityCount          , j
+         &                                                                                 newFilterCount          , j                                                                                
     type            (varying_string         )               , allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
          &                                                                                 luminosityTypeTmp        , luminosityPostprocessSetTmp
+    type            (varying_string         )                            , dimension(4) :: specialFilterWords
     double precision                                        , allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
     class           (cosmologyFunctionsClass), pointer                                  :: cosmologyFunctions_
-    character       (len=32                 )                                           :: redshiftLabel
-    double precision                                                                    :: outputRedshift
+    character       (len=32                 )                                           :: redshiftLabel            , word                     , &
+         &                                                                                 wavelengthCentralLabel   , resolutionLabel
+    character       (len=128                )                                           :: newFilterName
+    double precision                                                                    :: outputRedshift           , resolution               , &
+         &                                                                                 wavelengthMinimum        , wavelengthMaximum        , &
+         &                                                                                 wavelengthRatio          , wavelengthCentral        , &
+         &                                                                                 wavelengthLow            , wavelengthHigh
 
     ! Get cosmology functions.
     cosmologyFunctions_ => cosmologyFunctions()
@@ -972,35 +979,23 @@ contains
        ! Check for special cases.
        if (luminosityRedshiftText(i) == "all") then
           ! Resize the arrays.
-          luminosityCount=size(luminosityRedshiftText)
-          call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
-          call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
-          call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
-          call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
-          call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
-          call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
-          allocate        (luminosityRedshiftText   (size(luminosityRedshiftTextTmp  )+outputCount-1))
-          allocate        (luminosityFilter         (size(luminosityFilterTmp        )+outputCount-1))
-          allocate        (luminosityType           (size(luminosityTypeTmp          )+outputCount-1))
-          allocate        (luminosityPostprocessSet (size(luminosityPostprocessSetTmp)+outputCount-1))
-          call Alloc_Array(luminosityRedshift      ,[size(luminosityRedshiftTmp      )+outputCount-1])
-          call Alloc_Array(luminosityBandRedshift  ,[size(luminosityBandRedshiftTmp  )+outputCount-1])
-          if (i > 1              ) then
-             luminosityRedshiftText  (1            :i                          -1)=luminosityRedshiftTextTmp  (1  :i-1            )
-             luminosityRedshift      (1            :i                          -1)=luminosityRedshiftTmp      (1  :i-1            )
-             luminosityBandRedshift  (1            :i                          -1)=luminosityBandRedshiftTmp  (1  :i-1            )
-             luminosityFilter        (1            :i                          -1)=luminosityFilterTmp        (1  :i-1            )
-             luminosityType          (1            :i                          -1)=luminosityTypeTmp          (1  :i-1            )
-             luminosityPostprocessSet(1            :i                          -1)=luminosityPostprocessSetTmp(1  :i-1            )
-          end if
-          if (i < luminosityCount) then
-             luminosityRedshiftText  (i+outputCount:luminosityCount+outputCount-1)=luminosityRedshiftTextTmp  (i+1:luminosityCount)
-             luminosityRedshift      (i+outputCount:luminosityCount+outputCount-1)=luminosityRedshiftTmp      (i+1:luminosityCount)
-             luminosityBandRedshift  (i+outputCount:luminosityCount+outputCount-1)=luminosityBandRedshiftTmp  (i+1:luminosityCount)
-             luminosityFilter        (i+outputCount:luminosityCount+outputCount-1)=luminosityFilterTmp        (i+1:luminosityCount)
-             luminosityType          (i+outputCount:luminosityCount+outputCount-1)=luminosityTypeTmp          (i+1:luminosityCount)
-             luminosityPostprocessSet(i+outputCount:luminosityCount+outputCount-1)=luminosityPostprocessSetTmp(i+1:luminosityCount)
-          end if
+          call Stellar_Luminosities_Expand_Filter_Set( &
+               & i                          ,          &
+               & outputCount                ,          &
+               & luminosityRedshiftText     ,          &
+               & luminosityFilter           ,          &
+               & luminosityType             ,          &
+               & luminosityPostprocessSet   ,          &
+               & luminosityRedshift         ,          &
+               & luminosityBandRedshift     ,          &
+               & luminosityRedshiftTextTmp  ,          &
+               & luminosityFilterTmp        ,          &
+               & luminosityTypeTmp          ,          &
+               & luminosityPostprocessSetTmp,          &
+               & luminosityRedshiftTmp      ,          &
+               & luminosityBandRedshiftTmp             &
+               &                                     )
+          ! Modify new filtres.
           do j=1,outputCount
              outputRedshift=cosmologyFunctions_%redshiftFromExpansionFactor(                           &
                   &          cosmologyFunctions_%expansionFactor            (                          &
@@ -1015,9 +1010,63 @@ contains
              else
                 luminosityBandRedshift(j+i-1)=luminosityBandRedshiftTmp  (i)
              end if
-             luminosityFilter         (j+i-1)=luminosityFilterTmp        (i)
+          end do
+          deallocate        (luminosityRedshiftTextTmp  )
+          deallocate        (luminosityFilterTmp        )
+          deallocate        (luminosityTypeTmp          )
+          deallocate        (luminosityPostprocessSetTmp)     
+          call Dealloc_Array(luminosityRedshiftTmp      )
+          call Dealloc_Array(luminosityBandRedshiftTmp  )
+       end if
+       ! Arrays of top-hat filters.
+       if (extract(luminosityFilter(i),1,12) == "topHatArray_") then
+          call String_Split_Words(specialFilterWords,char(luminosityFilter(i)),separator="_")
+          word=char(specialFilterWords(2))
+          read (word,*) wavelengthMinimum
+          word=char(specialFilterWords(3))
+          read (word,*) wavelengthMaximum
+          word=char(specialFilterWords(4))
+          read (word,*) resolution
+          ! Determine the ratio of central wavelengths for successive filters.
+          wavelengthRatio=                                &
+               &  (sqrt(4.0d0*resolution**2+1.0d0)+1.0d0) &
+               & /(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)
+          newFilterCount=int(log(wavelengthMaximum/wavelengthMinimum)/log(wavelengthRatio))
+          ! Resize the arrays.
+          call Stellar_Luminosities_Expand_Filter_Set( &
+               & i                          ,          &
+               & newFilterCount             ,          &
+               & luminosityRedshiftText     ,          &
+               & luminosityFilter           ,          &
+               & luminosityType             ,          &
+               & luminosityPostprocessSet   ,          &
+               & luminosityRedshift         ,          &
+               & luminosityBandRedshift     ,          &
+               & luminosityRedshiftTextTmp  ,          &
+               & luminosityFilterTmp        ,          &
+               & luminosityTypeTmp          ,          &
+               & luminosityPostprocessSetTmp,          &
+               & luminosityRedshiftTmp      ,          &
+               & luminosityBandRedshiftTmp             &
+               &                                     )
+          ! Compute central wavelength of the initial filter.
+          j=0
+          wavelengthCentral=wavelengthMinimum/((sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution)
+          do while (wavelengthCentral < wavelengthMaximum)
+             j=j+1
+             ! Compute the appropriate filter name.
+             write (wavelengthCentralLabel,'(f11.3)') wavelengthCentral
+             write (       resolutionLabel,'(f10.2)') resolution
+             write (newFilterName,'(a,a,a,a)') "topHat_",trim(adjustl(wavelengthCentralLabel)),"_",trim(adjustl(resolutionLabel))
+             ! Create new filter.
+             luminosityRedshiftText   (j+i-1)=luminosityRedshiftTextTmp  (i)
+             luminosityRedshift       (j+i-1)=luminosityRedshiftTmp      (i)
+             luminosityBandRedshift   (j+i-1)=luminosityBandRedshiftTmp  (i)
+             luminosityFilter         (j+i-1)=trim(newFilterName)
              luminosityType           (j+i-1)=luminosityTypeTmp          (i)
              luminosityPostprocessSet (j+i-1)=luminosityPostprocessSetTmp(i)
+             ! Increase the central wavelength.
+             wavelengthCentral=wavelengthCentral*wavelengthRatio
           end do
           deallocate        (luminosityRedshiftTextTmp  )
           deallocate        (luminosityFilterTmp        )
@@ -1031,5 +1080,71 @@ contains
     end do
     return
   end subroutine Stellar_Luminosities_Special_Cases
+
+  subroutine Stellar_Luminosities_Expand_Filter_Set( &
+       & expandFrom                 ,                &
+       & expandCount                ,                &
+       & luminosityRedshiftText     ,                &
+       & luminosityFilter           ,                &
+       & luminosityType             ,                &
+       & luminosityPostprocessSet   ,                &
+       & luminosityRedshift         ,                &
+       & luminosityBandRedshift     ,                &
+       & luminosityRedshiftTextTmp  ,                &
+       & luminosityFilterTmp        ,                &
+       & luminosityTypeTmp          ,                &
+       & luminosityPostprocessSetTmp,                &
+       & luminosityRedshiftTmp      ,                &
+       & luminosityBandRedshiftTmp                   &
+       &                                           )
+    !% Expand the filter set by removing the filter at index {\tt expandFrom} by adding {\tt expandCount} replicas of the filter at that point.
+    use Memory_Management
+    implicit none
+    integer                         , intent(in   )                            :: expandFrom               , expandCount
+    type            (varying_string), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
+         &                                                                        luminosityType           , luminosityPostprocessSet
+    double precision                , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
+    type            (varying_string), intent(inout), allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
+         &                                                                        luminosityTypeTmp        , luminosityPostprocessSetTmp
+    double precision                , intent(inout), allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
+    integer                                                                    :: luminosityCount
+
+    luminosityCount=size(luminosityRedshiftText)
+    call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
+    call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
+    call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
+    call Move_Alloc (luminosityFilter        ,luminosityFilterTmp        )
+    call Move_Alloc (luminosityType          ,luminosityTypeTmp          )
+    call Move_Alloc (luminosityPostprocessSet,luminosityPostprocessSetTmp)
+    allocate        (luminosityRedshiftText   (size(luminosityRedshiftTextTmp  )+expandCount-1))
+    allocate        (luminosityFilter         (size(luminosityFilterTmp        )+expandCount-1))
+    allocate        (luminosityType           (size(luminosityTypeTmp          )+expandCount-1))
+    allocate        (luminosityPostprocessSet (size(luminosityPostprocessSetTmp)+expandCount-1))
+    call Alloc_Array(luminosityRedshift      ,[size(luminosityRedshiftTmp      )+expandCount-1])
+    call Alloc_Array(luminosityBandRedshift  ,[size(luminosityBandRedshiftTmp  )+expandCount-1])
+    if (expandFrom > 1              ) then
+       luminosityRedshiftText  (1            :expandFrom                          -1)=luminosityRedshiftTextTmp  (1  :expandFrom-1            )
+       luminosityRedshift      (1            :expandFrom                          -1)=luminosityRedshiftTmp      (1  :expandFrom-1            )
+       luminosityBandRedshift  (1            :expandFrom                          -1)=luminosityBandRedshiftTmp  (1  :expandFrom-1            )
+       luminosityFilter        (1            :expandFrom                          -1)=luminosityFilterTmp        (1  :expandFrom-1            )
+       luminosityType          (1            :expandFrom                          -1)=luminosityTypeTmp          (1  :expandFrom-1            )
+       luminosityPostprocessSet(1            :expandFrom                          -1)=luminosityPostprocessSetTmp(1  :expandFrom-1            )
+    end if
+    if (expandFrom < luminosityCount) then
+       luminosityRedshiftText  (expandFrom+expandCount:luminosityCount+expandCount-1)=luminosityRedshiftTextTmp  (expandFrom+1:luminosityCount)
+       luminosityRedshift      (expandFrom+expandCount:luminosityCount+expandCount-1)=luminosityRedshiftTmp      (expandFrom+1:luminosityCount)
+       luminosityBandRedshift  (expandFrom+expandCount:luminosityCount+expandCount-1)=luminosityBandRedshiftTmp  (expandFrom+1:luminosityCount)
+       luminosityFilter        (expandFrom+expandCount:luminosityCount+expandCount-1)=luminosityFilterTmp        (expandFrom+1:luminosityCount)
+       luminosityType          (expandFrom+expandCount:luminosityCount+expandCount-1)=luminosityTypeTmp          (expandFrom+1:luminosityCount)
+       luminosityPostprocessSet(expandFrom+expandCount:luminosityCount+expandCount-1)=luminosityPostprocessSetTmp(expandFrom+1:luminosityCount)
+    end if
+    luminosityRedshiftText     (expandFrom            :expandFrom     +expandCount-1)=luminosityRedshiftTextTmp  (expandFrom                  )
+    luminosityRedshift         (expandFrom            :expandFrom     +expandCount-1)=luminosityRedshiftTmp      (expandFrom                  )
+    luminosityBandRedshift     (expandFrom            :expandFrom     +expandCount-1)=luminosityBandRedshiftTmp  (expandFrom                  )
+    luminosityFilter           (expandFrom            :expandFrom     +expandCount-1)=luminosityFilterTmp        (expandFrom                  )
+    luminosityType             (expandFrom            :expandFrom     +expandCount-1)=luminosityTypeTmp          (expandFrom                  )
+    luminosityPostprocessSet   (expandFrom            :expandFrom     +expandCount-1)=luminosityPostprocessSetTmp(expandFrom                  )
+    return
+  end subroutine Stellar_Luminosities_Expand_Filter_Set
 
 end module Stellar_Luminosities_Structure
