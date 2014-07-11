@@ -33,13 +33,18 @@
      !% Constructors for the {\tt duttonMaccio2014} dark matter halo profile concentration class.
      module procedure duttonMaccio2014DefaultConstructor
      module procedure duttonMaccio2014Constructor
+     module procedure duttonMaccio2014UserDefinedConstructor
   end interface darkMatterProfileConcentrationDuttonMaccio2014
 
   ! Initialization status.
-  logical                 :: duttonMaccio2014Initialized=.false.
+  logical                          :: duttonMaccio2014Initialized=.false.
 
   ! Type of fit used for the concentration-mass relation.
-  type   (varying_string) :: duttonMaccio2014FitType
+  type            (varying_string) :: duttonMaccio2014FitType
+
+  ! Parameters for user-defined fit.
+  double precision                 :: duttonMaccio2014A1, duttonMaccio2014A2, duttonMaccio2014A3, duttonMaccio2014A4, &
+       &                              duttonMaccio2014B1, duttonMaccio2014B2
 
 contains
 
@@ -58,19 +63,87 @@ contains
           !@   <defaultValue>nfwVirial</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     The parameter $A$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
+          !@     Option controlling which of \cite{dutton_cold_2014}'s fits to the halo concentration--mass relation to use.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter("duttonMaccio2014FitType",duttonMaccio2014FitType,defaultValue="nfwVirial")
+          ! Check for user-defined fit.
+          if (duttonMaccio2014FitType == "userDefined") then
+             ! Get user-defined parameters.
+             !@ <inputParameter>
+             !@   <name>duttonMaccio2014A1</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     Parameter $a_1$ in the \cite{dutton_cold_2014} halo concentration--mass relation.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter("duttonMaccio2014A1",duttonMaccio2014A1)
+             !@ <inputParameter>
+             !@   <name>duttonMaccio2014A2</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     Parameter $a_2$ in the \cite{dutton_cold_2014} halo concentration--mass relation.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter("duttonMaccio2014A2",duttonMaccio2014A2)
+             !@ <inputParameter>
+             !@   <name>duttonMaccio2014A3</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     Parameter $a_3$ in the \cite{dutton_cold_2014} halo concentration--mass relation.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter("duttonMaccio2014A3",duttonMaccio2014A3)
+             !@ <inputParameter>
+             !@   <name>duttonMaccio2014A4</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     Parameter $a_4$ in the \cite{dutton_cold_2014} halo concentration--mass relation.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter("duttonMaccio2014A4",duttonMaccio2014A4)
+             !@ <inputParameter>
+             !@   <name>duttonMaccio2014B1</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     Parameter $b_1$ in the \cite{dutton_cold_2014} halo concentration--mass relation.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter("duttonMaccio2014B1",duttonMaccio2014B1)
+             !@ <inputParameter>
+             !@   <name>duttonMaccio2014B2</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     Parameter $b_2$ in the \cite{dutton_cold_2014} halo concentration--mass relation.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter("duttonMaccio2014B2",duttonMaccio2014B2)
+          end if
           ! Record that method is now initialized.
           duttonMaccio2014Initialized=.true.
        end if
        !$omp end critical(duttonMaccio2014DefaultInitialize)
     end if
     ! Construct the object.
-    duttonMaccio2014DefaultConstructor=duttonMaccio2014Constructor(char(duttonMaccio2014FitType))
+    if (duttonMaccio2014FitType == "userDefined") then
+       duttonMaccio2014DefaultConstructor=duttonMaccio2014UserDefinedConstructor(duttonMaccio2014A1,duttonMaccio2014A2,duttonMaccio2014A3,duttonMaccio2014A4,duttonMaccio2014B1,duttonMaccio2014B2)
+   else
+       duttonMaccio2014DefaultConstructor=duttonMaccio2014Constructor(char(duttonMaccio2014FitType))
+    end if
     return
   end function duttonMaccio2014DefaultConstructor
 
@@ -108,6 +181,22 @@ contains
     end select
     return
   end function duttonMaccio2014Constructor
+  
+  function duttonMaccio2014UserDefinedConstructor(a1,a2,a3,a4,b1,b2)
+    !% Constructor for the {\tt duttonMaccio2014} dark matter halo profile concentration class with user defined parameters.
+    use Galacticus_Error
+    implicit none
+    type           (darkMatterProfileConcentrationDuttonMaccio2014)                :: duttonMaccio2014UserDefinedConstructor
+    double precision                                               , intent(in   ) :: a1, a2, a3, a4, b1, b2
+
+    duttonMaccio2014UserDefinedConstructor%a1=a1
+    duttonMaccio2014UserDefinedConstructor%a2=a2
+    duttonMaccio2014UserDefinedConstructor%a3=a3
+    duttonMaccio2014UserDefinedConstructor%a4=a4
+    duttonMaccio2014UserDefinedConstructor%b1=b1
+    duttonMaccio2014UserDefinedConstructor%b2=b2
+    return
+  end function duttonMaccio2014UserDefinedConstructor
   
   double precision function duttonMaccio2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\tt node} using the \cite{dutton_cold_2014} algorithm.

@@ -53,8 +53,11 @@ module Stellar_Population_Luminosities
   ! Tolerance used in integrations.
   double precision                                             :: stellarPopulationLuminosityIntegrationToleranceRelative
 
-  ! Optoin controlling writing of luminosities to file.
+  ! Option controlling writing of luminosities to file.
   logical                                                      :: stellarPopulationLuminosityStoreToFile
+
+  ! Option controlling behavior when maximum age of stellar populations is exceeded.
+  logical                                                      :: stellarPopulationLuminosityMaximumAgeExceededIsFatal
 
 contains
 
@@ -77,6 +80,7 @@ contains
     use String_Handling
     use IO_HDF5
     use File_Utilities
+    use MPI_Utilities
     implicit none
     integer                                                                                    , intent(in   ) :: filterIndex                  (:), imfIndex                   , &
          &                                                                                                        luminosityIndex              (:), postprocessingChainIndex(:)
@@ -129,6 +133,18 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarPopulationLuminosityStoreToFile',stellarPopulationLuminosityStoreToFile,defaultValue=.true.)
+       ! Read the parameter controlling behavior if maximum age of stellar populations are exceeded.
+       !@ <inputParameter>
+       !@   <name>stellarPopulationLuminosityMaximumAgeExceededIsFatal</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether or not exceeding the maximum available age of the stellar population is fatal.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('stellarPopulationLuminosityMaximumAgeExceededIsFatal',stellarPopulationLuminosityMaximumAgeExceededIsFatal,defaultValue=.true.)
        ! Flag that this module is now initialized.
        moduleInitialized=.true.
     end if
@@ -279,7 +295,7 @@ contains
              luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:) &
                   &=luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:)/normalization
              ! Store the luminosities to file.
-             if (stellarPopulationLuminosityStoreToFile) then
+             if (stellarPopulationLuminosityStoreToFile.and.mpiSelf%isMaster()) then
                 ! Construct the dataset name.
                 write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
@@ -324,12 +340,19 @@ contains
           ! Get interpolation in age if the age for this luminosity differs from the previous one.
           if (iLuminosity == 1 .or. age(iLuminosity) /= ageLast) then
              ! Check for out of range age.
-             if (age(iLuminosity) > luminosityTables(imfIndex)%age(luminosityTables(imfIndex)%agesCount)) call&
-                  & Galacticus_Error_Report('Stellar_Population_Luminosity','age exceeds the maximum tabulated')
-             iAge=Interpolate_Locate(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age &
-                  &,luminosityTables(imfIndex)%interpolationAcceleratorAge,age(iLuminosity),luminosityTables(imfIndex)%resetAge)
-             hAge=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age,iAge&
-                  &,age(iLuminosity))
+             if (age(iLuminosity) > luminosityTables(imfIndex)%age(luminosityTables(imfIndex)%agesCount)) then
+                if (stellarPopulationLuminosityMaximumAgeExceededIsFatal) then
+                   call Galacticus_Error_Report('Stellar_Population_Luminosity','age exceeds the maximum tabulated')
+                else
+                   iAge=luminosityTables(imfIndex)%agesCount-1
+                   hAge=[0.0d0,1.0d0]
+                end if
+             else
+                iAge=Interpolate_Locate(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age &
+                     &,luminosityTables(imfIndex)%interpolationAcceleratorAge,age(iLuminosity),luminosityTables(imfIndex)%resetAge)
+                hAge=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age,iAge&
+                     &,age(iLuminosity))
+             end if
              ageLast=age(iLuminosity)
           end if
           do jAge=0,1
