@@ -23,14 +23,14 @@ module Galacticus_Output_Times
   private
   public :: Galacticus_Output_Time_Count, Galacticus_Output_Time         , &
        &    Galacticus_Next_Output_Time , Galacticus_Previous_Output_Time, &
-       &    Galacticus_Output_Time_Index
+       &    Galacticus_Output_Time_Index, Galacticus_Output_Redshift
 
   ! Flag to indicate if output times have been initialized.
   logical                                     :: outputsInitialized=.false.
 
   ! Array of output times.
   integer                                     :: outputCount
-  double precision, allocatable, dimension(:) :: outputTimes
+  double precision, allocatable, dimension(:) :: outputTimes, outputRedshifts
 
 contains
 
@@ -51,7 +51,8 @@ contains
        if (.not.outputsInitialized) then
           ! Get a list of output redshifts - stored temporarily in the outputTimes array.
           outputCount=max(Get_Input_Parameter_Array_Size('outputRedshifts'),1)
-          call Alloc_Array(outputTimes,[outputCount])
+          call Alloc_Array(outputRedshifts,[outputCount])
+          call Alloc_Array(outputTimes    ,[outputCount])
           !@ <inputParameter>
           !@   <name>outputRedshifts</name>
           !@   <defaultValue>0</defaultValue>
@@ -65,20 +66,23 @@ contains
           !@ </inputParameter>
           if (outputCount == 1) then
              ! If only one (or zero) output redshifts present, make redshift zero the default.
-             call Get_Input_Parameter('outputRedshifts',outputTimes,defaultValue=[0.0d0])
+             call Get_Input_Parameter('outputRedshifts',outputRedshifts,defaultValue=[0.0d0])
           else
-             call Get_Input_Parameter('outputRedshifts',outputTimes                     )
+             call Get_Input_Parameter('outputRedshifts',outputRedshifts                     )
           end if
           ! Get the default cosmology functions object.
           cosmologyFunctionsDefault => cosmologyFunctions()
+
+          ! Sort the redshifts.
+          outputRedshifts=-outputRedshifts
+          call Sort_Do(outputRedshifts)
+          outputRedshifts=-outputRedshifts
+
           ! Convert redshifts to times.
           do iOutput=1,outputCount
-             aExpansion=cosmologyFunctionsDefault%expansionFactorFromRedshift(outputTimes(iOutput))
+             aExpansion=cosmologyFunctionsDefault%expansionFactorFromRedshift(outputRedshifts(iOutput))
              outputTimes(iOutput)=cosmologyFunctionsDefault%cosmicTime(aExpansion)
           end do
-
-          ! Sort the times.
-          call Sort_Do(outputTimes)
 
           ! Set history ranges to include these times.
           call History_Set_Times(timeEarliest=outputTimes(1),timeLatest=outputTimes(outputCount))
@@ -119,6 +123,23 @@ contains
     end if
     return
   end function Galacticus_Output_Time
+
+  double precision function Galacticus_Output_Redshift(iOutput)
+    !% Returns the redshift of the output indexed by {\tt iOutput}.
+    implicit none
+    integer, intent(in   ) :: iOutput
+
+    ! Ensure the module is initialized.
+    call Output_Times_Initialize()
+
+    ! Return the requested output time.
+    if (iOutput >=1 .and. iOutput <= outputCount) then
+       Galacticus_Output_Redshift=outputRedshifts(iOutput)
+    else
+       Galacticus_Output_Redshift=-2.0d0
+    end if
+    return
+  end function Galacticus_Output_Redshift
 
   integer function Galacticus_Output_Time_Index(time)
     !% Returns the index of the output given the corresponding time.
