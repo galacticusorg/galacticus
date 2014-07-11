@@ -995,13 +995,9 @@ contains
                & luminosityRedshiftTmp      ,          &
                & luminosityBandRedshiftTmp             &
                &                                     )
-          ! Modify new filtres.
+          ! Modify new filters.
           do j=1,outputCount
-             outputRedshift=cosmologyFunctions_%redshiftFromExpansionFactor(                           &
-                  &          cosmologyFunctions_%expansionFactor            (                          &
-                  &                                                          Galacticus_Output_Time(j) &
-                  &                                                         )                          &
-                  &                                                        )
+             outputRedshift=Galacticus_Output_Redshift(j)
              write (redshiftLabel,*) outputRedshift
              luminosityRedshiftText   (j+i-1)=redshiftLabel
              luminosityRedshift       (j+i-1)=outputRedshift
@@ -1031,7 +1027,12 @@ contains
           wavelengthRatio=                                &
                &  (sqrt(4.0d0*resolution**2+1.0d0)+1.0d0) &
                & /(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)
-          newFilterCount=int(log(wavelengthMaximum/wavelengthMinimum)/log(wavelengthRatio))
+          newFilterCount=0
+          wavelengthCentral=wavelengthMinimum/((sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution)
+          do while (wavelengthCentral < wavelengthMaximum)
+             newFilterCount=newFilterCount+1
+             wavelengthCentral=wavelengthCentral*wavelengthRatio
+          end do
           ! Resize the arrays.
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
