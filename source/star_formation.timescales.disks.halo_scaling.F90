@@ -112,9 +112,9 @@ contains
     class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
     class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
     double precision                         , parameter              :: virialVelocityNormalization=200.0d0
-    double precision                    , save                   :: velocityPrevious           =-1.0d0, velocityFactorPrevious       =-1.0d0
+    double precision                         , save                   :: velocityPrevious           =-1.0d0, velocityFactorPrevious       =-1.0d0
     !$omp threadprivate(velocityPrevious,velocityFactorPrevious)
-    double precision                    , save                   :: expansionFactorPrevious    =-1.0d0, expansionFactorFactorPrevious=-1.0d0
+    double precision                         , save                   :: expansionFactorPrevious    =-1.0d0, expansionFactorFactorPrevious=-1.0d0
     !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
     double precision                                                  :: expansionFactor                    , virialVelocity
 
