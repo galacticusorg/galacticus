@@ -75,13 +75,14 @@
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: destroy       => Merger_Tree_Destroy
-     procedure :: destroyBranch => Merger_Tree_Destroy_Branch
-     procedure :: getNode       => Merger_Tree_Node_Get
-     procedure :: createEvent   => Merger_Tree_Create_Event                      
-     procedure :: removeEvent   => Merger_Tree_Remove_Event               
-     procedure :: earliestTime  => Merger_Tree_Earliest_Time               
-     procedure :: latestTime    => Merger_Tree_Latest_Time               
+     procedure :: destroy              => Merger_Tree_Destroy
+     procedure :: destroyBranch        => Merger_Tree_Destroy_Branch
+     procedure :: getNode              => Merger_Tree_Node_Get
+     procedure :: createEvent          => Merger_Tree_Create_Event                      
+     procedure :: removeEvent          => Merger_Tree_Remove_Event               
+     procedure :: earliestTime         => Merger_Tree_Earliest_Time               
+     procedure :: earliestTimeEvolving => Merger_Tree_Earliest_Time_Evolving
+     procedure :: latestTime           => Merger_Tree_Latest_Time               
   end type mergerTree
 
   type, public :: treeEvent

@@ -338,8 +338,8 @@ contains
                    end if
                 end do
                 ! Check that tree reached required time. If it did not, we can evolve it no further.
-                treeTimeEarliest=thisTree%earliestTime()
-                treeTimeLatest  =thisTree%  latestTime()
+                treeTimeEarliest=thisTree%earliestTimeEvolving()
+                treeTimeLatest  =thisTree%  latestTime        ()
                 if     (                                                                        &
                      &   treeTimeLatest   > evolveToTime                                        &
                      &  .and.                                                                   &
