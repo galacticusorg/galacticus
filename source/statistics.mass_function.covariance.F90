@@ -311,14 +311,22 @@ contains
              if      (useCompleteness) then
                 binCompleteness=completenessObserved(i)
              else if (useNumber      ) then
-                binCompleteness=     numberObserved     (i  )  &
-                     &          /    massFunctionUse    (i  )  &
-                     &          /sum(volume             (i,:)) &
-                     &          /    logMassBinWidth(i)
+                if (numberObserved(i) > 0.0d0) then
+                   binCompleteness=     numberObserved     (i  )  &
+                        &          /    massFunctionUse    (i  )  &
+                        &          /sum(volume             (i,:)) &
+                        &          /    logMassBinWidth(i)
+                else
+                   binCompleteness=1.0d0
+                end if
              else
                 binCompleteness=1.0d0
              end if
-             covariancePoisson(i,j)=massFunctionUse(i)/binCompleteness/sum(volume(i,:))/logMassBinWidth(i)
+             if (massFunctionUse(i) > 0.0d0) then
+                covariancePoisson(i,j)=massFunctionUse(i)/binCompleteness/(sum(volume(i,:))*logMassBinWidth(i))
+             else
+                covariancePoisson(i,j)=1.0d0                             /(sum(volume(i,:))*logMassBinWidth(i))**2
+             end if
           end if
           
           ! Halo occupancy covariance.
@@ -354,23 +362,31 @@ contains
                      &              /logMassBinWidth(i)                       &
                      &              /logMassBinWidth(j)                       &
                      &              /volume(i,iField)                         &
-                     &              /volume(j,iField)                         &
-                     &              *massFunctionUse(i)                       & ! Renormalize to actual mass function.
-                     &              /massFunction   (i)                       & ! Accounts for any difference between model and data.
-                     &              *massFunctionUse(j)                       & ! Including incompleteness.
-                     &              /massFunction   (j)
+                     &              /volume(j,iField)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
+                if (massFunctionUse(i) > 0.0d0 .and. massFunctionUse(j) > 0.0d0) then
+                   ! Renormalize to actual mass function. Accounts for any difference between model and data. Including incompleteness.
+                   covarianceHalo(i,j)= covarianceHalo( i,j) &
+                        &              *massFunctionUse(i  ) &
+                        &              /massFunction   (i  ) &
+                        &              *massFunctionUse(  j) & 
+                        &              /massFunction   (  j)
+                end if
              end do
           end if
 
           ! Large-scale structure term.
-          if (includeLSS) covarianceLSS    (i,j) &
-               &           =varianceLSS    (i,j) &
-               &           *massFunctionUse(i  ) & ! Renormalize to actual mass function.
-               &           /massFunction   (i  ) & ! Accounts for any difference between model and data.
-               &           *massFunctionUse(  j) & ! Including incompleteness.
-               &           /massFunction   (  j)
-          
+          if (includeLSS) then
+             covarianceLSS(i,j)=varianceLSS(i,j)
+             if (massFunctionUse(i) > 0.0d0 .and. massFunctionUse(j) > 0.0d0) then
+                ! Renormalize to actual mass function. Accounts for any difference between model and data. Including incompleteness.
+                covarianceLSS(i,j)= covarianceLSS  (i,j) &
+                     &             *massFunctionUse(i  ) &
+                     &             /massFunction   (i  ) &
+                     &             *massFunctionUse(  j) &
+                     &             /massFunction   (  j)
+             end if
+          end if
        end do
     end do
 
@@ -522,6 +538,7 @@ contains
                &         surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binJ),jField)  &
                &       )
           angularFactor=0.0d0
+          !$omp parallel do reduction(+:angularFactor)
           do l=0,surveyGeometry_%angularPowerMaximumDegree()
              angularFactor=                                               &
                   &        +angularFactor                                 &
@@ -530,6 +547,7 @@ contains
                   &        *Angular_Power_Radial_Term   (x0i   ,x1i   ,l) &
                   &        *Angular_Power_Radial_Term   (x0j   ,x1j   ,l)
           end do
+          !$omp end parallel do
           Angular_Power_Integrand=Angular_Power_Integrand+powerSpectrumI*powerSpectrumJ*angularFactor
        end do
     end do
@@ -538,7 +556,7 @@ contains
   end function Angular_Power_Integrand
 
   double precision function Angular_Power_Radial_Term(x0,x1,l)
-    !% Computes the radial term in the expression for lareg scale structure variance.
+    !% Computes the radial term in the expression for large scale structure variance.
     use Numerical_Constants_Math
     use Gamma_Functions
     use Hypergeometric_Functions
