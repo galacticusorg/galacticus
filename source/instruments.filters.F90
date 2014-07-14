@@ -23,15 +23,15 @@ module Instruments_Filters
   use FGSL
   implicit none
   private
-  public :: Filter_Get_Index, Filter_Response, Filter_Extent, Filter_Vega_Offset, Filter_Name
+  public :: Filter_Get_Index, Filter_Response, Filter_Extent, Filter_Vega_Offset, Filter_Name, Filter_Wavelength_Effective
 
   type filterType
      !% A structure which holds filter response curves.
      integer                                                        :: nPoints
      double precision                   , allocatable, dimension(:) :: response                       , wavelength
      type            (varying_string   )                            :: name
-     logical                                                        :: vegaOffsetAvailable
-     double precision                                               :: vegaOffset
+     logical                                                        :: vegaOffsetAvailable            , wavelengthEffectiveAvailable
+     double precision                                               :: vegaOffset                     , wavelengthEffective
      ! Interpolation structures.
      logical                                                        :: reset                   =.true.
      type            (fgsl_interp_accel)                            :: interpolationAccelerator
@@ -228,5 +228,16 @@ contains
     Filter_Vega_Offset=filterResponses(filterIndex)%vegaOffset
     return
   end function Filter_Vega_Offset
+
+  double precision function Filter_Wavelength_Effective(filterIndex)
+    !% Return the effective wavelength for the specified filter.
+    use Galacticus_Error
+    implicit none
+    integer, intent(in   ) :: filterIndex
+
+    if (.not.filterResponses(filterIndex)%wavelengthEffectiveAvailable) call Galacticus_Error_Report('Filter_Wavelength_Effective','effective wavelength is not available')
+    Filter_Wavelength_Effective=filterResponses(filterIndex)%wavelengthEffective
+    return
+  end function Filter_Wavelength_Effective
 
 end module Instruments_Filters
