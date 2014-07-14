@@ -73,7 +73,11 @@ contains
     LNPFQ  = 0
     IX     = 0
     NSIGFIG=10
-    Hypergeometric_pFq_Complex=PFQ(a,b,size(a),size(b),x,LNPFQ,IX,NSIGFIG)
+    if (dreal(x) == 0.0d0) then
+       Hypergeometric_pFq_Complex=1.0d0
+    else
+       Hypergeometric_pFq_Complex=PFQ(a,b,size(a),size(b),x,LNPFQ,IX,NSIGFIG)
+    end if
     return
   end function Hypergeometric_pFq_Complex
 
