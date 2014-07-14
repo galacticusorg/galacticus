@@ -1034,7 +1034,7 @@ contains
           end if
 
           ! Build subhalo mass histories if required.
-          call Build_Subhalo_Mass_Histories(nodes,thisNodeList,historyTime,historyIndex,historyMass,position,velocity)
+          call Build_Subhalo_Mass_Histories(nodes,thisNodeList,historyCountMaximum,historyTime,historyIndex,historyMass,position,velocity)
 
           ! Assign new uniqueIDs to any cloned nodes inserted into the trees.
           call Assign_UniqueIDs_To_Clones(thisNodeList)
@@ -2215,7 +2215,6 @@ contains
              else
                 ! Set pointer from merging node (a.k.a. the "mergee") to node that will be merged with.
                 nodeList(nodes(iNode)%isolatedNodeIndex)%node%mergeTarget => nodeList(nodes(jNode)%isolatedNodeIndex)%node
-
                 ! Make a backward pointer from the merge target to the mergee. Check if the target already has mergees associated with it.
                 if (associated(nodeList(nodes(jNode)%isolatedNodeIndex)%node%firstMergee)) then
                    ! It does: unlink them and attached to the "siblingMergee" pointer of the current mergee.
@@ -2414,7 +2413,7 @@ contains
     return
   end subroutine Create_Branch_Jump_Event
 
-  subroutine Build_Subhalo_Mass_Histories(nodes,nodeList,historyTime,historyIndex,historyMass,position,velocity)
+  subroutine Build_Subhalo_Mass_Histories(nodes,nodeList,historyCountMaximum,historyTime,historyIndex,historyMass,position,velocity)
     !% Build and attached bound mass histories to subhalos.
     use Galacticus_Error
     use String_Handling
@@ -2424,6 +2423,7 @@ contains
     class           (nodeData               )         , dimension(:  ), intent(inout), target :: nodes                                    
     type            (treeNodeList           )         , dimension(:  ), intent(inout)         :: nodeList                                 
     integer         (kind=kind_int8         )         , dimension(:  ), intent(inout)         :: historyIndex
+    integer         (kind=kind_int8         )                         , intent(in   )         :: historyCountMaximum
     double precision                                  , dimension(:  ), intent(inout)         :: historyMass              , historyTime   
     double precision                                  , dimension(:,:), intent(inout)         :: position                 , velocity      
     class           (nodeData               ), pointer                                        :: progenitorNode           , thisNode      
@@ -2455,16 +2455,26 @@ contains
              historyBuildHasDescendentSelect: if (associated(nodes(iNode)%descendent)) then
                 ! Set a pointer to the current node - this will be updated if any descendents are traced.
                 thisNode => nodes(iNode)
-                  ! Set initial number of times in the history to zero.
+                ! Set initial number of times in the history to zero.
                 historyCount=0
-                ! Select the subset which have a subhalo as a descendent and are not the primary progenitor.
-                historyBuildSubhaloSelect: if (nodes(iNode)%descendent%isSubhalo) then
+                ! Select the subset which have a subhalo as a descendent and are not the primary progenitor or are initial subhalos. Also skip immediate subhalo-subhalo mergers.
+                historyBuildSubhaloSelect: if ((nodes(iNode)%descendent%isSubhalo.or.nodes(iNode)%isSubhalo).and..not.Is_Subhalo_Subhalo_Merger(nodes,nodes(iNode))) then
                    ! Trace descendents until merging or final time.
-                   thisNode    => nodes(iNode)%descendent
+                   if (nodes(iNode)%isSubhalo) then
+                      thisNode => nodes(iNode)
+                   else
+                      thisNode => nodes(iNode)%descendent
+                   end if
                    endOfBranch =.false.
                    historyBuildBranchWalk: do while (.not.endOfBranch)
                       ! Increment the history count for this branch.
                       historyCount=historyCount+1
+                      ! Check for history count array size being exceeded.
+                      if (historyCount > historyCountMaximum) then
+                         message='history array length exceeded for node ['
+                         message=message//nodes(iNode)%nodeIndex//'] - this should not happen'
+                         call Galacticus_Error_Report('Build_Subhalo_Mass_Histories',message)
+                      end if
                       ! Store the history.
                       historyTime(historyCount)=thisNode%nodeTime
                       if (mergerTreeReadPresetSubhaloIndices) historyIndex(  historyCount)=thisNode%nodeIndex
@@ -2501,8 +2511,7 @@ contains
                       call subhaloHistory%create(1,int(historyCount))
                       subhaloHistory%time(:  )=historyTime(1:historyCount)
                       subhaloHistory%data(:,1)=historyMass(1:historyCount)
-                      firstProgenitor        => nodeList(iIsolatedNode)%node%earliestProgenitor()
-                      thisSatelliteComponent => firstProgenitor%satellite()
+                      thisSatelliteComponent => nodeList(iIsolatedNode)%node%satellite()
                       call thisSatelliteComponent%boundMassHistorySet(subhaloHistory)
                    end if
                    ! Set the node index history for this node.
@@ -2511,12 +2520,10 @@ contains
                       call subhaloIndexHistory%create(1,int(historyCount))
                       subhaloIndexHistory%time(:  )=historyTime (1:historyCount)
                       subhaloIndexHistory%data(:,1)=historyIndex(1:historyCount)
-                      firstProgenitor              => nodeList(iIsolatedNode)%node%earliestProgenitor()
-                      thisSatelliteComponent       => firstProgenitor%satellite()
+                      thisSatelliteComponent       => nodeList(iIsolatedNode)%node%satellite()
                       call thisSatelliteComponent%nodeIndexHistorySet(subhaloIndexHistory)
                    end if
                 end if historyBuildSubhaloSelect
-
                 ! Set the position history for this node.
                 if (mergerTreeReadPresetPositions.and..not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor()) then
                    ! Check if particle data is available for this node.
