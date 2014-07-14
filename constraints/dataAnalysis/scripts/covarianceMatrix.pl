@@ -288,7 +288,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	} else {
 	    $likelihood = $mcmcConfig->{'likelihood'}                         ;
 	}
-	if ( $likelihood->{'modelSurfaceBrightness'} eq "true" ) {
+	if ( exists($likelihood->{'modelSurfaceBrightness'}) && $likelihood->{'modelSurfaceBrightness'} eq "true" ) {
 	    $command .= " --property 'alphaSurfaceBrightness:linear:xLabel=\$\\alpha_{\\rm SB}\$:zLabel=\${\\rm d}p/{\\rm d}\\alpha_{\\rm SB}\$'";
 	    $command .= " --property 'betaSurfaceBrightness:linear:xLabel=\$\\beta_{\\rm SB}\$:zLabel=\${\\rm d}p/{\\rm d}\\beta_{\\rm SB}\$'";
 	    $command .= " --property 'sigmaSurfaceBrightness:linear:xLabel=\$\\sigma_{\\rm SB}\$:zLabel=\${\\rm d}p/{\\rm d}\\sigma_{\\rm SB}\$'";
