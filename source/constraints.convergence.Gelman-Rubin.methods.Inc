@@ -20,6 +20,7 @@
 function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount)
   !% Constructor for ``GelmanRubin'' convergence class.
   use Memory_Management
+  use Galacticus_Error
   use MPI_Utilities
   type            (convergenceGelmanRubin)                :: convergenceGelmanRubinConstructor
   double precision                        , intent(in   ) :: thresholdHatR             , outlierSignificance, &
@@ -39,6 +40,8 @@ function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,out
   convergenceGelmanRubinConstructor%estimateCount             =0
   convergenceGelmanRubinConstructor%converged                 =.false.
   convergenceGelmanRubinConstructor%chainMask                 =.true.
+  ! Validate.
+  if (mpiSelf%count()-outlierCountMaximum < 3) call Galacticus_Error_Report('convergenceGelmanRubinConstructor','maximum number of outliers is too large')
  return
 end function convergenceGelmanRubinConstructor
 
@@ -112,11 +115,17 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
      currentStateVariance   = (currentStateMeanSquared-currentStateMean**2) &
           &                  *dble(activeChainCount  )                      &
           &                  /dble(activeChainCount-1)
-     chainDeviation         = abs(simulationState%get()-currentStateMean)   &
-          &                  /sqrt(currentStateVariance)
+     allocate(chainDeviation(size(currentStateVariance)))
+     where (currentStateVariance > 0.0d0)
+        chainDeviation         = abs(simulationState%get()-currentStateMean)   &
+             &                  /sqrt(currentStateVariance)
+     elsewhere
+        chainDeviation         = 0.0d0
+     end where
      ! Find the maximum value of the deviation and which chain has this deviation.
      chainDeviationMaximum=mpiSelf%maxval(chainDeviation,self%chainMask)
      chainDeviationIndex  =mpiSelf%maxloc(chainDeviation,self%chainMask)+1
+     deallocate(chainDeviation)
      ! Evaluate the critical value for outlier rejection.
      tStatisticCriticalValue=                                 &
           &   FGSL_CDF_tDist_Qinv(                            &
