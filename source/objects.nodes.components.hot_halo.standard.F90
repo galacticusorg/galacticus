@@ -175,7 +175,7 @@ module Node_Component_Hot_Halo_Standard
 
   ! Configuration variables.
   logical                                                   :: hotHaloExcessHeatDrivesOutflow                  , hotHaloNodeMergerLimitBaryonFraction        , &
-       &                                                       hotHaloOutflowAngularMomentumAlwaysGrows        , hotHaloOutflowReturnOnFormation             , &
+       &                                                       hotHaloAngularMomentumAlwaysGrows        , hotHaloOutflowReturnOnFormation             , &
        &                                                       starveSatellites
   integer                                                   :: hotHaloCoolingFromNode
   integer                                       , parameter :: currentNode                             =0      , formationNode                       =1
@@ -262,7 +262,7 @@ contains
        ! Determine whether negative angular momentum accretion rates onto the halo should be treated as positive for the purposes
        ! of computing the hot halo angular momentum.
        !@ <inputParameter>
-       !@   <name>hotHaloOutflowAngularMomentumAlwaysGrows</name>
+       !@   <name>hotHaloAngularMomentumAlwaysGrows</name>
        !@   <defaultValue>false</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
@@ -272,7 +272,7 @@ contains
        !@   <type>boolean</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloOutflowAngularMomentumAlwaysGrows',hotHaloOutflowAngularMomentumAlwaysGrows,defaultValue=.false.)
+       call Get_Input_Parameter('hotHaloAngularMomentumAlwaysGrows',hotHaloAngularMomentumAlwaysGrows,defaultValue=.false.)
 
        ! Determine whether the angular momentum of cooling gas should be computed from the "current node" or the "formation node".
        !@ <inputParameter>
@@ -444,7 +444,14 @@ contains
     type (treeNode            )               , pointer :: parentNode
     class(nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent
     class(nodeComponentSpin   )               , pointer :: parentSpinComponent
-
+    
+    ! Limit hot gas mass to be non-negative.
+    thisHotHaloComponent => thisNode%hotHalo()
+    select type (thisHotHaloComponent)
+    class is (nodeComponentHotHaloStandard)
+       if (thisHotHaloComponent%mass() < 0.0d0) call thisHotHaloComponent%massSet(0.0d0)
+    end select
+    ! Process hot gas for satellites.
     if (thisNode%isSatellite()) then
        if (starveSatellites) then
           thisHotHaloComponent => thisNode%hotHalo()
@@ -898,7 +905,7 @@ contains
              ! Compute the rate of accretion of angular momentum.
              angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(thisNode)*(massAccretionRate &
                   &/thisBasicComponent%accretionRate())
-             if (hotHaloOutflowAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
+             if (hotHaloAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
              call thisHotHaloComponent%angularMomentumRate(angularMomentumAccretionRate)
           end if
           ! Next block of tasks occur only if chemicals are being tracked.
