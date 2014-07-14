@@ -17,17 +17,17 @@
 
 !% Defines methods for a Gamma distribution with upper and lower limits.
 
-function distributionGammaConstructor(order,mean,limitLower,limitUpper)
+function distributionGammaConstructor(shape,rate,limitLower,limitUpper)
   !% Constructor for Gamma distribution class.
   use Galacticus_Error
   implicit none
   type            (distributionGamma)                          :: distributionGammaConstructor
-  double precision                   , intent(in   )           :: order                        , mean
+  double precision                   , intent(in   )           :: shape                        , rate
   double precision                   , intent(in   ), optional :: limitLower                   , limitUpper
   
-  if (mean <= 0.0d0 .or. order <= 0.0d0) call Galacticus_Error_Report('distributionGammaConstructor','mean>0 and order>0 are required')
-  distributionGammaConstructor%mean            =mean
-  distributionGammaConstructor%order           =order
+  if (rate <= 0.0d0 .or. shape <= 0.0d0) call Galacticus_Error_Report('distributionGammaConstructor','rate>0 and shape>0 are required')
+  distributionGammaConstructor%rate            =rate
+  distributionGammaConstructor%shape           =shape
   distributionGammaConstructor%limitLowerExists=.false.
   distributionGammaConstructor%limitUpperExists=.false.
   distributionGammaConstructor%cdfAtLowerLimit =0.0d0
@@ -68,10 +68,10 @@ double precision function distributionGammaDensity(self,x)
      distributionGammaDensity=0.0d0
   else
      distributionGammaDensity=          &
-          &  x**(self%order-1.0d0)      &
-          & *exp(-x*self%mean)          &
-          & *self%mean**self%order      &
-          & /Gamma_Function(self%order) &
+          &  x**(self%shape-1.0d0)      &
+          & *exp(-x*self%rate)          &
+          & *self%rate**self%shape      &
+          & /Gamma_Function(self%shape) &
           & /(                          &
           &   +self%cdfAtUpperLimit     &
           &   -self%cdfAtLowerLimit     &
@@ -101,8 +101,8 @@ double precision function distributionGammaCumulative(self,x)
           &          0.0d0                                                , &
           &          (                                                      &
           &           +Gamma_Function_Incomplete_Complementary(             &
-          &                                                     self%order, &
-          &                                                     self%mean   &
+          &                                                     self%shape, &
+          &                                                     self%rate   &
           &                                                    *x           &
           &                                                   )             &
           &           -self%cdfAtLowerLimit                                 &
@@ -132,7 +132,7 @@ double precision function distributionGammaInverse(self,p)
        &                             )
   distributionGammaInverse=                                                        &
        & +Inverse_Gamma_Function_Incomplete_Complementary(                         &
-       &                                                  self%order             , &
+       &                                                  self%shape             , &
        &                                                  +p                       &
        &                                                  *(                       &
        &                                                    +self%cdfAtUpperLimit  &
@@ -140,6 +140,6 @@ double precision function distributionGammaInverse(self,p)
        &                                                   )                       &
        &                                                  +  self%cdfAtLowerLimit  &
        &                                                 )                         &
-       & /self%mean
+       & /self%rate
   return
 end function distributionGammaInverse

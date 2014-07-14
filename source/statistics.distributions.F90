@@ -107,7 +107,8 @@ contains
     double precision                                       :: distributionMinimum         , distributionMaximum      , &
          &                                                    distributionMean            , distributionVariance     , &
          &                                                    distributionScale           , distributionMedian       , &
-         &                                                    distributionDegreesOfFreedom, distributionOrder
+         &                                                    distributionDegreesOfFreedom, distributionShape        , &
+         &                                                    distributionRate
     logical                                                :: distributionMinimumExists   , distributionMaximumExists
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
@@ -167,35 +168,35 @@ contains
        allocate(distributionGamma :: newDistribution)
        select type (newDistribution)
        type is (distributionGamma)
-          call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"mean" ),distributionMean )
-          call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"order"),distributionOrder)
+          call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"rate" ),distributionRate )
+          call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"shape"),distributionShape)
           distributionMinimumExists=XML_Path_Exists(definition,"minimum")
           distributionMaximumExists=XML_Path_Exists(definition,"maximum")
           if (distributionMinimumExists) call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"minimum"),distributionMinimum)
           if (distributionMaximumExists) call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"maximum"),distributionMaximum)
           if      (     distributionMinimumExists.and.     distributionMaximumExists) then
              newDistribution=distributionGamma(                                           &
-                  &                             distributionOrder                       , &
-                  &                             distributionMean                        , &
+                  &                             distributionShape                       , &
+                  &                             distributionRate                        , &
                   &                             limitLower          =distributionMinimum, &
                   &                             limitUpper          =distributionMaximum  &
                   &                            )
           else if (     distributionMinimumExists.and..not.distributionMaximumExists) then
              newDistribution=distributionGamma(                                           &
-                  &                             distributionOrder                       , &
-                  &                             distributionMean                        , &
+                  &                             distributionShape                       , &
+                  &                             distributionRate                        , &
                   &                             limitLower          =distributionMinimum  &
                   &                            )
           else if (.not.distributionMinimumExists.and.     distributionMaximumExists) then
              newDistribution=distributionGamma(                                           &
-                  &                             distributionOrder                       , &
-                  &                             distributionMean                        , &
+                  &                             distributionShape                       , &
+                  &                             distributionRate                        , &
                   &                             limitUpper          =distributionMaximum  &
                   &                            )
           else if (.not.distributionMinimumExists.and..not.distributionMaximumExists) then
              newDistribution=distributionGamma(                                           &
-                  &                             distributionOrder                       , &
-                  &                             distributionMean                          &
+                  &                             distributionShape                       , &
+                  &                             distributionRate                          &
                   &                            )
           end if
        end select

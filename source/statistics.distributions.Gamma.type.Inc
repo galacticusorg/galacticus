@@ -21,7 +21,7 @@
      logical          :: limitLowerExists, limitUpperExists
      double precision :: limitLower      , limitUpper      , &
           &              cdfAtLowerLimit , cdfAtUpperLimit , &
-          &              order           , mean
+          &              shape           , rate
    contains
      procedure :: density    => distributionGammaDensity
      procedure :: cumulative => distributionGammaCumulative
