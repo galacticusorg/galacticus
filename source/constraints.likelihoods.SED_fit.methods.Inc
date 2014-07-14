@@ -25,6 +25,7 @@ function likelihoodSEDFitConstructor(definition)
   use ISO_Varying_String
   use Memory_Management
   use Stellar_Population_Spectra_Postprocess
+  use Galacticus_Error
   implicit none
   type     (likelihoodSEDFit       )                         :: likelihoodSEDFitConstructor
   type     (node                   ), pointer, intent(in   ) :: definition
@@ -46,6 +47,7 @@ function likelihoodSEDFitConstructor(definition)
   call Alloc_Array(likelihoodSEDFitConstructor%age                     ,[likelihoodSEDFitConstructor%photometryCount])
   call Alloc_Array(likelihoodSEDFitConstructor%massToLightRatio        ,[likelihoodSEDFitConstructor%photometryCount])
   call Alloc_Array(likelihoodSEDFitConstructor%postprocessingChainIndex,[likelihoodSEDFitConstructor%photometryCount])
+  call Alloc_Array(likelihoodSEDFitConstructor%wavelengthEffective     ,[likelihoodSEDFitConstructor%photometryCount])
   ! Extract photometry information.
   do i=1,likelihoodSEDFitConstructor%photometryCount
      thisPhotometry => item(photometry,i-1)
@@ -66,7 +68,22 @@ function likelihoodSEDFitConstructor(definition)
           & likelihoodSEDFitConstructor                     %magnitude  (i)  &
           &  =                   likelihoodSEDFitConstructor%magnitude  (i)  &
           &  -Filter_Vega_Offset(likelihoodSEDFitConstructor%filterIndex(i))
+     ! Get the effective wavelength.
+     likelihoodSEDFitConstructor%wavelengthEffective(i)=Filter_Wavelength_Effective(likelihoodSEDFitConstructor%filterIndex(i))
   end do
+  ! Extract dust model information.
+  if (XML_Path_Exists(definition,"dustType")) then
+     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"dustType"))))
+     case ("null"           )
+        likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeNull
+     case ("CharlotFall2000")
+        likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeCharlotFall2000
+     case default
+        call Galacticus_Error_Report('likelihoodSEDFitConstructor','unrecognized dust type')
+     end select
+  else
+     likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeNull
+  end if
   ! Find stellar spectra postprocessing chain to use.
   likelihoodSEDFitConstructor%postprocessingChainIndex=Stellar_Population_Spectrum_Postprocess_Index(var_str('default'))
   return
@@ -82,26 +99,29 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   use Galactic_Structure_Options
   use Abundances_Structure
   use Cosmology_Functions
+  use Stellar_Spectra_Dust_Attenuations
   implicit none
-  class           (likelihoodSEDFit          ), intent(inout)               :: self
-  class           (state                     ), intent(in   )               :: simulationState
-  type            (mappingList               ), intent(in   ), dimension(:) :: parameterMappings
-  class           (convergence               ), intent(inout)               :: simulationConvergence
-  double precision                            , intent(in   )               :: temperature                         , logLikelihoodCurrent, &
-       &                                                                       logPriorCurrent                     , logPriorProposed
-  double precision                            , parameter                   :: timeStart                     =0.0d0
-  double precision                            , allocatable  , dimension(:) :: stateVector
-  class           (cosmologyFunctionsClass   ), pointer                     :: cosmologyFunctions_
-  integer                                                                   :: iMagnitude                          , i
-  double precision                                                          :: mass                                , timeScale           , &
-       &                                                                       starFormationRateNormalization      , magnitude           , &
-       &                                                                       luminosity                          , metallicity         , &
-       &                                                                       redshift                            , timeObserved
-  type            (abundances                )                              :: abundancesStars
-  type            (fgsl_function             )                              :: integrandFunction
-  type            (fgsl_integration_workspace)                              :: integrationWorkspace
-  type            (c_ptr                     )                              :: parameterPointer
-  logical                                                                   :: integrationReset
+  class           (likelihoodSEDFit                  ), intent(inout)               :: self
+  class           (state                             ), intent(in   )               :: simulationState
+  type            (mappingList                       ), intent(in   ), dimension(:) :: parameterMappings
+  class           (convergence                       ), intent(inout)               :: simulationConvergence
+  double precision                                    , intent(in   )               :: temperature                         , logLikelihoodCurrent, &
+       &                                                                               logPriorCurrent                     , logPriorProposed
+  double precision                                    , allocatable  , dimension(:) :: stateVector
+  class           (cosmologyFunctionsClass           ), pointer                     :: cosmologyFunctions_
+  class           (stellarSpectraDustAttenuationClass), allocatable                 :: dust
+  integer                                                                           :: iMagnitude                          , i
+  double precision                                                                  :: mass                                , timeScale           , &
+       &                                                                               starFormationRateNormalization      , magnitude           , &
+       &                                                                               luminosity                          , metallicity         , &
+       &                                                                               redshift                            , timeObserved        , &
+       &                                                                               vBandAttenuation                    , opticalDepthBirthClouds, &
+       &                                                                               timeStart
+  type            (abundances                )                                      :: abundancesStars
+  type            (fgsl_function             )                                      :: integrandFunction
+  type            (fgsl_integration_workspace)                                      :: integrationWorkspace
+  type            (c_ptr                     )                                      :: parameterPointer
+  logical                                                                           :: integrationReset
 
   ! Do not evaluate if the proposed prior is impossible.
   if (logPriorProposed <= logImpossible) then
@@ -113,10 +133,34 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   do i=1,size(stateVector)
      stateVector(i)=parameterMappings(i)%thisMapping%unmap(stateVector(i))
   end do
-  mass       =stateVector(1)
-  timeScale  =stateVector(2)
-  metallicity=stateVector(3)
-  redshift   =stateVector(4)
+  mass       =      stateVector(1)
+  timeStart  =      stateVector(2)
+  timeScale  =1.0d0/stateVector(3)
+  metallicity=      stateVector(4)
+  redshift   =      stateVector(5)
+  ! Construct dust attenuation object.
+  select case (self%dustType)
+  case (likelihoodSEDFitDustTypeNull           )
+     allocate(stellarSpectraDustAttenuationNull :: dust)
+     select type (dust)
+     type is (stellarSpectraDustAttenuationNull)
+        vBandAttenuation=0.0d0
+        dust=stellarSpectraDustAttenuationNull()
+     end select
+  case (likelihoodSEDFitDustTypeCharlotFall2000)
+     allocate(stellarSpectraDustAttenuationCharlotFall2000 :: dust)
+     select type (dust)
+     type is (stellarSpectraDustAttenuationCharlotFall2000)
+        vBandAttenuation       =     stateVector(6)
+        opticalDepthBirthClouds=-log(stateVector(7))
+        dust=stellarSpectraDustAttenuationCharlotFall2000(                                                 &
+             &                                            opacityExponent        =0.7d+0                 , &
+             &                                            birthCloudLifetime     =1.0d-2                 , &
+             &                                            opticalDepthISM        =1.0d+0                 , &
+             &                                            opticalDepthBirthClouds=opticalDepthBirthClouds  &
+             &                                           )
+     end select
+  end select
   ! Determine time observed.
   cosmologyFunctions_ => cosmologyFunctions()
   timeObserved        =  cosmologyFunctions_ %cosmicTime                 (          &
@@ -124,6 +168,11 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
        &                                                                   redshift &
        &                                                                  )         &
        &                                                                 )
+  ! Return impossibility if start time is after the observed time.
+  if (timeStart >= timeObserved) then
+     likelihoodSEDFitEvaluate=logImpossible
+     return
+  end if
   ! Construct the abundances object.
   call abundancesStars%metallicitySet(metallicity,metallicityType=linearByMassSolar)
   ! Iterate over bands.
@@ -198,7 +247,17 @@ contains
             &                                                            self%age                     , &
             &                                                            self%redshift                  &
             &                                                           )
-       luminosityIntegrand=starFormationRate*self%massToLightRatio(iMagnitude)
+       luminosityIntegrand=                                                                  &
+            &              +starFormationRate                                                &
+            &              *self%massToLightRatio(iMagnitude)                                &
+            &              *10.0d0**(                                                        &
+            &                        -0.4d0                                                  &
+            &                        *dust%attenuation(                                      &
+            &                                          self%wavelengthEffective(iMagnitude), &
+            &                                          self%age                (iMagnitude), &
+            &                                          vBandAttenuation                      &
+            &                                         )                                      &
+            &                       )
     else
        ! Find the recycled fraction.
        recycledFractionInstantaneous=IMF_Recycled_Fraction_Instantaneous(starFormationRate,abundancesStars,componentTypeDisk)

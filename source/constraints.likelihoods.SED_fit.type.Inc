@@ -19,12 +19,12 @@
 
   type, public, extends(likelihood) :: likelihoodSEDFit
      private
-     integer                                     :: photometryCount
+     integer                                     :: photometryCount         , dustType
      integer         , allocatable, dimension(:) :: filterIndex             , luminosityIndex         , &
           &                                         postprocessingChainIndex
      double precision, allocatable, dimension(:) :: magnitude               , error                   , &
           &                                         redshift                , massToLightRatio        , &
-          &                                         age
+          &                                         age                     , wavelengthEffective
    contains
      procedure :: evaluate        => likelihoodSEDFitEvaluate
      procedure :: functionChanged => likelihoodSEDFitFunctionChanged
@@ -34,3 +34,6 @@
      !% Constructors for the SED fit likelihood object.
      module procedure likelihoodSEDFitConstructor
   end interface likelihoodSEDFit
+
+  integer, parameter :: likelihoodSEDFitDustTypeNull           =0
+  integer, parameter :: likelihoodSEDFitDustTypeCharlotFall2000=1
