@@ -34,22 +34,44 @@ my $fieldCount = scalar(@files);
 # Compute and sum spherical harmonic coefficients for each file.
 my @Wlms;
 foreach my $file ( @files ) {
-    system("time ".$galacticusPath."../mangle/bin/harmonize -l".$lMax." ".$file." ".$file.".wlm")
-	unless ( -e $file.".wlm" );
-    die("mangleHarmonize.pl: failed to generate wlm file")
-	unless ( -e $file.".wlm" );
-    open(my $wlmFile,$file.".wlm");
-    my $header = <$wlmFile>;
     my $Wlm    = pdl zeroes(2,($lMax+1)*($lMax+2)/2);
-    my $i      = -1;
-    for(my $l=0;$l<=$lMax;++$l) {
-	for (my $m=0;$m<=$l;++$m) {
-	    ++$i;
-	    (my $line = <$wlmFile>) =~ s/^\s*(.*?)\s*$/$1/;
-	    $Wlm->(:,($i)) .= pdl split(/\s+/,$line);
+    my @subFiles;
+    if ( $file =~ m/^[\+\-]/ ) {
+	@subFiles = split(/\:/,$file);
+	print scalar(@subFiles)."\n";
+    } else {
+	push(@subFiles,"+".$file);
+    }
+    foreach my $subFile ( @subFiles ) {
+	print $subFile."\n";
+	if ( $subFile =~ m/^([\+\-])(.*)/ ) {
+	    my $sign     = $1;
+	    my $fileName = $2;
+	    my $multiplier;
+	    if ( $sign eq "+" ) {
+		$multiplier = pdl +1.0;
+	    } else {
+		$multiplier = pdl -1.0;
+	    }
+	    print "  --> processing file (".$multiplier->sclr().") ".$fileName."\n";
+	    system("time ".$galacticusPath."../mangle/bin/harmonize -l".$lMax." ".$fileName." ".$fileName.".wlm")
+		unless ( -e $fileName.".wlm" );
+	    die("mangleHarmonize.pl: failed to generate wlm file")
+		unless ( -e $fileName.".wlm" );
+	    open(my $wlmFile,$fileName.".wlm");
+	    my $header = <$wlmFile>;
+	    my $i      = -1;
+	    for(my $l=0;$l<=$lMax;++$l) {
+		for (my $m=0;$m<=$l;++$m) {
+		    ++$i;
+		    (my $line = <$wlmFile>) =~ s/^\s*(.*?)\s*$/$1/;
+		    my $harmonic = pdl split(/\s+/,$line);
+		    $Wlm->(:,($i)) += $multiplier*$harmonic;
+		}
+	    }
+	    close($wlmFile);
 	}
     }
-    close($wlmFile);
     push(@Wlms,$Wlm);
 }
 
