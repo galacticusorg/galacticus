@@ -771,6 +771,7 @@ contains
     double precision                           , intent(in   )                               :: x0, x1
     procedure       (integrandTemplate        ), intent(in   )           , pointer, optional :: integrand
     double precision                           , dimension(size(self%xv))                    :: Table_Logarithmic_Integration_Weights
+    double precision                           , parameter                                   :: logTolerance=1.0d-12
     double precision                                                                         :: gradientTerm, lx0, lx1, factor0, factor1
     integer                                                                                  :: i
     type            (fgsl_function             )                                             :: integrandFunction
@@ -791,8 +792,9 @@ contains
        else
           cycle
        end if
-       ! Proceed only for non-zero ranges.
-       if (lx1 > lx0) then
+       ! Proceed only for non-zero ranges. Add some tolerance to avoid attempting to evaluate for tiny ranges which arise from
+       ! numerical imprecision.
+       if (lx1 > lx0+logTolerance) then
           if (present(integrand)) then
              ! An integrand is given, numerically integrate the relevant terms over the integrand.
              integrationReset=.true.
