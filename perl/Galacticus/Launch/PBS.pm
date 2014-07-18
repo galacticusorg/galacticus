@@ -96,8 +96,9 @@ sub Launch {
 	unless ( $job->{'directory'} =~ m/^\// ) {
 	    $pwd = `pwd`;
 	    chomp($pwd);
+	    $pwd .= "/";
 	}
-	print $pbsFile "#PBS -o ".$pwd."/".$job->{'directory'}."/galacticus.log\n";
+	print $pbsFile "#PBS -o ".$pwd.$job->{'directory'}."/galacticus.log\n";
 	print $pbsFile "#PBS -q ".$launchScript->{'pbs'}->{'queue'}."\n"
 	    if ( exists($launchScript->{'pbs'}->{'queue'}) );
 	print $pbsFile "#PBS -V\n";
