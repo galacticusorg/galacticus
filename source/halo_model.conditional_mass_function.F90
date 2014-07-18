@@ -26,6 +26,10 @@ module Conditional_Mass_Functions
   implicit none
   private
 
+  integer, parameter, public :: haloModelGalaxyTypeAll      =0
+  integer, parameter, public :: haloModelGalaxyTypeCentral  =1
+  integer, parameter, public :: haloModelGalaxyTypeSatellite=2
+
   !# <include directive="conditionalMassFunction" type="function" >
   !#  <descriptiveName>Conditional Mass Function</descriptiveName>
   !#  <description>Object providing empirical models of conditional mass functions.</description>
@@ -35,7 +39,8 @@ module Conditional_Mass_Functions
   !#   <description>Return the cumulative conditional mass function, $\langle N(M_\star|M_{\rm halo}) \rangle \equiv \phi(M_\star|M_{\rm halo})$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: massHalo,mass</argument>
+  !#   <argument>double precision, intent(in   )           :: massHalo  , mass</argument>
+  !#   <argument>integer         , intent(in   ), optional :: galaxyType</argument>
   !#  </method>
   !#  <method name="massFunctionVariance" >
   !#   <description>Return the variance in the cumulative conditional mass function, $\langle N(M_\star|M_{\rm halo}) \rangle \equiv \phi(M_\star|M_{\rm halo})$.</description>
