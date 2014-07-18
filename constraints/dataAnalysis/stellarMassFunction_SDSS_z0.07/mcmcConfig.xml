@@ -26,7 +26,7 @@
     <Rhat>1.2</Rhat>
     <burnCount>10</burnCount>
     <testCount>20</testCount>
-    <outlierCountMaximum>10</outlierCountMaximum>
+    <outlierCountMaximum>4</outlierCountMaximum>
     <outlierSignificance>0.95</outlierSignificance>
     <outlierLogLikelihoodOffset>60</outlierLogLikelihoodOffset>
     <reportCount>1</reportCount>
