@@ -277,18 +277,34 @@ contains
     return
   end subroutine behroozi2010Destructor
 
-  double precision function behroozi2010MassFunction(self,massHalo,mass)
+  double precision function behroozi2010MassFunction(self,massHalo,mass,galaxyType)
     !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_{\rm halo}) \rangle \equiv \phi(M_\star|M_{\rm
     !% halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
     implicit none
-    class           (conditionalMassFunctionBehroozi2010), intent(inout) :: self
-    double precision                                     , intent(in   ) :: massHalo      , mass
-    double precision                                                     :: numberCentrals, numberSatellites
+    class           (conditionalMassFunctionBehroozi2010), intent(inout)           :: self
+    double precision                                     , intent(in   )           :: massHalo        , mass
+    integer                                              , intent(in   ), optional :: galaxyType
+    double precision                                                               :: numberCentrals  , numberSatellites
+    integer                                                                        :: galaxyTypeActual
 
     ! Get the number of satellites and centrals.
     call self%compute(massHalo,mass,numberCentrals,numberSatellites)
-    ! Sum central and satellite contributions.
-    behroozi2010MassFunction=numberCentrals+numberSatellites
+    ! Determine galaxy type required.
+    if (present(galaxyType)) then
+       galaxyTypeActual=galaxyType
+    else
+       galaxyTypeActual=haloModelGalaxyTypeAll
+    end if
+    ! Return required number.
+    select case (galaxyTypeActual)
+    case (haloModelGalaxyTypeAll      )
+       ! Sum central and satellite contributions.
+       behroozi2010MassFunction=numberCentrals+numberSatellites
+    case (haloModelGalaxyTypeCentral  )
+       behroozi2010MassFunction=numberCentrals
+    case (haloModelGalaxyTypeSatellite)
+       behroozi2010MassFunction=               numberSatellites
+    end select
     return
   end function behroozi2010MassFunction
 
@@ -298,10 +314,10 @@ contains
     !% satellite galaxies is Poisson distributed, while the number of central galaxies follows a Bernoulli distribution, and that
     !% the numbers of satellites and centrals are uncorrelated.
     implicit none
-    class           (conditionalMassFunctionBehroozi2010), intent(inout) :: self
-    double precision                                     , intent(in   ) :: massHalo        , massHigh     , massLow
-    double precision                                                     :: numberCentrals  , numberCentralsHigh  , numberCentralsLow  , &
-         &                                                                  numberSatellites, numberSatellitesHigh, numberSatellitesLow
+    class           (conditionalMassFunctionBehroozi2010), intent(inout)           :: self
+    double precision                                     , intent(in   )           :: massHalo        , massHigh     , massLow
+    double precision                                                               :: numberCentrals  , numberCentralsHigh  , numberCentralsLow  , &
+         &                                                                            numberSatellites, numberSatellitesHigh, numberSatellitesLow
 
     ! Get the number of satellites and centrals.
     call self%compute(massHalo,massLow ,numberCentralsLow ,numberSatellitesLow )
