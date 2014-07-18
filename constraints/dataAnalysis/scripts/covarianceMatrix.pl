@@ -443,7 +443,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	print $gnuPlot "set output '".$plotFileEPS."'\n";
 	print $gnuPlot "set title 'Best fit mass function for Stage ".$stage."'\n";
 	print $gnuPlot "set xlabel '".ucfirst($massType)." mass; \$".$massVariable."\,[M_\\odot]\$'\n";
-	print $gnuPlot "set ylabel 'Mass function; \$\\phi(M)\$ [Mpc\$^{-3} \\log(".$massVariable.")\$]'\n";
+	print $gnuPlot "set ylabel 'Mass function; \$\\phi(M)\$ [Mpc\$^{-3} \\log(".$massVariable.")^{-1}\$]'\n";
 	print $gnuPlot "set lmargin screen 0.15\n";
 	print $gnuPlot "set rmargin screen 0.95\n";
 	print $gnuPlot "set bmargin screen 0.15\n";
