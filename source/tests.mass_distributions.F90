@@ -23,6 +23,7 @@ program Test_Mass_Distributions
   use Memory_Management
   use Mass_Distributions
   use Coordinates
+  use Numerical_Constants_Math
   implicit none
   class           (massDistribution   ), pointer                     :: myMassDistribution
   integer                              , parameter                   :: sersicTableCount          =8
@@ -35,7 +36,7 @@ program Test_Mass_Distributions
   double precision                     , dimension(sersicTableCount) :: sersicTablePotentialTarget=[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
   double precision                     , dimension(sersicTableCount) :: sersicTableDensity                                                                                           , sersicTableMass, &
        &                                                                sersicTablePotential
-  type            (coordinateSpherical)                              :: position
+  type            (coordinateSpherical)                              :: position                                                                                                     , positionZero
   integer                                                            :: i
   double precision                                                   :: radiusInProjection
 
@@ -44,7 +45,7 @@ program Test_Mass_Distributions
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Mass distributions")
-
+  
   ! Hernquist profile.
   call Unit_Tests_Begin_Group("Hernquist profile")
   myMassDistribution => Mass_Distribution_Create('hernquist')
@@ -88,6 +89,43 @@ program Test_Mass_Distributions
      call Assert("Density vs radius"  ,sersicTableDensity  ,sersicTableDensityTarget  ,relTol=1.0d-3)
      call Assert("Mass vs radius"     ,sersicTableMass     ,sersicTableMassTarget     ,relTol=2.1d-2)
      call Assert("Potential vs radius",sersicTablePotential,sersicTablePotentialTarget,relTol=1.0d-2)
+  end select
+  deallocate(myMassDistribution)
+  call Unit_Tests_End_Group()
+
+  ! Beta profile.
+  call Unit_Tests_Begin_Group("Beta profile")
+  myMassDistribution => Mass_Distribution_Create('betaProfile')
+  select type (myMassDistribution)
+  type is (massDistributionBetaProfile)
+     call myMassDistribution%initialize(beta=2.0d0/3.0d0,isDimensionless=.true.)
+  end select
+  select type (myMassDistribution)
+  class is (massDistributionSpherical)
+     position    =[1.0d0,0.0d0,0.0d0]
+     positionZero=[0.0d0,0.0d0,0.0d0]
+     call Assert(                                                        &
+          &      "Mass within scale radius"                            , &
+          &      +myMassDistribution%massEnclosedBySphere(1.0d0       ), &
+          &      +(4.0d0-Pi)*Pi                                        , &
+          &      absTol=1.0d-6                                           &
+          &     )
+     call Assert(                                                        &
+          &      "Potential at scale radius"                           , &
+          &      +myMassDistribution%potential           (position    )  &
+          &      -myMassDistribution%potential           (positionZero), &
+          &      +Pi*(Pi+log(4.0d0)-4.0d0)                             , &
+          &      absTol=1.0d-6                                           &
+          &     )
+  end select
+  ! Ensure that a dimensionful profile produces the correct mass inside of its outer radius.
+  select type (myMassDistribution)
+  type is (massDistributionBetaProfile)
+     call myMassDistribution%initialize(beta=2.0d0/3.0d0,coreRadius=3.8492316686261747d-002,mass=182582297.19568533d0,outerRadius=0.12829569846196026d0)
+  end select
+  select type (myMassDistribution)
+  class is (massDistributionSpherical)
+     call Assert("Mass within outer radius",myMassDistribution%massEnclosedBySphere(0.12829569846196026d0),182582297.19568533d0,relTol=1.0d-6)
   end select
   deallocate(myMassDistribution)
   call Unit_Tests_End_Group()
