@@ -300,7 +300,8 @@ sub dataObjectDocName {
 	elsif ( $dataObject->{'type'} eq "longIntegerHistory"  ) {$name .= "type(longIntegerHistory)" }
 	elsif ( $dataObject->{'type'} eq "keplerOrbit"         ) {$name .= "type(keplerOrbit)"        }
 	elsif ( $dataObject->{'type'} eq "stellarLuminosities" ) {$name .= "type(stellarLuminosities)"}
-	else {die "Build_Include_File.pl::dataObjectDocName: 'type' specifier is unknown"}
+	elsif ( $dataObject->{'type'} eq "void"                ) {$name .= "void"                     }
+	else {die "Build_Include_File.pl::dataObjectDocName: 'type' specifier '".$dataObject->{'type'}."' is unknown"}
     } else {
 	die "Build_Include_File.pl::dataObjectDocName: no 'type' specifier present";
     }
@@ -308,7 +309,7 @@ sub dataObjectDocName {
 	if    ( $dataObject->{'rank'} == 0 ) {$name .= ""   }
 	elsif ( $dataObject->{'rank'} == 1 ) {$name .= "(:)"}
 	else {die "Build_Include_File.pl::dataObjectName: 'rank' specifier is unknown"}
-    } else {
+    } elsif ( $dataObject->{'type'} ne "void" ) {
 	die "Build_Include_File.pl::dataObjectDocName: no 'rank' specifier present";
     }
     $name .= "\\textgreater}";
@@ -1302,9 +1303,10 @@ sub Generate_Component_Classes{
 		    if ( exists($buildData->{'components'}->{$componentName}->{'bindings'}) ) {
 			foreach ( @{$buildData->{'components'}->{$componentName}->{'bindings'}->{'binding'}} ) {
 			    if ( $_->{'bindsTo'} eq "componentClass" ) {
+				print Dumper($_);
 				my %function = (
 				    type => "procedure",
-				    name => $_->{'method'}
+				    name => $_->{'method'},
 				    );
 				if ( $_->{'isDeferred'} eq "false" ) {
 				    # Binding is not deferred, simply map to the given function.
@@ -1314,16 +1316,22 @@ sub Generate_Component_Classes{
 				    $function{'function'} = $componentClass.ucfirst($_->{'method'});
 				    # Also add bindings to functions to set and test the deferred function.
 				    my %setFunction = (
-					type     => "procedure",
-					pass     => "nopass",
-					name     => $_->{'method'}."Function",
-					function => $componentClass.$_->{'method'}."DeferredFunctionSet"
+					type       => "procedure",
+					pass        => "nopass",
+					name        => $_->{'method'}."Function",
+					function    => $componentClass.$_->{'method'}."DeferredFunctionSet",
+					returnType  => "\\void",
+					arguments   => "procedure(".$componentClass.$_->{'method'}."Interface) deferredFunction",
+					description => "Set the function for the deferred {\\tt ".$_->{'method'}."} propert of the {\tt ". $componentClass."} component."
 					);
 				    my %testFunction = (
-					type     => "procedure",
-					pass     => "nopass",
-					name     => $_->{'method'}."FunctionIsSet",
-					function => $componentClass.$_->{'method'}."DfrrdFnctnIsSet"
+					type        => "procedure",
+					pass        => "nopass",
+					name        => $_->{'method'}."FunctionIsSet",
+					function    => $componentClass.$_->{'method'}."DfrrdFnctnIsSet",
+					returnType  => "\\logicalzero",
+					arguments   => "",
+					description => "Specift whether the deferred function for the {\\tt ".$_->{'method'}."} propert of the {\tt ". $componentClass."} component has been set."
 					);
 				    push(@typeBoundFunctions,\%setFunction,\%testFunction);
 				}
@@ -1414,27 +1422,36 @@ sub Generate_Implementations {
     	if ( exists($component->{'bindings'}) ) {
     	    foreach ( @{$component->{'bindings'}->{'binding'}} ) {
 		my %function = (
-		    type     => "procedure",
-		    name     => $_->{'method'},
+		    type        => "procedure",
+		    name        => $_->{'method'}
 		    );
 		if ( $_->{'isDeferred'} eq "false" ) {
 		    # Binding is not deferred, simply map to the given function.
 		    $function{'function'} = $_->{'function'};
 		} else {
 		    # Binding is deferred, map to a suitable wrapper function.
-		    $function{'function'} = $componentID.$_->{'method'};
+		    $function{'function'   } = $componentID.$_->{'method'};
+		    $function{'returnType' } = &dataObjectDocName($_->{'interface'});
+		    $function{'arguments'  } = "";
+		    $function{'description'} = "Get the {\\tt ".$_->{'method'}."} property of the {\tt ". $componentID."} component.";
 		    # Also add bindings to functions to set and test the deferred function.
 		    my %setFunction = (
-			type     => "procedure",
-			pass     => "nopass",
-			name     => $_->{'method'}."Function",
-			function => $componentID.$_->{'method'}."DeferredFunctionSet"
+			type        => "procedure",
+			pass        => "nopass",
+			name        => $_->{'method'}."Function",
+			function    => $componentID.$_->{'method'}."DeferredFunctionSet",
+			returnType  => "\\void",
+			arguments   => "procedure(".$componentID.$_->{'method'}."Interface) deferredFunction",
+			description => "Set the function for the deferred {\\tt ".$_->{'method'}."} propert of the {\tt ". $componentID."} component."
 			);
 		    my %testFunction = (
-			type     => "procedure",
-			pass     => "nopass",
-			name     => $_->{'method'}."FunctionIsSet",
-			function => $componentID.$_->{'method'}."DfrrdFnctnIsSet"
+			type        => "procedure",
+			pass        => "nopass",
+			name        => $_->{'method'}."FunctionIsSet",
+			function    => $componentID.$_->{'method'}."DfrrdFnctnIsSet",
+			returnType  => "\\logicalzero",
+			arguments   => "",
+			description => "Specify whether the deferred function for the {\\tt ".$_->{'method'}."} property of the {\tt ". $componentID."} component has been set."
 			);
 		    push(@typeBoundFunctions,\%setFunction,\%testFunction);
 		}
@@ -1563,6 +1580,8 @@ sub Generate_Deferred_Binding_Functions {
 	    if ( $binding->{'isDeferred'} eq "true" ) {
 		# Determine type and arguments of the function.
 		my $type = $binding->{'interface'}->{'type'};
+		($type, my $name, my $attributeList) = &dataObjectPrimitiveName($binding->{'interface'})
+		    unless ( $type eq "void" );
 		my $endType;
 		if ( $type eq "void" ) {
 		    $type    = "subroutine";
@@ -7975,7 +7994,6 @@ sub Bound_Function_Table {
 		if ( exists($_->{'arguments'}) );
 	    $description .= "     !@  </objectMethod>\n";
 	}
-
     }
     if ( $methodCount == 1 ) {
 	$description =~ s/(\!\@\s+\<method\>)/!@   <object>$objectName<\/object>\n     $1/;
