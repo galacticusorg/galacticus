@@ -41,7 +41,7 @@ subroutine Mass_Distribution_Hernquist_Initialize(self,scaleLength,densityNormal
         if (Values_Differ(mass                ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Hernquist_Initialize','mass should be unity for a dimensionless profile (or simply do not specify a mass)')
      end if
      if (present(densityNormalization)) then
-        if (Values_Differ(densityNormalization,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Hernquist_Initialize','densityNormalization should be 1/2π for a dimensionless profile (or simply do not specify a densityNormalization)')
+        if (Values_Differ(densityNormalization,0.15915494d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Hernquist_Initialize','densityNormalization should be 1/2π for a dimensionless profile (or simply do not specify a densityNormalization)')
      end if
      self%scaleLength         =1.0d0
      self%mass                =1.0d0
