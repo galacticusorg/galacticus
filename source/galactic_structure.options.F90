@@ -67,20 +67,22 @@ module Galactic_Structure_Options
   !@  <entry label="componentTypeDarkHalo"  />
   !@  <entry label="componentTypeBlackHole" />
   !@ </enumeration>
-  integer, parameter :: componentTypeCount    =6
+  integer, parameter :: componentTypeCount    =7
   integer, parameter :: componentTypeUnknown  =-1
   integer, parameter :: componentTypeAll      =0
   integer, parameter :: componentTypeDisk     =1
   integer, parameter :: componentTypeSpheroid =2
   integer, parameter :: componentTypeHotHalo  =3
-  integer, parameter :: componentTypeDarkHalo =4
-  integer, parameter :: componentTypeBlackHole=5
+  integer, parameter :: componentTypeColdHalo =4
+  integer, parameter :: componentTypeDarkHalo =5
+  integer, parameter :: componentTypeBlackHole=6
   character(len=9), parameter, dimension(0:componentTypeCount-1) :: componentTypesName    = &
        &                                                        [                           &
        &                                                         'all      ',               &
        &                                                         'disk     ',               &
        &                                                         'spheroid ',               &
        &                                                         'hotHalo  ',               &
+       &                                                         'coldHalo ',               &
        &                                                         'darkHalo ',               &
        &                                                         'blackHole'                &
        &                                                         ]

@@ -203,6 +203,10 @@ sub Components_Generate_Output {
 	    \&Generate_Active_Implementation_Records                 ,
 	    # Generate deferred procedure pointers.
 	    \&Generate_Deferred_Procedure_Pointers                   ,
+	    # Generate deferred binding procedure pointers.
+	    \&Generate_Deferred_Binding_Procedure_Pointers           ,
+	    # Generate deferred binding procedure pointers.
+	    \&Generate_Deferred_Binding_Functions                    ,
 	    # Generate interface for nodeEvent tasks.
 	    \&Generate_Node_Event_Interface                          ,
 	    # Generate required null binding functions.
@@ -842,6 +846,32 @@ sub Set_Default_Attributes{
 	# If a create function is specified, set it to be non-deferred by default.
 	$component->{'createFunction'}->{'isDeferred'} = "false"
 	    if ( exists($component->{'createFunction'}) && ! exists($component->{'createFunction'}->{'isDeferred'}) );
+	# Iterate over bindings.
+	foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
+	    $binding->{'isDeferred'} = "false"
+		unless ( exists($binding->{'isDeferred'}) );
+	}
+	# For extensions, copy any binding from the parent class.
+	if ( exists($component->{'extends'}) ) {
+	    my $parentID        = ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'});
+	    my $parentComponent = $buildData->{'components'}->{$parentID};
+	    foreach my $parentBinding ( @{$parentComponent->{'bindings'}->{'binding'}} ) {
+		if ( $parentBinding->{'isDeferred'} eq "true" ){
+		    my $copyBinding = 1;
+		    foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
+			if ( $binding->{'method'} eq $parentBinding->{'method'} ) {
+			    $copyBinding = 0;
+			    last;
+			}
+		    }
+		    push(
+			@{$component->{'bindings'}->{'binding'}},
+			$parentBinding
+			)
+			if ( $copyBinding == 1 );
+		}
+	    }
+	}
 	# Iterate over properties.
 	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 	    # Get the property.
@@ -1028,6 +1058,14 @@ sub Generate_Node_Component_Type{
 	     name        => "dump"                                                                                                 ,
 	     function    => "Node_Component_Dump_Null"                                                                             ,
 	     description => "Generate an ASCII dump of all properties."                                                            ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => ""
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "dumpXML"                                                                                              ,
+	     function    => "Node_Component_Dump_XML_Null"                                                                         ,
+	     description => "Generate an XML dump of all properties."                                                              ,
 	     returnType  => "\\void"                                                                                               ,
 	     arguments   => ""
 	 },
@@ -1263,15 +1301,35 @@ sub Generate_Component_Classes{
 			foreach ( @{$buildData->{'components'}->{$componentName}->{'bindings'}->{'binding'}} ) {
 			    if ( $_->{'bindsTo'} eq "componentClass" ) {
 				my %function = (
-				    type     => "procedure",
-				    name     => $_->{'method'},
-				    function => $_->{'function'}
+				    type => "procedure",
+				    name => $_->{'method'}
 				    );
+				if ( $_->{'isDeferred'} eq "false" ) {
+				    # Binding is not deferred, simply map to the given function.
+				    $function{'function'} = $_->{'function'};
+				} else {
+				    # Binding is deferred, map to a suitable wrapper function.
+				    $function{'function'} = $componentClass.ucfirst($_->{'method'});
+				    # Also add bindings to functions to set and test the deferred function.
+				    my %setFunction = (
+					type     => "procedure",
+					pass     => "nopass",
+					name     => $_->{'method'}."Function",
+					function => $componentClass.$_->{'method'}."DeferredFunctionSet"
+					);
+				    my %testFunction = (
+					type     => "procedure",
+					pass     => "nopass",
+					name     => $_->{'method'}."FunctionIsSet",
+					function => $componentClass.$_->{'method'}."DeferredFunctionIsSet"
+					);
+				    push(@typeBoundFunctions,\%setFunction,\%testFunction);
+				}
 				foreach my $attribute ( "description", "returnType", "arguments" ) {
 				    $function{$attribute} = $_->{$attribute}
 				    if ( exists($_->{$attribute}) );
+				    push(@typeBoundFunctions,\%function);
 				}
-				push(@typeBoundFunctions,\%function);
 			    }
 			}
 		    }
@@ -1356,11 +1414,31 @@ sub Generate_Implementations {
 		my %function = (
 		    type     => "procedure",
 		    name     => $_->{'method'},
-		    function => $_->{'function'}
 		    );
+		if ( $_->{'isDeferred'} eq "false" ) {
+		    # Binding is not deferred, simply map to the given function.
+		    $function{'function'} = $_->{'function'};
+		} else {
+		    # Binding is deferred, map to a suitable wrapper function.
+		    $function{'function'} = $componentID.$_->{'method'};
+		    # Also add bindings to functions to set and test the deferred function.
+		    my %setFunction = (
+			type     => "procedure",
+			pass     => "nopass",
+			name     => $_->{'method'}."Function",
+			function => $componentID.$_->{'method'}."DeferredFunctionSet"
+			);
+		    my %testFunction = (
+			type     => "procedure",
+			pass     => "nopass",
+			name     => $_->{'method'}."FunctionIsSet",
+			function => $componentID.$_->{'method'}."DeferredFunctionIsSet"
+			);
+		    push(@typeBoundFunctions,\%setFunction,\%testFunction);
+		}
 		foreach my $attribute ( "description", "returnType", "arguments" ) {
 		    $function{$attribute} = $_->{$attribute}
-		       if ( exists($_->{$attribute}) );
+		    if ( exists($_->{$attribute}) );
 		}
 		push(@typeBoundFunctions,\%function);
 	    }
@@ -1412,6 +1490,273 @@ sub Generate_Active_Implementation_Records{
     # Insert into the document.
     $buildData->{'content'} .= "  ! Records of which component implementations are active.\n";
     $buildData->{'content'} .= $recordTable->table()."\n";
+}
+
+sub Generate_Deferred_Binding_Procedure_Pointers {
+    # Generate deferred binding procedure pointers.
+    my $buildData = shift;
+    # Initialize data content.
+    my @dataContent;
+    # Initialize class pointers.
+    my %classPointers;
+    # Iterate over component implementations.
+    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+	# Get the component.
+	my $component = $buildData->{'components'}->{$componentID};
+	# Iterate over bindings.
+	foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
+	    if ( $binding->{'isDeferred'} eq "true" ) {
+		# Create a pointer for the component class level if needed.
+		my $classFunctionName = $component->{'class'}.ucfirst($binding->{'method'});
+		if ( $binding->{'bindsTo'} eq 'componentClass' && ! exists($classPointers{$classFunctionName}) ) {
+		    push(
+			@dataContent,
+			{
+			    intrinsic  => "procedure",
+			    type       => $component->{'class'}.ucfirst($binding->{'method'})."Interface",
+			    attributes => [ "pointer" ],
+			    variables  => [ $classFunctionName."Deferred" ]
+			},
+			{
+			    intrinsic  => "logical",
+			    variables  => [ $classFunctionName."IsSetValue=.false." ]
+			}
+			);
+		    $classPointers{$classFunctionName} = 1;
+		}
+		# Create a pointer for the component level.
+		my $componentFunctionName = $componentID.ucfirst($binding->{'method'});
+		push(
+		    @dataContent,
+		    {
+			intrinsic  => "procedure",
+			type       => $component->{'class'}.ucfirst($binding->{'method'})."Interface",
+			attributes => [ "pointer" ],
+			variables  => [ $componentFunctionName."Deferred" ]
+		    },
+		    {
+			intrinsic  => "logical",
+			variables  => [ $componentFunctionName."IsSetValue=.false." ]
+		    }
+		    );
+	    }
+	}
+    }
+    $buildData->{'content'} .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
+}
+
+sub Generate_Deferred_Binding_Functions {
+    # Generate deferred binding functions.
+    my $buildData = shift;
+    # Initialize class functions.
+    my %classFunctions;
+    # Initialize interfaces/
+    my %interfaces;
+    # Iterate over component implementations.
+    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+	# Get the component.
+	my $component = $buildData->{'components'}->{$componentID};
+	# Iterate over bindings.
+	foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
+	    if ( $binding->{'isDeferred'} eq "true" ) {
+		# Determine type and arguments of the function.
+		my $type = $binding->{'interface'}->{'type'};
+		my $endType;
+		if ( $type eq "void" ) {
+		    $type    = "subroutine";
+		    $endType = "subroutine";
+		} else {
+		    $type    .= " function";
+		    $endType  = "function";
+		}
+		my @arguments;
+		my @selflessArguments;
+		my @selfishArguments;
+		if ( exists($binding->{'interface'}->{'argument'}) ) {
+		    foreach ( @{$binding->{'interface'}->{'argument'}} ) {
+			if ( $_ =~ m/::\s*([a-zA-Z0-9_,\s\(\):]+)\s*$/ ) {
+			    push(
+				@selflessArguments,
+				&Fortran_Utils::Extract_Variables($1)
+				);
+			} else {
+			    die "Generate_Deferred_Binding_Functions: unrecognized argument format"
+			}
+		    }
+		}
+		push(@arguments       ,"self",@selflessArguments);
+		push(@selfishArguments,"self"                   )
+		    if ( $binding->{'interface'}->{'self'}->{'pass'} eq "true" );
+		push(@selfishArguments       ,@selflessArguments);
+		# Find the highest level at which this method binds.
+		my $highLevel;
+		if ( $binding->{'bindsTo'} eq "componentClass" ) {
+		    $highLevel = $component->{'class'};
+		} else {
+		    $highLevel = $componentID;
+		    my $parentComponent = $component;
+		    while ( exists($parentComponent->{'extends'}) ) {
+			$highLevel = ucfirst($parentComponent->{'extends'}->{'class'}).ucfirst($parentComponent->{'extends'}->{'name'});
+			$parentComponent = $buildData->{'components'}->{$highLevel};
+		    }
+		}
+		# Create an abstract interface for the deferred function.
+		my $interfaceName = $component->{'class'}.ucfirst($binding->{'method'});
+		unless ( exists($interfaces{$interfaceName}) ) {
+		    $buildData->{'content'} .= "abstract interface\n";
+		    $buildData->{'content'} .= "  ".$type." ".$interfaceName."Interface(".join(",",@arguments).")\n";
+		    $buildData->{'content'} .= "    import nodeComponent".$highLevel."\n"
+			if ( $binding->{'interface'}->{'self'}->{'pass'} eq "true" );
+		    $buildData->{'content'} .= "    class(nodeComponent".$highLevel."), intent(".$binding->{'interface'}->{'self'}->{'intent'}.") :: self\n"
+			if ( $binding->{'interface'}->{'self'}->{'pass'} eq "true" );
+		    $buildData->{'content'} .= "    ".$_."\n"
+			foreach ( @{$binding->{'interface'}->{'argument'}} );
+		    $buildData->{'content'} .= "  end ".$endType." ".$interfaceName."Interface\n";
+		    $buildData->{'content'} .= "end interface\n\n";
+		    $interfaces{$interfaceName} = 1;
+		}
+		# Create functions for the component class level if needed.
+		my $classFunctionName = $component->{'class'}.ucfirst($binding->{'method'});
+		if ( $binding->{'bindsTo'} eq 'componentClass' && ! exists($classFunctions{$classFunctionName}) ) {
+		    my @dataContent =
+			(
+			 {
+			     intrinsic  => "procedure",
+			     type       => $component->{'class'}.ucfirst($binding->{'method'})."Interface",
+			     variables  => [ "deferredFunction" ]
+			 },
+			);
+		    my $functionCode;
+		    $functionCode  = "  subroutine ".$classFunctionName."DeferredFunctionSet(deferredFunction)\n";
+		    $functionCode .= "    !% Set the function to be used for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$component->{'class'}."} component class.\n";
+		    $functionCode .= "    implicit none\n";
+		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= "    ".$classFunctionName."Deferred   => deferredFunction\n";
+		    $functionCode .= "    ".$classFunctionName."IsSetValue =  .true.\n";
+		    $functionCode .= "    return\n";
+		    $functionCode .= "  end subroutine ".$classFunctionName."DeferredFunctionSet\n";
+		    # Insert into the function list.
+		    push(
+			@{$buildData->{'code'}->{'functions'}},
+			$functionCode
+			);
+		    $functionCode  = "  logical function ".$classFunctionName."DeferredFunctionIsSet()\n";
+		    $functionCode .= "    !% Return true if the deferred function for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$component->{'class'}."} component class has been set.\n";
+		    $functionCode .= "    implicit none\n";
+		    $functionCode .= "    ".$classFunctionName."DeferredFunctionIsSet=".$classFunctionName."IsSetValue\n";
+		    $functionCode .= "    return\n";
+		    $functionCode .= "  end function ".$classFunctionName."DeferredFunctionIsSet\n";
+		    # Insert into the function list.
+		    push(
+			@{$buildData->{'code'}->{'functions'}},
+			$functionCode
+			);
+		    # Create a function to call the deferred function.
+		    $functionCode  = "  ".$type." ".$classFunctionName."(".join(",",@arguments).")\n";
+		    $functionCode .= "    !% Call the deferred function for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$component->{'class'}."} component class.\n";
+		    $functionCode .= "    use Galacticus_Error\n";
+		    $functionCode .= "    implicit none\n";
+		    $functionCode .= "    class(nodeComponent".ucfirst($component->{'class'})."), intent(".$binding->{'interface'}->{'self'}->{'intent'}.") :: self\n";
+		    $functionCode .= "    ".$_."\n"
+			foreach ( @{$binding->{'interface'}->{'argument'}} );
+		    $functionCode .= "    if (self%".$binding->{'method'}."FunctionIsSet()) then\n";
+		    if ( $type eq "subroutine" ) {
+			$functionCode .= "       call ".$classFunctionName."Deferred(".join(",",@selfishArguments).")\n";
+		    } else {
+			$functionCode .= "       ".$classFunctionName."=".$classFunctionName."Deferred(".join(",",@selfishArguments).")\n";
+		    }
+		    $functionCode .= "    else\n";
+		    $functionCode .= "       call Galacticus_Error_Report('".$classFunctionName."','deferred function has not been assigned')\n";
+		    $functionCode .= "    end if\n";
+		    $functionCode .= "    return\n";
+		    $functionCode .= "  end ".$endType." ".$classFunctionName."\n";
+		    # Insert into the function list.
+		    push(
+			@{$buildData->{'code'}->{'functions'}},
+			$functionCode
+			);
+		    # Record that we have created functions for this class.
+		    $classFunctions{$classFunctionName} = 1;
+		}
+		# Create functions for the component level.
+		my $componentFunctionName = $componentID.ucfirst($binding->{'method'});
+		my @dataContent =
+		    (
+		     {
+			 intrinsic  => "procedure",
+			 type       => $component->{'class'}.ucfirst($binding->{'method'})."Interface",
+			 variables  => [ "deferredFunction" ]
+		     },
+		    );
+		my $functionCode;
+		$functionCode  = "  subroutine ".$componentFunctionName."DeferredFunctionSet(deferredFunction)\n";
+		$functionCode .= "    !% Set the function to be used for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$componentID."} component.\n";
+		$functionCode .= "    implicit none\n";
+		$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		$functionCode .= "    ".$componentFunctionName."Deferred   => deferredFunction\n";
+		$functionCode .= "    ".$componentFunctionName."IsSetValue =  .true.\n";
+		$functionCode .= "    return\n";
+		$functionCode .= "  end subroutine ".$componentFunctionName."DeferredFunctionSet\n";
+		# Insert into the function list.
+		push(
+		    @{$buildData->{'code'}->{'functions'}},
+		    $functionCode
+		    );
+		$functionCode  = "  logical function ".$componentFunctionName."DeferredFunctionIsSet()\n";
+		$functionCode .= "    !% Return true if the deferred function for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$componentID."} component has been set.\n";
+		$functionCode .= "    implicit none\n";
+		$functionCode .= "    ".$componentFunctionName."DeferredFunctionIsSet=".$componentFunctionName."IsSetValue\n";
+		$functionCode .= "    return\n";
+		$functionCode .= "  end function ".$componentFunctionName."DeferredFunctionIsSet\n";
+		# Insert into the function list.
+		push(
+		    @{$buildData->{'code'}->{'functions'}},
+		    $functionCode
+		    );
+		# Create a function that calls the deferred function.
+		$functionCode  = "  ".$type." ".$componentFunctionName."(".join(",",@arguments).")\n";
+		$functionCode .= "    !% Call the deferred function for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$componentID."} component.\n";
+		$functionCode .= "    use Galacticus_Error\n";
+		$functionCode .= "    implicit none\n";
+		$functionCode .= "    class(nodeComponent".ucfirst($componentID)."), intent(".$binding->{'interface'}->{'self'}->{'intent'}.") :: self\n";
+		$functionCode .= "    ".$_."\n"
+		    foreach ( @{$binding->{'interface'}->{'argument'}} );
+		$functionCode .= "    select type (self)\n";
+		$functionCode .= "    class is (nodeComponent".ucfirst($componentID).")\n";
+		$functionCode .= "       if (self%".$binding->{'method'}."FunctionIsSet()) then\n";
+		if ( $type eq "subroutine" ) {
+		    $functionCode .= "          call ".$componentFunctionName."Deferred(".join(",",@selfishArguments).")\n";
+		} else {
+		    $functionCode .= "          ".$componentFunctionName."=".$componentFunctionName."Deferred(".join(",",@selfishArguments).")\n";
+		}
+		$functionCode .= "       else\n";
+		my $parentType;
+		if ( exists($component->{'extends'}) ) {
+		    $parentType = "nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'});
+		} elsif ( $binding->{'bindsTo'} eq "componentClass" ) {
+		    $parentType = "nodeComponent".ucfirst($component->{'class'});
+		}
+		if ( defined($parentType) ) {
+		    if ( $type eq "subroutine" ) {
+			$functionCode .= "          call self%".$parentType."%".$binding->{'method'}."(".join(",",@selflessArguments).")\n";
+		    } else {
+			$functionCode .= "          ".$componentFunctionName."=self%".$parentType."%".$binding->{'method'}."(".join(",",@selflessArguments).")\n";
+		    }
+		} else {
+		    $functionCode .= "          call Galacticus_Error_Report('".$componentFunctionName."','deferred function has not been assigned')\n";
+		}
+		$functionCode .= "       end if\n";
+		$functionCode .= "    end select\n";
+		$functionCode .= "    return\n";
+		$functionCode .= "  end ".$endType." ".$componentFunctionName."\n";
+		# Insert into the function list.
+		push(
+		    @{$buildData->{'code'}->{'functions'}},
+		    $functionCode
+		    );
+	    }
+	}
+    }
 }
 
 sub Generate_Deferred_Procedure_Pointers {
@@ -2265,6 +2610,70 @@ sub Generate_Node_Dump_Function {
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "dump", function => "Node_Dump", description => "Generate an ASCII dump of all content of a node.", returnType => "\\void", arguments => ""}
 	);
+    # Create the function.
+    @dataContent =
+	(
+	 {
+	     intrinsic  => "class",
+	     type       => "treeNode",
+	     attributes => [ "intent(inout)" ],
+	     variables  => [ "self" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     attributes => [ "intent(in   )" ],
+	     variables  => [ "fileHandle" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "i" ]
+	 },
+	 {
+	     intrinsic  => "character",
+	     type       => "len=20",
+	     variables  => [ "idLabel", "treeLabel" ]
+	 }
+	);
+    $functionCode  = "  subroutine Node_Dump_XML(self,fileHandle)\n";
+    $functionCode .= "    !% Dump node content.\n";
+    $functionCode .= "    use ISO_Varying_String\n";
+    $functionCode .= "    use Galacticus_Display\n";
+    $functionCode .= "    use String_Handling\n";
+    $functionCode .= "    implicit none\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    # Iterate over pointers.
+    $functionCode .= "    !\$omp critical(Node_XML_Dump)\n";
+    $functionCode .= "    write (  idLabel,'(i20)') self         %index()\n";
+    $functionCode .= "    write (treeLabel,'(i20)') self%hostTree%index\n";
+    $functionCode .= "    write (fileHandle,'(a,a,a,a,a)') ' <node tree=\"',trim(adjustl(treeLabel)),'\" id=\"',trim(adjustl(idLabel)),'\" >'\n";
+    $functionCode .= "    write (fileHandle,'(a)') '  <pointer>'\n";
+    foreach my $pointer ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode" ) {
+	$functionCode .= "   write (idLabel,'(i20)') self%".pad($pointer,14)."%index()\n";
+	$functionCode .= "   write (fileHandle,'(a,a,a)') '   <".$pointer.">',trim(adjustl(idLabel)),'</".$pointer.">'\n"
+    }
+    $functionCode .= "    write (fileHandle,'(a)') '  </pointer>'\n";
+    # Iterate over all component classes
+    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dumpXML(fileHandle)\n";
+	$functionCode .= "      end do\n";
+	$functionCode .= "    end if\n";
+    }
+    $functionCode .= "    write (fileHandle,*) ' </node>'\n";
+    $functionCode .= "    !\$omp end critical(Node_XML_Dump)\n";
+    $functionCode .= "    return\n";
+    $functionCode .= "  end subroutine Node_Dump_XML\n";
+    # Insert into the function list.
+    push(
+	@{$buildData->{'code'}->{'functions'}},
+	$functionCode
+	);
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{type => "procedure", name => "dumpXML", function => "Node_Dump_XML", description => "Generate an XML dump of all content of a node.", returnType => "\\void", arguments => ""}
+	);
     # Create a function for doing a raw (binary) dump.
     @dataContent =
 	(
@@ -2935,6 +3344,7 @@ sub Generate_Implementation_Dump_Functions {
 		 variables  => [ "self" ]
 	     }
 	    );
+	my $counterAdded = 0;
 	unless ( $component->{'name'} eq "null" ) {
 	    push(
 		@dataContent,
@@ -2949,7 +3359,6 @@ sub Generate_Implementation_Dump_Functions {
 		    variables  => [ "label" ]
 		}
 		);
-	    my $counterAdded = 0;
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this property has any linked data in this component.
@@ -2975,7 +3384,7 @@ sub Generate_Implementation_Dump_Functions {
 	     real        => "'(e12.6)'",
 	     integer     => "'(i8)'",
 	     longInteger => "'(i16)'",
-	     logical     => "*"
+	     logical     => "'(l1)'"
 	    );
 	# Generate dump function.
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Dump(self)\n";
@@ -3060,6 +3469,97 @@ sub Generate_Implementation_Dump_Functions {
 	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "dump", function => "Node_Component_".ucfirst($componentID)."_Dump"},
 	    );
+	# Initialize data content.
+	@dataContent =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentID),
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "fileHandle" ]
+	     }
+	    );
+	push(
+	    @dataContent,
+	    {
+		intrinsic  => "integer",
+		variables  => [ "i" ]
+	    }
+	    )
+	    if ( $counterAdded == 1 );
+	# Generate XML dump function.
+	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Dump_XML(self,fileHandle)\n";
+	$functionCode .= "    !% Dump the contents of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component to XML.\n";
+	$functionCode .= "    implicit none\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	unless ( $component->{'name'} eq "null" ) {
+	    # Dump the parent type if necessary.
+	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dumpXML(fileHandle)\n"
+		if ( exists($component->{'extends'}) );
+	    $functionCode .= "    write (fileHandle,'(a)') '  <".$component->{'class'}." type=\"".$component->{'name'}."\">'\n";
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
+		# Check if this property has any linked data in this component.
+		if ( exists($property->{'linkedData'}) ) {
+		    my $linkedDataName = $property->{'linkedData'};
+		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		    if ( $linkedData->{'rank'} == 0 ) {
+			switch ( $linkedData->{'type'} ) {
+			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
+				(my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
+				$functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".padLinkedData($linkedDataName,[0,0])."%value,'</".$propertyName.">'\n";
+			    }
+			    else {
+				$functionCode .= "    write (fileHandle,'(a)') '   <".$propertyName.">'\n";
+## AJB HACK				$functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%dumpXML()\n";
+				$functionCode .= "    write (fileHandle,'(a)') '   </".$propertyName.">'\n";
+			    }
+			}
+		    } elsif ( $linkedData->{'rank'} == 1 ) {
+			switch ( $linkedData->{'type'} ) {
+			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
+				(my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
+				$functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
+				$functionCode .= "       write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".$linkedDataName."%value(i),'</".$propertyName.">'\n";
+				$functionCode .= "    end do\n";
+			    }
+			    else {
+				$functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
+				$functionCode .= "       write (fileHandle,'(a)') '   <".$propertyName.">'\n";
+## AJB HACK				$functionCode .= "       call self%".$linkedDataName."%value(i)%dumpXML()\n";
+				$functionCode .= "       write (fileHandle,'(a)') '   </".$propertyName.">'\n";
+				$functionCode .= "    end do\n";
+			    }
+			}			
+		    }
+		} elsif ( $property->{'isVirtual'} eq "true" && $property->{'rank'} == 0 ) {
+		    switch ( $property->{'type'} ) {
+			case ( [ "real", "integer", "longInteger", "logical" ] ) {
+			    (my $typeFormat = $formatLabel{$property->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
+			    $functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".padImplementationProperty($propertyName,[0,0])."(),'</".$propertyName.">'\n";
+			}
+		    }
+		}
+	    }
+	    $functionCode .= "    write (fileHandle,'(a)') '  </".$component->{'class'}.">'\n";
+	}
+	$functionCode .= "    return\n";
+	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Dump_XML\n";
+	# Insert into the function list.
+	push(
+	    @{$buildData->{'code'}->{'functions'}},
+	    $functionCode
+	    );
+	# Insert a type-binding for this function into the implementation type.
+	push(
+	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    {type => "procedure", name => "dumpXML", function => "Node_Component_".ucfirst($componentID)."_Dump_XML"},
+	    );
 	# Create function to do a raw (binary) dump.
 	# Initialize data content.
 	@dataContent =
@@ -3076,7 +3576,7 @@ sub Generate_Implementation_Dump_Functions {
 		 variables  => [ "fileHandle" ]
 	     }
 	    );
-	my $counterAdded = 0;
+	$counterAdded = 0;
 	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if this property has any linked data in this component.

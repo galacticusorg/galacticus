@@ -873,6 +873,15 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Dump_Null
 
+  subroutine Node_Component_Dump_XML_Null(self,fileHandle)
+    !% Dump a generic tree node component to XML.
+    implicit none
+    class  (nodeComponent), intent(inout) :: self
+    integer               , intent(in   ) :: fileHandle
+
+    return
+  end subroutine Node_Component_Dump_XML_Null
+
   subroutine Node_Component_Dump_Raw_Null(self,fileHandle)
     !% Dump a generic tree node component in binary.
     implicit none
