@@ -141,7 +141,7 @@ contains
     type            (abundances       ), save                   :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
     double precision                   , parameter              :: surfaceDensityTransition=85.0d12                                 !   M_Solar/Mpc^2
-    double precision                                            :: cloudFactor                     , molecularFraction                               , &
+    double precision                                            :: surfaceDensityFactor            , molecularFraction                               , &
          &                                                         s                               , sigmaMolecularComplex                           , &
          &                                                         surfaceDensityGas               , surfaceDensityGasDimensionless
 
@@ -186,15 +186,14 @@ contains
        ! Compute the cloud density factor.
        surfaceDensityGasDimensionless=hydrogenMassFraction*surfaceDensityGas/surfaceDensityTransition
        if (surfaceDensityGasDimensionless < 1.0d0) then
-          cloudFactor=surfaceDensityGasDimensionless**(-0.33d0)
+          surfaceDensityFactor=surfaceDensityGas**(+0.67d0)*(hydrogenMassFraction/surfaceDensityTransition)**(-0.33d0)
        else
-          cloudFactor=surfaceDensityGasDimensionless**(+0.33d0)
+          surfaceDensityFactor=surfaceDensityGas*surfaceDensityGasDimensionless**(+0.33d0)
        end if
        ! Compute the star formation rate surface density.
        Star_Formation_Rate_Surface_Density_Disk_KMT09=                             &
             &                                          starFormationFrequencyKMT09 &
-            &                                         *surfaceDensityGas           &
-            &                                         *cloudFactor                 &
+            &                                         *surfaceDensityFactor        &
             &                                         *molecularFraction
     end if
     return
