@@ -836,116 +836,118 @@ sub Construct_Null_Components {
 sub Set_Default_Attributes{
     # Set any missing attributes to default values.
     my $buildData = shift;
-
     # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
-	# Get the component.
-	my $component = $buildData->{'components'}->{$componentID};
-	# Add a fully-qualified name to the component.
-	$component->{'fullyQualifiedName'} = $componentID;
-	# If a create function is specified, set it to be non-deferred by default.
-	$component->{'createFunction'}->{'isDeferred'} = "false"
-	    if ( exists($component->{'createFunction'}) && ! exists($component->{'createFunction'}->{'isDeferred'}) );
-	# Iterate over bindings.
-	foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
-	    $binding->{'isDeferred'} = "false"
-		unless ( exists($binding->{'isDeferred'}) );
-	}
-	# For extensions, copy any binding from the parent class.
-	if ( exists($component->{'extends'}) ) {
-	    my $parentID        = ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'});
-	    my $parentComponent = $buildData->{'components'}->{$parentID};
-	    foreach my $parentBinding ( @{$parentComponent->{'bindings'}->{'binding'}} ) {
-		if ( $parentBinding->{'isDeferred'} eq "true" ){
-		    my $copyBinding = 1;
-		    foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
-			if ( $binding->{'method'} eq $parentBinding->{'method'} ) {
-			    $copyBinding = 0;
-			    last;
+    foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
+    	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}} ) {
+	    my $componentID = ucfirst($componentClass).ucfirst($implementationName);
+	    # Get the component.
+	    my $component = $buildData->{'components'}->{$componentID};
+	    # Add a fully-qualified name to the component.
+	    $component->{'fullyQualifiedName'} = $componentID;
+	    # If a create function is specified, set it to be non-deferred by default.
+	    $component->{'createFunction'}->{'isDeferred'} = "false"
+		if ( exists($component->{'createFunction'}) && ! exists($component->{'createFunction'}->{'isDeferred'}) );
+	    # Iterate over bindings.
+	    foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
+		$binding->{'isDeferred'} = "false"
+		    unless ( exists($binding->{'isDeferred'}) );
+	    }
+	    # For extensions, copy any binding from the parent class.
+	    if ( exists($component->{'extends'}) ) {
+		my $parentID        = ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'});
+		my $parentComponent = $buildData->{'components'}->{$parentID};
+		foreach my $parentBinding ( @{$parentComponent->{'bindings'}->{'binding'}} ) {
+		    if ( $parentBinding->{'isDeferred'} eq "true" ){
+			my $copyBinding = 1;
+			foreach my $binding ( @{$component->{'bindings'}->{'binding'}} ) {
+			    if ( $binding->{'method'} eq $parentBinding->{'method'} ) {
+				$copyBinding = 0;
+				last;
+			    }
 			}
+			push(
+			    @{$component->{'bindings'}->{'binding'}},
+			    $parentBinding
+			    )
+			    if ( $copyBinding == 1 );
 		    }
-		    push(
-			@{$component->{'bindings'}->{'binding'}},
-			$parentBinding
-			)
-			if ( $copyBinding == 1 );
 		}
 	    }
-	}
-	# Iterate over properties.
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-	    # Get the property.
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    # Add the property's name.
-	    $property->{'name'} = $propertyName;
-	    # Binding.
-	    $property->{'attributes'}->{'bindsTo'} = "component"
-		unless ( exists($property->{'attributes'}->{'bindsTo'}) );
-	    # Auto-creation.
-	    $property->{'attributes'}->{'createIfNeeded'} = "false"
-		unless ( exists($property->{'attributes'}->{'createIfNeeded'}) );
-	    # Deferred status.
-	    $property->{'attributes'}->{'isDeferred'} = ""
-		unless ( exists($property->{'attributes'}->{'isDeferred'}) );
-	    # Generic status.
-	    $property->{'attributes'}->{'makeGeneric'} = "false"
-		unless ( exists($property->{'attributes'}->{'makeGeneric'}) );
-	    # isEvolable synonym.
-	    $property->{'attributes'}->{'isRatetable'} = $property->{'attributes'}->{'isEvolvable'};
-	    # Rate function.
-	    $property->{'rateFunction'} = $componentID.ucfirst($propertyName)."Rate"
-		unless ( exists($property->{'rateFunction'}) );
-	    # Get function.
-	    if ( exists($property->{'getFunction'}) ) {
-		# A getFunction element was specified.
-		if ( defined(reftype($property->{'getFunction'})) ) {
-		    # The getFunction element contains structure, so simple set its bindsTo element if not already defined.
-		    $property->{'getFunction'}->{'bindsTo'} = "component"
-			unless ( exists($property->{'getFunction'}->{'bindsTo'}) );
+	    # Iterate over properties.
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		# Get the property.
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
+		# Add the property's name.
+		$property->{'name'} = $propertyName;
+		# Binding.
+		$property->{'attributes'}->{'bindsTo'} = "component"
+		    unless ( exists($property->{'attributes'}->{'bindsTo'}) );
+		# Auto-creation.
+		$property->{'attributes'}->{'createIfNeeded'} = "false"
+		    unless ( exists($property->{'attributes'}->{'createIfNeeded'}) );
+		# Deferred status.
+		$property->{'attributes'}->{'isDeferred'} = ""
+		    unless ( exists($property->{'attributes'}->{'isDeferred'}) );
+		# Generic status.
+		$property->{'attributes'}->{'makeGeneric'} = "false"
+		    unless ( exists($property->{'attributes'}->{'makeGeneric'}) );
+		# isEvolable synonym.
+		$property->{'attributes'}->{'isRatetable'} = $property->{'attributes'}->{'isEvolvable'};
+		# Rate function.
+		$property->{'rateFunction'} = $componentID.ucfirst($propertyName)."Rate"
+		    unless ( exists($property->{'rateFunction'}) );
+		# Get function.
+		if ( exists($property->{'getFunction'}) ) {
+		    # A getFunction element was specified.
+		    if ( defined(reftype($property->{'getFunction'})) ) {
+			# The getFunction element contains structure, so simple set its bindsTo element if not already defined.
+			$property->{'getFunction'}->{'bindsTo'} = "component"
+			    unless ( exists($property->{'getFunction'}->{'bindsTo'}) );
+		    } else {
+			# The getFunction element is simply the function name. Replace with a structure with default binding.
+			$property->{'getFunction'} = 
+			{
+			    content => $property->{'getFunction'},
+			    bindsTo => "component"
+			};
+		    }
+		    # Since getFunction was specified, we will not need to build a get function.
+		    $property->{'getFunction'}->{'build'} = "false";
 		} else {
-		    # The getFunction element is simply the function name. Replace with a structure with default binding.
+		    # No getFunction element was specified, assign a default function and record that a get function must be built.
 		    $property->{'getFunction'} = 
 		    {
-			content => $property->{'getFunction'},
-			bindsTo => "component"
+			content => lcfirst($componentID).ucfirst($propertyName)."Get",
+			bindsTo => "component"                               ,
+			build   => "true"
 		    };
 		}
-		# Since getFunction was specified, we will not need to build a get function.
-		$property->{'getFunction'}->{'build'} = "false";
-	    } else {
-		# No getFunction element was specified, assign a default function and record that a get function must be built.
-		$property->{'getFunction'} = 
-		{
-		    content => lcfirst($componentID).ucfirst($propertyName)."Get",
-		    bindsTo => "component"                               ,
-		    build   => "true"
-		};
-	    }
-	    # Set function.
-	    if ( exists($property->{'setFunction'}) ) {
-		# A setFunction element was specified.
-		if ( defined(reftype($property->{'setFunction'})) ) {
-		    # The setFunction element contains structure, so simple set its bindsTo element if not already defined.
-		    $property->{'setFunction'}->{'bindsTo'} = "component"
-			unless ( exists($property->{'setFunction'}->{'bindsTo'}) );
+		# Set function.
+		if ( exists($property->{'setFunction'}) ) {
+		    # A setFunction element was specified.
+		    if ( defined(reftype($property->{'setFunction'})) ) {
+			# The setFunction element contains structure, so simple set its bindsTo element if not already defined.
+			$property->{'setFunction'}->{'bindsTo'} = "component"
+			    unless ( exists($property->{'setFunction'}->{'bindsTo'}) );
+		    } else {
+			# The setFunction element is simply the function name. Replace with a structure with default binding.
+			$property->{'setFunction'} = 
+			{
+			    content => $property->{'setFunction'},
+			    bindsTo => "component"
+			};
+		    }
+		    # Since setFunction was specified, we will not need to build a set function.
+		    $property->{'setFunction'}->{'build'} = "false";
 		} else {
-		    # The setFunction element is simply the function name. Replace with a structure with default binding.
+		    # No setFunction element was specified, assign a default function and record that a set function must be built.
 		    $property->{'setFunction'} = 
 		    {
-			content => $property->{'setFunction'},
-			bindsTo => "component"
+			content => lcfirst($componentID).ucfirst($propertyName)."Set",
+			bindsTo => "component"                               ,
+			build   => "true"
 		    };
 		}
-		# Since setFunction was specified, we will not need to build a set function.
-		$property->{'setFunction'}->{'build'} = "false";
-	    } else {
-		# No setFunction element was specified, assign a default function and record that a set function must be built.
-		$property->{'setFunction'} = 
-		{
-		    content => lcfirst($componentID).ucfirst($propertyName)."Set",
-		    bindsTo => "component"                               ,
-		    build   => "true"
-		};
 	    }
 	}
     }
@@ -1321,7 +1323,7 @@ sub Generate_Component_Classes{
 					type     => "procedure",
 					pass     => "nopass",
 					name     => $_->{'method'}."FunctionIsSet",
-					function => $componentClass.$_->{'method'}."DeferredFunctionIsSet"
+					function => $componentClass.$_->{'method'}."DfrrdFnctnIsSet"
 					);
 				    push(@typeBoundFunctions,\%setFunction,\%testFunction);
 				}
@@ -1432,7 +1434,7 @@ sub Generate_Implementations {
 			type     => "procedure",
 			pass     => "nopass",
 			name     => $_->{'method'}."FunctionIsSet",
-			function => $componentID.$_->{'method'}."DeferredFunctionIsSet"
+			function => $componentID.$_->{'method'}."DfrrdFnctnIsSet"
 			);
 		    push(@typeBoundFunctions,\%setFunction,\%testFunction);
 		}
@@ -1640,12 +1642,12 @@ sub Generate_Deferred_Binding_Functions {
 			@{$buildData->{'code'}->{'functions'}},
 			$functionCode
 			);
-		    $functionCode  = "  logical function ".$classFunctionName."DeferredFunctionIsSet()\n";
+		    $functionCode  = "  logical function ".$classFunctionName."DfrrdFnctnIsSet()\n";
 		    $functionCode .= "    !% Return true if the deferred function for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$component->{'class'}."} component class has been set.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= "    ".$classFunctionName."DeferredFunctionIsSet=".$classFunctionName."IsSetValue\n";
+		    $functionCode .= "    ".$classFunctionName."DfrrdFnctnIsSet=".$classFunctionName."IsSetValue\n";
 		    $functionCode .= "    return\n";
-		    $functionCode .= "  end function ".$classFunctionName."DeferredFunctionIsSet\n";
+		    $functionCode .= "  end function ".$classFunctionName."DfrrdFnctnIsSet\n";
 		    # Insert into the function list.
 		    push(
 			@{$buildData->{'code'}->{'functions'}},
@@ -1702,12 +1704,12 @@ sub Generate_Deferred_Binding_Functions {
 		    @{$buildData->{'code'}->{'functions'}},
 		    $functionCode
 		    );
-		$functionCode  = "  logical function ".$componentFunctionName."DeferredFunctionIsSet()\n";
+		$functionCode  = "  logical function ".$componentFunctionName."DfrrdFnctnIsSet()\n";
 		$functionCode .= "    !% Return true if the deferred function for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$componentID."} component has been set.\n";
 		$functionCode .= "    implicit none\n";
-		$functionCode .= "    ".$componentFunctionName."DeferredFunctionIsSet=".$componentFunctionName."IsSetValue\n";
+		$functionCode .= "    ".$componentFunctionName."DfrrdFnctnIsSet=".$componentFunctionName."IsSetValue\n";
 		$functionCode .= "    return\n";
-		$functionCode .= "  end function ".$componentFunctionName."DeferredFunctionIsSet\n";
+		$functionCode .= "  end function ".$componentFunctionName."DfrrdFnctnIsSet\n";
 		# Insert into the function list.
 		push(
 		    @{$buildData->{'code'}->{'functions'}},
