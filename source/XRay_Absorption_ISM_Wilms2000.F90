@@ -35,6 +35,7 @@ program XRay_Absorption_ISM_Wilms2000
   use Numerical_Constants_Units
   use Numerical_Constants_Prefixes
   use Dates_and_Times
+  use HDF5
   use IO_HDF5
   use Atomic_Cross_Sections_Compton
   implicit none
