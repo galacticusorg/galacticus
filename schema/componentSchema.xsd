@@ -156,6 +156,7 @@
 		<xs:element   name="interface"                    minOccurs="0"  >
 		  <xs:complexType>
 		    <xs:element name="type"     minOccurs="1"/>
+		    <xs:element name="rank"     minOccurs="0"/>
 		    <xs:element name="self"     minOccurs="1" >
 		      <xs:complexType>
 			<xs:attribute name="pass"   type="xs:boolean" use="required"/>

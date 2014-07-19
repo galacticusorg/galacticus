@@ -184,7 +184,8 @@ module Node_Component_Hot_Halo_Standard
   !#    </binding>
   !#    <binding method="outerRadiusGrowthRate" bindsTo="component" isDeferred="true" >
   !#     <interface>
-  !#      <type>double precision</type>
+  !#      <type>real</type>
+  !#      <rank>0</rank>
   !#      <self pass="true" intent="inout" />
   !#     </interface>
   !#    </binding>
