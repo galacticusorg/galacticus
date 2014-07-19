@@ -3509,40 +3509,56 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
-			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
+			if (
+			    $linkedData->{'type'} eq "real"
+			    ||
+			    $linkedData->{'type'} eq "integer"
+			    ||
+			    $linkedData->{'type'} eq "longInteger"
+			    ||
+			    $linkedData->{'type'} eq "logical"  
+			    ) {
 				(my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
 				$functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".padLinkedData($linkedDataName,[0,0])."%value,'</".$propertyName.">'\n";
-			    }
-			    else {
-				$functionCode .= "    write (fileHandle,'(a)') '   <".$propertyName.">'\n";
-## AJB HACK				$functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%dumpXML()\n";
-				$functionCode .= "    write (fileHandle,'(a)') '   </".$propertyName.">'\n";
-			    }
+			}
+			else {
+			    $functionCode .= "    write (fileHandle,'(a)') '   <".$propertyName.">'\n";
+			    $functionCode .= "    write (fileHandle,'(a)') '   </".$propertyName.">'\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
-			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
-				(my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
-				$functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
-				$functionCode .= "       write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".$linkedDataName."%value(i),'</".$propertyName.">'\n";
-				$functionCode .= "    end do\n";
-			    }
-			    else {
-				$functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
-				$functionCode .= "       write (fileHandle,'(a)') '   <".$propertyName.">'\n";
-## AJB HACK				$functionCode .= "       call self%".$linkedDataName."%value(i)%dumpXML()\n";
-				$functionCode .= "       write (fileHandle,'(a)') '   </".$propertyName.">'\n";
-				$functionCode .= "    end do\n";
-			    }
+			if ( 
+			    $linkedData->{'type'} eq "real"
+			    ||
+			    $linkedData->{'type'} eq "integer"
+			    ||
+			    $linkedData->{'type'} eq "longInteger"
+			    ||
+			    $linkedData->{'type'} eq "logical" 
+			    ) {
+			    (my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
+			    $functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
+			    $functionCode .= "       write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".$linkedDataName."%value(i),'</".$propertyName.">'\n";
+			    $functionCode .= "    end do\n";
+			}
+			else {
+			    $functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
+			    $functionCode .= "       write (fileHandle,'(a)') '   <".$propertyName.">'\n";
+			    $functionCode .= "       write (fileHandle,'(a)') '   </".$propertyName.">'\n";
+			    $functionCode .= "    end do\n";
 			}			
 		    }
 		} elsif ( $property->{'isVirtual'} eq "true" && $property->{'rank'} == 0 ) {
-		    switch ( $property->{'type'} ) {
-			case ( [ "real", "integer", "longInteger", "logical" ] ) {
-			    (my $typeFormat = $formatLabel{$property->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
-			    $functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".padImplementationProperty($propertyName,[0,0])."(),'</".$propertyName.">'\n";
-			}
+		    if (
+			$property->{'type'} eq "real"
+			||
+			$property->{'type'} eq "integer"
+			||
+			$property->{'type'} eq "longInteger"
+			||
+			$property->{'type'} eq "logical"
+			) {
+			(my $typeFormat = $formatLabel{$property->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
+			$functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".padImplementationProperty($propertyName,[0,0])."(),'</".$propertyName.">'\n";
 		    }
 		}
 	    }
