@@ -27,7 +27,7 @@ system("mkdir -p $outputDirectory");
 
 # Open the descriptor file that explains what analysis files to run.
 my $xml = new XML::Simple;
-my $data = $xml->XMLin($analysisScript);
+my $data = $xml->XMLin($analysisScript, KeyAttr => 0);
 
 # Initialize net chi^2 variables.
 my $chiSquaredNet       = 0.0;
