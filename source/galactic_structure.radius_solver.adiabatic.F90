@@ -94,6 +94,7 @@ contains
     !% Find the radii of galactic components in {\tt thisNode} using the ``adiabatic'' method.
     use Cosmology_Parameters
     use Galacticus_Error
+    use Galacticus_Display
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -146,7 +147,11 @@ contains
           end if
        end do
        ! Check that we found a converged solution.
-       if (fitMeasure > adiabaticContractionSolutionTolerance) call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Adiabatic','failed to find converged solution')
+       if (fitMeasure > adiabaticContractionSolutionTolerance) then
+          call Galacticus_Display_Message('dumping node for which radii are currently being sought')
+          call thisNode%dump()
+          call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Adiabatic','failed to find converged solution')
+       end if
 
     end if
     return
@@ -162,17 +167,24 @@ contains
     use Galactic_Structure_Initial_Radii
     use ISO_Varying_String
     use String_Handling
+    use Memory_Management
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: specificAngularMomentum
-    procedure       (Structure_Get_Template), intent(in   ), pointer :: Radius_Get               , Velocity_Get
-    procedure       (Structure_Set_Template), intent(in   ), pointer :: Radius_Set               , Velocity_Set
-    character       (len=14                )                         :: label
-    type            (varying_string        )                         :: message
-    double precision                                                 :: baryonicVelocitySquared  , darkMatterMassFinal, &
-         &                                                              darkMatterVelocitySquared, haloMassInitial    , &
-         &                                                              radius                   , radiusInitial      , &
-         &                                                              radiusNew                , velocity
+    type            (treeNode              ), intent(inout) , pointer           :: thisNode
+    double precision                        , intent(in   )                     :: specificAngularMomentum
+    procedure       (Structure_Get_Template), intent(in   ) , pointer           :: Radius_Get                        , Velocity_Get
+    procedure       (Structure_Set_Template), intent(in   ) , pointer           :: Radius_Set                        , Velocity_Set
+    double precision                        , dimension(:,:), allocatable, save :: radiusHistory
+    !$omp threadprivate(radiusHistory)
+    double precision                        , dimension(:,:), allocatable       :: radiusHistoryTemporary
+    integer                                 , parameter                         :: iterationsForBisectionMinimum  =10
+    integer                                 , parameter                         :: activeComponentMaximumIncrement= 2
+    integer                                                                     :: activeComponentMaximumCurrent
+    character       (len=14                )                                    :: label
+    type            (varying_string        )                                    :: message
+    double precision                                                            :: baryonicVelocitySquared           , darkMatterMassFinal, &
+         &                                                                         darkMatterVelocitySquared         , haloMassInitial    , &
+         &                                                                         radius                            , radiusInitial      , &
+         &                                                                         radiusNew                         , velocity
 
     ! Count the number of active comonents.
     activeComponentCount=activeComponentCount+1
@@ -229,6 +241,45 @@ contains
        else
           radiusNew=specificAngularMomentum/velocity
        endif
+       ! Ensure that the radius history array is sufficiently sized.
+       if (.not.allocated(radiusHistory)) then
+          call Alloc_Array(radiusHistory,[2,activeComponentCount+activeComponentMaximumIncrement])
+          radiusHistory=-1.0d0
+       else if (size(radiusHistory,dim=2) < activeComponentCount) then
+          activeComponentMaximumCurrent=size(radiusHistory,dim=2)
+          call Move_Alloc(radiusHistory,radiusHistoryTemporary)
+          call Alloc_Array(radiusHistory,[2,activeComponentCount+activeComponentMaximumIncrement])
+          radiusHistory(:,                              1:                     activeComponentMaximumCurrent  )=radiusHistoryTemporary
+          radiusHistory(:,activeComponentMaximumCurrent+1:activeComponentCount+activeComponentMaximumIncrement)=-1.0d0
+          call Dealloc_Array(radiusHistoryTemporary)
+       end if
+       ! Detect oscillations in the radius solver. Only do this after a few bisection iterations have passed as we don't want to
+       ! declare a true oscillation until the solver has had time to "burn in".
+       if (iterationCount == 1) radiusHistory=-1.0d0
+       if     (                                                                                                                                                                        &
+            &             iterationCount                                                                                                              > iterationsForBisectionMinimum  &
+            &  .and. all( radiusHistory(:,activeComponentCount)                                                                                       >= 0.0d0                       ) &
+            &  .and.     (radiusHistory(2,activeComponentCount)-radiusHistory(1,activeComponentCount))*(radiusHistory(1,activeComponentCount)-radius) <  0.0d0                         &
+            & ) then
+          ! An oscillation has been detected - attempt to break out of it. The following heuristic has been found to work quite
+          ! well - we bisect previous solutions in the oscillating sequence in a variety of different ways
+          ! (arithmetic/geometric and using the current+previous or two previous solutions), alternating the bisection method
+          ! sequentially. There's no guarantee that this will work in every situation however.
+          select case (mod(iterationCount,4))
+          case (0)
+             radius=sqrt  (radius                               *radiusHistory(1,activeComponentCount))
+          case (1)
+             radius=0.5d0*(radius                               +radiusHistory(1,activeComponentCount))
+          case (2)
+             radius=sqrt  (radiusHistory(1,activeComponentCount)*radiusHistory(2,activeComponentCount))
+          case (3)
+             radius=0.5d0*(radiusHistory(1,activeComponentCount)+radiusHistory(2,activeComponentCount))
+          end select
+          radiusHistory(:,activeComponentCount)=-1.0d0
+       end if
+       radiusHistory(2,activeComponentCount)=radiusHistory(1,activeComponentCount)
+       radiusHistory(1,activeComponentCount)=radius
+
        ! Compute a fit measure.
        if (radius > 0.0d0 .and. radiusNew > 0.0d0) fitMeasure=fitMeasure+abs(log(radiusNew/radius))
 
