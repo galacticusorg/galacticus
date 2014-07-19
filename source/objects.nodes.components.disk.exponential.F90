@@ -125,7 +125,7 @@ module Node_Component_Disk_Exponential
   !#   </property>
   !#  </properties>
   !#  <bindings>
-  !#   <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" description="Attach pipes to the exponential disk component." type="void" returnType="\void" arguments="" bindsTo="component" />
+  !#   <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" description="Attach pipes to the exponential disk component." returnType="\void" arguments="" bindsTo="component" />
   !#   <binding method="enclosedMass"          function="Node_Component_Disk_Exponential_Enclosed_Mass"           bindsTo="component" />
   !#   <binding method="density"               function="Node_Component_Disk_Exponential_Density"                 bindsTo="component" />
   !#   <binding method="potential"             function="Node_Component_Disk_Exponential_Potential"               bindsTo="component" />
@@ -1006,40 +1006,9 @@ contains
     type            (treeNode         ), intent(inout), pointer :: thisNode
     double precision                   , intent(in   )          :: radius
     class           (nodeComponentDisk)               , pointer :: thisDiskComponent
-    integer                            , parameter              :: iterationsForBisectionMinimum=10
-    double precision                                            :: newRadius
 
-    ! If using the Cole et al. (2000) method, check whether the solution is oscillating. This can happen as the effective
-    ! angular momentum of the disk becomes radius dependent under this algorithm.
-    newRadius=radius
-    if (diskRadiusSolverCole2000Method) then
-       if     (                                                                                                         &
-            &             radiusSolverIteration                                        > iterationsForBisectionMinimum  &
-            &  .and. all( radiusHistory                                                >= 0.0d0                       ) &
-            &  .and.     (radiusHistory(2)-radiusHistory(1))*(radiusHistory(1)-radius) <  0.0d0                         &
-            & ) then
-          ! An oscillation has been detected - attempt to break out of it. The following heuristic has been found to work quite
-          ! well - we bisect previous solutions in the oscillating sequence in a variety of different ways
-          ! (arithmetic/geometric and using the current+previous or two previous solutions), alternating the bisection method
-          ! sequentially. There's no guarantee that this will work in every situation however.
-          select case (mod(radiusSolverIteration,4))
-          case (0)
-             newRadius=sqrt (radius          *radiusHistory(1))
-          case (1)
-             newRadius=0.5d0*(radius          +radiusHistory(1))
-          case (2)
-             newRadius=sqrt (radiusHistory(1)*radiusHistory(2))
-          case (3)
-             newRadius=0.5d0*(radiusHistory(1)+radiusHistory(2))
-          end select
-          radiusHistory=-1.0d0
-       end if
-       radiusSolverIteration=radiusSolverIteration+1
-       radiusHistory(2)     =radiusHistory(1)
-       radiusHistory(1)     =newRadius
-    end if
     thisDiskComponent => thisNode%disk()
-    call thisDiskComponent%radiusSet(max(newRadius,0.0d0)/diskStructureSolverRadius)
+    call thisDiskComponent%radiusSet(max(radius,0.0d0)/diskStructureSolverRadius)
     return
   end subroutine Node_Component_Disk_Exponential_Radius_Solve_Set
 

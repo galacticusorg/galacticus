@@ -48,7 +48,7 @@ module Node_Component_Disk_Very_Simple
   !#   </property>
   !#  </properties>
   !#  <bindings>
-  !#   <binding method="attachPipe"   function="Node_Component_Disk_Very_Simple_Attach_Pipe" description="Attach pipes to the very simple disk component." type="void" bindsTo="component" returnType="\void" arguments="" />
+  !#   <binding method="attachPipe"   function="Node_Component_Disk_Very_Simple_Attach_Pipe" description="Attach pipes to the very simple disk component." bindsTo="component" returnType="\void" arguments="" />
   !#   <binding method="enclosedMass" function="Node_Component_Disk_Very_Simple_Enclosed_Mass" bindsTo="component" />
   !#  </bindings>
   !#  <functions>objects.nodes.components.disk.very_simple.bound_functions.inc</functions>

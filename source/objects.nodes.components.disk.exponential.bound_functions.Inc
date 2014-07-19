@@ -211,6 +211,7 @@ end function Node_Component_Disk_Exponential_Potential
 
 double precision function Node_Component_Disk_Exponential_Rotation_Curve(self,radius,componentType,massType,haloLoaded)
   !% Computes the rotation curve at a given radius for an exponential disk.
+  use Tables
   use Node_Component_Disk_Exponential_Data
   use Galactic_Structure_Options
   use Numerical_Constants_Physical
