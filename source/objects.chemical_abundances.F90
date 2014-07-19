@@ -104,6 +104,12 @@ module Chemical_Abundances_Structure
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>isZero</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return true if a chemicals object is zero.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>destroy</method>
      !@     <description>Destroys a chemical abundances object.</description>
      !@     <type>\void</type>
@@ -168,6 +174,7 @@ module Chemical_Abundances_Structure
      procedure         :: abundanceSet   =>Chemicals_Abundances_Set
      procedure         :: reset          =>Chemicals_Abundances_Reset
      procedure         :: setToUnity     =>Chemicals_Abundances_Set_To_Unity
+     procedure         :: isZero         =>Chemicals_Abundances_Is_Zero
      procedure         :: destroy        =>Chemicals_Abundances_Destroy
      procedure         :: numberToMass   =>Chemicals_Number_To_Mass
      procedure         :: massToNumber   =>Chemicals_Mass_To_Number
@@ -315,6 +322,17 @@ contains
     self%chemicalValue=self%chemicalValue+increment%chemicalValue
     return
   end subroutine Chemical_Abundances_Increment
+
+  logical function Chemicals_Abundances_Is_Zero(self)
+    !% Test whether an chemicals object is zero.
+    implicit none
+    class(chemicalAbundances), intent(in   ) :: self
+
+    ! Ensure module is initialized.
+    call Chemical_Abundances_Initialize()
+    ! Detect if all chemical abundances are zero.
+    return
+  end function Chemicals_Abundances_Is_Zero
 
   function Chemical_Abundances_Add(abundances1,abundances2)
     !% Add two abundances objects.
