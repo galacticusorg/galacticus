@@ -10,6 +10,15 @@
     </xs:restriction>
   </xs:simpleType>
 
+  <!-- Type definition for intents, used in "binding"s -->
+  <xs:simpleType name="intent">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="in"    />
+      <xs:enumeration value="inout" />
+      <xs:enumeration value="out"   />
+    </xs:restriction>
+  </xs:simpleType>
+
   <!-- Component definition -->
   <xs:element name="component">
     <xs:complexType>
@@ -138,12 +147,24 @@
 	    <xs:element name="binding"            minOccurs="1" >
 	      <xs:complexType>
 		<xs:attribute name="method"      type="xs:string" use="required"/>
-		<xs:attribute name="function"    type="xs:string" use="required"/>
+		<xs:attribute name="function"    type="xs:string"               />
 		<xs:attribute name="bindsTo"     type="level"                   />		
 		<xs:attribute name="description" type="xs:string"               />		
-		<xs:attribute name="type"        type="xs:string"               />		
 		<xs:attribute name="returnType"  type="xs:string"               />		
-		<xs:attribute name="arguments"   type="xs:string"               />		
+		<xs:attribute name="arguments"   type="xs:string"               />
+		<xs:attribute name="isDeferred"  type="xs:string"               />
+		<xs:element   name="interface"                    minOccurs="0"  >
+		  <xs:complexType>
+		    <xs:element name="type"     minOccurs="1"/>
+		    <xs:element name="self"     minOccurs="1" >
+		      <xs:complexType>
+			<xs:attribute name="pass"   type="xs:boolean" use="required"/>
+			<xs:attribute name="intent" type="intent"     use="required"/>
+		      </xs:complexType>
+		    </xs:element>
+		    <xs:element name="argument" minOccurs="0"/>
+		  </xs:complexType>
+		</xs:element>
 	      </xs:complexType>
 	    </xs:element>
 	  </xs:complexType>

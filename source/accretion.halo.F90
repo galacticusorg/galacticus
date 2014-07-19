@@ -27,45 +27,52 @@ module Accretion_Halos
   private
   public :: Halo_Baryonic_Accretion_Rate, Halo_Baryonic_Accreted_Mass, Halo_Baryonic_Failed_Accretion_Rate,&
        & Halo_Baryonic_Failed_Accreted_Mass, Halo_Baryonic_Accretion_Rate_Abundances, Halo_Baryonic_Accreted_Abundances,&
-       & Halo_Baryonic_Accretion_Rate_Chemicals, Halo_Baryonic_Accreted_Chemicals
+       & Halo_Baryonic_Accretion_Rate_Chemicals, Halo_Baryonic_Accreted_Chemicals, Accretion_Halos_Hot_Halo_Output,&
+       & Accretion_Halos_Hot_Halo_Output_Count, Accretion_Halos_Hot_Halo_Output_Names
 
   ! Flag to indicate if this module has been initialized.
-  logical                                                   :: accretionHalosInitialized                  =.false.
+  logical                                                     :: accretionHalosInitialized                  =.false.
 
   ! Name of mass movement method used.
-  type     (varying_string                       )          :: accretionHalosMethod
+  type     (varying_string                       )            :: accretionHalosMethod
 
   ! Pointers to functions that return baryonic mass accretion rates/masses.
-  procedure(Halo_Baryonic_Accretion_Get_Template ), pointer :: Halo_Baryonic_Accretion_Rate_Get           =>null()
-  procedure(Halo_Baryonic_Accretion_Get_Template ), pointer :: Halo_Baryonic_Accreted_Mass_Get            =>null()
-  procedure(Halo_Baryonic_Accretion_Get_Template ), pointer :: Halo_Baryonic_Failed_Accretion_Rate_Get    =>null()
-  procedure(Halo_Baryonic_Accretion_Get_Template ), pointer :: Halo_Baryonic_Failed_Accreted_Mass_Get     =>null()
-  procedure(Halo_Baryonic_Abundances_Get_Template), pointer :: Halo_Baryonic_Accreted_Abundances_Get      =>null()
-  procedure(Halo_Baryonic_Chemicals_Get_Template ), pointer :: Halo_Baryonic_Accreted_Chemicals_Get       =>null()
-  procedure(Halo_Baryonic_Abundances_Get_Template), pointer :: Halo_Baryonic_Accretion_Rate_Abundances_Get=>null()
-  procedure(Halo_Baryonic_Chemicals_Get_Template ), pointer :: Halo_Baryonic_Accretion_Rate_Chemicals_Get =>null()
+  procedure(Halo_Baryonic_Accretion_Get_Template ), pointer  :: Halo_Baryonic_Accretion_Rate_Get           =>null()
+  procedure(Halo_Baryonic_Accretion_Get_Template ), pointer  :: Halo_Baryonic_Accreted_Mass_Get            =>null()
+  procedure(Halo_Baryonic_Accretion_Get_Template ), pointer  :: Halo_Baryonic_Failed_Accretion_Rate_Get    =>null()
+  procedure(Halo_Baryonic_Accretion_Get_Template ), pointer  :: Halo_Baryonic_Failed_Accreted_Mass_Get     =>null()
+  procedure(Halo_Baryonic_Abundances_Get_Template), pointer  :: Halo_Baryonic_Accreted_Abundances_Get      =>null()
+  procedure(Halo_Baryonic_Chemicals_Get_Template ), pointer  :: Halo_Baryonic_Accreted_Chemicals_Get       =>null()
+  procedure(Halo_Baryonic_Abundances_Get_Template), pointer  :: Halo_Baryonic_Accretion_Rate_Abundances_Get=>null()
+  procedure(Halo_Baryonic_Chemicals_Get_Template ), pointer  :: Halo_Baryonic_Accretion_Rate_Chemicals_Get =>null()
   abstract interface
-     double precision function Halo_Baryonic_Accretion_Get_Template(thisNode)
+     double precision function Halo_Baryonic_Accretion_Get_Template(thisNode,accretionMode)
        import treeNode
        type(treeNode), intent(inout), pointer :: thisNode
+       integer       , intent(in   )          :: accretionMode
      end function Halo_Baryonic_Accretion_Get_Template
   end interface
   abstract interface
-     subroutine Halo_Baryonic_Abundances_Get_Template(thisNode,accretedAbundances)
+     subroutine Halo_Baryonic_Abundances_Get_Template(thisNode,accretedAbundances,accretionMode)
        import treeNode
        import abundances
        type(treeNode  ), intent(inout), pointer :: thisNode
        type(abundances), intent(inout)          :: accretedAbundances
+       integer         , intent(in   )          :: accretionMode
      end subroutine Halo_Baryonic_Abundances_Get_Template
   end interface
   abstract interface
-     subroutine Halo_Baryonic_Chemicals_Get_Template(thisNode,accretedChemicals)
+     subroutine Halo_Baryonic_Chemicals_Get_Template(thisNode,accretedChemicals,accretionMode)
        import treeNode
        import chemicalAbundances
        type(treeNode          ), intent(inout), pointer :: thisNode
        type(chemicalAbundances), intent(inout)          :: accretedChemicals
+       integer                 , intent(in   )          :: accretionMode
      end subroutine Halo_Baryonic_Chemicals_Get_Template
   end interface
+
+  ! Option controlling whether accretion fractions are output.
+  logical :: outputHaloAccretionMode, accretionHalosOutputInitialized=.false.
 
 contains
 
@@ -116,122 +123,247 @@ contains
     return
   end subroutine Accretion_Halos_Initialize
 
-  double precision function Halo_Baryonic_Accretion_Rate(thisNode)
+  subroutine Accretion_Halos_Output_Initialize()
+    !% Initialize output in the halo accretion module.
+    use Input_Parameters
+    implicit none
+
+    ! Initialize if necessary.
+    if (.not.accretionHalosOutputInitialized) then
+       !$omp critical(Accretion_Halos_Output_Initialization)
+       if (.not.accretionHalosOutputInitialized) then
+          ! Get options controlling output.
+          !@ <inputParameter>
+          !@   <name>outputHaloAccretionMode</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Determines whether or not halo accretion rates are output.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('outputHaloAccretionMode',outputHaloAccretionMode,defaultValue=.false.)
+          accretionHalosOutputInitialized=.true.
+       end if
+       !$omp end critical(Accretion_Halos_Output_Initialization)
+    end if
+    return
+  end subroutine Accretion_Halos_Output_Initialize
+
+  double precision function Halo_Baryonic_Accretion_Rate(thisNode,accretionMode)
     !% Computes the rate of baryonic mass accretion (in $M_\odot$/Gyr) onto {\tt thisNode} from the intergalactic medium.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
+    integer       , intent(in   )          :: accretionMode
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize
 
     ! Get the accretion rate.
-    Halo_Baryonic_Accretion_Rate=Halo_Baryonic_Accretion_Rate_Get(thisNode)
+    Halo_Baryonic_Accretion_Rate=Halo_Baryonic_Accretion_Rate_Get(thisNode,accretionMode)
 
     return
   end function Halo_Baryonic_Accretion_Rate
 
-  double precision function Halo_Baryonic_Accreted_Mass(thisNode)
+  double precision function Halo_Baryonic_Accreted_Mass(thisNode,accretionMode)
     !% Computes the mass of baryons accreted (in $M_\odot$) into {\tt thisNode} from the intergalactic medium. Used to initialize
     !% nodes.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
+    integer       , intent(in   )          :: accretionMode
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize
 
     ! Get the accretion rate.
-    Halo_Baryonic_Accreted_Mass=Halo_Baryonic_Accreted_Mass_Get(thisNode)
+    Halo_Baryonic_Accreted_Mass=Halo_Baryonic_Accreted_Mass_Get(thisNode,accretionMode)
 
     return
   end function Halo_Baryonic_Accreted_Mass
 
-  double precision function Halo_Baryonic_Failed_Accretion_Rate(thisNode)
+  double precision function Halo_Baryonic_Failed_Accretion_Rate(thisNode,accretionMode)
     !% Computes the rate of failed baryonic mass accretion (in $M_\odot$/Gyr) onto {\tt thisNode} from the intergalactic medium.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
+    integer       , intent(in   )          :: accretionMode
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize
 
     ! Get the accretion rate.
-    Halo_Baryonic_Failed_Accretion_Rate=Halo_Baryonic_Failed_Accretion_Rate_Get(thisNode)
+    Halo_Baryonic_Failed_Accretion_Rate=Halo_Baryonic_Failed_Accretion_Rate_Get(thisNode,accretionMode)
 
     return
   end function Halo_Baryonic_Failed_Accretion_Rate
 
-  double precision function Halo_Baryonic_Failed_Accreted_Mass(thisNode)
+  double precision function Halo_Baryonic_Failed_Accreted_Mass(thisNode,accretionMode)
     !% Computes the mass of baryons that failed to accrete (in $M_\odot$) into {\tt thisNode} from the intergalactic medium. Used to initialize
     !% nodes.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
+    integer       , intent(in   )          :: accretionMode
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize
 
     ! Get the accretion rate.
-    Halo_Baryonic_Failed_Accreted_Mass=Halo_Baryonic_Failed_Accreted_Mass_Get(thisNode)
+    Halo_Baryonic_Failed_Accreted_Mass=Halo_Baryonic_Failed_Accreted_Mass_Get(thisNode,accretionMode)
 
     return
   end function Halo_Baryonic_Failed_Accreted_Mass
 
-  subroutine Halo_Baryonic_Accretion_Rate_Abundances(thisNode,accretionRateAbundances)
+  subroutine Halo_Baryonic_Accretion_Rate_Abundances(thisNode,accretionRateAbundances,accretionMode)
     !% Compute the rate of mass accretion of abundances (in $M_\odot/$Gyr) accreted onto {\tt thisNode}.
     implicit none
     type(treeNode  ), intent(inout), pointer :: thisNode
     type(abundances), intent(inout)          :: accretionRateAbundances
+    integer         , intent(in   )          :: accretionMode
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize
 
     ! Get the accretion rate.
-    call Halo_Baryonic_Accretion_Rate_Abundances_Get(thisNode,accretionRateAbundances)
+    call Halo_Baryonic_Accretion_Rate_Abundances_Get(thisNode,accretionRateAbundances,accretionMode)
 
     return
   end subroutine Halo_Baryonic_Accretion_Rate_Abundances
 
-  subroutine Halo_Baryonic_Accreted_Abundances(thisNode,accretedAbundances)
+  subroutine Halo_Baryonic_Accreted_Abundances(thisNode,accretedAbundances,accretionMode)
     !% Compute the mass of abundances (in $M_\odot$) accreted onto {\tt thisNode}.
     implicit none
     type(treeNode  ), intent(inout), pointer :: thisNode
     type(abundances), intent(inout)          :: accretedAbundances
+    integer         , intent(in   )          :: accretionMode
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize
 
     ! Get the accretion rate.
-    call Halo_Baryonic_Accreted_Abundances_Get(thisNode,accretedAbundances)
+    call Halo_Baryonic_Accreted_Abundances_Get(thisNode,accretedAbundances,accretionMode)
 
     return
   end subroutine Halo_Baryonic_Accreted_Abundances
 
-  subroutine Halo_Baryonic_Accretion_Rate_Chemicals(thisNode,accretionRateChemicals)
+  subroutine Halo_Baryonic_Accretion_Rate_Chemicals(thisNode,accretionRateChemicals,accretionMode)
     !% Compute the mass of chemicals (in $M_\odot$) accreted onto {\tt thisNode}.
     implicit none
     type(treeNode          ), intent(inout), pointer :: thisNode
     type(chemicalAbundances), intent(inout)          :: accretionRateChemicals
+    integer                 , intent(in   )          :: accretionMode
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize
 
     ! Get the accretion rate.
-    call Halo_Baryonic_Accretion_Rate_Chemicals_Get(thisNode,accretionRateChemicals)
+    call Halo_Baryonic_Accretion_Rate_Chemicals_Get(thisNode,accretionRateChemicals,accretionMode)
 
     return
   end subroutine Halo_Baryonic_Accretion_Rate_Chemicals
 
-  subroutine Halo_Baryonic_Accreted_Chemicals(thisNode,accretedChemicals)
+  subroutine Halo_Baryonic_Accreted_Chemicals(thisNode,accretedChemicals,accretionMode)
     !% Compute the mass of chemicals (in $M_\odot$) accreted onto {\tt thisNode}.
     implicit none
     type(treeNode          ), intent(inout), pointer :: thisNode
     type(chemicalAbundances), intent(inout)          :: accretedChemicals
+    integer                 , intent(in   )          :: accretionMode
 
     ! Ensure the module is initalized.
     call Accretion_Halos_Initialize
 
     ! Get the accretion rate.
-    call Halo_Baryonic_Accreted_Chemicals_Get(thisNode,accretedChemicals)
+    call Halo_Baryonic_Accreted_Chemicals_Get(thisNode,accretedChemicals,accretionMode)
 
     return
   end subroutine Halo_Baryonic_Accreted_Chemicals
+
+  !# <mergerTreeOutputNames>
+  !#  <unitName>Accretion_Halos_Hot_Halo_Output_Names</unitName>
+  !#  <sortName>Accretion_Halos_Hot_Halo_Output</sortName>
+  !# </mergerTreeOutputNames>
+  subroutine Accretion_Halos_Hot_Halo_Output_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments&
+       &,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
+    !% Set names of hot halo properties to be written to the \glc\ output file.
+    use Numerical_Constants_Astronomical
+    implicit none
+    type            (treeNode            )              , intent(inout), pointer :: thisNode
+    double precision                                    , intent(in   )          :: time
+    integer                                             , intent(inout)          :: doubleProperty         , integerProperty
+    character       (len=*               ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
+         &                                                                          integerPropertyComments, integerPropertyNames
+    double precision                      , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+
+    ! Initialize the module.
+    call Accretion_Halos_Output_Initialize()
+
+    if (outputHaloAccretionMode) then
+       doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>haloAccretionHotModeFraction</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Fraction of halo accretion rate occuring via the hot mode.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>hotHalo</group>
+       !@ </outputProperty>
+       doublePropertyNames   (doubleProperty)='haloAccretionHotModeFraction'
+       doublePropertyComments(doubleProperty)='Fraction of halo accretion rate occuring via the hot mode.'
+       doublePropertyUnitsSI (doubleProperty)=1.0d0
+    end if
+    return
+  end subroutine Accretion_Halos_Hot_Halo_Output_Names
+
+  !# <mergerTreeOutputPropertyCount>
+  !#  <unitName>Accretion_Halos_Hot_Halo_Output_Count</unitName>
+  !#  <sortName>Accretion_Halos_Hot_Halo_Output</sortName>
+  !# </mergerTreeOutputPropertyCount>
+  subroutine Accretion_Halos_Hot_Halo_Output_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
+    !% Account for the number of hot halo cooling properties to be written to the the \glc\ output file.
+    implicit none
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    double precision                      , intent(in   )          :: time
+    integer                               , intent(inout)          :: doublePropertyCount  , integerPropertyCount
+    integer                               , parameter              :: propertyCount      =1
+
+    ! Initialize the module.
+    call Accretion_Halos_Output_Initialize()
+
+    if (outputHaloAccretionMode) doublePropertyCount=doublePropertyCount+propertyCount
+    return
+  end subroutine Accretion_Halos_Hot_Halo_Output_Count
+
+  !# <mergerTreeOutputTask>
+  !#  <unitName>Accretion_Halos_Hot_Halo_Output</unitName>
+  !#  <sortName>Accretion_Halos_Hot_Halo_Output</sortName>
+  !# </mergerTreeOutputTask>
+  subroutine Accretion_Halos_Hot_Halo_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
+       &,doubleBufferCount,doubleBuffer,time)
+    !% Store hot halo properties in the \glc\ output file buffers.
+    use Kind_Numbers
+    use Accretion_Halos_Options
+    implicit none
+    double precision                , intent(in   )          :: time
+    type            (treeNode      ), intent(inout), pointer :: thisNode
+    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                                      integerProperty
+    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
+    double precision                , intent(inout)          :: doubleBuffer     (:,:)
+    double precision                                         :: accretionRateHot      ,accretionRateTotal
+    ! Initialize the module.
+    call Accretion_Halos_Output_Initialize()
+
+    if (outputHaloAccretionMode) then
+       doubleProperty=doubleProperty+1
+       accretionRateHot  =Halo_Baryonic_Accretion_Rate(thisNode,accretionModeHot  )
+       accretionRateTotal=Halo_Baryonic_Accretion_Rate(thisNode,accretionModeTotal)
+       if (accretionRateTotal /= 0.0d0) then
+          doubleBuffer(doubleBufferCount,doubleProperty)=accretionRateHot/accretionRateTotal
+       else
+          doubleBuffer(doubleBufferCount,doubleProperty)=0.0d0
+       end if
+    end if
+    return
+  end subroutine Accretion_Halos_Hot_Halo_Output
 
 end module Accretion_Halos

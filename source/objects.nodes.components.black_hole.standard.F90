@@ -94,7 +94,7 @@ module Node_Component_Black_Hole_Standard
   logical          :: bondiHoyleAccretionHotModeOnly
 
   ! Feedback parameters.
-  double precision :: blackHoleWindEfficiency
+  double precision :: blackHoleWindEfficiency                       , blackHoleRadioModeFeedbackEfficiency
   logical          :: blackHoleHeatsHotHalo                         , blackHoleWindEfficiencyScalesWithRadiativeEfficiency
 
   ! Output options.
@@ -113,6 +113,9 @@ module Node_Component_Black_Hole_Standard
   !$omp threadprivate(binaryInstance,tripleInstance)
   ! Record of whether this module has been initialized.
   logical          :: moduleInitialized                     =.false.
+
+  ! Record of whether cold mode is explicitly tracked.
+  logical          :: coldModeTracked
 
 contains
 
@@ -220,6 +223,18 @@ contains
        !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("blackHoleHeatsHotHalo",blackHoleHeatsHotHalo,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>blackHoleRadioModeFeedbackEfficiency</name>
+       !@   <defaultValue>1</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Efficiency with which radio-mode feedback is coupled to the hot halo.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>blackHoles</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter("blackHoleRadioModeFeedbackEfficiency",blackHoleRadioModeFeedbackEfficiency,defaultValue=1.0d0)
 
        ! Get options controlling output.
        !@ <inputParameter>
@@ -275,6 +290,8 @@ contains
        !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("tripleBlackHoleInteraction",tripleBlackHoleInteraction,defaultValue=.false.)
+       ! Check if cold mode is explicitly tracked.
+       coldModeTracked=defaultHotHaloComponent%massColdIsGettable()
        ! Record that the module is now initialized.
        moduleInitialized=.true.
     end if
@@ -308,7 +325,7 @@ contains
     double precision                                                    , parameter                         :: criticalDensityNormalization=2.0d0*massHydrogenAtom*speedLight**2*megaParsec/3.0d0/Pi/boltzmannsConstant/gigaYear/ismTemperature/kilo/windVelocity
     integer                                                                                                 :: iInstance                                                                                                                                         , instanceCount
     double precision                                                                                        :: accretionRateHotHalo                                                                                                                              , accretionRateSpheroid                                          , &
-         &                                                                                                     binaryRadius                                                                                                                                      , couplingEfficiency                                             , &
+         &                                                                                                     binaryRadius, &
          &                                                                                                     criticalDensityRadius2                                                                                                                            , energyInputRate                                                , &
          &                                                                                                     heatingRate                                                                                                                                       , jetEfficiency                                                  , &
          &                                                                                                     massAccretionRate                                                                                                                                 , radialMigrationRate                                            , &
@@ -316,7 +333,7 @@ contains
          &                                                                                                     restMassAccretionRate                                                                                                                             , spheroidDensityOverCriticalDensity                             , &
          &                                                                                                     spheroidDensityRadius2                                                                                                                            , spheroidGasMass                                                , &
          &                                                                                                     spheroidRadius                                                                                                                                    , windEfficiencyNet                                              , &
-         &                                                                                                     windFraction
+         &                                                                                                     windFraction                                                                                                                                      , hotModeFraction
     logical                                                                                                 :: binaryRadiusFound
 
     if (defaultBlackHoleComponent%standardIsActive()) then
@@ -359,11 +376,11 @@ contains
           ! Skip to the next black hole if this one has non-positive mass and a negative accretion rate.
           if (thisBlackHoleComponent%mass() <= 0.0d0 .and. massAccretionRate < 0.0d0) cycle
           ! Add the accretion to the black hole.
-          call thisBlackHoleComponent%massRate(massAccretionRate)
+          call thisBlackHoleComponent%massRate       ( massAccretionRate                                 )
           ! Remove the accreted mass from the spheroid component.
-          call thisSpheroidComponent%massGasSinkRate(-accretionRateSpheroid)
+          call thisSpheroidComponent %massGasSinkRate(-accretionRateSpheroid                             )
           ! Remove the accreted mass from the hot halo component.
-          call thisHotHaloComponent %   massSinkSet (-accretionRateHotHalo )
+          call thisHotHaloComponent  %   massSinkRate(-accretionRateHotHalo ,interrupt,interruptProcedure)
           ! Set spin-up rate due to accretion.
           if (restMassAccretionRate > 0.0d0) call thisBlackHoleComponent%spinRate(Black_Hole_Spin_Up_Rate(thisBlackHoleComponent,restMassAccretionRate))
           ! Add heating to the hot halo component.
@@ -372,9 +389,13 @@ contains
              thisCosmologyParameters => cosmologyParameters()
              ! Compute jet coupling efficiency based on whether halo is cooling quasistatically. Reduce this efficiency as the gas
              ! content in the halo drops below the cosmological mean.
-             couplingEfficiency=Hot_Mode_Fraction(thisNode)*((thisCosmologyParameters%OmegaMatter()/thisCosmologyParameters%OmegaBaryon())*thisHotHaloComponent%mass()/thisBasicComponent%mass())**2
+             if (coldModeTracked) then
+                hotModeFraction=1.0d0
+             else
+                hotModeFraction=Hot_Mode_Fraction(thisNode)
+             end if
              ! Get jet power.
-             heatingRate=jetEfficiency*restMassAccretionRate*(speedLight/kilo)**2*couplingEfficiency
+             heatingRate=blackHoleRadioModeFeedbackEfficiency*jetEfficiency*restMassAccretionRate*(speedLight/kilo)**2
              ! Pipe this power to the hot halo.
              call thisHotHaloComponent%heatSourceRate(heatingRate,interrupt,interruptProcedure)
           end if
@@ -820,7 +841,8 @@ contains
          &                                                              blackHoleMass               , gasDensity                                                                                                                             , &
          &                                                              hotHaloTemperature          , hotModeFraction                                                                                                                        , &
          &                                                              jeansLength                 , position             (                                                                                                               3), &
-         &                                                              radiativeEfficiency         , relativeVelocity
+         &                                                              radiativeEfficiency         , relativeVelocity                                                                                                                      , &
+         &                                                              coldModeFraction
 
     ! Get the host node.
     thisNode => thisBlackHoleComponent%host()
@@ -887,13 +909,41 @@ contains
        ! considered.
        select case (bondiHoyleAccretionHotModeOnly)
        case (.true.)
-          hotModeFraction=Hot_Mode_Fraction(thisNode)
+          if (coldModeTracked) then
+             hotModeFraction=1.0d0
+          else
+             hotModeFraction=Hot_Mode_Fraction(thisNode)
+          end if
+          coldModeFraction=0.0d0
        case (.false.)
           hotModeFraction=1.0d0
+          if (coldModeTracked) then
+             coldModeFraction=1.0d0
+          else
+             coldModeFraction=0.0d0
+          end if
        end select
        ! Get density of gas at the galactic center - scaled by the fraction in the hot accretion mode.
-       gasDensity=hotModeFraction*Galactic_Structure_Density(thisNode,position,coordinateSystem=coordinateSystemCylindrical&
-            &,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+       gasDensity=                                                                                 &
+            &      hotModeFraction                                                                 &
+            &     *Galactic_Structure_Density(                                                     &
+            &                                 thisNode                                           , &
+            &                                 position                                           , &
+            &                                 coordinateSystem=coordinateSystemCylindrical       , &
+            &                                 componentType   =componentTypeHotHalo              , &
+            &                                 massType        =massTypeGaseous                     &
+            &                                )
+       if (coldModeTracked.and.coldModeFraction > 0.0d0)                                           &
+            & gasDensity=                                                                          &
+            &             gasDensity                                                               &
+            &            +coldModeFraction                                                         &
+            &            *Galactic_Structure_Density(                                              &
+            &                                        thisNode                                    , &
+            &                                        position                                    , &
+            &                                        coordinateSystem=coordinateSystemCylindrical, &
+            &                                        componentType   =componentTypeColdHalo      , &
+            &                                        massType        =massTypeGaseous              &
+            &                                       )
        ! Check if we have a non-zero gas density.
        if (gasDensity > gasDensityMinimum) then
           ! Compute the accretion rate.
