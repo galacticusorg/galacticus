@@ -53,8 +53,18 @@ subroutine mappingLogarithmicMapPrior(self,thisPrior)
   return
 end subroutine mappingLogarithmicMapPrior
 
+double precision function mappingLogarithmicMap(self,x)
+  !% Map a value via a logarithmic mapping.
+  implicit none
+  class           (mappingLogarithmic), intent(in   ) :: self
+  double precision                    , intent(in   ) :: x
+  
+  mappingLogarithmicMap=log(x)
+  return
+end function mappingLogarithmicMap
+
 double precision function mappingLogarithmicUnmap(self,x)
-  !% Unmap a value via a logarithmic mapping (i.e. do nothing).
+  !% Unmap a value via a logarithmic mapping.
   implicit none
   class           (mappingLogarithmic), intent(in   ) :: self
   double precision                    , intent(in   ) :: x

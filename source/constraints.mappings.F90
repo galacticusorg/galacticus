@@ -35,6 +35,12 @@ module Constraints_Mappings
      !@     <description>Attempt to apply the mapping to a prior.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>map</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero x\argin</arguments>
+     !@     <description>Map the given {\tt x}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>unmap</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero x\argin</arguments>
@@ -43,6 +49,7 @@ module Constraints_Mappings
      !@ </objectMethods>
      procedure(mappingMapPrior), deferred :: mapPrior
      procedure(mappingUnmap   ), deferred :: unmap
+     procedure(mappingMap     ), deferred :: map
   end type mapping
   
   abstract interface
@@ -51,6 +58,14 @@ module Constraints_Mappings
        class(mapping), intent(in   ) :: self
        class(prior  ), intent(inout) :: thisPrior
      end subroutine mappingMapPrior
+  end interface
+  
+  abstract interface
+     double precision function mappingMap(self,x)
+       import :: mapping
+       class           (mapping), intent(in   ) :: self
+       double precision         , intent(in   ) :: x
+     end function mappingMap
   end interface
   
   abstract interface
