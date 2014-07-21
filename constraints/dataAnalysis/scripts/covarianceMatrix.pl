@@ -465,6 +465,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
 	print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
 	print $gnuPlot "set pointsize 2.0\n";
+	$sourceLabel =~ s/\\/\\\\/g;
 	&PrettyPlots::Prepare_Dataset(
 	    \$plot,
 	    $massObserved,
