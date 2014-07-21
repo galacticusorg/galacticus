@@ -972,6 +972,30 @@ where $\sigma_{\log\mathcal{L}}=${\tt logLikelihoodErrorTolerance}, otherwise th
 
 If verbosity is set to 2 or greater than a report will be issued every {\tt reportCount} evaluations. The report will give the proportions of simulated vs. emulated evaluations. Additionally, during the evaluation where the report is issued, both the emulated and simulated log-likelihoods are evaluated and are tested to see if they lie within $3 \sigma_{\log\mathcal{L}_{\rm e}}$ of each other. The rate of failures (i.e. where the two differ by more than this amount) is then reported.
 
+\subsubsection{posteriorPrior}
+
+The likelihood is computed either using another likelihood function (the ``wrapped'' likelihood), while including in the likelihood an esimate of the posterior probability of a previous simulation. This effectively allows the posterior of the previous simulation to be used as a prior on the current simulation. The details of the likelihood are specified by the follow content within the {\tt likelihood} element:
+\begin{verbatim}
+  <chainBaseName>./oldChains</chainBaseName>
+  <neighborCount>32</neighborCount>
+  <tolerance>1.0e-3</tolerance>
+  <wrappedLikelihood>
+   .
+   .
+   .
+  </wrappedLikelihood>
+\end{verbatim}
+
+The entries have the following meanings:
+\begin{description}
+\item[{\tt chainBaseName}] The base name for the old set of MCMC chains to use as the new prior;
+\item[{\tt neighborCount}] The number of neighbor points to use in kernel density estimation of the posterior probability;
+\item[{\tt tolerance}] Tolerance used in finding nearest neighbors;
+\item[{\tt wrappedLikelihood}] Contains another likelihood function definition which will be used to provide the current likelihood.
+\end{description}
+
+This method uses the \gls{ann} library to locate {\tt neightborCount} nearest neighbor points in the set of converged states found in the given chains. The {\tt tolerance} element determines the accuracy of nearest neighbor finding (see the \gls{ann} documentation for details).When finding nearest neighbors in the MCMC chains, parameters are mapped using whatever mappings are currently active, and distances in each dimension (as used in the metric to determine nearest neighbors) are scaled by the root-variance in that parameter in the converged MCMC chains. The posterior likelihood of the MCMC chains is then estimated from the nearest neighbors using kernel density estimation with a Gaussian kernel with bandwidth equal to the distance to the furthest of the nearest neighbors.
+
 \subsection{{\tt convergence}}
 
 The {\tt convergence} section specifies the criterion to be used to judge when the simulation has converged. The type of convergence criterion to use is specified by the {\tt type} element. The available choices are described in the following subsections.
