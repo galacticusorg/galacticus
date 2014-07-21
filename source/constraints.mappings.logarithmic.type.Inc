@@ -20,6 +20,7 @@
   type, public, extends(mapping) :: mappingLogarithmic
    contains
      procedure :: mapPrior => mappingLogarithmicMapPrior
+     procedure :: map      => mappingLogarithmicMap
      procedure :: unmap    => mappingLogarithmicUnmap
   end type mappingLogarithmic
 

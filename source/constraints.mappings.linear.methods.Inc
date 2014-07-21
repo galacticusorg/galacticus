@@ -34,6 +34,16 @@ subroutine mappingLinearMapPrior(self,thisPrior)
   return
 end subroutine mappingLinearMapPrior
 
+double precision function mappingLinearMap(self,x)
+  !% Map a value via a linear mapping (i.e. do nothing).
+  implicit none
+  class           (mappingLinear), intent(in   ) :: self
+  double precision               , intent(in   ) :: x
+  
+  mappingLinearMap=x
+  return
+end function mappingLinearMap
+
 double precision function mappingLinearUnmap(self,x)
   !% Unmap a value via a linear mapping (i.e. do nothing).
   implicit none

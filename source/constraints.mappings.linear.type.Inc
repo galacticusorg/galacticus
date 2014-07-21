@@ -20,6 +20,7 @@
   type, public, extends(mapping) :: mappingLinear
    contains
      procedure :: mapPrior => mappingLinearMapPrior
+     procedure :: map      => mappingLinearMap
      procedure :: unmap    => mappingLinearUnmap
   end type mappingLinear
 
