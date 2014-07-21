@@ -26,6 +26,7 @@ module Constraints_Likelihoods
   use ISO_Varying_String
   use Pseudo_Random
   use FGSL
+  use Nearest_Neighbors
   private
   public :: likelihoodNew
   
@@ -80,6 +81,7 @@ module Constraints_Likelihoods
   include 'constraints.likelihoods.gaussian_regression.type.inc'
   include 'constraints.likelihoods.mass_function.type.inc'
   include 'constraints.likelihoods.SED_fit.type.inc'
+  include 'constraints.likelihoods.posterior_as_prior.type.inc'
 
 contains
 
@@ -104,18 +106,21 @@ contains
          &                                                           likelihoodHaloMassMinimumDefinition            , likelihoodHaloMassMaximumDefinition       , &
          &                                                           likelihoodRedshiftMinimumDefinition            , likelihoodRedshiftMaximumDefinition       , &
          &                                                           likelihoodUseSurveyLimitsDefinition            , likelihoodMassFunctionFileNameDefinition  , &
-         &                                                           likelihoodModelSurfaceBrightnessDefinition     , likelihoodSurfaceBrightnessLimitDefinition
+         &                                                           likelihoodModelSurfaceBrightnessDefinition     , likelihoodSurfaceBrightnessLimitDefinition, &
+         &                                                           likelihoodChainBaseNameDefinition              , likelihoodToleranceDefinition             , &
+         &                                                           likelihoodNeighborCountDefinition
     type            (nodeList      ), pointer                     :: covarianceRows
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
     integer                                                       :: i                                              , dimensionCount                            , &
          &                                                           likelihoodRealizationCount                     , likelihoodRealizationCountMinimum         , &
          &                                                           likelihoodEmulatorRebuildCount                 , likelihoodPolynomialOrder                 , &
-         &                                                           likelihoodReportCount
+         &                                                           likelihoodReportCount                          , likelihoodNeighborCount
     double precision                                              :: likelihoodSigmaBuffer                          , likelihoodLogLikelihoodBuffer             , &
          &                                                           likelihoodHaloMassMinimum                      , likelihoodHaloMassMaximum                 , &
          &                                                           likelihoodRedshiftMinimum                      , likelihoodRedshiftMaximum                 , &
-         &                                                           likelihoodLogLikelihoodErrorTolerance          , likelihoodSurfaceBrightnessLimit
+         &                                                           likelihoodLogLikelihoodErrorTolerance          , likelihoodSurfaceBrightnessLimit          , &
+         &                                                           likelihoodTolerance
     logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits                 , &
          &                                                           likelihoodModelSurfaceBrightness
 
@@ -198,6 +203,24 @@ contains
                &                                     configFileName                         &
                &                                    )
        end select
+    case ("posteriorPrior")
+       allocate(likelihoodPosteriorPrior :: newLikelihood)
+       select type (newLikelihood)
+       type is (likelihoodPosteriorPrior)
+          likelihoodDefinition              => XML_Get_First_Element_By_Tag_Name(definition,"wrappedLikelihood")
+          likelihoodChainBaseNameDefinition => XML_Get_First_Element_By_Tag_Name(definition,"chainBaseName"    )
+          likelihoodNeighborCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"neighborCount"    )
+          likelihoodToleranceDefinition     => XML_Get_First_Element_By_Tag_Name(definition,"tolerance"        )
+          call extractDataContent(likelihoodNeighborCountDefinition,likelihoodNeighborCount)
+          call extractDataContent(likelihoodToleranceDefinition    ,likelihoodTolerance    )
+          newLikelihood=likelihoodPosteriorPrior(                                                   &
+               &                                 likelihoodDefinition                             , &
+               &                                 getTextContent(likelihoodChainBaseNameDefinition), &
+               &                                 likelihoodNeighborCount                          , &
+               &                                 likelihoodTolerance                              , &
+               &                                 configFileName                                     &
+               &                                )
+       end select
     case ("massFunction")
        allocate(likelihoodMassFunction :: newLikelihood)
        select type (newLikelihood)
@@ -252,5 +275,6 @@ contains
   include 'constraints.likelihoods.gaussian_regression.methods.inc'
   include 'constraints.likelihoods.mass_function.methods.inc'
   include 'constraints.likelihoods.SED_fit.methods.inc'
+  include 'constraints.likelihoods.posterior_as_prior.methods.inc'
 
 end module Constraints_Likelihoods
