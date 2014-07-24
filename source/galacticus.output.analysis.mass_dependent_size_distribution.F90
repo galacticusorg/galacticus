@@ -24,6 +24,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
   !% \end{itemize}
   use Galacticus_Nodes
   use Galactic_Structure_Options
+  use Geometry_Surveys
   use Numerical_Constants_Astronomical
   use Numerical_Constants_Prefixes
   implicit none
@@ -83,19 +84,19 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
 
   ! Type for descriptors of mass functions.
   type :: sizeFunctionDescriptor
-     double precision                                :: redshift
-     double precision                                :: massSystematicLogM0           , radiusSystematicLogR0
-     double precision                                :: massRandomError               , radiusRandomError
-     procedure       (  Mass_Error), pointer, nopass :: massRandomErrorFunction
-     procedure       (Radius_Error), pointer, nopass :: radiusRandomErrorFunction
-     double precision                                :: massLogarithmicMinimum
-     integer                                         :: massSystematicCoefficientCount, radiusSystematicCoefficientCount
-     integer                                         :: massType
-     double precision                                :: massUnitsInSI                 , radiusUnitsInSI
-     character       (len= 32     )                  :: label
-     character       (len=128     )                  :: comment
-     procedure       (Map_Mass    ), pointer, nopass :: mapMass
-     procedure       (Map_Radius  ), pointer, nopass :: mapRadius
+     double precision                                           :: massSystematicLogM0           , radiusSystematicLogR0
+     double precision                                           :: massRandomError               , radiusRandomError
+     procedure       (  Mass_Error       ), pointer    , nopass :: massRandomErrorFunction
+     procedure       (Radius_Error       ), pointer    , nopass :: radiusRandomErrorFunction
+     double precision                                           :: massLogarithmicMinimum
+     integer                                                    :: massSystematicCoefficientCount, radiusSystematicCoefficientCount
+     integer                                                    :: massType
+     double precision                                           :: massUnitsInSI                 , radiusUnitsInSI
+     character       (len= 32            )                      :: label
+     character       (len=128            )                      :: comment
+     procedure       (Map_Mass           ), pointer    , nopass :: mapMass
+     procedure       (Map_Radius         ), pointer    , nopass :: mapRadius
+     class           (surveyGeometryClass), allocatable         :: geometry
   end type sizeFunctionDescriptor
 
   ! Mass function descriptors.
@@ -103,7 +104,6 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
        & [                                                                                                 &
        ! SDSS late-type galaxy sizes from Shen et al. (2003). 
        &                           sizeFunctionDescriptor(                                                 &
-       &                                                   0.070d0+0                         ,             &
        &                                                  11.0000d+0                         ,             &
        &                                                   1.0000d+0                         ,             &
        &                                                   0.0806d+0                         ,             &
@@ -119,6 +119,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
        &                                                   'sdssGalaxySizesZ0.07'            ,             &
        &                                                   'SDSS disk galaxy sizes at z=0.07',             &
        &                                                   null()                            ,             &
+       &                                                   null()                            ,             &
        &                                                   null()                                          &
        &                                                 )                                                 &
        & ]
@@ -129,8 +130,6 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
      type            (sizeFunctionDescriptor), pointer                       :: descriptor
      ! Parameters for the systematic error model.
      double precision                        , allocatable, dimension(:    ) :: massSystematicCoefficients, radiusSystematicCoefficients
-     ! The index of the output corresponding to the required redshift.
-     integer                                                                 :: outputNumber
      ! The number of bins.
      integer                                                                 :: massesCount               , radiiCount
      ! Arrays for the masses, radii and size function.
@@ -139,13 +138,13 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
           &                                                                     sizeFunctionWeights
      double precision                        , allocatable, dimension(:,:  ) :: radii                     , radiiLogarithmic        , &
           &                                                                     radiiLogarithmicMinimum   , radiiLogarithmicMaximum , &
-          &                                                                     sizeFunction
+          &                                                                     sizeFunction              , outputWeight
      ! Arrays for accumulation of of main branch galaxies
      double precision                        , allocatable, dimension(:,:,:) :: mainBranchGalaxyWeights   , mainBranchGalaxyWeightsSquared
      ! Array for the covariance matrix.
      double precision                        , allocatable, dimension(:,:  ) :: sizeFunctionCovariance
      ! Cosmology conversion factors.
-     double precision                                                        :: cosmologyConversionMass   , cosmologyConversionSizeFunction, &
+     double precision                        , allocatable, dimension(:    ) :: cosmologyConversionMass   , cosmologyConversionSizeFunction, &
           &                                                                     cosmologyConversionSize
   end type sizeFunction
 
@@ -204,11 +203,11 @@ contains
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
-    integer                                                                         :: i,j,k,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution
+    integer                                                                         :: i,j,k,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution,jOutput
     double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
-         &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter,sersicIndexMaximum
+         &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter,sersicIndexMaximum,redshift,timeMinimum,timeMaximum,distanceMinimum,distanceMaximum
     type            (varying_string                )                                :: parameterName&
-         &,analysisSizeFunctionCovarianceModelText,cosmologyScalingSizeFunction,cosmologyScalingMass,cosmologyScalingSize
+         &,analysisSizeFunctionCovarianceModelText,cosmologyScalingSizeFunction,cosmologyScalingMass,cosmologyScalingSize,message
     character       (len=128                       )                                :: distributionGroupName
     logical                                                                         :: groupFound
     type            (hdf5Object                    )                                :: dataFile,sizeDataset,distributionGroup,cosmologyGroup
@@ -289,6 +288,12 @@ contains
                &                                                        )
           ! Establish mapping functions for size function descriptors.
           sizeFunctionDescriptors(1)%mapRadius => Map_Radius_SDSS_Size_Function_Z0_07
+          ! Establish survey geometries.
+          allocate(surveyGeometryLiWhite2009SDSS :: sizeFunctionDescriptors(1)%geometry)
+          select type (g => sizeFunctionDescriptors(1)%geometry)
+          type is (surveyGeometryLiWhite2009SDSS)
+             g=surveyGeometryLiWhite2009SDSS()
+          end select
           ! Determine how many supported mass functions are requested.
           activeAnalysisCount=0
           do i=1,sizeFunctionsSupportedCount
@@ -325,30 +330,6 @@ contains
                             call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%radiusSystematicCoefficients(k),defaultValue=0.0d0)
                          end do
                       end if
-                      ! Find which output number corresponds to the required redshift.
-                      sizeFunctions(currentAnalysis)%outputNumber=-1
-                      do k=1,Galacticus_Output_Time_Count()
-                         if     (                                                                                             &
-                              &  Values_Agree(                                                                                &
-                              &               sizeFunctionDescriptors(j)%redshift                                           , &
-                              &               cosmologyFunctionsModel%redshiftFromExpansionFactor(                            &
-                              &               cosmologyFunctionsModel%expansionFactor             (                           &
-                              &                                                                    Galacticus_Output_Time(k)  &
-                              &                                                                   )                           &
-                              &                                                                  )                          , &
-                              &               absTol=0.001d0                                                                  &
-                              &              )                                                                                &
-                              & ) then
-                            sizeFunctions(currentAnalysis)%outputNumber=k
-                            exit
-                         end if
-                      end do
-                      if (sizeFunctions(currentAnalysis)%outputNumber < 0)                                                    &
-                           & call Galacticus_Error_Report(                                                                    &
-                           &                                'Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins'  , &
-                           &                                'unable to find required redshift in outputs for mass function '  &
-                           &                              //trim(sizeFunctionLabels(j))                                       &
-                           &                             )
                       ! Read the appropriate observational data definition.
                       select case (trim(sizeFunctionLabels(j)))
                       case ('sdssSizeFunctionZ0.07')
@@ -480,19 +461,75 @@ contains
                          call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins','unknown size function')
                       end select
                       ! Get cosmological conversion factors.
-                      call Cosmology_Conversion_Factors(                                                                                                &
-                           &                            sizeFunctions(currentAnalysis)%descriptor%redshift                                            , &
-                           &                            cosmologyFunctionsModel                                                                       , &
-                           &                            cosmologyFunctionsObserved                                                                    , &
-                           &                            cosmologyScalingMass           =cosmologyScalingMass                                          , &
-                           &                            cosmologyScalingSize           =cosmologyScalingSize                                          , &
-                           &                            cosmologyScalingMassFunction   =cosmologyScalingSizeFunction                                  , &
-                           &                            cosmologyConversionMass        =sizeFunctions(currentAnalysis)%cosmologyConversionMass        , &
-                           &                            cosmologyConversionSize        =sizeFunctions(currentAnalysis)%cosmologyConversionSize        , &
-                           &                            cosmologyConversionMassFunction=sizeFunctions(currentAnalysis)%cosmologyConversionSizeFunction  &
-                           &                           )
-                     exit
-                  end if
+                      call Alloc_Array(sizeFunctions(currentAnalysis)%cosmologyConversionMass        ,[Galacticus_Output_Time_Count()])
+                      call Alloc_Array(sizeFunctions(currentAnalysis)%cosmologyConversionSizeFunction,[Galacticus_Output_Time_Count()])
+                      do jOutput=1,Galacticus_Output_Time_Count()
+                         redshift=                                                                                      &
+                              &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
+                              &    cosmologyFunctionsModel%expansionFactor             (                                &
+                              &                                                         Galacticus_Output_Time(jOutput) &
+                              &                                                        )                                &
+                              &                                                       )
+                         call Cosmology_Conversion_Factors(                                                                                                         &
+                              &                            redshift                                                                                               , &
+                              &                            cosmologyFunctionsModel                                                                                , &
+                              &                            cosmologyFunctionsObserved                                                                             , &
+                              &                            cosmologyConversionMass        =sizeFunctions(currentAnalysis)%cosmologyConversionMass        (jOutput), &
+                              &                            cosmologyConversionSize        =sizeFunctions(currentAnalysis)%cosmologyConversionSize        (jOutput), &
+                              &                            cosmologyConversionMassFunction=sizeFunctions(currentAnalysis)%cosmologyConversionSizeFunction(jOutput)  &
+                              &                           )
+                      end do
+                      exit
+                   end if
+                end do
+                ! Compute output weights for mass function.
+                call Alloc_Array(sizeFunctions(currentAnalysis)%outputWeight,[sizeFunctions(currentAnalysis)%massesCount,Galacticus_Output_Time_Count()])
+                sizeFunctions(currentAnalysis)%outputWeight=0.0d0
+                do k=1,sizeFunctions(currentAnalysis)%massesCount
+                   do jOutput=1,Galacticus_Output_Time_Count()
+                      do j=1,sizeFunctions(currentAnalysis)%descriptor%geometry%fieldCount()
+                         if (jOutput == Galacticus_Output_Time_Count()) then
+                            timeMaximum=     Galacticus_Output_Time(jOutput)
+                         else
+                            timeMaximum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput+1))
+                         end if
+                         if (jOutput ==                              1) then
+                            timeMinimum=     Galacticus_Output_Time(jOutput)
+                         else
+                            timeMinimum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput-1))
+                         end if
+                         distanceMinimum=max(                                                                                                                &
+                              &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                         , &
+                              &              sizeFunctions(currentAnalysis)%descriptor%geometry%distanceMinimum(sizeFunctions(currentAnalysis)%masses(k),j)  &
+                              &             )
+                         distanceMaximum=min(                                                                                                                &
+                              &              cosmologyFunctionsModel%distanceComoving(timeMinimum)                                                         , &
+                              &              sizeFunctions(currentAnalysis)%descriptor%geometry%distanceMaximum(sizeFunctions(currentAnalysis)%masses(k),j)  &
+                              &             )
+                         sizeFunctions        (currentAnalysis)%outputWeight                    (k,jOutput)  &
+                              & =sizeFunctions(currentAnalysis)%outputWeight                    (k,jOutput)  &
+                              & +sizeFunctions(currentAnalysis)%descriptor  %geometry%solidAngle(  j      )  &
+                              & /3.0d0                                                                       &
+                              & *                                                                            &
+                              & max(                                                                         &
+                              &     +0.0d0                                                                 , &
+                              &     +distanceMaximum**3                                                      &
+                              &     -distanceMinimum**3                                                      &
+                              &    )
+                      end do
+                   end do
+                   where(sizeFunctions(currentAnalysis)%outputWeight(k,:) < 0.0d0)
+                      sizeFunctions(currentAnalysis)%outputWeight(k,:)=0.0d0
+                   end where
+                   if (any(sizeFunctions(currentAnalysis)%outputWeight(k,:) > 0.0d0)) then
+                      sizeFunctions                  (currentAnalysis)%outputWeight(k,:)  &
+                           &       =    sizeFunctions(currentAnalysis)%outputWeight(k,:)  &
+                           &       /sum(sizeFunctions(currentAnalysis)%outputWeight(k,:))
+                   else
+                      message="size function '"//trim(sizeFunctions(currentAnalysis)%descriptor%label)//"' bin "
+                      message=message//k//" has zero weights"
+                      call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins',message)
+                   end if
                 end do
              end do
              ! Ensure that disk component supports radius property.
@@ -518,23 +555,23 @@ contains
     if (.not.allocated(thisGalaxy)) allocate(thisGalaxy(size(sizeFunctions)))
     ! Iterate over active analyses.
     do i=1,size(sizeFunctions)
-       ! Skip if this analysis is not active, or if this is not the correct output.
-       if (iOutput /= sizeFunctions(i)%outputNumber) cycle
+       ! Return if this size function receives no contribution from this output number.
+       if (all(sizeFunctions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
        if (.not.allocated(thisGalaxy(i)%sizeFunction       )) call Alloc_Array(thisGalaxy(i)%sizeFunction       ,[sizeFunctions(i)%radiiCount,sizeFunctions(i)%massesCount])
        if (.not.allocated(thisGalaxy(i)%sizeFunctionWeights)) call Alloc_Array(thisGalaxy(i)%sizeFunctionWeights,[                            sizeFunctions(i)%massesCount])
        if (.not.allocated(thisGalaxy(i)%covariance         )) call Alloc_Array(thisGalaxy(i)%covariance         ,[                                                          &
-            &                                                                                       sizeFunctions(i)%radiiCount*sizeFunctions(i)%massesCount, &
-            &                                                                                       sizeFunctions(i)%radiiCount*sizeFunctions(i)%massesCount  &
-            &                                                                                      ]                                                          &
-            &                                                          )
+            &                                                                                                     sizeFunctions(i)%radiiCount*sizeFunctions(i)%massesCount, &
+            &                                                                                                     sizeFunctions(i)%radiiCount*sizeFunctions(i)%massesCount  &
+            &                                                                                                    ]                                                          &
+            &                                                                 )
        ! Get the galactic mass.
-       mass=                                                                                                                &
+       mass=                                                                                                                                            &
             &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=sizeFunctions(i)%descriptor%massType) &
             & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=sizeFunctions(i)%descriptor%massType)
        if (mass            <=                  0.0d0) return
        if (associated(sizeFunctions(i)%descriptor%mapMass)) mass=sizeFunctions(i)%descriptor%mapMass(mass,thisNode)
-       mass=mass*sizeFunctions(i)%cosmologyConversionMass ! Convert for cosmology.
+       mass=mass*sizeFunctions(i)%cosmologyConversionMass(iOutput) ! Convert for cosmology.
        massLogarithmic=log10(mass)
        do j=1,sizeFunctions(i)%descriptor%massSystematicCoefficientCount
           massLogarithmic=massLogarithmic+sizeFunctions(i)%massSystematicCoefficients(j)*(log10(mass)-sizeFunctions(i)%descriptor%massSystematicLogM0)**(j-1)
@@ -544,7 +581,7 @@ contains
        thisDisk => thisNode%disk  ()
        radius   =  thisDisk%radius()
        if (associated(sizeFunctions(i)%descriptor%mapRadius)) radius=sizeFunctions(i)%descriptor%mapRadius(radius,thisNode)
-       radius=radius*sizeFunctions(i)%cosmologyConversionSize ! Convert for cosmology.
+       radius=radius*sizeFunctions(i)%cosmologyConversionSize(iOutput) ! Convert for cosmology.
        radiusLogarithmic=log10(radius)
        do j=1,sizeFunctions(i)%descriptor%radiusSystematicCoefficientCount
           radiusLogarithmic=radiusLogarithmic+sizeFunctions(i)%radiusSystematicCoefficients(j)*(log10(radius)-sizeFunctions(i)%descriptor%radiusSystematicLogR0)**(j-1)
@@ -569,6 +606,12 @@ contains
        do j=1,sizeFunctions(i)%massesCount
           thisGalaxy(i)%sizeFunction(:,j)=thisGalaxy(i)%sizeFunction(:,j)*thisGalaxy(i)%sizeFunctionWeights(j)
        end do       
+       ! Apply output weights.
+       do j=1,sizeFunctions(i)%radiiCount
+          thisGalaxy           (i)%sizeFunction(j,:        ) &
+               & =thisGalaxy   (i)%sizeFunction(j,:        ) &
+               & *sizeFunctions(i)%outputWeight(  :,iOutput)
+       end do
        ! Accumulate size function.
        !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
        sizeFunctions(i)%sizeFunction       =sizeFunctions(i)%sizeFunction       +thisGalaxy(i)%sizeFunction
