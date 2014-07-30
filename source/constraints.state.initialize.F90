@@ -21,6 +21,7 @@ module Constraints_State_Initialize
   !% Implements state initialization for use when constraining \glc.
   use Constraints_Priors
   use Constraints_State
+  use Constraints_Mappings
   use ISO_Varying_String
   use Pseudo_Random
   private
@@ -43,11 +44,12 @@ module Constraints_State_Initialize
 
   ! Interface for deferred functions.
   abstract interface
-     subroutine stateInitializorInitialize(self,simulationState,parameterPriors)
-       import :: stateInitializor, state, prior
+     subroutine stateInitializorInitialize(self,simulationState,parameterPriors,parameterMappings)
+       import :: stateInitializor, state, prior, mappingList
        class(stateInitializor), intent(inout)               :: self
        class(state           ), intent(inout)               :: simulationState
        type (prior           ), intent(inout), dimension(:) :: parameterPriors
+       type (mappingList     ), intent(in   ), dimension(:) :: parameterMappings
      end subroutine stateInitializorInitialize
   end interface
 

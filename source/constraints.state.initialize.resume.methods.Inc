@@ -27,7 +27,7 @@ function stateInitializorResumeConstructor(logFileRoot)
   return
 end function stateInitializorResumeConstructor
 
-subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors)
+subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors,parameterMappings)
   !% Initialize simulation state by resuming from a previous simulation.
   use Constraints_Priors
   use Constraints_State
@@ -36,10 +36,12 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
   class           (stateInitializorResume), intent(inout)               :: self
   class           (state                 ), intent(inout)               :: simulationState
   type            (prior                 ), intent(inout), dimension(:) :: parameterPriors
+  type            (mappingList           ), intent(in   ), dimension(:) :: parameterMappings
   double precision                        , allocatable  , dimension(:) :: stateVector
   type            (varying_string        )                              :: logFileName
   integer                                                               :: stateCount     , mpiRank     , &
-       &                                                                   logFileUnit    , ioStatus
+       &                                                                   logFileUnit    , ioStatus    , &
+       &                                                                   i
   double precision                                                      :: time           , logPosterior
 
   ! Allocate the state vector.
@@ -56,6 +58,10 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
           &               stateVector     
   end do
   close(logFileUnit)
+  ! Map the state.
+  do i=1,size(stateVector)
+     stateVector(i)=parameterMappings(i)%thisMapping%map(stateVector(i))
+  end do
   ! Set the simulation state.
   call simulationState%update(stateVector,.false.)
   ! Deallocate the state vector.

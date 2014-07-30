@@ -27,7 +27,7 @@ function stateInitializorLatinHypercubeConstructor(maximinTrialCount)
   return
 end function stateInitializorLatinHypercubeConstructor
 
-subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,parameterPriors)
+subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,parameterPriors,parameterMappings)
   !% Initialize simulation state by drawing at random from the parameter priors.
   use MPI_Utilities
   use Pseudo_Random
@@ -37,6 +37,7 @@ subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,paramet
   class           (stateInitializorLatinHypercube), intent(inout)                 :: self
   class           (state                         ), intent(inout)                 :: simulationState
   type            (prior                         ), intent(inout), dimension(:  ) :: parameterPriors
+  type            (mappingList                   ), intent(in   ), dimension(:  ) :: parameterMappings
   integer         (kind=c_size_t                 ), allocatable  , dimension(:  ) :: order
   double precision                                , allocatable  , dimension(:  ) :: x
   double precision                                , allocatable  , dimension(:,:) :: stateGrid            , stateGridBest
