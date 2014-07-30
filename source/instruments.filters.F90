@@ -107,7 +107,7 @@ contains
     type            (Node          ), pointer                     :: doc
     type            (filterType    ), allocatable  , dimension(:) :: filterResponsesTemporary
     type            (varying_string)               , dimension(3) :: specialFilterWords
-    type            (node          ), pointer                     :: vegaElement
+    type            (node          ), pointer                     :: vegaElement             , wavelengthEffectiveElement
     double precision                , parameter                   :: cutOffResolution=1.0d4
     integer                                                       :: filterIndex             , ioErr
     type            (varying_string)                              :: filterFileName          , errorMessage
@@ -191,6 +191,14 @@ contains
           call extractDataContent(vegaElement,filterResponses(filterIndex)%vegaOffset)
        else
           filterResponses(filterIndex)%vegaOffset=0.0d0
+       end if
+       ! Extract the effective wavelength.
+       filterResponses(filterIndex)%wavelengthEffectiveAvailable=XML_Path_Exists(doc,"effectiveWavelength")
+       if (filterResponses(filterIndex)%wavelengthEffectiveAvailable) then
+          wavelengthEffectiveElement => XML_Get_First_Element_By_Tag_Name(doc,"effectiveWavelength")
+          call extractDataContent(wavelengthEffectiveElement,filterResponses(filterIndex)%wavelengthEffective)
+       else
+          filterResponses(filterIndex)%wavelengthEffective=0.0d0
        end if
        ! Destroy the document.
        call destroy(doc)
