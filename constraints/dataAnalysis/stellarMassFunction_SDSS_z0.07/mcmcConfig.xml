@@ -31,6 +31,7 @@
     <outlierLogLikelihoodOffset>60</outlierLogLikelihoodOffset>
     <reportCount>1</reportCount>
     <emulateOutliers>true</emulateOutliers>
+    <logFile>/dev/null</logFile>
   </convergence>
   
   <state>
