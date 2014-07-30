@@ -55,11 +55,14 @@ function likelihoodPosteriorPriorConstructor(wrappedLikelihoodDefinition,chainBa
      iChain=iChain+1
      write (label,'(i4.4)') iChain
      chainFileName=chainBaseName//"_"//trim(adjustl(label))//".log"
-     if (.not.File_Exists(chainFileName)) exit
+     if (.not.File_Exists(chainFileName)) then
+        iChain=iChain-1
+        exit
+     end if
      if (iChain == 0) then
         open(newUnit=chainUnit,file=char(chainFileName),status='old',form='formatted',iostat=ioStatus)
         read (chainUnit,'(a)') line
-        likelihoodPosteriorPriorConstructor%dimCount=String_Count_Words(line)
+        likelihoodPosteriorPriorConstructor%dimCount=String_Count_Words(line)-5
         close(chainUnit)
     end if
   end do  
@@ -73,7 +76,7 @@ function likelihoodPosteriorPriorConstructor(wrappedLikelihoodDefinition,chainBa
         likelihoodPosteriorPriorConstructor%convergedStateCount=0
         open(newUnit=chainUnit,file=char(chainFileName),status='old',form='formatted',iostat=ioStatus)
         do while (ioStatus == 0)
-           read (chainUnit,*,iostat=ioStatus) i,j,time,converged
+           read (chainUnit,*,iostat=ioStatus) j,j,time,converged
            if (ioStatus /= 0) cycle
            if (converged) likelihoodPosteriorPriorConstructor%convergedStateCount=likelihoodPosteriorPriorConstructor%convergedStateCount+1
         end do
@@ -85,7 +88,7 @@ function likelihoodPosteriorPriorConstructor(wrappedLikelihoodDefinition,chainBa
      end if
      open(newUnit=chainUnit,file=char(chainFileName),status='old',form='formatted',iostat=ioStatus)
      do while (ioStatus == 0)
-        read (chainUnit,*,iostat=ioStatus) i,j,time,converged,likelihood,state
+        read (chainUnit,*,iostat=ioStatus) j,j,time,converged,likelihood,state
         if (ioStatus /= 0) cycle
         if (converged) then
            i=i+1
