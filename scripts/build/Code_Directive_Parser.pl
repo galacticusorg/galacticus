@@ -50,7 +50,7 @@ foreach my $srcdir ( @sourcedirs ) {
 	    
 	    # Process files until none remain.
 	    while ( scalar(@fileNames) > 0 ) {
-		
+
 		# Open the file.
 		open(my $fileHandle,$fileNames[0]) or die "Can't open input file: #!";
 		seek($fileHandle,$filePositions[0],SEEK_SET) unless ( $filePositions[0] == -1 );
@@ -77,10 +77,15 @@ foreach my $srcdir ( @sourcedirs ) {
 			my $xmlCode = $1."\n";
 			my $xmlTag  = $2;
 			# Read ahead until a matching close tag is found.
+			my $includedFileName;
 			unless ( $xmlCode =~  m/\/>/ ) {
 			    my $nextLine = "";
 			    until ( $nextLine =~ m/<\/$xmlTag>/ || eof($fileHandle) ) {
 				$nextLine = <$fileHandle>;
+				# Detect included file names.
+				if ( $nextLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
+				    $includedFileName = "./work/build/".$1;
+				}
 				$nextLine =~ s/^\s*!\#\s+//;
 				$nextLine =~ s/^\s*\/\/\#\s+//;
 				$xmlCode .= $nextLine;
@@ -108,8 +113,31 @@ foreach my $srcdir ( @sourcedirs ) {
 			    ${$includeDirectives{$directive}}{'source'  } = $fileNames[0];
 			    ${$includeDirectives{$directive}}{'fileName'} = $fileName;
 			    ${$includeDirectives{$directive}}{'xml'     } = $xmlOutput->XMLout($data);
+			    # Look for function definitions which require special handling.
+			    if ( $data->{'type'} eq "function" ) {
+				if ( exists($data->{'stateful'        }) && $data->{'stateful'        } eq "yes" ) {
+				    $otherDirectives->{"galacticusStateRetrieveTask"}->{'files'     }->{$srcdir."/".$fname} = 1;
+				    $otherDirectives->{"galacticusStateStoreTask"   }->{'files'     }->{$srcdir."/".$fname} = 1;
+				    $otherDirectives->{"galacticusStateRetrieveTask"}->{'dependency'}->{$fileName         } = 1;
+				    $otherDirectives->{"galacticusStateStoreTask"   }->{'dependency'}->{$fileName         } = 1;
+				}
+				if ( exists($data->{'calculationReset'}) && $data->{'calculationReset'} eq "yes" ) {
+				    $otherDirectives->{"calculationResetTask"       }->{'files'     }->{$srcdir."/".$fname} = 1;
+				    $otherDirectives->{"calculationResetTask"       }->{'dependency'}->{$fileName         } = 1;
+				}
+			    }
 			} else {
-			    $otherDirectives->{$xmlTag}->{$srcdir."/".$fname} = 1;
+			    $otherDirectives->{$xmlTag}->{'files'}->{$srcdir."/".$fname} = 1;
+			}
+			# Process any included file name if it exists.
+			if ( defined($includedFileName) ) {
+			    $includedFileName =~ s/\.inc$/.Inc/;
+			    if ( -e $includedFileName ) {
+				$filePositions[0] = tell($fileHandle);
+				unshift(@fileNames,$includedFileName);
+				unshift(@filePositions,-1);
+				last;
+			    }
 			}
 		    }
 		}
@@ -129,7 +157,7 @@ foreach my $srcdir ( @sourcedirs ) {
 my $outputDirectives;
 foreach my $xmlTag ( keys(%{$otherDirectives}) ) {
     my @fileNames;
-    foreach my $fileName ( keys(%{$otherDirectives->{$xmlTag}} ) ){
+    foreach my $fileName ( keys(%{$otherDirectives->{$xmlTag}->{'files'}} ) ){
 	push(@fileNames,$fileName);
     }
     @{$outputDirectives->{$xmlTag}->{'file'}} = @fileNames;
@@ -148,8 +176,14 @@ foreach my $directive ( keys(%includeDirectives) ) {
     # as these files are simply copied into the include file as part of the include file construction.
     if ( $directive =~ m/^([a-zA-Z0-9_]+)\.function$/ ) {
 	my $name = $1;
-	my @fileNames = keys(%{$otherDirectives->{$name}});
+	my @fileNames = keys(%{$otherDirectives->{$name}->{'files'}});
 	$extraDependencies .= " ".join(" ",@fileNames);
+    }
+    # Add on any other dependencies.
+    if ( $directive =~ m/^([a-zA-Z0-9_]+)\.(moduleUse|functionCall)$/ ) {
+	my $name = $1;
+	$extraDependencies .= " ".join(" ",keys(%{$otherDirectives->{$name}->{'dependency'}}))
+	    if ( exists($otherDirectives->{$name}->{'dependency'}) );
     }
     print makefileHndl $fileName.": ./work/build/".$directive.".xml".$extraDependencies."\n";
     print makefileHndl "\t./scripts/build/Build_Include_File.pl ".$sourcedir." ./work/build/".$directive.".xml\n";

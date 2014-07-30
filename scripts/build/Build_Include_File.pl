@@ -73,6 +73,7 @@ if ( defined($locations) ) {
 
 # Scan all necessary files.
 foreach my $currentFileName ( @filesToScan ) {
+
     # Store the current file name.
     $buildData->{'currentFileName'} = $currentFileName;
 
@@ -124,6 +125,7 @@ foreach my $currentFileName ( @filesToScan ) {
 	    if ( $processedLine =~ /^\s*module\s*([a-z0-9_]+)\s*$/i       ) {$buildData->{'moduleName'} = $1};
 	    if ( $processedLine =~ /^\s*end\s+module\s*([a-z0-9_]+)\s*$/i ) {$buildData->{'moduleName'} = ""};
 	    
+	    my $includeFile;
 	    if ( $rawLine =~ m/^\s*(!|\/\/)\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/ ) {
 		my $xmlCode = $2."\n";
 		my $xmlTag  = $3;
@@ -136,6 +138,12 @@ foreach my $currentFileName ( @filesToScan ) {
 			} elsif ( $buildData->{'codeType'} eq "c" ) {
 			    $nextLine = <$infile>;
 			}
+			# Check for included files.
+			if ( $buildData->{'codeType'} eq "fortran" && $nextLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
+			    $includeFile = $sourceDirectory."/work/build/".$1;
+			    $includeFile =~ s/\.inc$/.Inc/;
+			}
+			# Add the line to our XML.
 			$nextLine =~ s/^\s*(!|\/\/)\#\s+//;
 			$xmlCode .= $nextLine;
 		    }
@@ -169,6 +177,13 @@ foreach my $currentFileName ( @filesToScan ) {
 			if ( $foundMatch == 0 );
 		}
 	    }
+	    # Process any include file that was found.
+	    if ( defined($includeFile) && -e $includeFile ) {
+		$filePositions[0] = tell($infile);
+		unshift(@fileNames,$includeFile);
+		unshift(@filePositions,-1);
+		last;
+	    }
 	}
 	if ( eof($infile) ) {
 	    shift(@fileNames);
@@ -179,20 +194,20 @@ foreach my $currentFileName ( @filesToScan ) {
 }
 
 # Look for a match for this action type and call the relevant function to generate content.
-    my $foundMatch = 0;
-    foreach my $hook ( keys(%Hooks::moduleHooks) ) {
-	if ( $buildData->{'type'} eq $hook ) {
-	    $foundMatch = 1;
-	    my $generateFunction = $Hooks::moduleHooks{$hook}->{'generate'};
-	    &{$generateFunction}($buildData);
-	}
+my $foundMatch = 0;
+foreach my $hook ( keys(%Hooks::moduleHooks) ) {
+    if ( $buildData->{'type'} eq $hook ) {
+	$foundMatch = 1;
+	my $generateFunction = $Hooks::moduleHooks{$hook}->{'generate'};
+	&{$generateFunction}($buildData);
     }
-    die("Build_Include_File.pl: failed to find a function to generate ".$buildData->{'type'}." action")
-	if ( $foundMatch == 0 );
-    
-# Output the generated content.
-    open(includeFile,">".$buildData->{'fileName'});
-    print includeFile $buildData->{'content'};
-    close(includeFile);
+}
+die("Build_Include_File.pl: failed to find a function to generate ".$buildData->{'type'}." action")
+    if ( $foundMatch == 0 );
 
-    exit;
+# Output the generated content.
+open(includeFile,">".$buildData->{'fileName'});
+print includeFile $buildData->{'content'};
+close(includeFile);
+
+exit;
