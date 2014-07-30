@@ -1146,7 +1146,7 @@ contains
                &                      parameterPointer                        , &
                &                      integrandFunction                       , &
                &                      integrationWorkspace                    , &
-               &                      toleranceRelative      =1.0d-3          , &
+               &                      toleranceRelative      =1.0d-2          , &
                &                      reset                  =integrationReset  &
                &                     )
           call Integrate_Done(integrandFunction,integrationWorkspace)
