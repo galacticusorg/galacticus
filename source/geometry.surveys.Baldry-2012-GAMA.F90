@@ -29,8 +29,8 @@
      procedure :: fieldCount                => baldry2012GAMAFieldCount
      procedure :: distanceMaximum           => baldry2012GAMADistanceMaximum
      procedure :: angularPowerMaximumDegree => baldry2012GAMAAngularPowerMaximumDegree
-     procedure :: mangleDirectory           => baldry2013GAMAMangleDirectory
-     procedure :: mangleFiles               => baldry2013GAMAMangleFiles
+     procedure :: mangleDirectory           => baldry2012GAMAMangleDirectory
+     procedure :: mangleFiles               => baldry2012GAMAMangleFiles
   end type surveyGeometryBaldry2012GAMA
 
   interface surveyGeometryBaldry2012GAMA
@@ -103,17 +103,17 @@ contains
     return
   end function baldry2012GAMADistanceMaximum
 
-  function baldry2013GAMAMangleDirectory(self)
+  function baldry2012GAMAMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
-    type (varying_string              )                :: baldry2013GAMAMangleDirectory
+    type (varying_string              )                :: baldry2012GAMAMangleDirectory
 
-    baldry2013GAMAMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/"
+    baldry2012GAMAMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/"
     return
-  end function baldry2013GAMAMangleDirectory
+  end function baldry2012GAMAMangleDirectory
   
-  subroutine baldry2013GAMAMangleFiles(self,mangleFiles)
+  subroutine baldry2012GAMAMangleFiles(self,mangleFiles)
     !% Return a list of \gls{mangle} files.
     implicit none
     class(surveyGeometryBaldry2012GAMA)                           , intent(inout) :: self
@@ -126,7 +126,7 @@ contains
          &       self%mangleDirectory()//"angularGeometryG15.ply"  &
          &      ]
     return
-  end subroutine baldry2013GAMAMangleFiles
+  end subroutine baldry2012GAMAMangleFiles
 
   integer function baldry2012GAMAAngularPowerMaximumDegree(self)
     !% Return the maximum degree for which angular power is computed for the \cite{bernardi_massive_2013} survey.
