@@ -39,26 +39,27 @@ module Galacticus_Output_Analyses_Mass_Functions
   logical                                                   :: analysisActive
 
   ! Number of supported mass functions.
-  integer          , parameter                              :: massFunctionsSupportedCount=15
+  integer          , parameter                              :: massFunctionsSupportedCount=16
 
   ! Labels for supported mass functions.
-  character(len=35), dimension(massFunctionsSupportedCount) :: massFunctionLabels=    &
-       & [                                                                            &
-       &  'sdssStellarMassFunctionZ0.07      ',                                       &
-       &  'gamaStellarMassFunctionZ0.03      ',                                       &
-       &  'alfalfaHiMassFunctionZ0.00        ',                                       &
-       &  'primusStellarMassFunctionZ0.250   ',                                       &
-       &  'primusStellarMassFunctionZ0.350   ',                                       &
-       &  'primusStellarMassFunctionZ0.450   ',                                       &
-       &  'primusStellarMassFunctionZ0.575   ',                                       &
-       &  'primusStellarMassFunctionZ0.725   ',                                       &
-       &  'primusStellarMassFunctionZ0.900   ',                                       &
-       &  'vipersStellarMassFunctionZ0.55    ',                                       &
-       &  'vipersStellarMassFunctionZ0.70    ',                                       &
-       &  'vipersStellarMassFunctionZ0.90    ',                                       &
-       &  'ukidssUdsStellarMassFunctionZ3.250',                                       &
-       &  'ukidssUdsStellarMassFunctionZ3.875',                                       &
-       &  'ukidssUdsStellarMassFunctionZ4.625'                                        &
+  character(len=37), dimension(massFunctionsSupportedCount) :: massFunctionLabels=      &
+       & [                                                                              &
+       &  'sdssStellarMassFunctionZ0.07        ',                                       &
+       &  'bernardiSdssStellarMassFunctionZ0.07',                                       &
+       &  'gamaStellarMassFunctionZ0.03        ',                                       &
+       &  'alfalfaHiMassFunctionZ0.00          ',                                       &
+       &  'primusStellarMassFunctionZ0.250     ',                                       &
+       &  'primusStellarMassFunctionZ0.350     ',                                       &
+       &  'primusStellarMassFunctionZ0.450     ',                                       &
+       &  'primusStellarMassFunctionZ0.575     ',                                       &
+       &  'primusStellarMassFunctionZ0.725     ',                                       &
+       &  'primusStellarMassFunctionZ0.900     ',                                       &
+       &  'vipersStellarMassFunctionZ0.55      ',                                       &
+       &  'vipersStellarMassFunctionZ0.70      ',                                       &
+       &  'vipersStellarMassFunctionZ0.90      ',                                       &
+       &  'ukidssUdsStellarMassFunctionZ3.250  ',                                       &
+       &  'ukidssUdsStellarMassFunctionZ3.875  ',                                       &
+       &  'ukidssUdsStellarMassFunctionZ4.625  '                                        &
        & ]
 
   ! Interface for mass mapping functions.
@@ -110,6 +111,22 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'sdssStellarMassFunctionZ0.07'               ,        &
+       &                                                   'SDSS stellar mass function at z=0.07'       ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                                &
+       &                                                 )                                                     , &
+       ! SDSS survey, Bernardi et al. measurement.
+       &                           massFunctionDescriptor(                                                       &
+       &                                                  11.300d0                                      ,        &
+       &                                                   0.070d0                                      ,        &
+       &                                                   null()                                       ,        &
+       &                                                   6.500d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
+       &                                                   massTypeStellar                              ,        &
+       &                                                   'bernardiSdssStellarMassFunctionZ0.07'       ,        &
        &                                                   'SDSS stellar mass function at z=0.07'       ,        &
        &                                                   null()                                       ,        &
        &                                                   null()                                       ,        &
@@ -544,77 +561,82 @@ contains
           massFunctionDescriptors(8)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
           ! Establish survey geometries.
           allocate(surveyGeometryLiWhite2009SDSS     :: massFunctionDescriptors( 1)%geometry)
-          allocate(surveyGeometryBaldry2012GAMA      :: massFunctionDescriptors( 2)%geometry)
-          allocate(surveyGeometryMartin2010ALFALFA   :: massFunctionDescriptors( 3)%geometry)
-          allocate(surveyGeometryMoustakas2013PRIMUS :: massFunctionDescriptors( 4)%geometry)
+          allocate(surveyGeometryBernardi2013SDSS    :: massFunctionDescriptors( 2)%geometry)
+          allocate(surveyGeometryBaldry2012GAMA      :: massFunctionDescriptors( 3)%geometry)
+          allocate(surveyGeometryMartin2010ALFALFA   :: massFunctionDescriptors( 4)%geometry)
           allocate(surveyGeometryMoustakas2013PRIMUS :: massFunctionDescriptors( 5)%geometry)
           allocate(surveyGeometryMoustakas2013PRIMUS :: massFunctionDescriptors( 6)%geometry)
           allocate(surveyGeometryMoustakas2013PRIMUS :: massFunctionDescriptors( 7)%geometry)
           allocate(surveyGeometryMoustakas2013PRIMUS :: massFunctionDescriptors( 8)%geometry)
           allocate(surveyGeometryMoustakas2013PRIMUS :: massFunctionDescriptors( 9)%geometry)
-          allocate(surveyGeometryDavidzon2013VIPERS  :: massFunctionDescriptors(10)%geometry)
+          allocate(surveyGeometryMoustakas2013PRIMUS :: massFunctionDescriptors(10)%geometry)
           allocate(surveyGeometryDavidzon2013VIPERS  :: massFunctionDescriptors(11)%geometry)
           allocate(surveyGeometryDavidzon2013VIPERS  :: massFunctionDescriptors(12)%geometry)
-          allocate(surveyGeometryCaputi2011UKIDSSUDS :: massFunctionDescriptors(13)%geometry)
+          allocate(surveyGeometryDavidzon2013VIPERS  :: massFunctionDescriptors(13)%geometry)
           allocate(surveyGeometryCaputi2011UKIDSSUDS :: massFunctionDescriptors(14)%geometry)
           allocate(surveyGeometryCaputi2011UKIDSSUDS :: massFunctionDescriptors(15)%geometry)
+          allocate(surveyGeometryCaputi2011UKIDSSUDS :: massFunctionDescriptors(16)%geometry)
           select type (g => massFunctionDescriptors( 1)%geometry)
           type is (surveyGeometryLiWhite2009SDSS    )
              g=surveyGeometryLiWhite2009SDSS    ( )
           end select
           select type (g => massFunctionDescriptors( 2)%geometry)
+          type is (surveyGeometryBernardi2013SDSS   )
+             g=surveyGeometryBernardi2013SDSS   ( )
+          end select
+          select type (g => massFunctionDescriptors( 3)%geometry)
           type is (surveyGeometryBaldry2012GAMA     )
              g=surveyGeometryBaldry2012GAMA     ( )
           end select
-          select type (g => massFunctionDescriptors( 3)%geometry)
+          select type (g => massFunctionDescriptors( 4)%geometry)
           type is (surveyGeometryMartin2010ALFALFA  )
              g=surveyGeometryMartin2010ALFALFA  ( )
           end select
-          select type (g => massFunctionDescriptors( 4)%geometry)
+          select type (g => massFunctionDescriptors( 5)%geometry)
           type is (surveyGeometryMoustakas2013PRIMUS)
              g=surveyGeometryMoustakas2013PRIMUS(0)
           end select
-          select type (g => massFunctionDescriptors( 5)%geometry)
+          select type (g => massFunctionDescriptors( 6)%geometry)
           type is (surveyGeometryMoustakas2013PRIMUS)
              g=surveyGeometryMoustakas2013PRIMUS(1)
           end select
-          select type (g => massFunctionDescriptors( 6)%geometry)
+          select type (g => massFunctionDescriptors( 7)%geometry)
           type is (surveyGeometryMoustakas2013PRIMUS)
              g=surveyGeometryMoustakas2013PRIMUS(2)
           end select
-          select type (g => massFunctionDescriptors( 7)%geometry)
+          select type (g => massFunctionDescriptors( 8)%geometry)
           type is (surveyGeometryMoustakas2013PRIMUS)
              g=surveyGeometryMoustakas2013PRIMUS(3)
           end select
-          select type (g => massFunctionDescriptors( 8)%geometry)
+          select type (g => massFunctionDescriptors( 9)%geometry)
           type is (surveyGeometryMoustakas2013PRIMUS)
              g=surveyGeometryMoustakas2013PRIMUS(4)
           end select
-          select type (g => massFunctionDescriptors( 9)%geometry)
+          select type (g => massFunctionDescriptors(10)%geometry)
           type is (surveyGeometryMoustakas2013PRIMUS)
              g=surveyGeometryMoustakas2013PRIMUS(5)
           end select
-          select type (g => massFunctionDescriptors(10)%geometry)
+          select type (g => massFunctionDescriptors(11)%geometry)
           type is (surveyGeometryDavidzon2013VIPERS )
              g=surveyGeometryDavidzon2013VIPERS (0)
           end select
-          select type (g => massFunctionDescriptors(11)%geometry)
+          select type (g => massFunctionDescriptors(12)%geometry)
           type is (surveyGeometryDavidzon2013VIPERS )
              g=surveyGeometryDavidzon2013VIPERS (1)
           end select
-          select type (g => massFunctionDescriptors(12)%geometry)
+          select type (g => massFunctionDescriptors(13)%geometry)
           type is (surveyGeometryDavidzon2013VIPERS )
              g=surveyGeometryDavidzon2013VIPERS (2)
           end select
-          select type (g => massFunctionDescriptors(13)%geometry)
+          select type (g => massFunctionDescriptors(14)%geometry)
           type is (surveyGeometryCaputi2011UKIDSSUDS)
              g=surveyGeometryCaputi2011UKIDSSUDS(0)
           end select
-          select type (g => massFunctionDescriptors(14)%geometry)
+          select type (g => massFunctionDescriptors(15)%geometry)
           type is (surveyGeometryCaputi2011UKIDSSUDS)
              g=surveyGeometryCaputi2011UKIDSSUDS(1)
           end select
-          select type (g => massFunctionDescriptors(15)%geometry)
+          select type (g => massFunctionDescriptors(16)%geometry)
           type is (surveyGeometryCaputi2011UKIDSSUDS)
              g=surveyGeometryCaputi2011UKIDSSUDS(2)
           end select
@@ -703,7 +725,7 @@ contains
                             parameterName=trim(massFunctionLabels(j))//'MassSystematic'
                             parameterName=parameterName//(k-1)
                             !@ <inputParameter>
-                            !@   <regEx>(sdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction)Z[0-9\.]+MassSystematic[0-9]+</regEx>
+                            !@   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction)Z[0-9\.]+MassSystematic[0-9]+</regEx>
                             !@   <defaultValue>0</defaultValue>
                             !@   <attachedTo>module</attachedTo>
                             !@   <description>
@@ -720,6 +742,9 @@ contains
                       case ('sdssStellarMassFunctionZ0.07')
                          ! SDSS z=0.07 stellar mass function.
                          call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('bernardiSdssStellarMassFunctionZ0.07')
+                         ! Bernardi SDSS z=0.07 stellar mass function.
+                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_Bernardi_2013.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('gamaStellarMassFunctionZ0.03')
                          ! GAMA z=0.03 stellar mass function.
                          call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_GAMA_2012.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
