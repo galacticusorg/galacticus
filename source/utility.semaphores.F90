@@ -70,7 +70,7 @@ module Semaphores
      type(semaphoreList), pointer :: next => null()
   end type semaphoreList
 
-  type(semaphoreList), target :: semaphoreListHead
+  type(semaphoreList), pointer :: semaphoreListHead => null()
 
   interface
      function Semaphore_Open_C(name,initialValue) bind(c,name='Semaphore_Open_C')
@@ -131,7 +131,6 @@ contains
     if (associated(semaphoreListHead%self)) then
        thisSemaphore => semaphoreListHead
        do while (associated(thisSemaphore%next))
-
           thisSemaphore => thisSemaphore%next
        end do
        allocate(thisSemaphore%next)
