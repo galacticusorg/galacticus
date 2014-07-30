@@ -158,6 +158,21 @@ sub Functions_Generate_Output {
 	    )
     }
 
+    # If the function requires calculation reset, add method to do so.
+    if ( exists($buildData->{'calculationReset'}) && $buildData->{'calculationReset'} eq "yes" ) {
+	push(
+	    @methods,
+	    {
+		name        => "calculationReset",
+		description => "Reset the calculation state of the object.",
+		type        => "void",
+		pass        => "yes",
+		argument    => [ "type(treeNode), intent(inout), pointer :: thisNode" ],
+		code        => ""
+	    },
+	    )
+    }
+
     # Determine if any methods request that C-bindings be produced.
     my @methodsCBound;
     foreach ( @methods ) {
@@ -184,8 +199,10 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "   public :: ".$directive.",".$directive."Class";
     $buildData->{'content'} .= ", ".$_->{'name'}
 	foreach ( @nonAbstractClasses );
-    $buildData->{'content'} .= ", ".$directive."StateStore, ".$directive."StateRestore"
+    $buildData->{'content'} .= ", ".$directive."StateStore, ".$directive."StateRetrieve"
 	if ( exists($buildData->{'stateful'}) && $buildData->{'stateful'} eq "yes" );
+   $buildData->{'content'} .= ", ".$directive."CalculationReset"
+	if ( exists($buildData->{'calculationReset'}) && $buildData->{'calculationReset'} eq "yes" );
     $buildData->{'content'} .= "\n\n";
 
     # Add variable tracking module initialization status.
@@ -194,6 +211,7 @@ sub Functions_Generate_Output {
     # Generate the function object.
     $buildData->{'content'} .= "   type :: ".$directive."Class\n";
     $buildData->{'content'} .= "    private\n";
+    $buildData->{'content'} .= "    logical :: isDefault=.false.\n";
     foreach ( &ExtraUtils::as_array($buildData->{'data'}) ) {
 	if ( reftype($_) ) {
 	    $_->{'scope'} = "self"
@@ -284,6 +302,7 @@ sub Functions_Generate_Output {
 	    if ( exists($_->{'code'}) );
 	$methodTable->add("",$_->{'name'},$_->{'name'}.$extension);
     }
+    $methodTable->add("","isFinalizable",$directive."IsFinalizable");
     $buildData->{'content'} .= $methodTable->table();
     $buildData->{'content'} .= "   end type ".$directive."Class\n\n";
 
@@ -330,6 +349,8 @@ sub Functions_Generate_Output {
 		if ( $processedLine =~ m/^\s*use\s+[a-zA-Z0-9_\s:\,]+/ );
 	    last
 		if ( $processedLine =~ m/^\s*contains\s*$/i && $unitDepth == 0 );
+	    # Strip directive lines.
+	    $rawLine =~ s/^(\s*)!#/$1!/;
 	    $buildData->{'content'} .= $rawLine;
 	}
 	close($classFile);
@@ -463,6 +484,7 @@ sub Functions_Generate_Output {
     }
     $buildData->{'content'} .= "         call Galacticus_Error_Report('".$directive."Initialize',message)\n";
     $buildData->{'content'} .= "      end select\n";
+    $buildData->{'content'} .= "      ".$directive."Default%isDefault=.true.\n";
     $buildData->{'content'} .= "      return\n";
     $buildData->{'content'} .= "   end subroutine ".$directive."Initialize\n\n";
 
@@ -496,6 +518,31 @@ sub Functions_Generate_Output {
 	$buildData->{'content'} .= "  end subroutine ".$directive."StateRetrieve\n\n";
     }
 
+    # Create global calculation reset function.
+    if ( exists($buildData->{'calculationReset'}) && $buildData->{'calculationReset'} eq "yes" ) {
+	$buildData->{'content'} .= "  !# <calculationResetTask>\n";
+	$buildData->{'content'} .= "  !#  <unitName>".$directive."CalculationReset</unitName>\n";
+	$buildData->{'content'} .= "  !# </calculationResetTask>\n";
+	$buildData->{'content'} .= "  subroutine ".$directive."CalculationReset(thisNode)\n";
+	$buildData->{'content'} .= "    !% Store the state to file.\n";
+	$buildData->{'content'} .= "    implicit none\n";
+	$buildData->{'content'} .= "    type (treeNode), pointer, intent(inout) :: thisNode\n";
+	$buildData->{'content'} .= "    class(".$directive."Class), pointer :: default\n\n";
+	$buildData->{'content'} .= "    default => ".$directive."()\n";
+	$buildData->{'content'} .= "    call default%calculationReset(thisNode)\n";
+	$buildData->{'content'} .= "    return\n";
+	$buildData->{'content'} .= "  end subroutine ".$directive."CalculationReset\n\n";
+    }
+
+    # Create is finalizable function.
+    $buildData->{'content'} .= "  logical function ".$directive."IsFinalizable(self)\n";
+    $buildData->{'content'} .= "    !% Return true if the object is finalizable.\n";
+    $buildData->{'content'} .= "    implicit none\n";
+    $buildData->{'content'} .= "    class(".$directive."Class), intent(in   ) :: self\n\n";
+    $buildData->{'content'} .= "    ".$directive."IsFinalizable=.not.self%isDefault\n";
+    $buildData->{'content'} .= "    return\n";
+    $buildData->{'content'} .= "  end function ".$directive."IsFinalizable\n\n";
+
     # Create functions.
     foreach my $method ( @methods ) {
 	# Insert arguments.
@@ -518,16 +565,27 @@ sub Functions_Generate_Output {
 	}
 	my $type;
 	my $category;
-	if ( $method->{'type'} eq "void" ) {
-	    $category = "subroutine";
-	    $type     = "";
-	} else {
-	    $category = "function";
-	    $type     = $method->{'type'}." ";
-	}
+	my $self;
 	my $extension = "Null";
 	$extension = ""
 	    if ( exists($method->{'code'}) );
+	if ( $method->{'type'} eq "void" ) {
+	    $category = "subroutine";
+	    $type     = "";
+	    $self     = "";
+	} elsif ( $method->{'type'} =~ m/^class/ ) {
+	    $category = "function";
+	    $type     = "";
+	    $self     = "      ".$method->{'type'}.", pointer :: ".$method->{'name'}.$extension."\n";
+	} elsif ( $method->{'type'} =~ m/^type/ ) {
+	    $category = "function";
+	    $type     = "";
+	    $self     = "      ".$method->{'type'}." :: ".$method->{'name'}.$extension."\n";
+	} else {
+	    $category = "function";
+	    $type     = $method->{'type'}." ";
+	    $self     = "";
+	}
 	$buildData->{'content'} .= "   ".$type.$category." ".$method->{'name'}.$extension."(self";
 	$buildData->{'content'} .= ",".$argumentList
 	    unless ( $argumentList eq "" );
@@ -542,6 +600,7 @@ sub Functions_Generate_Output {
 	    $buildData->{'content'} .= "      use Galacticus_Error\n";
 	}
 	$buildData->{'content'} .= "      implicit none\n";
+	$buildData->{'content'} .= $self;
 	$buildData->{'content'} .= $argumentCode;
 	if ( exists($method->{'code'}) ) {
 	    my $code = "      ".$method->{'code'};
@@ -642,6 +701,8 @@ sub Functions_Generate_Output {
 		--$unitDepth
 		    if ( $processedLine =~ m/$unitClosers{$unitType}->{"regEx"}/i );
 	    }
+	    # Strip directive lines.
+	    $rawLine =~ s/^(\s*)!#/$1!/;
 	    $buildData->{'content'} .= $rawLine
 		if ( $containsFound == 1 );
 	    $containsFound = 1
