@@ -19,12 +19,15 @@
 
   type, public, extends(likelihood) :: likelihoodSEDFit
      private
-     integer                                     :: photometryCount         , dustType
+     integer                                     :: photometryCount         , dustType                , &
+          &                                         burstCount
      integer         , allocatable, dimension(:) :: filterIndex             , luminosityIndex         , &
           &                                         postprocessingChainIndex
      double precision, allocatable, dimension(:) :: magnitude               , error                   , &
           &                                         redshift                , massToLightRatio        , &
-          &                                         age                     , wavelengthEffective
+          &                                         age                     , wavelengthEffective     , &
+          &                                         burstTimeStart          , burstTimescale          , &
+          &                                         burstFraction
    contains
      procedure :: evaluate        => likelihoodSEDFitEvaluate
      procedure :: functionChanged => likelihoodSEDFitFunctionChanged
