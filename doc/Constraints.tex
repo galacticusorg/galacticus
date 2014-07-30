@@ -398,6 +398,45 @@ In this file the {\tt y} elements should give the values of the model result, wh
 
 \subsection{Available Constraints}
 
+\subsubsection{Methodology for Mass Functions}
+
+In general, for constraints corresponding to mass functions (whether stellar mass or HI mass), the covariance matrix of the observational data is determined using the analytic model of \cite{smith_how_2012}. This requires knowledge of both the survey geometry (angular mask and radial extent as a function of mass) and of the \gls{hod} of the observed galaxies.
+
+Details of the survey geometry and depth are given for each individual constraints. Computing the large-scale structure contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier transform of the survey window function. We use the method of \cite{peacock_non-linear_1996} to determine the non-linear matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter power spectrum (e.g. \citealt{lawrence_coyote_2010}) makes negligible difference to our results. If the angular power spectrum of the survey mask is available\footnote{Typically if the survey geometry is defined by \protect\gls{mangle} polygons, allowing the angular power spectrum to be found using the \protect\gls{mangle} {\tt harmonize} utility.}, this is used to compute the relation
+\begin{equation}
+  \sigma^2(M_\mu,M_\nu) = {2 \over \pi V_\mu V_\nu}\int_0^\infty {\rm d} k\, k^{-4} P(k) \sum_i \sum_j \sum_{\ell=0}^\infty (2\ell+1) C^{ij}_\ell R^i_{\ell}(kr_{\mu 0},kr_{\mu 1}) R^j_{\ell}(kr_{\nu 0},kr_{\nu 1}),
+\end{equation}
+where $(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}$, $\Psi^i_{\ell m}$ are the spherical harmonic coefficients of the $i^{\rm th}$ field of the survey, $V$ is the maximum distance to which a galaxy of mass $M$ can be seen, $P(k)$ is the nonlinear power spectrum and
+\begin{equation}
+ R_{\ell}(x_0,x_1) \equiv \int_{x_0}^{x_1} x^2 j_\ell(x) {\rm d}x = \sqrt{\pi} 2^{-2-\ell} \Gamma\left({1\over 2}[3+\ell]\right) \left[ x^{3+\ell} \tensor*[_1]{\stackrel{\sim}{F}}{_2} \left({1\over 2}[3+\ell]; \ell+{3\over 2},{1\over 2}(5+\ell);-{x^2\over 4}\right)\right]_{x_0}^{x_1},
+\end{equation}
+where $\tensor*[_1]{\stackrel{\sim}{F}}{_2}$ is the regularized generalized hypergeometric function. In other cases, where the angular power spectrum is not available, the survey geometry is realized on a grid which is when Fourier transformed to obtain the appropriate window function.
+
+To find a suitable \gls{hod} to describe the observed galaxies we adopt the model of \cite{behroozi_comprehensive_2010}. This is an 11 parameter model which describes separately the numbers of satellite and central galaxies occupying a halo of given mass---the reader is referred to \cite{behroozi_comprehensive_2010} for a complete description of the functional form of this parametric \gls{hod}. An \gls{mcmc} approach is used to to constrain the \gls{hod} parameters to fit the observational data. We use a likelihood
+\begin{equation}
+ \ln \mathcal{L} = -{1\over 2} \Delta\cdot \mathcal{C}^{-1}\cdot \Delta^{\rm T} - {N \over 2} \ln(2\pi) - {\ln |\mathcal{C}| \over 2},
+\end{equation}
+where $N$ is the number of bins in the mass function, $\mathcal{C}$ is the covariance matrix of the observed mass function, and $\Delta_i = \phi_i^{\rm (HOD)} - \phi_i^{\rm (observed)}$. Of course, it is precisely this covariance matrix, $\mathcal{C}$, that we are trying to compute. We therefore adopt an iterative approach as follows:
+\begin{enumerate}
+ \item make an initial estimate of the covariance matrix, assuming that only Poisson errors contribute (the covariance matrix is therefore diagonal, and the terms are easily computed from the measured mass function and the survey volume as a function of stellar mass);
+ \item find the maximum likelihood parameters of the \gls{hod} given the observed mass function and the current estimate of the covariance matrix;
+ \item using this \gls{hod} and the framework of \cite{smith_how_2012}, compute a new estimate of the covariance matrix, including all three contributions;
+ \item repeat steps 2 and 3 until convergence in the covariance matrix is achieved.
+\end{enumerate}
+In practice we find that this procedure often leads to an \gls{hod} and covariance matrix which oscillate between two states in successive iterations. The differences in the covariance matrix are relatively small however, so we choose to conservatively adopt the covariance matrix with the larger values.
+
+\subsubsection{Methodology for Correlation Functions}
+
+For constraints corresponding to (possibly, projected) correlation functions, the model expectation is computed using the halo model \cite{cooray_halo_2002}. For each model halo, each galaxy (satellite and central) is assessed to see if it meets the criteria for inclusion in the sample. Where the sample includes mass limits (either just a lower limit, or lower and upper limits) each galaxy is assigned a probability of inclusion in the sample based on its mass and the random error in mass. Thus, each halo is characterized by the probability of having a central galaxy in the sample, $p^{\rm (c)}$, and $N$ probabilities, $p_i^{\rm (s)}$, of each satellite galaxy being in the sample. We assume binomial statistics for each galaxy's probability of inclusion, and further assume that these probabilities are uncorrelated. Therefore, the contribution of the halo to the one- and two-halo terms of the power spectrum in the halo model are:
+\begin{equation}
+\Delta P^{\rm 1h}(k) = {w \over n_{\rm gal}^2} \left[ p^{\rm (c)} \sum_{i=1}^N p^{\rm (s)} u(k|M) + \sum_{k=0}^N k(k-1) P\left(p_i^{\rm (s)},\ldots,p_N^{(s)}\right) u(k|M)^2 \right]
+\end{equation}
+and
+\begin{equation}
+\Delta \sqrt{P^{\rm 2h}}(k) = {w \over n_{\rm gal}} \sqrt{P^{\rm lin}}(k) b(M) u(k|M) \left[ p^{\rm (c)} + \sum_{i=1}^N p_i^{\rm (s)} \right],
+\end{equation}
+respectively, where $w$ is the weight of the halo (i.e. the number of such model halos expected per unit volume), $b(M)$ is the bias of halos of mass $M$, $u(k|M)$ is the Fourier-transform of the halo density profile, and $P_{\rm lin}(k)$ is the linear theory power spectrum, and $P(p_1,\ldots,p_N)$ is the Poisson binomial distribution for $N$ events with probabities $p_1,\ldots,p_N$. The contribution of the halo to the galaxy density, $n_{\rm gal}$, is simply $\Delta n_{\rm gal} = w \left[ p^{\rm (c)} + \sum_{i=1}^N p_i^{\rm (s)} \right]$.
+
 \subsubsection{Li \& White (2009) SDSS Stellar Mass Function}
 
 This constraint utilizes the stellar mass function for $z\approx 0.07$ galaxies measured by \cite{li_distribution_2009} from the \gls{sdss}. The mass function reported by \cite{li_distribution_2009} is converted to the appropriate Hubble constant for the given \glc\ model (assuming that masses scale as $H_0^{-2}$ and volumes as $H_0^3$)---no adjustment is made for cosmological parameters given the low redshift of the sample.
@@ -428,54 +467,19 @@ The model likelihood is then computed using:
 \end{equation}
 where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
-Computing the large-scale structure contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier transform of the survey window function. We use the method of \cite{peacock_non-linear_1996} to determine the non-linear matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter power spectrum (e.g. \citealt{lawrence_coyote_2010}) makes negligible difference to our results.
+\subsubsection{Caputi et al. (2011) UKIDSS UDS Stellar Mass Function}\label{sec:ConstraintsUKIDSSUDSStellarMassFunction}
 
-To find a suitable \gls{hod} to describe the galaxies in the \cite{li_distribution_2009} sample we adopt the model of \cite{behroozi_comprehensive_2010}. This is an 11 parameter model which describes separately the numbers of satellite and central galaxies occupying a halo of given mass---the reader is referred to \cite{behroozi_comprehensive_2010} for a complete description of the functional form of this parametric \gls{hod}. 
+This constraint utilizes the stellar mass functions for $z = 3$ to 5 galaxies measured by \cite{caputi_stellar_2011} from the UKISS UDS survey.  If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
 
-To reproduce the mass function of \cite{li_distribution_2009} using this \gls{hod} we use the \gls{bie} \citep{weinberg_computational_2012} to constrain the \gls{hod} parameters. We use a likelihood
+Given a \glc\ model, total stellar masses of model galaxies are adjusted using:
 \begin{equation}
- \ln \mathcal{L} = -{1\over 2} \Delta\cdot \mathcal{C}^{-1}\cdot \Delta^{\rm T} - {N \over 2} \ln(2\pi) - {\ln |\mathcal{C}| \over 2},
+ M_\star \rightarrow {\bf G} {\bf S} M_\star 
 \end{equation}
-where $N$ is the number of bins in the mass function, $\mathcal{C}$ is the covariance matrix of the observed mass function, and $\Delta_i = \phi_i^{\rm (HOD)} - \phi_i^{\rm (observed)}$. Of course, it is precisely this covariance matrix, $\mathcal{C}$, that we are trying to compute. We therefore adopt an iterative approach as follows:
-\begin{enumerate}
- \item make an initial estimate of the covariance matrix, assuming that only Poisson errors contribute (the covariance matrix is therefore diagonal, and the terms are easily computed from the measured mass function and the survey volume as a function of stellar mass);
- \item find the maximum likelihood parameters of the \gls{hod} given the observed mass function and the current estimate of the covariance matrix;
- \item using this \gls{hod} and the framework of \cite{smith_how_2012}, compute a new estimate of the covariance matrix, including all three contributions;
- \item repeat steps 2 and 3 until convergence in the covariance matrix is achieved.
-\end{enumerate}
-In practice we find that this procedure leads to an \gls{hod} and covariance matrix which oscillate between two states in successive iterations. The differences in the covariance matrix are relatively small however, so we choose to conservatively adopt the covariance matrix with the larger values. In future, adding additional constraints to the \gls{hod} (as described below) should help mitigate this problem.
-
-\subsubsection{Martin et al. (2010) ALFALFA HI Mass Function}\label{sec:AnalysisALFALFAHIMassFunction}
-
-This constraint utilizes the HI mass function for $z\approx 0.0$ galaxies measured by \cite{martin_arecibo_2010} from the ALFALFA survey. The mass function reported by \cite{martin_arecibo_2010} is converted to the appropriate Hubble constant for the given \glc\ model (assuming that masses scale as $H_0^{-2}$ and volumes as $H_0^3$)---no adjustment is made for cosmological parameters given the low redshift of the sample.
-
-Given a \glc\ model, total gas masses of model galaxies are adjusted using:
+where the ${\bf S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is equal to \citep{behroozi_comprehensive_2010}
 \begin{equation}
- M_{\rm HI} \rightarrow {\bf G} {\bf S} M_{\rm gas}
+ \log_{\rm 10} S = \mu + \kappa \log_{\rm 10} \left({M_\star \over 10^{11.3}M_\odot}\right)
 \end{equation}
-where the ${\bf S}$ operator is a multiplicative factor accounting for systematic errors in HI mass determination and for the unknown molecular fraction and is equal to:
-\begin{equation}
- \log_{\rm 10} S = \mu + \kappa \log_{\rm 10} \left({M_\star \over 10^9M_\odot}\right)
-\end{equation}
-where $\mu=${\tt [alfalfaHiMassFunctionZ0.00MolecularFractionMu]}, $\kappa=${\tt [alfalfaHiMassFunctionZ0.00MolecularFractionKappa]}, and the {\bf G} operator is a multiplicative factor drawn from a log-normal distribution. The width of this log-normal is determined from the combination of observational random errors on HI mass and scatter in the H$_2$/HI mass ratio at fixed total gas mass. Observational random errors on HI mass are taken from Fig.~19 of \cite{haynes_arecibo_2011}. We fit the magnitude of the error as a function of HI mass using a functional form:
-\begin{equation}
- \sigma_{\rm obs} = a + \exp\left(-{\log_{10}(M_{\rm HI}/M_\odot)-b\over c}\right),
-\end{equation}
-where $\sigma_{\rm obs}$ is the error on $\log_{10}(M_{\rm HI}/M_\odot)$. We find a good fit using values of $a=0.100$, $b=5.885$, and $c=0.505$ as shown in Fig.~\ref{fig:ALFALFAErrorModel}. 
-
-\begin{figure}
- \begin{center}
- \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/alfalfaHIMassErrorModel.pdf}
- \caption{The observational random error in galaxy HI mass as a function of HI mass for the ALFALFA survey. Points show the errors reported by \protect\cite{haynes_arecibo_2011}, while the line shows a simple functional form fit to these errors.}
- \end{center}
- \label{fig:ALFALFAErrorModel}
-\end{figure}
-
-In addition, we expect there to be significant scatter in the H$_2$/HI mass ratio at fixed total gas mass. For example, Figure~5 of \cite{power_redshift_2010} shows a broad distribution of such values. We approximate this scatter as a Gaussian random process with standard deviation $\sigma$. This random ``error'' is added in quadrature to the observational errors when constructing the mass function. For a prior on $\sigma$ we adopt a normal distribution with mean of $0.4$ (estimated from Figure~5 of \cite{power_redshift_2010}) and standard deviation $0.3$.
-
-The model masses are then used to construct a mass function by binning into a histogram using the masses reported by \cite{martin_arecibo_2010} (modified as described above) as the centers of the bins (with bin boundaries placed at the geometric means of consecutive bin centers).
-
-If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+where $\mu=${\tt [ukidssUdsStellarMassFunctionZX.XXXStellarMassSystematicMu]}, $\kappa=${\tt [ukidssUdsStellarMassFunctionZX.XXXStellarMassSystematiKappa]}, and the {\bf G} operator is a multiplicative factor drawn from a log-normal distribution of width $0.173$~dex for each galaxy to mimic the effects of random errors on stellar masses (which accounts for errors in photometric redshifts, $\delta z/(1+z)$ of $\sigma=0.05$ as reported by \cite{caputi_stellar_2011} along with an additional 0.087~dex added in quadrature to account for SED fitting errors, judged from Figure 8 of \cite{caputi_stellar_2011}).
 
 The covariance matrix is computed as
 \begin{equation}
@@ -483,19 +487,56 @@ The covariance matrix is computed as
 \end{equation}
 where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${\bf C}_{\rm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\bf C}_{{\rm discrepancy}, i}$ is the covariance due to the $i^{\rm th}$ model discrepancy.
 
-To construct ${\bf C}_{\rm model,random}$ we make use of the fact that \glc\ works by sampling a set of tree ``root masses'' from the $z=0$ dark matter halo mass function. From each root, a tree is grown, within which the physics of galaxy formation is then solved. Root masses are sampled uniformly from the halo mass function. That is, the cumulative halo mass function, $N(M)$, is constructed between the maximum and minimum halo masses to be simulated. The number of root masses, $N_{\rm r}$, to be used in a model evaluation is then determined. Root masses are then chosen such that
+The model likelihood is then computed using:
 \begin{equation}
- N(M_i) = N(M_{\rm min}) {i-1 \over N_{\rm r}-1}
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\bf C}|}} \exp\left[ -{1\over 2} \Delta {\bf C}^{-1} \Delta \right],
 \end{equation}
-for $i=1\ldots N_{\rm r}$ (noting that $N(M_{\rm max})=0$ by construction). 
+where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
-Consider first those galaxies which form in the main branch of each tree (i.e. those galaxies which are destined to become the central galaxy of the $z=0$ halo). Suppose that we simulate $N_k$ halos of root mass $M_k$ at $z=0$. In such halos the main branch galaxies will, at any time, have stellar masses drawn from some distribution $p_k(M_\star|t)$. The number of such galaxies contributing to bin $i$ of the mass function is therefore binomially distributed with success probability $p_{ik} = \int_{M_{i,\rm min}}^{M_{i,\rm max}} p_k(M_\star|t) \d M_\star$ and a sample size of $N_k$. The contribution to the covariance matrix from these main branch galaxies is therefore:
+The survey window function is determined from the set of galaxy positions provided by Caputi (private communication), by finding a suitable bounding box and then cutting out empty regions (corresponding to regions that were removed around bright stars). A set of random points are then found within this mask and are used to find the Fourier transform of the survey volume. 
+
+To estimate the depth of the \cite{caputi_stellar_2011} sample as a function of galaxy stellar mass we make use of semi-analytic models in the Millennium Database. Specifically, we use the \glspl{sam} of \cite{guo_dwarf_2011} and \cite{henriques_confronting_2012} specifically the {\tt Guo2010a..MR} and {\tt Henriques2012a.wmap1.BC03\_001} tables in the Millennium Database. For each snapshot in the database, we extract the stellar masses and observed-frame IRAC 4.5$\mu$m apparent magnitudes (including dust extinction), and determine the median apparent magnitude as a function of stellar mass. Using the limiting apparent magnitude of the \cite{caputi_stellar_2011} sample, $i_{4.5}=24$, we infer the corresponding absolute magnitude at each redshift and, using our derived apparent magnitude--stellar mass relation, infer the corresponding stellar mass.
+
+The end result of this procedure is the limiting stellar mass as a function of redshift, accounting for k-corrections, evolution, and the effects of dust. Figure~\ref{fig:UKIDSSUDSMassRedshift} shows the resulting relation between stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Points indicate measurements from the \gls{sam}, while the line shows a polynomial fit:
 \begin{equation}
- \mathcal{C}_{ij} = \left\{ \begin{array}{ll} p_{ik}(1-p_{ik}) N_k w_k^2 & \hbox{ if } i = j \\ -p_{ik} p_{jk} N_k w_k^2 & \hbox{ otherwise,} \end{array} \right.
+ z(M_\star) = -56.247 + 5.881 m,
+ \label{eq:UKIDSSUDSDepthPolynomial}
 \end{equation}
-where $w_k$ is the weight to be assigned to each tree. To compute this covariance requires knowledge of the probabilities, $p_{ik}$. We estimate these directly from the model. To do this, we bin trees into narrow bins of root mass and assume that $p_{ik}$ does not vary significantly across the mass range of each bin. Using all realizations of trees that fall within a given bin, $k$, we can directly estimate $p_{ik}$.
+where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
 
-In addition to the main branch galaxies, each tree will contain a number of other galaxies (these will be ``satellite'' galaxies at $z=0$, but at higher redshifts may still be central galaxies in their own halos). Tests have established that the number of satellites in halos is well described by a Poisson process. Note that each galaxy contributes Gaussian distribution to the mass function due to modelling of random errors in stellar mass determinations. For main branch galaxies this is simply accounted for when accumulating the probabilities, $p_{ik}$. For satellite galaxies, off-diagonal contributions to the covariance matrix arise as a result, $C_{ij} = w_k f_i f_j$, where $f_i$ is the fraction of the galaxy contributing to bin $i$ of the mass function.
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/UKIDSSUDSMassLuminosityRelation.pdf}
+ \caption{The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{caputi_stellar_2011}. Points show the results obtained using the \protect\cite{henriques_confronting_2012} model from the Millennium Database, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:UKIDSSUDSDepthPolynomial}).}
+ \end{center}
+ \label{fig:UKIDSSUDSMassRedshift}
+\end{figure}
+
+Finally, the incompleteness of the observational sample (which is required when estimating the Poisson contribution to the covariance matrix) is found from the 50\% and 80\% completeness masses, $M_{50}$ and $M_{80}$ respectively, given in Fig.~4 of \cite{caputi_stellar_2011}. Specifically, we assume that, at a given mass $M$, the number of photons being received from a galaxy can be modeled as a Gaussian distribution with mean $f M$ and variance $fM+\mu$, where $\mu$ is the number of photons ariving from the sky. The fraction of sources of mass $M$ that will be detected at more than $n \sigma$ above the background is then
+\begin{eqnarray}
+f(M) & = & \int_{n\sqrt{mu}}^\infty {1 \over \sqrt{2 \pi} \sqrt{f M + \mu}} \exp\left( - {[S-fM]^2 \over 2 [f M + \mu]} \right) {\rm d}S \nonumber \\
+     & = & {1 \over 2}\left[ 1 - \hbox{erf}\left( {x(M) \over \sqrt{2}} \right)  \right],
+\label{eq:incompleteness}
+\end{eqnarray}
+where $x(M) = (n \sqrt{mu} - f M)/(\mu+fM)^{1/2}$. Given $f(M_{\rm 50})=0.5$ and $f(M_{\rm 80})=0.8$ we can solve for $f$ and $\mu$, and then compute the completeness in each mass using eqn.~(\ref{eq:incompleteness}). The resulting completeness curves are shown in Fig.~\ref{fig:UKIDSSUDSCompleteness}. Note that the model of eqn.~(\ref{eq:incompleteness}) is clearly an oversimplification, but should capture the expected behavior of the completeness and, since it is fit to the 50\% and 80\% completenesses reported by \cite{caputi_stellar_2011}---which were computed using detailed simulations---should work sufficiently well.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/UKIDSSUDSCompleteness.pdf}
+ \caption{The completeness as a function of stellar mass in the survey of \protect\cite{caputi_stellar_2011}. Curves are computed using eqn.~(\protect\ref{eq:incompleteness}) with parameters fit to the reported 50\% and 80\% completeness masses from \protect\cite{caputi_stellar_2011}.}
+ \end{center}
+ \label{fig:UKIDSSUDSCompleteness}
+\end{figure}
+
+\subsubsection{Bernardi et al. (2013) SDSS Stellar Mass Function}\label{sec:AnalysisBernardiSDSSStellarMassFunction}
+
+This constraint utilizes the stellar mass function for $z\approx 0.07$ galaxies measured by \cite{bernardi_massive_2013} from the SDSS survey. The mass function, and its covariance matrix ${\bf C}_{\rm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+
+The covariance matrix is computed as
+\begin{equation}
+ {\bf C} = {\bf C}_{\rm obs} + {\bf C}_{\rm model,random} + \sum_i {\bf C}_{{\rm discrepancy}, i},
+\end{equation}
+where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${\bf C}_{\rm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\bf C}_{{\rm discrepancy}, i}$ is the covariance due to the $i^{\rm th}$ model discrepancy.
 
 The model likelihood is then computed using:
 \begin{equation}
@@ -503,22 +544,113 @@ The model likelihood is then computed using:
 \end{equation}
 where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
-Computing the large-scale structure contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier transform of the survey window function. We use the method of \cite{peacock_non-linear_1996} to determine the non-linear matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter power spectrum (e.g. \citealt{lawrence_coyote_2010}) makes negligible difference to our results.
+When computing the Poisson term in the covariance matrix, the number of galaxies per bin is determined directly from the mass function, assuming a 91\% completeness\footnote{7\% arising from fiber collisions, 2\% from failures in the Pymorph pipeline (M.~Bernardi, private communication).}. The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryBernardi2013SDSS}.
 
-To find a suitable \gls{hod} to describe the galaxies in the \cite{martin_arecibo_2010} sample we adopt the model of \cite{behroozi_comprehensive_2010}. This is an 11 parameter model which describes separately the numbers of satellite and central galaxies occupying a halo of given mass---the reader is referred to \cite{behroozi_comprehensive_2010} for a complete description of the functional form of this parametric \gls{hod}. 
+\subsubsection{Baldry et al. (2012) GAMA Stellar Mass Function}\label{sec:AnalysisBaldryGAMAStellarMassFunction}
 
-To reproduce the mass function of \cite{martin_arecibo_2010} using this \gls{hod} we use the \gls{bie} \citep{weinberg_computational_2012} to constrain the \gls{hod} parameters. We use a likelihood
+This constraint utilizes the stellar mass function for $z< 0.06$ galaxies measured by \cite{baldry_galaxy_2012} from the GAMA survey. The mass function, and its covariance matrix ${\bf C}_{\rm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+
+The covariance matrix is computed as
 \begin{equation}
- \ln \mathcal{L} = -{1\over 2} \Delta\cdot \mathcal{C}^{-1}\cdot \Delta^{\rm T} - {N \over 2} \ln(2\pi) - {\ln |\mathcal{C}| \over 2},
+ {\bf C} = {\bf C}_{\rm obs} + {\bf C}_{\rm model,random} + \sum_i {\bf C}_{{\rm discrepancy}, i},
 \end{equation}
-where $N$ is the number of bins in the mass function, $\mathcal{C}$ is the covariance matrix of the observed mass function, and $\Delta_i = \phi_i^{\rm (HOD)} - \phi_i^{\rm (observed)}$. Of course, it is precisely this covariance matrix, $\mathcal{C}$, that we are trying to compute. We therefore adopt an iterative approach as follows:
-\begin{enumerate}
- \item make an initial estimate of the covariance matrix, assuming that only Poisson errors contribute (the covariance matrix is therefore diagonal, and the terms are easily computed from the measured mass function and the survey volume as a function of stellar mass);
- \item find the maximum likelihood parameters of the \gls{hod} given the observed mass function and the current estimate of the covariance matrix;
- \item using this \gls{hod} and the framework of \cite{smith_how_2012}, compute a new estimate of the covariance matrix, including all three contributions;
- \item repeat steps 2 and 3 until convergence in the covariance matrix is achieved.
-\end{enumerate}
-In practice we find that this procedure leads to an \gls{hod} and covariance matrix which oscillate between two states in successive iterations. The differences in the covariance matrix are relatively small however, so we choose to conservatively adopt the covariance matrix with the larger values. In future, adding additional constraints to the \gls{hod} (as described below) should help mitigate this problem.
+where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${\bf C}_{\rm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\bf C}_{{\rm discrepancy}, i}$ is the covariance due to the $i^{\rm th}$ model discrepancy.
+
+The model likelihood is then computed using:
+\begin{equation}
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\bf C}|}} \exp\left[ -{1\over 2} \Delta {\bf C}^{-1} \Delta \right],
+\end{equation}
+where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+
+When computing the Poisson term in the covariance matrix, the number of galaxies per bin is taken from data supplied by I.~Baldry (private communication). The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryBaldry2012GAMA}.
+
+Finally, the completeness of the observational sample is estimated to be greater than 98\% (P.~Norberg, private communication). Therefore we add an additional contribution to the observed covariance matrix equal to $\mathcal{C}_{ij} = 0.02 \phi_i \phi_j$ where $\phi$ is the observed mass function.
+
+\subsubsection{Tomczak et al. (2014) ZFOURGE Stellar Mass Functions}\label{sec:AnalysisTomczakZFOURGEStellarMassFunction}
+
+This constraint utilizes the stellar mass function for $0.2 < z< 3$ galaxies measured by \cite{tomczak_galaxy_2014} from the ZFOURGE survey. The mass function, and its covariance matrix ${\bf C}_{\rm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+
+The covariance matrix is computed as
+\begin{equation}
+ {\bf C} = {\bf C}_{\rm obs} + {\bf C}_{\rm model,random} + \sum_i {\bf C}_{{\rm discrepancy}, i},
+\end{equation}
+where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${\bf C}_{\rm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\bf C}_{{\rm discrepancy}, i}$ is the covariance due to the $i^{\rm th}$ model discrepancy.
+
+The model likelihood is then computed using:
+\begin{equation}
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\bf C}|}} \exp\left[ -{1\over 2} \Delta {\bf C}^{-1} \Delta \right],
+\end{equation}
+where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+
+When computing the Poisson term in the covariance matrix, the number of galaxies per bin is ?????????????
+
+\subsubsection{Davidzon et al. (2013) VIPERS Stellar Mass Functions}\label{sec:AnalysisDavidzonVIPERSStellarMassFunction}
+
+This constraint utilizes the stellar mass function for $0.5 < z< 1.0$ galaxies measured by \cite{davidzon_vimos_2013} from the VIPERS survey. The mass function, and its covariance matrix ${\bf C}_{\rm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+
+The covariance matrix is computed as
+\begin{equation}
+ {\bf C} = {\bf C}_{\rm obs} + {\bf C}_{\rm model,random} + \sum_i {\bf C}_{{\rm discrepancy}, i},
+\end{equation}
+where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${\bf C}_{\rm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\bf C}_{{\rm discrepancy}, i}$ is the covariance due to the $i^{\rm th}$ model discrepancy.
+
+The model likelihood is then computed using:
+\begin{equation}
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\bf C}|}} \exp\left[ -{1\over 2} \Delta {\bf C}^{-1} \Delta \right],
+\end{equation}
+where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+
+When computing the Poisson term in the covariance matrix, the number of galaxies per bin is taken directly from tables supplied by I.~Davidzon (private communication).
+
+\subsubsection{Moustakas et al. (2013) PRIMUS Stellar Mass Functions}\label{sec:AnalysisMoustakasPRIMUSSStellarMassFunctions}
+
+This constraint utilizes the stellar mass functions for $z\approx 0.2$ to $z\approx 1$ galaxies measured by \cite{moustakas_primus:_2013} from the PRIMUS survey. The mass functions, and their covariance matrices ${\bf C}_{\rm model}$, are calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+
+The covariance matrix is computed as
+\begin{equation}
+ {\bf C} = {\bf C}_{\rm obs} + {\bf C}_{\rm model,random} + \sum_i {\bf C}_{{\rm discrepancy}, i},
+\end{equation}
+where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${\bf C}_{\rm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\bf C}_{{\rm discrepancy}, i}$ is the covariance due to the $i^{\rm th}$ model discrepancy.
+
+The model likelihood is then computed using:
+\begin{equation}
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\bf C}|}} \exp\left[ -{1\over 2} \Delta {\bf C}^{-1} \Delta \right],
+\end{equation}
+where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+
+When computing the Poisson term in the covariance matrix, the number of galaxies per bin is taken directly from \cite{moustakas_primus:_2013}. The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryMoustakas2013PRIMUS}.
+
+\subsubsection{Martin et al. (2010) ALFALFA HI Mass Function}\label{sec:AnalysisALFALFAHIMassFunction}
+
+This constraint utilizes the HI mass function for $z\approx 0.0$ galaxies measured by \cite{martin_arecibo_2010} from the ALFALFA survey. The mass function, and its covariance matrix ${\bf C}_{\rm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\tt --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+
+The covariance matrix is computed as
+\begin{equation}
+ {\bf C} = {\bf C}_{\rm obs} + {\bf C}_{\rm model,random} + \sum_i {\bf C}_{{\rm discrepancy}, i},
+\end{equation}
+where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${\bf C}_{\rm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\bf C}_{{\rm discrepancy}, i}$ is the covariance due to the $i^{\rm th}$ model discrepancy.
+
+The model likelihood is then computed using:
+\begin{equation}
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\bf C}|}} \exp\left[ -{1\over 2} \Delta {\bf C}^{-1} \Delta \right],
+\end{equation}
+where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+
+When computing the Poisson term in the covariance matrix, the number of galaxies per bin is taken directly from Fig.~5 of \cite{martin_arecibo_2010} such that incompleteness is automatically accounted for. The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryMartin2010ALFALFA}.
+
+The resulting maximum likelihood mass function is shown in Fig.~\ref{fig:MaximumLikelihoodMassFunctionHOD}, clearly illustrating that this parametric \gls{hod} can produce an excellent match to the observed mass function. The resulting correlation matrix is shown in Fig.~\ref{fig:CorrelationMatrixALFALFA}. As expected, at the higher masses the correlation matrix is dominated by the on-diagonal terms---arising from the Poisson fluctuations in the number of galaxies due to the scarcity of these massive systems. At lower masses the matrix has significant off-diagonal amplitude, indicating strong correlations between nearby bins, arising from both large-scale structure and halo contributions to the covariance. This structure significantly weakens the constraint arising from the low-mass end of the mass function.
+
+\begin{figure}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 2.5mm,clip]{Plots/DataAnalysis/alfalfaHIMassFunctionBestFit.pdf}
+ \caption{The maximum likelihood mass function obtained from our parametric \protect\gls{hod} (yellow points), compared to the observed HI mass function of \protect\citeauthor{martin_arecibo_2010}~(\citeyear{martin_arecibo_2010}; green points).}
+ \label{fig:MaximumLikelihoodMassFunctionHOD}
+\end{figure}
+
+\begin{figure}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 0mm,clip]{Plots/DataAnalysis/alfalfaHICorrelationmatrix.pdf}
+ \caption{The correlation matrix of the observed galaxy HI mass function of \protect\cite{martin_arecibo_2010}. Color indicates the strength of correlation between bins, according to the scale shown on the right.}
+ \label{fig:CorrelationMatrixALFALFA}
+\end{figure}
 
 \subsubsection{Shen et al. (2003) Late-Type Galaxy Size Distribution}\label{sec:SDSSLateTypeGalaxySizeDistribution}
 
@@ -595,169 +727,434 @@ Each {\tt constraint} element specifies one constraint that will be included in 
 
 \section{Constraint File}
 
-\glc's constraints infrastructure is currently designed to work with a modified version of the \gls{bie} to analyze the posterior probability distribution of the model given some compilation of constraints. Note that the standard version of \gls{bie} \emph{will not work}\footnote{The modified version adds new likelihood methods that launch and analyze \protect\glc\ models.}. To obtain the modified version please \href{mailto:abenson@obs.carnegiescience.edu}{contact us}. Additionally, the infrastructure currently assumes that you will be performing the analysis on a PBS queue system.
+\glc\ has a complete constraints infrastructure which implements various \gls{mcmc} algorithms to analyze the posterior probability distribution of the model given some compilation of constraints. The infrastructure is \gls{mpi} parallelized and ideal for running on large compute clusters.
 
-To perform a constraint calculation simply execute the launch script:
+To perform a constraint calculation simply build the constraint code:
 \begin{verbatim}
- constraints/bieGalacticus.pl <constraintFile>
+ make Constrain_Galacticus.exe
 \end{verbatim}
-where {\tt constraintFile} is a file which describes the details of the calculation to be performed. An example of such a script follows:
-
+and run with a parameter file and configuration file. Typically, you will want to run this code under \gls{mpi}, for example:
 \begin{verbatim}
- <constrain>
-  <name>verySimplisticToStellarMassFunction</name>
-  <workDirectory>my/work/patn</workDirectory>
-  <scratchDirectory>/scratch/my/scratch/path</scratchDirectory>
-  <report>no</report>
-  <cpulimit>1200</cpulimit>
-  <memoryLimit>32gb</memoryLimit>
-  <environment>LD_LIBRARY_PATH=/my/lib:$LD_LIBRARY_PATH</environment>
-  <environment>PATH=/my/path:$PATH</environment>
-  <baseParameters>parameters.xml</baseParameters>
-  <randomize>no</randomize>
+ mpirun -n 4 Constrain_Galacticus.exe mcmcParameters.xml mcmcConfig.xml
+\end{verbatim}
+would run 4 processes (typically you will need to run many more than this). If running on a \gls{pbs} queue, embed this command in a suitable \gls{pbs} script and submit. 
 
-  <!-- Compilation of constraints to use -->
-  <compilation>stellarMassFunction_SDSS_z0.07.xml</compilation>
-  <storeResults>no</storeResults>
+The parameter file follows the same format as a standard \glc\ parameter file and specifies the values of parameters to be used. For example, the seed used fo pseudo-random number sequences can be specified in this file. 
 
-  <!-- MCMC method -->
-  <threadsPerNode>12</threadsPerNode>
-  <threads>300</threads>
-  <galacticusThreads>12</galacticusThreads>
-  <galacticusSaveState>no</galacticusSaveState>
-  <method>differentialEvolution</method>
+The configuration file specifies the details of the constraint simulation to be performed. An example configuration file is:
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8"?>
+<simulationConfig>
 
-  <!-- MCMC definition -->
-  <monteCarlo>
-    <steps>1000000</steps>
-    <stepsSkip>10</stepsSkip>
-    <goodSteps>1000</goodSteps>
-    <temperingFrequency>100</temperingFrequency>
-    <maxTemperature>64.0</maxTemperature>
-    <proposalWidth>0.01</proposalWidth>
-    <epsWidth>0.001</epsWidth>
-    <gamma>0.085875</gamma>
-  </monteCarlo>
+  <likelihood>
+    <type>Galacticus</type>
+    <name>verySimplisticToStellarMassFunction</name>
+    <compilation>stellarMassFunction_SDSS_z0.07.xml</compilation>
+    <baseParameters>./mcmcWork/verySimplisticToStellarMassFunctionBase.xml</baseParameters>
+    <workDirectory>./mcmcWork</workDirectory>
+    <scratchDirectory>./mcmcScratch</scratchDirectory>
+    <report>no</report>
+    <randomize>no</randomize>
+    <threads>4</threads>
+    <saveState>no</saveState>
+    <cpulimit>1200</cpulimit>
+    <memoryLimit>2gb</memoryLimit>
+    <environment>LD_LIBRARY_PATH=/opt/gcc-trunk/lib:/opt/gcc-trunk/lib64:/usr/local/upstream/lib:$LD_LIBRARY_PATH</environment>
+    <environment>PATH=/opt/gcc-trunk/bin:$PATH</environment>
+    <environment>GFORTRAN_ERROR_DUMPCORE=NO</environment>
+  </likelihood>
 
-  <!-- Use checkpointing -->
-  <checkpoint>
-    <interval>10</interval>
-    <autoRestart>false</autoRestart>
-  </checkpoint>
+  <convergence>
+    <type>GelmanRubin</type>
+    <Rhat>1.2</Rhat>
+    <burnCount>100</burnCount>
+    <testCount>100</testCount>
+    <outlierCountMaximum>0</outlierCountMaximum>
+    <outlierSignificance>0.95</outlierSignificance>
+    <outlierLogLikelihoodOffset>60</outlierLogLikelihoodOffset>
+  </convergence>
+  
+  <state>
+    <type>history</type>
+    <acceptedStateCount>100</acceptedStateCount>
+  </state>
+  
+  <proposalSize>
+    <type>adaptive</type>
+    <gammaInitial>1.77</gammaInitial>
+    <gammaFactor>1.414</gammaFactor>
+    <acceptanceRateMinimum>0.4</acceptanceRateMinimum>
+    <acceptanceRateMaximum>0.6</acceptanceRateMaximum>
+    <updateCount>10</updateCount>
+  </proposalSize>
+  
+  <randomJump>
+    <type>adaptive</type>
+  </randomJump>
+  
+  <simulation>
+    <type>temperedDifferentialEvolution</type>
+    <stepsMaximum>1000000</stepsMaximum>
+    <stepsPostConvergence>100000</stepsPostConvergence>
+    <acceptanceAverageCount>100</acceptanceAverageCount>
+    <logFileRoot>./mcmcWork/mcmc/chains</logFileRoot>
+    <temperatureMaximum>64.0</temperatureMaximum>
+    <untemperedStepCount>20</untemperedStepCount>
+    <temperedLevels>10</temperedLevels>
+    <stepsPerLevel>10</stepsPerLevel>
+  </simulation>
 
-  <!-- Define parameters to vary -->
   <parameters>
-
-    <!-- Disk SNe feedback -->
     <parameter>
-      <name>diskOutflowTimescaleMinimum</name>
+      <name>starFormationTimescaleDisksHaloScalingVirialVelocityExponent</name>
       <prior>
-        <distribution>uniform</distribution>
-        <mapping>logarithmic</mapping>
-        <lowerLimit>1.0e-3</lowerLimit>
-        <upperLimit>1.0e-2</upperLimit>
+	<distribution>
+	  <type>uniform</type>
+	  <minimum>-6.0</minimum>
+	  <maximum>+0.0</maximum>
+	</distribution>
       </prior>
+      <mapping>
+        <type>linear</type>
+      </mapping>
+      <random>
+	<type>Cauchy</type>
+	<median>0.0</median>
+	<scale>0.006</scale>
+      </random>
     </parameter>
     <parameter>
-      <name>diskOutflowFraction</name>
+      <name>starFormationTimescaleDisksHaloScalingRedshiftExponent</name>
       <prior>
-        <distribution>uniform</distribution>
-        <mapping>logarithmic</mapping>
-        <lowerLimit>1.0e-1</lowerLimit>
-        <upperLimit>1.0e+1</upperLimit>
+	<distribution>
+	  <type>uniform</type>
+	  <minimum>-1.0</minimum>
+	  <maximum>+4.0</maximum>
+	</distribution> 
       </prior>
+      <mapping>
+        <type>linear</type>
+      </mapping>
+      <random>
+	<type>Cauchy</type>
+	<median>0.0</median>
+	<scale>0.005</scale>
+      </random>
     </parameter>
- 
   </parameters>
-
-  <!-- Include the standard WMAP-9 cosmological parameters and priors -->
-  <xi:include href="../../constraints/parameters/wmap9Cosmology.xml" 
-     xmlns:xi="http://www.w3.org/2001/XInclude" />
-
-  <!-- Include a simple model for systematic errors in the halo mass function -->
-  <xi:include href="../../constraints/parameters/haloMassFunctionSystematics.xml" 
-     xmlns:xi="http://www.w3.org/2001/XInclude" />
-
-</constrain>
+  
+</simulationConfig>
 \end{verbatim}
 
 The following subsections describe each entry in this file.
 
-\subsection{Computing Environment}
+\subsection{{\tt likelihood}}
 
+The {\tt likelihood} section specifies the likelihood function to be used in the simulation. The type of likelihood to use is specified by the {\tt type} element. The available choices are described in the following subsections.
+
+\subsubsection{multivariateNormal}
+
+The likelihood is a simple multivariate Gaussian, intended primarily for testing purposes. The distribution parameters are specified within the {\tt likelihood} element using:
+\begin{verbatim}
+  <mean>0.45 0.50</mean>
+  <covariance>
+    <row>1.0e-4 -0.9e-4</row>
+    <row>-0.9e-4 1.0e-4</row>
+  </covariance>
+\end{verbatim}
+where the {\tt mean} element gives the mean vector of $N$ elements, and the {\tt covariance} element contains $N$ {\tt row} elements each containing a vector of $N$ elements giving a single row of the covariance matrix. The likelihood is then:
+\begin{equation}
+\log \mathcal{L} = - {1 \over 2} \Delta \mathcal{C}^{-1} \Delta^{\rm T},
+\end{equation}
+where $Delta = \theta - \bar{\theta}$, $\theta$ is the state, $\bar{\theta}$ is the mean, and $\mathcal{C}$ is the covariance matrix.
+
+\subsubsection{multivariateNormalStochastic}
+
+The likelihood is identical to that of the {\tt multivariateNormal} class, except that the likelihood function is evaluated stochastically. In addition to the parameter of the {\tt multivariateNormal} class, two additional parameters are required and are specified within the {\tt likelihood} element using:
+\begin{verbatim}
+  <realizationCount>4000</realizationCount>
+  <realizationCountMinimum>10</realizationCountMinimum>
+\end{verbatim}
+When evaluating the likelihood, the state vector is set equal to 
+
+\begin{equation}
+ S^\prime_i = \sum_{j=1}^N {2 U(S_i) \over N},
+\end{equation}
+where $N=${\tt realizationCount} and $U(x)$ is a uniform random deviate in the range $0$ to $x$. This results in a variance in $S^\prime_i$ of $S_i^2/3N$. This variance is added to the covariance used in evaluating the likelihood. When evaluating the likelihood at a higher temperature the number of realizations is reduced (which increases the covariance, which has the same effect as increasing the temperature) to speed computation, and the likelihood corrected for this fact. The number of realizations is reduced to $N/T$, but never allowed to fall below {\tt realizationCountMinimum}.
+
+\subsubsection{Galacticus}
+
+The likelihood is computed by running and analyzing a \glc\ model. The details of the model to run are specified by the follow content within the {\tt likelihood} element:
+\begin{verbatim}
+  <name>verySimplisticToStellarMassFunction</name>
+  <compilation>stellarMassFunction_SDSS_z0.07.xml</compilation>
+  <baseParameters>./mcmcWork/verySimplisticToStellarMassFunctionBase.xml</baseParameters>
+  <workDirectory>./mcmcWork</workDirectory>
+  <scratchDirectory>./mcmcScratch</scratchDirectory>
+  <report>no</report>
+  <randomize>no</randomize>
+  <threads>4</threads>
+  <saveState>no</saveState>
+  <cpulimit>1200</cpulimit>
+  <memoryLimit>2gb</memoryLimit>
+  <environment>LD_LIBRARY_PATH=/opt/gcc-trunk/lib:/opt/gcc-trunk/lib64:/usr/local/upstream/lib:$LD_LIBRARY_PATH</environment>
+  <environment>PATH=/opt/gcc-trunk/bin:$PATH</environment>
+  <environment>GFORTRAN_ERROR_DUMPCORE=NO</environment>
+  <treesPerDecadeMinimum></treesPerDecadeMinimum>
+\end{verbatim}
+
+The entries have the following meanings:
 \begin{description}
 \item[{\tt name}] A name to use for this calculation. It will be used as the name for jobs submitted to the PBS queue for example.
-\item[{\tt workDirectory}] The full path to a directory in which the results (e.g. \gls{mcmc} chains) will be stored.
-\item[{\tt scratchDirectory}] \emph{(Optional)} The full path to a scratch directory where \glc\ model outputs and other temporary data will be written.
-\item[{\tt report}] If set to {\tt yes}, reports additional debugging information during the run.
-\item[{\tt cpulimit}] A CPU time limit for each model evalulation. This can be useful if certain obscure regions of the surveyed parameter space result in unacceptably long run times. Models will be killed after this time and a very low likelihood returned.
-\item[{\tt memoryLimit}] A memory limit to be passed to PBS.
-\item[{\tt environment}] One of more such element can appear. Each specifies the value of an environment variable to be set prior to launching the \gls{bie}.
-\item[{\tt storeResults}] If {\tt yes} then the full results (e.g. the quantities computed to compare with observational data) from each model evalulation will be stored. Otherwise, they are discarded after each evalulation. Use {\tt yes} with caution---a typical run might include millions of model evaluations which can quickly lead to huge amounts of data being written to disk.
-\item[{\tt threadsPerNode}] The number of threads to use per node. Typically this would be set to the number of available cores on each node.
-\item[{\tt threads}] The total number of threads (i.e. parallel chains) to use.
-\item[{\tt galacticusThreads}] The number of parallel OpenMP threads to use for each \glc\ model. It is recommended that this be set to the number of available cores on each node, and semaphoring (see \S{sec:Semaphores}) be used. In this way, each copy of \glc\ on a node will share resources, but as one instance finishes, the others will be able to make use of the freed resources.
-\item[{\tt galacticusSaveState}] If {\tt yes} then \glc\ will save its internal state prior to beginning evolution of each merger tree. This is intended for debugging purposes and so should normally be set to {\tt no}.
-\item[{\tt checkpoint}] If present, \gls{bie} will be instructed to checkpoint its calculations. The interval (in number of steps) between checkpoints is specified by the {\tt interval} sub-element. If the {\tt autoRestart} sub-element is set to {\tt true} then a second PBS script will be submitted which will restart the calculation once the original job finishes. This second script will submit a further script to take over once it finishes and so on. This can be useful if your PBS queue has a time limit and you want to keep restarting the calculation until it is done. Use with caution however, some systems forbid automated restarts.
-\end{description}
-
-\subsection{Model Specification}
-
-\begin{description}
+\item[{\tt compilation}] Specifies the compilation file to be used for this analysis.
 \item[{\tt baseParameters}] Specifies the path to a \glc\ parameter file which will be used as the base set of parameter on top of which any parameter variations will be applied.
+\item[{\tt workDirectory}] The full path to a directory in which the results (e.g. \gls{mcmc} chains) will be stored.
+\item[{\tt scratchDirectory}] The full path to a scratch directory where \glc\ model outputs and other temporary data will be written.
+\item[{\tt report}] If set to {\tt yes}, reports additional debugging information during the run.
 \item[{\tt randomize}] If {\tt yes} then each model evaluation will be performed with a different random number seed. Otherwise, the same seed is used in all cases. Experiment shows that changing the random number seed between evaluations can seriously limit the ability of \gls{mcmc} algorithms to converge.
+\item[{\tt threads}] The number of parallel OpenMP threads to use for each \glc\ model. It is recommended that this be set to the number of available cores on each node, and semaphoring (see \S{sec:Semaphores}) be used. In this way, each copy of \glc\ on a node will share resources, but as one instance finishes, the others will be able to make use of the freed resources.
+\item[{\tt saveState}] If {\tt yes} then \glc\ will save its internal state prior to beginning evolution of each merger tree. This is intended for debugging purposes and so should normally be set to {\tt no}.
+\item[{\tt cpulimit}] A CPU time limit for each model evalulation. This can be useful if certain obscure regions of the surveyed parameter space result in unacceptably long run times. Models will be killed after this time and a very low likelihood returned.
+\item[{\tt environment}] One of more such element can appear. Each specifies the value of an environment variable to be set prior to launching the \glc\ model.
+\item[{\tt storeResults}] If {\tt yes} then the full results (e.g. the quantities computed to compare with observational data) from each model evalulation will be stored. Otherwise, they are discarded after each evalulation. Use {\tt yes} with caution---a typical run might include millions of model evaluations which can quickly lead to huge amounts of data being written to disk.
+\item[{\tt useFixedTrees}] If set to {\tt yes}, then a fixed set of merger trees are used for all model evaluations. This fixed set is generated automatically as needed\footnote{If the temperature is being varied the number of trees per decade of halo mass changes throughout the simulation. In this case, a new set of trees is generated for each distinct value of the numbers of trees per decade.}, using the base parameters.
+\item[{\tt fixedTreesInScratch}] If set to {\tt yes}, any fixed set of merger trees generated will be stored in the scratch directory, otherwise they will be stored in the work directory. (Storing in scratch can often be faster, particularly if {\tt /dev/shm} is used as scratch, but for large sets of trees the available scratch storage space may be insufficient.)
 \end{description}
 
-\subsection{Constraints}
+When evaluating model likelihood at temperatures above unity, \glc\ will attempt to speed computation by reducing the number of trees simulated. Specifically, it makes use of the facts that the model covariance, $\mathcal{C} \propto N_{\rm tree}^{-1}$, and that the model log-likelihood, $\mathcal{L} \propto \mathcal{C}^{-1}/T$. Therefore, increasing the temperature is equivalent to decreasing the number of trees simulated by the same proportion. \glc\ therefore runs a simulation with a number of trees per decade of halo mass equal to {\tt int([mergerTreeBuildTreesPerDecade]}$/T${\tt )} or the value of the {\tt treesPerDecadeMinimum} element, whichever is smaller. This defines an effective temperature $T^\prime=N_{\rm trees}^\prime/N_{\rm trees}$ where $N_{\rm trees}$ is the original number of trees per decade, and $N_{\rm trees}^\prime$ is the reduced number.
 
+The model likelihood, $\mathcal{L}^\prime$ is then evaluated using this reduced number of trees. The covariance matrix of the data is increased by a factor $T^\prime$ when evaluating the likelihood, as are any additions to the covariance due to model discrepancy. Finally, the likelihood at $T=1$ is computed using:
+\begin{equation}
+\log \mathcal{L} = T^\prime \log \mathcal{L}^\prime + (T^\prime-1)\left[ {N \over 2} \log 2 \pi + {1 \over 2} \log |\mathcal{C}^\prime| \right],
+\end{equation}
+where $N$ is the dimension of the covariance matrix and $\mathcal{C}^\prime$ is the full covariance matrix.
+
+\subsubsection{gaussianRegression}
+
+The likelihood is computed either using another likelihood function (the ``simulator'') or via Gaussian regression emulation of that simulator. The details of the emulation algorithm are specified by the follow content within the {\tt likelihood} element:
+\begin{verbatim}
+  <emulatorRebuildCount>100</emulatorRebuildCount>
+  <polynomialOrder>2</polynomialOrder>
+  <sigmaBuffer>3.0</sigmaBuffer>
+  <logLikelihoodBuffer>10.0</logLikelihoodBuffer>
+  <logLikelihoodErrorTolerance>0.01</logLikelihoodErrorTolerance>
+  <reportCount>100</reportCount>
+  <simulatorLikelihood>
+   .
+   .
+   .
+  </simulatorLikelihood>
+\end{verbatim}
+
+The entries have the following meanings:
 \begin{description}
-\item[{\tt compilation}] Specifies the path to a compilation file to be used for this analysis.
+\item[{\tt emulatorRebuildCount}] The number of simulator evaluations from which the emulator is built;
+\item[{\tt polynomialOrder}] The order of the polynomial fitted to the simulator likelihoods prior to Gaussian regression;
+\item[{\tt sigmaBuffer}] See below;
+\item[{\tt logLikelihoodBuffer}] See below;
+\item[{\tt logLikelihoodErrorTolerance}] See below;
+\item[{\tt reportCount}] The number of likelihood evaluations between successive reports on the status of the emulator;
+\item[{\tt emulateOutliers}] If true, then outlier chains are always emulated post-convergence (this is safe if such chains are not used in constructing proposals for non-outlier chains);
+\item[{\tt simulatorLikelihood}] Contains another likelihood function definition which will be used to construct the simulator.
 \end{description}
 
-\subsection{MCMC Method}
+In detail, this likelihood function first collects {\tt emulatorRebuildCount} likelihood evaluations from the simulator. It then fits a polynomial of order {\tt polynomialOrder} and of dimension equal to the dimension of the state vector to the simulated likelihoods. Gaussian regression is performed on the residuals of the simulated likelihoods after this polynomial fit is removed. Once the emulator has been built in this way every second simulated state is discarded, and accumulation of new simulated states continues. Once {\tt emulatorRebuildCount} simulated states have once again been accumulated a new simulator is built. This ensures that the emulator does not lose all information used in building the previous emulator\footnote{This would be unfortunate as the second emulator to be built would then contain information on only those regions of the state space that were poorly emulated before.}, instead information from older emulators decays exponentially.
 
+Once an emulator has been built, on each successive likelihood evaluation the emulated log-likelihood $\log\mathcal{L}_{\rm e}$ and its error estimate $\sigma_{\log\mathcal{L}_{\rm e}}$ are computed. The emulated likelihood is then returned if:
+\begin{equation}
+\log\mathcal{P}^\prime + \log\mathcal{L}_{\rm e} + N \sigma_{\log\mathcal{L}_{\rm e}} < \log\mathcal{P} + \log\mathcal{L} - T \Delta\log\mathcal{L},
+\end{equation}
+where $N=${\tt sigmaBuffer}, $\Delta\log\mathcal{L}=${\tt logLikelihoodBuffer}, $T$ is the temperature, $\log\mathcal{L}$ is the current log-likelhood, $\log\mathcal{P}$ is the current log-prior probability, and $\log\mathcal{P}^\prime$ is the proposed log-prior probability, or if
+\begin{equation}
+\sigma_{\log\mathcal{L}_{\rm e}} < T \sigma_{\log\mathcal{L}},
+\end{equation}
+where $\sigma_{\log\mathcal{L}}=${\tt logLikelihoodErrorTolerance}, otherwise the simulator is used to compute the exact likelihood. In this way, the emulated likelihood is used if it is sufficiently below the current likelihood that, even accounting for the emulation error, transition to the new state is highly unlikely, or if the error on the likelihood emulation is sufficiently small that it will not have a significant effect on the transition probabilty to the proposed state.
+
+If verbosity is set to 2 or greater than a report will be issued every {\tt reportCount} evaluations. The report will give the proportions of simulated vs. emulated evaluations. Additionally, during the evaluation where the report is issued, both the emulated and simulated log-likelihoods are evaluated and are tested to see if they lie within $3 \sigma_{\log\mathcal{L}_{\rm e}}$ of each other. The rate of failures (i.e. where the two differ by more than this amount) is then reported.
+
+\subsubsection{posteriorPrior}
+
+The likelihood is computed either using another likelihood function (the ``wrapped'' likelihood), while including in the likelihood an esimate of the posterior probability of a previous simulation. This effectively allows the posterior of the previous simulation to be used as a prior on the current simulation. The details of the likelihood are specified by the follow content within the {\tt likelihood} element:
+\begin{verbatim}
+  <chainBaseName>./oldChains</chainBaseName>
+  <neighborCount>32</neighborCount>
+  <tolerance>1.0e-3</tolerance>
+  <wrappedLikelihood>
+   .
+   .
+   .
+  </wrappedLikelihood>
+\end{verbatim}
+
+The entries have the following meanings:
 \begin{description}
-\item[{\tt method}] Specifies the \gls{mcmc} algorithm to be used. Currently accepted values are {\tt differentialEvolution} and {\tt metropolisHastings}. See the \gls{bie} documentation for full details of these two algorithms.
-\item[{\tt monteCarlo}] Specifies the behavior of the \gls{mcmc} algorithm:
+\item[{\tt chainBaseName}] The base name for the old set of MCMC chains to use as the new prior;
+\item[{\tt neighborCount}] The number of neighbor points to use in kernel density estimation of the posterior probability;
+\item[{\tt tolerance}] Tolerance used in finding nearest neighbors;
+\item[{\tt wrappedLikelihood}] Contains another likelihood function definition which will be used to provide the current likelihood.
+\end{description}
+
+This method uses the \gls{ann} library to locate {\tt neightborCount} nearest neighbor points in the set of converged states found in the given chains. The {\tt tolerance} element determines the accuracy of nearest neighbor finding (see the \gls{ann} documentation for details).When finding nearest neighbors in the MCMC chains, parameters are mapped using whatever mappings are currently active, and distances in each dimension (as used in the metric to determine nearest neighbors) are scaled by the root-variance in that parameter in the converged MCMC chains. The posterior likelihood of the MCMC chains is then estimated from the nearest neighbors using kernel density estimation with a Gaussian kernel with bandwidth equal to the distance to the furthest of the nearest neighbors.
+
+\subsection{{\tt convergence}}
+
+The {\tt convergence} section specifies the criterion to be used to judge when the simulation has converged. The type of convergence criterion to use is specified by the {\tt type} element. The available choices are described in the following subsections.
+
+\subsubsection{{\tt never}}
+
+This option assumes that the simulation never converges, and so the calculation will run indefinitely. It is intended primarily for testing purposes.
+
+\subsubsection{{\tt GelmanRubin}}
+
+This option adopts the convergence criterion proposed by \citeauthor{gelman_a._inference_1992}~(\citeyear{gelman_a._inference_1992}; see also \citealt{brooks_general_1998}), which compares the variance in parameter values within chains to that between chains. Outlier detection is applied to the chains using a standard Grubb's outlier test. The behavior of this criterion is controlled by the following options which should be placed within the {\tt convergence} element:
 \begin{description}
-\item[{\tt steps}] The maximum number of steps to take.
-\item[{\tt stepsSkip}] The number of initial steps to skip before beginning to measure convergence.
-\item[{\tt goodSteps}] The number of steps to perform after convergence is attained.
-\item[{\tt temperingFrequency}] The number of steps between successive temperings (in which the likelihood function is ``heated up'' to help get chains out of local minima).
-\item[{\tt maxTemperature}] The maximum temperature to use when tempering.
-\item [{\tt minTemperatureStates}] The minimum number of temperatures states when tempering.
-\item[{\tt proposalWidth}] Used for the {\tt metroplosHastings} algorithm, specfies the width of proposals.
-\item[{\tt gamma}] Used for the {\tt differentialEvolution} algorithm, specifies the fraction of the vector connecting to chain state to be used as the proposal for another chain.
-\item[{\tt epsWidth}] Used for the {\tt differentialEvolution} algorithm, specifies the width of the Cauchy distribution added to each proposal to ensure that the chains are positively recurrent.
-\item [{\tt grAlpha}] Set Gelman-Rubin convergence outlier detection confidence, $1-\alpha$.
-\item [{\tt grNOutlier}] Set number of iterations before applying an outlier test in the Gelman-Rubin convergence statistic.
-\item [{\tt grMaxOut}] Set the maximum number of outliers allowed in the Gelman-Rubin convergence statistic.
-\item [{\tt grRhatMax}] The correlation coefficient threshold for the Gelman-Rubin convergence statistic.
-\end{description}
+\item [{\tt Rhat}] The correlation coefficient, $\hat{R}$, value at which to declare convergence.
+\item [{\tt burnCount}] Set number of steps to burn before applying the convergence test.
+\item [{\tt testCount}] Set the number of steps between successive applications of the convergence test.
+\item [{\tt outlierSignificance}] The significance level required in outlier detection.
+\item [{\tt outlierLogLikelihoodOffset}] The offset in log-likelihood from the current maximum likelihood chain required for a chain to be declared to be an outlier.
+\item [{\tt outlierCountMaximum}] The maximum number of outlier chains allowed.
 \end{description}
 
-\subsection{Post-prior}
+\subsection{{\tt state}}
 
-If present, the {\tt postPrior} block allows the use of the statelog from a previous calculation as the prior on a new calculation (in addition to any explicitly defined priors). 
+The {\tt state} section specifies the type of object used to record the state of the simulation. The type of state object to use is specified by the {\tt type} element. The available choices are described in the following subsections.
 
+\subsubsection{{\tt simple}}
+
+This type stores the current state but makes no attempt to record a history of the state and so cannot provide measures of the mean or variance of state over the simulation history. It does, however, maintain a running average of the state acceptance rate. The number of steps over which the acceptance rate should be computed is specified by the {\tt acceptedStateCount}.
+
+\subsubsection{{\tt history}}
+
+An extension of the {\tt simple} state, this type also records the mean and variance of each parameter over the history of the simulation.
+
+\subsection{{\tt stateInitializor}}
+
+The {\tt stateInitializor} section specifies the type of object used to initialize the state of chains at the beginning of the simulation. The type of state initializor object to use is specified by the {\tt type} element. The available choices are described in the following subsections.
+
+\subsubsection{{\tt priorRandom}}
+
+This type simply draws a random state vector from the prior distributions of the parameters.
+
+\subsubsection{{\tt resume}}
+
+This type resumes from a previous simulation by setting the chain states to the states at the end of that simulation. The {\tt logFileRoot} element is used to specify the log-file root name used in the previous simulation.
+
+\subsubsection{{\tt latinHypercube}}
+
+This type uses a \gls{latinhypercube} design (in the cumulative probability distribution of each parameter) to assign initial state vectors. In particular, a \gls{maximin} design is used in which a number of trial \glspl{latinhypercube} are constructed and the hypercube with the greatest minimum distance between any pair of state vectors is selected. The {\tt maximinTrialCount} element is used to specify the number of trial hypercubes to construct.
+
+\subsection{{\tt proposalSize}}
+
+The {\tt proposalSize} section specifies the method to use when selecting the proposal size parameter, $\gamma$ (the fraction of the vector connecting to chain state to be used as the proposal for another chain), for use in differential evolution simulations. The proposal size algorithm to use is specified by the {\tt type} element. The available choices are described in the following subsections.
+
+\subsubsection{{\tt fixed}}
+
+This option uses a fixed $\gamma$ specified by the {\tt gamma} element.
+
+\subsubsection{{\tt adaptive}}
+
+This option adaptively changes $\gamma$ in an attempt to maintain the acceptance rate at an acceptable level. The algorithm is controlled by the following parameters (to be specified as elements within the {\tt proposalSize} element):
 \begin{description}
- \item [{\tt stateLog}] The full path to the statelog file containing the results of the prior calculation.
- \item [{\tt restart}] If ``{\tt yes}'' then the posterior of the previous calculation is used only to sample the initial states of the new chains. It \emph{is not} used as a prior on the new calculation. If ``{\tt no}'' then the previous posterior is used as the new prior.
- \item [{\tt burn}] The number of steps from the statelog to burn.
+\item[{\tt gammaInitial}] The initial value for $\gamma$.
+\item[{\tt gammaFactor}] The multiplicative factor by which $\gamma$ should be increased or decreased if the acceptance rate is out of range.
+\item[{\tt gammaMinimum}] The smallest value allowed for $\gamma$.
+\item[{\tt gammaMaximum}] The largest value allowed for $\gamma$.
+\item[{\tt acceptanceRateMinimum}] The minimum acceptance rate to accept before reducing $\gamma$.
+\item[{\tt acceptanceRateMaximum}] The maximum acceptance rate to accept before reducing $\gamma$.
+\item[{\tt updateCount}] The number of steps between successive checks of the acceptance rate.
+\end{description}
+
+\subsection{{\tt proposalSizeTemperatureExponent}}
+
+The {\tt proposalSizeTemperatureExponent} section specifies the method to use when selecting the exponent, $\alpha$, for the temperature scaling of the proposal size parameter, $\gamma$ (the fraction of the vector connecting to chain state to be used as the proposal for another chain), for use in tempered differential evolution simulations. The proposal size temperature exponent algorithm to use is specified by the {\tt type} element. The available choices are described in the following subsections.
+
+\subsubsection{{\tt fixed}}
+
+This option uses a fixed $\alpha$ specified by the {\tt alpha} element.
+
+\subsubsection{{\tt adaptive}}
+
+This option adaptively changes $\alpha$ in an attempt to maintain the gradient of the acceptance rate with the logarithm of temperature, ${\rm d} R/{\rm d}\ln T$, at an acceptable level. The algorithm is controlled by the following parameters (to be specified as elements within the {\tt proposalSizeTemperatureExponent} element):
+\begin{description}
+\item[{\tt exponentInitial}] The initial value for $\alpha$;
+\item[{\tt exponentFactor}] The additive factor by which $\alpha$ should be increased or decreased if the acceptance rate gradient is out of range;
+\item[{\tt exponentMinimum}] The smallest value allowed for $\alpha$;
+\item[{\tt exponentMaximum}] The largest value allowed for $\alpha$;
+\item[{\tt acceptanceRateMinimum}] The minimum acceptance rate gradient to accept before reducing $\alpha$;
+\item[{\tt acceptanceRateMaximum}] The maximum acceptance rate gradient to accept before reducing $\alpha$;
+\item[{\tt updateCount}] The number of steps between successive checks of the acceptance rate gradient.
 \end{description}
 
 
-\subsection{Parameters and Priors}
+\subsection{{\tt randomJump}}
 
-The {\tt parameters} section contains a list of all parameters to be varied in the analysis. Each parameter is described by one {\tt parameter} element. That element must contain a {\tt name} element, which gives the name of the parameter, and a {\tt prior} element 
+The {\tt randomJump} section specifies the method to use when adding a random jump component to proposals in differential evolution simulations. The random jump algorithm to use is specified by the {\tt type} element. The available choices are described in the following subsections.
+
+\subsubsection{{\tt simple}}
+
+The random jumps are drawn directly from the distributions specified in the {\tt random} element of each parameter (see \S\ref{sec:ParametersPriors}).
+
+\subsubsection{{\tt adaptive}}
+
+The random jumps are drawn from the distributions specified in the {\tt random} element of each parameter (see \S\ref{sec:ParametersPriors}) and then multiplied by the currently occupied range of each parameter (i.e. the maximum value of the parameter over all current chain states minus the minimum value of each parameter over all current chain states).
+
+\subsection{{\tt simulation}}
+
+The {\tt simulation} section specifies the algorithm to use to perform the simulation. The simulation algorithm to use is specified by the {\tt type} element. The available choices are described in the following subsections.
+
+\subsubsection{{\tt differentialEvolution}}
+
+This option uses the differential evolution algorithm of \cite{terr_braak_markov_2006}. Multiple, parallel chains are run and proposals are constructed by selecting two chains at random, taking a fraction, $\gamma$, of the vector connecting the two chain states and adding this to the state of the current chain. The details of the algorithm are controlled by the following elements which should be embedded within the {\tt simulation} element:
+\begin{description}
+\item[{\tt stepsMaximum}] The maximum number of steps to take.
+\item[{\tt stepsPostConvergence}] The number of steps to perform after convergence is attained.
+\item[{\tt acceptanceAverageCount}] The number of steps over which to average the acceptance rate.
+\item[{\tt stateSwapCount}] The number of steps after which to set $\gamma=1$ to allow chains to swap states.
+\item[{\tt logFileRoot}] The full path and root name of a file to log results to. The actual file name will have the rank of the \gls{mpi} process appended to it.
+\item[{\tt sampleOutliers}] If set to {\tt false} then proposals for non-outlier chains post-convergence are constructed only from other non-outlier chains. Otherwise, proposals for non-outleir chains post-convergence are constructed from all other chains.
+\end{description}
+
+\subsubsection{{\tt temperedDifferentialEvolution}}
+
+This option extends the {\tt differentialEvolution} option to include tempering during which the likelihood function is heated up and cooled down to allow chains to more easily walk through the likelihood landscape. In addition to the options for the {\tt differentialEvolution} algorithm, the details of the algorithm are controlled by the following elements whichy should be embedded within the {\tt simulation} element:
+\begin{description}
+\item[{\tt untemperedStepCount}] The number of untempered (i.e. $T=1$) steps to take between tempering cycles.
+\item[{\tt temperatureMaximum}] The maximum temperature to use when tempering.
+\item[{\tt temperedLevels}] The number of tempered levels to use.
+\item[{\tt stepsPerLevel}] The number of differential evolution steps to take at each tempering level.
+\end{description}
+
+In each tempering cycle, the temperature is raised through levels $1$\ldots$N$ (where $N=${\tt temperedLevels}), and then back down through levels $N-1$\ldots$1$. The temperature at level $i$ is given by:
+\begin{equation}
+\log T_i = {i \over N} \log T_{\rm max},
+\end{equation}
+where $T_{\rm max}=${\tt temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha$ is provided by the {\tt proposalSizeTemperatureExponent} class. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
+
+\subsubsection{{\tt annealedDifferentialEvolution}}
+
+This option extends the {\tt differentialEvolution} option to include an annealing schedule---the simulation begins at high temperature, waits for convergence, lowers the temperature and repeats until convergence at $T=1$ is reached. In addition to the options for the {\tt differentialEvolution} algorithm, the details of the algorithm are controlled by the following elements whichy should be embedded within the {\tt simulation} element:
+\begin{description}
+\item[{\tt temperatureMaximum}] The maximum temperature to use when tempering.
+\item[{\tt temperatureLevels}] The number of temperature levels to use.
+\end{description}
+
+The temperature at level $i$ is given by:
+\begin{equation}
+\log T_i = {i-1 \over N-1} \log T_{\rm max},
+\end{equation}
+where $T_{\rm max}=${\tt temperatureMaximum} and $N=${\tt temperatureLevels}.
+
+\subsection{Parameters and Priors}\label{sec:ParametersPriors}
+
+The {\tt parameters} section contains a list of all parameters to be varied in the analysis. Each parameter is described by one {\tt parameter} element. That element must contain a {\tt name} element, which gives the name of the parameter, a {\tt prior} element that contains a {\tt distribution} element defining the distribution for this prior, a {\tt mapping} element that describes the mapping of the parameter into the internal state used in \gls{mcmc} calculations, and (for differential evolution simulations) a {\tt random} element that defines the distribution to be used for the random perturbation to be added to this parameter in proposals.
+
+Currently allowed mappings are:
 \begin{itemize}
-\item[{\tt distribution}] The type of distribution to be used for the prior. Currently accepted values are {\tt uniform} and {\tt normal}.
-\item[{\tt mapping}] The mapping of the parameter to which the prior should be applied. Currently allowed values are {\tt linear} (the prior is on the parameter itself), and {\tt logarithmic} (the prior is on the logarithm of the parameter).
-\item[{\tt lowerLimit}] The lower limit for the prior.
-\item[{\tt upperLimit}] The upper limit for the prior.
-\item[{\tt mean}] For {\tt normal} priors, the mean of the normal distribution.
-\item[{\tt variance}] For {\tt normal} priors, the variance (\emph{not} the standard deviation) of the normal distribution.
+\item[{\tt linear}] Effectively a null mapping, as the parameter is mapped into itself: $x \rightarrow x$.
+\item[{\tt logarithmic}] The parameter is mapped logarithmically: $x \rightarrow \log(x)$. This mapping can be applied only to uniform priors.
 \end{itemize}
+Note that the mapping will map the values of the prior. For example, if you specify a uniform prior with a logarithmic mapping, the upper and lower limits of the prior should be specified on $x$, not on $\log(x)$. These limits will be mapped appropriately internally.
 
 \subsubsection{Loading External Parameters/Priors}
 
@@ -793,3 +1190,68 @@ Predefined sets of parameters (along with their priors) can be included using th
     xmlns:xi="http://www.w3.org/2001/XInclude" />
 \end{verbatim}
 will include a set of parameters from the file {\tt ../../constraints/parameters/wmap7Cosmology.xml} which defines priors on cosmological parameters consistent with the covariance matrix of the WMAP-7 cosmological constraints \citep{komatsu_seven-year_2010}.
+
+\subsection{Distributions}
+
+Various distribution functions (for priors and random perturbations) are supported. Where needed, the type of distribution should be specified in a {\tt type} element. Additional parameters of the distribution are specified using the elements described in the following subsections.
+
+\subsubsection{{\tt uniform}}
+
+A uniform distribution over a finite range
+\begin{equation}
+P(x) \propto \left\{ \begin{array}{ll} 1 & \hbox{ if } x_{\rm l} \leq x \leq x_{\rm u} \\ 0 & \hbox{ otherwise.}  \end{array} \right.
+\end{equation}
+Specified using:
+\begin{description}
+\item[{\tt minimum}] The lower limit of the range, $x_{\rm l}$;
+\item[{\tt maximum}] The upper limit of the range, $x_{\rm u}$.
+\end{description}
+
+\subsubsection{{\tt logUniform}}
+
+A distribution uniform in the logarithm of $x$ over a finite range
+\begin{equation}
+P(x) \propto \left\{ \begin{array}{ll} x^{-1} & \hbox{ if } x_{\rm l} \leq x \leq x_{\rm u} \\ 0 & \hbox{ otherwise.}  \end{array} \right.
+\end{equation}
+Specified using:
+\begin{description}
+\item[{\tt minimum}] The lower limit of the range, $x_{\rm l}$;
+\item[{\tt maximum}] The upper limit of the range, $x_{\rm u}$.
+\end{description}
+
+\subsubsection{{\tt normal}}
+
+A normal distribution, optionally with lower and upper limits:
+\begin{equation}
+P(x) \propto \left\{ \begin{array}{ll} \exp[-(x-\mu)^2/2S] & \hbox{ if } x_{\rm l} \leq x \leq x_{\rm u} \\ 0 & \hbox{ otherwise.}  \end{array} \right.
+\end{equation}
+Specified using:
+\begin{description}
+\item[{\tt mean}] The mean, $\mu$;
+\item[{\tt variance}] The variance, $S$;
+\item[{\tt minimum}] The lower limit of the range, $x_{\rm l}$;
+\item[{\tt maximum}] The upper limit of the range, $x_{\rm u}$.
+\end{description}
+
+\subsubsection{{\tt Cauchy}}
+
+A Cauchy distribution:
+\begin{equation}
+P(x) \propto \left[1+{x-x_0\over\gamma}\right]^{-1}.
+\end{equation}
+Specified using:
+\begin{description}
+\item[{\tt median}] The median, $x_0$;
+\item[{\tt scale}] The scale, $\gamma$;
+\end{description}
+
+\subsubsection{{\tt StudentT}}
+
+Student's t-distribution:
+\begin{equation}
+P(x) \propto \left(1 + {x^2\over \nu}\right)^{-(\nu+1)/2}
+\end{equation}
+Specified using:
+\begin{description}
+\item[{\tt degreesOfFreedom}] The number of degrees of freedom, $\nu$.
+\end{description}
