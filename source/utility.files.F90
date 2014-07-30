@@ -17,13 +17,17 @@
 
 !% Contains a module which stores file units and finds available file units.
 
+! Specify an explicit dependence on the flock.o object file.
+!: ./work/build/flock.o
+
 module File_Utilities
   !% Contains a function which returns an available file unit. Also stores the name of the output directory and unit numbers for
   !% various files which remain open throughout.
-  use iso_varying_string
+  use, intrinsic :: ISO_C_Binding
+  use ISO_Varying_String
   implicit none
   private
-  public :: Count_Lines_in_File,File_Exists
+  public :: Count_Lines_in_File, File_Exists, File_Lock, File_Unlock
 
   interface Count_Lines_in_File
      !% Generic interface for {\tt Count\_Lines\_in\_File} function.
@@ -35,6 +39,23 @@ module File_Utilities
      !% Generic interface for functions that check for a files existance.
      module procedure File_Exists_Char
      module procedure File_Exists_VarStr
+  end interface
+
+  interface
+     function flock_C(name) bind(c,name='flock_C')
+       !% Template for a C function that calls {\tt flock()} to lock a file..
+       import
+       integer  (c_int ) :: flock_C
+       character(c_char) :: name
+     end function flock_C
+  end interface
+
+  interface
+     subroutine funlock_C(fd) bind(c,name='funlock_C')
+       !% Template for a C function that calls {\tt flock()} to unlock a file..
+       import
+       integer(c_int ) :: fd
+     end subroutine funlock_C
   end interface
 
 contains
@@ -99,6 +120,24 @@ contains
     close(i_unit)
     return
   end function Count_Lines_in_File_Char
+
+  integer function File_Lock(fileName)
+    !% Place a lock on a file.
+    implicit none
+    character(len=*), intent(in   ) :: fileName
+
+    File_Lock=flock_C(trim(fileName)//char(0))
+    return
+  end function File_Lock
+
+  subroutine File_Unlock(fileDescriptor)
+    !% Remove a lock from a file.
+    implicit none
+    integer(c_int), intent(in   ) :: fileDescriptor
+
+    call funlock_C(fileDescriptor)
+    return
+  end subroutine File_Unlock
 
 end module File_Utilities
 
