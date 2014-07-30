@@ -173,6 +173,7 @@ contains
     double precision                        , intent(in   )                     :: specificAngularMomentum
     procedure       (Structure_Get_Template), intent(in   ) , pointer           :: Radius_Get                        , Velocity_Get
     procedure       (Structure_Set_Template), intent(in   ) , pointer           :: Radius_Set                        , Velocity_Set
+    class           (darkMatterProfileClass)                , pointer           :: darkMatterProfile_
     double precision                        , dimension(:,:), allocatable, save :: radiusHistory
     !$omp threadprivate(radiusHistory)
     double precision                        , dimension(:,:), allocatable       :: radiusHistoryTemporary
@@ -186,6 +187,8 @@ contains
          &                                                                         radius                            , radiusInitial      , &
          &                                                                         radiusNew                         , velocity
 
+    ! Get required objects.
+    darkMatterProfile_ => darkMatterProfile()
     ! Count the number of active comonents.
     activeComponentCount=activeComponentCount+1
 
@@ -197,10 +200,10 @@ contains
           ! No previous radius was set, so make a simple estimate of sizes of all components ignoring adiabatic contraction and self-gravity.
 
           ! Find the radius in the dark matter profile with the required specific angular momentum
-          radius=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(haloNode,specificAngularMomentum)
+          radius=darkMatterProfile_%radiusFromSpecificAngularMomentum(haloNode,specificAngularMomentum)
 
           ! Find the velocity at this radius.
-          velocity=Dark_Matter_Profile_Circular_Velocity(haloNode,radius)
+          velocity=darkMatterProfile_%circularVelocity(haloNode,radius)
        else
           ! A previous radius was set, so use it, and the previous circular velocity, as the initial guess.
           velocity=Velocity_Get(thisNode)
@@ -217,7 +220,7 @@ contains
        radiusInitial=Galactic_Structure_Radius_Initial(haloNode,radius)
 
        ! Compute mass within that radius.
-       haloMassInitial=Dark_Matter_Profile_Enclosed_Mass(haloNode,radiusInitial)
+       haloMassInitial=darkMatterProfile_%enclosedMass(haloNode,radiusInitial)
 
        ! Compute dark matter mass within final radius.
        darkMatterMassFinal=haloMassInitial*haloFraction

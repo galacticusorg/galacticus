@@ -226,6 +226,7 @@ contains
     class           (nodeComponentBlackHole                            )                          , pointer :: thisBlackHoleComponent
     class           (nodeComponentSpheroid                             )                          , pointer :: thisSpheroidComponent
     class           (nodeComponentHotHalo                              )                          , pointer :: thisHotHaloComponent
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                    , parameter                         :: coolingRadiusFractionalTransitionMinimum=0.9d0
     double precision                                                    , parameter                         :: coolingRadiusFractionalTransitionMaximum=1.0d0
     double precision                                                                                        :: coolingRadiusFractional                       , couplingEfficiency   , &
@@ -267,7 +268,8 @@ contains
           ! Add heating to the hot halo component.
           if (blackHoleHeatsHotHalo) then
              ! Compute jet coupling efficiency based on whether halo is cooling quasistatically.
-             coolingRadiusFractional=Cooling_Radius(thisNode)/Dark_Matter_Halo_Virial_Radius(thisNode)
+             darkMatterHaloScale_ => darkMatterHaloScale()
+             coolingRadiusFractional=Cooling_Radius(thisNode)/darkMatterHaloScale_%virialRadius(thisNode)
              if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
                 couplingEfficiency=1.0d0
              else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then

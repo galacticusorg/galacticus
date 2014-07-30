@@ -33,7 +33,8 @@ module Halo_Mass_Function_Tasks
        &                                                       haloMassFunction_dndlnM               , haloMassFunction_massFraction     , &
        &                                                       haloMassFunction_nu                   , haloMassFunction_sigma            , &
        &                                                       haloMassFunction_virialRadius         , haloMassFunction_virialTemperature, &
-       &                                                       haloMassFunction_virialVelocity
+       &                                                       haloMassFunction_virialVelocity       , haloMassFunction_scaleRadius      , &
+       &                                                       haloMassFunction_velocityMaximum
 
   ! Arrays of output time data.
   double precision            , allocatable, dimension(:  ) :: outputCharacteristicMass              , outputCriticalOverdensities       , &
@@ -73,8 +74,11 @@ contains
   subroutine Halo_Mass_Function_Compute
     !% Computes mass functions and related properties for output.
     use Galacticus_Nodes
+    use Node_Components
     use Halo_Mass_Function
     use Dark_Matter_Halo_Biases
+    use Dark_Matter_Profiles
+    use Dark_Matter_Profile_Scales
     use Memory_Management
     use Numerical_Ranges
     use Input_Parameters
@@ -86,14 +90,19 @@ contains
     use Virial_Density_Contrast
     use Galacticus_Display
     use Galacticus_Calculations_Resets
+use iso_varying_string
     implicit none
-    class           (nodeComponentBasic     ), pointer :: thisBasicComponent
-    integer                                            :: haloMassFunctionsCount      , haloMassFunctionsPointsPerDecade, &
-         &                                                iMass                       , iOutput                         , &
-         &                                                outputCount                 , verbosityLevel
-    double precision                                   :: haloMassFunctionsMassMaximum, haloMassFunctionsMassMinimum
-    type            (treeNode               ), pointer :: thisNode
-    class           (cosmologyFunctionsClass), pointer :: cosmologyFunctionsDefault
+    class           (nodeComponentBasic            ), pointer :: thisBasic
+    class           (nodeComponentDarkMatterProfile), pointer :: thisDarkMatterProfile
+    type            (treeNode                      ), pointer :: thisNode
+    class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctionsDefault
+    class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
+    class           (darkMatterProfileClass        ), pointer :: darkMatterProfile_
+    class           (virialDensityContrastClass    ), pointer :: virialDensityContrast_
+    integer                                                   :: haloMassFunctionsCount      , haloMassFunctionsPointsPerDecade, &
+         &                                                       iMass                       , iOutput                         , &
+         &                                                       outputCount                 , verbosityLevel
+    double precision                                          :: haloMassFunctionsMassMaximum, haloMassFunctionsMassMinimum
 
     ! Get the verbosity level parameter.
     !@ <inputParameter>
@@ -108,6 +117,10 @@ contains
     !@ </inputParameter>
     call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
     call Galacticus_Verbosity_Level_Set(verbosityLevel)
+    
+    ! Initialize nodes and components.
+    call Galacticus_Nodes_Initialize()
+    call Node_Components_Initialize ()
 
     ! Get the requested output redshifts.
     outputCount=max(Get_Input_Parameter_Array_Size('outputRedshifts'),1)
@@ -134,16 +147,19 @@ contains
     else
        call Get_Input_Parameter('outputRedshifts',outputRedshifts                     )
     end if
-    ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
+    ! Get required objects.
+    cosmologyFunctionsDefault => cosmologyFunctions   ()
+    virialDensityContrast_    => virialDensityContrast()
+    darkMatterProfile_        => darkMatterProfile    ()
+
     ! Compute output time properties.
     do iOutput=1,outputCount
-       outputExpansionFactors     (iOutput)=cosmologyFunctionsDefault%expansionFactorFromRedshift      (outputRedshifts       (iOutput))
-       outputTimes                (iOutput)=cosmologyFunctionsDefault%cosmicTime                       (outputExpansionFactors(iOutput))
-       outputGrowthFactors        (iOutput)=Linear_Growth_Factor                (outputTimes           (iOutput))
-       outputCriticalOverdensities(iOutput)=Critical_Overdensity_for_Collapse   (outputTimes           (iOutput))
-       outputVirialDensityContrast(iOutput)=Halo_Virial_Density_Contrast        (outputTimes           (iOutput))
-       outputCharacteristicMass   (iOutput)=Critical_Overdensity_Collapsing_Mass(outputTimes           (iOutput))
+       outputExpansionFactors     (iOutput)=cosmologyFunctionsDefault%expansionFactorFromRedshift(outputRedshifts       (iOutput))
+       outputTimes                (iOutput)=cosmologyFunctionsDefault%cosmicTime                 (outputExpansionFactors(iOutput))
+       outputGrowthFactors        (iOutput)=Linear_Growth_Factor                                 (outputTimes           (iOutput))
+       outputCriticalOverdensities(iOutput)=Critical_Overdensity_for_Collapse                    (outputTimes           (iOutput))
+       outputVirialDensityContrast(iOutput)=virialDensityContrast_%densityContrast               (outputTimes           (iOutput))
+       outputCharacteristicMass   (iOutput)=Critical_Overdensity_Collapsing_Mass                 (outputTimes           (iOutput))
     end do
 
     ! Find the mass range and increment size.
@@ -196,17 +212,24 @@ contains
     call Alloc_Array(haloMassFunction_virialVelocity   ,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_virialTemperature,[haloMassFunctionsCount,outputCount])
     call Alloc_Array(haloMassFunction_virialRadius     ,[haloMassFunctionsCount,outputCount])
+    call Alloc_Array(haloMassFunction_scaleRadius      ,[haloMassFunctionsCount,outputCount])
+    call Alloc_Array(haloMassFunction_velocityMaximum  ,[haloMassFunctionsCount,outputCount])
+
+    ! Get required objects.
+    darkMatterHaloScale_   => darkMatterHaloScale  ()
+    virialDensityContrast_ => virialDensityContrast()
 
     ! Create a node object.
     thisNode => treeNode()
 
-    ! Get the basic component.
-    thisBasicComponent => thisNode%basic(autoCreate=.true.)
+    ! Get the basic and dark matter profile components.
+    thisBasic             => thisNode%basic            (autoCreate=.true.)
+    thisDarkMatterProfile => thisNode%darkMatterProfile(autoCreate=.true.)
 
     ! Loop over all output times.
     do iOutput=1,outputCount
        ! Set the time in the node.
-       call thisBasicComponent%timeSet(outputTimes(iOutput))
+       call thisBasic%timeSet(outputTimes(iOutput))
 
        ! Build a range of halo masses.
        haloMassFunction_Mass(:,iOutput)=Make_Range(haloMassFunctionsMassMinimum,haloMassFunctionsMassMaximum,haloMassFunctionsCount,rangeTypeLogarithmic)
@@ -216,20 +239,22 @@ contains
           ! Reset calculations.
           call Galacticus_Calculations_Reset(thisNode)
           ! Set the mass in the node.
-          call thisBasicComponent%massSet(haloMassFunction_Mass(iMass,iOutput))
+          call thisBasic            %massSet (haloMassFunction_Mass(iMass,iOutput))
+          ! Set the node scale radius.
+          call thisDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(thisNode))
           ! Compute halo properties.
           haloMassFunction_dndM             (iMass,iOutput)=Halo_Mass_Function_Differential(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_dndlnM           (iMass,iOutput)=haloMassFunction_dndM(iMass,iOutput)*haloMassFunction_Mass(iMass,iOutput)
-          ! haloMassFunction_cumulative       (iMass,iOutput)=Halo_Mass_Function_Integrated(outputTimes(iOutput)&
-          !      & haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
-          ! haloMassFunction_massFraction     (iMass,iOutput)=Halo_Mass_Fraction_Integrated(outputTimes(iOutput)&
-          !      &,haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
+          haloMassFunction_cumulative       (iMass,iOutput)=Halo_Mass_Function_Integrated(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
+          haloMassFunction_massFraction     (iMass,iOutput)=Halo_Mass_Fraction_Integrated(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
           haloMassFunction_sigma            (iMass,iOutput)=Cosmological_Mass_Root_Variance(haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_nu               (iMass,iOutput)=outputCriticalOverdensities(iOutput)/haloMassFunction_sigma(iMass,iOutput)
-          haloMassFunction_bias             (iMass,iOutput)=Dark_Matter_Halo_Bias              (thisNode)
-          haloMassFunction_virialVelocity   (iMass,iOutput)=Dark_Matter_Halo_Virial_Velocity   (thisNode)
-          haloMassFunction_virialTemperature(iMass,iOutput)=Dark_Matter_Halo_Virial_Temperature(thisNode)
-          haloMassFunction_virialRadius     (iMass,iOutput)=Dark_Matter_Halo_Virial_Radius     (thisNode)
+          haloMassFunction_bias             (iMass,iOutput)=Dark_Matter_Halo_Bias                        (thisNode)
+          haloMassFunction_virialVelocity   (iMass,iOutput)=darkMatterHaloScale_ %virialVelocity         (thisNode)
+          haloMassFunction_virialTemperature(iMass,iOutput)=darkMatterHaloScale_ %virialTemperature      (thisNode)
+          haloMassFunction_virialRadius     (iMass,iOutput)=darkMatterHaloScale_ %virialRadius           (thisNode)
+          haloMassFunction_scaleRadius      (iMass,iOutput)=thisDarkMatterProfile%scale                  (        )
+          haloMassFunction_velocityMaximum  (iMass,iOutput)=darkMatterProfile_   %circularVelocityMaximum(thisNode)          
        end do
 
     end do
@@ -295,6 +320,14 @@ contains
     call massFunctionGroup%writeDataset(haloMassFunction_virialRadius,'haloVirialRadius','The virial radius of halos.'&
          &,datasetReturned=thisDataset)
     call thisDataset%writeAttribute(megaParsec,'unitsInSI')
+    call thisDataset%close()
+    call massFunctionGroup%writeDataset(haloMassFunction_scaleRadius,'haloScaleRadius','The scale radius of halos.'&
+         &,datasetReturned=thisDataset)
+    call thisDataset%writeAttribute(megaParsec,'unitsInSI')
+    call thisDataset%close()
+    call massFunctionGroup%writeDataset(haloMassFunction_velocityMaximum,'haloVelocityMaximum','The maximum circular velocity of halos.' &
+         &,datasetReturned=thisDataset)
+    call thisDataset%writeAttribute(kilo,'unitsInSI')
     call thisDataset%close()
     call massFunctionGroup%writeDataset(haloMassFunction_bias,'haloBias','The large scale linear bias of halos.')
     call massFunctionGroup%writeDataset(haloMassFunction_sigma,'haloSigma','The mass fluctuation on the scale of the halo.')

@@ -71,6 +71,7 @@ contains
     implicit none
     type (treeNode          ), intent(inout), pointer :: thisNode
     class(nodeComponentBasic)               , pointer :: thisBasicComponent
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
@@ -80,11 +81,13 @@ contains
        Cooling_Time_Available_WF=thisBasicComponent%time()
     else if (coolingTimeAvailableAgeFactor == 0.0d0) then
        ! Time available equals the halo dynamical time.
-       Cooling_Time_Available_WF=Dark_Matter_Halo_Dynamical_Timescale(thisNode)
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       Cooling_Time_Available_WF=darkMatterHaloScale_%dynamicalTimescale(thisNode)
     else
        ! Time is interpolated between age of Universe and dynamical time. Do the interpolation.
+       darkMatterHaloScale_ => darkMatterHaloScale()
        Cooling_Time_Available_WF=exp(log(thisBasicComponent%time())*coolingTimeAvailableAgeFactor&
-            &+log(Dark_Matter_Halo_Dynamical_Timescale(thisNode))*(1.0d0-coolingTimeAvailableAgeFactor))
+            &+log(darkMatterHaloScale_%dynamicalTimescale(thisNode))*(1.0d0-coolingTimeAvailableAgeFactor))
     end if
     return
   end function Cooling_Time_Available_WF

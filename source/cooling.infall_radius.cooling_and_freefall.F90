@@ -52,11 +52,13 @@ contains
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                   :: coolingRadius         , freefallRadius, virialRadius
     logical                                            :: infallIsCoolingLimited
 
     ! Get the virial radius.
-    virialRadius  =Dark_Matter_Halo_Virial_Radius(thisNode)
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    virialRadius  =darkMatterHaloScale_%virialRadius(thisNode)
 
     ! Get the cooling radius.
     coolingRadius =Cooling_Radius                (thisNode)
@@ -82,11 +84,13 @@ contains
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                   :: coolingRadius         , freefallRadius, virialRadius
     logical                                            :: infallIsCoolingLimited
 
     ! Get the virial radius.
-    virialRadius  =Dark_Matter_Halo_Virial_Radius(thisNode)
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    virialRadius  =darkMatterHaloScale_%virialRadius(thisNode)
 
     ! Get the cooling radius.
     coolingRadius =Cooling_Radius                (thisNode)

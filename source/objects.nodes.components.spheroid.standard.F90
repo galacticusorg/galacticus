@@ -167,9 +167,9 @@ module Node_Component_Spheroid_Standard
 
 contains
 
-  !# <mergerTreePreTreeConstructionTask>
+  !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Initialize</unitName>
-  !# </mergerTreePreTreeConstructionTask>
+  !# </nodeComponentInitializationTask>
   subroutine Node_Component_Spheroid_Standard_Initialize()
     !% Initializes the tree node standard spheroid methods module.
     use Input_Parameters
@@ -511,6 +511,7 @@ contains
     procedure       (                     ), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentSpheroid)               , pointer :: thisSpheroid
     class           (nodeComponentHotHalo )               , pointer :: thisHotHalo
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     type            (abundances           ), save                   :: fuelAbundances            , fuelAbundancesRates     , &
          &                                                             stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
@@ -640,7 +641,8 @@ contains
        end if
 
        ! Apply tidal heating.
-       if (thisNode%isSatellite() .and. thisSpheroid%angularMomentum() < (thisSpheroid%massGas()+thisSpheroid%massStellar())*Dark_Matter_Halo_Virial_Radius(thisNode)*Dark_Matter_Halo_Virial_Velocity(thisNode) .and. thisSpheroid%radius() < Dark_Matter_Halo_Virial_Radius(thisNode)) then
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       if (thisNode%isSatellite() .and. thisSpheroid%angularMomentum() < (thisSpheroid%massGas()+thisSpheroid%massStellar())*darkMatterHaloScale_%virialRadius(thisNode)*darkMatterHaloScale_%virialVelocity(thisNode) .and. thisSpheroid%radius() < darkMatterHaloScale_%virialRadius(thisNode)) then
           tidalField =Satellite_Tidal_Field(thisNode)
           tidalTorque=abs(tidalField)*(thisSpheroid%massGas()+thisSpheroid%massStellar())*thisSpheroid%radius()**2
           call thisSpheroid%angularMomentumRate(+tidalTorque)

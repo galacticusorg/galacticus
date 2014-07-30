@@ -61,6 +61,7 @@ contains
     double precision                    , allocatable  , dimension(:)          :: nodeProperty
     class           (nodeComponentBasic)                             , pointer :: thisBasicComponent
     type            (mergerTree        )                             , pointer :: currentTree
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     integer                                                                    :: nodeCount
     type            (varying_string    )                                       :: groupComment      , groupName
     type            (hdf5Object        )                                       :: nodeDataset       , treeGroup
@@ -106,6 +107,8 @@ contains
 
     ! Output the tree structure history.
     if (mergerTreeStructureOutput) then
+       ! Get required classes.
+       darkMatterHaloScale_ => darkMatterHaloScale()
        ! Iterate over trees.
        currentTree => thisTree
        do while (associated(currentTree))
@@ -213,7 +216,7 @@ contains
              thisNode => currentTree%baseNode
              do while (associated(thisNode))
                 nodeCount=nodeCount+1
-                nodeProperty(nodeCount)=Dark_Matter_Halo_Virial_Radius(thisNode)
+                nodeProperty(nodeCount)=darkMatterHaloScale_%virialRadius(thisNode)
                 call thisNode%walkTree(thisNode)
              end do
              !$omp critical(HDF5_Access)
@@ -227,7 +230,7 @@ contains
              thisNode => currentTree%baseNode
              do while (associated(thisNode))
                 nodeCount=nodeCount+1
-                nodeProperty(nodeCount)=Dark_Matter_Halo_Virial_Velocity(thisNode)
+                nodeProperty(nodeCount)=darkMatterHaloScale_%virialVelocity(thisNode)
                 call thisNode%walkTree(thisNode)
              end do
              !$omp critical(HDF5_Access)

@@ -70,6 +70,8 @@ contains
     type            (keplerOrbit                                )           , intent(inout)          :: thisOrbit
     type            (treeNode                                   )                          , pointer :: hostNode
     class           (nodeComponentBasic                         )                          , pointer :: hostBasic                            , thisBasic
+    class           (darkMatterHaloScaleClass                  )                           , pointer :: darkMatterHaloScale_
+    class           (darkMatterProfileClass                    )                           , pointer :: darkMatterProfile_
     logical                                                      , parameter                         :: acceptUnboundOrbits          =.false.
     double precision                                             , parameter                         :: expArgumentMaximum           =100.0d0
     double precision                                             , parameter                         :: timeInfinite                 =1.0d30
@@ -80,11 +82,14 @@ contains
          &                                                                                              velocityScale                        , expArgument
     integer                                                                                          :: errorCode
 
+    ! Get required objects.
+    darkMatterProfile_   => darkMatterProfile  ()
+    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Find the host node.
     hostNode => thisNode%parent
     ! Get velocity scale.
-    velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
-    radialScale  =Dark_Matter_Halo_Virial_Radius  (hostNode)
+    velocityScale=darkMatterHaloScale_%virialVelocity(hostNode)
+    radialScale  =darkMatterHaloScale_%virialRadius  (hostNode)
     ! Get the equivalent circular orbit.
     equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit,errorCode)
     ! Check error codes.
@@ -101,7 +106,7 @@ contains
        orbitalCircularity                                                                    &
             & =thisOrbit%angularMomentum()                                                   &
             & /equivalentCircularOrbitRadius                                                 &
-            & /Dark_Matter_Profile_Circular_Velocity(hostNode,equivalentCircularOrbitRadius)
+            & /darkMatterProfile_%circularVelocity(hostNode,equivalentCircularOrbitRadius)
     case default
        call Galacticus_Error_Report('boylanKolchin2008TimeUntilMerging','unrecognized error code')
     end select
@@ -117,7 +122,7 @@ contains
        expArgument=min(expArgumentMaximum,c*orbitalCircularity)
        boylanKolchin2008TimeUntilMerging &
             & =Dynamical_Friction_Timescale_Multiplier()      &
-            & *Dark_Matter_Halo_Dynamical_Timescale(hostNode) &
+            & *darkMatterHaloScale_%dynamicalTimescale(hostNode) &
             & *A                                              &
             & *          massRatio**b                         &
             & /log(1.0d0+massRatio   )                        &

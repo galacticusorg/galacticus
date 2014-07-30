@@ -51,8 +51,12 @@ contains
     use Cooling_Freefall_Times_Available
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision                                   :: timeAvailable, timeAvailableIncreaseRate
+    type            (treeNode              ), intent(inout), pointer :: thisNode
+    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
+    double precision                                                 :: timeAvailable     , timeAvailableIncreaseRate
+
+    ! Get required objects.
+    darkMatterProfile_ => darkMatterProfile()
 
     ! Get the time available for freefall.
     timeAvailable=Cooling_Freefall_Time_Available(thisNode)
@@ -61,7 +65,7 @@ contains
     timeAvailableIncreaseRate=Cooling_Freefall_Time_Available_Increase_Rate(thisNode)
 
     ! Get freefall radius increase rate from dark matter profile.
-    Freefall_Radius_Growth_Rate_Dark_Matter_Halo=Dark_Matter_Profile_Freefall_Radius_Increase_Rate(thisNode,timeAvailable)&
+    Freefall_Radius_Growth_Rate_Dark_Matter_Halo=darkMatterProfile_%freefallRadiusIncreaseRate(thisNode,timeAvailable)&
          &*timeAvailableIncreaseRate
     return
   end function Freefall_Radius_Growth_Rate_Dark_Matter_Halo
@@ -72,14 +76,18 @@ contains
     use Cooling_Freefall_Times_Available
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision                                   :: timeAvailable
+    type            (treeNode              ), intent(inout), pointer :: thisNode
+    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
+    double precision                                                 :: timeAvailable
+
+    ! Get required objects.
+    darkMatterProfile_ => darkMatterProfile()
 
     ! Get the time available for freefall.
     timeAvailable=Cooling_Freefall_Time_Available(thisNode)
 
     ! Get freefall radius from dark matter profile.
-    Freefall_Radius_Dark_Matter_Halo=Dark_Matter_Profile_Freefall_Radius(thisNode,timeAvailable)
+    Freefall_Radius_Dark_Matter_Halo=darkMatterProfile_%freefallRadius(thisNode,timeAvailable)
     return
   end function Freefall_Radius_Dark_Matter_Halo
 

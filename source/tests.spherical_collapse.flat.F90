@@ -30,6 +30,7 @@ program Tests_Spherical_Collapse_Flat
   implicit none
   double precision                         , dimension(7) :: redshift                 =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
   class           (cosmologyFunctionsClass), pointer      :: cosmologyFunctionsDefault
+  class           (virialDensityContrastClass), pointer      :: virialDensityContrast_
   type            (varying_string         )               :: parameterFile
   character       (len=1024               )               :: message
   integer                                                 :: iExpansion
@@ -47,11 +48,12 @@ program Tests_Spherical_Collapse_Flat
   parameterFile='testSuite/parameters/sphericalCollapse/flat.xml'
   call Input_Parameters_File_Open(parameterFile)
   ! Get the default cosmology functions object.
-  cosmologyFunctionsDefault => cosmologyFunctions()
+  cosmologyFunctionsDefault => cosmologyFunctions   ()
+  virialDensityContrast_    => virialDensityContrast()
   do iExpansion=1,size(redshift)
      expansionFactor=cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift(iExpansion))
      age            =cosmologyFunctionsDefault%cosmicTime(expansionFactor)
-     densityContrast=Halo_Virial_Density_Contrast(age)
+     densityContrast=virialDensityContrast_%densityContrast(age)
      x              =cosmologyFunctionsDefault%omegaMatterEpochal(age)-1.0d0
      bryanNormanFit =(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/cosmologyFunctionsDefault%omegaMatterEpochal(age)
      write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctionsDefault%omegaMatterEpochal(age),"]"

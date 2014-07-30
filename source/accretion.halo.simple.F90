@@ -190,12 +190,14 @@ contains
     class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
     class           (nodeComponentHotHalo    )               , pointer :: thisHotHaloComponent
     class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
     Halo_Baryonic_Accretion_Rate_Simple_Get=0.0d0
     if (accretionMode          == accretionModeCold) return
     if (thisNode%isSatellite()                     ) return
     thisBasicComponent => thisNode%basic()
-    if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       if (thisBasicComponent%time() > reionizationSuppressionTime .and. darkMatterHaloScale_%virialVelocity(thisNode) <&
          & reionizationSuppressionVelocity) then
        Halo_Baryonic_Accretion_Rate_Simple_Get=0.0d0
     else
@@ -231,12 +233,14 @@ contains
     integer                    , intent(in   )          :: accretionMode
     class(nodeComponentBasic      )               , pointer :: thisBasicComponent
     class(cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
     Halo_Baryonic_Accreted_Mass_Simple_Get=0.0d0
     if (accretionMode          == accretionModeCold) return
     if (thisNode%isSatellite()                     ) return
-    thisBasicComponent => thisNode%basic()
-    if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
+       thisBasicComponent   => thisNode%basic     ()
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       if (thisBasicComponent%time() > reionizationSuppressionTime .and. darkMatterHaloScale_%virialVelocity(thisNode) <&
          & reionizationSuppressionVelocity) then
        Halo_Baryonic_Accreted_Mass_Simple_Get=0.0d0
     else
@@ -258,6 +262,7 @@ contains
     class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
     class           (nodeComponentHotHalo    )               , pointer :: thisHotHaloComponent
     class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                   :: growthRate             , unaccretedMass
 
     Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=0.0d0
@@ -265,8 +270,9 @@ contains
     if (thisNode%isSatellite()                     ) return
     ! Get the default cosmology.
     thisCosmologyParameters => cosmologyParameters()
-    thisBasicComponent => thisNode%basic()
-    if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
+       thisBasicComponent      => thisNode%basic     ()
+       darkMatterHaloScale_    => darkMatterHaloScale()
+       if (thisBasicComponent%time() > reionizationSuppressionTime .and. darkMatterHaloScale_%virialVelocity(thisNode) <&
          & reionizationSuppressionVelocity) then
           Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*thisBasicComponent%accretionRate()
     else
@@ -297,12 +303,14 @@ contains
     integer                    , intent(in   )          :: accretionMode
     class(nodeComponentBasic      )               , pointer :: thisBasicComponent
     class(cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
     Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=0.0d0
     if (accretionMode          == accretionModeCold) return
     if (thisNode%isSatellite()                     ) return
-    thisBasicComponent => thisNode%basic()
-    if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
+       thisBasicComponent   => thisNode%basic     ()
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       if (thisBasicComponent%time() > reionizationSuppressionTime .and. darkMatterHaloScale_%virialVelocity(thisNode) <&
          & reionizationSuppressionVelocity) then
           ! Get the default cosmology.
           thisCosmologyParameters => cosmologyParameters()
@@ -404,19 +412,21 @@ contains
     type            (chemicalAbundances      ), intent(  out)          :: chemicalMasses
     class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
     class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     type            (chemicalAbundances      ), save                   :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
     double precision                                                   :: massToDensityConversion, numberDensityHydrogen, &
          &                                                                temperature
 
     ! Compute coefficient in conversion of mass to density for this node.
-    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(thisNode))/3.0d0
 
     ! Get the default cosmology.
     thisCosmologyParameters => cosmologyParameters()
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
-    temperature          =Dark_Matter_Halo_Virial_Temperature(thisNode)
+    temperature          =darkMatterHaloScale_%virialTemperature(thisNode)
     thisBasicComponent   => thisNode%basic()
     numberDensityHydrogen=hydrogenByMassPrimordial*(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*thisBasicComponent%mass()*massToDensityConversion/atomicMassHydrogen
 

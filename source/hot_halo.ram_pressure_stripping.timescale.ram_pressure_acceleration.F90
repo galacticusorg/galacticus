@@ -59,6 +59,7 @@ contains
     class           (nodeComponentHotHalo        )               , pointer :: thisHotHalo
     type            (treeNode                    )               , pointer :: hostNode
     class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                              , parameter              :: timescaleInfinite       =1.0d30
     double precision                              , parameter              :: velocityStrippingMaximum=1.0d01
     double precision                                                       :: outerRadius                   , densityAtOuterRadius       , &
@@ -66,7 +67,8 @@ contains
 
     ! Get the hot halo mass distribution.
     defaultHotHaloMassDistribution => hotHaloMassDistribution()
-    ! Evaluate surface density and ram pressure force.
+    darkMatterHaloScale_           => darkMatterHaloScale    ()
+   ! Evaluate surface density and ram pressure force.
     thisHotHalo                 => thisNode   %hotHalo                   (                    )
     outerRadius                 =  thisHotHalo%outerRadius               (                    )
     densityAtOuterRadius        =  defaultHotHaloMassDistribution%density(thisNode,outerRadius)
@@ -79,7 +81,7 @@ contains
     end if
     ! For zero density or radius, return the halo dynamical time (the timescale should be irrelevant in such cases anyway).
     if (outerRadius <= 0.0d0 .or. surfaceDensityAtOuterRadius <= 0.0d0) then
-       Hot_Halo_Ram_Pressure_Timescale_Ram_Pressure_Accel=Dark_Matter_Halo_Dynamical_Timescale(thisNode)
+       Hot_Halo_Ram_Pressure_Timescale_Ram_Pressure_Accel=darkMatterHaloScale_%dynamicalTimescale(thisNode)
        return
     end if
     ! Find the hosting node.
@@ -100,7 +102,7 @@ contains
          &           )                                       , &
          &         outerRadius                                 &
          &        /velocityStrippingMaximum                    &
-         &        /Dark_Matter_Halo_Virial_Velocity(hostNode)  &
+         &        /darkMatterHaloScale_%virialVelocity(hostNode)  &
          &      )
     return
   end function Hot_Halo_Ram_Pressure_Timescale_Ram_Pressure_Accel

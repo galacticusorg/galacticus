@@ -79,16 +79,18 @@ contains
     type            (treeNode          ), intent(inout), pointer :: hostNode           , thisNode
     logical                             , intent(in   )          :: acceptUnboundOrbits
     class           (nodeComponentBasic)               , pointer :: hostBasicComponent , thisBasicComponent
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                             :: velocityScale
 
     ! Reset the orbit.
     call thisOrbit%reset()
     ! Set masses and radius of the orbit.
-    thisBasicComponent => thisNode%basic()
-    hostBasicComponent => hostNode%basic()
+    thisBasicComponent   => thisNode%basic     ()
+    hostBasicComponent   => hostNode%basic     ()
+    darkMatterHaloScale_ => darkMatterHaloScale()
     call thisOrbit%massesSet(thisBasicComponent%mass(),hostBasicComponent%mass())
-    call thisOrbit%radiusSet(Dark_Matter_Halo_Virial_Radius(hostNode))
-    velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
+    call thisOrbit%radiusSet(darkMatterHaloScale_%virialRadius(hostNode))
+    velocityScale=darkMatterHaloScale_%virialVelocity(hostNode)
     call thisOrbit%velocityRadialSet    (virialOrbitsFixedRadialVelocity    *velocityScale)
     call thisOrbit%velocityTangentialSet(virialOrbitsFixedTangentialVelocity*velocityScale)
     return

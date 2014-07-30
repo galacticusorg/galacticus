@@ -55,6 +55,7 @@ contains
     type            (keplerOrbit       )                                    :: thisOrbit
     type            (treeNode          )           , intent(inout), pointer :: hostNode                                                                                                                                        , thisNode
     logical                                        , intent(in   )          :: acceptUnboundOrbits
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     class           (nodeComponentBasic)                          , pointer :: hostBasicComponent                                                                                                                              , thisBasicComponent
     double precision                    , parameter                         :: pMax                   =1.96797d0                                                                                                               , velocityMax                                                                           =3.0d0
     double precision                    , parameter                         :: a                   (9)=(/0.390052d+01,0.247973d+01,0.102373d+02,0.683922d+00,0.353953d+00,0.107716d+01,0.509837d+00,0.206204d+00,0.314641d+00/)
@@ -68,10 +69,11 @@ contains
     ! Reset the orbit.
     call thisOrbit%reset()
     ! Set masses and radius of the orbit.
-    thisBasicComponent => thisNode%basic()
-    hostBasicComponent => hostNode%basic()
+    thisBasicComponent   => thisNode%basic     ()
+    hostBasicComponent   => hostNode%basic     ()
+    darkMatterHaloScale_ => darkMatterHaloScale()
     call thisOrbit%massesSet(thisBasicComponent%mass(),hostBasicComponent%mass())
-    call thisOrbit%radiusSet(Dark_Matter_Halo_Virial_Radius(hostNode))
+    call thisOrbit%radiusSet(darkMatterHaloScale_%virialRadius(hostNode))
 
     ! Select an orbit.
     foundOrbit=.false.
@@ -97,7 +99,7 @@ contains
           end if
        end if
     end do
-    velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
+    velocityScale=darkMatterHaloScale_%virialVelocity(hostNode)
     call thisOrbit%velocityRadialSet    (velocityRadialInternal    *velocityScale)
     call thisOrbit%velocityTangentialSet(velocityTangentialInternal*velocityScale)
     return

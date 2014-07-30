@@ -357,6 +357,7 @@ contains
     class           (nodeComponentDisk             )               , pointer :: thisDisk
     class           (nodeComponentSpheroid         )               , pointer :: thisSpheroid
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                , parameter              :: outerRadiusMultiplier     =10.0d0
     type            (c_ptr                         )                         :: parameterPointer
     type            (fgsl_function                 )                         :: integrandFunction
@@ -372,10 +373,11 @@ contains
     ! Store property data if we are outputting velocity dispersion data.
     if (outputVelocityDispersionData) then
        ! Compute required quantities.
-       if (         virialRadiusIsNeeded) radiusVirial          =  Dark_Matter_Halo_Virial_Radius(thisNode                    )
-       if (                 diskIsNeeded) thisDisk              =>                                thisNode%disk             ()
-       if (             spheroidIsNeeded) thisSpheroid          =>                                thisNode%spheroid         ()
-       if (darkMatterScaleRadiusIsNeeded) thisDarkMatterProfile =>                                thisNode%darkMatterProfile()
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       if (         virialRadiusIsNeeded) radiusVirial          =  darkMatterHaloScale_%virialRadius(thisNode                    )
+       if (                 diskIsNeeded) thisDisk              =>                                   thisNode%disk             ()
+       if (             spheroidIsNeeded) thisSpheroid          =>                                   thisNode%spheroid         ()
+       if (darkMatterScaleRadiusIsNeeded) thisDarkMatterProfile =>                                   thisNode%darkMatterProfile()
        do i=1,radiiCount
           ! Find the radius.
           scaleIsZero=.false.

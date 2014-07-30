@@ -75,14 +75,16 @@ contains
     type            (treeNode                               ), intent(inout), pointer :: thisNode
     type            (keplerOrbit                            ), intent(inout)          :: thisOrbit
     type            (treeNode                               )               , pointer :: hostNode
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                                  :: equivalentCircularOrbitRadius, orbitalCircularity, &
          &                                                                               radialScale                  , velocityScale
 
     ! Find the host node.
     hostNode => thisNode%parent
     ! Get velocity scale.
-    velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
-    radialScale  =Dark_Matter_Halo_Virial_Radius  (hostNode)
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    velocityScale=darkMatterHaloScale_%virialVelocity(hostNode)
+    radialScale  =darkMatterHaloScale_%virialRadius  (hostNode)
     ! Compute radius of orbit with same energy.
     equivalentCircularOrbitRadius=exp(thisOrbit%energy()/velocityScale**2+0.5d0)
     ! Compute orbital circularity.
@@ -105,6 +107,7 @@ contains
     type            (treeNode                               ), intent(inout), pointer :: thisNode
     type            (treeNode                               )               , pointer :: hostNode
     class           (nodeComponentBasic                     )               , pointer :: hostBasic                 , thisBasic
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                         , parameter              :: inverseTwoB1=1.169335453d0            !  1/2/B(1).
     double precision                                                                  :: massRatio
 
@@ -120,11 +123,12 @@ contains
        laceyCole1993TimeUntilMergingMassDependence=0.0d0
     else
        ! Compute dynamical friction timescale.
-       laceyCole1993TimeUntilMergingMassDependence            &
-            & =Dynamical_Friction_Timescale_Multiplier()      &
-            & *Dark_Matter_Halo_Dynamical_Timescale(hostNode) &
-            & *inverseTwoB1                                   &
-            & *    massRatio                                  &
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       laceyCole1993TimeUntilMergingMassDependence               &
+            & =Dynamical_Friction_Timescale_Multiplier()         &
+            & *darkMatterHaloScale_%dynamicalTimescale(hostNode) &
+            & *inverseTwoB1                                      &
+            & *    massRatio                                     &
             & /log(massRatio)
     end if
     return

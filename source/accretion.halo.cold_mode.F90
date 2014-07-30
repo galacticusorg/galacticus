@@ -249,32 +249,34 @@ contains
     use Chemical_Reaction_Rates_Utilities
     use Intergalactic_Medium_State
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    double precision                    , intent(in   )          :: massAccreted
-    type            (chemicalAbundances), intent(  out)          :: chemicalMasses
-    integer                             , intent(in   )          :: accretionMode
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    class           (cosmologyParametersClass)         , pointer :: thisCosmologyParameters
-    class           (intergalacticMediumStateClass)    , pointer :: intergalacticMediumState_
-    type            (chemicalAbundances), save                   :: chemicalDensities      , chemicalDensitiesHot , &
-         &                                                          chemicalDensitiesCold
+    type            (treeNode                     ), intent(inout), pointer :: thisNode
+    double precision                               , intent(in   )          :: massAccreted
+    type            (chemicalAbundances           ), intent(  out)          :: chemicalMasses
+    integer                                        , intent(in   )          :: accretionMode
+    class           (nodeComponentBasic           )               , pointer :: thisBasicComponent
+    class           (cosmologyParametersClass     )               , pointer :: thisCosmologyParameters
+    class           (intergalacticMediumStateClass)               , pointer :: intergalacticMediumState_
+    class           (darkMatterHaloScaleClass     )               , pointer :: darkMatterHaloScale_
+    type            (chemicalAbundances           ), save                   :: chemicalDensities      , chemicalDensitiesHot , &
+         &                                                                     chemicalDensitiesCold
     !$omp threadprivate(chemicalDensities,chemicalDensitiesCold,chemicalDensitiesHot)
-    double precision                                             :: massToDensityConversion, numberDensityHydrogen, &
-         &                                                          temperature            , temperatureHot       , &
-         &                                                          temperatureCold        , fractionCold         , &
-         &                                                          fractionHot
+    double precision                                                        :: massToDensityConversion, numberDensityHydrogen, &
+         &                                                                     temperature            , temperatureHot       , &
+         &                                                                     temperatureCold        , fractionCold         , &
+         &                                                                     fractionHot
 
-    ! Get the default cosmology.
+    ! Get required objects.
     thisCosmologyParameters => cosmologyParameters()
+    darkMatterHaloScale_    => darkMatterHaloScale()
     ! Get the basic component.
     thisBasicComponent   => thisNode%basic()
     ! Compute coefficient in conversion of mass to density for this node.
-    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
+    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(thisNode))/3.0d0
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
-    temperatureHot            =  Dark_Matter_Halo_Virial_Temperature  (thisNode                 )
-    intergalacticMediumState_ => intergalacticMediumState             (                         )
-    temperature               =  intergalacticMediumState_%temperature(thisBasicComponent%time())
+    temperatureHot            =  darkMatterHaloScale_%virialTemperature(thisNode                 )
+    intergalacticMediumState_ => intergalacticMediumState              (                         )
+    temperature               =  intergalacticMediumState_%temperature (thisBasicComponent%time())
     numberDensityHydrogen     =  hydrogenByMassPrimordial*(thisCosmologyParameters%omegaBaryon()/thisCosmologyParameters%omegaMatter())*thisBasicComponent%mass()*massToDensityConversion&
          &/atomicMassHydrogen
     ! Set the radiation field.
@@ -315,34 +317,36 @@ contains
     use Chemical_Reaction_Rates_Utilities
     use Cooling_Functions
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    integer                             , intent(in   )          :: accretionMode
-    double precision                    , parameter              :: adiabaticIndex             =5.0d0/3.0d0  
-    double precision                    , parameter              :: perturbationInitialExponent=0.0d0
-    double precision                    , parameter              :: logStabilityRatioMaximum   =60.0d0
-    class           (cosmologyParametersClass)         , pointer :: thisCosmologyParameters
-    class           (nodeComponentBasic)               , pointer :: thisBasic
-    type            (chemicalAbundances), save                   :: chemicalDensities
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    integer                                   , intent(in   )          :: accretionMode
+    double precision                          , parameter              :: adiabaticIndex             =5.0d0/3.0d0  
+    double precision                          , parameter              :: perturbationInitialExponent=0.0d0
+    double precision                          , parameter              :: logStabilityRatioMaximum   =60.0d0
+    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    class           (nodeComponentBasic      )               , pointer :: thisBasic
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    type            (chemicalAbundances      ), save                   :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
-    double precision                                             :: shockStability       , coldFraction        , &
-         &                                                          radiusShock          , coolingFunction     , &
-         &                                                          densityPreShock      , densityPostShock    , &
-         &                                                          numberDensityHydrogen, temperaturePostShock, &
-         &                                                          velocityPreShock     , stabilityRatio
+    double precision                                                   :: shockStability       , coldFraction        , &
+         &                                                                radiusShock          , coolingFunction     , &
+         &                                                                densityPreShock      , densityPostShock    , &
+         &                                                                numberDensityHydrogen, temperaturePostShock, &
+         &                                                                velocityPreShock     , stabilityRatio
 
     select case (accretionMode)
     case (accretionModeTotal)
        Halo_Baryonic_Accretion_Cold_Mode_Fraction=1.0d0
     case (accretionModeHot,accretionModeCold)
-       ! Get the default cosmology.
+       ! Get required objects.
        thisCosmologyParameters => cosmologyParameters()
+       darkMatterHaloScale_    => darkMatterHaloScale()
        ! Set the radiation field.
        call radiation%set(thisNode)
        ! Get the basic component.
        thisBasic => thisNode%basic()
        ! Compute factors required for stability analysis.
-       radiusShock          =Dark_Matter_Halo_Virial_Radius  (thisNode)
-       velocityPreShock     =Dark_Matter_Halo_Virial_Velocity(thisNode)
+       radiusShock          =darkMatterHaloScale_%virialRadius  (thisNode)
+       velocityPreShock     =darkMatterHaloScale_%virialVelocity(thisNode)
        temperaturePostShock =                                            &
             &                 (3.0d0/16.0d0)                             &
             &                *atomicMassUnit                             &

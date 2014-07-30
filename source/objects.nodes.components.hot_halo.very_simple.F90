@@ -152,8 +152,10 @@ contains
     use Dark_Matter_Halo_Scales
     implicit none
     class(nodeComponentHotHaloVerySimple), intent(inout) :: self
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
-    Node_Component_Hot_Halo_Very_Simple_Outer_Radius=Dark_Matter_Halo_Virial_Radius(self%hostNode)
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    Node_Component_Hot_Halo_Very_Simple_Outer_Radius=darkMatterHaloScale_%virialRadius(self%hostNode)
     return
   end function Node_Component_Hot_Halo_Very_Simple_Outer_Radius
 

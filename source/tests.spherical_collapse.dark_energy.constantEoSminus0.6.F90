@@ -32,11 +32,12 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Six
   double precision                         , dimension(3) :: redshift                     =[0.00d0,1.00d0,2.00d0]
   double precision                         , dimension(3) :: virialDensityContrastExpected=[390.44d0,241.35d0,208.17d0]
   class           (cosmologyFunctionsClass), pointer      :: cosmologyFunctionsDefault
+  class           (virialDensityContrastClass), pointer      :: virialDensityContrast_
   type            (varying_string         )               :: parameterFile
   character       (len=1024               )               :: message
   integer                                                 :: iExpansion
   double precision                                        :: age                                                       , expansionFactor, &
-       &                                                     virialDensityContrast
+       &                                                     virialDensityContrastActual
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.dark_energy.constantEoSminus0.6.size')
@@ -48,13 +49,14 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Six
   parameterFile='testSuite/parameters/sphericalCollapse/darkEnergy.constantEoSminus0.6.xml'
   call Input_Parameters_File_Open(parameterFile)
   ! Get the default cosmology functions object.
-  cosmologyFunctionsDefault => cosmologyFunctions()
+  cosmologyFunctionsDefault => cosmologyFunctions   ()
+  virialDensityContrast_    => virialDensityContrast()
   do iExpansion=1,size(redshift)
-     expansionFactor      =cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift       (iExpansion))
-     age                  =cosmologyFunctionsDefault%cosmicTime                 (expansionFactor            )
-     virialDensityContrast=Halo_Virial_Density_Contrast(age)
+     expansionFactor            =cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift       (iExpansion))
+     age                        =cosmologyFunctionsDefault%cosmicTime                 (expansionFactor            )
+     virialDensityContrastActual=virialDensityContrast_%densityContrast               (age                        )
      write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctionsDefault%omegaMatterEpochal(age),"]"
-     call Assert(trim(message),virialDensityContrast,virialDensityContrastExpected(iExpansion),relTol=1.0d-2)
+     call Assert(trim(message),virialDensityContrastActual,virialDensityContrastExpected(iExpansion),relTol=1.0d-2)
   end do
   call Input_Parameters_File_Close
 

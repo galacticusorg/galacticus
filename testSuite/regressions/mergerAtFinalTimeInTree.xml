@@ -268,7 +268,7 @@
   </parameter>
   <parameter>
     <name>virialDensityContrastMethod</name>
-    <value>Kitayama-Suto1996</value>
+    <value>kitayamaSuto1996</value>
   </parameter>
   <parameter>
     <name>nodeMergersMethod</name>

@@ -40,7 +40,7 @@
       <name>darkMatterProfileMethod</name>
       <value>NFW</value>
       <value>isothermal</value>
-      <value>Einasto
+      <value>einasto
       <parameter>
 	<name>treeNodeMethodDarkMatterProfile</name>
 	<value>scaleShape</value>
@@ -336,8 +336,8 @@
   <parameters>
     <parameter>
       <name>virialDensityContrastMethod</name>
-      <value>sphericalTopHat</value>
-      <value>Bryan-Norman1998</value>
+      <value>sphericalCollapseMatterLambda</value>
+      <value>bryanNorman1998</value>
       <value>fixed</value>
       <value>friendsOfFriends</value>
     </parameter>
@@ -915,7 +915,7 @@
     </parameter>
     <parameter>
       <name>virialDensityContrastMethod</name>
-      <value>sphericalTopHatDarkEnergy</value>
+      <value>sphericalCollapseMatterDE</value>
     </parameter>
     <parameter>
       <name>virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt</name>

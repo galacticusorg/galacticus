@@ -157,9 +157,9 @@ module Node_Component_Disk_Exponential
 
 contains
 
-  !# <mergerTreePreTreeConstructionTask>
+  !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Disk_Exponential_Initialize</unitName>
-  !# </mergerTreePreTreeConstructionTask>
+  !# </nodeComponentInitializationTask>
   subroutine Node_Component_Disk_Exponential_Initialize()
     !% Initializes the tree node exponential disk methods module.
     use Input_Parameters
@@ -320,6 +320,7 @@ contains
     class           (nodeComponentDisk )               , pointer :: thisDiskComponent
     class           (nodeComponentBasic)               , pointer :: thisBasicComponent
     class           (nodeComponentSpin )               , pointer :: thisSpin
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                    , parameter              :: angularMomentumTolerance=1.0d-2
     double precision                    , save                   :: fractionalErrorMaximum  =0.0d0
     double precision                                             :: diskMass                       , fractionalError, &
@@ -390,6 +391,7 @@ contains
 
        end if
        ! Trap negative angular momentum.
+       darkMatterHaloScale_ => darkMatterHaloScale()
        if (thisDiskComponent%angularMomentum() < 0.0d0) then
           thisSpin => thisNode%spin()
           if      (                                             &
@@ -408,8 +410,8 @@ contains
                &    )                                          &
                &  <                                            &
                &    angularMomentumTolerance                   &
-               &   *Dark_Matter_Halo_Virial_Radius  (thisnode) &
-               &   *Dark_Matter_Halo_Virial_Velocity(thisnode) &
+               &   *darkMatterHaloScale_%virialRadius  (thisnode) &
+               &   *darkMatterHaloScale_%virialVelocity(thisnode) &
                &   *thisSpin%spin()                            &
                & ) then
                 call thisDiskComponent%angularMomentumSet(0.0d0)
@@ -421,8 +423,8 @@ contains
                 message=message//char(10)//' -> stellar mass           = '//trim(valueString)
                 write (valueString,'(e12.6)') thisDiskComponent%massGas        ()
                 message=message//char(10)//' -> gas mass               = '//trim(valueString)
-                write (valueString,'(e12.6)')  Dark_Matter_Halo_Virial_Radius  (thisnode) &
-                     &                  *Dark_Matter_Halo_Virial_Velocity(thisnode) &
+                write (valueString,'(e12.6)')  darkMatterHaloScale_%virialRadius  (thisnode) &
+                     &                  *darkMatterHaloScale_%virialVelocity(thisnode) &
                      &                  *thisSpin%spin()
                 message=message//char(10)//' -> angular momentum scale = '//trim(valueString)
                 call Galacticus_Error_Report(                                               &
@@ -497,6 +499,7 @@ contains
     class           (nodeComponentDisk           )               , pointer :: thisDisk
     class           (nodeComponentSpheroid       )               , pointer :: thisSpheroid
     class           (nodeComponentHotHalo        )               , pointer :: thisHotHalo
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     logical                                       , intent(inout)          :: interrupt
     procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedureReturn
     procedure       (Interrupt_Procedure_Template)               , pointer :: interruptProcedure
@@ -661,7 +664,8 @@ contains
              call thisSpheroid%starFormationHistoryRate(+historyTransferRate,interrupt,interruptProcedure)
           end if
           ! Additional external torque.
-          if (thisSpheroid%angularMomentum() < (thisSpheroid%massGas()+thisSpheroid%massStellar())*Dark_Matter_Halo_Virial_Radius(thisNode)*Dark_Matter_Halo_Virial_Velocity(thisNode) .and. thisSpheroid%radius() < Dark_Matter_Halo_Virial_Radius(thisNode)) then
+          darkMatterHaloScale_ => darkMatterHaloScale()
+          if (thisSpheroid%angularMomentum() < (thisSpheroid%massGas()+thisSpheroid%massStellar())*darkMatterHaloScale_%virialRadius(thisNode)*darkMatterHaloScale_%virialVelocity(thisNode) .and. thisSpheroid%radius() < darkMatterHaloScale_%virialRadius(thisNode)) then
              call thisSpheroid%angularMomentumRate(+barInstabilitySpecificTorque*(thisSpheroid%massGas()+thisSpheroid%massStellar()),interrupt,interruptProcedure)
           end if
        end if
@@ -946,6 +950,7 @@ contains
     type            (treeNode         ), intent(inout), pointer :: thisNode
     logical                            , intent(inout)          :: galaxyIsPhysicallyPlausible
     class           (nodeComponentDisk)               , pointer :: thisDiskComponent
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                            :: angularMomentumScale
 
     ! Return immediately if our method is not selected.
@@ -963,12 +968,13 @@ contains
                 &  ) then
               galaxyIsPhysicallyPlausible=.false.
            else
+              darkMatterHaloScale_ => darkMatterHaloScale()
               angularMomentumScale=(                                            &
                    &                 thisDiskComponent%massStellar()            &
                    &                +thisDiskComponent%massGas    ()            &
                    &               )                                            &
-                   &               * Dark_Matter_Halo_Virial_Radius  (thisNode) &
-                   &               * Dark_Matter_Halo_Virial_Velocity(thisNode)
+                   &               * darkMatterHaloScale_%virialRadius  (thisNode) &
+                   &               * darkMatterHaloScale_%virialVelocity(thisNode)
               if     (                                                                                   &
                    &   thisDiskComponent%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
                    &  .or.                                                                               &

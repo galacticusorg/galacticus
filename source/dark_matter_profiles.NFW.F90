@@ -15,266 +15,306 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements NFW halo profiles.
+  !% An implementation of \cite{navarro_universal_1997} dark matter halo profiles.
 
-module Dark_Matter_Profiles_NFW
-  !% Implements NFW halo profiles.
-  use Galacticus_Nodes
-  use FGSL
-  use Kind_Numbers
+  !# <darkMatterProfile name="darkMatterProfileNFW">
+  !#  <description>\cite{navarro_universal_1997} dark matter halo profiles</description>
+  !# </darkMatterProfile>
+
+  use Dark_Matter_Halo_Scales
   use Tables
-  implicit none
-  private
-  public :: Dark_Matter_Profile_NFW_Initialize, Dark_Matter_Profiles_NFW_State_Store, Dark_Matter_Profiles_NFW_State_Retrieve,&
-       & Dark_Matter_Profile_NFW_Reset
+  use Kind_Numbers
 
-  ! Minimum and maximum concentrations to tabulate.
-  double precision                                        :: concentrationMinimum                   =1.0d0
-  double precision                                        :: concentrationMaximum                   =20.0d0
-  ! Minimum and maximum radii to tabulate.
-  double precision                                        :: freefallRadiusMinimum                  =1.0d-3 , radiusMinimum                            =1.0d-3
-  double precision                                        :: freefallRadiusMaximum                  =1.0d+2 , radiusMaximum                            =1.0d+2
-  double precision                                        :: freefallTimeMinimum                            , specificAngularMomentumMinimum
-  double precision                                        :: freefallTimeMaximum                            , specificAngularMomentumMaximum
+  type, extends(darkMatterProfileClass) :: darkMatterProfileNFW
+     !% A dark matter halo profile class implementing \cite{navarro_universal_1997} dark matter halos.
+     private
+     ! Minimum and maximum concentrations to tabulate.
+     double precision                                        :: concentrationMinimum                   , concentrationMaximum
+     ! Minimum and maximum radii to tabulate.
+     double precision                                        :: freefallRadiusMinimum                  , radiusMinimum
+     double precision                                        :: freefallRadiusMaximum                  , radiusMaximum
+     double precision                                        :: freefallTimeMinimum                    , specificAngularMomentumMinimum
+     double precision                                        :: freefallTimeMaximum                    , specificAngularMomentumMaximum
+     ! Tables of NFW properties.
+     logical                                                 :: nfwFreefallTableInitialized            , nfwInverseTableInitialized       , &
+          &                                                     nfwTableInitialized                    
+     integer                                                 :: nfwFreefallTableNumberPoints           , nfwInverseTableNumberPoints      , &
+          &                                                     nfwTableNumberPoints
+     type            (table1DLogarithmicLinear)              :: nfwConcentrationTable
+     ! Tables.
+     type            (table1DLogarithmicLinear)              :: nfwFreeFall                            , nfwSpecificAngularMomentum
+     class           (table1D                 ), allocatable :: nfwFreefallInverse                     , nfwSpecificAngularMomentumInverse
+     ! Module variables used in integrations.
+     double precision                                        :: concentrationParameter                 , radiusStart
+     ! Record of unique ID of node which we last computed results for.
+     integer         (kind=kind_int8          )              :: lastUniqueID
+     ! Record of whether or not quantities have been computed.
+     logical                                                 :: specificAngularMomentumScalingsComputed
+     ! Stored values of computed quantities.
+     double precision                                        :: specificAngularMomentumLengthScale     , specificAngularMomentumScale     , &
+          &                                                     concentrationPrevious                  , nfwNormalizationFactorPrevious
+     ! Pointer to object setting halo scales.
+     class(darkMatterHaloScaleClass           ), pointer     :: scale
+   contains
+     final                                             nfwDestructor
+     procedure :: calculationReset                  => nfwCalculationReset
+     procedure :: stateStore                        => nfwStateStore
+     procedure :: stateRestore                      => nfwStateRestore
+     procedure :: density                           => nfwDensity
+     procedure :: enclosedMass                      => nfwEnclosedMass
+     procedure :: potential                         => nfwPotential
+     procedure :: circularVelocity                  => nfwCircularVelocity
+     procedure :: circularVelocityMaximum           => nfwCircularVelocityMaximum
+     procedure :: radiusFromSpecificAngularMomentum => nfwRadiusFromSpecificAngularMomentum
+     procedure :: rotationNormalization             => nfwRotationNormalization
+     procedure :: energy                            => nfwEnergy
+     procedure :: energyGrowthRate                  => nfwEnergyGrowthRate
+     procedure :: kSpace                            => nfwKSpace
+     procedure :: freefallRadius                    => nfwFreefallRadius
+     procedure :: freefallRadiusIncreaseRate        => nfwFreefallRadiusIncreaseRate
+     procedure :: profileEnergy                     => nfwProfileEnergy
+     procedure :: specificAngularMomentumScaleFree  => nfwSpecificAngularMomentumScaleFree
+     procedure :: angularMomentumScaleFree          => nfwAngularMomentumScaleFree
+     procedure :: enclosedMassScaleFree             => nfwEnclosedMassScaleFree
+     procedure :: densityScaleFree                  => nfwDensityScaleFree
+     procedure :: tabulate                          => nfwTabulate
+     procedure :: inverseAngularMomentum            => nfwInverseAngularMomentum
+     procedure :: freefallTabulate                  => nfwFreefallTabulate
+     procedure :: freefallTimeScaleFree             => nfwFreefallTimeScaleFree
+  end type darkMatterProfileNFW
+
+  interface darkMatterProfileNFW
+     !% Constructors for the {\tt nfw} dark matter halo profile class.
+     module procedure nfwDefaultConstructor
+     module procedure nfwConstructor
+  end interface darkMatterProfileNFW
+
   ! Number of points per decade of concentration in NFW tabulations.
-  integer                                   , parameter   :: nfwTablePointsPerDecade                =100
-  integer                                   , parameter   :: nfwInverseTablePointsPerDecade         =100
-  integer                                   , parameter   :: nfwFreefallTablePointsPerDecade        =100
-  ! Tables of NFW properties.
-  logical                                                 :: nfwFreefallTableInitialized            =.false., nfwInverseTableInitialized               =.false., &
-       &                                                     nfwTableInitialized                    =.false.
-  integer                                                 :: nfwFreefallTableNumberPoints                   , nfwInverseTableNumberPoints                      , &
-       &                                                     nfwTableNumberPoints
-  integer                                   , parameter   :: nfwConcentrationEnergyIndex            =1      , nfwConcetrationRotationNormalizationIndex=2
-  type            (table1DLogarithmicLinear)              :: nfwConcentrationTable
+  integer, parameter   :: nfwTablePointsPerDecade        =100
+  integer, parameter   :: nfwInverseTablePointsPerDecade =100
+  integer, parameter   :: nfwFreefallTablePointsPerDecade=100
+  ! Indices for tabulated quantities.
+  integer, parameter   :: nfwConcentrationEnergyIndex    =  1, nfwConcetrationRotationNormalizationIndex=2
 
-  ! Tables.
-  type            (table1DLogarithmicLinear)              :: nfwFreeFall                                    , nfwSpecificAngularMomentum
-  class           (table1D                 ), allocatable :: nfwFreefallInverse                             , nfwSpecificAngularMomentumInverse
-
-  ! Module variables used in integrations.
-  double precision                                        :: concentrationParameter                         , radiusStart
-
-  ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8          )              :: lastUniqueID                           =-1
-  !$omp threadprivate(lastUniqueID)
-  ! Record of whether or not quantities have been computed.
-  logical                                                 :: specificAngularMomentumScalingsComputed=.false.
-  !$omp threadprivate(specificAngularMomentumScalingsComputed)
-  ! Stored values of computed quantities.
-  double precision                                        :: specificAngularMomentumLengthScale             , specificAngularMomentumScale
-  !$omp threadprivate(specificAngularMomentumLengthScale,specificAngularMomentumScale)
 contains
 
-  !# <darkMatterProfileMethod>
-  !#  <unitName>Dark_Matter_Profile_NFW_Initialize</unitName>
-  !# </darkMatterProfileMethod>
-  subroutine Dark_Matter_Profile_NFW_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Density_Get&
-       &,Dark_Matter_Profile_Energy_Get ,Dark_Matter_Profile_Energy_Growth_Rate_Get&
-       &,Dark_Matter_Profile_Rotation_Normalization_Get ,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get&
-       &,Dark_Matter_Profile_Circular_Velocity_Get ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get&
-       &,Dark_Matter_Profile_kSpace_Get,Dark_Matter_Profile_Freefall_Radius_Get &
-       &,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get)
-    !% Initializes the ``NFW'' halo profile module.
-    use ISO_Varying_String
+  function nfwDefaultConstructor()
+    !% Default constructor for the {\tt nfw} dark matter halo profile class.
+    use Input_Parameters
+    implicit none
+    type(darkMatterProfileNFW), target :: nfwDefaultConstructor
+
+    nfwDefaultConstructor=nfwConstructor(darkMatterHaloScale())
+    return
+  end function nfwDefaultConstructor
+
+  function nfwConstructor(scale)
+    !% Generic constructor for the {\tt nfw} dark matter halo profile class.
     use Galacticus_Error
     implicit none
-    type     (varying_string                                       ), intent(in   )          :: darkMatterProfileMethod
-    procedure(Dark_Matter_Profile_Density_NFW                      ), intent(inout), pointer :: Dark_Matter_Profile_Density_Get
-    procedure(Dark_Matter_Profile_Energy_NFW                       ), intent(inout), pointer :: Dark_Matter_Profile_Energy_Get
-    procedure(Dark_Matter_Profile_Energy_Growth_Rate_NFW           ), intent(inout), pointer :: Dark_Matter_Profile_Energy_Growth_Rate_Get
-    procedure(Dark_Matter_Profile_Rotation_Normalization_NFW       ), intent(inout), pointer :: Dark_Matter_Profile_Rotation_Normalization_Get
-    procedure(Radius_from_Specific_Angular_Momentum_NFW            ), intent(inout), pointer :: Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get
-    procedure(Dark_Matter_Profile_Circular_Velocity_NFW            ), intent(inout), pointer :: Dark_Matter_Profile_Circular_Velocity_Get
-    procedure(Dark_Matter_Profile_Potential_NFW                    ), intent(inout), pointer :: Dark_Matter_Profile_Potential_Get
-    procedure(Dark_Matter_Profile_Enclosed_Mass_NFW                ), intent(inout), pointer :: Dark_Matter_Profile_Enclosed_Mass_Get
-    procedure(Dark_Matter_Profile_kSpace_NFW                       ), intent(inout), pointer :: Dark_Matter_Profile_kSpace_Get
-    procedure(Dark_Matter_Profile_Freefall_Radius_NFW              ), intent(inout), pointer :: Dark_Matter_Profile_Freefall_Radius_Get
-    procedure(Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW), intent(inout), pointer :: Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get
-
-    if (darkMatterProfileMethod == 'NFW') then
-       Dark_Matter_Profile_Density_Get                               => Dark_Matter_Profile_Density_NFW
-       Dark_Matter_Profile_Energy_Get                                => Dark_Matter_Profile_Energy_NFW
-       Dark_Matter_Profile_Energy_Growth_Rate_Get                    => Dark_Matter_Profile_Energy_Growth_Rate_NFW
-       Dark_Matter_Profile_Rotation_Normalization_Get                => Dark_Matter_Profile_Rotation_Normalization_NFW
-       Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get => Radius_from_Specific_Angular_Momentum_NFW
-       Dark_Matter_Profile_Circular_Velocity_Get                     => Dark_Matter_Profile_Circular_Velocity_NFW
-       Dark_Matter_Profile_Potential_Get                             => Dark_Matter_Profile_Potential_NFW
-       Dark_Matter_Profile_Enclosed_Mass_Get                         => Dark_Matter_Profile_Enclosed_Mass_NFW
-       Dark_Matter_Profile_kSpace_Get                                => Dark_Matter_Profile_kSpace_NFW
-       Dark_Matter_Profile_Freefall_Radius_Get                       => Dark_Matter_Profile_Freefall_Radius_NFW
-       Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get         => Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW
-        ! Ensure that the dark matter profile component supports a "scale" property. Since we've been called with a treeNode to
-       ! process, it should have been initialized by now.
-       if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                         &
-            & call Galacticus_Error_Report                                                                                   &
-            &      (                                                                                                         &
-            &       'Dark_Matter_Profile_NFW_Initialize'                                                                   , &
-            &       'NFW dark matter profile requires a dark matter profile component with a gettable "scale" property.'//   &
-            &       Galacticus_Component_List(                                                                               &
-            &                                 'darkMatterProfile'                                                          , &
-            &                                 defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)  &
-            &                                )                                                                               &
-            &      )
-       ! Initialize the tabulations.
-       call Dark_Matter_Profile_NFW_Tabulate
-       call Dark_Matter_Profile_NFW_Inverse_Angular_Momentum
-    end if
+    type (darkMatterProfileNFW    ), target :: nfwConstructor
+    class(darkMatterHaloScaleClass), target :: scale
+ 
+    nfwConstructor%concentrationPrevious       =  -1.0d+0
+    nfwConstructor%concentrationMinimum        =   1.0d+0
+    nfwConstructor%concentrationMaximum        =  20.0d+0
+    nfwConstructor%freefallRadiusMinimum       =   1.0d-3 
+    nfwConstructor%radiusMinimum               =   1.0d-3
+    nfwConstructor%freefallRadiusMaximum       =   1.0d+2  
+    nfwConstructor%radiusMaximum               =   1.0d+2
+    nfwConstructor%nfwFreefallTableInitialized =  .false.
+    nfwConstructor%nfwInverseTableInitialized  =  .false.
+    nfwConstructor%nfwTableInitialized         =  .false.
+    nfwConstructor%lastUniqueID                =  -1
+    nfwConstructor%scale                       => scale
+    ! Ensure that the dark matter profile component supports a "scale" property.
+    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                         &
+         & call Galacticus_Error_Report                                                                                   &
+         &      (                                                                                                         &
+         &       'nfwConstructor'                                                                                       , &
+         &       'NFW dark matter profile requires a dark matter profile component with a gettable "scale" property.'//   &
+         &       Galacticus_Component_List(                                                                               &
+         &                                 'darkMatterProfile'                                                          , &
+         &                                 defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)  &
+         &                                )                                                                               &
+         &      )
+    ! Initialize the tabulations.
+    call nfwConstructor%tabulate              ()
+    call nfwConstructor%inverseAngularMomentum()
     return
-  end subroutine Dark_Matter_Profile_NFW_Initialize
-
-  !# <calculationResetTask>
-  !# <unitName>Dark_Matter_Profile_NFW_Reset</unitName>
-  !# </calculationResetTask>
-  subroutine Dark_Matter_Profile_NFW_Reset(thisNode)
-    !% Reset the cooling radius calculation.
+  end function nfwConstructor
+  
+  subroutine nfwDestructor(self)
+    !% Destructor for the {\tt nfw} dark matter halo profile class.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(darkMatterProfileNFW), intent(inout) :: self
 
-    specificAngularMomentumScalingsComputed=.false.
-    lastUniqueID                           =thisNode%uniqueID()
+    if (self%nfwFreefallTableInitialized) then
+       call self%nfwFreeFall                      %destroy()
+       call self%nfwFreeFallInverse               %destroy()
+       deallocate(self%nfwFreefallInverse)
+    end if
+    if (self%nfwInverseTableInitialized ) then
+       call self%nfwSpecificAngularMomentum       %destroy()
+       call self%nfwSpecificAngularMomentumInverse%destroy()
+    end if
+    if (self%nfwTableInitialized        ) then
+       call self%nfwConcentrationTable            %destroy()
+    end if
+    if (self%scale%isFinalizable()) deallocate(self%scale)
     return
-  end subroutine Dark_Matter_Profile_NFW_Reset
+  end subroutine nfwDestructor
+  
+  subroutine nfwCalculationReset(self,thisNode)
+    !% Reset the dark matter profile calculation.
+    implicit none
+    class(darkMatterProfileNFW), intent(inout)          :: self
+    type (treeNode            ), intent(inout), pointer :: thisNode
 
-  subroutine Dark_Matter_Profile_NFW_Tabulate(concentration)
+    self%specificAngularMomentumScalingsComputed=.false.
+    self%lastUniqueID                           =thisNode%uniqueID()
+    call self%scale%calculationReset(thisNode)
+    return
+  end subroutine nfwCalculationReset
+
+  subroutine nfwTabulate(self,concentration)
     !% Tabulate properties of the NFW halo profile which must be computed numerically.
     implicit none
-    double precision, intent(in   ), optional :: concentration
-    integer                                   :: iConcentration
-    logical                                   :: retabulate
-    double precision                          :: tableConcentration
+    class           (darkMatterProfileNFW), intent(inout)           :: self
+    double precision                      , intent(in   ), optional :: concentration
+    integer                                                         :: iConcentration
+    logical                                                         :: retabulate
+    double precision                                                :: tableConcentration
 
-    !$omp critical (NFW_Interpolation)
-    retabulate=.not.nfwTableInitialized
+    retabulate=.not.self%nfwTableInitialized
     if (present(concentration)) then
-       if (concentration < concentrationMinimum) then
-          concentrationMinimum=0.5d0*concentration
+       if (concentration < self%concentrationMinimum) then
+          self%concentrationMinimum=0.5d0*concentration
           retabulate=.true.
        end if
-       if (concentration > concentrationMaximum) then
-          concentrationMaximum=2.0d0*concentration
+       if (concentration > self%concentrationMaximum) then
+          self%concentrationMaximum=2.0d0*concentration
           retabulate=.true.
        end if
     end if
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       nfwTableNumberPoints=int(log10(concentrationMaximum/concentrationMinimum)*dble(nfwTablePointsPerDecade))+1
-       call nfwConcentrationTable%destroy()
-       call nfwConcentrationTable%create(concentrationMinimum,concentrationMaximum,nfwTableNumberPoints,2)
+       self%nfwTableNumberPoints=int(log10(self%concentrationMaximum/self%concentrationMinimum)*dble(nfwTablePointsPerDecade))+1
+       call self%nfwConcentrationTable%destroy()
+       call self%nfwConcentrationTable%create(self%concentrationMinimum,self%concentrationMaximum,self%nfwTableNumberPoints,2)
        ! Loop over concentrations and populate tables.
-       do iConcentration=1,nfwTableNumberPoints
-          tableConcentration=nfwConcentrationTable%x(iConcentration)
-          call nfwConcentrationTable%populate(NFW_Profile_Energy(tableConcentration),iConcentration,table&
-               &=nfwConcentrationEnergyIndex)
-          call nfwConcentrationTable%populate(tableConcentration /Angular_Momentum_NFW_Scale_Free(tableConcentration)&
-               &,iConcentration,table=nfwConcetrationRotationNormalizationIndex)
+       do iConcentration=1,self%nfwTableNumberPoints
+          tableConcentration=self%nfwConcentrationTable%x(iConcentration)
+          call self%nfwConcentrationTable%populate(                   self%profileEnergy           (tableConcentration),iConcentration,table=nfwConcentrationEnergyIndex              )
+          call self%nfwConcentrationTable%populate(tableConcentration/self%angularMomentumScaleFree(tableConcentration),iConcentration,table=nfwConcetrationRotationNormalizationIndex)
        end do
        ! Specify that tabulation has been made.
-       nfwTableInitialized=.true.
+       self%nfwTableInitialized=.true.
     end if
-    !$omp end critical (NFW_Interpolation)
     return
-  end subroutine Dark_Matter_Profile_NFW_Tabulate
+  end subroutine nfwTabulate
 
-  subroutine Dark_Matter_Profile_NFW_Inverse_Angular_Momentum(specificAngularMomentum)
+  subroutine nfwInverseAngularMomentum(self,specificAngularMomentum)
     !% Tabulates the specific angular momentum vs. radius in an NFW profile for rapid inversion.
     implicit none
-    double precision, intent(in   ), optional :: specificAngularMomentum
-    integer                                   :: iRadius
-    logical                                   :: retabulate
+    class           (darkMatterProfileNFW), intent(inout)           :: self
+    double precision                      , intent(in   ), optional :: specificAngularMomentum
+    integer                                                         :: iRadius
+    logical                                                         :: retabulate
 
-    !$omp critical (NFW_Inverse_Interpolation)
-    retabulate=.not.nfwInverseTableInitialized
+    retabulate=.not.self%nfwInverseTableInitialized
     ! If the table has not yet been made, compute and store the specific angular momenta corresponding to the minimum and maximum
     ! radii that will be tabulated by default.
     if (retabulate) then
-       specificAngularMomentumMinimum=Specific_Angular_Momentum_NFW_Scale_Free(radiusMinimum)
-       specificAngularMomentumMaximum=Specific_Angular_Momentum_NFW_Scale_Free(radiusMaximum)
+       self%specificAngularMomentumMinimum=self%specificAngularMomentumScaleFree(self%radiusMinimum)
+       self%specificAngularMomentumMaximum=self%specificAngularMomentumScaleFree(self%radiusMaximum)
     end if
     if (present(specificAngularMomentum)) then
-       do while (specificAngularMomentum < specificAngularMomentumMinimum)
-          radiusMinimum=0.5d0*radiusMinimum
-          specificAngularMomentumMinimum=Specific_Angular_Momentum_NFW_Scale_Free(radiusMinimum)
+       do while (specificAngularMomentum < self%specificAngularMomentumMinimum)
+          self%radiusMinimum                 =0.5d0*self%radiusMinimum
+          self%specificAngularMomentumMinimum=self%specificAngularMomentumScaleFree(self%radiusMinimum)
           retabulate=.true.
        end do
-       do while (specificAngularMomentum > specificAngularMomentumMaximum)
-          radiusMaximum=2.0d0*radiusMaximum
-          specificAngularMomentumMaximum=Specific_Angular_Momentum_NFW_Scale_Free(radiusMaximum)
+       do while (specificAngularMomentum > self%specificAngularMomentumMaximum)
+          self%radiusMaximum                 =2.0d0*self%radiusMaximum
+          self%specificAngularMomentumMaximum=self%specificAngularMomentumScaleFree(self%radiusMaximum)
           retabulate=.true.
        end do
     end if
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       nfwInverseTableNumberPoints=int(log10(radiusMaximum/radiusMinimum)*dble(nfwInverseTablePointsPerDecade))+1
+       self%nfwInverseTableNumberPoints=int(log10(self%radiusMaximum/self%radiusMinimum)*dble(nfwInverseTablePointsPerDecade))+1
        ! Create a range of radii.
-       call nfwSpecificAngularMomentum%destroy(                                                       )
-       call nfwSpecificAngularMomentum%create (radiusMinimum,radiusMaximum,nfwInverseTableNumberPoints)
+       call self%nfwSpecificAngularMomentum%destroy(                                                       )
+       call self%nfwSpecificAngularMomentum%create (self%radiusMinimum,self%radiusMaximum,self%nfwInverseTableNumberPoints)
        ! Loop over radii and populate tables.
-       do iRadius=1,nfwInverseTableNumberPoints
-          call nfwSpecificAngularMomentum%populate(                                                                                 &
-               &                                   Specific_Angular_Momentum_NFW_Scale_Free(nfwSpecificAngularMomentum%x(iRadius)), &
-               &                                   iRadius                                                                          &
-               &                                  )
+       do iRadius=1,self%nfwInverseTableNumberPoints
+          call self%nfwSpecificAngularMomentum%populate(                                                                                   &
+               &                                        self%specificAngularMomentumScaleFree(self%nfwSpecificAngularMomentum%x(iRadius)), &
+               &                                        iRadius                                                                            &
+               &                                       )
        end do
-       call nfwSpecificAngularMomentum%reverse(nfwSpecificAngularMomentumInverse)
+       call self%nfwSpecificAngularMomentum%reverse(self%nfwSpecificAngularMomentumInverse)
        ! Specify that tabulation has been made.
-       nfwInverseTableInitialized=.true.
+       self%nfwInverseTableInitialized=.true.
     end if
-    !$omp end critical (NFW_Inverse_Interpolation)
     return
-  end subroutine Dark_Matter_Profile_NFW_Inverse_Angular_Momentum
+  end subroutine nfwInverseAngularMomentum
 
-  double precision function Dark_Matter_Profile_Density_NFW(thisNode,radius)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given
+  double precision function nfwDensity(self,node,radius)
+    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt node} at the given {\tt radius} (given
     !% in units of Mpc).
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: radius
     class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
     double precision                                                         :: radiusOverScaleRadius         , scaleRadius, &
          &                                                                      virialRadiusOverScaleRadius
 
-    thisBasicComponent             => thisNode%basic            (                 )
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+    thisBasicComponent             => node%basic            (                 )
+    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                    =thisDarkMatterProfileComponent%scale()
-    radiusOverScaleRadius          =radius                                  /scaleRadius
-    virialRadiusOverScaleRadius    =Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
-    Dark_Matter_Profile_Density_NFW=Density_NFW_Scale_Free(radiusOverScaleRadius,virialRadiusOverScaleRadius)&
+    radiusOverScaleRadius          =radius                           /scaleRadius
+    virialRadiusOverScaleRadius    =self%scale%virialRadius(node)/scaleRadius
+    nfwDensity=self%densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius)&
          &*thisBasicComponent%mass()/scaleRadius**3
     return
-  end function Dark_Matter_Profile_Density_NFW
+  end function nfwDensity
 
-  double precision function Dark_Matter_Profile_Enclosed_Mass_NFW(thisNode,radius)
-    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
+  double precision function nfwEnclosedMass(self,node,radius)
+    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt node} at the given {\tt radius} (given in
     !% units of Mpc).
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: radius
     class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
     double precision                                                         :: radiusOverScaleRadius         , scaleRadius, &
          &                                                                      virialRadiusOverScaleRadius
 
-    thisBasicComponent             => thisNode%basic            (                 )
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+    thisBasicComponent             => node%basic            (                 )
+    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                    =thisDarkMatterProfileComponent%scale()
-    radiusOverScaleRadius          =radius                                  /scaleRadius
-    virialRadiusOverScaleRadius    =Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
-    Dark_Matter_Profile_Enclosed_Mass_NFW=Enclosed_Mass_NFW_Scale_Free(radiusOverScaleRadius,virialRadiusOverScaleRadius) &
+    radiusOverScaleRadius          =radius                       /scaleRadius
+    virialRadiusOverScaleRadius    =self%scale%virialRadius(node)/scaleRadius
+    nfwEnclosedMass                =self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius) &
          &*thisBasicComponent%mass()
     return
-  end function Dark_Matter_Profile_Enclosed_Mass_NFW
+  end function nfwEnclosedMass
 
-  double precision function Dark_Matter_Profile_Potential_NFW(thisNode,radius,status)
-    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
+  double precision function nfwPotential(self,node,radius,status)
+    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt node} at the given {\tt radius} (given in
     !% units of Mpc).
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profiles_Error_Codes
     implicit none
-    type            (treeNode                      ), intent(inout), pointer  :: thisNode
+    class           (darkMatterProfileNFW          ), intent(inout)           :: self
+    type            (treeNode                      ), intent(inout), pointer  :: node
     double precision                                , intent(in   )           :: radius
     integer                                         , intent(  out), optional :: status
     class           (nodeComponentDarkMatterProfile)               , pointer  :: thisDarkMatterProfileComponent
@@ -283,9 +323,9 @@ contains
          &                                                                       virialRadiusOverScaleRadius
 
     if (present(status)) status=darkMatterProfileSuccess
-    thisDarkMatterProfileComponent   => thisNode%darkMatterProfile(autoCreate=.true.)
-    radiusOverScaleRadius            =radius                                  /thisDarkMatterProfileComponent%scale()
-    virialRadiusOverScaleRadius      =Dark_Matter_Halo_Virial_Radius(thisNode)/thisDarkMatterProfileComponent%scale()
+    thisDarkMatterProfileComponent   => node%darkMatterProfile(autoCreate=.true.)
+    radiusOverScaleRadius            =radius                           /thisDarkMatterProfileComponent%scale()
+    virialRadiusOverScaleRadius      =self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
     if (radiusOverScaleRadius < radiusSmall) then
        ! Use a series solution for very small radii.
        radiusTerm=1.0d0-0.5d0*radiusOverScaleRadius
@@ -293,170 +333,182 @@ contains
        ! Use the full expression for larger radii.
        radiusTerm=log(1.0d0+radiusOverScaleRadius)/radiusOverScaleRadius
     end if
-    Dark_Matter_Profile_Potential_NFW=(-1.0d0-virialRadiusOverScaleRadius*(radiusTerm-log(1.0d0+virialRadiusOverScaleRadius)&
+    nfwPotential=(-1.0d0-virialRadiusOverScaleRadius*(radiusTerm-log(1.0d0+virialRadiusOverScaleRadius)&
          &/virialRadiusOverScaleRadius)/(log(1.0d0 +virialRadiusOverScaleRadius)-virialRadiusOverScaleRadius/(1.0d0&
-         &+virialRadiusOverScaleRadius))) *Dark_Matter_Halo_Virial_Velocity(thisNode)**2
+         &+virialRadiusOverScaleRadius)))*self%scale%virialVelocity(node)**2
     return
-  end function Dark_Matter_Profile_Potential_NFW
+  end function nfwPotential
 
-  double precision function Dark_Matter_Profile_Circular_Velocity_NFW(thisNode,radius)
-    !% Returns the circular velocity (in km/s) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
-    !% units of Mpc). For an NFW halo this is independent of radius and therefore equal to the virial velocity.
+  double precision function nfwCircularVelocity(self,node,radius)
+    !% Returns the circular velocity (in km/s) in the dark matter profile of {\tt node} at the given {\tt radius} (given in
+    !% units of Mpc).
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: radius
+    class           (darkMatterProfileNFW), intent(inout)          :: self
+    type            (treeNode            ), intent(inout), pointer :: node
+    double precision                      , intent(in   )          :: radius
 
     if (radius > 0.0d0) then
-       Dark_Matter_Profile_Circular_Velocity_NFW=sqrt(gravitationalConstantGalacticus&
-            &*Dark_Matter_Profile_Enclosed_Mass_NFW(thisNode,radius)/radius)
+       nfwCircularVelocity=sqrt(gravitationalConstantGalacticus&
+            &*self%enclosedMass(node,radius)/radius)
     else
-       Dark_Matter_Profile_Circular_Velocity_NFW=0.0d0
+       nfwCircularVelocity=0.0d0
     end if
     return
-  end function Dark_Matter_Profile_Circular_Velocity_NFW
+  end function nfwCircularVelocity
 
-  double precision function Radius_from_Specific_Angular_Momentum_NFW(thisNode,specificAngularMomentum)
-    !% Returns the radius (in Mpc) in {\tt thisNode} at which a circular orbit has the given {\tt specificAngularMomentum} (given
+  double precision function nfwCircularVelocityMaximum(self,node)
+    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\tt node}.
+    use Numerical_Constants_Physical
+    implicit none
+    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), pointer :: node
+    ! The radius (in units of the scale radius) at which the rotation speed peaks in an NFW halo.
+    double precision                                , parameter              :: radiusMaximum=2.1625815870646097d0
+    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile
+    double precision                                                         :: scaleRadius
+
+    thisDarkMatterProfile      => node                 %darkMatterProfile(autoCreate=.true.                          )
+    scaleRadius                =  thisDarkMatterProfile%scale            (                                           )
+    nfwCircularVelocityMaximum =  self                 %circularVelocity (node             ,radiusMaximum*scaleRadius)
+    return
+  end function nfwCircularVelocityMaximum
+
+  double precision function nfwRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
+    !% Returns the radius (in Mpc) in {\tt node} at which a circular orbit has the given {\tt specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc). For an NFW halo, the circular velocity is constant (and therefore equal to the virial
     !% velocity). Therefore, $r = j/V_{\rm virial}$ where $j$(={\tt specificAngularMomentum}) is the specific angular momentum and
     !% $r$ the required radius.
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: specificAngularMomentum
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
     double precision                                                         :: specificAngularMomentumScaleFree
 
     ! Return immediately with zero radius for non-positive specific angular momenta.
     if (specificAngularMomentum <= 0.0d0) then
-       Radius_from_Specific_Angular_Momentum_NFW=0.0d0
+       nfwRadiusFromSpecificAngularMomentum=0.0d0
        return
     end if
-
     ! Check if node differs from previous one for which we performed calculations.
-    if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Profile_NFW_Reset(thisNode)
-
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Check if scalings are already computed. Compute and store if not.
-    if (.not.specificAngularMomentumScalingsComputed) then
+    if (.not.self%specificAngularMomentumScalingsComputed) then
        ! Flag that scale quantities are now computed.
-       specificAngularMomentumScalingsComputed=.true.
+       self%specificAngularMomentumScalingsComputed=.true.
 
        ! Get the dark matter profile.
-       thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+       thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
 
        ! Get the scale radius.
-       specificAngularMomentumLengthScale=thisDarkMatterProfileComponent%scale()
+       self%specificAngularMomentumLengthScale=thisDarkMatterProfileComponent%scale()
 
        ! Get the specific angular momentum scale.
-       specificAngularMomentumScale=specificAngularMomentumLengthScale*Dark_Matter_Profile_Circular_Velocity_NFW(thisNode&
-            &,specificAngularMomentumLengthScale)
+       self%specificAngularMomentumScale=self%specificAngularMomentumLengthScale*self%circularVelocity(node&
+            &,self%specificAngularMomentumLengthScale)
     end if
 
     ! Compute the specific angular momentum in scale free units (using the scale length for distances the sqrt(G M(r_scale) /
     ! r_scale) for velocities).
-    specificAngularMomentumScaleFree=specificAngularMomentum/specificAngularMomentumScale
+    specificAngularMomentumScaleFree=specificAngularMomentum/self%specificAngularMomentumScale
 
     ! Ensure that the interpolations exist and extend sufficiently far.
-    call Dark_Matter_Profile_NFW_Inverse_Angular_Momentum(specificAngularMomentumScaleFree)
+    call self%inverseAngularMomentum(specificAngularMomentumScaleFree)
 
     ! Interpolate to get the dimensionless radius at which this specific angular momentum is found.
-    !$omp critical(NFW_Inverse_Interpolation)
-    Radius_from_Specific_Angular_Momentum_NFW=nfwSpecificAngularMomentumInverse%interpolate(specificAngularMomentumScaleFree)
-    !$omp end critical(NFW_Inverse_Interpolation)
+    nfwRadiusFromSpecificAngularMomentum=self%nfwSpecificAngularMomentumInverse%interpolate(specificAngularMomentumScaleFree)
 
     ! Convert to a physical radius.
-    Radius_from_Specific_Angular_Momentum_NFW=Radius_from_Specific_Angular_Momentum_NFW*specificAngularMomentumLengthScale
+    nfwRadiusFromSpecificAngularMomentum=nfwRadiusFromSpecificAngularMomentum*self%specificAngularMomentumLengthScale
     return
-  end function Radius_from_Specific_Angular_Momentum_NFW
+  end function nfwRadiusFromSpecificAngularMomentum
 
-  double precision function Dark_Matter_Profile_Rotation_Normalization_NFW(thisNode)
+  double precision function nfwRotationNormalization(self,node)
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), pointer :: node
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
     double precision                                                         :: concentration
 
     ! Get components.
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/thisDarkMatterProfileComponent%scale()
+    concentration=self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
-    call Dark_Matter_Profile_NFW_Tabulate(concentration)
+    call self%tabulate(concentration)
 
     ! Find the energy by interpolation.
-    !$omp critical(NFW_Interpolation)
-    Dark_Matter_Profile_Rotation_Normalization_NFW=nfwConcentrationTable%interpolate(concentration,table&
-         &=nfwConcentrationEnergyIndex)/Dark_Matter_Halo_Virial_Radius(thisNode)
-    !$omp end critical(NFW_Interpolation)
+    nfwRotationNormalization=self%nfwConcentrationTable%interpolate(concentration,table&
+         &=nfwConcentrationEnergyIndex)/self%scale%virialRadius(node)
     return
-  end function Dark_Matter_Profile_Rotation_Normalization_NFW
+  end function nfwRotationNormalization
 
-  double precision function Dark_Matter_Profile_Energy_NFW(thisNode)
+  double precision function nfwEnergy(self,node)
     !% Return the energy of an NFW halo density profile.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), pointer :: node
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
     class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
     double precision                                                         :: concentration
 
     ! Get components.
-    thisBasicComponent             => thisNode%basic            (                 )
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+    thisBasicComponent             => node%basic            (                 )
+    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/thisDarkMatterProfileComponent%scale()
+    concentration=self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
-    call Dark_Matter_Profile_NFW_Tabulate(concentration)
+    call self%tabulate(concentration)
 
     ! Find the energy by interpolation.
-    !$omp critical(NFW_Interpolation)
-    Dark_Matter_Profile_Energy_NFW=nfwConcentrationTable%interpolate(concentration,table=nfwConcentrationEnergyIndex)&
-         &*thisBasicComponent%mass()*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
-    !$omp end critical(NFW_Interpolation)
+    nfwEnergy=self%nfwConcentrationTable%interpolate(concentration,table=nfwConcentrationEnergyIndex)&
+         &*thisBasicComponent%mass()*self%scale%virialVelocity(node)**2
     return
-  end function Dark_Matter_Profile_Energy_NFW
+  end function nfwEnergy
 
-  double precision function Dark_Matter_Profile_Energy_Growth_Rate_NFW(thisNode)
+  double precision function nfwEnergyGrowthRate(self,node)
     !% Return the rate of change of the energy of an NFW halo density profile.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), pointer :: node
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
     class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
     double precision                                                         :: concentration                 , energy, &
          &                                                                      energyGradient
 
     ! Get components.
-    thisBasicComponent             => thisNode%basic            (                 )
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+    thisBasicComponent             => node%basic            (                 )
+    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/thisDarkMatterProfileComponent%scale()
+    concentration=self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
-    call Dark_Matter_Profile_NFW_Tabulate(concentration)
+    call self%tabulate(concentration)
 
     ! Find the energy gradient by interpolation.
-    !$omp critical(NFW_Interpolation)
-    energy        =nfwConcentrationTable%interpolate        (concentration,table=nfwConcentrationEnergyIndex)
-    energyGradient=nfwConcentrationTable%interpolateGradient(concentration,table=nfwConcentrationEnergyIndex)
-    !$omp end critical(NFW_Interpolation)
+    energy        =self%nfwConcentrationTable%interpolate        (concentration,table=nfwConcentrationEnergyIndex)
+    energyGradient=self%nfwConcentrationTable%interpolateGradient(concentration,table=nfwConcentrationEnergyIndex)
 
-    Dark_Matter_Profile_Energy_Growth_Rate_NFW=Dark_Matter_Profile_Energy_NFW(thisNode)&
+    nfwEnergyGrowthRate=self%energy(node)&
          &*(thisBasicComponent%accretionRate()/thisBasicComponent%mass()+2.0d0 &
-         &*Dark_Matter_Halo_Virial_Velocity_Growth_Rate(thisNode)/Dark_Matter_Halo_Virial_Velocity(thisNode)+(energyGradient&
-         &*concentration/energy)*(Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode)/Dark_Matter_Halo_Virial_Radius(thisNode)&
+         &*self%scale%virialVelocityGrowthRate(node)/self%scale%virialVelocity(node)+(energyGradient&
+         &*concentration/energy)*(self%scale%virialRadiusGrowthRate(node)/self%scale%virialRadius(node)&
          &-thisDarkMatterProfileComponent%scaleGrowthRate()/thisDarkMatterProfileComponent%scale()))
 
     return
-  end function Dark_Matter_Profile_Energy_Growth_Rate_NFW
+  end function nfwEnergyGrowthRate
 
-  double precision function Angular_Momentum_NFW_Scale_Free(concentration)
+  double precision function nfwAngularMomentumScaleFree(self,concentration)
     !% Returns the total angular momentum (in units of the virial mass times scale radius times [assumed constant] rotation speed)
     !% in an NFW dark matter profile with given {\tt concentration}. This is given by:
     !% \begin{equation}
@@ -467,194 +519,199 @@ contains
     !% J = \left. \left[ 1 + c - 2 \ln (1+c) - {1 \over 1+c} \right] \right/ \left[ \ln(1+c)-{c\over 1+c} \right].
     !% \end{equation}
     implicit none
-    double precision, intent(in   ) :: concentration
+    class           (darkMatterProfileNFW), intent(inout) :: self
+    double precision                      , intent(in   ) :: concentration
 
-    Angular_Momentum_NFW_Scale_Free=(1.0d0+concentration-2.0d0*log(1.0d0+concentration)-1.0d0/(1.0d0+concentration)) &
+    nfwAngularMomentumScaleFree=(1.0d0+concentration-2.0d0*log(1.0d0+concentration)-1.0d0/(1.0d0+concentration)) &
          &/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))
     return
-  end function Angular_Momentum_NFW_Scale_Free
+  end function nfwAngularMomentumScaleFree
 
-  double precision function Specific_Angular_Momentum_NFW_Scale_Free(radius)
+  double precision function nfwSpecificAngularMomentumScaleFree(self,radius)
     !% Returns the specific angular momentum, normalized to unit scale length and unit velocity at the scale radius, at position
     !% {\tt radius} (in units of the scale radius) in an NFW profile.
     implicit none
-    double precision, intent(in   ) :: radius
+    class           (darkMatterProfileNFW), intent(inout) :: self
+    double precision                      , intent(in   ) :: radius
 
-    Specific_Angular_Momentum_NFW_Scale_Free=sqrt(radius*Enclosed_Mass_NFW_Scale_Free(radius,1.0d0))
+    nfwSpecificAngularMomentumScaleFree=sqrt(radius*self%enclosedMassScaleFree(radius,1.0d0))
     return
-  end function Specific_Angular_Momentum_NFW_Scale_Free
+  end function nfwSpecificAngularMomentumScaleFree
 
-  double precision function Enclosed_Mass_NFW_Scale_Free(radius,concentration)
+  double precision function nfwEnclosedMassScaleFree(self,radius,concentration)
     !% Returns the enclosed mass (in units of the virial mass) in an NFW dark matter profile with given {\tt concentration} at the
     !% given {\tt radius} (given in units of the scale radius).
     implicit none
-    double precision, intent(in   ) :: concentration                                                   , radius
-    double precision, parameter     :: minimumRadiusForExactSolution          =1.0d-7
+    class           (darkMatterProfileNFW), intent(inout) :: self
+    double precision                      , intent(in   ) :: concentration                                                   , radius
+    double precision                      , parameter     :: minimumRadiusForExactSolution          =1.0d-7
     ! Precomputed NFW normalization factor for unit concentration.
-    double precision, parameter     :: nfwNormalizationFactorUnitConcentration=1.0d0/(log(2.0d0)-0.5d0)
+    double precision                      , parameter     :: nfwNormalizationFactorUnitConcentration=1.0d0/(log(2.0d0)-0.5d0)
     ! Precomputed NFW normalization factor for unit radius.
-    double precision, parameter     :: nfwNormalizationFactorUnitRadius       =log(2.0d0)-0.5d0
-    double precision, save          :: concentrationPrevious                  =-1.0d0                  , nfwNormalizationFactorPrevious
-    !$omp threadprivate(concentrationPrevious,nfwNormalizationFactorPrevious)
+    double precision                      , parameter     :: nfwNormalizationFactorUnitRadius       =log(2.0d0)-0.5d0
+
     if (radius == 1.0d0) then
-       Enclosed_Mass_NFW_Scale_Free=nfwNormalizationFactorUnitRadius
+       nfwEnclosedMassScaleFree=nfwNormalizationFactorUnitRadius
     else if (radius >= minimumRadiusForExactSolution) then
-       Enclosed_Mass_NFW_Scale_Free=(log(1.0d0+radius)-radius/(1.0d0+radius))
+       nfwEnclosedMassScaleFree=(log(1.0d0+radius)-radius/(1.0d0+radius))
     else
-       Enclosed_Mass_NFW_Scale_Free=(radius**2)*(0.5d0+radius*(-2.0d0/3.0d0+radius*(0.75d0+radius*(-0.8d0))))
+       nfwEnclosedMassScaleFree=(radius**2)*(0.5d0+radius*(-2.0d0/3.0d0+radius*(0.75d0+radius*(-0.8d0))))
     end if
     ! Check if we were called with a different concentration compared to the previous call.
-    if (concentration /= concentrationPrevious) then
+    if (concentration /= self%concentrationPrevious) then
        ! We were, so recompute the normalization factor.
        if (concentration == 1.0d0) then
-          nfwNormalizationFactorPrevious=nfwNormalizationFactorUnitConcentration
+          self%nfwNormalizationFactorPrevious=nfwNormalizationFactorUnitConcentration
        else
-          nfwNormalizationFactorPrevious=1.0d0/(log(1.0d0+concentration)-concentration/(1.0d0 &
+          self%nfwNormalizationFactorPrevious=1.0d0/(log(1.0d0+concentration)-concentration/(1.0d0 &
                &+concentration))
        end if
-       concentrationPrevious=concentration
+       self%concentrationPrevious=concentration
     end if
-    Enclosed_Mass_NFW_Scale_Free=Enclosed_Mass_NFW_Scale_Free*nfwNormalizationFactorPrevious
+    nfwEnclosedMassScaleFree=nfwEnclosedMassScaleFree*self%nfwNormalizationFactorPrevious
     return
-  end function Enclosed_Mass_NFW_Scale_Free
+  end function nfwEnclosedMassScaleFree
 
-  double precision function Density_NFW_Scale_Free(radius,concentration)
+  double precision function nfwDensityScaleFree(self,radius,concentration)
     !% Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with
     !% given {\tt concentration} at the given {\tt radius} (given in units of the scale radius).
     use Numerical_Constants_Math
     implicit none
-    double precision, intent(in   ) :: concentration, radius
+    class           (darkMatterProfileNFW), intent(inout) :: self
+    double precision                      , intent(in   ) :: concentration, radius
 
-    Density_NFW_Scale_Free=1.0d0/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/radius/(1.0d0+radius)**2/4.0d0/Pi
+    nfwDensityScaleFree=1.0d0/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/radius/(1.0d0+radius)**2/4.0d0/Pi
     return
-  end function Density_NFW_Scale_Free
+  end function nfwDensityScaleFree
 
-  double precision function NFW_Profile_Energy(concentration)
+  double precision function nfwProfileEnergy(self,concentration)
     !% Computes the total energy of an NFW profile halo of given {\tt concentration} using the methods of
     !% \citeauthor{cole_hierarchical_2000}~(\citeyear{cole_hierarchical_2000}; their Appendix~A).
     use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Math
     use Numerical_Integration
     implicit none
+    class           (darkMatterProfileNFW      ), intent(inout) :: self
     double precision                            , intent(in   ) :: concentration
     type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: jeansEquationIntegral  , kineticEnergy  , &
-         &                                                         kineticEnergyIntegral  , potentialEnergy, &
-         &                                                         potentialEnergyIntegral, radiusMaximum  , &
-         &                                                         radiusMinimum
+    double precision                                            :: jeansEquationIntegral  , kineticEnergy         , &
+         &                                                         kineticEnergyIntegral  , potentialEnergy       , &
+         &                                                         potentialEnergyIntegral, radiusMaximum         , &
+         &                                                         radiusMinimum          , concentrationParameter
 
     ! Compute the potential energy.
-    radiusMinimum=0.0d0
-    radiusMaximum=concentration
+    radiusMinimum    =0.0d0
+    radiusMaximum    =concentration
     concentrationParameter=concentration
-    potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,Potential_Energy_Integrand&
+    potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,nfwPotentialEnergyIntegrand&
          &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
-
     ! Compute the velocity dispersion at the virial radius.
     radiusMinimum=concentration
     radiusMaximum=100.0d0*concentration
     concentrationParameter=concentration
-    jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,Jeans_Equation_Integrand&
+    jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,nfwJeansEquationIntegrand&
          &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
-
     ! Compute the kinetic energy.
     radiusMinimum=0.0d0
     radiusMaximum=concentration
     concentrationParameter=concentration
-    kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,Kinetic_Energy_Integrand&
+    kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,nfwKineticEnergyIntegrand&
          &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     kineticEnergy=2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
-
     ! Compute the total energy.
-    NFW_Profile_Energy=(potentialEnergy+kineticEnergy)*concentration
-
+    nfwProfileEnergy=(potentialEnergy+kineticEnergy)*concentration
     return
-  end function NFW_Profile_Energy
 
-  function Potential_Energy_Integrand(radius,parameterPointer) bind(c)
-    !% Integrand for NFW profile potential energy.
-    use, intrinsic :: ISO_C_Binding
-    implicit none
-    real(kind=c_double)        :: Potential_Energy_Integrand
-    real(kind=c_double), value :: radius
-    type(c_ptr        ), value :: parameterPointer
+  contains
+    
+    function nfwPotentialEnergyIntegrand(radius,parameterPointer) bind(c)
+      !% Integrand for NFW profile potential energy.
+      use, intrinsic :: ISO_C_Binding
+      implicit none
+      real(kind=c_double)        :: nfwPotentialEnergyIntegrand
+      real(kind=c_double), value :: radius
+      type(c_ptr        ), value :: parameterPointer
+      
+      nfwPotentialEnergyIntegrand=(self%enclosedMassScaleFree(radius,concentrationParameter)/radius)**2
+      return
+    end function nfwPotentialEnergyIntegrand
+    
+    function nfwKineticEnergyIntegrand(radius,parameterPointer) bind(c)
+      !% Integrand for NFW profile kinetic energy.
+      use, intrinsic :: ISO_C_Binding
+      implicit none
+      real(kind=c_double)        :: nfwKineticEnergyIntegrand
+      real(kind=c_double), value :: radius
+      type(c_ptr        ), value :: parameterPointer
+      
+      nfwKineticEnergyIntegrand=self%EnclosedMassScaleFree(radius,concentrationParameter)*self%densityScaleFree(radius&
+           &,concentrationParameter)*radius
+      return
+    end function nfwKineticEnergyIntegrand
+    
+    function nfwJeansEquationIntegrand(radius,parameterPointer) bind(c)
+      !% Integrand for NFW profile Jeans equation.
+      use, intrinsic :: ISO_C_Binding
+      implicit none
+      real(kind=c_double)        :: nfwJeansEquationIntegrand
+      real(kind=c_double), value :: radius
+      type(c_ptr        ), value :: parameterPointer
+      
+      nfwJeansEquationIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter)*self%densityScaleFree(radius &
+           &,concentrationParameter)/radius**2
+      return
+    end function nfwJeansEquationIntegrand
 
-    Potential_Energy_Integrand=(Enclosed_Mass_NFW_Scale_Free(radius,concentrationParameter)/radius)**2
-    return
-  end function Potential_Energy_Integrand
-
-  function Kinetic_Energy_Integrand(radius,parameterPointer) bind(c)
-    !% Integrand for NFW profile kinetic energy.
-    use, intrinsic :: ISO_C_Binding
-    implicit none
-    real(kind=c_double)        :: Kinetic_Energy_Integrand
-    real(kind=c_double), value :: radius
-    type(c_ptr        ), value :: parameterPointer
-
-    Kinetic_Energy_Integrand=Enclosed_Mass_NFW_Scale_Free(radius,concentrationParameter)*Density_NFW_Scale_Free(radius&
-         &,concentrationParameter)*radius
-    return
-  end function Kinetic_Energy_Integrand
-
-  function Jeans_Equation_Integrand(radius,parameterPointer) bind(c)
-    !% Integrand for NFW profile Jeans equation.
-    use, intrinsic :: ISO_C_Binding
-    implicit none
-    real(kind=c_double)        :: Jeans_Equation_Integrand
-    real(kind=c_double), value :: radius
-    type(c_ptr        ), value :: parameterPointer
-
-    Jeans_Equation_Integrand=Enclosed_Mass_NFW_Scale_Free(radius,concentrationParameter)*Density_NFW_Scale_Free(radius &
-         &,concentrationParameter)/radius**2
-    return
-  end function Jeans_Equation_Integrand
-
-  double precision function Dark_Matter_Profile_kSpace_NFW(thisNode,waveNumber)
+  end function nfwProfileEnergy
+  
+  double precision function nfwKSpace(self,node,waveNumber)
     !% Returns the Fourier transform of the NFW density profile at the specified {\tt waveNumber} (given in Mpc$^{-1}$), using the
     !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
     use Dark_Matter_Halo_Scales
     use Exponential_Integrals
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: waveNumber
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
     double precision                                                         :: concentration                 , radiusScale, &
          &                                                                      waveNumberScaleFree
 
     ! Get components.
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get the scale radius.
     radiusScale=thisDarkMatterProfileComponent%scale()
 
     ! Compute the concentration parameter.
-    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/radiusScale
+    concentration=self%scale%virialRadius(node)/radiusScale
 
     ! Get the dimensionless wavenumber.
     waveNumberScaleFree=waveNumber*radiusScale
 
     ! Compute the Fourier transformed profile.
-    Dark_Matter_Profile_kSpace_NFW=(                                                                                                                  &
-         & +sin(              waveNumberScaleFree)*(Sine_Integral  ((1.0d0+concentration)*waveNumberScaleFree)-Sine_Integral  (waveNumberScaleFree)) &
-         & -sin(concentration*waveNumberScaleFree)/(1.0d0+concentration)/waveNumberScaleFree                                                         &
-         & +cos(              waveNumberScaleFree)*(Cosine_Integral((1.0d0+concentration)*waveNumberScaleFree)-Cosine_Integral(waveNumberScaleFree)) &
-         &                         )                                                                                                                  &
-         & /(log(1.0d0+concentration)-concentration/(1.0d0+concentration))
+    nfwKSpace= (                                                                                                                                          &
+         &      +sin(              waveNumberScaleFree)*(Sine_Integral  ((1.0d0+concentration)*waveNumberScaleFree)-Sine_Integral  (waveNumberScaleFree)) &
+         &      -sin(concentration*waveNumberScaleFree)/(1.0d0+concentration)/waveNumberScaleFree                                                         &
+         &      +cos(              waveNumberScaleFree)*(Cosine_Integral((1.0d0+concentration)*waveNumberScaleFree)-Cosine_Integral(waveNumberScaleFree)) &
+         &     )                                                                                                                                          &
+         &    /(log(1.0d0+concentration)-concentration/(1.0d0+concentration))
     return
-  end function Dark_Matter_Profile_kSpace_NFW
+  end function nfwKSpace
 
-  double precision function Dark_Matter_Profile_Freefall_Radius_NFW(thisNode,time)
+  double precision function nfwFreefallRadius(self,node,time)
     !% Returns the freefall radius in the NFW density profile at the specified {\tt time} (given in Gyr).
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: time
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
     double precision                                                         :: concentration                 , freefallTimeScaleFree, &
@@ -663,21 +720,21 @@ contains
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then
-       Dark_Matter_Profile_Freefall_Radius_NFW=0.0d0
+       nfwFreefallRadius=0.0d0
        return
     end if
 
     ! Get components.
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get the scale radius.
     radiusScale=thisDarkMatterProfileComponent%scale()
 
     ! Get the concentration.
-    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/radiusScale
+    concentration=self%scale%virialRadius(node)/radiusScale
 
     ! Get the virial velocity.
-    velocityScale=Dark_Matter_Halo_Virial_Velocity(thisNode)
+    velocityScale=self%scale%virialVelocity(node)
 
     ! Compute time scale.
     timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/sqrt(concentration/(log(1.0d0+concentration)-concentration&
@@ -687,22 +744,21 @@ contains
     freefallTimeScaleFree=time/timeScale
 
     ! Ensure table is sufficiently extensive.
-    call Dark_Matter_Profile_NFW_Freefall_Tabulate(freefallTimeScaleFree)
+    call self%freefallTabulate(freefallTimeScaleFree)
 
     ! Interpolate to get the freefall radius.
-    !$omp critical(NFW_Freefall_Interpolation)
-    Dark_Matter_Profile_Freefall_Radius_NFW=nfwFreefallInverse%interpolate(freefallTimeScaleFree)*radiusScale
-    !$omp end critical(NFW_Freefall_Interpolation)
+    nfwFreefallRadius=self%nfwFreefallInverse%interpolate(freefallTimeScaleFree)*radiusScale
     return
-  end function Dark_Matter_Profile_Freefall_Radius_NFW
+  end function nfwFreefallRadius
 
-  double precision function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW(thisNode,time)
+  double precision function nfwFreefallRadiusIncreaseRate(self,node,time)
     !% Returns the rate of increase of the freefall radius in the NFW density profile at the specified {\tt time} (given in
     !% Gyr).
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: time
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
     double precision                                                         :: concentration                 , freefallTimeScaleFree, &
@@ -711,21 +767,21 @@ contains
 
     ! For non-positive freefall times, return the limiting value for small radii.
     if (time <= 0.0d0) then
-       Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW=0.0d0
+       nfwFreefallRadiusIncreaseRate=0.0d0
        return
     end if
 
     ! Get components.
-    thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
 
     ! Get the scale radius.
     radiusScale=thisDarkMatterProfileComponent%scale()
 
     ! Get the concentration.
-    concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/radiusScale
+    concentration=self%scale%virialRadius(node)/radiusScale
 
     ! Get the virial velocity.
-    velocityScale=Dark_Matter_Halo_Virial_Velocity(thisNode)
+    velocityScale=self%scale%virialVelocity(node)
 
     ! Compute time scale.
     timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/sqrt(concentration/(log(1.0d0+concentration)-concentration&
@@ -735,147 +791,142 @@ contains
     freefallTimeScaleFree=time/timeScale
 
     ! Ensure table is sufficiently extensive.
-    call Dark_Matter_Profile_NFW_Freefall_Tabulate(freefallTimeScaleFree)
+    call self%freefallTabulate(freefallTimeScaleFree)
 
     ! Interpolate to get the freefall radius growth rate.
-    !$omp critical(NFW_Freefall_Interpolation)
-    Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW=nfwFreefallInverse%interpolateGradient(freefallTimeScaleFree)*radiusScale/timeScale
-    !$omp end critical(NFW_Freefall_Interpolation)
+    nfwFreefallRadiusIncreaseRate=self%nfwFreefallInverse%interpolateGradient(freefallTimeScaleFree)*radiusScale/timeScale
     return
-  end function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW
+  end function nfwFreefallRadiusIncreaseRate
 
-  subroutine Dark_Matter_Profile_NFW_Freefall_Tabulate(freefallTimeScaleFree)
+  subroutine nfwFreefallTabulate(self,freefallTimeScaleFree)
     !% Tabulates the freefall time vs. freefall radius for NFW halos.
     implicit none
-    double precision, intent(in   ) :: freefallTimeScaleFree
-    logical                         :: retabulate
-    integer                         :: iRadius
+    class           (darkMatterProfileNFW), intent(inout) :: self
+    double precision                      , intent(in   ) :: freefallTimeScaleFree
+    logical                                               :: retabulate
+    integer                                               :: iRadius
 
-    !$omp critical (NFW_Freefall_Interpolation)
-    retabulate=.not.nfwFreefallTableInitialized
+    retabulate=.not.self%nfwFreefallTableInitialized
     ! If the table has not yet been made, compute and store the freefall corresponding to the minimum and maximum
     ! radii that will be tabulated by default.
     if (retabulate) then
-       freefallTimeMinimum=Freefall_Time_Scale_Free(freefallRadiusMinimum)
-       freefallTimeMaximum=Freefall_Time_Scale_Free(freefallRadiusMaximum)
+       self%freefallTimeMinimum=self%freefallTimeScaleFree(self%freefallRadiusMinimum)
+       self%freefallTimeMaximum=self%freefallTimeScaleFree(self%freefallRadiusMaximum)
     end if
-    do while (freefallTimeScaleFree < freefallTimeMinimum)
-       freefallRadiusMinimum=0.5d0*freefallRadiusMinimum
-       freefallTimeMinimum=Freefall_Time_Scale_Free(freefallRadiusMinimum)
+    do while (freefallTimeScaleFree < self%freefallTimeMinimum)
+       self%freefallRadiusMinimum=0.5d0*self%freefallRadiusMinimum
+       self%freefallTimeMinimum=self%freefallTimeScaleFree(self%freefallRadiusMinimum)
        retabulate=.true.
     end do
-    do while (freefallTimeScaleFree > freefallTimeMaximum)
-       freefallRadiusMaximum=2.0d0*freefallRadiusMaximum
-       freefallTimeMaximum=Freefall_Time_Scale_Free(freefallRadiusMaximum)
+    do while (freefallTimeScaleFree > self%freefallTimeMaximum)
+       self%freefallRadiusMaximum=2.0d0*self%freefallRadiusMaximum
+       self%freefallTimeMaximum=self%freefallTimeScaleFree(self%freefallRadiusMaximum)
        retabulate=.true.
     end do
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       nfwFreefallTableNumberPoints=int(log10(freefallRadiusMaximum/freefallRadiusMinimum)*dble(nfwFreefallTablePointsPerDecade))+1
+       self%nfwFreefallTableNumberPoints=int(log10(self%freefallRadiusMaximum/self%freefallRadiusMinimum)*dble(nfwFreefallTablePointsPerDecade))+1
        ! Create the table.
-       call nfwFreefall%destroy(                                                                        )
-       call nfwFreefall%create (freefallRadiusMinimum,freefallRadiusMaximum,nfwFreefallTableNumberPoints)
+       call self%nfwFreefall%destroy(                                                                        )
+       call self%nfwFreefall%create (self%freefallRadiusMinimum,self%freefallRadiusMaximum,self%nfwFreefallTableNumberPoints)
        ! Loop over radii and populate tables.
-       do iRadius=1,nfwFreefallTableNumberPoints
-          call nfwFreefall%populate(                                                  &
-               &                    Freefall_Time_Scale_Free(nfwFreefall%x(iRadius)), &
-               &                                                           iRadius    &
-               &                   )
+       do iRadius=1,self%nfwFreefallTableNumberPoints
+          call self%nfwFreefall%populate(                                                         &
+               &                         self%freefallTimeScaleFree(self%nfwFreefall%x(iRadius)), &
+               &                                                                       iRadius    &
+               &                        )
        end do
-       call nfwFreefall%reverse(nfwFreefallInverse)
+       call self%nfwFreefall%reverse(self%nfwFreefallInverse)
        ! Specify that tabulation has been made.
-       nfwFreefallTableInitialized=.true.
+       self%nfwFreefallTableInitialized=.true.
     end if
-    !$omp end critical (NFW_Freefall_Interpolation)
     return
-  end subroutine Dark_Matter_Profile_NFW_Freefall_Tabulate
+  end subroutine nfwFreefallTabulate
 
-  double precision function Freefall_Time_Scale_Free(radius)
+  double precision function nfwFreefallTimeScaleFree(self,radius)
     !% Compute the freefall time in a scale-free NFW halo.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
+    class           (darkMatterProfileNFW      ), intent(inout) :: self
     double precision                            , intent(in   ) :: radius
     double precision                            , parameter     :: radiusSmall         =4.0d-6
     type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: radiusEnd
+    double precision                                            :: radiusEnd                  , radiusStart
 
     if (radius > radiusSmall) then
        ! Use the full solution.
        radiusStart=radius
        radiusEnd  =0.0d0
-       Freefall_Time_Scale_Free=Integrate(radiusEnd,radiusStart,Freefall_Time_Scale_Free_Integrand,parameterPointer&
+       nfwFreefallTimeScaleFree=Integrate(radiusEnd,radiusStart,nfwFreefallTimeScaleFreeIntegrand,parameterPointer&
             &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
        call Integrate_Done(integrandFunction,integrationWorkspace)
     else
        ! Use an approximation here, found by taking series expansions of the logarithms in the integrand and keeping only the
        ! first order terms.
-       Freefall_Time_Scale_Free=2.0d0*sqrt(radius)
+       nfwFreefallTimeScaleFree=2.0d0*sqrt(radius)
     end if
     return
-  end function Freefall_Time_Scale_Free
 
-  function Freefall_Time_Scale_Free_Integrand(radius,parameterPointer) bind(c)
-    !% Integrand function used for finding the free-fall time in NFW halos.
-    use, intrinsic :: ISO_C_Binding
-    implicit none
-    real(kind=c_double)                   :: Freefall_Time_Scale_Free_Integrand
-    real(kind=c_double)           , value :: radius
-    type(c_ptr        )           , value :: parameterPointer
-    real(kind=c_double), parameter        :: radiusSmall                       =1.0d-6
-    real(kind=c_double), parameter        :: radiusSmallFraction               =1.0d-3
-    real(kind=c_double)                   :: x
+  contains
+    
+    function nfwFreefallTimeScaleFreeIntegrand(radius,parameterPointer) bind(c)
+      !% Integrand function used for finding the free-fall time in NFW halos.
+      use, intrinsic :: ISO_C_Binding
+      implicit none
+      real(kind=c_double)                   :: nfwFreefallTimeScaleFreeIntegrand
+      real(kind=c_double)           , value :: radius
+      type(c_ptr        )           , value :: parameterPointer
+      real(kind=c_double), parameter        :: radiusSmall                       =1.0d-6
+      real(kind=c_double), parameter        :: radiusSmallFraction               =1.0d-3
+      real(kind=c_double)                   :: x
+      
+      if (radius < radiusSmall) then
+         ! Use a series approximation for small radii.
+         nfwFreefallTimeScaleFreeIntegrand=log(1.0d0+radiusStart)/radiusStart-1.0d0+radius*(0.5d0-radius/3.0d0)
+      else if (radius > radiusStart*(1.0d0-radiusSmallFraction)) then
+         ! Use a series approximation for radii close to the initial radius.
+         x=1.0d0-radius/radiusStart
+         nfwFreefallTimeScaleFreeIntegrand=(1.0d0/(1.0d0+radiusStart)-log(1.0d0+radiusStart)/radiusStart)*x+(0.5d0*radiusStart&
+              &/(1.0d0+radiusStart)**2+(radiusStart-(1.0d0+radiusStart)*log(1.0d0+radiusStart))/radiusStart/(1.0d0+radiusStart))*x&
+              &**2
+      else
+         ! Use full expression for larger radii.
+         nfwFreefallTimeScaleFreeIntegrand=log(1.0d0+radiusStart)/radiusStart-log(1.0d0+radius)/radius
+      end if
+      nfwFreefallTimeScaleFreeIntegrand=1.0d0/sqrt(-2.0d0*nfwFreefallTimeScaleFreeIntegrand)
+      return
+    end function nfwFreefallTimeScaleFreeIntegrand
 
-     if (radius < radiusSmall) then
-       ! Use a series approximation for small radii.
-       Freefall_Time_Scale_Free_Integrand=log(1.0d0+radiusStart)/radiusStart-1.0d0+radius*(0.5d0-radius/3.0d0)
-    else if (radius > radiusStart*(1.0d0-radiusSmallFraction)) then
-       ! Use a series approximation for radii close to the initial radius.
-       x=1.0d0-radius/radiusStart
-       Freefall_Time_Scale_Free_Integrand=(1.0d0/(1.0d0+radiusStart)-log(1.0d0+radiusStart)/radiusStart)*x+(0.5d0*radiusStart&
-            &/(1.0d0+radiusStart)**2+(radiusStart-(1.0d0+radiusStart)*log(1.0d0+radiusStart))/radiusStart/(1.0d0+radiusStart))*x&
-            &**2
-    else
-       ! Use full expression for larger radii.
-       Freefall_Time_Scale_Free_Integrand=log(1.0d0+radiusStart)/radiusStart-log(1.0d0+radius)/radius
-    end if
-    Freefall_Time_Scale_Free_Integrand=1.0d0/sqrt(-2.0d0*Freefall_Time_Scale_Free_Integrand)
-    return
-  end function Freefall_Time_Scale_Free_Integrand
+  end function nfwFreefallTimeScaleFree
 
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Dark_Matter_Profiles_NFW_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Dark_Matter_Profiles_NFW_State_Store(stateFile,fgslStateFile)
+  subroutine nfwStateStore(self,stateFile,fgslStateFile)
     !% Write the tablulation state to file.
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    class  (darkMatterProfileNFW), intent(inout) :: self
+    integer                      , intent(in   ) :: stateFile
+    type   (fgsl_file           ), intent(in   ) :: fgslStateFile
 
-    write (stateFile) concentrationMinimum,concentrationMaximum,radiusMinimum,radiusMaximum,freefallRadiusMinimum,freefallRadiusMaximum
+    write (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum
     return
-  end subroutine Dark_Matter_Profiles_NFW_State_Store
+  end subroutine nfwStateStore
 
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Dark_Matter_Profiles_NFW_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Dark_Matter_Profiles_NFW_State_Retrieve(stateFile,fgslStateFile)
+  subroutine nfwStateRestore(self,stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    class  (darkMatterProfileNFW), intent(inout) :: self
+    integer                      , intent(in   ) :: stateFile
+    type   (fgsl_file           ), intent(in   ) :: fgslStateFile
 
     ! Read the minimum and maximum tabulated times.
-    read (stateFile) concentrationMinimum,concentrationMaximum,radiusMinimum,radiusMaximum,freefallRadiusMinimum,freefallRadiusMaximum
+    read (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum
     ! Retabulate.
-    nfwTableInitialized        =.false.
-    nfwInverseTableInitialized =.false.
-    nfwFreefallTableInitialized=.false.
-    call Dark_Matter_Profile_NFW_Tabulate
-    call Dark_Matter_Profile_NFW_Inverse_Angular_Momentum
+    self%nfwTableInitialized        =.false.
+    self%nfwInverseTableInitialized =.false.
+    self%nfwFreefallTableInitialized=.false.
+    call self%tabulate              ()
+    call self%inverseAngularMomentum()
     return
-  end subroutine Dark_Matter_Profiles_NFW_State_Retrieve
-
-end module Dark_Matter_Profiles_NFW
+  end subroutine nfwStateRestore

@@ -45,8 +45,10 @@ contains
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
-    Hot_Halo_Ram_Pressure_Timescale_Halo_DynTime=Dark_Matter_Halo_Dynamical_Timescale(thisNode)
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    Hot_Halo_Ram_Pressure_Timescale_Halo_DynTime=darkMatterHaloScale_%dynamicalTimescale(thisNode)
     return
   end function Hot_Halo_Ram_Pressure_Timescale_Halo_DynTime
 

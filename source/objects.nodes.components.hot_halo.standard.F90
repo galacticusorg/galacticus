@@ -216,9 +216,9 @@ module Node_Component_Hot_Halo_Standard
 
 contains
 
-  !# <mergerTreePreTreeConstructionTask>
+  !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Initialize</unitName>
-  !# </mergerTreePreTreeConstructionTask>
+  !# </nodeComponentInitializationTask>
   subroutine Node_Component_Hot_Halo_Standard_Initialize()
     !% Initializes the standard hot halo component module.
     use ISO_Varying_String
@@ -457,9 +457,11 @@ contains
     implicit none
     class(nodeComponentHotHaloStandard), intent(inout) :: self
     type (treeNode                    ), pointer       :: selfHost
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
-    selfHost => self%host()
-    Node_Component_Hot_Halo_Standard_Outer_Radius=max(min(self%outerRadiusValue(),Dark_Matter_Halo_Virial_Radius(selfHost)),0.0d0)
+    selfHost             => self%host          ()
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    Node_Component_Hot_Halo_Standard_Outer_Radius=max(min(self%outerRadiusValue(),darkMatterHaloScale_%virialRadius(selfHost)),0.0d0)
     return
   end function Node_Component_Hot_Halo_Standard_Outer_Radius
 
@@ -476,6 +478,7 @@ contains
     type (treeNode            )               , pointer :: parentNode
     class(nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent
     class(nodeComponentSpin   )               , pointer :: parentSpinComponent
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     
     ! Limit hot gas mass to be non-negative.
     thisHotHaloComponent => thisNode%hotHalo()
@@ -494,14 +497,15 @@ contains
              do while (parentNode%isSatellite())
                 parentNode => parentNode%parent
              end do
-             parentHotHaloComponent => parentNode%hotHalo()
-             parentSpinComponent    => parentNode%spin   ()
+             parentHotHaloComponent => parentNode%hotHalo ()
+             parentSpinComponent    => parentNode%spin    ()
+             darkMatterHaloScale_   => darkMatterHaloScale()
              call parentHotHaloComponent%outflowedAngularMomentumSet(                                                   &
                   &                                                   parentHotHaloComponent%outflowedAngularMomentum() &
                   &                                                  +  thisHotHaloComponent%outflowedMass           () &
                   &                                                  *   parentSpinComponent%spin                    () &
-                  &                                                  *Dark_Matter_Halo_Virial_Radius  (parentNode)      &
-                  &                                                  *Dark_Matter_Halo_Virial_Velocity(parentNode)      &
+                  &                                                  *darkMatterHaloScale_%virialRadius  (parentNode)      &
+                  &                                                  *darkMatterHaloScale_%virialVelocity(parentNode)      &
                   &                                                 )
              call   thisHotHaloComponent%outflowedAngularMomentumSet(                                                   &
                   &                                                   0.0d0                                             &
@@ -533,14 +537,15 @@ contains
                 parentNode => parentNode%parent
              end do
              call Node_Component_Hot_Halo_Standard_Create(parentNode)
-             parentHotHaloComponent => parentNode%hotHalo()
-             parentSpinComponent    => parentNode%spin   ()
+             parentHotHaloComponent => parentNode%hotHalo ()
+             parentSpinComponent    => parentNode%spin    ()
+             darkMatterHaloScale_   => darkMatterHaloScale()
              call parentHotHaloComponent%outflowedAngularMomentumSet(                                                   &
                   &                                                   parentHotHaloComponent%outflowedAngularMomentum() &
                   &                                                  +  thisHotHaloComponent%strippedMass            () &
                   &                                                  *   parentSpinComponent%spin                    () &
-                  &                                                  *Dark_Matter_Halo_Virial_Radius  (parentNode)      &
-                  &                                                  *Dark_Matter_Halo_Virial_Velocity(parentNode)      &
+                  &                                                  *darkMatterHaloScale_%virialRadius  (parentNode)      &
+                  &                                                  *darkMatterHaloScale_%virialVelocity(parentNode)      &
                   &                                                 )
              call parentHotHaloComponent%outflowedMassSet           (                                                   &
                   &                                                   parentHotHaloComponent%outflowedMass           () &
@@ -603,6 +608,7 @@ contains
     logical                                       , intent(inout), optional          :: interrupt
     procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                    )                         , pointer :: thisNode
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                                 :: excessMassHeatingRate, inputMassHeatingRate, massHeatingRate
 
      ! Trap cases where an attempt is made to remove energy via this input function.
@@ -615,7 +621,8 @@ contains
      call Node_Component_Hot_Halo_Standard_Cooling_Rate(thisNode)
 
      ! Compute the input mass heating rate from the input energy heating rate.
-     inputMassHeatingRate=rate/Dark_Matter_Halo_Virial_Velocity(thisNode)**2
+     darkMatterHaloScale_ => darkMatterHaloScale()
+     inputMassHeatingRate=rate/darkMatterHaloScale_%virialVelocity(thisNode)**2
 
      ! Limit the mass heating rate such that it never exceeds the remaining budget.
      massHeatingRate=min(inputMassHeatingRate,massHeatingRateRemaining)
@@ -727,6 +734,7 @@ contains
     type            (treeNode            )      , intent(inout), pointer :: thisNode
     double precision                            , intent(in   )          :: massRate
     class           (nodeComponentHotHalo)                     , pointer :: thisHotHalo
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     type            (abundances          ), save                         :: abundancesRates
     type            (chemicalAbundances  ), save                         :: chemicalsRates
     !$omp threadprivate(abundancesRates,chemicalsRates)
@@ -737,7 +745,8 @@ contains
     ! Ignore zero rates.
     if (massRate /= 0.0d0 .and. thisHotHalo%mass() > 0.0d0) then
        ! Limit the mass expulsion rate to a fraction of the halo dynamical timescale.
-       massRateLimited=min(massRate,hotHaloExpulsionRateMaximum*thisHotHalo%mass()/Dark_Matter_Halo_Dynamical_Timescale(thisNode))
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       massRateLimited=min(massRate,hotHaloExpulsionRateMaximum*thisHotHalo%mass()/darkMatterHaloScale_%dynamicalTimescale(thisNode))
        ! Get the rate of change of abundances, chemicals, and angular momentum.
        abundancesRates    =thisHotHalo%abundances     ()*massRateLimited/thisHotHalo%mass()
        angularMomentumRate=thisHotHalo%angularMomentum()*massRateLimited/thisHotHalo%mass()
@@ -765,12 +774,14 @@ contains
     type            (treeNode                    ), intent(inout), pointer :: thisNode
     class           (nodeComponentHotHaloStandard)                         :: thisHotHaloComponent
     class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                       :: massOuter                     , massVirial  , &
          &                                                                    radiusOuter                   , radiusVirial
 
     defaultHotHaloMassDistribution => hotHaloMassDistribution()
+    darkMatterHaloScale_           => darkMatterHaloScale    ()
     radiusOuter =thisHotHaloComponent%outerRadius()
-    radiusVirial=Dark_Matter_Halo_Virial_Radius             (thisNode             )
+    radiusVirial=darkMatterHaloScale_%virialRadius             (thisNode             )
     massOuter   =defaultHotHaloMassDistribution%enclosedMass(thisNode,radiusOuter )
     massVirial  =defaultHotHaloMassDistribution%enclosedMass(thisNode,radiusVirial)
     if (massVirial > 0.0d0) then
@@ -906,6 +917,7 @@ contains
     type            (abundances                  ), save                              :: accretionRateAbundances
     class           (cosmologyParametersClass    )                          , pointer :: thisCosmologyParameters
     class           (hotHaloMassDistributionClass)                          , pointer :: defaultHotHaloMassDistribution
+    class           (darkMatterHaloScaleClass    )                          , pointer :: darkMatterHaloScale_
     type            (chemicalAbundances          ), save                              :: accretionRateChemicals                   , chemicalDensities      , &
          &                                                                               chemicalDensitiesRates                   , chemicalMasses         , &
          &                                                                               chemicalMassesRates                      , chemicalsCoolingRate
@@ -918,6 +930,8 @@ contains
          &                                                                               massAccretionRate                        , densityMinimum         , &
          &                                                                               radiusVirial
 
+    ! Get required objects.
+    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     ! Ensure that the standard hot halo implementation is active.
@@ -961,7 +975,7 @@ contains
           end if
           ! Compute the rates of change of chemical masses due to chemical reactions.
           ! Get the temperature of the hot reservoir.
-          temperature=Dark_Matter_Halo_Virial_Temperature(thisNode)
+          temperature=darkMatterHaloScale_%virialTemperature(thisNode)
           ! Set the radiation background.
           call radiation%set(thisNode)
           ! Get the masses of chemicals.
@@ -971,7 +985,7 @@ contains
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
           call chemicalMasses%massToNumber(chemicalDensities)
           ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(thisNode))
           ! Convert to number density.
           chemicalDensities=chemicalDensities*massToDensityConversion
           ! Compute the chemical reaction rates.
@@ -991,14 +1005,14 @@ contains
              ! For satellites, get the current ram pressure stripping radius for this hot halo.
              outerRadiusGrowthRate=thisHotHaloComponent%outerRadiusGrowthRate()
              outerRadius          =thisHotHaloComponent%outerRadius          ()
-             if     (                                                                                                           &
-                  &   outerRadiusGrowthRate                  /= 0.0d0                                                           &
-                  &  .and.                                                                                                      &
-                  &   thisHotHaloComponent%mass           () >  0.0d0                                                           &
-                  &  .and.                                                                                                      &
-                  &   outerRadius                 <=                                   Dark_Matter_Halo_Virial_Radius(thisNode) &
-                  &  .and.                                                                                                      &
-                  &   outerRadius                 > outerRadiusOverVirialRadiusMinimum*Dark_Matter_Halo_Virial_Radius(thisNode) &
+             if     (                                                                                                              &
+                  &   outerRadiusGrowthRate                  /= 0.0d0                                                              &
+                  &  .and.                                                                                                         &
+                  &   thisHotHaloComponent%mass           () >  0.0d0                                                              &
+                  &  .and.                                                                                                         &
+                  &   outerRadius                 <=                                   darkMatterHaloScale_%virialRadius(thisNode) &
+                  &  .and.                                                                                                         &
+                  &   outerRadius                 > outerRadiusOverVirialRadiusMinimum*darkMatterHaloScale_%virialRadius(thisNode) &
                   & ) then
                 defaultHotHaloMassDistribution => hotHaloMassDistribution()                
                 densityAtOuterRadius =defaultHotHaloMassDistribution%density(thisNode,outerRadius)
@@ -1009,7 +1023,7 @@ contains
              end if
           else
              ! For isolated halos, the outer radius should grow with the virial radius.
-             call thisHotHaloComponent%outerRadiusRate(Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode),interrupt,interruptProcedure)
+             call thisHotHaloComponent%outerRadiusRate(darkMatterHaloScale_%virialRadiusGrowthRate(thisNode),interrupt,interruptProcedure)
           end if
        end select
     end if
@@ -1062,9 +1076,10 @@ contains
     class           (nodeComponentHotHaloStandard), intent(inout)          :: self
     logical                                       , intent(inout)          :: interrupt
     procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedure
-    type            (treeNode                    ), pointer                :: selfNode
-    class(nodeComponentBasic), pointer :: selfBasic
-    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    type            (treeNode                    )               , pointer :: selfNode
+    class           (nodeComponentBasic          )               , pointer :: selfBasic
+    class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
+    class           (cosmologyParametersClass    )               , pointer :: thisCosmologyParameters
     class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
     double precision                                                       :: outflowedMass            , massReturnRate         , &
          &                                                                    angularMomentumReturnRate, massToDensityConversion, &
@@ -1076,14 +1091,17 @@ contains
          &                                                                    chemicalMassesRates
     !$omp threadprivate(chemicalDensities,chemicalMassesRates,chemicalMasses)
 
+    ! Get required objects.
+    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Get the hosting node.
     selfNode => self%hostNode
     ! Next tasks occur only for systems in which outflowed gas is being recycled.
     if (.not.starveSatellites.or..not.selfNode%isSatellite()) then
+       darkMatterHaloScale_     => darkMatterHaloScale()
        outflowedMass            =self%outflowedMass()
-       massReturnRate           =hotHaloOutflowReturnRate*outflowedMass                  /Dark_Matter_Halo_Dynamical_Timescale(selfNode)
-       angularMomentumReturnRate=hotHaloOutflowReturnRate*self%outflowedAngularMomentum()/Dark_Matter_Halo_Dynamical_Timescale(selfNode)
-       abundancesReturnRate     =hotHaloOutflowReturnRate*self%outflowedAbundances     ()/Dark_Matter_Halo_Dynamical_Timescale(selfNode)
+       massReturnRate           =hotHaloOutflowReturnRate*outflowedMass                  /darkMatterHaloScale_%dynamicalTimescale(selfNode)
+       angularMomentumReturnRate=hotHaloOutflowReturnRate*self%outflowedAngularMomentum()/darkMatterHaloScale_%dynamicalTimescale(selfNode)
+       abundancesReturnRate     =hotHaloOutflowReturnRate*self%outflowedAbundances     ()/darkMatterHaloScale_%dynamicalTimescale(selfNode)
        call self%           outflowedMassRate(-           massReturnRate,interrupt,interruptProcedure)
        call self%                    massRate(+           massReturnRate,interrupt,interruptProcedure)
        call self%outflowedAngularMomentumRate(-angularMomentumReturnRate,interrupt,interruptProcedure)
@@ -1092,7 +1110,7 @@ contains
        call self%              abundancesRate(+     abundancesReturnRate,interrupt,interruptProcedure)
        ! The outer radius must be increased as the halo fills up with gas.
        outerRadius =self%outerRadius()
-       radiusVirial=Dark_Matter_Halo_Virial_Radius(selfNode)
+       radiusVirial=darkMatterHaloScale_%virialRadius(selfNode)
        if (outerRadius < radiusVirial) then 
           defaultHotHaloMassDistribution => hotHaloMassDistribution()
           densityAtOuterRadius=defaultHotHaloMassDistribution%density(selfNode,outerRadius)
@@ -1118,19 +1136,20 @@ contains
           ! Otherwise, if we have a positive rate of mass return, simply grow the radius at the virial velocity.
           else if (massReturnRate > 0.0d0) then
              ! Force some growth here so the radius is not trapped at zero.
-             call self%outerRadiusRate(Dark_Matter_Halo_Virial_Velocity(selfNode)*kilo*gigaYear/megaParsec)
+             call self%outerRadiusRate(darkMatterHaloScale_%virialVelocity(selfNode)*kilo*gigaYear/megaParsec)
           end if
        end if
        ! If we have a non-zero return rate, compute associated chemical rates.
        if (chemicalsCount > 0 .and. massReturnRate /= 0.0d0) then
           ! Compute coefficient in conversion of mass to density for this node.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(selfNode))/3.0d0
+          darkMatterHaloScale_ => darkMatterHaloScale()
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(selfNode))/3.0d0
           ! Get the abundances of the outflowed material.
           outflowedAbundances    =self%outflowedAbundances()/outflowedMass
           ! Get the hydrogen mass fraction in outflowed gas.
           hydrogenByMass         =outflowedAbundances%hydrogenMassFraction()
           ! Compute the temperature and density of material in the hot halo.
-          temperature            =Dark_Matter_Halo_Virial_Temperature(selfNode)
+          temperature          =darkMatterHaloScale_%virialTemperature(selfNode)
           numberDensityHydrogen  =hydrogenByMass*outflowedMass*massToDensityConversion/atomicMassHydrogen
           ! Set the radiation field.
           call radiation%set(selfNode)
@@ -1150,8 +1169,8 @@ contains
     !% Account for a sink of gaseous material in the standard hot halo hot gas.
     use Galacticus_Error
     implicit none
-    class           (nodeComponentHotHalo        ), intent(inout) :: self
-    double precision                              , intent(in   ) :: setValue
+    class           (nodeComponentHotHalo        ), intent(inout)                    :: self
+    double precision                              , intent(in   )                    :: setValue
     logical                                       , intent(inout), optional          :: interrupt          
     procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure 
 
@@ -1205,6 +1224,7 @@ contains
     type            (treeNode            ), intent(inout), pointer :: thisNode
     class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
     class           (nodeComponentBasic  )               , pointer :: thisBasicComponent
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                      , parameter              :: scaleMassRelative   =1.0d-3
     double precision                      , parameter              :: scaleRadiusRelative =1.0d-1
     double precision                                               :: massVirial                 , radiusVirial, &
@@ -1216,11 +1236,12 @@ contains
     select type (thisHotHaloComponent)
     class is (nodeComponentHotHaloStandard)
        ! The the basic component.
-       thisBasicComponent => thisNode%basic()
+       thisBasicComponent   => thisNode%basic     ()
+       darkMatterHaloScale_ => darkMatterHaloScale()
        ! Get virial properties.
        massVirial    =thisBasicComponent%mass()
-       radiusVirial  =Dark_Matter_Halo_Virial_Radius  (thisNode)
-       velocityVirial=Dark_Matter_Halo_Virial_Velocity(thisNode)
+       radiusVirial  =darkMatterHaloScale_%virialRadius  (thisNode)
+       velocityVirial=darkMatterHaloScale_%virialVelocity(thisNode)
        call    thisHotHaloComponent%                    massScale(               massVirial                            *scaleMassRelative  )
        call    thisHotHaloComponent%           outflowedMassScale(               massVirial                            *scaleMassRelative  )
        call    thisHotHaloComponent%          unaccretedMassScale(               massVirial                            *scaleMassRelative  )
@@ -1312,6 +1333,7 @@ contains
     class           (nodeComponentSpin       )               , pointer :: parentSpinComponent
     class           (nodeComponentBasic      )               , pointer :: parentBasic
     class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                   :: baryonicMassCurrent    , baryonicMassMaximum , &
          &                                                                fractionRemove
 
@@ -1340,6 +1362,7 @@ contains
        if (starveSatellites) then
           ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate to
           ! this hot halo (and will be moved to the parent at the end of the evolution timestep).
+          darkMatterHaloScale_ => darkMatterHaloScale()
           call parentHotHaloComponent%                    massSet(                                                   &
                &                                                   parentHotHaloComponent%mass                    () &
                &                                                  +  thisHotHaloComponent%mass                    () &
@@ -1348,8 +1371,8 @@ contains
                &                                                   parentHotHaloComponent%angularMomentum         () &
                &                                                  +  thisHotHaloComponent%mass                    () &
                &                                                  *   parentSpinComponent%spin                    () &
-               &                                                  *Dark_Matter_Halo_Virial_Radius  (parentNode)      &
-               &                                                  *Dark_Matter_Halo_Virial_Velocity(parentNode)      &
+               &                                                  *darkMatterHaloScale_%virialRadius  (parentNode)   &
+               &                                                  *darkMatterHaloScale_%virialVelocity(parentNode)   &
                &                                                 )
           call parentHotHaloComponent%           outflowedMassSet(                                                   &
                &                                                   parentHotHaloComponent%outflowedMass           () &
@@ -1359,8 +1382,8 @@ contains
                &                                                   parentHotHaloComponent%outflowedAngularMomentum() &
                &                                                  +  thisHotHaloComponent%outflowedMass           () &
                &                                                  *   parentSpinComponent%spin                    () &
-               &                                                  *Dark_Matter_Halo_Virial_Radius  (parentNode)      &
-               &                                                  *Dark_Matter_Halo_Virial_Velocity(parentNode)      &
+               &                                                  *darkMatterHaloScale_%virialRadius  (parentNode)   &
+               &                                                  *darkMatterHaloScale_%virialVelocity(parentNode)   &
                &                                                 )
           call   thisHotHaloComponent%                    massSet(                                                   &
                &                                                   0.0d0                                             &
@@ -1435,6 +1458,7 @@ contains
     type (treeNode            )               , pointer :: hostNode
     class(nodeComponentHotHalo)               , pointer :: hostHotHaloComponent, thisHotHaloComponent
     class(nodeComponentSpin   )               , pointer :: hostSpinComponent
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
     ! Return immediately if satellites are starved, as in that case there is no hot halo to transfer.
     if (starveSatellites) return
@@ -1449,7 +1473,8 @@ contains
        hostNode             => thisNode%mergesWith()
        hostHotHaloComponent => hostNode%hotHalo   ()
        hostSpinComponent    => hostNode%spin      ()
-
+       darkMatterHaloScale_ => darkMatterHaloScale()
+             
        ! Move the hot halo to the host.
        call hostHotHaloComponent%                    massSet(                                                 &
             &                                                 hostHotHaloComponent%mass                    () &
@@ -1463,8 +1488,8 @@ contains
             &                                                 hostHotHaloComponent%angularMomentum         () &
             &                                                +thisHotHaloComponent%mass                    () &
             &                                                *   hostSpinComponent%spin                    () &
-            &                                                *Dark_Matter_Halo_Virial_Radius  (hostNode)      &
-            &                                                *Dark_Matter_Halo_Virial_Velocity(hostNode)      &
+            &                                                *darkMatterHaloScale_%virialRadius  (hostNode)      &
+            &                                                *darkMatterHaloScale_%virialVelocity(hostNode)      &
             &                                               )
        call hostHotHaloComponent%           outflowedMassSet(                                                 &
             &                                                 hostHotHaloComponent%outflowedMass           () &
@@ -1474,8 +1499,8 @@ contains
             &                                                 hostHotHaloComponent%outflowedAngularMomentum() &
             &                                                +thisHotHaloComponent%outflowedMass           () &
             &                                                *   hostSpinComponent%spin                    () &
-            &                                                *Dark_Matter_Halo_Virial_Radius  (hostNode)      &
-            &                                                *Dark_Matter_Halo_Virial_Velocity(hostNode)      &
+            &                                                *darkMatterHaloScale_%virialRadius  (hostNode)      &
+            &                                                *darkMatterHaloScale_%virialVelocity(hostNode)      &
             &                                               )
        call thisHotHaloComponent%                    massSet(                                                 &
             &                                                 0.0d0                                           &
@@ -1525,6 +1550,7 @@ contains
     type (treeNode            ), intent(inout), pointer :: thisNode
     type (treeNode            )               , pointer :: parentNode
     class(nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
@@ -1571,8 +1597,9 @@ contains
                &                                                +parentHotHaloComponent%unaccretedMass          () &
                &                                               )
           ! Update the outer radius to match the virial radius of the parent halo.
+          darkMatterHaloScale_ => darkMatterHaloScale()
           call thisHotHaloComponent%             outerRadiusSet(                                                   &
-               &                                                Dark_Matter_Halo_Virial_Radius(parentNode)         &
+               &                                                darkMatterHaloScale_%virialRadius(parentNode)      &
                &                                               )
        end select
     end select
@@ -1632,15 +1659,17 @@ contains
     !% Initializes a standard hot halo component.
     use Dark_Matter_Halo_Scales
     implicit none
-    type(nodeComponentHotHaloStandard)          :: self
-    type(treeNode                    ), pointer :: selfNode
+    type (nodeComponentHotHaloStandard)          :: self
+    type (treeNode                    ), pointer :: selfNode
+    class(darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_
 
     ! Return if already initialized.
     if (self%isInitialized()) return
     ! Get the hosting node.
     selfNode => self%hostNode
     ! Initialize the outer boundary to the virial radius.
-    call self%outerRadiusSet(Dark_Matter_Halo_Virial_Radius(selfNode))
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    call self%outerRadiusSet(darkMatterHaloScale_%virialRadius(selfNode))
     ! Record that the spheroid has been initialized.
     call self%isInitializedSet(.true.)
     return
@@ -1661,6 +1690,7 @@ contains
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode
     class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     type            (abundances          ), save                   :: outflowedAbundances
     type            (chemicalAbundances  ), save                   :: chemicalDensities    , chemicalMasses
     !$omp threadprivate(outflowedAbundances,chemicalDensities,chemicalMasses)
@@ -1679,14 +1709,15 @@ contains
        ! Compute mass of chemicals transferred to the hot halo.
        if (chemicalsCount > 0 .and. thisHotHaloComponent%outflowedMass() > 0.0d0) then
           ! Compute coefficient in conversion of mass to density for this node.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
+          darkMatterHaloScale_ => darkMatterHaloScale()
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(thisNode))/3.0d0
           ! Get abundance mass fractions of the outflowed material.
           outflowedAbundances= thisHotHaloComponent%outflowedAbundances() &
                &              /thisHotHaloComponent%outflowedMass      ()
           ! Get the hydrogen mass fraction in outflowed gas.
           hydrogenByMass=outflowedAbundances%hydrogenMassFraction()
           ! Compute the temperature and density of material in the hot halo.
-          temperature          =Dark_Matter_Halo_Virial_Temperature(thisNode)
+          temperature          =darkMatterHaloScale_%virialTemperature(thisNode)
           numberDensityHydrogen=hydrogenByMass*thisHotHaloComponent%outflowedMass()*massToDensityConversion/atomicMassHydrogen
           ! Set the radiation field.
           call radiation%set(thisNode)

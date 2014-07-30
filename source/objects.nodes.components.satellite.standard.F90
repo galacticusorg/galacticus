@@ -82,9 +82,9 @@ module Node_Component_Satellite_Standard
 
 contains
 
-  !# <mergerTreePreTreeConstructionTask>
+  !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Satellite_Standard_Initialize</unitName>
-  !# </mergerTreePreTreeConstructionTask>
+  !# </nodeComponentInitializationTask>
    subroutine Node_Component_Satellite_Standard_Initialize()
      !% Initializes the standard satellite orbit component module.
      use Input_Parameters

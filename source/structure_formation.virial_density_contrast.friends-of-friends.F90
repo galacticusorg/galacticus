@@ -15,105 +15,110 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of virial overdensity based on friends-of-friends linking length.
+  !% An implementation of dark matter halo virial density contrasts based on a friends-of-friends linking length.
 
-module Virial_Densities_Friends_of_Friends
-  !% Implements calculations of virial overdensity based on friends-of-friends linking length.
-  implicit none
-  private
-  public :: Virial_Density_Friends_of_Friends_Initialize
+  !# <virialDensityContrast name="virialDensityContrastFriendsOfFriends">
+  !#  <description>Dark matter halo virial density contrasts based on the friends-of-friends algorithm linking length.</description>
+  !# </virialDensityContrast>
 
-  ! Value of the linking length and density ratio parameters.
-  double precision            :: virialDensityContrastFoFLinkingLength       , virialDensityContrastFoFDensityRatio
+  type, extends(virialDensityContrastClass) :: virialDensityContrastFriendsOfFriends
+     !% A dark matter halo virial density contrast class based on the friends-of-friends algorithm linking length.
+     private
+     double precision :: linkingLength, densityRatio
+   contains
+     procedure :: densityContrast             => friendsOfFriendsDensityContrast
+     procedure :: densityContrastRateOfChange => friendsOfFriendsDensityContrastRateOfChange
+  end type virialDensityContrastFriendsOfFriends
 
-  ! Variables to hold the tabulated critical overdensity data.
-  double precision            :: deltaTableTimeMaximum                =20.0d0, deltaTableTimeMinimum               =1.0d0
-  integer         , parameter :: deltaTableNPointsPerDecade           =100
+  interface virialDensityContrastFriendsOfFriends
+     !% Constructors for the {\tt friendsOfFriends} dark matter halo virial density contrast class.
+     module procedure friendsOfFriendsDefaultConstructor
+     module procedure friendsOfFriendsConstructor
+  end interface virialDensityContrastFriendsOfFriends
+
+  ! Initialization state.
+  logical          :: fofInitialized=.false.
+
+  ! Default value of the linking length and density ratio parameters.
+  double precision :: virialDensityContrastFoFLinkingLength, virialDensityContrastFoFDensityRatio
 
 contains
 
-  !# <virialDensityContrastMethod>
-  !#  <unitName>Virial_Density_Friends_of_Friends_Initialize</unitName>
-  !# </virialDensityContrastMethod>
-  subroutine Virial_Density_Friends_of_Friends_Initialize(virialDensityContrastMethod,Virial_Density_Contrast_Tabulate)
-    !% Initializes the $\Delta_{\rm vir}$ calculation for the fixed value implementation.
+  function friendsOfFriendsDefaultConstructor()
+    !% Default constructor for the {\tt friendsOfFriends} dark matter halo virial density contrast class.
     use Input_Parameters
-    use ISO_Varying_String
-    use Galacticus_Error
     implicit none
-    type     (varying_string                   ), intent(in   )          :: virialDensityContrastMethod
-    procedure(Virial_Density_Friends_of_Friends), intent(inout), pointer :: Virial_Density_Contrast_Tabulate
-
-    if (virialDensityContrastMethod == 'friendsOfFriends') then
-       ! Return a pointer to our tabulation function.
-       Virial_Density_Contrast_Tabulate => Virial_Density_Friends_of_Friends
-       ! Get the linking length to use.
-       !@ <inputParameter>
-       !@   <name>virialDensityContrastFoFLinkingLength</name>
-       !@   <defaultValue>0.2</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The friends-of-friends linking length algorithm to use in computing virial density contrast.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("virialDensityContrastFoFLinkingLength",virialDensityContrastFoFLinkingLength,defaultValue=0.2d0)
-       !@ <inputParameter>
-       !@   <name>virialDensityContrastFoFDensityRatio</name>
-       !@   <defaultValue>4.688 (value appropriate for an \gls{nfw} profile with concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is the approximate critical overdensity for collapse).</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The ratio of mean virial density to density at the virial radius to assume when setting virial density contrasts in the friends-of-friends model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("virialDensityContrastFoFDensityRatio",virialDensityContrastFoFDensityRatio,defaultValue=4.688d0)
+    type (virialDensityContrastFriendsOfFriends), target  :: friendsOfFriendsDefaultConstructor
+    
+    if (.not.fofInitialized) then
+       !$omp critical(virialDensityContrastFriendsOfFriendsInitialize)
+       if (.not.fofInitialized) then
+          ! Get the linking length to use.
+          !@ <inputParameter>
+          !@   <name>virialDensityContrastFoFLinkingLength</name>
+          !@   <defaultValue>0.2</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The friends-of-friends linking length algorithm to use in computing virial density contrast.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("virialDensityContrastFoFLinkingLength",virialDensityContrastFoFLinkingLength,defaultValue=0.2d0)
+          !@ <inputParameter>
+          !@   <name>virialDensityContrastFoFDensityRatio</name>
+          !@   <defaultValue>4.688 (value appropriate for an \gls{nfw} profile with concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is the approximate critical overdensity for collapse).</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The ratio of mean virial density to density at the virial radius to assume when setting virial density contrasts in the friends-of-friends model.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("virialDensityContrastFoFDensityRatio",virialDensityContrastFoFDensityRatio,defaultValue=4.688d0)
+          ! Record initialization.
+          fofInitialized=.true.
+       end if
+       !$omp end critical(virialDensityContrastFriendsOfFriendsInitialize)
     end if
+    friendsOfFriendsDefaultConstructor=friendsOfFriendsConstructor(virialDensityContrastFoFLinkingLength,virialDensityContrastFoFDensityRatio)
     return
-  end subroutine Virial_Density_Friends_of_Friends_Initialize
+  end function friendsOfFriendsDefaultConstructor
 
-  subroutine Virial_Density_Friends_of_Friends(time,deltaVirialTable)
-    !% Tabulate the virial density contrast assuming a fixed value.
-    use Cosmology_Functions
-    use Tables
+  function friendsOfFriendsConstructor(linkingLength,densityRatio)
+    !% Generic constructor for the {\tt friendsOfFriends} dark matter halo virial density contrast class.
+    use Input_Parameters
+    implicit none
+    type            (virialDensityContrastFriendsOfFriends), target        :: friendsOfFriendsConstructor
+    double precision                                       , intent(in   ) :: linkingLength              , densityRatio
+
+    friendsOfFriendsConstructor%linkingLength=linkingLength
+    friendsOfFriendsConstructor%densityRatio =densityRatio
+    return
+  end function friendsOfFriendsConstructor
+
+  double precision function friendsOfFriendsDensityContrast(self,time,expansionFactor,collapsing)
+    !% Return the virial density contrast at the given epoch, based on the friends-of-friends algorithm linking length.
     use Numerical_Constants_Math
     implicit none
-    double precision                                      , intent(in   ) :: time
-    class           (table1D                ), allocatable, intent(inout) :: deltaVirialTable
-    class           (cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
-    integer                                                               :: deltaTableNumberPoints   , iTime
-    double precision                                                      :: boundingSurfaceDensityContrast, virialDensityContrast
+    class           (virialDensityContrastFriendsOfFriends), intent(inout)           :: self
+    double precision                                       , intent(in   ), optional :: time                          , expansionFactor
+    logical                                                , intent(in   ), optional :: collapsing
+    double precision                                                                 :: boundingSurfaceDensityContrast
 
-    ! Find minimum and maximum times to tabulate.
-    deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
-    deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
-
-    ! Determine number of points to tabulate.
-    deltaTableNumberPoints=int(log10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
-         &*dble(deltaTableNPointsPerDecade))
-
-    ! Deallocate table if currently allocated.
-    if (allocated(deltaVirialTable)) then
-       call deltaVirialTable%destroy()
-       deallocate(deltaVirialTable)
-    end if
-    allocate(table1DLogarithmicLinear :: deltaVirialTable)
-    select type (deltaVirialTable)
-    type is (table1DLogarithmicLinear)
-       ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       ! Create the table.
-       call deltaVirialTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
-       ! Populate the table.
-       do iTime=1,deltaTableNumberPoints
-          boundingSurfaceDensityContrast=3.0d0/2.0d0/Pi/virialDensityContrastFoFLinkingLength**3
-          virialDensityContrast=virialDensityContrastFoFDensityRatio*boundingSurfaceDensityContrast
-          call deltaVirialTable%populate(virialDensityContrast,iTime)
-       end do
-    end select
+    boundingSurfaceDensityContrast =3.0d0/2.0d0/Pi/self%linkingLength**3
+    friendsOfFriendsDensityContrast=self%densityRatio*boundingSurfaceDensityContrast
     return
-  end subroutine Virial_Density_Friends_of_Friends
+  end function friendsOfFriendsDensityContrast
 
-end module Virial_Densities_Friends_of_Friends
+  double precision function friendsOfFriendsDensityContrastRateOfChange(self,time,expansionFactor,collapsing)
+    !% Return the virial density contrast at the given epoch, based on the friends-of-friends algorithm linking length.
+    use Numerical_Constants_Math
+    implicit none
+    class           (virialDensityContrastFriendsOfFriends), intent(inout)           :: self
+    double precision                                       , intent(in   ), optional :: time      , expansionFactor
+    logical                                                , intent(in   ), optional :: collapsing
+
+    friendsOfFriendsDensityContrastRateOfChange=0.0d0
+    return
+  end function friendsOfFriendsDensityContrastRateOfChange

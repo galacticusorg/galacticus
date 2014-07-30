@@ -88,6 +88,7 @@ contains
     implicit none
     type            (treeNode      ), intent(inout), pointer :: thisNode
     type            (treeNode      )               , pointer :: hostNode
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                , parameter              :: bindingEnergyFormFactor             =0.5d+00
     double precision                , parameter              :: absoluteMassTolerance               =1.0d-06
     double precision                , parameter              :: relativeMassTolerance               =1.0d-09
@@ -214,8 +215,9 @@ contains
 
           ! Check that the specific angular momentum is reasonable.
           if (.not.warningGiven.and.Galacticus_Verbosity_Level() >= verbosityWarn) then
-             radiusVirial  =Dark_Matter_Halo_Virial_Radius  (hostNode)
-             velocityVirial=Dark_Matter_Halo_Virial_Velocity(hostNode)
+             darkMatterHaloScale_ => darkMatterHaloScale()
+             radiusVirial  =darkMatterHaloScale_%virialRadius  (hostNode)
+             velocityVirial=darkMatterHaloScale_%virialVelocity(hostNode)
              if (remnantSpecificAngularMomentum < specificAngularMomentumFractionSmall*radiusVirial*velocityVirial) then
                 message='WARNING: the specific angular momentum for node '
                 message=message//hostNode%index()//' has become very small'//char(10)

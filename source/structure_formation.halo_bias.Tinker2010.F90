@@ -62,13 +62,15 @@ contains
     use Power_Spectra
     use Virial_Density_Contrast
     implicit none
-    double precision, intent(in   ) :: mass               , time
-    double precision, parameter     :: lowerB       =1.5d0, lowerC             =2.4d0 , upperB=0.183d0
-    double precision                :: deltaCritical      , haloDensityContrast       , nu            , &
-         &                             sigma              , y
-    double precision, save          :: lowerA             , timePrevious       =-1.0d0, upperA        , &
-         &                             upperC
+    double precision                            , intent(in   ) :: mass                        , time
+    double precision                            , parameter     :: lowerB                =1.5d0, lowerC             =2.4d0 , upperB=0.183d0
+    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
+    double precision                                            :: deltaCritical               , haloDensityContrast       , nu            , &
+         &                                                         sigma                       , y
+    double precision, save                                      :: lowerA                      , timePrevious       =-1.0d0, upperA        , &
+         &                                                         upperC
     !$omp threadprivate(timePrevious,lowerA,upperA,upperC)
+
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=Critical_Overdensity_for_Collapse(time=time,mass=mass)
     sigma        =Cosmological_Mass_Root_Variance(mass)
@@ -80,7 +82,8 @@ contains
        timePrevious=time
 
        ! Compute halo density contrast and logarithm.
-       haloDensityContrast=Halo_Virial_Density_Contrast(time)
+       virialDensityContrast_    => virialDensityContrast()
+       haloDensityContrast=virialDensityContrast_%densityContrast(time)
        y=log10(haloDensityContrast)
 
        ! Compute parameters as a function of halo overdensity (from Table 2 of Tinker et al. 2010)

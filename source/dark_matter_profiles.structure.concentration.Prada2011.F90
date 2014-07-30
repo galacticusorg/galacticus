@@ -35,7 +35,9 @@
      private
      double precision :: A, B, C, D, C0, C1, X0, X1, InverseSigma0, InverseSigma1, Alpha, Beta
    contains
-     procedure :: concentration => prada2011Concentration
+     procedure :: concentration               => prada2011Concentration
+     procedure :: densityContrastDefinition   => prada2011DensityContrastDefinition
+     procedure :: darkMatterProfileDefinition => prada2011DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationPrada2011
   
   interface darkMatterProfileConcentrationPrada2011
@@ -312,3 +314,39 @@ contains
     
     prada2011C=self%A*((sigmaPrime/self%B)**self%C+1.0d0)*exp(self%D/sigmaPrime**2)
   end function prada2011C
+
+  function prada2011DensityContrastDefinition(self)
+    !% Return a virial density contrast object defining that used in the definition of concentration in the \cite{prada_halo_2011} algorithm.
+    implicit none
+    class(virialDensityContrastClass             ), pointer       :: prada2011DensityContrastDefinition
+    class(darkMatterProfileConcentrationPrada2011), intent(inout) :: self
+    
+    allocate(virialDensityContrastFixed :: prada2011DensityContrastDefinition)
+    select type (prada2011DensityContrastDefinition)
+    type is (virialDensityContrastFixed)
+      prada2011DensityContrastDefinition=virialDensityContrastFixed(200.0d0,virialDensityContrastFixedDensityTypeCritical)
+    end select
+    return
+  end function prada2011DensityContrastDefinition
+
+  function prada2011DarkMatterProfileDefinition(self)
+    !% Return a dark matter density profile object defining that used in the definition of concentration in the
+    !% \cite{prada_halo_2011} algorithm.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class(darkMatterProfileClass                            ), pointer       :: prada2011DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationPrada2011           ), intent(inout) :: self
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition
+
+    allocate(darkMatterProfileNFW                               :: prada2011DarkMatterProfileDefinition)
+    allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition       )
+    select type (prada2011DarkMatterProfileDefinition)
+    type is (darkMatterProfileNFW)
+       select type (darkMatterHaloScaleDefinition)
+       type is (darkMatterHaloScaleVirialDensityContrastDefinition)
+          darkMatterHaloScaleDefinition       =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
+          prada2011DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+       end select
+    end select
+    return
+  end function prada2011DarkMatterProfileDefinition

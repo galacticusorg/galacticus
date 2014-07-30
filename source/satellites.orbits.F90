@@ -51,6 +51,7 @@ contains
     type            (treeNode         ), intent(inout), pointer  :: hostNode
     type            (keplerOrbit      ), intent(inout)           :: thisOrbit
     integer                            , intent(  out), optional :: errorCode
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                   , parameter               :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
     type            (rootFinder       ), save                    :: finder
     !$omp threadprivate(finder)
@@ -84,7 +85,8 @@ contains
                &                   rangeExpandType              =rangeExpandMultiplicative      &
                &                  )
        end if
-       Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=Dark_Matter_Halo_Virial_Radius(hostNode))
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(hostNode))
        if (present(errorCode)) errorCode=errorCodeSuccess
     end if
     return
@@ -96,15 +98,18 @@ contains
     use Dark_Matter_Profiles_Error_Codes
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ) :: radius
-    double precision, parameter     :: potentialInfinite=1.0d30
-    double precision                :: potential
-    integer                         :: status
+    double precision                        , intent(in   ) :: radius
+    double precision                        , parameter     :: potentialInfinite=1.0d30
+    class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
+    double precision                                        :: potential
+    integer                                                 :: status
 
-    potential=Dark_Matter_Profile_Potential(activeNode,radius,status)
+    ! Get required objects.
+    darkMatterProfile_ => darkMatterProfile()
+    potential=darkMatterProfile_%potential(activeNode,radius,status)
     select case (status)
     case (darkMatterProfileSuccess)
-       Equivalent_Circular_Orbit_Solver=potential+0.5d0*Dark_Matter_Profile_Circular_Velocity(activeNode,radius)**2-orbitalEnergyInternal
+       Equivalent_Circular_Orbit_Solver=potential+0.5d0*darkMatterProfile_%circularVelocity(activeNode,radius)**2-orbitalEnergyInternal
     case (darkMatterProfileErrorInfinite)
        ! The gravitational potential is negative infinity at this radius (most likely zero radius). Since all we care about in
        ! this root-finding function is the sign of the function, return a large negative value.
@@ -125,17 +130,20 @@ contains
     use Numerical_Constants_Physical
     use Galacticus_Error
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: hostNode
-    type            (keplerOrbit      ), intent(inout)          :: thisOrbit
-    integer                            , intent(in   )          :: extremumType
-    double precision                   , intent(  out)          :: radius                 , velocity
-    double precision                   , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder       ), save                   :: finder
+    type            (treeNode              ), intent(inout), pointer :: hostNode
+    type            (keplerOrbit           ), intent(inout)          :: thisOrbit
+    integer                                 , intent(in   )          :: extremumType
+    double precision                        , intent(  out)          :: radius                 , velocity
+    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
+    double precision                        , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder            ), save                   :: finder
     !$omp threadprivate(finder)
-    type            (keplerOrbit      )                         :: currentOrbit
-    integer                                                     :: status
-    double precision                                            :: potential
+    type            (keplerOrbit           )                         :: currentOrbit
+    integer                                                          :: status
+    double precision                                                 :: potential
 
+    ! Get required objects.
+    darkMatterProfile_ => darkMatterProfile()
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     currentOrbit=Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,hostNode)
     ! Extract the orbital energy and angular momentum.
@@ -196,7 +204,7 @@ contains
        velocity=orbitalAngularMomentumInternal/radius
     else
        ! Orbit is radial - use energy to find velocity.
-       potential=Dark_Matter_Profile_Potential(activeNode,radius,status)
+       potential=darkMatterProfile_%potential(activeNode,radius,status)
        select case (status)
        case (darkMatterProfileSuccess)
           velocity=sqrt(2.0d0*(orbitalEnergyInternal-potential))
@@ -215,9 +223,11 @@ contains
     !% Root function used in finding orbital extremum radius.
     use Dark_Matter_Profiles
     implicit none
-    double precision, intent(in   ) :: radius
+    double precision                        , intent(in   ) :: radius
+    class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
 
-    Extremum_Solver=Dark_Matter_Profile_Potential(activeNode,radius)+0.5d0*(orbitalAngularMomentumInternal/radius)**2-orbitalEnergyInternal
+    darkMatterProfile_ => darkMatterProfile()
+    Extremum_Solver=darkMatterProfile_%potential(activeNode,radius)+0.5d0*(orbitalAngularMomentumInternal/radius)**2-orbitalEnergyInternal
     return
   end function Extremum_Solver
 

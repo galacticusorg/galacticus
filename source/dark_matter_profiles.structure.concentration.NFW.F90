@@ -33,7 +33,9 @@
      private
      double precision :: F, C
    contains
-     procedure :: concentration => nfw1996Concentration
+     procedure :: concentration               => nfw1996Concentration
+     procedure :: densityContrastDefinition   => nfw1996DensityContrastDefinition
+     procedure :: darkMatterProfileDefinition => nfw1996DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationNFW1996
 
   interface darkMatterProfileConcentrationNFW1996
@@ -111,6 +113,7 @@ contains
     double precision                                       , parameter              :: toleranceAbsolute          =0.0d0       , toleranceRelative      =1.0d-6
     class           (nodeComponentBasic                   )               , pointer :: basic
     class           (cosmologyFunctionsClass              )               , pointer :: cosmologyFunctions_
+    class           (virialDensityContrastClass           )               , pointer :: virialDensityContrast_
     type            (rootFinder                           ), save                   :: finder
     !$omp threadprivate(finder)
     double precision                                                                :: collapseCriticalOverdensity             , collapseExpansionFactor       , &
@@ -118,10 +121,9 @@ contains
          &                                                                             collapseTime                            , expansionFactor               , &
          &                                                                             nodeMass                                , nodeTime
 
-
-
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()
+    ! Get default objects.
+    cosmologyFunctions_    => cosmologyFunctions   ()
+    virialDensityContrast_ => virialDensityContrast()
     ! Get the basic component.
     basic               => node%basic()
     ! Get the properties of the node.
@@ -137,7 +139,7 @@ contains
     ! Compute the overdensity of the progenitor at collapse using the scaling given by NFW.
     collapseOverdensity        =self%C*(expansionFactor/collapseExpansionFactor)**3
     ! Find the ratio of this overdensity to that at for the present node.
-    nfw1996TargetValue         =collapseOverdensity/Halo_Virial_Density_Contrast(nodeTime)
+    nfw1996TargetValue         =collapseOverdensity/virialDensityContrast_%densityContrast(nodeTime)
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rangeExpand (                                               &
@@ -161,3 +163,40 @@ contains
     nfw1996RootFunction=concentration**3/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-nfw1996TargetValue
     return
   end function nfw1996RootFunction
+
+  function nfw1996DensityContrastDefinition(self)
+    !% Return a virial density contrast object defining that used in the definition of concentration in the \cite{navarro_structure_1996} algorithm.
+    implicit none
+    class(virialDensityContrastClass           ), pointer       :: nfw1996DensityContrastDefinition
+    class(darkMatterProfileConcentrationNfw1996), intent(inout) :: self
+    
+    allocate(virialDensityContrastFixed :: nfw1996DensityContrastDefinition)
+    select type (nfw1996DensityContrastDefinition)
+    type is (virialDensityContrastFixed)
+      nfw1996DensityContrastDefinition=virialDensityContrastFixed(200.0d0,virialDensityContrastFixedDensityTypeCritical)
+    end select
+    return
+  end function nfw1996DensityContrastDefinition
+  
+  function nfw1996DarkMatterProfileDefinition(self)
+    !% Return a dark matter density profile object defining that used in the definition of concentration in the
+    !% \cite{navarro_structure_1996} algorithm.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class(darkMatterProfileClass                            ), pointer       :: nfw1996DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationNFW1996             ), intent(inout) :: self
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition
+
+    allocate(darkMatterProfileNFW                               :: nfw1996DarkMatterProfileDefinition)
+    allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition     )
+    select type (nfw1996DarkMatterProfileDefinition)
+    type is (darkMatterProfileNFW)
+       select type (darkMatterHaloScaleDefinition)
+       type is (darkMatterHaloScaleVirialDensityContrastDefinition)
+          darkMatterHaloScaleDefinition     =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
+          nfw1996DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+       end select
+    end select
+    return
+  end function nfw1996DarkMatterProfileDefinition
+

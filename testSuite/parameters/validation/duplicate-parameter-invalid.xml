@@ -120,7 +120,7 @@
   </parameter>
   <parameter>
     <name>virialDensityContrastMethod</name>
-    <value>sphericalTopHat</value>
+    <value>sphericalCollapseMatterLambda</value>
   </parameter>
 
   <!-- Merger tree building options -->

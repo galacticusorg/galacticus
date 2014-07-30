@@ -135,6 +135,7 @@ contains
     class           (nodeComponentHotHalo                    )               , pointer :: hotHaloComponent
     class           (nodeComponentDarkMatterProfile          )               , pointer :: darkMatterProfileComponent
     class           (cosmologyParametersClass                )               , pointer :: cosmologyParameters_
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                                   :: hotGasFraction                   , coreRadiusOverVirialRadius, &
          &                                                                                coreRadiusOverVirialRadiusInitial, targetValue
     logical                                                                            :: makeTable
@@ -145,6 +146,7 @@ contains
     darkMatterProfileComponent => node%darkMatterProfile()
     ! Get the default cosmology.
     cosmologyParameters_ => cosmologyParameters()
+    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Find the fraction of gas in the hot halo relative to that expected from the universal baryon fraction.
     hotGasFraction=(hotHaloComponent%mass()/basicComponent%mass())*(cosmologyParameters_%OmegaMatter()/cosmologyParameters_%OmegaBaryon())
     ! Return an arbitrary value for empty halos.
@@ -156,7 +158,7 @@ contains
     coreRadiusOverVirialRadiusInitial=          &
          &  self%coreRadiusOverScaleRadius      &
          & *darkMatterProfileComponent%scale()  &
-         & /Dark_Matter_Halo_Virial_Radius(node)
+         & /darkMatterHaloScale_%virialRadius(node)
     ! Check if the initial core radius and hot gas fraction equal the previously stored values.
     if     (                                                                                        &
          &  .not.                                                                                   &
@@ -194,7 +196,7 @@ contains
        self%coreRadiusOverVirialRadiusSaved       =coreRadiusOverVirialRadius
     end if
     ! Compute the resulting core radius.
-    growingRadius=self%coreRadiusOverVirialRadiusSaved*Dark_Matter_Halo_Virial_Radius(node)
+    growingRadius=self%coreRadiusOverVirialRadiusSaved*darkMatterHaloScale_%virialRadius(node)
     return
   end function growingRadius
 

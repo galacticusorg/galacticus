@@ -82,6 +82,7 @@ contains
     integer                         , intent(in   ), optional :: componentType , massType, weightBy, weightIndex
     double precision                , intent(in   ), optional :: fractionalMass, mass
     logical                         , intent(in   ), optional :: haloLoaded
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     type            (rootFinder    ), save                    :: finder
     !$omp threadprivate(finder)
     type            (varying_string)                          :: message
@@ -130,7 +131,8 @@ contains
        Galactic_Structure_Radius_Enclosing_Mass=0.0d0
        return
     end if
-    Galactic_Structure_Radius_Enclosing_Mass=finder%find(rootRange=[0.0d0,Dark_Matter_Halo_Virial_Radius(thisNode)])
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    Galactic_Structure_Radius_Enclosing_Mass=finder%find(rootRange=[0.0d0,darkMatterHaloScale_%virialRadius(thisNode)])
     return
   end function Galactic_Structure_Radius_Enclosing_Mass
 

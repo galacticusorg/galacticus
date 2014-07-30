@@ -62,9 +62,9 @@ module Node_Component_Disk_Very_Simple
 
 contains
 
-  !# <mergerTreePreTreeConstructionTask>
+  !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Initialize</unitName>
-  !# </mergerTreePreTreeConstructionTask>
+  !# </nodeComponentInitializationTask>
   subroutine Node_Component_Disk_Very_Simple_Initialize()
     !% Initializes the tree node very simple disk component module.
     use Input_Parameters
@@ -183,6 +183,7 @@ contains
     logical                                , intent(inout)          :: interrupt
     procedure       (                     ), intent(inout), pointer :: interruptProcedureReturn
     procedure       (                     )               , pointer :: interruptProcedure
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                :: diskDynamicalTime       , diskMass         , &
          &                                                             energyInputRate         , fuelMass         , &
          &                                                             massOutflowRate         , starFormationRate
@@ -209,7 +210,8 @@ contains
           ! Get the masses of the disk.
           diskMass=fuelMass+thisDiskComponent%massStellar()
           ! Limit the outflow rate timescale to a multiple of the dynamical time.
-          diskDynamicalTime=Dark_Matter_Halo_Dynamical_Timescale(thisNode)
+          darkMatterHaloScale_ => darkMatterHaloScale()
+          diskDynamicalTime=darkMatterHaloScale_%dynamicalTimescale(thisNode)
           massOutflowRate=min(massOutflowRate,fuelMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
           ! Push to the hot halo.
           thisHotHaloComponent => thisNode%hotHalo()
@@ -323,6 +325,7 @@ contains
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk )               , pointer :: thisDiskComponent
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                             :: diskDynamicalTime, gasMass, starFormationTimescale
 
     ! Get the disk component.
@@ -332,8 +335,9 @@ contains
     starFormationTimescale=Star_Formation_Timescale_Disk(thisNode)
 
     ! Limit the star formation timescale to a multiple of the dynamical time.
-    diskDynamicalTime=Dark_Matter_Halo_Dynamical_Timescale(thisNode)
-    starFormationTimescale=max(starFormationTimescale,diskStarFormationTimescaleMinimum*diskDynamicalTime)
+    darkMatterHaloScale_   => darkMatterHaloScale()
+    diskDynamicalTime      =darkMatterHaloScale_%dynamicalTimescale(thisNode)
+    starFormationTimescale =max(starFormationTimescale,diskStarFormationTimescaleMinimum*diskDynamicalTime)
 
     ! Get the gas mass.
     gasMass=thisDiskComponent%massGas()

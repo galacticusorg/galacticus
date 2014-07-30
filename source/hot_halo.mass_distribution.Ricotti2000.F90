@@ -94,6 +94,7 @@ contains
     type            (treeNode                              ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo                  )               , pointer :: hotHalo
     class           (nodeComponentDarkMatterProfile        )               , pointer :: darkMatterProfile
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                        , parameter              :: virialToGasTemperatureRatio=1.0d0
     double precision                                                                 :: mass                             , radiusOuter  , &
          &                                                                              radiusScale                      , radiusVirial , &
@@ -101,29 +102,30 @@ contains
          &                                                                              b                                , beta
     
     ! Compute parameters of the profile.
-    hotHalo           => node             %hotHalo          ()
-    darkMatterProfile => node             %darkMatterProfile()
-    radiusOuter       =  hotHalo          %outerRadius      ()
-    mass              =  hotHalo          %mass             ()
-    radiusScale       =  darkMatterProfile%scale            ()
-    radiusVirial      =  Dark_Matter_Halo_Virial_Radius(node)
-    concentration     =  radiusVirial/radiusScale
-    b                 =   (                             &
-         &                  2.0d0                       &
-         &                 *concentration               &
-         &                 /9.0d0                       &
-         &                 /virialToGasTemperatureRatio &
-         &                )                             &
-         &               /(                             &
-         &                  log(1.0d0+concentration)    &
-         &                 -concentration               &
-         &                 /(                           &
-         &                    1.0d0                     &
-         &                   +concentration             &
-         &                  )                           &
-         &                )
-    beta              =  0.90d0*b
-    radiusCore        =  0.22d0*radiusScale
+    darkMatterHaloScale_ => darkMatterHaloScale                   (    )
+    hotHalo              => node                %hotHalo          (    )
+    darkMatterProfile    => node                %darkMatterProfile(    )
+    radiusOuter          =  hotHalo             %outerRadius      (    )
+    mass                 =  hotHalo             %mass             (    )
+    radiusScale          =  darkMatterProfile   %scale            (    )
+    radiusVirial         =  darkMatterHaloScale_%virialRadius     (node)
+    concentration        =  radiusVirial/radiusScale
+    b                    =   (                             &
+         &                     2.0d0                       &
+         &                    *concentration               &
+         &                    /9.0d0                       &
+         &                    /virialToGasTemperatureRatio &
+         &                   )                             &
+         &                  /(                             &
+         &                     log(1.0d0+concentration)    &
+         &                    -concentration               &
+         &                    /(                           &
+         &                       1.0d0                     &
+         &                      +concentration             &
+         &                     )                           &
+         &                   )
+    beta                 =  0.90d0*b
+    radiusCore           =  0.22d0*radiusScale
     ! Construct the mass distribution.
     if (radiusOuter <= 0.0d0) then
        ! If outer radius is non-positive, set mass to zero and outer radius to an arbitrary value.

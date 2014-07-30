@@ -24,7 +24,7 @@ module Spherical_Collapse_Matter_Lambda
   implicit none
   private
   public :: Spherical_Collape_Delta_Critical_Initialize, Spherical_Collapse_Critical_Overdensity,&
-       & Spherical_Collape_Delta_Virial_Initialize, Spherical_Collapse_Virial_Density_Contrast,&
+       & Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate,&
        & Spherical_Collapse_Matter_Lambda_State_Store, Spherical_Collapse_Matter_Lambda_State_Retrieve
 
   ! Variables to hold the tabulated critical overdensity data.
@@ -55,21 +55,6 @@ contains
     return
   end subroutine Spherical_Collape_Delta_Critical_Initialize
 
-  !# <virialDensityContrastMethod>
-  !#  <unitName>Spherical_Collape_Delta_Virial_Initialize</unitName>
-  !# </virialDensityContrastMethod>
-  subroutine Spherical_Collape_Delta_Virial_Initialize(virialDensityContrastMethod,Virial_Density_Contrast_Tabulate)
-    !% Initializes the $\Delta_{\rm vir}$ calculation for the spherical collapse module.
-    use ISO_Varying_String
-    implicit none
-    type     (varying_string                            ), intent(in   )          :: virialDensityContrastMethod
-    procedure(Spherical_Collapse_Virial_Density_Contrast), intent(inout), pointer :: Virial_Density_Contrast_Tabulate
-
-    if (virialDensityContrastMethod == 'sphericalTopHat') Virial_Density_Contrast_Tabulate =>&
-         & Spherical_Collapse_Virial_Density_Contrast
-    return
-  end subroutine Spherical_Collape_Delta_Virial_Initialize
-
   subroutine Spherical_Collapse_Critical_Overdensity(time,deltaCritTable)
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
     use Tables
@@ -84,7 +69,7 @@ contains
     return
   end subroutine Spherical_Collapse_Critical_Overdensity
 
-  subroutine Spherical_Collapse_Virial_Density_Contrast(time,deltaVirialTable)
+  subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,deltaVirialTable)
     !% Tabulate the virial density contrast for the spherical collapse model.
     use Tables
     implicit none
@@ -95,7 +80,7 @@ contains
     call Make_Table(time,deltaVirialTable,calculationDeltaVirial)
     !$omp end critical(Spherical_Collapse_Make_Table)
     return
-  end subroutine Spherical_Collapse_Virial_Density_Contrast
+  end subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate
 
   subroutine Make_Table(time,deltaTable,calculationType)
     !% Tabulate $\delta_{\rm crit}$ or $\Delta_{\rm vir}$ vs. time.

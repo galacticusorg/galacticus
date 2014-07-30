@@ -210,6 +210,7 @@ contains
          &                                                      integerBufferCount           , integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer     (:,:)
     double precision                , intent(inout)          :: doubleBuffer      (:,:)
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                , parameter              :: toleranceAbsolute      =0.0d0, toleranceRelative=1.0d-3
     type            (rootFinder    ), save                   :: finder
     !$omp threadprivate(finder)
@@ -239,7 +240,8 @@ contains
        do iDensity=1,densityContrastCount
           meanDensityContrastTarget=outputDensityContrastValues(iDensity)
           ! Locate the root.
-          radius=finder%find(rootGuess=Dark_Matter_Halo_Virial_Radius(thisNode))
+          darkMatterHaloScale_ => darkMatterHaloScale()
+          radius=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(thisNode))
           ! Compute the mass enclosed in this radius.
           enclosedMass=Galactic_Structure_Enclosed_Mass(                                               &
                &                                        thisNode                                     , &

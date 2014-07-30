@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014 Andrew Benson <abenson@obs.carnegiescience.edu>
+! Copyright 2009, 2010, 2011, 2012, 2013, 2014 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -111,6 +111,7 @@ contains
     type            (treeNode               ), intent(inout), pointer :: thisNode
     class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
     class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                         , parameter              :: virialVelocityNormalization=200.0d0
     double precision                    , save                   :: velocityPrevious           =-1.0d0, velocityFactorPrevious       =-1.0d0
     !$omp threadprivate(velocityPrevious,velocityFactorPrevious)
@@ -127,10 +128,11 @@ contains
     ! Compute the timescale if necessary.
     if (.not.timescaleComputed) then
        ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
+       cosmologyFunctionsDefault => cosmologyFunctions ()
+       darkMatterHaloScale_      => darkMatterHaloScale()
 
        ! Get virial velocity and expansion factor.
-       virialVelocity =Dark_Matter_Halo_Virial_Velocity(thisNode                 )
+       virialVelocity =darkMatterHaloScale_%virialVelocity(thisNode                 )
        expansionFactor=cosmologyFunctionsDefault%expansionFactor                (thisBasicComponent%time())
 
        ! Compute the velocity factor.

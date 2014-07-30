@@ -22,7 +22,7 @@ module Dark_Matter_Profile_Structure_Tasks
   use Galacticus_Nodes
   use Dark_Matter_Profiles
   private
-  public :: Dark_Matter_Profile_Enclosed_Mass_Task,Dark_Matter_Profile_Density_Task, Dark_Matter_Profile_Density&
+  public :: Dark_Matter_Profile_Enclosed_Mass_Task,Dark_Matter_Profile_Density_Task&
        &,Dark_Matter_Profile_Rotation_Curve_Task ,Dark_Matter_Profile_Potential_Task&
        &,Dark_Matter_Profile_Rotation_Curve_Gradient_Task
 
@@ -44,6 +44,7 @@ contains
     logical                                   , intent(in   ), optional :: haloLoaded
     class           (nodeComponentBasic      )               , pointer  :: thisBasicComponent
     class           (cosmologyParametersClass)               , pointer  :: thisCosmologyParameters
+    class           (darkMatterProfileClass  )               , pointer  :: darkMatterProfile_
     double precision                                                    :: darkMatterFraction     , radiusInitial
     logical                                                             :: haloLoadedActual
 
@@ -52,7 +53,8 @@ contains
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
     if (.not.(weightBy      == weightByMass                                                )) return
 
-    ! Get the default cosmology.
+    ! Get required objects.
+    darkMatterProfile_      => darkMatterProfile  ()
     thisCosmologyParameters => cosmologyParameters()
     ! Determine the dark matter fraction.
     darkMatterFraction=(thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()
@@ -76,7 +78,7 @@ contains
           radiusInitial=radius
        end if
        ! Return the mass within the initial radius.
-       Dark_Matter_Profile_Enclosed_Mass_Task=Dark_Matter_Profile_Enclosed_Mass(thisNode,radiusInitial)
+       Dark_Matter_Profile_Enclosed_Mass_Task=darkMatterProfile_%enclosedMass(thisNode,radiusInitial)
     end if
     ! Scale to account for just the dark component.
     Dark_Matter_Profile_Enclosed_Mass_Task=Dark_Matter_Profile_Enclosed_Mass_Task*darkMatterFraction
@@ -125,6 +127,7 @@ contains
     double precision                          , intent(in   )           :: positionSpherical      (3)
     logical                                   , intent(in   ), optional :: haloLoaded
     class           (cosmologyParametersClass)               , pointer  :: thisCosmologyParameters
+    class           (darkMatterProfileClass  )               , pointer  :: darkMatterProfile_
     logical                                                             :: haloLoadedActual
     double precision                                                    :: darkMatterFraction        , radiusInitial, &
          &                                                                 radiusJacobian
@@ -134,7 +137,8 @@ contains
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
     if (.not.(weightBy      == weightByMass                                                )) return
-    ! Get the default cosmology.
+    ! Get required objects.
+    darkMatterProfile_      => darkMatterProfile  ()
     thisCosmologyParameters => cosmologyParameters()
     ! Determine the dark matter fraction.
     darkMatterFraction=(thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()
@@ -152,7 +156,7 @@ contains
        radiusJacobian=1.0d0
     end if
     ! Return the mass within the initial radius.
-    Dark_Matter_Profile_Density_Task=Dark_Matter_Profile_Density(thisNode,radiusInitial)
+    Dark_Matter_Profile_Density_Task=darkMatterProfile_%density(thisNode,radiusInitial)
     ! Account for the Jacobian.
     Dark_Matter_Profile_Density_Task=Dark_Matter_Profile_Density_Task*radiusJacobian
     ! Scale to account for just the dark component.
@@ -201,10 +205,11 @@ contains
     use Galactic_Structure_Options
     use Galacticus_Error
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode
-    integer                   , intent(in   )           :: componentType, massType
-    double precision          , intent(in   )           :: radius
-    logical                   , intent(in   ), optional :: haloLoaded
+    type            (treeNode              ), intent(inout), pointer  :: thisNode
+    integer                                 , intent(in   )           :: componentType, massType
+    double precision                        , intent(in   )           :: radius
+    logical                                 , intent(in   ), optional :: haloLoaded
+    class           (darkMatterProfileClass)               , pointer  :: darkMatterProfile_
 
     Dark_Matter_Profile_Potential_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
@@ -214,7 +219,8 @@ contains
        if (haloLoaded) call Galacticus_Error_Report('Dark_Matter_Profile_Potential_Task','dark matter potential not available for baryon loaded halos')
     end if
 
-    Dark_Matter_Profile_Potential_Task=Dark_Matter_Profile_Potential(thisNode,radius)
+    darkMatterProfile_ => darkMatterProfile()
+    Dark_Matter_Profile_Potential_Task=darkMatterProfile_%potential(thisNode,radius)
     return
   end function Dark_Matter_Profile_Potential_Task
 

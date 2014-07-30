@@ -50,10 +50,12 @@ contains
     implicit none
     type (treeNode              ), intent(inout), pointer :: hostNode              , thisNode
     class(nodeComponentBlackHole)               , pointer :: hostBlackHoleComponent, thisBlackHoleComponent
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
     ! Get the black hole components.
-    thisBlackHoleComponent => thisNode%blackHole()
-    hostBlackHoleComponent => hostNode%blackHole()
+    thisBlackHoleComponent => thisNode%blackHole ()
+    hostBlackHoleComponent => hostNode%blackHole ()
+    darkMatterHaloScale_   => darkMatterHaloScale()
     ! Compute the initial separation.
     Black_Hole_Binary_Initial_Radius_Volonteri_2003=gravitationalConstantGalacticus                &
          &                                          *(                                             &
@@ -61,7 +63,7 @@ contains
          &                                            +hostBlackHoleComponent%mass()               &
          &                                           )                                             &
          &                                          /2.0d0                                         &
-         &                                          /Dark_Matter_Halo_Virial_Velocity(hostNode)**2
+         &                                          /darkMatterHaloScale_%virialVelocity(hostNode)**2
 
     return
   end function Black_Hole_Binary_Initial_Radius_Volonteri_2003

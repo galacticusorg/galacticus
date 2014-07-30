@@ -49,6 +49,7 @@ contains
     use Galacticus_Output_Merger_Tree
     use Galacticus_Display
     use Galacticus_Nodes
+    use Node_Components
     use Input_Parameters
     use Galacticus_Output_Times
     use Galacticus_Error
@@ -186,6 +187,7 @@ contains
 
     ! Ensure the nodes objects are initialized.
     call Galacticus_Nodes_Initialize()
+    call Node_Components_Initialize ()
 
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It
     ! allows for the possibility of "universal events" - events which require all merger trees to reach the same cosmic time. If

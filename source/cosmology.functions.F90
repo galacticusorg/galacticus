@@ -65,7 +65,14 @@ module Cosmology_Functions
   !#   <argument>double precision, intent(in   ) :: expansionFactor</argument>
   !#  </method>
   !#  <method name="hubbleParameterEpochal" >
-  !#   <description>Returns the Hubble parameter at the request cosmological time, {\tt time}, or expansion factor, {\tt expansionFactor}.</description>
+  !#   <description>Returns the Hubble parameter at the requested cosmological time, {\tt time}, or expansion factor, {\tt expansionFactor}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ), optional :: time,expansionFactor</argument>
+  !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
+  !#  </method>
+  !#  <method name="hubbleParameterRateOfChange" >
+  !#   <description>Returns the rate of change of the Hubble parameter at the requested cosmological time, {\tt time}, or expansion factor, {\tt expansionFactor}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ), optional :: time,expansionFactor</argument>
@@ -81,6 +88,13 @@ module Cosmology_Functions
   !#  </method>
   !#  <method name="omegaMatterEpochal" >
   !#   <description>Return the matter density parameter at expansion factor {\tt expansionFactor}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ), optional :: time  , expansionFactor</argument>
+  !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
+  !#  </method>
+  !#  <method name="omegaMatterRateOfChange" >
+  !#   <description>Return the rate of change of the matter density parameter at expansion factor {\tt expansionFactor}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ), optional :: time  , expansionFactor</argument>
@@ -190,6 +204,23 @@ module Cosmology_Functions
   !#   <modules>Numerical_Constants_Astronomical Numerical_Constants_Physical</modules>
   !#   <argument>double precision, intent(in   ) :: time</argument>
   !#   <code>comovingVolumeElementTime=self%distanceComoving(time)**2*(gigaYear*speedLight/megaParsec)/self%expansionfactor(time)</code>
+  !#  </method>
+  !#  <method name="epochTime" >
+  !#   <description>Convenience function that returns the time corresponding to an epoch specified by time or expansion factor.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ), optional :: time           , expansionFactor</argument>
+  !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
+  !#   <modules>Galacticus_Error</modules>
+  !#   <code>
+  !#   if (present(time)) then
+  !#      epochTime=time
+  !#   else if (present(expansionFactor)) then
+  !#      epochTime=self%cosmicTime(expansionFactor,collapsingPhase)
+  !#   else
+  !#      call Galacticus_Error_Report('epochTime','either "time" or "expansionFactor" must be given')
+  !#   end if
+  !#   </code>
   !#  </method>
   include 'cosmologyFunctions.type.inc'
   !# </include>

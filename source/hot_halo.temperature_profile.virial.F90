@@ -50,8 +50,10 @@ contains
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: radius
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
-    Hot_Halo_Temperature_Virial_Get=Dark_Matter_Halo_Virial_Temperature(thisNode)
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    Hot_Halo_Temperature_Virial_Get=darkMatterHaloScale_%virialTemperature(thisNode)
     return
   end function Hot_Halo_Temperature_Virial_Get
 

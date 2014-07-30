@@ -97,6 +97,7 @@ contains
     use Cooling_Times_Available
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                   :: coolingRadius                   , coolingTimeAvailable, &
          &                                                coolingTimeAvailableIncreaseRate, virialRadius
 
@@ -112,7 +113,8 @@ contains
        coolingRadius=Cooling_Radius_Isothermal(thisNode)
 
        ! Get the virial radius.
-       virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       virialRadius=darkMatterHaloScale_%virialRadius(thisNode)
 
        ! Check if cooling radius has reached virial radius.
        if (coolingRadius >= virialRadius) then
@@ -146,6 +148,7 @@ contains
     type            (treeNode                    ), intent(inout), pointer :: thisNode
     class           (nodeComponentHotHalo        )               , pointer :: thisHotHaloComponent
     class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                       :: coolingTime                   , coolingTimeAvailable   , &
          &                                                                    density                       , massToDensityConversion, &
          &                                                                    temperature                   , virialRadius
@@ -162,7 +165,8 @@ contains
        coolingTimeAvailable=Cooling_Time_Available(thisNode)
 
        ! Get the hot halo component.
-       thisHotHaloComponent => thisNode%hotHalo()
+       thisHotHaloComponent => thisNode%hotHalo   ()
+       darkMatterHaloScale_ => darkMatterHaloScale()
 
        ! Get the abundances for this node.
        hotAbundances=thisHotHaloComponent%abundances()
@@ -174,7 +178,7 @@ contains
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
           call chemicalMasses%massToNumber(chemicalDensities)
           ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(thisNode))
           ! Convert to number density.
           chemicalDensities=chemicalDensities*massToDensityConversion
        end if
@@ -183,7 +187,7 @@ contains
        call radiation%set(thisNode)
 
        ! Get the virial radius.
-       virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode             )
+       virialRadius=darkMatterHaloScale_%virialRadius(thisNode             )
 
        ! Compute density, temperature and abundances.
        defaultHotHaloMassDistribution => hotHaloMassDistribution               (                     )
