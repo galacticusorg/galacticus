@@ -83,31 +83,33 @@ contains
     use Numerical_Interpolation
     use Linear_Growth
     implicit none
-    double precision                          , intent(in   )       :: mass                            , time
-    double precision                                                :: alpha                           , sigma
-    type            (fgsl_interp             )               , save :: interpolationObject
-    type            (fgsl_interp_accel       )               , save :: interpolationAccelerator
-    logical                                                  , save :: resetInterpolation       =.true.
+    double precision                            , intent(in   )       :: mass                            , time
+    double precision                                                  :: alpha                           , sigma
+    type            (fgsl_interp               )               , save :: interpolationObject
+    type            (fgsl_interp_accel         )               , save :: interpolationAccelerator
+    logical                                                    , save :: resetInterpolation       =.true.
     !$omp threadprivate(interpolationObject,interpolationAccelerator,resetInterpolation)
-    double precision                                         , save :: timePrevious             =-1.0d0
-    !$omp threadprivate(timePrevious)
-    double precision                                         , save :: Delta                           , a             , &
-         &                                                             a0                              , alphaDelta    , &
-         &                                                             b                               , b0            , &
-         &                                                             c                               , c0            , &
-         &                                                             expansionFactor                 , growthFactor  , &
-         &                                                             normalization                   , normalization0
+    double precision                                           , save :: timePrevious             =-1.0d0
+    !$omp threadprivate(timePrevious)  
+    double precision                                           , save :: Delta                           , a             , &
+         &                                                               a0                              , alphaDelta    , &
+         &                                                               b                               , b0            , &
+         &                                                               c                               , c0            , &
+         &                                                               expansionFactor                 , growthFactor  , &
+         &                                                               normalization                   , normalization0
     !$omp threadprivate(expansionFactor,Delta,growthFactor,normalization0,a0,b0,c0,normalization,a,alphaDelta,b,c)
-    class           (cosmologyParametersClass), pointer             :: thisCosmologyParameters
-    class           (cosmologyFunctionsClass ), pointer             :: cosmologyFunctionsDefault
+    class           (cosmologyParametersClass  ), pointer             :: thisCosmologyParameters
+    class           (cosmologyFunctionsClass   ), pointer             :: cosmologyFunctionsDefault
+    class           (virialDensityContrastClass), pointer             :: virialDensityContrast_
 
     ! Update fitting function parameters if the time differs from that on the previous call.
     if (time /= timePrevious) then
-       ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
+       ! Get the default objects.
+       cosmologyFunctionsDefault => cosmologyFunctions   ()
+       virialDensityContrast_    => virialDensityContrast()
        ! Get halo virial density contrast, expansion factor and growth factor.
        expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
-       Delta          =Halo_Virial_Density_Contrast             (time)
+       Delta          =virialDensityContrast_   %densityContrast(time)
        growthFactor   =Linear_Growth_Factor                     (time)
 
        ! Compute coefficients of fitting function.

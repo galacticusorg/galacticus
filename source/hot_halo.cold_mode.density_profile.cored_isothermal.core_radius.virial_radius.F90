@@ -65,10 +65,12 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type (treeNode                ), intent(inout), pointer :: thisNode
+    class(darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
     ! Compute the core radius.
-    Hot_Halo_Cold_Mode_Density_CIso_CoreR_VFrac=coldModeIsothermalCoreRadiusOverVirialRadius*Dark_Matter_Halo_Virial_Radius(thisNode)
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    Hot_Halo_Cold_Mode_Density_CIso_CoreR_VFrac=coldModeIsothermalCoreRadiusOverVirialRadius*darkMatterHaloScale_%virialRadius(thisNode)
    return
   end function Hot_Halo_Cold_Mode_Density_CIso_CoreR_VFrac
 

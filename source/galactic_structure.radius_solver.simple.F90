@@ -109,16 +109,19 @@ contains
     double precision                        , intent(in   )          :: specificAngularMomentum
     procedure       (Structure_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
     procedure       (Structure_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
+    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
     double precision                                                 :: radius                 , velocity
 
     ! Return immediately if the specific angular momentum is zero.
     if (specificAngularMomentum <= 0.0d0) return
 
+    ! Get required objects.
+    darkMatterProfile_ => darkMatterProfile()
     ! Find the radius in the dark matter profile with the required specific angular momentum
-    radius=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(haloNode,specificAngularMomentum)
+    radius=darkMatterProfile_%radiusFromSpecificAngularMomentum(haloNode,specificAngularMomentum)
 
     ! Find the velocity at this radius.
-    velocity=Dark_Matter_Profile_Circular_Velocity(haloNode,radius)
+    velocity=darkMatterProfile_%circularVelocity(haloNode,radius)
 
     ! Set the component size to new radius and velocity.
     call Radius_Set  (thisNode,radius  )

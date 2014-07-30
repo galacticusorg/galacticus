@@ -321,6 +321,7 @@ contains
     class           (nodeComponentDisk             )               , pointer :: thisDisk
     class           (nodeComponentSpheroid         )               , pointer :: thisSpheroid
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     integer                                                                  :: i
     double precision                                                         :: radius                    , radiusVirial
 
@@ -329,7 +330,8 @@ contains
     ! Store property data if we are outputting rotation curve data.
     if (outputRotationCurveData) then
        ! Compute required quantities.
-       if (         virialRadiusIsNeeded) radiusVirial          =  Dark_Matter_Halo_Virial_Radius(thisNode                    )
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       if (         virialRadiusIsNeeded) radiusVirial          =  darkMatterHaloScale_%virialRadius(thisNode                    )
        if (                 diskIsNeeded) thisDisk              =>                                thisNode%disk             ()
        if (             spheroidIsNeeded) thisSpheroid          =>                                thisNode%spheroid         ()
        if (darkMatterScaleRadiusIsNeeded) thisDarkMatterProfile =>                                thisNode%darkMatterProfile()

@@ -62,9 +62,9 @@ module Node_Component_Dark_Matter_Profile_Scale
 
 contains
 
-  !# <mergerTreePreTreeConstructionTask>
+  !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Initialize</unitName>
-  !# </mergerTreePreTreeConstructionTask>
+  !# </nodeComponentInitializationTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize()
     !% Initializes the ``scale'' implementation of the dark matter halo profile component.
     use Input_Parameters
@@ -123,11 +123,13 @@ contains
     implicit none
     class           (nodeComponentDarkMatterProfileScale), intent(inout) :: self
     type            (treeNode                           ), pointer       :: selfNode
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                     :: scaleLengthMaximum, scaleLengthMinimum
 
-    selfNode => self%host()
-    scaleLengthMaximum=Dark_Matter_Halo_Virial_Radius(selfNode)/darkMatterProfileMinimumConcentration
-    scaleLengthMinimum=Dark_Matter_Halo_Virial_Radius(selfNode)/darkMatterProfileMaximumConcentration
+    selfNode             => self%host          ()
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    scaleLengthMaximum=darkMatterHaloScale_%virialRadius(selfNode)/darkMatterProfileMinimumConcentration
+    scaleLengthMinimum=darkMatterHaloScale_%virialRadius(selfNode)/darkMatterProfileMaximumConcentration
     Node_Component_Dark_Matter_Profile_Scale_Scale= &
          & min(                                     &
          &     scaleLengthMaximum    ,              &
@@ -150,6 +152,7 @@ contains
     logical                                         , intent(inout)          :: interrupt
     procedure       (                              ), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                         :: concentration                 , growthRate
 
     ! Get the dark matter profile component.
@@ -158,11 +161,12 @@ contains
     select type (thisDarkMatterProfileComponent)
        class is (nodeComponentDarkMatterProfileScale)
        ! Find the concentration of this halo.
-       concentration=Dark_Matter_Halo_Virial_Radius(thisNode)/thisDarkMatterProfileComponent%scale()
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       concentration=darkMatterHaloScale_%virialRadius(thisNode)/thisDarkMatterProfileComponent%scale()
        ! Find the growth rate and limit to ensure minimum and maximum concentrations are not exceeded.
        growthRate=thisDarkMatterProfileComponent%scaleGrowthRate()
-       if (concentration <= darkMatterProfileMinimumConcentration) growthRate=min(growthRate,Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode)/darkMatterProfileMinimumConcentration)
-       if (concentration >= darkMatterProfileMaximumConcentration) growthRate=max(growthRate,Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode)/darkMatterProfileMaximumConcentration)
+       if (concentration <= darkMatterProfileMinimumConcentration) growthRate=min(growthRate,darkMatterHaloScale_%virialRadiusGrowthRate(thisNode)/darkMatterProfileMinimumConcentration)
+       if (concentration >= darkMatterProfileMaximumConcentration) growthRate=max(growthRate,darkMatterHaloScale_%virialRadiusGrowthRate(thisNode)/darkMatterProfileMaximumConcentration)
        call thisDarkMatterProfileComponent%scaleRate(growthRate)
     end select
     return
@@ -170,13 +174,13 @@ contains
 
   subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize_Scale(thisNode)
     !% Initialize the scale radius of {\tt thisNode}.
-    use Dark_Matter_Profiles_Concentration
+    use Dark_Matter_Profile_Scales
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                           ), intent(inout), pointer :: thisNode
     class           (nodeComponentDarkMatterProfile     )               , pointer :: newDarkMatterProfileComponent  , thisDarkMatterProfileComponent
-    class           (darkMatterProfileConcentrationClass)               , pointer :: darkMatterProfileConcentration_
-    double precision                                                              :: concentration
+    class           (darkMatterHaloScaleClass           )               , pointer :: darkMatterHaloScale_
+    double precision                                                              :: radiusScale
 
     ! Ensure that the module is initialized.
     call Node_Component_Dark_Matter_Profile_Scale_Initialize()
@@ -186,9 +190,9 @@ contains
     type is (nodeComponentDarkMatterProfile)
        newDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
        ! Set the scale radius of the halo.
-       darkMatterProfileConcentration_ => darkMatterProfileConcentration()
-       concentration=max(darkMatterProfileConcentration_%concentration(thisNode),darkMatterProfileMinimumConcentration)
-       call newDarkMatterProfileComponent%scaleSet(Dark_Matter_Halo_Virial_Radius(thisNode)/concentration)
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       radiusScale          =  min(Dark_Matter_Profile_Scale(thisNode),darkMatterHaloScale_%virialRadius(thisNode)/darkMatterProfileMinimumConcentration)
+       call newDarkMatterProfileComponent%scaleSet(radiusScale)
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize_Scale

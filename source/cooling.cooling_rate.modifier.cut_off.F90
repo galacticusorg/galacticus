@@ -52,6 +52,7 @@ contains
     double precision                         , intent(inout)          :: coolingRate
     class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
     class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                  :: virialVelocity
     type            (varying_string         )                         :: coolingCutOffWhenText
 
@@ -122,11 +123,12 @@ contains
     if (coolingCutOffVelocity <= 0.0d0) return
 
     ! Test for halos where cooling should be cut off.
+    darkMatterHaloScale_ => darkMatterHaloScale()
     select case (coolingCutOffFormationNode)
     case (.false.)
-       virialVelocity=Dark_Matter_Halo_Virial_Velocity(thisNode              )
+       virialVelocity=darkMatterHaloScale_%virialVelocity(thisNode              )
     case (.true. )
-       virialVelocity=Dark_Matter_Halo_Virial_Velocity(thisNode%formationNode)
+       virialVelocity=darkMatterHaloScale_%virialVelocity(thisNode%formationNode)
     end select
     thisBasicComponent => thisNode%basic()
     if     (                                                                                                     &

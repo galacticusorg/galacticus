@@ -30,6 +30,6 @@
   </parameter>
   <parameter>
     <name>virialDensityContrastMethod</name>
-    <value>sphericalTopHatDarkEnergy</value>
+    <value>sphericalCollapseMatterDE</value>
   </parameter>
 </parameters>

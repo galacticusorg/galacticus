@@ -115,13 +115,15 @@ contains
     procedure       (Component_Rotation_Curve         )               , pointer :: componentRotationCurve
     procedure       (Component_Rotation_Curve_Gradient)               , pointer :: componentRotationCurveGradient
     class           (cosmologyParametersClass         )               , pointer :: thisCosmologyParameters
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                            :: baryonicMassSelfTotal                 , baryonicMassTotal          , &
          &                                                                         componentMass                         , componentVelocity          , &
          &                                                                         componentVelocitySquaredGradient      , rotationCurveSquared       , &
          &                                                                         rotationCurveSquaredGradient
 
     ! Get the virial radius of the node.
-    virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    virialRadius=darkMatterHaloScale_%virialRadius(thisNode)
     ! Store the final radius and its orbit-averaged mean.
     radiusFinal    =                                     radius
     radiusFinalMean=Adiabatic_Solver_Mean_Orbital_Radius(radius)
@@ -275,13 +277,16 @@ contains
     !% Root function used in finding the initial radius in the dark matter halo when solving for adiabatic contraction.
     use Dark_Matter_Profiles
     implicit none
-    double precision, intent(in   ) :: radiusInitial
-    double precision                :: darkMatterMassInitial, radiusInitialMean
+    double precision                        , intent(in   ) :: radiusInitial
+    double precision                                        :: darkMatterMassInitial, radiusInitialMean
+    class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
 
+    ! Get required objects.
+    darkMatterProfile_ => darkMatterProfile()
     ! Find the initial mean orbital radius.
     radiusInitialMean    =Adiabatic_Solver_Mean_Orbital_Radius(           radiusInitial    )
     ! Get the mass of dark matter inside the initial radius.
-    darkMatterMassInitial=Dark_Matter_Profile_Enclosed_Mass   (activeNode,radiusInitialMean)
+    darkMatterMassInitial=darkMatterProfile_%enclosedMass   (activeNode,radiusInitialMean)
     ! Compute the root function.
     Galactic_Structure_Radius_Initial_Adiabatic_Solver= &
          & darkMatterMassInitial                        &
@@ -299,16 +304,19 @@ contains
     use Dark_Matter_Profiles
     use Numerical_Constants_Math
     implicit none
-    double precision, intent(in   ) :: radiusInitialDerivative
-    double precision                :: darkMatterDensityInitial, darkMatterMassInitial, &
-         &                             radiusInitialMean
+    double precision                        , intent(in   ) :: radiusInitialDerivative
+    class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
+    double precision                                        :: darkMatterDensityInitial, darkMatterMassInitial, &
+         &                                                     radiusInitialMean
 
+    ! Get required objects.
+    darkMatterProfile_ => darkMatterProfile()
     ! Find the initial mean orbital radius.
     radiusInitialMean       =Adiabatic_Solver_Mean_Orbital_Radius(           radiusInitial    )
     ! Get the mass of dark matter inside the initial radius.
-    darkMatterMassInitial   =Dark_Matter_Profile_Enclosed_Mass   (activeNode,radiusInitialMean)
+    darkMatterMassInitial   =darkMatterProfile_%enclosedMass   (activeNode,radiusInitialMean)
     ! Get the mass of dark matter inside the initial radius.
-    darkMatterDensityInitial=Dark_Matter_Profile_Density         (activeNode,radiusInitialMean)
+    darkMatterDensityInitial=darkMatterProfile_%density         (activeNode,radiusInitialMean)
     ! Compute the root function.
     Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver= &
          & darkMatterMassInitial                                   &

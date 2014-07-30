@@ -25,8 +25,11 @@
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{dutton_cold_2014}.
      private
      double precision :: a1,a2,a3,a4,b1,b2
+     integer          :: densityContrastMethod, densityProfileMethod
    contains
-     procedure :: concentration => duttonMaccio2014Concentration
+     procedure :: concentration               => duttonMaccio2014Concentration
+     procedure :: densityContrastDefinition   => duttonMaccio2014DensityContrastDefinition
+     procedure :: darkMatterProfileDefinition => duttonMaccio2014DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationDuttonMaccio2014
 
   interface darkMatterProfileConcentrationDuttonMaccio2014
@@ -36,10 +39,18 @@
   end interface darkMatterProfileConcentrationDuttonMaccio2014
 
   ! Initialization status.
-  logical                 :: duttonMaccio2014Initialized=.false.
+  logical                            :: duttonMaccio2014Initialized=.false.
 
   ! Type of fit used for the concentration-mass relation.
-  type   (varying_string) :: duttonMaccio2014FitType
+  type   (varying_string)            :: duttonMaccio2014FitType
+
+  ! Density contrast methods.
+  integer                , parameter :: duttonMaccio2014DensityContrastMethod200   =0
+  integer                , parameter :: duttonMaccio2014DensityContrastMethodVirial=1
+
+  ! Density profile methods.
+  integer                , parameter :: duttonMaccio2014DensityProfileMethodNFW    =0
+  integer                , parameter :: duttonMaccio2014DensityProfileMethodEinasto=1
 
 contains
 
@@ -83,26 +94,32 @@ contains
 
     select case (fitType)
     case ('nfwVirial' )
-       duttonMaccio2014Constructor%a1=+0.537d0
-       duttonMaccio2014Constructor%a2=+1.025d0
-       duttonMaccio2014Constructor%a3=-0.718d0
-       duttonMaccio2014Constructor%a4=+1.080d0
-       duttonMaccio2014Constructor%b1=-0.097d0
-       duttonMaccio2014Constructor%b2=+0.024d0
+       duttonMaccio2014Constructor%a1                   =+0.537d0
+       duttonMaccio2014Constructor%a2                   =+1.025d0
+       duttonMaccio2014Constructor%a3                   =-0.718d0
+       duttonMaccio2014Constructor%a4                   =+1.080d0
+       duttonMaccio2014Constructor%b1                   =-0.097d0
+       duttonMaccio2014Constructor%b2                   =+0.024d0
+       duttonMaccio2014Constructor%densityContrastMethod=duttonMaccio2014DensityContrastMethodVirial
+       duttonMaccio2014Constructor%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
     case ('nfw200'    )
-       duttonMaccio2014Constructor%a1=+0.520d0
-       duttonMaccio2014Constructor%a2=+0.905d0
-       duttonMaccio2014Constructor%a3=-0.617d0
-       duttonMaccio2014Constructor%a4=+1.210d0
-       duttonMaccio2014Constructor%b1=-0.101d0
-       duttonMaccio2014Constructor%b2=+0.026d0
+       duttonMaccio2014Constructor%a1                   =+0.520d0
+       duttonMaccio2014Constructor%a2                   =+0.905d0
+       duttonMaccio2014Constructor%a3                   =-0.617d0
+       duttonMaccio2014Constructor%a4                   =+1.210d0
+       duttonMaccio2014Constructor%b1                   =-0.101d0
+       duttonMaccio2014Constructor%b2                   =+0.026d0
+       duttonMaccio2014Constructor%densityContrastMethod=duttonMaccio2014DensityContrastMethod200
+       duttonMaccio2014Constructor%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
     case ('einasto200')
-       duttonMaccio2014Constructor%a1=+0.459d0
-       duttonMaccio2014Constructor%a2=+0.977d0
-       duttonMaccio2014Constructor%a3=-0.490d0
-       duttonMaccio2014Constructor%a4=+1.303d0
-       duttonMaccio2014Constructor%b1=-0.130d0
-       duttonMaccio2014Constructor%b2=+0.029d0
+       duttonMaccio2014Constructor%a1                   =+0.459d0
+       duttonMaccio2014Constructor%a2                   =+0.977d0
+       duttonMaccio2014Constructor%a3                   =-0.490d0
+       duttonMaccio2014Constructor%a4                   =+1.303d0
+       duttonMaccio2014Constructor%b1                   =-0.130d0
+       duttonMaccio2014Constructor%b2                   =+0.029d0
+       duttonMaccio2014Constructor%densityContrastMethod=duttonMaccio2014DensityContrastMethod200
+       duttonMaccio2014Constructor%densityProfileMethod =duttonMaccio2014DensityProfileMethodEinasto
     case default
        call Galacticus_Error_Report('duttonMaccio2014Constructor','unrecognized fit type [available types are: nfwVirial, nfw200, einasto200]')
     end select
@@ -142,3 +159,58 @@ contains
     duttonMaccio2014Concentration=10.0d0**(parameterA+parameterB*logarithmHaloMass)
     return
   end function duttonMaccio2014Concentration
+
+  function duttonMaccio2014DensityContrastDefinition(self)
+    !% Return a virial density contrast object defining that used in the definition of concentration in the \cite{dutton_cold_2014} algorithm.
+    implicit none
+    class(virialDensityContrastClass                    ), pointer       :: duttonMaccio2014DensityContrastDefinition
+    class(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
+    
+    select case (self%densityContrastMethod)
+    case (duttonMaccio2014DensityContrastMethod200   )
+       allocate(virialDensityContrastFixed                         :: duttonMaccio2014DensityContrastDefinition)
+       select type (duttonMaccio2014DensityContrastDefinition)
+       type is (virialDensityContrastFixed)
+          duttonMaccio2014DensityContrastDefinition=virialDensityContrastFixed                        (200.0d0,virialDensityContrastFixedDensityTypeMean)
+       end select
+    case (duttonMaccio2014DensityContrastMethodVirial)
+       allocate(virialDensityContrastSphericalCollapseMatterLambda :: duttonMaccio2014DensityContrastDefinition)
+       select type (duttonMaccio2014DensityContrastDefinition)
+       type is (virialDensityContrastSphericalCollapseMatterLambda)
+          duttonMaccio2014DensityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda(                                                 )
+       end select
+    end select
+    return
+  end function duttonMaccio2014DensityContrastDefinition
+
+  function duttonMaccio2014DarkMatterProfileDefinition(self)
+    !% Return a dark matter density profile object defining that used in the definition of concentration in the
+    !% \cite{diemer_universal_2014} algorithm.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class(darkMatterProfileClass                            ), pointer       :: duttonMaccio2014DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationDuttonMaccio2014    ), intent(inout) :: self
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition
+
+    allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition)
+    select type (darkMatterHaloScaleDefinition)
+    type is (darkMatterHaloScaleVirialDensityContrastDefinition)
+       select case (self%densityProfileMethod)
+       case (duttonMaccio2014DensityProfileMethodNFW    )
+          allocate(darkMatterProfileNFW     :: duttonMaccio2014DarkMatterProfileDefinition)
+          select type (duttonMaccio2014DarkMatterProfileDefinition)
+          type is (darkMatterProfileNFW    )
+             darkMatterHaloScaleDefinition              =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
+             duttonMaccio2014DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+          end select
+       case (duttonMaccio2014DensityProfileMethodEinasto)
+          allocate(darkMatterProfileEinasto :: duttonMaccio2014DarkMatterProfileDefinition)
+          select type (duttonMaccio2014DarkMatterProfileDefinition)
+          type is (darkMatterProfileEinasto)
+             darkMatterHaloScaleDefinition              =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
+             duttonMaccio2014DarkMatterProfileDefinition=darkMatterProfileEinasto                          (darkMatterHaloScaleDefinition   )
+          end select
+       end select
+    end select
+    return
+  end function duttonMaccio2014DarkMatterProfileDefinition

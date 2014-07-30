@@ -26,7 +26,7 @@ module Spherical_Collapse_Matter_Dark_Energy
   implicit none
   private
   public :: Spherical_Collapse_Dark_Energy_Delta_Critical_Initialize, Spherical_Collapse_Dark_Energy_Critical_Overdensity,&
-       & Spherical_Collapse_Dark_Energy_Delta_Virial_Initialize, Spherical_Collapse_Dark_Energy_Virial_Density_Contrast,&
+       & Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate,&
        & Spherical_Collapse_Matter_Dark_Energy_State_Store, Spherical_Collapse_Matter_Dark_Energy_State_Retrieve
 
   ! Variables to hold the tabulated critical overdensity data.
@@ -51,6 +51,9 @@ module Spherical_Collapse_Matter_Dark_Energy
   class           (cosmologyFunctionsClass), pointer   :: cosmologyFunctionsDefault
   !$omp threadprivate(cosmologyFunctionsDefault)
 
+  ! Module initialization state.
+  logical                                              :: moduleInitialized                                        =.false.
+
 contains
 
   !# <criticalOverdensityMethod>
@@ -66,35 +69,6 @@ contains
     return
   end subroutine Spherical_Collapse_Dark_Energy_Delta_Critical_Initialize
 
-  !# <virialDensityContrastMethod>
-  !#  <unitName>Spherical_Collapse_Dark_Energy_Delta_Virial_Initialize</unitName>
-  !# </virialDensityContrastMethod>
-  subroutine Spherical_Collapse_Dark_Energy_Delta_Virial_Initialize(virialDensityContrastMethod,Virial_Density_Contrast_Tabulate)
-    !% Initializes the $\Delta_{\rm vir}$ calculation for the spherical collapse module.
-    use Input_Parameters
-    type     (varying_string                                        ), intent(in   )          :: virialDensityContrastMethod
-    procedure(Spherical_Collapse_Dark_Energy_Virial_Density_Contrast), intent(inout), pointer :: Virial_Density_Contrast_Tabulate
-
-    if (virialDensityContrastMethod == 'sphericalTopHatDarkEnergy') then
-       Virial_Density_Contrast_Tabulate => Spherical_Collapse_Dark_Energy_Virial_Density_Contrast
-       ! Read parameters controlling the calculation.
-       !@ <inputParameter>
-       !@   <name>virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt</name>
-       !@   <defaultValue>turnaround</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
-       !@    ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
-       !@    \citealt{percival_cosmological_2005}; \S8.)
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt',virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt,defaultValue='turnaround')
-    end if
-    return
-  end subroutine Spherical_Collapse_Dark_Energy_Delta_Virial_Initialize
-
   subroutine Spherical_Collapse_Dark_Energy_Critical_Overdensity(time,deltaCritTable)
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
     use Tables
@@ -109,7 +83,7 @@ contains
     return
   end subroutine Spherical_Collapse_Dark_Energy_Critical_Overdensity
 
-  subroutine Spherical_Collapse_Dark_Energy_Virial_Density_Contrast(time,deltaVirialTable)
+  subroutine Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate(time,deltaVirialTable)
     !% Tabulate the virial density contrast for the spherical collapse model.
     use Tables
     implicit none
@@ -120,7 +94,7 @@ contains
     call Make_Table(time,deltaVirialTable,calculationDeltaVirial)
     !$omp end critical(Spherical_Collapse_Make_Table)
     return
-  end subroutine Spherical_Collapse_Dark_Energy_Virial_Density_Contrast
+  end subroutine Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate
 
   subroutine Make_Table(time,deltaTable,calculationType)
     !% Tabulate $\delta_{\rm crit}$ or $\Delta_{\rm vir}$ vs. time.
@@ -129,6 +103,7 @@ contains
     use Tables
     use Galacticus_Error
     use Galacticus_Display
+    use Input_Parameters
     implicit none
     double precision                             , intent(in   ) :: time
     integer                                      , intent(in   ) :: calculationType
@@ -148,6 +123,29 @@ contains
     type     (varying_string) :: message
     character(len=7         ) :: label
 
+    ! Initialize the module if this is not already done.
+    if (.not.moduleInitialized) then
+       !$omp critical (Spherical_Collapse_Dark_Energy_Initialize)
+       if (.not.moduleInitialized) then
+          ! Read parameters controlling the calculation.
+          !@ <inputParameter>
+          !@   <name>virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt</name>
+          !@   <defaultValue>turnaround</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
+          !@    ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
+          !@    \citealt{percival_cosmological_2005}; \S8.)
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt',virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt,defaultValue='turnaround')
+          ! Record that the module is initialized.
+          moduleInitialized=.true.
+       end if
+       !$omp end critical (Spherical_Collapse_Dark_Energy_Initialize)
+    end if
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()
     ! Find minimum and maximum times to tabulate.

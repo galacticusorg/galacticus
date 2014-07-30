@@ -71,11 +71,13 @@ contains
     !% Computes the mass cooling rate in a hot gas halo assuming a fixed timescale for cooling.
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    class(nodeComponentHotHalo)               , pointer :: thisHotHalo
+    type (treeNode                ), intent(inout), pointer :: thisNode
+    class(nodeComponentHotHalo    )               , pointer :: thisHotHalo
+    class(darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
-    thisHotHalo                                  => thisNode%hotHalo()
-    Cooling_Cold_Mode_Infall_Rate_Dynamical_Time =  coldModeInfallRateDynamicalTime*thisHotHalo%massCold()/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
+    thisHotHalo                                  => thisNode%hotHalo   ()
+    darkMatterHaloScale_                         => darkMatterHaloScale()
+    Cooling_Cold_Mode_Infall_Rate_Dynamical_Time =  coldModeInfallRateDynamicalTime*thisHotHalo%massCold()/darkMatterHaloScale_%dynamicalTimescale(thisNode)
     return
   end function Cooling_Cold_Mode_Infall_Rate_Dynamical_Time
 

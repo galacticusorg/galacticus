@@ -90,7 +90,7 @@ contains
        childIndex     (iNode) =  thisNode%firstChild%index()
        time           (iNode) =                                 thisBasic%time()
        expansionFactor(iNode) =  cosmologyFunctionsDefault%expansionFactor              (thisBasic%time())
-       radiusVirial   (iNode) =  Dark_Matter_Halo_Virial_Radius(thisNode        )
+       radiusVirial   (iNode) =  darkMatterHaloScale_%virialRadius(thisNode        )
        call Tree_Node_Position(thisNode,position(:,iNode))
        call thisNode%walkTreeWithSatellites(thisNode)
     end do

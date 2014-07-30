@@ -119,9 +119,9 @@ module Node_Component_Black_Hole_Standard
 
 contains
 
-  !# <mergerTreePreTreeConstructionTask>
+  !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Initialize</unitName>
-  !# </mergerTreePreTreeConstructionTask>
+  !# </nodeComponentInitializationTask>
   subroutine Node_Component_Black_Hole_Standard_Initialize()
     !% Initializes the standard black hole component module.
     use Input_Parameters
@@ -320,6 +320,7 @@ contains
     class           (nodeComponentHotHalo                              )                          , pointer :: thisHotHaloComponent
     class           (nodeComponentBasic                                )                          , pointer :: thisBasicComponent
     class           (cosmologyParametersClass                          )                          , pointer :: thisCosmologyParameters
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                    , parameter                         :: windVelocity                =1.0d4                                                                                                                                                     !    Velocity of disk wind.
     double precision                                                    , parameter                         :: ismTemperature              =1.0d4                                                                                                                                                     !    Temperature of the ISM.
     double precision                                                    , parameter                         :: criticalDensityNormalization=2.0d0*massHydrogenAtom*speedLight**2*megaParsec/3.0d0/Pi/boltzmannsConstant/gigaYear/ismTemperature/kilo/windVelocity
@@ -337,7 +338,7 @@ contains
     logical                                                                                                 :: binaryRadiusFound
 
     if (defaultBlackHoleComponent%standardIsActive()) then
-
+       darkMatterHaloScale_ => darkMatterHaloScale()
        ! Get a count of the number of black holes associated with this node.
        instanceCount=thisNode%blackHoleCount()
        ! Get the central black hole.
@@ -441,7 +442,7 @@ contains
                   &            )                                                 &
                   &           /(                                                 &
                   &              4.0d0                                           &
-                  &             *  Dark_Matter_Halo_Virial_Velocity(thisNode)**2 &
+                  &             *  darkMatterHaloScale_%virialVelocity(thisNode)**2 &
                   &            )
              ! Places a new black hole in the center of the galaxy in case there is no central one.
              if     (                                                                        &
@@ -499,7 +500,7 @@ contains
                      &            )                                               &
                      &           /(                                               &
                      &              4.0d0                                         &
-                     &             *Dark_Matter_Halo_Virial_Velocity(thisNode)**2 &
+                     &             *darkMatterHaloScale_%virialVelocity(thisNode)**2 &
                      &            )
                 ! Search for a third black hole.
                 do iInstance=2,instanceCount
@@ -1279,11 +1280,13 @@ contains
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision          , parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
     double precision          , parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
     double precision                                   :: coolingRadiusFractional                       , x
-
-    coolingRadiusFractional=Cooling_Radius(thisNode)/Dark_Matter_Halo_Virial_Radius(thisNode)
+    
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    coolingRadiusFractional=Cooling_Radius(thisNode)/darkMatterHaloScale_%virialRadius(thisNode)
     if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
        Hot_Mode_Fraction=1.0d0
     else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then

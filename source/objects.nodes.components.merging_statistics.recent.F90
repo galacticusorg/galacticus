@@ -171,6 +171,7 @@ contains
     class           (nodeComponentMergingStatistics)                        , pointer :: parentMergingStatistics
     class           (nodeComponentBasic            )                        , pointer :: descendentParentBasic  , parentBasic, &
          &                                                                               thisBasic
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     integer                                         , dimension(outputCount)          :: mergerIncrement
     integer                                                                           :: i
     double precision                                                                  :: recentTimeInterval     , timeBase
@@ -190,7 +191,8 @@ contains
           case (nodeRecentMajorMergerIntervalTypeAbsolute)
              recentTimeInterval=nodeRecentMajorMergerInterval
           case (nodeRecentMajorMergerIntervalTypeDynamical)
-             recentTimeInterval=nodeRecentMajorMergerInterval*Dark_Matter_Halo_Dynamical_Timescale(thisNode)
+             darkMatterHaloScale_ => darkMatterHaloScale()
+             recentTimeInterval=nodeRecentMajorMergerInterval*darkMatterHaloScale_%dynamicalTimescale(thisNode)
           case default
              call Galacticus_Error_Report('Node_Component_Merging_Statistics_Recent_Node_Merger','unrecognized time interval type')
           end select

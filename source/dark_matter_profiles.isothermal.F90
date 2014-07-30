@@ -15,205 +15,253 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a isothermal halo spin distribution.
+  !% An implementation of isothermal dark matter halo profiles.
 
-module Dark_Matter_Profiles_Isothermal
-  !% Implements a isothermal halo spin distribution.
-  implicit none
-  private
-  public :: Dark_Matter_Profile_Isothermal_Initialize
+  !# <darkMatterProfile name="darkMatterProfileIsothermal">
+  !#  <description>Isothermal dark matter halo profiles</description>
+  !# </darkMatterProfile>
+
+  use Dark_Matter_Halo_Scales
+
+  type, extends(darkMatterProfileClass) :: darkMatterProfileIsothermal
+     !% A dark matter halo profile class implementing isothermal dark matter halos.
+     private
+     class(darkMatterHaloScaleClass), pointer :: scale
+   contains
+     final                                             isothermalDestructor
+     procedure :: calculationReset                  => isothermalCalculationReset
+     procedure :: density                           => isothermalDensity
+     procedure :: enclosedMass                      => isothermalEnclosedMass
+     procedure :: potential                         => isothermalPotential
+     procedure :: circularVelocity                  => isothermalCircularVelocity
+     procedure :: circularVelocityMaximum           => isothermalCircularVelocityMaximum
+     procedure :: radiusFromSpecificAngularMomentum => isothermalRadiusFromSpecificAngularMomentum
+     procedure :: rotationNormalization             => isothermalRotationNormalization
+     procedure :: energy                            => isothermalEnergy
+     procedure :: energyGrowthRate                  => isothermalEnergyGrowthRate
+     procedure :: kSpace                            => isothermalKSpace
+     procedure :: freefallRadius                    => isothermalFreefallRadius
+     procedure :: freefallRadiusIncreaseRate        => isothermalFreefallRadiusIncreaseRate
+  end type darkMatterProfileIsothermal
+
+  interface darkMatterProfileIsothermal
+     !% Constructors for the {\tt isothermal} dark matter halo profile class.
+     module procedure isothermalDefaultConstructor
+     module procedure isothermalConstructor
+  end interface darkMatterProfileIsothermal
 
 contains
 
-  !# <darkMatterProfileMethod>
-  !#  <unitName>Dark_Matter_Profile_Isothermal_Initialize</unitName>
-  !# </darkMatterProfileMethod>
-  subroutine Dark_Matter_Profile_Isothermal_Initialize(darkMatterProfileMethod,Dark_Matter_Profile_Density_Get &
-       &,Dark_Matter_Profile_Energy_Get ,Dark_Matter_Profile_Energy_Growth_Rate_Get &
-       &,Dark_Matter_Profile_Rotation_Normalization_Get ,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get &
-       &,Dark_Matter_Profile_Circular_Velocity_Get ,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get &
-       &,Dark_Matter_Profile_kSpace_Get,Dark_Matter_Profile_Freefall_Radius_Get&
-       &,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get)
-    !% Initializes the ``Isothermal'' halo spin distribution module.
-    use ISO_Varying_String
+  function isothermalDefaultConstructor()
+    !% Default constructor for the {\tt isothermal} dark matter halo profile class.
+    use Input_Parameters
     implicit none
-    type     (varying_string                                              ), intent(in   )          :: darkMatterProfileMethod
-    procedure(Dark_Matter_Profile_Density_Isothermal                      ), intent(inout), pointer :: Dark_Matter_Profile_Density_Get
-    procedure(Dark_Matter_Profile_Energy_Isothermal                       ), intent(inout), pointer :: Dark_Matter_Profile_Energy_Get
-    procedure(Dark_Matter_Profile_Energy_Growth_Rate_Isothermal           ), intent(inout), pointer :: Dark_Matter_Profile_Energy_Growth_Rate_Get
-    procedure(Dark_Matter_Profile_Rotation_Normalization_Isothermal       ), intent(inout), pointer :: Dark_Matter_Profile_Rotation_Normalization_Get
-    procedure(Radius_from_Specific_Angular_Momentum_Isothermal            ), intent(inout), pointer :: Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get
-    procedure(Dark_Matter_Profile_Circular_Velocity_Isothermal            ), intent(inout), pointer :: Dark_Matter_Profile_Circular_Velocity_Get
-    procedure(Dark_Matter_Profile_Potential_Isothermal                    ), intent(inout), pointer :: Dark_Matter_Profile_Potential_Get
-    procedure(Dark_Matter_Profile_Enclosed_Mass_Isothermal                ), intent(inout), pointer :: Dark_Matter_Profile_Enclosed_Mass_Get
-    procedure(Dark_Matter_Profile_kSpace_Isothermal                       ), intent(inout), pointer :: Dark_Matter_Profile_kSpace_Get
-    procedure(Dark_Matter_Profile_Freefall_Radius_Isothermal              ), intent(inout), pointer :: Dark_Matter_Profile_Freefall_Radius_Get
-    procedure(Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Isothermal), intent(inout), pointer :: Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get
+    type(darkMatterProfileIsothermal), target :: isothermalDefaultConstructor
 
-    if (darkMatterProfileMethod == 'isothermal') then
-       Dark_Matter_Profile_Density_Get                               => Dark_Matter_Profile_Density_Isothermal
-       Dark_Matter_Profile_Energy_Get                                => Dark_Matter_Profile_Energy_Isothermal
-       Dark_Matter_Profile_Energy_Growth_Rate_Get                    => Dark_Matter_Profile_Energy_Growth_Rate_Isothermal
-       Dark_Matter_Profile_Rotation_Normalization_Get                => Dark_Matter_Profile_Rotation_Normalization_Isothermal
-       Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get => Radius_from_Specific_Angular_Momentum_Isothermal
-       Dark_Matter_Profile_Circular_Velocity_Get                     => Dark_Matter_Profile_Circular_Velocity_Isothermal
-       Dark_Matter_Profile_Potential_Get                             => Dark_Matter_Profile_Potential_Isothermal
-       Dark_Matter_Profile_Enclosed_Mass_Get                         => Dark_Matter_Profile_Enclosed_Mass_Isothermal
-       Dark_Matter_Profile_kSpace_Get                                => Dark_Matter_Profile_kSpace_Isothermal
-       Dark_Matter_Profile_Freefall_Radius_Get                       => Dark_Matter_Profile_Freefall_Radius_Isothermal
-       Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get         => Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Isothermal
-    end if
+    isothermalDefaultConstructor%scale => darkMatterHaloScale()
     return
-  end subroutine Dark_Matter_Profile_Isothermal_Initialize
+  end function isothermalDefaultConstructor
 
-  double precision function Dark_Matter_Profile_Density_Isothermal(thisNode,radius)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given
+  function isothermalConstructor(scale)
+    !% Generic constructor for the {\tt isothermal} dark matter halo profile class.
+    use Input_Parameters
+    implicit none
+    type (darkMatterProfileIsothermal), target :: isothermalConstructor
+    class(darkMatterHaloScaleClass   ), target :: scale
+
+    isothermalConstructor%scale => scale
+    return
+  end function isothermalConstructor
+  
+  subroutine isothermalDestructor(self)
+    !% Destructor for the {\tt isothermal} dark matter halo profile class.
+    implicit none
+    type(darkMatterProfileIsothermal), intent(inout) :: self
+
+    if (self%scale%isFinalizable()) deallocate(self%scale)
+    return
+  end subroutine isothermalDestructor
+  
+  subroutine isothermalCalculationReset(self,thisNode)
+    !% Reset the dark matter profile calculation.
+    implicit none
+    class(darkMatterProfileIsothermal), intent(inout)          :: self
+    type (treeNode                   ), intent(inout), pointer :: thisNode
+
+    call self%scale%calculationReset(thisNode)
+    return
+  end subroutine isothermalCalculationReset
+
+  double precision function isothermalDensity(self,node,radius)
+    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt node} at the given {\tt radius} (given
     !% in units of Mpc).
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Math
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    double precision                    , intent(in   )          :: radius
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
+    class           (darkMatterProfileIsothermal), intent(inout)          :: self
+    type            (treeNode                   ), intent(inout), pointer :: node
+    double precision                             , intent(in   )          :: radius
+    class           (nodeComponentBasic         )               , pointer :: thisBasicComponent
 
-    thisBasicComponent => thisNode%basic()
-    Dark_Matter_Profile_Density_Isothermal=thisBasicComponent%mass()/4.0d0/Pi/Dark_Matter_Halo_Virial_Radius(thisNode)/radius**2
+    thisBasicComponent   => node%basic         ()
+    isothermalDensity=thisBasicComponent%mass()/4.0d0/Pi/self%scale%virialRadius(node)/radius**2
     return
-  end function Dark_Matter_Profile_Density_Isothermal
+  end function isothermalDensity
 
-  double precision function Dark_Matter_Profile_Enclosed_Mass_Isothermal(thisNode,radius)
-    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
+  double precision function isothermalEnclosedMass(self,node,radius)
+    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt node} at the given {\tt radius} (given in
     !% units of Mpc).
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    double precision                    , intent(in   )          :: radius
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
+    class           (darkMatterProfileIsothermal), intent(inout)          :: self
+    type            (treeNode                   ), intent(inout), pointer :: node
+    double precision                             , intent(in   )          :: radius
+    class           (nodeComponentBasic         )               , pointer :: thisBasicComponent
 
-    thisBasicComponent => thisNode%basic()
-    Dark_Matter_Profile_Enclosed_Mass_Isothermal=thisBasicComponent%mass()*(radius/Dark_Matter_Halo_Virial_Radius(thisNode))
+    thisBasicComponent   => node%basic     ()
+    isothermalEnclosedMass=thisBasicComponent%mass()*(radius/self%scale%virialRadius(node))
     return
-  end function Dark_Matter_Profile_Enclosed_Mass_Isothermal
+  end function isothermalEnclosedMass
 
-  double precision function Dark_Matter_Profile_Potential_Isothermal(thisNode,radius,status)
-    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
+  double precision function isothermalPotential(self,node,radius,status)
+    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt node} at the given {\tt radius} (given in
     !% units of Mpc).
     use Galacticus_Nodes
     use Dark_Matter_Profiles_Error_Codes
     use Dark_Matter_Halo_Scales
     use Galacticus_Error
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode
-    double precision          , intent(in   )           :: radius
-    integer                   , intent(  out), optional :: status
-    double precision          , parameter               :: radiusFractionalMinimum=1.0d-30
-    double precision                                    :: radiusFractional
+    class           (darkMatterProfileIsothermal), intent(inout)           :: self
+    type            (treeNode                   ), intent(inout), pointer  :: node
+    double precision                             , intent(in   )           :: radius
+    integer                                      , intent(  out), optional :: status
+    double precision                             , parameter               :: radiusFractionalMinimum=1.0d-30
+    double precision                                                       :: radiusFractional
 
-    radiusFractional=radius/Dark_Matter_Halo_Virial_Radius(thisNode)
+    radiusFractional      =  radius/self%scale%virialRadius(node)
     if (radiusFractional <= 0.0d0) then
-       Dark_Matter_Profile_Potential_Isothermal=0.0d0
+       isothermalPotential=0.0d0
        if (present(status)) status=darkMatterProfileErrorInfinite
     else
-       Dark_Matter_Profile_Potential_Isothermal=(-1.0d0+log(radiusFractional))&
-            &*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
+       isothermalPotential=(-1.0d0+log(radiusFractional))&
+            &*self%scale%virialVelocity(node)**2
        if (present(status)) status=darkMatterProfileSuccess
     end if
     return
-  end function Dark_Matter_Profile_Potential_Isothermal
+  end function isothermalPotential
 
-  double precision function Dark_Matter_Profile_Circular_Velocity_Isothermal(thisNode,radius)
-    !% Returns the circular velocity (in km/s) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
+  double precision function isothermalCircularVelocity(self,node,radius)
+    !% Returns the circular velocity (in km/s) in the dark matter profile of {\tt node} at the given {\tt radius} (given in
     !% units of Mpc). For an isothermal halo this is independent of radius and therefore equal to the virial velocity.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: radius
+    class           (darkMatterProfileIsothermal), intent(inout)          :: self
+    type            (treeNode                   ), intent(inout), pointer :: node
+    double precision                             , intent(in   )          :: radius
 
-    Dark_Matter_Profile_Circular_Velocity_Isothermal=Dark_Matter_Halo_Virial_Velocity(thisNode)
+    isothermalCircularVelocity=self%scale%virialVelocity(node)
     return
-  end function Dark_Matter_Profile_Circular_Velocity_Isothermal
+  end function isothermalCircularVelocity
 
-  double precision function Radius_from_Specific_Angular_Momentum_Isothermal(thisNode,specificAngularMomentum)
-    !% Returns the radius (in Mpc) in {\tt thisNode} at which a circular orbit has the given {\tt specificAngularMomentum} (given
+  double precision function isothermalCircularVelocityMaximum(self,node)
+    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\tt node}. For an isothermal halo circular
+    !% velocity is independent of radius.
+    use Galacticus_Nodes
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class           (darkMatterProfileIsothermal), intent(inout)          :: self
+    type            (treeNode                   ), intent(inout), pointer :: node
+
+    isothermalCircularVelocityMaximum=self%circularVelocity(node,0.0d0)
+    return
+  end function isothermalCircularVelocityMaximum
+
+  double precision function isothermalRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
+    !% Returns the radius (in Mpc) in {\tt node} at which a circular orbit has the given {\tt specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc). For an isothermal halo, the circular velocity is constant (and therefore equal to the virial
     !% velocity). Therefore, $r = j/V_{\rm virial}$ where $j$(={\tt specificAngularMomentum}) is the specific angular momentum and
     !% $r$ the required radius.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: specificAngularMomentum
+    class           (darkMatterProfileIsothermal), intent(inout)          :: self
+    type            (treeNode                   ), intent(inout), pointer :: node
+    double precision                             , intent(in   )          :: specificAngularMomentum
 
-    Radius_from_Specific_Angular_Momentum_Isothermal=specificAngularMomentum/Dark_Matter_Halo_Virial_Velocity(thisNode)
+    isothermalRadiusFromSpecificAngularMomentum=specificAngularMomentum/self%scale%virialVelocity(node)
     return
-  end function Radius_from_Specific_Angular_Momentum_Isothermal
+  end function isothermalRadiusFromSpecificAngularMomentum
 
-  double precision function Dark_Matter_Profile_Rotation_Normalization_Isothermal(thisNode)
+  double precision function isothermalRotationNormalization(self,node)
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    class(darkMatterProfileIsothermal), intent(inout)          :: self
+    type (treeNode                   ), intent(inout), pointer :: node
 
-    Dark_Matter_Profile_Rotation_Normalization_Isothermal=2.0d0/Dark_Matter_Halo_Virial_Radius(thisNode)
+    isothermalRotationNormalization=2.0d0/self%scale%virialRadius(node)
     return
-  end function Dark_Matter_Profile_Rotation_Normalization_Isothermal
+  end function isothermalRotationNormalization
 
-  double precision function Dark_Matter_Profile_Energy_Isothermal(thisNode)
+  double precision function isothermalEnergy(self,node)
     !% Return the energy of an isothermal halo density profile.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent
+    class(darkMatterProfileIsothermal), intent(inout)          :: self
+    type (treeNode                   ), intent(inout), pointer :: node
+    class(nodeComponentBasic         )               , pointer :: thisBasicComponent
 
-    thisBasicComponent => thisNode%basic()
-    Dark_Matter_Profile_Energy_Isothermal=-0.5d0*thisBasicComponent%mass()*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
+    thisBasicComponent    => node%basic     ()
+    isothermalEnergy=-0.5d0*thisBasicComponent%mass()*self%scale%virialVelocity(node)**2
     return
-  end function Dark_Matter_Profile_Energy_Isothermal
+  end function isothermalEnergy
 
-  double precision function Dark_Matter_Profile_Energy_Growth_Rate_Isothermal(thisNode)
+  double precision function isothermalEnergyGrowthRate(self,node)
     !% Return the rate of change of the energy of an isothermal halo density profile.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent
+    class(darkMatterProfileIsothermal), intent(inout)          :: self
+    type (treeNode                   ), intent(inout), pointer :: node
+    class(nodeComponentBasic         )               , pointer :: thisBasicComponent
 
-    thisBasicComponent => thisNode%basic()
-    Dark_Matter_Profile_Energy_Growth_Rate_Isothermal=Dark_Matter_Profile_Energy_Isothermal(thisNode)&
+    thisBasicComponent   => node%basic     ()
+    isothermalEnergyGrowthRate=self%energy(node)&
          &*(thisBasicComponent%accretionRate()/thisBasicComponent%mass()+2.0d0&
-         &*Dark_Matter_Halo_Virial_Velocity_Growth_Rate(thisNode)/Dark_Matter_Halo_Virial_Velocity(thisNode))
+         &*self%scale%virialVelocityGrowthRate(node)/self%scale%virialVelocity(node))
     return
-  end function Dark_Matter_Profile_Energy_Growth_Rate_Isothermal
+  end function isothermalEnergyGrowthRate
 
-  double precision function Dark_Matter_Profile_kSpace_Isothermal(thisNode,waveNumber)
+  double precision function isothermalKSpace(self,node,waveNumber)
     !% Returns the Fourier transform of the isothermal density profile at the specified {\tt waveNumber} (given in Mpc$^{-1}$), using the
     !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; table~1).
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Exponential_Integrals
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: waveNumber
-    double precision                                   :: radiusScale, waveNumberScaleFree
+    class           (darkMatterProfileIsothermal), intent(inout)          :: self
+    type            (treeNode                   ), intent(inout), pointer :: node
+    double precision                             , intent(in   )          :: waveNumber
+    double precision                                                      :: radiusScale, waveNumberScaleFree
 
     ! Get the scale radius (for which we use the virial radius).
-    radiusScale=Dark_Matter_Halo_Virial_Radius(thisNode)
+    radiusScale          =  self%scale%virialRadius(node)
 
     ! Get the dimensionless wavenumber.
     waveNumberScaleFree=waveNumber*radiusScale
 
     ! Compute the Fourier transformed profile.
-    Dark_Matter_Profile_kSpace_Isothermal=Sine_Integral(waveNumberScaleFree)/waveNumberScaleFree
+    isothermalKSpace=Sine_Integral(waveNumberScaleFree)/waveNumberScaleFree
 
     return
-  end function Dark_Matter_Profile_kSpace_Isothermal
+  end function isothermalKSpace
 
-  double precision function Dark_Matter_Profile_Freefall_Radius_Isothermal(thisNode,time)
+  double precision function isothermalFreefallRadius(self,node,time)
     !% Returns the freefall radius in the isothermal density profile at the specified {\tt time} (given in Gyr). For an isothermal
     !% potential, the freefall radius, $r_{\rm ff}(t)$, is:
     !% \begin{equation}
@@ -223,15 +271,16 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
+    class           (darkMatterProfileIsothermal), intent(inout)          :: self
+    type            (treeNode                   ), intent(inout), pointer :: node
+    double precision                             , intent(in   )          :: time
 
-    Dark_Matter_Profile_Freefall_Radius_Isothermal=sqrt(2.0d0/Pi)*Dark_Matter_Halo_Virial_Velocity(thisNode)*time&
+    isothermalFreefallRadius=sqrt(2.0d0/Pi)*self%scale%virialVelocity(node)*time&
          &/Mpc_per_km_per_s_To_Gyr
     return
-  end function Dark_Matter_Profile_Freefall_Radius_Isothermal
+  end function isothermalFreefallRadius
 
-  double precision function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Isothermal(thisNode,time)
+  double precision function isothermalFreefallRadiusIncreaseRate(self,node,time)
     !% Returns the rate of increase of the freefall radius in the isothermal density profile at the specified {\tt time} (given in
     !% Gyr). For an isothermal potential, the rate of increase of the freefall radius, $\dot{r}_{\rm ff}(t)$, is:
     !% \begin{equation}
@@ -241,12 +290,11 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
+    class           (darkMatterProfileIsothermal), intent(inout)          :: self
+    type            (treeNode                   ), intent(inout), pointer :: node
+    double precision                             , intent(in   )          :: time
 
-    Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Isothermal=sqrt(2.0d0/Pi)*Dark_Matter_Halo_Virial_Velocity(thisNode)&
+    isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%scale%virialVelocity(node)&
          &/Mpc_per_km_per_s_To_Gyr
     return
-  end function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Isothermal
-
-end module Dark_Matter_Profiles_Isothermal
+  end function isothermalFreefallRadiusIncreaseRate

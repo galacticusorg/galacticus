@@ -1563,6 +1563,7 @@ contains
     !% Assign scale radii to nodes.
     use Root_Finder
     use Dark_Matter_Halo_Scales
+    use Dark_Matter_Profile_Scales
     use Dark_Matter_Profiles_Concentration
     use Galacticus_Display
     use Galacticus_Error
@@ -1575,6 +1576,7 @@ contains
     logical                                                         , save                              :: excessiveScaleRadiiReported              =.false.                                
     class           (nodeComponentBasic                 ), pointer                                      :: thisBasicComponent                                                    
     class           (nodeComponentDarkMatterProfile     ), pointer                                      :: thisDarkMatterProfileComponent                                        
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     integer                                                                                             :: iNode                                            , status                     , &
          &                                                                                                 messageVerbosity
     integer         (kind=kind_int8                     )                                               :: iIsolatedNode                                                         
@@ -1619,6 +1621,8 @@ contains
        call finder%rootFunction(Half_Mass_Radius_Root              )
        call finder%tolerance   (toleranceAbsolute,toleranceRelative)
     end if
+    ! Get required objects.
+    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Find the scale radius.
     excessiveScaleRadii   =.false.
     excessiveHalfMassRadii=.false.
@@ -1640,12 +1644,12 @@ contains
                   &  .and.                                                           &
                   &     nodes(iNode)%scaleRadius                                     &
                   &   <                                                              &
-                  &     Dark_Matter_Halo_Virial_Radius(nodeList(iIsolatedNode)%node) &
+                  &     darkMatterHaloScale_%virialRadius(nodeList(iIsolatedNode)%node) &
                   &    /mergerTreeReadPresetScaleRadiiConcentrationMinimum           &
                   &  .and.                                                           &
                   &     nodes(iNode)%scaleRadius                                     &
                   &   >                                                              &
-                  &     Dark_Matter_Halo_Virial_Radius(nodeList(iIsolatedNode)%node) &
+                  &     darkMatterHaloScale_%virialRadius(nodeList(iIsolatedNode)%node) &
                   &    /mergerTreeReadPresetScaleRadiiConcentrationMaximum           &
                   & ) then
                 ! We do, so simply use them to set the scale radii in tree nodes.
@@ -1662,9 +1666,9 @@ contains
                 call finder%rangeExpand    (                                                                                   &
                      &                      rangeExpandDownward          =0.5d0                                              , &
                      &                      rangeExpandUpward            =2.0d0                                              , &
-                     &                      rangeDownwardLimit           = Dark_Matter_Halo_Virial_Radius(activeNode)          &
+                     &                      rangeDownwardLimit           = darkMatterHaloScale_%virialRadius(activeNode)          &
                      &                                                    /mergerTreeReadPresetScaleRadiiConcentrationMaximum, &
-                     &                      rangeUpwardLimit             = Dark_Matter_Halo_Virial_Radius(activeNode)          &
+                     &                      rangeUpwardLimit             = darkMatterHaloScale_%virialRadius(activeNode)          &
                      &                                                    /mergerTreeReadPresetScaleRadiiConcentrationMinimum, &
                      &                      rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                      , &
                      &                      rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                      , &
@@ -1674,9 +1678,9 @@ contains
                 if (status == errorStatusSuccess) then
                    call thisDarkMatterProfileComponent%scaleSet(radiusScale)
                    ! Check for scale radii exceeding the virial radius.
-                   if (radiusScale    > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveScaleRadii   =.true.
+                   if (radiusScale    > darkMatterHaloScale_%virialRadius(activeNode)) excessiveScaleRadii   =.true.
                    ! Check for half-mass radii exceeding the virial radius.
-                   if (halfMassRadius > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveHalfMassRadii=.true.
+                   if (halfMassRadius > darkMatterHaloScale_%virialRadius(activeNode)) excessiveHalfMassRadii=.true.
                    useFallbackScaleMethod=.false.
                 else
                    if (mergerTreeReadPresetScaleRadiiFailureIsFatal) then
@@ -1691,7 +1695,7 @@ contains
                     write (label,'(i16)') activeNode%index()
                    message="      node index: "//trim(label)
                    call Galacticus_Display_Message(message,messageVerbosity)
-                   write (label,'(e12.6)') Dark_Matter_Halo_Virial_Radius(activeNode)
+                   write (label,'(e12.6)') darkMatterHaloScale_%virialRadius(activeNode)
                    message="   virial radius: "//trim(label)
                    call Galacticus_Display_Message(message,messageVerbosity)
                    write (label,'(e12.6)') halfMassRadius
@@ -1709,9 +1713,7 @@ contains
           if (useFallbackScaleMethod) then
              ! The node mass is below the reliability threshold, or no scale information is available. Set the scale radius using
              ! the fallback concentration method.
-             radiusScale=                                                              &
-                  &  Dark_Matter_Halo_Virial_Radius     (nodeList(iIsolatedNode)%node) &
-                  & /fallBackConcentration%concentration(nodeList(iIsolatedNode)%node)
+             radiusScale=Dark_Matter_Profile_Scale(nodeList(iIsolatedNode)%node,fallbackConcentration)
              call thisDarkMatterProfileComponent%scaleSet(radiusScale)
           end if
        end if
@@ -1736,15 +1738,18 @@ contains
     use Galacticus_Error
     use Halo_Spin_Distributions
     implicit none
-    class           (nodeData          )         , dimension(:), intent(inout) :: nodes              
-    type            (treeNodeList      )         , dimension(:), intent(inout) :: nodeList           
-    class           (nodeComponentBasic), pointer                              :: thisBasicComponent 
-    class           (nodeComponentSpin ), pointer                              :: thisSpinComponent  
-    integer                                                                    :: iNode              
-    integer         (kind=kind_int8    )                                       :: iIsolatedNode      
-    double precision                                                           :: spin             , spinNormalization        
-    double precision                             , dimension(3)                :: spin3D               
+    class           (nodeData              )         , dimension(:), intent(inout) :: nodes              
+    type            (treeNodeList          )         , dimension(:), intent(inout) :: nodeList           
+    class           (nodeComponentBasic    ), pointer                              :: thisBasicComponent 
+    class           (nodeComponentSpin     ), pointer                              :: thisSpinComponent  
+    class           (darkMatterProfileClass), pointer                              :: darkMatterProfile_
+    integer                                                                        :: iNode              
+    integer         (kind=kind_int8        )                                       :: iIsolatedNode      
+    double precision                                                               :: spin              , spinNormalization        
+    double precision                                 , dimension(3)                :: spin3D               
     
+    ! Get required objects.
+    darkMatterProfile_ => darkMatterProfile()
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
        if (nodes(iNode)%isolatedNodeIndex /= nodeIsUnreachable) then
@@ -1758,7 +1763,7 @@ contains
                 call thisSpinComponent%spinSet(nodes(iNode)%spin)
              else if (defaultImporter%angularMomentaAvailable()) then
                 ! Compute the spin parameter normalization to convert from angular momentum.
-                spinNormalization= sqrt(abs(Dark_Matter_Profile_Energy(nodeList(iIsolatedNode)%node))) &
+                spinNormalization= sqrt(abs(darkMatterProfile_%energy(nodeList(iIsolatedNode)%node))) &
                      &            /gravitationalConstantGalacticus                                     &
                      &            /thisBasicComponent%mass()**2.5d0
                 spin  = spinNormalization              &
@@ -1858,12 +1863,15 @@ contains
     !% Function used to find scale radius of dark matter halos given their half-mass radius.
     use Dark_Matter_Profiles
     implicit none
-    double precision, intent(in   ) :: radius 
-    
+    double precision                        , intent(in   ) :: radius 
+    class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
+
+    ! Get required objects.
+    darkMatterProfile_ => darkMatterProfile()
     ! Set scale radius to current guess.
     call activeDarkMatterProfileComponent%scaleSet(radius)
     ! Compute difference between mass fraction enclosed at half mass radius and one half.
-    Half_Mass_Radius_Root=Dark_Matter_Profile_Enclosed_Mass(activeNode,halfMassRadius)/activeBasicComponent%mass()-0.50d0
+    Half_Mass_Radius_Root=darkMatterProfile_%enclosedMass(activeNode,halfMassRadius)/activeBasicComponent%mass()-0.50d0
     return
   end function Half_Mass_Radius_Root
 
@@ -1936,6 +1944,7 @@ contains
     class           (nodeComponentPosition          ), pointer                                        :: childPositionComponent             , hostPositionComponent       , & 
          &                                                                                               satellitePositionComponent         , thisPositionComponent           
     class           (nodeComponentSatellite         ), pointer                                        :: satelliteSatelliteComponent        , thisSatelliteComponent          
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     type            (keplerOrbit                    )                                                 :: thisOrbit                                                            
     integer                                                                                           :: iNode                              , thispass
     integer         (kind=kind_int8                 )                                                 :: historyCount                       , iIsolatedNode                   
@@ -2105,6 +2114,8 @@ contains
           end if
        end do
     end do
+    ! Get required objects.
+    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Set orbits.
     if (mergerTreeReadPresetOrbits) then
        iIsolatedNode=0
@@ -2157,7 +2168,7 @@ contains
                    ! Propagate to the virial radius.
                    radiusPericenter=thisOrbit%radiusPericenter()
                    radiusApocenter =thisOrbit%radiusApocenter ()
-                   radiusVirial    =Dark_Matter_Halo_Virial_Radius(orbitalPartner)
+                   radiusVirial    =darkMatterHaloScale_%virialRadius(orbitalPartner)
                    ! Check if the orbit intersects the virial radius.
                    if     (                                                                          &
                         &    radiusVirial >= radiusPericenter                                        &

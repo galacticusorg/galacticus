@@ -45,14 +45,16 @@ contains
     type     (varying_string                              ), intent(in   )          :: darkMatterHaloMassLossRateMethod
     procedure(Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch), intent(inout), pointer :: Dark_Matter_Halos_Mass_Loss_Rate_Get
     class    (cosmologyFunctionsClass                     )               , pointer :: cosmologyFunctionsDefault
+    class    (virialDensityContrastClass                  )               , pointer :: virialDensityContrast_
 
     if (darkMatterHaloMassLossRateMethod == 'vanDenBosch2005') then
        ! Set a pointer to our implementation.
        Dark_Matter_Halos_Mass_Loss_Rate_Get => Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch
-       ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
+       ! Get the default objects.
+       cosmologyFunctionsDefault => cosmologyFunctions   ()
+       virialDensityContrast_    => virialDensityContrast()
        ! Pre-compute the mass loss rate normalization factor.
-       massLossRateNormalization=massLossTimescaleNormalization*sqrt(Halo_Virial_Density_Contrast(cosmologyFunctionsDefault%cosmicTime(1.0d0)))
+       massLossRateNormalization=massLossTimescaleNormalization*sqrt(virialDensityContrast_%densityContrast(cosmologyFunctionsDefault%cosmicTime(1.0d0)))
     end if
     return
   end subroutine Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize
@@ -63,23 +65,25 @@ contains
     use Virial_Density_Contrast
     use Cosmology_Functions
     implicit none
-    type            (treeNode               ), intent(inout), pointer :: thisNode
-    class           (nodeComponentBasic     )               , pointer :: parentBasic              , thisBasic
-    class           (nodeComponentSatellite )               , pointer :: thisSatellite
-    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
-    double precision                                                  :: massLossTimescale        , satelliteBoundMass, &
-         &                                                               satelliteHostMassRatio   , satelliteTime
+    type            (treeNode                  ), intent(inout), pointer :: thisNode
+    class           (nodeComponentBasic        )               , pointer :: parentBasic              , thisBasic
+    class           (nodeComponentSatellite    )               , pointer :: thisSatellite
+    class           (cosmologyFunctionsClass   )               , pointer :: cosmologyFunctionsDefault
+    class           (virialDensityContrastClass)               , pointer :: virialDensityContrast_
+    double precision                                                     :: massLossTimescale        , satelliteBoundMass, &
+         &                                                                  satelliteHostMassRatio   , satelliteTime
 
     thisSatellite      => thisNode     %satellite()
     satelliteBoundMass =  thisSatellite%boundMass()
     if (satelliteBoundMass > 0.0d0) then
        ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
-      thisBasic             => thisNode %basic()
+       cosmologyFunctionsDefault => cosmologyFunctions   ()
+       virialDensityContrast_    => virialDensityContrast()
+       thisBasic             => thisNode %basic()
        satelliteTime         =  thisBasic%time ()
        massLossTimescale     =   massLossRateNormalization                                             &
             &                   *     cosmologyFunctionsDefault%expansionFactor(satelliteTime) **1.5d0 &
-            &                   /sqrt(Halo_Virial_Density_Contrast             (satelliteTime))
+            &                   /sqrt(virialDensityContrast_%densityContrast   (satelliteTime))
        parentBasic           => thisNode%parent%basic()
        satelliteHostMassRatio=  satelliteBoundMass/parentBasic%mass()
        Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch=-satelliteBoundMass*satelliteHostMassRatio**zeta/massLossTimescale

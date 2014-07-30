@@ -116,6 +116,7 @@ contains
     logical                                             , intent(in   )          :: acceptUnboundOrbits
     class           (nodeComponentBasic     )                          , pointer :: hostBasicComponent             , thisBasicComponent
     class           (cosmologyFunctionsClass)                          , pointer :: cosmologyFunctionsDefault
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                         , parameter                         :: toleranceAbsolute        =0.0d0, toleranceRelative     =1.0d-2
     double precision                         , parameter                         :: circularityMaximum       =1.0d0, circularityMinimum    =0.0d0
     double precision                         , parameter                         :: redshiftMaximum          =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
@@ -138,10 +139,11 @@ contains
     ! Reset the orbit.
     call thisOrbit%reset()
     ! Set masses and radius of the orbit.
-    thisBasicComponent => thisNode%basic()
-    hostBasicComponent => hostNode%basic()
+    thisBasicComponent   => thisNode%basic     ()
+    hostBasicComponent   => hostNode%basic     ()
+    darkMatterHaloScale_ => darkMatterHaloScale()
     call thisOrbit%massesSet(thisBasicComponent%mass(),hostBasicComponent%mass())
-    call thisOrbit%radiusSet(Dark_Matter_Halo_Virial_Radius(hostNode))
+    call thisOrbit%radiusSet(darkMatterHaloScale_%virialRadius(hostNode))
 
     ! Get the time at which this node exists.
     timeNode=thisBasicComponent%time()
@@ -189,7 +191,7 @@ contains
     end do
 
     ! Get length scale for this orbit.
-    radialScale  =Dark_Matter_Halo_Virial_Radius(hostNode)
+    radialScale  =darkMatterHaloScale_%virialRadius(hostNode)
 
     ! Set eccentricity and periapsis.
     call thisOrbit%eccentricitySet    (sqrt(1.0d0-circularity**2)   )

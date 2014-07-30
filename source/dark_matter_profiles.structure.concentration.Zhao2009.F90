@@ -25,7 +25,9 @@
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{zhao_accurate_2009}.
      private
    contains
-     procedure :: concentration => zhao2009Concentration
+     procedure :: concentration               => zhao2009Concentration
+     procedure :: densityContrastDefinition   => zhao2009DensityContrastDefinition
+     procedure :: darkMatterProfileDefinition => zhao2009DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationZhao2009
 
   interface darkMatterProfileConcentrationZhao2009
@@ -63,3 +65,39 @@ contains
     zhao2009Concentration=concentrationMinimum*(1.0d0+(timeNode/3.75d0/timeFormation)**8.4d0)**0.125d0
    return
   end function zhao2009Concentration
+
+  function zhao2009DensityContrastDefinition(self)
+    !% Return a virial density contrast object defining that used in the definition of concentration in the \cite{zhao_accurate_2009} algorithm.
+    implicit none
+    class(virialDensityContrastClass            ), pointer       :: zhao2009DensityContrastDefinition
+    class(darkMatterProfileConcentrationZhao2009), intent(inout) :: self
+    
+    allocate(virialDensityContrastBryanNorman1998 :: zhao2009DensityContrastDefinition)
+    select type (zhao2009DensityContrastDefinition)
+    type is (virialDensityContrastBryanNorman1998)
+      zhao2009DensityContrastDefinition=virialDensityContrastBryanNorman1998()
+    end select
+    return
+  end function zhao2009DensityContrastDefinition
+  
+  function zhao2009DarkMatterProfileDefinition(self)
+    !% Return a dark matter density profile object defining that used in the definition of concentration in the
+    !% \cite{zhao_accurate_2009} algorithm.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class(darkMatterProfileClass                            ), pointer       :: zhao2009DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationZhao2009            ), intent(inout) :: self
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition
+
+    allocate(darkMatterProfileNFW :: zhao2009DarkMatterProfileDefinition)
+    select type (zhao2009DarkMatterProfileDefinition)
+    type is (darkMatterProfileNFW)
+       select type (darkMatterHaloScaleDefinition)
+       type is (darkMatterHaloScaleVirialDensityContrastDefinition)
+          darkMatterHaloScaleDefinition      =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
+          zhao2009DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+       end select
+    end select
+    return
+  end function zhao2009DarkMatterProfileDefinition
+

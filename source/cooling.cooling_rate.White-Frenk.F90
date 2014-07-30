@@ -90,11 +90,13 @@ contains
     type            (treeNode                    ), intent(inout), pointer :: thisNode
     class           (nodeComponentHotHalo        )               , pointer :: thisHotHaloComponent
     class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                       :: coolingDensity      , infallRadius  , infallRadiusGrowthRate, &
          &                                                                    outerRadius         , virialVelocity
 
     ! Get the virial velocity.
-    virialVelocity=Dark_Matter_Halo_Virial_Velocity(thisNode)
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    virialVelocity=darkMatterHaloScale_%virialVelocity(thisNode)
 
     ! Return zero cooling rate if virial velocity exceeds critical value.
     if (virialVelocity > zeroCoolingRateAboveVelocity) then
@@ -111,7 +113,7 @@ contains
 
     if (infallRadius >= outerRadius) then
        ! Cooling radius exceeds the outer radius. Limit infall to the dynamical timescale.
-       Cooling_Rate_White_Frenk=thisHotHaloComponent%mass()/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
+       Cooling_Rate_White_Frenk=thisHotHaloComponent%mass()/darkMatterHaloScale_%dynamicalTimescale(thisNode)
     else
        ! Get the hot halo mass distribution.
        defaultHotHaloMassDistribution => hotHaloMassDistribution()

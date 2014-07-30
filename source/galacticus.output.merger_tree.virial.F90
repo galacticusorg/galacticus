@@ -150,16 +150,18 @@ contains
          &                                                      integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
-
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Virial_Initialize
 
     ! Store property data if we are outputting virial data.
     if (outputVirialData) then
+       darkMatterHaloScale_ => darkMatterHaloScale()
        doubleProperty=doubleProperty+1
-       doubleBuffer(doubleBufferCount,doubleProperty)=Dark_Matter_Halo_Virial_Radius  (thisNode)
+       doubleBuffer(doubleBufferCount,doubleProperty)=darkMatterHaloScale_%virialRadius  (thisNode)
        doubleProperty=doubleProperty+1
-       doubleBuffer(doubleBufferCount,doubleProperty)=Dark_Matter_Halo_Virial_Velocity(thisNode)
+       doubleBuffer(doubleBufferCount,doubleProperty)=darkMatterHaloScale_%virialVelocity(thisNode)
     end if
     return
   end subroutine Galacticus_Output_Tree_Virial

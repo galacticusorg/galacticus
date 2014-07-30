@@ -349,6 +349,7 @@ contains
     type            (treeNode          )                    , pointer      :: hostNode
     class           (nodeComponentBasic     )               , pointer      :: thisBasicComponent
     class           (cosmologyFunctionsClass)               , pointer      :: cosmologyFunctionsDefault
+    class           (darkMatterProfileClass )               , pointer      :: darkMatterProfile_
     double precision                         , allocatable  , dimension(:) :: fourierProfile
     logical                                                                :: nodeExistsInOutput
     integer                                                                :: iWavenumber
@@ -360,7 +361,9 @@ contains
     ! For any node that passes the filter, we want to ensure that the host halo profile is output.
     ! Return immediately if halo model is not to be output or this node is filtered out.
     if (.not.(outputHaloModelData.and.nodePassesFilter)) return
-    ! Find the host halo.
+    ! Get required objects.
+    darkMatterProfile_ => darkMatterProfile()
+     ! Find the host halo.
     hostNode => thisNode
     do while (hostNode%isSatellite())
        hostNode => hostNode%parent
@@ -390,7 +393,7 @@ contains
        ! Construct profile. (Our wavenumbers are comoving, so we must convert them to physics
        ! coordinates before passing them to the dark matter profile k-space routine.)
        do iWavenumber=1,waveNumberCount
-          fourierProfile(iWavenumber)=Dark_Matter_Profile_kSpace(hostNode,waveNumber(iWavenumber)/expansionFactor)
+          fourierProfile(iWavenumber)=darkMatterProfile_%kSpace(hostNode,waveNumber(iWavenumber)/expansionFactor)
        end do
        ! Write dataset to the group.
        call treeGroup%writeDataset(fourierProfile,char(dataSetName),"The Fourier-space density profile.")

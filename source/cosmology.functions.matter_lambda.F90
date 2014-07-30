@@ -79,30 +79,32 @@
      !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
      !# final     :: matterLambdaDestructor
      !# </workaround>
-     procedure :: stateStore                   =>matterLambdaStateStore
-     procedure :: stateRestore                 =>matterLambdaStateRestore
-     procedure :: expansionFactorIsValid       =>matterLambdaExpansionFactorIsValid
-     procedure :: cosmicTimeIsValid            =>matterLambdaCosmicTimeIsValid
-     procedure :: cosmicTime                   =>matterLambdaCosmicTime
-     procedure :: expansionFactor              =>matterLambdaExpansionFactor
-     procedure :: expansionRate                =>matterLambdaExpansionRate
-     procedure :: hubbleParameterEpochal       =>matterLambdaHubbleParameterEpochal
-     procedure :: densityScalingEarlyTime      =>matterLambdaDensityScalingEarlyTime
-     procedure :: omegaMatterEpochal           =>matterLambdaOmegaMatterEpochal
-     procedure :: omegaDarkEnergyEpochal       =>matterLambdaOmegaDarkEnergyEpochal
-     procedure :: equationOfStateDarkEnergy    =>matterLambdaEquationOfStateDarkEnergy
-     procedure :: exponentDarkEnergy           =>matterLambdaExponentDarkEnergy
-     procedure :: equalityEpochMatterDarkEnergy=>matterLambdaEqualityEpochMatterDarkEnergy
-     procedure :: equalityEpochMatterCurvature =>matterLambdaEqualityEpochMatterCurvature
-     procedure :: dominationEpochMatter        =>matterLambdaDominationEpochMatter
-     procedure :: temperatureCMBEpochal        =>matterLambdaTemperatureCMBEpochal
-     procedure :: distanceComoving             =>matterLambdaDistanceComoving
-     procedure :: distanceLuminosity           =>matterLambdaDistanceLuminosity
-     procedure :: distanceAngular              =>matterLambdaDistanceAngular
-     procedure :: timeAtDistanceComoving       =>matterLambdaTimeAtDistanceComoving
-     procedure :: distanceComovingConvert      =>matterLambdaDistanceComovingConvert
-     procedure :: expansionFactorTabulate      =>matterLambdaMakeExpansionFactorTable
-     procedure :: distanceTabulate             =>matterLambdaMakeDistanceTable
+     procedure :: stateStore                    => matterLambdaStateStore
+     procedure :: stateRestore                  => matterLambdaStateRestore
+     procedure :: expansionFactorIsValid        => matterLambdaExpansionFactorIsValid
+     procedure :: cosmicTimeIsValid             => matterLambdaCosmicTimeIsValid
+     procedure :: cosmicTime                    => matterLambdaCosmicTime
+     procedure :: expansionFactor               => matterLambdaExpansionFactor
+     procedure :: expansionRate                 => matterLambdaExpansionRate
+     procedure :: hubbleParameterEpochal        => matterLambdaHubbleParameterEpochal
+     procedure :: hubbleParameterRateOfChange   => matterLambdaHubbleParameterRateOfChange
+     procedure :: densityScalingEarlyTime       => matterLambdaDensityScalingEarlyTime
+     procedure :: omegaMatterEpochal            => matterLambdaOmegaMatterEpochal
+     procedure :: omegaMatterRateOfChange       => matterLambdaOmegaMatterRateOfChange
+     procedure :: omegaDarkEnergyEpochal        => matterLambdaOmegaDarkEnergyEpochal
+     procedure :: equationOfStateDarkEnergy     => matterLambdaEquationOfStateDarkEnergy
+     procedure :: exponentDarkEnergy            => matterLambdaExponentDarkEnergy
+     procedure :: equalityEpochMatterDarkEnergy => matterLambdaEqualityEpochMatterDarkEnergy
+     procedure :: equalityEpochMatterCurvature  => matterLambdaEqualityEpochMatterCurvature
+     procedure :: dominationEpochMatter         => matterLambdaDominationEpochMatter
+     procedure :: temperatureCMBEpochal         => matterLambdaTemperatureCMBEpochal
+     procedure :: distanceComoving              => matterLambdaDistanceComoving
+     procedure :: distanceLuminosity            => matterLambdaDistanceLuminosity
+     procedure :: distanceAngular               => matterLambdaDistanceAngular
+     procedure :: timeAtDistanceComoving        => matterLambdaTimeAtDistanceComoving
+     procedure :: distanceComovingConvert       => matterLambdaDistanceComovingConvert
+     procedure :: expansionFactorTabulate       => matterLambdaMakeExpansionFactorTable
+     procedure :: distanceTabulate              => matterLambdaMakeDistanceTable
   end type cosmologyFunctionsMatterLambda
 
   ! Module scope pointer to the current object.
@@ -284,6 +286,7 @@ contains
     if (allocated(self%distanceTableComovingDistanceNegated  )) deallocate(self%distanceTableComovingDistanceNegated  )
     if (allocated(self%distanceTableLuminosityDistanceNegated)) deallocate(self%distanceTableLuminosityDistanceNegated)
     if (allocated(self%distanceTableTime                     )) deallocate(self%distanceTableTime                     )
+    if (          self%cosmology%isFinalizable()              ) deallocate(self%cosmology                             )
     call Interpolate_Done(self%interpolationObject       ,self%interpolationAccelerator       ,self%resetInterpolation       )
     call Interpolate_Done(self%interpolationObjectInverse,self%interpolationAcceleratorInverse,self%resetInterpolationInverse)
     return
@@ -437,7 +440,7 @@ contains
     double precision                                , intent(in   ) :: expansionFactor
 
     ! Required value is simply the Hubble parameter but expressed in units of inverse Gyr.
-    matterLambdaExpansionRate&
+    matterLambdaExpansionRate                                                       &
          & = self          %hubbleParameterEpochal(expansionFactor=expansionFactor) &
          &  *self%cosmology%HubbleConstant        (unitsTime                      ) &
          &  /self%cosmology%HubbleConstant        (unitsStandard                  )
@@ -459,7 +462,7 @@ contains
        if (present(expansionFactor)) then
           call Galacticus_Error_Report('matterLambdaHubbleParameterEpochal','only one of time or expansion factor can be specified')
        else
-          expansionFactorActual=matterLambdaSelfGlobal%expansionFactor(time)
+          expansionFactorActual=self%expansionFactor(time)
        end if
     else
        if (present(expansionFactor)) then
@@ -492,6 +495,46 @@ contains
     return
   end function matterLambdaHubbleParameterEpochal
 
+  double precision function matterLambdaHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
+    !% Returns the rate of change of the Hubble parameter at the request cosmological time, {\tt time}, or expansion factor, {\tt expansionFactor}.
+    use Galacticus_Error
+    use Cosmology_Parameters
+    implicit none
+    class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
+    double precision                                , intent(in   ), optional :: expansionFactor      , time
+    logical                                         , intent(in   ), optional :: collapsingPhase
+    double precision                                                          :: expansionFactorActual
+
+    ! Determine the actual expansion factor to use.
+    if (present(time)) then
+       if (present(expansionFactor)) then
+          call Galacticus_Error_Report('matterLambdaHubbleParameterEpochal','only one of time or expansion factor can be specified')
+       else
+          expansionFactorActual=matterLambdaSelfGlobal%expansionFactor(time)
+       end if
+    else
+       if (present(expansionFactor)) then
+          expansionFactorActual=expansionFactor
+       else
+          call Galacticus_Error_Report('matterLambdaHubbleParameterEpochal','either a time or expansion factor must be specified')
+       end if
+    end if
+    matterLambdaHubbleParameterRateOfChange                                                                            &
+         & = +0.5d0                                                                                                    &
+         & *        self%hubbleParameterEpochal(expansionFactor=expansionFactorActual,collapsingPhase=collapsingPhase) &
+         & *        self%expansionRate         (                expansionFactorActual                                ) &
+         & *(                                                                                                          &
+         &   -3.0d0*self%cosmology%OmegaMatter    ()/expansionFactorActual**3                                          &
+         &   -2.0d0*self%cosmology%OmegaCurvature ()/expansionFactorActual**2                                          &
+         &  )                                                                                                          &
+         & /(                                                                                                          &
+         &   +      self%cosmology%OmegaMatter    ()/expansionFactorActual**3                                          &
+         &   +      self%cosmology%OmegaDarkEnergy()                                                                   &
+         &   +      self%cosmology%OmegaCurvature ()/expansionFactorActual**2                                          &
+         &  )
+    return
+  end function matterLambdaHubbleParameterRateOfChange
+
   double precision function matterLambdaOmegaMatterEpochal(self,time,expansionFactor,collapsingPhase)
     !% Return the matter density parameter at expansion factor {\tt expansionFactor}.
     use Galacticus_Error
@@ -522,8 +565,36 @@ contains
          &    /self          %HubbleParameterEpochal(expansionFactor=expansionFactorActual) &
          &   )**2                                                                           &
          &  /expansionFactorActual**3
+
+
     return
   end function matterLambdaOmegaMatterEpochal
+
+  double precision function matterLambdaOmegaMatterRateOfChange(self,time,expansionFactor,collapsingPhase)
+    !% Return the rate of change of the matter density parameter at expansion factor {\tt expansionFactor}.
+    use Galacticus_Error
+    implicit none
+    class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
+    double precision                                , intent(in   ), optional :: expansionFactor      , time
+    logical                                         , intent(in   ), optional :: collapsingPhase
+    double precision                                                          :: expansionFactorActual
+
+    if (present(expansionFactor)) then
+       expansionFactorActual=expansionFactor
+    else if (present(time)) then
+       expansionFactorActual=self%expansionFactor(time)
+    else
+       call Galacticus_Error_Report('matterLambdaOmegaMatterRateOfChange','either expansionFactor or time must be specified')
+    end if
+    matterLambdaOmegaMatterRateOfChange&
+         & =self%omegaMatterEpochal(time,expansionFactor,collapsingPhase)                        &
+         & *(                                                                                    &
+         &   -3.0d0*self%expansionRate              (     expansionFactorActual                ) &
+         &   -2.0d0*self%hubbleParameterRateOfChange(time,expansionFactor      ,collapsingPhase) &
+         &   /      self%hubbleParameterEpochal     (time,expansionFactor      ,collapsingPhase) &
+         &  )
+    return
+  end function matterLambdaOmegaMatterRateOfChange
 
   double precision function matterLambdaOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
     !% Return the dark energy density parameter at expansion factor {\tt expansionFactor}.

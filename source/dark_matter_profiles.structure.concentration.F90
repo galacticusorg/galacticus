@@ -22,6 +22,8 @@ module Dark_Matter_Profiles_Concentration
   use, intrinsic :: ISO_C_Binding
   use               ISO_Varying_String
   use               Galacticus_Nodes
+  use               Virial_Density_Contrast
+  use               Dark_Matter_Profiles
   !# <include directive="darkMatterProfileConcentration" type="functionModules" >
   include 'darkMatterProfileConcentration.functionModules.inc'
   !# </include>
@@ -39,7 +41,17 @@ module Dark_Matter_Profiles_Concentration
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
   !#  </method>
+  !#  <method name="densityContrastDefinition" >
+  !#   <description>Returns a {\tt virialDensityContrast} object describing the virial density contrast used to define this concentration.</description>
+  !#   <type>class(virialDensityContrastClass)</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="darkMatterProfileDefinition" >
+  !#   <description>Returns a {\tt darkMatterProfile} object describing the dark matter density profile used to define this concentration.</description>
+  !#   <type>class(darkMatterProfileClass)</type>
+  !#   <pass>yes</pass>
+  !#  </method>
   include 'darkMatterProfileConcentration.type.inc'
   !# </include>
-
+  
 end module Dark_Matter_Profiles_Concentration

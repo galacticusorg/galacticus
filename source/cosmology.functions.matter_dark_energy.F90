@@ -54,18 +54,20 @@
      !@     <description>Set a module-scope pointer to {\tt self}.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: cosmicTime                   =>matterDarkEnergyCosmicTime
-     procedure :: omegaDarkEnergyEpochal       =>matterDarkEnergyOmegaDarkEnergyEpochal
-     procedure :: hubbleParameterEpochal       =>matterDarkEnergyHubbleParameterEpochal
-     procedure :: equationOfStateDarkEnergy    =>matterDarkEnergyEquationOfStateDarkEnergy
-     procedure :: exponentDarkEnergy           =>matterDarkEnergyExponentDarkEnergy
-     procedure :: equalityEpochMatterDarkEnergy=>matterDarkEnergyEqualityEpochMatterDarkEnergy
-     procedure :: dominationEpochMatter        =>matterDarkEnergyDominationEpochMatter
-     procedure :: distanceComoving             =>matterDarkEnergyDistanceComoving
-     procedure :: timeAtDistanceComoving       =>matterDarkEnergyTimeAtDistanceComoving
-     procedure :: distanceComovingConvert      =>matterDarkEnergyDistanceComovingConvert
-     procedure :: expansionFactorTabulate      =>matterDarkEnergyMakeExpansionFactorTable
-     procedure :: targetSelf                   =>matterDarkEnergyTargetSelf
+     procedure :: cosmicTime                    => matterDarkEnergyCosmicTime
+     procedure :: omegaDarkEnergyEpochal        => matterDarkEnergyOmegaDarkEnergyEpochal
+     procedure :: hubbleParameterEpochal        => matterDarkEnergyHubbleParameterEpochal
+     procedure :: hubbleParameterRateOfChange   => matterDarkEnergyHubbleParameterRateOfChange
+     procedure :: equationOfStateDarkEnergy     => matterDarkEnergyEquationOfStateDarkEnergy
+     procedure :: exponentDarkEnergy            => matterDarkEnergyExponentDarkEnergy
+     procedure :: exponentDarkEnergyDerivative  => matterDarkEnergyExponentDarkEnergyDerivative
+     procedure :: equalityEpochMatterDarkEnergy => matterDarkEnergyEqualityEpochMatterDarkEnergy
+     procedure :: dominationEpochMatter         => matterDarkEnergyDominationEpochMatter
+     procedure :: distanceComoving              => matterDarkEnergyDistanceComoving
+     procedure :: timeAtDistanceComoving        => matterDarkEnergyTimeAtDistanceComoving
+     procedure :: distanceComovingConvert       => matterDarkEnergyDistanceComovingConvert
+     procedure :: expansionFactorTabulate       => matterDarkEnergyMakeExpansionFactorTable
+     procedure :: targetSelf                    => matterDarkEnergyTargetSelf
   end type cosmologyFunctionsMatterDarkEnergy
 
   ! Module scope pointer to the current object.
@@ -358,6 +360,59 @@ contains
     return
   end function matterDarkEnergyHubbleParameterEpochal
 
+  double precision function matterDarkEnergyHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
+    !% Returns the rate of change of the Hubble parameter at the requested cosmological time, {\tt time}, or expansion factor, {\tt expansionFactor}.
+    use Galacticus_Error
+    implicit none
+    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
+    double precision                                    , intent(in   ), optional :: expansionFactor      , time
+    logical                                             , intent(in   ), optional :: collapsingPhase
+    double precision                                                              :: expansionFactorActual, sqrtArgument
+
+    ! Determine the actual expansion factor to use.
+    if (present(time)) then
+       if (present(expansionFactor)) then
+          call Galacticus_Error_Report('matterDarkEnergyHubbleParameterRateOfChange','only one of time or expansion factor can be specified')
+       else
+          expansionFactorActual=self%expansionFactor(time)
+       end if
+    else
+       if (present(expansionFactor)) then
+          expansionFactorActual=expansionFactor
+       else
+          call Galacticus_Error_Report('matterDarkEnergyHubbleParameterRateOfChange','either a time or expansion factor must be specified')
+       end if
+    end if
+    ! Compute the rat of change of the Hubble parameter.
+    matterDarkEnergyHubbleParameterRateOfChange                                                                &
+         & =0.5d0                                                                                              &
+         & *self%hubbleParameterEpochal(expansionFactor=expansionFactorActual,collapsingPhase=collapsingPhase) &
+         & *self%expansionRate         (                expansionFactorActual                                ) &
+         & /(                                                                                                  &
+         &   +self%cosmology%OmegaMatter    ()                                                                 &
+         &   /expansionFactorActual**3                                                                         &
+         &   +self%cosmology%OmegaDarkEnergy()                                                                 &
+         &   *expansionFactorActual**self%exponentDarkEnergy(expansionFactor=expansionFactorActual)            &
+         &   +self%cosmology%OmegaCurvature ()                                                                 &
+         &   /expansionFactorActual**2                                                                         &
+         &  )                                                                                                  &
+         & *(                                                                                                  &
+         &   -3.0d0*self%cosmology%OmegaMatter()                                                               &
+         &   /expansionFactorActual**3                                                                         &
+         &   +self%cosmology%OmegaDarkEnergy  ()                                                               &
+         &   *expansionFactorActual**self%exponentDarkEnergy(expansionFactor=expansionFactorActual)            &
+         &   *(                                                                                                &
+         &     +self%exponentDarkEnergy(expansionFactor=expansionFactorActual)                                 &
+         &     +expansionFactorActual                                                                          &
+         &     *log(expansionFactorActual)                                                                     &
+         &     *self%exponentDarkEnergyDerivative(expansionFactor=expansionFactorActual)                       &
+         &    )                                                                                                &
+         &   -2.0d0*self%cosmology%OmegaCurvature()                                                            &
+         &   /expansionFactorActual**2                                                                         &
+         & )
+    return
+  end function matterDarkEnergyHubbleParameterRateOfChange
+
   double precision function matterDarkEnergyEqualityEpochMatterDarkEnergy(self,requestType)
     !% Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
     use Cosmology_Functions_Parameters
@@ -637,7 +692,11 @@ contains
     real   (kind=c_double), dimension(1)                :: dadt
     type   (c_ptr        )              , value         :: parameterPointer
 
-    dadt(1)=a(1)*matterDarkEnergySelfGlobal%expansionRate(a(1))
+    if (a(1) <= 0.0d0) then
+       dadt(1)=0.0d0
+    else
+       dadt(1)=a(1)*matterDarkEnergySelfGlobal%expansionRate(a(1))
+    end if
     matterDarkEnergyAgeTableODEs=FGSL_Success
   end function matterDarkEnergyAgeTableODEs
 
@@ -722,3 +781,39 @@ contains
     end if
     return
   end function matterDarkEnergyExponentDarkEnergy
+
+  double precision function matterDarkEnergyExponentDarkEnergyDerivative(self,time,expansionFactor)
+    !% Return the derivative of the dark energy exponent with respect to expansion factor.
+    use Galacticus_Error
+    implicit none
+    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
+    double precision                                    , intent(in   ), optional :: expansionFactor      , time
+    double precision                                                              :: expansionFactorActual
+
+    if      (present(expansionFactor)) then
+       expansionFactorActual=expansionFactor
+    else if (present(time           )) then
+       expansionFactorActual=self%expansionFactor(time)
+    else
+       if (self%darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('matterDarkEnergyExponentDarkEnergyDerivative','equation of state is time dependent, but no time given')
+       expansionFactorActual=1.0d0
+    end if
+    if (expansionFactorActual == 1.0d0) then
+       matterDarkEnergyExponentDarkEnergyDerivative= &
+            & -1.5d0&
+            & *self%darkEnergyEquationOfStateW1
+    else
+       matterDarkEnergyExponentDarkEnergyDerivative= &
+            & -1.5d0                                 &
+            & *self%darkEnergyEquationOfStateW1      &
+            & *(                                     &
+            &       (1.0d0-expansionFactorActual)**2 &
+            &   /          expansionFactorActual     &
+            &   /log(      expansionFactorActual)**2 &
+            &   +2.0d0                               &
+            &   *   (1.0d0-expansionFactorActual)    &
+            &   /log(      expansionFactorActual)    &
+            &  )
+    end if
+    return
+  end function matterDarkEnergyExponentDarkEnergyDerivative

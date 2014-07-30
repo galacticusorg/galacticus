@@ -205,6 +205,7 @@ contains
     type            (node                   )               , pointer        :: doc,sizeFunction,radiusElement,datum,cosmology,cosmologyScalingElement,hubbleElement,omegaDarkEnergyElement,omegaMatterElement,datasetElement
     type            (nodeList               )               , pointer        :: sizeFunctionList,radiiList,massElement
     class           (cosmologyFunctionsClass)               , pointer        :: cosmologyFunctionsModel
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
     integer                                                                  :: i,j,k,currentAnalysis,activeAnalysisCount,ioErr,haloMassBin,iDistribution,iRadius
@@ -506,8 +507,9 @@ contains
        end do
        if (massLogarithmic <  sizeFunctions(i)%descriptor%massLogarithmicMinimum) return
        ! Get the galactic radius. Currently this analysis assumes a radius determined from the halo virial radius and spin parameter.
-       thisSpin => thisNode%spin()
-       radius   =  Dark_Matter_Halo_Virial_Radius(thisNode)*thisSpin%spin()/sqrt(2.0d0)
+       thisSpin             => thisNode%spin()
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       radius               =  darkMatterHaloScale_%virialRadius(thisNode)*thisSpin%spin()/sqrt(2.0d0)
        if (associated(sizeFunctions(i)%descriptor%mapRadius)) radius=sizeFunctions(i)%descriptor%mapRadius(radius,thisNode)
        radius=radius*sizeFunctions(i)%cosmologyConversionSize ! Convert for cosmology.
        radiusLogarithmic=log10(radius)

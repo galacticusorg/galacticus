@@ -15,96 +15,107 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of virial overdensity using the fitting function of
-!% \cite{bryan_statistical_1998}.
+  !% An implementation of \cite{bryan_statistical_1998} dark matter halo virial density contrasts.
 
-module Virial_Densities_Bryan_Norman
-  implicit none
-  private
-  public :: Virial_Density_Bryan_Norman_Initialize
+  !# <virialDensityContrast name="virialDensityContrastBryanNorman1998">
+  !#  <description>\cite{bryan_statistical_1998} dark matter halo virial density contrasts.</description>
+  !# </virialDensityContrast>
 
-  ! Variables to hold the tabulated critical overdensity data.
-  double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum=1.0d0
-  integer         , parameter :: deltaTableNPointsPerDecade=100
+  type, extends(virialDensityContrastClass) :: virialDensityContrastBryanNorman1998
+     !% A dark matter halo virial density contrast class using the fitting functions of \cite{bryan_statistical_1998}.
+     private
+     integer   :: fitType
+   contains
+     procedure :: densityContrast             => bryanNorman1998DensityContrast
+     procedure :: densityContrastRateOfChange => bryanNorman1998DensityContrastRateOfChange
+  end type virialDensityContrastBryanNorman1998
+
+  interface virialDensityContrastBryanNorman1998
+     !% Constructors for the {\tt bryanNorman1998} dark matter halo virial density contrast class.
+     module procedure bryanNorman1998DefaultConstructor
+  end interface virialDensityContrastBryanNorman1998
 
   ! Labels for different fitting function types.
-  integer                     :: fitType
-  integer         , parameter :: fitTypeFlatUniverse       =1     , fitTypeZeroLambda    =0
+  integer, parameter :: bryanNorman1998FitTypeFlatUniverse=1, bryanNorman1998FitTypeZeroLambda=0
 
 contains
 
-  !# <virialDensityContrastMethod>
-  !#  <unitName>Virial_Density_Bryan_Norman_Initialize</unitName>
-  !# </virialDensityContrastMethod>
-  subroutine Virial_Density_Bryan_Norman_Initialize(virialDensityContrastMethod,Virial_Density_Contrast_Tabulate)
-    !% Initializes the $\Delta_{\rm vir}$ calculation for the \cite{bryan_statistical_1998} fitting function module.
-    use ISO_Varying_String
-    use Numerical_Comparison
-    use Galacticus_Error
+  function bryanNorman1998DefaultConstructor()
+    !% Default constructor for the {\tt bryanNorman1998} dark matter halo virial density contrast class.
     use Cosmology_Parameters
-   implicit none
-    type     (varying_string             ), intent(in   )          :: virialDensityContrastMethod
-    procedure(Virial_Density_Bryan_Norman), intent(inout), pointer :: Virial_Density_Contrast_Tabulate
-    class    (cosmologyParametersClass   )               , pointer :: thisCosmologyParameters
+    use Galacticus_Error
+    use Numerical_Comparison
+    implicit none
+    type (virialDensityContrastBryanNorman1998), target  :: bryanNorman1998DefaultConstructor
+    class(cosmologyParametersClass            ), pointer :: cosmologyParameters_
 
-    if (virialDensityContrastMethod == 'Bryan-Norman1998') then
-       Virial_Density_Contrast_Tabulate => Virial_Density_Bryan_Norman
-       ! Get the default cosmology.
-       thisCosmologyParameters => cosmologyParameters()
-       ! Check that fitting formulae are applicable to this cosmology.
-       if (thisCosmologyParameters%OmegaDarkEnergy() == 0.0d0) then
-          fitType=fitTypeZeroLambda
-       else if (.not.Values_Differ(thisCosmologyParameters%OmegaMatter()+thisCosmologyParameters%OmegaDarkEnergy(),1.0d0,absTol=1.0d-6)) then
-          fitType=fitTypeFlatUniverse
-       else
-          call Galacticus_Error_Report('Virial_Density_Bryan_Norman_Initialize','no fitting formula available for this cosmology')
-       end if
+    ! Get the default cosmology.
+    cosmologyParameters_ => cosmologyParameters()
+    ! Check that fitting formulae are applicable to this cosmology.
+    if (cosmologyParameters_%OmegaDarkEnergy() == 0.0d0) then
+       bryanNorman1998DefaultConstructor%fitType=bryanNorman1998FitTypeZeroLambda
+    else if (.not.Values_Differ(cosmologyParameters_%OmegaMatter()+cosmologyParameters_%OmegaDarkEnergy(),1.0d0,absTol=1.0d-6)) then
+       bryanNorman1998DefaultConstructor%fitType=bryanNorman1998FitTypeFlatUniverse
+    else
+       call Galacticus_Error_Report('bryanNorman1998DefaultConstructor','no fitting formula available for this cosmology')
     end if
     return
-  end subroutine Virial_Density_Bryan_Norman_Initialize
+  end function bryanNorman1998DefaultConstructor
 
-  subroutine Virial_Density_Bryan_Norman(time,deltaVirialTable)
-    !% Tabulate the virial density contrast for the \cite{bryan_statistical_1998} fitting function module.
+  double precision function bryanNorman1998DensityContrast(self,time,expansionFactor,collapsing)
+    !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
     use Cosmology_Functions
     use Numerical_Constants_Math
-    use Tables
     implicit none
-    double precision                                      , intent(in   ) :: time
-    class           (table1D                ), allocatable, intent(inout) :: deltaVirialTable
-    class           (cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
-    integer                                                               :: deltaTableNumberPoints   , iTime
-    double precision                                                      :: x
+    class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self
+    double precision                                      , intent(in   ), optional :: time               , expansionFactor
+    logical                                               , intent(in   ), optional :: collapsing
+    class           (cosmologyFunctionsClass             ), pointer                 :: cosmologyFunctions_
+    double precision                                                                :: x
 
-    ! Find minimum and maximum times to tabulate.
-    deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
-    deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
-        ! Determine number of points to tabulate.
-    deltaTableNumberPoints=int(log10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
-         &*dble(deltaTableNPointsPerDecade))
-    ! Deallocate table if currently allocated.
-    if (allocated(deltaVirialTable)) then
-       call deltaVirialTable%destroy()
-       deallocate(deltaVirialTable)
-    end if
-    allocate(table1DLogarithmicLinear :: deltaVirialTable)
-    select type (deltaVirialTable)
-    type is (table1DLogarithmicLinear)
-       ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       ! Create the table.
-       call deltaVirialTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
-       ! Evaluate the fitting formulae of Bryan & Norman at each time to get the density contrast.
-       do iTime=1,deltaTableNumberPoints
-          x=cosmologyFunctionsDefault%omegaMatterEpochal(deltaVirialTable%x(iTime))-1.0d0
-          select case (fitType)
-          case (fitTypeZeroLambda)
-             call deltaVirialTable%populate((18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/cosmologyFunctionsDefault%omegaMatterEpochal(deltaVirialTable%x(iTime)),iTime)
-          case (fitTypeFlatUniverse)
-             call deltaVirialTable%populate((18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/cosmologyFunctionsDefault%omegaMatterEpochal(deltaVirialTable%x(iTime)),iTime)
-          end select
-       end do
+    cosmologyFunctions_ => cosmologyFunctions()
+    x=cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
+    select case (self%fitType)
+    case (bryanNorman1998FitTypeZeroLambda)
+       bryanNorman1998DensityContrast=(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)
+    case (bryanNorman1998FitTypeFlatUniverse)
+       bryanNorman1998DensityContrast=(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)
     end select
     return
-  end subroutine Virial_Density_Bryan_Norman
+  end function bryanNorman1998DensityContrast
 
-end module Virial_Densities_Bryan_Norman
+  double precision function bryanNorman1998DensityContrastRateOfChange(self,time,expansionFactor,collapsing)
+    !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
+    use Cosmology_Functions
+    use Numerical_Constants_Math
+    implicit none
+    class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self
+    double precision                                      , intent(in   ), optional :: time      , expansionFactor
+    logical                                               , intent(in   ), optional :: collapsing
+    class           (cosmologyFunctionsClass             ), pointer                 :: cosmologyFunctions_
+    double precision                                                                :: x
+
+    cosmologyFunctions_ => cosmologyFunctions()
+    x=cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
+    select case (self%fitType)
+    case (bryanNorman1998FitTypeZeroLambda)
+       bryanNorman1998DensityContrastRateOfChange=                                           &
+            & (                                                                              &
+            &  +(            +60.0d0  -64.0d0*x   )                                          &
+            &  -(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)                                          &
+            &  /cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing) &
+            & )                                                                              &
+            & * cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing) &
+            & / cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing)
+    case (bryanNorman1998FitTypeFlatUniverse)
+     bryanNorman1998DensityContrastRateOfChange=                                             &
+            & (                                                                              &
+            &  +(            +82.0d0  -78.0d0*x   )                                          &
+            &  -(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)                                          &
+            &  /cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing) &
+            & )                                                                              &
+            & * cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing) &
+            & / cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing)
+    end select
+    return
+  end function bryanNorman1998DensityContrastRateOfChange

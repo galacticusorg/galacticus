@@ -98,6 +98,7 @@ contains
     type            (treeNode              )               , pointer :: thisNode
     class           (nodeComponentBlackHole)               , pointer :: centralBlackHoleComponent
     class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                        , parameter              :: hardeningRateDimensionless     =15.0d0
     double precision                        , parameter              :: outerRadiusMultiplier          =10.0d0
     double precision                        , parameter              :: dynamicalFrictionMinimumRadius =0.1d0
@@ -131,6 +132,7 @@ contains
     ! Get the spheroid component.
     thisSpheroidComponent => thisNode%spheroid()
     ! Compute the velocity dispersion of stars and dark matter.
+    darkMatterHaloScale_ => darkMatterHaloScale()
     if (blackHoleBinariesComputeVelocityDispersion) then
        velocityDispersionSpheroid  =Galactic_Structure_Velocity_Dispersion(                                                                       &
             &                                                                                                    thisNode,                        &
@@ -142,13 +144,13 @@ contains
        velocityDispersionDarkMatter=Galactic_Structure_Velocity_Dispersion(                                                                       &
             &                                                                                                    thisNode,                        &
             &                                                              thisBlackHoleComponent%radialPosition(        ),                       &
-            &                                                              Dark_Matter_Halo_Virial_Radius       (thisNode)*outerRadiusMultiplier, &
+            &                                                              darkMatterHaloScale_%virialRadius       (thisNode)*outerRadiusMultiplier, &
             &                                                              componentTypeDarkHalo                                                , &
             &                                                              massTypeDark                                                           &
             &                                                             )
     else
        velocityDispersionSpheroid  =thisSpheroidComponent%velocity  (        )
-       velocityDispersionDarkMatter=Dark_Matter_Halo_Virial_Velocity(thisNode)
+       velocityDispersionDarkMatter=darkMatterHaloScale_%virialVelocity(thisNode)
     end if
     ! Compute the separation growth rate due to emission of gravitational waves.
     rateGravitationalWaves=-( 256.0d0                                &

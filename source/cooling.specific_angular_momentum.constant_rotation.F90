@@ -138,10 +138,13 @@ contains
     class           (nodeComponentSpin           )               , pointer :: thisSpinComponent
     class           (nodeComponentHotHalo        )               , pointer :: thisHotHaloComponent
     class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
+    class           (darkMatterProfileClass      )               , pointer :: darkMatterProfile_
     double precision                                                       :: meanSpecificAngularMomentum   , rotationNormalization
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Specific_AM_Constant_Rotation_Reset(thisNode)
+    ! Get required objects.
+    darkMatterProfile_             => darkMatterProfile      ()
     ! Get the hot halo mass distribution.
     defaultHotHaloMassDistribution => hotHaloMassDistribution()
     ! Check if specific angular momentum of cooling gas is already computed.
@@ -158,7 +161,7 @@ contains
           meanSpecificAngularMomentum= gravitationalConstantGalacticus                   &
                &                      *thisSpinComponent %spin()                         &
                &                      *thisBasicComponent%mass()**1.5d0                  &
-               &                      /sqrt(abs(Dark_Matter_Profile_Energy(thisNode)))
+               &                      /sqrt(abs(darkMatterProfile_%energy(thisNode)))
        case (profileHotGas    )
           ! Compute mean specific angular momentum from the hot halo component.
           thisHotHaloComponent => thisNode%hotHalo()
@@ -169,7 +172,7 @@ contains
        ! Compute the rotation normalization.
        select case (rotationNormalizationFrom      )
        case (profileDarkMatter)
-          rotationNormalization=Dark_Matter_Profile_Rotation_Normalization(thisNode)
+          rotationNormalization=darkMatterProfile_%rotationNormalization(thisNode)
        case (profileHotGas    )
           rotationNormalization=defaultHotHaloMassDistribution%rotationNormalization(thisNode)
        end select

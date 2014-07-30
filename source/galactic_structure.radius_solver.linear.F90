@@ -69,13 +69,15 @@ contains
     double precision                        , intent(in   )          :: specificAngularMomentum
     procedure       (Structure_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
     procedure       (Structure_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                                                 :: radius                 , velocity
 
     ! Return immediately if the specific angular momentum is zero.
     if (specificAngularMomentum <= 0.0d0) return
 
     ! Find the radius of the component, assuming radius scales linearly with angular momentum.
-    velocity=Dark_Matter_Halo_Virial_Velocity(thisNode)
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    velocity=darkMatterHaloScale_%virialVelocity(thisNode)
     radius  =specificAngularMomentum/velocity
 
     ! Set the component size to new radius and velocity.

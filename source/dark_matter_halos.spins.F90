@@ -73,17 +73,19 @@ contains
     use Numerical_Constants_Physical
     use Dark_Matter_Profiles
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent
-    class(nodeComponentSpin )               , pointer :: thisSpinComponent
+    type (treeNode              ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic    )               , pointer :: thisBasicComponent
+    class(nodeComponentSpin     )               , pointer :: thisSpinComponent
+    class(darkMatterProfileClass)               , pointer :: darkMatterProfile_
 
     ! Ensure that the module is initialized.
     call Dark_Matter_Halo_Spins_Initialize
 
-    thisBasicComponent => thisNode%basic(                 )
-    thisSpinComponent  => thisNode%spin (autoCreate=.true.)
+    thisBasicComponent => thisNode%basic   (                 )
+    thisSpinComponent  => thisNode%spin    (autoCreate=.true.)
+    darkMatterProfile_ => darkMatterProfile(                 )
     Dark_Matter_Halo_Angular_Momentum=thisSpinComponent%spin()*gravitationalConstantGalacticus*thisBasicComponent%mass()**2.5d0 &
-         &/sqrt(abs(Dark_Matter_Profile_Energy(thisNode)))
+         &/sqrt(abs(darkMatterProfile_%energy(thisNode)))
     return
   end function Dark_Matter_Halo_Angular_Momentum
 
@@ -92,19 +94,20 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Profiles
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent
-    class(nodeComponentSpin )               , pointer :: thisSpinComponent
+    type (treeNode              ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic    )               , pointer :: thisBasicComponent
+    class(nodeComponentSpin     )               , pointer :: thisSpinComponent
+    class(darkMatterProfileClass)               , pointer :: darkMatterProfile_
 
     ! Ensure that the module is initialized.
     call Dark_Matter_Halo_Spins_Initialize
 
-    thisBasicComponent => thisNode%basic(                 )
-    thisSpinComponent  => thisNode%spin (autoCreate=.true.)
-
+    thisBasicComponent => thisNode%basic   (                 )
+    thisSpinComponent  => thisNode%spin    (autoCreate=.true.)
+    darkMatterProfile_ => darkMatterProfile(                 )
     Dark_Matter_Halo_Angular_Momentum_Growth_Rate=Dark_Matter_Halo_Angular_Momentum(thisNode)&
          &*(thisSpinComponent%spinGrowthRate()/thisSpinComponent%spin()+2.5d0*thisBasicComponent%accretionRate()&
-         &/thisBasicComponent%mass()-0.5d0*Dark_Matter_Profile_Energy_Growth_Rate(thisNode)/Dark_Matter_Profile_Energy(thisNode))
+         &/thisBasicComponent%mass()-0.5d0*darkMatterProfile_%energyGrowthRate(thisNode)/darkMatterProfile_%energy(thisNode))
 
     return
   end function Dark_Matter_Halo_Angular_Momentum_Growth_Rate

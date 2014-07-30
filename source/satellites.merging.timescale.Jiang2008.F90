@@ -126,6 +126,8 @@ contains
     type            (keplerOrbit                        )           , intent(inout)          :: thisOrbit
     type            (treeNode                           )                          , pointer :: hostNode
     class           (nodeComponentBasic                 )                          , pointer :: hostBasic                            , thisBasic
+    class           (darkMatterHaloScaleClass           )                          , pointer :: darkMatterHaloScale_
+    class           (darkMatterProfileClass             )                          , pointer :: darkMatterProfile_
     logical                                              , parameter                         :: acceptUnboundOrbits          =.false.
     double precision                                     , parameter                         :: timeInfinite                 =1.0d30
 
@@ -136,6 +138,9 @@ contains
          &                                                                                      orbitalCircularity                   , radialScale              , &
          &                                                                                      velocityScale                        , randomDeviate
 
+    ! Get required objects.
+    darkMatterProfile_   => darkMatterProfile  ()
+    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Find the host node.
     hostNode => thisNode%parent
     ! Get the equivalent circular orbit.
@@ -154,12 +159,12 @@ contains
        call Galacticus_Error_Report('jiang2008TimeUntilMerging','unrecognized error code')
     end select
     ! Get velocity scale.
-    velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
-    radialScale  =Dark_Matter_Halo_Virial_Radius  (hostNode)
+    velocityScale=darkMatterHaloScale_%virialVelocity(hostNode)
+    radialScale  =darkMatterHaloScale_%virialRadius  (hostNode)
     ! Compute orbital circularity.
     orbitalCircularity= thisOrbit%angularMomentum()                                                   &
          &             /equivalentCircularOrbitRadius                                                 &
-         &             /Dark_Matter_Profile_Circular_Velocity(hostNode,equivalentCircularOrbitRadius)
+         &             /darkMatterProfile_%circularVelocity(hostNode,equivalentCircularOrbitRadius)
     ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
     thisBasic => thisNode%basic()
     hostBasic => hostNode%basic()
@@ -172,7 +177,7 @@ contains
        ! Compute dynamical friction timescale.
        jiang2008TimeUntilMerging       &
             & =Dynamical_Friction_Timescale_Multiplier(        ) &
-            & *Dark_Matter_Halo_Dynamical_Timescale   (hostNode) &
+            & *darkMatterHaloScale_%dynamicalTimescale   (hostNode) &
             & *sqrt(equivalentCircularOrbitRadius/radialScale)   &
             & *((a*(orbitalCircularity**b)+d)/2.0d0/C)           &
             & *          massRatio                               &

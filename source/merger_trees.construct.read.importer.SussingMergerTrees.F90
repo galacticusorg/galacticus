@@ -1195,11 +1195,6 @@ contains
              ! This line represents a progenitor. Locate the progenitor in the list of halos.
              iProgenitor=Search_Indexed(nodeSelfIndices,nodeIndexRanks,nodeIndex)
              ! Does this progenitor exist within our subvolume?
-
-if (nodeIndex==269000001798532_kind_int8) then
-write (0,*) "CHECK ",nodeIndex,nodeSelfIndices(i),i,j,iprogenitor,nodeCountTrees,nodeIndexRanks(iProgenitor),size(nodeSelfIndices),nodeSelfIndices(nodeIndexRanks(iProgenitor))
-end if
-
              if (iProgenitor <= 0 .or. iProgenitor > nodeCountTrees .or. nodeSelfIndices(nodeIndexRanks(iProgenitor)) /= nodeIndex) then
                 nodeIncomplete(i)=.true.
              else

@@ -95,7 +95,9 @@ contains
     implicit none
     class           (hotHaloMassDistributionCoreRadiusVirialFraction), intent(inout)          :: self
     type            (treeNode                                       ), intent(inout), pointer :: node
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
-    virialFractionRadius=self%coreRadiusOverVirialRadius*Dark_Matter_Halo_Virial_Radius(node)
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    virialFractionRadius=self%coreRadiusOverVirialRadius*darkMatterHaloScale_%virialRadius(node)
     return
   end function virialFractionRadius

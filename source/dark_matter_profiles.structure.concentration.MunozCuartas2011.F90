@@ -25,7 +25,9 @@
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{munoz-cuartas_redshift_2011}.
      private
    contains
-     procedure :: concentration => munozCuartas2011Concentration
+     procedure :: concentration               => munozCuartas2011Concentration
+     procedure :: densityContrastDefinition   => munozCuartas2011DensityContrastDefinition
+     procedure :: darkMatterProfileDefinition => munozCuartas2011DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationMunozCuartas2011
 
   interface darkMatterProfileConcentrationMunozCuartas2011
@@ -75,3 +77,40 @@ contains
     munozCuartas2011Concentration=10.0d0**concentrationLogarithmic
     return
   end function munozCuartas2011Concentration
+
+  function munozCuartas2011DensityContrastDefinition(self)
+    !% Return a virial density contrast object defining that used in the definition of concentration in the \cite{munoz-cuartas_redshift_2011} algorithm.
+    implicit none
+    class(virialDensityContrastClass                    ), pointer       :: munozCuartas2011DensityContrastDefinition
+    class(darkMatterProfileConcentrationMunozCuartas2011), intent(inout) :: self
+    
+    allocate(virialDensityContrastBryanNorman1998 :: munozCuartas2011DensityContrastDefinition)
+    select type (munozCuartas2011DensityContrastDefinition)
+    type is (virialDensityContrastBryanNorman1998)
+      munozCuartas2011DensityContrastDefinition=virialDensityContrastBryanNorman1998()
+    end select
+    return
+  end function munozCuartas2011DensityContrastDefinition
+  
+  function munozCuartas2011DarkMatterProfileDefinition(self)
+    !% Return a dark matter density profile object defining that used in the definition of concentration in the
+    !% \cite{munoz-cuartas_redshift_2011} algorithm.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class(darkMatterProfileClass                            ), pointer       :: munozCuartas2011DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationMunozCuartas2011    ), intent(inout) :: self
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition
+
+    allocate(darkMatterProfileNFW                               :: munozCuartas2011DarkMatterProfileDefinition)
+    allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition              )
+    select type (munozCuartas2011DarkMatterProfileDefinition)
+    type is (darkMatterProfileNFW)
+       select type (darkMatterHaloScaleDefinition)
+       type is (darkMatterHaloScaleVirialDensityContrastDefinition)
+          darkMatterHaloScaleDefinition              =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
+          munozCuartas2011DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+       end select
+    end select
+    return
+  end function munozCuartas2011DarkMatterProfileDefinition
+

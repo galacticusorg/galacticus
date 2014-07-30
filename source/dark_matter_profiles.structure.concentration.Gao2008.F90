@@ -25,9 +25,11 @@
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{gao_redshift_2008}.
      private
    contains
-     procedure :: concentration => gao2008Concentration
+     procedure :: concentration               => gao2008Concentration
+     procedure :: densityContrastDefinition   => gao2008DensityContrastDefinition
+     procedure :: darkMatterProfileDefinition => gao2008DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationGao2008
-
+  
   interface darkMatterProfileConcentrationGao2008
      !% Constructors for the {\tt gao2008} dark matter halo profile concentration class.
      module procedure gao2008DefaultConstructor
@@ -67,3 +69,40 @@ contains
     gao2008Concentration    =10.0d0**(parameterA*logarithmHaloMass+parameterB)
     return
   end function gao2008Concentration
+
+  function gao2008DensityContrastDefinition(self)
+    !% Return a virial density contrast object defining that used in the definition of concentration in the \cite{gao_redshift_2008} algorithm.
+    implicit none
+    class(virialDensityContrastClass           ), pointer       :: gao2008DensityContrastDefinition
+    class(darkMatterProfileConcentrationGao2008), intent(inout) :: self
+    
+    allocate(virialDensityContrastFixed :: gao2008DensityContrastDefinition)
+    select type (gao2008DensityContrastDefinition)
+    type is (virialDensityContrastFixed)
+      gao2008DensityContrastDefinition=virialDensityContrastFixed(200.0d0,virialDensityContrastFixedDensityTypeCritical)
+    end select
+    return
+  end function gao2008DensityContrastDefinition
+  
+  function gao2008DarkMatterProfileDefinition(self)
+    !% Return a dark matter density profile object defining that used in the definition of concentration in the
+    !% \cite{gao_redshift_2008} algorithm.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class(darkMatterProfileClass                            ), pointer       :: gao2008DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationGao2008             ), intent(inout) :: self
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition
+
+    allocate(darkMatterProfileNFW                               :: gao2008DarkMatterProfileDefinition)
+    allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition     )
+    select type (gao2008DarkMatterProfileDefinition)
+    type is (darkMatterProfileNFW)
+       select type (darkMatterHaloScaleDefinition)
+       type is (darkMatterHaloScaleVirialDensityContrastDefinition)
+          darkMatterHaloScaleDefinition     =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
+          gao2008DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+       end select
+    end select    
+    return
+  end function gao2008DarkMatterProfileDefinition
+

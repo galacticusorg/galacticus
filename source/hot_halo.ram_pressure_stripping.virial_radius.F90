@@ -48,8 +48,10 @@ contains
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
-    Hot_Halo_Ram_Pressure_Stripping_Virial_Radius=Dark_Matter_Halo_Virial_Radius(thisNode)
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    Hot_Halo_Ram_Pressure_Stripping_Virial_Radius=darkMatterHaloScale_%virialRadius(thisNode)
     return
   end function Hot_Halo_Ram_Pressure_Stripping_Virial_Radius
 

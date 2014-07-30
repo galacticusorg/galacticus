@@ -15,120 +15,161 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of virial overdensity using a fixed value.
+  !% An implementation of fixed dark matter halo virial density contrasts.
 
-module Virial_Densities_Fixed
-  !% Implements calculations of virial overdensity using a fixed value.
-  implicit none
-  private
-  public :: Virial_Density_Fixed_Initialize
+  !# <virialDensityContrast name="virialDensityContrastFixed">
+  !#  <description>Fixed dark matter halo virial density contrasts.</description>
+  !# </virialDensityContrast>
+
+  type, extends(virialDensityContrastClass) :: virialDensityContrastFixed
+     !% A dark matter halo virial density contrast class assuming fixed contrast.
+     private
+     double precision :: densityContrastValue
+     integer          :: densityType
+   contains
+     procedure :: densityContrast             => fixedDensityContrast
+     procedure :: densityContrastRateOfChange => fixedDensityContrastRateOfChange
+  end type virialDensityContrastFixed
+
+  interface virialDensityContrastFixed
+     !% Constructors for the {\tt fixed} dark matter halo virial density contrast class.
+     module procedure fixedDefaultConstructor
+     module procedure fixedConstructor
+  end interface virialDensityContrastFixed
+
+  ! Initialization status.
+  logical                                             :: fixedInitialized                             =.false.
 
   ! The type of reference density to use.
-  integer                     :: densityType
-  integer         , parameter :: densityTypeCritical       =0
-  integer         , parameter :: densityTypeMean           =1
+  integer                         , parameter, public :: virialDensityContrastFixedDensityTypeCritical=0
+  integer                         , parameter, public :: virialDensityContrastFixedDensityTypeMean    =1
 
-  ! The fixed overdensity to use.
-  double precision            :: virialDensityContrastFixed
-
-  ! Variables to hold the tabulated critical overdensity data.
-  double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum=1.0d0
-  integer         , parameter :: deltaTableNPointsPerDecade=100
-
+  ! Parameters for the default implementation.
+  double precision                                    :: virialDensityContrastFixedValue
+  type            (varying_string)                    :: virialDensityContrastFixedTypeText
+  integer                                             :: virialDensityContrastFixedType
+  
 contains
 
-  !# <virialDensityContrastMethod>
-  !#  <unitName>Virial_Density_Fixed_Initialize</unitName>
-  !# </virialDensityContrastMethod>
-  subroutine Virial_Density_Fixed_Initialize(virialDensityContrastMethod,Virial_Density_Contrast_Tabulate)
-    !% Initializes the $\Delta_{\rm vir}$ calculation for the fixed value implementation.
+  function fixedDefaultConstructor()
+    !% Default constructor for the {\tt fixed} dark matter halo virial density contrast class.
     use Input_Parameters
-    use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type     (varying_string      ), intent(in   )          :: virialDensityContrastMethod
-    procedure(Virial_Density_Fixed), intent(inout), pointer :: Virial_Density_Contrast_Tabulate
-    type     (varying_string      )                         :: virialDensityContrastFixedType
+    type(virialDensityContrastFixed), target :: fixedDefaultConstructor
 
-    if (virialDensityContrastMethod == 'fixed') then
-       ! Return a pointer to our tabulation function.
-       Virial_Density_Contrast_Tabulate => Virial_Density_Fixed
-       ! Get the fixed value to use.
-       !@ <inputParameter>
-       !@   <name>virialDensityContrastFixed</name>
-       !@   <defaultValue>200</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The virial density contrast to use in the fixed value model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("virialDensityContrastFixed"    ,virialDensityContrastFixed    ,defaultValue=200.0d0           )
-       !@ <inputParameter>
-       !@   <name>virialDensityContrastFixedType</name>
-       !@   <defaultValue>criticalDensity</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The reference density to use in the fixed value virial density contrast model. Either of {\tt critical density} and {\tt mean density} are allowed.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("virialDensityContrastFixedType",virialDensityContrastFixedType,defaultValue='criticalDensity')
-       select case (char(virialDensityContrastFixedType))
-       case ("criticalDensity")
-          densityType=densityTypeCritical
-       case ("meanDensity"    )
-          densityType=densityTypeMean
-       case default
-          call Galacticus_Error_Report('Virial_Density_Fixed_Initialize','[virialDensityContrastFixedType] must be either "criticalDensity" or "meanDensity"')
-       end select
+    if (.not.fixedInitialized) then
+       !$omp critical(fixedDefaultInitialize)
+       if (.not.fixedInitialized) then
+          !@ <inputParameter>
+          !@   <name>virialDensityContrastFixed</name>
+          !@   <defaultValue>200</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The virial density contrast to use in the fixed value model.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("virialDensityContrastFixed"    ,virialDensityContrastFixedValue   ,defaultValue=200.0d0           )
+          !@ <inputParameter>
+          !@   <name>virialDensityContrastFixedType</name>
+          !@   <defaultValue>criticalDensity</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The reference density to use in the fixed value virial density contrast model. Either of {\tt critical density} and {\tt mean density} are allowed.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("virialDensityContrastFixedType",virialDensityContrastFixedTypeText,defaultValue='criticalDensity')
+          select case (char(virialDensityContrastFixedTypeText))
+          case ("criticalDensity")
+             virialDensityContrastFixedType=virialDensityContrastFixedDensityTypeCritical
+          case ("meanDensity"    )
+             virialDensityContrastFixedType=virialDensityContrastFixedDensityTypeMean
+          case default
+             call Galacticus_Error_Report('fixedDefaultConstructor','[virialDensityContrastFixedType] must be either "criticalDensity" or "meanDensity"')
+          end select
+          fixedInitialized=.true.
+       end if
+       !$omp end critical(fixedDefaultInitialize)
     end if
+    ! Construct the object.
+    fixedDefaultConstructor=fixedConstructor(virialDensityContrastFixedValue,virialDensityContrastFixedType)
     return
-  end subroutine Virial_Density_Fixed_Initialize
+  end function fixedDefaultConstructor
 
-  subroutine Virial_Density_Fixed(time,deltaVirialTable)
-    !% Tabulate the virial density contrast assuming a fixed value.
-    use Cosmology_Functions
-    use Tables
+  function fixedConstructor(densityContrast,densityType)
+    !% Constructor for the {\tt fixed} dark matter halo virial density contrast class.
+    use Galacticus_Error
     implicit none
-    double precision                                      , intent(in   ) :: time
-    class           (table1D                ), allocatable, intent(inout) :: deltaVirialTable
-    class           (cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
-    integer                                                               :: deltaTableNumberPoints   , iTime
-    double precision                                                      :: densityContrast
+    type            (virialDensityContrastFixed)                :: fixedConstructor
+    double precision                            , intent(in   ) :: densityContrast
+    integer                                     , intent(in   ) :: densityType
 
-    ! Find minimum and maximum times to tabulate.
-    deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
-    deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
-
-    ! Determine number of points to tabulate.
-    deltaTableNumberPoints=int(log10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
-         &*dble(deltaTableNPointsPerDecade))
-
-    ! Deallocate table if currently allocated.
-    if (allocated(deltaVirialTable)) then
-       call deltaVirialTable%destroy()
-       deallocate(deltaVirialTable)
-    end if
-    allocate(table1DLogarithmicLinear :: deltaVirialTable)
-    select type (deltaVirialTable)
-    type is (table1DLogarithmicLinear)
-       ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       ! Create the table.
-       call deltaVirialTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
-       ! Populate the table.
-       do iTime=1,deltaTableNumberPoints
-          densityContrast=virialDensityContrastFixed
-          ! If the fixed value is defined with respect to the critical density, then translate it to be
-          ! with respect to mean density.
-          if (densityType == densityTypeCritical) densityContrast=densityContrast/cosmologyFunctionsDefault%omegaMatterEpochal(deltaVirialTable%x(iTime))
-          call deltaVirialTable%populate(densityContrast,iTime)
-       end do
-    end select
+    if     (                                                              &
+         &   densityType /= virialDensityContrastFixedDensityTypeCritical &
+         &  .and.                                                         &
+         &   densityType /= virialDensityContrastFixedDensityTypeMean     &
+         & ) call Galacticus_Error_Report('fixedConstructor','invalid densityType')
+    fixedConstructor%densityContrastValue=densityContrast
+    fixedConstructor%densityType         =densityType
     return
-  end subroutine Virial_Density_Fixed
+  end function fixedConstructor
+  
+  double precision function fixedDensityContrast(self,time,expansionFactor,collapsing)
+    !% Return the virial density contrast at the given epoch, assuming a fixed contrast.
+    use Cosmology_Functions
+    implicit none
+    class           (virialDensityContrastFixed), intent(inout)           :: self
+    double precision                            , intent(in   ), optional :: time               , expansionFactor
+    logical                                     , intent(in   ), optional :: collapsing
+    class           (cosmologyFunctionsClass   ), pointer                 :: cosmologyFunctions_
 
-end module Virial_Densities_Fixed
+    ! Set the density contrast.
+    fixedDensityContrast=self%densityContrastValue
+    ! If density contrast is specified relative to critical density, convert to mean density.
+    if (self%densityType == virialDensityContrastFixedDensityTypeCritical) then
+       cosmologyFunctions_ => cosmologyFunctions()
+       fixedDensityContrast                                              &
+            & =fixedDensityContrast                                      &
+            & /cosmologyFunctions_ %omegaMatterEpochal(                  &
+            &   cosmologyFunctions_%epochTime          (                 &
+            &                                           time           , &
+            &                                           expansionFactor, &
+            &                                           collapsing       &
+            &                                          )                 &
+            &                                         )
+    end if
+    return
+  end function fixedDensityContrast
+
+  double precision function fixedDensityContrastRateOfChange(self,time,expansionFactor,collapsing)
+    !% Return the virial density contrast at the given epoch, assuming a fixed contrast.
+    use Cosmology_Functions
+    implicit none
+    class           (virialDensityContrastFixed), intent(inout)           :: self
+    double precision                            , intent(in   ), optional :: time      , expansionFactor
+    logical                                     , intent(in   ), optional :: collapsing
+    class           (cosmologyFunctionsClass   ), pointer                 :: cosmologyFunctions_
+    double precision                                                      :: epochTime
+
+    ! Zero rate of change for fixed density contrast.
+    fixedDensityContrastRateOfChange=0.0d0
+    ! If density contrast is defined relative to critical density, include the rate of change of
+    ! critical mean density.
+    if (self%densityType == virialDensityContrastFixedDensityTypeCritical) then
+       cosmologyFunctions_ => cosmologyFunctions()
+       epochTime=cosmologyFunctions_%epochTime(                 &
+            &                                  time           , &
+            &                                  expansionFactor, &
+            &                                  collapsing       &
+            &                                 )
+       fixedDensityContrastRateOfChange                                    &
+            & =-self%densityContrastValue                                  &
+            &  *cosmologyFunctions_ %omegaMatterRateOfChange(epochTime)    &
+            &  /cosmologyFunctions_ %omegaMatterEpochal     (epochTime)**2
+    end if
+    return
+  end function fixedDensityContrastRateOfChange
