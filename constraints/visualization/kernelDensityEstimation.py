@@ -31,7 +31,7 @@ else:
     columns    = tuple([int(args[1])])
 
 # Read data.
-state = np.loadtxt(statelog,skiprows=1,usecols=columns)
+state = np.loadtxt(statelog,skiprows=0,usecols=columns)
 
 # Find range of states to use.
 rangeStart = 0
