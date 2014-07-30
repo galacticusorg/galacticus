@@ -28,23 +28,31 @@ sub Histogram {
     my $binMinimum = pdl zeroes(nelem($binCenters));
     my $binMaximum = pdl zeroes(nelem($binCenters));
     for(my $iBin=0;$iBin<nelem($binCenters);++$iBin) {
-	if ( $iBin == 0 ) {
-	    $binMinimum->(($iBin)) .= $binCenters->(($iBin))-0.5*($binCenters->(($iBin+1))-$binCenters->(($iBin)));
+	if ( exists($options{'binWidths'}) ) {
+	    # Bin widths were specified - use them.
+	    $binMinimum->(($iBin)) .= $binCenters->(($iBin))-0.5*$options{'binWidths'}->(($iBin));
+	    $binMaximum->(($iBin)) .= $binCenters->(($iBin))+0.5*$options{'binWidths'}->(($iBin));
 	} else {
-	    $binMinimum->(($iBin)) .= 0.5*($binCenters->(($iBin))+$binCenters->(($iBin-1)));
-	}
-	if ( $iBin == nelem($binCenters)-1 ) {
-	    $binMaximum->(($iBin)) .= $binCenters->(($iBin))+0.5*($binCenters->(($iBin))-$binCenters->(($iBin-1)));
-	} else {
-	    $binMaximum->(($iBin)) .= 0.5*($binCenters->(($iBin))+$binCenters->(($iBin+1)));
+	    # Bin widths were not specified - assume bin boundaries are midway between adjacent bin centers and extrapolate the
+	    # bounaries of the edge bins.
+	    if ( $iBin == 0 ) {
+		$binMinimum->(($iBin)) .= $binCenters->(($iBin))-0.5*($binCenters->(($iBin+1))-$binCenters->(($iBin)));
+	    } else {
+		$binMinimum->(($iBin)) .= 0.5*($binCenters->(($iBin))+$binCenters->(($iBin-1)));
+	    }
+	    if ( $iBin == nelem($binCenters)-1 ) {
+		$binMaximum->(($iBin)) .= $binCenters->(($iBin))+0.5*($binCenters->(($iBin))-$binCenters->(($iBin-1)));
+	    } else {
+		$binMaximum->(($iBin)) .= 0.5*($binCenters->(($iBin))+$binCenters->(($iBin+1)));
+	    }
 	}
     }
     my $binWidth = $binMaximum-$binMinimum;
 
     # Create a PDL for histogram and errors.
-    my $histogram = pdl zeroes(nelem($binCenters));
-    my $errors    = pdl zeroes(nelem($binCenters));
-    my$covariance = pdl zeroes(nelem($binCenters),nelem($binCenters));
+    my $histogram  = pdl zeroes(nelem($binCenters));
+    my $errors     = pdl zeroes(nelem($binCenters));
+    my $covariance = pdl zeroes(nelem($binCenters),nelem($binCenters));
 
     # Method for constructing histogram depends on whether points are being smoothed.
     my $smooth       = 0;

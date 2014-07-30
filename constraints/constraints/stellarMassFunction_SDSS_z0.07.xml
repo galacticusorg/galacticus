@@ -7,4 +7,6 @@
   <haloMassMinimum>2.0e08</haloMassMinimum>
   <haloMassMaximum>1.0e15</haloMassMaximum>
   <analysis>constraints/scripts/stellarMassFunction_SDSS_z0.07.pl</analysis>
+  <massSystematicZeroPoint>11.3</massSystematicZeroPoint>
+  <massSystematicOrder>1</massSystematicOrder>
 </constraint>
