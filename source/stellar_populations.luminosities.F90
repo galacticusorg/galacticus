@@ -92,6 +92,7 @@ contains
     logical                                     , allocatable, dimension(:)                                    :: isTabulatedTemporary
     double precision                                         , dimension(2)                                    :: wavelengthRange
     double precision                                         , dimension(0:1)                                  :: hAge                            , hMetallicity
+    integer         (c_int                     )                                                               :: lockFileDescriptor
     integer                                                                                                    :: iAge                            , iLuminosity                , &
          &                                                                                                        iMetallicity                    , jAge                       , &
          &                                                                                                        jMetallicity                    , loopCount                  , &
@@ -232,10 +233,11 @@ contains
                   &               ".hdf5"
              if (File_Exists(luminositiesFileName)) then
                 ! Construct the dataset name.
-                write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
+                write (redshiftLabel,'(f6.3)') redshift(iLuminosity)
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
                 ! Open the file and check for the required dataset.
                 !$omp critical (HDF5_Access)
+                lockFileDescriptor=File_Lock(char(luminositiesFileName)//".lock")
                 call luminositiesFile%openFile(char(luminositiesFileName),readOnly=.true.)
                 if (luminositiesFile%hasDataset(trim(datasetName))) then
                    ! Read the dataset.
@@ -244,13 +246,14 @@ contains
                    calculateLuminosity=.false.
                 end if
                 call luminositiesFile%close()
+                call File_Unlock(lockFileDescriptor)
                 !$omp end critical (HDF5_Access)
              end if
           end if
-  
+
           ! Compute the luminosity if necessary.
           if (calculateLuminosity) then
-             ! Display a message and counter.
+          ! Display a message and counter.
              message='Tabulating stellar luminosities for '//char(IMF_Name(imfIndex))//' IMF, luminosity '
              message=message//iLuminosity//' of '//size(luminosityIndex)
              call Galacticus_Display_Indent (message,verbosityWorking)
@@ -295,17 +298,19 @@ contains
              luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:) &
                   &=luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:)/normalization
              ! Store the luminosities to file.
-             if (stellarPopulationLuminosityStoreToFile.and.mpiSelf%isMaster()) then
+             if (stellarPopulationLuminosityStoreToFile) then
                 ! Construct the dataset name.
-                write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
+                write (redshiftLabel,'(f6.3)') redshift(iLuminosity)
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
                 ! Open the file.
                 !$omp critical (HDF5_Access)
+                lockFileDescriptor=File_Lock(char(luminositiesFileName)//".lock")
                 call luminositiesFile%openFile(char(luminositiesFileName))
                 ! Write the dataset.
                 call luminositiesFile%writeDataset(luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:),datasetName=trim(datasetName),commentText="Tabulated luminosities at redshift z="//adjustl(trim(redshiftLabel)))
                 ! Close the file.
                 call luminositiesFile%close()
+                call File_Unlock(lockFileDescriptor)
                 !$omp end critical (HDF5_Access)
              end if
           end if
