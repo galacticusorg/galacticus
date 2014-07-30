@@ -80,6 +80,7 @@ module Constraints_Likelihoods
   include 'constraints.likelihoods.Galacticus.type.inc'
   include 'constraints.likelihoods.gaussian_regression.type.inc'
   include 'constraints.likelihoods.mass_function.type.inc'
+  include 'constraints.likelihoods.projected_correlation_function.type.inc'
   include 'constraints.likelihoods.SED_fit.type.inc'
   include 'constraints.likelihoods.posterior_as_prior.type.inc'
 
@@ -96,19 +97,20 @@ contains
     class           (likelihood    ), pointer                     :: newLikelihood
     type            (node          ), pointer    , intent(in   )  :: definition
     type            (varying_string), optional   , intent(in   )  :: configFileName
-    type            (node          ), pointer                     :: likelihoodMeanDefinition                       , likelihoodCovarianceDefinition            , &
-         &                                                           covarianceRow                                  , likelihoodRealizationCountDefinition      , &
-         &                                                           likelihoodRealizationCountMinimumDefinition    , likelihoodDefinition                      , &
-         &                                                           likelihoodEmulatorRebuildCountDefinition       , likelihoodPolynomialOrderDefinition       , &
-         &                                                           likelihoodSigmaBufferDefinition                , likelihoodLogLikelihoodBufferDefinition   , &
-         &                                                           likelihoodLogLikelihoodErrorToleranceDefinition, likelihoodReportCountDefinition           , &
-         &                                                           likelihoodEmulateOutliersDefinition            , likelihoodMassCountDefinition             , &
-         &                                                           likelihoodHaloMassMinimumDefinition            , likelihoodHaloMassMaximumDefinition       , &
-         &                                                           likelihoodRedshiftMinimumDefinition            , likelihoodRedshiftMaximumDefinition       , &
-         &                                                           likelihoodUseSurveyLimitsDefinition            , likelihoodMassFunctionFileNameDefinition  , &
-         &                                                           likelihoodModelSurfaceBrightnessDefinition     , likelihoodSurfaceBrightnessLimitDefinition, &
-         &                                                           likelihoodChainBaseNameDefinition              , likelihoodToleranceDefinition             , &
-         &                                                           likelihoodNeighborCountDefinition
+    type            (node          ), pointer                     :: likelihoodMeanDefinition                       , likelihoodCovarianceDefinition                          , &
+         &                                                           covarianceRow                                  , likelihoodRealizationCountDefinition                    , &
+         &                                                           likelihoodRealizationCountMinimumDefinition    , likelihoodDefinition                                    , &
+         &                                                           likelihoodEmulatorRebuildCountDefinition       , likelihoodPolynomialOrderDefinition                     , &
+         &                                                           likelihoodSigmaBufferDefinition                , likelihoodLogLikelihoodBufferDefinition                 , &
+         &                                                           likelihoodLogLikelihoodErrorToleranceDefinition, likelihoodReportCountDefinition                         , &
+         &                                                           likelihoodEmulateOutliersDefinition            , likelihoodMassCountDefinition                           , &
+         &                                                           likelihoodHaloMassMinimumDefinition            , likelihoodHaloMassMaximumDefinition                     , &
+         &                                                           likelihoodRedshiftMinimumDefinition            , likelihoodRedshiftMaximumDefinition                     , &
+         &                                                           likelihoodUseSurveyLimitsDefinition            , likelihoodMassFunctionFileNameDefinition                , &
+         &                                                           likelihoodModelSurfaceBrightnessDefinition     , likelihoodSurfaceBrightnessLimitDefinition              , &
+         &                                                           likelihoodChainBaseNameDefinition              , likelihoodToleranceDefinition                           , &
+         &                                                           likelihoodNeighborCountDefinition              , likelihoodProjectedCorrelationFunctionFileNameDefinition, &
+         &                                                           likelihoodLineOfSightDepthDefinition
     type            (nodeList      ), pointer                     :: covarianceRows
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
@@ -120,7 +122,7 @@ contains
          &                                                           likelihoodHaloMassMinimum                      , likelihoodHaloMassMaximum                 , &
          &                                                           likelihoodRedshiftMinimum                      , likelihoodRedshiftMaximum                 , &
          &                                                           likelihoodLogLikelihoodErrorTolerance          , likelihoodSurfaceBrightnessLimit          , &
-         &                                                           likelihoodTolerance
+         &                                                           likelihoodTolerance                            , likelihoodLineOfSightDepth
     logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits                 , &
          &                                                           likelihoodModelSurfaceBrightness
 
@@ -256,6 +258,24 @@ contains
                &                               likelihoodSurfaceBrightnessLimit                          &
                &                              )
        end select
+    case ("projectedCorrelationFunction")
+       allocate(likelihoodProjectedCorrelationFunction :: newLikelihood)
+       select type (newLikelihood)
+       type is (likelihoodProjectedCorrelationFunction)
+          likelihoodHaloMassMinimumDefinition                      => XML_Get_First_Element_By_Tag_Name(definition,"haloMassMinimum"                     )
+          likelihoodHaloMassMaximumDefinition                      => XML_Get_First_Element_By_Tag_Name(definition,"haloMassMaximum"                     )
+          likelihoodLineOfSightDepthDefinition                     => XML_Get_First_Element_By_Tag_Name(definition,"lineOfSightDepth"                    )
+          likelihoodProjectedCorrelationFunctionFileNameDefinition => XML_Get_First_Element_By_Tag_Name(definition,"projectedCorrelationFunctionFileName")
+          call extractDataContent(likelihoodHaloMassMinimumDefinition ,likelihoodHaloMassMinimum )
+          call extractDataContent(likelihoodHaloMassMaximumDefinition ,likelihoodHaloMassMaximum )
+          call extractDataContent(likelihoodLineOfSightDepthDefinition,likelihoodLineOfSightDepth)
+          newLikelihood=likelihoodProjectedCorrelationFunction(                                                                          &
+               &                                               likelihoodHaloMassMinimum                                               , &
+               &                                               likelihoodHaloMassMaximum                                               , &
+               &                                               likelihoodLineOfSightDepth                                              , &
+               &                                               getTextContent(likelihoodProjectedCorrelationFunctionFileNameDefinition)  &
+               &                                              )
+       end select
     case ("sedFit")
        allocate(likelihoodSEDFit :: newLikelihood)
        select type (newLikelihood)
@@ -274,6 +294,7 @@ contains
   include 'constraints.likelihoods.Galacticus.methods.inc'
   include 'constraints.likelihoods.gaussian_regression.methods.inc'
   include 'constraints.likelihoods.mass_function.methods.inc'
+  include 'constraints.likelihoods.projected_correlation_function.methods.inc'
   include 'constraints.likelihoods.SED_fit.methods.inc'
   include 'constraints.likelihoods.posterior_as_prior.methods.inc'
 
