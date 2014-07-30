@@ -24,11 +24,13 @@
           &                                         outlierLogLikelihoodOffset
      integer                                     :: burnCount                 , testCount          , &
           &                                         stepCount                 , outlierCountMaximum, &
-          &                                         reportCount               , estimateCount
+          &                                         reportCount               , estimateCount      , &
+          &                                         logFileUnit
      logical                                     :: converged
      double precision, allocatable, dimension(:) :: correctedHatR
      logical         , allocatable, dimension(:) :: chainMask
    contains
+     final     ::                   convergenceGelmanRubinDestructor
      procedure :: isConverged    => convergenceGelmanRubinIsConverged
      procedure :: reset          => convergenceGelmanRubinReset
      procedure :: logReport      => convergenceGelmanRubinLogReport

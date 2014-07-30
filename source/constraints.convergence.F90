@@ -107,7 +107,7 @@ contains
     type            (node       ), pointer                :: convergenceRhatDefinition               , convergenceBurnCountDefinition    , &
          &                                                   convergenceTestCountDefinition          , convergenceOutlierCountDefinition , &
          &                                                   convergenceOutlierSignificanceDefinition, convergenceOutlierOffsetDefinition, &
-         &                                                   convergenceReportCountDefinition
+         &                                                   convergenceReportCountDefinition        , convergenceLogFileDefinition
     integer                                               :: convergenceBurnCount                    , convergenceTestCount              , &
          &                                                   convergenceOutlierCount                 , convergenceReportCount
     double precision                                      :: convergenceRhat                         , convergenceOutlierSignificance    , &
@@ -125,6 +125,7 @@ contains
           convergenceOutlierSignificanceDefinition => XML_Get_First_Element_By_Tag_Name(definition,"outlierSignificance"       )
           convergenceOutlierOffsetDefinition       => XML_Get_First_Element_By_Tag_Name(definition,"outlierLogLikelihoodOffset")
           convergenceReportCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"reportCount"               )
+          convergenceLogFileDefinition             => XML_Get_First_Element_By_Tag_Name(definition,"logFile"                   )
           call extractDataContent(convergenceRhatDefinition               ,convergenceRhat               )
           call extractDataContent(convergenceBurnCountDefinition          ,convergenceBurnCount          )
           call extractDataContent(convergenceTestCountDefinition          ,convergenceTestCount          )
@@ -132,7 +133,7 @@ contains
           call extractDataContent(convergenceOutlierSignificanceDefinition,convergenceOutlierSignificance)
           call extractDataContent(convergenceOutlierOffsetDefinition      ,convergenceOutlierOffset      )
           call extractDataContent(convergenceReportCountDefinition        ,convergenceReportCount        )
-          newConvergence=convergenceGelmanRubin(convergenceRhat,convergenceBurnCount,convergenceTestCount,convergenceOutlierCount,convergenceOutlierSignificance,convergenceOutlierOffset,convergenceReportCount)
+          newConvergence=convergenceGelmanRubin(convergenceRhat,convergenceBurnCount,convergenceTestCount,convergenceOutlierCount,convergenceOutlierSignificance,convergenceOutlierOffset,convergenceReportCount,getTextContent(convergenceLogFileDefinition))
        end select
     case ("never")
        allocate(convergenceNever :: newConvergence)
