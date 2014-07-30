@@ -237,8 +237,12 @@ contains
     class    (mpiObject     ), intent(in   ) :: self
     character(len=4         )                :: label
 
-    write (label,'(i4.4)') self%rankValue
-    mpiGetRankLabel=label
+    if (self%isActive()) then
+       write (label,'(i4.4)') self%rankValue
+       mpiGetRankLabel=label
+    else
+       mpiGetRankLabel=''
+    end if
     return
   end function mpiGetRankLabel
   
