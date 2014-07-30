@@ -17,7 +17,7 @@
 
 !% Defines methods for the ``GelmanRubin'' convergence class.
 
-function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount)
+function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName)
   !% Constructor for ``GelmanRubin'' convergence class.
   use Memory_Management
   use Galacticus_Error
@@ -27,6 +27,7 @@ function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,out
        &                                                     outlierLogLikelihoodOffset
   integer                                 , intent(in   ) :: burnCount                 , testCount          , &
        &                                                     outlierCountMaximum       , reportCount
+  character       (len=*                 ), intent(in   ) :: logFileName
 
   call Alloc_Array(convergenceGelmanRubinConstructor%chainMask,[mpiSelf%count()])
   convergenceGelmanRubinConstructor%thresholdHatR             =thresholdHatR
@@ -42,8 +43,20 @@ function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,out
   convergenceGelmanRubinConstructor%chainMask                 =.true.
   ! Validate.
   if (mpiSelf%count()-outlierCountMaximum < 3) call Galacticus_Error_Report('convergenceGelmanRubinConstructor','maximum number of outliers is too large')
+  ! Open log file.
+  open(newUnit=convergenceGelmanRubinConstructor%logFileUnit,file=trim(logFileName),form='formatted',status='unknown')
  return
 end function convergenceGelmanRubinConstructor
+
+subroutine convergenceGelmanRubinDestructor(self)
+  !% Destroy a Gelman-Rubin convergence object.
+  implicit none
+  type(convergenceGelmanRubin), intent(inout) :: self
+
+  ! Close the log file.
+  close(self%logFileUnit)
+  return
+end subroutine convergenceGelmanRubinDestructor
 
 logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikelihood)
   !% Return whether the simulation is converged.
@@ -293,27 +306,32 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   convergenceGelmanRubinIsConverged=self%converged
   ! Report.
   self%estimateCount=self%estimateCount+1
-  if (mpiSelf%isMaster() .and. mod(self%estimateCount,self%reportCount) == 0 .and. .not.self%converged) then
-     write (label,'(i16)') simulationState%count()
-     message="Gelman-Rubin ̂R at "//trim(adjustl(label))
-     write (label,'(f6.2)') minval(self%correctedHatR)
-     message=message//" steps min/max="//trim(adjustl(label))//"/"
-     write (label,'(f6.2)') maxval(self%correctedHatR)
-     message=message//trim(adjustl(label))//")"
-     call Galacticus_Display_Message(message)
-     if (activeChainCount < mpiSelf%count()) then
-        message='outlier chains:'
-        label=''
-        do i=1,mpiSelf%count()
-           if (.not.self%chainMask(i)) then
-              message=message//trim(label)//' '//i
-              label=","
-           end if
-        end do
+  if (mpiSelf%isMaster() .and. mod(self%estimateCount,self%reportCount) == 0) then
+     if (.not.self%converged) then
+        write (label,'(i16)') simulationState%count()
+        message="Gelman-Rubin ̂R at "//trim(adjustl(label))
+        write (label,'(f6.2)') minval(self%correctedHatR)
+        message=message//" steps min/max="//trim(adjustl(label))//"/"
+        write (label,'(f6.2)') maxval(self%correctedHatR)
+        message=message//trim(adjustl(label))//")"
         call Galacticus_Display_Message(message)
-     else
-        call Galacticus_Display_Message('no outlier chains')
+        if (activeChainCount < mpiSelf%count()) then
+           message='outlier chains:'
+           label=''
+           do i=1,mpiSelf%count()
+              if (.not.self%chainMask(i)) then
+                 message=message//trim(label)//' '//i
+                 label=","
+              end if
+           end do
+           call Galacticus_Display_Message(message)
+        else
+           call Galacticus_Display_Message('no outlier chains')
+        end if
      end if
+     write (self%logFileUnit,*) "outliers    ",simulationState%count(),self%chainMask
+     write (self%logFileUnit,*) "convergence ",simulationState%count(),minval(self%correctedHatR),maxval(self%correctedHatR),self%correctedHatR
+     call flush(self%logFileUnit)
   end if
   return
 end function convergenceGelmanRubinIsConverged
