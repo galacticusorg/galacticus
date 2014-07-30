@@ -71,6 +71,12 @@ function likelihoodSEDFitConstructor(definition)
      ! Get the effective wavelength.
      likelihoodSEDFitConstructor%wavelengthEffective(i)=Filter_Wavelength_Effective(likelihoodSEDFitConstructor%filterIndex(i))
   end do
+  ! Extract number of bursts.
+  thisElement => XML_Get_First_Element_By_Tag_Name(definition,"burstCount")
+  call extractDataContent(thisElement,likelihoodSEDFitConstructor%burstCount)
+  call Alloc_Array(likelihoodSEDFitConstructor%burstTimeStart,[likelihoodSEDFitConstructor%burstCount])
+  call Alloc_Array(likelihoodSEDFitConstructor%burstTimescale,[likelihoodSEDFitConstructor%burstCount])
+  call Alloc_Array(likelihoodSEDFitConstructor%burstFraction ,[likelihoodSEDFitConstructor%burstCount])
   ! Extract dust model information.
   if (XML_Path_Exists(definition,"dustType")) then
      select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"dustType"))))
@@ -105,16 +111,17 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   class           (state                             ), intent(in   )               :: simulationState
   type            (mappingList                       ), intent(in   ), dimension(:) :: parameterMappings
   class           (convergence                       ), intent(inout)               :: simulationConvergence
-  double precision                                    , intent(in   )               :: temperature                         , logLikelihoodCurrent, &
+  double precision                                    , intent(in   )               :: temperature                         , logLikelihoodCurrent   , &
        &                                                                               logPriorCurrent                     , logPriorProposed
   double precision                                    , allocatable  , dimension(:) :: stateVector
   class           (cosmologyFunctionsClass           ), pointer                     :: cosmologyFunctions_
   class           (stellarSpectraDustAttenuationClass), allocatable                 :: dust
-  integer                                                                           :: iMagnitude                          , i
-  double precision                                                                  :: mass                                , timeScale           , &
-       &                                                                               starFormationRateNormalization      , magnitude           , &
-       &                                                                               luminosity                          , metallicity         , &
-       &                                                                               redshift                            , timeObserved        , &
+  integer                                                                           :: iMagnitude                          , i                      , &
+       &                                                                               burstIndexOffset
+  double precision                                                                  :: mass                                , timeScale              , &
+       &                                                                               starFormationRateNormalization      , magnitude              , &
+       &                                                                               luminosity                          , metallicity            , &
+       &                                                                               redshift                            , timeObserved           , &
        &                                                                               vBandAttenuation                    , opticalDepthBirthClouds, &
        &                                                                               timeStart
   type            (abundances                )                                      :: abundancesStars
@@ -147,6 +154,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
         vBandAttenuation=0.0d0
         dust=stellarSpectraDustAttenuationNull()
      end select
+     burstIndexOffset=5
   case (likelihoodSEDFitDustTypeCharlotFall2000)
      allocate(stellarSpectraDustAttenuationCharlotFall2000 :: dust)
      select type (dust)
@@ -160,6 +168,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
              &                                            opticalDepthBirthClouds=opticalDepthBirthClouds  &
              &                                           )
      end select
+     burstIndexOffset=7
   end select
   ! Determine time observed.
   cosmologyFunctions_ => cosmologyFunctions()
@@ -173,6 +182,19 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
      likelihoodSEDFitEvaluate=logImpossible
      return
   end if
+  ! Extract bursts.
+  do i=1,self%burstCount
+     self%burstTimeStart(i)=stateVector(burstIndexOffset+(i-1)*3+1)
+     self%burstTimescale(i)=stateVector(burstIndexOffset+(i-1)*3+2)
+     self%burstFraction (i)=stateVector(burstIndexOffset+(i-1)*3+3)
+     ! Return impossibility if the burst begins before the galaxy forms.
+     if (self%burstTimeStart(i) < timeStart) then
+        likelihoodSEDFitEvaluate=logImpossible
+        return
+     end if
+  end do
+  ! Set redshift.
+  self%redshift=redshift
   ! Construct the abundances object.
   call abundancesStars%metallicitySet(metallicity,metallicityType=linearByMassSolar)
   ! Iterate over bands.
@@ -222,6 +244,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Star_Formation_IMF
     use Stellar_Population_Luminosities
+    use Numerical_Constants_Math
     implicit none
     real(c_double)        :: luminosityIntegrand
     real(c_double), value :: time
@@ -231,8 +254,12 @@ contains
     
     ! Find stellar population age.
     self%age         =timeObserved-time
-    ! Find star formation rate.
+    ! Find continuous star formation rate.
     starFormationRate=starFormationRateNormalization*exp(-(time-timeStart)/timeScale)
+    ! Add burst star formation rate.
+    do i=1,self%burstCount
+       starFormationRate=starFormationRate+starFormationRateNormalization*timeScale*(1.0d0-exp(-self%burstTimeStart(i)/timeScale))*self%burstFraction(i)*exp(-0.5d0*(time-self%burstTimeStart(i))**2/self%burstTimescale(i)**2)/sqrt(2.0d0*Pi)
+    end do
     ! Find the IMF.
     imfIndex         =IMF_Select(starFormationRate,abundancesStars,componentTypeDisk)
     ! Determine if we're computing luminosity or mass.
