@@ -126,6 +126,12 @@ module Tables
      !@     <arguments>\doublezero\ x</arguments>
      !@     <description>Return the effective value of $x$ to use in table interpolations.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>integrationWeights</method>
+     !@     <type>\doubleone</type>
+     !@     <arguments>\doublezero\ x0\argin, \doublezero\ x1\argin</arguments>
+     !@     <description>Return the weights to be applied to the table to integrate (using the trapezium rule) between {\tt x0} and {\tt x1}.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure(Table1D_Interpolate ), deferred :: interpolate
      procedure(Table1D_Interpolate ), deferred :: interpolateGradient
@@ -138,6 +144,7 @@ module Tables
      procedure                                 :: xs                 =>Table1D_Xs
      procedure                                 :: ys                 =>Table1D_Ys
      procedure                                 :: xEffective         =>Table1D_Find_Effective_X
+     procedure                                 :: integrationWeights =>Table1D_Integration_Weights
   end type table1D
 
   interface
@@ -220,6 +227,7 @@ module Tables
      procedure :: interpolateGradient=>Table_Logarithmic_1D_Interpolate_Gradient
      procedure :: x                  =>Table_Logarithmic_1D_X
      procedure :: xs                 =>Table_Logarithmic_1D_Xs
+     procedure :: integrationWeights =>Table_Logarithmic_Integration_Weights
   end type table1DLogarithmicLinear
 
   type, extends(table1D) :: table1DLinearCSpline
@@ -253,6 +261,7 @@ module Tables
           &                                                  Table_Linear_CSpline_1D_Populate_Single
      procedure :: interpolate        =>Table_Linear_CSpline_1D_Interpolate
      procedure :: interpolateGradient=>Table_Linear_CSpline_1D_Interpolate_Gradient
+     procedure :: integrationWeights =>Table_Linear_CSpline_Integration_Weights
   end type table1DLinearCSpline
 
   type, extends(table1DLinearCSpline) :: table1DLogarithmicCSpline
@@ -266,6 +275,12 @@ module Tables
      procedure :: x                  =>Table_Logarithmic_CSpline_1D_X
      procedure :: xs                 =>Table_Logarithmic_CSpline_1D_Xs
   end type table1DLogarithmicCSpline
+
+  abstract interface
+     double precision function integrandTemplate(x)
+       double precision, intent(in   ) :: x
+     end function integrandTemplate
+  end interface
 
 contains
 
@@ -390,6 +405,35 @@ contains
     return
   end function Table1D_Size
 
+  function Table1D_Integration_Weights(self,x0,x1,integrand)
+    !% Returns a set of weights for trapezoidal integration on the table between limits {\tt x0} and {\tt x1}.
+    use Galacticus_Error
+    implicit none
+    class           (table1D          ), intent(inout)                               :: self
+    double precision                   , intent(in   )                               :: x0, x1
+    procedure       (integrandTemplate), intent(in   )           , pointer, optional :: integrand
+    double precision                   , dimension(size(self%xv))                    :: Table1D_Integration_Weights
+    double precision                                                                 :: weight, lx0, lx1
+    integer                                                                          :: i
+
+    if (x1 < x0           ) call Galacticus_Error_Report('Table1D_Integration_Weights','inverted limits'         )
+    if (present(integrand)) call Galacticus_Error_Report('Table1D_Integration_Weights','integrands not supported')
+    Table1D_Integration_Weights=0.0d0
+    do i=2,size(self%xv)
+       if (self%xv(i) <= x1 .and. self%xv(i-1) >= x0) then
+          weight=self%xv(i)-self%xv(i-1)
+       else if ((self%xv(i-1) < x1 .and. self%xv(i) > x1) .or. (self%xv(i) > x0 .and. self%xv(i-1) < x0)) then
+          lx0=max(self%xv(i-1),x0)
+          lx1=min(self%xv(i  ),x1)
+          weight=lx1-lx0
+       else
+          weight=0.0d0
+       end if
+       Table1D_Integration_Weights(i-1:i)=Table1D_Integration_Weights(i-1:i)+0.5d0*weight
+    end do
+    return
+  end function Table1D_Integration_Weights
+  
   subroutine Table_Generic_1D_Create(self,x,tableCount,extrapolationType)
     !% Create a 1-D generic table.
     use Memory_Management
@@ -707,7 +751,7 @@ contains
     class           (table1DLogarithmicLinear), intent(inout)           :: self
     double precision                          , intent(in   )           :: x
     integer                                   , intent(in   ), optional :: table
-
+   
     if (x /= self%xLinearPrevious) then
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
@@ -716,6 +760,114 @@ contains
     return
   end function Table_Logarithmic_1D_Interpolate_Gradient
 
+  function Table_Logarithmic_Integration_Weights(self,x0,x1,integrand)
+    !% Returns a set of weights for trapezoidal integration on the table between limits {\tt x0} and {\tt x1}.
+    use, intrinsic :: ISO_C_Binding
+    use FGSL
+    use Numerical_Integration
+    use Galacticus_Error
+    implicit none
+    class           (table1DLogarithmicLinear ), intent(inout)                               :: self
+    double precision                           , intent(in   )                               :: x0, x1
+    procedure       (integrandTemplate        ), intent(in   )           , pointer, optional :: integrand
+    double precision                           , dimension(size(self%xv))                    :: Table_Logarithmic_Integration_Weights
+    double precision                           , parameter                                   :: logTolerance=1.0d-12
+    double precision                                                                         :: gradientTerm, lx0, lx1, factor0, factor1
+    integer                                                                                  :: i
+    type            (fgsl_function             )                                             :: integrandFunction
+    type            (fgsl_integration_workspace)                                             :: integrationWorkspace
+    type            (c_ptr                     )                                             :: parameterPointer
+    logical                                                                                  :: integrationReset
+ 
+    if (x1 < x0) call Galacticus_Error_Report('Table_Logarithmic_Integration_Weights','inverted limits')
+    Table_Logarithmic_Integration_Weights=0.0d0    
+    do i=2,size(self%xv)
+       ! Evaluate integration range for this interval of the table.
+       if (self%xv(i) <= log(x1) .and. self%xv(i-1) >= log(x0)) then
+          lx0=self%xv(i-1)
+          lx1=self%xv(i  )
+       else if ((self%xv(i-1) < log(x1) .and. self%xv(i) > log(x1)) .or. (self%xv(i) > log(x0) .and. self%xv(i-1) < log(x0))) then
+          lx0=max(self%xv(i-1),log(x0))
+          lx1=min(self%xv(i  ),log(x1))
+       else
+          cycle
+       end if
+       ! Proceed only for non-zero ranges. Add some tolerance to avoid attempting to evaluate for tiny ranges which arise from
+       ! numerical imprecision.
+       if (lx1 > lx0+logTolerance) then
+          if (present(integrand)) then
+             ! An integrand is given, numerically integrate the relevant terms over the integrand.
+             integrationReset=.true.
+             factor0=Integrate(                                       &
+                  &            lx0                                  , &
+                  &            lx1                                  , &
+                  &            factor0Integrand                     , &
+                  &            parameterPointer                     , &
+                  &            integrandFunction                    , &
+                  &            integrationWorkspace                 , &
+                  &            toleranceRelative   =1.0d-3          , &
+                  &            reset               =integrationReset  &
+                  &           )
+             call Integrate_Done(integrandFunction,integrationWorkspace)
+             integrationReset=.true.
+             factor1=Integrate(                                       &
+                  &            lx0                                  , &
+                  &            lx1                                  , &
+                  &            factor1Integrand                     , &
+                  &            parameterPointer                     , &
+                  &            integrandFunction                    , &
+                  &            integrationWorkspace                 , &
+                  &            toleranceRelative   =1.0d-3          , &
+                  &            reset               =integrationReset  &
+                  &           )
+             call Integrate_Done(integrandFunction,integrationWorkspace)
+             Table_Logarithmic_Integration_Weights        (i-1) &
+                  & =Table_Logarithmic_Integration_Weights(i-1) &
+                  & +factor0                                    &
+                  & -factor1
+             Table_Logarithmic_Integration_Weights        (i  ) &
+                  & =Table_Logarithmic_Integration_Weights(i  ) &
+                  & +factor1  
+          else
+             ! No additional integrand, use analytic solution.
+             gradientTerm=(exp(lx1)*((lx1-lx0)-1.0d0)+exp(lx0))/(lx1-lx0)
+             Table_Logarithmic_Integration_Weights(i-1)=Table_Logarithmic_Integration_Weights(i-1)+max((exp(lx1)-exp(lx0))-gradientTerm,0.0d0)
+             Table_Logarithmic_Integration_Weights(i  )=Table_Logarithmic_Integration_Weights(i  )+max(                   +gradientTerm,0.0d0)
+          end if
+       end if
+    end do
+    return
+    
+  contains
+    
+    function factor0Integrand(logx,parameterPointer) bind(c)
+      !% Integrand used to evaluate integration weights over logarithmically spaced tables
+      implicit none
+      real(c_double)        :: factor0Integrand
+      real(c_double), value :: logx
+      type(c_ptr),    value :: parameterPointer
+      real(c_double)        :: x
+      
+      x=exp(logx)
+      factor0Integrand=x*integrand(x)
+      return
+    end function factor0Integrand
+    
+    function factor1Integrand(logx,parameterPointer) bind(c)
+      !% Integrand used to evaluate integration weights over logarithmically spaced tables
+      implicit none
+      real(c_double)        :: factor1Integrand
+      real(c_double), value :: logx
+      type(c_ptr),    value :: parameterPointer
+      real(c_double)        :: x
+      
+      x=exp(logx)
+      factor1Integrand=x*integrand(x)*(logx-self%xv(i-1))/(self%xv(i)-self%xv(i-1))
+      return
+    end function factor1Integrand
+    
+  end function Table_Logarithmic_Integration_Weights
+  
   subroutine Table_Linear_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D linear table.
     use Memory_Management
@@ -1028,6 +1180,19 @@ contains
     return
   end function Table_Logarithmic_CSpline_1D_Interpolate_Gradient
 
+  function Table_Linear_CSpline_Integration_Weights(self,x0,x1,integrand)
+    !% Returns a set of weights for trapezoidal integration on the table between limits {\tt x0} and {\tt x1}.
+    use Galacticus_Error
+    implicit none
+    class           (table1DLinearCSpline), intent(inout)                               :: self
+    double precision                      , intent(in   )                               :: x0, x1
+    procedure       (integrandTemplate   ), intent(in   )           , pointer, optional :: integrand
+    double precision                      , dimension(size(self%xv))                    :: Table_Linear_CSpline_Integration_Weights
+
+    call Galacticus_Error_Report('Table_Linear_CSpline_Integration_Weights','integration weights not supported')
+    return
+  end function Table_Linear_CSpline_Integration_Weights
+  
   double precision function Table1D_Find_Effective_X(self,x)
     !% Return the effective value of $x$ to use in table interpolations.
     use Galacticus_Error
