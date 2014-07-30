@@ -4,6 +4,8 @@ package LaTeX;
 use strict;
 use warnings;
 use File::Copy;
+use File::Temp;
+use File::Slurp;
 use Digest::MD5  qw(md5_hex);
 require System::Redirect;
 
@@ -234,21 +236,28 @@ sub GnuPlot2PDF {
     print wHndl "]{geometry}\n";
     print wHndl "\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotBase."}\n\\end{document}\n";
     close(wHndl);
-    my $command = "cd ".$folderName."; pdflatex ".$wrapper."; pdfcrop ".$wrapper.".pdf";
+    my $command = "cd ".$folderName."; pdflatex -interaction=nonstopmode ".$wrapper."; pdfcrop ".$wrapper.".pdf";
     $command .= " --margins ".$options{'margin'}
        if ( exists($options{'margin'}) );
-    &SystemRedirect::tofile($command,"/dev/null");
-    move($folderName.$wrapper."-crop.pdf",$gnuplotPdfFile);
-    unlink(
-    	$folderName.$wrapper.".pdf",
-    	$folderName.$wrapper.".tex",
-    	$folderName.$wrapper.".log",
-    	$folderName.$wrapper.".aux",
-    	$gnuplotEpsFile,
-    	$gnuplotLatexFile,
-    	$gnuplotAuxFile
-    	)
-	unless ( exists($options{'cleanUp'}) && $options{'cleanUp'} == 0 );
+    my $tmpFile = File::Temp->new();
+    &SystemRedirect::tofile($command,$tmpFile->filename());
+    my $logOutput = read_file($tmpFile->filename());
+    unless ( $logOutput =~ m/LaTeX Error/ ) {
+	move($folderName.$wrapper."-crop.pdf",$gnuplotPdfFile);
+	unlink(
+	    $folderName.$wrapper.".pdf",
+	    $folderName.$wrapper.".tex",
+	    $folderName.$wrapper.".log",
+	    $folderName.$wrapper.".aux",
+	    $gnuplotEpsFile,
+	    $gnuplotLatexFile,
+	    $gnuplotAuxFile
+	    )
+	    unless ( exists($options{'cleanUp'}) && $options{'cleanUp'} == 0 );
+    } else {
+	print $logOutput;
+	print "\n*** pdflatex FAILED ***\n\n";
+    }
 }
 
 1;
