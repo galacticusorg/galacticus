@@ -86,7 +86,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      stateProposed=stateSimple(self%parameterCount,1)
   end select
   ! Initialize chain to some state vector.
-  call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors)
+  call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parametermappings)
   ! Evaluate the posterior in the initial state.
   call self%posterior(self%simulationState,logImpossible,logImpossible,self%logPosterior,logLikelihood)
   ! Begin stepping.

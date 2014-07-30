@@ -25,12 +25,13 @@ function stateInitializorPriorRandomConstructor()
   return
 end function stateInitializorPriorRandomConstructor
 
-subroutine stateInitializorPriorRandomInitialize(self,simulationState,parameterPriors)
+subroutine stateInitializorPriorRandomInitialize(self,simulationState,parameterPriors,parameterMappings)
   !% Initialize simulation state by drawing at random from the parameter priors.
   implicit none
   class(stateInitializorPriorRandom), intent(inout)               :: self
   class(state                      ), intent(inout)               :: simulationState
   type (prior                      ), intent(inout), dimension(:) :: parameterPriors
+  type (mappingList                ), intent(in   ), dimension(:) :: parameterMappings
 
   ! Initialize chain to some state vector.
   call priorsSample(parameterPriors,simulationState)
