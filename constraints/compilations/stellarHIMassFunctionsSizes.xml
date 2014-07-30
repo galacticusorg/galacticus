@@ -1,10 +1,16 @@
-<!-- A standard set of constraints for Galacticus which uses just the local SDSS z=0.07 -->
-<!-- stellar mass function and ALFALFA z=0.00 HI mass function                          -->
+<!-- A standard set of constraints for Galacticus which uses various stellar mass functions, -->
+<!-- ALFALFA z=0.00 HI mass function, and galaxy sizes                                      -->
 <constraintCompilation>
 
-  <!-- z=0.07 stellar mass function -->
+  <!-- SDSS z=0.07 stellar mass function -->
   <constraint>
-    <definition>constraints/constraints/stellarMassFunction_SDSS_Bernardi_z0.07.xml</definition>
+    <definition>constraints/constraints/stellarMassFunction_SDSS_z0.07.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- GAMA z=0.03 stellar mass function -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_GAMA_z0.03.xml</definition>
     <weight>1.0</weight>
   </constraint>
 
@@ -19,6 +25,20 @@
   </constraint>
   <constraint>
     <definition>constraints/constraints/stellarMassFunction_UKIDSS_UDS_z4.625.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- VIPERS stellar mass functions -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_VIPERS_z0.55.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+   <constraint>
+    <definition>constraints/constraints/stellarMassFunction_VIPERS_z0.70.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_VIPERS_z0.90.xml</definition>
     <weight>1.0</weight>
   </constraint>
 
