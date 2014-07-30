@@ -213,6 +213,7 @@ module Tables
 
   type, extends(table1DLinearLinear) :: table1DLogarithmicLinear
      !% Table type supporting one dimensional table with logarithmic spacing in $x$.
+     logical          :: previousSet
      double precision :: xLinearPrevious,xLogarithmicPrevious
    contains
      procedure :: create             =>Table_Logarithmic_1D_Create
@@ -257,6 +258,7 @@ module Tables
 
   type, extends(table1DLinearCSpline) :: table1DLogarithmicCSpline
      !% Table type supporting one dimensional table with logarithmic spacing in $x$ and cubic spline interpolation.
+     logical          :: previousSet
      double precision :: xLinearPrevious,xLogarithmicPrevious
      double precision :: xMinimum,xMaximum
    contains
@@ -661,6 +663,7 @@ contains
     integer                                   , intent(in   )           :: xCount
     integer                                   , intent(in   ), optional :: extrapolationType, tableCount
 
+    self%previousSet=.false.
     ! Call the creator for linear tables with the logarithms of the input x range.
     call self%table1DLinearLinear%create(log(xMinimum),log(xMaximum),xCount,tableCount,extrapolationType)
     return
@@ -693,7 +696,8 @@ contains
     double precision                          , intent(in   )           :: x
     integer                                   , intent(in   ), optional :: table
 
-    if (x /= self%xLinearPrevious) then
+    if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
+       self%previousSet         =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
@@ -708,7 +712,8 @@ contains
     double precision                          , intent(in   )           :: x
     integer                                   , intent(in   ), optional :: table
 
-    if (x /= self%xLinearPrevious) then
+    if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
+       self%previousSet         =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
@@ -962,6 +967,7 @@ contains
     integer                                    , intent(in   )           :: xCount
     integer                                    , intent(in   ), optional :: extrapolationType, tableCount
 
+    self%previousSet=.false.
     ! Call the creator for linear tables with the logarithms of the input x range.
     call self%table1DLinearCSpline%create(log(xMinimum),log(xMaximum),xCount,tableCount,extrapolationType)
     ! Store the minimum and maximum x-values for rapid look-up.
@@ -1005,7 +1011,8 @@ contains
     double precision                           , intent(in   )           :: x
     integer                                    , intent(in   ), optional :: table
 
-    if (x /= self%xLinearPrevious) then
+    if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
+       self%previousSet         =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
@@ -1020,7 +1027,8 @@ contains
     double precision                           , intent(in   )           :: x
     integer                                    , intent(in   ), optional :: table
 
-    if (x /= self%xLinearPrevious) then
+    if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
+       self%previousSet         =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
