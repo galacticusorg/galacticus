@@ -40,3 +40,6 @@
 
   integer, parameter :: likelihoodSEDFitDustTypeNull           =0
   integer, parameter :: likelihoodSEDFitDustTypeCharlotFall2000=1
+  integer, parameter :: likelihoodSEDFitDustTypeCardelli1989   =2
+  integer, parameter :: likelihoodSEDFitDustTypeGordon2003     =3
+  integer, parameter :: likelihoodSEDFitDustTypeCalzetti2000   =4
