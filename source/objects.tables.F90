@@ -526,11 +526,19 @@ contains
     class           (table1DGeneric), intent(inout)           :: self
     double precision                , intent(in   )           :: x
     integer                         , intent(in   ), optional :: table
-    integer                                                   :: tableActual
+    integer                                                   :: tableActual, extrapolationType
 
     tableActual=1
     if (present(table)) tableActual=table
-    Table_Generic_1D_Interpolate=Interpolate(size(self%xv),self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),reset=self%reset)
+    select case (self%extrapolationType)
+    case (extrapolationTypeAbort)
+       extrapolationType=extrapolationTypeNone
+    case (extrapolationTypeExtrapolate)
+       extrapolationType=extrapolationTypeLinear
+    case (extrapolationTypeFix)
+       extrapolationType=extrapolationTypeFixed
+    end select
+    Table_Generic_1D_Interpolate=Interpolate(size(self%xv),self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),extrapolationType=extrapolationType,reset=self%reset)
     return
   end function Table_Generic_1D_Interpolate
 
