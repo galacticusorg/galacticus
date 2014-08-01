@@ -84,6 +84,12 @@ function likelihoodSEDFitConstructor(definition)
         likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeNull
      case ("CharlotFall2000")
         likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeCharlotFall2000
+     case ("Cardelli1989"   )
+        likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeCardelli1989
+     case ("Gordon2003"     )
+        likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeGordon2003
+     case ("Calzetti2000"   )
+        likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeCalzetti2000
      case default
         call Galacticus_Error_Report('likelihoodSEDFitConstructor','unrecognized dust type')
      end select
@@ -123,7 +129,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
        &                                                                               luminosity                          , metallicity            , &
        &                                                                               redshift                            , timeObserved           , &
        &                                                                               vBandAttenuation                    , opticalDepthBirthClouds, &
-       &                                                                               timeStart
+       &                                                                               timeStart                           , Rv
   type            (abundances                )                                      :: abundancesStars
   type            (fgsl_function             )                                      :: integrandFunction
   type            (fgsl_integration_workspace)                                      :: integrationWorkspace
@@ -169,6 +175,36 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
              &                                           )
      end select
      burstIndexOffset=7
+  case (likelihoodSEDFitDustTypeCardelli1989)
+     allocate(stellarSpectraDustAttenuationCardelli1989    :: dust)
+     select type (dust)
+     type is (stellarSpectraDustAttenuationCardelli1989)
+        vBandAttenuation=stateVector(6)
+        Rv              =stateVector(7)
+        dust=stellarSpectraDustAttenuationCardelli1989   (                                                 &
+             &                                            Rv                     =Rv                       &
+             &                                           )
+     end select
+     burstIndexOffset=7
+  case (likelihoodSEDFitDustTypeGordon2003)
+     allocate(stellarSpectraDustAttenuationGordon2003      :: dust)
+     select type (dust)
+     type is (stellarSpectraDustAttenuationGordon2003)
+        vBandAttenuation=stateVector(6)
+        dust=stellarSpectraDustAttenuationGordon2003     (                                                 &
+             &                                            sample                 ='LMC'                    &
+             &                                           )
+     end select
+     burstIndexOffset=6
+  case (likelihoodSEDFitDustTypeCalzetti2000)
+     allocate(stellarSpectraDustAttenuationCalzetti2000    :: dust)
+     select type (dust)
+     type is (stellarSpectraDustAttenuationCalzetti2000)
+        vBandAttenuation=stateVector(6)
+        dust=stellarSpectraDustAttenuationCalzetti2000   (                                                 &
+             &                                           )
+     end select
+     burstIndexOffset=6
   end select
   ! Determine time observed.
   cosmologyFunctions_ => cosmologyFunctions()
