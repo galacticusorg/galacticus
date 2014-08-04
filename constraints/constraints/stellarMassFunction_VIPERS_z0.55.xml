@@ -1,0 +1,11 @@
+<!-- Defines a constraint to match to the Davidzon et al. (2013) stellar mass -->
+<!-- function at z=0.55.                                                     -->
+<constraint>
+  <name>VIPERS z=0.55 stellar mass function</name>
+  <label>vipersStellarMassFunctionZ0.55</label>
+  <outputRedshift>0.55</outputRedshift>
+  <haloMassResolution>1.0e8</haloMassResolution>
+  <haloMassMinimum>2.0e8</haloMassMinimum>
+  <haloMassMaximum>1.0e15</haloMassMaximum>
+  <analysis>constraints/scripts/stellarMassFunction_VIPERS_z0.55.pl</analysis>
+</constraint>
