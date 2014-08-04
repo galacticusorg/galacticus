@@ -67,6 +67,7 @@
      logical                                                            :: energyTableAlphaInterpolationReset                   , energyTableConcentrationInterpolationReset              
      ! Tables for specific Fourier transform of density profile as a function of alpha and radius.
      double precision                                                   :: fourierProfileTableConcentrationMinimum              
+
      double precision                                                   :: fourierProfileTableConcentrationMaximum              
      double precision                                                   :: fourierProfileTableWavenumberMinimum                 
      double precision                                                   :: fourierProfileTableWavenumberMaximum                 
@@ -86,6 +87,63 @@
      ! Pointer to object setting halo scales.
      class(darkMatterHaloScaleClass    ), pointer                       :: scale
    contains
+     !@ <objectMethods>
+     !@   <object>darkMatterProfileEinasto</object>
+     !@   <objectMethod>
+     !@     <method>densityScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin, \doublezero\ alpha\argin</arguments>
+     !@     <description>Returns the density (in units such that the virial mass and scale length are unity) in an Einasto dark matter profile with given {\tt concentration} and {\tt alpha} at the given {\tt radius} (given in units of the scale radius).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>enclosedMassScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin, \doublezero\ alpha\argin</arguments>
+     !@     <description>Returns the enclosed mass (in units of the virial mass) in an Einasto dark matter profile with given {\tt concentration} at the given {\tt radius} (given in units of the scale radius).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>energyTableMake</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ concentrationRequired\argin, \doublezero\ alphaRequired\argin</arguments>
+     !@     <description>Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>fourierProfileTableMake</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ wavenumberRequired\argin, \doublezero\ concentrationRequired\argin, \doublezero\ alphaRequired\argin</arguments>
+     !@     <description>Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and dimensionless wavenumber.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>freefallTabulate</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ freefallTimeScaleFree\argin, \doublezero\ alphaRequired\argin</arguments>
+     !@     <description>Tabulates the freefall time vs. freefall radius for Einasto halos.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>freefallTimeScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ alpha\argin</arguments>
+     !@     <description>Compute the freefall time in a scale-free Einasto halo.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>potentialScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin, \doublezero\ alpha\argin</arguments>
+     !@     <description>Returns the gravitational potential (in units where the virial mass and scale radius are unity) in an Einasto dark matter profile with given {\tt concentration} and {\tt alpha} at the given {\tt radius} (given in units of the scale radius).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>radiusFromSpecificAngularMomentumScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ alpha\argin, \doublezero\ specificAngularMomentumScaleFree\argin</arguments>
+     !@     <description> Comptue the radius at which a circular orbit has the given {\tt specificAngularMomentumScaleFree} in a scale free Einasto profile.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>radiusFromSpecificAngularMomentumTableMake</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ alphaRequired\argin, \doublezero\ specificAngularMomentumRequired\argin</arguments>
+     !@     <description>Create a tabulation of the relation between specific angular momentum and radius in an Einasto profile.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final                                                      einastoDestructor
      procedure :: calculationReset                           => einastoCalculationReset
      procedure :: stateStore                                 => einastoStateStore
