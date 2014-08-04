@@ -1,0 +1,69 @@
+<filter>
+  <description>2MASS H (total response)</description>
+  <name>2MASS H</name>
+  <origin>http://www.ipac.caltech.edu/2mass/releases/allsky/doc/sec6_4a.tbl2.html</origin>
+  <source>Cohen et al. (2003; ApJ, 126, 1090)</source>
+  <url>http://adsabs.harvard.edu/abs/2003AJ....126.1090C</url>
+  <response>
+    <datum>12890 0.</datum>
+    <datum>13150 5.91635E-08</datum>
+    <datum>13410 1.27100E-07</datum>
+    <datum>13680 0.</datum>
+    <datum>13970 0.</datum>
+    <datum>14180 1.71065E-05</datum>
+    <datum>14400 5.11074E-04</datum>
+    <datum>14620 2.76582E-03</datum>
+    <datum>14780 8.08827E-03</datum>
+    <datum>14860 2.87356E-02</datum>
+    <datum>14930 8.71147E-02</datum>
+    <datum>15040 0.201449</datum>
+    <datum>15150 0.438159</datum>
+    <datum>15280 0.686357</datum>
+    <datum>15390 0.818076</datum>
+    <datum>15460 0.882073</datum>
+    <datum>15510 0.911825</datum>
+    <datum>15560 0.926872</datum>
+    <datum>15650 0.929288</datum>
+    <datum>15720 0.872747</datum>
+    <datum>15770 0.856619</datum>
+    <datum>15830 0.882556</datum>
+    <datum>15920 0.918084</datum>
+    <datum>15970 0.926654</datum>
+    <datum>16020 0.907594</datum>
+    <datum>16130 0.925974</datum>
+    <datum>16190 0.920496</datum>
+    <datum>16280 0.924198</datum>
+    <datum>16330 0.923533</datum>
+    <datum>16420 0.941788</datum>
+    <datum>16480 0.949134</datum>
+    <datum>16570 0.980658</datum>
+    <datum>16590 0.993744</datum>
+    <datum>16710 1.00000</datum>
+    <datum>16840 0.956052</datum>
+    <datum>17010 0.924116</datum>
+    <datum>17150 0.982120</datum>
+    <datum>17270 0.991589</datum>
+    <datum>17390 0.988683</datum>
+    <datum>17460 0.979168</datum>
+    <datum>17510 0.968184</datum>
+    <datum>17530 0.937040</datum>
+    <datum>17560 0.918998</datum>
+    <datum>17640 0.842264</datum>
+    <datum>17750 0.667111</datum>
+    <datum>17850 0.269402</datum>
+    <datum>17900 0.451630</datum>
+    <datum>17960 0.173062</datum>
+    <datum>18030 0.107726</datum>
+    <datum>18100 7.07003E-02</datum>
+    <datum>18130 5.10945E-03</datum>
+    <datum>18180 1.99705E-02</datum>
+    <datum>18280 3.91934E-04</datum>
+    <datum>18350 1.53053E-06</datum>
+    <datum>18500 5.94581E-05</datum>
+    <datum>18710 0.</datum>
+    <datum>18930 3.05088E-05</datum>
+    <datum>19140 0.</datum>
+  </response>
+  <effectiveWavelength>16497.1446768548</effectiveWavelength>
+  <vegaOffset>-1.390595179021</vegaOffset>
+</filter>

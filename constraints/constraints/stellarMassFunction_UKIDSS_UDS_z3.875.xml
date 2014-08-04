@@ -1,0 +1,11 @@
+<!-- Defines a constraint to match to the Caputi et al. (2011) stellar mass -->
+<!-- function at z=3.50 to 4.25.                                            -->
+<constraint>
+  <name>UKIDSS UDS z=3.50 to z=4.25 stellar mass function</name>
+  <label>ukidssUdsStellarMassFunctionZ3.875</label>
+  <outputRedshift>3.875</outputRedshift>
+  <haloMassResolution>5.0e9</haloMassResolution>
+  <haloMassMinimum>1.0e10</haloMassMinimum>
+  <haloMassMaximum>1.0e15</haloMassMaximum>
+  <analysis>constraints/scripts/stellarMassFunction_UKIDSS_UDS_z3.875.pl</analysis>
+</constraint>
