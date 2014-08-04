@@ -53,6 +53,12 @@
      !@     <arguments></arguments>
      !@     <description>Set a module-scope pointer to {\tt self}.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>exponentDarkEnergyDerivative</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ [time]\argin, \doublezero\ [expansionFactor]\argin</arguments>
+     !@     <description>Return the derivative of the dark energy exponent with respect to expansion factor.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: cosmicTime                    => matterDarkEnergyCosmicTime
      procedure :: omegaDarkEnergyEpochal        => matterDarkEnergyOmegaDarkEnergyEpochal

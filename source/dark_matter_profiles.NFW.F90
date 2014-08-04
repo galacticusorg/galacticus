@@ -56,6 +56,63 @@
      ! Pointer to object setting halo scales.
      class(darkMatterHaloScaleClass           ), pointer     :: scale
    contains
+     !@ <objectMethods>
+     !@   <object>darkMatterProfileNFW</object>
+     !@   <objectMethod>
+     !@     <method>densityScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin, \doublezero\ alpha\argin</arguments>
+     !@     <description>Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with given {\tt concentration} and {\tt alpha} at the given {\tt radius} (given in units of the scale radius).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>enclosedMassScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin, \doublezero\ alpha\argin</arguments>
+     !@     <description>Returns the enclosed mass (in units of the virial mass) in an NFW dark matter profile with given {\tt concentration} at the given {\tt radius} (given in units of the scale radius).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>freefallTabulate</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ freefallTimeScaleFree\argin, \doublezero\ alphaRequired\argin</arguments>
+     !@     <description>Tabulates the freefall time vs. freefall radius for NFW halos.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>freefallTimeScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ alpha\argin</arguments>
+     !@     <description>Compute the freefall time in a scale-free NFW halo.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>angularMomentumScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ concentration\argin</arguments>
+     !@     <description>Returns the total angular momentum in an NFW dark matter profile with given {\tt concentration}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>inverseAngularMomentum</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ specificAngularMomentum\argin</arguments>
+     !@     <description>Tabulates the specific angular momentum vs. radius in an NFW profile for rapid inversion.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>profileEnergy</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ concentration\argin</arguments>
+     !@     <description>Computes the total energy of an NFW profile halo of given {\tt concentration}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>specificAngularMomentumScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin</arguments>
+     !@     <description>Returns the specific angular momentum, normalized to unit scale length and unit velocity at the scale radius, at position {\tt radius} (in units of the scale radius) in an NFW profile.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>tabulate</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ concentration\argin</arguments>
+     !@     <description>Tabulate properties of the NFW halo profile which must be computed numerically.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final                                             nfwDestructor
      procedure :: calculationReset                  => nfwCalculationReset
      procedure :: stateStore                        => nfwStateStore

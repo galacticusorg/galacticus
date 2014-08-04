@@ -49,7 +49,7 @@ module Intergalactic_Medium_State
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   )           :: time</argument>
-  !#   <code>singlyIonizedHydrogenFraction=1.0d0-self%neutralHydrogenFraction(time)</code>
+  !#   <code>intergalacticMediumStateSinglyIonizedHydrogenFraction=1.0d0-self%neutralHydrogenFraction(time)</code>
   !#  </method>
   !#  <method name="neutralHeliumFraction" >
   !#   <description>Return the neutral fraction of helium in the \gls{igm} at the given time.</description>
@@ -68,7 +68,7 @@ module Intergalactic_Medium_State
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   )           :: time</argument>
-  !#   <code>doublyIonizedHeliumFraction=1.0d0-self%singlyIonizedHeliumFraction(time)-self%neutralHeliumFraction(time)</code>
+  !#   <code>intergalacticMediumStateDoublyIonizedHeliumFraction=1.0d0-self%singlyIonizedHeliumFraction(time)-self%neutralHeliumFraction(time)</code>
   !#  </method>
   !#  <method name="temperature" >
   !#   <description>Return the temperature (in Kelvin) of the \gls{igm} at the given time.</description>
@@ -97,9 +97,9 @@ module Intergalactic_Medium_State
   !#    assumeFullyIonizedActual=.false.
   !#    if (present(assumeFullyIonized)) assumeFullyIonizedActual=assumeFullyIonized
   !#    if (assumeFullyIonizedActual) then
-  !#       electronScatteringOpticalDepth=-self%electronScatteringFullyIonized%interpolate(time)
+  !#       intergalacticMediumStateElectronScatteringOpticalDepth=-self%electronScatteringFullyIonized%interpolate(time)
   !#    else
-  !#       electronScatteringOpticalDepth=-self%electronScattering            %interpolate(time)
+  !#       intergalacticMediumStateElectronScatteringOpticalDepth=-self%electronScattering            %interpolate(time)
   !#    end if
   !#    !$omp end critical (igmStateElectronScatteringInterpolation)
   !#   </code>
@@ -135,9 +135,9 @@ module Intergalactic_Medium_State
   !#    end do
   !#    !$omp critical     (igmStateElectronScatteringInterpolation)
   !#    if (assumeFullyIonizedActual) then
-  !#       electronScatteringTime=self%electronScatteringFullyIonizedInverse%interpolate(-opticalDepth)
+  !#       intergalacticMediumStateElectronScatteringTime=self%electronScatteringFullyIonizedInverse%interpolate(-opticalDepth)
   !#    else
-  !#       electronScatteringTime=self%electronScatteringInverse            %interpolate(-opticalDepth)
+  !#       intergalacticMediumStateElectronScatteringTime=self%electronScatteringInverse            %interpolate(-opticalDepth)
   !#    end if
   !#    !$omp end critical (igmStateElectronScatteringInterpolation)
   !#   </code>

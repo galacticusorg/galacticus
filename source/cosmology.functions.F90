@@ -180,14 +180,14 @@ module Cosmology_Functions
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: expansionFactor</argument>
-  !#   <code>redshiftFromExpansionFactor=1.0d0/expansionFactor-1.0d0</code>
+  !#   <code>cosmologyFunctionsRedshiftFromExpansionFactor=1.0d0/expansionFactor-1.0d0</code>
   !#  </method>
   !#  <method name="expansionFactorFromRedshift" >
   !#   <description>Returns expansion factor given a redshift.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: redshift</argument>
-  !#   <code>expansionFactorFromRedshift=1.0d0/(1.0d0+redshift)</code>
+  !#   <code>cosmologyFunctionsExpansionFactorFromRedshift=1.0d0/(1.0d0+redshift)</code>
   !#  </method>
   !#  <method name="comovingVolumeElementRedshift" >
   !#   <description>Returns the differential comoving volume element ${\rm d}V/{\rm d}z = r_{\rm c}^2(t) {\rm c} H^{-1}(t)$ (where $r_{\rm c}$ is the comoving distance to time $t$ and $H(t)$ is the Hubble parameter at that time) for unit solid angle at the specified {\tt time}.</description>
@@ -195,7 +195,7 @@ module Cosmology_Functions
   !#   <pass>yes</pass>
   !#   <modules>Numerical_Constants_Physical</modules>
   !#   <argument>double precision, intent(in   ) :: time</argument>
-  !#   <code>comovingVolumeElementRedshift=self%distanceComoving(time)**2*(speedLight/kilo)/self%hubbleParameterEpochal(time=time)</code>
+  !#   <code>cosmologyFunctionsComovingVolumeElementRedshift=self%distanceComoving(time)**2*(speedLight/kilo)/self%hubbleParameterEpochal(time=time)</code>
   !#  </method>
   !#  <method name="comovingVolumeElementTime" >
   !#   <description>Returns the differential comoving volume element ${\rm d}V/{\rm d}t = r_{\rm c}^2(t) {\rm c} a(t)$ (where $r_{\rm c}$ is the comoving distance to time $t$ and $a(t)$ is the expansion at that time) for unit solid angle at the specified {\tt time}.</description>
@@ -203,7 +203,7 @@ module Cosmology_Functions
   !#   <pass>yes</pass>
   !#   <modules>Numerical_Constants_Astronomical Numerical_Constants_Physical</modules>
   !#   <argument>double precision, intent(in   ) :: time</argument>
-  !#   <code>comovingVolumeElementTime=self%distanceComoving(time)**2*(gigaYear*speedLight/megaParsec)/self%expansionfactor(time)</code>
+  !#   <code>cosmologyFunctionsComovingVolumeElementTime=self%distanceComoving(time)**2*(gigaYear*speedLight/megaParsec)/self%expansionfactor(time)</code>
   !#  </method>
   !#  <method name="epochTime" >
   !#   <description>Convenience function that returns the time corresponding to an epoch specified by time or expansion factor.</description>
@@ -214,11 +214,11 @@ module Cosmology_Functions
   !#   <modules>Galacticus_Error</modules>
   !#   <code>
   !#   if (present(time)) then
-  !#      epochTime=time
+  !#      cosmologyFunctionsEpochTime=time
   !#   else if (present(expansionFactor)) then
-  !#      epochTime=self%cosmicTime(expansionFactor,collapsingPhase)
+  !#      cosmologyFunctionsEpochTime=self%cosmicTime(expansionFactor,collapsingPhase)
   !#   else
-  !#      call Galacticus_Error_Report('epochTime','either "time" or "expansionFactor" must be given')
+  !#      call Galacticus_Error_Report('cosmologyFunctionsEpochTime','either "time" or "expansionFactor" must be given')
   !#   end if
   !#   </code>
   !#  </method>

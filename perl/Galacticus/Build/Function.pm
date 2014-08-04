@@ -173,6 +173,19 @@ sub Functions_Generate_Output {
 	    )
     }
 
+    # Add "isFinalizable" method.
+    push(
+	@methods,
+	{
+	    name        => "isFinalizable",
+	    description => "Return true if this object can be finalized..",
+	    type        => "logical",
+	    pass        => "yes",
+	    code        => $directive."isFinalizable=.not.self%isDefault\n"
+	},
+	);
+
+
     # Determine if any methods request that C-bindings be produced.
     my @methodsCBound;
     foreach ( @methods ) {
@@ -199,9 +212,9 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "   public :: ".$directive.",".$directive."Class";
     $buildData->{'content'} .= ", ".$_->{'name'}
 	foreach ( @nonAbstractClasses );
-    $buildData->{'content'} .= ", ".$directive."StateStore, ".$directive."StateRetrieve"
+    $buildData->{'content'} .= ", ".$directive."DoStateStore, ".$directive."DoStateRetrieve"
 	if ( exists($buildData->{'stateful'}) && $buildData->{'stateful'} eq "yes" );
-   $buildData->{'content'} .= ", ".$directive."CalculationReset"
+   $buildData->{'content'} .= ", ".$directive."DoCalculationReset"
 	if ( exists($buildData->{'calculationReset'}) && $buildData->{'calculationReset'} eq "yes" );
     $buildData->{'content'} .= "\n\n";
 
@@ -300,9 +313,8 @@ sub Functions_Generate_Output {
 	my $extension = "Null";
 	$extension = ""
 	    if ( exists($_->{'code'}) );
-	$methodTable->add("",$_->{'name'},$_->{'name'}.$extension);
+	$methodTable->add("",$_->{'name'},$directive.ucfirst($_->{'name'}).$extension);
     }
-    $methodTable->add("","isFinalizable",$directive."IsFinalizable");
     $buildData->{'content'} .= $methodTable->table();
     $buildData->{'content'} .= "   end type ".$directive."Class\n\n";
 
@@ -491,9 +503,9 @@ sub Functions_Generate_Output {
     # Create global state store/restore functions.
     if ( exists($buildData->{'stateful'}) && $buildData->{'stateful'} eq "yes" ) {
 	$buildData->{'content'} .= "  !# <galacticusStateStoreTask>\n";
-	$buildData->{'content'} .= "  !#  <unitName>".$directive."StateStore</unitName>\n";
+	$buildData->{'content'} .= "  !#  <unitName>".$directive."DoStateStore</unitName>\n";
 	$buildData->{'content'} .= "  !# </galacticusStateStoreTask>\n";
-	$buildData->{'content'} .= "  subroutine ".$directive."StateStore(stateFile,fgslStateFile)\n";
+	$buildData->{'content'} .= "  subroutine ".$directive."DoStateStore(stateFile,fgslStateFile)\n";
 	$buildData->{'content'} .= "    !% Store the state to file.\n";
 	$buildData->{'content'} .= "    implicit none\n";
 	$buildData->{'content'} .= "    integer           , intent(in   ) :: stateFile\n";
@@ -502,11 +514,11 @@ sub Functions_Generate_Output {
 	$buildData->{'content'} .= "    default => ".$directive."()\n";
 	$buildData->{'content'} .= "    call default%stateStore(stateFile,fgslStateFile)\n";
 	$buildData->{'content'} .= "    return\n";
-	$buildData->{'content'} .= "  end subroutine ".$directive."StateStore\n\n";
+	$buildData->{'content'} .= "  end subroutine ".$directive."DoStateStore\n\n";
 	$buildData->{'content'} .= "  !# <galacticusStateRetrieveTask>\n";
-	$buildData->{'content'} .= "  !#  <unitName>".$directive."StateRetrieve</unitName>\n";
+	$buildData->{'content'} .= "  !#  <unitName>".$directive."DoStateRetrieve</unitName>\n";
 	$buildData->{'content'} .= "  !# </galacticusStateRetrieveTask>\n";
-	$buildData->{'content'} .= "  subroutine ".$directive."StateRetrieve(stateFile,fgslStateFile)\n";
+	$buildData->{'content'} .= "  subroutine ".$directive."DoStateRetrieve(stateFile,fgslStateFile)\n";
 	$buildData->{'content'} .= "    !% Retrieve the state from file.\n";
 	$buildData->{'content'} .= "    implicit none\n";
 	$buildData->{'content'} .= "    integer           , intent(in   ) :: stateFile\n";
@@ -515,15 +527,15 @@ sub Functions_Generate_Output {
 	$buildData->{'content'} .= "    default => ".$directive."()\n";
 	$buildData->{'content'} .= "    call default%stateRestore(stateFile,fgslStateFile)\n";
 	$buildData->{'content'} .= "    return\n";
-	$buildData->{'content'} .= "  end subroutine ".$directive."StateRetrieve\n\n";
+	$buildData->{'content'} .= "  end subroutine ".$directive."DoStateRetrieve\n\n";
     }
 
     # Create global calculation reset function.
     if ( exists($buildData->{'calculationReset'}) && $buildData->{'calculationReset'} eq "yes" ) {
 	$buildData->{'content'} .= "  !# <calculationResetTask>\n";
-	$buildData->{'content'} .= "  !#  <unitName>".$directive."CalculationReset</unitName>\n";
+	$buildData->{'content'} .= "  !#  <unitName>".$directive."DoCalculationReset</unitName>\n";
 	$buildData->{'content'} .= "  !# </calculationResetTask>\n";
-	$buildData->{'content'} .= "  subroutine ".$directive."CalculationReset(thisNode)\n";
+	$buildData->{'content'} .= "  subroutine ".$directive."DoCalculationReset(thisNode)\n";
 	$buildData->{'content'} .= "    !% Store the state to file.\n";
 	$buildData->{'content'} .= "    implicit none\n";
 	$buildData->{'content'} .= "    type (treeNode), pointer, intent(inout) :: thisNode\n";
@@ -531,17 +543,8 @@ sub Functions_Generate_Output {
 	$buildData->{'content'} .= "    default => ".$directive."()\n";
 	$buildData->{'content'} .= "    call default%calculationReset(thisNode)\n";
 	$buildData->{'content'} .= "    return\n";
-	$buildData->{'content'} .= "  end subroutine ".$directive."CalculationReset\n\n";
+	$buildData->{'content'} .= "  end subroutine ".$directive."DoCalculationReset\n\n";
     }
-
-    # Create is finalizable function.
-    $buildData->{'content'} .= "  logical function ".$directive."IsFinalizable(self)\n";
-    $buildData->{'content'} .= "    !% Return true if the object is finalizable.\n";
-    $buildData->{'content'} .= "    implicit none\n";
-    $buildData->{'content'} .= "    class(".$directive."Class), intent(in   ) :: self\n\n";
-    $buildData->{'content'} .= "    ".$directive."IsFinalizable=.not.self%isDefault\n";
-    $buildData->{'content'} .= "    return\n";
-    $buildData->{'content'} .= "  end function ".$directive."IsFinalizable\n\n";
 
     # Create functions.
     foreach my $method ( @methods ) {
@@ -576,17 +579,17 @@ sub Functions_Generate_Output {
 	} elsif ( $method->{'type'} =~ m/^class/ ) {
 	    $category = "function";
 	    $type     = "";
-	    $self     = "      ".$method->{'type'}.", pointer :: ".$method->{'name'}.$extension."\n";
+	    $self     = "      ".$method->{'type'}.", pointer :: ".$directive.ucfirst($method->{'name'}).$extension."\n";
 	} elsif ( $method->{'type'} =~ m/^type/ ) {
 	    $category = "function";
 	    $type     = "";
-	    $self     = "      ".$method->{'type'}." :: ".$method->{'name'}.$extension."\n";
+	    $self     = "      ".$method->{'type'}." :: ".$directive.ucfirst($method->{'name'}).$extension."\n";
 	} else {
 	    $category = "function";
 	    $type     = $method->{'type'}." ";
 	    $self     = "";
 	}
-	$buildData->{'content'} .= "   ".$type.$category." ".$method->{'name'}.$extension."(self";
+	$buildData->{'content'} .= "   ".$type.$category." ".$directive.ucfirst($method->{'name'}).$extension."(self";
 	$buildData->{'content'} .= ",".$argumentList
 	    unless ( $argumentList eq "" );
 	$buildData->{'content'} .= ")\n";
@@ -610,7 +613,7 @@ sub Functions_Generate_Output {
 	    $buildData->{'content'} .= "      call Galacticus_Error_Report('".$method->{'name'}."Null','this is a null method - initialize the ".$directive." object before use')\n";
 	}
 	$buildData->{'content'} .= "      return\n";
-	$buildData->{'content'} .= "   end ".$category." ".$method->{'name'}.$extension."\n\n";
+	$buildData->{'content'} .= "   end ".$category." ".$directive.ucfirst($method->{'name'}).$extension."\n\n";
     }
     # Generate C-bindings if required.
     if ( @methodsCBound ) {
