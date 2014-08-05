@@ -23,13 +23,10 @@
 
   use Tables
 
-  type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationGordon2003
+  type, extends(stellarSpectraDustAttenuationTabulated) :: stellarSpectraDustAttenuationGordon2003
      !% A class implementing calculations of attenuation of stellar spectra using the model of \cite{gordon_quantitative_2003}.
      private
-     type(table1DGeneric) :: attenuationTable
    contains
-     final     ::                gordon2003Destructor
-     procedure :: attenuation => gordon2003Attenuation
   end type stellarSpectraDustAttenuationGordon2003
 
   interface stellarSpectraDustAttenuationGordon2003
@@ -84,27 +81,3 @@ contains
      end select
     return
   end function gordon2003Constructor
-
-  subroutine gordon2003Destructor(self)
-    !% Destructor for the ``gordon2003'' stellar spectra dust attenuation class.
-    use Input_Parameters
-    implicit none
-    type(stellarSpectraDustAttenuationGordon2003), intent(inout) :: self
-
-    call self%attenuationTable%destroy()
-    return
-  end subroutine gordon2003Destructor
-
-  double precision function gordon2003Attenuation(self,wavelength,age,vBandAttenuation)
-    !% Return attenuation of stellar spectra according to the model of \cite{gordon_quantitative_2003}.
-    use Numerical_Constants_Units
-    implicit none
-    class           (stellarSpectraDustAttenuationGordon2003), intent(inout) :: self
-    double precision                                         , intent(in   ) :: wavelength      , age, &
-         &                                                                      vBandAttenuation
-    double precision                                                         :: x
-
-    x=1.0d0/(wavelength/angstromsPerMicron)
-    gordon2003Attenuation=vBandAttenuation*self%attenuationTable%interpolate(x)
-    return
-  end function gordon2003Attenuation
