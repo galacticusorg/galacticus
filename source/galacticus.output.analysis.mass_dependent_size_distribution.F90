@@ -404,7 +404,6 @@ contains
                                      call sizeDataset      %readAttribute("cosmologyScaling"    ,cosmologyScalingSize        )
                                      call sizeDataset      %close        (                                                   )
                                      call distributionGroup%readAttribute("massCosmologyScaling",cosmologyScalingMass        )
-                                     call sizeDataset      %close        (                                                   )
                                      sizeDataset      =distributionGroup%openDataset("radiusFunction"     )
                                      call sizeDataset      %readAttribute("cosmologyScaling"    ,cosmologyScalingSizeFunction)
                                      call sizeDataset      %close        (                                                   )
@@ -426,7 +425,7 @@ contains
                          ! Finished reading data.
                          call dataFile%close()
                          !$omp end critical(HDF5_Access)
-                        ! Create the observed cosmology.
+                         ! Create the observed cosmology.
                          cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
                               &                                                     OmegaMatter    =dataOmegaMatter    , &
                               &                                                     OmegaDarkEnergy=dataOmegaDarkEnergy, &
@@ -463,6 +462,7 @@ contains
                       end select
                       ! Get cosmological conversion factors.
                       call Alloc_Array(sizeFunctions(currentAnalysis)%cosmologyConversionMass        ,[Galacticus_Output_Time_Count()])
+                      call Alloc_Array(sizeFunctions(currentAnalysis)%cosmologyConversionSize        ,[Galacticus_Output_Time_Count()])
                       call Alloc_Array(sizeFunctions(currentAnalysis)%cosmologyConversionSizeFunction,[Galacticus_Output_Time_Count()])
                       do jOutput=1,Galacticus_Output_Time_Count()
                          redshift=                                                                                      &
@@ -475,6 +475,9 @@ contains
                               &                            redshift                                                                                               , &
                               &                            cosmologyFunctionsModel                                                                                , &
                               &                            cosmologyFunctionsObserved                                                                             , &
+                              &                            cosmologyScalingMass           =cosmologyScalingMass                                                   , &
+                              &                            cosmologyScalingSize           =cosmologyScalingSize                                                   , &
+                              &                            cosmologyScalingMassFunction   =cosmologyScalingSizeFunction                                           , &
                               &                            cosmologyConversionMass        =sizeFunctions(currentAnalysis)%cosmologyConversionMass        (jOutput), &
                               &                            cosmologyConversionSize        =sizeFunctions(currentAnalysis)%cosmologyConversionSize        (jOutput), &
                               &                            cosmologyConversionMassFunction=sizeFunctions(currentAnalysis)%cosmologyConversionSizeFunction(jOutput)  &
@@ -603,8 +606,8 @@ contains
             &                            )                                                                                               &
             &                            /2.0d0                                                                                          &
             &                            *thisTree%volumeWeight                                                                          &
-            &                            *sizeFunctions(i)%cosmologyConversionSizeFunction
-       do j=1,sizeFunctions(i)%massesCount
+            &                            *sizeFunctions(i)%cosmologyConversionSizeFunction(iOutput)
+      do j=1,sizeFunctions(i)%massesCount
           thisGalaxy(i)%sizeFunction(:,j)=thisGalaxy(i)%sizeFunction(:,j)*thisGalaxy(i)%sizeFunctionWeights(j)
        end do       
        ! Apply output weights.
