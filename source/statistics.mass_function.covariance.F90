@@ -255,7 +255,6 @@ contains
           
           ! Find the effective volume of the survey at this mass.
           volume(i,iField)=surveyGeometry_%volumeMaximum(massBinCenterI,iField)
-
        end do
 
        ! Normalize the mass function.
@@ -345,32 +344,38 @@ contains
                      &                                         )                                                                                          &
                      &                                     )                                                                                              &
                      &         )
-                ! Integrate over the volume.
-                covarianceHalo(i,j)=                                          &
-                     &             + covarianceHalo(i,j)                      &
-                     &             + Integrate(                               &
-                     &                         timeMinimum                  , &
-                     &                         timeMaximum                  , &
-                     &                         Halo_Occupancy_Time_Integrand, &
-                     &                         parameterPointer             , &
-                     &                         integrandFunction            , &
-                     &                         integrationWorkspace         , &
-                     &                         toleranceRelative=1.0d-3     , &
-                     &                         reset=integrationReset         &
-                     &                        )                               &
-                     &              *surveyGeometry_%solidAngle(iField)       &
-                     &              /logMassBinWidth(i)                       &
-                     &              /logMassBinWidth(j)                       &
-                     &              /volume(i,iField)                         &
-                     &              /volume(j,iField)
-                call Integrate_Done(integrandFunction,integrationWorkspace)
-                if (massFunctionUse(i) > 0.0d0 .and. massFunctionUse(j) > 0.0d0) then
-                   ! Renormalize to actual mass function. Accounts for any difference between model and data. Including incompleteness.
-                   covarianceHalo(i,j)= covarianceHalo( i,j) &
-                        &              *massFunctionUse(i  ) &
-                        &              /massFunction   (i  ) &
-                        &              *massFunctionUse(  j) & 
-                        &              /massFunction   (  j)
+                if (timeMaximum > timeMinimum) then
+                   ! Integrate over the volume.
+                   covarianceHalo(i,j)=                                          &
+                        &             + covarianceHalo(i,j)                      &
+                        &             + Integrate(                               &
+                        &                         timeMinimum                  , &
+                        &                         timeMaximum                  , &
+                        &                         Halo_Occupancy_Time_Integrand, &
+                        &                         parameterPointer             , &
+                        &                         integrandFunction            , &
+                        &                         integrationWorkspace         , &
+                        &                         toleranceRelative=1.0d-3     , &
+                        &                         reset=integrationReset         &
+                        &                        )                               &
+                        &              *surveyGeometry_%solidAngle(iField)       &
+                        &              /logMassBinWidth(i)                       &
+                        &              /logMassBinWidth(j)                       &
+                        &              /volume(i,iField)                         &
+                        &              /volume(j,iField)
+                   call Integrate_Done(integrandFunction,integrationWorkspace)
+                   if     (                                                             &
+                        &   massFunctionUse(i) > 0.0d0 .and. massFunctionUse(j) > 0.0d0 &
+                        &  .and.                                                        &
+                        &   massFunction   (i) > 0.0d0 .and. massFunction   (j) > 0.0d0 &
+                        & ) then
+                      ! Renormalize to actual mass function. Accounts for any difference between model and data. Including incompleteness.
+                      covarianceHalo(i,j)= covarianceHalo( i,j) &
+                           &              *massFunctionUse(i  ) &
+                           &              /massFunction   (i  ) &
+                           &              *massFunctionUse(  j) & 
+                           &              /massFunction   (  j)
+                   end if
                 end if
              end do
           end if
