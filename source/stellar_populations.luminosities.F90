@@ -307,7 +307,8 @@ contains
                 lockFileDescriptor=File_Lock(char(luminositiesFileName)//".lock")
                 call luminositiesFile%openFile(char(luminositiesFileName))
                 ! Write the dataset.
-                call luminositiesFile%writeDataset(luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:),datasetName=trim(datasetName),commentText="Tabulated luminosities at redshift z="//adjustl(trim(redshiftLabel)))
+                if (.not.luminositiesFile%hasDataset(trim(datasetName))) &
+                     & call luminositiesFile%writeDataset(luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:),datasetName=trim(datasetName),commentText="Tabulated luminosities at redshift z="//adjustl(trim(redshiftLabel)))
                 ! Close the file.
                 call luminositiesFile%close()
                 call File_Unlock(lockFileDescriptor)
