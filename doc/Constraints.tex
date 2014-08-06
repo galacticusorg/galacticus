@@ -996,6 +996,54 @@ The entries have the following meanings:
 
 This method uses the \gls{ann} library to locate {\tt neightborCount} nearest neighbor points in the set of converged states found in the given chains. The {\tt tolerance} element determines the accuracy of nearest neighbor finding (see the \gls{ann} documentation for details).When finding nearest neighbors in the MCMC chains, parameters are mapped using whatever mappings are currently active, and distances in each dimension (as used in the metric to determine nearest neighbors) are scaled by the root-variance in that parameter in the converged MCMC chains. The posterior likelihood of the MCMC chains is then estimated from the nearest neighbors using kernel density estimation with a Gaussian kernel with bandwidth equal to the distance to the furthest of the nearest neighbors.
 
+\subsubsection{massFunction}
+
+The likelihood is computed as
+\begin{equation}
+\log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^{\rm T},
+\end{equation}
+where $\mathcal{C}$ is the covariance matrix, and $\Delta_i = w_i^{\rm model} - w_i^{\rm obs}$, $w_i^{\rm model}$ is the computed mass function at the $i^{\rm th}$ separation, and $w_i^{\rm obs}$ is the observed mass function at the $i^{\rm th}$ separation. The mass function is computed using the halo model and the parameterized conditional galaxy mass function of \cite[][see also \protect\cite{leauthaud_new_2011}; \S\protect\ref{phys:conditionalMassFunction:conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}. The details of the mass function calculation are specified by the follow content within the {\tt likelihood} element:
+\begin{verbatim}
+  <haloMassMinimum>1.0e9</haloMassMinimum>
+  <haloMassMaximum>1.0e15</haloMassMaximum>
+  <redshiftMinimum>0.0</redshiftMinimum>
+  <redshiftMaximum>0.5</redshiftMaximum>
+  <massFunctionFileName>projectedCorrelation.hdf5</massFunctionFileName>
+\end{verbatim}
+
+The entries have the following meanings:
+\begin{description}
+\item[{\tt haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
+\item[{\tt redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
+\item[{\tt massFunctionFileName}] The name of an HDF5 file containing the observed mass function and its covariance matrix.
+\end{description}
+
+The HDF5 file specified by the {\tt massFunctionFileName} element should contain a {\tt mass} dataset, giving the masses at which the mass function is measured (in units of $M_\odot$), a {\tt massFunctionObserved} dataset giving the observed values of the mass function at those masses (in units of Mpc$^{-3}$ per $\log M$), and a {\tt covariance} dataset, giving the covariance of the mass function (in units of Mpc$^{-6}$).
+
+\subsubsection{projectedCorrelationFunction}
+
+The likelihood is computed as
+\begin{equation}
+\log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^{\rm T},
+\end{equation}
+where $\mathcal{C}$ is the covariance matrix, and $\Delta_i = w_i^{\rm model} - w_i^{\rm obs}$, $w_i^{\rm model}$ is the computed projected correlation function at the $i^{\rm th}$ separation, and $w_i^{\rm obs}$ is the observed projected correlation function at the $i^{\rm th}$ separation. The projected correlation function is computed using the halo model and the parameterized conditional galaxy mass function of \cite[][see also \protect\cite{leauthaud_new_2011}; \S\protect\ref{phys:conditionalMassFunction:conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}. The details of the projected correlation function calculation are specified by the follow content within the {\tt likelihood} element:
+\begin{verbatim}
+  <haloMassMinimum>1.0e9</haloMassMinimum>
+  <haloMassMaximum>1.0e15</haloMassMaximum>
+  <redshiftMinimum>0.0</redshiftMinimum>
+  <redshiftMaximum>0.5</redshiftMaximum>
+  <projectedCorrelationFunctionFileName>projectedCorrelation.hdf5</projectedCorrelationFunctionFileName>
+\end{verbatim}
+
+The entries have the following meanings:
+\begin{description}
+\item[{\tt haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
+\item[{\tt redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
+\item[{\tt projectedCorrelationFunctionFileName}] The name of an HDF5 file containing the observed projected correlation function and its covariance matrix.
+\end{description}
+
+The HDF5 file specified by the {\tt projectedCorrelationFunctionFileName} element should contain a {\tt separation} dataset, giving the spearations at which the projected correlation function is measured (in units of Mpc), a {\tt projectedCorrelationFunctionObserved} dataset giving the observed values of the projected correlation function at those separations (in units of Mpc), and a {\tt covariance} dataset, giving the covariance of the projected correlation function (in units of Mpc$^2$).
+
 \subsection{{\tt convergence}}
 
 The {\tt convergence} section specifies the criterion to be used to judge when the simulation has converged. The type of convergence criterion to use is specified by the {\tt type} element. The available choices are described in the following subsections.
