@@ -36,7 +36,7 @@ module Geometry_Surveys
   !#   <description>Returns the number of distinct fields included in the survey.</description>
   !#   <type>integer</type>
   !#   <pass>yes</pass>
-  !#   <code>fieldCount=1</code>
+  !#   <code>surveyGeometryFieldCount=1</code>
   !#  </method>
   !#  <method name="distanceMinimum" >
   !#   <description>Returns the minimum distance (in Mpc) at which a galaxy of the specified {\tt mass} (in $M_\odot$) would be included in the survey.</description>
@@ -44,7 +44,7 @@ module Geometry_Surveys
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   )           :: mass</argument>
   !#   <argument>integer         , intent(in   ), optional :: field</argument>
-  !#   <code>distanceMinimum=0.0d0</code>
+  !#   <code>surveyGeometryDistanceMinimum=0.0d0</code>
   !#  </method>
   !#  <method name="distanceMaximum" >
   !#   <description>Returns the maximum distance (in Mpc) at which a galaxy of the specified {\tt mass} (in $M_\odot$) could be detected.</description>
@@ -65,7 +65,7 @@ module Geometry_Surveys
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   )           :: mass</argument>
   !#   <argument>integer         , intent(in   ), optional :: field</argument>
-  !#   <code>volumeMaximum=self%solidAngle(field)*self%distanceMaximum(mass,field)**3/3.0d0</code>
+  !#   <code>surveyGeometryVolumeMaximum=self%solidAngle(field)*self%distanceMaximum(mass,field)**3/3.0d0</code>
   !#  </method>
   !#  <method name="windowFunctionAvailable" >
   !#   <description>Returns true if survey 3-D window functions are available.</description>
@@ -96,7 +96,7 @@ module Geometry_Surveys
   !#   <description>Return the maximum degree, $\ell_{\rm max}$, for which the angular power is available.</description>
   !#   <type>integer</type>
   !#   <pass>yes</pass>
-  !#   <code>angularPowerMaximumDegree=-1</code>
+  !#   <code>surveyGeometryAngularPowerMaximumDegree=-1</code>
   !#  </method>
   include 'surveyGeometry.type.inc'
   !# </include>
