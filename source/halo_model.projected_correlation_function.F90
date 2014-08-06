@@ -326,20 +326,24 @@ contains
       use Dark_Matter_Halo_Scales
       use Galacticus_Calculations_Resets
       implicit none
-      real            (c_double)        :: powerSpectrumOneHaloIntegrand
-      real            (c_double), value :: massHalo
-      type            (c_ptr   ), value :: parameterPointer
-      double precision                  :: darkMatterProfileKSpace      , numberCentrals, numberSatellites
+      real            (c_double                )          :: powerSpectrumOneHaloIntegrand
+      real            (c_double                ), value   :: massHalo
+      type            (c_ptr                   ), value   :: parameterPointer
+      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ 
+      class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
+      double precision                                    :: darkMatterProfileKSpace      , numberCentrals, numberSatellites
 
+      darkMatterHaloScale_ => darkMatterHaloScale()
+      darkMatterProfile_   => darkMatterProfile  ()
       call Galacticus_Calculations_Reset(thisNode)
       call thisBasic            % massSet(                                                         &
            &                              massHalo                                                 &
            &                             )
       call thisDarkMatterProfile%scaleSet(                                                         &
-           &                               Dark_Matter_Halo_Virial_Radius               (thisNode) &
+           &                               darkMatterHaloScale_%virialRadius            (thisNode) &
            &                              /darkMatterProfileConcentration_%concentration(thisNode) &
            &                             )
-      darkMatterProfileKSpace=Dark_Matter_Profile_kSpace(thisNode,waveNumber(iWavenumber)/expansionFactor)
+      darkMatterProfileKSpace=darkMatterProfile_%kSpace(thisNode,waveNumber(iWavenumber)/expansionFactor)
       numberCentrals         =max(                                                                                                                       &
            &                      +0.0d0                                                                                                               , &
            &                      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum,haloModelGalaxyTypeCentral  )  &
@@ -403,22 +407,26 @@ contains
       use Dark_Matter_Halo_Scales
       use Galacticus_Calculations_Resets
       implicit none
-      real(c_double)        :: powerSpectrumTwoHaloIntegrand
-      real(c_double), value :: massHalo
-      type(c_ptr   ), value :: parameterPointer
+      real (c_double                )          :: powerSpectrumTwoHaloIntegrand
+      real (c_double                ), value   :: massHalo
+      type (c_ptr                   ), value   :: parameterPointer
+      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+      class(darkMatterProfileClass  ), pointer :: darkMatterProfile_
 
+      darkMatterHaloScale_ => darkMatterHaloScale()
+      darkMatterProfile_   => darkMatterProfile  ()
       call Galacticus_Calculations_Reset(thisNode)
       call thisBasic            % massSet(                                                         &
            &                              massHalo                                                 &
            &                             )
       call thisDarkMatterProfile%scaleSet(                                                         &
-           &                               Dark_Matter_Halo_Virial_Radius               (thisNode) &
+           &                               darkMatterHaloScale_%virialRadius            (thisNode) &
            &                              /darkMatterProfileConcentration_%concentration(thisNode) &
            &                             )
       powerSpectrumTwoHaloIntegrand=                                                                        &
            & +Halo_Mass_Function_Differential(time    ,massHalo                               )             &
            & *Dark_Matter_Halo_Bias          (thisNode                                        )             &
-           & *Dark_Matter_Profile_kSpace     (thisNode,waveNumber(iWavenumber)/expansionFactor)             &
+           & *darkMatterProfile_%kSpace      (thisNode,waveNumber(iWavenumber)/expansionFactor)             &
            & *max(                                                                                          &
            &      +0.0d0                                                                                  , &
            &      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum)  &
