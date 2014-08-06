@@ -20,8 +20,8 @@
 module Math_Distributions_Poisson_Binomial
   !% Implements Poisson binomial distributions.
   private
-  public :: Poisson_Binomial_Distribution           , Poisson_Binomial_Distribution_Mean, &
-       &    Poisson_Binomial_Distribution_Mean_Pairs
+  public :: Poisson_Binomial_Distribution           , Poisson_Binomial_Distribution_Mean               , &
+       &    Poisson_Binomial_Distribution_Mean_Pairs, Poisson_Binomial_Distribution_Mean_Pairs_Jacobian
 
 contains
 
@@ -50,6 +50,33 @@ contains
     return
   end function Poisson_Binomial_Distribution
 
+  function Poisson_Binomial_Distribution_Jacobian(k,p)
+    !% Computes the Jacobian of the Poisson binomial distribution with event probabilities {\tt p} at argument
+    !% {\tt k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
+    use Numerical_Constants_Math
+    implicit none
+    integer         , intent(in   )                     :: k
+    double precision, intent(in   ), dimension(     : ) :: p
+    double precision               , dimension(size(p)) :: Poisson_Binomial_Distribution_Jacobian
+    double complex                 , dimension(size(p)) :: probability
+    double complex                                      :: Cl, product
+    integer                                             :: l , m
+
+    Poisson_Binomial_Distribution_Jacobian=0.0d0
+    if (k < 0 .or. k > size(p)) return
+    probability=dcmplx(0.0d0,0.0d0)
+    do l=0,size(p)
+       product=dcmplx(1.0d0,0.0d0)
+       Cl     =exp(dble(l)*2.0d0*Pi*dcmplx(0.0d0,1.0d0)/dble(1+size(p)))
+       do m=1,size(p)
+          product=product*(1.0d0+(Cl-1.0d0)*p(m))
+       end do
+       probability=probability+product*exp(-dble(l*k)*2.0d0*Pi*dcmplx(0.0d0,1.0d0)/dble(1+size(p)))*(Cl-1.0d0)/(1.0d0+(Cl-1.0d0)*p)
+    end do
+    Poisson_Binomial_Distribution_Jacobian=max(dreal(probability)/dble(1+size(p)),0.0d0)
+    return
+  end function Poisson_Binomial_Distribution_Jacobian
+
   double precision function Poisson_Binomial_Distribution_Mean(p)
     !% Computes the mean of a Poisson binomial distribution.
     implicit none
@@ -74,5 +101,23 @@ contains
     end do
     return
   end function Poisson_Binomial_Distribution_Mean_Pairs
+
+  function Poisson_Binomial_Distribution_Mean_Pairs_Jacobian(p)
+    !% Computes the Jacobian of the mean number of pairs expected from a Poisson binomial distribution with
+    !% event probabilities {\tt p}. Assumes that pair order is significant, i.e. both $AB$ and
+    !% $BA$ are counted.
+    implicit none
+    double precision, intent(in   ), dimension(     : ) :: p
+    double precision               , dimension(size(p)) :: Poisson_Binomial_Distribution_Mean_Pairs_Jacobian
+    integer                                             :: k
+
+    Poisson_Binomial_Distribution_Mean_Pairs_Jacobian=0.0d0
+    if (size(p) < 2) return
+    do k=2,size(p)
+       Poisson_Binomial_Distribution_Mean_Pairs_Jacobian=+              Poisson_Binomial_Distribution_Mean_Pairs_Jacobian      &
+            &                                            +dble(k*(k-1))*Poisson_Binomial_Distribution_Jacobian           (k,p)
+    end do
+    return
+  end function Poisson_Binomial_Distribution_Mean_Pairs_Jacobian
 
 end module Math_Distributions_Poisson_Binomial
