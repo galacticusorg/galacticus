@@ -130,7 +130,7 @@ contains
           ! Construct a solid angle file if one does not already exist.
           if (.not.File_Exists(self%mangleDirectory()//"solidAngles.hdf5")) then
              call self%mangleFiles(mangleFiles)
-             call System_Command_Do(Galacticus_Input_Path()//"scripts/aux/mangleRansack.pl "//String_Join(mangleFiles," ")//" "//self%mangleDirectory()//"solidAngles.hdf5 0")
+             call System_Command_Do(Galacticus_Input_Path()//"scripts/aux/mangleSolidAngle.pl "//String_Join(mangleFiles," ")//" "//self%mangleDirectory()//"solidAngles.hdf5 0")
              if (.not.File_Exists(self%mangleDirectory()//"solidAngles.hdf5")) &
                   & call Galacticus_Error_Report('mangleSolidAngle','unable to generate solid angles from mangle files')
           end if
