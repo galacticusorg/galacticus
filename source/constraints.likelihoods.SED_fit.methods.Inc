@@ -96,6 +96,13 @@ function likelihoodSEDFitConstructor(definition)
   else
      likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeNull
   end if
+  ! Extract age definition.
+  select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"startTimeType"))))
+  case ("time")
+     likelihoodSEDFitConstructor%startTimeType=likelihoodSEDFitStartTimeTypeTime
+  case ("age" )
+     likelihoodSEDFitConstructor%startTimeType=likelihoodSEDFitStartTimeTypeAge
+  end select
   ! Find stellar spectra postprocessing chain to use.
   likelihoodSEDFitConstructor%postprocessingChainIndex=Stellar_Population_Spectrum_Postprocess_Index(var_str('default'))
   return
@@ -147,10 +154,28 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
      stateVector(i)=parameterMappings(i)%thisMapping%unmap(stateVector(i))
   end do
   mass       =      stateVector(1)
-  timeStart  =      stateVector(2)
   timeScale  =1.0d0/stateVector(3)
   metallicity=      stateVector(4)
   redshift   =      stateVector(5)
+  ! Determine time observed.
+  cosmologyFunctions_ => cosmologyFunctions()
+  timeObserved        =  cosmologyFunctions_ %cosmicTime                 (          &
+       &                  cosmologyFunctions_%expansionFactorFromRedshift (         &
+       &                                                                   redshift &
+       &                                                                  )         &
+       &                                                                 )
+  ! Determine start time.
+  select case (self%startTimeType)
+  case (likelihoodSEDFitStartTimeTypeTime)
+     timeStart=             stateVector(2)
+  case (likelihoodSEDFitStartTimeTypeAge )
+     timeStart=timeObserved-stateVector(2)
+  end select
+  ! Return impossibility if start time is after the observed time or before the Big Bang.
+  if (timeStart >= timeObserved .or. timeStart <= 0.0d0) then
+     likelihoodSEDFitEvaluate=logImpossible
+     return
+  end if
   ! Construct dust attenuation object.
   select case (self%dustType)
   case (likelihoodSEDFitDustTypeNull           )
@@ -206,18 +231,6 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
      end select
      burstIndexOffset=6
   end select
-  ! Determine time observed.
-  cosmologyFunctions_ => cosmologyFunctions()
-  timeObserved        =  cosmologyFunctions_ %cosmicTime                 (          &
-       &                  cosmologyFunctions_%expansionFactorFromRedshift (         &
-       &                                                                   redshift &
-       &                                                                  )         &
-       &                                                                 )
-  ! Return impossibility if start time is after the observed time.
-  if (timeStart >= timeObserved) then
-     likelihoodSEDFitEvaluate=logImpossible
-     return
-  end if
   ! Extract bursts.
   do i=1,self%burstCount
      self%burstTimeStart(i)=stateVector(burstIndexOffset+(i-1)*3+1)

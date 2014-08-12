@@ -20,7 +20,7 @@
   type, public, extends(likelihood) :: likelihoodSEDFit
      private
      integer                                     :: photometryCount         , dustType                , &
-          &                                         burstCount
+          &                                         burstCount              , startTimeType
      integer         , allocatable, dimension(:) :: filterIndex             , luminosityIndex         , &
           &                                         postprocessingChainIndex
      double precision, allocatable, dimension(:) :: magnitude               , error                   , &
@@ -43,3 +43,6 @@
   integer, parameter :: likelihoodSEDFitDustTypeCardelli1989   =2
   integer, parameter :: likelihoodSEDFitDustTypeGordon2003     =3
   integer, parameter :: likelihoodSEDFitDustTypeCalzetti2000   =4
+
+  integer, parameter :: likelihoodSEDFitStartTimeTypeTime      =0
+  integer, parameter :: likelihoodSEDFitStartTimeTypeAge       =1
