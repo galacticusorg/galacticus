@@ -19,10 +19,9 @@ require Mangle;
 # Andrew Benson (18-April-2014)
 
 # Get arguments.
-die("Usage: mangleRansack.pl <file1> [<file2>]....... <outputFile> <nPoints>")
+die("Usage: mangleSolidAngle.pl <file1> [<file2>]....... <outputFile>")
     unless ( scalar(@ARGV) > 1 );
 my @files          = @ARGV;
-my $pointCount     = pop(@files);
 my $outputFileName = pop(@files);
 
 # Build mangle.
@@ -35,7 +34,6 @@ foreach my $file ( @files ) {
     my @subFiles;
     if ( $file =~ m/^[\+\-]/ ) {
 	@subFiles = split(/\:/,$file);
-	print scalar(@subFiles)."\n";
     } else {
 	push(@subFiles,"+".$file);
     }
@@ -53,12 +51,12 @@ foreach my $file ( @files ) {
 	    my $subSolidAngle;
 	    open(my $pipe,"aux/mangle/bin/harmonize ".$fileName." /dev/null |");
 	    while ( my $line = <$pipe> ) {
-		if ( $line =~ m/^area of \(weighted\) region is ([0-9\.]+) str/ ) {
+		if ( $line =~ m/^area of \(weighted\) region is ([0-9\.e\-\+]+) str/ ) {
 		    $subSolidAngle = $1;
 		}
 	    }
 	    close($pipe);
-	    die("mangleRansack.pl: unable to determine solid angle for file ".$file)
+	    die("mangleSolidAngle.pl: unable to determine solid angle for file ".$file)
 		unless ( defined($solidAngle) );
 	    $solidAngle += $multiplier*$subSolidAngle;
 	}
