@@ -52,9 +52,10 @@ contains
     class           (stellarSpectraDustAttenuationTabulated), intent(inout) :: self
     double precision                                        , intent(in   ) :: wavelength      , age, &
          &                                                                     vBandAttenuation
+    double precision                                        , parameter     :: xV=1.0d0/(5504.61227375652d0/angstromsPerMicron)
     double precision                                                        :: x
 
     x=1.0d0/(wavelength/angstromsPerMicron)
-    tabulatedAttenuation=vBandAttenuation*self%attenuationTable%interpolate(x)
+    tabulatedAttenuation=vBandAttenuation*self%attenuationTable%interpolate(x)/self%attenuationTable%interpolate(xV)
     return
   end function tabulatedAttenuation
