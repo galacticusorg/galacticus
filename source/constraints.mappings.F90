@@ -84,6 +84,7 @@ module Constraints_Mappings
   ! Include all distribution types.
   include 'constraints.mappings.linear.type.inc'
   include 'constraints.mappings.logarithmic.type.inc'
+  include 'constraints.mappings.inverse.type.inc'
 
 contains
 
@@ -98,17 +99,23 @@ contains
     type            (node   ), pointer, intent(in   ) :: definition
   
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
-    case ("linear")
-       allocate(mappingLinear :: newMapping)
+    case ("linear"     )
+       allocate(mappingLinear     :: newMapping)
        select type (newMapping)
-       type is (mappingLinear)
-          newMapping=mappingLinear()
+       type is (mappingLinear    )
+          newMapping=mappingLinear    ()
        end select
     case ("logarithmic")
        allocate(mappingLogarithmic :: newMapping)
        select type (newMapping)
        type is (mappingLogarithmic)
           newMapping=mappingLogarithmic()
+       end select
+    case ("inverse"    )
+       allocate(mappingInverse     :: newMapping)
+       select type (newMapping)
+       type is (mappingInverse    )
+          newMapping=mappingInverse    ()
        end select
     case default
        call Galacticus_Error_Report('mappingNew','mapping type is unrecognized')
@@ -119,5 +126,6 @@ contains
   ! Include all mapping methods.
   include 'constraints.mappings.linear.methods.inc'
   include 'constraints.mappings.logarithmic.methods.inc'
-  
+  include 'constraints.mappings.inverse.methods.inc'
+
 end module Constraints_Mappings
