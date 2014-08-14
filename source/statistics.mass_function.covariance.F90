@@ -335,17 +335,18 @@ contains
                 integrationReset=.true.
                 ! Find integration limits for this bin.
                 timeMaximum=    cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
-                timeMinimum=max(                                                                                                                          &
+                timeMinimum=max(                                                                                                              &
                      &          cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum)), &
-                     &          cosmologyFunctions_%timeAtDistanceComoving(                                                                         &
-                     &                                      min(                                                                                          &
-                     &                                          surveyGeometry_%distanceMaximum(massBinCenterI,iField),                                   &
-                     &                                          surveyGeometry_%distanceMaximum(massBinCenterJ,iField)                                    &
-                     &                                         )                                                                                          &
-                     &                                     )                                                                                              &
+                     &          cosmologyFunctions_%timeAtDistanceComoving(                                                                   &
+                     &                                                     min(                                                               &
+                     &                                                         surveyGeometry_%distanceMaximum(massBinCenterI,iField),        &
+                     &                                                         surveyGeometry_%distanceMaximum(massBinCenterJ,iField)         &
+                     &                                                        )                                                               &
+                     &                                                    )                                                                   &
                      &         )
                 if (timeMaximum > timeMinimum) then
-                   ! Integrate over the volume.
+                   ! Integrate over the volume. Note that the following expression is multiplied through by the volumes of both
+                   ! fields such that we accumulate a volume-weighted covariance, which will be normalized below.
                    covarianceHalo(i,j)=                                          &
                         &             + covarianceHalo(i,j)                      &
                         &             + Integrate(                               &
@@ -360,26 +361,26 @@ contains
                         &                        )                               &
                         &              *surveyGeometry_%solidAngle(iField)       &
                         &              /logMassBinWidth(i)                       &
-                        &              /logMassBinWidth(j)                       &
-                        &              /volume(i,iField)                         &
-                        &              /volume(j,iField)
+                        &              /logMassBinWidth(j)
                    call Integrate_Done(integrandFunction,integrationWorkspace)
-                   if     (                                                             &
-                        &   massFunctionUse(i) > 0.0d0 .and. massFunctionUse(j) > 0.0d0 &
-                        &  .and.                                                        &
-                        &   massFunction   (i) > 0.0d0 .and. massFunction   (j) > 0.0d0 &
-                        & ) then
-                      ! Renormalize to actual mass function. Accounts for any difference between model and data. Including incompleteness.
-                      covarianceHalo(i,j)= covarianceHalo( i,j) &
-                           &              *massFunctionUse(i  ) &
-                           &              /massFunction   (i  ) &
-                           &              *massFunctionUse(  j) & 
-                           &              /massFunction   (  j)
-                   end if
                 end if
              end do
+             ! Normalize the covariance for the total field volume.
+             if (sum(volume(i,:)) > 0.0d0 .and. sum(volume(j,:)) > 0.0d0) covarianceHalo(i,j)=covarianceHalo(i,j)/sum(volume(i,:))/sum(volume(j,:))
+             ! Renormalize to actual mass function. Accounts for any difference between model and data. Including incompleteness.            
+             if     (                                                             &
+                  &   massFunctionUse(i) > 0.0d0 .and. massFunctionUse(j) > 0.0d0 &
+                  &  .and.                                                        &
+                  &   massFunction   (i) > 0.0d0 .and. massFunction   (j) > 0.0d0 &
+                  & ) then
+                covarianceHalo(i,j)= covarianceHalo( i,j) &
+                     &              *massFunctionUse(i  ) &
+                     &              /massFunction   (i  ) &
+                     &              *massFunctionUse(  j) & 
+                     &              /massFunction   (  j)
+             end if
           end if
-
+         
           ! Large-scale structure term.
           if (includeLSS) then
              covarianceLSS(i,j)=varianceLSS(i,j)
