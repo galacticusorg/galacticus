@@ -21,6 +21,20 @@
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
+        <datum>589</datum>
+        <datum>408</datum>
+        <datum>270</datum>
+        <datum>192</datum>
+        <datum>130</datum>
+        <datum>708</datum>
+        <datum>573</datum>
+        <datum>497</datum>
+        <datum>417</datum>
+        <datum>354</datum>
+        <datum>284</datum>
+        <datum>217</datum>
+        <datum>89</datum>
+        <datum>26</datum>
       </number>
       <mass>
 	<description>Galaxy stellar mass</description>
@@ -107,6 +121,19 @@
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
+        <datum>778</datum>
+        <datum>662</datum>
+        <datum>458</datum>
+        <datum>362</datum>
+        <datum>261</datum>
+        <datum>200</datum>
+        <datum>867</datum>
+        <datum>777</datum>
+        <datum>625</datum>
+        <datum>493</datum>
+        <datum>391</datum>
+        <datum>210</datum>
+        <datum>75</datum>
       </number>
       <mass>
 	<description>Galaxy stellar mass</description>
@@ -189,6 +216,18 @@
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
+        <datum>784</datum>
+        <datum>540</datum>
+        <datum>377</datum>
+        <datum>308</datum>
+        <datum>228</datum>
+        <datum>158</datum>
+        <datum>137</datum>
+        <datum>733</datum>
+        <datum>620</datum>
+        <datum>533</datum>
+        <datum>243</datum>
+        <datum>77</datum>
       </number>
       <mass>
 	<description>Galaxy stellar mass</description>
@@ -266,6 +305,17 @@
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
+        <datum>503</datum>
+        <datum>352</datum>
+        <datum>280</datum>
+        <datum>249</datum>
+        <datum>161</datum>
+        <datum>124</datum>
+        <datum>91</datum>
+        <datum>596</datum>
+        <datum>494</datum>
+        <datum>253</datum>
+        <datum>74</datum>
       </number>
       <mass>
 	<description>Galaxy stellar mass</description>
@@ -340,6 +390,18 @@
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
+        <datum>532</datum>
+        <datum>403</datum>
+        <datum>293</datum>
+        <datum>194</datum>
+        <datum>166</datum>
+        <datum>138</datum>
+        <datum>117</datum>
+        <datum>573</datum>
+        <datum>430</datum>
+        <datum>224</datum>
+        <datum>73</datum>
+        <datum>9</datum>
       </number>
       <mass>
 	<description>Galaxy stellar mass</description>
@@ -418,6 +480,17 @@
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
+        <datum>792</datum>
+        <datum>610</datum>
+        <datum>484</datum>
+        <datum>359</datum>
+        <datum>267</datum>
+        <datum>215</datum>
+        <datum>169</datum>
+        <datum>117</datum>
+        <datum>482</datum>
+        <datum>190</datum>
+        <datum>41</datum>
       </number>
       <mass>
 	<description>Galaxy stellar mass</description>
@@ -492,6 +565,16 @@
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
+        <datum>390</datum>
+	<datum>411</datum>
+        <datum>308</datum>
+        <datum>239</datum>
+        <datum>160</datum>
+        <datum>111</datum>
+        <datum>58</datum>
+        <datum>38</datum>
+        <datum>95</datum>
+        <datum>28</datum>
       </number>
       <mass>
 	<description>Galaxy stellar mass</description>
@@ -562,6 +645,15 @@
       <number>
 	<description>Number of observed galaxies per bin</description>
 	<scaling>linear</scaling>
+        <datum>290</datum>
+        <datum>219</datum>
+        <datum>124</datum>
+        <datum>80</datum>
+        <datum>58</datum>
+        <datum>24</datum>
+        <datum>16</datum>
+        <datum>50</datum>
+        <datum>16</datum>
       </number>
       <mass>
 	<description>Galaxy stellar mass</description>
