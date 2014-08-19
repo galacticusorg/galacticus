@@ -153,21 +153,25 @@ contains
           thisParameter => item(parameterList,iParameter)
           nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name" )
           valueElement  => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          call extractDataContent(valueElement,parameterValue)
           select case (getTextContent(nameElement))
           case ("Omega_b")
+             call extractDataContent(valueElement,parameterValue)
              if (Values_Differ(parameterValue,omegaBaryonValue    ,absTol=1.0d-3)) call Galacticus_Display_Message('Omega_b from transfer &
                   & function file does not match internal value')
           case ("Omega_Matter")
+             call extractDataContent(valueElement,parameterValue)
              if (Values_Differ(parameterValue,omegaMatterValue    ,absTol=1.0d-3)) call Galacticus_Display_Message('Omega_Matter from transfer &
                   & function file does not match internal value')
           case ("Omega_DE")
+             call extractDataContent(valueElement,parameterValue)
              if (Values_Differ(parameterValue,omegaDarkEnergyValue,absTol=1.0d-3)) call Galacticus_Display_Message('Omega_DE from transfer &
                   & function file does not match internal value')
           case ("H_0")
+             call extractDataContent(valueElement,parameterValue)
              if (Values_Differ(parameterValue,hubbleParameterValue,relTol=1.0d-3)) call Galacticus_Display_Message('H_0 from transfer &
                   & function file does not match internal value')
           case ("T_CMB")
+             call extractDataContent(valueElement,parameterValue)
              if (Values_Differ(parameterValue,cmbTemperatureValue ,relTol=1.0d-3)) call Galacticus_Display_Message('T_CMB from transfer &
                   & function file does not match internal value')
           end select
