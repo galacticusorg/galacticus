@@ -23,15 +23,15 @@ module Instruments_Filters
   use FGSL
   implicit none
   private
-  public :: Filter_Get_Index, Filter_Response, Filter_Extent, Filter_Vega_Offset, Filter_Name
+  public :: Filter_Get_Index, Filter_Response, Filter_Extent, Filter_Vega_Offset, Filter_Name, Filter_Wavelength_Effective
 
   type filterType
      !% A structure which holds filter response curves.
      integer                                                        :: nPoints
      double precision                   , allocatable, dimension(:) :: response                       , wavelength
      type            (varying_string   )                            :: name
-     logical                                                        :: vegaOffsetAvailable
-     double precision                                               :: vegaOffset
+     logical                                                        :: vegaOffsetAvailable            , wavelengthEffectiveAvailable
+     double precision                                               :: vegaOffset                     , wavelengthEffective
      ! Interpolation structures.
      logical                                                        :: reset                   =.true.
      type            (fgsl_interp_accel)                            :: interpolationAccelerator
@@ -107,7 +107,7 @@ contains
     type            (Node          ), pointer                     :: doc
     type            (filterType    ), allocatable  , dimension(:) :: filterResponsesTemporary
     type            (varying_string)               , dimension(3) :: specialFilterWords
-    type            (node          ), pointer                     :: vegaElement
+    type            (node          ), pointer                     :: vegaElement             , wavelengthEffectiveElement
     double precision                , parameter                   :: cutOffResolution=1.0d4
     integer                                                       :: filterIndex             , ioErr
     type            (varying_string)                              :: filterFileName          , errorMessage
@@ -192,6 +192,14 @@ contains
        else
           filterResponses(filterIndex)%vegaOffset=0.0d0
        end if
+       ! Extract the effective wavelength.
+       filterResponses(filterIndex)%wavelengthEffectiveAvailable=XML_Path_Exists(doc,"effectiveWavelength")
+       if (filterResponses(filterIndex)%wavelengthEffectiveAvailable) then
+          wavelengthEffectiveElement => XML_Get_First_Element_By_Tag_Name(doc,"effectiveWavelength")
+          call extractDataContent(wavelengthEffectiveElement,filterResponses(filterIndex)%wavelengthEffective)
+       else
+          filterResponses(filterIndex)%wavelengthEffective=0.0d0
+       end if
        ! Destroy the document.
        call destroy(doc)
        !$omp end critical (FoX_DOM_Access)
@@ -228,5 +236,16 @@ contains
     Filter_Vega_Offset=filterResponses(filterIndex)%vegaOffset
     return
   end function Filter_Vega_Offset
+
+  double precision function Filter_Wavelength_Effective(filterIndex)
+    !% Return the effective wavelength for the specified filter.
+    use Galacticus_Error
+    implicit none
+    integer, intent(in   ) :: filterIndex
+
+    if (.not.filterResponses(filterIndex)%wavelengthEffectiveAvailable) call Galacticus_Error_Report('Filter_Wavelength_Effective','effective wavelength is not available')
+    Filter_Wavelength_Effective=filterResponses(filterIndex)%wavelengthEffective
+    return
+  end function Filter_Wavelength_Effective
 
 end module Instruments_Filters

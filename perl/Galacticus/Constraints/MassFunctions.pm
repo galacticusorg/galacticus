@@ -84,6 +84,9 @@ sub Construct {
 
     # Get logarithmic bins in mass.
     my $xBins = log10($config->{'x'});
+    my $xBinWidths;
+    $xBinWidths = log10($config->{'xWidth'})
+	if ( exists($config->{'xWidth'}) );
 
     # Model results.
     my $yGalacticus;
@@ -105,6 +108,9 @@ sub Construct {
     }
     # Read galaxy data and construct mass function if necessary.
     if ( $gotModelMassFunction == 0 ) {
+	# If this mass function requires modeling of incompleteness, we cannot proceed.
+	die('MassFunctions::Construct: incompleteness modeling is not supported')
+	    if ( exists($options{'incompletenessModel'}) );
 	$galacticus->{'tree'} = "all";
 	&HDF5::Get_Parameters($galacticus);
 	&HDF5::Count_Trees  ($galacticus                      );
@@ -166,6 +172,8 @@ sub Construct {
 	     differential   => 1,
 	     gaussianSmooth => $sigma
 	    );
+	$options{'binWidths'} = $xBinWidths
+	    if ( defined($xBinWidths) );
 	($yGalacticus,$errorGalacticus,$covarianceGalacticus) = &Histograms::Histogram($xBins,$logarithmicMass,$weight,%options);
 	# Convert model mass function from per log10(M) to per log(M).
 	$yGalacticus          /= log(10.0);
