@@ -7,4 +7,6 @@
   <haloMassMinimum>2.0e8</haloMassMinimum>
   <haloMassMaximum>2.0e14</haloMassMaximum>
   <analysis>constraints/scripts/hiMassFunction_ALFALFA_z0.0.pl</analysis>
+  <massSystematicZeroPoint>9.0</massSystematicZeroPoint>
+  <massSystematicOrder>-1</massSystematicOrder>
 </constraint>
