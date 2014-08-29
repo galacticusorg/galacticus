@@ -3723,49 +3723,6 @@ Currently defined satellite tidal field methods are:
  \item [\hyperlink{satellites.tidal_fields.spherical_symmetry.F90:satellites_tidal_fields_spherical_symmetry}{{\tt sphericalSymmetry}}] Computes the tidal field assuming a spherically-symmetric host halo.
 \end{description}
 
-\subsubsection{Satellite Virial Orbits}\label{sec:SatelliteVirialOrbits}
-
-Additional methods for the satellite virial orbits (i.e. orbital parameters at virial radius crossing) can be added using the {\tt virialOrbitsMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Benson2005} method is described by a directive:
-\begin{verbatim}
-  !# <virialOrbitsMethod>
-  !#  <unitName>Virial_Orbital_Parameters_Benson2005_Initialize</unitName>
-  !# </virialOrbitsMethod>
-\end{verbatim}
-Here, {\tt Virial\_Orbital\_Parameters\_Benson2005\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(virialOrbitsMethod,Virial_Orbital_Parameters_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: virialOrbitsMethod
-    procedure(),          pointer, intent(inout) :: Virial_Orbital_Parameters_Get
-    
-    if (virialOrbitsMethod.eq.'myMethod') Virial_Orbital_Parameters_Get => My_Method_Procedure
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt virialOrbitsMethod} input parameter. The procedure pointer {\tt Virial\_Orbital\_Parameters\_Get} must be set to point to a subroutine which returns orbital parameters as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The orbital parameter subroutine must have the form:
-\begin{verbatim}
-  function Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
-    implicit none
-    type(keplerOrbit)                         :: thisOrbit
-    type(treeNode),   intent(inout), pointer  :: thisNode,hostNode
-    logical,          intent(in)              :: acceptUnboundOrbits
-    .
-    .
-    .
-    return
-  end subroutine Virial_Orbital_Parameters
-\end{verbatim}
-The subroutine must return a fully-defined Kepler orbit object (i.e. the orbit must have at least three parameters defined in addition to the node masses) initialized to the orbital parameters for {\tt thisNode} orbitting in {\tt hostNode} at the point of virial radius crossing. If {\tt acceptUnboundOrbits} is true, then unbound orbits may be returned, otherwise, the routine must ensure that the returned orbit is bound. Velocities should be returned in units of km/s, lengthscales in units of Mpc and masses in $M_\odot$. Note that the usual conventions of the {\tt keplerOrbit} object should be followed, namely the that orbitting bodies are treated as point masses, with the host being stationary and the usual reduced mass used.
-
-Currently defined satellite virial orbit methods are:
-\begin{description}
- \item [\hyperlink{satellites.merging.virial_orbits.Benson2005.F90:virial_orbits_benson2005:virial_orbital_parameters_benson2005}{{\tt Benson2005}}] The orbital parameters are select from the distribution found by \cite{benson_orbital_2005}.
- \item [\hyperlink{satellites.merging.virial_orbits.Wetzel2010.F90:virial_orbits_wetzel2010:virial_orbital_parameters_wetzel2010}{{\tt Wetzel2010}}] The orbital parameters are select from the distribution found by \cite{wetzel_orbits_2010}.
- \item [\hyperlink{satellites.merging.virial_orbits.fixed.F90:virial_orbits_fixed:virial_orbital_parameters_fixed}{{\tt fixed}}] The orbital parameters are set to fixed values, with $v_{\rm r}=${\tt [virialOrbitsFixedRadialVelocity]}$V_{\rm virial}$ and  $v_\phi=${\tt [virialOrbitsFixedTangentialVelocity]}$V_{\rm virial}$.
-\end{description}
-
 \subsubsection{Star Formation Feedback in Disks/Spheroids}
 
 Additional methods for computing feedback from star formation in disks/spheroids can be added using the {\tt starFormationFeedback[Disks|Spheroids]Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt powerLaw} method is described by a directive:

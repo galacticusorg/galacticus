@@ -15,136 +15,183 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{benson_orbital_2005} orbital parameter distribution for merging subhalos.
+  !% An implementation of virial orbits using the \cite{benson_orbital_2005} orbital parameter distribution.
 
-module Virial_Orbits_Benson2005
-  !% Implements the \cite{benson_orbital_2005} orbital parameter distribution for merging subhalos.
   use FGSL
-  implicit none
-  private
-  public :: Virial_Orbital_Parameters_Benson2005_Initialize, Virial_Orbital_Parameters_Benson2005_Snapshot,&
-       & Virial_Orbital_Parameters_Benson2005_State_Store, Virial_Orbital_Parameters_Benson2005_State_Retrieve
 
-  type   (fgsl_rng) :: clonedPseudoSequenceObject       , pseudoSequenceObject
-  logical           :: resetSequence             =.true., resetSequenceSnapshot
-  !$omp threadprivate(pseudoSequenceObject,resetSequence,clonedPseudoSequenceObject,resetSequenceSnapshot)
+  !# <virialOrbit name="virialOrbitBenson2005">
+  !#  <description>Virial orbits using the \cite{benson_orbital_2005} orbital parameter distribution.</description>
+  !# </virialOrbit>
+
+  type, extends(virialOrbitClass) :: virialOrbitBenson2005
+     !% A virial orbit class using the \cite{benson_orbital_2005} orbital parameter distribution.
+     private
+     type   (fgsl_rng) :: clonedPseudoSequenceObject, pseudoSequenceObject
+     logical           :: resetSequence             , resetSequenceSnapshot
+   contains
+     procedure :: stateSnapshot             => benson2005StateSnapshot
+     procedure :: stateStore                => benson2005StateStore
+     procedure :: stateRestore              => benson2005StateRestore
+     procedure :: orbit                     => benson2005Orbit
+     procedure :: densityContrastDefinition => benson2005DensityContrastDefinition
+  end type virialOrbitBenson2005
+
+  interface virialOrbitBenson2005
+     !% Constructors for the {\tt benson2005} virial orbit class.
+     module procedure benson2005Constructor
+  end interface virialOrbitBenson2005
+
 contains
 
-  !# <virialOrbitsMethod>
-  !#  <unitName>Virial_Orbital_Parameters_Benson2005_Initialize</unitName>
-  !# </virialOrbitsMethod>
-  subroutine Virial_Orbital_Parameters_Benson2005_Initialize(virialOrbitsMethod,Virial_Orbital_Parameters_Get)
-    !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
+  function benson2005Constructor()
+    !% Generic constructor for the {\tt benson2005} virial orbits class.
+    use Input_Parameters
     implicit none
-    type     (varying_string                      ), intent(in   )          :: virialOrbitsMethod
-    procedure(Virial_Orbital_Parameters_Benson2005), intent(inout), pointer :: Virial_Orbital_Parameters_Get
+    type(virialOrbitBenson2005), target :: benson2005Constructor
 
-    if (virialOrbitsMethod == 'Benson2005') Virial_Orbital_Parameters_Get => Virial_Orbital_Parameters_Benson2005
+    benson2005Constructor%resetSequence=.true.
     return
-  end subroutine Virial_Orbital_Parameters_Benson2005_Initialize
+  end function benson2005Constructor
 
-  function Virial_Orbital_Parameters_Benson2005(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
-    !% Return orbital parameters of a satellite selected at random from the fitting function found by \cite{benson_orbital_2005}.
-    use Pseudo_Random
-    use Kepler_Orbits
-    use Galacticus_Nodes
+  function benson2005Orbit(self,node,host,acceptUnboundOrbits)
+    !% Return benson2005 orbital parameters for a satellite.
     use Dark_Matter_Halo_Scales
     use Galacticus_Error
+    use Galactic_Structure_Enclosed_Masses
+    use Galactic_Structure_Options
+    use Numerical_Constants_Physical
+    use Cosmology_Parameters
+    use Pseudo_Random
     implicit none
-    type            (keplerOrbit       )                                    :: thisOrbit
-    type            (treeNode          )           , intent(inout), pointer :: hostNode                                                                                                                                        , thisNode
-    logical                                        , intent(in   )          :: acceptUnboundOrbits
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    class           (nodeComponentBasic)                          , pointer :: hostBasicComponent                                                                                                                              , thisBasicComponent
-    double precision                    , parameter                         :: pMax                   =1.96797d0                                                                                                               , velocityMax                                                                           =3.0d0
-    double precision                    , parameter                         :: a                   (9)=(/0.390052d+01,0.247973d+01,0.102373d+02,0.683922d+00,0.353953d+00,0.107716d+01,0.509837d+00,0.206204d+00,0.314641d+00/)
-    double precision                    , parameter                         :: EPS_BOUND              =1.0d-4                                                                                                                                               !   Tolerence to ensure that orbits are sufficiently bound.
-    double precision                                                        :: b1                                                                                                                                              , b2                                                                                          , &
-         &                                                                     distributionFunction                                                                                                                            , energyInternal                                                                              , &
-         &                                                                     uniformRandom                                                                                                                                   , velocityRadialInternal                                                                      , &
-         &                                                                     velocityScale                                                                                                                                   , velocityTangentialInternal
-    logical                                                                 :: foundOrbit
+    type            (keplerOrbit               )                         :: benson2005Orbit
+    class           (virialOrbitBenson2005     ), intent(inout)          :: self
+    type            (treeNode                  ), intent(inout), pointer :: host                   , node
+    logical                                     , intent(in   )          :: acceptUnboundOrbits
+    class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
+    class           (nodeComponentBasic        )               , pointer :: hostBasic              , basic
+    class           (virialDensityContrastClass), pointer                :: virialDensityContrast_
+    class           (cosmologyParametersClass  ), pointer                :: cosmologyParameters_
+    double precision                            , parameter              :: pMax                   =1.96797d0                              , &
+         &                                                                  velocityMax            =3.00000d0
+    double precision                            , parameter              :: a                   (9)=[                                        &
+         &                                                                                           0.390052d+01,0.247973d+01,0.102373d+02, &
+         &                                                                                           0.683922d+00,0.353953d+00,0.107716d+01, &
+         &                                                                                           0.509837d+00,0.206204d+00,0.314641d+00  &
+         &                                                                                          ]
+    double precision                            , parameter              :: boundTolerance         =1.0d-4 !  Tolerence to ensure that orbits are sufficiently bound.
+    double precision                                                     :: b1                             , b2                        , &
+         &                                                                  distributionFunction           , energyInternal            , &
+         &                                                                  uniformRandom                  , velocityRadialInternal    , &
+         &                                                                  velocityHost                   , velocityTangentialInternal, &
+         &                                                                  benson2005VirialDensityContrast, radiusHost                , &
+         &                                                                  massHost                       , darkMatterFraction
+    logical                                                              :: foundOrbit
 
     ! Reset the orbit.
-    call thisOrbit%reset()
-    ! Set masses and radius of the orbit.
-    thisBasicComponent   => thisNode%basic     ()
-    hostBasicComponent   => hostNode%basic     ()
+    call benson2005Orbit%reset()
+    ! Get required objects.
+    cosmologyParameters_ => cosmologyParameters()
     darkMatterHaloScale_ => darkMatterHaloScale()
-    call thisOrbit%massesSet(thisBasicComponent%mass(),hostBasicComponent%mass())
-    call thisOrbit%radiusSet(darkMatterHaloScale_%virialRadius(hostNode))
-
+    ! Set masses and radius of the orbit.
+    basic                => node%basic         ()
+    hostBasic            => host%basic         ()
+    ! Find virial density contrast under Benson (2005) definition.
+    darkMatterFraction              =  (1.0d0-cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())
+    virialDensityContrast_          => self                  %densityContrastDefinition(                )
+    benson2005VirialDensityContrast =  virialDensityContrast_%densityContrast          (hostBasic%time())*darkMatterFraction
+    deallocate(virialDensityContrast_)
+    ! Find radius in the host corresponding to the Benson (2005) virial density contrast definition.
+    radiusHost  =Galactic_Structure_Radius_Enclosing_Density(host,densityContrast=benson2005VirialDensityContrast,massType=massTypeDark,haloLoaded=.false.)
+    massHost    =Galactic_Structure_Enclosed_Mass           (host,radiusHost                                     ,massType=massTypeDark,haloLoaded=.false.)/darkMatterFraction
+    velocityHost=sqrt(gravitationalConstantGalacticus*massHost/radiusHost)
+    ! Set basic properties of the orbit.
+    call benson2005Orbit%massesSet(basic%mass(),hostBasic%mass())
+    call benson2005Orbit%radiusSet(radiusHost                   )
     ! Select an orbit.
     foundOrbit=.false.
     do while(.not.foundOrbit)
        ! Select potential radial and tangential velocities.
-       velocityRadialInternal    =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*velocityMax
-       velocityTangentialInternal=Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*velocityMax
+       velocityRadialInternal    =Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)*velocityMax
+       velocityTangentialInternal=Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)*velocityMax
        ! Evaluate distribution function for these parameters.
-       b1=a(3)*exp(-a(4)*(velocityTangentialInternal-a(5))**2)
-       b2=a(6)*exp(-a(7)*(velocityTangentialInternal-a(8))**2)
-       distributionFunction=a(1)*velocityTangentialInternal*exp(-a(2)*((velocityTangentialInternal-a(9))**2.0))*exp(-b1&
-            &*(velocityRadialInternal-b2)**2)
-       if (distributionFunction > pMax) call Galacticus_Error_Report('Virial_Orbital_Parameters_Benson2005','distribution&
-            & function exceeds expected peak value')
-       uniformRandom=pMax*Pseudo_Random_Get(pseudoSequenceObject,resetSequence)
+       b1                  =+a(3)                                                &
+            &               *exp(-a (4)*( velocityTangentialInternal-a (5))**2)
+       b2                  =+a(6)                                                &
+            &               *exp(-a (7)*( velocityTangentialInternal-a (8))**2)
+       distributionFunction=+a(1)                                                &
+            &               *velocityTangentialInternal                          &
+            &               *exp(-a (2)*((velocityTangentialInternal-a (9))**2)) &
+            &               *exp(-b1   *( velocityRadialInternal    -b2   )**2)
+       if (distributionFunction > pMax) call Galacticus_Error_Report('benson2005Orbit','distribution function exceeds expected peak value')
+       uniformRandom=pMax*Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)
        if (uniformRandom <= distributionFunction) then
           foundOrbit=.true.
-          ! If requested, check that the orbit is bound. We require it to have E<-EPS_BOUND to ensure that it is sufficiently
+          ! If requested, check that the orbit is bound. We require it to have E<-boundTolerance to ensure that it is sufficiently
           ! bound that later rounding errors will not make it appear unbound.
           if (.not.acceptUnboundOrbits) then
-             energyInternal=-1.0d0+0.5d0*(velocityRadialInternal**2+velocityTangentialInternal**2)*thisOrbit%specificReducedMass()
-             foundOrbit=(energyInternal < -EPS_BOUND)
+             energyInternal=-1.0d0+0.5d0*(velocityRadialInternal**2+velocityTangentialInternal**2)*benson2005Orbit%specificReducedMass()
+             foundOrbit=(energyInternal < -boundTolerance)
           end if
        end if
+       if (.not.foundOrbit) cycle
+       call benson2005Orbit%velocityRadialSet    (velocityRadialInternal    *velocityHost)
+       call benson2005Orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
+       ! Propagate the orbit to the virial radius under the default density contrast definition.
+       radiusHost=darkMatterHaloScale_%virialRadius(host)
+       if (benson2005Orbit%radiusApocenter() >= radiusHost) then
+          foundOrbit=.true.
+          call benson2005Orbit%propagate(radiusHost,infalling=.true.)
+       end if
     end do
-    velocityScale=darkMatterHaloScale_%virialVelocity(hostNode)
-    call thisOrbit%velocityRadialSet    (velocityRadialInternal    *velocityScale)
-    call thisOrbit%velocityTangentialSet(velocityTangentialInternal*velocityScale)
     return
-  end function Virial_Orbital_Parameters_Benson2005
+  end function benson2005Orbit
 
-  !# <galacticusStateSnapshotTask>
-  !#  <unitName>Virial_Orbital_Parameters_Benson2005_Snapshot</unitName>
-  !# </galacticusStateSnapshotTask>
-  subroutine Virial_Orbital_Parameters_Benson2005_Snapshot
-    !% Store a snapshot of the random number generator internal state.
+  function benson2005DensityContrastDefinition(self)
+    !% Return a virial density contrast object defining that used in the definition of \cite{benson_orbital_2005} virial orbits.
     implicit none
-
-    if (.not.resetSequence) clonedPseudoSequenceObject=FGSL_Rng_Clone(pseudoSequenceObject)
-    resetSequenceSnapshot=resetSequence
+    class(virialDensityContrastClass), pointer       :: benson2005DensityContrastDefinition
+    class(virialOrbitBenson2005     ), intent(inout) :: self
+    
+    allocate(virialDensityContrastSphericalCollapseMatterLambda :: benson2005DensityContrastDefinition)
+    select type (benson2005DensityContrastDefinition)
+    type is (virialDensityContrastSphericalCollapseMatterLambda)
+      benson2005DensityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda()
+    end select
     return
-  end subroutine Virial_Orbital_Parameters_Benson2005_Snapshot
+  end function benson2005DensityContrastDefinition
+  
+  subroutine benson2005StateSnapshot(self)
+    !% Write the tablulation state to file.
+    implicit none
+    class(virialOrbitBenson2005), intent(inout) :: self
 
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Virial_Orbital_Parameters_Benson2005_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Virial_Orbital_Parameters_Benson2005_State_Store(stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
+    if (.not.self%resetSequence) self%clonedPseudoSequenceObject=FGSL_Rng_Clone(self%pseudoSequenceObject)
+    self%resetSequenceSnapshot=self%resetSequence
+    return
+  end subroutine benson2005StateSnapshot
+
+  subroutine benson2005StateStore(self,stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    class  (virialOrbitBenson2005), intent(inout) :: self
+    integer                       , intent(in   ) :: stateFile
+    type   (fgsl_file            ), intent(in   ) :: fgslStateFile
 
-    write (stateFile) resetSequenceSnapshot
-    if (.not.resetSequenceSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
+    write (stateFile) self%resetSequenceSnapshot
+    if (.not.self%resetSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
     return
-  end subroutine Virial_Orbital_Parameters_Benson2005_State_Store
+  end subroutine benson2005StateStore
 
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Virial_Orbital_Parameters_Benson2005_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Virial_Orbital_Parameters_Benson2005_State_Retrieve(stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
+  subroutine benson2005StateRestore(self,stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    class  (virialOrbitBenson2005), intent(inout) :: self
+    integer                       , intent(in   ) :: stateFile
+    type   (fgsl_file            ), intent(in   ) :: fgslStateFile
 
-    read (stateFile) resetSequence
-    if (.not.resetSequence) call Pseudo_Random_Retrieve(pseudoSequenceObject,fgslStateFile)
-    return
-  end subroutine Virial_Orbital_Parameters_Benson2005_State_Retrieve
-
-end module Virial_Orbits_Benson2005
+    read (stateFile) self%resetSequence
+    if (.not.self%resetSequence) call Pseudo_Random_Retrieve(self%pseudoSequenceObject,fgslStateFile)
+   return
+  end subroutine benson2005StateRestore

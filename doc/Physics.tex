@@ -2272,17 +2272,17 @@ Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt infinite}, this meth
 
 The algorithm to be used to determine orbital parameters of substructures when they first enter the virial radius of their host is specified via the {\tt virialOrbitsMethod} parameter.
 
-\subsubsection{Benson (2005)}\label{sec:VirialOrbitsBenson2005}
+\subsubsection{Benson (2005)}\label{phys:virialOrbit:virialOrbitBenson2005}
 
-Selected with {\tt virialOrbitsMethod}$=${\tt Benson2005}, this method selects orbital parameters randomly from the distribution given by \cite{benson_orbital_2005}.
+Selected with {\tt virialOrbitsMethod}$=${\tt Benson2005}, this method selects orbital parameters randomly from the distribution given by \cite{benson_orbital_2005}. If the virial density contrast definition differs from that used by \cite{benson_orbital_2005} then the orbit is assigned based on \cite{benson_orbital_2005}'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
 
-\subsubsection{Fixed}
+\subsubsection{Fixed}\label{phys:virialOrbit:virialOrbitFixed}
 
 Selected with {\tt virialOrbitsMethod}$=${\tt fixed}, this method sets all orbital parameters to fixed values, with $v_{\rm r}=${\tt [virialOrbitsFixedRadialVelocity]}$V_{\rm virial}$ and  $v_\phi=${\tt [virialOrbitsFixedTangentialVelocity]}$V_{\rm virial}$.
 
-\subsubsection{Wetzel (2010)}
+\subsubsection{Wetzel (2010)}\label{phys:virialOrbit:virialOrbitWetzel2010}
 
-Selected with {\tt virialOrbitsMethod}$=${\tt Wetzel2010}, this method selects orbital parameters randomly from the distribution given by \cite{wetzel_orbits_2010}, including the redshift and mass dependence of the distributions. Note that the parameter $R_1$ can be come negative (which is unphysical) for certain regimes of mass and redshift according to the fitting function for $R_1$ given by \cite{wetzel_orbits_2010}. Therefore, we enforce $R_1>0.05$. Similarly, the parameter $C_1$ can become very large in some regimes which is probably an artifact of the fitting function used rather than physically meaningful (and which causes numerical difficulties in evaluating the distribution). We therefore prevent $C_1$ from exceeding $9.999999$\footnote{We use this value rather than $10$ since the GSL $_2F_1$ hypergeomtric function fails in some cases when $C_1\ge 10$.}
+Selected with {\tt virialOrbitsMethod}$=${\tt Wetzel2010}, this method selects orbital parameters randomly from the distribution given by \cite{wetzel_orbits_2010}, including the redshift and mass dependence of the distributions. Note that the parameter $R_1$ can be come negative (which is unphysical) for certain regimes of mass and redshift according to the fitting function for $R_1$ given by \cite{wetzel_orbits_2010}. Therefore, we enforce $R_1>0.05$. Similarly, the parameter $C_1$ can become very large in some regimes which is probably an artifact of the fitting function used rather than physically meaningful (and which causes numerical difficulties in evaluating the distribution). We therefore prevent $C_1$ from exceeding $9.999999$\footnote{We use this value rather than $10$ since the GSL $_2F_1$ hypergeomtric function fails in some cases when $C_1\ge 10$.} If the virial density contrast definition differs from that used by \cite{wetzel_orbits_2010} then the orbit is assigned based on \cite{wetzel_orbits_2010}'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
 
 \subsection{Node Merging}
 
@@ -2530,6 +2530,27 @@ where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine t
  \end{center}
  \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{davidzon_vimos_2013}. Points show the results obtained from data provided by Davidzon, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:DavidzonDepthPolynomial}). Note that at high masses the distance is limited by the imposed upper limit---the polynomial fit does not consider these points.}
  \label{fig:Davidzon2013DepthFit}
+\end{figure}
+
+\subsection{Tomczak et al. (2014)}\label{phys:surveyGeometry:surveyGeometryTomczak2014ZFOURGE}
+
+Selected with {\tt surveyGeometryMethod}$=${\tt tomczak2014ZFOURGE}, this method describes the survey geometry of \cite{tomczak_galaxy_2014}. 
+
+For the angular mask, we make use of {\tt mangle} polygon files constructed by hand using vertices matched approximately to the distribution of galaxies in the survey (positions of which were provided by R.~Quadri; private communication). The solid angle of each mask is computed using the {\tt mangle} {\tt harmonize} command.
+
+To determine the depth as a function of stellar mass, we make use of the tabulated mass completeness limits as a function of redshift for ZFOURGE and NMBS fields provided by R.~Quadri (private communication). These are fit with fourth-order polynomials. Figure~\ref{fig:Tomczak2014DepthFit} shows the resulting relation between stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Dotted lines indicate the tabulated result from ZFOURGE, while the lines show polynomial fits:
+\begin{equation}
+ z_{\rm max}(M_\star) = \left\{ \begin{array}{ll} -114.66+m*(45.901+m*(-6.1617+m*(0.27822))) & \hbox{ZFOURGE fields} \\ -58.483+m*(20.250+m*(-2.3563+m*(0.092705))) & \hbox{NMBS fields} \end{array} \right.
+ \label{eq:TomczakDepthPolynomial}
+\end{equation}
+where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/TomczakZFOURGEMassRedshiftRelation.pdf}
+ \end{center}
+ \caption{The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{tomczak_galaxy_2014}. Points show the results obtained from data provided by Davidzon, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:TomczakDepthPolynomial}).}
+ \label{fig:Tomczak2014DepthFit}
 \end{figure}
 
 \subsection{Baldry et al. (2012)}\label{phys:surveyGeometry:surveyGeometryBaldry2012GAMA}
