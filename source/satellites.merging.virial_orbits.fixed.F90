@@ -24,7 +24,8 @@
   type, extends(virialOrbitClass) :: virialOrbitFixed
      !% A virial orbit class that assumes fixed orbital parameters.
      private
-     double precision :: radialVelocity, tangentialVelocity
+     double precision                 :: radialVelocity       , tangentialVelocity
+     type            (varying_string) :: virialDensityContrast
    contains
      procedure :: orbit                     => fixedOrbit
      procedure :: densityContrastDefinition => fixedDensityContrastDefinition
@@ -40,7 +41,8 @@
   logical          :: fixedInitialized   =.false.
 
   ! Default orbital parameters.
-  double precision :: fixedRadialVelocity        , fixedTangentialVelocity
+  double precision                 :: fixedRadialVelocity       , fixedTangentialVelocity
+  type            (varying_string) :: fixedVirialDensityContrast
 
 contains
 
@@ -76,61 +78,109 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('virialOrbitsFixedTangentialVelocity',fixedTangentialVelocity,defaultValue= 0.75d0)
+          !@ <inputParameter>
+          !@   <name>virialOrbitsVirialDensityContrast</name>
+          !@   <defaultValue>sphericalCollapseMatterLambda</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The virial density contrast to assume for the fixed virial orbits class.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('virialOrbitsVirialDensityContrast',fixedVirialDensityContrast,defaultValue='sphericalCollapseMatterLambda')
           ! Record initialization.
           fixedInitialized=.true.
        end if
        !$omp end critical(virialOrbitFixedInitialize)
     end if
-    fixedDefaultConstructor=fixedConstructor(fixedRadialVelocity,fixedTangentialVelocity)
+    fixedDefaultConstructor=fixedConstructor(fixedRadialVelocity,fixedTangentialVelocity,fixedVirialDensityContrast)
     return
   end function fixedDefaultConstructor
 
-  function fixedConstructor(radialVelocity,tangentialVelocity)
+  function fixedConstructor(radialVelocity,tangentialVelocity,virialDensityContrast)
     !% Generic constructor for the {\tt fixed} virial orbits class.
     use Input_Parameters
     implicit none
     type            (virialOrbitFixed), target        :: fixedConstructor
-    double precision                  , intent(in   ) :: radialVelocity  , tangentialVelocity
+    double precision                  , intent(in   ) :: radialVelocity       , tangentialVelocity
+    type            (varying_string  ), intent(in   ) :: virialDensityContrast
 
-    fixedConstructor%radialVelocity    =radialVelocity
-    fixedConstructor%tangentialVelocity=tangentialVelocity
+    fixedConstructor%radialVelocity       =radialVelocity
+    fixedConstructor%tangentialVelocity   =tangentialVelocity
+    fixedConstructor%virialDensityContrast=virialDensityContrast
     return
   end function fixedConstructor
 
   function fixedOrbit(self,node,host,acceptUnboundOrbits)
     !% Return fixed orbital parameters for a satellite.
+    use Galacticus_Error
+    use Cosmology_Parameters
+    use Galactic_Structure_Enclosed_Masses
+    use Galactic_Structure_Options
+    use Numerical_Constants_Physical
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (keplerOrbit             )                         :: fixedOrbit
-    class           (virialOrbitFixed        ), intent(inout)          :: self
-    type            (treeNode                ), intent(inout), pointer :: host                , node
-    logical                                   , intent(in   )          :: acceptUnboundOrbits
-    class           (nodeComponentBasic      )               , pointer :: hostBasic           , basic
-    type            (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                   :: velocityScale
+    type            (keplerOrbit               )                         :: fixedOrbit
+    class           (virialOrbitFixed          ), intent(inout)          :: self
+    type            (treeNode                  ), intent(inout), pointer :: host                      , node
+    logical                                     , intent(in   )          :: acceptUnboundOrbits
+    class           (nodeComponentBasic        )               , pointer :: hostBasic                 , basic
+    class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
+    class           (virialDensityContrastClass), pointer                :: virialDensityContrast_
+    class           (cosmologyParametersClass  ), pointer                :: cosmologyParameters_
+    double precision                                                     :: velocityHost              , massHost          , &
+         &                                                                  radiusHost                , darkMatterFraction, &
+         &                                                                  fixedVirialDensityContrast
 
     ! Reset the orbit.
     call fixedOrbit%reset()
     ! Get required objects.
+    cosmologyParameters_ => cosmologyParameters()
     darkMatterHaloScale_ => darkMatterHaloScale()
-    ! Set masses and radius of the orbit.
+    ! Find virial density contrast under Benson (2005) definition.
+    darkMatterFraction         =  (1.0d0-cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())
+    virialDensityContrast_     => self                  %densityContrastDefinition(                )
+    fixedVirialDensityContrast =  virialDensityContrast_%densityContrast          (hostBasic%time())*darkMatterFraction
+    deallocate(virialDensityContrast_)
+    ! Find radius in the host corresponding to the Benson (2005) virial density contrast definition.
+    radiusHost  =Galactic_Structure_Radius_Enclosing_Density(host,densityContrast=fixedVirialDensityContrast,massType=massTypeDark,haloLoaded=.false.)
+    massHost    =Galactic_Structure_Enclosed_Mass           (host,radiusHost                                ,massType=massTypeDark,haloLoaded=.false.)/darkMatterFraction
+    velocityHost=sqrt(gravitationalConstantGalacticus*massHost/radiusHost)
+    ! Set basic properties of the orbit.
     basic     => node%basic()
     hostBasic => host%basic()
     call fixedOrbit%massesSet(basic%mass(),hostBasic%mass())
-    call fixedOrbit%radiusSet(darkMatterHaloScale_%virialRadius(host))
-    velocityScale=darkMatterHaloScale_%virialVelocity(host)
-    call fixedOrbit%velocityRadialSet    (self%radialVelocity    *velocityScale)
-    call fixedOrbit%velocityTangentialSet(self%tangentialVelocity*velocityScale)
+    call fixedOrbit%radiusSet(radiusHost)
+    call fixedOrbit%velocityRadialSet    (self%radialVelocity    *velocityHost)
+    call fixedOrbit%velocityTangentialSet(self%tangentialVelocity*velocityHost)
+    ! Propagate the orbit to the virial radius under the default density contrast definition.
+    radiusHost=darkMatterHaloScale_%virialRadius(host)
+    if (fixedOrbit%radiusApocenter() >= radiusHost) then
+       call fixedOrbit%propagate(radiusHost,infalling=.true.)
+    else
+       call Galacticus_Error_Report('fixedOrbit','orbit does not reach halo radius')
+    end if
     return
   end function fixedOrbit
 
   function fixedDensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of fixed virial orbits.
+    use Galacticus_Error
     implicit none
     class(virialDensityContrastClass), pointer       :: fixedDensityContrastDefinition
     class(virialOrbitFixed          ), intent(inout) :: self
     
-    fixedDensityContrastDefinition => virialDensityContrast()
+    select case (char(self%virialDensityContrast))
+    case ('sphericalCollapseMatterLambda')
+       allocate(virialDensityContrastSphericalCollapseMatterLambda :: fixedDensityContrastDefinition)
+       select type (fixedDensityContrastDefinition)
+       type is (virialDensityContrastSphericalCollapseMatterLambda)
+          fixedDensityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda()
+       end select
+    case default
+       call Galacticus_Error_Report('fixedDensityContrastDefinition','only "sphericalCollapseMatterLambda" supported')
+    end select
     return
   end function fixedDensityContrastDefinition
   
