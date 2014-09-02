@@ -482,7 +482,7 @@ Currently defined accretion disk methods are:
 
 \subsubsection{Analysis}
 
-Additional methods foron-the-fly analysis of merger trees can be added using the {\tt mergerTreeAnalysisTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the mass distributions method is described by a directive:
+Additional methods for on-the-fly analysis of merger trees can be added using the {\tt mergerTreeAnalysisTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the mass distributions method is described by a directive:
 \begin{verbatim}
  !# <mergerTreeAnalysisTask>
  !#  <unitName>Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins</unitName>
@@ -504,7 +504,7 @@ Here, {\tt Galacticus\_Output\_Analysis\_Mass\_Dpndnt\_Sz\_Dstrbtins} is the nam
 \end{verbatim}
 This function will be called once for each node in each tree being output. The function is passed the merger tree object as {\tt thisTree}, along with a pointer to the node to be analyzed as {\tt thisNode}. Additionally, the current output number is passed as {\tt iOutput}. Finally, a list of analyses that were requested (by user input) to be performed is given in the {\tt mergerTreeAnalyses} array. The function should check if one or more of the entries in {\tt mergerTreeanalyses} correspond to analyses that it performs. (Note that this need only be done on the first call to this function---the values of {\tt mergerTreeAnalyses} will not change between calls.) If an analysis is matched in this way it should be performed. Typically, an analysis function might accumulate the results of analysis and then finalize and output them prior to completion of the \glc\ model through the use of a {\tt hdfPreCloseTask} (see \S\ref{sec:HDFFileClose}).
 
-Currently defined merger tree analysis methods are:
+Currently defined merger tree analysis methods are (see \S\ref{sec:OnTheFlyAnalysis}):
 \begin{description}
  \item [mass functions] Constructs mass functions for a variety of different surveys. Currently supported analysis names are: {\tt sdssStellarMassFunctionZ0.07}, {\tt alfalfaHiMassFunctionZ0.00}, {\tt primusStellarMassFunctionZ0.100}, {\tt primusStellarMassFunctionZ0.250}, {\tt primusStellarMassFunctionZ0.350}, {\tt primusStellarMassFunctionZ0.450}, {\tt primusStellarMassFunctionZ0.575}, {\tt primusStellarMassFunctionZ0.725}, and {\tt primusStellarMassFunctionZ0.900}. Each such analysis is defined internally to this module through the appropriate redshift, binning, random and systematic errors, and arbitrary mapping of component masses into observed masses. The covariance matrix of the mass function is also computed (see \S\ref{sec:AnalysisALFALFAHIMassFunction} for details).
  \item [mass-dependent size distributions] Constructs a two-dimensional histogram of galaxy sizes in bins of stellar mass. Currently supported analyses are {\tt sdssSizeFunctionZ0.07}. Each such analysis is defined internally to this module through the appropriate redshift, binning, random and systematic errors, and arbitrary mapping of component masses/radii into observed masses/radii. The covariance matrix of the size function is also computed (see \S\ref{sec:SDSSLateTypeGalaxySizeDistribution} for details).
@@ -1591,6 +1591,7 @@ Currently defined critical overdensity methods are:
 \begin{description}
  \item [{\tt sphericalTopHat}] The critical overdensity is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
  \item [{\tt Kitayama-Suto1996}] The critical overdensity is computed using the fitting formula of \cite{kitayama_semianalytic_1996}, and is therefore valid only for flat cosmological models.
+ \item [{\tt fixed}] The critical overdensity is set to a fixed number divided by the linear growth factor.
 \end{description}
 
 \subsubsection{Critical Overdensity for Halo Collapse: Mass Scaling}
@@ -3722,49 +3723,6 @@ Currently defined satellite tidal field methods are:
  \item [\hyperlink{satellites.tidal_fields.spherical_symmetry.F90:satellites_tidal_fields_spherical_symmetry}{{\tt sphericalSymmetry}}] Computes the tidal field assuming a spherically-symmetric host halo.
 \end{description}
 
-\subsubsection{Satellite Virial Orbits}\label{sec:SatelliteVirialOrbits}
-
-Additional methods for the satellite virial orbits (i.e. orbital parameters at virial radius crossing) can be added using the {\tt virialOrbitsMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Benson2005} method is described by a directive:
-\begin{verbatim}
-  !# <virialOrbitsMethod>
-  !#  <unitName>Virial_Orbital_Parameters_Benson2005_Initialize</unitName>
-  !# </virialOrbitsMethod>
-\end{verbatim}
-Here, {\tt Virial\_Orbital\_Parameters\_Benson2005\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(virialOrbitsMethod,Virial_Orbital_Parameters_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: virialOrbitsMethod
-    procedure(),          pointer, intent(inout) :: Virial_Orbital_Parameters_Get
-    
-    if (virialOrbitsMethod.eq.'myMethod') Virial_Orbital_Parameters_Get => My_Method_Procedure
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt virialOrbitsMethod} input parameter. The procedure pointer {\tt Virial\_Orbital\_Parameters\_Get} must be set to point to a subroutine which returns orbital parameters as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The orbital parameter subroutine must have the form:
-\begin{verbatim}
-  function Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
-    implicit none
-    type(keplerOrbit)                         :: thisOrbit
-    type(treeNode),   intent(inout), pointer  :: thisNode,hostNode
-    logical,          intent(in)              :: acceptUnboundOrbits
-    .
-    .
-    .
-    return
-  end subroutine Virial_Orbital_Parameters
-\end{verbatim}
-The subroutine must return a fully-defined Kepler orbit object (i.e. the orbit must have at least three parameters defined in addition to the node masses) initialized to the orbital parameters for {\tt thisNode} orbitting in {\tt hostNode} at the point of virial radius crossing. If {\tt acceptUnboundOrbits} is true, then unbound orbits may be returned, otherwise, the routine must ensure that the returned orbit is bound. Velocities should be returned in units of km/s, lengthscales in units of Mpc and masses in $M_\odot$. Note that the usual conventions of the {\tt keplerOrbit} object should be followed, namely the that orbitting bodies are treated as point masses, with the host being stationary and the usual reduced mass used.
-
-Currently defined satellite virial orbit methods are:
-\begin{description}
- \item [\hyperlink{satellites.merging.virial_orbits.Benson2005.F90:virial_orbits_benson2005:virial_orbital_parameters_benson2005}{{\tt Benson2005}}] The orbital parameters are select from the distribution found by \cite{benson_orbital_2005}.
- \item [\hyperlink{satellites.merging.virial_orbits.Wetzel2010.F90:virial_orbits_wetzel2010:virial_orbital_parameters_wetzel2010}{{\tt Wetzel2010}}] The orbital parameters are select from the distribution found by \cite{wetzel_orbits_2010}.
- \item [\hyperlink{satellites.merging.virial_orbits.fixed.F90:virial_orbits_fixed:virial_orbital_parameters_fixed}{{\tt fixed}}] The orbital parameters are set to fixed values, with $v_{\rm r}=${\tt [virialOrbitsFixedRadialVelocity]}$V_{\rm virial}$ and  $v_\phi=${\tt [virialOrbitsFixedTangentialVelocity]}$V_{\rm virial}$.
-\end{description}
-
 \subsubsection{Star Formation Feedback in Disks/Spheroids}
 
 Additional methods for computing feedback from star formation in disks/spheroids can be added using the {\tt starFormationFeedback[Disks|Spheroids]Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt powerLaw} method is described by a directive:
@@ -4430,99 +4388,6 @@ Currently defined ram pressure mass loss rate methods are:
 \begin{description}
  \item [\hyperlink{tidal_stripping.mass_loss_rate.disks.simple.F90:tidal_stripping_mass_loss_rate_disks_simple:tidal_stripping_mass_loss_rate_disk_simple}{{\tt simple}}] The mass loss rate scales in proportion to the ratio of tidal and gravitational restoring forces;
  \item [\hyperlink{tidal_stripping.mass_loss_rate.disks.null.F90:tidal_stripping_mass_loss_rate_disks_null:tidal_stripping_mass_loss_rate_disk_null}{{\tt null}}] The mass loss rate is assumed to be always zero.
-\end{description}
-
-
-\subsubsection{Survey Geometry}
-
-Additional methods for survey geometries can be added using the {\tt surveyGeometryMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Martin-2010-ALFALFA} method is described by a directive:
-\begin{verbatim}
-  !# <surveyGeometryMethod>
-  !#  <unitName>Geometry_Surveys_MARTIN_2010_ALFALFA_Initialize</unitName>
-  !# </surveyGeometryMethod>
-\end{verbatim}
-Here, {\tt Geometry\_Surveys\_MARTIN\_2010\_ALFALFA\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(surveyGeometryMethod,,Geometry_Survey_Distance_Maximum_Get&
-       &,Geometry_Survey_Solid_Angle_Get ,Geometry_Survey_Volume_Maximum_Get,Geometry_Survey_Window_Functions_Get)
-    implicit none
-    type     (varying_string  ),          intent(in   ) :: surveyGeometryMethod
-    procedure(double precision), pointer, intent(inout) :: Geometry_Survey_Distance_Maximum_Get,Geometry_Survey_Solid_Angle_Get &
-         &,Geometry_Survey_Volume_Maximum_Get
-    procedure(                ), pointer, intent(inout) :: Geometry_Survey_Window_Functions_Get
-
-    if (surveyGeometryMethod == 'myMethod') then
-       Geometry_Survey_Distance_Maximum_Get => My_Geometry_Survey_Distance_Maximum
-       Geometry_Survey_Solid_Angle_Get      => My_Geometry_Survey_Solid_Angle
-       Geometry_Survey_Volume_Maximum_Get   => My_Geometry_Survey_Volume_Maximum
-       Geometry_Survey_Window_Functions_Get => My_Geometry_Survey_Window_Functions
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt surveyGeometryMethod} input parameter. The procedure pointers  must be set to point to functions which return properties of the survey as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The maximum distance function must have the form:
-\begin{verbatim}
-   double precision function Geometry_Survey_Distance_Maximum(mass)
-    implicit none
-    double precision, intent(in  ) :: mass
-    .
-    .
-    .
-    return
-   end function Geometry_Survey_Distance_Maximum 
-\end{verbatim}
-and must return the maximum distance (in Mpc) at which a galaxy of the given {\tt mass} would be included in the survey.
-
-The solid angle function must have the form:
-\begin{verbatim}
-   double precision function Geometry_Survey_Solid_Angle()
-    implicit none
-    .
-    .
-    .
-    return
-   end function Geometry_Survey_Solid_Angle_
-\end{verbatim}
-and should return the solid angle (in steradians) of the survey angular mask.
-
-The maximum volume function must have the form:
-\begin{verbatim}
-   double precision function Geometry_Survey_Volume_Maximum(mass)
-    implicit none
-    double precision, intent(in) :: mass
-    .
-    .
-    .
-    return
-   end function Geometry_Survey_Volume_Maximum 
-\end{verbatim}
-and should return the maximum volume (in Mpc$^3$) within which a galaxy of the given {\tt mass} could be found in the survey.
-
-The window function function must have the form:
-\begin{verbatim}
-   double precision function Geometry_Survey_Window_Functions(mass1,mass2,boxLength,gridCount,windowFunction1,windowFunction2)
-    implicit none
-    double precision         , intent(in   )                                           :: mass1,mass2
-    integer                  , intent(in   )                                           :: gridCount
-    double precision         , intent(  out)                                           :: boxLength
-    complex(c_double_complex), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
-    .
-    .
-    .
-    return
-   end function Geometry_Survey_Window_Functions 
-\end{verbatim}
-and should compute the Fourier space window functions corresponding to the survey volume within which galaxies of masses {\tt mass1} and {\tt mass2} could be found. The window functions should be computed on a Cartesian grid, containing {\tt gridCount} elements in each dimension. The chosen length of the box within which the survey geometry was embedded should be returned in the {\tt boxLength} variable.
-
-Currently defined type Ia supernovae methods are:
-\begin{description}
- \item [{\tt Martin-2010-ALFALFA}] Computes the survey geometry of the survey of \cite{martin_arecibo_2010}.
- \item [{\tt Li-White-2009-SDSS}] Computes the survey geometry of the survey of \cite{li_distribution_2009}.
 \end{description}
 
 \subsubsection{Tree Timing}
