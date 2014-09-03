@@ -115,11 +115,8 @@ contains
   function fixedOrbit(self,node,host,acceptUnboundOrbits)
     !% Return fixed orbital parameters for a satellite.
     use Galacticus_Error
-    use Cosmology_Parameters
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
     use Dark_Matter_Halo_Scales
+    use Dark_Matter_Profile_Mass_Definitions
     implicit none
     type            (keplerOrbit               )                         :: fixedOrbit
     class           (virialOrbitFixed          ), intent(inout)          :: self
@@ -128,28 +125,21 @@ contains
     class           (nodeComponentBasic        )               , pointer :: hostBasic                 , basic
     class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
     class           (virialDensityContrastClass), pointer                :: virialDensityContrast_
-    class           (cosmologyParametersClass  ), pointer                :: cosmologyParameters_
     double precision                                                     :: velocityHost              , massHost          , &
-         &                                                                  radiusHost                , darkMatterFraction, &
-         &                                                                  fixedVirialDensityContrast
+         &                                                                  radiusHost
 
     ! Reset the orbit.
     call fixedOrbit%reset()
     ! Get required objects.
-    cosmologyParameters_ => cosmologyParameters()
     darkMatterHaloScale_ => darkMatterHaloScale()
-    ! Find virial density contrast under Benson (2005) definition.
-    darkMatterFraction         =  (1.0d0-cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())
-    virialDensityContrast_     => self                  %densityContrastDefinition(                )
-    fixedVirialDensityContrast =  virialDensityContrast_%densityContrast          (hostBasic%time())*darkMatterFraction
+    basic                => node%basic()
+    hostBasic            => host%basic()
+    ! Find virial density contrast under our definition.
+    virialDensityContrast_ => self%densityContrastDefinition()
+    ! Find mass, radius, and velocity in the host corresponding to the our virial density contrast definition.
+    massHost=Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%time()),radiusHost,velocityHost)
     deallocate(virialDensityContrast_)
-    ! Find radius in the host corresponding to the Benson (2005) virial density contrast definition.
-    radiusHost  =Galactic_Structure_Radius_Enclosing_Density(host,densityContrast=fixedVirialDensityContrast,massType=massTypeDark,haloLoaded=.false.)
-    massHost    =Galactic_Structure_Enclosed_Mass           (host,radiusHost                                ,massType=massTypeDark,haloLoaded=.false.)/darkMatterFraction
-    velocityHost=sqrt(gravitationalConstantGalacticus*massHost/radiusHost)
     ! Set basic properties of the orbit.
-    basic     => node%basic()
-    hostBasic => host%basic()
     call fixedOrbit%massesSet(basic%mass(),hostBasic%mass())
     call fixedOrbit%radiusSet(radiusHost)
     call fixedOrbit%velocityRadialSet    (self%radialVelocity    *velocityHost)

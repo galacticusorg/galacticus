@@ -55,12 +55,9 @@ contains
 
   function benson2005Orbit(self,node,host,acceptUnboundOrbits)
     !% Return benson2005 orbital parameters for a satellite.
+    use Dark_Matter_Profile_Mass_Definitions
     use Dark_Matter_Halo_Scales
     use Galacticus_Error
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
-    use Cosmology_Parameters
     use Pseudo_Random
     implicit none
     type            (keplerOrbit               )                         :: benson2005Orbit
@@ -70,7 +67,6 @@ contains
     class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
     class           (nodeComponentBasic        )               , pointer :: hostBasic              , basic
     class           (virialDensityContrastClass), pointer                :: virialDensityContrast_
-    class           (cosmologyParametersClass  ), pointer                :: cosmologyParameters_
     double precision                            , parameter              :: pMax                   =1.96797d0                              , &
          &                                                                  velocityMax            =3.00000d0
     double precision                            , parameter              :: a                   (9)=[                                        &
@@ -83,27 +79,21 @@ contains
          &                                                                  distributionFunction           , energyInternal            , &
          &                                                                  uniformRandom                  , velocityRadialInternal    , &
          &                                                                  velocityHost                   , velocityTangentialInternal, &
-         &                                                                  benson2005VirialDensityContrast, radiusHost                , &
-         &                                                                  massHost                       , darkMatterFraction
+         &                                                                  massHost                       , radiusHost
     logical                                                              :: foundOrbit
 
     ! Reset the orbit.
     call benson2005Orbit%reset()
     ! Get required objects.
-    cosmologyParameters_ => cosmologyParameters()
     darkMatterHaloScale_ => darkMatterHaloScale()
-    ! Set masses and radius of the orbit.
+    ! Get basic components.
     basic                => node%basic         ()
     hostBasic            => host%basic         ()
     ! Find virial density contrast under Benson (2005) definition.
-    darkMatterFraction              =  (1.0d0-cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())
-    virialDensityContrast_          => self                  %densityContrastDefinition(                )
-    benson2005VirialDensityContrast =  virialDensityContrast_%densityContrast          (hostBasic%time())*darkMatterFraction
+    virialDensityContrast_ => self %densityContrastDefinition()
+    ! Find mass, radius, and velocity in the host corresponding to the Benson (2005) virial density contrast definition.
+    massHost=Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%time()),radiusHost,velocityHost)
     deallocate(virialDensityContrast_)
-    ! Find radius in the host corresponding to the Benson (2005) virial density contrast definition.
-    radiusHost  =Galactic_Structure_Radius_Enclosing_Density(host,densityContrast=benson2005VirialDensityContrast,massType=massTypeDark,haloLoaded=.false.)
-    massHost    =Galactic_Structure_Enclosed_Mass           (host,radiusHost                                     ,massType=massTypeDark,haloLoaded=.false.)/darkMatterFraction
-    velocityHost=sqrt(gravitationalConstantGalacticus*massHost/radiusHost)
     ! Set basic properties of the orbit.
     call benson2005Orbit%massesSet(basic%mass(),hostBasic%mass())
     call benson2005Orbit%radiusSet(radiusHost                   )
