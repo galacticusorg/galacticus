@@ -114,12 +114,9 @@ contains
 
   function wetzel2010Orbit(self,node,host,acceptUnboundOrbits)
     !% Return wetzel2010 orbital parameters for a satellite.
+    use Dark_Matter_Profile_Mass_Definitions
     use Dark_Matter_Halo_Scales
     use Galacticus_Error
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
-    use Cosmology_Parameters
     use Pseudo_Random
     use Critical_Overdensity
     use Cosmology_Functions
@@ -131,7 +128,6 @@ contains
     class           (nodeComponentBasic        )               , pointer :: hostBasic             , basic
     class           (cosmologyFunctionsClass   )               , pointer :: cosmologyFunctions_
     class           (virialDensityContrastClass), pointer                :: virialDensityContrast_
-    class           (cosmologyParametersClass  ), pointer                :: cosmologyParameters_
     class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
     double precision                            , parameter              :: circularityMaximum       =1.0d0, circularityMinimum    =0.0d0
     double precision                            , parameter              :: redshiftMaximum          =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
@@ -140,29 +136,23 @@ contains
          &                                                                  expansionFactor                , g1                                                  , &
          &                                                                  massCharacteristic             , pericentricRadius                                   , &
          &                                                                  probabilityTotal               , radialScale                                         , &
-         &                                                                  timeNode                       , wetzel2010VirialDensityContrast                     , &
-         &                                                                  radiusHost                     , massHost                                            , &
-         &                                                                  velocityHost                   , darkMatterFraction
+         &                                                                  timeNode                       , velocityHost                                        , &
+         &                                                                  radiusHost                     , massHost
     logical                                                              :: foundOrbit
 
     ! Reset the orbit.
     call wetzel2010Orbit%reset()
     ! Get required objects.
-    cosmologyParameters_ => cosmologyParameters()
     cosmologyFunctions_  => cosmologyFunctions ()
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Set masses and radius of the orbit.
     basic                => node%basic         ()
     hostBasic            => host%basic         ()
     ! Find virial density contrast under Wetzel (2010) definition.
-    darkMatterFraction              =  (1.0d0-cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())
     virialDensityContrast_          => self                  %densityContrastDefinition(                )
-    wetzel2010VirialDensityContrast =  virialDensityContrast_%densityContrast          (hostBasic%time())*darkMatterFraction
+    ! Find mass, radius, and velocity in the host corresponding to the Wetzel (2010) virial density contrast definition.
+    massHost=Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%time()),radiusHost,velocityHost)
     deallocate(virialDensityContrast_)
-    ! Find radius in the host corresponding to the Wetzel (2010) virial density contrast definition.
-    radiusHost  =Galactic_Structure_Radius_Enclosing_Density(host,densityContrast=wetzel2010VirialDensityContrast,massType=massTypeDark,haloLoaded=.false.)
-    massHost    =Galactic_Structure_Enclosed_Mass           (host,radiusHost                                     ,massType=massTypeDark,haloLoaded=.false.)/darkMatterFraction
-    velocityHost=sqrt(gravitationalConstantGalacticus*massHost/radiusHost)
     ! Set basic properties of the orbit.
     call wetzel2010Orbit%massesSet(basic%mass(),hostBasic%mass())
     call wetzel2010Orbit%radiusSet(radiusHost                   )

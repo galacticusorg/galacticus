@@ -1944,7 +1944,8 @@ contains
     class           (nodeComponentPosition          ), pointer                                        :: childPositionComponent             , hostPositionComponent       , & 
          &                                                                                               satellitePositionComponent         , thisPositionComponent           
     class           (nodeComponentSatellite         ), pointer                                        :: satelliteSatelliteComponent        , thisSatelliteComponent          
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass       ), pointer                                        :: darkMatterHaloScale_
+    class           (virialOrbitClass               ), pointer                                        :: virialOrbit_
     type            (keplerOrbit                    )                                                 :: thisOrbit                                                            
     integer                                                                                           :: iNode                              , thispass
     integer         (kind=kind_int8                 )                                                 :: historyCount                       , iIsolatedNode                   
@@ -2118,6 +2119,7 @@ contains
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Set orbits.
     if (mergerTreeReadPresetOrbits) then
+       virialOrbit_ => virialOrbit()
        iIsolatedNode=0
        do iNode=1,size(nodes)
          if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeIsUnreachable) then
@@ -2155,7 +2157,7 @@ contains
                 if (Vector_Magnitude(relativePosition) == 0.0d0) then
                    if (mergerTreeReadPresetOrbitsSetAll) then
                       ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
-                      thisOrbit=Virial_Orbital_Parameters(satelliteNode,hostNode,acceptUnboundOrbits)
+                      thisOrbit=virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
                       call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
                    else 
                       message='merging halos ['
@@ -2182,7 +2184,7 @@ contains
                       call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
                    else if (mergerTreeReadPresetOrbitsSetAll) then
                       ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
-                      thisOrbit=Virial_Orbital_Parameters(satelliteNode,hostNode,acceptUnboundOrbits)
+                      thisOrbit=virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
                       call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
                    else if (mergerTreeReadPresetOrbitsAssertAllSet) then
                       message='virial orbit could not be set for node '
