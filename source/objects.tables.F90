@@ -577,6 +577,7 @@ contains
     call Alloc_Array(self%yv,[xCount,tableCountActual])
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%inverseDeltaX=1.0d0/(self%xv(2)-self%xv(1))
+    self%    xPrevious=-1.0d0
     self%tablePrevious=-1
     ! Set extrapolation type.
     if (present(extrapolationType)) then
@@ -818,7 +819,7 @@ contains
                   &            parameterPointer                     , &
                   &            integrandFunction                    , &
                   &            integrationWorkspace                 , &
-                  &            toleranceRelative   =1.0d-3          , &
+                  &            toleranceRelative   =1.0d-4          , &
                   &            reset               =integrationReset  &
                   &           )
              call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -830,7 +831,7 @@ contains
                   &            parameterPointer                     , &
                   &            integrandFunction                    , &
                   &            integrationWorkspace                 , &
-                  &            toleranceRelative   =1.0d-3          , &
+                  &            toleranceRelative   =1.0d-4          , &
                   &            reset               =integrationReset  &
                   &           )
              call Integrate_Done(integrandFunction,integrationWorkspace)
