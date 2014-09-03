@@ -444,7 +444,7 @@ contains
        if (.not.mask(self%rank())) maskedArray=0
        activeCount=count(mask)
     end if
-    call MPI_AllReduce(maskedArray,mpiSumArrayDouble,size(array),MPI_Double,MPI_Sum,MPI_Comm_World,iError)
+    call MPI_AllReduce(maskedArray,mpiSumArrayDouble,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiSumArrayDouble','MPI all reduce failed')
     return
   end function mpiSumArrayDouble
