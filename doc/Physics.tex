@@ -2,11 +2,11 @@
 
 \section{Accretion of Gas into Halos}\label{sec:AccretionBaryonic}\index{accretion!baryonic}
 
-The accretion rate of gas from the \gls{igm} into a dark matter halo is expected to depend on (at least) the rate at which that halo mass is growing, the depth of its potential well and the thermodynamical properties of the accreting gas. \glc\ implements the following calculations of gas accretion from the \gls{igm}, which can be selected via the {\tt accretionHalosMethod} input parameter.
+The accretion rate of gas from the \gls{igm} into a dark matter halo is expected to depend on (at least) the rate at which that halo mass is growing, the depth of its potential well and the thermodynamical properties of the accreting gas. \glc\ implements the following calculations of gas accretion from the \gls{igm}, which can be selected via the {\tt accretionHaloMethod} input parameter.
 
-\subsection{Simple Method}
+\subsection{Simple}\label{phys:accretionHalo:accretionHaloSimple}
 
-Selected using {\tt accretionHalosMethod}$=${\tt simple}, this method sets the accretion rate of baryons into a halo to be:
+Selected using {\tt accretionHaloMethod}$=${\tt simple}, this method sets the accretion rate of baryons into a halo to be:
 \begin{equation}
  \dot{M}_{\rm accretion} = \left\{ \begin{array}{ll} (\Omega_{\rm b}/\Omega_{\rm M}) \dot{M}_{\rm halo} & \hbox{ if } V_{\rm virial} > V_{\rm reionization} \hbox{ or } z > z_{\rm reionization} \\ 0 & \hbox{ otherwise,}\end{array} \right.
 \end{equation}
@@ -17,9 +17,25 @@ Note that, if $\dot{M}_{\rm halo} < 0$ then negative accretion rates of gas into
 
 By default, gas is accreted whenever the halo is growing in total mass. However, setting {\tt [accretionHalosSimpleAccreteNewGrowthOnly]}$=${\tt true} causes accretion to occur only if the node mass is growing and exceeds the previous maximum node mass achieved along this branch of the merger tree. This requires use of a basic component which tracks the maximum mass along the branch (i.e. the {\tt massMaximum} property).
 
-\subsection{Null Method}
+\subsection{Null}\label{phys:accretionHalo:accretionHaloNull}
 
-Selected using {\tt accretionHalosMethod}$=${\tt null}, this method sets the accretion rate of baryons into a halo to be zero always.
+Selected using {\tt accretionHaloMethod}$=${\tt null}, this method sets the accretion rate of baryons into a halo to be zero always.
+
+\subsection{Cold Mode}\label{phys:accretionHalo:accretionHaloColdMode}
+
+Selected using {\tt accretionHaloMethod}$=${\tt coldMode}, this class extends the {\tt simple} class by dividing the accretion into hot and cold mode components. The cold mode fraction follows the approximation introduced by \cite{benson_cold_2010}, namely:
+\begin{equation}
+f_{\rm cold}=(1+r^{1/\delta})^{-1},
+\end{equation}
+where $\delta=${\tt [accretionColdModeShockStabilityTransitionWidth]}, $r = \epsilon_{\rm crit}/\epsilon$, and
+\begin{equation}
+\epsilon = r_{\rm s} \Lambda / \rho_{\rm s} v_{\rm s}^3,
+\end{equation}
+where $r_{\rm s}$ is the accretion shock radius, $\Lambda$ is the post-shock cooling function, $\rho_{\rm s}$ is the pre-shock density, $v_{\rm s}$ is the pre-shock velocity, and $\epsilon_{\rm crit}=${\tt [accretionColdModeShockStabilityThreshold]}. The pre-shock radius is set equal to the halo virial radius, the pre-shock velocity is set equal to the halo virial velocity, while the pre-shock density is given by
+\begin{equation}
+\rho_{\rm s} = {\gamma - 1 \over \gamma + 1} { 3 \over 4 \pi } { \Omega_{\rm b} \over \Omega_{\rm m} } {M \over r_{\rm s}^3} \left[ 1 + {(\alphga + 3) (10 + 9 \pi) \over 4} \right]^{-1},
+\end{equation}
+where $M$ is the total halo mass, $\gamma(=5/3)$ is the adiabatic index of the gas, and $\alpha$ is the exponent of the initial power-law density perturbation ($\alpha=0$ is assumed). The post-shock density and temperature are found assuming the strong-shock limit.
 
 \section{Cosmology Functions}\index{cosmology}
 
