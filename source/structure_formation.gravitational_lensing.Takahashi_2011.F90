@@ -78,10 +78,20 @@ contains
     double precision                                   , intent(in   ) :: magnification, redshift, &
          &                                                                scaleSource
 
-    ! Construct the distribution.
-    call self%lensingDistributionConstruct(redshift,scaleSource)
-    ! Evaluate the magnification PDF (eqn. 11 of Takahashi et al.).
-    takahashi2011MagnificationPDF=takahashi2011MagnificationDistribution(self,magnification)
+    ! Handle redshift zero case.
+    if (redshift <= 0.0d0) then
+       if (magnification == 1.0d0) then
+          takahashi2011MagnificationPDF=1.0d0
+       else
+          takahashi2011MagnificationPDF=0.0d0
+       end if
+       return
+    else
+       ! Construct the distribution.
+       call self%lensingDistributionConstruct(redshift,scaleSource)
+       ! Evaluate the magnification PDF (eqn. 11 of Takahashi et al.).
+       takahashi2011MagnificationPDF=takahashi2011MagnificationDistribution(self,magnification)
+    end if
     return
   end function takahashi2011MagnificationPDF
   
@@ -104,37 +114,47 @@ contains
     type            (c_ptr                            )                :: parameterPointer
     logical                                                            :: integrationReset
 
-    ! Construct the distribution.
-    call self%lensingDistributionConstruct(redshift,scaleSource)
-    ! Tabulate the cumulative distribution function if table does not yet exist.
-    if (.not.self%cdfInitialized) then
-       call self%magnificationCDFTable%create(magnificationMinimum,magnificationMaximum,magnificationCount,tableCount=1)
-       do i=1,magnificationCount
-          integrationReset=.true.
-          call self%magnificationCDFTable%populate(                                           &
-               &                                   Integrate(                                 &
-               &                                             0.0d0                          , &
-               &                                             self%magnificationCDFTable%x(i), &
-               &                                             magnificationPDFIntegrand      , &
-               &                                             parameterPointer               , &
-               &                                             integrandFunction              , &
-               &                                             integrationWorkspace           , &
-               &                                             toleranceRelative=1.0d-3       , &
-               &                                             reset=integrationReset           &
-               &                                            )                               , &
-               &                                                                          i   &
-               &                                  )
-       end do
-       call Integrate_Done(integrandFunction,integrationWorkspace)
-       self%cdfInitialized=.true.
-    end if
-    ! Interpolate in the tabulated cumulative distribution function.
-    if      (magnification < magnificationMinimum) then
-       takahashi2011MagnificationCDF=0.0d0
-    else if (magnification > magnificationMaximum) then
-       takahashi2011MagnificationCDF=1.0d0
+    ! Handle redshift zero case.
+    if (redshift <= 0.0d0) then
+       if (magnification < 1.0d0) then
+          takahashi2011MagnificationCDF=0.0d0
+       else
+          takahashi2011MagnificationCDF=1.0d0
+       end if
+       return
     else
-       takahashi2011MagnificationCDF=self%magnificationCDFTable%interpolate(magnification)
+       ! Construct the distribution.
+       call self%lensingDistributionConstruct(redshift,scaleSource)
+       ! Tabulate the cumulative distribution function if table does not yet exist.
+       if (.not.self%cdfInitialized) then
+          call self%magnificationCDFTable%create(magnificationMinimum,magnificationMaximum,magnificationCount,tableCount=1)
+          do i=1,magnificationCount
+             integrationReset=.true.
+             call self%magnificationCDFTable%populate(                                           &
+                  &                                   Integrate(                                 &
+                  &                                             0.0d0                          , &
+                  &                                             self%magnificationCDFTable%x(i), &
+                  &                                             magnificationPDFIntegrand      , &
+                  &                                             parameterPointer               , &
+                  &                                             integrandFunction              , &
+                  &                                             integrationWorkspace           , &
+                  &                                             toleranceRelative=1.0d-3       , &
+                  &                                             reset=integrationReset           &
+                  &                                            )                               , &
+                  &                                                                          i   &
+                  &                                  )
+          end do
+          call Integrate_Done(integrandFunction,integrationWorkspace)
+          self%cdfInitialized=.true.
+       end if
+       ! Interpolate in the tabulated cumulative distribution function.
+       if      (magnification < magnificationMinimum) then
+          takahashi2011MagnificationCDF=0.0d0
+       else if (magnification > magnificationMaximum) then
+          takahashi2011MagnificationCDF=1.0d0
+       else
+          takahashi2011MagnificationCDF=self%magnificationCDFTable%interpolate(magnification)
+       end if
     end if
     return
 
