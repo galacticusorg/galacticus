@@ -195,7 +195,7 @@
 
   <!-- Halo accretion options -->
   <parameter>
-    <name>accretionHalosMethod</name>
+    <name>accretionHaloMethod</name>
     <value>simple</value>
   </parameter>
   <parameter>
@@ -539,8 +539,8 @@
 
   <!-- Galaxy merger options -->
   <parameter>
-    <name>virialOrbitsMethod</name>
-    <value>Benson2005</value>
+    <name>virialOrbitMethod</name>
+    <value>benson2005</value>
   </parameter>
   <parameter>
     <name>satelliteMergingTimescalesMethod</name>
