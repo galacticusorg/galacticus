@@ -9,6 +9,7 @@ The accretion rate of gas from the \gls{igm} into a dark matter halo is expected
 Selected using {\tt accretionHaloMethod}$=${\tt simple}, this method sets the accretion rate of baryons into a halo to be:
 \begin{equation}
  \dot{M}_{\rm accretion} = \left\{ \begin{array}{ll} (\Omega_{\rm b}/\Omega_{\rm M}) \dot{M}_{\rm halo} & \hbox{ if } V_{\rm virial} > V_{\rm reionization} \hbox{ or } z > z_{\rm reionization} \\ 0 & \hbox{ otherwise,}\end{array} \right.
+\label{eq:accretionHalo:truncation}
 \end{equation}
 where $z_{\rm reionization}=${\tt [reionizationSuppressionRedshift]} is the redshift at which the Universe is reionized and $V_{\rm reionization}=${\tt [reionizationSuppressionVelocity]} is the virial velocity below which accretion is suppressed after reionization. Setting $V_{\rm reionization}$ to zero will effectively switch off the effects of reionization on the accretion of baryonics. This algorithm attempts to offer a simple prescription for the effects of reionization and has been explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2010} show that it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion threshold, any accretion rate that would have otherwise occurred is instead placed into the ``failed'' accretion rate. For halos which can accrete, and which have some mass in their ``failed'' reservoir, that mass will be added to the regular accretion rate at a rate equal to the mass of the 
 ``failed'' reservoir times the specific growth rate of the halo. The gas accreted is assumed to be from a pristine \gls{igm} and so has zero abundances. Chemical abundances are computed from the chemical state functions (see \S\ref{sec:ChemicalStateMethod}).
@@ -36,6 +37,10 @@ where $r_{\rm s}$ is the accretion shock radius, $\Lambda$ is the post-shock coo
 \rho_{\rm s} = {\gamma - 1 \over \gamma + 1} { 3 \over 4 \pi } { \Omega_{\rm b} \over \Omega_{\rm m} } {M \over r_{\rm s}^3} \left[ 1 + {(\alphga + 3) (10 + 9 \pi) \over 4} \right]^{-1},
 \end{equation}
 where $M$ is the total halo mass, $\gamma(=5/3)$ is the adiabatic index of the gas, and $\alpha$ is the exponent of the initial power-law density perturbation ($\alpha=0$ is assumed). The post-shock density and temperature are found assuming the strong-shock limit.
+
+\subsection{Bertschinger}\label{phys:accretionHalo:accretionHaloBertschinger}
+
+Selected using {\tt accretionHaloMethod}$=${\tt bertschinger}, this class extends the {\tt simple} class by replacing the total halo mass and accretion rate with the Bertschinger (i.e. turnaround) mass and its rate of increase respectively. Additionally, truncation of accretion (eqn.~\ref{eq:accretionHalo:truncation}) is determined by the maximum circular velocity of the node rather than by the virial velocity.
 
 \section{Cosmology Functions}\index{cosmology}
 
