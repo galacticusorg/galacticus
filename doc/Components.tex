@@ -637,6 +637,33 @@ None.
 
 \noindent\emph{Node promotion:} $M_{\rm node, maximum}$ is updated to the \gls{node} maximum mass of the parent prior to promotion.\\
 
+\subsection{``Standard-Extended Implemenation}
+
+\subsubsection{Properties}
+
+The standard-extended basic properties implementation extends the standard implementation and defines the following additional properties:
+\begin{description}
+ \item [{\tt massBertschinger}] The ``Bertschinger'' mass of the node, defined as the mass enclosing a density contrast equal to that for the spherical collapse model: $M_{\rm node, Bertschinger}$ [{\tt basicMassBertschinger}].
+ \item [{\tt accretionRateBertschinger}] The accretion rate of ``Bertschinger'' mass onto the node: $\dot{M}_{\rm node, Bertschinger}$ [{\tt basicAccretionRateBertschinger}].
+ \item [{\tt radiusTurnaround}] The turnaround radius corresponding to the current ``Bertshcinger''mass: $R_{\rm ta}$ [{\tt basicRadiusTurnaround}]
+\end{description}
+
+\subsubsection{Initialization}
+
+The Bertschinger mass and accretion rate for each node are computed from $M_{\rm basic}$ and the dark matter density profile. The turnaround radius is computed from the virial radius (under the appropriate definition for the Bertschinger mass) and the ratio of turnaround to virial radius from spherical collapse models. The specific spherical collapse model to use is determined by the {\tt [nodeComponentBasicExtendedSphericalCollapseType]} parameter---a value of ``{\tt matterLambda}'' causes the solution for matter+cosmological constant universes to be used, while a value of ``{\tt matterDarkEnergy}'' causes the solution for matter+dark energy universes to be used.
+
+\subsubsection{Differential Evolution}
+
+None.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} The accretion rate of Bertschinger mass is set to zero.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} $\dot{M}_{\rm node, Bertschinger}$ is updated to the \gls{node} Bertschinger accretion rate of the parent prior to promotion.\\
+
 \section{Position}\label{sec:ComponentPosition}
 
 The position \gls{component} implements the position and velocity of each galaxy. See \S\ref{sec:GalacticusVelocityDefinitions} for important notes on velocity definitions in \glc.
