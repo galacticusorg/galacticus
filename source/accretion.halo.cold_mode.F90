@@ -135,7 +135,6 @@ contains
   double precision function coldModeAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\tt node}.
     use Galacticus_Nodes
-    use Accretion_Halos_Simple
     implicit none
     class  (accretionHaloColdMode), intent(inout)          :: self
     type   (treeNode             ), intent(inout), pointer :: node
@@ -150,7 +149,6 @@ contains
   double precision function coldModeAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\tt node}.
     use Galacticus_Nodes
-    use Accretion_Halos_Simple
     implicit none
     class  (accretionHaloColdMode), intent(inout)          :: self
     type   (treeNode             ), intent(inout), pointer :: node
@@ -165,7 +163,6 @@ contains
   double precision function coldModeFailedAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\tt node}.
     use Galacticus_Nodes
-    use Accretion_Halos_Simple
     implicit none
     class  (accretionHaloColdMode), intent(inout)          :: self
     type   (treeNode             ), intent(inout), pointer :: node
@@ -180,7 +177,6 @@ contains
   double precision function coldModeFailedAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\tt node}.
     use Galacticus_Nodes
-    use Accretion_Halos_Simple
     implicit none
     class  (accretionHaloColdMode), intent(inout)          :: self
     type   (treeNode             ), intent(inout), pointer :: node
@@ -195,7 +191,6 @@ contains
   function coldModeAccretionRateMetals(self,node,accretionMode)
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\tt node} from the intergalactic medium.
     use Galacticus_Nodes
-    use Accretion_Halos_Simple
     implicit none
     type  (abundances           )                         :: coldModeAccretionRateMetals
     class (accretionHaloColdMode), intent(inout)          :: self
@@ -211,7 +206,6 @@ contains
   function coldModeAccretedMassMetals(self,node,accretionMode)
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
     use Galacticus_Nodes
-    use Accretion_Halos_Simple
     implicit none
     type   (abundances           )                         :: coldModeAccretedMassMetals
     class  (accretionHaloColdMode), intent(inout)          :: self
