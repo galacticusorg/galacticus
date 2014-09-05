@@ -25,6 +25,7 @@ program Test_Math_Special_Functions
   use Factorials
   use Gamma_Functions
   use Hypergeometric_Functions
+  use Error_Functions
   implicit none
   double precision, dimension(10) :: argument                            =[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0]
   double precision, dimension(10) :: P                                   =[0.1353352832d0,0.4060058496d0,0.6766764160d0,0.8571234602d0,0.9473469824d0,0.9834363913d0,0.9954661943d0,0.9989032808d0,0.9997625524d0,0.9999535016d0]
@@ -38,6 +39,7 @@ program Test_Math_Special_Functions
        &                             inverseGammaFunctionIncomplete                                                                                                                                                              , inverseGammaFunctionIncompleteComplementary, &
        &                             logGammaFunction                                                                                                                                                                            , sineIntegral                               , &
        &                             hypergeometric1F2
+  double complex  , dimension(17) :: errorFunctionComplex
   integer                         :: i
 
   ! Begin unit tests.
@@ -350,6 +352,51 @@ program Test_Math_Special_Functions
   hypergeometric2F1(1)=Hypergeometric_2F1([1.0d0,1.0d0],[2.0d0],-2.0d0)
   call Assert("hypergeometric, ₂F₁([1,1],[2],-2)",hypergeometric2F1(1),log(3.0d0)/2.0d0,relTol=1.0d-6 )
 
+  ! Test error function with complex argument.
+  errorFunctionComplex=Error_Function(                             &
+       &                              [                            &
+       &                               dcmplx(10.000d0, 10.000d0), &
+       &                               dcmplx(10.000d0,  5.000d0), &
+       &                               dcmplx( 5.000d0,  5.000d0), &
+       &                               dcmplx( 5.000d0,  1.000d0), &
+       &                               dcmplx( 1.000d0,  1.000d0), &
+       &                               dcmplx( 1.000d0,  0.500d0), &
+       &                               dcmplx( 0.500d0,  0.500d0), &
+       &                               dcmplx( 0.500d0,  0.100d0), &
+       &                               dcmplx( 0.100d0,  0.100d0), &
+       &                               dcmplx( 0.100d0,  0.050d0), &
+       &                               dcmplx( 0.050d0,  0.050d0), &
+       &                               dcmplx( 0.050d0,  0.010d0), &
+       &                               dcmplx( 0.010d0,  0.010d0), &
+       &                               dcmplx( 0.010d0,  0.005d0), &
+       &                               dcmplx( 0.005d0,  0.005d0), &
+       &                               dcmplx( 0.005d0,  0.001d0), &
+       &                               dcmplx( 0.001d0,  0.001d0)  &
+       &                              ]                            &
+       &                             )
+  call Assert("error function of complex argument, erf(z)"           , &
+       &      errorFunctionComplex                                   , &
+       &      [                                                        &
+       &       dcmplx(+9.616493742724747d-01, -1.098768460819404d-02), &
+       &       dcmplx(+1.000000000000000d+00, -9.495949264558077d-36), &
+       &       dcmplx(+9.303796037430947d-01, +3.893619089512146d-02), &
+       &       dcmplx(+1.000000000002960d+00, -2.846018382085604d-12), &
+       &       dcmplx(+1.316151281697949d+00, +1.904534692378354d-01), &
+       &       dcmplx(+9.507097283189570d-01, +1.879734672233839d-01), &
+       &       dcmplx(+6.426129148548198d-01, +4.578813944351928d-01), &
+       &       dcmplx(+5.249121488205361d-01, +8.802479434588868d-02), &
+       &       dcmplx(+1.135856345618654d-01, +1.120811719910652d-01), &
+       &       dcmplx(+1.127425509896926d-01, +5.590323090214489d-02), &
+       &       dcmplx(+5.651284873688534d-02, +5.632478587819852d-02), &
+       &       dcmplx(+5.637760588665819d-02, +1.125599074671486d-02), &
+       &       dcmplx(+1.128454387859423d-02, +1.128303937304405d-02), &
+       &       dcmplx(+1.128369762595771d-02, +5.641378676150062d-03), &
+       &       dcmplx(+5.641989865663000d-03, +5.641801802469853d-03), &
+       &       dcmplx(+5.641854461787554d-03, +1.128351334067245d-03), &
+       &       dcmplx(+1.128379919345890d-03, +1.128378414842284d-03)  &
+       &      ]                                                      , &
+       &      relTol=dcmplx(1.0d-6,1.0d-6)&
+       &     )
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
