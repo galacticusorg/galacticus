@@ -1109,9 +1109,9 @@ The algorithm to be used when solving for galactic structure (specifically, find
 
 Selected with {\tt galacticStructureRadiusSolverMethod}$=${\tt fixed} this method determines the sizes of galactic components by assuming that radius equals
 \begin{equation}
- r = f_{\rm r} \lambda r_{\rm vir}
+ r = f_{\rm r} \lambda r_0
 \end{equation}
-where $r_{\rm vir}$ is the virial radius of the \gls{node}, $\lambda$ is its spin parameter and $f_{\rm r}=${\tt [galacticStructureRadiiFixedFactor]} is a parameter.
+where $r_0$ is the virial or turnaround radius of the \gls{node} if {\tt [galacticStructureRadiiFixedRadius]}$=${\tt virialRadius} or {\tt turnaround} respectively, $\lambda$ is its spin parameter and $f_{\rm r}=${\tt [galacticStructureRadiiFixedFactor]} is a parameter.
 
 \subsection{Linear}
 
