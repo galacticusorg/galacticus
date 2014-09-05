@@ -91,6 +91,7 @@ module Statistics_Distributions
   include 'statistics.distributions.Cauchy.type.inc'
   include 'statistics.distributions.Student-t.type.inc'
   include 'statistics.distributions.Gamma.type.inc'
+  include 'statistics.distributions.Voight.type.inc'
 
 contains
 
@@ -108,7 +109,7 @@ contains
          &                                                    distributionMean            , distributionVariance     , &
          &                                                    distributionScale           , distributionMedian       , &
          &                                                    distributionDegreesOfFreedom, distributionShape        , &
-         &                                                    distributionRate
+         &                                                    distributionRate            , distributionWidth
     logical                                                :: distributionMinimumExists   , distributionMaximumExists
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
@@ -215,6 +216,15 @@ contains
           call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"degreesOfFreedom"),distributionDegreesOfFreedom)
           newDistribution=distributionStudentT(distributionDegreesOfFreedom)
        end select
+    case ("Voight")
+       allocate(distributionVoight :: newDistribution)
+       select type (newDistribution)
+       type is (distributionVoight)
+          call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"scale"   ),distributionScale   )
+          call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"median"  ),distributionMedian  )
+          call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"variance"),distributionVariance)
+          newDistribution=distributionVoight(distributionScale,distributionMedian,sqrt(distributionVariance))
+       end select
     case default
        call Galacticus_Error_Report('distributionNew','distribution type is unrecognized')
     end select
@@ -256,5 +266,6 @@ contains
   include 'statistics.distributions.Cauchy.methods.inc'
   include 'statistics.distributions.Student-t.methods.inc'
   include 'statistics.distributions.Gamma.methods.inc'
+  include 'statistics.distributions.Voight.methods.inc'
 
 end module Statistics_Distributions
