@@ -137,7 +137,8 @@ contains
          &                                                                  massCharacteristic             , pericentricRadius                                   , &
          &                                                                  probabilityTotal               , radialScale                                         , &
          &                                                                  timeNode                       , velocityHost                                        , &
-         &                                                                  radiusHost                     , massHost
+         &                                                                  radiusHost                     , massHost                                            , &
+         &                                                                  massSatellite
     logical                                                              :: foundOrbit
 
     ! Reset the orbit.
@@ -151,11 +152,12 @@ contains
     ! Find virial density contrast under Wetzel (2010) definition.
     virialDensityContrast_          => self                  %densityContrastDefinition(                )
     ! Find mass, radius, and velocity in the host corresponding to the Wetzel (2010) virial density contrast definition.
-    massHost=Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%time()),radiusHost,velocityHost)
+    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%time()),radiusHost,velocityHost)
+    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%time())                        )
     deallocate(virialDensityContrast_)
     ! Set basic properties of the orbit.
-    call wetzel2010Orbit%massesSet(basic%mass(),hostBasic%mass())
-    call wetzel2010Orbit%radiusSet(radiusHost                   )
+    call wetzel2010Orbit%massesSet(massSatellite,massHost)
+    call wetzel2010Orbit%radiusSet(radiusHost            )
     ! Get the time at which this node exists.
     timeNode=basic%time()
     ! Get the expansion factor.
@@ -197,9 +199,10 @@ contains
        call wetzel2010Orbit%radiusPericenterSet(pericentricRadius*radiusHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
        radiusHost=darkMatterHaloScale_%virialRadius(host)
-       if (wetzel2010Orbit%radiusApocenter() >= radiusHost) then
+       if (wetzel2010Orbit%radiusApocenter() >= radiusHost .and. wetzel2010Orbit%radiusPericenter() <= radiusHost) then
           foundOrbit=.true.
-          call wetzel2010Orbit%propagate(radiusHost,infalling=.true.)
+          call wetzel2010Orbit%propagate(radiusHost  ,infalling=.true.)
+          call wetzel2010Orbit%massesSet(basic%mass(),hostBasic%mass())
        end if
     end do
     return
