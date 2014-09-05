@@ -126,7 +126,7 @@ contains
     class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
     class           (virialDensityContrastClass), pointer                :: virialDensityContrast_
     double precision                                                     :: velocityHost              , massHost          , &
-         &                                                                  radiusHost
+         &                                                                  radiusHost                , massSatellite
 
     ! Reset the orbit.
     call fixedOrbit%reset()
@@ -137,17 +137,19 @@ contains
     ! Find virial density contrast under our definition.
     virialDensityContrast_ => self%densityContrastDefinition()
     ! Find mass, radius, and velocity in the host corresponding to the our virial density contrast definition.
-    massHost=Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%time()),radiusHost,velocityHost)
+    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%time()),radiusHost,velocityHost)
+    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%time())                        )
     deallocate(virialDensityContrast_)
     ! Set basic properties of the orbit.
-    call fixedOrbit%massesSet(basic%mass(),hostBasic%mass())
+    call fixedOrbit%massesSet(massSatellite,massHost)
     call fixedOrbit%radiusSet(radiusHost)
     call fixedOrbit%velocityRadialSet    (self%radialVelocity    *velocityHost)
     call fixedOrbit%velocityTangentialSet(self%tangentialVelocity*velocityHost)
     ! Propagate the orbit to the virial radius under the default density contrast definition.
     radiusHost=darkMatterHaloScale_%virialRadius(host)
-    if (fixedOrbit%radiusApocenter() >= radiusHost) then
-       call fixedOrbit%propagate(radiusHost,infalling=.true.)
+    if (fixedOrbit%radiusApocenter() >= radiusHost .and. fixedOrbit%radiusPericenter() <= radiusHost) then
+       call fixedOrbit%propagate(radiusHost  ,infalling=.true.)
+       call fixedOrbit%massesSet(basic%mass(),hostBasic%mass())
     else
        call Galacticus_Error_Report('fixedOrbit','orbit does not reach halo radius')
     end if

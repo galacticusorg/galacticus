@@ -79,7 +79,8 @@ contains
          &                                                                  distributionFunction           , energyInternal            , &
          &                                                                  uniformRandom                  , velocityRadialInternal    , &
          &                                                                  velocityHost                   , velocityTangentialInternal, &
-         &                                                                  massHost                       , radiusHost
+         &                                                                  massHost                       , radiusHost                , &
+         &                                                                  massSatellite
     logical                                                              :: foundOrbit
 
     ! Reset the orbit.
@@ -92,11 +93,12 @@ contains
     ! Find virial density contrast under Benson (2005) definition.
     virialDensityContrast_ => self %densityContrastDefinition()
     ! Find mass, radius, and velocity in the host corresponding to the Benson (2005) virial density contrast definition.
-    massHost=Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%time()),radiusHost,velocityHost)
+    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%time()),radiusHost,velocityHost)
+    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%time())                        )
     deallocate(virialDensityContrast_)
     ! Set basic properties of the orbit.
-    call benson2005Orbit%massesSet(basic%mass(),hostBasic%mass())
-    call benson2005Orbit%radiusSet(radiusHost                   )
+    call benson2005Orbit%massesSet(massSatellite,massHost)
+    call benson2005Orbit%radiusSet(radiusHost            )
     ! Select an orbit.
     foundOrbit=.false.
     do while(.not.foundOrbit)
@@ -128,9 +130,10 @@ contains
        call benson2005Orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
        radiusHost=darkMatterHaloScale_%virialRadius(host)
-       if (benson2005Orbit%radiusApocenter() >= radiusHost) then
+       if (benson2005Orbit%radiusApocenter() >= radiusHost .and. benson2005Orbit%radiusPericenter() <= radiusHost) then
           foundOrbit=.true.
-          call benson2005Orbit%propagate(radiusHost,infalling=.true.)
+          call benson2005Orbit%propagate(radiusHost  ,infalling=.true.)
+          call benson2005Orbit%massesSet(basic%mass(),hostBasic%mass())
        end if
     end do
     return
