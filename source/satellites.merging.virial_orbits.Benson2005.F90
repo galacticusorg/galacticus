@@ -95,7 +95,7 @@ contains
     ! Find mass, radius, and velocity in the host corresponding to the Benson (2005) virial density contrast definition.
     massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%time()),radiusHost,velocityHost)
     massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%time())                        )
-    deallocate(virialDensityContrast_)
+    if (virialDensityContrast_%isFinalizable()) deallocate(virialDensityContrast_)
     ! Set basic properties of the orbit.
     call benson2005Orbit%massesSet(massSatellite,massHost)
     call benson2005Orbit%radiusSet(radiusHost            )
@@ -142,14 +142,22 @@ contains
   function benson2005DensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of \cite{benson_orbital_2005} virial orbits.
     implicit none
-    class(virialDensityContrastClass), pointer       :: benson2005DensityContrastDefinition
-    class(virialOrbitBenson2005     ), intent(inout) :: self
+    class  (virialDensityContrastClass), pointer                     :: benson2005DensityContrastDefinition
+    class  (virialOrbitBenson2005     ), intent(inout)               :: self
+    class  (virialDensityContrastClass), allocatable  , target, save :: densityContrastDefinition
+    logical                                                   , save :: densityContrastDefinitionInitialized=.false.
+    !$omp threadprivate(densityContrastDefinition,densityContrastDefinitionInitialized)
     
-    allocate(virialDensityContrastSphericalCollapseMatterLambda :: benson2005DensityContrastDefinition)
-    select type (benson2005DensityContrastDefinition)
-    type is (virialDensityContrastSphericalCollapseMatterLambda)
-      benson2005DensityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda()
-    end select
+    if (.not.densityContrastDefinitionInitialized) then
+       allocate(virialDensityContrastSphericalCollapseMatterLambda :: densityContrastDefinition)
+       select type (densityContrastDefinition)
+       type is (virialDensityContrastSphericalCollapseMatterLambda)
+          densityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda()
+          call densityContrastDefinition%makeIndestructible()
+       end select
+       densityContrastDefinitionInitialized=.true.
+    end if
+    benson2005DensityContrastDefinition => densityContrastDefinition
     return
   end function benson2005DensityContrastDefinition
   

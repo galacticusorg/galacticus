@@ -139,7 +139,7 @@ contains
     ! Find mass, radius, and velocity in the host corresponding to the our virial density contrast definition.
     massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%time()),radiusHost,velocityHost)
     massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%time())                        )
-    deallocate(virialDensityContrast_)
+    if (virialDensityContrast_%isFinalizable()) deallocate(virialDensityContrast_)
     ! Set basic properties of the orbit.
     call fixedOrbit%massesSet(massSatellite,massHost)
     call fixedOrbit%radiusSet(radiusHost)
@@ -160,19 +160,27 @@ contains
     !% Return a virial density contrast object defining that used in the definition of fixed virial orbits.
     use Galacticus_Error
     implicit none
-    class(virialDensityContrastClass), pointer       :: fixedDensityContrastDefinition
-    class(virialOrbitFixed          ), intent(inout) :: self
+    class  (virialDensityContrastClass), pointer                     :: fixedDensityContrastDefinition
+    class  (virialOrbitFixed          ), intent(inout)               :: self
+    class  (virialDensityContrastClass), allocatable  , target, save :: densityContrastDefinition
+    logical                                                   , save :: densityContrastDefinitionInitialized=.false.
+    !$omp threadprivate(densityContrastDefinition,densityContrastDefinitionInitialized)
     
     select case (char(self%virialDensityContrast))
     case ('sphericalCollapseMatterLambda')
-       allocate(virialDensityContrastSphericalCollapseMatterLambda :: fixedDensityContrastDefinition)
-       select type (fixedDensityContrastDefinition)
-       type is (virialDensityContrastSphericalCollapseMatterLambda)
-          fixedDensityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda()
-       end select
+       if (.not.densityContrastDefinitionInitialized) then
+          allocate(virialDensityContrastSphericalCollapseMatterLambda :: densityContrastDefinition)
+          select type (densityContrastDefinition)
+          type is (virialDensityContrastSphericalCollapseMatterLambda)
+             densityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda()
+             call densityContrastDefinition%makeIndestructible()
+          end select
+          densityContrastDefinitionInitialized=.true.
+       end if
+       fixedDensityContrastDefinition => densityContrastDefinition
     case default
        call Galacticus_Error_Report('fixedDensityContrastDefinition','only "sphericalCollapseMatterLambda" supported')
     end select
     return
   end function fixedDensityContrastDefinition
-  
+
