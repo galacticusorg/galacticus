@@ -30,8 +30,9 @@ module Nearest_Neighbors
      !% Wrapper object for nearest neighbor searching.
      type(c_ptr) :: ANNkd_tree
    contains
-     final     ::           nearestNeighborsDestructor
-     procedure :: search => nearestNeighborsSearch
+     final     ::                      nearestNeighborsDestructor
+     procedure :: search            => nearestNeighborsSearch
+     procedure :: searchFixedRadius => nearestNeighborsSearchFixedRadius
   end type nearestNeighbors
 
   interface nearestNeighbors
@@ -59,6 +60,20 @@ module Nearest_Neighbors
       integer                , dimension(*), intent(  out) :: neighborIndex
       double precision       , dimension(*), intent(  out) :: neighborDistance
     end subroutine nearestNeighborsSearchC
+  end interface
+
+  interface
+     integer function nearestNeighborsSearchFixedRadiusC(ANN,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance) bind(c,name='nearestNeighborsSearchFixedRadiusC')
+       !% Template for a C function that searches for nearest neighbors.
+      import
+      type            (c_ptr), value       , intent(in   ) :: ANN
+      double precision       , dimension(*), intent(in   ) :: point
+      double precision       , value       , intent(in   ) :: radiusSquared
+      integer                , value       , intent(in   ) :: neighborCount
+      integer                , dimension(*), intent(  out) :: neighborIndex
+      double precision       , dimension(*), intent(  out) :: neighborDistance
+      double precision       , value       , intent(in   ) :: tolerance
+    end function nearestNeighborsSearchFixedRadiusC
   end interface
 
   interface
@@ -106,6 +121,7 @@ contains
   end subroutine nearestNeighborsClose
 
   subroutine nearestNeighborsSearch(self,point,neighborCount,tolerance,neighborIndex,neighborDistance)
+    !% Return indices and distances to the (approximate) nearest neighbors.
     implicit none
     class           (nearestNeighbors)              , intent(inout) :: self
     double precision                  , dimension(:), intent(in   ) :: point
@@ -120,5 +136,42 @@ contains
     neighborIndex=neighborIndex+1
     return
   end subroutine nearestNeighborsSearch
+
+  subroutine nearestNeighborsSearchFixedRadius(self,point,radius,tolerance,neighborCount,neighborIndex,neighborDistance)
+    !% Return indices and distances to all neighbors within a given {\tt radius}.
+    use Memory_Management
+    implicit none
+    class           (nearestNeighbors)                           , intent(inout) :: self
+    double precision                  , dimension(:)             , intent(in   ) :: point
+    double precision                                             , intent(in   ) :: radius
+    double precision                                             , intent(in   ) :: tolerance
+    integer                           , dimension(:), allocatable, intent(inout) :: neighborIndex
+    double precision                  , dimension(:), allocatable, intent(inout) :: neighborDistance
+    integer                                                      , intent(  out) :: neighborCount
+    double precision                                                             :: radiusSquared
+    integer                                                                      :: arraySize
+
+    ! Get the squared radius.    
+    radiusSquared=radius**2
+    ! Call once with current array sizes.
+    if (allocated(neighborIndex)) then
+       arraySize=size(neighborIndex)
+    else
+       arraySize=0
+    end if
+    neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex,neighborDistance,tolerance)    
+    ! Resize arrays if necessary.
+    if (neighborCount > arraySize) then
+       if (allocated(neighborIndex   )) call Dealloc_Array(neighborIndex   )
+       if (allocated(neighborDistance)) call Dealloc_Array(neighborDistance)
+       call Alloc_Array(neighborIndex   ,[neighborCount])
+       call Alloc_Array(neighborDistance,[neighborCount])
+       ! Call again to get all neighbors.
+       neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance)
+    end if
+    ! Adjust indices to Fortran standard.
+    if (neighborCount > 0) neighborIndex=neighborIndex+1
+    return
+  end subroutine nearestNeighborsSearchFixedRadius
 
 end module Nearest_Neighbors
