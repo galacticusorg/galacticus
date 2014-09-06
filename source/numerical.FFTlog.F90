@@ -50,9 +50,8 @@ contains
     integer         , intent(in   )                                         :: direction
     double precision, parameter                                             :: bias    =0.0d0
     integer         , parameter                                             :: krOption=1     ! Ajdust krCentral to closest low-ringing value.
-    double precision, parameter                                             :: normalization=1.0d0
-    double precision                , dimension(2*size(r)+2*(size(r)/2)+18) :: workSpace
-    double precision                                                        :: deltaLogR , krCentral, kCentralLogarithmic, iCentral, rCentralLogarithmic
+    double precision                , dimension(2*size(r)+3*(size(r)/2)+19) :: workSpace
+    double precision                                                        :: deltaLogR , krCentral, kCentralLogarithmic, iCentral, rCentralLogarithmic, normalization
     integer                                                                 :: i
     logical                                                                 :: errorCode
     
@@ -62,17 +61,19 @@ contains
     iCentral =dble(size(r)+1)/2.0d0
     rCentralLogarithmic=log(r(size(r))*r(1))/2.0d0
     krCentral=1.0d0
-    kCentralLogarithmic=log(krCentral)-rCentralLogarithmic
-    ! Call the FFTLog initializtion function.
+    ! Call the FFTLog initialization function.
     call fhti(size(r),mu,bias,deltaLogR,krCentral,krOption,workSpace,errorCode)
     if (.not.errorCode) call Galacticus_Error_Report('FFTLog','FFTLog initialization failed')
+    ! Compute central points.
+    kCentralLogarithmic=log(krCentral)-rCentralLogarithmic
     ! Perform the FFT.
     if (direction /= -1 .and. direction /= 1) call Galacticus_Error_Report('FFTLog','direction must be -1 or +1')
     ft=f
+    normalization=exp(2.0d0*rCentralLogarithmic)
     call fftl(size(r),ft,normalization,direction,workSpace)
     ! Compute actual k values.
     forall(i=1:size(r))
-       k(i)=exp(kCentralLogarithmic+dble(i-iCentral)*deltaLogR)
+       k(i)=exp(kCentralLogarithmic+(dble(i)-iCentral)*deltaLogR)
     end forall
   return
   end subroutine FFTLog
