@@ -27,6 +27,7 @@ extern "C"
   void nearestNeighborsDestructorC(ANNkd_tree * ANN);
   void nearestNeighborsCloseC();
   void nearestNeighborsSearchC(ANNkd_tree * ANN, double *point, int neighborCount, double tolerance, int *neighborIndex, double *neighborDistance);
+  int nearestNeighborsSearchFixedRadiusC(ANNkd_tree * ANN, double *point, double radiusSquared, int neighborCount, int *neighborIndex, double *neighborDistance, double tolerance);
 }
   
 ANNkd_tree * nearestNeighborsConstructorC(int n, int d, double *pa) {
@@ -92,5 +93,39 @@ void nearestNeighborsSearchC(ANNkd_tree * ANN, double *point, int neighborCount,
     neighborIndex   [j] = ANNindices  [j];
     neighborDistance[j] = ANNdistances[j];
   }
+  // Clean up.
+  delete [] ANNindices;
+  delete [] ANNdistances;
   return;
+}
+
+int nearestNeighborsSearchFixedRadiusC(ANNkd_tree * ANN, double *point, double radiusSquared, int neighborCount, int *neighborIndex, double *neighborDistance, double tolerance) {
+  //% Fortran-callable wrapper around the ANN search function.
+  ANNpoint     ANNp;
+  ANNidxArray  ANNindices;
+  ANNdistArray ANNdistances;
+  int          j;
+  int          neighborsFound;
+
+  // Create an ANN point.
+  ANNp = annAllocPt(ANN->theDim());
+  for(j=0;j<ANN->theDim();++j) {
+    ANNp[j] = point[j];
+  }
+  // Allocate index and distance arrays.
+  ANNindices   = new ANNidx [neighborCount];
+  ANNdistances = new ANNdist[neighborCount];
+  // Perform the search.
+  neighborsFound = ANN->annkFRSearch(ANNp,radiusSquared,neighborCount,ANNindices,ANNdistances,tolerance);
+  // Deallocate the point.
+  annDeallocPt(ANNp);
+  // Copy results to output arrays.
+  for(j=0;j<neighborCount;++j) {
+    neighborIndex   [j] = ANNindices  [j];
+    neighborDistance[j] = ANNdistances[j];
+  }
+  // Clean up.
+  delete [] ANNindices;
+  delete [] ANNdistances;
+  return neighborsFound;
 }
