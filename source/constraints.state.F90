@@ -49,7 +49,7 @@ module Constraints_State
      !@   <objectMethod>
      !@     <method>update</method>
      !@     <type>\void</type>
-     !@     <arguments>\doubleone\ stateNew\argin, \logicalzero\ logState\argin</arguments>
+     !@     <arguments>\doubleone\ stateNew\argin, \logicalzero\ logState\argin, \logicalzero isConverged\argin, \logicalone outlierMask\argin</arguments>
      !@     <description>Update the current state to the specified new state. Only log this state (i.e. increase step count etc.) if the {\tt logState} argument is true.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -96,11 +96,13 @@ module Constraints_State
   end interface
 
   abstract interface
-     subroutine stateUpdate(self,stateNew,logState)
+     subroutine stateUpdate(self,stateNew,logState,isConverged,outlierMask)
        import :: state
-       class           (state), intent(inout)               :: self
-       double precision       , intent(in   ), dimension(:) :: stateNew
-       logical                , intent(in   )               :: logState
+       class           (state), intent(inout)                         :: self
+       double precision       , intent(in   ), dimension(:)           :: stateNew
+       logical                , intent(in   )                         :: logState
+       logical                , intent(in   )                         :: isConverged
+       logical                , intent(in   ), dimension(:), optional :: outlierMask
      end subroutine stateUpdate
   end interface
 
@@ -130,6 +132,7 @@ module Constraints_State
   ! Include all state types.
   include 'constraints.state.simple.type.inc'
   include 'constraints.state.history.type.inc'
+  include 'constraints.state.correlation.type.inc'
 
 contains
 
@@ -163,7 +166,15 @@ contains
           call extractDataContent(stateAcceptedCountDefinition,stateAcceptedCount)
           newState=stateHistory(parameterCount,stateAcceptedCount)
        end select
-     case default
+    case ("correlation")
+       allocate(stateCorrelation :: newState)
+       select type (newState)
+       type is (stateCorrelation)
+          stateAcceptedCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptedStateCount")
+          call extractDataContent(stateAcceptedCountDefinition,stateAcceptedCount)
+          newState=stateCorrelation(parameterCount,stateAcceptedCount)
+       end select
+    case default
        call Galacticus_Error_Report('stateNew','state type is unrecognized')
     end select
     return
@@ -199,5 +210,6 @@ contains
   ! Include all state methods.
   include 'constraints.state.simple.methods.inc'
   include 'constraints.state.history.methods.inc'
+  include 'constraints.state.correlation.methods.inc'
 
 end module Constraints_State

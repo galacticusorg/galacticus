@@ -50,13 +50,15 @@ function stateSimpleGet(self)
   return
 end function stateSimpleGet
 
-subroutine stateSimpleUpdate(self,stateNew,logState)
+subroutine stateSimpleUpdate(self,stateNew,logState,isConverged,outlierMask)
   !% Update the current state.
   implicit none
-  class           (stateSimple), intent(inout)               :: self
-  double precision             , intent(in   ), dimension(:) :: stateNew
-  logical                      , intent(in   )               :: logState
-  integer                                                    :: i
+  class           (stateSimple), intent(inout)                         :: self
+  double precision             , intent(in   ), dimension(:)           :: stateNew
+  logical                      , intent(in   )                         :: logState
+  logical                      , intent(in   )                         :: isConverged
+  logical                      , intent(in   ), dimension(:), optional :: outlierMask
+  integer                                                              :: i
 
   if (logState) then
      i=mod(self%stepCount,size(self%accepted))+1

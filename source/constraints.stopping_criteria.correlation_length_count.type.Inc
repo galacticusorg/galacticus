@@ -16,18 +16,15 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 
-  type, public, extends(convergence) :: convergenceNever
-     !% Defines a convergence class that never converges (for testing purposes).
+  type, public, extends(stoppingCriterion) :: stoppingCriterionCorrelationLengthCount
+     !% Defines a stopping criterion class which stops after a given number of post-convergence correlation lengths.
      private
+     integer :: stopAfterCount
    contains
-     procedure :: isConverged     => convergenceNeverIsConverged
-     procedure :: convergedAtStep => convergenceNeverConvergedAtStep
-     procedure :: reset           => convergenceNeverReset
-     procedure :: logReport       => convergenceNeverLogReport
-     procedure :: chainIsOutlier  => convergenceNeverChainIsOutlier
-  end type convergenceNever
+     procedure :: stop => stoppingCriterionCorrelationLengthCountStop
+  end type stoppingCriterionCorrelationLengthCount
   
-  interface convergenceNever
-     !% Constructors for the ``never'' convergence class.
-     module procedure convergenceNeverConstructor
-  end interface convergenceNever
+  interface stoppingCriterionCorrelationLengthCount
+     !% Constructors for the ``correlationLengthCount'' stoppingCriterion class.
+     module procedure stoppingCriterionCorrelationLengthCountConstructor
+  end interface stoppingCriterionCorrelationLengthCount

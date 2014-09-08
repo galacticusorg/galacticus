@@ -1112,6 +1112,26 @@ This type stores the current state but makes no attempt to record a history of t
 
 An extension of the {\tt simple} state, this type also records the mean and variance of each parameter over the history of the simulation.
 
+\subsubsection{{\tt correlation}}
+
+An extension of the {\tt history} state, this type also computes and stores the correlation length in each parameter (which is taken to be the median correlation length over all non-outlier chains).
+
+\subsection{{\tt stoppingCriterion}}
+
+The {\tt stoppingCriterion} section specifies the type of object used to determine when the simulation should be stopped. The type of stopping criterion object to use is specified by the {\tt type} element. The available choices are described in the following subsections.
+
+\subsubsection{{\tt never}}
+
+This type will cause the simulation to never stop.
+
+\subsubsection{{\tt stepCount}}
+
+This type will cause the simulation to stop when at least a number of steps (as specified in the {\tt stopAfterCunt} element) have accrued post-convergence.
+
+\subsubsection{{\tt correlationLengthCount}}
+
+This type will cause the simulation to stop when at least a number of correlation lengths (as specified in the {\tt stopAfterCunt} element) have accrued post-convergence.
+
 \subsection{{\tt stateInitializor}}
 
 The {\tt stateInitializor} section specifies the type of object used to initialize the state of chains at the beginning of the simulation. The type of state initializor object to use is specified by the {\tt type} element. The available choices are described in the following subsections.
@@ -1192,7 +1212,6 @@ The {\tt simulation} section specifies the algorithm to use to perform the simul
 This option uses the differential evolution algorithm of \cite{terr_braak_markov_2006}. Multiple, parallel chains are run and proposals are constructed by selecting two chains at random, taking a fraction, $\gamma$, of the vector connecting the two chain states and adding this to the state of the current chain. The details of the algorithm are controlled by the following elements which should be embedded within the {\tt simulation} element:
 \begin{description}
 \item[{\tt stepsMaximum}] The maximum number of steps to take.
-\item[{\tt stepsPostConvergence}] The number of steps to perform after convergence is attained.
 \item[{\tt acceptanceAverageCount}] The number of steps over which to average the acceptance rate.
 \item[{\tt stateSwapCount}] The number of steps after which to set $\gamma=1$ to allow chains to swap states.
 \item[{\tt logFileRoot}] The full path and root name of a file to log results to. The actual file name will have the rank of the \gls{mpi} process appended to it.

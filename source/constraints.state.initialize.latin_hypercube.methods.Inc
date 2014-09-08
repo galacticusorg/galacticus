@@ -81,7 +81,7 @@ subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,paramet
      stateGridBest(mpiSelf%rank(),j)=parameterPriors(j)%invert(stateGridBest(mpiSelf%rank(),j))
   end do
   ! Store the state.
-  call simulationState%update(stateGridBest(mpiSelf%rank(),:),.false.)
+  call simulationState%update(stateGridBest(mpiSelf%rank(),:),.false.,.false.)
   ! Clean up workspace.
   deallocate(stateGridBest)
   deallocate(stateGrid    )

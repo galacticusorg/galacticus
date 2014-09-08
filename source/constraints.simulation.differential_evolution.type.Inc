@@ -18,21 +18,21 @@
   type, public, extends(simulator) :: simulatorDifferentialEvolution
      !% Defines a simulator class implementing the differential evolution algorithm.
      private
-     integer                                                   :: parameterCount       , stepsMaximum          , &
-          &                                                       stepsPostConvergence , acceptanceAverageCount, &
-          &                                                       stateSwapCount
-     double precision                                          :: logPosterior
-     logical                                                   :: isConverged          , sampleOutliers
-     type            (prior           ), pointer, dimension(:) :: parameterPriors
-     type            (distributionList), pointer, dimension(:) :: randomDistributions
-     type            (mappingList     ), pointer, dimension(:) :: parameterMappings
-     class           (likelihood      ), pointer               :: modelLikelihood
-     class           (convergence     ), pointer               :: simulationConvergence
-     class           (state           ), pointer               :: simulationState
-     class           (stateInitializor), pointer               :: simulationStateInitializor
-     class           (deProposalSize  ), pointer               :: proposalSize
-     class           (deRandomJump    ), pointer               :: randomJump
-     type            (varying_string  )                        :: logFileRoot
+     integer                                                    :: parameterCount       , stepsMaximum          , &
+          &                                                        stateSwapCount       , acceptanceAverageCount
+     double precision                                           :: logPosterior
+     logical                                                    :: isConverged          , sampleOutliers
+     type            (prior            ), pointer, dimension(:) :: parameterPriors
+     type            (distributionList ), pointer, dimension(:) :: randomDistributions
+     type            (mappingList      ), pointer, dimension(:) :: parameterMappings
+     class           (likelihood       ), pointer               :: modelLikelihood
+     class           (convergence      ), pointer               :: simulationConvergence
+     class           (stoppingCriterion), pointer               :: simulationStoppingCriterion
+     class           (state            ), pointer               :: simulationState
+     class           (stateInitializor ), pointer               :: simulationStateInitializor
+     class           (deProposalSize   ), pointer               :: proposalSize
+     class           (deRandomJump     ), pointer               :: randomJump
+     type            (varying_string   )                        :: logFileRoot
    contains
      !@ <objectMethods>
      !@   <object>simulatorDifferentialEvolution</object>

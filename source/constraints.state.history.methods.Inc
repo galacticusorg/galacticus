@@ -46,14 +46,16 @@ subroutine stateHistoryDestroy(self)
   return
 end subroutine stateHistoryDestroy
 
-subroutine stateHistoryUpdate(self,stateNew,logState)
+subroutine stateHistoryUpdate(self,stateNew,logState,isConverged,outlierMask)
   !% Update the current state.
   implicit none
-  class           (stateHistory), intent(inout)               :: self
-  double precision              , intent(in   ), dimension(:) :: stateNew
-  logical                       , intent(in   )               :: logState
+  class           (stateHistory), intent(inout)                         :: self
+  double precision              , intent(in   ), dimension(:)           :: stateNew
+  logical                       , intent(in   )                         :: logState
+  logical                       , intent(in   )                         :: isConverged
+  logical                       , intent(in   ), dimension(:), optional :: outlierMask
 
-  call self%stateSimple%update(stateNew,logState)
+  call self%stateSimple%update(stateNew,logState,isConverged,outlierMask)
   if (logState) then
      self%stateSum       =self%stateSum       +stateNew
      self%stateSquaredSum=self%stateSquaredSum+stateNew**2

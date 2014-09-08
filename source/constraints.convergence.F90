@@ -35,6 +35,11 @@ module Constraints_Convergence
      !@     <description>Return true if the simulation is converged.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>convergedAtStep</method>
+     !@     <type>\intzero</type>
+     !@     <description>Return the step at which the simulation converged.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>reset</method>
      !@     <type>\void</type>
      !@     <arguments></arguments>
@@ -53,10 +58,11 @@ module Constraints_Convergence
      !@     <description>Return true if the specified chain is deemed to be an outlier.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure(convergenceIsConverged   ), deferred :: isConverged
-     procedure(convergenceReset         ), deferred :: reset
-     procedure(convergenceLogReport     ), deferred :: logReport
-     procedure(convergenceChainIsOutlier), deferred :: chainIsOutlier
+     procedure(convergenceIsConverged    ), deferred :: isConverged
+     procedure(convergenceConvergedAtStep), deferred :: convergedAtStep
+     procedure(convergenceReset          ), deferred :: reset
+     procedure(convergenceLogReport      ), deferred :: logReport
+     procedure(convergenceChainIsOutlier ), deferred :: chainIsOutlier
   end type convergence
 
   ! Interface for deferred functions.
@@ -67,6 +73,12 @@ module Constraints_Convergence
        class           (state      ), intent(in   ), optional :: simulationState
        double precision             , intent(in   ), optional :: logLikelihood
      end function convergenceIsConverged
+  end interface
+  abstract interface
+     integer function convergenceConvergedAtStep(self)
+       import :: convergence
+       class(convergence), intent(inout) :: self
+     end function convergenceConvergedAtStep
   end interface
   abstract interface
      subroutine convergenceReset(self)

@@ -15,19 +15,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!% Defines methods for the ``never'' stoppingCriterion class.
 
-  type, public, extends(convergence) :: convergenceNever
-     !% Defines a convergence class that never converges (for testing purposes).
-     private
-   contains
-     procedure :: isConverged     => convergenceNeverIsConverged
-     procedure :: convergedAtStep => convergenceNeverConvergedAtStep
-     procedure :: reset           => convergenceNeverReset
-     procedure :: logReport       => convergenceNeverLogReport
-     procedure :: chainIsOutlier  => convergenceNeverChainIsOutlier
-  end type convergenceNever
-  
-  interface convergenceNever
-     !% Constructors for the ``never'' convergence class.
-     module procedure convergenceNeverConstructor
-  end interface convergenceNever
+function stoppingCriterionNeverConstructor()
+  !% Constructor for ``never'' stoppingCriterion class.
+  implicit none
+  type(stoppingCriterionNever) :: stoppingCriterionNeverConstructor
+
+  return
+end function stoppingCriterionNeverConstructor
+
+logical function stoppingCriterionNeverStop(self,simulationState,simulationConvergence)
+  !% Return a Boolean indicating if the simulation should stop.
+  implicit none
+  class(stoppingCriterionNever), intent(in   ) :: self
+  class(state                 ), intent(inout) :: simulationState
+  class(convergence           ), intent(inout) :: simulationConvergence
+
+  stoppingCriterionNeverStop=.false.
+  return
+end function stoppingCriterionNeverStop

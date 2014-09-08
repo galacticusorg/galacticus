@@ -37,6 +37,7 @@ contains
     use Constraints_Mappings
     use Constraints_Likelihoods
     use Constraints_Convergence
+    use Constraints_Stopping_Criteria
     use Constraints_State
     use Constraints_State_Initialize
     use Constraints_Simulation
@@ -52,6 +53,7 @@ contains
     type   (distributionList ), allocatable  , dimension(:) :: randomDistributions
     class  (likelihood       ), pointer                     :: modelLikelihood
     class  (convergence      ), pointer                     :: simulationConvergence
+    class  (stoppingCriterion), pointer                     :: simulationStoppingCriterion
     class  (state            ), pointer                     :: simulationState
     class  (stateInitializor ), pointer                     :: simulationStateInitializor
     class  (deProposalSize   ), pointer                     :: proposalSize
@@ -64,7 +66,8 @@ contains
          &                                                     stateDefinition                , proposalSizeDefinition                   , &
          &                                                     simulationDefinition           , parametersElement                        , &
          &                                                     randomJumpDefinition           , proposalSizeTemperatureExponentDefinition, &
-         &                                                     stateInitializorDefinition     , mappingDefinition
+         &                                                     stateInitializorDefinition     , mappingDefinition                        , &
+         &                                                     stoppingCriterionDefinition
     type   (nodeList         ), pointer                     :: parameterDefinitions           , parametersList
     type   (varying_string   )                              :: filterCommand                  , filteredFile                             , &
          &                                                     message
@@ -132,6 +135,9 @@ contains
     ! Initialize convergence.
     convergenceDefinition                     => XML_Get_First_Element_By_Tag_Name(configDoc,"convergence"                    )
     simulationConvergence                     =>        convergenceNew(                   convergenceDefinition               )
+    ! Initialize stopping criterion.
+    stoppingCriterionDefinition               => XML_Get_First_Element_By_Tag_Name(configDoc,"stoppingCriterion"              )
+    simulationStoppingCriterion               =>  stoppingCriterionNew(                   stoppingCriterionDefinition         )
     ! Initialize state.
     stateDefinition                           => XML_Get_First_Element_By_Tag_Name(configDoc,"state"                          )
     simulationState                           =>             stateNew(                          stateDefinition,parameterCount)
@@ -156,6 +162,7 @@ contains
          &                                                            parameterMappings              , &
          &                                                            modelLikelihood                , &
          &                                                            simulationConvergence          , &
+         &                                                            simulationStoppingCriterion    , &
          &                                                            simulationState                , &
          &                                                            simulationStateInitializor     , &
          &                                                            proposalSize                   , &
@@ -172,6 +179,7 @@ contains
     deallocate(parameterPriors                )
     deallocate(modelLikelihood                )
     deallocate(simulationConvergence          )
+    deallocate(simulationStoppingCriterion    )
     deallocate(simulationState                )
     deallocate(simulationStateInitializor     )
     deallocate(proposalSize                   )
