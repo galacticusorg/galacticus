@@ -62,8 +62,8 @@ module MPI_Utilities
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>requestData</method>
-     !@     <type>\doubletwo</type>
-     !@     <arguments>\intone requestFrom\argin, \doubleone array</arguments>
+     !@     <type>\doubletwo|\inttwo</type>
+     !@     <arguments>\intone requestFrom\argin, \doubleone|\intone array</arguments>
      !@     <description>Request the content of {\tt array} from each processes listed in {\tt requestFrom}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -77,6 +77,12 @@ module MPI_Utilities
      !@     <type>\doubleone</type>
      !@     <arguments>\doubleone array\argin</arguments>
      !@     <description>Return the average of {\tt array} over all processes.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>median</method>
+     !@     <type>\intone</type>
+     !@     <arguments>\intone array\argin</arguments>
+     !@     <description>Return the median of {\tt array} over all processes.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>sum</method>
@@ -110,8 +116,8 @@ module MPI_Utilities
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>gather</method>
-     !@     <type>(\doubleone|\doubletwo|\doublethree)</type>
-     !@     <arguments>(\doublezero|\doubleone|\doubletwo) array\argin</arguments>
+     !@     <type>(\doubleone|\doubletwo|\doublethree|\inttwo)</type>
+     !@     <arguments>(\doublezero|\doubleone|\doubletwo|\intone) array\argin</arguments>
      !@     <description>Gather arrays from all processes into an array of rank one higher.</description>
      !@   </objectMethod>
      !@ </objectMethods>
@@ -120,25 +126,29 @@ module MPI_Utilities
      procedure :: rank           => mpiGetRank
      procedure :: rankLabel      => mpiGetRankLabel
      procedure :: count          => mpiGetCount
-     procedure ::                   mpiRequestData1D  , mpiRequestData2D
-     generic   :: requestData    => mpiRequestData1D  , mpiRequestData2D
+     procedure ::                   mpiRequestData1D   , mpiRequestData2D, &
+          &                         mpiRequestDataInt1D
+     generic   :: requestData    => mpiRequestData1D   , mpiRequestData2D, &
+          &                         mpiRequestDataInt1D
      procedure :: messageWaiting => mpiMessageWaiting
-     procedure ::                   mpiAverageScalar  , mpiAverageArray
-     generic   :: average        => mpiAverageScalar  , mpiAverageArray
-     procedure ::                   mpiSumScalarInt   , mpiSumArrayInt
-     procedure ::                   mpiSumScalarDouble, mpiSumArrayDouble
-     generic   :: sum            => mpiSumScalarInt   , mpiSumArrayInt   , &
-          &                         mpiSumScalarDouble, mpiSumArrayDouble
+     procedure ::                   mpiAverageScalar   , mpiAverageArray
+     generic   :: average        => mpiAverageScalar   , mpiAverageArray
+     procedure ::                   mpiMedianArray
+     generic   :: median         => mpiMedianArray
+     procedure ::                   mpiSumScalarInt    , mpiSumArrayInt
+     procedure ::                   mpiSumScalarDouble , mpiSumArrayDouble
+     generic   :: sum            => mpiSumScalarInt    , mpiSumArrayInt   , &
+          &                         mpiSumScalarDouble , mpiSumArrayDouble
      procedure :: maxloc         => mpiMaxloc
-     procedure ::                   mpiMaxvalScalar   , mpiMaxvalArray
-     generic   :: maxval         => mpiMaxvalScalar   , mpiMaxvalArray
+     procedure ::                   mpiMaxvalScalar    , mpiMaxvalArray
+     generic   :: maxval         => mpiMaxvalScalar    , mpiMaxvalArray
      procedure :: minloc         => mpiMinloc
-     procedure ::                   mpiMinvalScalar   , mpiMinvalArray
-     generic   :: minval         => mpiMinvalScalar   , mpiMinvalArray
-     procedure ::                   mpiGather1D       , mpiGather2D      , &
-          &                         mpiGatherScalar
-     generic   :: gather         => mpiGather1D       , mpiGather2D      , &
-          &                         mpiGatherScalar
+     procedure ::                   mpiMinvalScalar    , mpiMinvalArray
+     generic   :: minval         => mpiMinvalScalar    , mpiMinvalArray
+     procedure ::                   mpiGather1D        , mpiGather2D      , &
+          &                         mpiGatherScalar    , mpiGatherInt1D
+     generic   :: gather         => mpiGather1D        , mpiGather2D      , &
+          &                         mpiGatherScalar    , mpiGatherInt1D
   end type mpiObject
 
   ! Declare an object for interaction with MPI.
@@ -388,6 +398,63 @@ contains
     return
   end function mpiRequestData2D
 
+  function mpiRequestDataInt1D(self,requestFrom,array)
+    !% Request and receive data from other MPI processes.
+    use MPI
+    implicit none
+    class  (mpiObject), intent(in   )                                           :: self
+    integer           , intent(in   ), dimension(                            :) :: requestFrom
+    integer           , intent(in   ), dimension(          :                  ) :: array
+    integer                          , dimension(size(array),size(requestFrom)) :: mpiRequestDataInt1D
+    integer                          , dimension(                            1) :: requester
+    integer                          , dimension(            size(requestFrom)) :: requestFromID
+    integer           , allocatable  , dimension(                            :) :: requestID       , requestIDtemp
+    integer                          , dimension(              MPI_Status_Size) :: messageStatus
+    integer                                                                     :: i               , iError       , &
+         &                                                                         iRequest
+    
+    ! Record our own rank as the requester.
+    requester=mpiSelf%rank()
+    ! Send requests.
+    do i=1,size(requestFrom)
+       call MPI_ISend(requester,1,MPI_Integer,requestFrom(i),tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+    end do
+    call mpiBarrier()
+    ! Check for waiting requests.
+    allocate(requestID(size(requestFrom)))
+    iRequest=0
+    do while (mpiSelf%messageWaiting(tag=tagRequestForData))
+       ! Receive the request.
+       call MPI_Recv(requester,1,MPI_Integer,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
+       ! Expand the requestID buffer as required.
+       iRequest=iRequest+1
+       if (iRequest > size(requestID)) then
+          call Move_Alloc(requestID,requestIDtemp)
+          allocate(requestID(2*iRequest))
+          requestID(1:size(requestIDtemp))=requestIDtemp
+          deallocate(requestIDtemp)
+       end if
+       ! Send our data in reply.
+       call MPI_ISend(array,size(array),MPI_Integer,requester(1),tagState,MPI_Comm_World,requestID(iRequest),iError)
+    end do
+    call mpiBarrier()
+    ! Wait until all of our sends have been received.
+    do i=1,size(requestFrom)
+       call MPI_Wait(requestFromID(i),messageStatus,iError)
+    end do
+    ! Receive data.
+    do i=1,size(requestFrom)
+       call MPI_Recv(mpiRequestDataInt1D(:,i),size(array),MPI_Integer,requestFrom(i),tagState,MPI_Comm_World,messageStatus,iError)
+    end do
+    ! Wait until all of our sends have been received.
+    do i=1,iRequest
+      call MPI_Wait(requestID(i),messageStatus,iError)
+    end do
+    ! Deallocate request ID workspace.
+    deallocate(requestID)
+    return
+  end function mpiRequestDataInt1D
+
   function mpiSumArrayInt(self,array,mask)
     !% Sum an integer array over all processes, returning it to all processes.
     use MPI
@@ -488,6 +555,50 @@ contains
     mpiAverageArray=mpiAverageArray/dble(activeCount)
     return
   end function mpiAverageArray
+
+  function mpiMedianArray(self,array,mask)
+    !% Find the median of an array over all processes, returning it to all processes.
+    use MPI
+    use Sort
+    use Galacticus_Error
+    implicit none
+    class           (mpiObject), intent(in   )                                                   :: self
+    integer                    , intent(in   ), dimension(:                          )           :: array
+    logical                    , intent(in   ), dimension(:                          ), optional :: mask
+    integer                                   , dimension(size(array)                )           :: mpiMedianArray
+    integer                                   , dimension(size(array),self%countValue)           :: allArray
+    integer                                   , dimension(1:2                        )           :: indexMedian
+    integer                                                                                      :: i             , activeCount
+
+    ! Get count of active process.
+    if (present(mask)) then
+       activeCount=self%countValue-count(mask)
+    else
+       activeCount=self%countValue
+    end if
+    ! Find the indices corresponding to the median.
+    if (mod(activeCount,2) == 1) then
+       indexMedian=               activeCount/2+1
+    else
+       indexMedian=[activeCount/2,activeCount/2+1]
+    end if
+    ! Gather the array from all processes.
+    allArray=self%gather(array)
+    ! Iterate over array index.
+    do i=1,size(array)
+       ! Set masked values to huge.
+       if (present(mask)) then
+          where (mask)
+             allArray(i,:)=huge(1)
+          end where
+       end if
+       ! Sort over processes.
+       call Sort_Do(allArray(i,:))
+       ! Compute the median.
+       mpiMedianArray(i)=(allArray(i,indexMedian(1))+allArray(i,indexMedian(2)))/2
+    end do
+    return
+  end function mpiMedianArray
 
   double precision function mpiAverageScalar(self,scalar,mask)
     !% Find the maximum values of a scalar over all processes, returning it to all processes.
@@ -664,5 +775,18 @@ contains
     mpiGather2D=self%requestData(self%allRanks,array)
     return
   end function mpiGather2D
+
+  function mpiGatherInt1D(self,array)
+    !% Gather an integer 1-D array from all processes, returning it as a 2-D array.
+    use MPI
+    use Galacticus_Error
+    implicit none
+    class  (mpiObject), intent(in   )                                         :: self
+    integer           , intent(in   ), dimension(          :                ) :: array
+    integer           ,                dimension(size(array),self%countValue) :: mpiGatherInt1D
+
+    mpiGatherInt1D=self%requestData(self%allRanks,array)
+    return
+  end function mpiGatherInt1D
 
 end module MPI_Utilities
