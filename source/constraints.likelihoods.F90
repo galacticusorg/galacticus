@@ -29,9 +29,6 @@ module Constraints_Likelihoods
   use Nearest_Neighbors
   private
   public :: likelihoodNew
-  
-  ! A very small log likelihood which is used as an approximation to zero likelihood.
-  double precision, parameter, public :: logImpossible=-1.0d30
 
   ! Define the basic likelihood class.
   type, abstract, public :: likelihood

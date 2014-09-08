@@ -29,8 +29,8 @@ require List::ExtraUtils;
 # Andrew Benson (02-September-2011)
 
 # Get command-line parameters.
-die("Usage: constrainGalacticus.pl <configFile> <mpiRank> <likelihoodFile> <temperature> <param1> [<param2>......]") 
-    unless ( scalar(@ARGV) > 4 );
+die("Usage: constrainGalacticus.pl <configFile> <mpiRank> <likelihoodFile> <temperature> <store> <param1> [<param2>......]") 
+    unless ( scalar(@ARGV) > 5 );
 my $configFile = $ARGV[0];
 my $config     = &Parameters::Parse_Config($configFile,useStored => 1);
 my @parameters;
@@ -56,15 +56,18 @@ my $likelihoodFile = $ARGV[2];
 # Get the temperature.
 my $temperature    = $ARGV[3];
 
+# Get the store status.
+my $store          = $ARGV[4];
+
 # Convert command line arguments to a parameter structure.
 die("constrainGalacticus.pl: number of supplied arguments does not match number of parameters") 
-    unless ( scalar(@ARGV) == $parameterCount+4 );
+    unless ( scalar(@ARGV) == $parameterCount+5 );
 my $j = -1;
 my %parameterValues;
 for(my $i=0;$i<scalar(@parameters);++$i) {
     if ( exists($parameters[$i]->{'prior'}) ) {
 	++$j;
-	$parameterValues{$parameters[$i]->{'name'}} = $ARGV[$j+4];
+	$parameterValues{$parameters[$i]->{'name'}} = $ARGV[$j+5];
     }
 }
 
@@ -394,9 +397,17 @@ foreach my $constraint ( @constraints ) {
 	if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" );
 }
 
-# Remove the model.
-system("rm ".join(" ",@temporaryFiles))
-    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} && scalar(@temporaryFiles) > 0 );
+# Remove or store the model.
+if ( $store eq "none" ) {
+    system("rm ".join(" ",@temporaryFiles))
+	if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} && scalar(@temporaryFiles) > 0 );
+} else {
+    my $storeDirectory = $config->{'likelihood'}->{'workDirectory'}."/mcmc/store/model_".$mpiRank."_".$store;
+    system("mkdir -p ".$storeDirectory);
+    foreach my $file ( @temporaryFiles ) {
+	system("mv ".$file." ".$storeDirectory."/");
+    }
+}
 
 # Display the final likelihood.
 &outputLikelihood($config,$logLikelihood);

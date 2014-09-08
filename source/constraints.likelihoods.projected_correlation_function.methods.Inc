@@ -65,6 +65,7 @@ double precision function likelihoodProjectedCorrelationFunctionEvaluate(self,si
   use Cosmology_Functions
   use Galacticus_Error
   use Halo_Model_Projected_Correlations
+  use Constraints_Constants
   implicit none
   class           (likelihoodProjectedCorrelationFunction), intent(inout)               :: self
   class           (state                                 ), intent(in   )               :: simulationState
@@ -128,11 +129,7 @@ double precision function likelihoodProjectedCorrelationFunctionEvaluate(self,si
        &                                                  *size(self%projectedCorrelationFunction        ,dim=2)  &
        &                                                 ]                                                        &
        &                                                )
-
   likelihoodProjectedCorrelationFunctionEvaluate=-0.5d0*(difference*(self%inverseCovariance*difference))
-
-write (0,*) likelihoodProjectedCorrelationFunctionEvaluate
-
   return
 end function likelihoodProjectedCorrelationFunctionEvaluate
 

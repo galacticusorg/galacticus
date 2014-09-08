@@ -133,7 +133,7 @@ contains
     do i=1,size(priors)
        call priors(i)%sample(stateVector)
     end do
-    call priorState%update(stateVector,.false.)
+    call priorState%update(stateVector,.false.,.false.)
     deallocate(stateVector)
     return
   end subroutine priorsSample
