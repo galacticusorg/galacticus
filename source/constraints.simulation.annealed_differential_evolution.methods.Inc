@@ -109,7 +109,7 @@ subroutine simulatorAnnealedDifferentialEvolutionUpdate(self,stateVector)
   end if
   ! Update the simulation state.
   allocate(outlierMask(mpiSelf%count()))
-  do i=1,self%parameterCount
+  do i=0,mpiSelf%count()-1
      outlierMask(i)=self%simulationConvergence%chainIsOutlier(i)
   end do
   call self%simulationState%update(stateVector,self%logging(),self%simulationConvergence%isConverged(),outlierMask)

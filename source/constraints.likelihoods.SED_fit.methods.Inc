@@ -112,6 +112,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   !% Return the log-likelihood for the SED fitting likelihood function.
   use, intrinsic :: ISO_C_Binding
   use FGSL
+  use Constraints_Constants
   use Constraints_State
   use Constraints_Convergence
   use Numerical_Integration

@@ -103,6 +103,7 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   !% Return the log-likelihood for the mass function likelihood function.
   use, intrinsic :: ISO_C_Binding
   use Constraints_State
+  use Constraints_Constants
   use Constraints_Convergence
   use Conditional_Mass_Functions
   use Cosmology_Functions

@@ -24,7 +24,8 @@ function likelihoodGalacticusConstructor(configFileName)
   type(varying_string      ), intent(in   ) :: configFileName
 
   ! Store the config file name
-  likelihoodGalacticusConstructor%configFileName=configFileName
+  likelihoodGalacticusConstructor%configFileName    =configFileName
+  likelihoodGalacticusConstructor%storeCountPrevious=0
   return
 end function likelihoodGalacticusConstructor
 
@@ -48,13 +49,41 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   type            (varying_string      )                              :: wrapperCommand , likelihoodFileName
   character       (len=23              )                              :: label
   integer                                                             :: i              , likelihoodFileUnit
+  logical                                                             :: storeModel
 
   ! Generate the file name for the likelihood file.
   likelihoodFileName='/dev/shm/galacticusLikelihood_'//mpiSelf%rankLabel()//'.dat'
   ! Generate temperature label.
   write (label,'(e12.6)') temperature 
   ! Generate the command to run the Galacticus model.
-  wrapperCommand='./constraints/constrainGalacticus.pl '//trim(self%configFileName)//' '//mpiSelf%rankLabel()//' '//likelihoodFileName//' '//trim(label)
+  wrapperCommand=&
+       & './constraints/constrainGalacticus.pl '     // &
+       & trim(self%configFileName)              //' '// &
+       & mpiSelf%rankLabel()                    //' '// &
+       & likelihoodFileName                     //' '// &
+       & trim(label              )
+  ! Determine whether to store this model.
+  select type (simulationState)
+  class is (stateCorrelation)
+     storeModel=                                                                                &
+          &       simulationConvergence%isConverged              (                            ) &
+          & .and.                                                                               &
+          &  .not.simulationConvergence%chainIsOutlier           (mpiSelf%rank              ()) &
+          & .and.                                                                               &
+          &       simulationState%count                          (                            ) &
+          &      >=                                                                             &
+          &       self           %storeCountPrevious                                            &
+          &      +                                                                              &
+          &       simulationState%correlationLength              (                            )
+  class default
+     storeModel=.false.
+  end select
+  if (storeModel) self%storeCountPrevious=simulationState%count()
+  if (storeModel) then
+     wrapperCommand=wrapperCommand//' '//simulationState%count()
+  else
+     wrapperCommand=wrapperCommand//' none'
+  end if
   ! Append the current state.
   stateVector=simulationState%get()
   do i=1,size(stateVector)

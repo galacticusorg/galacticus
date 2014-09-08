@@ -24,12 +24,12 @@ function stateCorrelationConstructor(parameterCount,acceptedStateCount)
   integer                  , intent(in   ) :: parameterCount                 , acceptedStateCount
   integer                  , parameter     :: correlationLengthInitial   =100
 
-  allocate(stateCorrelationConstructor%current          (    parameterCount                         ))
-  allocate(stateCorrelationConstructor%accepted         (acceptedStateCount                         ))
-  allocate(stateCorrelationConstructor%stateSum         (    parameterCount                         ))
-  allocate(stateCorrelationConstructor%stateSquaredSum  (    parameterCount                         ))
-  allocate(stateCorrelationConstructor%states           (    parameterCount,correlationLengthInitial))
-  allocate(stateCorrelationConstructor%correlationLength(    parameterCount                         ))
+  allocate(stateCorrelationConstructor%current           (    parameterCount                         ))
+  allocate(stateCorrelationConstructor%accepted          (acceptedStateCount                         ))
+  allocate(stateCorrelationConstructor%stateSum          (    parameterCount                         ))
+  allocate(stateCorrelationConstructor%stateSquaredSum   (    parameterCount                         ))
+  allocate(stateCorrelationConstructor%states            (    parameterCount,correlationLengthInitial))
+  allocate(stateCorrelationConstructor%correlationLengths(    parameterCount                         ))
   stateCorrelationConstructor%parameterCount                 = parameterCount
   stateCorrelationConstructor%stepCount                      = 0
   stateCorrelationConstructor%storedStateCount               = 0
@@ -37,7 +37,7 @@ function stateCorrelationConstructor(parameterCount,acceptedStateCount)
   stateCorrelationConstructor%stateSquaredSum                = 0.0d0
   stateCorrelationConstructor%accepted                       = 0
   stateCorrelationConstructor%stepComputePrevious            = 0
-  stateCorrelationConstructor%correlationLength              =-1
+  stateCorrelationConstructor%correlationLengths             =-1
   stateCorrelationConstructor%convergedCorrelationLengthCount= 0
   return
 end function stateCorrelationConstructor
@@ -81,35 +81,35 @@ subroutine stateCorrelationUpdate(self,stateNew,logState,isConverged,outlierMask
   end if
   self%states(:,self%storedStateCount)=stateNew
   ! Determine if we should compute the correlation length.
-  if (any(self%correlationLength == -1)) then
+  if (any(self%correlationLengths == -1)) then
      stepComputeInterval=storedStateCountMaximum
   else
-     stepComputeInterval=maxval(self%correlationLength)
+     stepComputeInterval=maxval(self%correlationLengths)
   end if
   if (self%stepCount >= self%stepComputePrevious+stepComputeInterval) then
      ! Update count of number of correlation lengths accrued post-convergence.
-     if (isConverged.and..not.any(self%correlationLength == -1)) &
+     if (isConverged.and..not.any(self%correlationLengths == -1)) &
           & self%convergedCorrelationLengthCount=self%convergedCorrelationLengthCount+1
      ! Compute correlation lengths.
      if (mpiSelf%isMaster()) call Galacticus_Display_Indent("Computing correlation lengths")
-     stateMean             =sum(self%states(:,1:self%storedStateCount),dim=2)/dble(self%storedStateCount)
-     self%correlationLength=-1
+     stateMean              =sum(self%states(:,1:self%storedStateCount),dim=2)/dble(self%storedStateCount)
+     self%correlationLengths=-1
      do i=1,size(stateMean)
         do n=1,self%storedStateCount-1
            correlation=sum((self%states(i,1:self%storedStateCount-n)-stateMean(i))*(self%states(i,1+n:self%storedStateCount)-stateMean(i)))
            if (correlation <= 0.0d0) then
-              self%correlationLength(i)=n
+              self%correlationLengths(i)=n
               exit
            end if
         end do
      end do
-     self%correlationLength=mpiSelf%median(self%correlationLength,outlierMask)
+     self%correlationLengths =mpiSelf%median(self%correlationLengths,outlierMask)
      self%stepComputePrevious=self%stepCount
      if (mpiSelf%isMaster()) then
         message="Correlation length at step "
         message=message//self%stepCount//" = "
         do i=1,size(stateNew)
-           message=message//self%correlationLength(i)
+           message=message//self%correlationLengths(i)
            if (i < size(stateNew)) message=message//", "
         end do
         call Galacticus_Display_Message (message)
@@ -117,7 +117,7 @@ subroutine stateCorrelationUpdate(self,stateNew,logState,isConverged,outlierMask
      end if
   end if
   ! If any correlation length is not found, extend the number of states stored.
-  if (any(self%correlationLength == -1) .and. self%storedStateCount == storedStateCountMaximum) then
+  if (any(self%correlationLengths == -1) .and. self%storedStateCount == storedStateCountMaximum) then
      call Move_Alloc(self%states,statesTmp)
      allocate(self%states(size(stateNew),2*size(statesTmp,dim=2)))
      self%states(:,1:size(statesTmp,dim=2))=statesTmp
@@ -141,8 +141,17 @@ end subroutine stateCorrelationReset
 integer function stateCorrelationPostConvergenceCorrelationCount(self)
   !% Return the number of post-convergence correlation lengths that have accrued.
   implicit none
-  class(stateCorrelation), intent(inout) :: self
+  class(stateCorrelation), intent(in   ) :: self
   
   stateCorrelationPostConvergenceCorrelationCount=self%convergedCorrelationLengthCount
   return
 end function stateCorrelationPostConvergenceCorrelationCount
+
+integer function stateCorrelationCorrelationLength(self)
+  !% Return the correlation length.
+  implicit none
+  class(stateCorrelation), intent(in   ) :: self
+  
+  stateCorrelationCorrelationLength=maxval(self%correlationLengths)
+  return
+end function stateCorrelationCorrelationLength
