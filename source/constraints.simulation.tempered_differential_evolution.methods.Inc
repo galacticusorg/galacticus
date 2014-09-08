@@ -17,8 +17,8 @@
 
 !% Defines methods for the ``differentialEvolution'' simulator class.
 
-function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence &
-          &,simulationState,simulationStateInitializor,proposalSize,proposalSizeTemperatureExponent,randomJump,stepsMaximum,stepsPostConvergence&
+function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion &
+          &,simulationState,simulationStateInitializor,proposalSize,proposalSizeTemperatureExponent,randomJump,stepsMaximum&
           &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum ,untemperedStepCount,temperingLevelCount&
           &,stepsPerLevel,sampleOutliers)
   !% Constructor for ``temperedDifferentialEvolution'' simulator class.
@@ -29,16 +29,16 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   type            (mappingList                           ), intent(in   ), target, dimension(:) :: parameterMappings
   class           (likelihood                            ), intent(in   ), target               :: modelLikelihood
   class           (convergence                           ), intent(in   ), target               :: simulationConvergence
+  class           (stoppingCriterion                     ), intent(in   ), target               :: simulationStoppingCriterion
   class           (state                                 ), intent(in   ), target               :: simulationState
   class           (stateInitializor                      ), intent(in   ), target               :: simulationStateInitializor
   class           (deProposalSize                        ), intent(in   ), target               :: proposalSize
   class           (dePropSizeTempExp                     ), intent(in   ), target               :: proposalSizeTemperatureExponent
   class           (deRandomJump                          ), intent(in   ), target               :: randomJump
   double precision                                        , intent(in   )                       :: temperatureMaximum
-  integer                                                 , intent(in   )                       :: stepsMaximum                   , stepsPostConvergence    , &
+  integer                                                 , intent(in   )                       :: stepsMaximum                   , stateSwapCount          , &
        &                                                                                           acceptanceAverageCount         , untemperedStepCount     , &
-       &                                                                                           temperingLevelCount            , stepsPerLevel           , &
-       &                                                                                           stateSwapCount
+       &                                                                                           temperingLevelCount            , stepsPerLevel                                                                                          
   character       (len=*                                 ), intent(in   )                       :: logFileRoot
   logical                                                 , intent(in   )                       :: sampleOutliers
   integer                                                                                       :: i
@@ -49,13 +49,13 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   simulatorTemperedDifferentialEvolutionConstructor%parameterMappings               => parameterMappings
   simulatorTemperedDifferentialEvolutionConstructor%modelLikelihood                 => modelLikelihood
   simulatorTemperedDifferentialEvolutionConstructor%simulationConvergence           => simulationConvergence
+  simulatorTemperedDifferentialEvolutionConstructor%simulationStoppingCriterion     => simulationStoppingCriterion
   simulatorTemperedDifferentialEvolutionConstructor%simulationState                 => simulationState
   simulatorTemperedDifferentialEvolutionConstructor%simulationStateInitializor      => simulationStateInitializor
   simulatorTemperedDifferentialEvolutionConstructor%proposalSize                    => proposalSize
   simulatorTemperedDifferentialEvolutionConstructor%proposalSizeTemperatureExponent => proposalSizeTemperatureExponent
   simulatorTemperedDifferentialEvolutionConstructor%randomJump                      => randomJump
   simulatorTemperedDifferentialEvolutionConstructor%stepsMaximum                    =  stepsMaximum
-  simulatorTemperedDifferentialEvolutionConstructor%stepsPostConvergence            =  stepsPostConvergence
   simulatorTemperedDifferentialEvolutionConstructor%acceptanceAverageCount          =  acceptanceAverageCount
   simulatorTemperedDifferentialEvolutionConstructor%stateSwapCount                  =  stateSwapCount
   simulatorTemperedDifferentialEvolutionConstructor%logFileRoot                     =  logFileRoot
@@ -99,17 +99,22 @@ subroutine simulatorTemperedDifferentialEvolutionUpdate(self,stateVector)
   use String_Handling
   use ISO_Varying_String
   implicit none
-  class           (simulatorTemperedDifferentialEvolution), intent(inout)                                   :: self
-  double precision                                        , intent(in   ), dimension(self%parameterCount  ) :: stateVector
-  integer                                                                                                   :: i             , temperingLevelSaved
-  logical                                                                                                   :: levelChanged
-  double precision                                                                                          :: acceptanceRate, temperature        , &
-       &                                                                                                       stepSize
-  character       (len=30                                )                                                  :: label
-  type            (varying_string                        )                                                  :: message
+  class           (simulatorTemperedDifferentialEvolution), intent(inout)                                 :: self
+  double precision                                        , intent(in   ), dimension(self%parameterCount) :: stateVector
+  logical                                                 , allocatable  , dimension(:                  ) :: outlierMask
+  integer                                                                                                 :: i             , temperingLevelSaved
+  logical                                                                                                 :: levelChanged
+  double precision                                                                                        :: acceptanceRate, temperature        , &
+       &                                                                                                     stepSize
+  character       (len=30                                )                                                :: label
+  type            (varying_string                        )                                                :: message
 
   ! Update the simulation state.
-  call self%simulationState%update(stateVector,self%logging())
+  allocate(outlierMask(mpiSelf%count()))
+  do i=1,self%parameterCount
+     outlierMask(i)=self%simulationConvergence%chainIsOutlier(i)
+  end do
+  call self%simulationState%update(stateVector,self%logging(),self%simulationConvergence%isConverged(),outlierMask)
   ! Update tempering step count and level as necessary.
   levelChanged=.false.
   self%temperingStep=self%temperingStep+1
@@ -123,7 +128,7 @@ subroutine simulatorTemperedDifferentialEvolutionUpdate(self,stateVector)
      end if
   else
      ! Update the tempered level states.
-     call self%temperedStates(self%level())%update(stateVector,.true.)
+     call self%temperedStates(self%level())%update(stateVector,.true.,self%simulationConvergence%isConverged(),outlierMask)
      ! Currently tempering: check if we've run all required steps at this level.
      if (self%temperingStep > self%stepsPerLevel) then
         ! We have, move to the next tempering level. Note that we run tempering levels from 1 to
@@ -169,7 +174,7 @@ subroutine simulatorTemperedDifferentialEvolutionUpdate(self,stateVector)
         end if
      else
         ! We're in a tempering level, update the state of the new level to the current state, without logging.
-        call self%temperedStates(self%level())%update(stateVector,.false.)
+        call self%temperedStates(self%level())%update(stateVector,.false.,self%simulationConvergence%isConverged(),outlierMask)
      end if
   end if
   return

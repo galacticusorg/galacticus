@@ -40,6 +40,7 @@ function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,out
   convergenceGelmanRubinConstructor%reportCount               =reportCount
   convergenceGelmanRubinConstructor%estimateCount             =0
   convergenceGelmanRubinConstructor%converged                 =.false.
+  convergenceGelmanRubinConstructor%convergedAtStepCount      =-1
   convergenceGelmanRubinConstructor%chainMask                 =.true.
   ! Validate.
   if (mpiSelf%count()-outlierCountMaximum < 3) call Galacticus_Error_Report('convergenceGelmanRubinConstructor','maximum number of outliers is too large')
@@ -302,7 +303,10 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   ! Compute corrected R-hat statistic.
   self%correctedHatR=(degreesOfFreedom+3.0d0)*hatR/(degreesOfFreedom+1.0d0)
   ! Check for convergence.
-  self%converged=all(self%correctedHatR < self%thresholdHatR)
+  if (.not.self%converged.and.all(self%correctedHatR < self%thresholdHatR)) then
+     self%converged           =.true.
+     self%convergedAtStepCount=simulationState%count()
+  end if
   convergenceGelmanRubinIsConverged=self%converged
   ! Report.
   self%estimateCount=self%estimateCount+1
@@ -336,12 +340,22 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   return
 end function convergenceGelmanRubinIsConverged
 
+integer function convergenceGelmanRubinConvergedAtStep(self)
+  !% Return the step at which the simulation converged.
+  implicit none
+  class(convergenceGelmanRubin), intent(inout) :: self
+
+  convergenceGelmanRubinConvergedAtStep=self%convergedAtStepCount
+  return
+end function convergenceGelmanRubinConvergedAtStep
+
 subroutine convergenceGelmanRubinReset(self)
   !% Reset the convergence object.
   implicit none
   class(convergenceGelmanRubin), intent(inout) :: self
 
-  self%converged=.false.
+  self%converged           =.false.
+  self%convergedAtStepCount=-1
   return
 end subroutine convergenceGelmanRubinReset
 

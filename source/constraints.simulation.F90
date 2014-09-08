@@ -24,6 +24,7 @@ module Constraints_Simulation
   use Constraints_Mappings
   use Constraints_Likelihoods
   use Constraints_Convergence
+  use Constraints_Stopping_Criteria
   use Constraints_State
   use Constraints_State_Initialize
   use Constraints_Differential_Proposal_Size
@@ -63,7 +64,7 @@ module Constraints_Simulation
 
 contains
 
-  function simulatorNew(definition,parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationState,simulationStateInitializor&
+  function simulatorNew(definition,parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion,simulationState,simulationStateInitializor&
        &,proposalSize,proposalSizeTemperatureExponent,randomJump) result (newSimulator)
     !% Create a new differential evolution proposal size from an XML definition.
     use FoX_DOM
@@ -78,20 +79,20 @@ contains
     type            (mappingList      ), intent(in   ), optional, target, dimension(:) :: parameterMappings
     class           (likelihood       ), intent(in   ), optional, target               :: modelLikelihood
     class           (convergence      ), intent(in   ), optional, target               :: simulationConvergence
+    class           (stoppingCriterion), intent(in   ), optional, target               :: simulationStoppingCriterion
     class           (state            ), intent(in   ), optional, target               :: simulationState
     class           (stateInitializor ), intent(in   ), optional, target               :: simulationStateInitializor
     class           (deProposalSize   ), intent(in   ), optional, target               :: proposalSize
     class           (dePropSizeTempExp), intent(in   ), optional, target               :: proposalSizeTemperatureExponent
     class           (deRandomJump     ), intent(in   ), optional, target               :: randomJump
-    type            (node             ), pointer                                       :: simulatorStepsMaximumDefinition          , simulatorStepsPostConvergenceDefinition, &
+    type            (node             ), pointer                                       :: simulatorStepsMaximumDefinition          , simulatorSampleOutliersDefinition      , &
          &                                                                                simulatorAcceptanceAverageCountDefinition, simulatorLogFileDefinition             , &
          &                                                                                simulatorTemperatureMaximumDefinition    , simulatorUntemperedStepCountDefinition , &
          &                                                                                simulatorTemperingLevelCountDefinition   , simulatorStepsPerLevelDefinition       , &
-         &                                                                                simulatorStateSwapCountDefinition        , simulatorSampleOutliersDefinition
-    integer                                                                            :: simulatorStepsMaximum                    , simulatorStepsPostConvergence          , &
+         &                                                                                simulatorStateSwapCountDefinition
+    integer                                                                            :: simulatorStepsMaximum                    , simulatorStateSwapCount                , &
          &                                                                                simulatorAcceptanceAverageCount          , simulatorUntemperedStepCount           , &
-         &                                                                                simulatorTemperingLevelCount             , simulatorStepsPerLevel                 , &
-         &                                                                                simulatorStateSwapCount
+         &                                                                                simulatorTemperingLevelCount             , simulatorStepsPerLevel                                                                          
     double precision                                                                   :: simulatorTemperatureMaximum
     type            (varying_string  )                                                 :: simulatorLogFile
     logical                                                                            :: simulatorSampleOutliers
@@ -102,13 +103,11 @@ contains
        select type (newSimulator)
        type is (simulatorDifferentialEvolution)
           simulatorStepsMaximumDefinition           => XML_Get_First_Element_By_Tag_Name(definition,"stepsMaximum"          )
-          simulatorStepsPostConvergenceDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"stepsPostConvergence"  )
           simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount")
           simulatorStateSwapCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"stateSwapCount"        )
           simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"           )
           simulatorSampleOutliersDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"sampleOutliers"        )
           call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
-          call extractDataContent(simulatorStepsPostConvergenceDefinition  ,simulatorStepsPostConvergence  )
           call extractDataContent(simulatorAcceptanceAverageCountDefinition,simulatorAcceptanceAverageCount)
           call extractDataContent(simulatorStateSwapCountDefinition        ,simulatorStateSwapCount        )
           call extractDataContent(simulatorSampleOutliersDefinition        ,simulatorSampleOutliers        )
@@ -119,12 +118,12 @@ contains
                &                                      parameterMappings              , &
                &                                      modelLikelihood                , &
                &                                      simulationConvergence          , &
+               &                                      simulationStoppingCriterion    , &
                &                                      simulationState                , &
                &                                      simulationStateInitializor     , &
                &                                      proposalSize                   , &
                &                                      randomJump                     , &
                &                                      simulatorStepsMaximum          , &
-               &                                      simulatorStepsPostConvergence  , &
                &                                      simulatorAcceptanceAverageCount, &
                &                                      simulatorStateSwapCount        , &
                &                                      char(simulatorLogFile)         , &
@@ -136,7 +135,6 @@ contains
        select type (newSimulator)
        type is (simulatorTemperedDifferentialEvolution)
           simulatorStepsMaximumDefinition           => XML_Get_First_Element_By_Tag_Name(definition,"stepsMaximum"            )
-          simulatorStepsPostConvergenceDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"stepsPostConvergence"    )
           simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount"  )
           simulatorStateSwapCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"stateSwapCount"        )
           simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"             )
@@ -146,7 +144,6 @@ contains
           simulatorStepsPerLevelDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"stepsPerLevel"           )
           simulatorSampleOutliersDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"sampleOutliers"        )
           call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
-          call extractDataContent(simulatorStepsPostConvergenceDefinition  ,simulatorStepsPostConvergence  )
           call extractDataContent(simulatorAcceptanceAverageCountDefinition,simulatorAcceptanceAverageCount)
           call extractDataContent(simulatorStateSwapCountDefinition        ,simulatorStateSwapCount        )
           call extractDataContent(simulatorTemperatureMaximumDefinition    ,simulatorTemperatureMaximum    )
@@ -161,13 +158,13 @@ contains
                &                                              parameterMappings              , &
                &                                              modelLikelihood                , &
                &                                              simulationConvergence          , &
+               &                                              simulationStoppingCriterion    , &
                &                                              simulationState                , &
                &                                              simulationStateInitializor     , &
                &                                              proposalSize                   , &
                &                                              proposalSizeTemperatureExponent, &
                &                                              randomJump                     , &
                &                                              simulatorStepsMaximum          , &
-               &                                              simulatorStepsPostConvergence  , &
                &                                              simulatorAcceptanceAverageCount, &
                &                                              simulatorStateSwapCount        , &
                &                                              char(simulatorLogFile)         , &
@@ -183,7 +180,6 @@ contains
        select type (newSimulator)
        type is (simulatorAnnealedDifferentialEvolution)
           simulatorStepsMaximumDefinition           => XML_Get_First_Element_By_Tag_Name(definition,"stepsMaximum"          )
-          simulatorStepsPostConvergenceDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"stepsPostConvergence"  )
           simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount")
           simulatorStateSwapCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"stateSwapCount"        )
           simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"           )
@@ -191,7 +187,6 @@ contains
           simulatorTemperingLevelCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"temperatureLevels"     )
           simulatorSampleOutliersDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"sampleOutliers"        )
           call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
-          call extractDataContent(simulatorStepsPostConvergenceDefinition  ,simulatorStepsPostConvergence  )
           call extractDataContent(simulatorAcceptanceAverageCountDefinition,simulatorAcceptanceAverageCount)
           call extractDataContent(simulatorStateSwapCountDefinition        ,simulatorStateSwapCount        )
           call extractDataContent(simulatorTemperatureMaximumDefinition    ,simulatorTemperatureMaximum    )
@@ -204,12 +199,12 @@ contains
                &                                              parameterMappings              , &
                &                                              modelLikelihood                , &
                &                                              simulationConvergence          , &
+               &                                              simulationStoppingCriterion    , &
                &                                              simulationState                , &
                &                                              simulationStateInitializor     , &
                &                                              proposalSize                   , &
                &                                              randomJump                     , &
                &                                              simulatorStepsMaximum          , &
-               &                                              simulatorStepsPostConvergence  , &
                &                                              simulatorAcceptanceAverageCount, &
                &                                              simulatorStateSwapCount        , &
                &                                              char(simulatorLogFile)         , &

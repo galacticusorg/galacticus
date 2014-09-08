@@ -17,8 +17,8 @@
 
 !% Defines methods for the ``differentialEvolution'' simulator class.
 
-function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence&
-     &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum,stepsPostConvergence,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers)
+function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion&
+     &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers)
   !% Constructor for ``differentialEvolution'' simulator class.
   implicit none
   type     (simulatorDifferentialEvolution)                                      :: simulatorDifferentialEvolutionConstructor
@@ -27,30 +27,31 @@ function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistrib
   type     (mappingList                   ), intent(in   ), target, dimension(:) :: parameterMappings
   class    (likelihood                    ), intent(in   ), target               :: modelLikelihood
   class    (convergence                   ), intent(in   ), target               :: simulationConvergence
+  class    (stoppingCriterion             ), intent(in   ), target               :: simulationStoppingCriterion
   class    (state                         ), intent(in   ), target               :: simulationState
   class    (stateInitializor              ), intent(in   ), target               :: simulationStateInitializor
   class    (deProposalSize                ), intent(in   ), target               :: proposalSize
   class    (deRandomJump                  ), intent(in   ), target               :: randomJump
-  integer                                  , intent(in   )                       :: stepsMaximum,stepsPostConvergence,acceptanceAverageCount,stateSwapCount
+  integer                                  , intent(in   )                       :: stepsMaximum,acceptanceAverageCount,stateSwapCount
   character(len=*                         ), intent(in   )                       :: logFileRoot
   logical                                  , intent(in   )                       :: sampleOutliers
 
-  simulatorDifferentialEvolutionConstructor%parameterCount             =  size(parameterPriors)
-  simulatorDifferentialEvolutionConstructor%parameterPriors            => parameterPriors
-  simulatorDifferentialEvolutionConstructor%randomDistributions        => randomDistributions
-  simulatorDifferentialEvolutionConstructor%parameterMappings          => parameterMappings
-  simulatorDifferentialEvolutionConstructor%modelLikelihood            => modelLikelihood
-  simulatorDifferentialEvolutionConstructor%simulationConvergence      => simulationConvergence
-  simulatorDifferentialEvolutionConstructor%simulationState            => simulationState
-  simulatorDifferentialEvolutionConstructor%simulationStateInitializor => simulationStateInitializor
-  simulatorDifferentialEvolutionConstructor%proposalSize               => proposalSize
-  simulatorDifferentialEvolutionConstructor%randomJump                 => randomJump
-  simulatorDifferentialEvolutionConstructor%stepsMaximum               =  stepsMaximum
-  simulatorDifferentialEvolutionConstructor%stepsPostConvergence       =  stepsPostConvergence
-  simulatorDifferentialEvolutionConstructor%acceptanceAverageCount     =  acceptanceAverageCount
-  simulatorDifferentialEvolutionConstructor%stateSwapCount             =  stateSwapCount
-  simulatorDifferentialEvolutionConstructor%logFileRoot                =  logFileRoot
-  simulatorDifferentialEvolutionConstructor%sampleOutliers             =  sampleOutliers
+  simulatorDifferentialEvolutionConstructor%parameterCount              =  size(parameterPriors)
+  simulatorDifferentialEvolutionConstructor%parameterPriors             => parameterPriors
+  simulatorDifferentialEvolutionConstructor%randomDistributions         => randomDistributions
+  simulatorDifferentialEvolutionConstructor%parameterMappings           => parameterMappings
+  simulatorDifferentialEvolutionConstructor%modelLikelihood             => modelLikelihood
+  simulatorDifferentialEvolutionConstructor%simulationConvergence       => simulationConvergence
+  simulatorDifferentialEvolutionConstructor%simulationStoppingCriterion => simulationStoppingCriterion
+  simulatorDifferentialEvolutionConstructor%simulationState             => simulationState
+  simulatorDifferentialEvolutionConstructor%simulationStateInitializor  => simulationStateInitializor
+  simulatorDifferentialEvolutionConstructor%proposalSize                => proposalSize
+  simulatorDifferentialEvolutionConstructor%randomJump                  => randomJump
+  simulatorDifferentialEvolutionConstructor%stepsMaximum                =  stepsMaximum
+  simulatorDifferentialEvolutionConstructor%acceptanceAverageCount      =  acceptanceAverageCount
+  simulatorDifferentialEvolutionConstructor%stateSwapCount              =  stateSwapCount
+  simulatorDifferentialEvolutionConstructor%logFileRoot                 =  logFileRoot
+  simulatorDifferentialEvolutionConstructor%sampleOutliers              =  sampleOutliers
   return
 end function simulatorDifferentialEvolutionConstructor
 
@@ -93,14 +94,10 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
   open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
   self%isConverged=.false. 
-  do while (                                                                            &
-       &       self%simulationState%count()                 < self%stepsMaximum         &
-       &    .and.                                                                       &
-       &     (                                                                          &
-       &       .not.self%isConverged                                                    &
-       &      .or.                                                                      &
-       &       self%simulationState%count()-convergedAtStep < self%stepsPostConvergence &
-       &     )                                                                          &
+  do while (                                                                                                                  &
+       &          self%simulationState            %count(                                               ) < self%stepsMaximum &
+       &    .and.                                                                                                             &
+       &     .not.self%simulationStoppingCriterion%stop (self%simulationState,self%simulationConvergence)                     &
        &   )
      ! Pick two random processes to use for proposal.
      chainPair(1)=simulatorDifferentialChainSelect(self,randomNumberGenerator               )
@@ -118,7 +115,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      ! Add random perturbations to the proposal.
      stateVectorProposed=stateVectorProposed+self%randomJump%sample(self%randomDistributions,self%simulationState)
      ! Store the proposed state vector.
-     call stateProposed%update(stateVectorProposed,.false.)
+     call stateProposed%update(stateVectorProposed,.false.,.false.)
      ! Evaluate likelihood.
      call CPU_Time(timePreEvaluate )
      call self%posterior(stateProposed,logLikelihood,self%logPosterior-logLikelihood,logPosteriorProposed,logLikelihoodProposed)
@@ -167,11 +164,18 @@ end subroutine simulatorDifferentialEvolutionSimulate
 
 subroutine simulatorDifferentialEvolutionUpdate(self,stateVector)
   !% Update the differential evolution simulator state.
+  use MPI_Utilities
   implicit none
   class           (simulatorDifferentialEvolution), intent(inout)                                 :: self
   double precision                                , intent(in   ), dimension(self%parameterCount) :: stateVector
-  
-  call self%simulationState%update(stateVector,self%logging())
+  logical                                         , allocatable  , dimension(:                  ) :: outlierMask
+  integer                                                                                         :: i
+
+  allocate(outlierMask(mpiSelf%count()))
+  do i=1,self%parameterCount
+     outlierMask(i)=self%simulationConvergence%chainIsOutlier(i)
+  end do
+  call self%simulationState%update(stateVector,self%logging(),self%simulationConvergence%isConverged(),outlierMask)
   return
 end subroutine simulatorDifferentialEvolutionUpdate
 

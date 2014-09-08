@@ -63,7 +63,7 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
      stateVector(i)=parameterMappings(i)%thisMapping%map(stateVector(i))
   end do
   ! Set the simulation state.
-  call simulationState%update(stateVector,.false.)
+  call simulationState%update(stateVector,.false.,.false.)
   ! Deallocate the state vector.
   deallocate(stateVector)
   return

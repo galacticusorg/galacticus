@@ -17,8 +17,8 @@
 
 !% Defines methods for the ``annealedDifferentialEvolution'' simulator class.
 
-function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence &
-          &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum,stepsPostConvergence&
+function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion &
+          &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum&
           &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum,temperatureLevelCount,sampleOutliers)
   !% Constructor for ``annealedDifferentialEvolution'' simulator class.
   implicit none
@@ -28,37 +28,37 @@ function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,rando
   type            (mappingList                           ), intent(in   ), target, dimension(:) :: parameterMappings
   class           (likelihood                            ), intent(in   ), target               :: modelLikelihood
   class           (convergence                           ), intent(in   ), target               :: simulationConvergence
+  class           (stoppingCriterion                     ), intent(in   ), target               :: simulationStoppingCriterion
   class           (state                                 ), intent(in   ), target               :: simulationState
   class           (stateInitializor                      ), intent(in   ), target               :: simulationStateInitializor
   class           (deProposalSize                        ), intent(in   ), target               :: proposalSize
   class           (deRandomJump                          ), intent(in   ), target               :: randomJump
   double precision                                        , intent(in   )                       :: temperatureMaximum
-  integer                                                 , intent(in   )                       :: stepsMaximum                   , stepsPostConvergence, &
-       &                                                                                           acceptanceAverageCount         , stateSwapCount      , &
-       &                                                                                           temperatureLevelCount
+  integer                                                 , intent(in   )                       :: stepsMaximum                   , temperatureLevelCount, &
+       &                                                                                           acceptanceAverageCount         , stateSwapCount                                                                                          
   character       (len=*                                 ), intent(in   )                       :: logFileRoot
   logical                                                 , intent(in   )                       :: sampleOutliers
   integer                                                                                       :: i
 
-  simulatorAnnealedDifferentialEvolutionConstructor%parameterCount             =  size(parameterPriors)
-  simulatorAnnealedDifferentialEvolutionConstructor%parameterPriors            => parameterPriors
-  simulatorAnnealedDifferentialEvolutionConstructor%randomDistributions        => randomDistributions
-  simulatorAnnealedDifferentialEvolutionConstructor%parameterMappings          => parameterMappings
-  simulatorAnnealedDifferentialEvolutionConstructor%modelLikelihood            => modelLikelihood
-  simulatorAnnealedDifferentialEvolutionConstructor%simulationConvergence      => simulationConvergence
-  simulatorAnnealedDifferentialEvolutionConstructor%simulationState            => simulationState
-  simulatorAnnealedDifferentialEvolutionConstructor%simulationStateInitializor => simulationStateInitializor
-  simulatorAnnealedDifferentialEvolutionConstructor%proposalSize               => proposalSize
-  simulatorAnnealedDifferentialEvolutionConstructor%randomJump                 => randomJump
-  simulatorAnnealedDifferentialEvolutionConstructor%stepsMaximum               =  stepsMaximum
-  simulatorAnnealedDifferentialEvolutionConstructor%stepsPostConvergence       =  stepsPostConvergence
-  simulatorAnnealedDifferentialEvolutionConstructor%acceptanceAverageCount     =  acceptanceAverageCount
-  simulatorAnnealedDifferentialEvolutionConstructor%stateSwapCount             =  stateSwapCount
-  simulatorAnnealedDifferentialEvolutionConstructor%logFileRoot                =  logFileRoot
-  simulatorAnnealedDifferentialEvolutionConstructor%temperatureMaximum         =  temperatureMaximum
-  simulatorAnnealedDifferentialEvolutionConstructor%temperatureLevelCount      =  temperatureLevelCount
-  simulatorAnnealedDifferentialEvolutionConstructor%temperatureLevelCurrent    =  temperatureLevelCount
-  simulatorAnnealedDifferentialEvolutionConstructor%sampleOutliers             =  sampleOutliers
+  simulatorAnnealedDifferentialEvolutionConstructor%parameterCount              =  size(parameterPriors)
+  simulatorAnnealedDifferentialEvolutionConstructor%parameterPriors             => parameterPriors
+  simulatorAnnealedDifferentialEvolutionConstructor%randomDistributions         => randomDistributions
+  simulatorAnnealedDifferentialEvolutionConstructor%parameterMappings           => parameterMappings
+  simulatorAnnealedDifferentialEvolutionConstructor%modelLikelihood             => modelLikelihood
+  simulatorAnnealedDifferentialEvolutionConstructor%simulationConvergence       => simulationConvergence
+  simulatorAnnealedDifferentialEvolutionConstructor%simulationStoppingCriterion => simulationStoppingCriterion
+  simulatorAnnealedDifferentialEvolutionConstructor%simulationState             => simulationState
+  simulatorAnnealedDifferentialEvolutionConstructor%simulationStateInitializor  => simulationStateInitializor
+  simulatorAnnealedDifferentialEvolutionConstructor%proposalSize                => proposalSize
+  simulatorAnnealedDifferentialEvolutionConstructor%randomJump                  => randomJump
+  simulatorAnnealedDifferentialEvolutionConstructor%stepsMaximum                =  stepsMaximum
+  simulatorAnnealedDifferentialEvolutionConstructor%acceptanceAverageCount      =  acceptanceAverageCount
+  simulatorAnnealedDifferentialEvolutionConstructor%stateSwapCount              =  stateSwapCount
+  simulatorAnnealedDifferentialEvolutionConstructor%logFileRoot                 =  logFileRoot
+  simulatorAnnealedDifferentialEvolutionConstructor%temperatureMaximum          =  temperatureMaximum
+  simulatorAnnealedDifferentialEvolutionConstructor%temperatureLevelCount       =  temperatureLevelCount
+  simulatorAnnealedDifferentialEvolutionConstructor%temperatureLevelCurrent     =  temperatureLevelCount
+  simulatorAnnealedDifferentialEvolutionConstructor%sampleOutliers              =  sampleOutliers
   allocate(simulatorAnnealedDifferentialEvolutionConstructor%temperatures(temperatureLevelCount))
   if (temperatureLevelCount == 1) then
      simulatorAnnealedDifferentialEvolutionConstructor%temperatures(1)=1.0d0
@@ -84,6 +84,8 @@ subroutine simulatorAnnealedDifferentialEvolutionUpdate(self,stateVector)
   implicit none
   class           (simulatorAnnealedDifferentialEvolution), intent(inout)                                 :: self
   double precision                                        , intent(in   ), dimension(self%parameterCount) :: stateVector
+  logical                                                 , allocatable  , dimension(:                  ) :: outlierMask
+  integer                                                                                                 :: i
   type            (varying_string                        )                                                :: message
   character       (len=7                                 )                                                :: label
 
@@ -106,7 +108,11 @@ subroutine simulatorAnnealedDifferentialEvolutionUpdate(self,stateVector)
      end if
   end if
   ! Update the simulation state.
-  call self%simulationState%update(stateVector,self%logging())
+  allocate(outlierMask(mpiSelf%count()))
+  do i=1,self%parameterCount
+     outlierMask(i)=self%simulationConvergence%chainIsOutlier(i)
+  end do
+  call self%simulationState%update(stateVector,self%logging(),self%simulationConvergence%isConverged(),outlierMask)
   return
 end subroutine simulatorAnnealedDifferentialEvolutionUpdate
 
