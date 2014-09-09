@@ -204,7 +204,7 @@ contains
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
-    integer                                                                         :: i,j,k,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution,jOutput
+    integer                                                                         :: i,j,k,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution,jOutput
     double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
          &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter,sersicIndexMaximum,redshift,timeMinimum,timeMaximum,distanceMinimum,distanceMaximum
     type            (varying_string                )                                :: parameterName&
@@ -483,56 +483,56 @@ contains
                               &                            cosmologyConversionMassFunction=sizeFunctions(currentAnalysis)%cosmologyConversionSizeFunction(jOutput)  &
                               &                           )
                       end do
-                      exit
-                   end if
-                end do
-                ! Compute output weights for mass function.
-                call Alloc_Array(sizeFunctions(currentAnalysis)%outputWeight,[sizeFunctions(currentAnalysis)%massesCount,Galacticus_Output_Time_Count()])
-                sizeFunctions(currentAnalysis)%outputWeight=0.0d0
-                do k=1,sizeFunctions(currentAnalysis)%massesCount
-                   do jOutput=1,Galacticus_Output_Time_Count()
-                      do j=1,sizeFunctions(currentAnalysis)%descriptor%geometry%fieldCount()
-                         if (jOutput == Galacticus_Output_Time_Count()) then
-                            timeMaximum=     Galacticus_Output_Time(jOutput)
+                      ! Compute output weights for mass function.
+                      call Alloc_Array(sizeFunctions(currentAnalysis)%outputWeight,[sizeFunctions(currentAnalysis)%massesCount,Galacticus_Output_Time_Count()])
+                      sizeFunctions(currentAnalysis)%outputWeight=0.0d0
+                      do k=1,sizeFunctions(currentAnalysis)%massesCount
+                         do jOutput=1,Galacticus_Output_Time_Count()
+                            do l=1,sizeFunctions(currentAnalysis)%descriptor%geometry%fieldCount()
+                               if (jOutput == Galacticus_Output_Time_Count()) then
+                                  timeMaximum=     Galacticus_Output_Time(jOutput)
+                               else
+                                  timeMaximum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput+1))
+                               end if
+                               if (jOutput ==                              1) then
+                                  timeMinimum=     Galacticus_Output_Time(jOutput)
+                               else
+                                  timeMinimum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput-1))
+                               end if
+                               distanceMinimum=max(                                                                                                                &
+                                    &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                         , &
+                                    &              sizeFunctions(currentAnalysis)%descriptor%geometry%distanceMinimum(sizeFunctions(currentAnalysis)%masses(k),l)  &
+                                    &             )
+                               distanceMaximum=min(                                                                                                                &
+                                    &              cosmologyFunctionsModel%distanceComoving(timeMinimum)                                                         , &
+                                    &              sizeFunctions(currentAnalysis)%descriptor%geometry%distanceMaximum(sizeFunctions(currentAnalysis)%masses(k),l)  &
+                                    &             )
+                               sizeFunctions        (currentAnalysis)%outputWeight                    (k,jOutput)  &
+                                    & =sizeFunctions(currentAnalysis)%outputWeight                    (k,jOutput)  &
+                                    & +sizeFunctions(currentAnalysis)%descriptor  %geometry%solidAngle(  l      )  &
+                                    & /3.0d0                                                                       &
+                                    & *                                                                            &
+                                    & max(                                                                         &
+                                    &     +0.0d0                                                                 , &
+                                    &     +distanceMaximum**3                                                      &
+                                    &     -distanceMinimum**3                                                      &
+                                    &    )
+                            end do
+                         end do
+                         where(sizeFunctions(currentAnalysis)%outputWeight(k,:) < 0.0d0)
+                            sizeFunctions(currentAnalysis)%outputWeight(k,:)=0.0d0
+                         end where
+                         if (any(sizeFunctions(currentAnalysis)%outputWeight(k,:) > 0.0d0)) then
+                            sizeFunctions                  (currentAnalysis)%outputWeight(k,:)  &
+                                 &       =    sizeFunctions(currentAnalysis)%outputWeight(k,:)  &
+                                 &       /sum(sizeFunctions(currentAnalysis)%outputWeight(k,:))
                          else
-                            timeMaximum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput+1))
+                            message="size function '"//trim(sizeFunctions(currentAnalysis)%descriptor%label)//"' bin "
+                            message=message//k//" has zero weights"
+                            call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins',message)
                          end if
-                         if (jOutput ==                              1) then
-                            timeMinimum=     Galacticus_Output_Time(jOutput)
-                         else
-                            timeMinimum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput-1))
-                         end if
-                         distanceMinimum=max(                                                                                                                &
-                              &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                         , &
-                              &              sizeFunctions(currentAnalysis)%descriptor%geometry%distanceMinimum(sizeFunctions(currentAnalysis)%masses(k),j)  &
-                              &             )
-                         distanceMaximum=min(                                                                                                                &
-                              &              cosmologyFunctionsModel%distanceComoving(timeMinimum)                                                         , &
-                              &              sizeFunctions(currentAnalysis)%descriptor%geometry%distanceMaximum(sizeFunctions(currentAnalysis)%masses(k),j)  &
-                              &             )
-                         sizeFunctions        (currentAnalysis)%outputWeight                    (k,jOutput)  &
-                              & =sizeFunctions(currentAnalysis)%outputWeight                    (k,jOutput)  &
-                              & +sizeFunctions(currentAnalysis)%descriptor  %geometry%solidAngle(  j      )  &
-                              & /3.0d0                                                                       &
-                              & *                                                                            &
-                              & max(                                                                         &
-                              &     +0.0d0                                                                 , &
-                              &     +distanceMaximum**3                                                      &
-                              &     -distanceMinimum**3                                                      &
-                              &    )
                       end do
-                   end do
-                   where(sizeFunctions(currentAnalysis)%outputWeight(k,:) < 0.0d0)
-                      sizeFunctions(currentAnalysis)%outputWeight(k,:)=0.0d0
-                   end where
-                   if (any(sizeFunctions(currentAnalysis)%outputWeight(k,:) > 0.0d0)) then
-                      sizeFunctions                  (currentAnalysis)%outputWeight(k,:)  &
-                           &       =    sizeFunctions(currentAnalysis)%outputWeight(k,:)  &
-                           &       /sum(sizeFunctions(currentAnalysis)%outputWeight(k,:))
-                   else
-                      message="size function '"//trim(sizeFunctions(currentAnalysis)%descriptor%label)//"' bin "
-                      message=message//k//" has zero weights"
-                      call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins',message)
+                      exit
                    end if
                 end do
              end do
