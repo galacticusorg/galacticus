@@ -445,7 +445,7 @@ contains
                 case ("observed")
                    ! Do nothing, we already have the correct redshift.
                 case default
-                   call Galacticus_Error_Report('Stellar_Luminosities_Initialize','unrecognized filter type')
+                   call Galacticus_Error_Report('Stellar_Luminosities_Initialize','unrecognized filter type - must be "rest" or "observed"')
                 end select
                 ! Find the index for the postprocessing chain to be applied to this filter.
                 luminosityPostprocessingChainIndex(iLuminosity)=Stellar_Population_Spectrum_Postprocess_Index(luminosityPostprocessSet(iLuminosity))
