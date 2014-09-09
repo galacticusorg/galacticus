@@ -20,6 +20,7 @@
 
 module Node_Component_Basic_Standard_Extended
   !% Extends the standard implementation of basic component to track the Bertschinger mass.
+  use Virial_Density_Contrast
   use Galacticus_Nodes
   implicit none
   private
@@ -67,12 +68,18 @@ module Node_Component_Basic_Standard_Extended
   !# </component>
 
   ! Options controlling spherical collapse model to use.
-  integer            :: nodeComponentBasicExtendedSphericalCollapseType
-  integer, parameter :: nodeComponentBasicExtendedSphericalCollapseTypeLambda=0
-  integer, parameter :: nodeComponentBasicExtendedSphericalCollapseTypeDE    =1
+  integer                                        :: nodeComponentBasicExtendedSphericalCollapseType
+  integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeLambda=0
+  integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeDE    =1
 
   ! Initialization state.
-  logical            :: moduleInitialized=.false.
+  logical                                          :: moduleInitialized                                  =.false.
+
+  ! Virial density contrast object.
+  logical                                          :: virialDensityContrastInitialized                   =.false.
+  class  (virialDensityContrastClass), allocatable :: virialDensityContrast_
+  !$omp threadprivate(virialDensityContrast_,virialDensityContrastInitialized)
+
 
 contains
 
@@ -81,7 +88,6 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Basic_Standard_Extended_Initialize(node)
     !% Set the mass accretion rate for {\tt node}.
-    use Virial_Density_Contrast
     use Dark_Matter_Profile_Mass_Definitions
     use Input_Parameters
     use ISO_Varying_String
@@ -91,7 +97,6 @@ contains
          &                                                                  childNode
     class           (nodeComponentBasic        )               , pointer :: basic                 , childBasic    , &
          &                                                                  thisBasic             , parentBasic
-    class           (virialDensityContrastClass), allocatable            :: virialDensityContrast_
     double precision                                                     :: massUnresolved        , deltaTime     , &
          &                                                                  progenitorMassTotal   , radiusVirial
     type            (varying_string            )                         :: nodeComponentBasicExtendedSphericalCollapseTypeText
@@ -128,20 +133,23 @@ contains
     select type (basic)
     class is (nodeComponentBasicStandardExtended)
        ! Get required objects.
-       select case (nodeComponentBasicExtendedSphericalCollapseType)
-       case (nodeComponentBasicExtendedSphericalCollapseTypeLambda)
-          allocate(virialDensityContrastSphericalCollapseMatterLambda :: virialDensityContrast_)
-          select type (virialDensityContrast_)
-          type is (virialDensityContrastSphericalCollapseMatterLambda)
-             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda()
+       if (.not.virialDensityContrastInitialized) then
+          select case (nodeComponentBasicExtendedSphericalCollapseType)
+          case (nodeComponentBasicExtendedSphericalCollapseTypeLambda)
+             allocate(virialDensityContrastSphericalCollapseMatterLambda :: virialDensityContrast_)
+             select type (virialDensityContrast_)
+             type is (virialDensityContrastSphericalCollapseMatterLambda)
+                virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda()
+             end select
+          case (nodeComponentBasicExtendedSphericalCollapseTypeDE    )
+             allocate(virialDensityContrastSphericalCollapseMatterDE     :: virialDensityContrast_)
+             select type (virialDensityContrast_)
+             type is (virialDensityContrastSphericalCollapseMatterDE    )
+                virialDensityContrast_=virialDensityContrastSphericalCollapseMatterDE    ()
+             end select
           end select
-       case (nodeComponentBasicExtendedSphericalCollapseTypeDE    )
-          allocate(virialDensityContrastSphericalCollapseMatterDE     :: virialDensityContrast_)
-          select type (virialDensityContrast_)
-          type is (virialDensityContrastSphericalCollapseMatterDE    )
-             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterDE    ()
-          end select
-       end select
+          virialDensityContrastInitialized=.true.
+       end if
        ! Ensure Bertschinger mass is set for all nodes in this tree.
        if (basic%massBertschinger() <= 0.0d0) then
           thisNode => node
