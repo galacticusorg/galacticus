@@ -346,8 +346,11 @@ foreach my $constraint ( @constraints ) {
     $analysisCommand .= " --temperature ".$temperatureEffective;
     $analysisCommand .= " --modelDiscrepancies ".$projectDirectory."/modelDiscrepancy"
 	if ( -e $projectDirectory."/modelDiscrepancy" );
-    $analysisCommand .= " --resultFile ".$scratchDirectory."/results".$mpiRank.".xml"
-	if ( exists($config->{'likelihood'}->{'storeResults'}) && $config->{'likelihood'}->{'storeResults'} eq "yes" );
+    unless ( $store eq "none" ) {
+	my $resultFile = $scratchDirectory."/results".$mpiRank.".xml";
+	$analysisCommand .= " --resultFile ".$resultFile;
+	push(@temporaryFiles,$resultFile);
+    }
     system($analysisCommand);
     unless ( $? == 0 ) {
 	# Issue a failure.
@@ -359,19 +362,6 @@ foreach my $constraint ( @constraints ) {
 	system("rm ".join(" ",@temporaryFiles))
 	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 	exit;
-    }
-    # Store the results.
-    if ( exists($config->{'likelihood'}->{'storeResults'}) && $config->{'likelihood'}->{'storeResults'} eq "yes" ) {
-	my $results = $xml->XMLin($scratchDirectory."/results".$mpiRank.".xml");
-	open(oHndl,">>".$config->{'likelihood'}->{'workDirectory'}."/mcmc/results".ucfirst($constraintDefinition->{'label'})."_".$mpiRank.".txt");
-	for(my $i=0;$i<scalar(@{$results->{'y'}});++$i) {
-	    print oHndl "\t"
-		unless ( $i == 0 );
-	    print oHndl ${$results->{'y'}}[$i]."\t".${$results->{'error'}}[$i];
-	}
-	print oHndl "\n";
-	close(oHndl);
-	unlink($scratchDirectory."/results".$mpiRank.".xml");
     }
     # Read the likelihood.
     my $likelihood = $xml->XMLin($scratchDirectory."/likelihood".$mpiRank.".xml");
