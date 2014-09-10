@@ -23,7 +23,7 @@
      double precision                                      :: haloMassMinimum                     , haloMassMaximum             , &
           &                                                   lineOfSightDepth
      double precision        , dimension(:  ), allocatable :: separation                          , massMaximum                 , &
-          &                                                   massMinimum
+          &                                                   massMinimum                         , integralConstraint
      double precision        , dimension(:,:), allocatable :: covarianceMatrix                    , projectedCorrelationFunction, &
      &                                                        projectedCorrelationFunctionObserved
      type            (vector)                              :: means

@@ -76,7 +76,7 @@ contains
          &                                                                                                              separation                                        , correlation                                       , &
          &                                                                                                              projectedCorrelation
     integer                                              , parameter                                                 :: wavenumberCountPerDecade                   =10
-    double precision                                     , parameter                                                 :: wavenumberMinimum                          =1.0d-3, wavenumberMaximum                          =1.0d3
+    double precision                                     , parameter                                                 :: wavenumberMinimum                          =1.0d-3, wavenumberMaximum                          =1.0d4
     double precision                                                                                                 :: time                                              , timeMinimum                                       , &
          &                                                                                                              expansionFactor                                   , volume                                            , &
          &                                                                                                              timeMaximum                                       , galaxyDensity                                     , &
@@ -102,7 +102,7 @@ contains
     select type (thisDarkMatterProfile)
     type is (nodeComponentDarkMatterProfileScale)
        ! This is acceptable.
-       class default
+    class default
           ! This is not.
        call Galacticus_Error_Report('Projected_Correlation_Function','this code expects to use the "scale" dark matter profile component')
     end select
@@ -323,26 +323,20 @@ contains
       use Dark_Matter_Halo_Biases
       use Dark_Matter_Profiles
       use Halo_Mass_Function
-      use Dark_Matter_Halo_Scales
+      use Dark_Matter_Profile_Scales
       use Galacticus_Calculations_Resets
       implicit none
-      real            (c_double                )          :: powerSpectrumOneHaloIntegrand
-      real            (c_double                ), value   :: massHalo
-      type            (c_ptr                   ), value   :: parameterPointer
-      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ 
-      class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
-      double precision                                    :: darkMatterProfileKSpace      , numberCentrals, numberSatellites
+      real            (c_double              )          :: powerSpectrumOneHaloIntegrand
+      real            (c_double              ), value   :: massHalo
+      type            (c_ptr                 ), value   :: parameterPointer
+      class           (darkMatterProfileClass), pointer :: darkMatterProfile_
+      double precision                                  :: darkMatterProfileKSpace      , numberCentrals, numberSatellites
 
-      darkMatterHaloScale_ => darkMatterHaloScale()
       darkMatterProfile_   => darkMatterProfile  ()
       call Galacticus_Calculations_Reset(thisNode)
-      call thisBasic            % massSet(                                                         &
-           &                              massHalo                                                 &
-           &                             )
-      call thisDarkMatterProfile%scaleSet(                                                         &
-           &                               darkMatterHaloScale_%virialRadius            (thisNode) &
-           &                              /darkMatterProfileConcentration_%concentration(thisNode) &
-           &                             )
+      call thisBasic            % massSet(massHalo                           )
+      call Galacticus_Calculations_Reset(thisNode)
+      call thisDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(thisNode))
       darkMatterProfileKSpace=darkMatterProfile_%kSpace(thisNode,waveNumber(iWavenumber)/expansionFactor)
       numberCentrals         =max(                                                                                                                       &
            &                      +0.0d0                                                                                                               , &
@@ -354,10 +348,14 @@ contains
            &                      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum,haloModelGalaxyTypeSatellite)  &
            &                      -conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMaximum,haloModelGalaxyTypeSatellite)  &
            &                     )
+      ! Note that we include 2 times the central-satellite term since we want to count each pair twice (i.e. central-satellite and
+      ! then satellite-central). This is consistent with the N(N-1) counting for the satellite-satellite term, and with the
+      ! counting in the two-halo term.
       powerSpectrumOneHaloIntegrand=                         &
            & +Halo_Mass_Function_Differential(time,massHalo) &
            & *(                                              &
            &   +darkMatterProfileKSpace                      &
+           &   *2.0d0                                        & 
            &   *numberCentrals                               &
            &   *numberSatellites                             &
            &   +darkMatterProfileKSpace**2                   &
@@ -404,25 +402,19 @@ contains
       use Dark_Matter_Halo_Biases
       use Dark_Matter_Profiles
       use Halo_Mass_Function
-      use Dark_Matter_Halo_Scales
       use Galacticus_Calculations_Resets
+      use Dark_Matter_Profile_Scales
       implicit none
-      real (c_double                )          :: powerSpectrumTwoHaloIntegrand
-      real (c_double                ), value   :: massHalo
-      type (c_ptr                   ), value   :: parameterPointer
-      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-      class(darkMatterProfileClass  ), pointer :: darkMatterProfile_
+      real (c_double              )          :: powerSpectrumTwoHaloIntegrand
+      real (c_double              ), value   :: massHalo
+      type (c_ptr                 ), value   :: parameterPointer
+      class(darkMatterProfileClass), pointer :: darkMatterProfile_
 
-      darkMatterHaloScale_ => darkMatterHaloScale()
       darkMatterProfile_   => darkMatterProfile  ()
       call Galacticus_Calculations_Reset(thisNode)
-      call thisBasic            % massSet(                                                         &
-           &                              massHalo                                                 &
-           &                             )
-      call thisDarkMatterProfile%scaleSet(                                                         &
-           &                               darkMatterHaloScale_%virialRadius            (thisNode) &
-           &                              /darkMatterProfileConcentration_%concentration(thisNode) &
-           &                             )
+      call thisBasic            % massSet(massHalo                           )
+      call Galacticus_Calculations_Reset(thisNode)
+      call thisDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(thisNode))
       powerSpectrumTwoHaloIntegrand=                                                                        &
            & +Halo_Mass_Function_Differential(time    ,massHalo                               )             &
            & *Dark_Matter_Halo_Bias          (thisNode                                        )             &
@@ -446,9 +438,6 @@ contains
       logical                                    :: integrationResetTime
 
       time           =timePrime
-      expansionFactor=cosmologyFunctions_%expansionFactor(time)
-      call thisBasic%timeSet                             (time)
-      call thisBasic%timeLastIsolatedSet                 (time)
       integrationResetTime=.true.
       normalizationTimeIntegrand=                                           &
            & +Integrate(                                                    &

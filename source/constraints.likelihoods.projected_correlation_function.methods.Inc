@@ -44,6 +44,12 @@ function likelihoodProjectedCorrelationFunctionConstructor(haloMassMinimum,haloM
   call projectedCorrelationFunctionFile%readDataset("covariance"                          ,likelihoodProjectedCorrelationFunctionConstructor%covarianceMatrix                    )
   call projectedCorrelationFunctionFile%readDataset("massMinimum"                         ,likelihoodProjectedCorrelationFunctionConstructor%massMinimum                         )
   call projectedCorrelationFunctionFile%readDataset("massMaximum"                         ,likelihoodProjectedCorrelationFunctionConstructor%massMaximum                         )
+  if (projectedCorrelationFunctionFile%hasDataset("integralConstraint")) then
+     call projectedCorrelationFunctionFile%readDataset("integralConstraint"               ,likelihoodProjectedCorrelationFunctionConstructor%integralConstraint                  )
+  else
+     call Alloc_Array(likelihoodProjectedCorrelationFunctionConstructor%integralConstraint,shape(likelihoodProjectedCorrelationFunctionConstructor%massMinimum))
+     likelihoodProjectedCorrelationFunctionConstructor%integralConstraint=1.0d0
+  end if
   call projectedCorrelationFunctionFile%close()
   !$omp end critical(HDF5_Access)
   ! Allocate storage for the model projected correlation function.
@@ -119,6 +125,8 @@ double precision function likelihoodProjectedCorrelationFunctionEvaluate(self,si
           &                                self%lineOfSightDepth                 , &
           &                                self%projectedCorrelationFunction(:,i)  &
           &                               )
+     ! Apply the integral constraint.
+     self%projectedCorrelationFunction(:,i)=self%projectedCorrelationFunction(:,i)/self%integralConstraint(i)
   end do
   ! Evaluate the log-likelihood.
   difference                                    =reshape(                                                         &
