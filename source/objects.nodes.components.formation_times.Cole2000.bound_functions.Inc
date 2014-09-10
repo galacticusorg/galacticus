@@ -25,7 +25,11 @@ double precision function FormationTimeCole2000FormationTime(self)
   class(nodeComponentFormationTime        ), pointer       :: formationTimeComponent
 
   selfNode                          => self                  %host         ()
-  formationNode                     => selfNode              %formationNode
+  if (associated(selfNode%formationNode)) then
+     formationNode                     => selfNode              %formationNode
+  else
+     formationNode => selfNode
+  end if
   formationTimeComponent            => formationNode         %formationTime()
   select type (formationTimeComponent)
   class is (nodeComponentFormationTimeCole2000)

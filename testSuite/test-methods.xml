@@ -471,6 +471,11 @@
       <value>White-Frenk1991</value>
       <value>Cole2000
       <parameter>
+	<name>coolingTimeAvailableMethod</name>
+	<value>White-Frenk1991</value>
+	<value>haloFormation</value>
+      </parameter>
+      <parameter>
 	<name>treeNodeMethodFormationTime</name>
 	<value>Cole2000</value>
       </parameter>
