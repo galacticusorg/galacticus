@@ -176,8 +176,9 @@ if ( grep {$_ eq "analysis"} @rootGroups ) {
     my @analysisGroups = $model->{'hdf5File'}->group('analysis')->groups();
     if ( grep {$_ eq "sdssGalaxySizesZ0.07"} @analysisGroups ) {
 	$gotModelSizeFunction  = 1;
-	$model->{'radiusFunction'} = $model->{'hdf5File'}->group('analysis')->group('sdssGalaxySizesZ0.07')->dataset('sizeFunction'          )->get();
-	$model->{'covariance'    } = $model->{'hdf5File'}->group('analysis')->group('sdssGalaxySizesZ0.07')->dataset('sizeFunctionCovariance')->get();
+	$model->{'radiusFunction'     } = $model->{'hdf5File'}->group('analysis')->group('sdssGalaxySizesZ0.07')->dataset('sizeFunction'          )->get();
+	$model->{'covariance'         } = $model->{'hdf5File'}->group('analysis')->group('sdssGalaxySizesZ0.07')->dataset('sizeFunctionCovariance')->get();
+	$model->{'radiusFunctionError'} = $model->{'covariance'}->diagonal(0,1);
     }
 }
 
@@ -345,8 +346,8 @@ if ( exists($arguments{'accuracyFile'}) ) {
 	    push(@{$results->{'y'}},$sizeData->{'massLogarithmic'}->(($j))->sclr());
 	}
     }
-    @{$results->{'zModel'    }} = $model   ->{'radiusFunction'     }->flat()->list();
-    @{$results->{'zData'     }} = $sizeData->{'radiusFunction'     }->flat()->list();
+    @{$results->{'yModel'    }} = $model   ->{'radiusFunction'     }->flat()->list();
+    @{$results->{'yData'     }} = $sizeData->{'radiusFunction'     }->flat()->list();
     @{$results->{'errorModel'}} = $model   ->{'radiusFunctionError'}->flat()->list();
     @{$results->{'errorData' }} = $sizeData->{'radiusFunctionError'}->flat()->list();
     my $xmlOut = new XML::Simple (RootName=>"accuracy", NoAttr => 1);;
