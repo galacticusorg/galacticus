@@ -110,7 +110,7 @@ sub Construct {
     if ( $gotModelMassFunction == 0 ) {
 	# If this mass function requires modeling of incompleteness, we cannot proceed.
 	die('MassFunctions::Construct: incompleteness modeling is not supported')
-	    if ( exists($options{'incompletenessModel'}) );
+	    if ( exists($arguments{'incompletenessModel'}) );
 	$galacticus->{'tree'} = "all";
 	&HDF5::Get_Parameters($galacticus);
 	&HDF5::Count_Trees  ($galacticus                      );
