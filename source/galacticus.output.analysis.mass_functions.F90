@@ -39,7 +39,7 @@ module Galacticus_Output_Analyses_Mass_Functions
   logical                                                   :: analysisActive
 
   ! Number of supported mass functions.
-  integer          , parameter                              :: massFunctionsSupportedCount=16
+  integer          , parameter                              :: massFunctionsSupportedCount=24
 
   ! Labels for supported mass functions.
   character(len=37), dimension(massFunctionsSupportedCount) :: massFunctionLabels=      &
@@ -59,7 +59,15 @@ module Galacticus_Output_Analyses_Mass_Functions
        &  'vipersStellarMassFunctionZ0.90      ',                                       &
        &  'ukidssUdsStellarMassFunctionZ3.250  ',                                       &
        &  'ukidssUdsStellarMassFunctionZ3.875  ',                                       &
-       &  'ukidssUdsStellarMassFunctionZ4.625  '                                        &
+       &  'ukidssUdsStellarMassFunctionZ4.625  ',                                       &
+       &  'zfourgeStellarMassFunctionZ0.350    ',                                       &
+       &  'zfourgeStellarMassFunctionZ0.625    ',                                       &
+       &  'zfourgeStellarMassFunctionZ0.875    ',                                       &
+       &  'zfourgeStellarMassFunctionZ1.125    ',                                       &
+       &  'zfourgeStellarMassFunctionZ1.375    ',                                       &
+       &  'zfourgeStellarMassFunctionZ1.750    ',                                       &
+       &  'zfourgeStellarMassFunctionZ2.250    ',                                       &
+       &  'zfourgeStellarMassFunctionZ2.750    '                                        &
        & ]
 
   ! Interface for mass mapping functions.
@@ -311,8 +319,8 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   0.000d0                                      ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
-       &                                                   'ukidssUdsStellarMassFunctionZ3.25'          ,        &
-       &                                                   'UKIDSS UDS stellar mass function at z=3.25' ,        &
+       &                                                   'ukidssUdsStellarMassFunctionZ3.250'         ,        &
+       &                                                   'UKIDSS UDS stellar mass function at z=3.250',        &
        &                                                   null()                                       ,        &
        &                                                   null()                                       ,        &
        &                                                   null()                                                &
@@ -343,6 +351,127 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   massTypeStellar                              ,        &
        &                                                   'ukidssUdsStellarMassFunctionZ4.625'         ,        &
        &                                                   'UKIDSS UDS stellar mass function at z=4.625',        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                                &
+       &                                                 )                                                     , &
+       ! ZFOURGE survey.
+       &                           massFunctionDescriptor(                                                       &
+       &                                                  11.300d0                                      ,        &
+       &                                                   0.2d0                                        ,        &
+       &                                                   null()                                       ,        &
+       &                                                   6.500d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
+       &                                                   massTypeStellar                              ,        &
+       &                                                   'zfourgeStellarMassFunctionZ0.350'           ,        &
+       &                                                   'ZFOURGE stellar mass function at z=0.350'   ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                                &
+       &                                                 )                                                     , &
+       &                           massFunctionDescriptor(                                                       &
+       &                                                  11.300d0                                      ,        &
+       &                                                   0.2d0                                        ,        &
+       &                                                   null()                                       ,        &
+       &                                                   6.500d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
+       &                                                   massTypeStellar                              ,        &
+       &                                                   'zfourgeStellarMassFunctionZ0.625'           ,        &
+       &                                                   'ZFOURGE stellar mass function at z=0.625'   ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                                &
+       &                                                 )                                                     , &
+       &                           massFunctionDescriptor(                                                       &
+       &                                                  11.300d0                                      ,        &
+       &                                                   0.2d0                                        ,        &
+       &                                                   null()                                       ,        &
+       &                                                   7.000d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
+       &                                                   massTypeStellar                              ,        &
+       &                                                   'zfourgeStellarMassFunctionZ0.875'           ,        &
+       &                                                   'ZFOURGE stellar mass function at z=0.875'   ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                                &
+       &                                                 )                                                     , &
+       &                           massFunctionDescriptor(                                                       &
+       &                                                  11.300d0                                      ,        &
+       &                                                   0.2d0                                        ,        &
+       &                                                   null()                                       ,        &
+       &                                                   7.000d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
+       &                                                   massTypeStellar                              ,        &
+       &                                                   'zfourgeStellarMassFunctionZ1.125'           ,        &
+       &                                                   'ZFOURGE stellar mass function at z=1.125'   ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                                &
+       &                                                 )                                                     , &
+       &                           massFunctionDescriptor(                                                       &
+       &                                                  11.300d0                                      ,        &
+       &                                                   0.2d0                                        ,        &
+       &                                                   null()                                       ,        &
+       &                                                   7.000d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
+       &                                                   massTypeStellar                              ,        &
+       &                                                   'zfourgeStellarMassFunctionZ1.375'           ,        &
+       &                                                   'ZFOURGE stellar mass function at z=1.375'   ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                                &
+       &                                                 )                                                     , &
+       &                           massFunctionDescriptor(                                                       &
+       &                                                  11.300d0                                      ,        &
+       &                                                   0.2d0                                        ,        &
+       &                                                   null()                                       ,        &
+       &                                                   7.500d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
+       &                                                   massTypeStellar                              ,        &
+       &                                                   'zfourgeStellarMassFunctionZ1.750'           ,        &
+       &                                                   'ZFOURGE stellar mass function at z=1.750'   ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                                &
+       &                                                 )                                                     , &
+       &                           massFunctionDescriptor(                                                       &
+       &                                                  11.300d0                                      ,        &
+       &                                                   0.2d0                                        ,        &
+       &                                                   null()                                       ,        &
+       &                                                   7.500d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
+       &                                                   massTypeStellar                              ,        &
+       &                                                   'zfourgeStellarMassFunctionZ2.250'           ,        &
+       &                                                   'ZFOURGE stellar mass function at z=2.250'   ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                       ,        &
+       &                                                   null()                                                &
+       &                                                 )                                                     , &
+       &                           massFunctionDescriptor(                                                       &
+       &                                                  11.300d0                                      ,        &
+       &                                                   0.2d0                                        ,        &
+       &                                                   null()                                       ,        &
+       &                                                   8.000d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
+       &                                                   massTypeStellar                              ,        &
+       &                                                   'zfourgeStellarMassFunctionZ2.750'           ,        &
+       &                                                   'ZFOURGE stellar mass function at z=2.750'   ,        &
        &                                                   null()                                       ,        &
        &                                                   null()                                       ,        &
        &                                                   null()                                                &
@@ -576,6 +705,14 @@ contains
           allocate(surveyGeometryCaputi2011UKIDSSUDS :: massFunctionDescriptors(14)%geometry)
           allocate(surveyGeometryCaputi2011UKIDSSUDS :: massFunctionDescriptors(15)%geometry)
           allocate(surveyGeometryCaputi2011UKIDSSUDS :: massFunctionDescriptors(16)%geometry)
+          allocate(surveyGeometryTomczak2014ZFOURGE  :: massFunctionDescriptors(17)%geometry)
+          allocate(surveyGeometryTomczak2014ZFOURGE  :: massFunctionDescriptors(18)%geometry)
+          allocate(surveyGeometryTomczak2014ZFOURGE  :: massFunctionDescriptors(19)%geometry)
+          allocate(surveyGeometryTomczak2014ZFOURGE  :: massFunctionDescriptors(20)%geometry)
+          allocate(surveyGeometryTomczak2014ZFOURGE  :: massFunctionDescriptors(21)%geometry)
+          allocate(surveyGeometryTomczak2014ZFOURGE  :: massFunctionDescriptors(22)%geometry)
+          allocate(surveyGeometryTomczak2014ZFOURGE  :: massFunctionDescriptors(23)%geometry)
+          allocate(surveyGeometryTomczak2014ZFOURGE  :: massFunctionDescriptors(24)%geometry)
           select type (g => massFunctionDescriptors( 1)%geometry)
           type is (surveyGeometryLiWhite2009SDSS    )
              g=surveyGeometryLiWhite2009SDSS    ( )
@@ -639,6 +776,38 @@ contains
           select type (g => massFunctionDescriptors(16)%geometry)
           type is (surveyGeometryCaputi2011UKIDSSUDS)
              g=surveyGeometryCaputi2011UKIDSSUDS(2)
+          end select
+          select type (g => massFunctionDescriptors(17)%geometry)
+          type is (surveyGeometryTomczak2014ZFOURGE)
+             g=surveyGeometryTomczak2014ZFOURGE(0)
+          end select
+          select type (g => massFunctionDescriptors(18)%geometry)
+          type is (surveyGeometryTomczak2014ZFOURGE)
+             g=surveyGeometryTomczak2014ZFOURGE(1)
+          end select
+          select type (g => massFunctionDescriptors(19)%geometry)
+          type is (surveyGeometryTomczak2014ZFOURGE)
+             g=surveyGeometryTomczak2014ZFOURGE(2)
+          end select
+          select type (g => massFunctionDescriptors(20)%geometry)
+          type is (surveyGeometryTomczak2014ZFOURGE)
+             g=surveyGeometryTomczak2014ZFOURGE(3)
+          end select
+          select type (g => massFunctionDescriptors(21)%geometry)
+          type is (surveyGeometryTomczak2014ZFOURGE)
+             g=surveyGeometryTomczak2014ZFOURGE(4)
+          end select
+          select type (g => massFunctionDescriptors(22)%geometry)
+          type is (surveyGeometryTomczak2014ZFOURGE)
+             g=surveyGeometryTomczak2014ZFOURGE(5)
+          end select
+          select type (g => massFunctionDescriptors(23)%geometry)
+          type is (surveyGeometryTomczak2014ZFOURGE)
+             g=surveyGeometryTomczak2014ZFOURGE(6)
+          end select
+          select type (g => massFunctionDescriptors(24)%geometry)
+          type is (surveyGeometryTomczak2014ZFOURGE)
+             g=surveyGeometryTomczak2014ZFOURGE(7)
           end select
           ! Establish survey incompletenesses.
           do i=1,massFunctionsSupportedCount
@@ -725,7 +894,7 @@ contains
                             parameterName=trim(massFunctionLabels(j))//'MassSystematic'
                             parameterName=parameterName//(k-1)
                             !@ <inputParameter>
-                            !@   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction)Z[0-9\.]+MassSystematic[0-9]+</regEx>
+                            !@   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction|zfourgeStellarMassFunction)Z[0-9\.]+MassSystematic[0-9]+</regEx>
                             !@   <defaultValue>0</defaultValue>
                             !@   <attachedTo>module</attachedTo>
                             !@   <description>
@@ -771,8 +940,30 @@ contains
                          call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_UKIDSS_UDS_2011_z3.5_4.25.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('ukidssUdsStellarMassFunctionZ4.625')
                          call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_UKIDSS_UDS_2011_z4.25_5.0.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('zfourgeStellarMassFunctionZ0.350'  )
+                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z0.20_0.50.hdf5'  ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('zfourgeStellarMassFunctionZ0.625'  )
+                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z0.50_0.75.hdf5'  ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('zfourgeStellarMassFunctionZ0.875'  )
+                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z0.75_1.00.hdf5'  ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('zfourgeStellarMassFunctionZ1.125'  )
+                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z1.00_1.25.hdf5'  ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('zfourgeStellarMassFunctionZ1.375'  )
+                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z1.25_1.50.hdf5'  ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('zfourgeStellarMassFunctionZ1.750'  )
+                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z1.50_2.00.hdf5'  ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('zfourgeStellarMassFunctionZ2.250'  )
+                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z2.00_2.50.hdf5'  ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('zfourgeStellarMassFunctionZ2.750'  )
+                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z2.50_3.00.hdf5'  ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('vipersStellarMassFunctionZ0.55'    )
+                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_VIPERS_2013_z0.55.hdf5'        ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('vipersStellarMassFunctionZ0.70'    )
+                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_VIPERS_2013_z0.70.hdf5'        ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                      case ('vipersStellarMassFunctionZ0.90'    )
+                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_VIPERS_2013_z0.90.hdf5'        ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case default
-                         call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Functions','unknown mass function')
+                         call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Functions','unknown mass function "'//trim(massFunctionLabels(j))//'"')
                       end select
                       ! Get cosmological conversion factors.
                       call Alloc_Array(massFunctions(currentAnalysis)%cosmologyConversionMass        ,[Galacticus_Output_Time_Count()])
@@ -871,22 +1062,46 @@ contains
                 ! Construct buffered arrays of masses.
                 call Alloc_Array(massFunctions(i)%massesLogarithmicMinimumBuffered,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
                 call Alloc_Array(massFunctions(i)%massesLogarithmicMaximumBuffered,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
-                do j=1,massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount
-                   massFunctions           (i)%massesLogarithmicMinimumBuffered(j                                      )  &
-                        & =+massFunctions  (i)%massesLogarithmicMinimum        (                                      1)  &
-                        &  +dble                                               (j-(massFunctions(i)%massesBufferCount+1)) &
-                        &  *(                                                                                             &
-                        &    +massFunctions(i)%massesLogarithmicMinimum        (                                      2)  &
-                        &    -massFunctions(i)%massesLogarithmicMinimum        (                                      1)  &
-                        &   )
-                   massFunctions           (i)%massesLogarithmicMaximumBuffered(j                                      )  &
-                        & =+massFunctions  (i)%massesLogarithmicMaximum        (                                      1)  &
-                        &  +dble                                               (j-(massFunctions(i)%massesBufferCount+1)) &
-                        &  *(                                                                                             &
-                        &    +massFunctions(i)%massesLogarithmicMaximum        (                                      2)  &
-                        &    -massFunctions(i)%massesLogarithmicMaximum        (                                      1)  &
-                        &   )
-                end do
+                if (massFunctions(i)%massesBufferCount > 0) then
+                   do j=1,massFunctions(i)%massesBufferCount
+                      massFunctions           (i)%massesLogarithmicMinimumBuffered(j                                      )  &
+                           & =+massFunctions  (i)%massesLogarithmicMinimum        (                                      1)  &
+                           &  +dble                                               (j-(massFunctions(i)%massesBufferCount+1)) &
+                           &  *(                                                                                             &
+                           &    +massFunctions(i)%massesLogarithmicMinimum        (                                      2)  &
+                           &    -massFunctions(i)%massesLogarithmicMinimum        (                                      1)  &
+                           &   )
+                      massFunctions           (i)%massesLogarithmicMaximumBuffered(j                                      )  &
+                           & =+massFunctions  (i)%massesLogarithmicMaximum        (                                      1)  &
+                           &  +dble                                               (j-(massFunctions(i)%massesBufferCount+1)) &
+                           &  *(                                                                                             &
+                           &    +massFunctions(i)%massesLogarithmicMaximum        (                                      2)  &
+                           &    -massFunctions(i)%massesLogarithmicMaximum        (                                      1)  &
+                           &   )
+                   end do
+                   do j=massFunctions(i)%massesCount+massFunctions(i)%massesBufferCount+1,massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount
+                      massFunctions           (i)%massesLogarithmicMinimumBuffered(j                                                                  ) &
+                           & =+massFunctions  (i)%massesLogarithmicMinimum        (   massFunctions(i)%massesCount                                    ) &
+                           &  +dble                                               (j-(massFunctions(i)%massesCount+massFunctions(i)%massesBufferCount)) &
+                           &  *(                                                                                                                        &
+                           &    +massFunctions(i)%massesLogarithmicMinimum        (    massFunctions(i)%massesCount                                   ) &
+                           &    -massFunctions(i)%massesLogarithmicMinimum        (    massFunctions(i)%massesCount-1                                 ) &
+                           &   )
+                      massFunctions           (i)%massesLogarithmicMaximumBuffered(j                                                                  ) &
+                           & =+massFunctions  (i)%massesLogarithmicMaximum        (   massFunctions(i)%massesCount                                    ) &
+                           &  +dble                                               (j-(massFunctions(i)%massesCount+massFunctions(i)%massesBufferCount)) &
+                           &  *(                                                                                                                        &
+                           &    +massFunctions(i)%massesLogarithmicMaximum        (   massFunctions(i)%massesCount                                    ) &                           
+                           &    -massFunctions(i)%massesLogarithmicMaximum        (   massFunctions(i)%massesCount-1                                  ) &
+                           &   )
+                   end do
+                end if
+                do j=1+massFunctions(i)%massesBufferCount,massFunctions(i)%massesCount+massFunctions(i)%massesBufferCount
+                   massFunctions         (i)%massesLogarithmicMinimumBuffered(j                                   ) &
+                        & =+massFunctions(i)%massesLogarithmicMinimum        (j-massFunctions(i)%massesBufferCount)
+                   massFunctions         (i)%massesLogarithmicMaximumBuffered(j                                   ) &
+                        & =+massFunctions(i)%massesLogarithmicMaximum        (j-massFunctions(i)%massesBufferCount)
+                end do                
              end do
              if (analysisMassFunctionsApplyGravitationalLensing) then
                 gravitationalLensing_ => gravitationalLensing()
@@ -939,9 +1154,9 @@ contains
     if (.not.allocated(thisGalaxy)) allocate(thisGalaxy(size(massFunctions)))
     ! Iterate over active analyses.
     do i=1,size(massFunctions)
-       ! Return if this mass function receives no contribution from this output number.
+      ! Return if this mass function receives no contribution from this output number.
        if (all(massFunctions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
-       ! Allocate workspace.
+      ! Allocate workspace.
        if (.not.allocated(thisGalaxy(i)%massFunction)) then
           call Alloc_Array(thisGalaxy(i)%massFunction,[massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount])
           call Alloc_Array(thisGalaxy(i)%covariance  ,[                                                                   &
