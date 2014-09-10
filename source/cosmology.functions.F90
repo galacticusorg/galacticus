@@ -222,6 +222,13 @@ module Cosmology_Functions
   !#   end if
   !#   </code>
   !#  </method>
+  !#  <method name="matterDensityEpochal" >
+  !#   <description>Convenience function that returns the matter density at the specified epoch.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ), optional :: time           , expansionFactor</argument>
+  !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
+  !#  </method>
   include 'cosmologyFunctions.type.inc'
   !# </include>
 

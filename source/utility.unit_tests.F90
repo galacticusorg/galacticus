@@ -57,6 +57,7 @@ module Unit_Tests
      module procedure Assert_Logical_Scalar
      module procedure Assert_Real_1D_Array
      module procedure Assert_Double_1D_Array
+     module procedure Assert_Double_Complex_1D_Array
      module procedure Assert_Integer_1D_Array
      module procedure Assert_Integer8_1D_Array
      module procedure Assert_Character_1D_Array
@@ -435,6 +436,62 @@ contains
     return
   end subroutine Assert_Double_1D_Array
 
+  subroutine Assert_Double_Complex_1D_Array(testName,value1,value2,compare,absTol,relTol)
+    !% Assess and record an assertion about double complex arguments.
+    use Numerical_Comparison
+    use Galacticus_Error
+    implicit none
+    character       (len=*       )              , intent(in   )           :: testName
+    double complex                , dimension(:), intent(in   )           :: value1       , value2
+    integer                                     , intent(in   ), optional :: compare
+    double complex                              , intent(in   ), optional :: absTol       , relTol
+    double complex                                                        :: absTolActual , relTolActual
+    type            (assertResult), pointer                               :: thisResult
+    integer                                                               :: compareActual, iTest
+    logical                                                               :: passed
+
+    ! Determine what type of comparison to perform.
+    if (present(compare)) then
+       compareActual=compare
+    else
+       compareActual=compareEquals
+    end if
+    ! Determine tolerances.
+    if (present(absTol)) then
+       absTolActual=absTol
+    else
+       absTolActual=dcmplx(huge(1.0d0),huge(1.0d0))
+    end if
+    if (present(relTol)) then
+       relTolActual=relTol
+    else
+       relTolActual=dcmplx(huge(1.0d0),huge(1.0d0))
+    end if
+    ! Perform the comparison.
+    select case (compareActual)
+    case (compareEquals)
+       passed=.true.
+       do iTest=1,min(size(value1),size(value2))
+          if     (                                                                                              &
+               &   Values_Differ(real(value1(iTest)),real(value2(iTest)),real(absTolActual),real(relTolActual)) &
+               &  .or.                                                                                          &
+               &   Values_Differ(imag(value1(iTest)),imag(value2(iTest)),imag(absTolActual),imag(relTolActual)) &
+               & ) then
+             passed=.false.
+             exit
+          end if
+       end do
+    case default
+       call Galacticus_Error_Report('Assert_Double_Complex_1D_Array','comparison not supported for complex values')
+    end select
+    ! Get an object to store the results in.
+    thisResult => Get_New_Assert_Result()
+    ! Store the result.
+    thisResult%result=passed
+    thisResult%label =trim(testName)
+    return
+  end subroutine Assert_Double_Complex_1D_Array
+   
   subroutine Assert_Double_2D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
     use Numerical_Comparison

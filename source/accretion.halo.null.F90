@@ -15,143 +15,140 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of null baryonic accretion.
+  !% An implementation of null accretion from the \gls{igm} onto halos.
 
-module Accretion_Halos_Null
-  !% Implements calculations of null baryonic accretion.
-  use Abundances_Structure
-  implicit none
-  private
-  public :: Accretion_Halos_Null_Initialize
+  !# <accretionHalo name="accretionHaloNull">
+  !#  <description>Accretion onto halos assuming no accretion.</description>
+  !# </accretionHalo>
+
+  type, extends(accretionHaloClass) :: accretionHaloNull
+     !% A halo accretion class that assumes no accretion.
+     private
+   contains
+     procedure :: accretionRate          => nullAccretionRate
+     procedure :: accretedMass           => nullAccretedMass
+     procedure :: failedAccretionRate    => nullFailedAccretionRate
+     procedure :: failedAccretedMass     => nullFailedAccretedMass
+     procedure :: accretionRateMetals    => nullAccretionRateMetals
+     procedure :: accretedMassMetals     => nullAccretedMassMetals
+     procedure :: accretionRateChemicals => nullAccretionRateChemicals
+     procedure :: accretedMassChemicals  => nullAccretedMassChemicals
+  end type accretionHaloNull
+
+  interface accretionHaloNull
+     !% Constructors for the {\tt null} halo accretion class.
+     module procedure nullConstructor
+  end interface accretionHaloNull
 
 contains
 
-  !# <accretionHalosMethod>
-  !#  <unitName>Accretion_Halos_Null_Initialize</unitName>
-  !# </accretionHalosMethod>
-  subroutine Accretion_Halos_Null_Initialize(accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get &
-       &,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get &
-       &,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accreted_Abundances_Get&
-       &,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get)
-    !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
+  function nullConstructor()
+    !% Default constructor for the {\tt null} halo accretion class.
+    use Input_Parameters
     implicit none
-    type     (varying_string                                  ), intent(in   )          :: accretionHalosMethod
-    procedure(Halo_Baryonic_Accretion_Rate_Null_Get           ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Get
-    procedure(Halo_Baryonic_Accreted_Mass_Null_Get            ), intent(inout), pointer :: Halo_Baryonic_Accreted_Mass_Get
-    procedure(Halo_Baryonic_Failed_Accretion_Rate_Null_Get    ), intent(inout), pointer :: Halo_Baryonic_Failed_Accretion_Rate_Get
-    procedure(Halo_Baryonic_Failed_Accreted_Mass_Null_Get     ), intent(inout), pointer :: Halo_Baryonic_Failed_Accreted_Mass_Get
-    procedure(Halo_Baryonic_Accretion_Rate_Abundances_Null_Get), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Abundances_Get
-    procedure(Halo_Baryonic_Accreted_Abundances_Null_Get      ), intent(inout), pointer :: Halo_Baryonic_Accreted_Abundances_Get
-    procedure(Halo_Baryonic_Accretion_Rate_Chemicals_Null_Get ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Chemicals_Get
-    procedure(Halo_Baryonic_Accreted_Chemicals_Null_Get       ), intent(inout), pointer :: Halo_Baryonic_Accreted_Chemicals_Get
+    type (accretionHaloNull), target  :: nullConstructor
 
-    if (accretionHalosMethod == 'null') then
-       ! Set pointers to our implementations of accretion functions.
-       Halo_Baryonic_Accretion_Rate_Get            => Halo_Baryonic_Accretion_Rate_Null_Get
-       Halo_Baryonic_Accreted_Mass_Get             => Halo_Baryonic_Accreted_Mass_Null_Get
-       Halo_Baryonic_Failed_Accretion_Rate_Get     => Halo_Baryonic_Failed_Accretion_Rate_Null_Get
-       Halo_Baryonic_Failed_Accreted_Mass_Get      => Halo_Baryonic_Failed_Accreted_Mass_Null_Get
-       Halo_Baryonic_Accretion_Rate_Abundances_Get => Halo_Baryonic_Accretion_Rate_Abundances_Null_Get
-       Halo_Baryonic_Accreted_Abundances_Get       => Halo_Baryonic_Accreted_Abundances_Null_Get
-       Halo_Baryonic_Accretion_Rate_Chemicals_Get  => Halo_Baryonic_Accretion_Rate_Chemicals_Null_Get
-       Halo_Baryonic_Accreted_Chemicals_Get        => Halo_Baryonic_Accreted_Chemicals_Null_Get
-    end if
     return
-  end subroutine Accretion_Halos_Null_Initialize
+  end function nullConstructor
 
-  double precision function Halo_Baryonic_Accretion_Rate_Null_Get(thisNode,accretionMode)
-    !% Computes the baryonic accretion rate onto {\tt thisNode}.
+  double precision function nullAccretionRate(self,node,accretionMode)
+    !% Computes the baryonic accretion rate onto {\tt node}.
     use Galacticus_Nodes
     implicit none
-    type   (treeNode), intent(inout), pointer :: thisNode
-    integer          , intent(in   )          :: accretionMode
+    class  (accretionHaloNull), intent(inout)          :: self
+    type   (treeNode         ), intent(inout), pointer :: node
+    integer                   , intent(in   )          :: accretionMode
 
-    Halo_Baryonic_Accretion_Rate_Null_Get=0.0d0
+    nullAccretionRate=0.0d0
     return
-  end function Halo_Baryonic_Accretion_Rate_Null_Get
+  end function nullAccretionRate
 
-  double precision function Halo_Baryonic_Accreted_Mass_Null_Get(thisNode,accretionMode)
-    !% Computes the mass of baryons accreted into {\tt thisNode}.
+  double precision function nullAccretedMass(self,node,accretionMode)
+    !% Computes the mass of baryons accreted into {\tt node}.
     use Galacticus_Nodes
     implicit none
-    type   (treeNode), intent(inout), pointer :: thisNode
-    integer          , intent(in   )          :: accretionMode
+    class  (accretionHaloNull), intent(inout)          :: self
+    type   (treeNode         ), intent(inout), pointer :: node
+    integer                   , intent(in   )          :: accretionMode
 
-    Halo_Baryonic_Accreted_Mass_Null_Get=0.0d0
+    nullAccretedMass=0.0d0
     return
-  end function Halo_Baryonic_Accreted_Mass_Null_Get
+  end function 
 
-  double precision function Halo_Baryonic_Failed_Accretion_Rate_Null_Get(thisNode,accretionMode)
-    !% Computes the baryonic accretion rate onto {\tt thisNode}.
+  double precision function nullFailedAccretionRate(self,node,accretionMode)
+    !% Computes the baryonic accretion rate onto {\tt node}.
     use Galacticus_Nodes
     implicit none
-    type   (treeNode), intent(inout), pointer :: thisNode
-    integer          , intent(in   )          :: accretionMode
+    class  (accretionHaloNull), intent(inout)          :: self
+    type   (treeNode         ), intent(inout), pointer :: node
+    integer                   , intent(in   )          :: accretionMode
 
-    Halo_Baryonic_Failed_Accretion_Rate_Null_Get=0.0d0
+    nullFailedAccretionRate=0.0d0
     return
-  end function Halo_Baryonic_Failed_Accretion_Rate_Null_Get
+  end function nullFailedAccretionRate
 
-  double precision function Halo_Baryonic_Failed_Accreted_Mass_Null_Get(thisNode,accretionMode)
-    !% Computes the mass of baryons accreted into {\tt thisNode}.
+  double precision function nullFailedAccretedMass(self,node,accretionMode)
+    !% Computes the mass of baryons accreted into {\tt node}.
     use Galacticus_Nodes
     implicit none
-    type   (treeNode), intent(inout), pointer :: thisNode
-    integer          , intent(in   )          :: accretionMode
+    class  (accretionHaloNull), intent(inout)          :: self
+    type   (treeNode         ), intent(inout), pointer :: node
+    integer                   , intent(in   )          :: accretionMode
 
-    Halo_Baryonic_Failed_Accreted_Mass_Null_Get=0.0d0
+    nullFailedAccretedMass=0.0d0
     return
-  end function Halo_Baryonic_Failed_Accreted_Mass_Null_Get
+  end function nullFailedAccretedMass
 
-  subroutine Halo_Baryonic_Accretion_Rate_Abundances_Null_Get(thisNode,accretionRateAbundances,accretionMode)
-    !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium.
+  function nullAccretionRateMetals(self,node,accretionMode)
+    !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\tt node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type   (treeNode  ), intent(inout), pointer :: thisNode
-    type   (abundances), intent(inout)          :: accretionRateAbundances
-    integer            , intent(in   )          :: accretionMode
+    type   (abundances       )                         :: nullAccretionRateMetals
+    class  (accretionHaloNull), intent(inout)          :: self
+    type   (treeNode         ), intent(inout), pointer :: node
+    integer                   , intent(in   )          :: accretionMode
 
-    accretionRateAbundances=zeroAbundances
+    nullAccretionRateMetals=zeroAbundances
     return
-  end subroutine Halo_Baryonic_Accretion_Rate_Abundances_Null_Get
+  end function nullAccretionRateMetals
 
-  subroutine Halo_Baryonic_Accreted_Abundances_Null_Get(thisNode,accretedAbundances,accretionMode)
-    !% Computes the mass of abundances accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
+  function nullAccretedMassMetals(self,node,accretionMode)
+    !% Computes the mass of abundances accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type   (treeNode  ), intent(inout), pointer :: thisNode
-    type   (abundances), intent(inout)          :: accretedAbundances
-    integer            , intent(in   )          :: accretionMode
+    type   (abundances       )                         :: nullAccretedMassMetals
+    class  (accretionHaloNull), intent(inout)          :: self
+    type   (treeNode         ), intent(inout), pointer :: node
+    integer                   , intent(in   )          :: accretionMode
 
-    accretedAbundances=zeroAbundances
+    nullAccretedMassMetals=zeroAbundances
     return
-  end subroutine Halo_Baryonic_Accreted_Abundances_Null_Get
+  end function nullAccretedMassMetals
 
-  subroutine Halo_Baryonic_Accretion_Rate_Chemicals_Null_Get(thisNode,accretionRateChemicals,accretionMode)
-    !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium.
+  function nullAccretionRateChemicals(self,node,accretionMode)
+    !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\tt node} from the intergalactic medium.
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type   (treeNode          ), intent(inout), pointer :: thisNode
-    type   (chemicalAbundances), intent(inout)          :: accretionRateChemicals
+    type   (chemicalAbundances)                         :: nullAccretionRateChemicals
+    class  (accretionHaloNull ), intent(inout)          :: self
+    type   (treeNode          ), intent(inout), pointer :: node
     integer                    , intent(in   )          :: accretionMode
 
-    accretionRateChemicals=zeroChemicals
+    nullAccretionRateChemicals=zeroChemicals
     return
-  end subroutine Halo_Baryonic_Accretion_Rate_Chemicals_Null_Get
+  end function nullAccretionRateChemicals
 
-  subroutine Halo_Baryonic_Accreted_Chemicals_Null_Get(thisNode,accretedChemicals,accretionMode)
-    !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
+  function nullAccretedMassChemicals(self,node,accretionMode)
+    !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type   (treeNode          ), intent(inout), pointer :: thisNode
-    type   (chemicalAbundances), intent(inout)          :: accretedChemicals
+    type   (chemicalAbundances)                         :: nullAccretedMassChemicals
+    class  (accretionHaloNull ), intent(inout)          :: self
+    type   (treeNode          ), intent(inout), pointer :: node
     integer                    , intent(in   )          :: accretionMode
 
-    accretedChemicals=zeroChemicals
+    nullAccretedMassChemicals=zeroChemicals
     return
-  end subroutine Halo_Baryonic_Accreted_Chemicals_Null_Get
-
-end module Accretion_Halos_Null
+  end function nullAccretedMassChemicals

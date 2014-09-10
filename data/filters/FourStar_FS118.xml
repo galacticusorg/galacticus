@@ -1,0 +1,90 @@
+<filter>
+  <name>FourStar FS118</name>
+  <description>FourStar FS118 (filter + camera + optics)</description>
+  <origin>http://instrumentation.obs.carnegiescience.edu/FourStar/OPTICS/curves/FS118_convolve.txt</origin>
+  <response>
+    <datum>1170 0.0001</datum>
+    <datum>1170.5 0.0001</datum>
+    <datum>1171 0.0001</datum>
+    <datum>1171.5 0.0002</datum>
+    <datum>1172 0.0002</datum>
+    <datum>1172.5 0.0002</datum>
+    <datum>1173 0.0003</datum>
+    <datum>1173.5 0.0004</datum>
+    <datum>1174 0.0005</datum>
+    <datum>1174.5 0.0006</datum>
+    <datum>1175 0.0008</datum>
+    <datum>1175.5 0.001</datum>
+    <datum>1176 0.0013</datum>
+    <datum>1176.5 0.0018</datum>
+    <datum>1177 0.0024</datum>
+    <datum>1177.5 0.0032</datum>
+    <datum>1178 0.0045</datum>
+    <datum>1178.5 0.0062</datum>
+    <datum>1179 0.0088</datum>
+    <datum>1179.5 0.0128</datum>
+    <datum>1180 0.0188</datum>
+    <datum>1180.5 0.0282</datum>
+    <datum>1181 0.0428</datum>
+    <datum>1181.5 0.0658</datum>
+    <datum>1182 0.1009</datum>
+    <datum>1182.5 0.1519</datum>
+    <datum>1183 0.22</datum>
+    <datum>1183.5 0.3022</datum>
+    <datum>1184 0.3917</datum>
+    <datum>1184.5 0.4816</datum>
+    <datum>1185 0.5658</datum>
+    <datum>1185.5 0.6392</datum>
+    <datum>1186 0.697</datum>
+    <datum>1186.5 0.7375</datum>
+    <datum>1187 0.7614</datum>
+    <datum>1187.5 0.773</datum>
+    <datum>1188 0.778</datum>
+    <datum>1188.5 0.7807</datum>
+    <datum>1189 0.7824</datum>
+    <datum>1189.5 0.784</datum>
+    <datum>1190 0.7856</datum>
+    <datum>1190.5 0.7871</datum>
+    <datum>1191 0.7887</datum>
+    <datum>1191.5 0.7901</datum>
+    <datum>1192 0.7914</datum>
+    <datum>1192.5 0.7924</datum>
+    <datum>1193 0.7928</datum>
+    <datum>1193.5 0.7917</datum>
+    <datum>1194 0.7879</datum>
+    <datum>1194.5 0.7784</datum>
+    <datum>1195 0.7591</datum>
+    <datum>1195.5 0.7251</datum>
+    <datum>1196 0.6739</datum>
+    <datum>1196.5 0.6055</datum>
+    <datum>1197 0.5251</datum>
+    <datum>1197.5 0.4375</datum>
+    <datum>1198 0.3485</datum>
+    <datum>1198.5 0.2634</datum>
+    <datum>1199 0.1892</datum>
+    <datum>1199.5 0.1299</datum>
+    <datum>1200 0.0866</datum>
+    <datum>1200.5 0.057</datum>
+    <datum>1201 0.0375</datum>
+    <datum>1201.5 0.0249</datum>
+    <datum>1202 0.0168</datum>
+    <datum>1202.5 0.0115</datum>
+    <datum>1203 0.008</datum>
+    <datum>1203.5 0.0056</datum>
+    <datum>1204 0.004</datum>
+    <datum>1204.5 0.0029</datum>
+    <datum>1205 0.0022</datum>
+    <datum>1205.5 0.0016</datum>
+    <datum>1206 0.0012</datum>
+    <datum>1206.5 0.0009</datum>
+    <datum>1207 0.0007</datum>
+    <datum>1207.5 0.0005</datum>
+    <datum>1208 0.0004</datum>
+    <datum>1208.5 0.0003</datum>
+    <datum>1209 0.0002</datum>
+    <datum>1209.5 0.0002</datum>
+    <datum>1210 0.0002</datum>
+  </response>
+  <effectiveWavelength>1190.89986062337</effectiveWavelength>
+  <vegaOffset>-10.2336473842044</vegaOffset>
+</filter>

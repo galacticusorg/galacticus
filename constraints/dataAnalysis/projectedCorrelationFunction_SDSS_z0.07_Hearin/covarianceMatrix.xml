@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+
+  <!-- Options controlling halo model -->
+  <parameter>
+    <name>projectedCorrelationFunctionMassMinimum</name>
+    <value>1.0e6</value>
+  </parameter>
+  <parameter>
+    <name>projectedCorrelationFunctionMassMaximum</name>
+    <value>1.0e15</value>
+  </parameter>
+  <parameter>
+    <name>projectedCorrelationFunctionLineOfSightDepth</name>
+    <value>40.0</value>
+  </parameter>
+
+  <!-- Options controlling Pinocchio mocks -->
+  <parameter>
+    <name>pinocchioBoxSize</name>
+    <value>290.0</value>
+  </parameter>
+  <parameter>
+    <name>pinocchioGridSize</name>
+    <value>1024</value>
+  </parameter>
+
+  <!-- Options controlling survey geometry -->
+  <parameter>
+    <name>surveyGeometryMethod</name>
+    <value>hearin2014SDSS</value>
+  </parameter>
+
+  <!-- Options controlling mock construction -->
+  <parameter>
+    <name>mockRedshiftMedian</name>
+    <value>0.05</value>
+  </parameter>
+  <parameter>
+    <name>mockHaloMassMinimum</name>
+    <value>1.0e10</value>
+  </parameter>
+  <parameter>
+    <name>haloModelMockMassMinimum</name>
+    <value>6.309e9</value>
+  </parameter>
+  <parameter>
+    <name>mockCorrelationFunctionMassMinimum</name>
+    <value>6.31e10</value>
+  </parameter>
+  <parameter>
+    <name>mockCorrelationFunctionRandomSampleCount</name>
+    <value>1000000</value>
+  </parameter>
+  <parameter>
+    <name>mockCorrelationFunctionBufferWidth</name>
+    <value>50.0</value>
+  </parameter>
+  <parameter>
+    <name>mockCorrelationFunctionRadialSeparationMaximum</name>
+    <value>40.0</value>
+  </parameter>
+
+  <!-- Cosmological parameters and options -->
+  <parameter>
+    <name>cosmologyFunctionsMethod</name>
+    <value>matterLambda</value>
+  </parameter>
+  <parameter>
+    <name>H_0</name>
+    <value>70.0</value>
+  </parameter>
+  <parameter>
+    <name>Omega_Matter</name>
+    <value>0.27</value>
+  </parameter>
+  <parameter>
+    <name>Omega_DE</name>
+    <value>0.73</value>
+  </parameter>
+  <parameter>
+    <name>Omega_b</name>
+    <value>0.0455</value>
+  </parameter>
+  <parameter>
+    <name>T_CMB</name>
+    <value>2.72548</value>
+  </parameter>
+
+  <!-- Power spectrum options -->
+  <parameter>
+    <name>sigma_8</name>
+    <value>0.807</value>
+  </parameter>
+  <parameter>
+    <name>transferFunctionMethod</name>
+    <value>Eisenstein-Hu1999</value>
+  </parameter>
+  <parameter>
+    <name>powerSpectrumMethod</name>
+    <value>powerLaw</value>
+  </parameter>
+  <parameter>
+    <name>powerSpectrumIndex</name>
+    <value>0.961</value>
+  </parameter>
+  <parameter>
+    <name>powerSpectrumReferenceWavenumber</name>
+    <value>1.0</value>
+  </parameter>
+  <parameter>
+    <name>powerSpectrumRunning</name>
+    <value>0.0</value>
+  </parameter>
+  <parameter>
+    <name>effectiveNumberNeutrinos</name>
+    <value>3.04</value>
+  </parameter>
+  <parameter>
+    <name>summedNeutrinoMasses</name>
+    <value>0.0</value>
+  </parameter>
+
+  <!-- Structure formation options -->
+  <parameter>
+    <name>haloMassFunctionMethod</name>
+    <value>Tinker2008</value>
+  </parameter>
+  <parameter>
+    <name>darkMatterHaloBiasMethod</name>
+    <value>Tinker2010</value>
+  </parameter>
+  <parameter>
+    <name>criticalOverdensityMethod</name>
+    <value>sphericalTopHat</value>
+  </parameter>
+  <parameter>
+    <name>virialDensityContrastMethod</name>
+    <value>sphericalCollapseMatterLambda</value>
+  </parameter>
+
+  <!-- Dark matter halo structure options -->
+  <parameter>
+    <name>darkMatterProfileMethod</name>
+    <value>NFW</value>
+  </parameter>
+  <parameter>
+    <name>darkMatterProfileConcentrationMethod</name>
+    <value>diemerKravtsov2014</value>
+  </parameter>
+
+</parameters>

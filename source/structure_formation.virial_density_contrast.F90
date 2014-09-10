@@ -47,6 +47,15 @@ module Virial_Density_Contrast
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
   !#  </method>
+  !#  <method name="turnAroundOverVirialRadii" >
+  !#   <description>Returns the ratio of turnaround and virial radii at the given epoch.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <modules>Galacticus_Error</modules>
+  !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
+  !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
+  !#   <code>call Galacticus_Error_Report('turnAroundOverVirialRadii','ratio is undefined for this density contrast class')</code>
+  !#  </method>
   include 'virialDensityContrast.type.inc'
   !# </include>
 
