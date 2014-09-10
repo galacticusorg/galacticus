@@ -318,43 +318,12 @@ if ( exists($arguments{'outputFile'}) ) {
 
 # Output the results to file if requested.
 if ( exists($arguments{'resultFile'}) ) {
-    my $results;
-    for(my $j=0;$j<nelem($sizeData->{'massLogarithmic'});++$j) {
-	push(@{$results->{'x'}},$radiusLogarithmicBins->(:,($j))->list());
-	for(my $i=0;$i<$radiusLogarithmicBins->dim(0);++$i) {
-	    push(@{$results->{'y'}},$sizeData->{'massLogarithmic'}->(($j))->sclr());
-	}
-    }
-    @{$results->{'z'             }} = $model   ->{'radiusFunction'     }->flat()->list();
-    @{$results->{'error'         }} = $model   ->{'radiusFunctionError'}->flat()->list();
-    @{$results->{'covariance'    }} = $model   ->{'covariance'         }->flat()->list();
-    @{$results->{'zData'         }} = $sizeData->{'radiusFunction'     }->flat()->list();
-    @{$results->{'covarianceData'}} = $sizeData->{'covariance'         }->flat()->list();
-    my $xmlOut = new XML::Simple (RootName=>"results", NoAttr => 1);;
-    # Output the parameters to file.
-    open(pHndl,">".$arguments{'resultFile'});
-    print pHndl $xmlOut->XMLout($results);
-    close pHndl;
-}
-
-# Output accuracy to file if requested.
-if ( exists($arguments{'accuracyFile'}) ) {
-    my $results;
-    for(my $j=0;$j<nelem($sizeData->{'massLogarithmic'});++$j) {
-	push(@{$results->{'x'}},$radiusLogarithmicBins->(:,($j))->list());
-	for(my $i=0;$i<$radiusLogarithmicBins->dim(0);++$i) {
-	    push(@{$results->{'y'}},$sizeData->{'massLogarithmic'}->(($j))->sclr());
-	}
-    }
-    @{$results->{'yModel'    }} = $model   ->{'radiusFunction'     }->flat()->list();
-    @{$results->{'yData'     }} = $sizeData->{'radiusFunction'     }->flat()->list();
-    @{$results->{'errorModel'}} = $model   ->{'radiusFunctionError'}->flat()->list();
-    @{$results->{'errorData' }} = $sizeData->{'radiusFunctionError'}->flat()->list();
-    my $xmlOut = new XML::Simple (RootName=>"accuracy", NoAttr => 1);;
-    # Output the parameters to file.
-    open(pHndl,">".$arguments{'accuracyFile'});
-    print pHndl $xmlOut->XMLout($results);
-    close pHndl;
+    my $resultsFile = new PDL::IO::HDF5(">".$arguments{'resultFile'});
+    $resultsFile->dataset('y'             )->set($model   ->{'radiusFunction'     }->flat());
+    $resultsFile->dataset('error'         )->set($model   ->{'radiusFunctionError'}->flat());
+    $resultsFile->dataset('covariance'    )->set($model   ->{'covariance'         }        );
+    $resultsFile->dataset('yData'         )->set($sizeData->{'radiusFunction'     }->flat());
+    $resultsFile->dataset('covarianceData')->set($sizeData->{'covariance'         }        );
 }
 
 # Create a plot of the radius function.
