@@ -46,21 +46,23 @@ my %ignoreList = (
     "fox_dom" => 1,
     "fox_wxml" => 1,
     "fox_utils" => 1,
-    "fgsl" => 1
+    "fgsl" => 1,
+    "mpi" => 1
     );
 
 # Modules that require a library to be linked.
 my %moduleLibararies = (
-    fftw3      => "fftw3",
-    fgsl       => "fgsl_gfortran",
-    fox_common => "FoX_common",
-    fox_dom    => "FoX_dom",
-    fox_wxml   => "FoX_wxml",
-    fox_utils  => "FoX_utils",
-    hdf5       => "hdf5_fortran"
+    nearest_neighbors => "ANN",
+    fftw3             => "fftw3",
+    fgsl              => "fgsl_gfortran",
+    fox_common        => "FoX_common",
+    fox_dom           => "FoX_dom",
+    fox_wxml          => "FoX_wxml",
+    fox_utils         => "FoX_utils",
+    hdf5              => "hdf5_fortran"
     );
 my %includeLibararies = (
-    crypt      => "crypt"
+    crypt             => "crypt"
     );
 
 # Open the compiler options file and find preprocessor flags.
