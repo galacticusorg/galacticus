@@ -143,8 +143,8 @@ contains
                   &                                            )                               , &
                   &                                                                          i   &
                   &                                  )
+             call Integrate_Done(integrandFunction,integrationWorkspace)
           end do
-          call Integrate_Done(integrandFunction,integrationWorkspace)
           self%cdfInitialized=.true.
        end if
        ! Interpolate in the tabulated cumulative distribution function.
