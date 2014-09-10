@@ -152,33 +152,13 @@ $data->{'model'}->{'combined'}->{'correlationFunctionError'     } = sqrt($data->
 
 # Output the results to file if requested.
 if ( exists($arguments{'resultFile'}) ) {
-    my $results;
-    @{$results->{'x'             }} = $data->{'observed'}->{'combined'}->{'separation'                   }->list();
-    @{$results->{'y'             }} = $data->{'model'   }->{'combined'}->{'correlationFunction'          }->list();
-    @{$results->{'error'         }} = $data->{'model'   }->{'combined'}->{'correlationFunctionError'     }->list();
-    @{$results->{'covariance'    }} = $data->{'model'   }->{'combined'}->{'correlationFunctionCovariance'}->list();
-    @{$results->{'yData'         }} = $data->{'observed'}->{'combined'}->{'correlationFunction'          }->list();
-    @{$results->{'covarianceData'}} = $data->{'observed'}->{'combined'}->{'correlationFunctionCovariance'}->list();
-    my $xmlOut = new XML::Simple (RootName=>"results", NoAttr => 1);;
-    # Output the parameters to file.
-    open(pHndl,">".$arguments{'resultFile'});
-    print pHndl $xmlOut->XMLout($results);
-    close pHndl;
-}
-
-# Output accuracy to file if requested.
-if ( exists($arguments{'accuracyFile'}) ) {
-    my $results;
-    @{$results->{'x'         }} = $data->{'observed'}->{'combined'}->{'separation'              }->list();
-    @{$results->{'yModel'    }} = $data->{'model'   }->{'combined'}->{'correlationFunction'     }->list();
-    @{$results->{'yData'     }} = $data->{'observed'}->{'combined'}->{'correlationFunction'     }->list();
-    @{$results->{'errorModel'}} = $data->{'model'   }->{'combined'}->{'correlationFunctionError'}->list();
-    @{$results->{'errorData' }} = $data->{'observed'}->{'combined'}->{'correlationFunctionError'}->list();
-    my $xmlOut = new XML::Simple (RootName=>"accuracy", NoAttr => 1);;
-    # Output the parameters to file.
-    open(pHndl,">".$arguments{'accuracyFile'});
-    print pHndl $xmlOut->XMLout($results);
-    close pHndl;
+    my $resultsFile = new PDL::IO::HDF5(">".($arguments{'resultFile'});
+    $resultsFile->dataset('x'             )->set($data->{'observed'}->{'combined'}->{'separation'                   });
+    $resultsFile->dataset('y'             )->set($data->{'model'   }->{'combined'}->{'correlationFunction'          });
+    $resultsFile->dataset('error'         )->set($data->{'model'   }->{'combined'}->{'correlationFunctionError'     });
+    $resultsFile->dataset('covariance'    )->set($data->{'model'   }->{'combined'}->{'correlationFunctionCovariance'});
+    $resultsFile->dataset('yData'         )->set($data->{'observed'}->{'combined'}->{'correlationFunction'          });
+    $resultsFile->dataset('covarianceData')->set($data->{'observed'}->{'combined'}->{'correlationFunctionCovariance'});
 }
 
 # Compute the likelihood:
