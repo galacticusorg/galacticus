@@ -132,9 +132,11 @@ contains
     end select
     thisBasicComponent => thisNode%basic()
     if     (                                                                                                     &
+         &  (                                                                                                    &
          &   (thisBasicComponent%time() >= coolingCutOffTime .and. coolingCutOffWhen == coolingCutOffWhenAfter ) &
          &    .or.                                                                                               &
          &   (thisBasicComponent%time() <= coolingCutOffTime .and. coolingCutOffWhen == coolingCutOffWhenBefore) &
+         &  )                                                                                                    &
          &   .and.                                                                                               &
          &  virialVelocity            <= coolingCutOffVelocity                                                   &
          & ) coolingRate=0.0d0
