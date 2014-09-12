@@ -824,7 +824,11 @@ Here, $x_i$ is a number between 0 and 1 and $\alpha=${\tt mergerTreeBuildTreesHa
 
 \subsubsection{Halo Mass Function}
 
-Selected with {\tt haloMassFunctionSamplingMethod}$=${\tt haloMassFunction}, this method sets the sampling density function equal to the halo mass function, $\gamma(M) = \hbox{minmax}(\phi_{\rm min},\phi_{\rm max},{\rm d} n(M)/{\rm d}\log M)$, where $\phi_{\rm min}=${\tt [haloMassFunctionSamplingAbundanceMinimum]}, $\phi_{\rm max}=${\tt [haloMassFunctionSamplingAbundanceMaximum]}, and
+Selected with {\tt haloMassFunctionSamplingMethod}$=${\tt haloMassFunction}, this method sets the sampling density function equal to the halo mass function,
+\begin{equation}
+\gamma(M) = \hbox{minmax}(\phi_{\rm min},\phi_{\rm max},{\rm d} n(M)/{\rm d}\log M [1 + p_1 \log_{10}(M/10^{13}M_\odot) + p_2 \log_{10}^2(M/10^{13}M_\odot)),
+\end{equation}
+ where $\phi_{\rm min}=${\tt [haloMassFunctionSamplingAbundanceMinimum]}, $\phi_{\rm max}=${\tt [haloMassFunctionSamplingAbundanceMaximum]}, $p_1=${\tt [haloMassFunctionSamplingModifier1]}, $p_2=${\tt [haloMassFunctionSamplingModifier2]}, and
 \begin{equation}
  \hbox{minmax}(a,b,x) = \left\{\begin{array}{ll}a & \hbox{ if } x < a \\ x & \hbox{ if } a \leq x \leq b\\ b & \hbox{ if } x > b,\end{array}\right.
 \end{equation}
@@ -1370,7 +1374,6 @@ Selected with {\tt hotHaloRamPressureStrippingMethod}$=${\tt Font2008} this meth
 \end{equation}
 where $M_{\rm satellite}(r)$ is the total mass of the satellite within radius $r$, $\mathcal{F}_{\rm ram, hot, host}$ is the ram pressure force due to the hot halo (computed using the selected hot halo ram pressure force method; see \S\ref{sec:HotHaloRamPressureForce}). The parameter $\alpha_{\rm rp}=${\tt [ramPressureStrippingFormFactor]} is a geometric factor of order unity.
 
-
 \section{Hot Halo Ram Pressure Stripping Timescale}\index{hot halo!ram pressure stripping!timescale}
 
 The algorithm to be used when determining the timescale on which the hot halo is stripped by ram pressure forces is selected via the {\tt hotHaloRamPressureStrippingTimescaleMethod} parameter.
@@ -1389,6 +1392,22 @@ where $P_{\rm ram pressure}$ is the ram pressure force per unit area, and $\Sigm
 \begin{equation}
  \tau_{\rm ram pressure} = \sqrt{2 r_{\rm outer} \Sigma_{\rm outer} / P_{\rm ram pressure}}.
 \end{equation}
+
+\section{Hot Halo Outflow Reincorporation}\label{phys:hotHaloOutflowReincorporation}\index{hot halo!reincorporation}\index{hot halo!outflows}\index{outflows!reincorporation}
+
+The algorithm to be used when determining the rate at which outflowed gas is reincorporated into the hot halo is selected via the {\tt hotHaloOutflowReincorporationMethod} parameter.
+
+\subsection{Velocity Maximum Scaling}\label{phys:hotHaloOutflowReincorporation:hotHaloOutflowReincorporationVelocityMaximumScaling}
+
+Selected with {\tt hotHaloOutflowReincorporationMethod}$=${\tt hotHaloOutflowReincorporationVelocityMaximumScaling} this method assumes a reincorporation rate of:
+\begin{equation}
+ \dot{M}_{\rm reincorporation} = M_{\rm outflowed} / t_{\rm reincorporation},
+\end{equation}
+where
+\begin{equation}
+ t_{\rm reincorporation} = \tau_{\rm reincorporation} \left( { V_{\rm max} \over 200 \hbox{km/s}} \right)^{\alpha_{\rm reincorporation}} (1+z)^{\beta_{\rm reincorporation}},
+\end{equation}
+where $\tau_{\rm reincorporation}=${\tt [hotHaloOutflowReincorporationVlctyMxSclngTimeScale]}, $\alpha_{\rm reincorporation}=${\tt [hotHaloOutflowReincorporationVlctyMxSclngVelocityExponent]}, and $\beta_{\rm reincorporation}=${\tt [hotHaloOutflowReincorporationVlctyMxSclngRedshiftExponent]}.
 
 \section{Hot Halo Temperature Profile}\label{sec:HotHaloTemperature}\index{hot halo!temperature profile}\index{temperature profile!hot halo}
 
