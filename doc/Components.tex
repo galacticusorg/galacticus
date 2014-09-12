@@ -442,7 +442,7 @@ The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current sta
 
 \subsubsection{Additional Output}
 
-If the {\tt [diskOutputStarFormationRate]}\index{disk!star formation rate!output}\index{star formation rate!output!disk} input parameter is set to true, then the instantaneous star formation rate in the disk will be included in the output, as {\tt diskStarFormationRate}.
+If the {\tt [diskOutputStarFormationRate]}\index{disk!star formation rate!output}\index{star formation rate!output!disk} input parameter is set to true, then the instantaneous star formation rate in the disk (in units of $M_\odot$~Gyr$^{-1}$) will be included in the output, as {\tt diskStarFormationRate}.
 
 \subsubsection{Structure}
 
@@ -543,7 +543,7 @@ where $\beta_{\rm spheroid, energy}=${\tt [spheroidEnergeticOutflowMassRate]} is
 
 \subsubsection{Additional Output}
 
-If the {\tt [spheroidOutputStarFormationRate]}\index{spheroid!star formation rate!output}\index{star formation rate!output!spheroid} input parameter is set to true, then the instantaneous star formation rate in the spheroid will be included in the output, as {\tt spheroidStarFormationRate}.
+If the {\tt [spheroidOutputStarFormationRate]}\index{spheroid!star formation rate!output}\index{star formation rate!output!spheroid} input parameter is set to true, then the instantaneous star formation rate in the spheroid (in units of $M_\odot$~Gyr$^{-1}$) will be included in the output, as {\tt spheroidStarFormationRate}.
 
 \section{Basic Properties}\label{sec:ComponentBasicProperties}
 
@@ -1122,8 +1122,8 @@ This \gls{component} tracks various quantities averaged between successive outpu
 
 The ``standard' inter-output implementation defines the following properties:
 \begin{description}
- \item [{\tt diskStarFormationRate}] The mean star formation rate in the disk between the previous and current output times.
- \item [{\tt spheroidStarFormationRate}] The mean star formation rate in the spheroid between the previous and current output times.
+ \item [{\tt diskStarFormationRate}] The mean star formation rate (in units of $M_\odot$~Gyr$^{-1}$) in the disk between the previous and current output times.
+ \item [{\tt spheroidStarFormationRate}] The mean star formation rate (in units of $M_\odot$~Gyr$^{-1}$) in the spheroid between the previous and current output times.
 \end{description}
 
 \subsubsection{Initialization}
