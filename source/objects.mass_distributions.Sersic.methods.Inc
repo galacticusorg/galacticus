@@ -151,16 +151,20 @@ double precision function Mass_Distribution_Sersic_Mass_Enc_By_Sphere(self,radiu
   double precision                        , intent(in   )         :: radius
   double precision                                                :: fractionalRadius
 
-  fractionalRadius=radius/self%radiusHalfMass
-  call Sersic_Profile_Tabulate(fractionalRadius)
-  if (fractionalRadius < sersicTableRadius(sersicTableCount)) then
-     !$omp critical (Sersic_Profile_Tabulation)
-     Mass_Distribution_Sersic_Mass_Enc_By_Sphere=self%mass*Interpolate(sersicTableCount,sersicTableRadius,sersicTableEnclosedMass&
-          & ,sersicTableInterpolationObject,sersicTableInterpolationAccelerator,fractionalRadius,reset &
-          &=sersicTableInterpolationReset)
-     !$omp end critical (Sersic_Profile_Tabulation)
+  if (radius <= 0.0d0) then
+     Mass_Distribution_Sersic_Mass_Enc_By_Sphere=0.0d0
   else
-     Mass_Distribution_Sersic_Mass_Enc_By_Sphere=self%mass
+     fractionalRadius=radius/self%radiusHalfMass
+     call Sersic_Profile_Tabulate(fractionalRadius)
+     if (fractionalRadius < sersicTableRadius(sersicTableCount)) then
+        !$omp critical (Sersic_Profile_Tabulation)
+        Mass_Distribution_Sersic_Mass_Enc_By_Sphere=self%mass*Interpolate(sersicTableCount,sersicTableRadius,sersicTableEnclosedMass&
+             & ,sersicTableInterpolationObject,sersicTableInterpolationAccelerator,fractionalRadius,reset &
+             &=sersicTableInterpolationReset)
+        !$omp end critical (Sersic_Profile_Tabulation)
+     else
+        Mass_Distribution_Sersic_Mass_Enc_By_Sphere=self%mass
+     end if
   end if
   return
 end function Mass_Distribution_Sersic_Mass_Enc_By_Sphere
@@ -229,7 +233,7 @@ subroutine Sersic_Profile_Tabulate(radius)
   use Root_Finder
   implicit none
   double precision                            , intent(in   ), optional :: radius
-  double precision                            , parameter               :: radiusMaximumToTabulate   =1000.0d0
+  double precision                            , parameter               :: radiusMaximumToTabulate   =1.0d+3
   double precision                            , parameter               :: sersicCoefficientTolerance=1.0d-6
   double precision                            , parameter               :: sersicCoefficientGuess    =7.67d0
   type            (rootFinder                ), save                    :: finder
@@ -358,7 +362,7 @@ subroutine Sersic_Profile_Tabulate(radius)
 
         ! Test that the table has sufficient extent for the requested radius.
         tableHasSufficientExtent=(radiusActual >= sersicTableRadiusMinimum) &
-             &                    .and. &
+             &                    .and.                                     &
              &                   (radiusActual <= sersicTableRadiusMaximum)
      end do
      ! Flag that the table is initialized.
