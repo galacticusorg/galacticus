@@ -220,8 +220,8 @@ The very simple hot halo implementation defines the following properties:
 \end{description}
 and the following pipes:
 \begin{description}
- \item [{\tt Hot\_Halo\_Cooling\_Mass\_To}] The net cooling rate of gas mass is sent through this pipe. Any \gls{component} may claim this pipe and connect to it, allowing it to receive the cooling gas.
- \item [{\tt Hot\_Halo\_Outflow\_Mass\_To}] Galactic components that wish to expel gas due to an outflow can send that mass  through this pipe, where it will be received into the hot halo component. 
+ \item [{\tt hotHaloCoolingMass}] The net cooling rate of gas mass is sent through this pipe. Any \gls{component} may claim this pipe and connect to it, allowing it to receive the cooling gas.
+ \item [{\tt outflowingMass}] Galactic components that wish to expel gas due to an outflow can send that mass  through this pipe, where it will be received into the hot halo component. 
 \end{description}
 
 \subsubsection{Initialization}
@@ -244,6 +244,38 @@ In the above $\dot{M}_{\rm outflow}$ is the net rate of outflow from any compone
 \noindent\emph{Satellite merging:} Any hot halo of the satellite \gls{node} is added to that of the host \gls{node} and the hot halo \gls{component} removed from the satellite node.\\
 
 \noindent\emph{Node promotion:} Any hot halo of the parent \gls{node} is added to that of the \gls{node} prior to promotion.\\
+
+\noindent\emph{Halo formation:} None.\\
+
+\subsection{``Very Simple Delayed'' Implementation}
+
+\subsubsection{Properties}
+
+The delayed very simple hot halo implementation extends the ``very simple'' implementation by adding a reservoir for outflowed gas from which the hot halo is gradually replenished. It defines the following properties:
+\begin{description}
+ \item [{\tt outflowedMass}] The mass of gas in the outflowed reservoir of the hot halo: $M_{\rm outflowed}$ {\tt [hotHaloOutflowedMass]}.
+\end{description}
+
+\subsubsection{Initialization}
+
+At initialization, nodes are assigned zero outflowed mass.
+
+\subsubsection{Differential Evolution}
+
+This implementation steals the {\tt outflowingMass} pipe from the very simple component and redirects it to the outflowed mass reservoir. The resulting rates of change of hot and outflowed masses are then:
+\begin{eqnarray}
+ \dot{M}_{\rm hot}      &=& - \dot{M}_{\rm cooling} + \dot{M}_{\rm reincorporation}, \nonumber \\
+ \dot{M}_{\rm outflowed} &=& + \dot{M}_{\rm outflow} - \dot{M}_{\rm reincorporation}, \nonumber \\
+\end{eqnarray}
+where $\dot{M}_{\rm reincorporation}$ is the reincorporation rate of outflowed gas (see \S\ref{phys:hotHaloOutflowReincorporation}).
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} Any outflowed gas from the merging halo is transferred to its host halo.\\
+
+\noindent\emph{Satellite merging:} Any outflowed halo of the satellite \gls{node} is added to that of the host \gls{node} and the outflowed mass \gls{component} removed from the satellite node.\\
+
+\noindent\emph{Node promotion:} Any outflowed gas of the parent \gls{node} is added to that of the \gls{node} prior to promotion.\\
 
 \noindent\emph{Halo formation:} None.\\
 
