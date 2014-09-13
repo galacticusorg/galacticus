@@ -106,6 +106,8 @@ module Galacticus_Output_Analyses_Correlation_Functions
      double precision                               , allocatable, dimension(:    ) :: massMinimumLogarithmic
      ! Separations.
      double precision                               , allocatable, dimension(:    ) :: separation
+     ! Integral constraint.
+     double precision                               , allocatable, dimension(:,:  ) :: integralConstraint
      ! Line-of-sight integration depth.
      double precision                                                               :: lineOfSightDepth
      ! Indices of current halo.
@@ -360,6 +362,9 @@ contains
                                     &                              'separation mistmatch'                              &
                                     &                             )
                             end if
+                            ! Extract integral constraint.
+                            call Alloc_Array(correlationFunctions(currentAnalysis)%integralConstraint,[size(correlationFunctions(currentAnalysis)%separation),3])
+                            correlationFunctions(currentAnalysis)%integralConstraint=1.0d0
                          end do
                          ! Convert separations from logarithmic to linear.
                          correlationFunctions(currentAnalysis)%separation=10.0d0**correlationFunctions(currentAnalysis)%separation
@@ -590,8 +595,8 @@ double precision, allocatable, dimension(:) :: satelliteJacobian
        massCount        =size(thisCorrelationFunction%massMinimumLogarithmic)
        wavenumberCount  =size(thisCorrelationFunction%wavenumber            )
        allocate(termJacobian(massCount*(2*wavenumberCount+1),thisHalo%satelliteCount+1))
-allocate(satelliteJacobian(thisHalo%satelliteCount))
-termJacobian=0.0d0
+       allocate(satelliteJacobian(thisHalo%satelliteCount))
+       termJacobian=0.0d0
        ! Iterate over masses.
        do i=1,massCount
           ! Find mean number of satellites and satellite pairs.
@@ -766,12 +771,8 @@ termJacobian=0.0d0
     if (.not.analysisActive) return
     ! Iterate over mass functions.
     do k=1,size(correlationFunctions)
-
-
        ! Accumulate any final halo.
        call Accumulate_Halo(correlationFunctions(k),thisHalo(k))    
-
-
        ! Get count of mass bins and wavenumbers.
        massCount      =size(correlationFunctions(k)%massMinimumLogarithmic)
        wavenumberCount=size(correlationFunctions(k)%wavenumber            )
@@ -1072,6 +1073,8 @@ termJacobian=0.0d0
        binnedProjectedCorrelationCovariance=jacobianMatrix*(covarianceMatrix*jacobianMatrix%transpose())
        call Dealloc_Array(jacobian)
        call correlationTable%destroy()
+       ! Apply the integral constraint.
+       binnedProjectedCorrelation=binnedProjectedCorrelation/correlationFunctions(k)%integralConstraint
        ! Output the correlation function.
        !$omp critical(HDF5_Access)
        analysisGroup           =galacticusOutputFile%openGroup('analysis','Model analysis')
