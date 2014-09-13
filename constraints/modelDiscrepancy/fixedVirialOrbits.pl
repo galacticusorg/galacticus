@@ -42,17 +42,17 @@ my $xml    = new XML::Simple;
 my $config = $xml->XMLin($configFile, KeyAttr => 0);
 
 # Validate the config file.
-die("fixedVirialOrbits.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'workDirectory' }) );
-die("fixedVirialOrbits.pl: compilation must be specified in config file"   ) unless ( exists($config->{'compilation'   }) );
-die("fixedVirialOrbits.pl: baseParameters must be specified in config file") unless ( exists($config->{'baseParameters'}) );
+die("fixedVirialOrbits.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
+die("fixedVirialOrbits.pl: compilation must be specified in config file"   ) unless ( exists($config->{'likelihood'}->{'compilation'   }) );
+die("fixedVirialOrbits.pl: baseParameters must be specified in config file") unless ( exists($config->{'likelihood'}->{'baseParameters'}) );
 
 # Determine the scratch and work directories.
-my $workDirectory    = $config->{'workDirectory'};
-my $scratchDirectory = $config->{'workDirectory'};
-$scratchDirectory    = $config->{'scratchDirectory'} if ( exists($config->{'scratchDirectory'}) );
+my $workDirectory    = $config->{'likelihood'}->{'workDirectory'};
+my $scratchDirectory = $config->{'likelihood'}->{'workDirectory'};
+$scratchDirectory    = $config->{'likelihood'}->{'scratchDirectory'} if ( exists($config->{'likelihood'}->{'scratchDirectory'}) );
 
 # Create the work and scratch directories.
-system("mkdir -p ".$config->{'workDirectory'});
+system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'});
 
 # Ensure that Galacticus is built.
 if ( $arguments{'make'} eq "yes" ) {
@@ -62,7 +62,7 @@ if ( $arguments{'make'} eq "yes" ) {
 }
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'compilation'},$config->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$confi->{'likelihood'}g->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Switch off thread locking.
@@ -89,10 +89,10 @@ my @models =
 	 label      => "variableOrbits",
 	 parameters => 
 	     [
-	      # Switch to using variable orbits using the distribution of Benson (2005).
+	      # Switch to using variable orbits using the distribution of Jiang et al. (2014).
 	      {
-		  name  => "virialOrbitsMethod",
-		  value => "Benson2005"
+		  name  => "virialOrbitMethod",
+		  value => "jiang2014"
 	      },
 	     ]
      }
