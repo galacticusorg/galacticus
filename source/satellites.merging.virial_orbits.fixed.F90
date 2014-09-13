@@ -24,9 +24,13 @@
   type, extends(virialOrbitClass) :: virialOrbitFixed
      !% A virial orbit class that assumes fixed orbital parameters.
      private
-     double precision                 :: radialVelocity       , tangentialVelocity
-     type            (varying_string) :: virialDensityContrast
+     double precision                                      :: radialVelocity                      , tangentialVelocity, &
+          &                                                   virialDensityContrastValue
+     integer                                               :: virialDensityContrast
+     class           (virialDensityContrastClass), pointer :: densityContrast
+     logical                                               :: densityContrastInitialized
    contains
+     final     ::                              fixedDestructor
      procedure :: orbit                     => fixedOrbit
      procedure :: densityContrastDefinition => fixedDensityContrastDefinition
   end type virialOrbitFixed
@@ -44,13 +48,18 @@
   double precision                 :: fixedRadialVelocity       , fixedTangentialVelocity
   type            (varying_string) :: fixedVirialDensityContrast
 
+  ! Virial density contrast types.
+  integer, parameter :: fixedDensityContrastSphericalCollapseMatterLambda=0
+  integer, parameter :: fixedDensityContrastFixedCritical                =1
+  integer, parameter :: fixedDensityContrastFixedMean                    =2
+
 contains
 
   function fixedDefaultConstructor()
     !% Default constructor for the {\tt fixed} dark matter halo virial density contrast class.
     use Input_Parameters
     implicit none
-    type (virialOrbitFixed), target  :: fixedDefaultConstructor
+    type(virialOrbitFixed), target :: fixedDefaultConstructor
     
     if (.not.fixedInitialized) then
        !$omp critical(virialOrbitFixedInitialize)
@@ -100,17 +109,40 @@ contains
 
   function fixedConstructor(radialVelocity,tangentialVelocity,virialDensityContrast)
     !% Generic constructor for the {\tt fixed} virial orbits class.
-    use Input_Parameters
+    use Galacticus_Error
     implicit none
     type            (virialOrbitFixed), target        :: fixedConstructor
     double precision                  , intent(in   ) :: radialVelocity       , tangentialVelocity
     type            (varying_string  ), intent(in   ) :: virialDensityContrast
+    character       (len=32          )                :: label
 
-    fixedConstructor%radialVelocity       =radialVelocity
-    fixedConstructor%tangentialVelocity   =tangentialVelocity
-    fixedConstructor%virialDensityContrast=virialDensityContrast
+    fixedConstructor%radialVelocity            =radialVelocity
+    fixedConstructor%tangentialVelocity        =tangentialVelocity
+    fixedConstructor%densityContrastInitialized=.false.
+    if (virialDensityContrast == 'sphericalCollapseMatterLambda') then
+       fixedConstructor%virialDensityContrast=fixedDensityContrastSphericalCollapseMatterLambda
+    else if (extract(virialDensityContrast,1, 9) == "fixedMean"    ) then
+       fixedConstructor%virialDensityContrast=fixedDensityContrastFixedMean
+       label=extract(virialDensityContrast,10,len(virialDensityContrast))
+       read (label,*) fixedConstructor%virialDensityContrastValue
+    else if (extract(virialDensityContrast,1,13) == "fixedCritical" ) then
+       fixedConstructor%virialDensityContrast=fixedDensityContrastFixedCritical
+       label=extract(virialDensityContrast,10,len(virialDensityContrast))
+       read (label,*) fixedConstructor%virialDensityContrastValue
+    else
+       call Galacticus_Error_Report('fixedDensityContrastDefinition','only "sphericalCollapseMatterLambda", "fixedMeanXXX", and "fixedCriticalXXX" supported')
+    end if
     return
   end function fixedConstructor
+
+  subroutine fixedDestructor(self)
+    !% Destructor for the {\tt fixed} virial orbits class.
+    implicit none
+    type(virialOrbitFixed), intent(inout) :: self
+
+    if (self%densityContrastInitialized.and.self%densityContrast%isFinalizable()) deallocate(self%densityContrast)
+    return
+  end subroutine fixedDestructor
 
   function fixedOrbit(self,node,host,acceptUnboundOrbits)
     !% Return fixed orbital parameters for a satellite.
@@ -160,27 +192,34 @@ contains
     !% Return a virial density contrast object defining that used in the definition of fixed virial orbits.
     use Galacticus_Error
     implicit none
-    class  (virialDensityContrastClass), pointer                     :: fixedDensityContrastDefinition
-    class  (virialOrbitFixed          ), intent(inout)               :: self
-    class  (virialDensityContrastClass), allocatable  , target, save :: densityContrastDefinition
-    logical                                                   , save :: densityContrastDefinitionInitialized=.false.
-    !$omp threadprivate(densityContrastDefinition,densityContrastDefinitionInitialized)
-    
-    select case (char(self%virialDensityContrast))
-    case ('sphericalCollapseMatterLambda')
-       if (.not.densityContrastDefinitionInitialized) then
-          allocate(virialDensityContrastSphericalCollapseMatterLambda :: densityContrastDefinition)
-          select type (densityContrastDefinition)
+    class  (virialDensityContrastClass), pointer       :: fixedDensityContrastDefinition
+    class  (virialOrbitFixed          ), intent(inout) :: self
+     
+    if (.not.self%densityContrastInitialized) then
+       select case (self%virialDensityContrast)
+       case (fixedDensityContrastSphericalCollapseMatterLambda)
+          allocate(virialDensityContrastSphericalCollapseMatterLambda :: self%densityContrast)
+          select type (d => self%densityContrast)
           type is (virialDensityContrastSphericalCollapseMatterLambda)
-             densityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda()
-             call densityContrastDefinition%makeIndestructible()
+             d=virialDensityContrastSphericalCollapseMatterLambda()
           end select
-          densityContrastDefinitionInitialized=.true.
-       end if
-       fixedDensityContrastDefinition => densityContrastDefinition
-    case default
-       call Galacticus_Error_Report('fixedDensityContrastDefinition','only "sphericalCollapseMatterLambda" supported')
-    end select
+       case (fixedDensityContrastFixedCritical)
+          allocate(virialDensityContrastFixed :: self%densityContrast)
+          select type (d => self%densityContrast)
+          type is (virialDensityContrastFixed)
+             d=virialDensityContrastFixed(self%virialDensityContrastValue,virialDensityContrastFixedDensityTypeCritical)
+          end select
+       case (fixedDensityContrastFixedMean)
+          allocate(virialDensityContrastFixed :: self%densityContrast)
+          select type (d => self%densityContrast)
+          type is (virialDensityContrastFixed)
+             d=virialDensityContrastFixed(self%virialDensityContrastValue,virialDensityContrastFixedDensityTypeMean    )
+          end select
+       end select
+       call self%densityContrast%makeIndestructible()
+       self%densityContrastInitialized=.true.
+    end if
+    fixedDensityContrastDefinition => self%densityContrast
     return
   end function fixedDensityContrastDefinition
 
