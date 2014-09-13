@@ -120,7 +120,7 @@
   </parameter>
   <parameter>
     <name>virialDensityContrastMethod</name>
-    <value>Kitayama-Suto1996</value>
+    <value>kitayamaSuto1996</value>
   </parameter>
 
   <!-- Merger tree building options -->
@@ -227,7 +227,7 @@
 
   <!-- Halo accretion options -->
   <parameter>
-    <name>accretionHalosMethod</name>
+    <name>accretionHaloMethod</name>
     <value>simple</value>
   </parameter>
   <parameter>
@@ -314,7 +314,23 @@
   <!-- Stellar populations options -->
   <parameter>
     <name>stellarPopulationPropertiesMethod</name>
-    <value>Conroy-White-Gunn2009</value>
+    <value>instantaneous</value>
+  </parameter>
+  <parameter>
+    <name>imfSelectionMethod</name>
+    <value>fixed</value>
+  </parameter>
+  <parameter>
+    <name>imfSelectionFixed</name>
+    <value>Chabrier</value>
+  </parameter>
+  <parameter>
+    <name>imfChabrierRecycledInstantaneous</name>
+    <value>0.0</value>
+  </parameter>
+  <parameter>
+    <name>imfChabrierYieldInstantaneous</name>
+    <value>0.0</value>
   </parameter>
 
   <!-- Supernovae feedback options -->
@@ -341,7 +357,7 @@
 
   <!-- Galaxy merger options -->
   <parameter>
-    <name>virialOrbitsMethod</name>
+    <name>virialOrbitMethod</name>
     <value>fixed</value>
   </parameter>
   <parameter>
