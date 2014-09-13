@@ -319,6 +319,7 @@ if ( exists($arguments{'outputFile'}) ) {
 # Output the results to file if requested.
 if ( exists($arguments{'resultFile'}) ) {
     my $resultsFile = new PDL::IO::HDF5(">".$arguments{'resultFile'});
+    $resultsFile->dataset('x'             )->set($sizeData->{'radius'             }->flat());
     $resultsFile->dataset('y'             )->set($model   ->{'radiusFunction'     }->flat());
     $resultsFile->dataset('error'         )->set($model   ->{'radiusFunctionError'}->flat());
     $resultsFile->dataset('covariance'    )->set($model   ->{'covariance'         }        );
