@@ -972,11 +972,12 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
+    double precision                                , parameter     :: toleranceRelative=1.0d-6
     logical                                                         :: remakeTable
 
     ! Quit on invalid input.
-    if (time <                 0.0d0 ) call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time must be positive'   )
-    if (time > self%cosmicTime(1.0d0)) call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time must be in the past')
+    if (time <                 0.0d0                           ) call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time must be positive'   )
+    if (time > self%cosmicTime(1.0d0)*(1.0d0+toleranceRelative)) call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time must be in the past')
     ! Check if we need to recompute our table.
     if (self%distanceTableInitialized) then
        remakeTable=(time < self%distanceTableTime(1).or.time > self%distanceTableTime(self%distanceTableNumberPoints))
