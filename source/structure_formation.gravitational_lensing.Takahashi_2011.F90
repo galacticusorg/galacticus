@@ -57,6 +57,9 @@
      module procedure takahashi2011DefaultConstructor
   end interface gravitationalLensingTakahashi2011
 
+  ! Smallest variance for which calculations are stable.
+  double precision, parameter :: takahashi2011ConvergenceVarianceSmall=1.0d-5
+
 contains
 
   function takahashi2011DefaultConstructor()
@@ -89,6 +92,15 @@ contains
     else
        ! Construct the distribution.
        call self%lensingDistributionConstruct(redshift,scaleSource)
+       ! Approximate a delta function for small redshifts.
+       if (self%convergenceVariance < takahashi2011ConvergenceVarianceSmall) then
+          if (magnification == 1.0d0) then
+             takahashi2011MagnificationPDF=0.0d0
+          else
+             takahashi2011MagnificationPDF=1.0d0
+          end if
+          return
+       end if
        ! Evaluate the magnification PDF (eqn. 11 of Takahashi et al.).
        takahashi2011MagnificationPDF=takahashi2011MagnificationDistribution(self,magnification)
     end if
@@ -103,7 +115,7 @@ contains
     use Numerical_Integration
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout) :: self
-    double precision                                   , intent(in   ) :: magnification, redshift, &
+    double precision                                   , intent(in   ) :: magnification, redshift       , &
          &                                                                scaleSource
     double precision                                   , parameter     :: magnificationMinimum=   1.0d-2
     double precision                                   , parameter     :: magnificationMaximum=1000.0d0
@@ -113,6 +125,8 @@ contains
     type            (fgsl_integration_workspace       )                :: integrationWorkspace
     type            (c_ptr                            )                :: parameterPointer
     logical                                                            :: integrationReset
+    double precision                                                   :: magnificationLower             , magnificationUpper, &
+         &                                                                cdf                            , cdfPrevious
 
     ! Handle redshift zero case.
     if (redshift <= 0.0d0) then
@@ -125,24 +139,39 @@ contains
     else
        ! Construct the distribution.
        call self%lensingDistributionConstruct(redshift,scaleSource)
+       ! Approximate a delta function for small redshifts.
+       if (self%convergenceVariance < takahashi2011ConvergenceVarianceSmall) then
+          if (magnification < 1.0d0) then
+             takahashi2011MagnificationCDF=0.0d0
+          else
+             takahashi2011MagnificationCDF=1.0d0
+          end if
+          return
+       end if
        ! Tabulate the cumulative distribution function if table does not yet exist.
        if (.not.self%cdfInitialized) then
           call self%magnificationCDFTable%create(magnificationMinimum,magnificationMaximum,magnificationCount,tableCount=1)
           do i=1,magnificationCount
              integrationReset=.true.
-             call self%magnificationCDFTable%populate(                                           &
-                  &                                   Integrate(                                 &
-                  &                                             0.0d0                          , &
-                  &                                             self%magnificationCDFTable%x(i), &
-                  &                                             magnificationPDFIntegrand      , &
-                  &                                             parameterPointer               , &
-                  &                                             integrandFunction              , &
-                  &                                             integrationWorkspace           , &
-                  &                                             toleranceRelative=1.0d-3       , &
-                  &                                             reset=integrationReset           &
-                  &                                            )                               , &
-                  &                                                                          i   &
-                  &                                  )
+             if (i == 1 ) then
+                magnificationLower=0.0d0
+                cdfPrevious       =0.0d0
+             else
+                magnificationLower=self%magnificationCDFTable%x(i-1)
+                cdfPrevious       =self%magnificationCDFTable%y(i-1)
+             end if
+             magnificationUpper   =self%magnificationCDFTable%x(i  )
+             cdf=Integrate(                           &
+                  &        magnificationLower       , &
+                  &        magnificationUpper       , &
+                  &        magnificationPDFIntegrand, &
+                  &        parameterPointer         , &
+                  &        integrandFunction        , &
+                  &        integrationWorkspace     , &
+                  &        toleranceRelative=1.0d-6 , &
+                  &        reset=integrationReset     &
+                  &       )
+             call self%magnificationCDFTable%populate(cdf+cdfPrevious,i)
              call Integrate_Done(integrandFunction,integrationWorkspace)
           end do
           self%cdfInitialized=.true.
@@ -153,7 +182,7 @@ contains
        else if (magnification > magnificationMaximum) then
           takahashi2011MagnificationCDF=1.0d0
        else
-          takahashi2011MagnificationCDF=self%magnificationCDFTable%interpolate(magnification)
+          takahashi2011MagnificationCDF=self%magnificationCDFTable%interpolate(magnification)/self%magnificationCDFTable%y(-1)
        end if
     end if
     return
@@ -169,7 +198,7 @@ contains
       type            (c_ptr   ), value :: parameterPointer
       
       magnificationPDFIntegrand=takahashi2011MagnificationDistribution(self,magnification)
-      return
+     return
     end function magnificationPDFIntegrand
     
   end function takahashi2011MagnificationCDF
