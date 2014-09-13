@@ -46,17 +46,17 @@ my $xml    = new XML::Simple;
 my $config = $xml->XMLin($configFile, KeyAttr => 0);
 
 # Validate the config file.
-die("variableTreeMassResolution.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'workDirectory' }) );
-die("variableTreeMassResolution.pl: compilation must be specified in config file"   ) unless ( exists($config->{'compilation'   }) );
-die("variableTreeMassResolution.pl: baseParameters must be specified in config file") unless ( exists($config->{'baseParameters'}) );
+die("variableTreeMassResolution.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
+die("variableTreeMassResolution.pl: compilation must be specified in config file"   ) unless ( exists($config->{'likelihood'}->{'compilation'   }) );
+die("variableTreeMassResolution.pl: baseParameters must be specified in config file") unless ( exists($config->{'likelihood'}->{'baseParameters'}) );
 
 # Determine the scratch and work directories.
-my $workDirectory    = $config->{'workDirectory'};
-my $scratchDirectory = $config->{'workDirectory'};
-$scratchDirectory    = $config->{'scratchDirectory'} if ( exists($config->{'scratchDirectory'}) );
+my $workDirectory    = $config->{'likelihood'}->{'workDirectory'};
+my $scratchDirectory = $config->{'likelihood'}->{'workDirectory'};
+$scratchDirectory    = $config->{'likelihood'}->{'scratchDirectory'} if ( exists($config->{'likelihood'}->{'scratchDirectory'}) );
 
 # Create the work and scratch directories.
-system("mkdir -p ".$config->{'workDirectory'});
+system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'});
 
 # Ensure that Galacticus is built.
 if ( $arguments{'make'} eq "yes" ) {
@@ -66,7 +66,7 @@ if ( $arguments{'make'} eq "yes" ) {
 }
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'compilation'},$config->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Switch off thread locking.
@@ -91,11 +91,7 @@ my @models =
 	      # Switch to using fixed mass resolution.
 	      {
 		  name  => "mergerTreesBuildMassResolutionMethod",
-		  value => "scaled"
-	      },
-	      {
-		  name  => "mergerTreeBuildMassResolutionScaledFraction",
-		  value => 
+		  value => "fixed"
 	      }
 	     ]
      },
