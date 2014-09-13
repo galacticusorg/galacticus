@@ -65,12 +65,12 @@ sub SVDInvert {
 	die
 	    unless ( $options{'errorTolerant'} == 1 );
     }
-    return $CInverseSPD, $logDeterminant;
+    return ($CInverseSPD, $logDeterminant);
 }
 
 sub MakeSemiPositiveDefinite {
     # Force a matrix to be semi-positive definite by decomposing it into its eigenvectors, setting any negative eigenvalues to
-    # zero, and reconstructing the original matric from the eigenvectors and (modified) eigenvalues.
+    # zero, and reconstructing the original matrix from the eigenvectors and (modified) eigenvalues.
     my $C                               = shift;
     # Decompose into eigenvectors and eigenvalues.
     (my $eigenVectors, my $eigenValues) = eigens_sym($C);
@@ -81,7 +81,7 @@ sub MakeSemiPositiveDefinite {
 	# Reconstruct the matrix using these modified eigenvalues.
 	my $eigenValuesMatrix               = zeroes($C);
 	$eigenValuesMatrix->diagonal(0,1)  .= $eigenValues;
-	my $CSPD                            = $eigenVectors x $eigenValuesMatrix x transpose($eigenVectors);
+	my $CSPD                            = $eigenVectors x $eigenValuesMatrix x minv($eigenVectors);
 	return $CSPD;
     } else {
 	# Matrix is already semi-positive definite, so return it unchanged.
