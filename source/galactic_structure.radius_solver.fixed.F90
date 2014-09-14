@@ -16,18 +16,23 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a ``fixed'' galactic radii solver in which sizes are always equal to
-!% the halo virial radius multiplied by its spin parameter and a multiplicative constant.
+!% the halo virial or turnaround radius multiplied by its spin parameter and a multiplicative constant.
 
 module Galactic_Structure_Radii_Fixed
   !% Implements a ``fixed'' galactic radii solver in which sizes are always equal to
-  !% the halo virial radius multiplied by its spin parameter and a multiplicative constant.
+  !% the halo virial or turnaround radius multiplied by its spin parameter and a multiplicative constant.
   use Galactic_Structure_Radius_Solver_Procedures
   implicit none
   private
   public :: Galactic_Structure_Radii_Fixed_Initialize
 
   ! The ratio of galaxy size to the product of spin parameter and virial radius.
-  double precision :: galacticStructureRadiiFixedFactor
+  double precision            :: galacticStructureRadiiFixedFactor
+
+  ! Radius option.
+  integer                     :: galacticStructureRadiiFixedRadius
+  integer         , parameter :: galacticStructureRadiiFixedRadiusVirial    =0
+  integer         , parameter :: galacticStructureRadiiFixedRadiusTurnaround=1
 
 contains
 
@@ -38,9 +43,12 @@ contains
     !% Initializes the ``fixed'' galactic radii solver module.
     use ISO_Varying_String
     use Input_Parameters
+    use Galacticus_Nodes
+    use Galacticus_Error
     implicit none
     type     (varying_string                      ), intent(in   )          :: galacticStructureRadiusSolverMethod
     procedure(Galactic_Structure_Radii_Solve_Fixed), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
+    type     (varying_string                      )                         :: galacticStructureRadiiFixedRadiusText
 
     if (galacticStructureRadiusSolverMethod == 'fixed') then
        Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Fixed
@@ -55,6 +63,35 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('galacticStructureRadiiFixedFactor',galacticStructureRadiiFixedFactor,defaultValue=sqrt(0.5d0))
+       !@ <inputParameter>
+       !@   <name>galacticStructureRadiiFixedRadius</name>
+       !@   <defaultValue>virial</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The radius to use in the ``fixed'' galacticus structure radius solver algorithm. Allowed options are ``virial'' and ``turnaround''.
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('galacticStructureRadiiFixedRadius',galacticStructureRadiiFixedRadiusText,defaultValue='virial')
+       select case (char(galacticStructureRadiiFixedRadiusText))
+       case ('virial'    )
+          galacticStructureRadiiFixedRadius=galacticStructureRadiiFixedRadiusVirial
+       case ('turnaround')
+          galacticStructureRadiiFixedRadius=galacticStructureRadiiFixedRadiusTurnaround
+          if (.not.defaultBasicComponent%radiusTurnaroundIsGettable())                                                         &
+               & call Galacticus_Error_Report                                                                                  &
+               &   (                                                                                                           &
+               &    'Galactic_Structure_Radii_Fixed_Initialize'                                                              , &
+               &    'the "radiusTurnaround" property of the basic component must be gettable.'                              // &
+               &    Galacticus_Component_List(                                                                                 &
+               &                              'basic'                                                                        , &
+               &                                defaultBasicComponent%radiusTurnaroundAttributeMatch(requireGettable=.true.)   &
+               &                             )                                                                                 &
+               &   )
+        case default
+          call Galacticus_Error_Report('Galactic_Structure_Radii_Fixed_Initialize','[galacticStructureRadiiFixedRadius] must be either "virial" or "turnaround"')
+       end select
     end if
     return
   end subroutine Galactic_Structure_Radii_Fixed_Initialize
@@ -83,28 +120,36 @@ contains
   subroutine Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Halo_Scales
+    use Dark_Matter_Profiles
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: specificAngularMomentum
-    procedure       (Structure_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
-    procedure       (Structure_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
-    class           (nodeComponentSpin     )               , pointer :: thisSpinComponent
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    double precision                          , intent(in   )          :: specificAngularMomentum
+    procedure       (Structure_Get_Template  ), intent(in   ), pointer :: Radius_Get             , Velocity_Get
+    procedure       (Structure_Set_Template  ), intent(in   ), pointer :: Radius_Set             , Velocity_Set
+    class           (nodeComponentSpin       )               , pointer :: thisSpinComponent
+    class           (nodeComponentBasic      )               , pointer :: basic
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                 :: radius                 , velocity
+    class           (darkMatterProfileClass  )               , pointer :: darkMatterProfile_
+    double precision                                                   :: radius                 , velocity
 
     ! Return immediately if the specific angular momentum is zero.
     if (specificAngularMomentum <= 0.0d0) return
-
-    ! Find the radius of the component, assuming radius scales fixedly with angular momentum.
+    ! Find the radius of the component, assuming radius is a fixed fraction of radius times spin parameter.
     thisSpinComponent    => thisNode%spin      ()
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    velocity=darkMatterHaloScale_%virialVelocity(thisNode)
-    radius  =darkMatterHaloScale_%virialRadius  (thisNode)*thisSpinComponent%spin()*galacticStructureRadiiFixedFactor
-
+    select case (galacticStructureRadiiFixedRadius)
+    case (galacticStructureRadiiFixedRadiusVirial    )
+       darkMatterHaloScale_ => darkMatterHaloScale                         (        )
+       velocity             =  darkMatterHaloScale_%virialVelocity         (thisNode)
+       radius               =  darkMatterHaloScale_%virialRadius           (thisNode)*thisSpinComponent%spin()*galacticStructureRadiiFixedFactor
+    case (galacticStructureRadiiFixedRadiusTurnaround)
+       darkMatterProfile_   => darkMatterProfile                           (        )
+       basic                => thisNode            %basic                  (        )
+       velocity             =  darkMatterProfile_  %circularVelocityMaximum(thisNode)
+       radius               =  basic               %radiusTurnaround       (        )*thisSpinComponent%spin()*galacticStructureRadiiFixedFactor
+    end select
     ! Set the component size to new radius and velocity.
     call Radius_Set  (thisNode,radius  )
     call Velocity_Set(thisNode,velocity)
-
     return
   end subroutine Solve_For_Radius
 

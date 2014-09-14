@@ -220,8 +220,8 @@ The very simple hot halo implementation defines the following properties:
 \end{description}
 and the following pipes:
 \begin{description}
- \item [{\tt Hot\_Halo\_Cooling\_Mass\_To}] The net cooling rate of gas mass is sent through this pipe. Any \gls{component} may claim this pipe and connect to it, allowing it to receive the cooling gas.
- \item [{\tt Hot\_Halo\_Outflow\_Mass\_To}] Galactic components that wish to expel gas due to an outflow can send that mass  through this pipe, where it will be received into the hot halo component. 
+ \item [{\tt hotHaloCoolingMass}] The net cooling rate of gas mass is sent through this pipe. Any \gls{component} may claim this pipe and connect to it, allowing it to receive the cooling gas.
+ \item [{\tt outflowingMass}] Galactic components that wish to expel gas due to an outflow can send that mass  through this pipe, where it will be received into the hot halo component. 
 \end{description}
 
 \subsubsection{Initialization}
@@ -244,6 +244,38 @@ In the above $\dot{M}_{\rm outflow}$ is the net rate of outflow from any compone
 \noindent\emph{Satellite merging:} Any hot halo of the satellite \gls{node} is added to that of the host \gls{node} and the hot halo \gls{component} removed from the satellite node.\\
 
 \noindent\emph{Node promotion:} Any hot halo of the parent \gls{node} is added to that of the \gls{node} prior to promotion.\\
+
+\noindent\emph{Halo formation:} None.\\
+
+\subsection{``Very Simple Delayed'' Implementation}
+
+\subsubsection{Properties}
+
+The delayed very simple hot halo implementation extends the ``very simple'' implementation by adding a reservoir for outflowed gas from which the hot halo is gradually replenished. It defines the following properties:
+\begin{description}
+ \item [{\tt outflowedMass}] The mass of gas in the outflowed reservoir of the hot halo: $M_{\rm outflowed}$ {\tt [hotHaloOutflowedMass]}.
+\end{description}
+
+\subsubsection{Initialization}
+
+At initialization, nodes are assigned zero outflowed mass.
+
+\subsubsection{Differential Evolution}
+
+This implementation steals the {\tt outflowingMass} pipe from the very simple component and redirects it to the outflowed mass reservoir. The resulting rates of change of hot and outflowed masses are then:
+\begin{eqnarray}
+ \dot{M}_{\rm hot}      &=& - \dot{M}_{\rm cooling} + \dot{M}_{\rm reincorporation}, \nonumber \\
+ \dot{M}_{\rm outflowed} &=& + \dot{M}_{\rm outflow} - \dot{M}_{\rm reincorporation}, \nonumber \\
+\end{eqnarray}
+where $\dot{M}_{\rm reincorporation}$ is the reincorporation rate of outflowed gas (see \S\ref{phys:hotHaloOutflowReincorporation}).
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} Any outflowed gas from the merging halo is transferred to its host halo.\\
+
+\noindent\emph{Satellite merging:} Any outflowed halo of the satellite \gls{node} is added to that of the host \gls{node} and the outflowed mass \gls{component} removed from the satellite node.\\
+
+\noindent\emph{Node promotion:} Any outflowed gas of the parent \gls{node} is added to that of the \gls{node} prior to promotion.\\
 
 \noindent\emph{Halo formation:} None.\\
 
@@ -365,9 +397,9 @@ In the very simple galactic disk implementation the gas mass evolves as:
 \end{equation}
 where the rate of change of stellar mass is
 \begin{equation}
- \dot{M}_{\rm stars, disk} = \Psi,
+ \dot{M}_{\rm stars, disk} = \Psi - \dot{R},
 \end{equation}
-with
+where $\dot{R}$ is the rate of mass recycling from stars, and
 \begin{equation}
  \Psi = {M_{\rm disk, gas} \over \tau_{\rm disk, star~formation}}
 \end{equation}
@@ -636,6 +668,33 @@ None.
 \noindent\emph{Satellite merging:} None.\\
 
 \noindent\emph{Node promotion:} $M_{\rm node, maximum}$ is updated to the \gls{node} maximum mass of the parent prior to promotion.\\
+
+\subsection{``Standard-Extended Implemenation}
+
+\subsubsection{Properties}
+
+The standard-extended basic properties implementation extends the standard implementation and defines the following additional properties:
+\begin{description}
+ \item [{\tt massBertschinger}] The ``Bertschinger'' mass of the node, defined as the mass enclosing a density contrast equal to that for the spherical collapse model: $M_{\rm node, Bertschinger}$ [{\tt basicMassBertschinger}].
+ \item [{\tt accretionRateBertschinger}] The accretion rate of ``Bertschinger'' mass onto the node: $\dot{M}_{\rm node, Bertschinger}$ [{\tt basicAccretionRateBertschinger}].
+ \item [{\tt radiusTurnaround}] The turnaround radius corresponding to the current ``Bertshcinger''mass: $R_{\rm ta}$ [{\tt basicRadiusTurnaround}]
+\end{description}
+
+\subsubsection{Initialization}
+
+The Bertschinger mass and accretion rate for each node are computed from $M_{\rm basic}$ and the dark matter density profile. The turnaround radius is computed from the virial radius (under the appropriate definition for the Bertschinger mass) and the ratio of turnaround to virial radius from spherical collapse models. The specific spherical collapse model to use is determined by the {\tt [nodeComponentBasicExtendedSphericalCollapseType]} parameter---a value of ``{\tt matterLambda}'' causes the solution for matter+cosmological constant universes to be used, while a value of ``{\tt matterDarkEnergy}'' causes the solution for matter+dark energy universes to be used.
+
+\subsubsection{Differential Evolution}
+
+None.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} The accretion rate of Bertschinger mass is set to zero.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} $\dot{M}_{\rm node, Bertschinger}$ is updated to the \gls{node} Bertschinger accretion rate of the parent prior to promotion.\\
 
 \section{Position}\label{sec:ComponentPosition}
 

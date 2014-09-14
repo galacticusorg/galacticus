@@ -137,10 +137,10 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate(self,rate,interrupt,interruptProcedure)
     !% Accept outflowing gas from a galaxy and deposit it into very simple hot halo.
     implicit none
-    class           (nodeComponentHotHalo          ), intent(inout)                    :: self
-    double precision                                , intent(in   )                    :: rate
-    logical                                         , intent(inout), optional          :: interrupt
-    procedure       (                              ), intent(inout), optional, pointer :: interruptProcedure
+    class           (nodeComponentHotHalo), intent(inout)                    :: self
+    double precision                      , intent(in   )                    :: rate
+    logical                               , intent(inout), optional          :: interrupt
+    procedure       (                    ), intent(inout), optional, pointer :: interruptProcedure
 
     ! Funnel the outflow gas into the hot halo.
     call self%massRate(rate)
@@ -152,7 +152,7 @@ contains
     use Dark_Matter_Halo_Scales
     implicit none
     class(nodeComponentHotHaloVerySimple), intent(inout) :: self
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class(darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
 
     darkMatterHaloScale_ => darkMatterHaloScale()
     Node_Component_Hot_Halo_Very_Simple_Outer_Radius=darkMatterHaloScale_%virialRadius(self%hostNode)
@@ -175,7 +175,7 @@ contains
     select type (thisHotHaloComponent)
     class is (nodeComponentHotHaloVerySimple)
        ! Next compute the cooling rate in this halo.
-       call Node_Component_Hot_Halo_Very_Simple_Cooling_Rate         (thisNode                                               )
+       call Node_Component_Hot_Halo_Very_Simple_Cooling_Rate         (thisNode                                         )
        ! Pipe the cooling rate to which ever component claimed it.
        call Node_Component_Hot_Halo_Very_Simple_Push_To_Cooling_Pipes(thisNode,coolingRate,interrupt,interruptProcedure)
     end select

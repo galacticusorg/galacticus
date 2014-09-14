@@ -40,7 +40,10 @@ sub SVDInvert {
     # Do the Singular Value Decomposition.
     (my $r1, my $s, my $r2)                             = svd($C);
     # Invert the matrix.
-    my $nonZeroSingularValues                           = which($s > 0.0);
+    my $minimumValue = 0.0;
+    $minimumValue = $s->(($options{'keepTerms'}))
+	if ( exists($options{'keepTerms'}) && $s->(($options{'keepTerms'})) > 0.0 );
+    my $nonZeroSingularValues = which($s > $minimumValue);
     my $sInverse                                        = zeroes($r1);
     $sInverse->diagonal(0,1)->($nonZeroSingularValues) .= 1.0/$s->($nonZeroSingularValues);
     my $CInverse                                        = $r1 x $sInverse x transpose($r2);
@@ -51,7 +54,7 @@ sub SVDInvert {
     # Perform sanity checks on the inverse covariance matrix and its determinant.
     (my $eigenVectors, my $eigenValues)                 = eigens_sym($CInverseSPD);
     print "SVDInvert: inverse covariance matrix is not semi-positive definite\n"
-	unless ( all(         $eigenValues >= 0.0)  ); 
+	unless ( all(         $eigenValues >= 0.0) || ( exists($options{'quiet'}) && $options{'quiet'} == 1 ) ); 
     unless (     isfinite($logDeterminant)  ) {
 	print "SVDInvert: covariance matrix determinant failed\n";
 	die
@@ -62,12 +65,12 @@ sub SVDInvert {
 	die
 	    unless ( $options{'errorTolerant'} == 1 );
     }
-    return $CInverseSPD, $logDeterminant;
+    return ($CInverseSPD, $logDeterminant);
 }
 
 sub MakeSemiPositiveDefinite {
     # Force a matrix to be semi-positive definite by decomposing it into its eigenvectors, setting any negative eigenvalues to
-    # zero, and reconstructing the original matric from the eigenvectors and (modified) eigenvalues.
+    # zero, and reconstructing the original matrix from the eigenvectors and (modified) eigenvalues.
     my $C                               = shift;
     # Decompose into eigenvectors and eigenvalues.
     (my $eigenVectors, my $eigenValues) = eigens_sym($C);
@@ -78,7 +81,7 @@ sub MakeSemiPositiveDefinite {
 	# Reconstruct the matrix using these modified eigenvalues.
 	my $eigenValuesMatrix               = zeroes($C);
 	$eigenValuesMatrix->diagonal(0,1)  .= $eigenValues;
-	my $CSPD                            = $eigenVectors x $eigenValuesMatrix x transpose($eigenVectors);
+	my $CSPD                            = $eigenVectors x $eigenValuesMatrix x minv($eigenVectors);
 	return $CSPD;
     } else {
 	# Matrix is already semi-positive definite, so return it unchanged.
@@ -103,7 +106,7 @@ sub ComputeLikelihood {
 	$d->($options{'upperLimits'})->($limitTruncate) .= 0.0;
     }
     # Invert the covariance matrix.
-    (my $CInverse,my $logDeterminant) = &SVDInvert($C);
+    (my $CInverse,my $logDeterminant) = &SVDInvert($C,%options);
     # Construct the likelihood.
     my $vCv                           = $d x $CInverse x transpose($d);
     die("ComputeLikelihood: inverse covariance matrix is not semi-positive definite")
@@ -111,6 +114,8 @@ sub ComputeLikelihood {
     my $logLikelihoodLog              = -0.5*$vCv->((0),(0))-0.5*nelem($y1)*log(2.0*3.1415927)-0.5*$logDeterminant;
     $logLikelihoodLog                 = $vCv->((0),(0))
 	if ( exists($options{'normalized'}) && $options{'normalized'} == 0 );
+    ${$options{'determinant'}} = $logDeterminant
+	if ( exists($options{'determinant'}) );
     return $logLikelihoodLog->sclr();
 }
 

@@ -43,6 +43,7 @@
      procedure :: stateRestore                => sphericalCollapseMatterLambdaStateRestore
      procedure :: densityContrast             => sphericalCollapseMatterLambdaDensityContrast
      procedure :: densityContrastRateOfChange => sphericalCollapseMatterLambdaDensityContrastRateOfChange
+     procedure :: turnAroundOverVirialRadii   => sphericalCollapseMatterLambdaTurnAroundOverVirialRadii
      procedure :: retabulate                  => sphericalCollapseMatterLambdaRetabulate
   end type virialDensityContrastSphericalCollapseMatterLambda
 
@@ -177,6 +178,20 @@ contains
     sphericalCollapseMatterLambdaDensityContrastRateOfChange=self%deltaVirial%interpolateGradient(timeActual)
    return
   end function sphericalCollapseMatterLambdaDensityContrastRateOfChange
+
+  double precision function sphericalCollapseMatterLambdaTurnAroundOverVirialRadii(self,time,expansionFactor,collapsing)
+    !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
+    !% constant universe.
+    implicit none
+    class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
+    double precision                                                    , intent(in   ), optional :: time      , expansionFactor
+    logical                                                             , intent(in   ), optional :: collapsing
+
+    ! In simple cosmological constant dark energy universes, this ratio is always precisely 2 (e.g. Percival 2005;
+    ! http://adsabs.harvard.edu/abs/2005A%26A...443..819P)
+    sphericalCollapseMatterLambdaTurnAroundOverVirialRadii=2.0d0
+    return
+  end function sphericalCollapseMatterLambdaTurnAroundOverVirialRadii
 
   subroutine sphericalCollapseMatterLambdaStateStore(self,stateFile,fgslStateFile)
     !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
