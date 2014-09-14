@@ -124,16 +124,17 @@ contains
     type     (hdf5Object    )         , intent(in   ), optional, target :: outputFileObjectTarget
     character(len=*         )         , intent(in   ), optional         :: allowedParametersFile
     type     (Node          ), pointer                                  :: allowedParameterDoc   , nameElement             , &
-         &                                                                 thisParameter
+         &                                                                 thisParameter         , versionElement
     type     (NodeList      ), pointer                                  :: allowedParameterList
+    type     (regEx         ), save                                     :: thisRegEx
+    !$omp threadprivate(thisRegEx)
     logical                                                             :: parameterMatched      , unknownParametersPresent
     integer                                                             :: allowedParameterCount , distance                , &
          &                                                                 iParameter            , ioErr                   , &
          &                                                                 jParameter            , minimumDistance
     type     (varying_string)                                           :: possibleMatch         , thisParameterName       , &
-         &                                                                 unknownParameter
-    type     (regEx         ), save                                     :: thisRegEx
-    !$omp threadprivate(thisRegEx)
+         &                                                                 unknownParameter      , message
+    character(len=10        )                                           :: versionLabel
 
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
@@ -141,6 +142,20 @@ contains
     if (ioErr /= 0) call Galacticus_Error_Report('Input_Parameters_File_Open','Unable to find or parse parameter file')
     parameterList => getElementsByTagname(parameterDoc,"parameter")
     parameterCount=getLength(parameterList)
+    ! Check for version information.
+    if (XML_Path_Exists(parameterDoc,"version")) then
+       versionElement => XML_Get_First_Element_By_Tag_Name(parameterDoc,"version")
+       versionLabel=getTextContent(versionElement)
+       if (trim(versionLabel) /= "0.9.3") then
+          message="HELP: Parameter file appears to be for version "                  // &
+               &  trim(versionLabel)                                       //char(10)// &
+               &  "      Consider using: scripts/aux/parametersMigrate.pl "          // &
+               &  trim(parameterFile)                                                // &
+               &  " newParameters.xml"                                     //char(10)// &
+               &  "      to migrate your parameter file."
+          call Galacticus_Display_Message(message)
+       end if
+    end if
     !$omp end critical (FoX_DOM_Access)
 
     ! Create a pointer to the output object if given.

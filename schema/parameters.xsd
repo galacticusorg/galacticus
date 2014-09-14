@@ -3,6 +3,7 @@
   <!-- Schema used to validate Galacticus parameter files -->
 
   <xs:element name="parameters">
+    <xs:element name="version" type="xs:string" maxOccurs="1" />
     <xs:element name="parameter">
       <xs:complexType>
 	<xs:all>
