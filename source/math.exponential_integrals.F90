@@ -36,7 +36,7 @@ contains
   end function Sine_Integral
 
   double precision function Cosine_Integral(x)
-    !% Evaluate the $\hbox{Ci}(x)\equiv\int_0^x \d t \cos(t)/t$ cosine integral.
+    !% Evaluate the $\hbox{Ci}(x)\equiv -\int_x^\infty \d t \cos(t)/t$ cosine integral.
     implicit none
     double precision, intent(in   ) :: x
 
