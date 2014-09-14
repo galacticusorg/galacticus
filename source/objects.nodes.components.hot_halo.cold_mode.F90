@@ -209,7 +209,6 @@ contains
     !% Compute the hot halo node mass rate of change.
     use Abundances_Structure
     use Accretion_Halos
-    use Accretion_Halos_Options
     use Dark_Matter_Halo_Spins
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
@@ -225,6 +224,7 @@ contains
     class           (nodeComponentHotHalo        )                     , pointer :: thisHotHalo
     class           (nodeComponentBasic          )                     , pointer :: thisBasic
     class           (darkMatterHaloScaleClass    )                     , pointer :: darkMatterHaloScale_
+    class           (accretionHaloClass          )                     , pointer :: accretionHalo_
     type            (abundances                  ), save                         :: accretionRateAbundances
     !$omp threadprivate(accretionRateAbundances)
     double precision                                                             :: angularMomentumAccretionRate, densityAtOuterRadius , &
@@ -238,8 +238,9 @@ contains
     if (defaultHotHaloComponent%coldModeIsActive()) then
        ! Get required objects.
        darkMatterHaloScale_ => darkMatterHaloScale()
+       accretionHalo_       => accretionHalo      ()
        ! Find the rate of gas mass accretion onto the halo.
-       massAccretionRate=Halo_Baryonic_Accretion_Rate(thisNode,accretionModeCold)
+       massAccretionRate=accretionHalo_%accretionRate(thisNode,accretionModeCold)
        ! Get the basic component.
        thisBasic => thisNode%basic()
        ! Apply accretion rates.
@@ -249,7 +250,7 @@ contains
        ! Pipe the cooling rate to which ever component claimed it.
        call Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes(thisNode,infallRate,interrupt,interruptProcedure)
        ! Get the rate at which abundances are accreted onto this halo.
-       call Halo_Baryonic_Accretion_Rate_Abundances(thisNode,accretionRateAbundances,accretionModeCold)
+       accretionRateAbundances=accretionHalo_%accretionRateMetals(thisNode,accretionModeCold)
        call thisHotHalo%abundancesColdRate(accretionRateAbundances,interrupt,interruptProcedure)
        ! Next block of tasks occur only if the accretion rate is non-zero.
        if (massAccretionRate > 0.0d0) then
@@ -429,23 +430,25 @@ contains
     !% Initialize the contents of the hot halo component for any sub-resolution accretion (i.e. the gas that would have been
     !% accreted if the merger tree had infinite resolution).
     use Accretion_Halos
-    use Accretion_Halos_Options
     use Dark_Matter_Halo_Spins
     use Abundances_Structure
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode
     class           (nodeComponentHotHalo)               , pointer :: thisHotHalo
     class           (nodeComponentBasic  )               , pointer :: thisBasic
+    class           (accretionHaloClass  )               , pointer :: accretionHalo_
     type            (abundances          ), save                   :: accretedAbundances
     !$omp threadprivate(accretedAbundances)
     double precision                                               :: angularMomentum   , coldModeMass
 
     ! If the node has a child or the standard hot halo is not active, then return immediately.
     if (associated(thisNode%firstChild).or..not.defaultHotHaloComponent%coldModeIsActive()) return
+    ! Get required objects.
+    accretionHalo_ => accretionHalo()
     ! Get the hot halo component.
     thisHotHalo => thisNode%hotHalo()
     ! Get the mass of cold mode gas accreted.
-    coldModeMass=Halo_Baryonic_Accreted_Mass(thisNode,accretionModeCold)
+    coldModeMass=accretionHalo_%accretedMass(thisNode,accretionModeCold)
     ! If non-zero, then create a hot halo component and add to it.
     if (coldModeMass > 0.0d0) then
        ! Ensure that it is of unspecified class.
@@ -456,7 +459,7 @@ contains
        angularMomentum=coldModeMass*Dark_Matter_Halo_Angular_Momentum(thisNode)/thisBasic%mass()
        call thisHotHalo%angularMomentumColdSet(angularMomentum)
        ! Add the appropriate abundances.
-       call Halo_Baryonic_Accreted_Abundances(thisNode,accretedAbundances,accretionModeCold)
+       accretedAbundances=accretionHalo_%accretedMassMetals(thisNode,accretionModeCold)
        call thisHotHalo%abundancesColdSet(accretedAbundances)
     end if
     return

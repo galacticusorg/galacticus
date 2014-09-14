@@ -234,6 +234,12 @@ module IO_HDF5
      !@     <type>\textcolor{red}{\textless type(hdf5Object}</type>
      !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} attributeName\argin, \intzero\ [attributeDataType]\argin,  \textcolor{red}{\textless integer(kind=HSIZE\_T)(:)\textgreater} [attributeDimensions]\argin, \logicalzero\ [isOverwritable]\argin, \textcolor{red}{\textless integer(kind=HID\_T)\textgreater} [useDataType]\argin</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>copy</method>
+     !@     <description>Copy an HDF5 object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} objectName\argin, \textcolor{red}{\textless type(hdf5Object}} target\arginout</arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: destroy                                 =>IO_HDF5_Destroy
      procedure :: pathTo                                  =>IO_HDF5_Path_To
@@ -360,6 +366,7 @@ module IO_HDF5
      procedure :: createReference3D  =>IO_HDF5_Create_Reference_Scalar_To_3D
      procedure :: createReference4D  =>IO_HDF5_Create_Reference_Scalar_To_4D
      procedure :: createReference5D  =>IO_HDF5_Create_Reference_Scalar_To_5D
+     procedure :: copy               =>IO_HDF5_Copy 
   end type hdf5Object
 
   ! Interfaces to functions in the HDF5 C API that are required due to the limited datatypes supported by the Fortran API.
@@ -10772,4 +10779,22 @@ contains
     return
   end function IO_HDF5_Is_Reference
 
+  subroutine IO_HDF5_Copy(self,source,targetObject)
+    !% Copy the named object to the target object.
+    use Galacticus_Error
+    implicit none
+    class    (hdf5Object    ), intent(in   ) :: self
+    character(len=*         ), intent(in   ) :: source
+    type     (hdf5Object    ), intent(inout) :: targetObject
+    integer                                  :: errorCode
+    type     (varying_string)                :: message
+
+    call h5ocopy_f(self%objectID,source,targetObject%objectID,source,errorCode)
+    if (errorCode < 0) then
+       message="unable to copy object '"//source//"' from '"//self%objectName//"' to '"//targetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Copy',message)
+    end if
+    return
+  end subroutine IO_HDF5_Copy
+  
 end module IO_HDF5

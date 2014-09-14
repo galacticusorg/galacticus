@@ -309,7 +309,10 @@ contains
     type   (fgsl_file), intent(in   ) :: fgslStateFile
 
     write (stateFile) resetSnapshot
-    if (.not.resetSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
+    if (.not.resetSnapshot) then
+       call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
+       call FGSL_RNG_Free      (clonedPseudoSequenceObject              )
+    end if
     return
   end subroutine Merger_Tree_Build_Cole2000_State_Store
 
