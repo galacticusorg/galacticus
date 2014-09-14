@@ -31,7 +31,7 @@ module Star_Formation_IMF
   !# </include>
   implicit none
   private
-  public :: IMF_Select, IMF_Recycled_Fraction_Instantaneous, IMF_Recycling_Rate_NonInstantaneous, IMF_Yield_Instantaneous,&
+  public :: IMF_Select, IMF_Recycled_Fraction_Instantaneous, IMF_Recycling_Rate_NonInstantaneous, IMF_Remnant_Production_Rate_NonInstantaneous, IMF_Yield_Instantaneous,&
        & IMF_Metal_Yield_Rate_NonInstantaneous, IMF_Energy_Input_Rate_NonInstantaneous, IMF_Name, IMF_Tabulate, IMF_Descriptor
 
   ! Flag to indicate if this module has been initialized.
@@ -78,6 +78,18 @@ module Star_Formation_IMF
   double precision                     , parameter                                  :: energyInputTableMetallicityMaximum     =0.6d-1
   double precision                     , parameter                                  :: energyInputTableAgeMinimum             =1.0d-3
   double precision                     , parameter                                  :: energyInputTableAgeMaximum             =1.0d+2
+
+  ! Tables of remnant fractions.
+  logical                                         , allocatable, dimension(:      ) :: remnantFractionTabulated
+  integer                                         , allocatable, dimension(:      ) :: remnantFractionIndex
+  double precision                                , allocatable, dimension(:      ) :: remnantFractionTableAge                       , remnantFractionTableMetallicity
+  double precision                                , allocatable, dimension(:,:,:  ) :: remnantFractionTable
+  integer                              , parameter                                  :: remnantFractionTableMetallicityCount  =10
+  integer                              , parameter                                  :: remnantFractionTableAgeCount          =50
+  double precision                     , parameter                                  :: remnantFractionTableMetallicityMinimum=1.0d-4
+  double precision                     , parameter                                  :: remnantFractionTableMetallicityMaximum=0.6d-1
+  double precision                     , parameter                                  :: remnantFractionTableAgeMinimum        =1.0d-3
+  double precision                     , parameter                                  :: remnantFractionTableAgeMaximum        =1.0d+2
 
   ! Module global variables used in integration.
   integer                                                                           :: atomIndexGlobal                                , imfSelectedGlobal
@@ -750,22 +762,6 @@ contains
     return
   end function IMF_Recycling_Rate_NonInstantaneous
 
-  logical function Star_Is_Evolved(initialMass,metallicity,age)
-    !% Returns true if the specified star is evolved by the given {\tt age}.
-    use Stellar_Astrophysics
-    implicit none
-    double precision, intent(in   ) :: age, initialMass, metallicity
-
-    if (starFormationImfInstantaneousApproximation) then
-       ! Instantaneous calculation - star is evolved if it is more massive that the specified mass of long-lived stars.
-       Star_Is_Evolved=(initialMass > starFormationImfInstantaneousApproximationMassLongLived)
-    else
-       ! Standard calculation - star is evolved if its lifeltime is less than the supplied age.
-       Star_Is_Evolved=(Star_Lifetime(initialMass,metallicity) < age)
-    end if
-    return
-  end function Star_Is_Evolved
-
   function Recycled_Fraction_Integrand(initialMass,parameterPointer) bind(c)
     !% Integrand used in evaluating recycled fractions.
     use, intrinsic :: ISO_C_Binding
@@ -782,6 +778,397 @@ contains
     end if
     return
   end function Recycled_Fraction_Integrand
+
+  double precision function IMF_Remnant_Production_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum)
+    !% Returns the rate of stellar remnant production (by mass) for a simple stellar population. The \gls{imf} is determined from
+    !% the given {\tt starFormationRate} and {\tt fuelAbundances}. The remnant production rate (i.e. the fraction of the
+    !% population's mass being converted into stellar remnants per Gyr) is computed for the given {\tt age} (in Gyr). The remnant
+    !% fraction is computed on a grid of age and metallicity. This is stored to file and will be read back in on subsequent
+    !% runs. This is useful as computation of the table is relatively slow.
+    use, intrinsic :: ISO_C_Binding
+    use Numerical_Integration
+    use Numerical_Interpolation
+    use Numerical_Ranges
+    use Numerical_Constants_Astronomical
+    use Memory_Management
+    use Galacticus_Display
+    use File_Utilities
+    use FoX_wxml
+    use FoX_dom
+    use IO_XML
+    use Galacticus_Error
+    use Dates_and_Times
+    use Galacticus_Input_Paths
+    implicit none
+    double precision                                                                          , intent(in   )            :: ageMinimum                                         , starFormationRate
+    double precision                                                                          , intent(in   ) , optional :: ageMaximum
+    type            (abundances                )                                              , intent(in   )            :: fuelAbundances
+    integer                                                                                   , intent(in   )            :: component
+    logical                                                    , allocatable, dimension(:    )                           :: remnantFractionTabulatedTemporary
+    integer                                                    , allocatable, dimension(:    )                           :: remnantFractionIndexTemporary
+    double precision                                           , allocatable, dimension(:    )                           :: tableTemporary
+    double precision                                           , allocatable, dimension(:,:,:)                           :: remnantFractionTableTemporary
+    double precision                                                        , dimension(2    )                           :: metallicityFactors                                 , remnantRate
+    type            (fgsl_interp               )         , save                                                          :: interpolationAgeObject
+    type            (fgsl_interp_accel         )         , save                                                          :: interpolationAgeAccelerator                        , interpolationMetallicityAccelerator
+    logical                                              , save                                                          :: interpolationAgeReset                       =.true., interpolationMetallicityReset      =.true.
+    !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &
+    !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
+    type            (Node                      ), pointer                                                                :: doc                                                , thisItem
+    type            (NodeList                  ), pointer                                                                :: dataList
+    type            (c_ptr                     )                                                                         :: parameterPointer
+    type            (fgsl_function             )                                                                         :: integrandFunction
+    type            (fgsl_integration_workspace)                                                                         :: integrationWorkspace
+    integer                                                                                                              :: fileFormat                                         , iAge                                      , &
+         &                                                                                                                  iMetallicity                                       , iRecycledFraction                         , &
+         &                                                                                                                  imfCount                                           , imfSelected                               , &
+         &                                                                                                                  ioErr                                              , loopCount                                 , &
+         &                                                                                                                  loopCountTotal                                     , metallicityIndex                          , &
+         &                                                                                                                  tableIndex
+    double precision                                                                                                     :: maximumMass                                        , minimumMass                               , &
+         &                                                                                                                  remnantFractionMaximum                             , remnantFractionMinimum
+    character       (len=20                    )                                                                         :: parameterValue                                     , progressMessage
+    type            (xmlf_t                    )                                                                         :: remnantFractionDoc
+    type            (varying_string            )                                                                         :: fileName
+    logical                                                                                                              :: makeFile
+
+    ! Initialize the IMF subsystem.
+    call Star_Formation_IMF_Initialize
+
+    ! Select which IMF to use.
+    imfSelected=IMF_Select(starFormationRate,fuelAbundances,component)
+
+    !$omp critical(IMF_Remnant_Production_Rate_NonInstantaneous_Initialize)
+    ! Check that flag and index arrays exist.
+    if (.not.allocated(remnantFractionTabulated)) then
+       call Alloc_Array(remnantFractionTabulated,[imfSelected],file=__FILE__,line=__LINE__)
+       call Alloc_Array(remnantFractionIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
+       remnantFractionTabulated=.false.
+       remnantFractionIndex    =0
+    end if
+
+    ! Check that flag and index arrays are large enough.
+    if (size(remnantFractionTabulated) < imfSelected) then
+       call Move_Alloc (remnantFractionTabulated,remnantFractionTabulatedTemporary)
+       call Move_Alloc (remnantFractionIndex    ,remnantFractionIndexTemporary    )
+       call Alloc_Array(remnantFractionTabulated,[imfSelected],file=__FILE__,line=__LINE__)
+       call Alloc_Array(remnantFractionIndex    ,[imfSelected],file=__FILE__,line=__LINE__)
+       remnantFractionTabulated(1:size(remnantFractionTabulatedTemporary))            =remnantFractionTabulatedTemporary
+       remnantFractionIndex    (1:size(remnantFractionIndexTemporary    ))            =remnantFractionIndexTemporary
+       remnantFractionTabulated(  size(remnantFractionTabulatedTemporary):imfSelected)=.false.
+       remnantFractionIndex    (  size(remnantFractionTabulatedTemporary):imfSelected)=0
+       call Dealloc_Array(remnantFractionTabulatedTemporary,file=__FILE__,line=__LINE__)
+       call Dealloc_Array(remnantFractionIndexTemporary    ,file=__FILE__,line=__LINE__)
+    end if
+
+    ! Tabulate the recycled fraction for this IMF if it has not already been computed.
+    if (.not.remnantFractionTabulated(imfSelected)) then
+
+       ! Expand the tabulations array by enough to accomodate a new IMF.
+       if (allocated(remnantFractionTable)) then
+          imfCount=size(remnantFractionTable,dim=3)
+          call Move_Alloc(remnantFractionTable,remnantFractionTableTemporary)
+          call Alloc_Array(remnantFractionTable,[remnantFractionTableAgeCount,remnantFractionTableMetallicityCount,imfCount],file=__FILE__,line=__LINE__)
+          remnantFractionTable(:,:,1:imfCount)=remnantFractionTableTemporary
+          call Dealloc_Array(remnantFractionTableTemporary,file=__FILE__,line=__LINE__)
+       else
+          call Alloc_Array(remnantFractionTableAge        ,[remnantFractionTableAgeCount        ],file=__FILE__,line=__LINE__)
+          call Alloc_Array(remnantFractionTableMetallicity,[remnantFractionTableMetallicityCount],file=__FILE__,line=__LINE__)
+          remnantFractionTableAge                                                 =Make_Range(remnantFractionTableAgeMinimum&
+               &,remnantFractionTableAgeMaximum,remnantFractionTableAgeCount,rangeType=rangeTypeLogarithmic)
+          remnantFractionTableMetallicity(1)                                      =0.0d0
+          remnantFractionTableMetallicity(2:remnantFractionTableMetallicityCount)&
+               &=Make_Range(remnantFractionTableMetallicityMinimum,remnantFractionTableMetallicityMaximum&
+               &,remnantFractionTableMetallicityCount-1,rangeType=rangeTypeLogarithmic)
+          call Alloc_Array(remnantFractionTable,[remnantFractionTableAgeCount,remnantFractionTableMetallicityCount,1],file=__FILE__,line=__LINE__)
+       end if
+
+       ! Record the index in the array where this IMF will be stored.
+       remnantFractionIndex(imfSelected)=size(remnantFractionTable,dim=3)
+
+       ! Check if the table has been computed and stored previously.
+       fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Remnant_Fraction_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
+       makeFile=.false.
+       if (File_Exists(fileName)) then
+          ! Open the XML file containing energy input.
+          call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
+          doc => parseFile(char(fileName),iostat=ioErr)
+          if (ioErr /= 0) call Galacticus_Error_Report('IMF_Remnant_Production_Rate_NonInstantaneous','Unable to parse remnant fractions file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus')
+          ! Check the version number.
+          if (XML_Path_Exists(doc,"fileFormat")) then
+             thisItem => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
+             call extractDataContent(thisItem,fileFormat)
+             if (fileFormat /= fileFormatCurrent) makeFile=.true.
+          else
+             makeFile=.true.
+          end if
+          if (makeFile) then
+             call destroy(doc)
+             call Galacticus_Display_Unindent('done',verbosityDebug)
+          end if
+       else
+          makeFile=.true.
+       end if
+
+       if (.not.makeFile) then
+
+          ! Find the ages element and extract data.
+          thisItem => XML_Get_First_Element_By_Tag_Name(doc,"ages")
+          if (XML_Array_Length(thisItem,"data") /= remnantFractionTableAgeCount) call&
+               & Galacticus_Error_Report('IMF_Remnant_Production_Rate_NonInstantaneous' ,'ages array in XML file does not match internal&
+               & expectation')
+          call XML_Array_Read(thisItem,"data",tableTemporary)
+          if (remnantFractionIndex(imfSelected) == 1) then
+             remnantFractionTableAge=tableTemporary
+          else
+             if (any(remnantFractionTableAge /= tableTemporary)) call&
+                  & Galacticus_Error_Report('IMF_Remnant_Production_Rate_NonInstantaneous' ,'mismatch in ages array in XML file')
+          end if
+          deallocate(tableTemporary)
+
+          ! Find the metallicities element and extract data.
+          thisItem => XML_Get_First_Element_By_Tag_Name(doc,"metallicities")
+          dataList => getElementsByTagname(thisItem,"data"         )
+          if (XML_Array_Length(thisItem,"data") /= remnantFractionTableMetallicityCount) call&
+               & Galacticus_Error_Report('IMF_Remnant_Production_Rate_NonInstantaneous' ,'metallicities array in XML file does not match&
+               & internal expectation')
+          call XML_Array_Read(thisItem,"data",tableTemporary)
+          if (remnantFractionIndex(imfSelected) == 1) then
+             remnantFractionTableMetallicity=tableTemporary
+          else
+             if (any(remnantFractionTableMetallicity /= tableTemporary)) call&
+                  & Galacticus_Error_Report('IMF_Remnant_Production_Rate_NonInstantaneous' ,'mismatch in metallicities array in XML file')
+          end if
+          deallocate(tableTemporary)
+
+          ! Find the remnantFraction element and extract data.
+          thisItem => XML_Get_First_Element_By_Tag_Name(doc,"remnantFraction")
+          dataList => getElementsByTagname(thisItem,"data"            )
+          if (getLength(dataList) /= remnantFractionTableAgeCount*remnantFractionTableMetallicityCount) call Galacticus_Error_Report('IMF_Remnant_Production_Rate_NonInstantaneous'&
+               & ,'recycled fractions array in XML file does not match internal expectation')
+          iRecycledFraction=0
+          do iAge=1,remnantFractionTableAgeCount
+             do iMetallicity=1,remnantFractionTableMetallicityCount
+                iRecycledFraction=iRecycledFraction+1
+                thisItem => item(dataList,iRecycledFraction-1)
+                call extractDataContent(thisItem,remnantFractionTable(iAge,iMetallicity,remnantFractionIndex(imfSelected)))
+             end do
+          end do
+
+          ! Destroy the document.
+          call destroy(doc)
+          call Galacticus_Display_Unindent('done',verbosityDebug)
+
+       else
+
+          call Galacticus_Display_Indent('Tabulating mass recycling rate for '//char(imfNames(imfSelected))//' IMF',verbosityWorking)
+          call Galacticus_Display_Counter(0,.true.,verbosityWorking)
+
+          ! Open an XML file to output the data to.
+          call xml_OpenFile(char(fileName),remnantFractionDoc)
+          call xml_NewElement(remnantFractionDoc,"stellarPopulation")
+          call xml_NewElement(remnantFractionDoc,"fileFormat")
+          call xml_AddCharacters(remnantFractionDoc,fileFormatCurrent)
+          call xml_EndElement(remnantFractionDoc,"fileFormat")
+          call xml_NewElement(remnantFractionDoc,"description")
+          call xml_AddCharacters(remnantFractionDoc,"Recycled fraction for a "//char(imfNames(imfSelected))//" IMF")
+          call xml_EndElement(remnantFractionDoc,"description")
+          call xml_NewElement(remnantFractionDoc,"source")
+          call xml_AddCharacters(remnantFractionDoc,"Computed by Galacticus")
+          call xml_EndElement(remnantFractionDoc,"source")
+          call xml_NewElement(remnantFractionDoc,"date")
+          call xml_AddCharacters(remnantFractionDoc,char(Formatted_Date_and_Time()))
+          call xml_EndElement(remnantFractionDoc,"date")
+          call xml_NewElement(remnantFractionDoc,"parameters")
+          call imfUniqueParameters%outputToXML(remnantFractionDoc)
+          call xml_EndElement(remnantFractionDoc,"parameters")
+
+          ! Write ages to the XML file.
+          call xml_NewElement(remnantFractionDoc,"ages")
+          call xml_NewElement(remnantFractionDoc,"description")
+          call xml_AddCharacters(remnantFractionDoc,"Age of the stellar population in Gyr")
+          call xml_EndElement(remnantFractionDoc,"description")
+          do iAge=1,remnantFractionTableAgeCount
+             call xml_NewElement(remnantFractionDoc,"data")
+             write (parameterValue,'(e10.4)') remnantFractionTableAge(iAge)
+             call xml_AddCharacters(remnantFractionDoc,trim(parameterValue))
+             call xml_EndElement(remnantFractionDoc,"data")
+          end do
+          call xml_EndElement(remnantFractionDoc,"ages")
+
+          ! Write metallicities to the XML file.
+          call xml_NewElement(remnantFractionDoc,"metallicities")
+          call xml_NewElement(remnantFractionDoc,"description")
+          call xml_AddCharacters(remnantFractionDoc,"Metallicity (fractional mass of total metals) of the stellar population")
+          call xml_EndElement(remnantFractionDoc,"description")
+          do iMetallicity=1,remnantFractionTableMetallicityCount
+             call xml_NewElement(remnantFractionDoc,"data")
+             write (parameterValue,'(e10.4)') remnantFractionTableMetallicity(iMetallicity)
+             call xml_AddCharacters(remnantFractionDoc,trim(parameterValue))
+             call xml_EndElement(remnantFractionDoc,"data")
+          end do
+          call xml_EndElement(remnantFractionDoc,"metallicities")
+
+          ! Loop over ages and metallicities and compute the recycled fraction.
+          imfSelectedGlobal=imfSelected
+          call xml_NewElement(remnantFractionDoc,"remnantFraction")
+          loopCountTotal=remnantFractionTableMetallicityCount*remnantFractionTableAgeCount
+          loopCount     =0
+          !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace) copyin(imfSelectedGlobal)
+          do iAge=1,remnantFractionTableAgeCount
+             lifetime=remnantFractionTableAge(iAge)
+             write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
+             call Galacticus_Display_Message(progressMessage,verbosityDebug)
+             do iMetallicity=1,remnantFractionTableMetallicityCount
+                ! Set the metallicity. If using the instantaneous recycling approximation, assume Solar metallicity always.
+                if (starFormationImfInstantaneousApproximation) then
+                   metallicity=metallicitySolar
+                else
+                   metallicity=remnantFractionTableMetallicity(iMetallicity)
+                end if
+                ! Update the counter.
+                !$omp atomic
+                loopCount=loopCount+1
+                call Galacticus_Display_Counter(                                                   &
+                     &                           int(100.0d0*dble(loopCount)/dble(loopCountTotal)) &
+                     &                          ,.false.                                           &
+                     &                          ,verbosityWorking                                  &
+                     &                         )
+                ! Find the minimum and maximum masses to integrate over for this IMF.
+                minimumMass=IMF_Minimum_Mass(imfSelected)
+                maximumMass=IMF_Maximum_Mass(imfSelected)
+                ! Integrate ejected mass over the IMF between these limits.
+                remnantFractionTable(iAge,iMetallicity,remnantFractionIndex(imfSelected))=Integrate(minimumMass,maximumMass&
+                     &,Remnant_Fraction_Integrand ,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute&
+                     &=1.0d-3 ,toleranceRelative=1.0d-4)
+                call Integrate_Done(integrandFunction,integrationWorkspace)
+             end do
+          end do
+          !$omp end parallel do
+          do iAge=1,remnantFractionTableAgeCount
+             do iMetallicity=1,remnantFractionTableMetallicityCount
+                ! Enforce monotonicity in the remnant fraction. Non-monotonicity can arise due to the vagaries of interpolating
+                ! stellar lifetimes in an irregular grid of stellar models.
+                if (iAge > 1 )                                                                               &
+                     & remnantFractionTable       (iAge  ,iMetallicity,remnantFractionIndex(imfSelected))  &
+                     &   =max(                                                                               &
+                     &        remnantFractionTable(iAge  ,iMetallicity,remnantFractionIndex(imfSelected)), &
+                     &        remnantFractionTable(iAge-1,iMetallicity,remnantFractionIndex(imfSelected))  &
+                     &       )
+                call xml_NewElement(remnantFractionDoc,"data")
+                write (parameterValue,'(e10.4)') remnantFractionTable(iAge,iMetallicity,remnantFractionIndex(imfSelected))
+                call xml_AddCharacters(remnantFractionDoc,trim(parameterValue))
+                call xml_EndElement(remnantFractionDoc,"data")
+             end do
+          end do
+          call xml_EndElement(remnantFractionDoc,"remnantFraction")
+          call Galacticus_Display_Counter_Clear(           verbosityWorking)
+          call Galacticus_Display_Unindent     ('finished',verbosityWorking)
+          call xml_EndElement(remnantFractionDoc,"stellarPopulation")
+          call xml_Close(remnantFractionDoc)
+       end if
+
+       ! Flag that this IMF has now been tabulated.
+       remnantFractionTabulated(imfSelected)=.true.
+    end if
+    !$omp end critical(IMF_Remnant_Production_Rate_NonInstantaneous_Initialize)
+
+    ! Get the index where this IMF is stored in the table.
+    tableIndex=remnantFractionIndex(imfSelected)
+
+    ! Interpolate to get the derivative in the remnant production rate at two adjacent metallicities.
+    metallicity=max(Abundances_Get_Metallicity(fuelAbundances),0.0d0)
+    if (metallicity > remnantFractionTableMetallicityMaximum) then
+       metallicityIndex=remnantFractionTableMetallicityCount
+       metallicityFactors=[1.0d0,0.0d0]
+       if (present(ageMaximum)) then
+          ! Get average remnant production rate between ageMinimum and ageMaximum.
+          if (ageMinimum > 0.0d0) then
+             remnantFractionMinimum=Interpolate(remnantFractionTableAgeCount&
+                  &,remnantFractionTableAge ,remnantFractionTable(: ,metallicityIndex,tableIndex),interpolationAgeObject&
+                  &,interpolationAgeAccelerator ,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+          else
+             remnantFractionMinimum=0.0d0
+          end if
+          remnantFractionMaximum=Interpolate(remnantFractionTableAgeCount,remnantFractionTableAge,remnantFractionTable(: &
+               &,metallicityIndex,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMaximum,reset &
+               &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+          remnantRate(1)=(remnantFractionMaximum-remnantFractionMinimum)/(ageMaximum-ageMinimum)
+       else
+          ! Get instantaneous remnant production rate at ageMinimum.
+          remnantRate(1)=Interpolate_Derivative(remnantFractionTableAgeCount,remnantFractionTableAge,remnantFractionTable(: &
+               &,metallicityIndex,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMinimum,reset&
+               &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+       end if
+       remnantRate(2)=0.0d0
+    else
+       metallicityIndex=Interpolate_Locate(remnantFractionTableMetallicityCount,remnantFractionTableMetallicity&
+            &,interpolationMetallicityAccelerator,metallicity,reset=interpolationMetallicityReset)
+       metallicityFactors=Interpolate_Linear_Generate_Factors(remnantFractionTableMetallicityCount,remnantFractionTableMetallicity&
+            &,metallicityIndex,metallicity)
+       ! Interpolate in age at both metallicities.
+       do iMetallicity=0,1
+          if (present(ageMaximum)) then
+             ! Get average remnant production rate between ageMinimum and ageMaximum.
+             if (ageMinimum > 0.0d0) then
+                remnantFractionMinimum=Interpolate(remnantFractionTableAgeCount,remnantFractionTableAge ,remnantFractionTable(:,metallicityIndex&
+                     &+iMetallicity,tableIndex),interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset&
+                     &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+             else
+                remnantFractionMinimum=0.0d0
+             end if
+             remnantFractionMaximum=Interpolate(remnantFractionTableAgeCount,remnantFractionTableAge&
+                  &,remnantFractionTable(: ,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject&
+                  &,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+
+             remnantRate(iMetallicity+1)=(remnantFractionMaximum-remnantFractionMinimum)/(ageMaximum-ageMinimum)
+          else
+             ! Get instantaneous remnant production rate at ageMinimum.
+             remnantRate(iMetallicity+1)=Interpolate_Derivative(remnantFractionTableAgeCount,remnantFractionTableAge&
+                  &,remnantFractionTable(: ,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject&
+                  &,interpolationAgeAccelerator,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
+          end if
+       end do
+    end if
+
+    ! Interpolate in metallicity to get the actual rate.
+    IMF_Remnant_Production_Rate_NonInstantaneous=sum(metallicityFactors*remnantRate)
+
+    return
+  end function IMF_Remnant_Production_Rate_NonInstantaneous
+
+  logical function Star_Is_Evolved(initialMass,metallicity,age)
+    !% Returns true if the specified star is evolved by the given {\tt age}.
+    use Stellar_Astrophysics
+    implicit none
+    double precision, intent(in   ) :: age, initialMass, metallicity
+
+    if (starFormationImfInstantaneousApproximation) then
+       ! Instantaneous calculation - star is evolved if it is more massive that the specified mass of long-lived stars.
+       Star_Is_Evolved=(initialMass > starFormationImfInstantaneousApproximationMassLongLived)
+    else
+       ! Standard calculation - star is evolved if its lifeltime is less than the supplied age.
+       Star_Is_Evolved=(Star_Lifetime(initialMass,metallicity) < age)
+    end if
+    return
+  end function Star_Is_Evolved
+
+  function Remnant_Fraction_Integrand(initialMass,parameterPointer) bind(c)
+    !% Integrand used in evaluating remnant fractions.
+    use, intrinsic :: ISO_C_Binding
+    use Stellar_Astrophysics
+    implicit none
+    real(kind=c_double)        :: Remnant_Fraction_Integrand
+    real(kind=c_double), value :: initialMass
+    type(c_ptr        ), value :: parameterPointer
+
+    if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then
+       Remnant_Fraction_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*(initialMass-Star_Ejected_Mass(initialMass,metallicity))
+    else
+       Remnant_Fraction_Integrand=0.0d0
+    end if
+    return
+  end function Remnant_Fraction_Integrand
 
   double precision function IMF_Metal_Yield_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum,abundanceIndex)
     !% Returns the metal yield rate for a simple stellar population, either for the total metallicity or, if {\tt atomIndex} is

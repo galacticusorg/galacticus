@@ -10,7 +10,6 @@ use Net::SMTP::SSL;
 use Data::Dumper;
 use File::Slurp qw( slurp );
 use File::Find;
-use Switch;
 use Term::ReadKey;
 
 # Run a suite of tests on the Galacticus code.
@@ -35,26 +34,24 @@ if ( exists($config->{'email'}->{'host'}->{$ENV{'HOST'}}) ) {
 }
 if ( $emailConfig->{'method'} eq "smtp" && exists($emailConfig->{'passwordFrom'}) ) {
     # Get any password now.
-    switch ( $emailConfig->{'passwordFrom'} ) {
-	case ( "input" ) {
+    if ( $emailConfig->{'passwordFrom'} eq "input" ) {
+	print "Please enter your e-mail SMTP password:\n";
+	$smtpPassword = &getPassword;
+    }
+    elsif ( $emailConfig->{'passwordFrom'} eq "kdewallet" ) {
+	my $appName          = "Galacticus";
+	my $folderName       = "glc-test-all";
+	require Net::DBus;
+	my $bus           = Net::DBus->find;
+	my $walletService = $bus->get_service("org.kde.kwalletd");
+	my $walletObject  = $walletService->get_object("/modules/kwalletd");
+	my $walletID      = $walletObject->open("kdewallet",0,$appName);
+	if ( $walletObject->hasEntry($walletID,$folderName,"smtpPassword",$appName) == 1 ) {
+	    $smtpPassword = $walletObject->readPassword($walletID,$folderName,"smtpPassword",$appName); 
+	} else {
 	    print "Please enter your e-mail SMTP password:\n";
 	    $smtpPassword = &getPassword;
-	}
-	case ( "kdewallet" ) {
-	    my $appName          = "Galacticus";
-	    my $folderName       = "glc-test-all";
-	    require Net::DBus;
-	    my $bus           = Net::DBus->find;
-	    my $walletService = $bus->get_service("org.kde.kwalletd");
-	    my $walletObject  = $walletService->get_object("/modules/kwalletd");
-	    my $walletID      = $walletObject->open("kdewallet",0,$appName);
-	    if ( $walletObject->hasEntry($walletID,$folderName,"smtpPassword",$appName) == 1 ) {
-		$smtpPassword = $walletObject->readPassword($walletID,$folderName,"smtpPassword",$appName); 
-	    } else {
-		print "Please enter your e-mail SMTP password:\n";
-		$smtpPassword = &getPassword;
-		$walletObject->writePassword($walletID,$folderName,"smtpPassword",$smtpPassword,$appName); 
-	    }
+	    $walletObject->writePassword($walletID,$folderName,"smtpPassword",$smtpPassword,$appName); 
 	}
     }
 }
@@ -160,6 +157,10 @@ my @executablesToRun = (
 	valgrind => 0
     },
     {
+	name     => "tests.math_distributions.exe",                                       # Tests of mathematical distributions.
+	valgrind => 0
+    },
+    {
 	name     => "tests.root_finding.exe",                                             # Tests of root finding functions.
 	valgrind => 0
     },
@@ -257,6 +258,10 @@ my @executablesToRun = (
     },
     {
 	name     => "tests.Prada2011_concentration.exe",                                  # Tests of Prada et al. (2011) halo concentration algorithm.
+	valgrind => 0
+    },
+    {
+	name     => "tests.DiemerKravtsov2014_concentration.exe",                         # Tests of Diemer & Kravtsov (2014) halo concentration algorithm.
 	valgrind => 0
     },
     {
@@ -381,22 +386,19 @@ if ( defined($config->{'contact'}->{'email'}) ) {
 	    Path     => $logFile.".bz2",
 	    Filename => "allTests.log.bz2"
 	    );
-	
-	switch ( $sendMethod ) {
-	    case ( "sendmail" ) {
+	if ( $sendMethod eq "sendmail" ) {
 	    $msg->send;
-	    }
-	    case ( "smtp" ) {
-		my $smtp; 
-		$smtp = Net::SMTP::SSL->new($config->{'email'}->{'host'}, Port=>465) or die "Can't connect";
-		$smtp->auth($config->{'email'}->{'user'},$smtpPassword) or die "Can't authenticate:".$smtp->message();
-		$smtp->mail( $config->{'contact'}->{'email'}) or die "Error:".$smtp->message();
-		$smtp->to( $config->{'contact'}->{'email'}) or die "Error:".$smtp->message();
-		$smtp->data() or die "Error:".$smtp->message();
-		$smtp->datasend($msg->as_string) or die "Error:".$smtp->message();
-		$smtp->dataend() or die "Error:".$smtp->message();
-		$smtp->quit() or die "Error:".$smtp->message();
-	    }
+	}
+	elsif ( $sendMethod eq "smtp" ) {
+	    my $smtp; 
+	    $smtp = Net::SMTP::SSL->new($config->{'email'}->{'host'}, Port=>465) or die "Can't connect";
+	    $smtp->auth($config->{'email'}->{'user'},$smtpPassword) or die "Can't authenticate:".$smtp->message();
+	    $smtp->mail( $config->{'contact'}->{'email'}) or die "Error:".$smtp->message();
+	    $smtp->to( $config->{'contact'}->{'email'}) or die "Error:".$smtp->message();
+	    $smtp->data() or die "Error:".$smtp->message();
+	    $smtp->datasend($msg->as_string) or die "Error:".$smtp->message();
+	    $smtp->dataend() or die "Error:".$smtp->message();
+	    $smtp->quit() or die "Error:".$smtp->message();
 	}
     }
 }
