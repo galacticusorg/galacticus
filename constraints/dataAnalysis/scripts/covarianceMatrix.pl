@@ -434,6 +434,28 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	my $massFunctionObserved = $observed->dataset('massFunctionObserved')->get();
 	my $covariance           = $observed->dataset('covariance'          )->get();
 	my $errorObserved        = sqrt($covariance->diagonal(0,1));
+	# Find covariance matrix inverse and Cholesky decomposition.
+	my $covarianceInverse  = minv ($covariance);
+	my $covarianceCholesky = mchol($covariance);
+	# Compute observed test statistic.
+	my $offsetObserved        = $massFunctionObserved-$massFunctionIncomplete;
+	my $testStatisticObserved = sclr($offsetObserved x $covarianceInverse x transpose($offsetObserved));
+	# Compute model test statistics.
+	my $testStatisticCount = 10000;
+	my $testStatisticModel = pdl zeroes($testStatisticCount);
+	for(my $i=0;$i<$testStatisticCount;++$i) {
+	    my $deviates                 = grandom(nelem($massFunctionObserved));
+	    my $offsetModel              = $covarianceCholesky x transpose($deviates);
+	    $testStatisticModel->(($i)) .= sclr(transpose($offsetModel) x $covarianceInverse x $offsetModel);
+	}
+	$testStatisticModel = $testStatisticModel->qsort();
+	my $exceedFraction = nelem(which($testStatisticObserved > $testStatisticModel))/$testStatisticCount;
+	# Write test statistic to file.
+	my $result;
+	$result->{'fractionExceeded'} = $exceedFraction;
+	open(my $resultFile,">".$stageDirectory."/testStatistic.xml");
+	print $resultFile $xml->XMLout($result, RootName => 'testStatistic', NoAttr => 1);
+	close($resultFile);
 	# Create a plot of this.
 	my $plot;
 	my $gnuPlot;
