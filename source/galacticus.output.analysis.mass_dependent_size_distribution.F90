@@ -105,7 +105,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
        ! SDSS late-type galaxy sizes from Shen et al. (2003). 
        &                           sizeFunctionDescriptor(                                                 &
        &                                                  11.0000d+0                         ,             &
-       &                                                   1.0000d+0                         ,             &
+       &                                                   1.0000d-3                         ,             &
        &                                                   0.0806d+0                         ,             &
        &                                                   0.0128d+0                         ,             &
        &                                                   null()                            ,             &
