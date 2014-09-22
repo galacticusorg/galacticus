@@ -13,7 +13,7 @@ use XML::Simple;
 use Data::Dumper;
 use Fcntl qw(:DEFAULT :flock);
 use MIME::Lite;
-use List::Util qw(min max);
+use List::Util;
 use Storable;
 require File::Which;
 require File::NFSLock;
