@@ -92,6 +92,7 @@ contains
     double precision                   ,                allocatable, dimension(:,:  )         :: varianceLSS    , volume
     double precision                   ,                pointer    , dimension(:    )         :: massFunctionUse
     double precision                   , parameter                                            :: timePointsPerDecade=100
+    double precision                   , parameter                                            :: massFunctionMinimum=1.0d-50
     logical                                                                                   :: integrationReset, useCompleteness, useNumber
     integer                                                                                   :: i,j &
          &,iTime,iField,fieldCount
@@ -368,10 +369,10 @@ contains
              ! Normalize the covariance for the total field volume.
              if (sum(volume(i,:)) > 0.0d0 .and. sum(volume(j,:)) > 0.0d0) covarianceHalo(i,j)=covarianceHalo(i,j)/sum(volume(i,:))/sum(volume(j,:))
              ! Renormalize to actual mass function. Accounts for any difference between model and data. Including incompleteness.            
-             if     (                                                             &
-                  &   massFunctionUse(i) > 0.0d0 .and. massFunctionUse(j) > 0.0d0 &
-                  &  .and.                                                        &
-                  &   massFunction   (i) > 0.0d0 .and. massFunction   (j) > 0.0d0 &
+             if     (                                                                                         &
+                  &   massFunctionUse(i) > massFunctionMinimum .and. massFunctionUse(j) > massFunctionMinimum &
+                  &  .and.                                                                                    &
+                  &   massFunction   (i) > massFunctionMinimum .and. massFunction   (j) > massFunctionMinimum &
                   & ) then
                 covarianceHalo(i,j)= covarianceHalo( i,j) &
                      &              *massFunctionUse(i  ) &
@@ -384,7 +385,11 @@ contains
           ! Large-scale structure term.
           if (includeLSS) then
              covarianceLSS(i,j)=varianceLSS(i,j)
-             if (massFunctionUse(i) > 0.0d0 .and. massFunctionUse(j) > 0.0d0) then
+             if     (                                                                                         &
+                  &   massFunctionUse(i) > massFunctionMinimum .and. massFunctionUse(j) > massFunctionMinimum &
+                  &  .and.                                                                                    &
+                  &   massFunction   (i) > massFunctionMinimum .and. massFunction   (j) > massFunctionMinimum &
+                  & ) then
                 ! Renormalize to actual mass function. Accounts for any difference between model and data. Including incompleteness.
                 covarianceLSS(i,j)= covarianceLSS  (i,j) &
                      &             *massFunctionUse(i  ) &
