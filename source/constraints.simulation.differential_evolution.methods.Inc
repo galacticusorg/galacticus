@@ -171,7 +171,7 @@ subroutine simulatorDifferentialEvolutionUpdate(self,stateVector)
   logical                                         , allocatable  , dimension(:                  ) :: outlierMask
   integer                                                                                         :: i
 
-  allocate(outlierMask(mpiSelf%count()))
+  allocate(outlierMask(0:mpiSelf%count()-1))
   do i=0,mpiSelf%count()-1
      outlierMask(i)=self%simulationConvergence%chainIsOutlier(i)
   end do
