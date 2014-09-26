@@ -60,6 +60,9 @@
   ! Smallest variance for which calculations are stable.
   double precision, parameter :: takahashi2011ConvergenceVarianceSmall=1.0d-5
 
+  ! Smallest redshift for which to compute lensing.
+  double precision, parameter :: takahashi2011RedshiftTiny            =1.0d-2
+
 contains
 
   function takahashi2011DefaultConstructor()
@@ -82,7 +85,7 @@ contains
          &                                                                scaleSource
 
     ! Handle redshift zero case.
-    if (redshift <= 0.0d0) then
+    if (redshift <= takahashi2011RedshiftTiny) then
        if (magnification == 1.0d0) then
           takahashi2011MagnificationPDF=1.0d0
        else
@@ -129,7 +132,7 @@ contains
          &                                                                cdf                            , cdfPrevious
 
     ! Handle redshift zero case.
-    if (redshift <= 0.0d0) then
+    if (redshift <= takahashi2011RedshiftTiny) then
        if (magnification < 1.0d0) then
           takahashi2011MagnificationCDF=0.0d0
        else
