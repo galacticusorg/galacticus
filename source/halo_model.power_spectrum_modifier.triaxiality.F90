@@ -127,7 +127,7 @@ contains
     select case (term)
     case (termOneHalo)
        tableIndex=1
-       do while (mass < triaxialityMass(tableIndex)/cosmologyParameters_%HubbleConstant(unitsLittleH))
+       do while (mass*cosmologyParameters_%HubbleConstant(unitsLittleH) < triaxialityMass(tableIndex))
           tableIndex=tableIndex+1
        end do
        termPower=1.0d0
