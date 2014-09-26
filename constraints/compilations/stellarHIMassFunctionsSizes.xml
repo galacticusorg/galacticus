@@ -42,7 +42,7 @@
     <weight>1.0</weight>
   </constraint>
 
-  <!-- PRIMUS stellar mass functions -->
+  <!--  PRIMUS stellar mass functions -->
   <constraint>
     <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.250.xml</definition>
     <weight>1.0</weight>
@@ -65,6 +65,70 @@
   </constraint>
   <constraint>
     <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.900.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!--  ZFOURGE stellar mass functions -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z0.350.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z0.625.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z0.875.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z1.125.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z1.375.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z1.750.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z2.250.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z2.750.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!--  ULTRAVISTA stellar mass functions -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z0.35.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z0.75.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z1.25.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z1.75.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z2.25.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z2.75.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z3.50.xml</definition>
     <weight>1.0</weight>
   </constraint>
 
