@@ -15,6 +15,7 @@ use PDL::NiceSlice;
 use PDL::IO::HDF5;
 require Galacticus::Constraints::Parameters;
 require Galacticus::Constraints::DiscrepancySystematics;
+require Galacticus::Launch::PBS;
 
 # Run calculations to determine the model discrepancy arising from the use of less scatter in
 # the merging timescale for satellite galaxies in the Jiang2008 model than is recommended.
@@ -128,61 +129,52 @@ foreach my $model ( @models ) {
 	my $parameterFileName = $modelDirectory."/parameters.xml";
 	&Parameters::Output($newParameters,$parameterFileName);
 	# Create a batch script for PBS.
-	my $batchScriptFileName = $modelDirectory."/launch.pbs";
-	open(oHndl,">".$batchScriptFileName);
-	print oHndl "#!/bin/bash\n";
-	print oHndl "#PBS -N jiang2008MergingTimeScatter".$model->{'label'}."\n";
-	print oHndl "#PBS -l walltime=3:00:00\n";
-	print oHndl "#PBS -l mem=4gb\n";
-	print oHndl "#PBS -l nodes=1:ppn=12\n";
-	print oHndl "#PBS -j oe\n";
-	print oHndl "#PBS -o ".$modelDirectory."/launch.log\n";
-	print oHndl "#PBS -V\n";
-	print oHndl "cd \$PBS_O_WORKDIR\n";
-	print oHndl "export LD_LIBRARY_PATH=/home/abenson/Galacticus/Tools/lib:/home/abenson/Galacticus/Tools/lib64:\$LD_LIBRARY_PATH\n";
-	print oHndl "export PATH=/home/abenson/Galacticus/Tools/bin:\$PATH\n";
-	print oHndl "export GFORTRAN_ERROR_DUMPCORE=YES\n";
-	print oHndl "ulimit -t unlimited\n";
-	print oHndl "ulimit -c unlimited\n";
-	print oHndl "export OMP_NUM_THREADS=12\n";
-	print oHndl "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
+	my $command = "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
 	foreach my $constraint ( @constraints ) {
 	    # Parse the definition file.
 	    my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
 	    # Insert code to run the analysis code.
 	    my $analysisCode = $constraintDefinition->{'analysis'};
-	    print oHndl $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".xml\n";
+	    $command .= $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5\n";
 	}
-	close(oHndl);
+	# Queue the calculation.
+	my %job =
+	    (
+	     launchFile => $modelDirectory."/launch.pbs",
+	     label      => "jiang2008MergingTimeScatter".$model->{'label'},
+	     logFile    => $modelDirectory."/launch.log",
+	     command    => $command
+	    );
+	foreach ( 'ppn', 'walltime', 'memory' ) {
+	    $job{$_} = $arguments{$_}
+	    if ( exists($arguments{$_}) );
+	}
 	# Queue the calculation.
 	push(
 	    @pbsStack,
-	    $batchScriptFileName
-	    );   
+	    \%job
+	    );
     }
 }
 # Send jobs to PBS.
-&PBS_Submit(@pbsStack)
+&PBS::SubmitJobs(\%arguments,@pbsStack)
     if ( scalar(@pbsStack) > 0 );
 # Iterate over constraints.
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
     # Locate the model results.
-    my $recommendedScatterResultFileName = $workDirectory."/modelDiscrepancy/jiang2008MergingTimeScatter/recommendedScatter/".$constraintDefinition->{'label'}.".xml";
-    my $defaultScatterResultFileName     = $workDirectory."/modelDiscrepancy/jiang2008MergingTimeScatter/defaultScatter/"    .$constraintDefinition->{'label'}.".xml";
+    my $recommendedScatterResultFileName = $workDirectory."/modelDiscrepancy/jiang2008MergingTimeScatter/recommendedScatter/".$constraintDefinition->{'label'}.".hdf5";
+    my $defaultScatterResultFileName     = $workDirectory."/modelDiscrepancy/jiang2008MergingTimeScatter/defaultScatter/"    .$constraintDefinition->{'label'}.".hdf5";
     # Read the results.
-    my $recommendedScatterResult = $xml->XMLin($recommendedScatterResultFileName);
-    my $defaultScatterResult     = $xml->XMLin($defaultScatterResultFileName    );
+    my $recommendedScatterResult = new PDL::IO::HDF5($recommendedScatterResultFileName);
+    my $defaultScatterResult     = new PDL::IO::HDF5($defaultScatterResultFileName    );
     # Extract the results.
-    my $defaultX              = pdl @{$defaultScatterResult    ->{'x'         }};
-    my $defaultY              = pdl @{$defaultScatterResult    ->{'y'         }};
-    my $defaultCovariance     = pdl @{$defaultScatterResult    ->{'covariance'}};
-    my $recommendedY          = pdl @{$recommendedScatterResult->{'y'         }};
-    my $recommendedCovariance = pdl @{$recommendedScatterResult->{'covariance'}};
-    my $ySize                 = nelem($defaultY);
-    $defaultCovariance        = reshape($defaultCovariance    ,$ySize,$ySize);
-    $recommendedCovariance    = reshape($recommendedCovariance,$ySize,$ySize);
+    my $defaultX              = $defaultScatterResult    ->dataset('x'         )->get();
+    my $defaultY              = $defaultScatterResult    ->dataset('y'         )->get();
+    my $defaultCovariance     = $defaultScatterResult    ->dataset('covariance')->get();
+    my $recommendedY          = $recommendedScatterResult->dataset('y'         )->get();
+    my $recommendedCovariance = $recommendedScatterResult->dataset('covariance')->get();
     # Apply any systematics models.
     my %systematicResults;
     foreach my $argument ( keys(%arguments) ) {
@@ -230,51 +222,3 @@ foreach my $constraint ( @constraints ) {
 }
 
 exit;
-
-sub PBS_Submit {
-    # Submit jobs to PBS and wait for them to finish.
-    my @pbsStack = @_;
-    my %pbsJobs;
-    # Determine maximum number allowed in queue at once.
-    my $jobMaximum = 10;
-    $jobMaximum = $arguments{'pbsJobMaximum'}
-    if ( exists($arguments{'pbsJobMaximum'}) );
-    # Submit jobs and wait.
-    print "Waiting for PBS jobs to finish...\n";
-    while ( scalar(keys %pbsJobs) > 0 || scalar(@pbsStack) > 0 ) {
-	# Find all PBS jobs that are running.
-	my %runningPBSJobs;
-	undef(%runningPBSJobs);
-	open(pHndl,"qstat -f|");
-	while ( my $line = <pHndl> ) {
-	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$runningPBSJobs{$1} = 1};
-	}
-	close(pHndl);
-	foreach my $jobID ( keys(%pbsJobs) ) {
-	    unless ( exists($runningPBSJobs{$jobID}) ) {
-		print "PBS job ".$jobID." has finished.\n";
-		# Remove the job ID from the list of active PBS jobs.
-		delete($pbsJobs{$jobID});
-	    }
-	}
-	# If fewer than ten jobs are in the queue, pop one off the stack.
-	if ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < 20 ) {
-	    my $batchScript = pop(@pbsStack);
-	    # Submit the PBS job.
-	    open(pHndl,"qsub ".$batchScript."|");
-	    my $jobID = "";
-	    while ( my $line = <pHndl> ) {
-	    	if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
-	    }
-	    close(pHndl);	    
-	    # Add the job number to the active job hash.
-	    unless ( $jobID eq "" ) {
-	    	$pbsJobs{$jobID} = 1;
-	    }
-	    sleep 5;
-	} else {
-	    # Wait.
-	    sleep 60;
-	}
-    }
-}

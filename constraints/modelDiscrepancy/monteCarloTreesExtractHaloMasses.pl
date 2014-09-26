@@ -31,10 +31,15 @@ $galacticus->{'file' } = $galacticusFileName;
 $galacticus->{'store'} = 0;
 $galacticus->{'tree' } = "all";
 &HDF5::Select_Output($galacticus,0.0);
-&HDF5::Get_Dataset  ($galacticus,['mergerTreeWeight','basicMass','nodeIsIsolated']);
+&HDF5::Get_Dataset  ($galacticus,['mergerTreeWeight','basicMass','nodeIsIsolated','mergingStatisticsNodeHierarchyLevel']);
 my $dataSets = $galacticus->{'dataSets'};
-# Find isolated halos.
-my $isolated = which($dataSets->{'nodeIsIsolated'} == 1);
+# Find isolated halos which have never been subhalos.
+my $isolated =
+    which(
+	($dataSets->{'nodeIsIsolated'                     } == 1)
+	&
+	($dataSets->{'mergingStatisticsNodeHierarchyLevel'} == 0)
+    );
 # Output to file the masses and weights.
 my $treeMassFile = new PDL::IO::HDF5(">".$modelDirectory."/treeMasses.hdf5");
 $treeMassFile->dataset('treeRootMass')->set($dataSets->{'basicMass'       }->($isolated));
