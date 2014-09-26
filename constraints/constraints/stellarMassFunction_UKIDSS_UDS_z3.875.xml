@@ -3,7 +3,10 @@
 <constraint>
   <name>UKIDSS UDS z=3.50 to z=4.25 stellar mass function</name>
   <label>ukidssUdsStellarMassFunctionZ3.875</label>
-  <outputRedshift>3.875</outputRedshift>
+  <outputRedshift>3.50</outputRedshift>
+  <outputRedshift>3.75</outputRedshift>
+  <outputRedshift>4.00</outputRedshift>
+  <outputRedshift>4.25</outputRedshift>
   <haloMassResolution>5.0e9</haloMassResolution>
   <haloMassMinimum>1.0e10</haloMassMinimum>
   <haloMassMaximum>1.0e15</haloMassMaximum>

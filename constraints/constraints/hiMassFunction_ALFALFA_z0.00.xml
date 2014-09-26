@@ -2,7 +2,13 @@
 <constraint>
   <name>ALFALFA z=0.00 HI mass function</name>
   <label>hiMassFunctionZ0.00</label>
-  <outputRedshift>0.0</outputRedshift>
+  <outputRedshift>0.00</outputRedshift>
+  <outputRedshift>0.01</outputRedshift>
+  <outputRedshift>0.02</outputRedshift>
+  <outputRedshift>0.03</outputRedshift>
+  <outputRedshift>0.04</outputRedshift>
+  <outputRedshift>0.05</outputRedshift>
+  <outputRedshift>0.06</outputRedshift>
   <haloMassResolution>5.0e7</haloMassResolution>
   <haloMassMinimum>2.0e8</haloMassMinimum>
   <haloMassMaximum>2.0e14</haloMassMaximum>

@@ -3,7 +3,11 @@
 <constraint>
   <name>VIPERS z=0.90 stellar mass function</name>
   <label>vipersStellarMassFunctionZ0.90</label>
+  <outputRedshift>0.80</outputRedshift>
+  <outputRedshift>0.85</outputRedshift>
   <outputRedshift>0.90</outputRedshift>
+  <outputRedshift>0.95</outputRedshift>
+  <outputRedshift>1.00</outputRedshift>
   <haloMassResolution>1.0e8</haloMassResolution>
   <haloMassMinimum>2.0e8</haloMassMinimum>
   <haloMassMaximum>1.0e15</haloMassMaximum>
