@@ -292,7 +292,7 @@ Selected with {\tt virialDensityContrastMethod}$=${\tt Kitayama-Suto1996} this m
 
 \subsubsection{Friends-of-Friends}
 
-Selected with {\tt virialDensityContrastMethod}$=${\tt friendsofFriends} this method computes the virial density contrast consistent with a given friends-of-friends algorithm linking length. According to \cite{lacey_merger_1994}, the friends-of-friends algorithm selects objects bounded by an isodensity contour of density contrast
+Selected with {\tt virialDensityContrastMethod}$=${\tt friendsOfFriends} this method computes the virial density contrast consistent with a given friends-of-friends algorithm linking length. According to \cite{lacey_merger_1994}, the friends-of-friends algorithm selects objects bounded by an isodensity contour of density contrast
 \begin{equation}
 \Delta_{\rm iso} = {3 \over 2 \pi b^3},
 \end{equation}
@@ -301,6 +301,10 @@ where $b=${\tt [virialDensityContrastFoFLinkingLength]} is the dimensionless lin
 \Delta_{\rm vir} = {\bar{\rho}_{\rm vir} \over \rho(r_{\rm vir})} \Delta_{\rm iso},
 \end{equation}
 where $\bar{\rho}_{\rm vir}$ is the mean density inside the virial radius and $\rho(r_{\rm vir})$ is the density at the virial radius. The ratio $\bar{\rho}_{\rm vir} / \rho(r_{\rm vir})$ is specified via the parameter {\tt [virialDensityContrastFoFDensityRatio]}. Its default value of $4.688$ is appropriate for an \gls{nfw} halo of concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is the approximate critical overdensity for collapse).
+
+\subsubsection{Percolation}
+
+Selected with {\tt virialDensityContrastMethod}$=${\tt percolation} this method computes the virial density contrast consistent with a given friends-of-friends algorithm linking length using the percolation-theory-motivated calibration of \cite{more_overdensity_2011}. Specifically, the friends-of-friends algorithm is assumed to link together particles forming an isodensity surface of density $\rho = \bar{\rho} n_{\rm c}/b^3$, where $\bar{\rho}$ is the mean density of the universe, $n_{\rm c}=0.652960$ is a critical density for percolation as given by \cite{more_overdensity_2011}, and $b$ is the linking length. Given this bounding density, the virial density contrast is found by requiring that the halo contain the required mass within such a bounding density, given the halo density profile. 
 
 \subsection{Halo Bias}\index{halo bias}\index{dark matter halos!bias}\index{bias!halo}
 
