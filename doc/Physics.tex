@@ -1318,6 +1318,18 @@ P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]
 \end{equation}
 where $\alpha=${\tt [gravitationalLensingBaryonicModifierAlpha]} and $\beta=${\tt [gravitationalLensingBaryonicModifierBeta]}. The distribution is then renormalized to ensure that the cumulative probability reaches unity for infinite magnification. As an example, values of $\alpha=2.05\times 10^{-3}$ and $\beta=0.62$ approximately reproduce the results of \cite[][their Fig.~1]{hilbert_strong-lensing_2008}.
 
+\section{Halo Model Power Spectra Modifiers}\index{halo model}\index{power spectrum}
+
+The method to be used for modifying power spectra in halo model clustering calculations is specified by the {\tt haloModelPowerSpectrumModifierMethod} parameter.
+
+\subsection{Null}\label{phys:haloModelPowerSpectrumModifier:haloModelPowerSpectrumModifierNull}
+
+Selected with {\tt haloModelPowerSpectrumModifierMethod}$=${\tt null}, this method provides no modification.
+
+\subsection{Traxiality}\label{phys:haloModelPowerSpectrumModifier:haloModelPowerSpectrumModifierTriaxiality}
+
+Selected with {\tt haloModelPowerSpectrumModifierMethod}$=${\tt triaxiality}, this method provides attempts to modify power spectra to approximately account for the effects of halo triaxiality using the results of \cite{smith_triaxial_2005}. Specifically, the one- and two-halo power spectra are multiplied by a correction factor, $\Delta^2_{\rm triax}/\Delta^2_{\rm sphere}$, derived from the lower panels of Figures 3 and 2 of \cite{smith_triaxial_2005} respectively for their ``JS02'' profile model. Given the uncertainty in this correction, the power spectrum covariance (if provided) is incremented by $\epsilon^2 ( [\Delta^2_{\rm triax}/\Delta^2_{\rm sphere}-1] \otimes [\Delta^2_{\rm triax}/\Delta^2_{\rm sphere}-1)$ where $\epsilon=0.4$ is chosen to approximate the difference between ``continuity'' and ``JS02'' profiles in \cite{smith_triaxial_2005}.
+
 \section{Hot Halo Mass Distribution}\index{hot halo!mass distribution}\index{mass distribution profile!hot halo}
 
 The algorithm to be used when determining the hot halo mass distribution is selected via the {\tt hotHaloMassDistributionMethod} parameter.
