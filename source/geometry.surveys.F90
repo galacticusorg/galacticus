@@ -98,6 +98,13 @@ module Geometry_Surveys
   !#   <pass>yes</pass>
   !#   <code>surveyGeometryAngularPowerMaximumDegree=-1</code>
   !#  </method>
+  !#  <method name="pointIncluded" >
+  !#   <description>Return true if the given Cartesian point lies within the survey bounds for the given mass limit.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ), dimension(3) :: point</argument>
+  !#   <argument>double precision, intent(in   )               :: mass</argument>
+  !#  </method>
   include 'surveyGeometry.type.inc'
   !# </include>
 

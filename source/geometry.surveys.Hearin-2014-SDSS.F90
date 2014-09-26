@@ -21,8 +21,8 @@
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{hearin_dark_2013}.</description>
   !# </surveyGeometry>
 
-  type, extends(surveyGeometryLiWhite2009SDSS) :: surveyGeometryHearin2014SDSS
-     double precision :: distanceMinimumLimit, distanceMaximumLimit
+  type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryHearin2014SDSS
+     double precision :: distanceMinimumLimit, distanceMaximumLimit, massPrevious, distanceMaximumPrevious
    contains
      procedure :: distanceMinimum   => hearin2014SDSSDistanceMinimum
      procedure :: distanceMaximum   => hearin2014SDSSDistanceMaximum
@@ -47,7 +47,10 @@ contains
     type (surveyGeometryHearin2014SDSS)          :: hearin2014SDSSDefaultConstructor
     class(cosmologyFunctionsClass     ), pointer :: cosmologyFunctions_
     
-    hearin2014SDSSDefaultConstructor%geometryInitialized=.false.
+    hearin2014SDSSDefaultConstructor%solidAnglesInitialized =.false.
+    hearin2014SDSSDefaultConstructor%angularPowerInitialized=.false.
+    hearin2014SDSSDefaultConstructor%windowInitialized      =.false.
+    hearin2014SDSSDefaultConstructor%massPrevious           =-1.0d0
     ! Get the default cosmology functions object.
     cosmologyFunctions_ => cosmologyFunctions()
     hearin2014SDSSDefaultConstructor%distanceMinimumLimit                                    &
@@ -81,9 +84,11 @@ contains
     double precision                              , intent(in   )           :: mass
     integer                                       , intent(in   ), optional :: field
 
-    hearin2014SDSSDistanceMaximum=min(                                                                &
-         &                            self%surveyGeometryLiWhite2009SDSS%distanceMaximum(mass,field), &
-         &                            self%distanceMaximumLimit                                       &
-         &                           )
+    if (mass /= self%massPrevious)                                                                           &
+         & self%distanceMaximumPrevious=min(                                                                 &
+         &                                  self%surveyGeometryBernardi2013SDSS%distanceMaximum(mass,field), &
+         &                                  self%distanceMaximumLimit                                        &
+         &                                 )
+    hearin2014SDSSDistanceMaximum=self%distanceMaximumPrevious
     return
   end function hearin2014SDSSDistanceMaximum

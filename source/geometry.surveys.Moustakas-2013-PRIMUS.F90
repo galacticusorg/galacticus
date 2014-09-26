@@ -131,6 +131,7 @@ contains
          &                                                )
     moustakas2013PRIMUSConstructor%solidAnglesInitialized =.false.
     moustakas2013PRIMUSConstructor%angularPowerInitialized=.false.
+    moustakas2013PRIMUSConstructor%windowInitialized      =.false.
     return
   end function moustakas2013PRIMUSConstructor
   
