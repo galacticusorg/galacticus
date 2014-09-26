@@ -19,7 +19,10 @@
 
 module Geometry_Mangle
   !% Implements functions utilizing \gls{mangle} survey geometry definitions.
-  
+  use, intrinsic :: ISO_C_Binding
+  private
+  public :: window
+
   type :: cap
      !% A class to hold \gls{mangle} caps.
      double precision, dimension(3) :: x
@@ -57,8 +60,9 @@ module Geometry_Mangle
 
   type :: window
      !% A class to hold \gls{mangle} windows.
-     integer                                     :: polygonCount
-     type   (polygon), dimension(:), allocatable :: polygons
+     integer                                           :: polygonCount
+     type   (polygon      ), dimension(:), allocatable :: polygons
+     integer(kind=c_size_t), dimension(:), allocatable :: solidAngleIndex
    contains
      !@ <objectMethods>
      !@   <object>window</object>
@@ -87,17 +91,19 @@ contains
     use Galacticus_Error
     use ISO_Varying_String
     use String_Handling
+    use Sort
     implicit none
-    class    (window        ), intent(inout) :: self
-    character(len=*         ), intent(in   ) :: fileName
-    type     (varying_string), dimension(11) :: words
-    type     (varying_string)                :: message
-    character(len=1024      )                :: line
-    integer                                  :: fileUnit, i, j
+    class           (window        ), intent(inout)              :: self
+    character       (len=*         ), intent(in   )              :: fileName
+    double precision                , allocatable, dimension(: ) :: solidAngle
+    type            (varying_string)             , dimension(11) :: words
+    type            (varying_string)                             :: message
+    character       (len=1024      )                             :: line
+    integer                                                      :: fileUnit, i, j
 
     ! Open and parse the file.
     message='Reading mangle window from: '//trim(fileName)
-    call Galacticus_Display_Indent('message')
+    call Galacticus_Display_Indent(message)
     open(newUnit=fileUnit,file=fileName,status='old',form='formatted')
     ! Retrieve count of number of polygons.
     read (fileUnit,*) self%polygonCount
@@ -107,9 +113,12 @@ contains
     do i=1,3
        read (fileUnit,*) 
     end do
-    allocate(self%polygons(self%polygonCount))
+    allocate(self%polygons       (self%polygonCount))
+    allocate(solidAngle          (self%polygonCount))
+    allocate(self%solidAngleIndex(self%polygonCount))
     ! Read each polygon.
     do i=1,self%polygonCount
+       call Galacticus_Display_Counter(int(100.0d0*dble(i-1)/dble(self%polygonCount)),isNew=(i==1))
        read (fileUnit,'(a)') line
        call String_Split_Words(words,line)
        if (words(1) /= "polygon") call Galacticus_Error_Report('windowRead','expected polygon')
@@ -119,13 +128,18 @@ contains
        read (line,*) self%polygons(i)%weight
        line=words(8)       
        read (line,*) self%polygons(i)%solidAngle
+       solidAngle(i)=self%polygons(i)%solidAngle
        allocate(self%polygons(i)%caps(self%polygons(i)%capCount))
        do j=1,self%polygons(i)%capCount
           read (fileUnit,*) self%polygons(i)%caps(j)%x, &
                &            self%polygons(i)%caps(j)%c
        end do
     end do
+    call Galacticus_Display_Counter_Clear()
     close(fileUnit)
+    ! Get a sorted index of polygon solid angles.
+    self%solidAngleIndex=Sort_Index_Do(solidAngle)
+    deallocate(solidAngle)    
     call Galacticus_Display_Unindent('done')
     return
   end subroutine windowRead
@@ -136,9 +150,12 @@ contains
     class           (window), intent(inout)               :: self
     double precision        , intent(in   ), dimension(3) :: point
     integer                                               :: i
-    
-    do i=1,self%polygonCount
-       windowPointIncluded=self%polygons(i)%pointIncluded(point)
+
+    ! Check each polygon in turn, in order of decreasing solid angle (since, at least for randomly distributed points, we're most
+    ! likely to find the point in a polygon with larger solid angle). Exit immediately if the point is found to like within a
+    ! polygon.
+    do i=self%polygonCount,1,-1
+       windowPointIncluded=self%polygons(self%solidAngleIndex(i))%pointIncluded(point)
        if (windowPointIncluded) exit
     end do
     return

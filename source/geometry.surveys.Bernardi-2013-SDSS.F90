@@ -30,6 +30,7 @@
      procedure :: angularPowerMaximumDegree => bernardi2013SDSSAngularPowerMaximumDegree
      procedure :: mangleDirectory           => bernardi2013SDSSMangleDirectory
      procedure :: mangleFiles               => bernardi2013SDSSMangleFiles
+     procedure :: pointIncluded             => bernardi2013SDSSPointIncluded
   end type surveyGeometryBernardi2013SDSS
 
   interface surveyGeometryBernardi2013SDSS
@@ -48,8 +49,9 @@ contains
     implicit none
     type(surveyGeometryBernardi2013SDSS) :: bernardi2013SDSSDefaultConstructor
 
-    bernardi2013SDSSDefaultConstructor%solidAnglesInitialized  =.false.
-    bernardi2013SDSSDefaultConstructor%angularPowerInitialized =.false.
+    bernardi2013SDSSDefaultConstructor%solidAnglesInitialized =.false.
+    bernardi2013SDSSDefaultConstructor%angularPowerInitialized=.false.
+    bernardi2013SDSSDefaultConstructor%windowInitialized      =.false.
     return
   end function bernardi2013SDSSDefaultConstructor
 
@@ -77,7 +79,7 @@ contains
 
     ! Find the limiting redshift for this mass completeness limits from Moustakas et al. (2013; Table 2). (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pl for details.)
-    logarithmicMass=log10(mass)
+    logarithmicMass=min(log10(mass),12.5d0)
     bernardi2013SDSSDistanceMaximum                                                         &
          &                         =10.0d0**(                                               &
          &                                                         +1282.1065495948200000d0 &
@@ -127,3 +129,43 @@ contains
     return
   end subroutine bernardi2013SDSSMangleFiles
 
+
+  logical function bernardi2013SDSSPointIncluded(self,point,mass)
+    !% Return true if a point is included in the survey geometry.
+    use Vectors
+    use Numerical_Constants_Units
+    implicit none
+    class           (surveyGeometryBernardi2013SDSS), intent(inout)               :: self
+    double precision                                , intent(in   ), dimension(3) :: point
+    double precision                                , intent(in   )               :: mass
+    double precision                                                              :: pointDistance, rightAscension, & 
+         &                                                                           declination
+
+    ! Get the distance to the point.
+    pointDistance=Vector_Magnitude(point)
+    ! Compute if point lies within survey bounds.
+    bernardi2013SDSSPointIncluded=                    &
+         & pointDistance > self%distanceMinimum(mass) &
+         & .and.                                      &
+         & pointDistance < self%distanceMaximum(mass)
+    if (.not.bernardi2013SDSSPointIncluded) return
+    ! Exclude regions with no SDSS coverage.
+    bernardi2013SDSSPointIncluded=.false.
+    declination   =+90.0d0-acos (point(3)/pointDistance)/degree
+    if     (                       &
+         &   declination < -15.0d0 &
+         &  .or.                   &
+         &   declination > +75.0d0 &
+         & ) return
+    if     ( declination > +30.0d0) then
+       rightAscension=    +atan2(point(2),point(1)     )/degree
+       if     (                                                           &
+            &   (rightAscension >   0.0d0 .and. rightAscension <  90.0d0) &
+            &  .or.                                                       &
+            &   (rightAscension > 270.0d0 .and. rightAscension < 360.0d0) &
+            & ) return
+    end if
+    ! If point has not been excluded, perform the full test.
+    bernardi2013SDSSPointIncluded=manglePointIncluded(self,point,mass)
+    return
+  end function bernardi2013SDSSPointIncluded

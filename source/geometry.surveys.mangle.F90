@@ -23,11 +23,13 @@
   !# </surveyGeometry>
 
   use Galacticus_Input_Paths
+  use Geometry_Mangle
 
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryMangle
-     logical                                       :: solidAnglesInitialized, angularPowerInitialized
-     double precision, allocatable, dimension(:  ) :: solidAngles
-     double precision, allocatable, dimension(:,:) :: angularPowerSpectra
+     logical                                               :: solidAnglesInitialized, angularPowerInitialized, windowInitialized
+     double precision        , allocatable, dimension(:  ) :: solidAngles
+     double precision        , allocatable, dimension(:,:) :: angularPowerSpectra
+     type            (window)                              :: mangleWindow
    contains
      !@ <objectMethods>
      !@   <object>surveyGeometryMangle</object>
@@ -49,6 +51,7 @@
      procedure                                  :: solidAngle              => mangleSolidAngle
      procedure                                  :: windowFunctions         => mangleWindowFunctions
      procedure                                  :: angularPower            => mangleAngularPower
+     procedure                                  :: pointIncluded           => manglePointIncluded
      procedure(mangleMangleDirectory), deferred :: mangleDirectory
      procedure(mangleMangleFiles    ), deferred :: mangleFiles
   end type surveyGeometryMangle
@@ -130,7 +133,7 @@ contains
           ! Construct a solid angle file if one does not already exist.
           if (.not.File_Exists(self%mangleDirectory()//"solidAngles.hdf5")) then
              call self%mangleFiles(mangleFiles)
-             call System_Command_Do(Galacticus_Input_Path()//"scripts/aux/mangleSolidAngle.pl "//String_Join(mangleFiles," ")//" "//self%mangleDirectory()//"solidAngles.hdf5 0")
+             call System_Command_Do(Galacticus_Input_Path()//"scripts/aux/mangleSolidAngle.pl "//String_Join(mangleFiles," ")//" "//self%mangleDirectory()//"solidAngles.hdf5")
              if (.not.File_Exists(self%mangleDirectory()//"solidAngles.hdf5")) &
                   & call Galacticus_Error_Report('mangleSolidAngle','unable to generate solid angles from mangle files')
           end if
@@ -249,3 +252,35 @@ contains
     return
   end function mangleFieldPairIndex
 
+  logical function manglePointIncluded(self,point,mass)
+    !% Return true if a point is included in the survey geometry.
+    use Vectors
+    use Galacticus_Error
+    implicit none
+    class           (surveyGeometryMangle), intent(inout)               :: self
+    double precision                      , intent(in   ), dimension(3) :: point
+    double precision                      , intent(in   )               :: mass
+    type            (varying_string      ), allocatable  , dimension(:) :: mangleFiles
+    double precision                                                    :: pointDistance
+
+    ! Initialize the mangle window if necessary.
+    if (.not.self%windowInitialized) then
+       !$omp critical(manglePointIncludedInitialize)
+       if (.not.self%windowInitialized) then
+          if (self%fieldCount() > 1) call Galacticus_Error_Report('manglePointIncluded','only single field surveys are supported')
+          call self%mangleFiles(mangleFiles)
+          call self%mangleWindow%read(char(mangleFiles(1)))
+          self%windowInitialized=.true.
+       end if
+       !$omp end critical(manglePointIncludedInitialize)
+    end if
+    ! Get the distance to the point.
+    pointDistance=Vector_Magnitude(point)
+    ! Compute if point lies within survey bounds.
+    manglePointIncluded=                              &
+         & pointDistance > self%distanceMinimum(mass) &
+         & .and.                                      &
+         & pointDistance < self%distanceMaximum(mass)
+    if (manglePointIncluded) manglePointIncluded=self%mangleWindow%pointIncluded(point)
+    return
+  end function manglePointIncluded

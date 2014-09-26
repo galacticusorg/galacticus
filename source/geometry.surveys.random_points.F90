@@ -39,6 +39,7 @@
      procedure                                          :: angularPowerAvailable   => randomPointsAngularPowerAvailable
      procedure                                          :: windowFunctions         => randomPointsWindowFunctions
      procedure                                          :: angularPower            => randomPointsAngularPower
+     procedure                                          :: pointIncluded           => randomPointIncluded
      procedure(randomPointsRandomsInitialize), deferred :: randomsInitialize
   end type surveyGeometryRandomPoints
 
@@ -176,3 +177,16 @@ contains
     call Galacticus_Error_Report('randomPointsAngularPower','angular power is not available')
     return
   end function randomPointsAngularPower
+
+  logical function randomPointIncluded(self,point,mass)
+    !% Return true if a point is included in the survey geometry.
+    use Galacticus_Error
+    implicit none
+    class           (surveyGeometryRandomPoints), intent(inout)               :: self
+    double precision                            , intent(in   ), dimension(3) :: point
+    double precision                            , intent(in   )               :: mass
+    
+    call Galacticus_Error_Report('randomPointIncluded','point inclusion is not supported for window functions defined by random points')
+    return
+  end function randomPointIncluded
+

@@ -59,7 +59,8 @@ contains
     baldry2012GAMADefaultConstructor%distanceMaximumSurvey   =  cosmologyFunctions_%distanceComovingConvert(distanceTypeComoving,redshift=redshiftMaximum)
     baldry2012GAMADefaultConstructor%solidAnglesInitialized  =.false.
     baldry2012GAMADefaultConstructor%angularPowerInitialized =.false.
-    return
+    baldry2012GAMADefaultConstructor%windowInitialized       =.false.
+   return
   end function baldry2012GAMADefaultConstructor
 
   integer function baldry2012GAMAFieldCount(self)
