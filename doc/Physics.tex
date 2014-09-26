@@ -1310,6 +1310,14 @@ The method to be used for computing the effects of gravitational lensing by larg
 
 Selected with {\tt gravitationalLensingMethod}$=${\tt takahashi2011}, this method utilizes the fitting functions of \cite{takahashi_probability_2011} to compute the effects of gravitational lensing. Specifically, eqn.~11 of \cite{takahashi_probability_2011} is used. The parameters $\kappa_{\rm empty}$ and $\langle \kappa^2 \rangle$ are computed from the assumed cosmology and non-linear power spectrum as described by \cite[][eqns.~5 and 2 respectively]{takahashi_probability_2011}. The parameters, $N_\kappa$, $A_\kappa$, and $\omega_\kappa$ of the lensing convergence distribution are determined using the conditions given by \cite[][eqn.~9]{takahashi_probability_2011}.
 
+\subsection{Baryonic Modifier}\label{phys:gravitationalLensing:gravitationalLensingBaryonicModifer}
+
+Selected with {\tt gravitationalLensingMethod}$=${\tt baryonicModifier}, this method modifies another gravitational lensing class to approximately account for the effects of baryons on the magnification distribution. The distribution to modify is specified via the {\tt [gravitationalLensingBaryonicModifierOriginalDistribution]} parameter. The modification takes the form:
+\begin{equation}
+P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]
+\end{equation}
+where $\alpha=${\tt [gravitationalLensingBaryonicModifierAlpha]} and $\beta=${\tt [gravitationalLensingBaryonicModifierBeta]}. The distribution is then renormalized to ensure that the cumulative probability reaches unity for infinite magnification. As an example, values of $\alpha=2.05\times 10^{-3}$ and $\beta=0.62$ approximately reproduce the results of \cite[][their Fig.~1]{hilbert_strong-lensing_2008}.
+
 \section{Hot Halo Mass Distribution}\index{hot halo!mass distribution}\index{mass distribution profile!hot halo}
 
 The algorithm to be used when determining the hot halo mass distribution is selected via the {\tt hotHaloMassDistributionMethod} parameter.
