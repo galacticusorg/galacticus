@@ -70,6 +70,11 @@
     <type>adaptive</type>
   </randomJump>
   
+  <stoppingCriterion>
+    <type>stepCount</type>
+    <stopAfterCount>10000</stopAfterCount>
+  </stoppingCriterion>
+
   <simulation>
     <type>differentialEvolution</type>
     <stepsMaximum>1000000</stepsMaximum>
