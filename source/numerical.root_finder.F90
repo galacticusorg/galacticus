@@ -109,6 +109,7 @@ module Root_Finder
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                Root_Finder_Destroy
      procedure :: rootFunction =>Root_Finder_Root_Function
      procedure :: type         =>Root_Finder_Type
      procedure :: tolerance    =>Root_Finder_Tolerance
@@ -126,6 +127,18 @@ module Root_Finder
   class(rootFinder), pointer :: currentFinder
   !$omp threadprivate(currentFinder)
 contains
+
+  subroutine Root_Finder_Destroy(self)
+    !% Destroy a root finder object.
+    implicit none
+    type(rootFinder), intent(inout) :: self
+
+    if (FGSL_Well_Defined(self%solver)) then
+       call FGSL_Root_FSolver_Free(self%solver      )
+       call FGSL_Function_Free    (self%fgslFunction)
+   end if
+    return
+  end subroutine Root_Finder_Destroy
 
   logical function Root_Finder_Is_Initialized(self)
     !% Return whether a {\tt rootFinder} object is initalized.
