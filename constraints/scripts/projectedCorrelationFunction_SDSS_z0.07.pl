@@ -152,7 +152,7 @@ $data->{'model'}->{'combined'}->{'correlationFunctionError'     } = sqrt($data->
 
 # Output the results to file if requested.
 if ( exists($arguments{'resultFile'}) ) {
-    my $resultsFile = new PDL::IO::HDF5(">".($arguments{'resultFile'});
+    my $resultsFile = new PDL::IO::HDF5(">".$arguments{'resultFile'});
     $resultsFile->dataset('x'             )->set($data->{'observed'}->{'combined'}->{'separation'                   });
     $resultsFile->dataset('y'             )->set($data->{'model'   }->{'combined'}->{'correlationFunction'          });
     $resultsFile->dataset('error'         )->set($data->{'model'   }->{'combined'}->{'correlationFunctionError'     });
