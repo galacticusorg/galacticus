@@ -109,7 +109,7 @@ contains
        call workBasic%timeSet            (basic%time())
        call workBasic%timeLastIsolatedSet(basic%time())
        call finder   %tolerance          (                                               &
-            &                             toleranceRelative  =1.0d-6                     &
+            &                             toleranceRelative  =1.0d-3                     &
             &                            )
        call finder   %rangeExpand        (                                               &
             &                             rangeExpandUpward  =2.0d0                    , &
@@ -127,12 +127,12 @@ contains
             &                    /darkMatterProfileConcentrationDefinition%concentration(workNode)
        call workNode%destroy()
        deallocate(workNode)
+       ! Destroy objects as necessary.
+       if (darkMatterProfileDefinition%isFinalizable()) deallocate(darkMatterProfileDefinition)
     else
        Dark_Matter_Profile_Scale= darkMatterHaloScale_                    %virialRadius (node) &
             &                    /darkMatterProfileConcentrationDefinition%concentration(node)
     end if
-    ! Destroy objects as necessary.
-    if (darkMatterProfileDefinition%isFinalizable()) deallocate(darkMatterProfileDefinition)
     ! Nullify the concentration definition so that it isn't automatically finalized.
     darkMatterProfileConcentrationDefinition => null()
     
@@ -165,7 +165,7 @@ contains
       call darkMatterProfileDefinition  %calculationReset(workNode)
       ! Solve for radius which encloses required non-alt density contrast.
       call radiusFinder%tolerance   (                                                 &
-           &                         toleranceRelative  =1.0d-6                       &
+           &                         toleranceRelative  =1.0d-3                       &
            &                        )
       call radiusFinder%rangeExpand (                                                 &
            &                         rangeExpandUpward  =2.0d0                      , &
