@@ -19,6 +19,7 @@ require Galacticus::Constraints::DiscrepancySystematics;
 require Galacticus::Options;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
+require Galacticus::Launch::PBS;
 
 # Run calculations to determine the model discrepancy arising from the use of randomized halo spins.
 # Andrew Benson (23-March-2014)
@@ -129,37 +130,33 @@ foreach my $model ( @models ) {
 	# Generate the parameter file.
 	my $parameterFileName = $modelDirectory."/parameters.xml";
 	&Parameters::Output($newParameters,$parameterFileName);
-	# Create a batch script for PBS.
-	my $batchScriptFileName = $modelDirectory."/launch.pbs";
-	open(oHndl,">".$batchScriptFileName);
-	print oHndl "#!/bin/bash\n";
-	print oHndl "#PBS -N randomSpins".$model->{'label'}."\n";
-	print oHndl "#PBS -l nodes=1:ppn=12\n";
-	print oHndl "#PBS -j oe\n";
-	print oHndl "#PBS -o ".$modelDirectory."/launch.log\n";
-	print oHndl "#PBS -V\n";
-	print oHndl "cd \$PBS_O_WORKDIR\n";
-	print oHndl "export LD_LIBRARY_PATH=/home/abenson/Galacticus/Tools/lib:/home/abenson/Galacticus/Tools/lib64:\$LD_LIBRARY_PATH\n";
-	print oHndl "export PATH=/home/abenson/Galacticus/Tools/bin:\$PATH\n";
-	print oHndl "export GFORTRAN_ERROR_DUMPCORE=YES\n";
-	print oHndl "ulimit -t unlimited\n";
-	print oHndl "ulimit -c unlimited\n";
-	print oHndl "export OMP_NUM_THREADS=12\n";
-	print oHndl "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
+	# Create a job for PBS.
+	my $command = "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
 	foreach my $constraint ( @constraints ) {
 	    # Parse the definition file.
 	    my $xml                  = new XML::Simple;
 	    my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
 	    # Insert code to run the analysis code.
 	    my $analysisCode = $constraintDefinition->{'analysis'};
-	    print oHndl $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".xml\n";
+	    $command .= $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5\n";
 	}
-	close(oHndl);
+	# Queue the calculation.
+	my %job =
+	    (
+	     launchFile => $modelDirectory."/launch.pbs",
+	     label      => "randomSpins".$model->{'label'},
+	     logFile    => $modelDirectory."/launch.log",
+	     command    => $command
+	    );
+	foreach ( 'ppn', 'walltime', 'memory' ) {
+	    $job{$_} = $arguments{$_}
+	    if ( exists($arguments{$_}) );
+	}
 	# Queue the calculation.
 	push(
 	    @pbsStack,
-	    $batchScriptFileName
-	    );   
+	    \%job
+	    );
     }
 }
 # Send jobs to PBS.
@@ -172,20 +169,17 @@ foreach my $constraint ( @constraints ) {
     my $xml                  = new XML::Simple;
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
     # Locate the model results.
-    my $standardFileName   = $workDirectory."/modelDiscrepancy/randomSpins/standard/".$constraintDefinition->{'label'}.".xml";
-    my $shortFileName      = $workDirectory."/modelDiscrepancy/randomSpins/short/"   .$constraintDefinition->{'label'}.".xml";
+    my $standardFileName   = $workDirectory."/modelDiscrepancy/randomSpins/standard/".$constraintDefinition->{'label'}.".hdf5";
+    my $shortFileName      = $workDirectory."/modelDiscrepancy/randomSpins/short/"   .$constraintDefinition->{'label'}.".hdf5";
     # Read the results.
-    my $standard           = $xml->XMLin($standardFileName);
-    my $short              = $xml->XMLin($shortFileName   );
+    my $standard           = new PDL::IO::HDF5($standardFileName);
+    my $short              = new PDL::IO::HDF5($shortFileName   );
     # Extract the results.
-    my $shortX             = pdl @{$short   ->{'x'         }};
-    my $shortY             = pdl @{$short   ->{'y'         }};
-    my $shortCovariance    = pdl @{$standard->{'covariance'}};
-    my $standardY          = pdl @{$standard->{'y'         }};
-    my $standardCovariance = pdl @{$standard->{'covariance'}};
-    my $ySize              = nelem($shortY);
-    $shortCovariance       = reshape($shortCovariance   ,$ySize,$ySize);
-    $standardCovariance    = reshape($standardCovariance,$ySize,$ySize);
+    my $shortX             = $short   ->dataset('x'         )->get();
+    my $shortY             = $short   ->dataset('y'         )->get();
+    my $shortCovariance    = $standard->dataset('covariance')->get();
+    my $standardY          = $standard->dataset('y'         )->get();
+    my $standardCovariance = $standard->dataset('covariance')->get();
     # Apply any systematics models.
     my %systematicResults;
     foreach my $argument ( keys(%arguments) ) {

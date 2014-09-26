@@ -15,6 +15,7 @@ use PDL::NiceSlice;
 use PDL::IO::HDF5;
 require Galacticus::Constraints::Parameters;
 require Galacticus::Constraints::DiscrepancySystematics;
+require Galacticus::Launch::PBS;
 
 # Run calculations to determine the model discrepancy arising from the use of fixed virial orbit
 # parameters for satellites.
@@ -62,7 +63,7 @@ if ( $arguments{'make'} eq "yes" ) {
 }
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$confi->{'likelihood'}g->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Switch off thread locking.
@@ -122,62 +123,53 @@ foreach my $model ( @models ) {
 	# Generate the parameter file.
 	my $parameterFileName = $modelDirectory."/parameters.xml";
 	&Parameters::Output($newParameters,$parameterFileName);
-	# Create a batch script for PBS.
-	my $batchScriptFileName = $modelDirectory."/launch.pbs";
-	open(oHndl,">".$batchScriptFileName);
-	print oHndl "#!/bin/bash\n";
-	print oHndl "#PBS -N fixedVirialOrbits".$model->{'label'}."\n";
-	print oHndl "#PBS -l walltime=3:00:00\n";
-	print oHndl "#PBS -l mem=4gb\n";
-	print oHndl "#PBS -l nodes=1:ppn=12\n";
-	print oHndl "#PBS -j oe\n";
-	print oHndl "#PBS -o ".$modelDirectory."/launch.log\n";
-	print oHndl "#PBS -V\n";
-	print oHndl "cd \$PBS_O_WORKDIR\n";
-	print oHndl "export LD_LIBRARY_PATH=/home/abenson/Galacticus/Tools/lib:/home/abenson/Galacticus/Tools/lib64:\$LD_LIBRARY_PATH\n";
-	print oHndl "export PATH=/home/abenson/Galacticus/Tools/bin:\$PATH\n";
-	print oHndl "export GFORTRAN_ERROR_DUMPCORE=YES\n";
-	print oHndl "ulimit -t unlimited\n";
-	print oHndl "ulimit -c unlimited\n";
-	print oHndl "export OMP_NUM_THREADS=12\n";
-	print oHndl "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
+	# Create a batch job for PBS.
+	my $command = "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
 	foreach my $constraint ( @constraints ) {
 	    # Parse the definition file.
 	    my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
 	    # Insert code to run the analysis code.
 	    my $analysisCode = $constraintDefinition->{'analysis'};
-	    print oHndl $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".xml\n";
+	    $command .=  $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5\n";
 	}
-	close(oHndl);
+	# Queue the calculation.
+	my %job =
+	    (
+	     launchFile => $modelDirectory."/launch.pbs",
+	     label      => "fixedTreeCosmology".$model->{'label'},
+	     logFile    => $modelDirectory."/launch.log",
+	     command    => $command
+	    );
+	foreach ( 'ppn', 'walltime', 'memory' ) {
+	    $job{$_} = $arguments{$_}
+	    if ( exists($arguments{$_}) );
+	}
 	# Queue the calculation.
 	push(
 	    @pbsStack,
-	    $batchScriptFileName
+	    \%job
 	    );   
     }
 }
 # Send jobs to PBS.
-&PBS_Submit(@pbsStack)
+&PBS::SubmitJobs(\%arguments,@pbsStack)
     if ( scalar(@pbsStack) > 0 );
 # Iterate over constraints.
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
     # Locate the model results.
-    my $variableOrbitsResultFileName = $workDirectory."/modelDiscrepancy/fixedVirialOrbits/variableOrbits/".$constraintDefinition->{'label'}.".xml";
-    my $fixedOrbitsResultFileName    = $workDirectory."/modelDiscrepancy/fixedVirialOrbits/fixedOrbits/"   .$constraintDefinition->{'label'}.".xml";
+    my $variableOrbitsResultFileName = $workDirectory."/modelDiscrepancy/fixedVirialOrbits/variableOrbits/".$constraintDefinition->{'label'}.".hdf5";
+    my $fixedOrbitsResultFileName    = $workDirectory."/modelDiscrepancy/fixedVirialOrbits/fixedOrbits/"   .$constraintDefinition->{'label'}.".hdf5";
     # Read the results.
-    my $variableOrbitsResult = $xml->XMLin($variableOrbitsResultFileName);
-    my $fixedOrbitsResult    = $xml->XMLin($fixedOrbitsResultFileName   );
+    my $variableOrbitsResult = new PDL::IO::HDF5($variableOrbitsResultFileName);
+    my $fixedOrbitsResult    = new PDL::IO::HDF5($fixedOrbitsResultFileName   );
     # Extract the results.
-    my $fixedX             = pdl @{$fixedOrbitsResult   ->{'x'         }};
-    my $fixedY             = pdl @{$fixedOrbitsResult   ->{'y'         }};
-    my $fixedCovariance    = pdl @{$variableOrbitsResult->{'covariance'}};
-    my $variableY          = pdl @{$variableOrbitsResult->{'y'         }};
-    my $variableCovariance = pdl @{$variableOrbitsResult->{'covariance'}};
-    my $ySize              = nelem($fixedY);
-    $fixedCovariance       = reshape($fixedCovariance   ,$ySize,$ySize);
-    $variableCovariance    = reshape($variableCovariance,$ySize,$ySize);
+    my $fixedX             = $fixedOrbitsResult   ->dataset('x'         )->get();
+    my $fixedY             = $fixedOrbitsResult   ->dataset('y'         )->get();
+    my $fixedCovariance    = $variableOrbitsResult->dataset('covariance')->get();
+    my $variableY          = $variableOrbitsResult->dataset('y'         )->get();
+    my $variableCovariance = $variableOrbitsResult->dataset('covariance')->get();
     # Apply any systematics models.
     my %systematicResults;
     foreach my $argument ( keys(%arguments) ) {
@@ -225,51 +217,3 @@ foreach my $constraint ( @constraints ) {
 }
 
 exit;
-
-sub PBS_Submit {
-    # Submit jobs to PBS and wait for them to finish.
-    my @pbsStack = @_;
-    my %pbsJobs;
-    # Determine maximum number allowed in queue at once.
-    my $jobMaximum = 10;
-    $jobMaximum = $arguments{'pbsJobMaximum'}
-    if ( exists($arguments{'pbsJobMaximum'}) );
-    # Submit jobs and wait.
-    print "Waiting for PBS jobs to finish...\n";
-    while ( scalar(keys %pbsJobs) > 0 || scalar(@pbsStack) > 0 ) {
-	# Find all PBS jobs that are running.
-	my %runningPBSJobs;
-	undef(%runningPBSJobs);
-	open(pHndl,"qstat -f|");
-	while ( my $line = <pHndl> ) {
-	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$runningPBSJobs{$1} = 1};
-	}
-	close(pHndl);
-	foreach my $jobID ( keys(%pbsJobs) ) {
-	    unless ( exists($runningPBSJobs{$jobID}) ) {
-		print "PBS job ".$jobID." has finished.\n";
-		# Remove the job ID from the list of active PBS jobs.
-		delete($pbsJobs{$jobID});
-	    }
-	}
-	# If fewer than ten jobs are in the queue, pop one off the stack.
-	if ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < 20 ) {
-	    my $batchScript = pop(@pbsStack);
-	    # Submit the PBS job.
-	    open(pHndl,"qsub ".$batchScript."|");
-	    my $jobID = "";
-	    while ( my $line = <pHndl> ) {
-	    	if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
-	    }
-	    close(pHndl);	    
-	    # Add the job number to the active job hash.
-	    unless ( $jobID eq "" ) {
-	    	$pbsJobs{$jobID} = 1;
-	    }
-	    sleep 5;
-	} else {
-	    # Wait.
-	    sleep 60;
-	}
-    }
-}
