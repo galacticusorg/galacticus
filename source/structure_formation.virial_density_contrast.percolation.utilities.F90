@@ -79,7 +79,7 @@ contains
     radiusHalo=(mass/4.0d0/Pi/boundingDensity)**(1.0d0/3.0d0)
     ! Find the corresponding halo radius.
     call finder   %tolerance          (                                               &
-         &                             toleranceRelative  =1.0d-6                     &
+         &                             toleranceRelative  =1.0d-3                     &
          &                            )
     call finder   %rangeExpand        (                                               &
          &                             rangeExpandUpward  =2.0d0                    , &

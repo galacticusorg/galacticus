@@ -62,8 +62,8 @@
   double precision :: virialDensityContrastPercolationLinkingLength, virialDensityContrastPercolationDensityRatio
 
   ! Granularity parameters for tabulations.
-  integer, parameter :: percolationDensityContrastTableTimePointsPerDecade=10
-  integer, parameter :: percolationDensityContrastTableMassPointsPerDecade=10
+  integer, parameter :: percolationDensityContrastTableTimePointsPerDecade=5
+  integer, parameter :: percolationDensityContrastTableMassPointsPerDecade=5
 
 contains
 
@@ -111,7 +111,7 @@ contains
     ! Initialize tabulations.
     percolationConstructor%densityContrastTableTimeMinimum           = 1.0d-3
     percolationConstructor%densityContrastTableTimeMaximum           =20.0d+0
-    percolationConstructor%densityContrastTableMassMinimum           = 1.0d8
+    percolationConstructor%densityContrastTableMassMinimum           = 1.0d6
     percolationConstructor%densityContrastTableMassMaximum           = 1.0d16
     percolationConstructor%densityContrastTableInitialized           =.false.
     percolationConstructor%densityContrastTableMassInterpolationReset=.true.
