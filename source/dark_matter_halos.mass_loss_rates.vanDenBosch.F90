@@ -28,9 +28,6 @@ module Dark_Matter_Halos_Mass_Loss_Rates_vanDenBosch
   double precision, parameter :: massLossTimescaleNormalization=0.13d0 !    Mass loss timescale normalization [Gyr].
   double precision, parameter :: zeta                          =0.36d0 !    Mass loss scaling with halo mass.
 
-  ! Pre-computed mass loss rate normalization.
-  double precision            :: massLossRateNormalization
-
 contains
 
   !# <darkMatterHaloMassLossRateMethod>
@@ -53,8 +50,6 @@ contains
        ! Get the default objects.
        cosmologyFunctionsDefault => cosmologyFunctions   ()
        virialDensityContrast_    => virialDensityContrast()
-       ! Pre-compute the mass loss rate normalization factor.
-       massLossRateNormalization=massLossTimescaleNormalization*sqrt(virialDensityContrast_%densityContrast(cosmologyFunctionsDefault%cosmicTime(1.0d0)))
     end if
     return
   end subroutine Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize
@@ -79,11 +74,12 @@ contains
        ! Get the default cosmology functions object.
        cosmologyFunctionsDefault => cosmologyFunctions   ()
        virialDensityContrast_    => virialDensityContrast()
-       thisBasic             => thisNode %basic()
-       satelliteTime         =  thisBasic%time ()
-       massLossTimescale     =   massLossRateNormalization                                             &
-            &                   *     cosmologyFunctionsDefault%expansionFactor(satelliteTime) **1.5d0 &
-            &                   /sqrt(virialDensityContrast_%densityContrast   (satelliteTime))
+       thisBasic                 => thisNode %basic()
+       satelliteTime             =  thisBasic%time ()
+       massLossTimescale     =   massLossTimescaleNormalization                                                                               &
+            &                   *sqrt(virialDensityContrast_%densityContrast   (thisBasic%mass(),cosmologyFunctionsDefault%cosmicTime(1.0d0)))&
+            &                   *     cosmologyFunctionsDefault%expansionFactor(                 satelliteTime) **1.5d0                       &
+            &                   /sqrt(virialDensityContrast_%densityContrast   (thisBasic%mass(),satelliteTime))
        parentBasic           => thisNode%parent%basic()
        satelliteHostMassRatio=  satelliteBoundMass/parentBasic%mass()
        Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch=-satelliteBoundMass*satelliteHostMassRatio**zeta/massLossTimescale

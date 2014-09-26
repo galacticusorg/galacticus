@@ -164,6 +164,7 @@ contains
                      &  Dark_Matter_Profile_Mass_Definition(      &
                      &   thisNode                               , &
                      &   virialDensityContrast_%densityContrast(  &
+                     &    thisBasic%mass()                      , &
                      &    thisBasic%time()                        &
                      &                                         ), &
                      &   radius=radiusVirial                      &

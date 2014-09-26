@@ -214,6 +214,7 @@ contains
     if (self%nfwInverseTableInitialized ) then
        call self%nfwSpecificAngularMomentum       %destroy()
        call self%nfwSpecificAngularMomentumInverse%destroy()
+       deallocate(self%nfwSpecificAngularMomentumInverse)
     end if
     if (self%nfwTableInitialized        ) then
        call self%nfwConcentrationTable            %destroy()

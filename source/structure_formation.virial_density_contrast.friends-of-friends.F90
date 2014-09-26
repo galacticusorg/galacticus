@@ -97,11 +97,12 @@ contains
     return
   end function friendsOfFriendsConstructor
 
-  double precision function friendsOfFriendsDensityContrast(self,time,expansionFactor,collapsing)
+  double precision function friendsOfFriendsDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based on the friends-of-friends algorithm linking length.
     use Numerical_Constants_Math
     implicit none
     class           (virialDensityContrastFriendsOfFriends), intent(inout)           :: self
+    double precision                                       , intent(in   )           :: mass
     double precision                                       , intent(in   ), optional :: time                          , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
     double precision                                                                 :: boundingSurfaceDensityContrast
@@ -111,11 +112,12 @@ contains
     return
   end function friendsOfFriendsDensityContrast
 
-  double precision function friendsOfFriendsDensityContrastRateOfChange(self,time,expansionFactor,collapsing)
+  double precision function friendsOfFriendsDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based on the friends-of-friends algorithm linking length.
     use Numerical_Constants_Math
     implicit none
     class           (virialDensityContrastFriendsOfFriends), intent(inout)           :: self
+    double precision                                       , intent(in   )           :: mass
     double precision                                       , intent(in   ), optional :: time      , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
 

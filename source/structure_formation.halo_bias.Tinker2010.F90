@@ -68,8 +68,8 @@ contains
     double precision                                            :: deltaCritical               , haloDensityContrast       , nu            , &
          &                                                         sigma                       , y
     double precision, save                                      :: lowerA                      , timePrevious       =-1.0d0, upperA        , &
-         &                                                         upperC
-    !$omp threadprivate(timePrevious,lowerA,upperA,upperC)
+         &                                                         upperC                      , massPrevious       =-1.0d0
+    !$omp threadprivate(timePrevious,massPrevious,lowerA,upperA,upperC)
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=Critical_Overdensity_for_Collapse(time=time,mass=mass)
@@ -77,13 +77,14 @@ contains
     nu           =deltaCritical/sigma
 
     ! Update fitting parameters if the time has changed.
-    if (time /= timePrevious) then
-       ! Store the new time.
+    if (time /= timePrevious .or. mass /= massPrevious) then
+       ! Store the new time and mass.
        timePrevious=time
+       massPrevious=mass
 
        ! Compute halo density contrast and logarithm.
        virialDensityContrast_    => virialDensityContrast()
-       haloDensityContrast=virialDensityContrast_%densityContrast(time)
+       haloDensityContrast=virialDensityContrast_%densityContrast(mass,time)
        y=log10(haloDensityContrast)
 
        ! Compute parameters as a function of halo overdensity (from Table 2 of Tinker et al. 2010)

@@ -99,12 +99,13 @@ contains
     return
   end subroutine sphericalCollapseMatterLambdaRetabulate
 
-  double precision function sphericalCollapseMatterLambdaDensityContrast(self,time,expansionFactor,collapsing)
+  double precision function sphericalCollapseMatterLambdaDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     use Galacticus_Error
     use Cosmology_Functions
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
+    double precision                                                    , intent(in   )           :: mass
     double precision                                                    , intent(in   ), optional :: time               , expansionFactor
     logical                                                             , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass                           ), pointer                 :: cosmologyFunctions_
@@ -139,12 +140,13 @@ contains
     return
   end function sphericalCollapseMatterLambdaDensityContrast
 
-  double precision function sphericalCollapseMatterLambdaDensityContrastRateOfChange(self,time,expansionFactor,collapsing)
+  double precision function sphericalCollapseMatterLambdaDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     use Galacticus_Error
     use Cosmology_Functions
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
+    double precision                                                    , intent(in   )           :: mass
     double precision                                                    , intent(in   ), optional :: time      , expansionFactor
     logical                                                             , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass                           ), pointer                 :: cosmologyFunctions_

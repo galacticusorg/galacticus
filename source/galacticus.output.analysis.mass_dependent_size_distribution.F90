@@ -201,7 +201,7 @@ contains
     class           (nodeComponentBasic            )               , pointer        :: thisBasic
     class           (nodeComponentDisk             )               , pointer        :: thisDisk
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass      )               , pointer        :: darkMatterHaloScale_
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
     integer                                                                         :: i,j,k,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution,jOutput
@@ -616,6 +616,7 @@ contains
                & =thisGalaxy   (i)%sizeFunction(j,:        ) &
                & *sizeFunctions(i)%outputWeight(  :,iOutput)
        end do
+       thisGalaxy(i)%sizeFunctionWeights=thisGalaxy(i)%sizeFunctionWeights*sizeFunctions(i)%outputWeight(:,iOutput)
        ! Accumulate size function.
        !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
        sizeFunctions(i)%sizeFunction       =sizeFunctions(i)%sizeFunction       +thisGalaxy(i)%sizeFunction
