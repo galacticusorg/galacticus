@@ -169,8 +169,8 @@ contains
     ! Find virial density contrast under our definition.
     virialDensityContrast_ => self%densityContrastDefinition()
     ! Find mass, radius, and velocity in the host corresponding to the our virial density contrast definition.
-    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%time()),radiusHost,velocityHost)
-    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%time())                        )
+    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHost,velocityHost)
+    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                        )
     if (virialDensityContrast_%isFinalizable()) deallocate(virialDensityContrast_)
     ! Set basic properties of the orbit.
     call fixedOrbit%massesSet(massSatellite,massHost)

@@ -905,6 +905,7 @@ contains
     self%       deltaX=self%xv(2)-self%xv(1)
     self%inverseDeltaX=1.0d0/self%deltaX
     self%tablePrevious=-1
+    self%iPrevious    =-1
     ! Set extrapolation type.
     if (present(extrapolationType)) then
        self%extrapolationType=extrapolationType
@@ -1128,7 +1129,9 @@ contains
     integer                                    , intent(in   )           :: xCount
     integer                                    , intent(in   ), optional :: extrapolationType, tableCount
 
-    self%previousSet=.false.
+    self%previousSet         =.false.
+    self%xLinearPrevious     =-1.0d0
+    self%xLogarithmicPrevious=-1.0d0
     ! Call the creator for linear tables with the logarithms of the input x range.
     call self%table1DLinearCSpline%create(log(xMinimum),log(xMaximum),xCount,tableCount,extrapolationType)
     ! Store the minimum and maximum x-values for rapid look-up.

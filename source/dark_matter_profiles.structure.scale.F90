@@ -131,6 +131,8 @@ contains
        Dark_Matter_Profile_Scale= darkMatterHaloScale_                    %virialRadius (node) &
             &                    /darkMatterProfileConcentrationDefinition%concentration(node)
     end if
+    ! Destroy objects as necessary.
+    if (darkMatterProfileDefinition%isFinalizable()) deallocate(darkMatterProfileDefinition)
     ! Nullify the concentration definition so that it isn't automatically finalized.
     darkMatterProfileConcentrationDefinition => null()
     
@@ -189,14 +191,13 @@ contains
       double precision                :: massTrial  , densityContrastTrial
       
       massTrial                  = darkMatterProfileDefinition%enclosedMass(workNode,radiusTrial)
-      densityContrastTrial       =+3.0d0                                  &
-           &                      *massTrial                              &
-           &                      /4.0d0                                  &
-           &                      /Pi                                     &
-           &                      /cosmologyParameters_%OmegaMatter    () &
-           &                      /cosmologyParameters_%densityCritical() &
+      densityContrastTrial       =+3.0d0                                                      &
+           &                      *massTrial                                                  &
+           &                      /4.0d0                                                      &
+           &                      /Pi                                                         &
+           &                      /cosmologyFunctions_%matterDensityEpochal(workBasic%time()) &
            &                      /radiusTrial**3
-      densityContrastRootFunction=+densityContrastTrial-virialDensityContrast_%densityContrast(workBasic%time())
+      densityContrastRootFunction=+densityContrastTrial-virialDensityContrast_%densityContrast(workBasic%mass(),workBasic%time())
       return
     end function densityContrastRootFunction
 

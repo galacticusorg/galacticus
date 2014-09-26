@@ -37,6 +37,7 @@ module Virial_Density_Contrast
   !#   <description>Returns the virial density contrast at the given epoch.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   )           :: mass</argument>
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
   !#  </method>
@@ -44,6 +45,7 @@ module Virial_Density_Contrast
   !#   <description>Returns the rate of change of virial density contrast at the given epoch.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   )           :: mass</argument>
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
   !#  </method>
@@ -55,6 +57,12 @@ module Virial_Density_Contrast
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
   !#   <code>call Galacticus_Error_Report('turnAroundOverVirialRadii','ratio is undefined for this density contrast class')</code>
+  !#  </method>
+  !#  <method name="isMassDependent" >
+  !#   <description>Returns true if the virial density contrast is mass-dependent.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <code>virialDensityContrastIsMassDependent=.false.</code>
   !#  </method>
   include 'virialDensityContrast.type.inc'
   !# </include>

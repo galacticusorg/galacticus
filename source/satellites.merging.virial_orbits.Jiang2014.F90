@@ -126,8 +126,8 @@ contains
     ! Find virial density contrast under Jiang et al. (2014) definition.
     virialDensityContrast_ => self %densityContrastDefinition()
     ! Find mass, radius, and velocity in the host and satellite corresponding to the Jiang et al. (2014) virial density contrast definition.
-    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%time()),radiusHost,velocityHost)
-    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(hostBasic%time())                        )
+    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHost,velocityHost)
+    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                        )
     deallocate(virialDensityContrast_)
     ! Set basic properties of the orbit.
     call jiang2014Orbit%massesSet(massSatellite,massHost)

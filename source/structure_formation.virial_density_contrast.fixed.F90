@@ -118,11 +118,12 @@ contains
     return
   end function fixedConstructor
   
-  double precision function fixedDensityContrast(self,time,expansionFactor,collapsing)
+  double precision function fixedDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming a fixed contrast.
     use Cosmology_Functions
     implicit none
     class           (virialDensityContrastFixed), intent(inout)           :: self
+    double precision                            , intent(in   )           :: mass
     double precision                            , intent(in   ), optional :: time               , expansionFactor
     logical                                     , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass   ), pointer                 :: cosmologyFunctions_
@@ -145,11 +146,12 @@ contains
     return
   end function fixedDensityContrast
 
-  double precision function fixedDensityContrastRateOfChange(self,time,expansionFactor,collapsing)
+  double precision function fixedDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming a fixed contrast.
     use Cosmology_Functions
     implicit none
     class           (virialDensityContrastFixed), intent(inout)           :: self
+    double precision                            , intent(in   )           :: mass
     double precision                            , intent(in   ), optional :: time      , expansionFactor
     logical                                     , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass   ), pointer                 :: cosmologyFunctions_

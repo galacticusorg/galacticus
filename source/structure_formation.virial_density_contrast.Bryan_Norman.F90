@@ -62,12 +62,13 @@ contains
     return
   end function bryanNorman1998DefaultConstructor
 
-  double precision function bryanNorman1998DensityContrast(self,time,expansionFactor,collapsing)
+  double precision function bryanNorman1998DensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
     use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
     class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self
+    double precision                                      , intent(in   )           :: mass
     double precision                                      , intent(in   ), optional :: time               , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass             ), pointer                 :: cosmologyFunctions_
@@ -84,12 +85,13 @@ contains
     return
   end function bryanNorman1998DensityContrast
 
-  double precision function bryanNorman1998DensityContrastRateOfChange(self,time,expansionFactor,collapsing)
+  double precision function bryanNorman1998DensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
     use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
     class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self
+    double precision                                      , intent(in   )           :: mass
     double precision                                      , intent(in   ), optional :: time      , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass             ), pointer                 :: cosmologyFunctions_
