@@ -12,7 +12,7 @@ unshift(@INC,$galacticusPath."perl");
 use XML::Simple;
 use Data::Dumper;
 
-# Grab treeand particle data from the Millennium databases.
+# Grab tree and particle data from the Millennium databases.
 # Andrew Benson (18-Mar-2010)
 
 # Create a hash of named arguments.
