@@ -663,9 +663,7 @@ contains
        modifierCovarianceDiagonal=0.0d0
        ! Iterate over masses.
        do i=1,massCount
-          ! Compute output halo weight.
-          haloWeightOutput=thisHalo%haloWeight*thisCorrelationFunction%outputWeight(i,thisHalo%outputNumber)
-          ! Find mean number of satellites and satellite pairs.
+           ! Find mean number of satellites and satellite pairs.
           if (thisHalo%satelliteCount > 0) then
              satelliteCountMean     =Poisson_Binomial_Distribution_Mean      (thisHalo%satelliteProbability(1:thisHalo%satelliteCount,i))
              satellitePairsCountMean=Poisson_Binomial_Distribution_Mean_Pairs(thisHalo%satelliteProbability(1:thisHalo%satelliteCount,i))
@@ -675,6 +673,8 @@ contains
           end if
           ! Skip if this halo contains no galaxies.
           if (thisHalo%centralProbability(i) > 0.0d0 .or. satelliteCountMean > 0.0d0) then             
+             ! Compute output halo weight.
+             haloWeightOutput=thisHalo%haloWeight*thisCorrelationFunction%outputWeight(i,thisHalo%outputNumber)
              ! Compute contribution to galaxy density.
              galaxyDensity(i)= haloWeightOutput                 &
                   &           *(                                &
