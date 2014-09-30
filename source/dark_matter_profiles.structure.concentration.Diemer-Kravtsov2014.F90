@@ -24,7 +24,9 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationDiemerKravtsov2014
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{diemer_universal_2014}.
      private
-     double precision :: kappa, phi0, phi1, eta0, eta1, alpha, beta
+     double precision           :: kappa, phi0, phi1, eta0, eta1, alpha, beta, scatter
+     type            (fgsl_rng) :: clonedPseudoSequenceObject, pseudoSequenceObject
+     logical                    :: resetSequence             , resetSequenceSnapshot
    contains
      procedure :: concentration               => diemerKravtsov2014Concentration
      procedure :: densityContrastDefinition   => diemerKravtsov2014DensityContrastDefinition
@@ -41,10 +43,10 @@
   logical          :: diemerKravtsov2014Initialized=.false.
 
   ! Default parameters.
-  double precision :: darkMatterProfileConcentrationDiemerKravtsov2014Kappa, darkMatterProfileConcentrationDiemerKravtsov2014Phi0 , &
-       &              darkMatterProfileConcentrationDiemerKravtsov2014Phi1 , darkMatterProfileConcentrationDiemerKravtsov2014Eta0 , &
-       &              darkMatterProfileConcentrationDiemerKravtsov2014Eta1 , darkMatterProfileConcentrationDiemerKravtsov2014Alpha, &
-       &              darkMatterProfileConcentrationDiemerKravtsov2014Beta
+  double precision :: darkMatterProfileConcentrationDiemerKravtsov2014Kappa, darkMatterProfileConcentrationDiemerKravtsov2014Phi0   , &
+       &              darkMatterProfileConcentrationDiemerKravtsov2014Phi1 , darkMatterProfileConcentrationDiemerKravtsov2014Eta0   , &
+       &              darkMatterProfileConcentrationDiemerKravtsov2014Eta1 , darkMatterProfileConcentrationDiemerKravtsov2014Alpha  , &
+       &              darkMatterProfileConcentrationDiemerKravtsov2014Beta , darkMatterProfileConcentrationDiemerKravtsov2014Scatter
 
 contains
 
@@ -135,45 +137,60 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter("darkMatterProfileConcentrationDiemerKravtsov2014Beta",darkMatterProfileConcentrationDiemerKravtsov2014Beta,defaultValue=1.69d0)
+          !@ <inputParameter>
+          !@   <name>darkMatterProfileConcentrationDiemerKravtsov2014Scatter</name>
+          !@   <defaultValue>0.0</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The scatter (in dex) to assume in the halo concentration algorithm of \cite{diemer_universal_2014}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("darkMatterProfileConcentrationDiemerKravtsov2014Scatter",darkMatterProfileConcentrationDiemerKravtsov2014Scatter,defaultValue=0.0d0)
           ! Record that method is now initialized.
           diemerKravtsov2014Initialized=.true.
        end if
        !$omp end critical(diemerKravtsov2014DefaultInitialize)
     end if
     ! Construct the object.
-    diemerKravtsov2014DefaultConstructor                                                         &
-         & =diemerKravtsov2014Constructor(                                                       &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Kappa, &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Phi0 , &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Phi1 , &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Eta0 , &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Eta1 , &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Alpha, &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Beta   &
+    diemerKravtsov2014DefaultConstructor                                                           &
+         & =diemerKravtsov2014Constructor(                                                         &
+         &                                darkMatterProfileConcentrationDiemerKravtsov2014Kappa  , &
+         &                                darkMatterProfileConcentrationDiemerKravtsov2014Phi0   , &
+         &                                darkMatterProfileConcentrationDiemerKravtsov2014Phi1   , &
+         &                                darkMatterProfileConcentrationDiemerKravtsov2014Eta0   , &
+         &                                darkMatterProfileConcentrationDiemerKravtsov2014Eta1   , &
+         &                                darkMatterProfileConcentrationDiemerKravtsov2014Alpha  , &
+         &                                darkMatterProfileConcentrationDiemerKravtsov2014Beta   , &
+         &                                darkMatterProfileConcentrationDiemerKravtsov2014Scatter  &
          &                               )
     return
   end function diemerKravtsov2014DefaultConstructor
 
-  function diemerKravtsov2014Constructor(kappa,phi0,phi1,eta0,eta1,alpha,beta)
+  function diemerKravtsov2014Constructor(kappa,phi0,phi1,eta0,eta1,alpha,beta,scatter)
     !% Constructor for the {\tt diemerKravtsov2014} dark matter halo profile concentration class.
     use Galacticus_Error
     implicit none
     type            (darkMatterProfileConcentrationDiemerKravtsov2014)                :: diemerKravtsov2014Constructor
-    double precision                                                  , intent(in   ) :: kappa, phi0, phi1, eta0, eta1, alpha, beta
+    double precision                                                  , intent(in   ) :: kappa, phi0, phi1, eta0, eta1, alpha, beta, scatter
     
-    diemerKravtsov2014Constructor%kappa=kappa
-    diemerKravtsov2014Constructor%phi0 =phi0
-    diemerKravtsov2014Constructor%phi1 =phi1
-    diemerKravtsov2014Constructor%eta0 =eta0
-    diemerKravtsov2014Constructor%eta1 =eta1
-    diemerKravtsov2014Constructor%alpha=alpha
-    diemerKravtsov2014Constructor%beta =beta
+    diemerKravtsov2014Constructor%kappa        =kappa
+    diemerKravtsov2014Constructor%phi0         =phi0
+    diemerKravtsov2014Constructor%phi1         =phi1
+    diemerKravtsov2014Constructor%eta0         =eta0
+    diemerKravtsov2014Constructor%eta1         =eta1
+    diemerKravtsov2014Constructor%alpha        =alpha
+    diemerKravtsov2014Constructor%beta         =beta
+    diemerKravtsov2014Constructor%scatter      =scatter
+    diemerKravtsov2014Constructor%resetSequence=.true.
     return
   end function diemerKravtsov2014Constructor
   
   double precision function diemerKravtsov2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\tt node} using the \cite{diemer_universal_2014} algorithm.
     use Numerical_Constants_Math
+    use Gaussian_Random
     use Power_Spectra
     use Critical_Overdensity
     use Cosmology_Parameters
@@ -220,6 +237,15 @@ contains
          &                             +(peakHeight/peakHeightMinimum)**(-self%alpha)   &
          &                             +(peakHeight/peakHeightMinimum)**(+self%beta )   &
          &                            )
+    ! Add scatter if necessary.
+    if (self%scatter > 0.0d0)                                      &
+         &  diemerKravtsov2014Concentration                        &
+         & =diemerKravtsov2014Concentration                        &
+         & *10.0d0**Gaussian_Random_Get(                           &
+         &                              self%pseudoSequenceObject, &
+         &                              self%scatter             , &
+         &                              self%resetSequence         &
+         &                             )
     return
   end function diemerKravtsov2014Concentration
 
@@ -259,3 +285,39 @@ contains
     end select
     return
   end function diemerKravtsov2014DarkMatterProfileDefinition
+
+  subroutine diemerKravtsov2014StateSnapshot(self)
+    !% Write the tablulation state to file.
+    implicit none
+    class(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
+
+    if (.not.self%resetSequence) self%clonedPseudoSequenceObject=FGSL_Rng_Clone(self%pseudoSequenceObject)
+    self%resetSequenceSnapshot=self%resetSequence
+    return
+  end subroutine diemerKravtsov2014StateSnapshot
+
+  subroutine diemerKravtsov2014StateStore(self,stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
+    use Pseudo_Random
+    implicit none
+    class  (darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
+    integer                                                  , intent(in   ) :: stateFile
+    type   (fgsl_file                                       ), intent(in   ) :: fgslStateFile
+
+    write (stateFile) self%resetSequenceSnapshot
+    if (.not.self%resetSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
+    return
+  end subroutine diemerKravtsov2014StateStore
+
+  subroutine diemerKravtsov2014StateRestore(self,stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
+    use Pseudo_Random
+    implicit none
+    class  (darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
+    integer                                                  , intent(in   ) :: stateFile
+    type   (fgsl_file                                       ), intent(in   ) :: fgslStateFile
+
+    read (stateFile) self%resetSequence
+    if (.not.self%resetSequence) call Pseudo_Random_Retrieve(self%pseudoSequenceObject,fgslStateFile)
+   return
+  end subroutine diemerKravtsov2014StateRestore

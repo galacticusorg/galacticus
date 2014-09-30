@@ -18,6 +18,7 @@ require Galacticus::Constraints::Parameters;
 require Galacticus::Constraints::DiscrepancySystematics;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
+require Galacticus::Launch::PBS;
 
 # Run calculations to determine the model discrepancy arising from the use of variable mass resolution when building trees.
 # Andrew Benson (28-January-2013)
@@ -29,8 +30,9 @@ my $configFile = $ARGV[0];
 my $iArg = -1;
 my %arguments = 
     (
-     make => "yes",
-     plot => "no"
+     make         => "yes" ,
+     plot         => "no"  ,
+     massFraction => 1.0e-3
     );
 while ( $iArg < $#ARGV ) {
     ++$iArg;
@@ -45,17 +47,17 @@ my $xml    = new XML::Simple;
 my $config = $xml->XMLin($configFile, KeyAttr => 0);
 
 # Validate the config file.
-die("variableTreeMassResolution.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'workDirectory' }) );
-die("variableTreeMassResolution.pl: compilation must be specified in config file"   ) unless ( exists($config->{'compilation'   }) );
-die("variableTreeMassResolution.pl: baseParameters must be specified in config file") unless ( exists($config->{'baseParameters'}) );
+die("variableTreeMassResolution.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
+die("variableTreeMassResolution.pl: compilation must be specified in config file"   ) unless ( exists($config->{'likelihood'}->{'compilation'   }) );
+die("variableTreeMassResolution.pl: baseParameters must be specified in config file") unless ( exists($config->{'likelihood'}->{'baseParameters'}) );
 
 # Determine the scratch and work directories.
-my $workDirectory    = $config->{'workDirectory'};
-my $scratchDirectory = $config->{'workDirectory'};
-$scratchDirectory    = $config->{'scratchDirectory'} if ( exists($config->{'scratchDirectory'}) );
+my $workDirectory    = $config->{'likelihood'}->{'workDirectory'};
+my $scratchDirectory = $config->{'likelihood'}->{'workDirectory'};
+$scratchDirectory    = $config->{'likelihood'}->{'scratchDirectory'} if ( exists($config->{'likelihood'}->{'scratchDirectory'}) );
 
 # Create the work and scratch directories.
-system("mkdir -p ".$config->{'workDirectory'});
+system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'});
 
 # Ensure that Galacticus is built.
 if ( $arguments{'make'} eq "yes" ) {
@@ -65,7 +67,7 @@ if ( $arguments{'make'} eq "yes" ) {
 }
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'compilation'},$config->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Switch off thread locking.
@@ -137,60 +139,53 @@ foreach my $model ( @models ) {
 	# Generate the parameter file.
 	my $parameterFileName = $modelDirectory."/parameters.xml";
 	&Parameters::Output($newParameters,$parameterFileName);
-	# Create a batch script for PBS.
-	my $batchScriptFileName = $modelDirectory."/launch.pbs";
-	open(oHndl,">".$batchScriptFileName);
-	print oHndl "#!/bin/bash\n";
-	print oHndl "#PBS -N variableTreeMassResolution".$model->{'label'}."\n";
-	print oHndl "#PBS -l nodes=1:ppn=12\n";
-	print oHndl "#PBS -j oe\n";
-	print oHndl "#PBS -o ".$modelDirectory."/launch.log\n";
-	print oHndl "#PBS -V\n";
-	print oHndl "cd \$PBS_O_WORKDIR\n";
-	print oHndl "export LD_LIBRARY_PATH=/home/abenson/Galacticus/Tools/lib:/home/abenson/Galacticus/Tools/lib64:\$LD_LIBRARY_PATH\n";
-	print oHndl "export PATH=/home/abenson/Galacticus/Tools/bin:\$PATH\n";
-	print oHndl "export GFORTRAN_ERROR_DUMPCORE=YES\n";
-	print oHndl "ulimit -t unlimited\n";
-	print oHndl "ulimit -c unlimited\n";
-	print oHndl "export OMP_NUM_THREADS=12\n";
-	print oHndl "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
+	# Create a job for PBS.
+	my $command = "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
 	foreach my $constraint ( @constraints ) {
 	    # Parse the definition file.
 	    my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
 	    # Insert code to run the analysis code.
 	    my $analysisCode = $constraintDefinition->{'analysis'};
-	    print oHndl $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".xml\n";
+	    $command .= $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5\n";
 	}
-	close(oHndl);
+	# Queue the calculation.
+	my %job =
+	    (
+	     launchFile => $modelDirectory."/launch.pbs",
+	     label      => "variableTreeMassResolution".$model->{'label'},
+	     logFile    => $modelDirectory."/launch.log",
+	     command    => $command
+	    );
+	foreach ( 'ppn', 'walltime', 'memory' ) {
+	    $job{$_} = $arguments{$_}
+	    if ( exists($arguments{$_}) );
+	}
 	# Queue the calculation.
 	push(
 	    @pbsStack,
-	    $batchScriptFileName
-	    );   
+	    \%job
+	    );
     }
 }
 # Send jobs to PBS.
-&PBS_Submit(@pbsStack)
+&PBS::SubmitJobs(\%arguments,@pbsStack)
     if ( scalar(@pbsStack) > 0 );
 # Iterate over constraints.
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
     # Locate the model results.
-    my $variableResolutionResultFileName = $workDirectory."/modelDiscrepancy/variableTreeMassResolution/variableResolution/".$constraintDefinition->{'label'}.".xml";
-    my $fixedResolutionResultFileName    = $workDirectory."/modelDiscrepancy/variableTreeMassResolution/fixedResolution/"   .$constraintDefinition->{'label'}.".xml";
+    my $variableResolutionResultFileName = $workDirectory."/modelDiscrepancy/variableTreeMassResolution/variableResolution/".$constraintDefinition->{'label'}.".hdf5";
+    my $fixedResolutionResultFileName    = $workDirectory."/modelDiscrepancy/variableTreeMassResolution/fixedResolution/"   .$constraintDefinition->{'label'}.".hdf5";
     # Read the results.
-    my $variableResolutionResult = $xml->XMLin($variableResolutionResultFileName);
-    my $fixedResolutionResult    = $xml->XMLin($fixedResolutionResultFileName   );
+    my $variableResolutionResult = new PDL::IO::HDF5($variableResolutionResultFileName);
+    my $fixedResolutionResult    = new PDL::IO::HDF5($fixedResolutionResultFileName   );
     # Extract the results.
-    my $fixedX             = pdl @{$fixedResolutionResult   ->{'x'         }};
-    my $fixedY             = pdl @{$fixedResolutionResult   ->{'y'         }};
-    my $fixedCovariance    = pdl @{$variableResolutionResult->{'covariance'}};
-    my $variableY          = pdl @{$variableResolutionResult->{'y'         }};
-    my $variableCovariance = pdl @{$variableResolutionResult->{'covariance'}};
-    my $ySize              = nelem($fixedY);
-    $fixedCovariance       = reshape($fixedCovariance   ,$ySize,$ySize);
-    $variableCovariance    = reshape($variableCovariance,$ySize,$ySize);
+    my $fixedX             = $fixedResolutionResult   ->dataset('x'         )->get();
+    my $fixedY             = $fixedResolutionResult   ->dataset('y'         )->get();
+    my $fixedCovariance    = $variableResolutionResult->dataset('covariance')->get();
+    my $variableY          = $variableResolutionResult->dataset('y'         )->get();
+    my $variableCovariance = $variableResolutionResult->dataset('covariance')->get();
     # Apply any systematics models.
     my %systematicResults;
     foreach my $argument ( keys(%arguments) ) {
@@ -199,11 +194,12 @@ foreach my $constraint ( @constraints ) {
 	    if ( exists($DiscrepancySystematics::models{$model}) ) {
 		%{$systematicResults{$model}} =
 		    &{$DiscrepancySystematics::models{$model}}(
-		    \%arguments        ,
-		    $fixedX            ,
-		    $fixedY            ,
-		    $fixedCovariance   ,
-		    $variableY         ,
+		    \%arguments          ,
+		    $constraintDefinition,
+		    $fixedX              ,
+		    $fixedY              ,
+		    $fixedCovariance     ,
+		    $variableY           ,
 		    $variableCovariance
 		);
 	    }
@@ -305,51 +301,3 @@ foreach my $constraint ( @constraints ) {
 }
 
 exit;
-
-sub PBS_Submit {
-    # Submit jobs to PBS and wait for them to finish.
-    my @pbsStack = @_;
-    my %pbsJobs;
-    # Determine maximum number allowed in queue at once.
-    my $jobMaximum = 10;
-    $jobMaximum = $arguments{'pbsJobMaximum'}
-    if ( exists($arguments{'pbsJobMaximum'}) );
-    # Submit jobs and wait.
-    print "Waiting for PBS jobs to finish...\n";
-    while ( scalar(keys %pbsJobs) > 0 || scalar(@pbsStack) > 0 ) {
-	# Find all PBS jobs that are running.
-	my %runningPBSJobs;
-	undef(%runningPBSJobs);
-	open(pHndl,"qstat -f|");
-	while ( my $line = <pHndl> ) {
-	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$runningPBSJobs{$1} = 1};
-	}
-	close(pHndl);
-	foreach my $jobID ( keys(%pbsJobs) ) {
-	    unless ( exists($runningPBSJobs{$jobID}) ) {
-		print "PBS job ".$jobID." has finished.\n";
-		# Remove the job ID from the list of active PBS jobs.
-		delete($pbsJobs{$jobID});
-	    }
-	}
-	# If fewer than ten jobs are in the queue, pop one off the stack.
-	if ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < 20 ) {
-	    my $batchScript = pop(@pbsStack);
-	    # Submit the PBS job.
-	    open(pHndl,"qsub ".$batchScript."|");
-	    my $jobID = "";
-	    while ( my $line = <pHndl> ) {
-	    	if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
-	    }
-	    close(pHndl);	    
-	    # Add the job number to the active job hash.
-	    unless ( $jobID eq "" ) {
-	    	$pbsJobs{$jobID} = 1;
-	    }
-	    sleep 5;
-	} else {
-	    # Wait.
-	    sleep 60;
-	}
-    }
-}

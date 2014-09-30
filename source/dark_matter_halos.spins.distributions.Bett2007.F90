@@ -153,7 +153,10 @@ contains
     type   (fgsl_file), intent(in   ) :: fgslStateFile
 
     write (stateFile) resetRandomSequenceSnapshot
-    if (.not.resetRandomSequenceSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
+    if (.not.resetRandomSequenceSnapshot) then
+       call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
+       call FGSL_RNG_Free      (clonedPseudoSequenceObject              )
+    end if
     return
   end subroutine Halo_Spin_Distribution_Bett2007_State_Store
 

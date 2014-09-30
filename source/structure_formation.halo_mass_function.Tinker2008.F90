@@ -91,6 +91,8 @@ contains
     !$omp threadprivate(interpolationObject,interpolationAccelerator,resetInterpolation)
     double precision                                           , save :: timePrevious             =-1.0d0
     !$omp threadprivate(timePrevious)  
+    double precision                                           , save :: massPrevious             =-1.0d0
+    !$omp threadprivate(massPrevious)  
     double precision                                           , save :: Delta                           , a             , &
          &                                                               a0                              , alphaDelta    , &
          &                                                               b                               , b0            , &
@@ -103,14 +105,14 @@ contains
     class           (virialDensityContrastClass), pointer             :: virialDensityContrast_
 
     ! Update fitting function parameters if the time differs from that on the previous call.
-    if (time /= timePrevious) then
+    if (time /= timePrevious .or. mass /= massPrevious) then
        ! Get the default objects.
        cosmologyFunctionsDefault => cosmologyFunctions   ()
        virialDensityContrast_    => virialDensityContrast()
        ! Get halo virial density contrast, expansion factor and growth factor.
-       expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
-       Delta          =virialDensityContrast_   %densityContrast(time)
-       growthFactor   =Linear_Growth_Factor                     (time)
+       expansionFactor=cosmologyFunctionsDefault%expansionFactor(     time)
+       Delta          =virialDensityContrast_   %densityContrast(mass,time)
+       growthFactor   =Linear_Growth_Factor                     (     time)
 
        ! Compute coefficients of fitting function.
        normalization0=Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableNormalization &
@@ -129,8 +131,9 @@ contains
        b=b0*expansionFactor**alphaDelta
        c=c0
 
-       ! Store the time.
+       ! Store the time and mass.
        timePrevious=time
+       massPrevious=mass
     end if
 
     ! Get the default cosmology.
