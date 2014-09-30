@@ -22,6 +22,7 @@ require Galacticus::Build::Labels;
 require Galacticus::Build::Function;
 require Galacticus::Build::FunctionCall;
 require Galacticus::Build::BindingsC;
+require Galacticus::Build::FunctionGlobal;
 
 # Scans source code for "!#" directives and generates an include file.
 # Andrew Benson (18-November-2011)

@@ -10,7 +10,6 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
 }
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
-use PDL::NiceSlice;
 use PDL::IO::HDF5;
 require Galacticus::Options;
 require Galacticus::Constraints::MassFunctions;
@@ -27,7 +26,10 @@ $massFunctionConfig->{'self'          } = $0;
 $massFunctionConfig->{'galacticusFile'} = $ARGV[0];
 # Create a hash of named arguments.
 my $iArg = -1;
-my %arguments;
+my %arguments =
+    (
+     quiet => 0
+    );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
 # Specify the properties of this mass function.

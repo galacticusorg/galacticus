@@ -15,252 +15,266 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{wetzel_orbits_2010} orbital parameter distribution for merging subhalos.
+  !% An implementation of virial orbits using the \cite{wetzel_orbits_2010} orbital parameter distribution.
 
-module Virial_Orbits_Wetzel2010
-  !% Implements the \cite{wetzel_orbits_2010} orbital parameter distribution for merging subhalos.
-  use Tables
   use FGSL
-  implicit none
-  private
-  public :: Virial_Orbital_Parameters_Wetzel2010_Initialize, Virial_Orbital_Parameters_Wetzel2010_Snapshot,&
-       & Virial_Orbital_Parameters_Wetzel2010_State_Store, Virial_Orbital_Parameters_Wetzel2010_State_Retrieve
+  use Tables
+  use Root_Finder
 
-  type            (fgsl_rng                )              :: clonedPseudoSequenceObject                 , pseudoSequenceObject
-  logical                                                 :: resetSequence                   =.true.    , resetSequenceSnapshot
-  !$omp threadprivate(pseudoSequenceObject,resetSequence,clonedPseudoSequenceObject,resetSequenceSnapshot)
+  !# <virialOrbit name="virialOrbitWetzel2010">
+  !#  <description>Virial orbits using the \cite{wetzel_orbits_2010} orbital parameter distribution.</description>
+  !# </virialOrbit>
+
+  type, extends(virialOrbitClass) :: virialOrbitWetzel2010
+     !% A virial orbit class using the \cite{wetzel_orbits_2010} orbital parameter distribution.
+     private
+     type   (fgsl_rng                )              :: clonedPseudoSequenceObject   , pseudoSequenceObject
+     logical                                        :: resetSequence                , resetSequenceSnapshot
+     integer                                        :: pericentricRadiusCount
+     type   (table1DLogarithmicLinear)              :: pericentricRadiusTable
+     class  (table1D                 ), allocatable :: pericentricRadiusTableInverse
+     type   (rootFinder              )              :: finder
+  contains
+     procedure :: stateSnapshot             => wetzel2010StateSnapshot
+     procedure :: stateStore                => wetzel2010StateStore
+     procedure :: stateRestore              => wetzel2010StateRestore
+     procedure :: orbit                     => wetzel2010Orbit
+     procedure :: densityContrastDefinition => wetzel2010DensityContrastDefinition
+  end type virialOrbitWetzel2010
+
+  interface virialOrbitWetzel2010
+     !% Constructors for the {\tt wetzel2010} virial orbit class.
+     module procedure wetzel2010Constructor
+  end interface virialOrbitWetzel2010
+
   ! Table of the cumulative distribution for the pericentric radius.
-  integer                                   , parameter   :: pericentricRadiusPointsPerDecade=10
-  integer                                                 :: pericentricRadiusCount
-  double precision                          , parameter   :: pericentricRadiusMaximum        =1.0d2     , pericentricRadiusMinimum=1.0d-6
-  type            (table1DLogarithmicLinear)              :: pericentricRadiusTable
-  class           (table1D                 ), allocatable :: pericentricRadiusTableInverse
-
+  integer         , parameter :: wetzel2010PericentricRadiusPointsPerDecade=10
+  double precision, parameter :: wetzel2010PericentricRadiusMaximum        =1.0d2     , wetzel2010PericentricRadiusMinimum=1.0d-6
   ! Parameters of the fitting functions.
-  double precision                          , parameter   :: circularityAlpha1               =0.242d0   , circularityBeta1        =2.360d0 , &
-       &                                                     circularityGamma1               =0.108d0   , circularityGamma2       =1.05d0  , &
-       &                                                     circularityP1                   =0.0d0
-  double precision                          , parameter   :: pericenterAlpha1                =0.450d0   , pericenterBeta1         =-0.395d0, &
-       &                                                     pericenterGamma1                =0.109d0   , pericenterGamma2        =0.85d0  , &
-       &                                                     pericenterP1                    =-4.0d0
-  double precision                          , parameter   :: c1Maximum                       =9.999999d0, r1Minimum               =0.05d0
+  double precision, parameter :: wetzel2010CircularityAlpha1               =0.242d0   , wetzel2010CircularityBeta1        =2.360d0 , &
+       &                         wetzel2010CircularityGamma1               =0.108d0   , wetzel2010CircularityGamma2       =1.05d0  , &
+       &                         wetzel2010CircularityP1                   =0.0d0
+  double precision, parameter :: wetzel2010PericenterAlpha1                =0.450d0   , wetzel2010PericenterBeta1         =-0.395d0, &
+       &                         wetzel2010PericenterGamma1                =0.109d0   , wetzel2010PericenterGamma2        =0.85d0  , &
+       &                         wetzel2010PericenterP1                    =-4.0d0
+  double precision, parameter :: wetzel2010C1Maximum                       =9.999999d0, wetzel2010R1Minimum               =0.05d0
 
-  ! Global variables used in root finding.
-  double precision                                        :: C0                                         , C1                               , &
-       &                                                     uniformDeviate
-  !$omp threadprivate(uniformDeviate,C0,C1)
+  ! Global variables used in root-finding.
+  double precision            :: wetzel2010C0                                         , wetzel2010C1                               , &
+       &                         wetzel2010UniformDeviate
+  !$omp threadprivate(wetzel2010C0,wetzel2010C1,wetzel2010UniformDeviate)
 
 contains
 
-  !# <virialOrbitsMethod>
-  !#  <unitName>Virial_Orbital_Parameters_Wetzel2010_Initialize</unitName>
-  !# </virialOrbitsMethod>
-  subroutine Virial_Orbital_Parameters_Wetzel2010_Initialize(virialOrbitsMethod,Virial_Orbital_Parameters_Get)
-    !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
+  function wetzel2010Constructor()
+    !% Generic constructor for the {\tt wetzel2010} virial orbits class.
+    use Input_Parameters
     use Hypergeometric_Functions
     implicit none
-    type            (varying_string                      ), intent(in   )          :: virialOrbitsMethod
-    procedure       (Virial_Orbital_Parameters_Wetzel2010), intent(inout), pointer :: Virial_Orbital_Parameters_Get
-    integer                                                                        :: iRadius
-    double precision                                                               :: probabilityCumulative        , probabilityCumulativeNormalization, &
-         &                                                                            x                            , xGamma2
+    type            (virialOrbitWetzel2010), target    :: wetzel2010Constructor
+    double precision                       , parameter :: toleranceAbsolute    =0.0d0, toleranceRelative                 =1.0d-2
+    integer                                            :: iRadius
+    double precision                                   :: x                          , xGamma2                                  , &
+         &                                                probabilityCumulative      , probabilityCumulativeNormalization
 
-    if (virialOrbitsMethod == 'Wetzel2010') then
-       ! Set procedure pointer to our orbital parameter function.
-       Virial_Orbital_Parameters_Get => Virial_Orbital_Parameters_Wetzel2010
-
-       ! Construct a look-up table for the pericentric radius distribution.
-       ! Determine number of points to use in the tabulation.
-       pericentricRadiusCount=int(log10(pericentricRadiusMaximum/pericentricRadiusMinimum)*dble(pericentricRadiusPointsPerDecade))+1
-       ! Construct a range of radii.
-       call pericentricRadiusTable%destroy()
-       call pericentricRadiusTable%create(pericentricRadiusMinimum,pericentricRadiusMaximum,pericentricRadiusCount)
-       ! For each radius, compute the cumulative probability.
-       do iRadius=pericentricRadiusCount,1,-1
-          x      =pericentricRadiusTable%x(iRadius)
-          xGamma2=x**pericenterGamma2
-          probabilityCumulative=                                                                                                    &
-               &  exp(-xGamma2)                                                                                                     &
-               &  *x                                                                                                                &
-               &  *(                                                                                                                &
-               &     pericenterGamma2                                                                                               &
-               &    *(                                                                                                              &
-               &       1.0d0                                                                                                        &
-               &      +pericenterGamma2                                                                                             &
-               &      *(1.0d0+xGamma2)                                                                                              &
-               &     )                                                                                                              &
-               &    *Hypergeometric_1F1([2.0d0],[(1.0d0+3.0d0*pericenterGamma2)/pericenterGamma2],xGamma2)/(1.0d0+pericenterGamma2) &
-               &    +Hypergeometric_1F1([1.0d0],[(1.0d0+3.0d0*pericenterGamma2)/pericenterGamma2],xGamma2)*(1.0d0+pericenterGamma2) &
-               &   )
-          if (iRadius == pericentricRadiusCount) probabilityCumulativeNormalization=probabilityCumulative
-          call pericentricRadiusTable%populate(probabilityCumulative/probabilityCumulativeNormalization,iRadius)
-       end do
-       call pericentricRadiusTable%reverse(pericentricRadiusTableInverse)
-    end if
+    ! Initialize random sequence.
+    wetzel2010Constructor%resetSequence=.true.
+    ! Initialize root finder.
+    call wetzel2010Constructor%finder%rootFunction(wetzel2010CircularityRoot          )
+    call wetzel2010Constructor%finder%tolerance   (toleranceAbsolute,toleranceRelative)
+    ! Construct a look-up table for the pericentric radius distribution.
+    ! Determine number of points to use in the tabulation.
+    wetzel2010Constructor%pericentricRadiusCount=int(log10(wetzel2010PericentricRadiusMaximum/wetzel2010PericentricRadiusMinimum)*dble(wetzel2010PericentricRadiusPointsPerDecade))+1
+    ! Construct a range of radii.
+    call wetzel2010Constructor%pericentricRadiusTable%destroy()
+    call wetzel2010Constructor%pericentricRadiusTable%create(wetzel2010PericentricRadiusMinimum,wetzel2010PericentricRadiusMaximum,wetzel2010Constructor%pericentricRadiusCount)
+    ! For each radius, compute the cumulative probability.
+    do iRadius=wetzel2010Constructor%pericentricRadiusCount,1,-1
+       x      =wetzel2010Constructor%pericentricRadiusTable%x(iRadius)
+       xGamma2=x**wetzel2010PericenterGamma2
+       probabilityCumulative=                                                                                                                                  &
+            &  exp(-xGamma2)                                                                                                                                   &
+            &  *x                                                                                                                                              &
+            &  *(                                                                                                                                              &
+            &     wetzel2010PericenterGamma2                                                                                                                   &
+            &    *(                                                                                                                                            &
+            &       1.0d0                                                                                                                                      &
+            &      +wetzel2010PericenterGamma2                                                                                                                 &
+            &      *(1.0d0+xGamma2)                                                                                                                            &
+            &     )                                                                                                                                            &
+            &    *Hypergeometric_1F1([2.0d0],[(1.0d0+3.0d0*wetzel2010PericenterGamma2)/wetzel2010PericenterGamma2],xGamma2)/(1.0d0+wetzel2010PericenterGamma2) &
+            &    +Hypergeometric_1F1([1.0d0],[(1.0d0+3.0d0*wetzel2010PericenterGamma2)/wetzel2010PericenterGamma2],xGamma2)*(1.0d0+wetzel2010PericenterGamma2) &
+            &   )
+       if (iRadius == wetzel2010Constructor%pericentricRadiusCount) probabilityCumulativeNormalization=probabilityCumulative
+       call wetzel2010Constructor%pericentricRadiusTable%populate(probabilityCumulative/probabilityCumulativeNormalization,iRadius)
+    end do
+    call wetzel2010Constructor%pericentricRadiusTable%reverse(wetzel2010Constructor%pericentricRadiusTableInverse)
     return
-  end subroutine Virial_Orbital_Parameters_Wetzel2010_Initialize
+  end function wetzel2010Constructor
 
- function Virial_Orbital_Parameters_Wetzel2010(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
-    !% Return orbital velocities of a satellite selected at random from the fitting function found by \cite{wetzel_orbits_2010}.
-    use Pseudo_Random
-    use Galacticus_Nodes
+  function wetzel2010Orbit(self,node,host,acceptUnboundOrbits)
+    !% Return wetzel2010 orbital parameters for a satellite.
+    use Dark_Matter_Profile_Mass_Definitions
     use Dark_Matter_Halo_Scales
+    use Galacticus_Error
+    use Pseudo_Random
     use Critical_Overdensity
-    use Root_Finder
     use Cosmology_Functions
-    use Kepler_Orbits
     implicit none
-    type            (keplerOrbit            )                                    :: thisOrbit
-    type            (treeNode               )           , intent(inout), pointer :: hostNode                       , thisNode
-    logical                                             , intent(in   )          :: acceptUnboundOrbits
-    class           (nodeComponentBasic     )                          , pointer :: hostBasicComponent             , thisBasicComponent
-    class           (cosmologyFunctionsClass)                          , pointer :: cosmologyFunctionsDefault
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                         , parameter                         :: toleranceAbsolute        =0.0d0, toleranceRelative     =1.0d-2
-    double precision                         , parameter                         :: circularityMaximum       =1.0d0, circularityMinimum    =0.0d0
-    double precision                         , parameter                         :: redshiftMaximum          =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
-    type            (rootFinder             ), save                              :: finder
-    !$omp threadprivate(finder)
-    double precision                                                             :: R1                             , apocentricRadius                                    , &
-         &                                                                          circularity                    , eccentricityInternal                                , &
-         &                                                                          expansionFactor                , g1                                                  , &
-         &                                                                          massCharacteristic             , pericentricRadius                                   , &
-         &                                                                          probabilityTotal               , radialScale                                         , &
-         &                                                                          timeNode
-    logical                                                                      :: foundOrbit
-
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(Circularity_Root                   )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-    end if
+    type            (keplerOrbit               )                         :: wetzel2010Orbit
+    class           (virialOrbitWetzel2010     ), intent(inout)          :: self
+    type            (treeNode                  ), intent(inout), pointer :: host                   , node
+    logical                                     , intent(in   )          :: acceptUnboundOrbits
+    class           (nodeComponentBasic        )               , pointer :: hostBasic             , basic
+    class           (cosmologyFunctionsClass   )               , pointer :: cosmologyFunctions_
+    class           (virialDensityContrastClass), pointer                :: virialDensityContrast_
+    class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
+    double precision                            , parameter              :: circularityMaximum       =1.0d0, circularityMinimum    =0.0d0
+    double precision                            , parameter              :: redshiftMaximum          =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
+    double precision                                                     :: R1                             , apocentricRadius                                    , &
+         &                                                                  circularity                    , eccentricityInternal                                , &
+         &                                                                  expansionFactor                , g1                                                  , &
+         &                                                                  massCharacteristic             , pericentricRadius                                   , &
+         &                                                                  probabilityTotal               , radialScale                                         , &
+         &                                                                  timeNode                       , velocityHost                                        , &
+         &                                                                  radiusHost                     , massHost                                            , &
+         &                                                                  massSatellite
+    logical                                                              :: foundOrbit
 
     ! Reset the orbit.
-    call thisOrbit%reset()
-    ! Set masses and radius of the orbit.
-    thisBasicComponent   => thisNode%basic     ()
-    hostBasicComponent   => hostNode%basic     ()
+    call wetzel2010Orbit%reset()
+    ! Get required objects.
+    cosmologyFunctions_  => cosmologyFunctions ()
     darkMatterHaloScale_ => darkMatterHaloScale()
-    call thisOrbit%massesSet(thisBasicComponent%mass(),hostBasicComponent%mass())
-    call thisOrbit%radiusSet(darkMatterHaloScale_%virialRadius(hostNode))
-
+    ! Set masses and radius of the orbit.
+    basic                => node%basic         ()
+    hostBasic            => host%basic         ()
+    ! Find virial density contrast under Wetzel (2010) definition.
+    virialDensityContrast_          => self                  %densityContrastDefinition(                )
+    ! Find mass, radius, and velocity in the host corresponding to the Wetzel (2010) virial density contrast definition.
+    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHost,velocityHost)
+    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                        )
+    deallocate(virialDensityContrast_)
+    ! Set basic properties of the orbit.
+    call wetzel2010Orbit%massesSet(massSatellite,massHost)
+    call wetzel2010Orbit%radiusSet(radiusHost            )
     ! Get the time at which this node exists.
-    timeNode=thisBasicComponent%time()
-
-    ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
+    timeNode=basic%time()
     ! Get the expansion factor.
-    expansionFactor=cosmologyFunctionsDefault%expansionFactor(timeNode)
-
+    expansionFactor=cosmologyFunctions_%expansionFactor(timeNode)
     ! Limit the expansion factor to the smallest value considered by Wetzel.
     if (expansionFactor < expansionFactorMinimum) then
-       expansionFactor=              expansionFactorMinimum
-       timeNode       =cosmologyFunctionsDefault%cosmicTime(expansionFactorMinimum)
+       expansionFactor=                               expansionFactorMinimum
+       timeNode       =cosmologyFunctions_%cosmicTime(expansionFactorMinimum)
     end if
-
     ! Get the characteristic mass, M*.
     massCharacteristic=Critical_Overdensity_Collapsing_Mass(timeNode)
-
     ! Compute parameter of the circularity fitting function. We limit C1 to a given maximum - the fit is not explored in this
     ! regime and without the truncation we get problems evaluating hypergeometric functions.
-    g1=(1.0d0/expansionFactor)**circularityP1
-    C1=min(circularityAlpha1*(1.0d0+circularityBeta1*(g1*thisOrbit%hostMass()/massCharacteristic)**circularityGamma1),c1Maximum)
-    C0=1.0d0
-    probabilityTotal=Circularity_Cumulative_Probability(circularityMaximum)
-    C0=1.0d0/probabilityTotal
-
+    g1              =(1.0d0/expansionFactor)**wetzel2010CircularityP1
+    wetzel2010C1    =min(wetzel2010CircularityAlpha1*(1.0d0+wetzel2010CircularityBeta1*(g1*wetzel2010Orbit%hostMass()/massCharacteristic)**wetzel2010CircularityGamma1),wetzel2010C1Maximum)
+    wetzel2010C0    =1.0d0
+    probabilityTotal=wetzel2010CircularityCumulativeProbability(circularityMaximum)
+    wetzel2010C0    =1.0d0/probabilityTotal
     ! Compute parameter of the pericentric distance fitting function. Since the fit for R1 can lead to negative pericentric
     ! distances in some cases we force R1 to always be above a specified minimum.
-    g1=(1.0d0/expansionFactor)**pericenterP1
-    R1=max(pericenterAlpha1*(1.0d0+pericenterBeta1*(g1*thisOrbit%hostMass()/massCharacteristic)**pericenterGamma1),r1Minimum)
-
+    g1=(1.0d0/expansionFactor)**wetzel2010PericenterP1
+    R1=max(wetzel2010PericenterAlpha1*(1.0d0+wetzel2010PericenterBeta1*(g1*wetzel2010Orbit%hostMass()/massCharacteristic)**wetzel2010PericenterGamma1),wetzel2010R1Minimum)
     ! Search for an orbit.
     foundOrbit=.false.
     do while (.not.foundOrbit)
        ! Compute pericentric radius by inversion in table.
-       uniformDeviate=Pseudo_Random_Get(pseudoSequenceObject,resetSequence)
-       pericentricRadius=R1*pericentricRadiusTableInverse%interpolate(uniformDeviate)
+       wetzel2010UniformDeviate=Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)
+       pericentricRadius=R1*self%pericentricRadiusTableInverse%interpolate(wetzel2010UniformDeviate)
        ! Compute circularity by root finding in the cumulative probability distribution.
-       uniformDeviate=Pseudo_Random_Get(pseudoSequenceObject,resetSequence)
-       circularity=finder%find(rootRange=[circularityMinimum,circularityMaximum])
+       wetzel2010UniformDeviate=Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)
+       circularity=self%finder%find(rootRange=[circularityMinimum,circularityMaximum])
        ! Check that this is an orbit which actually reaches the virial radius.
        eccentricityInternal=sqrt(1.0d0-circularity**2)
        apocentricRadius    =pericentricRadius*(1.0d0+eccentricityInternal)/(1.0d0-eccentricityInternal)
        foundOrbit          =apocentricRadius >= 1.0d0 .and. pericentricRadius <= 1.0d0
+       if (.not.foundOrbit) cycle
+       ! Set eccentricity and periapsis.
+       call wetzel2010Orbit%eccentricitySet    (sqrt(1.0d0-circularity**2)  )
+       call wetzel2010Orbit%radiusPericenterSet(pericentricRadius*radiusHost)
+       ! Propagate the orbit to the virial radius under the default density contrast definition.
+       radiusHost=darkMatterHaloScale_%virialRadius(host)
+       if (wetzel2010Orbit%radiusApocenter() >= radiusHost .and. wetzel2010Orbit%radiusPericenter() <= radiusHost) then
+          foundOrbit=.true.
+          call wetzel2010Orbit%propagate(radiusHost  ,infalling=.true.)
+          call wetzel2010Orbit%massesSet(basic%mass(),hostBasic%mass())
+       end if
     end do
-
-    ! Get length scale for this orbit.
-    radialScale  =darkMatterHaloScale_%virialRadius(hostNode)
-
-    ! Set eccentricity and periapsis.
-    call thisOrbit%eccentricitySet    (sqrt(1.0d0-circularity**2)   )
-    call thisOrbit%radiusPericenterSet(pericentricRadius*radialScale)
-
     return
-  end function Virial_Orbital_Parameters_Wetzel2010
+  end function wetzel2010Orbit
 
-  double precision function Circularity_Root(circularity)
+  function wetzel2010DensityContrastDefinition(self)
+    !% Return a virial density contrast object defining that used in the definition of \cite{wetzel_orbits_2010} virial orbits.
+    implicit none
+    class(virialDensityContrastClass), pointer       :: wetzel2010DensityContrastDefinition
+    class(virialOrbitWetzel2010     ), intent(inout) :: self
+    
+    allocate(virialDensityContrastFriendsOfFriends :: wetzel2010DensityContrastDefinition)
+    select type (wetzel2010DensityContrastDefinition)
+    type is (virialDensityContrastFriendsOfFriends)
+      wetzel2010DensityContrastDefinition=virialDensityContrastFriendsOfFriends(linkingLength=0.168d0,densityRatio=4.688d0)
+    end select
+    return
+  end function wetzel2010DensityContrastDefinition
+  
+  subroutine wetzel2010StateSnapshot(self)
+    !% Write the tablulation state to file.
+    implicit none
+    class(virialOrbitWetzel2010), intent(inout) :: self
+
+    if (.not.self%resetSequence) self%clonedPseudoSequenceObject=FGSL_Rng_Clone(self%pseudoSequenceObject)
+    self%resetSequenceSnapshot=self%resetSequence
+    return
+  end subroutine wetzel2010StateSnapshot
+
+  subroutine wetzel2010StateStore(self,stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
+    use Pseudo_Random
+    implicit none
+    class  (virialOrbitWetzel2010), intent(inout) :: self
+    integer                       , intent(in   ) :: stateFile
+    type   (fgsl_file            ), intent(in   ) :: fgslStateFile
+
+    write (stateFile) self%resetSequenceSnapshot
+    if (.not.self%resetSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
+    return
+  end subroutine wetzel2010StateStore
+
+  subroutine wetzel2010StateRestore(self,stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
+    use Pseudo_Random
+    implicit none
+    class  (virialOrbitWetzel2010), intent(inout) :: self
+    integer                       , intent(in   ) :: stateFile
+    type   (fgsl_file            ), intent(in   ) :: fgslStateFile
+
+    read (stateFile) self%resetSequence
+    if (.not.self%resetSequence) call Pseudo_Random_Retrieve(self%pseudoSequenceObject,fgslStateFile)
+   return
+  end subroutine wetzel2010StateRestore
+
+  double precision function wetzel2010CircularityRoot(circularity)
     !% Function used in finding the circularity corresponding to a given cumulative probability.
     double precision, intent(in   ) :: circularity
     double precision                :: cumulativeProbability
 
-    cumulativeProbability=Circularity_Cumulative_Probability(circularity)
-    Circularity_Root=cumulativeProbability-uniformDeviate
+    cumulativeProbability=wetzel2010CircularityCumulativeProbability(circularity)
+    wetzel2010CircularityRoot=cumulativeProbability-wetzel2010UniformDeviate
     return
-  end function Circularity_Root
+  end function wetzel2010CircularityRoot
 
-  double precision function Circularity_Cumulative_Probability(circularity)
+  double precision function wetzel2010CircularityCumulativeProbability(circularity)
     !% The cumulative probability distribution for orbital circularity.
     use Hypergeometric_Functions
     implicit none
     double precision, intent(in   ) :: circularity
 
-    Circularity_Cumulative_Probability=C0*(circularity**(circularityGamma2+1.0d0))*Hypergeometric_2F1([-C1,1.0d0&
-         &+circularityGamma2],[2.0d0+circularityGamma2],circularity)/(circularityGamma2+1.0d0)
+    wetzel2010CircularityCumulativeProbability=wetzel2010C0*(circularity**(wetzel2010CircularityGamma2+1.0d0))*Hypergeometric_2F1([-wetzel2010C1,1.0d0&
+         &+wetzel2010CircularityGamma2],[2.0d0+wetzel2010CircularityGamma2],circularity)/(wetzel2010CircularityGamma2+1.0d0)
     return
-  end function Circularity_Cumulative_Probability
-
-  !# <galacticusStateSnapshotTask>
-  !#  <unitName>Virial_Orbital_Parameters_Wetzel2010_Snapshot</unitName>
-  !# </galacticusStateSnapshotTask>
-  subroutine Virial_Orbital_Parameters_Wetzel2010_Snapshot
-    !% Store a snapshot of the random number generator internal state.
-    implicit none
-
-    if (.not.resetSequence) clonedPseudoSequenceObject=FGSL_Rng_Clone(pseudoSequenceObject)
-    resetSequenceSnapshot=resetSequence
-    return
-  end subroutine Virial_Orbital_Parameters_Wetzel2010_Snapshot
-
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Virial_Orbital_Parameters_Wetzel2010_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Virial_Orbital_Parameters_Wetzel2010_State_Store(stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Pseudo_Random
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-
-    write (stateFile) resetSequenceSnapshot
-    if (.not.resetSequenceSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
-    return
-  end subroutine Virial_Orbital_Parameters_Wetzel2010_State_Store
-
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Virial_Orbital_Parameters_Wetzel2010_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Virial_Orbital_Parameters_Wetzel2010_State_Retrieve(stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Pseudo_Random
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-
-    read (stateFile) resetSequence
-    if (.not.resetSequence) call Pseudo_Random_Retrieve(pseudoSequenceObject,fgslStateFile)
-    return
-  end subroutine Virial_Orbital_Parameters_Wetzel2010_State_Retrieve
-
-end module Virial_Orbits_Wetzel2010
+  end function wetzel2010CircularityCumulativeProbability

@@ -23,7 +23,11 @@ module Merger_Trees_Mass_Function_Sampling_Halo_MF
   public :: Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize
 
   ! Limits on abundance.
-  double precision :: haloMassFunctionSamplingAbundanceMinimum, haloMassFunctionSamplingAbundanceMaximum
+  double precision            :: haloMassFunctionSamplingAbundanceMinimum       , haloMassFunctionSamplingAbundanceMaximum
+
+  ! Coefficients of power-law modification.
+  double precision            :: haloMassFunctionSamplingModifier1              , haloMassFunctionSamplingModifier2
+  double precision, parameter :: haloMassFunctionSamplingZeroPoint       =1.0d13
 
 contains
 
@@ -62,6 +66,28 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('haloMassFunctionSamplingAbundanceMaximum',haloMassFunctionSamplingAbundanceMaximum,defaultValue=-1.0d0)
+       !@ <inputParameter>
+       !@   <name>haloMassFunctionSamplingModifier1</name>
+       !@   <defaultValue>0</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('haloMassFunctionSamplingModifier1',haloMassFunctionSamplingModifier1,defaultValue=0.0d0)
+       !@ <inputParameter>
+       !@   <name>haloMassFunctionSamplingModifier2</name>
+       !@   <defaultValue>0</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('haloMassFunctionSamplingModifier2',haloMassFunctionSamplingModifier2,defaultValue=0.0d0)
     end if
     return
   end subroutine Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize
@@ -72,7 +98,16 @@ contains
     implicit none
     double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
 
-    Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF=mass*Halo_Mass_Function_Differential(time,mass)
+    ! Construct sampling rate.
+    Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF=                                                                                      &
+         &                                               +                                     mass                                            &
+         &                                               *Halo_Mass_Function_Differential(time,mass)                                           &
+         &                                               *(                                                                                    &
+         &                                                 +1.0d0                                                                              &
+         &                                                 +haloMassFunctionSamplingModifier1*log10(mass/haloMassFunctionSamplingZeroPoint)    &
+         &                                                 +haloMassFunctionSamplingModifier1*log10(mass/haloMassFunctionSamplingZeroPoint)**2 &
+         &                                                )
+    ! Limit sampling rate.
     if (haloMassFunctionSamplingAbundanceMinimum > 0.0d0)             &
          & Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF       &
          & =max(                                                      &
