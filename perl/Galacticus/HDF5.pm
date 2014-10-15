@@ -254,7 +254,7 @@ sub Get_Dataset {
 	    								 parent  => $nodeDataGroup,
 	    								 fileObj => $dataBlock->{'hdf5File'}
 	    			);
-	    		    $outputDataSet->set(${$dataSets->{$dataSetName}});
+	    		    $outputDataSet->set($dataSets->{$dataSetName});
 
 	    		    # Determine if merger tree references need to be written for this model.
 	    		    my $createReference;
