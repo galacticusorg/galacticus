@@ -30,15 +30,16 @@ program Tests_Spherical_Collapse_Dark_Energy_EdS
   use Numerical_Constants_Math
   use Critical_Overdensity
   implicit none
-  double precision                         , dimension(7) :: redshift                   =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
-  class           (cosmologyFunctionsClass), pointer      :: cosmologyFunctionsDefault
+  double precision                            , dimension(7) :: redshift                   =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
+  class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctionsDefault
   class           (virialDensityContrastClass), pointer      :: virialDensityContrast_
-  type            (varying_string         )               :: parameterFile
-  character       (len=1024               )               :: message
-  integer                                                 :: iExpansion
-  double precision                                        :: age                                                                       , criticalOverdensity          , &
-       &                                                     criticalOverdensityExpected                                               , expansionFactor              , &
-       &                                                     virialDensityContrastActual                                               , virialDensityContrastExpected
+  double precision                            , parameter    :: massDummy                    =1.0d0
+  type            (varying_string            )               :: parameterFile
+  character       (len=1024                  )               :: message
+  integer                                                    :: iExpansion
+  double precision                                           :: age                                                                       , criticalOverdensity          , &
+       &                                                        criticalOverdensityExpected                                               , expansionFactor              , &
+       &                                                        virialDensityContrastActual                                               , virialDensityContrastExpected
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.dark_energy.EdS.size')
@@ -59,7 +60,7 @@ program Tests_Spherical_Collapse_Dark_Energy_EdS
      criticalOverdensityExpected=3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0/expansionFactor
      write (message,'(a,f6.1,a,f6.4,a)') "critical density for collapse [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctionsDefault%omegaMatterEpochal(age),"]"
      call Assert(trim(message),criticalOverdensity,criticalOverdensityExpected,relTol=3.0d-5)
-     virialDensityContrastActual  =virialDensityContrast_%densityContrast(age)
+     virialDensityContrastActual  =virialDensityContrast_%densityContrast(massDummy,age)
      virialDensityContrastExpected=18.0d0*Pi**2
      write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast       [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctionsDefault%omegaMatterEpochal(age),"]"
      call Assert(trim(message),virialDensityContrastActual,virialDensityContrastExpected,relTol=3.0d-5)

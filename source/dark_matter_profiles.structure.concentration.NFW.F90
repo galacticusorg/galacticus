@@ -139,7 +139,7 @@ contains
     ! Compute the overdensity of the progenitor at collapse using the scaling given by NFW.
     collapseOverdensity        =self%C*(expansionFactor/collapseExpansionFactor)**3
     ! Find the ratio of this overdensity to that at for the present node.
-    nfw1996TargetValue         =collapseOverdensity/virialDensityContrast_%densityContrast(nodeTime)
+    nfw1996TargetValue         =collapseOverdensity/virialDensityContrast_%densityContrast(nodeMass,nodeTime)
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rangeExpand (                                               &

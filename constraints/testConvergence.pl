@@ -14,6 +14,7 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::MatrixOps;
 use PDL::LinearAlgebra;
+use PDL::IO::HDF5;
 use UNIVERSAL;
 use Data::Dumper;
 use Clone qw(clone);
@@ -49,27 +50,27 @@ while ( $iArg < $#ARGV ) {
 my $config = &Parameters::Parse_Config($configFile);
 
 # Validate the config file.
-die("testConvergence.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'workDirectory' }) );
-die("testConvergence.pl: compilation must be specified in config file"   ) unless ( exists($config->{'compilation'   }) );
+die("testConvergence.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
+die("testConvergence.pl: compilation must be specified in config file"   ) unless ( exists($config->{'likelihood'}->{'compilation'   }) );
 die("testConvergence.pl: baseParameters must be specified in config file")
-    unless ( exists($config->{'baseParameters'}) || exists($arguments{'baseParameters'}) );
+    unless ( exists($config->{'likelihood'}->{'baseParameters'}) || exists($arguments{'baseParameters'}) );
 
 # Determine base parameters.
 my $baseParameters;
 if ( exists($arguments{'baseParameters'}) ) {
     $baseParameters = $arguments{'baseParameters'};
 } else {
-    $baseParameters = $config->{'baseParameters'};
+    $baseParameters = $config->{'likelihood'}->{'baseParameters'};
 }
 
 # Determine the scratch and work directories.
-my $workDirectory    = $config->{'workDirectory'};
-my $scratchDirectory = $config->{'workDirectory'};
-$scratchDirectory    = $config->{'scratchDirectory'}
-    if ( exists($config->{'scratchDirectory'}) );
+my $workDirectory    = $config->{'likelihood'}->{'workDirectory'};
+my $scratchDirectory = $config->{'likelihood'}->{'workDirectory'};
+$scratchDirectory    = $config->{'likelihood'}->{'scratchDirectory'}
+    if ( exists($config->{'likelihood'}->{'scratchDirectory'}) );
 
 # Create the work and scratch directories.
-system("mkdir -p ".$config->{'workDirectory'});
+system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'});
 
 # Ensure that Galacticus is built.
 if ( $arguments{'make'} eq "yes" ) {
@@ -79,7 +80,7 @@ if ( $arguments{'make'} eq "yes" ) {
 }
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'compilation'},$baseParameters);
+(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$baseParameters);
 my @constraints = @{$constraintsRef};
 
 # Set an initial random number seed.
@@ -264,10 +265,9 @@ foreach my $convergence ( @convergences ) {
 		# Parse the definition file.
 		my $xml = new XML::Simple;
 		my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
-
 		# Insert code to run the analysis code.
 		my $analysisCode = $constraintDefinition->{'analysis'};
-		print oHndl $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".xml\n";
+		print oHndl $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5\n";
 	    }
 	    close(oHndl);
 	    # Queue the calculation.
@@ -339,20 +339,18 @@ foreach my $constraint ( @constraints ) {
 	    # Locate the model directory.
 	    my $modelDirectory = $workDirectory."/".$arguments{'directory'}."/".$convergence->{'parameter'}."/".$i;
 	    # Read the results.
-	    my $xml = new XML::Simple;
-	    my $result = $xml->XMLin($modelDirectory."/".$constraintDefinition->{'label'}.".xml");
+	    my $result = new PDL::IO::HDF5($modelDirectory."/".$constraintDefinition->{'label'}.".hdf5");
 	    # Store the results for later use.
-	    my $dataSize       = scalar(@{$result->{'x'}});
-	    my $covarianceFlat = pdl (@{$result->{'covariance'}});
-	    my $covariance     = reshape($covarianceFlat,$dataSize,$dataSize);
+	    my $x          = $result->dataset('x'         )->get();
+	    my $y          = $result->dataset('y'         )->get();
+	    my $covariance = $result->dataset('covariance')->get();
 	    push
 		(
 		 @results,
 		 {
 		     parameter  => $currentParameters->{'parameter'}->{$convergence->{'parameter'}}->{'value'},
-		     x          => pdl (@{$result->{'x'    }}),
-		     y          => pdl (@{$result->{'y'    }}),
-		     error      => pdl (@{$result->{'error'}}),
+		     x          => $x,
+		     y          => $y,
 		     covariance => $covariance
 		 }
 		);
@@ -408,129 +406,129 @@ foreach my $constraint ( @constraints ) {
 		    +$baselineTestStatisticVariance/$baselineTestStatistic**2
 		);
 	    $convergenceMeasure /= $baselineTestStatistic;
-	    print $convergenceMeasure." ".$convergenceError."\n";
-	    die('testConvergence.pl: the baselnie test statistic is not defined')
+	    die('testConvergence.pl: the baseline test statistic is not defined')
 		if ( ! defined($baselineTestStatistic) );
 	}
 	# Report on convergence in this parameter.
-	my $current       = 0;
-	$current = 1
-	    if ( $optimal == 0 );
-	my $currentStatus = ($convergenceMeasure->($current)-1.0)/$convergenceError->($current);
-	print "  --> Normalized convergence measure: ".$currentStatus."\n";
-	$reportTable->add(
-	    $convergence->{'parameter'},
-	    FormatSigFigs($convergenceMeasure->($current)->sclr(),4),
-	    FormatSigFigs($convergenceError  ->($current)->sclr(),4),
-	    FormatSigFigs($currentStatus                 ->sclr(),4)
+	if ( nelem($convergenceMeasure) > 0 ) {
+	    my $current       = 0;
+	    $current = 1
+		if ( $optimal == 0 );
+	    my $currentStatus = ($convergenceMeasure->($current)-1.0)/$convergenceError->($current);
+	    print "  --> Normalized convergence measure: ".$currentStatus."\n";
+	    $reportTable->add(
+		$convergence->{'parameter'},
+		FormatSigFigs($convergenceMeasure->($current)->sclr(),4),
+		FormatSigFigs($convergenceError  ->($current)->sclr(),4),
+		FormatSigFigs($currentStatus                 ->sclr(),4)
 	    );
-	# Construct a plot of the convergence.
-	my $plotFileName = $workDirectory."/".$arguments{'directory'}."/".$constraintDefinition->{'label'}."_".$convergence->{'parameter'};
-	$plotFileName =~ s/\./_/g;
-	$plotFileName .= ".pdf";
-	my $usedValueX = pdl ( $parameters->{'parameter'}->{$convergence->{'parameter'}}->{'value'} );
-	my $usedValueY = pdl ( 1.0 );
-	my $parameterFull = $parameter->append($usedValueX); 
-	my $xMinimum = minimum($parameterFull     )/1.05;
-	my $xMaximum = maximum($parameterFull     )*1.05;
-	my $yMinimum = 0.3;
-	my $yMaximum = maximum($convergenceMeasure)*1.05;
-	$yMaximum = 1.5
-	    if ( $yMaximum < 1.5 );
-	my ($gnuPlot, $outputFile, $outputFileEPS, $plot);
-	($outputFileEPS = $plotFileName) =~ s/\.pdf$/.eps/;
-	open($gnuPlot,"|gnuplot");
-	print $gnuPlot "set terminal epslatex color colortext lw 2 7\n";
-	print $gnuPlot "set output '".$outputFileEPS."'\n";
-	print $gnuPlot "set lmargin screen 0.15\n";
-	print $gnuPlot "set rmargin screen 0.95\n";
-	print $gnuPlot "set bmargin screen 0.15\n";
-	print $gnuPlot "set tmargin screen 0.95\n";
-	print $gnuPlot "set key spacing 1.2\n";
-	print $gnuPlot "set key at screen 0.2,0.2\n";
-	print $gnuPlot "set key left\n";
-	print $gnuPlot "set key bottom\n";
-	print $gnuPlot "set logscale xy\n";
-	print $gnuPlot "set mxtics 10\n";
-	print $gnuPlot "set mytics 10\n";
-	print $gnuPlot "set format x '\$10^{\%L}\$'\n";
-	print $gnuPlot "set format y '\$10^{\%L}\$'\n";
-	print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
-	print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
-	print $gnuPlot "set title 'Convergence of ".$constraintDefinition->{'name'}." with ".$convergence->{'parameter'}."'\n";
-	print $gnuPlot "set xlabel '{\\tt ".$convergence->{'parameter'}."}'\n";
-	print $gnuPlot "set ylabel 'Convergence measure; \$\\chi^2\$'\n";
-	my $convergedX = pdl ( $xMinimum, $xMaximum );
-	my $convergedY = pdl (       1.00,     1.00 );
-	# Add an arrow to show optimal direction.
-	my $xTip = 0.35;
-	$xTip = 0.65
-	    if ( $convergence->{'ideal'} eq "largest" );
-	print $gnuPlot "set arrow from graph 0.5, first 0.5477 to graph ".$xTip.", first 0.5477 ls 1 lw 5 filled lc rgbcolor \"#3CB371\"\n";
-	&PrettyPlots::Prepare_Dataset
-	    (
-	     \$plot,
-	     $convergedX,
-	     $convergedY,
-	     style       => "line",
-	     weight      => [5,3],
-	     color       => $PrettyPlots::colorPairs{'redYellow'}
-	    );
-	&PrettyPlots::Prepare_Dataset
-	    (
-	     \$plot,
-	     $parameter,
-	     $convergenceMeasure,
-	     errorUp     => $convergenceError,
-	     errorDown   => $convergenceError,
-	     style       => "point",
-	     symbol      => [6,7],
-	     weight      => [5,3],
-	     color       => $PrettyPlots::colorPairs{'cornflowerBlue'}
-	    );
-	&PrettyPlots::Prepare_Dataset
-	    (
-	     \$plot,
-	     $usedValueX,
-	     $usedValueY,
-	     style       => "point",
-	     symbol      => [6,7],
-	     weight      => [5,3],
-	     color       => $PrettyPlots::colorPairs{'indianRed'},
-	    );
-	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
-	close($gnuPlot);
-	&LaTeX::GnuPlot2PDF($outputFileEPS);
-	# Make a plot of the results.
-	$plotFileName = $workDirectory."/".$arguments{'directory'}."/".$constraintDefinition->{'label'}."_".$convergence->{'parameter'}."_results";
-	$plotFileName =~ s/\./_/g;
-	$plotFileName .= ".pdf";
-	($outputFileEPS = $plotFileName) =~ s/\.pdf$/.eps/;
-	undef($plot);
-	open($gnuPlot,"|gnuplot");
-	print $gnuPlot "set terminal epslatex color colortext lw 2 7\n";
-	print $gnuPlot "set output '".$outputFileEPS."'\n";
-	print $gnuPlot "set lmargin screen 0.15\n";
-	print $gnuPlot "set rmargin screen 0.95\n";
-	print $gnuPlot "set bmargin screen 0.15\n";
-	print $gnuPlot "set tmargin screen 0.95\n";
-	print $gnuPlot "set key spacing 1.2\n";
-	print $gnuPlot "set key at screen 0.2,0.2\n";
-	print $gnuPlot "set key left\n";
-	print $gnuPlot "set key bottom\n";
-	print $gnuPlot "set logscale xy\n";
-	print $gnuPlot "set mxtics 10\n";
-	print $gnuPlot "set mytics 10\n";
-	print $gnuPlot "set format x '\$10^{\%L}\$'\n";
-	print $gnuPlot "set format y '\$10^{\%L}\$'\n";
-	print $gnuPlot "set title 'Convergence of ".$constraintDefinition->{'name'}." with ".$convergence->{'parameter'}."'\n";
-	print $gnuPlot "set xlabel '\$x\$'\n";
-	print $gnuPlot "set ylabel '\$y\$'\n";
-	$xMinimum = pdl +1.0e30;
-	$xMaximum = pdl -1.0e30;
-	$yMinimum = pdl +1.0e30;
-	$yMaximum = pdl -1.0e30;
-	foreach ( @results ) {
+	    # Construct a plot of the convergence.
+	    my $plotFileName = $constraintDefinition->{'label'}."_".$convergence->{'parameter'};
+	    $plotFileName =~ s/\./_/g;
+	    $plotFileName = $workDirectory."/".$arguments{'directory'}."/".$plotFileName.".pdf";
+	    my $usedValueX = pdl ( $parameters->{'parameter'}->{$convergence->{'parameter'}}->{'value'} );
+	    my $usedValueY = pdl ( 1.0 );
+	    my $parameterFull = $parameter->append($usedValueX); 
+	    my $xMinimum = minimum($parameterFull     )/1.05;
+	    my $xMaximum = maximum($parameterFull     )*1.05;
+	    my $yMinimum = 0.3;
+	    my $yMaximum = maximum($convergenceMeasure)*1.05;
+	    $yMaximum = 1.5
+		if ( $yMaximum < 1.5 );
+	    my ($gnuPlot, $outputFile, $outputFileEPS, $plot);
+	    ($outputFileEPS = $plotFileName) =~ s/\.pdf$/.eps/;
+	    open($gnuPlot,"|gnuplot");
+	    print $gnuPlot "set terminal epslatex color colortext lw 2 7\n";
+	    print $gnuPlot "set output '".$outputFileEPS."'\n";
+	    print $gnuPlot "set lmargin screen 0.15\n";
+	    print $gnuPlot "set rmargin screen 0.95\n";
+	    print $gnuPlot "set bmargin screen 0.15\n";
+	    print $gnuPlot "set tmargin screen 0.95\n";
+	    print $gnuPlot "set key spacing 1.2\n";
+	    print $gnuPlot "set key at screen 0.2,0.2\n";
+	    print $gnuPlot "set key left\n";
+	    print $gnuPlot "set key bottom\n";
+	    print $gnuPlot "set logscale xy\n";
+	    print $gnuPlot "set mxtics 10\n";
+	    print $gnuPlot "set mytics 10\n";
+	    print $gnuPlot "set format x '\$10^{\%L}\$'\n";
+	    print $gnuPlot "set format y '\$10^{\%L}\$'\n";
+	    print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
+	    print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
+	    print $gnuPlot "set title 'Convergence of ".$constraintDefinition->{'name'}." with ".$convergence->{'parameter'}."'\n";
+	    print $gnuPlot "set xlabel '{\\tt ".$convergence->{'parameter'}."}'\n";
+	    print $gnuPlot "set ylabel 'Convergence measure; \$\\chi^2\$'\n";
+	    my $convergedX = pdl ( $xMinimum, $xMaximum );
+	    my $convergedY = pdl (       1.00,     1.00 );
+	    # Add an arrow to show optimal direction.
+	    my $xTip = 0.35;
+	    $xTip = 0.65
+		if ( $convergence->{'ideal'} eq "largest" );
+	    print $gnuPlot "set arrow from graph 0.5, first 0.5477 to graph ".$xTip.", first 0.5477 ls 1 lw 5 filled lc rgbcolor \"#3CB371\"\n";
+	    &PrettyPlots::Prepare_Dataset
+		(
+		 \$plot,
+		 $convergedX,
+		 $convergedY,
+		 style       => "line",
+		 weight      => [5,3],
+		 color       => $PrettyPlots::colorPairs{'redYellow'}
+		);
+	    &PrettyPlots::Prepare_Dataset
+		(
+		 \$plot,
+		 $parameter,
+		 $convergenceMeasure,
+		 errorUp     => $convergenceError,
+		 errorDown   => $convergenceError,
+		 style       => "point",
+		 symbol      => [6,7],
+		 weight      => [5,3],
+		 color       => $PrettyPlots::colorPairs{'cornflowerBlue'}
+		);
+	    &PrettyPlots::Prepare_Dataset
+		(
+		 \$plot,
+		 $usedValueX,
+		 $usedValueY,
+		 style       => "point",
+		 symbol      => [6,7],
+		 weight      => [5,3],
+		 color       => $PrettyPlots::colorPairs{'indianRed'},
+		);
+	    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	    close($gnuPlot);
+	    &LaTeX::GnuPlot2PDF($outputFileEPS);
+	    # Make a plot of the results.
+	    $plotFileName = $constraintDefinition->{'label'}."_".$convergence->{'parameter'}."_results";
+	    $plotFileName =~ s/\./_/g;
+	    $plotFileName = $workDirectory."/".$arguments{'directory'}."/".$plotFileName.".pdf";
+	    ($outputFileEPS = $plotFileName) =~ s/\.pdf$/.eps/;
+	    undef($plot);
+	    open($gnuPlot,"|gnuplot");
+	    print $gnuPlot "set terminal epslatex color colortext lw 2 7\n";
+	    print $gnuPlot "set output '".$outputFileEPS."'\n";
+	    print $gnuPlot "set lmargin screen 0.15\n";
+	    print $gnuPlot "set rmargin screen 0.95\n";
+	    print $gnuPlot "set bmargin screen 0.15\n";
+	    print $gnuPlot "set tmargin screen 0.95\n";
+	    print $gnuPlot "set key spacing 1.2\n";
+	    print $gnuPlot "set key at screen 0.2,0.2\n";
+	    print $gnuPlot "set key left\n";
+	    print $gnuPlot "set key bottom\n";
+	    print $gnuPlot "set logscale xy\n";
+	    print $gnuPlot "set mxtics 10\n";
+	    print $gnuPlot "set mytics 10\n";
+	    print $gnuPlot "set format x '\$10^{\%L}\$'\n";
+	    print $gnuPlot "set format y '\$10^{\%L}\$'\n";
+	    print $gnuPlot "set title 'Convergence of ".$constraintDefinition->{'name'}." with ".$convergence->{'parameter'}."'\n";
+	    print $gnuPlot "set xlabel '\$x\$'\n";
+	    print $gnuPlot "set ylabel '\$y\$'\n";
+	    $xMinimum = pdl +1.0e30;
+	    $xMaximum = pdl -1.0e30;
+	    $yMinimum = pdl +1.0e30;
+	    $yMaximum = pdl -1.0e30;
+	    foreach ( @results ) {
 	    $xMinimum = minimum(10.0**$_->{'x'})
 		if ( minimum(10.0**$_->{'x'}) < $xMinimum );
 	    $xMaximum = maximum(10.0**$_->{'x'})
@@ -539,36 +537,37 @@ foreach my $constraint ( @constraints ) {
 		if ( minimum($_->{'y'}) < $yMinimum );
 	    $yMaximum = maximum($_->{'y'})
 		if ( maximum($_->{'y'}) > $yMaximum );
+	    }
+	    $xMinimum /= 2.0;
+	    $xMaximum *= 2.0;
+	    $yMinimum /= 2.0;
+	    $yMaximum *= 2.0;
+	    print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
+	    print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
+	    my $i = -1;
+	    foreach ( @results ) {
+		++$i;
+		my $fraction = $i/(scalar(@results)-1);
+		&PrettyPlots::Prepare_Dataset
+		    (
+		     \$plot,
+		     10.0**$_->{'x'},
+		     $_->{'y'},
+		     style  => "point",
+		     symbol => [6,7],
+		     weight => [5,3],
+		     color  => [
+			 &PrettyPlots::Color_Gradient($fraction,[0.0,1.0,0.5],[240.0,1.0,0.5]),
+			 &PrettyPlots::Color_Gradient($fraction,[0.0,1.0,0.5],[240.0,1.0,0.5])
+		     ]
+		    );
+	    }
+	    print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
+	    print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
+	    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+	    close($gnuPlot);
+	    &LaTeX::GnuPlot2PDF($outputFileEPS);
 	}
-	$xMinimum /= 2.0;
-	$xMaximum *= 2.0;
-	$yMinimum /= 2.0;
-	$yMaximum *= 2.0;
-	print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
-	print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
-	my $i = -1;
-	foreach ( @results ) {
-	    ++$i;
-	    my $fraction = $i/(scalar(@results)-1);
-	    &PrettyPlots::Prepare_Dataset
-		(
-		 \$plot,
-		 10.0**$_->{'x'},
-		 $_->{'y'},
-		 style  => "point",
-		 symbol => [6,7],
-		 weight => [5,3],
-		 color  => [
-		     &PrettyPlots::Color_Gradient($fraction,[0.0,1.0,0.5],[240.0,1.0,0.5]),
-		     &PrettyPlots::Color_Gradient($fraction,[0.0,1.0,0.5],[240.0,1.0,0.5])
-		 ]
-		);
-	}
-	print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
-	print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
-	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
-	close($gnuPlot);
-	&LaTeX::GnuPlot2PDF($outputFileEPS);
     }
     # Write the convergence report.
     open(my $report,">".$workDirectory."/".$arguments{'directory'}."/".$constraintDefinition->{'label'}."Report.txt");
