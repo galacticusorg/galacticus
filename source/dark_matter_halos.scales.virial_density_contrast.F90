@@ -37,7 +37,8 @@
      ! Stored values of halo scales.
      double precision                                        :: dynamicalTimescaleStored                 , virialRadiusStored              , &
           &                                                     virialTemperatureStored                  , virialVelocityStored            , &
-          &                                                     timePrevious                             , densityGrowthRatePrevious
+          &                                                     timePrevious                             , densityGrowthRatePrevious       , &
+          &                                                     massPrevious
      ! Table for fast lookup of the mean density of halos.
      double precision                                        :: meanDensityTimeMaximum                   , meanDensityTimeMinimum   =-1.0d0
      type            (table1DLogarithmicLinear  )            :: meanDensityTable
@@ -94,6 +95,7 @@ contains
     virialDensityContrastDefinitionConstructor%meanDensityTimeMinimum          =  -1.0d0
     virialDensityContrastDefinitionConstructor%resetMeanDensityTable           =  .false.
     virialDensityContrastDefinitionConstructor%timePrevious                    =  -1.0d0
+    virialDensityContrastDefinitionConstructor%massPrevious                    =  -1.0d0
     return
   end function virialDensityContrastDefinitionConstructor
 
@@ -266,35 +268,50 @@ contains
     ! Get the time at which this halo was last an isolated halo.
     time=thisBasic%timeLastIsolated()
     if (time <= 0.0d0) time=thisBasic%time()
-    ! Retabulate the mean density vs. time if necessary.
-    if (self%resetMeanDensityTable .or. time < self%meanDensityTimeMinimum .or. time > self%meanDensityTimeMaximum) then
-       self%resetMeanDensityTable=.false.
-       if (self%meanDensityTimeMinimum <= 0.0d0) then
-          self%meanDensityTimeMinimum=                                time/10.0d0
-          self%meanDensityTimeMaximum=                                time* 2.0d0
-       else
-          self%meanDensityTimeMinimum=min(self%meanDensityTimeMinimum,time/10.0d0)
-          self%meanDensityTimeMaximum=max(self%meanDensityTimeMaximum,time* 2.0d0)
-       end if
-       meanDensityTablePoints=int(log10(self%meanDensityTimeMaximum/self%meanDensityTimeMinimum)*dble(virialDensityContrastDefinitionMeanDensityTablePointsPerDecade))+1
-       call self%meanDensityTable%destroy()
-       call self%meanDensityTable%create(self%meanDensityTimeMinimum,self%meanDensityTimeMaximum,meanDensityTablePoints)
+    ! For mass-dependent virial density contrasts we must always recompute the result.
+    if (self%virialDensityContrastDefinition%isMassDependent()) then
        ! Get default objects.
        thisCosmologyParameters   => cosmologyParameters  ()
        cosmologyFunctionsDefault => cosmologyFunctions   ()
-       do i=1,meanDensityTablePoints
-          call self%meanDensityTable%populate&
-               & (&
-               &  +self%virialDensityContrastDefinition%densityContrast(self%meanDensityTable%x(i))     &
-               &  *thisCosmologyParameters             %OmegaMatter    (                          )     &
-               &  *thisCosmologyParameters             %densityCritical(                          )     &
-               &  /cosmologyFunctionsDefault           %expansionFactor(self%meanDensityTable%x(i))**3, &
-               &  i                                                                                     &
-               & )
-       end do
+       virialDensityContrastDefinitionMeanDensity=&
+            &+self%virialDensityContrastDefinition%densityContrast(thisBasic%mass(),time)&
+            &*thisCosmologyParameters             %OmegaMatter    (                                           )     &
+                  &  *thisCosmologyParameters             %densityCritical(                                           )     &
+                  &  /cosmologyFunctionsDefault           %expansionFactor(                 time)**3
+
+
+    else
+       ! For non-mass-dependent virial density contrasts we can tabulate as a function of time.
+       ! Retabulate the mean density vs. time if necessary.
+       if (self%resetMeanDensityTable .or. time < self%meanDensityTimeMinimum .or. time > self%meanDensityTimeMaximum) then
+          self%resetMeanDensityTable=.false.
+          if (self%meanDensityTimeMinimum <= 0.0d0) then
+             self%meanDensityTimeMinimum=                                time/10.0d0
+             self%meanDensityTimeMaximum=                                time* 2.0d0
+          else
+             self%meanDensityTimeMinimum=min(self%meanDensityTimeMinimum,time/10.0d0)
+             self%meanDensityTimeMaximum=max(self%meanDensityTimeMaximum,time* 2.0d0)
+          end if
+          meanDensityTablePoints=int(log10(self%meanDensityTimeMaximum/self%meanDensityTimeMinimum)*dble(virialDensityContrastDefinitionMeanDensityTablePointsPerDecade))+1
+          call self%meanDensityTable%destroy()
+          call self%meanDensityTable%create(self%meanDensityTimeMinimum,self%meanDensityTimeMaximum,meanDensityTablePoints)
+          ! Get default objects.
+          thisCosmologyParameters   => cosmologyParameters  ()
+          cosmologyFunctionsDefault => cosmologyFunctions   ()
+          do i=1,meanDensityTablePoints
+             call self%meanDensityTable%populate                                                                            &
+                  & (                                                                                                       &
+                  &  +self%virialDensityContrastDefinition%densityContrast(thisBasic%mass(),self%meanDensityTable%x(i))     &
+                  &  *thisCosmologyParameters             %OmegaMatter    (                                           )     &
+                  &  *thisCosmologyParameters             %densityCritical(                                           )     &
+                  &  /cosmologyFunctionsDefault           %expansionFactor(                 self%meanDensityTable%x(i))**3, &
+                  &  i                                                                                                      &
+                  & )
+          end do
+       end if
+       ! Return the stored value.
+       virialDensityContrastDefinitionMeanDensity=self%meanDensityTable%interpolate(time)
     end if
-    ! Return the stored value.
-    virialDensityContrastDefinitionMeanDensity=self%meanDensityTable%interpolate(time)
     return
   end function virialDensityContrastDefinitionMeanDensity
 
@@ -307,8 +324,6 @@ contains
     class           (nodeComponentBasic                                )               , pointer :: thisBasic
     class           (cosmologyFunctionsClass                           )               , pointer :: cosmologyFunctionsDefault
     double precision                                                                             :: aExpansion               , time
-    double precision                                                    , save                   :: densityGrowthRatePrevious, timePrevious=-1.0d0
-    !$omp threadprivate(timePrevious,densityGrowthRatePrevious)
 
     if (thisNode%isSatellite()) then
        ! Satellite halo is not growing, return zero rate.
@@ -319,21 +334,22 @@ contains
        ! Get the time at which this halo was last an isolated halo.
        time=thisBasic%timeLastIsolated()
        ! Check if the time is different from that one previously used.
-       if (time /= self%timePrevious) then
+       if (time /= self%timePrevious .or. thisBasic%mass() /= self%massPrevious) then
           ! It is not, so recompute the density growth rate.
           self%timePrevious=time
+          self%massPrevious=thisBasic%mass()
           ! Get default objects.
           cosmologyFunctionsDefault => cosmologyFunctions   ()
           ! Get the expansion factor at this time.
           aExpansion=cosmologyFunctionsDefault%expansionFactor(time)
           ! Compute growth rate of its mean density based on mean cosmological density and overdensity of a collapsing halo.
-          self%densityGrowthRatePrevious=                                                        &
-               & self%meanDensity(thisNode)                                                      &
-               & *(                                                                              &
-               &   +self%virialDensityContrastDefinition%densityContrastRateOfChange(time      ) &
-               &   /self%virialDensityContrastDefinition%densityContrast            (time      ) &
-               &   -3.0d0                                                                        &
-               &   *cosmologyFunctionsDefault           %expansionRate              (aExpansion) &
+          self%densityGrowthRatePrevious=                                                                         &
+               & self%meanDensity(thisNode)                                                                       &
+               & *(                                                                                               &
+               &   +self%virialDensityContrastDefinition%densityContrastRateOfChange(thisBasic%mass(),time      ) &
+               &   /self%virialDensityContrastDefinition%densityContrast            (thisBasic%mass(),time      ) &
+               &   -3.0d0                                                                                         &
+               &   *cosmologyFunctionsDefault           %expansionRate              (aExpansion                 ) &
                &  )
        end if
        ! Return the stored value.

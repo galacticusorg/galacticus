@@ -1,0 +1,63 @@
+<constrain>
+  <!-- Configuration file for fitting of CSMF to Moustakas et al. mass functions -->
+  <!-- Andrew Benson                                                             -->
+  <!-- 15-May-2014                                                               -->
+
+  <observedDataFile>data/observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_2013.xml</observedDataFile>
+
+  <baseDirectory>constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/</baseDirectory>
+
+  <mcmcConfigFile>constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/mcmcConfig.xml</mcmcConfigFile>
+
+  <constraintFile>constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/covarianceMatrix.hdf5</constraintFile>
+
+  <parameterFile>constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/covarianceMatrix.xml</parameterFile>
+
+  <!-- Label for PBS jobs -->
+  <pbsLabel>smfPRIMUS</pbsLabel>
+
+  <!-- Number of stages (iterations) to carry out -->
+  <stageCount>4</stageCount>
+
+  <!-- Source for mass function -->
+  <sourceLabel>Moustakas et al. (2013)</sourceLabel>
+
+  <!-- Label for mass type -->
+  <massType>stellar</massType>
+  <massVariable>M_\star</massVariable>
+
+  <!-- Redshift ranges -->
+  <redshift>
+    <minimum>0.00</minimum>
+    <maximum>0.10</maximum>
+  </redshift>
+  <redshift>
+    <minimum>0.20</minimum>
+    <maximum>0.30</maximum>
+  </redshift>
+  <redshift>
+    <minimum>0.30</minimum>
+    <maximum>0.40</maximum>
+  </redshift>
+  <redshift>
+    <minimum>0.40</minimum>
+    <maximum>0.50</maximum>
+  </redshift>
+  <redshift>
+    <minimum>0.50</minimum>
+    <maximum>0.65</maximum>
+  </redshift>
+  <redshift>
+    <minimum>0.65</minimum>
+    <maximum>0.80</maximum>
+  </redshift>
+  <redshift>
+    <minimum>0.80</minimum>
+    <maximum>1.00</maximum>
+  </redshift>
+
+  <!-- Thread control -->
+  <nodeCount>1</nodeCount>
+  <threadsPerNode>12</threadsPerNode>
+
+</constrain>

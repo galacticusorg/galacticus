@@ -1,0 +1,288 @@
+!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Implements the geometry of the PRIMUS survey used by \cite{moustakas_primus:_2013}.
+  
+  !# <surveyGeometry name="surveyGeometryMoustakas2013PRIMUS">
+  !#  <description>Implements the geometry of the PRIMUS survey of \cite{moustakas_primus:_2013}.</description>
+  !# </surveyGeometry>
+
+  use Galacticus_Input_Paths
+
+  type, extends(surveyGeometryMangle) :: surveyGeometryMoustakas2013PRIMUS
+     double precision :: binDistanceMinimum, binDistanceMaximum
+   contains
+     procedure :: fieldCount                => moustakas2013PRIMUSFieldCount
+     procedure :: distanceMinimum           => moustakas2013PRIMUSDistanceMinimum
+     procedure :: distanceMaximum           => moustakas2013PRIMUSDistanceMaximum
+     procedure :: volumeMaximum             => moustakas2013PRIMUSVolumeMaximum
+     procedure :: angularPowerMaximumDegree => moustakas2013PRIMUSAngularPowerMaximumDegree
+     procedure :: mangleDirectory           => moustakas2013PRIMUSMangleDirectory
+     procedure :: mangleFiles               => moustakas2013PRIMUSMangleFiles
+  end type surveyGeometryMoustakas2013PRIMUS
+
+  interface surveyGeometryMoustakas2013PRIMUS
+     !% Constructors for the \cite{moustakas_primus:_2013} survey geometry class.
+     module procedure moustakas2013PRIMUSConstructor
+     module procedure moustakas2013PRIMUSDefaultConstructor
+  end interface surveyGeometryMoustakas2013PRIMUS
+
+  ! Paths and file names for mangle polygon files.
+  integer, parameter :: moustakas2013PRIMUSFields        =5
+  logical            :: moustakas2013PRIMUSBinInitialized=.false.
+  integer            :: moustakas2013PRIMUSRedshiftBin
+
+  ! Angular power spectra.
+  integer, parameter :: moustaskas2013AngularPowerMaximumL=3000
+
+contains
+
+  function moustakas2013PRIMUSDefaultConstructor()
+    !% Default constructor for the \cite{moustakas_primus:_2013} conditional mass function class.
+    use Input_Parameters
+    implicit none
+    type(surveyGeometryMoustakas2013PRIMUS) :: moustakas2013PRIMUSDefaultConstructor
+
+    if (.not.moustakas2013PRIMUSBinInitialized) then
+       !$omp critical(moustakas2013PRIMUSBinInitialize)
+       if (.not.moustakas2013PRIMUSBinInitialized) then
+          ! Get the redshift bin to use.
+          !@ <inputParameter>
+          !@   <name>moustakas2013PRIMUSRedshiftBin</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The redshift bin (0, 1, 2, 3, 4, 5, or 6) of the \cite{moustakas_primus:_2013} mass function to use.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>starFormation</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('moustakas2013PRIMUSRedshiftBin',moustakas2013PRIMUSRedshiftBin)
+          moustakas2013PRIMUSBinInitialized=.true.
+       end if
+       !$omp end critical(moustakas2013PRIMUSBinInitialize)
+    end if
+    moustakas2013PRIMUSDefaultConstructor=moustakas2013PRIMUSConstructor(moustakas2013PRIMUSRedshiftBin)
+   return
+  end function moustakas2013PRIMUSDefaultConstructor
+
+  function moustakas2013PRIMUSConstructor(redshiftBin)
+    !% Generic constructor for the \cite{moustakas_primus:_2013} mass function class.
+    use Galacticus_Error
+    use Input_Parameters
+    use Cosmology_Functions
+    use Cosmology_Functions_Options
+    implicit none
+    type            (surveyGeometryMoustakas2013PRIMUS)                :: moustakas2013PRIMUSConstructor
+    integer                                            , intent(in   ) :: redshiftBin
+    class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
+    double precision                                                   :: redshiftMinimum               , redshiftMaximum
+
+    ! Find distance limits for this redshift bin.
+    select case (redshiftBin)
+    case(0)
+       redshiftMinimum=0.00d0
+       redshiftMaximum=0.10d0
+    case(1)
+       redshiftMinimum=0.20d0
+       redshiftMaximum=0.30d0
+    case(2)
+       redshiftMinimum=0.30d0
+       redshiftMaximum=0.40d0
+    case(3)
+       redshiftMinimum=0.40d0
+       redshiftMaximum=0.50d0
+    case(4)
+       redshiftMinimum=0.50d0
+       redshiftMaximum=0.65d0
+    case(5)
+       redshiftMinimum=0.65d0
+       redshiftMaximum=0.80d0
+    case(6)
+       redshiftMinimum=0.80d0
+       redshiftMaximum=1.00d0
+    case default
+       call Galacticus_Error_Report('moustakas2013PRIMUSConstructor','0≤redshiftBin≤6 is required')
+    end select
+    cosmologyFunctions_ => cosmologyFunctions()
+    moustakas2013PRIMUSConstructor%binDistanceMinimum                                     &
+         & =cosmologyFunctions_%distanceComovingConvert(                                  &
+         &                                                 output  =distanceTypeComoving, &
+         &                                                 redshift=redshiftMinimum       &
+         &                                                )
+    moustakas2013PRIMUSConstructor%binDistanceMaximum                                     &
+         & =cosmologyFunctions_%distanceComovingConvert(                                  &
+         &                                                 output  =distanceTypeComoving, &
+         &                                                 redshift=redshiftMaximum       &
+         &                                                )
+    moustakas2013PRIMUSConstructor%solidAnglesInitialized =.false.
+    moustakas2013PRIMUSConstructor%angularPowerInitialized=.false.
+    moustakas2013PRIMUSConstructor%windowInitialized      =.false.
+    return
+  end function moustakas2013PRIMUSConstructor
+  
+  integer function moustakas2013PRIMUSFieldCount(self)
+    !% Return the number of fields in this sample.
+    implicit none
+    class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
+
+    moustakas2013PRIMUSFieldCount=moustakas2013PRIMUSFields
+    return
+  end function moustakas2013PRIMUSFieldCount
+
+  double precision function moustakas2013PRIMUSDistanceMinimum(self,mass,field)
+    !% Compute the minimum distance at which a galaxy is included.
+    implicit none
+    class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
+    double precision                                   , intent(in   )           :: mass
+    integer                                            , intent(in   ), optional :: field
+
+    moustakas2013PRIMUSDistanceMinimum=self%binDistanceMinimum
+    return
+  end function moustakas2013PRIMUSDistanceMinimum
+
+  double precision function moustakas2013PRIMUSDistanceMaximum(self,mass,field)
+    !% Compute the maximum distance at which a galaxy is visible.
+    use Cosmology_Functions
+    use Cosmology_Functions_Options
+    use Galacticus_Error
+    implicit none
+    class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
+    double precision                                   , intent(in   )           :: mass
+    integer                                            , intent(in   ), optional :: field
+    class           (cosmologyFunctionsClass          ), pointer                 :: cosmologyFunctions_
+    double precision                                                             :: redshift           , logarithmicMass
+    
+    ! Validate field.
+    if (.not.present(field)) call Galacticus_Error_Report('moustakas2013PRIMUSDistanceMaximum','field must be specified')
+    if (field < 1 .or. field > 5) call Galacticus_Error_Report('moustakas2013PRIMUSDistanceMaximum','1 ≤ field ≤ 5 required')
+    ! Find the limiting redshift for this mass completeness limits from Moustakas et al. (2013; Table 2). (See
+    ! constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/massRedshiftRelation.pl for details.)
+    logarithmicMass=log10(mass)
+    select case (field)
+    case (1) ! COSMOS
+       redshift=                  +3.51240871481968000d0  &
+            &   +logarithmicMass*(-0.94131511297034200d0  &
+            &   +logarithmicMass*(+0.06507208866075860d0) &
+            &                                           )
+    case (2) ! XMM-SXDS
+       redshift=                  +2.46068289817352000d0  &
+            &   +logarithmicMass*(-0.72960045705258400d0  &
+            &   +logarithmicMass*(+0.05422457500058130d0) &
+            &                                           )
+    case (3) ! XMM-CFHTLS
+       redshift=                  -3.60001396783385000d0  &
+            &   +logarithmicMass*(+0.50007933123305700d0  &
+            &   +logarithmicMass*(-0.00781044013508246d0) &
+            &                                           )
+    case (4) ! CDFS
+       redshift=                  +5.86929723910240000d0  &
+            &   +logarithmicMass*(-1.52816338306828000d0  &
+            &   +logarithmicMass*(+0.09815249638377170d0) &
+            &                                           )
+    case (5) ! ELAIS-S1
+       redshift=                  +6.87489619768651000d0  &
+            &   +logarithmicMass*(-1.65556365363183000d0  &
+            &   +logarithmicMass*(+0.10030052053225000d0) &
+            &                                           )
+    end select
+    ! Get the default cosmology functions object.
+    cosmologyFunctions_ => cosmologyFunctions()    
+    ! Convert from redshift to comoving distance.
+    moustakas2013PRIMUSDistanceMaximum                                                &
+         &=cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                             output  =distanceTypeComoving, &
+         &                                             redshift=redshift              &
+         &                                            )
+    ! Limit the maximum distance.
+    moustakas2013PRIMUSDistanceMaximum=min(moustakas2013PRIMUSDistanceMaximum,self%binDistanceMaximum)
+    return
+  end function moustakas2013PRIMUSDistanceMaximum
+
+  double precision function moustakas2013PRIMUSVolumeMaximum(self,mass,field)
+    !% Compute the maximum volume within which a galaxy is visible.
+    use Galacticus_Error
+    implicit none
+    class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
+    double precision                                   , intent(in   )           :: mass
+    integer                                            , intent(in   ), optional :: field
+
+    ! Validate field.
+    if (.not.present(field)) call Galacticus_Error_Report('moustakas2013PRIMUSDistanceMaximum','field must be specified')
+    if (field < 1 .or. field > 5) call Galacticus_Error_Report('moustakas2013PRIMUSDistanceMaximum','1 ≤ field ≤ 5 required')
+    ! Compute the volume.
+    moustakas2013PRIMUSVolumeMaximum                       &
+         & =max(                                           &
+         &       0.0d0                                   , &
+         &       self%solidAngle(field)                    &
+         &      *(                                         &
+         &        +self%distanceMaximum   (mass,field)**3  &
+         &        -self%binDistanceMinimum            **3  &
+         &       )                                         &
+         &      /3.0d0                                     &
+         &     )
+    return
+  end function moustakas2013PRIMUSVolumeMaximum
+
+  function moustakas2013PRIMUSMangleDirectory(self)
+    !% Return the path to the directory containing \gls{mangle} files.
+    implicit none
+    class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
+    type (varying_string                   )                :: moustakas2013PRIMUSMangleDirectory
+
+    moustakas2013PRIMUSMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/"
+    return
+  end function moustakas2013PRIMUSMangleDirectory
+  
+  subroutine moustakas2013PRIMUSMangleFiles(self,mangleFiles)
+    !% Return a list of \gls{mangle} files.
+    implicit none
+    class(surveyGeometryMoustakas2013PRIMUS)                           , intent(inout) :: self
+    type (varying_string                   ), allocatable, dimension(:), intent(  out) :: mangleFiles
+
+    mangleFiles=                                                                    &
+         &      [                                                                   &
+         &       self%mangleDirectory()//"cosmos_field_galex_window_2mask.ply"    , &
+         &       self%mangleDirectory()//"xmm_swire_field_galex_window_2mask.ply" , &
+         &       self%mangleDirectory()//"cfhtls_xmm_field_galex_window_2mask.ply", &
+         &       self%mangleDirectory()//"cdfs_field_galex_window_2mask.ply"      , &
+         &       self%mangleDirectory()//"es1_field_galex_window_2mask.ply"         &
+         &      ]
+    return
+  end subroutine moustakas2013PRIMUSMangleFiles
+
+  integer function moustakas2013PRIMUSAngularPowerMaximumDegree(self)
+    !% Return the maximum degree for which angular power is computed for the \cite{moustakas_primus:_2013} survey.
+    implicit none
+    class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
+
+    moustakas2013PRIMUSAngularPowerMaximumDegree=moustaskas2013AngularPowerMaximumL
+    return
+  end function moustakas2013PRIMUSAngularPowerMaximumDegree
+  
+  integer function moustakas2013PRIMUSFieldPairIndex(i,j)
+    !% Compute the index of a pair of fields in the \cite{moustakas_primus:_2013} survey.
+    implicit none
+    integer, intent(in   ) ::  i,  j
+    integer                :: ii, jj
+
+    ii=min(i,j)
+    jj=max(i,j)
+    moustakas2013PRIMUSFieldPairIndex=(ii-1)*(2*moustakas2013PRIMUSFields-ii+2)/2+(jj-ii+1)
+    return
+  end function moustakas2013PRIMUSFieldPairIndex
+  
