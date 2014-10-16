@@ -49,10 +49,11 @@
      ! Record of unique ID of node which we last computed results for.
      integer         (kind=kind_int8          )              :: lastUniqueID
      ! Record of whether or not quantities have been computed.
-     logical                                                 :: specificAngularMomentumScalingsComputed
+     logical                                                 :: specificAngularMomentumScalingsComputed, maximumVelocityComputed
      ! Stored values of computed quantities.
      double precision                                        :: specificAngularMomentumLengthScale     , specificAngularMomentumScale     , &
-          &                                                     concentrationPrevious                  , nfwNormalizationFactorPrevious
+          &                                                     concentrationPrevious                  , nfwNormalizationFactorPrevious   , &
+          &                                                     maximumVelocityPrevious
      ! Pointer to object setting halo scales.
      class(darkMatterHaloScaleClass           ), pointer     :: scale
    contains
@@ -230,6 +231,7 @@ contains
     type (treeNode            ), intent(inout), pointer :: thisNode
 
     self%specificAngularMomentumScalingsComputed=.false.
+    self%maximumVelocityComputed                =.false.
     self%lastUniqueID                           =thisNode%uniqueID()
     call self%scale%calculationReset(thisNode)
     return
@@ -407,8 +409,7 @@ contains
     double precision                      , intent(in   )          :: radius
 
     if (radius > 0.0d0) then
-       nfwCircularVelocity=sqrt(gravitationalConstantGalacticus&
-            &*self%enclosedMass(node,radius)/radius)
+       nfwCircularVelocity=sqrt(gravitationalConstantGalacticus*self%enclosedMass(node,radius)/radius)
     else
        nfwCircularVelocity=0.0d0
     end if
@@ -426,9 +427,16 @@ contains
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile
     double precision                                                         :: scaleRadius
 
-    thisDarkMatterProfile      => node                 %darkMatterProfile(autoCreate=.true.                          )
-    scaleRadius                =  thisDarkMatterProfile%scale            (                                           )
-    nfwCircularVelocityMaximum =  self                 %circularVelocity (node             ,radiusMaximum*scaleRadius)
+    ! Check if node differs from previous one for which we performed calculations.
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    ! Check if maximum velocity is already computed. Compute and store if not.
+    if (.not.self%maximumVelocityComputed) then
+       thisDarkMatterProfile        => node                 %darkMatterProfile(autoCreate=.true.                          )
+       scaleRadius                  =  thisDarkMatterProfile%scale            (                                           )
+       self%maximumVelocityPrevious =  self                 %circularVelocity (node             ,radiusMaximum*scaleRadius)
+       self%maximumVelocityComputed =  .true.
+    end if
+    nfwCircularVelocityMaximum=self%maximumVelocityPrevious
     return
   end function nfwCircularVelocityMaximum
 
