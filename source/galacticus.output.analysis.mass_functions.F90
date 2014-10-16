@@ -42,6 +42,7 @@ module Galacticus_Output_Analyses_Mass_Functions
   integer          , parameter                              :: massFunctionsSupportedCount=31
 
   ! Labels for supported mass functions.
+  integer          , parameter                              :: gamaStellarMassFunction    =3
   character(len=37), dimension(massFunctionsSupportedCount) :: massFunctionLabels=      &
        & [                                                                              &
        &  'sdssStellarMassFunctionZ0.07        ',                                       &
@@ -973,7 +974,7 @@ contains
           ! Establish survey incompletenesses.
           do i=1,massFunctionsSupportedCount
              select case (i)
-             case (2)
+             case (gamaStellarMassFunction)
                 parameterName=trim(massFunctionLabels(i))//'SurfaceBrightnessModelSlope'
                 !@ <inputParameter>
                 !@   <regEx>(gamaStellarMassFunction)Z[0-9\.]+SurfaceBrightnessModelSlope</regEx>
