@@ -1,0 +1,63 @@
+<constrain>
+  <!-- Configuration file for fitting of CSMF to Tomczak et al. mass functions -->
+  <!-- Andrew Benson                                                           -->
+  <!-- 11-August-2014                                                          -->
+
+  <observedDataFile>data/observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA.xml</observedDataFile>
+
+  <baseDirectory>constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/</baseDirectory>
+
+  <mcmcConfigFile>constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/mcmcConfig.xml</mcmcConfigFile>
+
+  <constraintFile>constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/covarianceMatrix.hdf5</constraintFile>
+
+  <parameterFile>constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/covarianceMatrix.xml</parameterFile>
+
+  <!-- Label for PBS jobs -->
+  <pbsLabel>smfULTRAVISTA</pbsLabel>
+
+  <!-- Number of stages (iterations) to carry out -->
+  <stageCount>4</stageCount>
+
+  <!-- Source for mass function -->
+  <sourceLabel>Muzzin et al. (2013)</sourceLabel>
+
+  <!-- Label for mass type -->
+  <massType>stellar</massType>
+  <massVariable>M_\star</massVariable>
+
+  <!-- Redshift ranges -->
+  <redshift>
+    <minimum>0.20</minimum>
+    <maximum>0.50</maximum>
+  </redshift>
+  <redshift>
+    <minimum>0.50</minimum>
+    <maximum>1.00</maximum>
+  </redshift>
+  <redshift>
+    <minimum>1.00</minimum>
+    <maximum>1.50</maximum>
+  </redshift>
+  <redshift>
+    <minimum>1.50</minimum>
+    <maximum>2.00</maximum>
+  </redshift>
+  <redshift>
+    <minimum>2.00</minimum>
+    <maximum>2.50</maximum>
+  </redshift>
+  <redshift>
+    <minimum>2.50</minimum>
+    <maximum>3.00</maximum>
+  </redshift>
+  <redshift>
+    <minimum>3.00</minimum>
+    <maximum>4.00</maximum>
+  </redshift>
+
+  <!-- Thread control -->
+  <nodeCount>1</nodeCount>
+  <threadsPerNode>12</threadsPerNode>
+
+</constrain>
