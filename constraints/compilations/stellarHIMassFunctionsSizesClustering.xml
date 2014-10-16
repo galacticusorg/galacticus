@@ -150,4 +150,10 @@
     <weight>1.0</weight>
   </constraint>
 
+  <!-- Carnegie Hubble Program constraint on H_0 -->
+  <constraint>
+    <definition>constraints/constraints/carnegieHubbleProgram.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
 </constraintCompilation>
