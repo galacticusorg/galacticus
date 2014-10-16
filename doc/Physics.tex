@@ -34,7 +34,7 @@ where $\delta=${\tt [accretionColdModeShockStabilityTransitionWidth]}, $r = \eps
 \end{equation}
 where $r_{\rm s}$ is the accretion shock radius, $\Lambda$ is the post-shock cooling function, $\rho_{\rm s}$ is the pre-shock density, $v_{\rm s}$ is the pre-shock velocity, and $\epsilon_{\rm crit}=${\tt [accretionColdModeShockStabilityThreshold]}. The pre-shock radius is set equal to the halo virial radius, the pre-shock velocity is set equal to the halo virial velocity, while the pre-shock density is given by
 \begin{equation}
-\rho_{\rm s} = {\gamma - 1 \over \gamma + 1} { 3 \over 4 \pi } { \Omega_{\rm b} \over \Omega_{\rm m} } {M \over r_{\rm s}^3} \left[ 1 + {(\alphga + 3) (10 + 9 \pi) \over 4} \right]^{-1},
+\rho_{\rm s} = {\gamma - 1 \over \gamma + 1} { 3 \over 4 \pi } { \Omega_{\rm b} \over \Omega_{\rm m} } {M \over r_{\rm s}^3} \left[ 1 + {(\alpha + 3) (10 + 9 \pi) \over 4} \right]^{-1},
 \end{equation}
 where $M$ is the total halo mass, $\gamma(=5/3)$ is the adiabatic index of the gas, and $\alpha$ is the exponent of the initial power-law density perturbation ($\alpha=0$ is assumed). The post-shock density and temperature are found assuming the strong-shock limit.
 
@@ -1798,7 +1798,11 @@ The method to be used for computing branching probabilities in merger trees is s
 
 \subsection{Modified Press-Schechter}
 
-Selected with {\tt treeBranchingMethod}$=${\tt modifiedPress-Schechter}, this method uses the algorithm of \cite{parkinson_generating_2008} to compute branching ratios. The parameters $G_0$, $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters {\tt modifiedPressSchechterG0}, {\tt modifiedPressSchechterGamma1} and {\tt modifiedPressSchechterGamma2} respectively. Additionally, the parameter {\tt modifiedPressSchechterFirstOrderAccuracy} limits the step in $\delta_{\rm crit}$ so that it never exceeds {\tt modifiedPressSchechterFirstOrderAccuracy}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures the the first order expansion of the merging rate that is assumed is accurate.
+Selected with {\tt treeBranchingMethod}$=${\tt modifiedPress-Schechter}, this method uses the algorithm of \cite{parkinson_generating_2008} to compute branching ratios. The parameters $G_0$, $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters {\tt modifiedPressSchechterG0}, {\tt modifiedPressSchechterGamma1} and {\tt modifiedPressSchechterGamma2} respectively. Additionally, the parameter {\tt modifiedPressSchechterFirstOrderAccuracy} limits the step in $\delta_{\rm crit}$ so that it never exceeds {\tt modifiedPressSchechterFirstOrderAccuracy}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures the the first order expansion of the merging rate that is assumed is accurate. To find bounds on the branching probability, we make use of the fact that eqn.~(4) of \cite{parkinson_generating_2008} can be written as
+\begin{equation}
+ {\d f \over \d t} = {{\rm d} t \over {\rm d}\omega} \int_{M_{\rm min}}^{M/2} {M \over M^\prime} {\d f \over \d t} {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
+\end{equation}
+By holding the $M^\prime$ in the denominator of the first term in the integrand fixed, we obtain an analytic solution to the integral in terms of hypergeometric functions. If we fix this $M^\prime$ at $M_{\rm min}$ we obtain an upper limit on the branching probability, while if we fix it to $M/2$ a lower limit is obtained.
 
 \subsection{Generalized Press-Schechter}
 

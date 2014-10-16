@@ -2751,15 +2751,16 @@ Additional methods for merger tree branching can be added using the {\tt treeBra
 \end{verbatim}
 Here, {\tt Modified\_Press\_Schechter\_Branching\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
- subroutine Method_Initialize(treeBranchingMethod,Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass,Tree_Maximum_Step)
+ subroutine Method_Initialize(treeBranchingMethod,Tree_Branching_Probability_Bound,Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass,Tree_Maximum_Step)
     type(varying_string),          intent(in)    :: treeBranchingMethod
-    procedure(),          pointer, intent(inout) :: Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass,Tree_Maximum_Step
+    procedure(),          pointer, intent(inout) :: Tree_Branching_Probability_Bound,Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass,Tree_Maximum_Step
     
     if (treeBranchingMethod == 'myMethod') then
-       Tree_Branching_Probability  => My_Branching_Probability
-       Tree_Subresolution_Fraction => My_Subresolution_Fraction
-       Tree_Maximum_Step           => My_Maximum_Step
-       Tree_Branch_Mass            => My_Branch_Mass
+       Tree_Branching_Probability_Bound => My_Branching_Probability_Bound
+       Tree_Branching_Probability       => My_Branching_Probability
+       Tree_Subresolution_Fraction      => My_Subresolution_Fraction
+       Tree_Maximum_Step                => My_Maximum_Step
+       Tree_Branch_Mass                 => My_Branch_Mass
        .
        .
        .
@@ -2795,6 +2796,15 @@ The procedure pointers must point to functions with the following templates:
     return
  end function My_Branching_Probability
 
+  double precision function My_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound)
+    double precision, intent(in) :: haloMass,deltaCritical,massResolution
+    integer         , intent(in) :: bound
+    .
+    .
+    .
+    return
+ end function My_Branching_Probability_Bound
+
   double precision function My_Subresolution_Fraction(haloMass,deltaCritical,massResolution)
     double precision, intent(in) :: haloMass,deltaCritical,massResolution
     .
@@ -2803,7 +2813,7 @@ The procedure pointers must point to functions with the following templates:
     return
  end function My_Subresolution_Fraction
 \end{verbatim}
-{\tt Tree\_Branching\_Probability} must point to a function which returns the probability per unit change in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt deltaCritical} will undergo a branching to progenitors with mass greater than {\tt massResolution}. {\tt Tree\_Subresolution\_Fraction} must point to a function which returns the fraction of mass accreted in subresolution halos, i.e. those below {\tt massResolution}, per unit change in $\delta_{\rm crit}$ for a halo of mass {\tt haloMass} at time {\tt deltaCritical}, or a negative value if the halo is so close to the resolution limit that this number cannot be determined accurately. {\tt Tree\_Maximum\_Step} must point to a function which returns the maximum allowed step in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt deltaCritical} should be allowed to take. {\tt Tree\_Branch\_Mass} must point to a function which returns the mass of one of the halos to which the given halo branches, given the branching 
+{\tt Tree\_Branching\_Probability} must point to a function which returns the probability per unit change in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt deltaCritical} will undergo a branching to progenitors with mass greater than {\tt massResolution}. {\tt Tree\_Branching\_Probability\_Bound} must point to a function which returns either an upper or lower bound (as requested by the {\tt bound} arugment, which must be either {\tt boundLower} or {\tt boundUpper} as defined in the {\tt Merger\_Tree\_Branching\_Options} module) on the probability per unit change in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt deltaCritical} will undergo a branching to progenitors with mass greater than {\tt massResolution}. This is intended for cases where useful bounds can be computed rapidly (more rapidly than the full calculation performed by {\tt Tree\_Branching\_Probability}). It is acceptable to simply return the value given by {\tt Tree\_Branching\_Probability} is no bounds are available (in which case an implementation may want to intelligently store previously computed values and re-use them if possible). {\tt Tree\_Subresolution\_Fraction} must point to a function which returns the fraction of mass accreted in subresolution halos, i.e. those below {\tt massResolution}, per unit change in $\delta_{\rm crit}$ for a halo of mass {\tt haloMass} at time {\tt deltaCritical}, or a negative value if the halo is so close to the resolution limit that this number cannot be determined accurately. {\tt Tree\_Maximum\_Step} must point to a function which returns the maximum allowed step in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt deltaCritical} should be allowed to take. {\tt Tree\_Branch\_Mass} must point to a function which returns the mass of one of the halos to which the given halo branches, given the branching 
 probability, {\tt probability}.
 
 Currently defined merger tree branching methods are:
