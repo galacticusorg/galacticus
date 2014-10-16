@@ -196,7 +196,7 @@ if (
     $parameters->{'parameter'}->{'mergerTreeConstructMethod'}->{'value'} eq "build" 
     ) {
     my $treesPerDecadeEffective =
-	max(
+	&List::Util::max(
 	    int(
 		$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}
 		/$temperature
