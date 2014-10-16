@@ -92,6 +92,8 @@ module Linear_Algebra
      procedure :: logarithmicDeterminant => matrixLogarithmicDeterminant
      procedure :: linearSystemSolve      => matrixLinearSystemSolve
      procedure :: transpose              => matrixTranspose
+     procedure :: eigenSystem            => matrixEigensystem
+     procedure :: symmetrize             => matrixSymmetrize
   end type matrix
   
   ! Assignment interfaces.
@@ -340,4 +342,49 @@ contains
     return
   end function matrixTranspose
 
+  subroutine matrixEigensystem(self,eigenVectors,eigenValues)
+    !% Find eigenvectors and eigenvalues of a real symmetric matrix.
+    implicit none
+    class           (matrix                    ), intent(inout)                                                          :: self
+    type            (matrix                    ), intent(  out)                                                          :: eigenVectors
+    type            (vector                    ), intent(  out)                                                          :: eigenValues
+    type            (fgsl_matrix               )                                                                         :: selfMatrix      , eigenVectorMatrix
+    type            (fgsl_vector               )                                                                         :: eigenValueVector
+    type            (fgsl_eigen_symmv_workspace)                                                                         :: workspace
+    integer         (kind=fgsl_int             )                                                                         :: status
+    integer         (kind=fgsl_size_t          )                                                                         :: selfMatrixSize
+    double precision                            , dimension(size(self%elements,dim=1),size(self%elements,dim=2)), target :: eigenVectorArray
+    double precision                            , dimension(size(self%elements,dim=1)                          ), target :: eigenValueArray
+    double precision                            , dimension(size(self%elements,dim=1),size(self%elements,dim=2))         :: selfArray
+
+    selfMatrixSize   =size(self%elements,dim=1)
+    selfArray        =self%elements
+    selfMatrix       =FGSL_Matrix_Init      (type=1.0_fgsl_double)
+    eigenVectorMatrix=FGSL_Matrix_Init      (type=1.0_fgsl_double)
+    eigenValueVector =FGSL_Vector_Init      (type=1.0_fgsl_double)
+    status           =FGSL_Matrix_Align     (self%elements   ,selfMatrixSize,selfMatrixSize  ,selfMatrixSize,selfMatrix                 )
+    status           =FGSL_Matrix_Align     (eigenVectorArray,selfMatrixSize,selfMatrixSize  ,selfMatrixSize,eigenVectorMatrix          )
+    status           =FGSL_Vector_Align     (eigenValueArray ,selfMatrixSize,eigenValueVector,selfMatrixSize,0_FGSL_Size_T,1_FGSL_Size_T)
+    workspace        =FGSL_Eigen_SymmV_Alloc(                 selfMatrixSize                                                            )
+    status           =FGSL_Eigen_SymmV      (selfMatrix                     ,eigenValueVector,eigenVectorMatrix,workspace               )
+    eigenVectors     =eigenVectorArray
+    eigenValues      =eigenValueArray
+    call fgsl_eigen_symmv_free(workspace        )
+    call FGSL_Matrix_Free     (selfMatrix       )
+    call FGSL_Matrix_Free     (eigenVectorMatrix)
+    call FGSL_Vector_Free     (eigenValueVector )
+    ! Restore the original matrix.
+    self%elements               =selfArray
+    return
+  end subroutine matrixEigensystem
+
+  subroutine matrixSymmetrize(self)
+    !% Symmetrize a matrix.
+    implicit none
+    class(matrix), intent(inout) :: self
+    
+    self%elements=0.5d0*(self%elements+transpose(self%elements))
+    return
+  end subroutine matrixSymmetrize
+  
 end module Linear_Algebra
