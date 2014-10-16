@@ -70,7 +70,8 @@ module Node_Component_Disk_Very_Simple
   logical          :: moduleInitialized          =.false.
 
   ! Parameters controlling the physical implementation.
-  double precision :: diskOutflowTimescaleMinimum        , diskStarFormationTimescaleMinimum
+  double precision :: diskOutflowTimescaleMinimum        , diskStarFormationTimescaleMinimum, &
+       &              diskVerySimpleMassScaleAbsolute
 
 contains
 
@@ -87,6 +88,17 @@ contains
     !$omp critical (Node_Component_Disk_Very_Simple_Initialize)
     if (defaultDiskComponent%verySimpleIsActive().and..not.moduleInitialized) then
        ! Read parameters controlling the physical implementation.
+       !@ <inputParameter>
+       !@   <name>diskVerySimpleMassScaleAbsolute</name>
+       !@   <defaultValue>$100 M_\odot$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The absolute mass scale below which calculations in the very simple disk component are allowed to become inaccurate.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskVerySimpleMassScaleAbsolute',diskVerySimpleMassScaleAbsolute,defaultValue=100.0d0)
        !@ <inputParameter>
        !@   <name>diskOutflowTimescaleMinimum</name>
        !@   <defaultValue>$10^{-3}$</defaultValue>
@@ -324,7 +336,6 @@ contains
     implicit none
     type            (treeNode         ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk)               , pointer :: thisDiskComponent
-    double precision                   , parameter              :: massMinimum      =100.0d0
     double precision                                            :: mass
     type            (history          )                         :: stellarPopulationHistoryScales
 
@@ -335,8 +346,8 @@ contains
     class is (nodeComponentDiskVerySimple)
        ! Set scale for gas and stellar mass.
        mass=thisDiskComponent%massGas()+thisDiskComponent%massStellar()
-       call thisDiskComponent%massGasScale    (max(mass,massMinimum))
-       call thisDiskComponent%massStellarScale(max(mass,massMinimum))
+       call thisDiskComponent%massGasScale    (max(mass,diskVerySimpleMassScaleAbsolute))
+       call thisDiskComponent%massStellarScale(max(mass,diskVerySimpleMassScaleAbsolute))
        ! Set scales for stellar population properties and star formation histories.
        stellarPopulationHistoryScales=thisDiskComponent%stellarPropertiesHistory()
        call Stellar_Population_Properties_Scales           (stellarPopulationHistoryScales,thisDiskComponent%massStellar(),zeroAbundances)

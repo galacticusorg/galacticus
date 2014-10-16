@@ -49,12 +49,16 @@ module Node_Component_Hot_Halo_VS_Delayed
   !# </component>
 
   ! Record of whether this module has been initialized.
-  logical :: moduleInitialized=.false.
+  logical          :: moduleInitialized                        =.false.
+  
+  ! Options controlling the numerical implementation.
+  double precision :: hotHaloVerySimpleDelayedMassScaleRelative
 
 contains
 
   subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize()
     !% Initializes the very simple hot halo component module.
+    use Input_Parameters
     implicit none
     type(nodeComponentHotHaloVerySimpleDelayed) :: hotHaloComponent
 
@@ -63,6 +67,18 @@ contains
     if (.not.moduleInitialized) then
        ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
        call hotHaloComponent%outflowingMassRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate)
+       ! Read parameters controlling the physical implementation.
+       !@ <inputParameter>
+       !@   <name>hotHaloVerySimpleDelayedMassScaleRelative</name>
+       !@   <defaultValue>$0.01$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hotHaloVerySimpleDelayedMassScaleRelative',hotHaloVerySimpleDelayedMassScaleRelative,defaultValue=1.0d-2)
        ! Record that the module is now initialized.
        moduleInitialized=.true.
     end if
@@ -117,7 +133,6 @@ contains
     !% Set scales for properties of {\tt node}.
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
-    double precision                      , parameter              :: scaleMassRelative=1.0d-2
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
     class           (nodeComponentBasic  )               , pointer :: basic
     double precision                                               :: massVirial
@@ -132,7 +147,7 @@ contains
        ! Get virial properties.
        massVirial =  basic%mass ()
        ! Set the scale.
-       call hotHalo%outflowedMassScale(massVirial*scaleMassRelative)
+       call hotHalo%outflowedMassScale(massVirial*hotHaloVerySimpleDelayedMassScaleRelative)
     end select
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Scale_Set
