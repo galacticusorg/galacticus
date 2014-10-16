@@ -22,6 +22,7 @@ function likelihoodMassFunctionConstructor(haloMassMinimum,haloMassMaximum,redsh
   use Galacticus_Input_Paths
   use IO_HDF5
   use Memory_Management
+  use Galacticus_Display
   implicit none
   type            (likelihoodMassFunction)                              :: likelihoodMassFunctionConstructor
   double precision                        , intent(in   )               :: redshiftMinimum                  , redshiftMaximum       , &
@@ -29,9 +30,11 @@ function likelihoodMassFunctionConstructor(haloMassMinimum,haloMassMaximum,redsh
        &                                                                   surfaceBrightnessLimit
   logical                                 , intent(in   )               :: useSurveyLimits                  , modelSurfaceBrightness
   character       (len=*                 ), intent(in   )               :: massFunctionFileName
-  double precision                        , allocatable  , dimension(:) :: massBinWidth
+  double precision                        , allocatable  , dimension(:) :: massBinWidth                     , eigenValueArray
   type            (hdf5Object            )                              :: massFunctionFile
   integer                                                               :: i
+  type            (matrix                )                              :: eigenVectors
+  type            (vector                )                              :: eigenValues
 
   likelihoodMassFunctionConstructor%useSurveyLimits=useSurveyLimits
   likelihoodMassFunctionConstructor%       haloMassMinimum=      haloMassMinimum
@@ -96,6 +99,14 @@ function likelihoodMassFunctionConstructor(haloMassMinimum,haloMassMaximum,redsh
   ! Find the inverse covariance matrix.
   likelihoodMassFunctionConstructor%covariance       =likelihoodMassFunctionConstructor%covarianceMatrix
   likelihoodMassFunctionConstructor%inverseCovariance=likelihoodMassFunctionConstructor%covariance      %invert()
+  ! Symmetrize the inverse covariance matrix.
+  call likelihoodMassFunctionConstructor%inverseCovariance%symmetrize()
+  ! Get eigenvalues and vectors of the inverse covariance matrix.
+  allocate(eigenValueArray(size(likelihoodMassFunctionConstructor%mass)))
+  call likelihoodMassFunctionConstructor%inverseCovariance%eigenSystem(eigenVectors,eigenValues)
+  eigenValueArray=eigenValues
+  if (any(eigenValueArray < 0.0d0)) call Galacticus_Display_Message('WARNING: inverse covariance matrix is not semi-positive definite')
+  deallocate(eigenValueArray)
   return
 end function likelihoodMassFunctionConstructor
 
@@ -111,6 +122,10 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   use Numerical_Integration
   use Galacticus_Error
   use Mass_Function_Incompletenesses
+
+
+use mpi_utilities
+
   implicit none
   class           (likelihoodMassFunction                     ), intent(inout)               :: self
   class           (state                                      ), intent(in   )               :: simulationState
@@ -254,22 +269,66 @@ contains
     use Galacticus_Error
     use String_Handling
     implicit none
-    real     (c_double                  )        :: likelihoodMassFunctionTimeIntegrand
-    real     (c_double                  ), value :: timePrime
-    type     (c_ptr                     ), value :: parameterPointer
-    type     (fgsl_function             )        :: integrandFunctionTime
-    type     (fgsl_integration_workspace)        :: integrationWorkspaceTime
-    type     (c_ptr                     )        :: parameterPointerTime
-    integer                                      :: errorStatus
-    logical                                      :: integrationResetTime
-    type     (varying_string            )        :: message
-    character(len=14                    )        :: label
+    real            (c_double                  )        :: likelihoodMassFunctionTimeIntegrand
+    real            (c_double                  ), value :: timePrime
+    type            (c_ptr                     ), value :: parameterPointer
+    type            (fgsl_function             )        :: integrandFunctionTime
+    type            (fgsl_integration_workspace)        :: integrationWorkspaceTime
+    type            (c_ptr                     )        :: parameterPointerTime
+    integer                                             :: errorStatus
+    logical                                             :: integrationResetTime
+    type            (varying_string            )        :: message
+    character       (len=14                    )        :: label
+    double precision                                    :: haloMassMinimum,haloMassMaximum
 
+    ! Check for zero contribution from the ends of our halo mass range.
+    haloMassMinimum=10.0d0**self%logHaloMassMinimum
+    haloMassMaximum=10.0d0**self%logHaloMassMaximum
+    if          (                                                                                     &
+         &        thisConditionalMassFunction%massFunction(      haloMassMinimum,self%massMinimum(i)) &
+         &         ==                                                                                 &
+         &        thisConditionalMassFunction%massFunction(      haloMassMinimum,self%massMaximum(i)) &
+         &       .and.                                                                                &
+         &        thisConditionalMassFunction%massFunction(      haloMassMinimum,self%massMinimum(i)) &
+         &         ==                                                                                 &
+         &        0.0d0                                                                               &
+         &       .and.                                                                                &
+         &        thisConditionalMassFunction%massFunction(      haloMassMaximum,self%massMinimum(i)) &
+         &         ==                                                                                 &
+         &        thisConditionalMassFunction%massFunction(      haloMassMaximum,self%massMaximum(i)) &
+         &       .and.                                                                                &
+         &        thisConditionalMassFunction%massFunction(      haloMassMaximum,self%massMinimum(i)) &
+         &         >                                                                                  &
+         &        0.0d0                                                                               &
+         &      ) then       
+       do while (                                                                                     &
+            &     thisConditionalMassFunction%massFunction(2.0d0*haloMassMinimum,self%massMinimum(i)) &
+            &      ==                                                                                 &
+            &     thisConditionalMassFunction%massFunction(2.0d0*haloMassMinimum,self%massMaximum(i)) &
+            &    .and.                                                                                &
+            &     thisConditionalMassFunction%massFunction(2.0d0*haloMassMinimum,self%massMinimum(i)) &
+            &      ==                                                                                 &
+            &     0.0d0                                                                               &
+            &   )
+          haloMassMinimum=2.0d0*haloMassMinimum
+       end do
+       do while (                                                                                     &
+            &     thisConditionalMassFunction%massFunction(0.5d0*haloMassMaximum,self%massMinimum(i)) &
+            &      ==                                                                                 &
+            &     thisConditionalMassFunction%massFunction(0.5d0*haloMassMaximum,self%massMaximum(i)) &
+            &    .and.                                                                                &
+            &     thisConditionalMassFunction%massFunction(0.5d0*haloMassMaximum,self%massMinimum(i)) &
+            &      >                                                                                  &
+            &     0.0d0                                                                               &           
+            &   )
+          haloMassMaximum=0.5d0*haloMassMaximum          
+       end do       
+    end if
     time                =timePrime
     integrationResetTime=.true.
     likelihoodMassFunctionTimeIntegrand= Integrate(                                            &
-         &                                           self%logHaloMassMinimum                 , &
-         &                                           self%logHaloMassMaximum                 , &
+         &                                           log10(haloMassMinimum)                  , &
+         &                                           log10(haloMassMaximum)                  , &
          &                                           likelihoodMassFunctionHaloMassIntegrand , &
          &                                           parameterPointerTime                    , &
          &                                           integrandFunctionTime                   , &
