@@ -44,8 +44,7 @@ contains
     if (present(cosmologyScalingMassFunction).neqv.present(cosmologyConversionMassFunction)) call Galacticus_Error_Report('Cosmology_Conversion_Factors','"cosmologyScalingMassFunction" and "cosmologyConversionMassFunction" must be either both present or both not-present')
 
     ! Test redshift.
-    if (redshift < 0.0d0) then
-    else if (redshift == 0.0d0) then
+    if (redshift <= 0.0d0) then
        ! At zero redshifts the conversions are all identity conversions.
        if (present(cosmologyConversionSize        )) cosmologyConversionSize        =1.0d0
        if (present(cosmologyConversionMass        )) cosmologyConversionMass        =1.0d0
