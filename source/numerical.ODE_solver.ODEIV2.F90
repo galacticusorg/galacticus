@@ -49,7 +49,7 @@ contains
     type            (fodeiv2_step_type), intent(in   ), optional          :: algorithm
     integer                            , intent(  out), optional          :: odeStatus
 #ifdef PROFILE
-    type(c_funptr), intent(in   ) :: Error_Analyzer
+    type            (c_funptr         ), intent(in   ), optional          :: Error_Analyzer
 #endif
     integer         (kind=4           ), external  :: odeFunction
     integer                            , parameter :: genericFailureCountMaximum=10
@@ -100,11 +100,15 @@ contains
     status=FODEIV2_Driver_Reset(odeDriver)
     ! Evolve the system until the final time is reached.
     do while ((forwardEvolve.and.x<x1Internal).or.(.not.forwardEvolve.and.x>x1Internal))
-      status=FODEIV2_Driver_Apply(odeDriver,x,x1Internal,y&
 #ifdef PROFILE
-           &,Error_Analyzer&
+       if (present(Error_Analyzer)) then
+          status=FODEIV2_Driver_Apply(odeDriver,x,x1Internal,y,Error_Analyzer)
+       else
+          status=FODEIV2_Driver_Apply(odeDriver,x,x1Internal,y,C_NULL_FUNPTR )
+       end if
+#else
+      status    =FODEIV2_Driver_Apply(odeDriver,x,x1Internal,y               )
 #endif
-           &)
        select case (status)
        case (FGSL_Success)
           ! Successful completion of the step - do nothing except resetting failure count.
