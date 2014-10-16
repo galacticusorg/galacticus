@@ -418,6 +418,9 @@ contains
 #ifdef PROFILE
   subroutine Tree_Node_Evolve_Error_Analyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
+    use, intrinsic :: ISO_C_Binding
+    use FGSL
+    use Galacticus_Meta_Evolver_Profiler
     !# <include directive="decodePropertyIdentifiersTask" type="moduleUse">
     include 'objects.merger_trees.decode_property_identifiers.modules.inc'
     !# </include>
@@ -443,10 +446,13 @@ contains
           limitingProperty=iProperty
        end if
     end do
-    ! Decode the step limiting property.
-    propertyName=activeNode%nameFromIndex(limitingProperty)
-    ! Record this information.
-    call Galacticus_Meta_Evolver_Profile(timeStep,propertyName)
+    ! Check that we found a limiting property.
+    if (scaledErrorMaximum > 0.0d0) then
+       ! Decode the step limiting property.
+       propertyName=activeNode%nameFromIndex(limitingProperty)
+       ! Record this information.
+       call Galacticus_Meta_Evolver_Profile(timeStep,propertyName)
+    end if
     return
   end subroutine Tree_Node_Evolve_Error_Analyzer
 #endif
