@@ -127,7 +127,7 @@ contains
        read (label,*) fixedConstructor%virialDensityContrastValue
     else if (extract(virialDensityContrast,1,13) == "fixedCritical" ) then
        fixedConstructor%virialDensityContrast=fixedDensityContrastFixedCritical
-       label=extract(virialDensityContrast,10,len(virialDensityContrast))
+       label=extract(virialDensityContrast,14,len(virialDensityContrast))
        read (label,*) fixedConstructor%virialDensityContrastValue
     else
        call Galacticus_Error_Report('fixedDensityContrastDefinition','only "sphericalCollapseMatterLambda", "fixedMeanXXX", and "fixedCriticalXXX" supported')
