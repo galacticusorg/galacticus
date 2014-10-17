@@ -320,6 +320,16 @@ contains
                          do k=1,sizeFunctionDescriptors(j)%massSystematicCoefficientCount
                             parameterName=trim(sizeFunctionLabels(j))//'MassSystematic'
                             parameterName=parameterName//(k-1)
+                            !@ <inputParameter>
+                            !@   <regEx>(sdssSizeFunction)Z[0-9\.]+MassSystematic[0-9]+</regEx>
+                            !@   <defaultValue>0</defaultValue>
+                            !@   <attachedTo>module</attachedTo>
+                            !@   <description>
+                            !@     Mass-dependent size function mass systematic parameters.
+                            !@   </description>
+                            !@   <type>real</type>
+                            !@   <cardinality>1</cardinality>
+                            !@ </inputParameter>
                             call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%massSystematicCoefficients(k),defaultValue=0.0d0)
                          end do
                       end if
@@ -328,6 +338,16 @@ contains
                          do k=1,sizeFunctionDescriptors(j)%radiusSystematicCoefficientCount
                             parameterName=trim(sizeFunctionLabels(j))//'RadiusSystematic'
                             parameterName=parameterName//(k-1)
+                            !@ <inputParameter>
+                            !@   <regEx>(sdssSizeFunction)Z[0-9\.]+RadiusSystematic[0-9]+</regEx>
+                            !@   <defaultValue>0</defaultValue>
+                            !@   <attachedTo>module</attachedTo>
+                            !@   <description>
+                            !@     Mass-dependent size function radius systematic parameters.
+                            !@   </description>
+                            !@   <type>real</type>
+                            !@   <cardinality>1</cardinality>
+                            !@ </inputParameter>
                             call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%radiusSystematicCoefficients(k),defaultValue=0.0d0)
                          end do
                       end if
