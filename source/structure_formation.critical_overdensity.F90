@@ -102,7 +102,7 @@ contains
     call Critical_Overdensity_Tabulate(time,deltaCritTable)
     if (.not.deltaCritTable%isMonotonic(direction=directionDecreasing)) call Galacticus_Error_Report('Critical_Overdensity_Initialize','critical overdensity must be monotonically decreasing with time')
     ! Create the reversed arrays.
-    call deltaCritTable%reverse(deltaCritTableReversed)
+    call deltaCritTable%reverse(deltaCritTableReversed,precise=.true.)
     ! Flag that the module and tables are now initialized.
     tablesInitialized=.true.
     return
