@@ -21,7 +21,7 @@ module Tables
   !% Defines a {\tt table} class with optimized interpolation operators.
   use FGSL
   private
-  public :: table,table1D,table1DGeneric,table1DLinearLinear,table1DLogarithmicLinear,table1DLinearCSpline,table1DLogarithmicCSpline
+  public :: table,table1D,table1DGeneric,table1DLinearLinear,table1DLogarithmicLinear,table1DNonUniformLinearLogarithmic,table1DLinearCSpline,table1DLogarithmicCSpline
 
   !@ <enumeration>
   !@  <name>extrapolationType</name>
@@ -81,8 +81,8 @@ module Tables
      !@   <objectMethod>
      !@     <method>reverse</method>
      !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} reversedSelf,\intzero\ [table]</arguments>
-     !@     <description>Reverse the table (i.e. swap $x$ and $y$ components) and return in {\tt reversedSelf}. If {\tt table} is specified then the {\tt table}$^{\rm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} reversedSelf,\intzero\ [table], \logicalzero\ [precise]</arguments>
+     !@     <description>Reverse the table (i.e. swap $x$ and $y$ components) and return in {\tt reversedSelf}. If {\tt table} is specified then the {\tt table}$^{\rm th}$ table is used for the $y$-values, otherwise the first table is used. If the optional {\tt precise} argument is set to {\tt true} then the reversal must be precisely invertible---if this is not possible the method will abort.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isMonotonic</method>
@@ -210,12 +210,12 @@ module Tables
      !@     <description>Populate the {\tt table}$^{\rm th}$ table with elements {\tt y}. If {\tt y} is a scalar, then the index, {\tt i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create                         =>Table_Linear_1D_Create
+     procedure :: create                          => Table_Linear_1D_Create
      procedure :: Table_Linear_1D_Populate
      procedure :: Table_Linear_1D_Populate_Single
-     generic   :: populate                        => Table_Linear_1D_Populate, Table_Linear_1D_Populate_Single
-     procedure :: interpolate        =>Table_Linear_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Linear_1D_Interpolate_Gradient
+     generic   :: populate                        => Table_Linear_1D_Populate            , Table_Linear_1D_Populate_Single
+     procedure :: interpolate                     => Table_Linear_1D_Interpolate
+     procedure :: interpolateGradient             => Table_Linear_1D_Interpolate_Gradient
   end type table1DLinearLinear
 
   type, extends(table1DLinearLinear) :: table1DLogarithmicLinear
@@ -223,13 +223,26 @@ module Tables
      logical          :: previousSet
      double precision :: xLinearPrevious,xLogarithmicPrevious
    contains
-     procedure :: create             =>Table_Logarithmic_1D_Create
-     procedure :: interpolate        =>Table_Logarithmic_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Logarithmic_1D_Interpolate_Gradient
-     procedure :: x                  =>Table_Logarithmic_1D_X
-     procedure :: xs                 =>Table_Logarithmic_1D_Xs
-     procedure :: integrationWeights =>Table_Logarithmic_Integration_Weights
+     procedure :: create              => Table_Logarithmic_1D_Create
+     procedure :: interpolate         => Table_Logarithmic_1D_Interpolate
+     procedure :: interpolateGradient => Table_Logarithmic_1D_Interpolate_Gradient
+     procedure :: x                   => Table_Logarithmic_1D_X
+     procedure :: xs                  => Table_Logarithmic_1D_Xs
+     procedure :: integrationWeights  => Table_Logarithmic_Integration_Weights
+     procedure :: reverse             => Table_Logarithmic_1D_Reverse
   end type table1DLogarithmicLinear
+
+  type, extends(table1DGeneric) :: table1DNonUniformLinearLogarithmic
+     !% Table type supporting one dimensional table with non-uniform x-axis and logarithmic in $y$.
+   contains
+     procedure :: Table_Generic_1D_Populate        => Table_NonUniform_Linear_Logarithmic_1D_Populate
+     procedure :: Table_Generic_1D_Populate_Single => Table_NonUniform_Linear_Logarithmic_1D_Populate_Single
+     procedure :: interpolate                      => Table_NonUniform_Linear_Logarithmic_1D_Interpolate
+     procedure :: interpolateGradient              => Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient
+     procedure :: y                                => Table_NonUniform_Linear_Logarithmic_1D_Y
+     procedure :: ys                               => Table_NonUniform_Linear_Logarithmic_1D_Ys
+     procedure :: integrationWeights               => Table_NonUniform_Linear_Logarithmic_Integration_Weights
+  end type table1DNonUniformLinearLogarithmic
 
   type, extends(table1D) :: table1DLinearCSpline
      !% Table type supporting one dimensional table with linear spacing in $x$ and cubic spline interpolation.
@@ -346,7 +359,7 @@ contains
     return
   end function Table1D_Ys
 
-  subroutine Table_1D_Reverse(self,reversedSelf,table)
+  subroutine Table_1D_Reverse(self,reversedSelf,table,precise)
     !% Reverse a 1D table (i.e. swap $x$ and $y$ components). Optionally allows specification of
     !% which $y$ table to swap with.
     use Array_Utilities
@@ -355,8 +368,10 @@ contains
     class  (table1D)             , intent(in   )           :: self
     class  (table1D), allocatable, intent(inout)           :: reversedSelf
     integer                      , intent(in   ), optional :: table
+    logical                      , intent(in   ), optional :: precise
     integer                                                :: i           , tableActual
 
+    if (present(precise).and.precise) call Galacticus_Error_Report('Table_1D_Reverse','table cannot be precisely reversed')
     tableActual=1
     if (present(table)) tableActual=table
     if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('Table_1D_Reverse','reversed table would not be monotonic')
@@ -881,7 +896,40 @@ contains
     end function factor1Integrand
     
   end function Table_Logarithmic_Integration_Weights
-  
+
+  subroutine Table_Logarithmic_1D_Reverse(self,reversedSelf,table,precise)
+    !% Reverse a 1D logarithmic-linear table (i.e. swap $x$ and $y$ components). Optionally allows specification of
+    !% which $y$ table to swap with.
+    use Array_Utilities
+    use Galacticus_Error
+    implicit none
+    class  (table1DLogarithmicLinear)             , intent(in   )           :: self
+    class  (table1D                 ), allocatable, intent(inout)           :: reversedSelf
+    integer                                       , intent(in   ), optional :: table
+    logical                                       , intent(in   ), optional :: precise
+    integer                                                                 :: i           , tableActual
+
+    tableActual=1
+    if (present(table)) tableActual=table
+    if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('Table_Logarithmic_1D_Reverse','reversed table would not be monotonic')
+    if (allocated(reversedSelf)) deallocate(reversedSelf)
+    allocate(table1DNonUniformLinearLogarithmic :: reversedSelf)
+    select type (reversedSelf)
+    type is (table1DNonUniformLinearLogarithmic)
+       call reversedSelf%create(self%yv(:,tableActual),size(self%yv,dim=2),extrapolationType=self%extrapolationType)
+       reversedSelf%yv               =self%yv
+       reversedSelf%yv(:,tableActual)=self%xv
+        ! If the table is monotonically decreasing when reversed, we will also need to switch the order.
+       if (Array_Is_Monotonic(reversedSelf%xv,direction=directionDecreasing)) then
+          reversedSelf%xv(:)=Array_Reverse(reversedSelf%xv(:))
+          do i=1,size(reversedSelf%yv,dim=2)
+             reversedSelf%yv(:,i)=Array_Reverse(reversedSelf%yv(:,i))
+          end do
+       end if
+    end select
+    return
+  end subroutine Table_Logarithmic_1D_Reverse
+
   subroutine Table_Linear_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D linear table.
     use Memory_Management
@@ -1238,5 +1286,91 @@ contains
     end if
     return
   end function Table1D_Find_Effective_X
+
+  subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate(self,y,table)
+    !% Populate a 1-D linear-logarihtmic table.
+    use Galacticus_Error
+    implicit none
+    class           (table1DNonUniformLinearLogarithmic)              , intent(inout)           :: self
+    double precision                                    , dimension(:), intent(in   )           :: y
+    integer                                                          , intent(in   ), optional :: table
+
+    call self%table1DGeneric%populate(log(y),table)
+    return
+  end subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate
+
+  subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate_Single(self,y,i,table)
+    !% Populate a single element of a 1-D linear table.
+    use Galacticus_Error
+    implicit none
+    class           (table1DNonUniformLinearLogarithmic), intent(inout)           :: self
+    double precision                                    , intent(in   )           :: y
+    integer                                             , intent(in   )           :: i
+    integer                                             , intent(in   ), optional :: table
+
+    call self%table1DGeneric%populate(log(y),i,table)
+    return
+  end subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate_Single
+
+  double precision function Table_NonUniform_Linear_Logarithmic_1D_Interpolate(self,x,table)
+    !% Perform linear interpolation in a linear-logarithmic 1D table.
+    implicit none
+    class           (table1DNonUniformLinearLogarithmic), intent(inout)           :: self
+    double precision                                    , intent(in   )           :: x
+    integer                                             , intent(in   ), optional :: table
+
+    Table_NonUniform_Linear_Logarithmic_1D_Interpolate=exp(self%table1DGeneric%interpolate(x,table))
+    return
+  end function Table_NonUniform_Linear_Logarithmic_1D_Interpolate
+
+  double precision function Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient(self,x,table)
+    !% Perform linear interpolation in a linear-logarithmic 1D table.
+    implicit none
+    class           (table1DNonUniformLinearLogarithmic), intent(inout)           :: self
+    double precision                                    , intent(in   )           :: x
+    integer                                             , intent(in   ), optional :: table
+   
+    Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient=self%interpolate(x,table)*self%table1DGeneric%interpolateGradient(x,table)
+    return
+  end function Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient
+
+  function Table_NonUniform_Linear_Logarithmic_Integration_Weights(self,x0,x1,integrand)
+    !% Returns a set of weights for integration on a linear-logarithmic table between limits {\tt x0} and {\tt x1}.
+    use Galacticus_Error
+    implicit none
+    class           (table1DNonUniformLinearLogarithmic ), intent(inout)                               :: self
+    double precision                                     , intent(in   )                               :: x0, x1
+    procedure       (integrandTemplate                  ), intent(in   )           , pointer, optional :: integrand
+    double precision                                     , dimension(size(self%xv))                    :: Table_NonUniform_Linear_Logarithmic_Integration_Weights
+
+    call Galacticus_Error_Report('Table_NonUniform_Linear_Logarithmic_Integration_Weights','integrand is not linear in y')
+    return    
+  end function Table_NonUniform_Linear_Logarithmic_Integration_Weights
+  
+  double precision function Table_NonUniform_Linear_Logarithmic_1D_Y(self,i,table)
+    !% Return the {\tt i}$^{\rm th}$ $y$-value for a 1D table.
+    implicit none
+    class  (table1DNonUniformLinearLogarithmic), intent(in   )           :: self
+    integer                                    , intent(in   )           :: i
+    integer                                    , intent(in   ), optional :: table
+    integer                                                              :: ii   , tableActual
+
+    tableActual=1
+    if (present(table)) tableActual=table
+    ii=i
+    if (ii < 0) ii=ii+size(self%xv)+1
+    Table_NonUniform_Linear_Logarithmic_1D_Y=exp(self%yv(ii,tableActual))
+    return
+  end function Table_NonUniform_Linear_Logarithmic_1D_Y
+
+  function Table_NonUniform_Linear_Logarithmic_1D_Ys(self)
+    !% Return the $y$-values for a 1D table.
+    implicit none
+    class           (table1DNonUniformLinearLogarithmic), intent(in   )                                      :: self
+    double precision                                    , dimension(size(self%yv,dim=1),size(self%yv,dim=2)) :: Table_NonUniform_Linear_Logarithmic_1D_Ys
+
+    Table_NonUniform_Linear_Logarithmic_1D_Ys=exp(self%yv)
+    return
+  end function Table_NonUniform_Linear_Logarithmic_1D_Ys
 
 end module Tables
