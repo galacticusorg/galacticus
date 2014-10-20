@@ -270,7 +270,7 @@ contains
                    newBasicComponent1 => newNode1%basic(autoCreate=.true.)
                    ! Compute new mass accounting for sub-resolution accretion.
                    nodeMass1=thisBasicComponent%mass()*(1.0d0-accretionFractionCumulative)
-                   ! Compute the time corresponding to this branching event.
+                   ! Compute the time corresponding to this new node.
                    time=Time_of_Collapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
                    ! Set properties of the new node.
                    deltaCritical1=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass1)
