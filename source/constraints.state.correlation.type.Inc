@@ -30,7 +30,7 @@
      procedure :: update                          => stateCorrelationUpdate
      procedure :: reset                           => stateCorrelationReset
      procedure :: postConvergenceCorrelationCount => stateCorrelationPostConvergenceCorrelationCount
-     procedure :: correlationLength              => stateCorrelationCorrelationLength
+     procedure :: correlationLength               => stateCorrelationCorrelationLength
   end type stateCorrelation
   
   interface stateCorrelation

@@ -28,6 +28,7 @@
      procedure :: mean     => stateHistoryMean
      procedure :: variance => stateHistoryVariance
      procedure :: reset    => stateHistoryReset
+     procedure :: restore  => stateHistoryRestore
   end type stateHistory
   
   interface stateHistory

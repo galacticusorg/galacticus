@@ -95,3 +95,42 @@ subroutine stateHistoryReset(self)
   self%stateSquaredSum=0.0d0
   return
 end subroutine stateHistoryReset
+
+subroutine stateHistoryRestore(self,stateFileRoot)
+  !% Restore the state object from file.
+  use MPI_Utilities
+  use ISO_Varying_String
+  implicit none
+  class           (stateHistory  ), intent(inout)               :: self
+  character       (len=*         ), intent(in   )               :: stateFileRoot
+  double precision                , allocatable  , dimension(:) :: stateVector
+  integer                                                       :: mpiRank      , stateCount  , &
+       &                                                           logFileUnit  , ioStatus
+  double precision                                              :: time         , logPosterior
+  type            (varying_string)                              :: logFileName
+
+  ! Reset.
+  call self%reset()
+  ! Perform restore of parent class.
+  call self%stateSimple%restore(stateFileRoot)
+  ! Allocate the state vector.
+  allocate(stateVector(self%parameterCount))
+  ! Read state from the log file.
+  logFileName=stateFileRoot//'_'//mpiSelf%rankLabel()//'.log'
+  open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
+  ioStatus=0
+  do while (ioStatus == 0)
+     read (logFileUnit,*,iostat=ioStatus) stateCount  , &
+          &               mpiRank     , &
+          &               time        , &
+          &               logPosterior, &
+          &               stateVector
+     ! Accumulate state and state-squared.
+     self%stateSum       =self%stateSum       +stateVector
+     self%stateSquaredSum=self%stateSquaredSum+stateVector**2
+  end do
+  close(logFileUnit)
+  ! Deallocate the state vector.
+  deallocate(stateVector)
+  return
+end subroutine stateHistoryRestore

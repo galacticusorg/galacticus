@@ -76,6 +76,12 @@ module Constraints_State
      !@     <arguments></arguments>
      !@     <description>Reset the state.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>restore</method>
+     !@     <type>\void</type>
+     !@     <arguments>stateFile</arguments>
+     !@     <description>Restore the state object from a chain file.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure                                :: count          => stateCount
      procedure                                :: dimension      => stateDimension
@@ -85,6 +91,7 @@ module Constraints_State
      procedure(stateMean          ), deferred :: mean
      procedure(stateVariance      ), deferred :: variance
      procedure(stateAcceptanceRate), deferred :: acceptanceRate
+     procedure(stateRestore       ), deferred :: restore
   end type state
 
   abstract interface
@@ -123,10 +130,18 @@ module Constraints_State
   end interface
 
   abstract interface
-     double precisionfunction stateAcceptanceRate(self)
+     double precision function stateAcceptanceRate(self)
        import :: state
        class(state), intent(in   ) :: self
      end function stateAcceptanceRate
+  end interface
+
+  abstract interface
+     subroutine stateRestore(self,stateFileRoot)
+       import :: state
+       class    (state), intent(inout) :: self
+       character(len=*), intent(in   ) :: stateFileRoot
+     end subroutine stateRestore
   end interface
 
   ! Include all state types.
