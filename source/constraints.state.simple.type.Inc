@@ -31,6 +31,7 @@
      procedure :: variance       => stateSimpleVariance
      procedure :: acceptanceRate => stateSimpleAcceptanceRate
      procedure :: reset          => stateSimpleReset
+     procedure :: restore        => stateSimpleRestore
   end type stateSimple
   
   interface stateSimple

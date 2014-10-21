@@ -36,7 +36,7 @@
      procedure :: reset           => convergenceGelmanRubinReset
      procedure :: logReport       => convergenceGelmanRubinLogReport
      procedure :: chainIsOutlier  => convergenceGelmanRubinChainIsOutlier
- end type convergenceGelmanRubin
+  end type convergenceGelmanRubin
   
   interface convergenceGelmanRubin
      !% Constructors for the ``GelmanRubin'' convergence class.

@@ -44,6 +44,8 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
        &                                                                   i
   double precision                                                      :: time           , logPosterior
 
+  ! Restore the state object.
+  call simulationState%restore(char(self%logFileRoot))
   ! Allocate the state vector.
   allocate(stateVector(simulationState%dimension()))
   ! Read state from the log file.
