@@ -19,7 +19,8 @@
      !% Defines a simulator class implementing the differential evolution algorithm.
      private
      integer                                                    :: parameterCount       , stepsMaximum          , &
-          &                                                        stateSwapCount       , acceptanceAverageCount
+          &                                                        stateSwapCount       , acceptanceAverageCount, & 
+          &                                                        logFlushCount
      double precision                                           :: logPosterior
      logical                                                    :: isConverged          , sampleOutliers
      type            (prior            ), pointer, dimension(:) :: parameterPriors
