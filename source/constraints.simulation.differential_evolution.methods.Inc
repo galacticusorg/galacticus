@@ -18,7 +18,7 @@
 !% Defines methods for the ``differentialEvolution'' simulator class.
 
 function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion&
-     &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers)
+     &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount)
   !% Constructor for ``differentialEvolution'' simulator class.
   implicit none
   type     (simulatorDifferentialEvolution)                                      :: simulatorDifferentialEvolutionConstructor
@@ -32,7 +32,7 @@ function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistrib
   class    (stateInitializor              ), intent(in   ), target               :: simulationStateInitializor
   class    (deProposalSize                ), intent(in   ), target               :: proposalSize
   class    (deRandomJump                  ), intent(in   ), target               :: randomJump
-  integer                                  , intent(in   )                       :: stepsMaximum,acceptanceAverageCount,stateSwapCount
+  integer                                  , intent(in   )                       :: stepsMaximum,acceptanceAverageCount,stateSwapCount,logFlushCount
   character(len=*                         ), intent(in   )                       :: logFileRoot
   logical                                  , intent(in   )                       :: sampleOutliers
 
@@ -52,6 +52,7 @@ function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistrib
   simulatorDifferentialEvolutionConstructor%stateSwapCount              =  stateSwapCount
   simulatorDifferentialEvolutionConstructor%logFileRoot                 =  logFileRoot
   simulatorDifferentialEvolutionConstructor%sampleOutliers              =  sampleOutliers
+  simulatorDifferentialEvolutionConstructor%logFlushCount               =  logFlushCount
   return
 end function simulatorDifferentialEvolutionConstructor
 
@@ -132,12 +133,15 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      do i=1,size(stateVector)
         stateVector(i)=self%parameterMappings(i)%thisMapping%unmap(stateVector(i))
      end do
-     if (self%logging()) write (logFileUnit,*) self   %simulationState%count(), &
-          &                                    mpiSelf%rank                 (), &
-          &                                    timeEvaluate                   , &
-          &                                    self%isConverged               , &
-          &                                    self%logPosterior              , &
-          &                                    stateVector
+     if (self%logging()) then
+        write (logFileUnit,*) self   %simulationState%count(), &
+             &                mpiSelf%rank                 (), &
+             &                timeEvaluate                   , &
+             &                self%isConverged               , &
+             &                self%logPosterior              , &
+             &                stateVector
+        if (mod(self%simulationState%count(),self%logFlushCount) == 0) call flush(logFileUnit)
+     end if
      ! Repeat.
      call mpiBarrier()
      ! Test for convergence.

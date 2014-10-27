@@ -89,10 +89,11 @@ contains
          &                                                                                simulatorAcceptanceAverageCountDefinition, simulatorLogFileDefinition             , &
          &                                                                                simulatorTemperatureMaximumDefinition    , simulatorUntemperedStepCountDefinition , &
          &                                                                                simulatorTemperingLevelCountDefinition   , simulatorStepsPerLevelDefinition       , &
-         &                                                                                simulatorStateSwapCountDefinition
+         &                                                                                simulatorStateSwapCountDefinition        , simulatorLogFlushCountDefinition
     integer                                                                            :: simulatorStepsMaximum                    , simulatorStateSwapCount                , &
          &                                                                                simulatorAcceptanceAverageCount          , simulatorUntemperedStepCount           , &
-         &                                                                                simulatorTemperingLevelCount             , simulatorStepsPerLevel                                                                          
+         &                                                                                simulatorTemperingLevelCount             , simulatorStepsPerLevel                 , &
+         &                                                                                simulatorLogFlushCount
     double precision                                                                   :: simulatorTemperatureMaximum
     type            (varying_string  )                                                 :: simulatorLogFile
     logical                                                                            :: simulatorSampleOutliers
@@ -107,10 +108,12 @@ contains
           simulatorStateSwapCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"stateSwapCount"        )
           simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"           )
           simulatorSampleOutliersDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"sampleOutliers"        )
+          simulatorLogFlushCountDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"logFlushCount"         )
           call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
           call extractDataContent(simulatorAcceptanceAverageCountDefinition,simulatorAcceptanceAverageCount)
           call extractDataContent(simulatorStateSwapCountDefinition        ,simulatorStateSwapCount        )
           call extractDataContent(simulatorSampleOutliersDefinition        ,simulatorSampleOutliers        )
+          call extractDataContent(simulatorLogFlushCountDefinition         ,simulatorLogFlushCount         )
           simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
           newSimulator=simulatorDifferentialEvolution(                                 &
                &                                      parameterPriors                , &
@@ -127,7 +130,8 @@ contains
                &                                      simulatorAcceptanceAverageCount, &
                &                                      simulatorStateSwapCount        , &
                &                                      char(simulatorLogFile)         , &
-               &                                      simulatorSampleOutliers          &
+               &                                      simulatorSampleOutliers        , &
+               &                                      simulatorLogFlushCount           &
                &                                     )
        end select
     case ("temperedDifferentialEvolution")

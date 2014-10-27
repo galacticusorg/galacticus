@@ -820,6 +820,7 @@ The configuration file specifies the details of the constraint simulation to be 
     <untemperedStepCount>20</untemperedStepCount>
     <temperedLevels>10</temperedLevels>
     <stepsPerLevel>10</stepsPerLevel>
+    <logFlushCount>10<logFlushCount>
   </simulation>
 
   <parameters>
@@ -1208,6 +1209,7 @@ This option extends the {\tt differentialEvolution} option to include tempering 
 \item[{\tt temperatureMaximum}] The maximum temperature to use when tempering.
 \item[{\tt temperedLevels}] The number of tempered levels to use.
 \item[{\tt stepsPerLevel}] The number of differential evolution steps to take at each tempering level.
+\item[{\tt logFlushCount}] The number of steps after which the log file will be flushed to disk.
 \end{description}
 
 In each tempering cycle, the temperature is raised through levels $1$\ldots$N$ (where $N=${\tt temperedLevels}), and then back down through levels $N-1$\ldots$1$. The temperature at level $i$ is given by:
