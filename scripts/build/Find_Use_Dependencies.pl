@@ -59,7 +59,8 @@ my %moduleLibararies = (
     fox_dom           => "FoX_dom",
     fox_wxml          => "FoX_wxml",
     fox_utils         => "FoX_utils",
-    hdf5              => "hdf5_fortran"
+    hdf5              => "hdf5_fortran",
+    vectors           => "blas"
     );
 my %includeLibararies = (
     crypt             => "crypt"
