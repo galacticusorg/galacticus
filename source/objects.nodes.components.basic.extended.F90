@@ -69,8 +69,9 @@ module Node_Component_Basic_Standard_Extended
 
   ! Options controlling spherical collapse model to use.
   integer                                        :: nodeComponentBasicExtendedSphericalCollapseType
-  integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeLambda=0
-  integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeDE    =1
+  integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeLambda         =0
+  integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeDE             =1
+  integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998=2
 
   ! Initialization state.
   logical                                          :: moduleInitialized                                  =.false.
@@ -122,6 +123,8 @@ contains
              nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeLambda
           case ('matterDarkEnergy')
              nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeDE
+          case ('bryanNorman')
+             nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998
           end select
           moduleInitialized=.true.
        end if
@@ -135,17 +138,23 @@ contains
        ! Get required objects.
        if (.not.virialDensityContrastInitialized) then
           select case (nodeComponentBasicExtendedSphericalCollapseType)
-          case (nodeComponentBasicExtendedSphericalCollapseTypeLambda)
+          case (nodeComponentBasicExtendedSphericalCollapseTypeLambda         )
              allocate(virialDensityContrastSphericalCollapseMatterLambda :: virialDensityContrast_)
              select type (virialDensityContrast_)
              type is (virialDensityContrastSphericalCollapseMatterLambda)
                 virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda()
              end select
-          case (nodeComponentBasicExtendedSphericalCollapseTypeDE    )
+          case (nodeComponentBasicExtendedSphericalCollapseTypeDE             )
              allocate(virialDensityContrastSphericalCollapseMatterDE     :: virialDensityContrast_)
              select type (virialDensityContrast_)
              type is (virialDensityContrastSphericalCollapseMatterDE    )
                 virialDensityContrast_=virialDensityContrastSphericalCollapseMatterDE    ()
+             end select
+          case (nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998)
+             allocate(virialDensityContrastBryanNorman1998                :: virialDensityContrast_)
+             select type (virialDensityContrast_)
+             type is (virialDensityContrastBryanNorman1998              )
+                virialDensityContrast_=virialDensityContrastBryanNorman1998              ()
              end select
           end select
           virialDensityContrastInitialized=.true.
