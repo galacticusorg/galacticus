@@ -52,23 +52,29 @@ module Root_Finder
   type :: rootFinder
      !% Type containing all objects required when calling the FGSL root solver function.
      private
-     type            (fgsl_function         )                  :: fgslFunction
-     type            (fgsl_root_fsolver     )                  :: solver
-     type            (fgsl_root_fsolver_type)                  :: solverType                   =FGSL_Root_fSolver_Brent
-     double precision                                          :: toleranceAbsolute            =1.0d-10
-     double precision                                          :: toleranceRelative            =1.0d-10
-     logical                                                   :: initialized                  =.false.
-     logical                                                   :: resetRequired                =.false.
-     integer                                                   :: rangeExpandType              =rangeExpandNull
-     double precision                                          :: rangeExpandUpward            =1.0d0
-     double precision                                          :: rangeExpandDownward          =1.0d0
-     double precision                                          :: rangeUpwardLimit
-     double precision                                          :: rangeDownwardLimit
-     logical                                                   :: rangeUpwardLimitSet          =.false.
-     logical                                                   :: rangeDownwardLimitSet        =.false.
-     integer                                                   :: rangeExpandDownwardSignExpect=rangeExpandSignExpectNone
-     integer                                                   :: rangeExpandUpwardSignExpect  =rangeExpandSignExpectNone
-     procedure       (rootFunctionTemplate  ), nopass, pointer :: finderFunction
+     type            (fgsl_function                 )                  :: fgslFunction
+     type            (fgsl_function_fdf             )                  :: fgslFunctionDerivative
+     type            (fgsl_root_fsolver             )                  :: solver
+     type            (fgsl_root_fdfsolver           )                  :: solverDerivative
+     type            (fgsl_root_fsolver_type        )                  :: solverType                   =FGSL_Root_fSolver_Brent
+     type            (fgsl_root_fdfsolver_type      )                  :: solverDerivativeType         =FGSL_Root_fdfSolver_Steffenson
+     double precision                                                  :: toleranceAbsolute            =1.0d-10
+     double precision                                                  :: toleranceRelative            =1.0d-10
+     logical                                                           :: initialized                  =.false.
+     logical                                                           :: resetRequired                =.false.
+     logical                                                           :: useDerivative
+     integer                                                           :: rangeExpandType              =rangeExpandNull
+     double precision                                                  :: rangeExpandUpward            =1.0d0
+     double precision                                                  :: rangeExpandDownward          =1.0d0
+     double precision                                                  :: rangeUpwardLimit
+     double precision                                                  :: rangeDownwardLimit
+     logical                                                           :: rangeUpwardLimitSet          =.false.
+     logical                                                           :: rangeDownwardLimitSet        =.false.
+     integer                                                           :: rangeExpandDownwardSignExpect=rangeExpandSignExpectNone
+     integer                                                           :: rangeExpandUpwardSignExpect  =rangeExpandSignExpectNone
+     procedure       (rootFunctionTemplate          ), nopass, pointer :: finderFunction
+     procedure       (rootFunctionDerivativeTemplate), nopass, pointer :: finderFunctionDerivative
+     procedure       (rootFunctionBothTemplate      ), nopass, pointer :: finderFunctionBoth
    contains
      !@ <objectMethods>
      !@   <object>rootFinder</object>
@@ -109,13 +115,15 @@ module Root_Finder
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                Root_Finder_Destroy
-     procedure :: rootFunction =>Root_Finder_Root_Function
-     procedure :: type         =>Root_Finder_Type
-     procedure :: tolerance    =>Root_Finder_Tolerance
-     procedure :: rangeExpand  =>Root_Finder_Range_Expand
-     procedure :: find         =>Root_Finder_Find
-     procedure :: isInitialized=>Root_Finder_Is_Initialized
+     final     ::                            Root_Finder_Destroy
+     procedure :: rootFunction            => Root_Finder_Root_Function
+     procedure :: rootFunctionDerivative  => Root_Finder_Root_Function_Derivative
+     procedure :: type                    => Root_Finder_Type
+     procedure :: typeDerivative          => Root_Finder_Derivative_Type
+     procedure :: tolerance               => Root_Finder_Tolerance
+     procedure :: rangeExpand             => Root_Finder_Range_Expand
+     procedure :: find                    => Root_Finder_Find
+     procedure :: isInitialized           => Root_Finder_Is_Initialized
   end type rootFinder
 
   abstract interface
@@ -124,19 +132,37 @@ module Root_Finder
      end function rootFunctionTemplate
   end interface
 
+  abstract interface
+     double precision function rootFunctionDerivativeTemplate(x)
+       double precision, intent(in   ) :: x
+     end function rootFunctionDerivativeTemplate
+  end interface
+
+  abstract interface
+     subroutine rootFunctionBothTemplate(x,f,df)
+       double precision, intent(in   ) :: x
+       double precision, intent(  out) :: f, df
+     end subroutine rootFunctionBothTemplate
+  end interface
+
   class(rootFinder), pointer :: currentFinder
   !$omp threadprivate(currentFinder)
+
 contains
 
   subroutine Root_Finder_Destroy(self)
     !% Destroy a root finder object.
     implicit none
     type(rootFinder), intent(inout) :: self
-
-    if (FGSL_Well_Defined(self%solver)) then
-       call FGSL_Root_FSolver_Free(self%solver      )
-       call FGSL_Function_Free    (self%fgslFunction)
-   end if
+    
+    if (FGSL_Well_Defined(self%solver                )) then
+       call FGSL_Root_FSolver_Free  (self%solver                )
+       call FGSL_Function_Free      (self%fgslFunction          )
+    end if
+    if (FGSL_Well_Defined(self%solverDerivative      )) then
+       call FGSL_Root_FdFSolver_Free(self%solverDerivative      )
+       call FGSL_Function_FdF_Free  (self%fgslFunctionDerivative)
+    end if
     return
   end subroutine Root_Finder_Destroy
 
@@ -163,7 +189,8 @@ contains
     integer                         , parameter                             :: iterationMaximum=1000
     logical                                                                 :: rangeChanged         , rangeLowerAsExpected, rangeUpperAsExpected
     integer                                                                 :: iteration            , statusActual
-    double precision                                                        :: xHigh                , xLow                , xRoot
+    double precision                                                        :: xHigh                , xLow                , xRoot               , &
+         &                                                                     xRootPrevious
     type            (c_ptr         )                                        :: parameterPointer
     type            (varying_string)                                        :: message
     character       (len= 30       )                                        :: label
@@ -171,11 +198,25 @@ contains
     ! Store a pointer to the previous rootFinder object. This is necessary as this function can be called recursively, so we must
     ! be able to return state to its original form before exiting the function.
     previousFinder => currentFinder
+    currentFinder  => self
     ! Initialize the root finder variables if necessary.
-    if (.not.FGSL_Well_Defined(self%solver).or.self%resetRequired) then
-       self%fgslFunction =FGSL_Function_Init     (Root_Finder_Wrapper_Function,parameterPointer)
-       self%solver       =FGSL_Root_fSolver_Alloc(self%solverType                              )
-       self%resetRequired=.false.
+    if (self%useDerivative) then
+       if (.not.FGSL_Well_Defined(self%solverDerivative).or.self%resetRequired) then
+          self%fgslFunctionDerivative=FGSL_Function_fdf_Init   (                                         &
+               &                                                Root_Finder_Wrapper_Function           , &
+               &                                                Root_Finder_Wrapper_Function_Derivative, &
+               &                                                Root_Finder_Wrapper_Function_Both      , &
+               &                                                parameterPointer                         &
+               &                                               )
+          self%solverDerivative      =FGSL_Root_fdfSolver_Alloc(self%solverDerivativeType)
+          self%resetRequired         =.false.
+       end if
+    else
+       if (.not.FGSL_Well_Defined(self%solver).or.self%resetRequired) then
+          self%fgslFunction          =FGSL_Function_Init       (Root_Finder_Wrapper_Function,parameterPointer)
+          self%solver                =FGSL_Root_fSolver_Alloc  (self%solverType                              )
+          self%resetRequired         =.false.
+       end if
     end if
     ! Initialize range.
     if      (present(rootRange)) then
@@ -188,152 +229,156 @@ contains
        call Galacticus_Error_Report('Root_Finder_Find','either "rootGuess" or "rootRange" must be specified')
     end if
     ! Expand the range as necessary.
-    do while (self%finderFunction(xLow)*self%finderFunction(xHigh) > 0.0d0)
-       rangeChanged=.false.
-       select case (self%rangeExpandDownwardSignExpect)
-       case (rangeExpandSignExpectNegative)
-          rangeLowerAsExpected=(self%finderFunction(xLow ) < 0.0d0)
-       case (rangeExpandSignExpectPositive)
-          rangeLowerAsExpected=(self%finderFunction(xLow ) > 0.0d0)
-       case default
-          rangeLowerAsExpected=.false.
-       end select
-       select case (self%rangeExpandUpwardSignExpect  )
-       case (rangeExpandSignExpectNegative)
-          rangeUpperAsExpected=(self%finderFunction(xHigh) < 0.0d0)
-       case (rangeExpandSignExpectPositive)
-          rangeUpperAsExpected=(self%finderFunction(xHigh) > 0.0d0)
-       case default
-          rangeUpperAsExpected=.false.
-       end select
-       select case (self%rangeExpandType)
-       case (rangeExpandAdditive      )
-          if     (                                  &
-               &   self%rangeExpandUpward   > 1.0d0 &
-               &  .and.                             &
-               &  .not.rangeUpperAsExpected         &
-               &  .and.                             &
-               &  (                                 &
-               &   xHigh < self%rangeUpwardLimit    &
-               &   .or.                             &
-               &   .not.self%rangeUpwardLimitSet    &
-               &  )                                 &
-               & ) then
-             xHigh=xHigh+self%rangeExpandUpward
-             if (self%rangeUpwardLimitSet  ) xHigh=min(xHigh,self%rangeUpwardLimit  )
-             rangeChanged=.true.
-          end if
-          if     (                                  &
-               &   self%rangeExpandDownward < 1.0d0 &
-               &  .and.                             &
-               &  .not.rangeLowerAsExpected         &
-               &  .and.                             &
-               &  (                                 &
-               &   xLow  > self%rangeDownwardLimit  &
-               &   .or.                             &
-               &   .not.self%rangeDownwardLimitSet  &
-               &  )                                 &
-               & ) then
-             xLow =xLow +self%rangeExpandDownward
-             if (self%rangeDownwardLimitSet) xLow =max(xLow ,self%rangeDownwardLimit)
-             rangeChanged=.true.
-          end if
-       case (rangeExpandMultiplicative)
-          if     (                                    &
-               &  (                                   &
-               &   (                                  &
-               &     self%rangeExpandUpward   > 1.0d0 &
-               &    .and.                             &
-               &     xHigh                    > 0.0d0 &
-               &   )                                  &
-               &   .or.                               &
-               &   (                                  &
-               &     self%rangeExpandUpward   < 1.0d0 &
-               &    .and.                             &
-               &     xHigh                    < 0.0d0 &
-               &   )                                  &
-               &  )                                   &
-               &  .and.                               &
-               &  .not.rangeUpperAsExpected           &
-               &  .and.                               &
-               &  (                                   &
-               &   xHigh < self%rangeUpwardLimit      &
-               &   .or.                               &
-               &   .not.self%rangeUpwardLimitSet      &
-               &  )                                   &
-               & ) then
-             xHigh=xHigh*self%rangeExpandUpward
-             if (self%rangeUpwardLimitSet  ) xHigh=min(xHigh,self%rangeUpwardLimit  )
-             rangeChanged=.true.
-          end if
-          if     (                                    &
-               &  (                                   &
-               &   (                                  &
-               &     self%rangeExpandDownward < 1.0d0 &
-               &    .and.                             &
-               &     xLow                     > 0.0d0 &
-               &   )                                  &
-               &   .or.                               &
-               &   (                                  &
-               &     self%rangeExpandDownward > 1.0d0 &
-               &    .and.                             &
-               &     xLow                     < 0.0d0 &
-               &   )                                  &
-               &  )                                   &
-               &  .and.                               &
-               &  .not.rangeLowerAsExpected           &
-               &  .and.                               &
-               &  (                                   &
-               &   xLow  > self%rangeDownwardLimit    &
-               &   .or.                               &
-               &   .not.self%rangeDownwardLimitSet    &
-               &  )                                   &
-               & ) then
-             xLow =xLow *self%rangeExpandDownward
-             if (self%rangeDownwardLimitSet) xLow =max(xLow ,self%rangeDownwardLimit)
-             rangeChanged=.true.
-          end if
-       end select
-       if (.not.rangeChanged) then
-          message='unable to expand range to bracket root'
-          write (label,'(e12.6,a1,e12.6)') xLow ,":",self%finderFunction(xLow )
-          message=message//char(10)//'xLow :f(xLow )='//trim(label)
-          write (label,'(e12.6,a1,e12.6)') xHigh,":",self%finderFunction(xHigh)
-          message=message//char(10)//'xHigh:f(xHigh)='//trim(label)
-          if (self%rangeExpandDownwardSignExpect /= rangeExpandSignExpectNone) then
-             if (rangeLowerAsExpected) then
-                message=message//char(10)//"f(xLow ) has expected sign"
+    if (self%useDerivative) then
+       xRoot       =0.5d0*(xLow+xHigh)
+       statusActual=FGSL_Root_fdfSolver_Set(self%solverDerivative,self%fgslFunctionDerivative,xRoot)
+    else
+       do while (self%finderFunction(xLow)*self%finderFunction(xHigh) > 0.0d0)
+          rangeChanged=.false.
+          select case (self%rangeExpandDownwardSignExpect)
+          case (rangeExpandSignExpectNegative)
+             rangeLowerAsExpected=(self%finderFunction(xLow ) < 0.0d0)
+          case (rangeExpandSignExpectPositive)
+             rangeLowerAsExpected=(self%finderFunction(xLow ) > 0.0d0)
+          case default
+             rangeLowerAsExpected=.false.
+          end select
+          select case (self%rangeExpandUpwardSignExpect  )
+          case (rangeExpandSignExpectNegative)
+             rangeUpperAsExpected=(self%finderFunction(xHigh) < 0.0d0)
+          case (rangeExpandSignExpectPositive)
+             rangeUpperAsExpected=(self%finderFunction(xHigh) > 0.0d0)
+          case default
+             rangeUpperAsExpected=.false.
+          end select
+          select case (self%rangeExpandType)
+          case (rangeExpandAdditive      )
+             if     (                                  &
+                  &   self%rangeExpandUpward   > 1.0d0 &
+                  &  .and.                             &
+                  &  .not.rangeUpperAsExpected         &
+                  &  .and.                             &
+                  &  (                                 &
+                  &   xHigh < self%rangeUpwardLimit    &
+                  &   .or.                             &
+                  &   .not.self%rangeUpwardLimitSet    &
+                  &  )                                 &
+                  & ) then
+                xHigh=xHigh+self%rangeExpandUpward
+                if (self%rangeUpwardLimitSet  ) xHigh=min(xHigh,self%rangeUpwardLimit  )
+                rangeChanged=.true.
+             end if
+             if     (                                  &
+                  &   self%rangeExpandDownward < 1.0d0 &
+                  &  .and.                             &
+                  &  .not.rangeLowerAsExpected         &
+                  &  .and.                             &
+                  &  (                                 &
+                  &   xLow  > self%rangeDownwardLimit  &
+                  &   .or.                             &
+                  &   .not.self%rangeDownwardLimitSet  &
+                  &  )                                 &
+                  & ) then
+                xLow =xLow +self%rangeExpandDownward
+                if (self%rangeDownwardLimitSet) xLow =max(xLow ,self%rangeDownwardLimit)
+                rangeChanged=.true.
+             end if
+          case (rangeExpandMultiplicative)
+             if     (                                    &
+                  &  (                                   &
+                  &   (                                  &
+                  &     self%rangeExpandUpward   > 1.0d0 &
+                  &    .and.                             &
+                  &     xHigh                    > 0.0d0 &
+                  &   )                                  &
+                  &   .or.                               &
+                  &   (                                  &
+                  &     self%rangeExpandUpward   < 1.0d0 &
+                  &    .and.                             &
+                  &     xHigh                    < 0.0d0 &
+                  &   )                                  &
+                  &  )                                   &
+                  &  .and.                               &
+                  &  .not.rangeUpperAsExpected           &
+                  &  .and.                               &
+                  &  (                                   &
+                  &   xHigh < self%rangeUpwardLimit      &
+                  &   .or.                               &
+                  &   .not.self%rangeUpwardLimitSet      &
+                  &  )                                   &
+                  & ) then
+                xHigh=xHigh*self%rangeExpandUpward
+                if (self%rangeUpwardLimitSet  ) xHigh=min(xHigh,self%rangeUpwardLimit  )
+                rangeChanged=.true.
+             end if
+             if     (                                    &
+                  &  (                                   &
+                  &   (                                  &
+                  &     self%rangeExpandDownward < 1.0d0 &
+                  &    .and.                             &
+                  &     xLow                     > 0.0d0 &
+                  &   )                                  &
+                  &   .or.                               &
+                  &   (                                  &
+                  &     self%rangeExpandDownward > 1.0d0 &
+                  &    .and.                             &
+                  &     xLow                     < 0.0d0 &
+                  &   )                                  &
+                  &  )                                   &
+                  &  .and.                               &
+                  &  .not.rangeLowerAsExpected           &
+                  &  .and.                               &
+                  &  (                                   &
+                  &   xLow  > self%rangeDownwardLimit    &
+                  &   .or.                               &
+                  &   .not.self%rangeDownwardLimitSet    &
+                  &  )                                   &
+                  & ) then
+                xLow =xLow *self%rangeExpandDownward
+                if (self%rangeDownwardLimitSet) xLow =max(xLow ,self%rangeDownwardLimit)
+                rangeChanged=.true.
+             end if
+          end select
+          if (.not.rangeChanged) then
+             message='unable to expand range to bracket root'
+             write (label,'(e12.6,a1,e12.6)') xLow ,":",self%finderFunction(xLow )
+             message=message//char(10)//'xLow :f(xLow )='//trim(label)
+             write (label,'(e12.6,a1,e12.6)') xHigh,":",self%finderFunction(xHigh)
+             message=message//char(10)//'xHigh:f(xHigh)='//trim(label)
+             if (self%rangeExpandDownwardSignExpect /= rangeExpandSignExpectNone) then
+                if (rangeLowerAsExpected) then
+                   message=message//char(10)//"f(xLow ) has expected sign"
+                else
+                   message=message//char(10)//"f(xLow ) does not have expected sign"
+                end if
+             end if
+             if (self%rangeExpandUpwardSignExpect   /= rangeExpandSignExpectNone) then
+                if (rangeUpperAsExpected) then
+                   message=message//char(10)//"f(xHigh) has expected sign"
+                else
+                   message=message//char(10)//"f(xHigh) does not have expected sign"
+                end if
+             end if
+             if (self%rangeDownwardLimitSet) then
+                write (label,'(e12.6)') self%rangeDownwardLimit
+                message=message//char(10)//"xLow  > "//trim(label)//" being enforced"
+             end if
+             if (self%rangeUpwardLimitSet  ) then
+                write (label,'(e12.6)') self%rangeUpwardLimit
+                message=message//char(10)//"xHigh < "//trim(label)//" being enforced"
+             end if
+             if (present(status)) then
+                call Galacticus_Display_Message(message,verbosityWarn)
+                status=errorStatusOutOfRange
+                return
              else
-                message=message//char(10)//"f(xLow ) does not have expected sign"
+                call Galacticus_Error_Report('Root_Finder_Find',message)
              end if
           end if
-          if (self%rangeExpandUpwardSignExpect   /= rangeExpandSignExpectNone) then
-             if (rangeUpperAsExpected) then
-                message=message//char(10)//"f(xHigh) has expected sign"
-             else
-                message=message//char(10)//"f(xHigh) does not have expected sign"
-             end if
-          end if
-          if (self%rangeDownwardLimitSet) then
-             write (label,'(e12.6)') self%rangeDownwardLimit
-             message=message//char(10)//"xLow  > "//trim(label)//" being enforced"
-          end if
-          if (self%rangeUpwardLimitSet  ) then
-             write (label,'(e12.6)') self%rangeUpwardLimit
-             message=message//char(10)//"xHigh < "//trim(label)//" being enforced"
-          end if
-          if (present(status)) then
-             call Galacticus_Display_Message(message,verbosityWarn)
-             status=errorStatusOutOfRange
-             return
-          else
-             call Galacticus_Error_Report('Root_Finder_Find',message)
-          end if
-       end if
-    end do
+       end do
+       statusActual=FGSL_Root_fSolver_Set(self%solver,self%fgslFunction,xLow,xHigh)
+    end if
     ! Find the root.
-    currentFinder => self
-    statusActual=FGSL_Root_fSolver_Set(self%solver,self%fgslFunction,xLow,xHigh)
     if (statusActual /= FGSL_Success) then
        if (present(status)) then
           status=statusActual
@@ -345,12 +390,20 @@ contains
     iteration=0
     do
        iteration=iteration+1
-       statusActual=FGSL_Root_fSolver_Iterate(self%solver)
-       if (statusActual /= FGSL_Success .or. iteration > iterationMaximum) exit
-       xRoot =FGSL_Root_fSolver_Root   (self%solver)
-       xLow  =FGSL_Root_fSolver_x_Lower(self%solver)
-       xHigh =FGSL_Root_fSolver_x_Upper(self%solver)
-       statusActual=FGSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
+       if (self%useDerivative) then
+          statusActual=FGSL_Root_fdfSolver_Iterate(self%solverDerivative)
+          if (statusActual /= FGSL_Success .or. iteration > iterationMaximum) exit
+          xRootPrevious=xRoot
+          xRoot        =FGSL_Root_fdfSolver_Root(self%solverDerivative)
+          statusActual =FGSL_Root_Test_Delta(xRoot,xRootPrevious,self%toleranceAbsolute,self%toleranceRelative)
+       else
+          statusActual=FGSL_Root_fSolver_Iterate  (self%solver          )
+          if (statusActual /= FGSL_Success .or. iteration > iterationMaximum) exit
+          xRoot =FGSL_Root_fSolver_Root  (self%solver)
+          xLow  =FGSL_Root_fSolver_x_Lower(self%solver)
+          xHigh =FGSL_Root_fSolver_x_Upper(self%solver)
+          statusActual=FGSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
+       end if 
        if (statusActual == FGSL_Success) exit
     end do
     if (statusActual /= FGSL_Success) then
@@ -376,8 +429,25 @@ contains
 
     self%finderFunction => rootFunction
     self%initialized    =  .true.
+    self%useDerivative  =  .false.
     return
   end subroutine Root_Finder_Root_Function
+
+  subroutine Root_Finder_Root_Function_Derivative(self,rootFunction,rootFunctionDerivative,rootFunctionBoth)
+    !% Sets the function to use in a {\tt rootFinder} object.
+    implicit none
+    class    (rootFinder                    ), intent(inout) :: self
+    procedure(rootFunctionTemplate          )                :: rootFunction
+    procedure(rootFunctionDerivativeTemplate)                :: rootFunctionDerivative
+    procedure(rootFunctionBothTemplate      )                :: rootFunctionBoth
+
+    self%finderFunction           => rootFunction
+    self%finderFunctionDerivative => rootFunctionDerivative
+    self%finderFunctionBoth       => rootFunctionBoth
+    self%initialized              =  .true.
+    self%useDerivative            =  .true.
+    return
+  end subroutine Root_Finder_Root_Function_Derivative
 
   subroutine Root_Finder_Type(self,solverType)
     !% Sets the type to use in a {\tt rootFinder} object.
@@ -390,6 +460,18 @@ contains
     self%resetRequired=.true.
     return
   end subroutine Root_Finder_Type
+
+  subroutine Root_Finder_Derivative_Type(self,solverDerivativeType)
+    !% Sets the type to use in a {\tt rootFinder} object.
+    implicit none
+    class(rootFinder              ), intent(inout) :: self
+    type (fgsl_root_fdfsolver_type), intent(in   ) :: solverDerivativeType
+
+    ! Set the solver type and indicate that a reset will be required to update the internal FGSL objects.
+    self%solverDerivativeType=solverDerivativeType
+    self%resetRequired       =.true.
+    return
+  end subroutine Root_Finder_Derivative_Type
 
   subroutine Root_Finder_Tolerance(self,toleranceAbsolute,toleranceRelative)
     !% Sets the tolerances to use in a {\tt rootFinder} object.
@@ -414,17 +496,31 @@ contains
 
     if (present(rangeExpandUpward            )) self%rangeExpandUpward  =rangeExpandUpward
     if (present(rangeExpandDownward          )) self%rangeExpandDownward=rangeExpandDownward
-    if (present(rangeExpandType              )) self%rangeExpandType    =rangeExpandType
+    if (present(rangeExpandType              )) then
+       self%rangeExpandType    =rangeExpandType
+    else
+       self%rangeExpandType    =rangeExpandNull
+    end if
+    select case (self%rangeExpandType)
+    case (rangeExpandAdditive      )
+       if (.not.present(rangeExpandUpward  )) self%rangeExpandUpward=0.0d0
+       if (.not.present(rangeExpandDownward)) self%rangeExpandUpward=0.0d0
+    case (rangeExpandMultiplicative)
+       if (.not.present(rangeExpandUpward  )) self%rangeExpandUpward=1.0d0
+       if (.not.present(rangeExpandDownward)) self%rangeExpandUpward=1.0d0
+    end select
     if (present(rangeUpwardLimit             )) then
        self%rangeUpwardLimit             =rangeUpwardLimit
        self%rangeUpwardLimitSet          =.true.
     else
+       self%rangeUpwardLimit             =0.0d0
        self%rangeUpwardLimitSet          =.false.
     end if
     if (present(rangeDownwardLimit           )) then
        self%rangeDownwardLimit           =rangeDownwardLimit
        self%rangeDownwardLimitSet        =.true.
     else
+       self%rangeDownwardLimit           =0.0d0
        self%rangeDownwardLimitSet        =.false.
     end if
     if (present(rangeExpandDownwardSignExpect)) then
@@ -450,5 +546,26 @@ contains
     Root_Finder_Wrapper_Function=currentFinder%finderFunction(x)
     return
   end function Root_Finder_Wrapper_Function
+
+  double precision function Root_Finder_Wrapper_Function_Derivative(x,parameterPointer) bind(c)
+    !% Wrapper function callable by {\tt FGSL} used in root finding.
+    implicit none
+    real(kind=c_double), value :: x
+    type(c_ptr        ), value :: parameterPointer
+
+    Root_Finder_Wrapper_Function_Derivative=currentFinder%finderFunctionDerivative(x)
+    return
+  end function Root_Finder_Wrapper_Function_Derivative
+
+  subroutine Root_Finder_Wrapper_Function_Both(x,parameterPointer,f,df) bind(c)
+    !% Wrapper function callable by {\tt FGSL} used in root finding.
+    implicit none
+    real(kind=c_double), value         :: x
+    type(c_ptr        ), value         :: parameterPointer
+    real(kind=c_double), intent(  out) :: f               , df
+
+    call currentFinder%finderFunctionBoth(x,f,df)
+    return
+  end subroutine Root_Finder_Wrapper_Function_Both
 
 end module Root_Finder

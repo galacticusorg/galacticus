@@ -43,6 +43,12 @@ program Test_Root_Finding
   xRoot=finder%find(rootRange=xRange)
   call Assert('root of f(x)=x² - 5x + 1 in range -1 < x <  1',xRoot,0.5d0*(5.0d0-sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
 
+  xRange=[-1.0d0,+1.0d0]
+  call finder%tolerance(1.0d-6,1.0d-6)
+  call finder%rootFunctionDerivative(Root_Function_2,Root_Function_2_Derivative,Root_Function_2_Both)
+  xRoot=finder%find(rootRange=xRange)
+  call Assert('root of f(x)=x² - 5x + 1 in range -1 < x <  1 [using derivative]',xRoot,0.5d0*(5.0d0-sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
+
   xRange=[2.0d0,10.0d0]
   call finder%tolerance(1.0d-6,1.0d-6)
   call finder%rootFunction(Root_Function_2)
