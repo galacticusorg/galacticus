@@ -19,6 +19,7 @@
 
 module Galacticus_Meta_Tree_Timing
   !% Records and outputs timing data for processing trees.
+  !$ use OMP_Lib
   implicit none
   private
   public :: Meta_Tree_Timing_Pre_Construction, Meta_Tree_Timing_Pre_Evolve, Meta_Tree_Timing_Post_Evolve, Meta_Tree_Timing_Output
@@ -30,9 +31,9 @@ module Galacticus_Meta_Tree_Timing
   logical                                     :: metaCollectTimingData
 
   ! Record of processing times.
-  real                                        :: timePostEvolution                , timePreConstruction, &
-       &                                         timePreEvolution
-  double precision                            :: treeMass
+  double precision                            :: timePostEvolution                , timePreConstruction, &
+       &                                         timePreEvolution                 , treeMass
+  real                                        :: time
   !$omp threadprivate(timePreConstruction,timePreEvolution,timePostEvolution,treeMass)
   ! Arrays for storing timing.
   integer         , parameter                 :: treeArrayIncreaseSize    =100
@@ -83,7 +84,12 @@ contains
 
     if (metaCollectTimingData) then
        ! Record the CPU time prior to construction.
-       call CPU_Time(timePreConstruction)
+       !$ if (omp_in_parallel()) then
+       timePreConstruction=OMP_Get_WTime()
+       !$ else
+       call CPU_Time(time)
+       timePreConstruction=dble(time)
+       !$ end if
        timePreEvolution =-1.0
        timePostEvolution=-1.0
     end if
@@ -107,7 +113,12 @@ contains
 
     if (metaCollectTimingData) then
        ! Record the CPU time.
-       call CPU_Time(timePreEvolution)
+       !$ if (omp_in_parallel()) then
+       timePreEvolution=OMP_Get_WTime()
+       !$ else
+       call CPU_Time(time)
+       timePreEvolution=dble(time)
+       !$ end if
        ! Record the mass of the tree.
        thisNode           => thisTree          %baseNode
        thisBasicComponent => thisNode          %basic()
@@ -132,7 +143,12 @@ contains
 
     if (metaCollectTimingData) then
        ! Record the final CPU time.
-       call CPU_Time(timePostEvolution)
+       !$ if (omp_in_parallel()) then
+       timePostEvolution=OMP_Get_WTime()
+       !$ else
+       call CPU_Time(time)
+       timePostEvolution=dble(time)
+       !$ end if
        !$omp critical (Meta_Tree_Timing_Pre_Construct_Record)
        ! Ensure that record arrays are sufficiently sized.
        if (.not.allocated(treeMasses)) then
