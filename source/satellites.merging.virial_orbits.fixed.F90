@@ -52,6 +52,7 @@
   integer, parameter :: fixedDensityContrastSphericalCollapseMatterLambda=0
   integer, parameter :: fixedDensityContrastFixedCritical                =1
   integer, parameter :: fixedDensityContrastFixedMean                    =2
+  integer, parameter :: fixedDensityContrastBryanNorman1998              =3
 
 contains
 
@@ -119,18 +120,20 @@ contains
     fixedConstructor%radialVelocity            =radialVelocity
     fixedConstructor%tangentialVelocity        =tangentialVelocity
     fixedConstructor%densityContrastInitialized=.false.
-    if (virialDensityContrast == 'sphericalCollapseMatterLambda') then
+    if      (        virialDensityContrast       == 'sphericalCollapseMatterLambda') then
        fixedConstructor%virialDensityContrast=fixedDensityContrastSphericalCollapseMatterLambda
-    else if (extract(virialDensityContrast,1, 9) == "fixedMean"    ) then
+    else if (extract(virialDensityContrast,1, 9) == "fixedMean"                    ) then
        fixedConstructor%virialDensityContrast=fixedDensityContrastFixedMean
        label=extract(virialDensityContrast,10,len(virialDensityContrast))
        read (label,*) fixedConstructor%virialDensityContrastValue
-    else if (extract(virialDensityContrast,1,13) == "fixedCritical" ) then
+    else if (extract(virialDensityContrast,1,13) == "fixedCritical"                ) then
        fixedConstructor%virialDensityContrast=fixedDensityContrastFixedCritical
        label=extract(virialDensityContrast,14,len(virialDensityContrast))
        read (label,*) fixedConstructor%virialDensityContrastValue
+    else if (        virialDensityContrast       == "bryanNorman1998"              ) then
+       fixedConstructor%virialDensityContrast=fixedDensityContrastBryanNorman1998
     else
-       call Galacticus_Error_Report('fixedDensityContrastDefinition','only "sphericalCollapseMatterLambda", "fixedMeanXXX", and "fixedCriticalXXX" supported')
+       call Galacticus_Error_Report('fixedDensityContrastDefinition','only "sphericalCollapseMatterLambda", "bryanNorman1998", "fixedMeanXXX", and "fixedCriticalXXX" supported')
     end if
     return
   end function fixedConstructor
@@ -214,6 +217,12 @@ contains
           select type (d => self%densityContrast)
           type is (virialDensityContrastFixed)
              d=virialDensityContrastFixed(self%virialDensityContrastValue,virialDensityContrastFixedDensityTypeMean    )
+          end select
+       case (fixedDensityContrastBryanNorman1998)
+          allocate(virialDensityContrastBryanNorman1998 :: self%densityContrast)
+          select type (d => self%densityContrast)
+          type is (virialDensityContrastBryanNorman1998)
+             d=virialDensityContrastBryanNorman1998()
           end select
        end select
        call self%densityContrast%makeIndestructible()
