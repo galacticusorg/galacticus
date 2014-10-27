@@ -246,7 +246,8 @@ module Tables
 
   type, extends(table1D) :: table1DLinearCSpline
      !% Table type supporting one dimensional table with linear spacing in $x$ and cubic spline interpolation.
-     double precision, allocatable, dimension(:,:) :: sv
+     double precision, allocatable, dimension(:,:) :: sv            , av           , bv           , cv       , &
+          &                                           dv
      integer                                       :: dTablePrevious, iPrevious    , tablePrevious
      double precision                              :: deltaX        , inverseDeltaX
      double precision                              :: aPrevious     , bPrevious    , cPrevious    , dPrevious, &
@@ -281,8 +282,8 @@ module Tables
   type, extends(table1DLinearCSpline) :: table1DLogarithmicCSpline
      !% Table type supporting one dimensional table with logarithmic spacing in $x$ and cubic spline interpolation.
      logical          :: previousSet
-     double precision :: xLinearPrevious,xLogarithmicPrevious
-     double precision :: xMinimum,xMaximum
+     double precision :: xLinearPrevious, xLogarithmicPrevious
+     double precision :: xMinimum       , xMaximum
    contains
      procedure :: create             =>Table_Logarithmic_CSpline_1D_Create
      procedure :: interpolate        =>Table_Logarithmic_CSpline_1D_Interpolate
@@ -946,9 +947,13 @@ contains
     if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
-    call Alloc_Array(self%xv,[xCount                 ])
-    call Alloc_Array(self%yv,[xCount,tableCountActual])
-    call Alloc_Array(self%sv,[xCount,tableCountActual])
+    call Alloc_Array(self%xv,[xCount                   ])
+    call Alloc_Array(self%yv,[xCount  ,tableCountActual])
+    call Alloc_Array(self%sv,[xCount  ,tableCountActual])
+    call Alloc_Array(self%av,[xCount-1,tableCountActual])
+    call Alloc_Array(self%bv,[xCount-1,tableCountActual])
+    call Alloc_Array(self%cv,[xCount-1,tableCountActual])
+    call Alloc_Array(self%dv,[xCount-1,tableCountActual])
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%       deltaX=self%xv(2)-self%xv(1)
     self%inverseDeltaX=1.0d0/self%deltaX
@@ -971,6 +976,10 @@ contains
 
     call Table_1D_Destroy(self)
     if (allocated(self%sv)) call Dealloc_Array(self%sv)
+    if (allocated(self%av)) call Dealloc_Array(self%av)
+    if (allocated(self%bv)) call Dealloc_Array(self%bv)
+    if (allocated(self%cv)) call Dealloc_Array(self%cv)
+    if (allocated(self%dv)) call Dealloc_Array(self%dv)
     return
   end subroutine Table_Linear_CSpline_1D_Destroy
 
@@ -1066,38 +1075,22 @@ contains
     end do
     self%sv(            1,table)=0.0d0
     deallocate(b,u,v)
+    ! Compute polynomial coefficients.
+    do i=1,size(self%xv)-1
+       self%av(i,table)=                      self%yv(i  ,table)
+       self%bv(i,table)=-self%       deltaX*  self%sv(i+1,table)/6.0d0 &
+            &           -self%       deltaX*  self%sv(i  ,table)/3.0d0 &
+            &           +self%inverseDeltaX*( self%yv(i+1,table)       &
+            &                                -self%yv(i  ,table)       &
+            &                             )
+       self%cv(i,table)=                      self%sv(i  ,table)/2.0d0
+       self%dv(i,table)= self%inverseDeltaX*(                          &
+            &                                 self%sv(i+1,table)       &
+            &                                -self%sv(i  ,table)       &
+            &                               )                   /6.0d0
+    end do
     return
   end subroutine Table_Linear_CSpline_1D_Compute_Spline
-
-  subroutine Table_Linear_CSpline_1D_Coefficients(self,table,x,i,a,b,c,d,dx)
-    !% Compute coefficients for a spline interpolation.
-    implicit none
-    type            (table1DLinearCSpline), intent(inout) :: self
-    double precision                      , intent(in   ) :: x
-    integer                               , intent(in   ) :: i   , table
-    double precision                      , intent(  out) :: a   , b    , c, d, dx
-
-    if (i /= self%iPrevious) then
-       self%aPrevious=                      self%yv(i  ,table)
-       self%bPrevious=-self%       deltaX*  self%sv(i+1,table)/6.0d0 &
-            &         -self%       deltaX*  self%sv(i  ,table)/3.0d0 &
-            &         +self%inverseDeltaX*( self%yv(i+1,table)       &
-            &                              -self%yv(i  ,table)       &
-            &                             )
-       self%cPrevious=                      self%sv(i  ,table)/2.0d0
-       self%dPrevious= self%inverseDeltaX*(                          &
-            &                               self%sv(i+1,table)       &
-            &                              -self%sv(i  ,table)       &
-            &                             )                   /6.0d0
-       self%iPrevious=i
-    end if
-    a =  self%aPrevious
-    b =  self%bPrevious
-    c =  self%cPrevious
-    d =  self%dPrevious
-    dx=x-self%xv       (i)
-    return
-  end subroutine Table_Linear_CSpline_1D_Coefficients
 
   double precision function Table_Linear_CSpline_1D_Interpolate(self,x,table)
     !% Perform linear interpolation in a linear 1D table.
@@ -1113,8 +1106,8 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
-    xEffective=self%xEffective(x)
-    if (xEffective /= self%xPrevious .or. tableActual /= self%tablePrevious) then
+    if (x /= self%xPrevious .or. tableActual /= self%tablePrevious) then
+       xEffective=self%xEffective(x)
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
           i=1
@@ -1123,12 +1116,12 @@ contains
        else
           i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
        end if
-       ! Compute polynomial coefficients.
-       call Table_Linear_CSpline_1D_Coefficients(self,tableActual,xEffective,i,a,b,c,d,dx)
+       ! Compute offset from tabulated point.
+       dx=xEffective-self%xv(i)
        ! Interpolate in the table.
-       self%xPrevious    =xEffective
+       self%xPrevious    =x
        self%tablePrevious=tableActual
-       self%    yPrevious=a+dx*(b+dx*(c+dx*d))
+       self%    yPrevious=self%av(i,tableActual)+dx*(self%bv(i,tableActual)+dx*(self%cv(i,tableActual)+dx*self%dv(i,tableActual)))
     end if
     Table_Linear_CSpline_1D_Interpolate=self%yPrevious
     return
@@ -1148,8 +1141,8 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
-    xEffective=self%xEffective(x)
-    if (xEffective /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
+    if (x /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
+       xEffective=self%xEffective(x)
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
           i=1
@@ -1158,12 +1151,12 @@ contains
        else
           i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
        end if
-       ! Compute polynomial coefficients.
-       call Table_Linear_CSpline_1D_Coefficients(self,tableActual,xEffective,i,a,b,c,d,dx)
+       ! Compute offset from tabulated point.
+       dx=xEffective-self%xv(i)
        ! Interpolate in the table.
-       self%dxPrevious    =xEffective
+       self%dxPrevious    =x
        self%dTablePrevious=tableActual
-       self%    dyPrevious=b+dx*(2.0d0*c+dx*3.0d0*d)
+       self%    dyPrevious=self%bv(i,tableActual)+dx*(2.0d0*self%cv(i,tableActual)+dx*3.0d0*self%dv(i,tableActual))
     end if
     Table_Linear_CSpline_1D_Interpolate_Gradient=self%dyPrevious
     return
