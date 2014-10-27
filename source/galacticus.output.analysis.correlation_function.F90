@@ -289,7 +289,7 @@ contains
                          !$omp critical (FoX_DOM_Access)
                          ! Parse document.
                          doc => parseFile(char(Galacticus_Input_Path())//"data/observations/correlationFunctions/Projected_Correlation_Functions_Hearin_2013.xml",iostat=ioErr)
-                         if (ioErr /= 0) call Galacticus_Error_Report('Galacticus_Output_Analysis_Correlation_Functions','Unable to find data file')
+                         if (ioErr /= 0) call Galacticus_Error_Report('Galacticus_Output_Analysis_Correlation_Functions','Unable to find or parse data file ['//char(Galacticus_Input_Path())//'data/observations/correlationFunctions/Projected_Correlation_Functions_Hearin_2013.xml]')
                          ! Extract cosmological parameters.
                          cosmology              => XML_Get_First_Element_By_Tag_Name(doc      ,"cosmology"      )
                          hubbleElement          => XML_Get_First_Element_By_Tag_Name(cosmology,"hubble"         )
