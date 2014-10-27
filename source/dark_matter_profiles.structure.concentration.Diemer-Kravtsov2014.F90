@@ -253,14 +253,22 @@ contains
     !% Return a virial density contrast object defining that used in the definition of concentration in the
     !% \cite{diemer_universal_2014} algorithm.
     implicit none
-    class(virialDensityContrastClass                      ), pointer       :: diemerKravtsov2014DensityContrastDefinition
-    class(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
+    class  (virialDensityContrastClass                      ), pointer                     :: diemerKravtsov2014DensityContrastDefinition
+    class  (darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout)               :: self
+    class  (virialDensityContrastClass                      ), allocatable  , target, save :: densityContrastDefinition
+    logical                                                                         , save :: densityContrastDefinitionInitialized=.false.
+    !$omp threadprivate(densityContrastDefinition,densityContrastDefinitionInitialized)
     
-    allocate(virialDensityContrastFixed :: diemerKravtsov2014DensityContrastDefinition)
-    select type (diemerKravtsov2014DensityContrastDefinition)
-    type is (virialDensityContrastFixed)
-       diemerKravtsov2014DensityContrastDefinition=virialDensityContrastFixed(200.0d0,virialDensityContrastFixedDensityTypeCritical)
-    end select    
+    if (.not.densityContrastDefinitionInitialized) then
+       allocate(virialDensityContrastFixed :: densityContrastDefinition)
+       select type (densityContrastDefinition)
+       type is (virialDensityContrastFixed)
+          densityContrastDefinition=virialDensityContrastFixed(200.0d0,virialDensityContrastFixedDensityTypeCritical)
+          call densityContrastDefinition%makeIndestructible()
+       end select
+       densityContrastDefinitionInitialized=.true.
+    end if
+    diemerKravtsov2014DensityContrastDefinition => densityContrastDefinition
     return
   end function diemerKravtsov2014DensityContrastDefinition
 
@@ -269,20 +277,28 @@ contains
     !% \cite{diemer_universal_2014} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileClass                            ), pointer       :: diemerKravtsov2014DarkMatterProfileDefinition
-    class(darkMatterProfileConcentrationDiemerKravtsov2014  ), intent(inout) :: self
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition
-
-    allocate(darkMatterProfileNFW                               :: diemerKravtsov2014DarkMatterProfileDefinition)
-    allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition                )
-    select type (diemerKravtsov2014DarkMatterProfileDefinition)
-    type is (darkMatterProfileNFW)
-       select type (darkMatterHaloScaleDefinition)
-       type is (darkMatterHaloScaleVirialDensityContrastDefinition)
-          darkMatterHaloScaleDefinition                =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
-          diemerKravtsov2014DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+    class  (darkMatterProfileClass                            ), pointer                     :: diemerKravtsov2014DarkMatterProfileDefinition
+    class  (darkMatterProfileConcentrationDiemerKravtsov2014  ), intent(inout)               :: self
+    class  (darkMatterHaloScaleVirialDensityContrastDefinition), pointer                     :: darkMatterHaloScaleDefinition
+    class  (darkMatterProfileClass                            ), allocatable  , target, save :: densityProfileDefinition
+    logical                                                                           , save :: densityProfileDefinitionInitialized=.false.
+    !$omp threadprivate(densityProfileDefinition,densityProfileDefinitionInitialized)
+    
+    if (.not.densityProfileDefinitionInitialized) then
+       allocate(darkMatterProfileNFW                               :: densityProfileDefinition     )
+       allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition)
+       select type (densityProfileDefinition)
+       type is (darkMatterProfileNFW)
+          select type (darkMatterHaloScaleDefinition)
+          type is (darkMatterHaloScaleVirialDensityContrastDefinition)
+             darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
+             densityProfileDefinition     =darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+             call densityProfileDefinition%makeIndestructible()
+          end select
        end select
-    end select
+       densityProfileDefinitionInitialized=.true.
+    end if
+    diemerKravtsov2014DarkMatterProfileDefinition => densityProfileDefinition
     return
   end function diemerKravtsov2014DarkMatterProfileDefinition
 
