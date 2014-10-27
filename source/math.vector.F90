@@ -23,6 +23,11 @@ module Vectors
   private
   public :: Vector_Magnitude, Vector_Product, Vector_Outer_Product
 
+  interface Vector_Outer_Product
+     module procedure Vector_Outer_Product_Distinct
+     module procedure Vector_Outer_Product_Self
+  end interface Vector_Outer_Product
+
 contains
 
   pure double precision function Vector_Magnitude(vector1)
@@ -46,15 +51,37 @@ contains
     return
   end function Vector_Product
 
-  pure function Vector_Outer_Product(vector1,vector2)
+ function Vector_Outer_Product_Distinct(vector1,vector2)
     !% Returns the outer product of two vectors.
     implicit none
     double precision, dimension(:                          ), intent(in   ) :: vector1, vector2
-    double precision, dimension(size(vector1),size(vector2))                :: Vector_Outer_Product
-    integer                                                                 :: i
+    double precision, dimension(size(vector1),size(vector2))                :: Vector_Outer_Product_Distinct
 
-    forall(i=1:size(vector1)) Vector_Outer_Product(i,:)=vector1(i)*vector2(:)
+    Vector_Outer_Product_Distinct=0.0d0
+    ! Call the appropriate BLAS routine.
+    call dger(size(vector1),size(vector2),1.0d0,vector1,1,vector2,1,Vector_Outer_Product_Distinct,size(vector1))
     return
-  end function Vector_Outer_Product
+  end function Vector_Outer_Product_Distinct
+
+ function Vector_Outer_Product_Self(vector1,symmetrize)
+    !% Returns the outer product of a vector with itself.
+    implicit none
+    double precision, dimension(:                          ), intent(in   ) :: vector1
+    double precision, dimension(size(vector1),size(vector1))                :: Vector_Outer_Product_Self
+    logical         , optional                              , intent(in   ) :: symmetrize
+    integer                                                                 :: i                        , j
+
+    Vector_Outer_Product_Self=0.0d0
+    ! Call the appropriate BLAS routine.
+    call dsyr("u",size(vector1),1.0d0,vector1,1,Vector_Outer_Product_Self,size(vector1))
+    if (present(symmetrize).and.symmetrize) then
+       forall(i=1:size(vector1)-1)
+          forall(j=i+1:size(vector1))
+             Vector_Outer_Product_Self(j,i)=Vector_Outer_Product_Self(i,j)
+          end forall
+       end forall
+    end if
+    return
+  end function Vector_Outer_Product_Self
 
 end module Vectors
