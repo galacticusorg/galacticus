@@ -99,14 +99,13 @@ contains
     double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
 
     ! Construct sampling rate.
-    Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF=                                                                                      &
-         &                                               +                                     mass                                            &
-         &                                               *Halo_Mass_Function_Differential(time,mass)                                           &
-         &                                               *(                                                                                    &
-         &                                                 +1.0d0                                                                              &
-         &                                                 +haloMassFunctionSamplingModifier1*log10(mass/haloMassFunctionSamplingZeroPoint)    &
-         &                                                 +haloMassFunctionSamplingModifier1*log10(mass/haloMassFunctionSamplingZeroPoint)**2 &
-         &                                                )
+    Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF=                                                                                              &
+         &                                               +                                     mass                                                    &
+         &                                               *Halo_Mass_Function_Differential(time,mass)                                                   &
+         &                                               *10.0d0**(                                                                                    &
+         &                                                         +haloMassFunctionSamplingModifier1*log10(mass/haloMassFunctionSamplingZeroPoint)    &
+         &                                                         +haloMassFunctionSamplingModifier2*log10(mass/haloMassFunctionSamplingZeroPoint)**2 &
+         &                                                        )
     ! Limit sampling rate.
     if (haloMassFunctionSamplingAbundanceMinimum > 0.0d0)             &
          & Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF       &
