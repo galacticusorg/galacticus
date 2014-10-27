@@ -99,17 +99,16 @@ contains
   subroutine Galactic_Structure_Radii_Solve_Fixed(thisNode)
     !% Find the radii of galactic components in {\tt thisNode} using the ``fixed'' method.
     include 'galactic_structure.radius_solver.tasks.modules.inc'
-    include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
-    procedure       (Structure_Get_Template)               , pointer :: Radius_Get             =>null(), Velocity_Get=>null()
-    procedure       (Structure_Set_Template)               , pointer :: Radius_Set             =>null(), Velocity_Set=>null()
+    procedure       (Structure_Get_Template)               , pointer :: Radius_Get                     => null(), Velocity_Get => null()
+    procedure       (Structure_Set_Template)               , pointer :: Radius_Set                     => null(), Velocity_Set => null()
+    logical                                 , parameter              :: specificAngularMomentumRequired=  .false.
     logical                                                          :: componentActive
     double precision                                                 :: specificAngularMomentum
 
-    ! Check that the galaxy is physical plausible. In this fixed solver, we don't act on this.
+    ! Assume that the node is physically plausible, since in this fixed solver, we don't act on this.
     thisNode%isPhysicallyPlausible=.true.
-    include 'galactic_structure.radius_solver.plausible.inc'
 
     ! Solve for radii.
     include 'galactic_structure.radius_solver.tasks.inc'
@@ -132,8 +131,6 @@ contains
     class           (darkMatterProfileClass  )               , pointer :: darkMatterProfile_
     double precision                                                   :: radius                 , velocity
 
-    ! Return immediately if the specific angular momentum is zero.
-    if (specificAngularMomentum <= 0.0d0) return
     ! Find the radius of the component, assuming radius is a fixed fraction of radius times spin parameter.
     thisSpinComponent    => thisNode%spin      ()
     select case (galacticStructureRadiiFixedRadius)

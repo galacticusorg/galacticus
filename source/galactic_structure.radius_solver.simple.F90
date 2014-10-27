@@ -71,6 +71,7 @@ contains
     !# </include>
     implicit none
     type            (treeNode              ), intent(inout), pointer       :: thisNode
+    logical                                 , parameter                    :: specificAngularMomentumRequired=.true.
     procedure       (Structure_Get_Template)               , pointer, save :: Radius_Get             =>null(), Velocity_Get=>null()
     procedure       (Structure_Set_Template)               , pointer, save :: Radius_Set             =>null(), Velocity_Set=>null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
@@ -93,7 +94,7 @@ contains
     end if
 
     !# <include directive="radiusSolverTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set</functionArgs>
+    !#  <functionArgs>thisNode,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set</functionArgs>
     !#  <onReturn>if (componentActive) call Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)</onReturn>
     include 'galactic_structure.radius_solver.tasks.inc'
     !# </include>
