@@ -21,7 +21,7 @@ module Test_Root_Finding_Functions
   !% Contains functions for root finding unit tests.
   implicit none
   private
-  public :: Root_Function_1, Root_Function_2, Root_Function_3
+  public :: Root_Function_1, Root_Function_2, Root_Function_2_Derivative, Root_Function_2_Both, Root_Function_3
 
 contains
 
@@ -38,6 +38,22 @@ contains
 
     Root_Function_2=x**2-5.0d0*x+1.0d0
   end function Root_Function_2
+
+  double precision function Root_Function_2_Derivative(x)
+    !% Function for root finding unit tests.
+    double precision, intent(in   ) :: x
+
+    Root_Function_2_Derivative=2.0d0*x-5.0d0
+  end function Root_Function_2_Derivative
+
+  subroutine  Root_Function_2_Both(x,f,df)
+    !% Function for root finding unit tests.
+    double precision, intent(in   ) :: x
+    double precision, intent(  out) :: f, df
+
+    f=x**2-5.0d0*x+1.0d0
+    df=2.0d0*x-5.0d0
+  end subroutine Root_Function_2_Both
 
   double precision function Root_Function_3(x)
     !% Function for root finding unit tests.
