@@ -47,7 +47,10 @@ my %ignoreList = (
     "fox_wxml" => 1,
     "fox_utils" => 1,
     "fgsl" => 1,
-    "mpi" => 1
+    "mpi" => 1,
+    "yeplibrary" => 1,
+    "yepcore" => 1,
+    "yepmath" => 1
     );
 
 # Modules that require a library to be linked.
@@ -60,7 +63,10 @@ my %moduleLibararies = (
     fox_wxml          => "FoX_wxml",
     fox_utils         => "FoX_utils",
     hdf5              => "hdf5_fortran",
-    vectors           => "blas"
+    vectors           => "blas",
+    yeplibrary        => "yeppp",
+    yepcore           => "yeppp",
+    yepmath           => "yeppp"
     );
 my %includeLibararies = (
     crypt             => "crypt"

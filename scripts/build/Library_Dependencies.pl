@@ -20,7 +20,10 @@ my %dependencies =
      fgsl_gfortran => [ "gsl"                              ],
      gsl           => [ "gslcblas"                         ],
      FoX_dom       => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
-     FoX_sax       => [ "FoX_common"                       ]
+     FoX_sax       => [ "FoX_common"                       ],
+     yepLibrary    => [ "yeppp"                            ],
+     yepCore       => [ "yeppp"                            ],
+     yepMath       => [ "yeppp"                            ]
     );
 
 # Library order dependencies for static linking.
@@ -32,7 +35,10 @@ my %staticLinkDependencies =
      gsl           => [ "gslcblas"                         ],
      FoX_dom       => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
      FoX_sax       => [ "FoX_common"                       ],
-     FoX_common    => [ "FoX_fsys"                         ]
+     FoX_common    => [ "FoX_fsys"                         ],
+     YEPLibrary    => [ "yeppp"                            ],
+     YEPCore       => [ "yeppp"                            ],
+     YEPMath       => [ "yeppp"                            ]
     );
 
 # Detect static linking.

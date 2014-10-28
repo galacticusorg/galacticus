@@ -46,6 +46,11 @@ CFLAGS += -g
 CPPFLAGS += -I./source/ -I./work/build/ ${GALACTICUS_CPPFLAGS}
 CPPFLAGS += -g
 
+# Detect YEPPP libraries.
+ifdef YEPROOT
+FCFLAGS += -I$(YEPROOT)/bindings/fortran/modules/$(YEPPLATFORM)-gfortran/ -L$(YEPBINARIES) -DYEPPP
+endif
+
 # List of additional Makefiles which contain dependency information
 MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps
 
@@ -135,6 +140,7 @@ vpath %.f source
 %.d :
 	@mkdir -p `dirname $*.d`
 	@touch $*.d
+
 
 # Library files (*.fl) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
 # Makefile_Use_Deps file, but this acts as a fallback rule.

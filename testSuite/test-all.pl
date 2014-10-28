@@ -133,6 +133,10 @@ my @executablesToRun = (
 	valgrind => 0
     },
     {
+	name     => "tests.integration2.exe",                                             # Tests of integration functions.
+	valgrind => 0
+    },
+    {
 	name     => "tests.tables.exe",                                                   # Tests of table functions.
 	valgrind => 0
     },
