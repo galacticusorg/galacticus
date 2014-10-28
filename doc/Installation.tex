@@ -311,6 +311,10 @@ perl -MCPAN -e 'install GraphViz'
 
 \end{description}
 
+\subsection{Optional Requirements}
+
+\glc\ can make use of the \gls{yeppp} library for for optimized vector math operations\footnote{At present, usage of \proect\gls{yeppp} is limited to numerical integration routines, but these are as yet not utilized within the code.}. To link \glc\ with \gls{yeppp} simply install \gls{yeppp} following their instructions, and ensure that the \gls{yeppp} environment variables are set. \glc\ will detect the \gls{yeppp} installation via this environment variables and will adjust its build appropriately.
+
 \section{Compiling Galacticus}
 
 To build \glc\ (after installing all required libraries) ensure that you are in the {\tt Galacticus/v0.0.1} directory and then simply type:
