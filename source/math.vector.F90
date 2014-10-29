@@ -21,7 +21,7 @@ module Vectors
   !% Implements calculations of vectors.
   implicit none
   private
-  public :: Vector_Magnitude, Vector_Product, Vector_Outer_Product
+  public :: Vector_Magnitude, Vector_Product, Vector_Outer_Product, Matrix_Copy_Upper_To_Lower_Triangle
 
   interface Vector_Outer_Product
      module procedure Vector_Outer_Product_Distinct
@@ -69,19 +69,30 @@ contains
     double precision, dimension(:                          ), intent(in   ) :: vector1
     double precision, dimension(size(vector1),size(vector1))                :: Vector_Outer_Product_Self
     logical         , optional                              , intent(in   ) :: symmetrize
-    integer                                                                 :: i                        , j
 
     Vector_Outer_Product_Self=0.0d0
     ! Call the appropriate BLAS routine.
     call dsyr("u",size(vector1),1.0d0,vector1,1,Vector_Outer_Product_Self,size(vector1))
-    if (present(symmetrize).and.symmetrize) then
-       forall(i=1:size(vector1)-1)
-          forall(j=i+1:size(vector1))
-             Vector_Outer_Product_Self(j,i)=Vector_Outer_Product_Self(i,j)
-          end forall
-       end forall
-    end if
+    if (present(symmetrize).and.symmetrize) Vector_Outer_Product_Self=Matrix_Copy_Upper_To_Lower_Triangle(Vector_Outer_Product_Self)
     return
   end function Vector_Outer_Product_Self
+
+  function Matrix_Copy_Upper_To_Lower_Triangle(matrix)
+    !% Copies the upper triangle of a square matrix to the lower triangle.
+    use Galacticus_Error
+    implicit none
+    double precision, dimension(:                 ,:                 ), intent(in   ) :: matrix
+    double precision, dimension(size(matrix,dim=1),size(matrix,dim=2))                :: Matrix_Copy_Upper_To_Lower_Triangle
+    integer                                                                           :: i                                  , j
+
+    if (size(matrix,dim=1) /= size(matrix,dim=2)) call Galacticus_Error_Report('Matrix_Copy_Upper_To_Lower_Triangle','matrix must be square')
+    do i=1,size(matrix,dim=1)-1
+       do j=i,size(matrix,dim=2)
+          Matrix_Copy_Upper_To_Lower_Triangle(i,j)=matrix(i,j)
+          Matrix_Copy_Upper_To_Lower_Triangle(j,i)=matrix(i,j)
+       end do
+    end do
+    return
+  end function Matrix_Copy_Upper_To_Lower_Triangle
 
 end module Vectors
