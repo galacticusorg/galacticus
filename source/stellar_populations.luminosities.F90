@@ -255,7 +255,17 @@ contains
           if (calculateLuminosity) then
           ! Display a message and counter.
              message='Tabulating stellar luminosities for '//char(IMF_Name(imfIndex))//' IMF, luminosity '
-             message=message//iLuminosity//' of '//size(luminosityIndex)
+             write (redshiftLabel,'(f6.3)') redshift(iLuminosity)
+             message=message                                                                                     // &
+                  &  Filter_Name                                          (filterIndex             (iLuminosity))// &
+                  &  ":"                                                                                         // &
+                  &  Stellar_Population_Spectrum_Postprocess_Chain_Methods(postprocessingChainIndex(iLuminosity))// &
+                  &  ":z"                                                                                        // &
+                  &  trim(adjustl(redshiftLabel))                                                                // &
+                  &  " "                                                                                         // &
+                  &                                                                                 iLuminosity  // &
+                  &  " of "                                                                                      // &
+                  &  size(luminosityIndex)
              call Galacticus_Display_Indent (message,verbosityWorking)
              call Galacticus_Display_Counter(0,.true.,verbosityWorking)             
              ! Get wavelength extent of the filter.
