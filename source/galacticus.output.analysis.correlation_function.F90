@@ -795,7 +795,7 @@ contains
        jacobianMatrix=termJacobian
        termCovariance=jacobianMatrix*jacobianMatrix%transpose()
        ! Add modifier covariance.
-       termCovariance=termCovariance+Vector_Outer_Product(modifierCovarianceDiagonal,modifierCovarianceDiagonal)
+       termCovariance=termCovariance+Vector_Outer_Product(modifierCovarianceDiagonal)
        ! For main branch galaxies, zero all off-diagonal contributions.
        if (thisHalo%isMainBranch) then
           termJacobian(:,1:thisHalo%satelliteCount)=0.0d0
@@ -845,17 +845,19 @@ contains
     use Vectors
     implicit none
     double precision                            , allocatable, dimension(:  ) :: separation
-    double precision                            , allocatable, dimension(:,:) :: powerSpectrumCovariance       , jacobian                 , &
-         &                                                                       correlationCovariance         , covarianceTmp            , &
+    double precision                            , allocatable, dimension(:,:) :: powerSpectrumCovariance       , jacobian                            , &
+         &                                                                       correlationCovariance         , covarianceTmp                       , &
          &                                                                       projectedCorrelationCovariance, binnedProjectedCorrelationCovariance, &
-         &                                                                       powerSpectrum, correlation, projectedCorrelation, binnedProjectedCorrelation, oneTwoHaloCovariance
-    integer                                                                   :: i                             , k                        , &
+         &                                                                       powerSpectrum                 , correlation                         , &
+         &                                                                       projectedCorrelation          , binnedProjectedCorrelation          , &
+         &                                                                       oneTwoHaloCovariance
+    integer                                                                   :: i                             , k                                  , &
          &                                                                       j                             , wavenumberCount, m, n, massCount, indexDensity, indexOneHalo, indexTwoHalo
-    type            (hdf5Object                )                              :: analysisGroup                 , correlationFunctionGroup , &
+    type            (hdf5Object                )                              :: analysisGroup                 , correlationFunctionGroup           , &
          &                                                                       thisDataset
     type            (table1DLogarithmicLinear  )                              :: correlationTable
-    double precision                                                          :: projectedSeparation           , binSeparationMinimum     , &
-         &                                                                       binSeparationMaximum          , binWidthLogarithmic      , &
+    double precision                                                          :: projectedSeparation           , binSeparationMinimum               , &
+         &                                                                       binSeparationMaximum          , binWidthLogarithmic                , &
          &                                                                       linearGrowthFactor
     type            (matrix                    )                              :: jacobianMatrix                , covarianceMatrix
     procedure       (integrandTemplate         ), pointer                     :: integrandWeightFunction
@@ -865,7 +867,9 @@ contains
     ! Iterate over mass functions.
     do k=1,size(correlationFunctions)
        ! Accumulate any final halo.
-       call Accumulate_Halo(correlationFunctions(k),thisHalo(k))    
+       call Accumulate_Halo(correlationFunctions(k),thisHalo(k))
+       ! Copy upper to lower triangle of covariance matrix (we've accumulated only the upper triangle).
+       correlationFunctions(k)%termCovariance=Matrix_Copy_Upper_To_Lower_Triangle(correlationFunctions(k)%termCovariance)
        ! Get count of mass bins and wavenumbers.
        massCount      =size(correlationFunctions(k)%massMinimumLogarithmic)
        wavenumberCount=size(correlationFunctions(k)%wavenumber            )

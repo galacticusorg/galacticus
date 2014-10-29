@@ -660,10 +660,7 @@ contains
           end if
        else
           thisGalaxy(i)%covariance=                                                                                                   &
-               & Vector_Outer_Product(                                                                                                &
-               &                      reshape(thisGalaxy(i)%sizeFunction,[sizeFunctions(i)%massesCount*sizeFunctions(i)%radiiCount]), &
-               &                      reshape(thisGalaxy(i)%sizeFunction,[sizeFunctions(i)%massesCount*sizeFunctions(i)%radiiCount])  &
-               &                     )
+               & Vector_Outer_Product(reshape(thisGalaxy(i)%sizeFunction,[sizeFunctions(i)%massesCount*sizeFunctions(i)%radiiCount]))
           ! Accumulate covariance.
           !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
           sizeFunctions(i)%sizeFunctionCovariance=sizeFunctions(i)%sizeFunctionCovariance+thisGalaxy(i)%covariance
@@ -679,6 +676,7 @@ contains
   subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Output
     !% Outputs SDSS $z\approx 0.07$ stellar mass function to file.
     use Galacticus_HDF5
+    use Vectors
     implicit none
     integer                      :: k,m,mi,ri,mj,rj,ci,cj
     type            (hdf5Object) :: analysisGroup,sizeFunctionGroup,thisDataset
@@ -688,6 +686,8 @@ contains
     if (.not.analysisActive) return
     ! Iterate over mass functions.
     do k=1,size(sizeFunctions)
+       ! Symmetrize the covariance matrix (we've accumulated only the upper triangle).
+       sizeFunctions(k)%sizeFunctionCovariance=Matrix_Copy_Upper_To_Lower_Triangle(sizeFunctions(k)%sizeFunctionCovariance)
        ! Add the contribution from main branch galaxies to the covariance matrix.
        if (analysisSizeFunctionCovarianceModel == analysisSizeFunctionCovarianceModelBinomial) then
           do m=1,analysisSizeFunctionsHaloMassBinsCount
