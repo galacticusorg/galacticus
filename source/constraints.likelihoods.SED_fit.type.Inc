@@ -43,6 +43,7 @@
   integer, parameter :: likelihoodSEDFitDustTypeCardelli1989   =2
   integer, parameter :: likelihoodSEDFitDustTypeGordon2003     =3
   integer, parameter :: likelihoodSEDFitDustTypeCalzetti2000   =4
+  integer, parameter :: likelihoodSEDFitDustTypeWittGordon2000 =5
 
   integer, parameter :: likelihoodSEDFitStartTimeTypeTime      =0
   integer, parameter :: likelihoodSEDFitStartTimeTypeAge       =1
