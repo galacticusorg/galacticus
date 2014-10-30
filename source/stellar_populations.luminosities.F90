@@ -53,7 +53,7 @@ module Stellar_Population_Luminosities
   ! Tolerance used in integrations.
   double precision                                             :: stellarPopulationLuminosityIntegrationToleranceRelative
 
-  ! Optoin controlling writing of luminosities to file.
+  ! Option controlling writing of luminosities to file.
   logical                                                      :: stellarPopulationLuminosityStoreToFile
 
 contains
@@ -88,6 +88,7 @@ contains
     logical                                     , allocatable, dimension(:)                                    :: isTabulatedTemporary
     double precision                                         , dimension(2)                                    :: wavelengthRange
     double precision                                         , dimension(0:1)                                  :: hAge                            , hMetallicity
+    integer         (c_int                     )                                                               :: lockFileDescriptor
     integer                                                                                                    :: iAge                            , iLuminosity                , &
          &                                                                                                        iMetallicity                    , jAge                       , &
          &                                                                                                        jMetallicity                    , loopCount                  , &
@@ -220,6 +221,7 @@ contains
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
                 ! Open the file and check for the required dataset.
                 !$omp critical (HDF5_Access)
+                lockFileDescriptor=File_Lock(char(luminositiesFileName)//".lock")
                 call luminositiesFile%openFile(char(luminositiesFileName),readOnly=.true.)
                 if (luminositiesFile%hasDataset(trim(datasetName))) then
                    ! Read the dataset.
@@ -228,13 +230,14 @@ contains
                    calculateLuminosity=.false.
                 end if
                 call luminositiesFile%close()
+                call File_Unlock(lockFileDescriptor)
                 !$omp end critical (HDF5_Access)
              end if
           end if
-  
+
           ! Compute the luminosity if necessary.
           if (calculateLuminosity) then
-             ! Display a message and counter.
+          ! Display a message and counter.
              message='Tabulating stellar luminosities for '//char(IMF_Name(imfIndex))//' IMF, luminosity '
              message=message//iLuminosity//' of '//size(luminosityIndex)
              call Galacticus_Display_Indent (message,verbosityWorking)
@@ -285,11 +288,14 @@ contains
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
                 ! Open the file.
                 !$omp critical (HDF5_Access)
+                lockFileDescriptor=File_Lock(char(luminositiesFileName)//".lock")
                 call luminositiesFile%openFile(char(luminositiesFileName))
                 ! Write the dataset.
-                call luminositiesFile%writeDataset(luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:),datasetName=trim(datasetName),commentText="Tabulated luminosities at redshift z="//adjustl(trim(redshiftLabel)))
+                if (.not.luminositiesFile%hasDataset(trim(datasetName))) &
+                     & call luminositiesFile%writeDataset(luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:),datasetName=trim(datasetName),commentText="Tabulated luminosities at redshift z="//adjustl(trim(redshiftLabel)))
                 ! Close the file.
                 call luminositiesFile%close()
+                call File_Unlock(lockFileDescriptor)
                 !$omp end critical (HDF5_Access)
              end if
           end if
@@ -326,10 +332,10 @@ contains
              ! Check for out of range age.
              if (age(iLuminosity) > luminosityTables(imfIndex)%age(luminosityTables(imfIndex)%agesCount)) call&
                   & Galacticus_Error_Report('Stellar_Population_Luminosity','age exceeds the maximum tabulated')
-             iAge=Interpolate_Locate(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age &
-                  &,luminosityTables(imfIndex)%interpolationAcceleratorAge,age(iLuminosity),luminosityTables(imfIndex)%resetAge)
-             hAge=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age,iAge&
-                  &,age(iLuminosity))
+                iAge=Interpolate_Locate(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age &
+                     &,luminosityTables(imfIndex)%interpolationAcceleratorAge,age(iLuminosity),luminosityTables(imfIndex)%resetAge)
+                hAge=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age,iAge&
+                     &,age(iLuminosity))
              ageLast=age(iLuminosity)
           end if
           do jAge=0,1
