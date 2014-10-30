@@ -90,6 +90,8 @@ function likelihoodSEDFitConstructor(definition)
         likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeGordon2003
      case ("Calzetti2000"   )
         likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeCalzetti2000
+     case ("WittGordon2000" )
+        likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeWittGordon2000
      case default
         call Galacticus_Error_Report('likelihoodSEDFitConstructor','unrecognized dust type')
      end select
@@ -228,6 +230,16 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
      type is (stellarSpectraDustAttenuationCalzetti2000)
         vBandAttenuation=stateVector(6)
         dust=stellarSpectraDustAttenuationCalzetti2000   (                                                 &
+             &                                           )
+     end select
+     burstIndexOffset=6
+  case (likelihoodSEDFitDustTypeWittGordon2000)
+     allocate(stellarSpectraDustAttenuationWittGordon2000  :: dust)
+     select type (dust)
+     type is (stellarSpectraDustAttenuationWittGordon2000)
+        vBandAttenuation=stateVector(6)
+        dust=stellarSpectraDustAttenuationWittGordon2000 (                                                &
+             &                                            model                 ='MilkyWayShellTau3.0'    &
              &                                           )
      end select
      burstIndexOffset=6
