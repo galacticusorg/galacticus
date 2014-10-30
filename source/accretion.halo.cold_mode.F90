@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,231 +15,257 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of baryonic accretion onto halos using a simple truncation to mimic
-!% reionization.
+  !% An implementation of accretion from the \gls{igm} onto halos using simple truncation to
+  !% mimic the effects of reionization and accounting for cold mode accretion.
 
-module Accretion_Halos_Cold_Mode
-  !% Implements calculations of baryonic accretion onto halos using a simple truncation to mimic reionization and accounting for
-  !% cold mode accretion.
-  use Radiation_Structure
-  use Abundances_Structure
-  use Accretion_Halos_Options
-  implicit none
-  private
-  public :: Accretion_Halos_Cold_Mode_Initialize
+  !# <accretionHalo name="accretionHaloColdMode">
+  !#  <description>Accretion onto halos using simple truncation to mimic the effects of reionization and accounting for cold mode accretion.</description>
+  !# </accretionHalo>
 
-  ! Internal record of the number of chemicals being tracked.
-  integer                              :: chemicalsCount
-  ! Radiation structure.
-  type            (radiationStructure) :: radiation
-  !$omp threadprivate(radiation)
-  ! Parameters controlling onset of cold mode.
-  double precision                     :: accretionColdModeShockStabilityThreshold
-  double precision                     :: accretionColdModeShockStabilityTransitionWidth
+  type, extends(accretionHaloSimple) :: accretionHaloColdMode
+     !% A halo accretion class using simple truncation to mimic the effects of reionization and accounting for cold mode accretion.
+     private
+     double precision :: shockStabilityThreshold, shockStabilityTransitionWidth
+   contains
+     procedure :: accretionRate          => coldModeAccretionRate
+     procedure :: accretedMass           => coldModeAccretedMass
+     procedure :: failedAccretionRate    => coldModeFailedAccretionRate
+     procedure :: failedAccretedMass     => coldModeFailedAccretedMass
+     procedure :: accretionRateMetals    => coldModeAccretionRateMetals
+     procedure :: accretedMassMetals     => coldModeAccretedMassMetals
+     procedure :: accretionRateChemicals => coldModeAccretionRateChemicals
+     procedure :: accretedMassChemicals  => coldModeAccretedMassChemicals
+     procedure :: chemicalMasses         => coldModeChemicalMasses
+     procedure :: coldModeFraction       => coldModeColdModeFraction
+  end type accretionHaloColdMode
+
+  interface accretionHaloColdMode
+     !% Constructors for the {\tt coldMode} halo accretion class.
+     module procedure coldModeConstructor
+     module procedure coldModeDefaultConstructor
+  end interface accretionHaloColdMode
+
+  interface assignment(=)
+     module procedure coldModeFromSimple
+  end interface assignment(=)
+
+  ! Default parameters.
+  double precision :: coldModeShockStabilityThreshold, coldModeShockStabilityTransitionWidth
+
+  ! Initialization state.
+  logical          :: coldModeDefaultInitialized=.false.
 
 contains
-
-  !# <accretionHalosMethod>
-  !#  <unitName>Accretion_Halos_Cold_Mode_Initialize</unitName>
-  !# </accretionHalosMethod>
-  subroutine Accretion_Halos_Cold_Mode_Initialize(accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get &
-       &,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get &
-       &,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accreted_Abundances_Get&
-       &,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get)
-    !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
-    use Input_Parameters
-    use Cosmology_Functions
-    use Atomic_Data
-    use Galacticus_Error
-    use Chemical_Abundances_Structure
-    use Intergalactic_Medium_State
-    implicit none
-    type            (varying_string                                       ), intent(in   )          :: accretionHalosMethod
-    procedure       (Halo_Baryonic_Accretion_Rate_Cold_Mode_Get           ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Get
-    procedure       (Halo_Baryonic_Accreted_Mass_Cold_Mode_Get            ), intent(inout), pointer :: Halo_Baryonic_Accreted_Mass_Get
-    procedure       (Halo_Baryonic_Failed_Accretion_Rate_Cold_Mode_Get    ), intent(inout), pointer :: Halo_Baryonic_Failed_Accretion_Rate_Get
-    procedure       (Halo_Baryonic_Failed_Accreted_Mass_Cold_Mode_Get     ), intent(inout), pointer :: Halo_Baryonic_Failed_Accreted_Mass_Get
-    procedure       (Halo_Baryonic_Accretion_Rate_Abundances_Cold_Mode_Get), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Abundances_Get
-    procedure       (Halo_Baryonic_Accreted_Abundances_Cold_Mode_Get      ), intent(inout), pointer :: Halo_Baryonic_Accreted_Abundances_Get
-    procedure       (Halo_Baryonic_Accretion_Rate_Chemicals_Cold_Mode_Get ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Chemicals_Get
-    procedure       (Halo_Baryonic_Accreted_Chemicals_Cold_Mode_Get       ), intent(inout), pointer :: Halo_Baryonic_Accreted_Chemicals_Get
-
-    if (accretionHalosMethod == 'coldMode') then
-       ! Set pointers to our implementations of accretion functions.
-       Halo_Baryonic_Accretion_Rate_Get            => Halo_Baryonic_Accretion_Rate_Cold_Mode_Get
-       Halo_Baryonic_Accreted_Mass_Get             => Halo_Baryonic_Accreted_Mass_Cold_Mode_Get
-       Halo_Baryonic_Failed_Accretion_Rate_Get     => Halo_Baryonic_Failed_Accretion_Rate_Cold_Mode_Get
-       Halo_Baryonic_Failed_Accreted_Mass_Get      => Halo_Baryonic_Failed_Accreted_Mass_Cold_Mode_Get
-       Halo_Baryonic_Accretion_Rate_Abundances_Get => Halo_Baryonic_Accretion_Rate_Abundances_Cold_Mode_Get
-       Halo_Baryonic_Accreted_Abundances_Get       => Halo_Baryonic_Accreted_Abundances_Cold_Mode_Get
-       Halo_Baryonic_Accretion_Rate_Chemicals_Get  => Halo_Baryonic_Accretion_Rate_Chemicals_Cold_Mode_Get
-       Halo_Baryonic_Accreted_Chemicals_Get        => Halo_Baryonic_Accreted_Chemicals_Cold_Mode_Get
-       ! Get a count of the number of chemicals being tracked.
-       chemicalsCount=Chemicals_Property_Count()
-       ! Define the radiation structure.
-       call radiation%define([radiationTypeCMB])
-       ! Read parameters controlling the cold mode.
-       !@ <inputParameter>
-       !@   <name>accretionColdModeShockStabilityThreshold</name>
-       !@   <defaultValue>0.0126 \citep{birnboim_virial_2003}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The threshold value, $\epsilon_{\rm s,crit}$, for shock stability in the model of \cite{birnboim_virial_2003}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("accretionColdModeShockStabilityThreshold",accretionColdModeShockStabilityThreshold,defaultValue=0.0126d0)
-       !@ <inputParameter>
-       !@   <name>accretionColdModeShockStabilityTransitionWidth</name>
-       !@   <defaultValue>0.01 \citep{benson_cold_2010}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The width of the transition from stability to instability for cold mode accretion \citep{benson_cold_2010}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("accretionColdModeShockStabilityTransitionWidth",accretionColdModeShockStabilityTransitionWidth,defaultValue=0.01d0)
-    end if
-    return
-  end subroutine Accretion_Halos_Cold_Mode_Initialize
-
-  double precision function Halo_Baryonic_Accretion_Rate_Cold_Mode_Get(thisNode,accretionMode)
-    !% Computes the baryonic accretion rate onto {\tt thisNode}.
-    use Galacticus_Nodes
-    use Accretion_Halos_Simple
-    implicit none
-    type   (treeNode), intent(inout), pointer :: thisNode
-    integer          , intent(in   )          :: accretionMode
-
-    Halo_Baryonic_Accretion_Rate_Cold_Mode_Get=                                     &
-         &  Halo_Baryonic_Accretion_Rate_Simple_Get   (thisNode,accretionModeTotal) &
-         & *Halo_Baryonic_Accretion_Cold_Mode_Fraction(thisNode,accretionMode     )
-    return
-  end function Halo_Baryonic_Accretion_Rate_Cold_Mode_Get
   
-  double precision function Halo_Baryonic_Accreted_Mass_Cold_Mode_Get(thisNode,accretionMode)
-    !% Computes the mass of baryons accreted into {\tt thisNode}.
-    use Galacticus_Nodes
-    use Accretion_Halos_Simple
+  subroutine coldModeFromSimple(coldMode,simple)
+    !% Assign a {\tt simple} halo accretion object to a {\tt coldMode} halo accretion object.
     implicit none
-    type   (treeNode          ), intent(inout), pointer :: thisNode
-    integer                    , intent(in   )          :: accretionMode
-
-    Halo_Baryonic_Accreted_Mass_Cold_Mode_Get=                                      &
-         &  Halo_Baryonic_Accreted_Mass_Simple_Get    (thisNode,accretionModeTotal) &
-         & *Halo_Baryonic_Accretion_Cold_Mode_Fraction(thisNode,accretionMode     )
-    return
-  end function Halo_Baryonic_Accreted_Mass_Cold_Mode_Get
-
-  double precision function Halo_Baryonic_Failed_Accretion_Rate_Cold_Mode_Get(thisNode,accretionMode)
-    !% Computes the baryonic accretion rate onto {\tt thisNode}.
-    use Galacticus_Nodes
-    use Accretion_Halos_Simple
-    implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    integer                               , intent(in   )          :: accretionMode
-
-    Halo_Baryonic_Failed_Accretion_Rate_Cold_Mode_Get=                                  &
-         &  Halo_Baryonic_Failed_Accretion_Rate_Simple_Get(thisNode,accretionModeTotal) &
-         & *Halo_Baryonic_Accretion_Cold_Mode_Fraction    (thisNode,accretionMode     )
-    return
-  end function Halo_Baryonic_Failed_Accretion_Rate_Cold_Mode_Get
-
-  double precision function Halo_Baryonic_Failed_Accreted_Mass_Cold_Mode_Get(thisNode,accretionMode)
-    !% Computes the mass of baryons accreted into {\tt thisNode}.
-    use Galacticus_Nodes
-    use Accretion_Halos_Simple
-    implicit none
-    type   (treeNode          ), intent(inout), pointer :: thisNode
-    integer                    , intent(in   )          :: accretionMode
-
-    Halo_Baryonic_Failed_Accreted_Mass_Cold_Mode_Get=                                  &
-         &  Halo_Baryonic_Failed_Accreted_Mass_Simple_Get(thisNode,accretionModeTotal) &
-         & *Halo_Baryonic_Accretion_Cold_Mode_Fraction   (thisNode,accretionMode     )
-    return
-  end function Halo_Baryonic_Failed_Accreted_Mass_Cold_Mode_Get
-
-  subroutine Halo_Baryonic_Accretion_Rate_Abundances_Cold_Mode_Get(thisNode,accretionRateAbundances,accretionMode)
-    !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium.
-    use Galacticus_Nodes
-    use Accretion_Halos_Simple
-    implicit none
-    type  (treeNode  ), intent(inout), pointer :: thisNode
-    type  (abundances), intent(inout)          :: accretionRateAbundances
-    integer           , intent(in   )          :: accretionMode
+    type(accretionHaloColdMode), intent(inout) :: coldMode
+    type(accretionHaloSimple  ), intent(in   ) :: simple
     
-    call Halo_Baryonic_Accretion_Rate_Abundances_Simple_Get(thisNode,accretionRateAbundances,accretionModeTotal)
-    accretionRateAbundances=                                                   &
-         &  accretionRateAbundances                                            &
-         & *Halo_Baryonic_Accretion_Cold_Mode_Fraction(thisNode,accretionMode)
+    coldMode%reionizationSuppressionTime    =simple%reionizationSuppressionTime
+    coldMode%reionizationSuppressionVelocity=simple%reionizationSuppressionVelocity
+    coldMode%negativeAccretionAllowed       =simple%negativeAccretionAllowed
+    coldMode%accreteNewGrowthOnly           =simple%accreteNewGrowthOnly
+    coldMode%radiation                      =simple%radiation
     return
-  end subroutine Halo_Baryonic_Accretion_Rate_Abundances_Cold_Mode_Get
-
-  subroutine Halo_Baryonic_Accreted_Abundances_Cold_Mode_Get(thisNode,accretedAbundances,accretionMode)
-    !% Computes the mass of abundances accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
-    use Galacticus_Nodes
-    use Accretion_Halos_Simple
+  end subroutine coldModeFromSimple
+  
+  function coldModeDefaultConstructor()
+    !% Default constructor for the {\tt coldMode} halo accretion class.
+    use Intergalactic_Medium_State
+    use Cosmology_Functions
+    use Galacticus_Error
+    use Input_Parameters
     implicit none
-    type   (treeNode  ), intent(inout), pointer :: thisNode
-    type   (abundances), intent(inout)          :: accretedAbundances
-    integer            , intent(in   )          :: accretionMode
+    type(accretionHaloColdMode), target  :: coldModeDefaultConstructor
 
-    call Halo_Baryonic_Accreted_Abundances_Simple_Get(thisNode,accretedAbundances,accretionModeTotal)
-    accretedAbundances=                                                        &
-         &  accretedAbundances                                                 &
-         & *Halo_Baryonic_Accretion_Cold_Mode_Fraction(thisNode,accretionMode)
+    ! Get default parameters.
+    if (.not.coldModeDefaultInitialized) then
+       !$omp critical(accretionHaloColdModeDefaultInitialize)
+       if (.not.coldModeDefaultInitialized) then
+          ! Read parameters controlling the cold mode.
+          !@ <inputParameter>
+          !@   <name>accretionColdModeShockStabilityThreshold</name>
+          !@   <defaultValue>0.0126 \citep{birnboim_virial_2003}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The threshold value, $\epsilon_{\rm s,crit}$, for shock stability in the model of \cite{birnboim_virial_2003}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("accretionColdModeShockStabilityThreshold",coldModeShockStabilityThreshold,defaultValue=0.0126d0)
+          !@ <inputParameter>
+          !@   <name>accretionColdModeShockStabilityTransitionWidth</name>
+          !@   <defaultValue>0.01 \citep{benson_cold_2010}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The width of the transition from stability to instability for cold mode accretion \citep{benson_cold_2010}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("accretionColdModeShockStabilityTransitionWidth",coldModeShockStabilityTransitionWidth,defaultValue=0.01d0)
+          ! Record that class is now initialized.
+          coldModeDefaultInitialized=.true.
+       end if
+       !$omp end critical(accretionHaloColdModeDefaultInitialize)
+    end if
+    coldModeDefaultConstructor=accretionHaloSimple()
+    coldModeDefaultConstructor%shockStabilityThreshold      =coldModeShockStabilityThreshold
+    coldModeDefaultConstructor%shockStabilityTransitionWidth=coldModeShockStabilityTransitionWidth
     return
-  end subroutine Halo_Baryonic_Accreted_Abundances_Cold_Mode_Get
+  end function coldModeDefaultConstructor
+       
+  function coldModeConstructor(reionizationSuppressionTime,reionizationSuppressionVelocity,negativeAccretionAllowed,accreteNewGrowthOnly,shockStabilityThreshold,shockStabilityTransitionWidth)
+    !% Default constructor for the {\tt coldMode} halo accretion class.
+    implicit none
+    type            (accretionHaloColdMode), target        :: coldModeConstructor
+    double precision                       , intent(in   ) :: reionizationSuppressionTime, reionizationSuppressionVelocity, &
+         &                                                    shockStabilityThreshold    , shockStabilityTransitionWidth
+    logical                                , intent(in   ) :: negativeAccretionAllowed   , accreteNewGrowthOnly
 
-  subroutine Halo_Baryonic_Accretion_Rate_Chemicals_Cold_Mode_Get(thisNode,accretionRateChemicals,accretionMode)
-    !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium. Assumes a
+    coldModeConstructor=accretionHaloSimple(reionizationSuppressionTime,reionizationSuppressionVelocity,negativeAccretionAllowed,accreteNewGrowthOnly)
+    coldModeConstructor%shockStabilityThreshold      =shockStabilityThreshold
+    coldModeConstructor%shockStabilityTransitionWidth=shockStabilityTransitionWidth
+    return
+  end function coldModeConstructor
+
+  double precision function coldModeAccretionRate(self,node,accretionMode)
+    !% Computes the baryonic accretion rate onto {\tt node}.
+    use Galacticus_Nodes
+    implicit none
+    class  (accretionHaloColdMode), intent(inout)          :: self
+    type   (treeNode             ), intent(inout), pointer :: node
+    integer                       , intent(in   )          :: accretionMode
+
+    coldModeAccretionRate=                                                     &
+         &  self%accretionHaloSimple%accretionRate   (node,accretionModeTotal) &
+         & *self                    %coldModeFraction(node,accretionMode     )
+    return
+  end function coldModeAccretionRate
+  
+  double precision function coldModeAccretedMass(self,node,accretionMode)
+    !% Computes the mass of baryons accreted into {\tt node}.
+    use Galacticus_Nodes
+    implicit none
+    class  (accretionHaloColdMode), intent(inout)          :: self
+    type   (treeNode             ), intent(inout), pointer :: node
+    integer                       , intent(in   )          :: accretionMode
+
+    coldModeAccretedMass=                                                      &
+         &  self%accretionHaloSimple%accretedMass    (node,accretionModeTotal) &
+         & *self                    %coldModeFraction(node,accretionMode     )
+    return
+  end function coldModeAccretedMass
+
+  double precision function coldModeFailedAccretionRate(self,node,accretionMode)
+    !% Computes the baryonic accretion rate onto {\tt node}.
+    use Galacticus_Nodes
+    implicit none
+    class  (accretionHaloColdMode), intent(inout)          :: self
+    type   (treeNode             ), intent(inout), pointer :: node
+    integer                       , intent(in   )          :: accretionMode
+
+    coldModeFailedAccretionRate=                                                  &
+         &  self%accretionHaloSimple%failedAccretionRate(node,accretionModeTotal) &
+         & *self                    %coldModeFraction   (node,accretionMode     )
+    return
+  end function coldModeFailedAccretionRate
+
+  double precision function coldModeFailedAccretedMass(self,node,accretionMode)
+    !% Computes the mass of baryons accreted into {\tt node}.
+    use Galacticus_Nodes
+    implicit none
+    class  (accretionHaloColdMode), intent(inout)          :: self
+    type   (treeNode             ), intent(inout), pointer :: node
+    integer                       , intent(in   )          :: accretionMode
+
+    coldModeFailedAccretedMass=                                                  &
+         &  self%accretionHaloSimple%failedAccretedMass(node,accretionModeTotal) &
+         & *self                    %coldModeFraction  (node,accretionMode     )
+    return
+  end function coldModeFailedAccretedMass
+
+  function coldModeAccretionRateMetals(self,node,accretionMode)
+    !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\tt node} from the intergalactic medium.
+    use Galacticus_Nodes
+    implicit none
+    type  (abundances           )                         :: coldModeAccretionRateMetals
+    class (accretionHaloColdMode), intent(inout)          :: self
+    type  (treeNode             ), intent(inout), pointer :: node
+    integer                      , intent(in   )          :: accretionMode
+    
+    coldModeAccretionRateMetals=                                             &
+         &  self%accretionHaloSimple%accretionRateMetals(node,accretionMode) &
+         & *self                    %coldModeFraction   (node,accretionMode)
+    return
+  end function coldModeAccretionRateMetals
+
+  function coldModeAccretedMassMetals(self,node,accretionMode)
+    !% Computes the mass of abundances accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
+    use Galacticus_Nodes
+    implicit none
+    type   (abundances           )                         :: coldModeAccretedMassMetals
+    class  (accretionHaloColdMode), intent(inout)          :: self
+    type   (treeNode             ), intent(inout), pointer :: node
+    integer                       , intent(in   )          :: accretionMode
+
+    coldModeAccretedMassMetals=                                             &
+         &  self%accretionHaloSimple%accretedMassMetals(node,accretionMode) &
+         & *self                    %coldModeFraction  (node,accretionMode)
+    return
+  end function coldModeAccretedMassMetals
+
+  function coldModeAccretionRateChemicals(self,node,accretionMode)
+    !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\tt node} from the intergalactic medium. Assumes a
     !% primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
     !% temperature.
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    type            (chemicalAbundances), intent(inout)          :: accretionRateChemicals
-    integer                             , intent(in   )          :: accretionMode
-    double precision                                             :: massAccretionRate
+    type            (chemicalAbundances   )                         :: coldModeAccretionRateChemicals
+    class           (accretionHaloColdMode), intent(inout)          :: self
+    type            (treeNode             ), intent(inout), pointer :: node
+    integer                                , intent(in   )          :: accretionMode
+    double precision                                                :: massAccretionRate
 
     ! Return immediately if no chemicals are being tracked.
-    if (chemicalsCount == 0) return
+    if (simpleChemicalsCount == 0) return
     ! Ensure that chemicals are reset to zero.
-    call accretionRateChemicals%reset()
+    call coldModeAccretionRateChemicals%reset()
     ! Get the total mass accretion rate onto the halo.
-    massAccretionRate=Halo_Baryonic_Accretion_Rate_Cold_Mode_Get(thisNode,accretionMode)
+    massAccretionRate=self%accretionRate(node,accretionMode)
     ! Get the mass accretion rates.
-    call Get_Chemical_Masses(thisNode,massAccretionRate,accretionRateChemicals,accretionMode)
+    coldModeAccretionRateChemicals=self%chemicalMasses(node,massAccretionRate,accretionMode)
     return
-  end subroutine Halo_Baryonic_Accretion_Rate_Chemicals_Cold_Mode_Get
+  end function coldModeAccretionRateChemicals
 
-  subroutine Halo_Baryonic_Accreted_Chemicals_Cold_Mode_Get(thisNode,accretedChemicals,accretionMode)
-    !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
+  function coldModeAccretedMassChemicals(self,node,accretionMode)
+    !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    type            (chemicalAbundances), intent(inout)          :: accretedChemicals
-    integer                             , intent(in   )          :: accretionMode
-    double precision                                             :: massAccreted
+    type            (chemicalAbundances   )                         :: coldModeAccretedMassChemicals
+    class           (accretionHaloColdMode), intent(inout)          :: self
+    type            (treeNode             ), intent(inout), pointer :: node
+    integer                                , intent(in   )          :: accretionMode
+    double precision                                                :: massAccreted
 
     ! Return immediately if no chemicals are being tracked.
-    if (chemicalsCount == 0) return
+    if (simpleChemicalsCount == 0) return
     ! Ensure that chemicals are reset to zero.
-    call accretedChemicals%reset()
+    call coldModeAccretedMassChemicals%reset()
     ! Total mass of material accreted.
-    massAccreted=Halo_Baryonic_Accreted_Mass_Cold_Mode_Get(thisNode,accretionMode)
+    massAccreted=self%accretedMass(node,accretionMode)
     ! Get the masses of chemicals accreted.
-    call Get_Chemical_Masses(thisNode,massAccreted,accretedChemicals,accretionMode)
+    coldModeAccretedMassChemicals=self%chemicalMasses(node,massAccreted,accretionMode)
     return
-  end subroutine Halo_Baryonic_Accreted_Chemicals_Cold_Mode_Get
+  end function coldModeAccretedMassChemicals
 
-  subroutine Get_Chemical_Masses(thisNode,massAccreted,chemicalMasses,accretionMode)
-    !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
+  function coldModeChemicalMasses(self,node,massAccreted,accretionMode)
+    !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
     use Galacticus_Nodes
     use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
@@ -249,9 +275,10 @@ contains
     use Chemical_Reaction_Rates_Utilities
     use Intergalactic_Medium_State
     implicit none
-    type            (treeNode                     ), intent(inout), pointer :: thisNode
+    type            (chemicalAbundances           )                         :: coldModeChemicalMasses
+    class           (accretionHaloColdMode        ), intent(inout)          :: self
+    type            (treeNode                     ), intent(inout), pointer :: node
     double precision                               , intent(in   )          :: massAccreted
-    type            (chemicalAbundances           ), intent(  out)          :: chemicalMasses
     integer                                        , intent(in   )          :: accretionMode
     class           (nodeComponentBasic           )               , pointer :: thisBasicComponent
     class           (cosmologyParametersClass     )               , pointer :: thisCosmologyParameters
@@ -269,24 +296,24 @@ contains
     thisCosmologyParameters => cosmologyParameters()
     darkMatterHaloScale_    => darkMatterHaloScale()
     ! Get the basic component.
-    thisBasicComponent   => thisNode%basic()
+    thisBasicComponent   => node%basic()
     ! Compute coefficient in conversion of mass to density for this node.
-    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(thisNode))/3.0d0
+    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(node))/3.0d0
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
-    temperatureHot            =  darkMatterHaloScale_%virialTemperature(thisNode                 )
+    temperatureHot            =  darkMatterHaloScale_%virialTemperature(node                 )
     intergalacticMediumState_ => intergalacticMediumState              (                         )
     temperature               =  intergalacticMediumState_%temperature (thisBasicComponent%time())
     numberDensityHydrogen     =  hydrogenByMassPrimordial*(thisCosmologyParameters%omegaBaryon()/thisCosmologyParameters%omegaMatter())*thisBasicComponent%mass()*massToDensityConversion&
          &/atomicMassHydrogen
     ! Set the radiation field.
-    call radiation%set(thisNode)
+    call self%radiation%set(node)
     ! Get hot and cold mode fractions.
-    fractionHot =Halo_Baryonic_Accretion_Cold_Mode_Fraction(thisNode,accretionModeHot )
-    fractionCold=Halo_Baryonic_Accretion_Cold_Mode_Fraction(thisNode,accretionModeCold)
+    fractionHot =self%coldModeFraction(node,accretionModeHot )
+    fractionCold=self%coldModeFraction(node,accretionModeCold)
     ! Get the chemical densities.
-    call Chemical_Densities(chemicalDensitiesHot ,temperatureHot ,numberDensityHydrogen,zeroAbundances,radiation)
-    call Chemical_Densities(chemicalDensitiesCold,temperatureCold,numberDensityHydrogen,zeroAbundances,radiation)
+    call Chemical_Densities(chemicalDensitiesHot ,temperatureHot ,numberDensityHydrogen,zeroAbundances,self%radiation)
+    call Chemical_Densities(chemicalDensitiesCold,temperatureCold,numberDensityHydrogen,zeroAbundances,self%radiation)
     select case (accretionMode)
     case (accretionModeTotal)
        chemicalDensities=chemicalDensitiesHot*fractionHot+chemicalDensitiesCold*fractionCold
@@ -296,12 +323,12 @@ contains
        chemicalDensities=                                 chemicalDensitiesCold*fractionCold
     end select
     ! Convert from densities to masses.
-    call chemicalDensities%numberToMass(chemicalMasses)
-    chemicalMasses=chemicalMasses*massAccreted*hydrogenByMassPrimordial/numberDensityHydrogen/atomicMassHydrogen
+    call chemicalDensities%numberToMass(coldModeChemicalMasses)
+    coldModeChemicalMasses=coldModeChemicalMasses*massAccreted*hydrogenByMassPrimordial/numberDensityHydrogen/atomicMassHydrogen
     return
-  end subroutine Get_Chemical_Masses
+  end function coldModeChemicalMasses
 
-  double precision function Halo_Baryonic_Accretion_Cold_Mode_Fraction(thisNode,accretionMode)
+  double precision function coldModeColdModeFraction(self,node,accretionMode)
     !% Computes the fraction of accretion occuring in the specified mode.
     use Galacticus_Nodes
     use Cosmology_Parameters
@@ -317,7 +344,8 @@ contains
     use Chemical_Reaction_Rates_Utilities
     use Cooling_Functions
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
+    class           (accretionHaloColdMode   ), intent(inout)          :: self
+    type            (treeNode                ), intent(inout), pointer :: node
     integer                                   , intent(in   )          :: accretionMode
     double precision                          , parameter              :: adiabaticIndex             =5.0d0/3.0d0  
     double precision                          , parameter              :: perturbationInitialExponent=0.0d0
@@ -335,18 +363,18 @@ contains
 
     select case (accretionMode)
     case (accretionModeTotal)
-       Halo_Baryonic_Accretion_Cold_Mode_Fraction=1.0d0
+       coldModeColdModeFraction=1.0d0
     case (accretionModeHot,accretionModeCold)
        ! Get required objects.
        thisCosmologyParameters => cosmologyParameters()
        darkMatterHaloScale_    => darkMatterHaloScale()
        ! Set the radiation field.
-       call radiation%set(thisNode)
+       call self%radiation%set(node)
        ! Get the basic component.
-       thisBasic => thisNode%basic()
+       thisBasic => node%basic()
        ! Compute factors required for stability analysis.
-       radiusShock          =darkMatterHaloScale_%virialRadius  (thisNode)
-       velocityPreShock     =darkMatterHaloScale_%virialVelocity(thisNode)
+       radiusShock          =darkMatterHaloScale_%virialRadius  (node)
+       velocityPreShock     =darkMatterHaloScale_%virialVelocity(node)
        temperaturePostShock =                                            &
             &                 (3.0d0/16.0d0)                             &
             &                *atomicMassUnit                             &
@@ -386,7 +414,7 @@ contains
             &                  temperaturePostShock ,                    &
             &                  numberDensityHydrogen,                    &
             &                  zeroAbundances       ,                    &
-            &                  radiation                                 &
+            &                  self%radiation                            &
             &                 )
        coolingFunction     =                                             &
             &               Cooling_Function(                            &
@@ -394,7 +422,7 @@ contains
             &                                numberDensityHydrogen,      &
             &                                zeroAbundances       ,      &
             &                                chemicalDensities    ,      &
-            &                                radiation                   &
+            &                                self%radiation              &
             &                               )
        ! Compute the shock stability parameter from Birnboim & Dekel (2003).
        shockStability=                      &
@@ -407,41 +435,27 @@ contains
             &          *radiusShock         &
             &          *coolingFunction     &
             &          /velocityPreShock**3
-       ! Compute the cold fraction using the model from eqn. (2) of Benson & Bower (2011).
-!! AJB HACK: This original form doesn't allow the cold fraction to go to zero in high mass halos, since "shockStability" can never be less than zero.
-       ! coldFraction=                                                        &
-       !      &        1.0d0                                                  &
-       !      &        /(                                                     &
-       !      &           1.0d0                                               &
-       !      &          +exp(                                                &
-       !      &               (                                               &
-       !      &                 accretionColdModeShockStabilityThreshold      &
-       !      &                -shockStability                                &
-       !      &               )                                               &
-       !      &               /accretionColdModeShockStabilityTransitionWidth &
-       !      &              )                                                &
-       !      &         )
-!! AJB HACK: This form is basically the equivalent functional form, but defined in terms of ln(epsilon) rather than epsilon.
-       stabilityRatio=accretionColdModeShockStabilityThreshold/shockStability
-       if (log(stabilityRatio) > accretionColdModeShockStabilityTransitionWidth*logStabilityRatioMaximum) then
+       ! Compute the cold fraction using the model from eqn. (2) of Benson & Bower (2011). The original form doesn't allow the
+       ! cold fraction to go to zero in high mass halos, since "shockStability" can never be less than zero. This form is
+       ! basically the equivalent functional form, but defined in terms of ln(epsilon) rather than epsilon.
+       stabilityRatio=self%shockStabilityThreshold/shockStability
+       if (log(stabilityRatio) > self%shockStabilityTransitionWidth*logStabilityRatioMaximum) then
           coldFraction=0.0d0
        else
-          coldFraction=                                                                           &
-               &        1.0d0                                                                     &
-               &        /(                                                                        &
-               &           1.0d0                                                                  &
-               &          +stabilityRatio**(1.0d0/accretionColdModeShockStabilityTransitionWidth) &
+          coldFraction=                                                               &
+               &        1.0d0                                                         &
+               &        /(                                                            &
+               &           1.0d0                                                      &
+               &          +stabilityRatio**(1.0d0/self%shockStabilityTransitionWidth) &
                &         )
        end if
-      ! Return the appropriate fraction.
+       ! Return the appropriate fraction.
        select case (accretionMode)
        case (accretionModeHot )
-          Halo_Baryonic_Accretion_Cold_Mode_Fraction=1.0d0-coldFraction
+          coldModeColdModeFraction=1.0d0-coldFraction
        case (accretionModeCold)
-          Halo_Baryonic_Accretion_Cold_Mode_Fraction=     +coldFraction
+          coldModeColdModeFraction=     +coldFraction
        end select
     end select
     return
-  end function Halo_Baryonic_Accretion_Cold_Mode_Fraction
-
-end module Accretion_Halos_Cold_Mode
+  end function coldModeColdModeFraction

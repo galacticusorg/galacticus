@@ -123,7 +123,7 @@ contains
     implicit none
     class           (nodeComponentDarkMatterProfileScale), intent(inout) :: self
     type            (treeNode                           ), pointer       :: selfNode
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     double precision                                                     :: scaleLengthMaximum, scaleLengthMinimum
 
     selfNode             => self%host          ()

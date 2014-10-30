@@ -20,6 +20,7 @@
 module Galacticus_Error
   !% Implements error reporting for the {\sc Galacticus} package.
   use HDF5
+  use Semaphores
   use FGSL
   use Semaphores
   implicit none

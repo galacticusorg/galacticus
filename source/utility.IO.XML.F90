@@ -22,7 +22,8 @@ module IO_XML
   implicit none
   private
   public :: XML_Extrapolation_Element_Decode , XML_Array_Read  , XML_Array_Read_Static, &
-       &    XML_Get_First_Element_By_Tag_Name, XML_Array_Length, XML_Path_Exists
+       &    XML_Get_First_Element_By_Tag_Name, XML_Array_Length, XML_Path_Exists      , &
+       &    XML_Extract_Text
 
   ! Labels for extrapolation methods.
   integer, parameter, public :: extrapolateFixed=1, extrapolatePowerLaw=2, extrapolateZero=0
@@ -41,6 +42,18 @@ module IO_XML
   end interface XML_Array_Read_Static
 
 contains
+
+  function XML_Extract_Text(xmlElement)
+    !% Extract the text from an XML element and return as a variable length string.
+    use ISO_Varying_String
+    use FoX_dom
+    implicit none
+    type(varying_string)                         :: XML_Extract_Text
+    type(node          ), intent(in   ), pointer :: xmlElement
+
+    XML_Extract_Text=getTextContent(xmlElement)
+    return
+  end function XML_Extract_Text
 
   integer function XML_Array_Length(xmlElement,arrayElementName)
     !% Return the length of an array of XML elements.
