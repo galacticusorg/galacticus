@@ -947,4 +947,14 @@
     </parameter>
   </parameters>
 
+  <!-- Hot halo options -->
+  <parameters>
+    <parameter>
+      <name>treeNodeMethodHotHalo</name>
+      <value>standard</value>
+      <value>verySimple</value>
+      <value>verySimpleDelayed</value>
+    </parameter>
+  </parameters>
+
 </parameterGrid>

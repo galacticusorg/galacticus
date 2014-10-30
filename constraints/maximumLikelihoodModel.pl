@@ -10,7 +10,7 @@ use Fcntl qw(:DEFAULT :flock);
 require Galacticus::Constraints::Parameters;
 require Galacticus::Options;
 
-# Run the current maximum likelihood model from a Galacticus+BIE constraint run.
+# Run the current maximum likelihood model from a constraint run.
 # Andrew Benson (04-December-2012)
 
 # Get command line arguments.
@@ -27,15 +27,18 @@ my %arguments = (
 my $config = &Parameters::Parse_Config($configFile);
 
 # Validate the config file.
-die("maximumLikelihoodModel.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'workDirectory' }) );
-die("maximumLikelihoodModel.pl: compilation must be specified in config file"   ) unless ( exists($config->{'compilation'   }) );
-die("maximumLikelihoodModel.pl: baseParameters must be specified in config file") unless ( exists($config->{'baseParameters'}) );
+die("maximumLikelihoodModel.pl: workDirectory must be specified in config file" ) 
+    unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
+die("maximumLikelihoodModel.pl: compilation must be specified in config file"   )
+    unless ( exists($config->{'likelihood'}->{'compilation'   }) );
+die("maximumLikelihoodModel.pl: baseParameters must be specified in config file") 
+    unless ( exists($config->{'likelihood'}->{'baseParameters'}) );
 
 # Determine the work directory.
-my $workDirectory  = $config->{'workDirectory'};
+my $workDirectory  = $config->{'likelihood'}->{'workDirectory'};
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'compilation'},$config->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Set an output file name.
@@ -44,28 +47,34 @@ $parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'} = $workDirec
 
 # Set a random number seed.
 $parameters->{'parameter'}->{'randomSeed'}->{'value'} = int(rand(10000))+1
-    if ( exists($config->{'randomize'}) && $config->{'randomize'} eq "yes" );
+    if ( exists($config->{'likelihood'}->{'randomize'}) && $config->{'likelihood'}->{'randomize'} eq "yes" );
+
+# Determine number of chains.
+my $chainCount = $config->{'likelihood'}->{'threads'};
 
 # Parse the statefile to find the maximum likelihood model.
 my $maximumLikelihood = -1e30;
 my @maximumLikelihoodParameters;
-open(iHndl,$workDirectory."/mcmc/galacticusBIE.statelog");
-while ( my $line = <iHndl> ) {
-    unless ( $line =~ m/^\"/ ) {
-	$line =~ s/^\s*//;
-	$line =~ s/\s*$//;
-	my @columns = split(/\s+/,$line);
-	if ( $columns[2] > $maximumLikelihood ) {
-	    $maximumLikelihood = $columns[2];
-	    @maximumLikelihoodParameters = @columns[5..$#columns];
+for(my $i=0;$i<$chainCount;++$i) {
+    open(iHndl,$workDirectory."/chains_".sprintf("%4.4i",$i).".log");
+    while ( my $line = <iHndl> ) {
+	unless ( $line =~ m/^\"/ ) {
+	    $line =~ s/^\s*//;
+	    $line =~ s/\s*$//;
+	    my @columns = split(/\s+/,$line);
+	    if ( $columns[4] > $maximumLikelihood ) {
+		$maximumLikelihood           = $columns[4];
+		@maximumLikelihoodParameters = @columns[5..$#columns];
+	    }
 	}
     }
+    close(iHndl);
 }
-close(iHndl);
-print $maximumLikelihood."\n";
+print "Maximum likelihood: ".$maximumLikelihood."\n";
+print "  Model parameters:\n".join("\t",@maximumLikelihoodParameters)."\n";
 
 # Convert these values into a parameter array.
-my $newParameters = &Parameters::Convert_BIE_Parameters_To_Galacticus($config,@maximumLikelihoodParameters);
+my $newParameters = &Parameters::Convert_Parameters_To_Galacticus($config,@maximumLikelihoodParameters);
 
 # Apply to parameters.
 $parameters->{'parameter'}->{$_->{'name'}}->{'value'} = $_->{'value'}
@@ -100,7 +109,7 @@ foreach my $constraint ( @constraints ) {
     my $analysisCode = $constraintDefinition->{'analysis'};
     my $plotFile = $constraintDefinition->{'label'};
     $plotFile =~ s/\./_/g;
-    system($analysisCode." ".$workDirectory."/maximumLikelihoodModel/galacticus.hdf5 --outputFile ".$workDirectory."/maximumLikelihoodModel/likelihood".ucfirst($constraintDefinition->{'label'}).".xml --modelDiscrepancies ".$workDirectory."/modelDiscrepancy --plotFile ".$workDirectory."/maximumLikelihoodModel/".$plotFile.".pdf --accuracyFile ".$workDirectory."/maximumLikelihoodModel/".$constraintDefinition->{'label'}.":accuracy.xml");
+    system($analysisCode." ".$workDirectory."/maximumLikelihoodModel/galacticus.hdf5 --outputFile ".$workDirectory."/maximumLikelihoodModel/likelihood".ucfirst($constraintDefinition->{'label'}).".xml --modelDiscrepancies ".$workDirectory."/modelDiscrepancy --plotFile ".$workDirectory."/maximumLikelihoodModel/".$plotFile.".pdf --resultsFile ".$workDirectory."/maximumLikelihoodModel/".$constraintDefinition->{'label'}.":results.hdf5");
     die("maximumLikelihoodModel.pl: analysis code failed")
 	unless ( $? == 0 );
     # Read the likelihood.

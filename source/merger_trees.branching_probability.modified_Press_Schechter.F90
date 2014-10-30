@@ -44,28 +44,33 @@ module Modified_Press_Schechter_Branching
   ! Branching probability integrand integration tolerance.
   double precision, parameter :: branchingProbabilityIntegrandToleraceRelative=1.0d-3
 
+  ! Branching assumptions.
+  logical                     :: modifiedPressSchechterUseCDMAssumptions
+
 contains
 
   !# <treeBranchingMethod>
   !#  <unitName>Modified_Press_Schechter_Branching_Initialize</unitName>
   !# </treeBranchingMethod>
-  subroutine Modified_Press_Schechter_Branching_Initialize(treeBranchingMethod,Tree_Branching_Probability&
+  subroutine Modified_Press_Schechter_Branching_Initialize(treeBranchingMethod,Tree_Branching_Probability_Bound,Tree_Branching_Probability&
        &,Tree_Subresolution_Fraction,Tree_Branch_Mass,Tree_Maximum_Step)
     !% Initialize the modified Press-Schechter branching routines.
     use Input_Parameters
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: treeBranchingMethod
+    procedure(Modified_Press_Schechter_Branching_Probability_Bound), intent(inout), pointer :: Tree_Branching_Probability_Bound
     procedure(Modified_Press_Schechter_Branching_Probability), intent(inout), pointer :: Tree_Branching_Probability
     procedure(Modified_Press_Schechter_Subresolution_Fraction), intent(inout), pointer :: Tree_Subresolution_Fraction
     procedure(Modified_Press_Schechter_Branch_Mass), intent(inout), pointer :: Tree_Branch_Mass
     procedure(Modified_Press_Schechter_Branching_Maximum_Step), intent(inout), pointer :: Tree_Maximum_Step
 
     if (treeBranchingMethod == 'modifiedPress-Schechter') then
-       Tree_Branching_Probability  => Modified_Press_Schechter_Branching_Probability
-       Tree_Subresolution_Fraction => Modified_Press_Schechter_Subresolution_Fraction
-       Tree_Branch_Mass            => Modified_Press_Schechter_Branch_Mass
-       Tree_Maximum_Step           => Modified_Press_Schechter_Branching_Maximum_Step
+       Tree_Branching_Probability_Bound  => Modified_Press_Schechter_Branching_Probability_Bound
+       Tree_Branching_Probability        => Modified_Press_Schechter_Branching_Probability
+       Tree_Subresolution_Fraction       => Modified_Press_Schechter_Subresolution_Fraction
+       Tree_Branch_Mass                  => Modified_Press_Schechter_Branch_Mass
+       Tree_Maximum_Step                 => Modified_Press_Schechter_Branching_Maximum_Step
        !@ <inputParameter>
        !@   <name>modifiedPressSchechterG0</name>
        !@   <defaultValue>0.57</defaultValue>
@@ -116,6 +121,17 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('modifiedPressSchechterFirstOrderAccuracy',modifiedPressSchechterFirstOrderAccuracy,defaultValue &
             &=0.1d0)
+       !@ <inputParameter>
+       !@   <name>modifiedPressSchechterUseCDMAssumptions</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     If true, assume that $\alpha(=-{\rm d}\log \sigma/{\rm d}\log M)>0$ and ${\rm d}\alpha/{\rm d}M>0$ (as is true in the case of \gls{cdm}) when constructing merger trees using the \cite{parkinson_generating_2008}.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('modifiedPressSchechterUseCDMAssumptions',modifiedPressSchechterUseCDMAssumptions,defaultValue=.false.)
     end if
     return
   end subroutine Modified_Press_Schechter_Branching_Initialize
@@ -130,8 +146,9 @@ contains
     double precision            , intent(in   ) :: deltaCritical          , haloMass                , &
          &                                         massResolution         , probability
     double precision            , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-9
-    type            (rootFinder), save          :: finder
-    !$omp threadprivate(finder)
+    type            (rootFinder), save          :: finder,finder1
+    !$omp threadprivate(finder,finder1)
+
     ! Initialize global variables.
     parentHaloMass        =haloMass
     parentSigma           =Cosmological_Mass_Root_Variance(haloMass)
@@ -157,6 +174,7 @@ contains
   end function Modified_Press_Schechter_Branch_Mass
 
   double precision function Modified_Press_Schechter_Branch_Mass_Root(massMaximum)
+    !% Used to find the mass of a merger tree branching event.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
@@ -164,11 +182,17 @@ contains
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     type            (c_ptr                     )                :: parameterPointer
+    double precision                                            :: integral
 
-    Modified_Press_Schechter_Branch_Mass_Root=probabilitySeek-branchingProbabilityPreFactor*Integrate(probabilityMinimumMass&
-         &,massMaximum ,Branching_Probability_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute&
-         &=0.0d0 ,toleranceRelative=branchingProbabilityIntegrandToleraceRelative,integrationRule=FGSL_Integ_Gauss15)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    if (massMaximum > probabilityMinimumMass) then
+       integral=branchingProbabilityPreFactor*Integrate(probabilityMinimumMass&
+            &,massMaximum ,Branching_Probability_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute&
+            &=0.0d0 ,toleranceRelative=branchingProbabilityIntegrandToleraceRelative,integrationRule=FGSL_Integ_Gauss15)
+       call Integrate_Done(integrandFunction,integrationWorkspace)
+    else
+       integral=0.0d0
+    end if
+   Modified_Press_Schechter_Branch_Mass_Root=probabilitySeek-integral
     return
   end function Modified_Press_Schechter_Branch_Mass_Root
 
@@ -198,29 +222,158 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
-    double precision                            , intent(in   ) :: deltaCritical       , haloMass   , massResolution
+    double precision                            , intent(in   ) :: deltaCritical                , haloMass                    , &
+         &                                                         massResolution
     type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: massMaximum         , massMinimum
+    double precision                                            :: massMaximum                  , massMinimum
+    double precision                            , save          :: haloMassPrevious      =-1.0d0, deltaCriticalPrevious=-1.0d0, &
+         &                                                         massResolutionPrevious=-1.0d0, probabilityPrevious
+    !$omp threadprivate(haloMassPrevious,deltaCriticalPrevious,massResolutionPrevious,probabilityPrevious)
+    
+    ! Recompute branching probability if necessary.
+    if (haloMass /= haloMassPrevious .or. deltaCritical /= deltaCriticalPrevious .or. massResolution /= massResolutionPrevious) then
+       haloMassPrevious=haloMass
+       deltaCriticalPrevious=deltaCritical
+       massResolutionPrevious=massResolution
+       ! Get sigma and delta_critical for the parent halo.
+       if (haloMass>2.0d0*massResolution) then
+          parentHaloMass=haloMass
+          parentSigma=Cosmological_Mass_Root_Variance(haloMass)
+          parentDelta=deltaCritical
+          call Compute_Common_Factors
+          massMinimum=massResolution
+          massMaximum=0.5d0*parentHaloMass
+          probabilityPrevious=branchingProbabilityPreFactor*Integrate(massMinimum,massMaximum,Branching_Probability_Integrand &
+               &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative&
+               &=branchingProbabilityIntegrandToleraceRelative ,integrationRule=FGSL_Integ_Gauss15)
+          call Integrate_Done(integrandFunction,integrationWorkspace)
+       else
+          probabilityPrevious=0.0d0
+       end if
+    end if
+    Modified_Press_Schechter_Branching_Probability=probabilityPrevious
+    return
+  end function Modified_Press_Schechter_Branching_Probability
+
+  double precision function Modified_Press_Schechter_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound)
+    !% Return the probability per unit change in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt
+    !% deltaCritical} will undergo a branching to progenitors with mass greater than {\tt massResolution}.
+    use Merger_Tree_Branching_Options
+    use Galacticus_Error
+    use Hypergeometric_Functions
+    implicit none
+    double precision, intent(in   ) :: deltaCritical                   , haloMass                 , &
+         &                             massResolution
+    integer         , intent(in   ) :: bound
+    double precision, save          :: massResolutionPrevious   =-1.0d0, resolutionSigma          , &
+         &                             resolutionAlpha
+    !$omp threadprivate(resolutionSigma,resolutionAlpha,massResolutionPrevious)
+    double precision                :: probabilityIntegrandLower       , probabilityIntegrandUpper, &
+         &                             halfParentSigma                 , halfParentAlpha          , &
+         &                             gammaEffective
+    double precision                :: hyperGeometricFactorLower       , hyperGeometricFactorUpper, &
+         &                             resolutionSigmaOverParentSigma
 
     ! Get sigma and delta_critical for the parent halo.
-    if (haloMass>2.0d0*massResolution) then
+    if (haloMass > 2.0d0*massResolution) then
        parentHaloMass=haloMass
        parentSigma=Cosmological_Mass_Root_Variance(haloMass)
        parentDelta=deltaCritical
-       call Compute_Common_Factors
-       massMinimum=massResolution
-       massMaximum=0.5d0*parentHaloMass
-       Modified_Press_Schechter_Branching_Probability=branchingProbabilityPreFactor*Integrate(massMinimum,massMaximum,Branching_Probability_Integrand &
-            &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=branchingProbabilityIntegrandToleraceRelative&
-            &,integrationRule=FGSL_Integ_Gauss15)
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       call Compute_Common_Factors()
+       ! Estimate probability.
+       if (massResolution /= massResolutionPrevious) then
+          call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(massResolution,resolutionSigma,resolutionAlpha)
+          massResolutionPrevious=massResolution
+       end if
+       resolutionSigmaOverParentSigma=resolutionSigma/parentSigma
+       if (resolutionSigmaOverParentSigma > 1.0d0) then
+          ! Compute relevant sigmas and alphas.
+          call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(0.5d0*parentHaloMass,halfParentSigma,halfParentAlpha)
+          ! Compute the effective value of gamma.
+          gammaEffective=modifiedPressSchechterGamma1
+          if (modifiedPressSchechterUseCDMAssumptions) then
+             select case (bound)
+             case (boundLower)
+                gammaEffective=gammaEffective-1.0d0/resolutionAlpha
+             case (boundUpper)
+                gammaEffective=gammaEffective-1.0d0/halfParentAlpha
+             end select
+          end if
+          ! Compute probability factors.
+          hyperGeometricFactorLower=Hypergeometric_2F1(                                         &
+               &                                       [1.5d0,0.5d0-0.5d0*gammaEffective]     , &
+               &                                       [      1.5d0-0.5d0*gammaEffective]     , &
+               &                                       1.0d0/resolutionSigmaOverParentSigma**2  &
+               &                                      )
+          hyperGeometricFactorUpper=Hypergeometric_2F1(                                         &
+               &                                       [1.5d0,0.5d0-0.5d0*gammaEffective]     , &
+               &                                       [      1.5d0-0.5d0*gammaEffective]     , &
+               &                                       parentSigma**2/halfParentSigma**2        &
+               &                                      )
+          probabilityIntegrandLower=+sqrtTwoOverPi                                              &
+               &                    *(modificationG0Gamma2Factor/parentSigma)                   &
+               &                    *(resolutionSigmaOverParentSigma**(gammaEffective-1.0d0))   &
+               &                    /(1.0d0-gammaEffective)                                     &
+               &                    *hyperGeometricFactorLower         
+          probabilityIntegrandUpper=+sqrtTwoOverPi                                              &
+               &                    *(modificationG0Gamma2Factor/parentSigma)                   &
+               &                    *((halfParentSigma/parentSigma) **(gammaEffective-1.0d0))   &
+               &                    /(1.0d0-gammaEffective)                                     &
+               &                    *hyperGeometricFactorUpper
+          select case (bound)
+          case (boundLower)
+             if (modifiedPressSchechterUseCDMAssumptions) then
+                Modified_Press_Schechter_Branching_Probability_Bound=+(                           &
+                     &                                                 +probabilityIntegrandUpper &
+                     &                                                 -probabilityIntegrandLower &
+                     &                                                 )                          &
+                     &                                                *parentHaloMass             &
+                     &                                                /massResolution             &
+                     &                                                *(                          &
+                     &                                                  +resolutionSigma          &
+                     &                                                  /parentSigma              &
+                     &                                                 )**(1.0d0/resolutionAlpha)
+             else
+                Modified_Press_Schechter_Branching_Probability_Bound=+(                           &
+                     &                                                 +probabilityIntegrandUpper &
+                     &                                                 -probabilityIntegrandLower &
+                     &                                                 )                          &
+                     &                                                *       parentHaloMass      &
+                     &                                                /(0.5d0*parentHaloMass)
+             end if
+          case (boundUpper)
+             if (modifiedPressSchechterUseCDMAssumptions) then
+                Modified_Press_Schechter_Branching_Probability_Bound=+(                           &
+                     &                                                 +probabilityIntegrandUpper &
+                     &                                                 -probabilityIntegrandLower &
+                     &                                                 )                          &
+                     &                                                *parentHaloMass             &
+                     &                                                /massResolution             &
+                     &                                                *(                          &
+                     &                                                 +resolutionSigma           &
+                     &                                                 /parentSigma               &
+                     &                                                )**(1.0d0/halfParentAlpha)
+             else
+                Modified_Press_Schechter_Branching_Probability_Bound=+(                           &
+                     &                                                 +probabilityIntegrandUpper &
+                     &                                                 -probabilityIntegrandLower &
+                     &                                                 )                          &
+                     &                                                *parentHaloMass             &
+                     &                                                /massResolution
+             end if
+          case default
+             call Galacticus_Error_Report('Modified_Press_Schechter_Branching_Probability_Bound','unknown bound type')
+          end select
+       else
+          Modified_Press_Schechter_Branching_Probability_Bound=-1.0d0
+       end if
     else
-       Modified_Press_Schechter_Branching_Probability=0.0d0
+       Modified_Press_Schechter_Branching_Probability_Bound=0.0d0
     end if
     return
-  end function Modified_Press_Schechter_Branching_Probability
+  end function Modified_Press_Schechter_Branching_Probability_Bound
 
   double precision function Modified_Press_Schechter_Subresolution_Fraction(haloMass,deltaCritical,massResolution)
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\tt massResolution}, per unit change in
