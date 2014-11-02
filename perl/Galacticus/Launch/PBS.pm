@@ -6,6 +6,7 @@ use warnings;
 use Data::Dumper;
 use Sys::CPU;
 use File::Which;
+require Galacticus::Options;
 require Galacticus::Launch::Hooks;
 require Galacticus::Launch::PostProcess;
 require System::Redirect;
@@ -220,8 +221,12 @@ sub SubmitJobs {
     my %arguments = %{shift()};
     my @pbsStack  = @_;
     my %pbsJobs;
+    # Find the appropriate PBS section.
+    my $pbsConfig = &Options::Config("pbs");
     # Determine maximum number allowed in queue at once.
     my $jobMaximum = 10;
+    $jobMaximum = $pbsConfig->{'jobMaximum'}
+       if ( exists($pbsConfig->{'jbMaximum'}) );
     $jobMaximum = $arguments{'pbsJobMaximum'}
        if ( exists($arguments{'pbsJobMaximum'}) );
     # Submit jobs and wait.
@@ -238,24 +243,66 @@ sub SubmitJobs {
 	foreach my $jobID ( keys(%pbsJobs) ) {
 	    unless ( exists($runningPBSJobs{$jobID}) ) {
 		print "PBS job ".$jobID." has finished.\n";
+		# Call any "on completion" function.
+		if ( exists($pbsJobs{$jobID}->{'onCompletion'}) ) {
+		    &{$pbsJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$pbsJobs{$jobID}->{'onCompletion'}->{'arguments'}});
+		}
 		# Remove the job ID from the list of active PBS jobs.
-		delete($pbsJobs{$jobID});
+		delete($pbsJobs{$jobID});		
 	    }
 	}
 	# If fewer than maximum number of jobs are in the queue, pop one off the stack.
 	if ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < $jobMaximum ) {
-	    my $batchScript = pop(@pbsStack);
+	    my $newJob = pop(@pbsStack);
+	    my $batchScript;
+	    if ( ref($newJob) ) {
+		# Check for a dependency.
+		if ( exists($newJob->{'dependsOn'}) && ! -e $newJob->{'dependsOn'} ) {
+		    unshift(@pbsStack,$newJob);
+		    sleep 5;
+		    last;
+		}
+		# Create the batch script.
+		my $ppn = 1;
+		$ppn = $newJob->{'ppn'}
+		    if ( exists($newJob->{'ppn'}) );
+		open(my $scriptFile,">".$newJob->{'launchFile'});
+		print $scriptFile "#!/bin/bash\n";
+		print $scriptFile "#PBS -N ".$newJob->{'label'}."\n";
+		print $scriptFile "#PBS -l walltime=".$newJob->{'walltime'}."\n"
+		    if ( exists($newJob->{'wallTime'}) );
+		print $scriptFile "#PBS -l mem=".$newJob->{'mem'}."\n"
+		    if ( exists($newJob->{'mem'}) );
+		print $scriptFile "#PBS -l nodes=1:ppn=".$ppn."\n";
+		print $scriptFile "#PBS -j oe\n";
+		print $scriptFile "#PBS -o ".$newJob->{'logFile'}."\n";
+		print $scriptFile "#PBS -V\n";
+		print $scriptFile "cd \$PBS_O_WORKDIR\n";
+		print $scriptFile "export LD_LIBRARY_PATH=/home/abenson/Galacticus/Tools/lib:/home/abenson/Galacticus/Tools/lib64:\$LD_LIBRARY_PATH\n";
+		print $scriptFile "export ".$_."\n"
+		    foreach ( &ExtraUtils::as_array($pbsConfig->{'environment'}) );
+		print $scriptFile "ulimit -t unlimited\n";
+		print $scriptFile "ulimit -c unlimited\n";
+		print $scriptFile "export OMP_NUM_THREADS=".$ppn."\n";
+		print $scriptFile $newJob->{'command'}."\n";
+		print $scriptFile "exit\n";
+		close($scriptFile);
+	    } else {
+		# Batch script is already created - we're given its name.
+		$batchScript = $newJob;
+		undef($newJob);
+		$newJob->{'launchFile'} = $batchScript;
+	    }
 	    # Submit the PBS job.
-	    open(pHndl,"qsub ".$batchScript."|");
+	    open(pHndl,"qsub ".$newJob->{'launchFile'}."|");
 	    my $jobID = "";
 	    while ( my $line = <pHndl> ) {
 	    	if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
 	    }
 	    close(pHndl);	    
 	    # Add the job number to the active job hash.
-	    unless ( $jobID eq "" ) {
-	    	$pbsJobs{$jobID} = 1;
-	    }
+	    $pbsJobs{$jobID} = $newJob
+		unless ( $jobID eq "" );
 	    sleep 5;
 	} else {
 	    # Wait.
@@ -263,6 +310,5 @@ sub SubmitJobs {
 	}
     }
 }
-
 
 1;
