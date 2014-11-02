@@ -1,0 +1,14 @@
+<filter>
+  <description>Helium ionizing photons filter</description>
+  <name>HeliumContinuum</name>
+  <origin>definition</origin>
+  <note>This is a top-hat filter designed to count photons above the He I ionization edge.</note>
+  <response>
+    <datum> 10.000 0.0</datum>
+    <datum> 10.010 1.0</datum>
+    <datum>504.259 1.0</datum>
+    <datum>504.269 0.0</datum>
+  </response>
+  <effectiveWavelength>460.931</effectiveWavelength>
+  <vegaOffset>-28.9234846476052</vegaOffset>
+</filter>

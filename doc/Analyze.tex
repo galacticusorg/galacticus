@@ -370,6 +370,9 @@ where $H = h \tan i$ and $\psi(x)$ is the digamma function.
 
  \item[{\tt \textasciicircum peakSFR\$}] The peak star formation rate for each galaxy, measured from the {\tt starFormationHistories} output group  (see \S\ref{sec:StarFormationHistoryTasks}). The peak star formation rate reported is therefore that when averaged over the bins used by the star formation history output method (see \S\ref{sec:StarFormationHistoryTasks}). Provided by: {\tt Galacticus::SFH}.\index{star formation rate!peak}
  \item[{\tt \textasciicircum lensingAmplification\$}] The gravitational lensing amplification due to large scale structure for each galaxy. The amplification is drawn at random from the redshift-dependent distribution of \cite{takahashi_probability_2011}. Provided by: {\tt Galacticus::LensingAmplification}.\index{gravitational lensing}\index{lensing!gravitational}
+
+
+ \item[{\tt \textasciicircum (disk|spheroid|total)LineLuminosity:[\textasciicircum:]+(:[\textasciicircum:]+)\{0,2\}:z[$\backslash$d$\backslash$.]+\$}] Returns the luminosity of the named emission line, for the named component, at the given redshift in units of Solar luminosities. Optinally, a filter may be provided in which case the emission line luminosity under that filter is returned in units of AB \glspl{maggie}. For example, {\tt totalLineLuminosity:balmerAlpha6563:rest:z0.0000} returns the luminosity of the H$\alpha$ line at $z=0$. See \S\ref{sec:EmissionLineTutorial} for more details. Provided by: {\tt Galacticus::EmissionLines}.\index{emission lines}\index{lines!emission} 
 \end{description}
 
 \subsection{Galaxy Clustering via the Halo Model}\label{sec:ClusteringHaloModel}\index{halo model}\index{clustering!halo model}

@@ -6,6 +6,7 @@ use warnings;
 use Data::Dumper;
 use Sys::CPU;
 use File::Which;
+require Galacticus::Options;
 require Galacticus::Launch::Hooks;
 require Galacticus::Launch::PostProcess;
 require Galacticus::Options;
@@ -243,8 +244,12 @@ sub SubmitJobs {
 	foreach my $jobID ( keys(%pbsJobs) ) {
 	    unless ( exists($runningPBSJobs{$jobID}) ) {
 		print "PBS job ".$jobID." has finished.\n";
+		# Call any "on completion" function.
+		if ( exists($pbsJobs{$jobID}->{'onCompletion'}) ) {
+		    &{$pbsJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$pbsJobs{$jobID}->{'onCompletion'}->{'arguments'}});
+		}
 		# Remove the job ID from the list of active PBS jobs.
-		delete($pbsJobs{$jobID});
+		delete($pbsJobs{$jobID});		
 	    }
 	}
 	# If fewer than maximum number of jobs are in the queue, pop one off the stack.
@@ -280,22 +285,25 @@ sub SubmitJobs {
 		print $scriptFile "ulimit -t unlimited\n";
 		print $scriptFile "ulimit -c unlimited\n";
 		print $scriptFile "export OMP_NUM_THREADS=".$ppn."\n";
+		print $scriptFile $newJob->{'command'}."\n";
+		print $scriptFile "exit\n";
 		close($scriptFile);
 	    } else {
 		# Batch script is already created - we're given its name.
 		$batchScript = $newJob;
+		undef($newJob);
+		$newJob->{'launchFile'} = $batchScript;
 	    }
 	    # Submit the PBS job.
-	    open(pHndl,"qsub ".$batchScript."|");
+	    open(pHndl,"qsub ".$newJob->{'launchFile'}."|");
 	    my $jobID = "";
 	    while ( my $line = <pHndl> ) {
 	    	if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
 	    }
 	    close(pHndl);	    
 	    # Add the job number to the active job hash.
-	    unless ( $jobID eq "" ) {
-	    	$pbsJobs{$jobID} = 1;
-	    }
+	    $pbsJobs{$jobID} = $newJob
+		unless ( $jobID eq "" );
 	    sleep 5;
 	} else {
 	    # Wait.
@@ -303,6 +311,5 @@ sub SubmitJobs {
 	}
     }
 }
-
 
 1;
