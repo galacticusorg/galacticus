@@ -14,6 +14,7 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 use PDL::Math;
+use PDL::LinearAlgebra;
 use Data::Dumper;
 use LaTeX::Encode;
 use Clone qw(clone);
