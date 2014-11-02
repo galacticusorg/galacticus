@@ -494,3 +494,22 @@ By default, this script will translate from the previous to the current version 
 scripts/aux/parametersMigrate.pl parameters.xml newParameters.xml --inputVersion 0.9.0 --outputVersion 0.9.3
 \end{verbatim}
 will convert {\tt parameters.xml} from version 0.9.0 syntax to version 0.9.3 syntax.
+
+\subsection{Computing Emission Lines}\label{sec:EmissionLineTutorial}\index{emission lines}\index{lines!emission}
+
+\glc\ can compute emission line luminosities for galaxies. This calculation is based on the methodology of \cite{panuzzo_dust_2003}. Briefly, HII region models are constructed using {\sc Cloudy} for a variety of gas densities and metallicities, and HI, HeI, and OII ionizing luminosities. Emission line luminosities are then computed by interpolating in these tables based on the instantaneous properties of model galaxies.
+
+To compute emission line luminosities it is therefore necessary to run \glc\ including the following rest-frame luminosity filters at each redshift of interest: {\tt Lyc}, {\tt HeliumContinuum}, {\tt OxygenContinuum}. This causes the ionizing luminosity for each three species to be computed and output. Emission line luminosities can then be found using \glc's data extraction modules (see \S\ref{sec:perlModuleDataExtraction}), by simply importing the {\tt Galacticus::EmissionLines} module. Emission line luminosites (in units of Solar luminosities) can then be accessed as named properties using names such as {\tt totalLineLuminosity:balmerAlpha6563:rest:z0.0000}, which will return the H$\alpha$ luminosity at $z=0$. Equivalent properties for disk and spheroid are provided (simply replace ``{\tt total}'' with ``{\tt disk}'' or ``{\tt spheroid}''). Currently available lines are:
+\begin{itemize}
+\item {\tt balmerAlpha6563}
+\item {\tt balmerBeta4861}
+\item {\tt oxygenII3726}
+\item {\tt oxygenII3729}
+\item {\tt oxygenIII4959}
+\item {\tt oxygenIII5007}
+\item {\tt nitrogenII6584}
+\item {\tt sulfurII6731}
+\item {\tt sulfurII6716}
+\end{itemize}
+
+Additionally, if a line is requested as {\tt totalLineLuminosity:balmerAlpha6563:<filterName>:rest:z0.0000} then the line luminosity is computed under the provided filter, and the luminosity is returned in units of \glspl{maggie} for easy conversion to magnitudes.

@@ -12,6 +12,7 @@ unshift(@INC,$galacticusPath."perl");
 use XML::Simple;
 use Data::Dumper;
 use Fcntl qw (:flock);
+require Cloudy;
 
 # Driver script for Cloudy.
 # Andrew Benson (26-Jan-2010)
@@ -88,31 +89,10 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
     # Specify Solar and primodial helium abundances (as used in Cloudy).
     my $heliumAbundancePrimordial = 0.072;
     my $heliumAbundanceSolar      = 0.100;
-    
-    # Specify Cloudy version.
-    my $cloudyVersion = "c13.03";
 
-    # Download the code.
-    unless ( -e "aux/".$cloudyVersion.".tar.gz" ) {
-	print "Atomic_CIE_Cloudy_Driver.pl: downloading Cloudy code.\n";
-	system("wget \"http://data.nublado.org/cloudy_releases/c13/".$cloudyVersion.".tar.gz\" -O ".$galacticusPath."aux/".$cloudyVersion.".tar.gz");
-	die("Atomic_CIE_Cloudy_Driver.pl: FATAL - failed to download Cloudy code.") unless ( -e $galacticusPath."aux/".$cloudyVersion.".tar.gz" );
-    }
+    # Ensure Clody is built.
+    (my $cloudyPath, my $cloudyVersion) = &Cloudy::Initialize();
     
-    # Unpack the code.
-    unless ( -e $galacticusPath."aux/".$cloudyVersion ) {
-	print "Atomic_CIE_Cloudy_Driver.pl: unpacking Cloudy code.\n";
-	system("tar -x -v -z -C aux -f ".$galacticusPath."aux/".$cloudyVersion.".tar.gz");
-	die("Atomic_CIE_Cloudy_Driver.pl: FATAL - failed to unpack Cloudy code.") unless ( -e $galacticusPath."aux/".$cloudyVersion );
-    }
-    
-    # Build the code.
-    unless ( -e $galacticusPath."aux/".$cloudyVersion."/source/cloudy.exe" ) {
-	print "Atomic_CIE_Cloudy_Driver.pl: compiling Cloudy code.\n";
-	system("cd ".$galacticusPath."aux/".$cloudyVersion."/source; chmod u=wrx configure.sh capabilities.pl; make");
-	die("Atomic_CIE_Cloudy_Driver.pl: FATAL - failed to build Cloudy code.") unless ( -e $galacticusPath."aux/".$cloudyVersion."/source/cloudy.exe" );
-    }
-   
     # Temporary files for Cloudy data.
     my $coolingTempFile    = "cloudy_cooling.tmp";
     my $overviewTempFile   = "cloudy_overview.tmp";
@@ -149,7 +129,7 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 	${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'metallicity'} = $logMetallicity;
 	
 	# Run Cloudy.
-	open(cloudyScript,">".$galacticusPath."aux/".$cloudyVersion."/source/input.in");
+	open(cloudyScript,">".$cloudyPath."/source/input.in");
 	print cloudyScript "print off\n";
 	print cloudyScript "background, z=0\n";            # Use a very low level incident continuum.
 	print cloudyScript "cosmic rays background\n";     # Include cosmic ray background ionization rate.
@@ -171,10 +151,10 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 	print cloudyScript "punch cooling \"".$coolingTempFile."\"\n";
 	print cloudyScript "punch overview \"".$overviewTempFile."\"\n";
 	close(cloudyScript);
-	system("cd ".$galacticusPath."aux/".$cloudyVersion."/source; cloudy.exe -r input");
+	system("cd ".$cloudyPath."/source; cloudy.exe -r input");
 
 	# Extract the cooling rate.
-	open(coolHandle,$galacticusPath."aux/".$cloudyVersion."/source/".$coolingTempFile);
+	open(coolHandle,$cloudyPath."/source/".$coolingTempFile);
 	my $headerLine = <coolHandle>;
 	while ( my $dataLine = <coolHandle> ) {
 	    my $separator   = <coolHandle>;
@@ -189,7 +169,7 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 	unlink($coolingTempFile);
 
 	# Extract the electron and hydrogen density.
-	open(overviewHandle,$galacticusPath."aux/".$cloudyVersion."/source/".$overviewTempFile);
+	open(overviewHandle,$cloudyPath."/source/".$overviewTempFile);
 	$headerLine = <overviewHandle>;
 	while ( my $dataLine = <overviewHandle> ) {
 	    my $separator   = <overviewHandle>;
