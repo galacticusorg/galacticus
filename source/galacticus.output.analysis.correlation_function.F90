@@ -142,7 +142,8 @@ module Galacticus_Output_Analyses_Correlation_Functions
      integer                                       :: satelliteCount      , outputNumber
      double precision                              :: haloBias            , haloWeight    , &
           &                                           haloTime            , haloMass
-     logical                                       :: propertiesSet       , isMainBranch
+     logical                                       :: propertiesSet       , isMainBranch  , &
+          &                                           initialized
   end type correlationFunctionWork
 
   ! Work array.
@@ -477,7 +478,10 @@ contains
     ! Return if this analysis is not active.
     if (.not.analysisActive) return
     ! Allocate work arrays.
-    if (.not.allocated(thisHalo)) allocate(thisHalo(size(correlationFunctions)))
+    if (.not.allocated(thisHalo)) then
+       allocate(thisHalo(size(correlationFunctions)))
+       thisHalo%initialized=.false.
+    end if
     ! Iterate over active analyses.
     do i=1,size(correlationFunctions)
        ! Return if this correlation function receives no contribution from this output number.
@@ -541,12 +545,13 @@ contains
     end if
     hostIndex=hostNode%uniqueID()
     ! Allocate arrays.
-    if (.not.allocated(thisHalo%centralProbability)) then
+    if (.not.thisHalo%initialized) then
        call Alloc_Array(thisHalo%centralProbability,[size(thisCorrelationFunction%massMinimumLogarithmic)])
        call Alloc_Array(thisHalo%fourierProfile    ,[size(thisCorrelationFunction%wavenumber            )])
        thisHalo%propertiesSet     =.false.
        thisHalo%satelliteCount    =0
        thisHalo%centralProbability=0.0d0
+       thisHalo%initialized       =.true.
     end if
     ! Check if the host has changed.
     if (thisTree%index /= thisCorrelationFunction%treeIndex .or. hostIndex /= thisCorrelationFunction%haloIndex) &
@@ -867,7 +872,7 @@ contains
     ! Iterate over mass functions.
     do k=1,size(correlationFunctions)
        ! Accumulate any final halo.
-       call Accumulate_Halo(correlationFunctions(k),thisHalo(k))
+       if (thisHalo(k)%initialized) call Accumulate_Halo(correlationFunctions(k),thisHalo(k))
        ! Copy upper to lower triangle of covariance matrix (we've accumulated only the upper triangle).
        correlationFunctions(k)%termCovariance=Matrix_Copy_Upper_To_Lower_Triangle(correlationFunctions(k)%termCovariance)
        ! Get count of mass bins and wavenumbers.
