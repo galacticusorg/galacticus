@@ -12,16 +12,10 @@ unshift(@INC,$galacticusPath."perl");
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
-use PDL::Constants qw(PI);
-use Astro::Cosmology;
 use XML::Simple;
 use Data::Dumper;
 require Galacticus::Options;
 require Galacticus::HDF5;
-require Galacticus::Constraints::Covariances;
-require Stats::Histograms;
-require GnuPlot::PrettyPlots;
-require GnuPlot::LaTeX;
 
 # Compute likelihood based on the Carnegie Hubble Program constraint on H_0 (http://adsabs.harvard.edu/abs/2012ApJ...758...24F).
 # Andrew Benson (16-October-2014)
@@ -51,7 +45,7 @@ if ( exists($arguments{'outputFile'}) ) {
     &HDF5::Get_Parameters($galacticus);
     # Compute the likelihood.
     my $constraint;
-    $constraint->{'logLikelihood'} = -0.5*($galacticus->{'parameters'}->{'H_0'}-$constraintValue)**2/($constraintSystematicError**2+$constraintStatisticalError**2);
+    $constraint->{'logLikelihood'} = sclr(-0.5*($galacticus->{'parameters'}->{'H_0'}-$constraintValue)**2/($constraintSystematicError**2+$constraintStatisticalError**2));
     # Output the constraint.
     my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
     open(oHndl,">".$arguments{'outputFile'});
