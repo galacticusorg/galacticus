@@ -83,6 +83,7 @@
     <stateSwapCount>10</stateSwapCount>
     <logFileRoot>./chains</logFileRoot>
     <sampleOutliers>false</sampleOutliers>
+    <logFlushCount>10000</logFlushCount>
   </simulation>
 
   <parameters>
