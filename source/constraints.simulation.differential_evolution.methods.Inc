@@ -87,10 +87,13 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   type is (stateSimple)
      stateProposed=stateSimple(self%parameterCount,1)
   end select
-  ! Initialize chain to some state vector.
-  call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parametermappings)
-  ! Evaluate the posterior in the initial state.
-  call self%posterior(self%simulationState,logImpossible,logImpossible,self%logPosterior,logLikelihood)
+  self%logPosterior=logImpossible
+  do while (self%logPosterior <= logImpossible)
+     ! Initialize chain to some state vector.
+     call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parametermappings)
+     ! Evaluate the posterior in the initial state.     
+     call self%posterior(self%simulationState,logImpossible,logImpossible,self%logPosterior,logLikelihood)
+  end do
   ! Begin stepping.
   logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
   open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
