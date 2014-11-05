@@ -256,7 +256,7 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 		    my $treeCommand;
 		    $treeCommand .= "ulimit -t ".$cpuLimit."; "
 			if ( defined($cpuLimit) );
-		    $treeCommand .= "ulimit -c unlimited; export GFORTRAN_ERROR_DUMPCORE=YES; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
+		    $treeCommand .= "ulimit -c unlimited; export GFORTRAN_ERROR_DUMPCORE=YES; ulimit -a; date; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
 		    my $treeLog = $config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".log";
 		    SystemRedirect::tofile($treeCommand,$treeLog);
 		    unless ( $? == 0 ) {
@@ -305,7 +305,7 @@ $glcCommand .= "export OMP_NUM_THREADS=".$config->{'likelihood'}->{'threads'}.";
     if ( exists($config->{'likelihood'}->{'threads'}) );
 $glcCommand .= "export ".$_."; "
     foreach ( &ExtraUtils::as_array($config->{'likelihood'}->{'environment'}) );
-$glcCommand .= "ulimit -c 0; ./Galacticus.exe ".$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml";
+$glcCommand .= "ulimit -c unlimited; export GFORTRAN_ERROR_DUMPCORE=YES; ulimit -a; date; ./Galacticus.exe ".$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml";
 my $logFile = $scratchDirectory."/constrainGalacticusParameters".$mpiRank.".log";
 push(@temporaryFiles,$logFile);
 # my $timeGalacticusStart = [gettimeofday];
