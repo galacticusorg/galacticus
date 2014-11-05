@@ -41,6 +41,7 @@ contains
     implicit none
     type(stellarSpectraDustAttenuationCalzetti2000) :: calzetti2000DefaultConstructor
 
+    calzetti2000DefaultConstructor%isIndestructible=.false.
     return
   end function calzetti2000DefaultConstructor
 
