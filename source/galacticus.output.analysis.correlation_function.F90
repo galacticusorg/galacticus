@@ -63,7 +63,6 @@ module Galacticus_Output_Analyses_Correlation_Functions
 
   ! Type for descriptors of correlation functions.
   type :: correlationFunctionDescriptor
-     double precision                                           :: redshift
      double precision                                           :: massSystematicLogM0
      double precision                                           :: massRandomError
      procedure       (Mass_Error         ), pointer    , nopass :: massRandomErrorFunction
@@ -82,7 +81,6 @@ module Galacticus_Output_Analyses_Correlation_Functions
        & [                                                                                                                      &
        ! Hearin et al. (2013) SDSS.
        &                           correlationFunctionDescriptor(                                                               &
-       &                                                          0.070d0+0                                              ,      &
        &                                                         11.0000d+0                                              ,      &
        &                                                          0.07000+0                                              ,      &
        &                                                          null()                                                 ,      &
@@ -130,6 +128,8 @@ module Galacticus_Output_Analyses_Correlation_Functions
      double precision                               , allocatable, dimension(:,:  ) :: termCovariance
      ! Cosmology conversion factors.
      double precision                               , allocatable, dimension(:    ) :: cosmologyConversionMass   , cosmologyConversionSize
+     ! Weighted linear growth factor.
+     double precision                               , allocatable, dimension(:    ) :: linearGrowthFactor
   end type correlationFunction
 
   ! Correlation functions.
@@ -184,6 +184,7 @@ contains
     use Numerical_Ranges
     use FoX_dom
     use IO_XML
+    use Linear_Growth
     implicit none
     type            (mergerTree                    ), intent(in   )                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
@@ -196,7 +197,7 @@ contains
     type            (node                          ), pointer                       :: doc,columnElement,massElement,hubbleElement,datum,cosmology,omegaDarkEnergyElement,omegaMatterElement,datasetElement,cosmologyScalingElement,separationElement,correlationElement,integration,lineOfSightDepth
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
-    double precision                                                                :: mass, massLogarithmic, dataHubbleParameter, dataOmegaMatter, dataOmegaDarkEnergy, redshift, timeMinimum, timeMaximum, distanceMinimum, distanceMaximum
+    double precision                                                                :: mass, massLogarithmic, dataHubbleParameter, dataOmegaMatter, dataOmegaDarkEnergy, redshift, timeMinimum, timeMaximum, distanceMinimum, distanceMaximum, weight
     integer                                                                         :: i,j,k,m, currentAnalysis, activeAnalysisCount,ioErr,massCount, jOutput
     type            (varying_string                )                                :: parameterName, cosmologyScalingMass, cosmologyScalingSize, message
     character       (len=128                       )                                :: cosmologyScaling
@@ -408,8 +409,10 @@ contains
                               &                           )
                       end do
                       ! Compute output weights for correlation function. We assume a volume limited survey at the minimum mass.
-                      call Alloc_Array(correlationFunctions(currentAnalysis)%outputWeight,[massCount,Galacticus_Output_Time_Count()])
-                      correlationFunctions(currentAnalysis)%outputWeight=0.0d0
+                      call Alloc_Array(correlationFunctions(currentAnalysis)%linearGrowthFactor,[massCount                               ])
+                      call Alloc_Array(correlationFunctions(currentAnalysis)%outputWeight      ,[massCount,Galacticus_Output_Time_Count()])
+                      correlationFunctions(currentAnalysis)%outputWeight      =0.0d0
+                      correlationFunctions(currentAnalysis)%linearGrowthFactor=0.0d0
                       do k=1,massCount
                          do jOutput=1,Galacticus_Output_Time_Count()
                             do m=1,correlationFunctions(currentAnalysis)%descriptor%geometry%fieldCount()
@@ -431,25 +434,35 @@ contains
                                     &              cosmologyFunctionsModel%distanceComoving(timeMinimum)                                                                     , &
                                     &              correlationFunctions(currentAnalysis)%descriptor%geometry%distanceMaximum(correlationFunctions(currentAnalysis)%massMinimum(k),m)  &
                                     &             )
-                               correlationFunctions        (currentAnalysis)%outputWeight                    (k,jOutput)  &
-                                    & =correlationFunctions(currentAnalysis)%outputWeight                    (k,jOutput)  &
-                                    & +correlationFunctions(currentAnalysis)%descriptor  %geometry%solidAngle(  m      )  &
-                                    & /3.0d0                                                                       &
-                                    & *                                                                            &
-                                    & max(                                                                         &
-                                    &     +0.0d0                                                                 , &
-                                    &     +distanceMaximum**3                                                      &
-                                    &     -distanceMinimum**3                                                      &
+                               weight=+correlationFunctions(currentAnalysis)%descriptor%geometry%solidAngle(m)  &
+                                    & /3.0d0                                                                    &
+                                    & *                                                                         &
+                                    & max(                                                                      &
+                                    &     +0.0d0                                                              , &
+                                    &     +distanceMaximum**3                                                   &
+                                    &     -distanceMinimum**3                                                   &
                                     &    )
+                               correlationFunctions        (currentAnalysis)%outputWeight(k,jOutput) &
+                                    & =correlationFunctions(currentAnalysis)%outputWeight(k,jOutput) &
+                                    & +weight
+                               correlationFunctions        (currentAnalysis)%linearGrowthFactor(k)= &
+                                    & +correlationFunctions(currentAnalysis)%linearGrowthFactor(k)  &
+                                    & +weight                                                       &
+                                    & *Linear_Growth_Factor(Galacticus_Output_Time(jOutput))**2
                             end do
                          end do
                          where(correlationFunctions(currentAnalysis)%outputWeight(k,:) < 0.0d0)
                             correlationFunctions(currentAnalysis)%outputWeight(k,:)=0.0d0
                          end where
                          if (any(correlationFunctions(currentAnalysis)%outputWeight(k,:) > 0.0d0)) then
-                            correlationFunctions                  (currentAnalysis)%outputWeight(k,:)  &
-                                 &       =    correlationFunctions(currentAnalysis)%outputWeight(k,:)  &
-                                 &       /sum(correlationFunctions(currentAnalysis)%outputWeight(k,:))
+                            correlationFunctions                        (currentAnalysis)%linearGrowthFactor(k  )  &
+                                 &       =sqrt(                                                                    &
+                                 &             +    correlationFunctions(currentAnalysis)%linearGrowthFactor(k  )  &
+                                 &             /sum(correlationFunctions(currentAnalysis)%outputWeight      (k,:)) &
+                                 &            )
+                            correlationFunctions                        (currentAnalysis)%outputWeight      (k,:)  &
+                                 &       =     +    correlationFunctions(currentAnalysis)%outputWeight      (k,:)  &
+                                 &             /sum(correlationFunctions(currentAnalysis)%outputWeight      (k,:))
                          else
                             message="correlation function '"//trim(correlationFunctions(currentAnalysis)%descriptor%label)//"' mass bin "
                             message=message//k//" has zero weights"
@@ -841,7 +854,6 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Galacticus_HDF5
     use Power_Spectra
-    use Linear_Growth
     use Array_Utilities
     use FFTLogs
     use Memory_Management
@@ -862,8 +874,7 @@ contains
          &                                                                       thisDataset
     type            (table1DLogarithmicLinear  )                              :: correlationTable
     double precision                                                          :: projectedSeparation           , binSeparationMinimum               , &
-         &                                                                       binSeparationMaximum          , binWidthLogarithmic                , &
-         &                                                                       linearGrowthFactor
+         &                                                                       binSeparationMaximum          , binWidthLogarithmic
     type            (matrix                    )                              :: jacobianMatrix                , covarianceMatrix
     procedure       (integrandTemplate         ), pointer                     :: integrandWeightFunction
 
@@ -995,14 +1006,13 @@ contains
        end do
        call Dealloc_Array(jacobian) 
        ! Square the two halo term, and multiply by the linear theory power spectrum.
-       linearGrowthFactor=Linear_Growth_Factor(thisHalo(k)%haloTime)
        call Alloc_Array(jacobian            ,[massCount*(2*wavenumberCount),massCount*(2*wavenumberCount)])
        jacobian=0.0d0
        do n=1,massCount
           do i=1,wavenumberCount
              jacobian((n-1)*(2*wavenumberCount)                +i,(n-1)*(2*wavenumberCount)                +i)=1.0d0
              jacobian((n-1)*(2*wavenumberCount)+wavenumberCount+i,(n-1)*(2*wavenumberCount)+wavenumberCount+i)=2.0d0*correlationFunctions(k)%twoHaloTerm(i,n)*Power_Spectrum      (correlationFunctions(k)%wavenumber (i  )) &
-               &                                   *linearGrowthFactor**2
+               &                                   *correlationFunctions(k)%linearGrowthFactor(n)**2
           end do
        end do
        jacobianMatrix                        =jacobian
@@ -1012,7 +1022,7 @@ contains
           do i=1,wavenumberCount
              correlationFunctions(k)%twoHaloTerm(i,n)=                correlationFunctions(k)%twoHaloTerm(i,n)**2 &
                   &                                   *Power_Spectrum(correlationFunctions(k)%wavenumber (i  ))   &
-                  &                                   *linearGrowthFactor**2
+                  &                                   *correlationFunctions(k)%linearGrowthFactor(n)**2
           end do
        end do
        call Dealloc_Array(jacobian)
