@@ -64,6 +64,7 @@ contains
   function Stellar_Population_Luminosity(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,abundancesStellar,age,redshift)
     !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\tt abundances} and {\tt age} drawn from IMF
     !% specified by {\tt imfIndex} and observed through the filter specified by {\tt filterIndex}.
+    use, intrinsic :: ISO_C_Binding
     use Memory_Management
     use Stellar_Population_Spectra
     use Stellar_Population_Spectra_Postprocess
@@ -92,7 +93,7 @@ contains
     logical                                     , allocatable, dimension(:)                                    :: isTabulatedTemporary
     double precision                                         , dimension(2)                                    :: wavelengthRange
     double precision                                         , dimension(0:1)                                  :: hAge                            , hMetallicity
-    integer         (c_int                     )                                                               :: lockFileDescriptor
+    type            (lockDescriptor            )                                                               :: lockFileDescriptor
     integer                                                                                                    :: iAge                            , iLuminosity                , &
          &                                                                                                        iMetallicity                    , jAge                       , &
          &                                                                                                        jMetallicity                    , loopCount                  , &
@@ -237,7 +238,7 @@ contains
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
                 ! Open the file and check for the required dataset.
                 !$omp critical (HDF5_Access)
-                lockFileDescriptor=File_Lock(char(luminositiesFileName)//".lock")
+                call File_Lock(char(luminositiesFileName),lockFileDescriptor)
                 call luminositiesFile%openFile(char(luminositiesFileName),readOnly=.true.)
                 if (luminositiesFile%hasDataset(trim(datasetName))) then
                    ! Read the dataset.
@@ -314,7 +315,7 @@ contains
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
                 ! Open the file.
                 !$omp critical (HDF5_Access)
-                lockFileDescriptor=File_Lock(char(luminositiesFileName)//".lock")
+                call File_Lock(char(luminositiesFileName),lockFileDescriptor)
                 call luminositiesFile%openFile(char(luminositiesFileName))
                 ! Write the dataset.
                 if (.not.luminositiesFile%hasDataset(trim(datasetName))) &
