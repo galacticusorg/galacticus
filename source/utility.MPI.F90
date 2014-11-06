@@ -329,8 +329,10 @@ contains
        call MPI_Wait(requestFromID(i),messageStatus,iError)
     end do
     ! Receive data.
-    do i=1,size(requestFrom)
-       call MPI_Recv(mpiRequestData1D(:,i),size(array),MPI_Double_Precision,requestFrom(i),tagState,MPI_Comm_World,messageStatus,iError)
+    i=0
+    do while (mpiSelf%messageWaiting(tag=tagState))
+       i=i+1
+       call MPI_Recv(mpiRequestData1D(:,i),size(array),MPI_Double_Precision,MPI_Any_Source,tagState,MPI_Comm_World,messageStatus,iError)
     end do
     ! Wait until all of our sends have been received.
     do i=1,iRequest
