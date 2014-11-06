@@ -37,26 +37,38 @@ die("maximumLikelihoodModel.pl: baseParameters must be specified in config file"
 # Determine the work directory.
 my $workDirectory  = $config->{'likelihood'}->{'workDirectory'};
 
+# Determine the MCMC directory.
+my $mcmcDirectory  = $workDirectory."/mcmc/";
+
+# Determine the maximum likelihood model directory.
+my $maximumLikelihoodDirectory  = $mcmcDirectory."/maximumLikelihoodModel/";
+
 # Get a hash of the parameter values.
 (my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Set an output file name.
 system("mkdir -p ".$workDirectory."/maximumLikelihoodModel");
-$parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'} = $workDirectory."/maximumLikelihoodModel/galacticus.hdf5";
+$parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'} = $maximumLikelihoodDirectory."/galacticus.hdf5";
 
 # Set a random number seed.
 $parameters->{'parameter'}->{'randomSeed'}->{'value'} = int(rand(10000))+1
     if ( exists($config->{'likelihood'}->{'randomize'}) && $config->{'likelihood'}->{'randomize'} eq "yes" );
 
 # Determine number of chains.
-my $chainCount = $config->{'likelihood'}->{'threads'};
+my $chainCount = 0;
+while () {
+    ++$chainCount;
+    my $chainFileName = sprintf("%s/chains_%4.4i.log",$mcmcDirectory,$chainCount);
+    last
+	unless ( -e $chainFileName );
+}
 
-# Parse the statefile to find the maximum likelihood model.
+# Parse the chains to find the maximum likelihood model.
 my $maximumLikelihood = -1e30;
 my @maximumLikelihoodParameters;
 for(my $i=0;$i<$chainCount;++$i) {
-    open(iHndl,$workDirectory."/chains_".sprintf("%4.4i",$i).".log");
+    open(iHndl,$mcmcDirectory."/chains_".sprintf("%4.4i",$i).".log");
     while ( my $line = <iHndl> ) {
 	unless ( $line =~ m/^\"/ ) {
 	    $line =~ s/^\s*//;
@@ -81,7 +93,8 @@ $parameters->{'parameter'}->{$_->{'name'}}->{'value'} = $_->{'value'}
     foreach ( @{$newParameters->{'parameter'}} );
 
 # Write the modified parameters to file.
-&Parameters::Output($parameters,$workDirectory."/maximumLikelihoodModel/parameters.xml");
+system("mkdir -p ".$maximumLikelihoodDirectory);
+&Parameters::Output($parameters,$maximumLikelihoodDirectory."/parameters.xml");
 
 # Finish if we're not to run the model.
 exit
@@ -93,9 +106,9 @@ system("make Galacticus.exe")
 die("maximumLikelihoodModel.pl: failed to build Galacticus.exe")
     unless ( $? == 0 );
 my $glcCommand;
-$glcCommand .= "./Galacticus.exe ".$workDirectory."/maximumLikelihoodModel/parameters.xml";
-my $logFile = $workDirectory."/maximumLikelihoodModel/galacticus.log";
-SystemRedirect::tofile($glcCommand,$logFile);
+$glcCommand .= "./Galacticus.exe ".$maximumLikelihoodDirectory."/parameters.xml";
+my $logFile = $maximumLikelihoodDirectory."/galacticus.log";
+## AJB HACK SystemRedirect::tofile($glcCommand,$logFile);
 die("maximumLikelihoodModel.pl: Galacticus model failed")
     unless ( $? == 0 );
 
@@ -109,11 +122,11 @@ foreach my $constraint ( @constraints ) {
     my $analysisCode = $constraintDefinition->{'analysis'};
     my $plotFile = $constraintDefinition->{'label'};
     $plotFile =~ s/\./_/g;
-    system($analysisCode." ".$workDirectory."/maximumLikelihoodModel/galacticus.hdf5 --outputFile ".$workDirectory."/maximumLikelihoodModel/likelihood".ucfirst($constraintDefinition->{'label'}).".xml --modelDiscrepancies ".$workDirectory."/modelDiscrepancy --plotFile ".$workDirectory."/maximumLikelihoodModel/".$plotFile.".pdf --resultsFile ".$workDirectory."/maximumLikelihoodModel/".$constraintDefinition->{'label'}.":results.hdf5");
+    system($analysisCode." ".$maximumLikelihoodDirectory."/galacticus.hdf5 --outputFile ".$maximumLikelihoodDirectory."/likelihood".ucfirst($constraintDefinition->{'label'}).".xml --modelDiscrepancies ".$mcmcDirectory."/modelDiscrepancy --plotFile ".$maximumLikelihoodDirectory."/".$plotFile.".pdf --resultsFile ".$maximumLikelihoodDirectory."/".$constraintDefinition->{'label'}.":results.hdf5");
     die("maximumLikelihoodModel.pl: analysis code failed")
 	unless ( $? == 0 );
     # Read the likelihood.
-    my $likelihood = $xml->XMLin($workDirectory."/maximumLikelihoodModel/likelihood".ucfirst($constraintDefinition->{'label'}).".xml");
+    my $likelihood = $xml->XMLin($maximumLikelihoodDirectory."/likelihood".ucfirst($constraintDefinition->{'label'}).".xml");
     die("maximumLikelihoodModel.pl: likelihood calculation failed")
 	if ( $likelihood->{'logLikelihood'} eq "nan" );
     # Extract the likelihood and weight it.
@@ -125,7 +138,7 @@ foreach my $constraint ( @constraints ) {
 }
 
 # Write the final likelihood to file.
-open(oHndl,">".$workDirectory."/maximumLikelihoodModel/likelihood.xml");
+open(oHndl,">".$maximumLikelihoodDirectory."/likelihood.xml");
 print oHndl $logLikelihood."\n";
 close(oHndl);
 
