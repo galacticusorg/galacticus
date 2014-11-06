@@ -56,6 +56,9 @@ module Stellar_Population_Luminosities
   ! Option controlling writing of luminosities to file.
   logical                                                      :: stellarPopulationLuminosityStoreToFile
 
+  ! Option controlling behavior when maximum age of stellar populations is exceeded.
+  logical                                                      :: stellarPopulationLuminosityMaximumAgeExceededIsFatal
+
 contains
 
   function Stellar_Population_Luminosity(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,abundancesStellar,age,redshift)
@@ -77,6 +80,7 @@ contains
     use String_Handling
     use IO_HDF5
     use File_Utilities
+    use MPI_Utilities
     implicit none
     integer                                                                                    , intent(in   ) :: filterIndex                  (:), imfIndex                   , &
          &                                                                                                        luminosityIndex              (:), postprocessingChainIndex(:)
@@ -130,6 +134,18 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarPopulationLuminosityStoreToFile',stellarPopulationLuminosityStoreToFile,defaultValue=.true.)
+       ! Read the parameter controlling behavior if maximum age of stellar populations are exceeded.
+       !@ <inputParameter>
+       !@   <name>stellarPopulationLuminosityMaximumAgeExceededIsFatal</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether or not exceeding the maximum available age of the stellar population is fatal.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('stellarPopulationLuminosityMaximumAgeExceededIsFatal',stellarPopulationLuminosityMaximumAgeExceededIsFatal,defaultValue=.true.)
        ! Flag that this module is now initialized.
        moduleInitialized=.true.
     end if
@@ -217,7 +233,7 @@ contains
                   &               ".hdf5"
              if (File_Exists(luminositiesFileName)) then
                 ! Construct the dataset name.
-                write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
+                write (redshiftLabel,'(f6.3)') redshift(iLuminosity)
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
                 ! Open the file and check for the required dataset.
                 !$omp critical (HDF5_Access)
@@ -239,7 +255,17 @@ contains
           if (calculateLuminosity) then
           ! Display a message and counter.
              message='Tabulating stellar luminosities for '//char(IMF_Name(imfIndex))//' IMF, luminosity '
-             message=message//iLuminosity//' of '//size(luminosityIndex)
+             write (redshiftLabel,'(f6.3)') redshift(iLuminosity)
+             message=message                                                                                     // &
+                  &  Filter_Name                                          (filterIndex             (iLuminosity))// &
+                  &  ":"                                                                                         // &
+                  &  Stellar_Population_Spectrum_Postprocess_Chain_Methods(postprocessingChainIndex(iLuminosity))// &
+                  &  ":z"                                                                                        // &
+                  &  trim(adjustl(redshiftLabel))                                                                // &
+                  &  " "                                                                                         // &
+                  &                                                                                 iLuminosity  // &
+                  &  " of "                                                                                      // &
+                  &  size(luminosityIndex)
              call Galacticus_Display_Indent (message,verbosityWorking)
              call Galacticus_Display_Counter(0,.true.,verbosityWorking)             
              ! Get wavelength extent of the filter.
@@ -284,7 +310,7 @@ contains
              ! Store the luminosities to file.
              if (stellarPopulationLuminosityStoreToFile) then
                 ! Construct the dataset name.
-                write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
+                write (redshiftLabel,'(f6.3)') redshift(iLuminosity)
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
                 ! Open the file.
                 !$omp critical (HDF5_Access)
@@ -330,12 +356,19 @@ contains
           ! Get interpolation in age if the age for this luminosity differs from the previous one.
           if (iLuminosity == 1 .or. age(iLuminosity) /= ageLast) then
              ! Check for out of range age.
-             if (age(iLuminosity) > luminosityTables(imfIndex)%age(luminosityTables(imfIndex)%agesCount)) call&
-                  & Galacticus_Error_Report('Stellar_Population_Luminosity','age exceeds the maximum tabulated')
+             if (age(iLuminosity) > luminosityTables(imfIndex)%age(luminosityTables(imfIndex)%agesCount)) then
+                if (stellarPopulationLuminosityMaximumAgeExceededIsFatal) then
+                   call Galacticus_Error_Report('Stellar_Population_Luminosity','age exceeds the maximum tabulated')
+                else
+                   iAge=luminosityTables(imfIndex)%agesCount-1
+                   hAge=[0.0d0,1.0d0]
+                end if
+             else
                 iAge=Interpolate_Locate(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age &
                      &,luminosityTables(imfIndex)%interpolationAcceleratorAge,age(iLuminosity),luminosityTables(imfIndex)%resetAge)
                 hAge=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age,iAge&
                      &,age(iLuminosity))
+             end if
              ageLast=age(iLuminosity)
           end if
           do jAge=0,1

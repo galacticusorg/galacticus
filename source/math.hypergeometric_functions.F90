@@ -15,6 +15,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!: ./work/build/pFq/pfq.new.o
+
 !% Contains a module which implements hypergeometric functions.
 
 module Hypergeometric_Functions
@@ -22,8 +24,13 @@ module Hypergeometric_Functions
   use FGSL
   implicit none
   private
-  public :: Hypergeometric_1F1, Hypergeometric_2F1
+  public :: Hypergeometric_1F1, Hypergeometric_2F1, Hypergeometric_pFq
 
+  interface Hypergeometric_pFq
+     module procedure :: Hypergeometric_pFq_Real
+     module procedure :: Hypergeometric_pFq_Complex
+  end interface Hypergeometric_pFq
+  
 contains
 
   double precision function Hypergeometric_1F1(a,b,x)
@@ -53,5 +60,35 @@ contains
     end if
     return
   end function Hypergeometric_2F1
+
+  double complex function Hypergeometric_pFq_Complex(a,b,x)
+    !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$, using the algorithm of
+    !% \cite{perger_numerical_1993}.
+    implicit none
+    double complex, intent(in   ), dimension(:) :: a    , b
+    double complex, intent(in   )               :: x
+    double complex                              :: PFQ
+    integer                                     :: LNPFQ, IX, NSIGFIG
+
+    LNPFQ  = 0
+    IX     = 0
+    NSIGFIG=10
+    if (dreal(x) == 0.0d0) then
+       Hypergeometric_pFq_Complex=1.0d0
+    else
+       Hypergeometric_pFq_Complex=PFQ(a,b,size(a),size(b),x,LNPFQ,IX,NSIGFIG)
+    end if
+    return
+  end function Hypergeometric_pFq_Complex
+
+  double precision function Hypergeometric_pFq_Real(a,b,x)
+    !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ for real arguments.
+    implicit none
+    double precision, intent(in   ), dimension(:) :: a  , b
+    double precision, intent(in   )               :: x
+    
+    Hypergeometric_pFq_Real=real(Hypergeometric_pFq_Complex(dcmplx(a),dcmplx(b),dcmplx(x)))
+    return
+  end function Hypergeometric_pFq_Real
 
 end module Hypergeometric_Functions

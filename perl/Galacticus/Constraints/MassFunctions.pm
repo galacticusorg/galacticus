@@ -16,6 +16,7 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::Constants qw(PI);
 use PDL::MatrixOps;
+use PDL::IO::HDF5;
 use Math::SigFigs;
 use Data::Dumper;
 use LaTeX::Encode;
@@ -84,6 +85,9 @@ sub Construct {
 
     # Get logarithmic bins in mass.
     my $xBins = log10($config->{'x'});
+    my $xBinWidths;
+    $xBinWidths = log10($config->{'xWidth'})
+	if ( exists($config->{'xWidth'}) );
 
     # Model results.
     my $yGalacticus;
@@ -105,6 +109,9 @@ sub Construct {
     }
     # Read galaxy data and construct mass function if necessary.
     if ( $gotModelMassFunction == 0 ) {
+	# If this mass function requires modeling of incompleteness, we cannot proceed.
+	die('MassFunctions::Construct: incompleteness modeling is not supported')
+	    if ( exists($arguments{'incompletenessModel'}) );
 	$galacticus->{'tree'} = "all";
 	&HDF5::Get_Parameters($galacticus);
 	&HDF5::Count_Trees  ($galacticus                      );
@@ -166,6 +173,8 @@ sub Construct {
 	     differential   => 1,
 	     gaussianSmooth => $sigma
 	    );
+	$options{'binWidths'} = $xBinWidths
+	    if ( defined($xBinWidths) );
 	($yGalacticus,$errorGalacticus,$covarianceGalacticus) = &Histograms::Histogram($xBins,$logarithmicMass,$weight,%options);
 	# Convert model mass function from per log10(M) to per log(M).
 	$yGalacticus          /= log(10.0);
@@ -216,33 +225,12 @@ sub Construct {
 
     # Output the results to file if requested.
     if ( exists($arguments{'resultFile'}) ) {
-	my $results;
-	@{$results->{'x'             }} = $xBins                 ->list();
-	@{$results->{'y'             }} = $yGalacticus           ->list();
-	@{$results->{'error'         }} = $errorGalacticus       ->list();
-	@{$results->{'covariance'    }} = $covarianceGalacticus  ->list();
-	@{$results->{'yData'         }} = $config->{'y'}         ->list();
-	@{$results->{'covarianceData'}} = $config->{'covariance'}->list();
-	my $xmlOut = new XML::Simple (RootName=>"results", NoAttr => 1);;
-	# Output the parameters to file.
-	open(pHndl,">".$arguments{'resultFile'});
-	print pHndl $xmlOut->XMLout($results);
-	close pHndl;
-    }
-
-    # Output accuracy to file if requested.
-    if ( exists($arguments{'accuracyFile'}) ) {
-	my $results;
-	@{$results->{'x'         }} = $xBins          ->list();
-	@{$results->{'yModel'    }} = $yGalacticus    ->list();
-	@{$results->{'yData'     }} = $config->{'y'}  ->list();
-	@{$results->{'errorModel'}} = $errorGalacticus->list();
-	@{$results->{'errorData' }} = $error          ->list();
-	my $xmlOut = new XML::Simple (RootName=>"accuracy", NoAttr => 1);;
-	# Output the parameters to file.
-	open(pHndl,">".$arguments{'accuracyFile'});
-	print pHndl $xmlOut->XMLout($results);
-	close pHndl;
+	my $resultsFile = new PDL::IO::HDF5(">".$arguments{'resultFile'});
+	$resultsFile->dataset('x'             )->set($xBins                 );
+	$resultsFile->dataset('y'             )->set($yGalacticus           );
+	$resultsFile->dataset('covariance'    )->set($covarianceGalacticus  );
+	$resultsFile->dataset('yData'         )->set($config->{'y'         });
+	$resultsFile->dataset('covarianceData')->set($config->{'covariance'});
     }
 
     # Compute the likelihood:
