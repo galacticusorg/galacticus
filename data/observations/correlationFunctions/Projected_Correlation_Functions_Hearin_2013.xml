@@ -1,6 +1,6 @@
 <dataSets>
   <correlationFunction>
-    <description>Projected correlation functions of galaxies at zâ0.07 in bins of stellar mass from the SDSS as reported by Hearin et al. (2013)</description>
+    <description>Projected correlation functions of galaxies at z~0.07 in bins of stellar mass from the SDSS as reported by Hearin et al. (2013)</description>
     <url>http://adsabs.harvard.edu/abs/2013arXiv1310.6747H</url>
     <label>Hearin et al. (2013)</label>
     <source>Data extracted from Table 1 of Hearin et al. (2013)</source>
