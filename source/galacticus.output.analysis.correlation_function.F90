@@ -561,6 +561,8 @@ contains
     if (.not.thisHalo%initialized) then
        call Alloc_Array(thisHalo%centralProbability,[size(thisCorrelationFunction%massMinimumLogarithmic)])
        call Alloc_Array(thisHalo%fourierProfile    ,[size(thisCorrelationFunction%wavenumber            )])
+       allocate  (thisHalo%satelliteProbability(0,0))
+       deallocate(thisHalo%satelliteProbability     )
        thisHalo%propertiesSet     =.false.
        thisHalo%satelliteCount    =0
        thisHalo%centralProbability=0.0d0
