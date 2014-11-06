@@ -60,23 +60,25 @@ contains
   !# <treeBranchingMethod>
   !#  <unitName>Generalized_Press_Schechter_Branching_Initialize</unitName>
   !# </treeBranchingMethod>
-  subroutine Generalized_Press_Schechter_Branching_Initialize(treeBranchingMethod,Tree_Branching_Probability&
+  subroutine Generalized_Press_Schechter_Branching_Initialize(treeBranchingMethod,Tree_Branching_Probability_Bound,Tree_Branching_Probability&
        &,Tree_Subresolution_Fraction,Tree_Branch_Mass,Tree_Maximum_Step)
     !% Initialize the generalized Press-Schechter branching routines.
     use Input_Parameters
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: treeBranchingMethod
+    procedure(Generalized_Press_Schechter_Branching_Probability_Bound), intent(inout), pointer :: Tree_Branching_Probability_Bound
     procedure(Generalized_Press_Schechter_Branching_Probability), intent(inout), pointer :: Tree_Branching_Probability
     procedure(Generalized_Press_Schechter_Subresolution_Fraction), intent(inout), pointer :: Tree_Subresolution_Fraction
     procedure(Generalized_Press_Schechter_Branch_Mass), intent(inout), pointer :: Tree_Branch_Mass
     procedure(Generalized_Press_Schechter_Branching_Maximum_Step), intent(inout), pointer :: Tree_Maximum_Step
 
     if (treeBranchingMethod == 'generalizedPress-Schechter') then
-       Tree_Branching_Probability  => Generalized_Press_Schechter_Branching_Probability
-       Tree_Subresolution_Fraction => Generalized_Press_Schechter_Subresolution_Fraction
-       Tree_Branch_Mass            => Generalized_Press_Schechter_Branch_Mass
-       Tree_Maximum_Step           => Generalized_Press_Schechter_Branching_Maximum_Step
+       Tree_Branching_Probability_Bound => Generalized_Press_Schechter_Branching_Probability_Bound
+       Tree_Branching_Probability       => Generalized_Press_Schechter_Branching_Probability
+       Tree_Subresolution_Fraction      => Generalized_Press_Schechter_Subresolution_Fraction
+       Tree_Branch_Mass                 => Generalized_Press_Schechter_Branch_Mass
+       Tree_Maximum_Step                => Generalized_Press_Schechter_Branching_Maximum_Step
        !@ <inputParameter>
        !@   <name>generalizedPressSchechterDeltaStepMaximum</name>
        !@   <defaultValue>0.1</defaultValue>
@@ -241,6 +243,17 @@ contains
     Generalized_Press_Schechter_Branching_Maximum_Step=generalizedPressSchechterDeltaStepMaximum
     return
   end function Generalized_Press_Schechter_Branching_Maximum_Step
+
+  double precision function Generalized_Press_Schechter_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound)
+    !% Return bounds onthe probability per unit change in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt
+    !% deltaCritical} will undergo a branching to progenitors with mass greater than {\tt massResolution}.
+    implicit none
+    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
+    integer         , intent(in   ) :: bound
+    
+    Generalized_Press_Schechter_Branching_Probability_Bound=Generalized_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
+    return
+  end function Generalized_Press_Schechter_Branching_Probability_Bound
 
   double precision function Generalized_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
     !% Return the probability per unit change in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt

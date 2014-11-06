@@ -12,6 +12,7 @@ unshift(@INC,$galacticusPath."perl");
 use XML::Simple;
 use Data::Dumper;
 use PDL;
+use PDL::NiceSlice;
 use File::Copy;
 
 # Compute Vega-AB offsets and effective wavelengths for any filters which do not already have them.
@@ -111,7 +112,13 @@ foreach my $fileName ( @fileNames ) {
 	$response    = append($response   ,$columns[1]);
     }
     my $inserts = "";
-
+    # Check for monotonic wavelengths.
+    for(my $i=1;$i<nelem($wavelengths);++$i) {
+	if ( $wavelengths->(($i)) <= $wavelengths->(($i-1)) ) {
+	    print "   WARNING: filter is not monotonic at †ë=".$wavelengths->(($i))."’¢ò\n";
+	    last;
+	}
+    }
     # Check if an effective wavelength is listed - if not, compute it.
     unless ( exists($filter->{'effectiveWavelength'}) ) {
 	my $effectiveWavelength = sum($response*$wavelengths)/sum($response);
