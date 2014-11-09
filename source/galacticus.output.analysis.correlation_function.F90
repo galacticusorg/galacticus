@@ -885,7 +885,7 @@ contains
     ! Iterate over mass functions.
     do k=1,size(correlationFunctions)
        ! Accumulate any final halo.
-       if (thisHalo(k)%initialized) call Accumulate_Halo(correlationFunctions(k),thisHalo(k))
+       if (allocated(thisHalo).and.thisHalo(k)%initialized) call Accumulate_Halo(correlationFunctions(k),thisHalo(k))
        ! Copy upper to lower triangle of covariance matrix (we've accumulated only the upper triangle).
        correlationFunctions(k)%termCovariance=Matrix_Copy_Upper_To_Lower_Triangle(correlationFunctions(k)%termCovariance)
        ! Get count of mass bins and wavenumbers.
