@@ -595,8 +595,8 @@ contains
                    call Alloc_Array(thisHalo%satelliteProbability,[satelliteCountMinimum,size(thisCorrelationFunction%massMinimumLogarithmic)])
                 else if (size(thisHalo%satelliteProbability,dim=1) < thisHalo%satelliteCount) then
                    call Move_Alloc(thisHalo%satelliteProbability,satelliteProbabilityTmp)
-                   call Alloc_Array(thisHalo%satelliteProbability,[2*size(satelliteProbabilityTmp),size(thisCorrelationFunction%massMinimumLogarithmic)])
-                   thisHalo%satelliteProbability(1:size(satelliteProbabilityTmp),:)=satelliteProbabilityTmp
+                   call Alloc_Array(thisHalo%satelliteProbability,[2*size(satelliteProbabilityTmp,dim=1),size(thisCorrelationFunction%massMinimumLogarithmic)])
+                   thisHalo%satelliteProbability(1:size(satelliteProbabilityTmp,dim=1),:)=satelliteProbabilityTmp
                    call Dealloc_Array(satelliteProbabilityTmp)
                 end if
                 thisHalo%satelliteProbability(thisHalo%satelliteCount,:)=0.0d0
