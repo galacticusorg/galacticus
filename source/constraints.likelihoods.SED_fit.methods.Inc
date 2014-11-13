@@ -45,7 +45,6 @@ function likelihoodSEDFitConstructor(definition)
   call Alloc_Array(likelihoodSEDFitConstructor%luminosityIndex         ,[likelihoodSEDFitConstructor%photometryCount])
   call Alloc_Array(likelihoodSEDFitConstructor%redshift                ,[likelihoodSEDFitConstructor%photometryCount])
   call Alloc_Array(likelihoodSEDFitConstructor%age                     ,[likelihoodSEDFitConstructor%photometryCount])
-  call Alloc_Array(likelihoodSEDFitConstructor%massToLightRatio        ,[likelihoodSEDFitConstructor%photometryCount])
   call Alloc_Array(likelihoodSEDFitConstructor%postprocessingChainIndex,[likelihoodSEDFitConstructor%photometryCount])
   call Alloc_Array(likelihoodSEDFitConstructor%wavelengthEffective     ,[likelihoodSEDFitConstructor%photometryCount])
   ! Extract photometry information.
@@ -130,6 +129,8 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   double precision                                    , intent(in   )               :: temperature                         , logLikelihoodCurrent   , &
        &                                                                               logPriorCurrent                     , logPriorProposed
   double precision                                    , allocatable  , dimension(:) :: stateVector
+  double precision                                    , parameter                   :: logImprobable              =-7.0d+0
+  double precision                                    , parameter                   :: toleranceRelativeFractional=+1.0d-2
   class           (cosmologyFunctionsClass           ), pointer                     :: cosmologyFunctions_
   class           (stellarSpectraDustAttenuationClass), allocatable                 :: dust
   integer                                                                           :: iMagnitude                          , i                      , &
@@ -139,7 +140,8 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
        &                                                                               luminosity                          , metallicity            , &
        &                                                                               redshift                            , timeObserved           , &
        &                                                                               vBandAttenuation                    , opticalDepthBirthClouds, &
-       &                                                                               timeStart                           , Rv
+       &                                                                               timeStart                           , Rv                     , &
+       &                                                                               toleranceRelative
   type            (abundances                )                                      :: abundancesStars
   type            (fgsl_function             )                                      :: integrandFunction
   type            (fgsl_integration_workspace)                                      :: integrationWorkspace
@@ -265,16 +267,22 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   do iMagnitude=0,size(self%magnitude)
      ! Integrate star formation history to get luminosity.
      integrationReset=.true.
-     luminosity=Integrate(                               &
-          &               timeStart                    , &
-          &               timeObserved                 , &
-          &               luminosityIntegrand          , &
-          &               parameterPointer             , &
-          &               integrandFunction            , &
-          &               integrationWorkspace         , &
-          &               toleranceRelative     =1.0d-3, &
-          &               reset=integrationReset         &
-          &              )      
+     if (iMagnitude == 0) then
+        toleranceRelative=    1.0d-3
+     else
+        toleranceRelative=max(1.0d-3,toleranceRelativeFractional*self%error(imagnitude)*log(10.0d0)/2.5d0)
+     end if
+     luminosity=Integrate(                                           &
+          &               timeStart                                , &
+          &               timeObserved                             , &
+          &               luminosityIntegrand                      , &
+          &               parameterPointer                         , &
+          &               integrandFunction                        , &
+          &               integrationWorkspace                     , &
+          &               toleranceRelative     =toleranceRelative , &
+          &               integrationRule       =FGSL_Integ_Gauss61, &
+          &               reset                 =integrationReset    &
+          &              )
      call Integrate_Done(integrandFunction,integrationWorkspace)
      ! Determine if we're computing mass or luminosity.
      if (iMagnitude > 0) then
@@ -290,6 +298,15 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
              &   )                            &
              &   / self%error    (iMagnitude) &
              &  )**2
+        ! Exit as soon as the proposed likelihood is found to be sufficiently below the current likelihood.
+        if     (                                              &
+             &    (likelihoodSEDFitEvaluate+logPriorProposed) &
+             &   -                                            &
+             &    (logLikelihoodCurrent    +logPriorCurrent ) &
+             &  <                                             &
+             &    logImprobable                               &
+             &   *temperature                                 &
+             & ) exit
      else
         ! Normalize the star formation rate.
         starFormationRateNormalization=mass/luminosity
@@ -327,18 +344,18 @@ contains
     ! Determine if we're computing luminosity or mass.
     if (iMagnitude > 0) then
        ! Find the mass-to-light ratio.
-       self%massToLightRatio        =Stellar_Population_Luminosity      (                               &
-            &                                                            self%luminosityIndex         , &
-            &                                                            self%filterIndex             , &
-            &                                                            self%postprocessingChainIndex, &
-            &                                                            imfIndex                     , &
-            &                                                            abundancesStars              , &
-            &                                                            self%age                     , &
-            &                                                            self%redshift                  &
+       self%massToLightRatio        =Stellar_Population_Luminosity      (                                    &
+            &                                                            self%luminosityIndex         (i:i), &
+            &                                                            self%filterIndex             (i:i), &
+            &                                                            self%postprocessingChainIndex(i:i), &
+            &                                                            imfIndex                          , &
+            &                                                            abundancesStars                   , &
+            &                                                            self%age                     (i:i), &
+            &                                                            self%redshift                (i:i)  &
             &                                                           )
        luminosityIntegrand=                                                                  &
             &              +starFormationRate                                                &
-            &              *self%massToLightRatio(iMagnitude)                                &
+            &              *self%massToLightRatio(1)                                         &
             &              *10.0d0**(                                                        &
             &                        -0.4d0                                                  &
             &                        *dust%attenuation(                                      &
