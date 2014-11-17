@@ -253,7 +253,8 @@ character(len=100) :: textAttribute
           &                                                                     hasTreeIndex                       , hasVelocityX                     , &
           &                                                                     hasVelocityY                       , hasVelocityZ                     , &
           &                                                                     hasVelocityMaximum                 , hasVelocityDispersion            , &
-          &                                                                     hasTreeWeight
+          &                                                                     hasTreeWeight                                                         , &
+          &                                                                     hasBoxSize
      logical                                                                 :: areSelfContained           =.true. , doMakeReferences         =.true. , &
           &                                                                     includesHubbleFlow         =.false., includesSubhaloMasses    =.false., &
           &                                                                     isPeriodic                 =.false.
@@ -414,6 +415,8 @@ contains
 
     ! No properties.
     mergerTrees%hasTreeIndex               =.false.
+    mergerTrees%hasTreeWeight              =.false.
+    mergerTrees%hasBoxSize                 =.false.
     mergerTrees%hasNodeIndex               =.false.
     mergerTrees%hasDescendentIndex         =.false.
     mergerTrees%hasHostIndex               =.false.
@@ -485,6 +488,8 @@ contains
     double precision                , intent(in   ) :: doubleValue
 
     call Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,doubleValue=doubleValue)
+    ! Check if this is box size.
+    if (metadataType == metaDataSimulation .and. trim(label) == "boxSize") mergerTrees%hasBoxSize=.true.
     return
   end subroutine Merger_Tree_Data_Structure_Add_Metadata_Double
 
@@ -1572,7 +1577,8 @@ contains
     call treeIndexGroup%writeDataset(mergerTrees%treeBeginsAt ,"firstNode"    ,"Position of the first node in each tree in the halo data arrays.",appendTo=.true.)
     call treeIndexGroup%writeDataset(mergerTrees%treeNodeCount,"numberOfNodes","Number of nodes in each tree."                                   ,appendTo=.true.)
     call treeIndexGroup%writeDataset(mergerTrees%treeID       ,"treeIndex"    ,"Unique index of tree."                                           ,appendTo=.true.)
-    call treeIndexGroup%writeDataset(mergerTrees%treeWeight   ,"treeWeight"   ,"Weight of tree."                                                 ,appendTo=.true.)
+    if (mergerTrees%hasTreeWeight.or..not.mergerTrees%hasBoxSize) &
+         & call treeIndexGroup%writeDataset(mergerTrees%treeWeight   ,"treeWeight"   ,"Weight of tree."                                                 ,appendTo=.true.)
     call treeIndexGroup%close()
 
     ! Only write remaining data if we are not appending to an existing file.
