@@ -158,7 +158,8 @@ module MPI_Utilities
   logical         :: mpiIsActiveValue=.false.
 
   ! Tags.
-  integer, parameter :: tagRequestForData=1, tagState=2
+  integer, parameter :: tagRequestForData= 1, tagState=2
+  integer, parameter :: nullRequester    =-1
 
 contains
 
@@ -292,52 +293,59 @@ contains
     integer                    , intent(in   ), dimension(                            :) :: requestFrom
     double precision           , intent(in   ), dimension(          :                  ) :: array
     double precision                          , dimension(size(array),size(requestFrom)) :: mpiRequestData1D
-    integer                                   , dimension(                            1) :: requester
-    integer                                   , dimension(            size(requestFrom)) :: requestFromID
+    integer                                   , dimension(                            1) :: requester       , requestedBy
+    integer                                   , dimension(         0: self%countValue-1) :: requestFromID
     integer                    , allocatable  , dimension(                            :) :: requestID       , requestIDtemp
     integer                                   , dimension(              MPI_Status_Size) :: messageStatus
     integer                                                                              :: i               , iError       , &
          &                                                                                  iRequest
     
     ! Record our own rank as the requester.
-    requester=mpiSelf%rank()
+    requester=self%rank()
     ! Send requests.
-    do i=1,size(requestFrom)
-       call MPI_ISend(requester,1,MPI_Integer,requestFrom(i),tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+    call mpiBarrier()
+    do i=0,self%count()-1
+       if (any(requestFrom == i)) then
+          call MPI_ISend(requester    ,1,MPI_Integer,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+       else
+          call MPI_ISend(nullRequester,1,MPI_Integer,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+       end if
     end do
     call mpiBarrier()
     ! Check for waiting requests.
     allocate(requestID(size(requestFrom)))
     iRequest=0
-    do while (mpiSelf%messageWaiting(tag=tagRequestForData))
+    do i=0,self%count()-1
        ! Receive the request.
-       call MPI_Recv(requester,1,MPI_Integer,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
-       ! Expand the requestID buffer as required.
-       iRequest=iRequest+1
-       if (iRequest > size(requestID)) then
-          call Move_Alloc(requestID,requestIDtemp)
-          allocate(requestID(2*iRequest))
-          requestID(1:size(requestIDtemp))=requestIDtemp
-          deallocate(requestIDtemp)
+       call MPI_Recv(requestedBy,1,MPI_Integer,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
+       ! Check for a non-null request.
+       if (requestedBy(1) /= nullRequester) then
+          ! Expand the requestID buffer as required.
+          iRequest=iRequest+1
+          if (iRequest > size(requestID)) then
+             call Move_Alloc(requestID,requestIDtemp)
+             allocate(requestID(2*iRequest))
+             requestID(1:size(requestIDtemp))=requestIDtemp
+             deallocate(requestIDtemp)
+          end if
+          ! Send our data in reply.
+          call MPI_ISend(array,size(array),MPI_Double_Precision,requestedBy(1),tagState,MPI_Comm_World,requestID(iRequest),iError)
        end if
-       ! Send our data in reply.
-       call MPI_ISend(array,size(array),MPI_Double_Precision,requester(1),tagState,MPI_Comm_World,requestID(iRequest),iError)
     end do
     call mpiBarrier()
     ! Wait until all of our sends have been received.
-    do i=1,size(requestFrom)
+    do i=0,self%count()-1
        call MPI_Wait(requestFromID(i),messageStatus,iError)
     end do
     ! Receive data.
-    i=0
-    do while (mpiSelf%messageWaiting(tag=tagState))
-       i=i+1
+    do i=1,size(requestFrom)
        call MPI_Recv(mpiRequestData1D(:,i),size(array),MPI_Double_Precision,MPI_Any_Source,tagState,MPI_Comm_World,messageStatus,iError)
     end do
     ! Wait until all of our sends have been received.
     do i=1,iRequest
-      call MPI_Wait(requestID(i),messageStatus,iError)
+       call MPI_Wait(requestID(i),messageStatus,iError)
     end do
+    call mpiBarrier()
     ! Deallocate request ID workspace.
     deallocate(requestID)
     return
@@ -351,40 +359,48 @@ contains
     integer                    , intent(in   ), dimension(                                                    :) :: requestFrom
     double precision           , intent(in   ), dimension(                :,                :                  ) :: array
     double precision                          , dimension(size(array,dim=1),size(array,dim=2),size(requestFrom)) :: mpiRequestData2D
-    integer                                   , dimension(                                                    1) :: requester
-    integer                                   , dimension(                                    size(requestFrom)) :: requestFromID
+    integer                                   , dimension(                                                    1) :: requester       , requestedBy
+    integer                                   , dimension(                                 0: self%countValue-1) :: requestFromID
     integer                    , allocatable  , dimension(                                                    :) :: requestID       , requestIDtemp
     integer                                   , dimension(                                      MPI_Status_Size) :: messageStatus
     integer                                                                                                      :: i               , iError       , &
-         &                                                                                  iRequest
+         &                                                                                                          iRequest
 
     ! Record our own rank as the requester.
-    requester=mpiSelf%rank()
+    requester=self%rank()
     ! Send requests.
-    do i=1,size(requestFrom)
-       call MPI_ISend(requester,1,MPI_Integer,requestFrom(i),tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+    call mpiBarrier()
+    do i=0,self%count()-1
+       if (any(requestFrom == i)) then
+          call MPI_ISend(requester    ,1,MPI_Integer,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+       else
+          call MPI_ISend(nullRequester,1,MPI_Integer,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+       end if
     end do
     call mpiBarrier()
     ! Check for waiting requests.
     allocate(requestID(size(requestFrom)))
     iRequest=0
-    do while (mpiSelf%messageWaiting(tag=tagRequestForData))
+    do i=0,self%count()-1
        ! Receive the request.
-       call MPI_Recv(requester,1,MPI_Integer,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
-       ! Expand the requestID buffer as required.
-       iRequest=iRequest+1
-       if (iRequest > size(requestID)) then
-          call Move_Alloc(requestID,requestIDtemp)
-          allocate(requestID(2*iRequest))
-          requestID(1:size(requestIDtemp))=requestIDtemp
-          deallocate(requestIDtemp)
+       call MPI_Recv(requestedBy,1,MPI_Integer,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
+       ! Check for a non-null request.
+       if (requester(1) /= nullRequester) then
+          ! Expand the requestID buffer as required.
+          iRequest=iRequest+1
+          if (iRequest > size(requestID)) then
+             call Move_Alloc(requestID,requestIDtemp)
+             allocate(requestID(2*iRequest))
+             requestID(1:size(requestIDtemp))=requestIDtemp
+             deallocate(requestIDtemp)
+          end if
+          ! Send our data in reply.
+          call MPI_ISend(array,product(shape(array)),MPI_Double_Precision,requestedBy(1),tagState,MPI_Comm_World,requestID(iRequest),iError)
        end if
-       ! Send our data in reply.
-       call MPI_ISend(array,product(shape(array)),MPI_Double_Precision,requester(1),tagState,MPI_Comm_World,requestID(iRequest),iError)
     end do
     call mpiBarrier()
     ! Wait until all of our sends have been received.
-    do i=1,size(requestFrom)
+    do i=0,self%count()-1
        call MPI_Wait(requestFromID(i),messageStatus,iError)
     end do
     ! Receive data.
@@ -393,8 +409,9 @@ contains
     end do
     ! Wait until all of our sends have been received.
     do i=1,iRequest
-      call MPI_Wait(requestID(i),messageStatus,iError)
+       call MPI_Wait(requestID(i),messageStatus,iError)
     end do
+    call mpiBarrier()
     ! Deallocate request ID workspace.
     deallocate(requestID)
     return
@@ -408,40 +425,48 @@ contains
     integer           , intent(in   ), dimension(                            :) :: requestFrom
     integer           , intent(in   ), dimension(          :                  ) :: array
     integer                          , dimension(size(array),size(requestFrom)) :: mpiRequestDataInt1D
-    integer                          , dimension(                            1) :: requester
-    integer                          , dimension(            size(requestFrom)) :: requestFromID
+    integer                          , dimension(                            1) :: requester       , requestedBy
+    integer                          , dimension(         0: self%countValue-1) :: requestFromID
     integer           , allocatable  , dimension(                            :) :: requestID       , requestIDtemp
     integer                          , dimension(              MPI_Status_Size) :: messageStatus
     integer                                                                     :: i               , iError       , &
          &                                                                         iRequest
     
     ! Record our own rank as the requester.
-    requester=mpiSelf%rank()
+    requester=self%rank()
     ! Send requests.
-    do i=1,size(requestFrom)
-       call MPI_ISend(requester,1,MPI_Integer,requestFrom(i),tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+    call mpiBarrier()
+    do i=0,self%count()-1
+       if (any(requestFrom == i)) then
+          call MPI_ISend(requester    ,1,MPI_Integer,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+       else
+          call MPI_ISend(nullRequester,1,MPI_Integer,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+       end if
     end do
     call mpiBarrier()
     ! Check for waiting requests.
     allocate(requestID(size(requestFrom)))
     iRequest=0
-    do while (mpiSelf%messageWaiting(tag=tagRequestForData))
+    do i=0,self%count()-1
        ! Receive the request.
-       call MPI_Recv(requester,1,MPI_Integer,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
-       ! Expand the requestID buffer as required.
-       iRequest=iRequest+1
-       if (iRequest > size(requestID)) then
-          call Move_Alloc(requestID,requestIDtemp)
-          allocate(requestID(2*iRequest))
-          requestID(1:size(requestIDtemp))=requestIDtemp
-          deallocate(requestIDtemp)
+       call MPI_Recv(requestedBy,1,MPI_Integer,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
+       ! Check for a non-null request.
+       if (requester(1) /= nullRequester) then
+          ! Expand the requestID buffer as required.
+          iRequest=iRequest+1
+          if (iRequest > size(requestID)) then
+             call Move_Alloc(requestID,requestIDtemp)
+             allocate(requestID(2*iRequest))
+             requestID(1:size(requestIDtemp))=requestIDtemp
+             deallocate(requestIDtemp)
+          end if
+          ! Send our data in reply.
+          call MPI_ISend(array,size(array),MPI_Integer,requestedBy(1),tagState,MPI_Comm_World,requestID(iRequest),iError)
        end if
-       ! Send our data in reply.
-       call MPI_ISend(array,size(array),MPI_Integer,requester(1),tagState,MPI_Comm_World,requestID(iRequest),iError)
     end do
     call mpiBarrier()
     ! Wait until all of our sends have been received.
-    do i=1,size(requestFrom)
+    do i=0,self%count()-1
        call MPI_Wait(requestFromID(i),messageStatus,iError)
     end do
     ! Receive data.
@@ -450,8 +475,9 @@ contains
     end do
     ! Wait until all of our sends have been received.
     do i=1,iRequest
-      call MPI_Wait(requestID(i),messageStatus,iError)
+       call MPI_Wait(requestID(i),messageStatus,iError)
     end do
+    call mpiBarrier()
     ! Deallocate request ID workspace.
     deallocate(requestID)
     return
@@ -518,7 +544,7 @@ contains
     return
   end function mpiSumArrayDouble
 
-  integer function mpiSumScalarDouble(self,scalar,mask)
+  double precision function mpiSumScalarDouble(self,scalar,mask)
     !% Sum an integer scalar over all processes, returning it to all processes.
     use MPI
     use Galacticus_Error
@@ -673,7 +699,7 @@ contains
     arrayIn(2,:)=self%rank()
     call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MaxLoc,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiMax','MPI all reduce failed')
-    mpiMaxloc=arrayOut(2,:)
+    mpiMaxloc=int(arrayOut(2,:))
     return
   end function mpiMaxloc
 
@@ -733,7 +759,7 @@ contains
     arrayIn(2,:)=self%rank()
     call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MinLoc,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiMin','MPI all reduce failed')
-    mpiMinloc=arrayOut(2,:)
+    mpiMinloc=int(arrayOut(2,:))
     return
   end function mpiMinloc
 
