@@ -39,8 +39,15 @@ module Pseudo_Random
      !@     <arguments></arguments>
      !@     <description>Return a pseudo-random number.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>initialize</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Initialize a pseudo-random number generator.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: sample => pseudoRandomSample
+     procedure :: sample     => pseudoRandomSample
+     procedure :: initialize => pseudoRandomInitialize
   end type pseudoRandom
   
   logical                 :: Seed_Is_Set=.false.
@@ -166,5 +173,17 @@ contains
          &                              )
     return
   end function pseudoRandomSample
+
+  subroutine pseudoRandomInitialize(self)
+    !% Initialize a pseudo-random sequence object.
+    use, intrinsic :: ISO_C_Binding
+    use FGSL
+    implicit none
+    class(pseudoRandom), intent(inout) :: self
+
+    self%pseudoSequenceReset=.true.
+    if (FGSL_Well_Defined(self%pseudoSequence)) call FGSL_Obj_C_Ptr(self%pseudoSequence,C_Null_Ptr)
+    return
+  end subroutine pseudoRandomInitialize
 
 end module Pseudo_Random
