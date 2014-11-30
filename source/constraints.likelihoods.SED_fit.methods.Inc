@@ -121,32 +121,42 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   use Abundances_Structure
   use Cosmology_Functions
   use Stellar_Spectra_Dust_Attenuations
+  use Star_Formation_IMF
+  use Stellar_Population_Luminosities
   implicit none
-  class           (likelihoodSEDFit                  ), intent(inout)               :: self
-  class           (state                             ), intent(in   )               :: simulationState
-  type            (mappingList                       ), intent(in   ), dimension(:) :: parameterMappings
-  class           (convergence                       ), intent(inout)               :: simulationConvergence
-  double precision                                    , intent(in   )               :: temperature                         , logLikelihoodCurrent   , &
-       &                                                                               logPriorCurrent                     , logPriorProposed
-  double precision                                    , allocatable  , dimension(:) :: stateVector
-  double precision                                    , parameter                   :: logImprobable              =-7.0d+0
-  double precision                                    , parameter                   :: toleranceRelativeFractional=+1.0d-2
-  class           (cosmologyFunctionsClass           ), pointer                     :: cosmologyFunctions_
-  class           (stellarSpectraDustAttenuationClass), allocatable                 :: dust
-  integer                                                                           :: iMagnitude                          , i                      , &
-       &                                                                               burstIndexOffset
-  double precision                                                                  :: mass                                , timeScale              , &
-       &                                                                               starFormationRateNormalization      , magnitude              , &
-       &                                                                               luminosity                          , metallicity            , &
-       &                                                                               redshift                            , timeObserved           , &
-       &                                                                               vBandAttenuation                    , opticalDepthBirthClouds, &
-       &                                                                               timeStart                           , Rv                     , &
-       &                                                                               toleranceRelative
-  type            (abundances                )                                      :: abundancesStars
-  type            (fgsl_function             )                                      :: integrandFunction
-  type            (fgsl_integration_workspace)                                      :: integrationWorkspace
-  type            (c_ptr                     )                                      :: parameterPointer
-  logical                                                                           :: integrationReset
+  class           (likelihoodSEDFit                  ), intent(inout)                 :: self
+  class           (state                             ), intent(in   )                 :: simulationState
+  type            (mappingList                       ), intent(in   ), dimension(:  ) :: parameterMappings
+  class           (convergence                       ), intent(inout)                 :: simulationConvergence
+  double precision                                    , intent(in   )                 :: temperature                         , logLikelihoodCurrent   , &
+       &                                                                                 logPriorCurrent                     , logPriorProposed
+  double precision                                    , allocatable  , dimension(:  ) :: stateVector                         , ages                   , &
+       &                                                                                 weights
+  double precision                                    , allocatable  , dimension(:,:) :: massToLightRatios
+  double precision                                    , parameter                     :: logImprobable              =-7.0d+0
+  double precision                                    , parameter                     :: toleranceRelativeFractional=+1.0d-2
+  double precision                                    , parameter                     :: stellarAgeArbitrary        =+1.0d+0
+  double precision                                    , parameter                     :: vBandWavelength            =5504.61227375652d0
+  class           (cosmologyFunctionsClass           ), pointer                       :: cosmologyFunctions_
+  class           (stellarSpectraDustAttenuationClass), allocatable                   :: dust
+  integer         (c_size_t                          )                                :: i
+  integer                                                                             :: iMagnitude                          , imfIndex               , &
+       &                                                                                 burstIndexOffset
+  double precision                                                                    :: mass                                , timeScale              , &
+       &                                                                                 starFormationRateNormalization      , magnitude              , &
+       &                                                                                 luminosity                          , metallicity            , &
+       &                                                                                 redshift                            , timeObserved           , &
+       &                                                                                 vBandAttenuation                    , opticalDepthBirthClouds, &
+       &                                                                                 timeStart                           , Rv                     , &
+       &                                                                                 toleranceRelative                   , termLinear             , &
+       &                                                                                 termConstant                        , newLuminosity          , &
+       &                                                                                 agePrevious                         , ageNow                 , &
+       &                                                                                 ageNext                             , recycledFractionInstantaneous  
+  type            (abundances                )                                        :: abundancesStars
+  type            (fgsl_function             )                                        :: integrandFunction
+  type            (fgsl_integration_workspace)                                        :: integrationWorkspace
+  type            (c_ptr                     )                                        :: parameterPointer
+  logical                                                                             :: integrationReset                    , useRapidEvaluation
 
   ! Do not evaluate if the proposed prior is impossible.
   if (logPriorProposed <= logImpossible) then
@@ -177,7 +187,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
      timeStart=timeObserved-stateVector(2)
   end select
   ! Return impossibility if start time is after the observed time or before the Big Bang.
-  if (timeStart >= timeObserved .or. timeStart <= 0.0d0) then
+  if (timeStart >= timeObserved*(1.0d0-toleranceRelativeFractional) .or. timeStart <= 0.0d0) then
      likelihoodSEDFitEvaluate=logImpossible
      return
   end if
@@ -261,29 +271,132 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   self%redshift=redshift
   ! Construct the abundances object.
   call abundancesStars%metallicitySet(metallicity,metallicityType=linearByMassSolar)
+  ! Determine if we can use a rapid summation over tabulated mass-to-light ratios.
+  useRapidEvaluation= self%burstCount == 0                        &
+       &             .and.                                        &
+       &              (                                           &
+       &                     dust%isSeparable   ()                &
+       &               .or.                                       &
+       &                .not.dust%isAgeDependent()                &
+       &              )                                           &
+       &             .and.                                        &
+       &              .not.IMF_Is_Star_Formation_Rate_Dependent()
+  if (useRapidEvaluation) then
+     ! Find the IMF.
+     imfIndex         =IMF_Select(1.0d0,abundancesStars,componentTypeDisk)
+     ! Get tables of ages and luminosities.
+     call Stellar_Population_Luminosity_Track(                               &
+          &                                   self%luminosityIndex         , &
+          &                                   self%filterIndex             , &
+          &                                   self%postprocessingChainIndex, &
+          &                                   imfIndex                     , &
+          &                                   abundancesStars              , &
+          &                                   self%redshift                , &
+          &                                   ages                         , &
+          &                                   massToLightRatios              &
+          &                                  )
+     ! Evaluate the star formation rate normalization.
+     starFormationRateNormalization=mass/timeScale/(1.0d0-exp(-(timeObserved-timeStart)/timeScale))
+     ! Evaluate weight for each tabulated age.
+     allocate(weights(size(ages)))
+     weights(size(ages))=0.0d0
+     do i=1,size(ages,kind=c_size_t)-1
+        if (i == 1) then
+           agePrevious=0.0d0
+        else
+           agePrevious=min(ages(i-1),timeObserved-timeStart)
+        end if
+        ageNow =min(ages(i  ),timeObserved-timeStart)
+        ageNext=min(ages(i+1),timeObserved-timeStart)        
+        termConstant=0.0d0
+        if (ageNext     > ageNow) termConstant=                                                                                  &
+             &                                 +termConstant                                                                     &
+             &                                 +(1.0d0+ageNow/(ageNext-ageNow))                                                  &
+             &                                 *(                                                                                &
+             &                                   -exp(-((timeObserved-ageNow     )-timeStart)/timeScale)                         &
+             &                                   +exp(-((timeObserved-ageNext    )-timeStart)/timeScale)                         &
+             &                                  )
+        if (agePrevious < ageNow) termConstant=                                                                                  &
+             &                                 +termConstant                                                                     &
+             &                                 -(agePrevious/(ageNow-agePrevious))                                               &
+             &                                 *(                                                                                &
+             &                                   -exp(-((timeObserved-agePrevious)-timeStart)/timeScale)                         &
+             &                                   +exp(-((timeObserved-ageNow     )-timeStart)/timeScale)                         &
+             &                                 )
+        termLinear=0.0d0
+        if (ageNext     > ageNow) termLinear  =                                                                                  &
+             &                                 +termLinear                                                                       &
+             &                                 -(                                                                                &
+             &                                   -exp(-((timeObserved-ageNow     )-timeStart)/timeScale)*(ageNow     -timeScale) &
+             &                                   +exp(-((timeObserved-ageNext    )-timeStart)/timeScale)*(ageNext    -timeScale) &
+             &                                 )                                                                                 &
+             &                                 /(ageNext-ageNow)
+        if (agePrevious < ageNow) termLinear  =                                                                                  &
+             &                                 +termLinear                                                                       &
+             &                                 +(                                                                                &
+             &                                   -exp(-((timeObserved-agePrevious)-timeStart)/timeScale)*(agePrevious-timeScale) &
+             &                                   +exp(-((timeObserved-ageNow     )-timeStart)/timeScale)*(ageNow     -timeScale) &
+             &                                 )                                                                                 &
+             &                                 /(ageNow-agePrevious)        
+        ! Find the recycled fraction.
+        recycledFractionInstantaneous=IMF_Recycled_Fraction_Instantaneous(1.0d0,abundancesStars,componentTypeDisk)
+        weights(i)=(termConstant+termLinear)*starFormationRateNormalization*timeScale/(1.0d0-recycledFractionInstantaneous)        
+        if (.not.dust%isSeparable())                                       &
+             & weights(i)=                                                 &
+             &            +weights(i)                                      &
+             &            *10.0d0**(                                       &
+             &                      -0.4d0                                 &
+             &                      *dust%attenuation(                     &
+             &                                        vBandWavelength    , &
+             &                                        ageNow             , &
+             &                                        vBandAttenuation     &
+             &                                       )                     &
+             &                      +0.4d0                                 &
+             &                      *dust%attenuation(                     &
+             &                                        vBandWavelength    , &
+             &                                        stellarAgeArbitrary, &
+             &                                        vBandAttenuation     &
+             &                                       )                     &
+             &                     )
+      end do
+  end if
   ! Iterate over bands.
   likelihoodSEDFitEvaluate      =0.0d0
   starFormationRateNormalization=1.0d0
   do iMagnitude=0,size(self%magnitude)
-     ! Integrate star formation history to get luminosity.
-     integrationReset=.true.
-     if (iMagnitude == 0) then
-        toleranceRelative=    1.0d-3
+     ! Compute luminosity.
+     if (useRapidEvaluation) then
+        if (iMagnitude > 0.0d0)                                                             &
+             & luminosity=+sum(weights*massToLightRatios(:,iMagnitude))                     &
+             &            *10.0d0**(                                                        &
+             &                      -0.4d0                                                  &
+             &                      *dust%attenuation(                                      &
+             &                                        self%wavelengthEffective(iMagnitude), &
+             &                                        stellarAgeArbitrary                 , &
+             &                                        vBandAttenuation                      &
+             &                                       )                                      &
+             &                     )
      else
-        toleranceRelative=max(1.0d-3,toleranceRelativeFractional*self%error(imagnitude)*log(10.0d0)/2.5d0)
+        ! Integrate star formation history to get luminosity.
+        integrationReset=.true.
+        if (iMagnitude == 0) then
+           toleranceRelative=    1.0d-3
+        else
+           toleranceRelative=max(1.0d-3,toleranceRelativeFractional*self%error(imagnitude)*log(10.0d0)/2.5d0)
+        end if
+        luminosity=Integrate(                                         &
+             &               timeStart                              , &
+             &               timeObserved                           , &
+             &               luminosityIntegrand                    , &
+             &               parameterPointer                       , &
+             &               integrandFunction                      , &
+             &               integrationWorkspace                   , &
+             &               toleranceRelative   =toleranceRelative , &
+             &               integrationRule     =FGSL_Integ_Gauss61, &
+             &               reset               =integrationReset    &
+             &              )
+        call Integrate_Done(integrandFunction,integrationWorkspace)
      end if
-     luminosity=Integrate(                                           &
-          &               timeStart                                , &
-          &               timeObserved                             , &
-          &               luminosityIntegrand                      , &
-          &               parameterPointer                         , &
-          &               integrandFunction                        , &
-          &               integrationWorkspace                     , &
-          &               toleranceRelative     =toleranceRelative , &
-          &               integrationRule       =FGSL_Integ_Gauss61, &
-          &               reset                 =integrationReset    &
-          &              )
-     call Integrate_Done(integrandFunction,integrationWorkspace)
      ! Determine if we're computing mass or luminosity.
      if (iMagnitude > 0) then
         ! Accumulate to likelihood.
@@ -307,7 +420,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
              &    logImprobable                               &
              &   *temperature                                 &
              & ) exit
-     else
+     else if (.not.useRapidEvaluation) then
         ! Normalize the star formation rate.
         starFormationRateNormalization=mass/luminosity
      end if
@@ -344,14 +457,14 @@ contains
     ! Determine if we're computing luminosity or mass.
     if (iMagnitude > 0) then
        ! Find the mass-to-light ratio.
-       self%massToLightRatio        =Stellar_Population_Luminosity      (                                    &
-            &                                                            self%luminosityIndex         (i:i), &
-            &                                                            self%filterIndex             (i:i), &
-            &                                                            self%postprocessingChainIndex(i:i), &
-            &                                                            imfIndex                          , &
-            &                                                            abundancesStars                   , &
-            &                                                            self%age                     (i:i), &
-            &                                                            self%redshift                (i:i)  &
+       self%massToLightRatio        =Stellar_Population_Luminosity      (                                                      &
+            &                                                            self%luminosityIndex         (iMagnitude:iMagnitude), &
+            &                                                            self%filterIndex             (iMagnitude:iMagnitude), &
+            &                                                            self%postprocessingChainIndex(iMagnitude:iMagnitude), &
+            &                                                            imfIndex                                            , &
+            &                                                            abundancesStars                                     , &
+            &                                                            self%age                     (iMagnitude:iMagnitude), &
+            &                                                            self%redshift                (iMagnitude:iMagnitude)  &
             &                                                           )
        luminosityIntegrand=                                                                  &
             &              +starFormationRate                                                &
