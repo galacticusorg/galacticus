@@ -39,7 +39,7 @@ subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,paramet
   type            (prior                         ), intent(inout), dimension(:  ) :: parameterPriors
   type            (mappingList                   ), intent(in   ), dimension(:  ) :: parameterMappings
   integer         (kind=c_size_t                 ), allocatable  , dimension(:  ) :: order
-  double precision                                , allocatable  , dimension(:  ) :: x
+  double precision                                , allocatable  , dimension(:  ) :: x                    , y
   double precision                                , allocatable  , dimension(:,:) :: stateGrid            , stateGridBest
   type            (pseudoRandom)                                                  :: randomNumberGenerator
   integer                                                                         :: i                    , j                       , &
@@ -49,6 +49,7 @@ subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,paramet
 
   ! Generate random sequence.
   allocate(        x    (0:mpiSelf%count()-1                            ))
+  allocate(        y    (0:mpiSelf%count()-1                            ))
   allocate(    order    (0:mpiSelf%count()-1                            ))
   allocate(stateGrid    (0:mpiSelf%count()-1,simulationState%dimension()))
   allocate(stateGridBest(0:mpiSelf%count()-1,simulationState%dimension()))
@@ -57,8 +58,9 @@ subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,paramet
      do j=1,simulationState%dimension()
         x                =0.0d0
         x(mpiSelf%rank())=randomNumberGenerator%sample(ompThreadOffset=.true.,mpiRankOffset=.true.)
-        x                =mpiSelf%sum(x)
-        order            =Sort_Index_Do(x)-1
+        y                =mpiSelf%sum(x)
+        call mpiBarrier()  
+        order            =Sort_Index_Do(y)-1
         do i=0,mpiSelf%count()-1
            stateGrid(i,j)=(dble(order(i))+0.5d0)/mpiSelf%count()
         end do
