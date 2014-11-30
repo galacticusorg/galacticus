@@ -182,8 +182,7 @@ contains
     use Galacticus_Output_Analyses_Cosmology_Scalings
     use Numerical_Comparison
     use Numerical_Ranges
-    use FoX_dom
-    use IO_XML
+    use IO_HDF5
     use Linear_Growth
     implicit none
     type            (mergerTree                    ), intent(in   )                 :: thisTree
@@ -191,16 +190,14 @@ contains
     integer                                         , intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
-    double precision                                , allocatable  , dimension(:  ) :: separationTmp
     integer                                         , parameter                     :: wavenumberCount  =60
     double precision                                , parameter                     :: wavenumberMinimum=0.001d0, wavenumberMaximum=10000.0d0
-    type            (node                          ), pointer                       :: doc,columnElement,massElement,hubbleElement,datum,cosmology,omegaDarkEnergyElement,omegaMatterElement,datasetElement,cosmologyScalingElement,separationElement,correlationElement,integration,lineOfSightDepth
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
     double precision                                                                :: mass, massLogarithmic, dataHubbleParameter, dataOmegaMatter, dataOmegaDarkEnergy, redshift, timeMinimum, timeMaximum, distanceMinimum, distanceMaximum, weight
-    integer                                                                         :: i,j,k,m, currentAnalysis, activeAnalysisCount,ioErr,massCount, jOutput
+    integer                                                                         :: i,j,k,m, currentAnalysis, activeAnalysisCount,massCount, jOutput
     type            (varying_string                )                                :: parameterName, cosmologyScalingMass, cosmologyScalingSize, message
-    character       (len=128                       )                                :: cosmologyScaling
+    type            (hdf5Object                    )                                :: dataFile        , parameters, dataset
 
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
@@ -288,80 +285,32 @@ contains
                       select case (trim(correlationFunctionLabels(j)))
                       case ('sdssClusteringZ0.07')
                          ! Read data for the Hearin et al. (2013) projected correlation function.
-                         !$omp critical (FoX_DOM_Access)
-                         ! Parse document.
-                         doc => parseFile(char(Galacticus_Input_Path())//"data/observations/correlationFunctions/Projected_Correlation_Functions_Hearin_2013.xml",iostat=ioErr)
-                         if (ioErr /= 0) call Galacticus_Error_Report('Galacticus_Output_Analysis_Correlation_Functions','Unable to find or parse data file ['//char(Galacticus_Input_Path())//'data/observations/correlationFunctions/Projected_Correlation_Functions_Hearin_2013.xml]')
-                         ! Extract cosmological parameters.
-                         cosmology              => XML_Get_First_Element_By_Tag_Name(doc      ,"cosmology"      )
-                         hubbleElement          => XML_Get_First_Element_By_Tag_Name(cosmology,"hubble"         )
-                         omegaMatterElement     => XML_Get_First_Element_By_Tag_Name(cosmology,"omegaMatter"    )
-                         omegaDarkEnergyElement => XML_Get_First_Element_By_Tag_Name(cosmology,"omegaDarkEnergy")
-                         call extractDataContent(hubbleElement         ,dataHubbleParameter)
-                         call extractDataContent(omegaMatterElement    ,dataOmegaMatter    )
-                         call extractDataContent(omegaDarkEnergyElement,dataOmegaDarkEnergy)
-                         ! Extract integration depth.
-                         integration      => XML_Get_First_Element_By_Tag_Name(doc        ,"integration"     )
-                         lineOfSightDepth => XML_Get_First_Element_By_Tag_Name(integration,"lineOfSightDepth")
-                         call extractDataContent(lineOfSightDepth,correlationFunctions(currentAnalysis)%lineOfSightDepth)
-                         ! Allocate arrays.
-                         call Alloc_Array(correlationFunctions(currentAnalysis)%massMinimum           ,[3])
-                         call Alloc_Array(correlationFunctions(currentAnalysis)%massMinimumLogarithmic,[3])
-                         ! Locate datasets.
-                         datasetElement => item(getElementsByTagname(doc,"correlationFunction"),0)
-                         do k=1,3
-                            columnElement      => item(getElementsByTagname(datasetElement,"columns"            ),k-1)
-                            massElement        => item(getElementsByTagname( columnElement,"mass"               ),0)
-                            separationElement  => item(getElementsByTagname( columnElement,"separation"         ),0)
-                            correlationElement => item(getElementsByTagname( columnElement,"correlationFunction"),0)
-                            ! Extract cosmology scalings.
-                            cosmologyScalingElement => XML_Get_First_Element_By_Tag_Name(massElement,"cosmologyScaling")
-                            call extractDataContent(cosmologyScalingElement,cosmologyScaling)
-                            if (k == 1) then
-                               cosmologyScalingMass = trim(cosmologyScaling)
-                            else
-                               if (cosmologyScalingMass /= trim(cosmologyScaling))                                     &
-                                    & call Galacticus_Error_Report(                                                    &
-                                    &                              'Galacticus_Output_Analysis_Correlation_Functions', &
-                                    &                              'mass cosmology scaling mistmatch'                  &
-                                    &                             )
-                            end if
-                            cosmologyScalingElement => XML_Get_First_Element_By_Tag_Name(separationElement,"cosmologyScaling")
-                            call extractDataContent(cosmologyScalingElement,cosmologyScaling)
-                            if (k == 1) then
-                               cosmologyScalingSize = trim(cosmologyScaling)
-                            else
-                               if (cosmologyScalingSize /= trim(cosmologyScaling))                                     &
-                                    & call Galacticus_Error_Report(                                                    &
-                                    &                              'Galacticus_Output_Analysis_Correlation_Functions', &
-                                    &                              'size cosmology scaling mistmatch'                  &
-                                    &                             )
-                            end if
-                            ! Extract minimum mass.
-                            datum => XML_Get_First_Element_By_Tag_Name(massElement,"minimum")
-                            call extractDataContent(datum,correlationFunctions(currentAnalysis)%massMinimumLogarithmic(k))
-                            ! Extract separations.
-                            call XML_Array_Read(separationElement,"datum",separationTmp)
-                            if (k == 1) then
-                               correlationFunctions(currentAnalysis)%separation=separationTmp
-                            else
-                               if (any(correlationFunctions(currentAnalysis)%separation /= separationTmp))             &
-                                    & call Galacticus_Error_Report(                                                    &
-                                    &                              'Galacticus_Output_Analysis_Correlation_Functions', &
-                                    &                              'separation mistmatch'                              &
-                                    &                             )
-                            end if
-                            ! Extract integral constraint.
-                            call Alloc_Array(correlationFunctions(currentAnalysis)%integralConstraint,[size(correlationFunctions(currentAnalysis)%separation),3])
-                            correlationFunctions(currentAnalysis)%integralConstraint=1.0d0
-                         end do
-                         ! Convert masses from logarithmic to linear.
-                         correlationFunctions(currentAnalysis)%massMinimum=10.0d0**correlationFunctions(currentAnalysis)%massMinimumLogarithmic
-                         ! Convert separations from logarithmic to linear.
-                         correlationFunctions(currentAnalysis)%separation =10.0d0**correlationFunctions(currentAnalysis)%separation
-                         ! Destroy the document.
-                         call destroy(doc)
-                         !$omp end critical (FoX_DOM_Access)                         
+                         !$omp critical(HDF5_Access)
+                         call dataFile%openFile(char(Galacticus_Input_Path()//'/data/observations/correlationFunctions/Projected_Correlation_Functions_Hearin_2013.hdf5'),readOnly=.true.)
+                         ! Extract parameters.
+                         parameters =dataFile%openGroup('Parameters')
+                         call parameters %readAttribute('H_0'                                         ,dataHubbleParameter                                   )
+                         call parameters %readAttribute('Omega_Matter'                                ,dataOmegaMatter                                       )
+                         call parameters %readAttribute('Omega_DE'                                    ,dataOmegaDarkEnergy                                   )
+                         call parameters %readAttribute('projectedCorrelationFunctionLineOfSightDepth',correlationFunctions(currentAnalysis)%lineOfSightDepth)
+                         call parameters %close()
+                         ! Read cosmology scalings.
+                         dataset=dataFile%openDataset('massMinimum')
+                         call dataset%readAttribute('cosmologyScaling',cosmologyScalingMass,allowPseudoScalar=.true.)
+                         call dataset%close()
+                         dataset=dataFile%openDataset('separation')
+                         call dataset%readAttribute('cosmologyScaling',cosmologyScalingSize,allowPseudoScalar=.true.)
+                         call dataset%close()
+                         ! Extract minimum mass.
+                         call dataFile%readDataset('massMinimum'       ,correlationFunctions(currentAnalysis)%massMinimum       )
+                         correlationFunctions(currentAnalysis)%massMinimumLogarithmic=log10(correlationFunctions(currentAnalysis)%massMinimum)
+                         ! Extract separations.
+                         call dataFile%readDataset('separationObserved',correlationFunctions(currentAnalysis)%separation        )
+                         ! Extract integral constraint.
+                         call dataFile%readDataset('integralConstraint',correlationFunctions(currentAnalysis)%integralConstraint)
+                         ! Done.
+                         call dataFile%close()
+                         !$omp end critical(HDF5_Access)                      
                          ! Create the observed cosmology.
                          cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
                               &                                                     OmegaMatter    =dataOmegaMatter    , &
@@ -374,7 +323,7 @@ contains
                               &                                                     cosmologyParametersObserved          &
                               &                                                    )
                          ! Allocate wavenumbers.
-                         massCount=3
+                         massCount=size(correlationFunctions(currentAnalysis)%massMinimum)
                          call Alloc_Array(correlationFunctions(currentAnalysis)%wavenumber           ,[wavenumberCount                                                                 ])
                          call Alloc_Array(correlationFunctions(currentAnalysis)%meanDensity          ,[                massCount                                                       ])
                          call Alloc_Array(correlationFunctions(currentAnalysis)%meanDensityMainBranch,[                massCount,analysisProjectedCorrelationFunctionsHaloMassBinsCount])
@@ -566,6 +515,7 @@ contains
        thisHalo%propertiesSet     =.false.
        thisHalo%satelliteCount    =0
        thisHalo%centralProbability=0.0d0
+       thisHalo%isMainBranch      =.false.
        thisHalo%initialized       =.true.
     end if
     ! Check if the host has changed.
@@ -1019,7 +969,7 @@ contains
        end do
        jacobianMatrix                        =jacobian
        covarianceMatrix                      =oneTwoHaloCovariance
-       oneTwoHaloCovariance                     =jacobianMatrix*(covarianceMatrix*jacobianMatrix%transpose())
+       oneTwoHaloCovariance                  =jacobianMatrix*(covarianceMatrix*jacobianMatrix%transpose())
        do n=1,massCount
           do i=1,wavenumberCount
              correlationFunctions(k)%twoHaloTerm(i,n)=                correlationFunctions(k)%twoHaloTerm(i,n)**2 &
@@ -1128,7 +1078,7 @@ contains
           end do
        end do
        call Dealloc_Array(covarianceTmp)       
-      ! Construct correlation table.
+       ! Construct correlation table.
        call correlationTable%create(separation(1),separation(wavenumberCount),size(separation),extrapolationTypeExtrapolate)
        ! Project the correlation function.
        call Alloc_Array(jacobian                      ,[massCount*wavenumberCount,massCount*wavenumberCount])
