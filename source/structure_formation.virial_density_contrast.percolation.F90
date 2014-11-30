@@ -111,7 +111,7 @@ contains
     ! Initialize tabulations.
     percolationConstructor%densityContrastTableTimeMinimum           = 1.0d-3
     percolationConstructor%densityContrastTableTimeMaximum           =20.0d+0
-    percolationConstructor%densityContrastTableMassMinimum           = 1.0d6
+    percolationConstructor%densityContrastTableMassMinimum           = 4.0d5
     percolationConstructor%densityContrastTableMassMaximum           = 1.0d16
     percolationConstructor%densityContrastTableInitialized           =.false.
     percolationConstructor%densityContrastTableMassInterpolationReset=.true.
