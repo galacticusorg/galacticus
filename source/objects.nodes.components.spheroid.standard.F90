@@ -654,6 +654,8 @@ contains
 
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Rate(self,rate,interrupt,interruptProcedure)
     !% Adjust the rates for the star formation history.
+    use Memory_Management
+    use Galacticus_Error
     implicit none
     class    (nodeComponentSpheroidStandard), intent(inout)                    :: self
     type     (history                      ), intent(in   )                    :: rate
