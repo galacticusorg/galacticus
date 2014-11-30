@@ -86,7 +86,7 @@ contains
     integer                                                                           :: i                                  , j
 
     if (size(matrix,dim=1) /= size(matrix,dim=2)) call Galacticus_Error_Report('Matrix_Copy_Upper_To_Lower_Triangle','matrix must be square')
-    do i=1,size(matrix,dim=1)-1
+    do i=1,size(matrix,dim=1)
        do j=i,size(matrix,dim=2)
           Matrix_Copy_Upper_To_Lower_Triangle(i,j)=matrix(i,j)
           Matrix_Copy_Upper_To_Lower_Triangle(j,i)=matrix(i,j)
