@@ -24,10 +24,11 @@
      integer         , allocatable, dimension(:) :: filterIndex             , luminosityIndex         , &
           &                                         postprocessingChainIndex
      double precision, allocatable, dimension(:) :: magnitude               , error                   , &
-          &                                         redshift                , massToLightRatio        , &
+          &                                         redshift                , burstFraction           , &
           &                                         age                     , wavelengthEffective     , &
-          &                                         burstTimeStart          , burstTimescale          , &
-          &                                         burstFraction
+          &                                         burstTimeStart          , burstTimescale
+          &                                         
+     double precision             , dimension(1) :: massToLightRatio
    contains
      procedure :: evaluate        => likelihoodSEDFitEvaluate
      procedure :: functionChanged => likelihoodSEDFitFunctionChanged
