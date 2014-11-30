@@ -1800,13 +1800,15 @@ contains
     double precision          , intent(in   )                            :: mass
     type            (treeNode), intent(inout), pointer                   :: thisNode
     double precision          , intent(inout), allocatable, dimension(:) :: error          , weight
-    double precision                                                     :: logarithmicMass, molecularFraction, &
-         &                                                                  molecularRatio
+    double precision                                                     :: logarithmicMass, molecularFraction
 
     ! Initialize the mass function.
     call ALFALFA_HI_Mass_Function_Z0_00_Initialize()
     ! Get the logarithmic mass.
     logarithmicMass=log10(mass)
+    ! Allocate arrays.
+    allocate(error (1))
+    allocate(weight(1))
     ! Compute the random error on the mass.
     error  =[                                         &
          &   +alfalfaHiMassFunctionZ0_00ErrorA        &
@@ -1819,7 +1821,7 @@ contains
          &    )                                       &
          &  ]
     ! Add in quadrature a term accounting for the scatter in the molecular ratio model.
-    molecularRatio=Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+    molecularFraction=Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
     error  =[                                                              &
          &   sqrt(                                                         &
          &        +error                                               **2 &
