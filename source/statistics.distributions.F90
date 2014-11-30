@@ -228,6 +228,11 @@ contains
     case default
        call Galacticus_Error_Report('distributionNew','distribution type is unrecognized')
     end select
+    ! Ensure random number generator is appropriately initialized.
+    select type (newDistribution)
+    class is (distribution1D)
+       call newDistribution%randomNumberGenerator%initialize()
+    end select
     return
   end function distributionNew
 
