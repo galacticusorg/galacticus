@@ -20,7 +20,7 @@
 function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion &
           &,simulationState,simulationStateInitializor,proposalSize,proposalSizeTemperatureExponent,randomJump,stepsMaximum&
           &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum ,untemperedStepCount,temperingLevelCount&
-          &,stepsPerLevel,sampleOutliers)
+          &,stepsPerLevel,sampleOutliers,logFlushCount)
   !% Constructor for ``temperedDifferentialEvolution'' simulator class.
   implicit none
   type            (simulatorTemperedDifferentialEvolution)                                      :: simulatorTemperedDifferentialEvolutionConstructor
@@ -38,7 +38,7 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   double precision                                        , intent(in   )                       :: temperatureMaximum
   integer                                                 , intent(in   )                       :: stepsMaximum                   , stateSwapCount          , &
        &                                                                                           acceptanceAverageCount         , untemperedStepCount     , &
-       &                                                                                           temperingLevelCount            , stepsPerLevel                                                                                          
+       &                                                                                           temperingLevelCount            , stepsPerLevel         ,logFlushCount                                                                                 
   character       (len=*                                 ), intent(in   )                       :: logFileRoot
   logical                                                 , intent(in   )                       :: sampleOutliers
   integer                                                                                       :: i
@@ -66,6 +66,7 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   simulatorTemperedDifferentialEvolutionConstructor%sampleOutliers                  =  sampleOutliers
   simulatorTemperedDifferentialEvolutionConstructor%temperingStep                   =  0
   simulatorTemperedDifferentialEvolutionConstructor%temperingLevelMonotonic         =  0
+  simulatorTemperedDifferentialEvolutionConstructor%logFlushCount               =  logFlushCount
   allocate(simulatorTemperedDifferentialEvolutionConstructor%temperatures(temperingLevelCount))
   allocate(stateSimple :: simulatorTemperedDifferentialEvolutionConstructor%temperedStates(temperingLevelCount))
   do i=1,temperingLevelCount
