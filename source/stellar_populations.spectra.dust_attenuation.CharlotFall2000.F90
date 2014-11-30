@@ -26,7 +26,8 @@
      private
      double precision :: opacityExponent, birthCloudLifetime, opticalDepthISM, opticalDepthBirthClouds
    contains
-     procedure :: attenuation => charlotFall2000Attenuation
+     procedure :: attenuation    => charlotFall2000Attenuation
+     procedure :: isAgeDependent => charlotFall2000IsAgeDependent
   end type stellarSpectraDustAttenuationCharlotFall2000
 
   interface stellarSpectraDustAttenuationCharlotFall2000
@@ -86,3 +87,12 @@ contains
     charlotFall2000Attenuation=vBandAttenuation*cloudFactor/(wavelength/vBandWavelength)**self%opacityExponent
     return
   end function charlotFall2000Attenuation
+
+  logical function charlotFall2000IsAgeDependent(self)
+    !% Return true since attenuation is age-dependent in the \cite{charlot_simple_2000} dust attenuation model.
+    implicit none
+    class(stellarSpectraDustAttenuationCharlotFall2000), intent(inout) :: self
+
+    charlotFall2000IsAgeDependent=.true.
+    return
+  end function charlotFall2000IsAgeDependent
