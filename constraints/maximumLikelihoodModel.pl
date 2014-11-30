@@ -108,7 +108,7 @@ die("maximumLikelihoodModel.pl: failed to build Galacticus.exe")
 my $glcCommand;
 $glcCommand .= "./Galacticus.exe ".$maximumLikelihoodDirectory."/parameters.xml";
 my $logFile = $maximumLikelihoodDirectory."/galacticus.log";
-## AJB HACK SystemRedirect::tofile($glcCommand,$logFile);
+&SystemRedirect::tofile($glcCommand,$logFile);
 die("maximumLikelihoodModel.pl: Galacticus model failed")
     unless ( $? == 0 );
 
