@@ -32,7 +32,7 @@ module Star_Formation_IMF
   implicit none
   private
   public :: IMF_Select, IMF_Recycled_Fraction_Instantaneous, IMF_Recycling_Rate_NonInstantaneous, IMF_Remnant_Production_Rate_NonInstantaneous, IMF_Yield_Instantaneous,&
-       & IMF_Metal_Yield_Rate_NonInstantaneous, IMF_Energy_Input_Rate_NonInstantaneous, IMF_Name, IMF_Tabulate, IMF_Descriptor
+       & IMF_Metal_Yield_Rate_NonInstantaneous, IMF_Energy_Input_Rate_NonInstantaneous, IMF_Name, IMF_Tabulate, IMF_Descriptor, IMF_Is_Star_Formation_Rate_Dependent
 
   ! Flag to indicate if this module has been initialized.
   logical                                                                           :: imfInitialized                         =.false.
@@ -111,6 +111,13 @@ module Star_Formation_IMF
      end function IMF_Select_Template
   end interface
 
+  ! Pointer to the function that specifies if IMF is star formation rate dependent.
+  procedure       (IMF_Is_Star_Formation_Rate_Dependent_Template), pointer        ::  IMF_Is_Star_Formation_Rate_Dependent_Do =>null()
+  abstract interface
+     logical function IMF_Is_Star_Formation_Rate_Dependent_Template()
+     end function IMF_Is_Star_Formation_Rate_Dependent_Template
+  end interface
+
   ! Current file format used for stellar population properties.
   integer                         , parameter :: fileFormatCurrent                                      =1
 
@@ -139,6 +146,18 @@ contains
     IMF_Select=IMF_Select_Do(starFormationRate,fuelAbundances,component)
     return
   end function IMF_Select
+
+  logical function IMF_Is_Star_Formation_Rate_Dependent()
+    !% Specifies whether the selected IMF depends on star formation rate.
+    implicit none
+
+    ! Initialize the IMF subsystem.
+    call Star_Formation_IMF_Initialize
+
+    ! Call the function that makes the selection.
+    IMF_Is_Star_Formation_Rate_Dependent=IMF_Is_Star_Formation_Rate_Dependent_Do()
+    return
+  end function IMF_Is_Star_Formation_Rate_Dependent
 
   function IMF_Name(imfIndex)
     !% Return the name of the IMF with the specified index.
@@ -217,10 +236,10 @@ contains
           call Get_Input_Parameter('imfSelectionMethod',imfSelectionMethod,defaultValue='fixed')
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="imfSelectionMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>imfSelectionMethod,IMF_Select_Do,imfNames</functionArgs>
+          !#  <functionArgs>imfSelectionMethod,IMF_Select_Do,IMF_Is_Star_Formation_Rate_Dependent_Do,imfNames</functionArgs>
           include 'star_formation.IMF.select.inc'
           !# </include>
-          if (.not.associated(IMF_Select_Do)) call Galacticus_Error_Report('Star_Formation_IMF_Initialize'&
+          if (.not.associated(IMF_Select_Do).or..not.associated(IMF_Is_Star_Formation_Rate_Dependent_Do)) call Galacticus_Error_Report('Star_Formation_IMF_Initialize'&
                &,'method '//char(imfSelectionMethod)//' is unrecognized')
 
           ! Get options controlling the instantaneous stellar evolution approximation.
