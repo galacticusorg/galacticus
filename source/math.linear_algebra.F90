@@ -76,6 +76,12 @@ module Linear_Algebra
      !@     <description>Compute and return the logarithm of the determinant of the matrix.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>determinant</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Compute and return the determinant of the matrix.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>linearSystemSolve</method>
      !@     <type>\textcolor{red}{\textless type(vector)</type>
      !@     <arguments>\textcolor{red}{\textless type(vector) y\argin \textgreater}</arguments>
@@ -87,13 +93,21 @@ module Linear_Algebra
      !@     <arguments></arguments>
      !@     <description>Return the transpose of a matrix.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>makeSemiPositiveDefinite</method>
+     !@     <type>\textcolor{red}{\textless type(matrix)</type>
+     !@     <arguments></arguments>
+     !@     <description>Make a matrix semi-positive definite by setting any negative eigenvalues to zero.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: invert                 => matrixInvert
-     procedure :: logarithmicDeterminant => matrixLogarithmicDeterminant
-     procedure :: linearSystemSolve      => matrixLinearSystemSolve
-     procedure :: transpose              => matrixTranspose
-     procedure :: eigenSystem            => matrixEigensystem
-     procedure :: symmetrize             => matrixSymmetrize
+     procedure :: invert                   => matrixInvert
+     procedure :: logarithmicDeterminant   => matrixLogarithmicDeterminant
+     procedure :: determinant              => matrixDeterminant
+     procedure :: linearSystemSolve        => matrixLinearSystemSolve
+     procedure :: transpose                => matrixTranspose
+     procedure :: eigenSystem              => matrixEigensystem
+     procedure :: symmetrize               => matrixSymmetrize
+     procedure :: makeSemiPositiveDefinite => matrixMakeSemiPositiveDefinite
   end type matrix
   
   ! Assignment interfaces.
@@ -205,6 +219,37 @@ contains
     return
   end subroutine matrixDestroy
   
+  subroutine matrixMakeSemiPositiveDefinite(self)
+    !% Make a matrix semi-positive definite by setting any negative
+    !% eigenvalues to zero and reconstructing the matrix from its
+    !% eigenvectors.
+    implicit none
+    class           (matrix          ), intent(inout)                 :: self
+    double precision                  , allocatable  , dimension(:,:) :: eigenValuesMatrixArray
+    double precision                  , allocatable  , dimension(:  ) :: eigenValueArray
+    integer         (kind=fgsl_size_t)                                :: selfMatrixSize        , i
+    type            (matrix          )                                :: eigenValuesMatrix     , eigenVectors, eigenVectorsInverse
+    type            (vector          )                                :: eigenValues
+
+    selfMatrixSize=size(self%elements,dim=1)
+    call self%eigenSystem(eigenVectors,eigenValues)
+    allocate(eigenValuesMatrixArray(selfMatrixSize,selfMatrixSize))
+    allocate(eigenValueArray(selfMatrixSize))
+    eigenValueArray=eigenValues
+    eigenValuesMatrixArray=0.0d0
+    do i=1,selfMatrixSize
+       if (eigenValueArray(i) > 0.0d0) eigenValuesMatrixArray(i,i)=eigenValueArray(i)
+    end do
+    eigenValuesMatrix  =eigenValuesMatrixArray
+    eigenVectors       =eigenVectors%transpose()
+    eigenVectorsInverse=eigenVectors%invert()
+    select type (self)
+    type is (matrix)
+       self            =eigenVectors*eigenValuesMatrix*eigenVectorsInverse
+    end select
+    return
+  end subroutine matrixMakeSemiPositiveDefinite
+
   function matrixInvert(self)
     !% Invert a matrix.
     implicit none
@@ -217,21 +262,19 @@ contains
     double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)), target :: inverse
     double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2))         :: selfArray
 
-    selfMatrixSize       =size(self%elements,dim=1)
-    selfMatrix           =FGSL_Matrix_Init(type=1.0_fgsl_double)
-    selfInverse          =FGSL_Matrix_Init(type=1.0_fgsl_double)
-    permutations         =FGSL_Permutation_Alloc(selfMatrixSize)
-    selfArray            =self%elements
-    status               =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
-    status               =FGSL_Matrix_Align(inverse      ,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfInverse)
-    status               =FGSL_LinAlg_LU_Decomp(selfMatrix,permutations,decompositionSign)
-    status               =FGSL_LinAlg_LU_Invert(selfMatrix,permutations,selfInverse      )
-    matrixInvert%elements=inverse
-    call FGSL_Permutation_Free(permutations)
-    call FGSL_Matrix_Free     (selfMatrix)
-    call FGSL_Matrix_Free     (selfInverse)
+    selfMatrixSize=size(self%elements,dim=1)
+    selfMatrix    =FGSL_Matrix_Init(type=1.0_fgsl_double)
+    selfArray     =self%elements
+    status        =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
+    selfInverse   =FGSL_Matrix_Init      (type=1.0_fgsl_double)
+    status        =FGSL_Matrix_Align     (inverse      ,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfInverse)
+    permutations  =FGSL_Permutation_Alloc(selfMatrixSize                               )
+    status        =FGSL_LinAlg_LU_Decomp (selfMatrix    ,permutations,decompositionSign)
+    status        =FGSL_LinAlg_LU_Invert (selfMatrix    ,permutations,selfInverse      )
+    matrixInvert%elements=inverse    
+    call FGSL_Matrix_Free(selfMatrix)
     ! Restore the original matrix.
-    self%elements        =selfArray
+    self%elements=selfArray
     return
   end function matrixInvert
 
@@ -258,6 +301,30 @@ contains
     self%elements               =selfArray
     return
   end function matrixLogarithmicDeterminant
+  
+  double precision function matrixDeterminant(self)
+    !% Return the of a matrix.
+    implicit none
+    class           (matrix          ), intent(inout)                                                  :: self
+    type            (fgsl_matrix     )                                                                 :: selfMatrix
+    type            (fgsl_permutation)                                                                 :: permutations
+    integer         (kind=fgsl_int   )                                                                 :: decompositionSign, status
+    integer         (kind=fgsl_size_t)                                                                 :: selfMatrixSize
+    double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)) :: selfArray
+
+    selfMatrixSize   =size(self%elements,dim=1)
+    selfMatrix       =FGSL_Matrix_Init(type=1.0_fgsl_double)
+    permutations     =FGSL_Permutation_Alloc(selfMatrixSize)
+    selfArray        =self%elements
+    status           =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
+    status           =FGSL_LinAlg_LU_Decomp(selfMatrix,permutations,decompositionSign)
+    matrixDeterminant=FGSL_LinAlg_LU_Det(selfMatrix,decompositionSign)    
+    call FGSL_Permutation_Free(permutations)
+    call FGSL_Matrix_Free     (selfMatrix  )
+    ! Restore the original matrix.
+    self%elements    =selfArray
+    return
+  end function matrixDeterminant
   
   function vectorVectorMultiply(vector1,vector2)
     !% Multiply a vector by a vector, returning a scalar.
@@ -290,7 +357,6 @@ contains
     implicit none   
     type   (matrix)                :: matrixMatrixMultiply
     class  (matrix), intent(in   ) :: matrix1, matrix2
-    integer                        :: i      , j
 
     if (size(matrix1%elements,dim=2) /= size(matrix2%elements,dim=1)) call Galacticus_Error_Report('matrixMatrixMultiply','dimension mismatch')
     allocate(matrixMatrixMultiply%elements(size(matrix1%elements,dim=1),size(matrix2%elements,dim=2)))
@@ -369,7 +435,7 @@ contains
     status           =FGSL_Eigen_SymmV      (selfMatrix                     ,eigenValueVector,eigenVectorMatrix,workspace               )
     eigenVectors     =eigenVectorArray
     eigenValues      =eigenValueArray
-    call fgsl_eigen_symmv_free(workspace        )
+    call FGSL_Eigen_Symmv_Free(workspace        )
     call FGSL_Matrix_Free     (selfMatrix       )
     call FGSL_Matrix_Free     (eigenVectorMatrix)
     call FGSL_Vector_Free     (eigenValueVector )
