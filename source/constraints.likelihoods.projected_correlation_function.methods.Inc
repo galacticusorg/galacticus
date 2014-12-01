@@ -24,6 +24,7 @@ function likelihoodProjectedCorrelationFunctionConstructor(haloMassMinimum,haloM
   use Memory_Management
   use Node_Component_Dark_Matter_Profile_Scale
   use Galacticus_Nodes
+  use MPI_Utilities
   implicit none
   type            (likelihoodProjectedCorrelationFunction)                              :: likelihoodProjectedCorrelationFunctionConstructor
   double precision                                        , intent(in   )               :: haloMassMinimum                                  , haloMassMaximum, &
@@ -31,7 +32,7 @@ function likelihoodProjectedCorrelationFunctionConstructor(haloMassMinimum,haloM
   character       (len=*                 )                , intent(in   )               :: projectedCorrelationFunctionFileName
   double precision                                        , allocatable  , dimension(:) :: separationBinWidth
   type            (hdf5Object            )                                              :: projectedCorrelationFunctionFile
-  integer                                                                               :: i
+  integer                                                                               :: i,j
 
   likelihoodProjectedCorrelationFunctionConstructor% haloMassMinimum= haloMassMinimum
   likelihoodProjectedCorrelationFunctionConstructor% haloMassMaximum= haloMassMaximum
@@ -57,6 +58,7 @@ function likelihoodProjectedCorrelationFunctionConstructor(haloMassMinimum,haloM
   ! Find the inverse covariance matrix.
   likelihoodProjectedCorrelationFunctionConstructor%covariance       =likelihoodProjectedCorrelationFunctionConstructor%covarianceMatrix
   likelihoodProjectedCorrelationFunctionConstructor%inverseCovariance=likelihoodProjectedCorrelationFunctionConstructor%covariance      %invert()
+  call likelihoodProjectedCorrelationFunctionConstructor%inverseCovariance%makeSemiPositiveDefinite()
   ! Ensure the nodes objects are initialized.
   call Galacticus_Nodes_Initialize                        ()
   call Node_Component_Dark_Matter_Profile_Scale_Initialize()
