@@ -89,7 +89,7 @@ contains
 
     ! Flag that the tree is uninitialized. Some construction methods may opt to fully initialize the tree, in which case they will
     ! reset this to true.
-    thisTree%initialized=.false.
+    thisTree%initializedUntil=0.0d0
 
     ! Call the routine to construct the merger tree.
     call Merger_Tree_Construct(thisTree,skipTree)

@@ -109,7 +109,7 @@ contains
        open(newunit=fileUnit,file=trim(storeFile),status='unknown',form='unformatted'                )
     end if
     ! Write basic tree information.
-    write (fileUnit) thisTree%index,thisTree%volumeWeight,thisTree%initialized,nodeCount,Node_Array_Position(thisTree%baseNode%uniqueID(),nodeIndices)
+    write (fileUnit) thisTree%index,thisTree%volumeWeight,thisTree%initializedUntil,nodeCount,Node_Array_Position(thisTree%baseNode%uniqueID(),nodeIndices)
     ! Start at the base of the tree.
     thisNode          => thisTree%baseNode
     currentNodeInTree => null()
@@ -177,7 +177,7 @@ contains
     call Galacticus_State_Retrieve
 
     ! Read basic tree information.
-    read (treeDataUnit,iostat=fileStatus) thisTree%index,thisTree%volumeWeight,thisTree%initialized,nodeCount,nodeArrayIndex
+    read (treeDataUnit,iostat=fileStatus) thisTree%index,thisTree%volumeWeight,thisTree%initializedUntil,nodeCount,nodeArrayIndex
     if (fileStatus < 0) then
        close(treeDataUnit)
        return

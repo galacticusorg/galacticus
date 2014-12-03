@@ -25,28 +25,33 @@ module Merger_Trees_Initialize
 
 contains
 
-  subroutine Merger_Tree_Initialize(thisTree)
+  subroutine Merger_Tree_Initialize(thisTree,endTime)
     !% Walk through all nodes of a tree and call any routines that requested to perform initialization tasks.
     use Galacticus_Nodes
     !# <include directive="mergerTreeInitializeTask" type="moduleUse">
     include 'merger_trees.initialize.tasks.modules.inc'
     !# </include>
     implicit none
-    type(mergerTree), intent(inout) :: thisTree
-    type(treeNode  ), pointer       :: thisNode
+    type            (mergerTree        ), intent(inout) :: thisTree
+    double precision                    , intent(in   ) :: endTime
+    type            (treeNode          ), pointer       :: node
+    class           (nodeComponentBasic), pointer       :: basic
 
-    if (.not.thisTree%initialized) then
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          ! Call subroutines to perform any necessary initialization of this node.
-          !# <include directive="mergerTreeInitializeTask" type="functionCall" functionType="void">
-          !#  <functionArgs>thisNode</functionArgs>
-          include 'merger_trees.initialize.tasks.inc'
-          !# </include>
-
-          call thisNode%walkTreeWithSatellites(thisNode)
+    if (thisTree%initializedUntil < endTime) then
+       node => thisTree%baseNode
+       do while (associated(node))
+          ! Initialize only nodes that exist before the end time.
+          basic => node%basic()
+          if (basic%time() <= endTime) then
+             ! Call subroutines to perform any necessary initialization of this node.
+             !# <include directive="mergerTreeInitializeTask" type="functionCall" functionType="void">
+             !#  <functionArgs>node</functionArgs>
+             include 'merger_trees.initialize.tasks.inc'
+             !# </include>
+          end if
+          call node%walkTreeWithSatellites(node)
        end do
-       thisTree%initialized=.true.
+       thisTree%initializedUntil=endTime
     end if
 
     return
