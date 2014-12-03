@@ -470,6 +470,15 @@ contains
 
     darkMatterHaloScale_ => darkMatterHaloScale                (    )
     simpleVelocityScale  =  darkMatterHaloScale_%virialVelocity(node)
+    use Galacticus_Nodes
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class(accretionHaloSimple     ), intent(inout)          :: self
+    type (treeNode                ), intent(inout), pointer :: node
+    class(darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+
+    darkMatterHaloScale_ => darkMatterHaloScale                (    )
+    simpleVelocityScale  =  darkMatterHaloScale_%virialVelocity(node)
     return
   end function simpleVelocityScale
 
