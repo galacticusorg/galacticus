@@ -21,8 +21,7 @@
      !% The merger tree object type.
      integer         (kind=kind_int8)                  :: index
      type            (hdf5Object    )                  :: hdf5Group
-     double precision                                  :: volumeWeight
-     logical                                           :: initialized
+     double precision                                  :: volumeWeight, initializedUntil
      type            (treeNode      ), pointer         :: baseNode    =>null()
      type            (mergerTree    ), pointer         :: nextTree    =>null()
      type            (treeEvent     ), pointer, public :: event

@@ -115,6 +115,7 @@ contains
   subroutine Merger_Tree_Build_Do_Cole2000(thisTree)
     !% Build a merger tree.
     use Galacticus_Nodes
+    use Galacticus_Error
     use Critical_Overdensity
     use Merger_Tree_Branching
     use Pseudo_Random
@@ -122,13 +123,14 @@ contains
     use Merger_Trees_Build_Mass_Resolution
     implicit none
     type            (mergerTree        ), intent(inout), target :: thisTree
-    type            (treeNode          ), pointer               :: newNode1          , newNode2          , thisNode
-    class           (nodeComponentBasic), pointer               :: newBasicComponent1, newBasicComponent2, thisBasicComponent
+    type            (treeNode          ), pointer               :: newNode1            , newNode2          , thisNode
+    class           (nodeComponentBasic), pointer               :: newBasicComponent1  , newBasicComponent2, thisBasicComponent  , &
+         &                                                         parentBasicComponent
     integer         (kind=kind_int8    )                        :: nodeIndex
-    double precision                                            :: accretionFraction , baseNodeTime      , branchingProbability, &
-         &                                                         collapseTime      , deltaCritical     , deltaCritical1      , &
-         &                                                         deltaCritical2    , deltaW            , nodeMass1           , &
-         &                                                         nodeMass2         , time              , uniformRandom       , &
+    double precision                                            :: accretionFraction   , baseNodeTime      , branchingProbability, &
+         &                                                         collapseTime        , deltaCritical     , deltaCritical1      , &
+         &                                                         deltaCritical2      , deltaW            , nodeMass1           , &
+         &                                                         nodeMass2           , time              , uniformRandom       , &
          &                                                         massResolution
     logical                                                     :: doBranch
 
@@ -192,7 +194,6 @@ contains
              branchingProbability=branchingProbability*0.5d0
              accretionFraction   =accretionFraction   *0.5d0
           end do
-
           ! Decide if a branching occurs.
           if (branchingProbability > 0.0d0) then
              uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset=reset,ompThreadOffset=ompThreadOffset,incrementSeed=incrementSeed)
@@ -278,7 +279,16 @@ contains
     end do
     thisBasicComponent => thisTree%baseNode%basic()
     call thisBasicComponent%timeSet(baseNodeTime)
-
+    ! Check for well-ordering in time.
+    thisNode => thisTree%baseNode
+    do while (associated(thisNode))       
+       if (associated(thisnode%parent)) then
+          thisBasicComponent   => thisNode       %basic()
+          parentBasicComponent => thisNode%parent%basic()
+          if (parentBasicComponent%time() <= thisBasicComponent%time()) call Galacticus_Error_Report('Merger_Tree_Build_Do_Cole2000','branch is not well-ordered in time')
+       end if
+       call thisNode%walkTree(thisNode)
+    end do       
     return
   end subroutine Merger_Tree_Build_Do_Cole2000
 

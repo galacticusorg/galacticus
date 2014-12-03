@@ -133,7 +133,7 @@ contains
     currentTree => thisTree
     do while (associated(currentTree))
        ! Initialize the tree if necessary.
-       call Merger_Tree_Initialize(currentTree)
+       call Merger_Tree_Initialize(currentTree,endTime)
        ! Check that the output time is not after the end time of this tree.
        baseNodeBasicComponent => currentTree%baseNode%basic()
        if (endTime > baseNodeBasicComponent%time()) then

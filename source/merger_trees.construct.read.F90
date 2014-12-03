@@ -1441,15 +1441,15 @@ contains
                    currentTree => currentTree%nextTree
                 end do
                 ! Assign this node as the base node of the current tree.
-                currentTree   %baseNode    => nodeList(iIsolatedNode)%node
+                currentTree   %baseNode         => nodeList(iIsolatedNode)%node
                 if (mergerTreeReadTreeIndexToRootNodeIndex) then
-                   currentTree%index       =  nodes   (iNode        )%nodeIndex
+                   currentTree%index            =  nodes   (iNode        )%nodeIndex
                 else
-                   currentTree%index       =  thisTree               %index
+                   currentTree%index            =  thisTree               %index
                 end if
-                currentTree   %volumeWeight=  treeVolumeWeightCurrent
-                currentTree   %initialized =  .false.
-                currentTree   %event       => null()
+                currentTree   %volumeWeight     =  treeVolumeWeightCurrent
+                currentTree   %initializedUntil =  0.0d0
+                currentTree   %event            => null()
              end if
           else
              ! Node is not isolated, so must be an initial satellite.
