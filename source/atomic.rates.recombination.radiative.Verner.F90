@@ -543,7 +543,7 @@ contains
     return
   end subroutine Atomic_Rate_Recombination_Radiative_Verner_Initialize
 
-  double precision function Atomic_Rate_Recombination_Radiative_Verner(atomicNumber,ionizationState,temperature)
+  double precision function Atomic_Rate_Recombination_Radiative_Verner(atomicNumber,ionizationState,temperature,level)
     !% Computes the rate coefficient of radiative recombination (in units of cm$^3$ s$^{-1}$) at the specified {\tt temperature} for all ions
     !% of all elements from H through Zn (selected by the {\tt atomicNumber} and the {\tt ionizationState} \emph{of the recombined
     !% ion}) use of the following fits:
@@ -557,13 +557,26 @@ contains
     !% \item Other ions of F, P, Cl, K, Ti, Cr, Mn, Co (excluding Ti I-II, Cr I-IV, Mn I-V, Co I): \citep{landini_ion_1991};
     !% \item All other species: interpolations of the power-law fits.
     !% \end{itemize}
-    !% Based on the \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner.
+    !% Based on the \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner. The ionization state
+    !% passed to this function should be that of the atom/ion post recombination.
     use Galacticus_Error
+    use Atomic_Rates_Recombination_Radiative_Data
     implicit none
-    integer         , intent(in   ) :: atomicNumber     , ionizationState
-    double precision, intent(in   ) :: temperature
-    integer                         :: electronNumber
-    double precision                :: temperatureScaled
+    integer         , intent(in   )           :: atomicNumber     , ionizationState
+    double precision, intent(in   )           :: temperature
+    integer         , intent(in   ), optional :: level
+    ! Coefficients in the fitting function of Fergusen & Ferland (1997).
+    double precision, parameter               :: ffFitA=-9.97652d0
+    double precision, parameter               :: ffFitB= 0.03506d0
+    double precision, parameter               :: ffFitC= 0.15861d0
+    double precision, parameter               :: ffFitD=-0.03762d0
+    double precision, parameter               :: ffFitE= 0.30113d0
+    double precision, parameter               :: ffFitF= 0.00762d0
+    double precision, parameter               :: ffFitG=-0.06397d0
+    double precision, parameter               :: ffFitH=-0.00023d0
+    double precision, parameter               :: ffFitI= 0.00127d0
+    integer                                   :: electronNumber   , levelActual
+    double precision                          :: temperatureScaled, fitFactor  , logTemperature
 
     ! Set zero rate by default.
     Atomic_Rate_Recombination_Radiative_Verner=0.0d0
@@ -571,34 +584,81 @@ contains
     ! If temperature is unphysical, return.
     if (temperature <= 0.0d0) return
 
-    ! Ensure atomic number is in range.
-    if (atomicNumber < 1 .or. atomicNumber > 30) call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','atomic number is out of range')
+    ! Check that the requested level is one that we can handle. (This implementation supports Case A recombination only.)
+    levelActual=recombinationCaseA
+    if (present(level)) levelActual=level
 
-    ! Compute number of electrons.
-    electronNumber=atomicNumber-ionizationState+1
-
-    ! Ensure electron number is in range.
-    if (electronNumber < 1 .or. electronNumber > atomicNumber) call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','electron number is out of range')
-
-    ! Compute rate using the relevant fitting function.
-    if (electronNumber <= 3 .or. electronNumber == 11 .or. (atomicNumber > 5 .and. atomicNumber < 9) .or. atomicNumber == 10 .or.&
-         & (atomicNumber == 26 .and. electronNumber > 11)) then
-       temperatureScaled=sqrt(temperature/recombinationFitCoefficientsNew(3,atomicNumber,electronNumber))
-       Atomic_Rate_Recombination_Radiative_Verner=recombinationFitCoefficientsNew(1,atomicNumber,electronNumber)&
-            &/(temperatureScaled *(temperatureScaled+1.0d0)**(1.0d0-recombinationFitCoefficientsNew(2,atomicNumber&
-            &,electronNumber))*(1.0d0 +sqrt(temperature/recombinationFitCoefficientsNew(4,atomicNumber,electronNumber)))**(1.0d0&
-            & +recombinationFitCoefficientsNew(2,atomicNumber,electronNumber)))
-    else
-       temperatureScaled=temperature/1.0d4
-       if (atomicNumber == 26 .and. electronNumber <= 13) then
-          Atomic_Rate_Recombination_Radiative_Verner=recombinationCoefficientsIron(1,electronNumber)/temperatureScaled &
-               &**(recombinationCoefficientsIron(2,electronNumber)+recombinationCoefficientsIron(3,electronNumber) &
-               &*log10(temperatureScaled))
+    ! Determine type of recombination coefficient required.
+    select case (levelActual)
+    case (recombinationCaseA)
+       ! Ensure atomic number is in range.
+       if (atomicNumber < 1 .or. atomicNumber > 30) call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','atomic number is out of range')
+       ! Compute number of electrons.
+       electronNumber=atomicNumber-ionizationState+1
+       ! Ensure electron number is in range.
+       if (electronNumber < 1 .or. electronNumber > atomicNumber) call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','electron number is out of range')
+       ! Compute rate using the relevant fitting function.
+       if (electronNumber <= 3 .or. electronNumber == 11 .or. (atomicNumber > 5 .and. atomicNumber < 9) .or. atomicNumber == 10 .or.&
+            & (atomicNumber == 26 .and. electronNumber > 11)) then
+          temperatureScaled=sqrt(temperature/recombinationFitCoefficientsNew(3,atomicNumber,electronNumber))
+          Atomic_Rate_Recombination_Radiative_Verner=recombinationFitCoefficientsNew(1,atomicNumber,electronNumber)&
+               &/(temperatureScaled *(temperatureScaled+1.0d0)**(1.0d0-recombinationFitCoefficientsNew(2,atomicNumber&
+               &,electronNumber))*(1.0d0 +sqrt(temperature/recombinationFitCoefficientsNew(4,atomicNumber,electronNumber)))**(1.0d0&
+               & +recombinationFitCoefficientsNew(2,atomicNumber,electronNumber)))
        else
-          Atomic_Rate_Recombination_Radiative_Verner=recombinationFitCoefficients(1,atomicNumber,electronNumber)&
-               &/temperatureScaled **recombinationFitCoefficients(2,atomicNumber,electronNumber)
+          temperatureScaled=temperature/1.0d4
+          if (atomicNumber == 26 .and. electronNumber <= 13) then
+             Atomic_Rate_Recombination_Radiative_Verner=recombinationCoefficientsIron(1,electronNumber)/temperatureScaled &
+                  &**(recombinationCoefficientsIron(2,electronNumber)+recombinationCoefficientsIron(3,electronNumber) &
+                  &*log10(temperatureScaled))
+          else
+             Atomic_Rate_Recombination_Radiative_Verner=recombinationFitCoefficients(1,atomicNumber,electronNumber)&
+                  &/temperatureScaled **recombinationFitCoefficients(2,atomicNumber,electronNumber)
+          end if
        end if
-    end if
+    case (recombinationCaseB)
+       ! Case B recombination coefficient was requested.
+       select case (atomicNumber)
+       case (1) ! Hydrogen
+          select case (ionizationState)
+          case (1) ! H+
+             ! Fergusen & Ferland (1997).
+             logTemperature=log10(temperature)
+             fitFactor=(ffFitA+logTemperature*(ffFitC+logTemperature*(ffFitE+logTemperature*(ffFitG+logTemperature*ffFitI))))&
+                  &/(1.0d0+logTemperature*(ffFitB+logTemperature*(ffFitD+logTemperature*(ffFitF+logTemperature*ffFitH))))
+             if (fitFactor < 0.0d0) then
+                Atomic_Rate_Recombination_Radiative_Verner=(10.0d0**fitFactor)/temperature
+             else
+                Atomic_Rate_Recombination_Radiative_Verner=0.0d0
+             end if
+          case default
+             call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','ionization state invalid for hydrogen')
+          end select
+       case (2) ! Helium
+          select case (ionizationState)
+          case (1) ! HeII
+             ! Fit from Aparna Venkatesan.
+             Atomic_Rate_Recombination_Radiative_Verner=4.3d-13/((temperature/1.0d4)**0.672d0)
+          case (2) ! HeIII
+             ! Fit from Aparna Venkatesan.
+             if (temperature < 1.0d6) then
+                logTemperature=log10(temperature)
+                Atomic_Rate_Recombination_Radiative_Verner=2.06d-11*4.0d0/sqrt(temperature)*(6.5723452d0-1.361055d0&
+                     &*logTemperature+0.045686398d0*logTemperature**2)
+             else
+                ! Fit behaves badly above 10^6K.
+                Atomic_Rate_Recombination_Radiative_Verner=0.0d0
+             end if
+          case default
+             call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','ionization state invalid for helium')
+          end select
+       case default
+          call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','case B coefficients unavailable for requested atomic number')
+       end select
+    case default
+       ! Recombination coefficient for an individual level was requested. We can not compute it, so report an error.
+       call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','coefficients for individual levels are not available')
+    end select    
     return
   end function Atomic_Rate_Recombination_Radiative_Verner
 
