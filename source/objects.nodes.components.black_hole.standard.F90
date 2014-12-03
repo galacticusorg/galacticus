@@ -78,6 +78,20 @@ module Node_Component_Black_Hole_Standard
   !#     <isVirtual>true</isVirtual>
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Spin</getFunction>
   !#   </property>
+  !#   <property>
+  !#     <name>accretionRate</name>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#     <type>real</type>
+  !#     <rank>0</rank>
+  !#     <isVirtual>true</isVirtual>
+  !#   </property>
+  !#   <property>
+  !#     <name>radiativeEfficiency</name>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#     <type>real</type>
+  !#     <rank>0</rank>
+  !#     <isVirtual>true</isVirtual>
+  !#   </property>
   !#  </properties>
   !#  <bindings>
   !#   <binding method="enclosedMass" function="Node_Component_Black_Hole_Standard_Enclosed_Mass" bindsTo="component"/>
@@ -126,6 +140,7 @@ contains
     !% Initializes the standard black hole component module.
     use Input_Parameters
     implicit none
+    type(nodeComponentBlackHoleStandard) :: blackHoleStandardComponent
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Black_Hole_Standard_Initialize)
@@ -292,6 +307,9 @@ contains
        call Get_Input_Parameter("tripleBlackHoleInteraction",tripleBlackHoleInteraction,defaultValue=.false.)
        ! Check if cold mode is explicitly tracked.
        coldModeTracked=defaultHotHaloComponent%massColdIsGettable()
+       ! Bind deferred functions.
+       call blackHoleStandardComponent%      accretionRateFunction(Node_Component_Black_Hole_Standard_Accretion_Rate      )
+       call blackHoleStandardComponent%radiativeEfficiencyFunction(Node_Component_Black_Hole_Standard_Radiative_Efficiency)
        ! Record that the module is now initialized.
        moduleInitialized=.true.
     end if
@@ -832,7 +850,7 @@ contains
     use Hot_Halo_Temperature_Profile
     use Black_Hole_Binary_Separations
     implicit none
-    class           (nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent
+    class           (nodeComponentBlackHole), intent(inout)          :: thisBlackHoleComponent
     double precision                        , intent(  out)          :: accretionRateHotHalo        , accretionRateSpheroid
     type            (treeNode              )               , pointer :: thisNode
     class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
@@ -1298,5 +1316,26 @@ contains
     end if
     return
   end function Hot_Mode_Fraction
+
+  double precision function Node_Component_Black_Hole_Standard_Accretion_Rate(self)
+    !% Return the rest mass accretion rate onto a standard black hole.
+    implicit none
+    class           (nodeComponentBlackHoleStandard), intent(inout) :: self
+    double precision                                                :: accretionRateSpheroid, accretionRateHotHalo
+
+    call Node_Component_Black_Hole_Standard_Mass_Accretion_Rate(self,accretionRateSpheroid,accretionRateHotHalo)
+    Node_Component_Black_Hole_Standard_Accretion_Rate=accretionRateSpheroid+accretionRateHotHalo
+    return
+  end function Node_Component_Black_Hole_Standard_Accretion_Rate
+
+  double precision function Node_Component_Black_Hole_Standard_Radiative_Efficiency(self)
+    !% Return the radiative efficiency of a standard black hole.
+    use Accretion_Disks
+    implicit none
+    class           (nodeComponentBlackHoleStandard), intent(inout) :: self
+
+    Node_Component_Black_Hole_Standard_Radiative_Efficiency=Accretion_Disk_Radiative_Efficiency(self,self%accretionRate())
+    return
+  end function Node_Component_Black_Hole_Standard_Radiative_Efficiency
 
 end module Node_Component_Black_Hole_Standard
