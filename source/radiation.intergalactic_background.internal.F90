@@ -25,7 +25,7 @@ module Radiation_Intergalactic_Background_Internal
   use Abundances_Structure
   use FGSL
   private
-  public :: Radiation_Intergalactic_Background_Internal_Initialize
+  public :: Radiation_Intergalactic_Background_Internal_Initialize, Radiation_IGB_Internal_Initialize
   
   logical                                                                      :: backgroundRadiationCompute
   integer                                                                      :: backgroundRadiationWavelengthCountPerDecade, backgroundRadiationWavelengthCount
@@ -40,6 +40,7 @@ module Radiation_Intergalactic_Background_Internal
   double precision                               , allocatable, dimension(:,:) :: backgroundRadiationEmissivity              , emissivity                          , &
        &                                                                          backgroundRadiationFlux
   double precision                                            , dimension(0:1) :: emissivityTime
+  double precision                                                             :: backgroundTimePrevious                     , backgroundTimeNext
 
   ! Classes used in ODE solution.
   class           (cosmologyParametersClass     ), pointer                     :: cosmologyParameters_
@@ -153,9 +154,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('backgroundRadiationRedshiftMaximum',backgroundRadiationRedshiftMaximum,defaultValue=30.0d0)
        ! Build tables of wavelength and time for cosmic background radiation.
-       cosmologyParameters_      => cosmologyParameters     ()
        cosmologyFunctions_       => cosmologyFunctions      ()
-       intergalacticMediumState_ => intergalacticMediumState()
        backgroundRadiationTimeMaximum                                                              &
             & =cosmologyFunctions_%cosmicTime                 (                                    &
             &  cosmologyFunctions_%expansionFactorFromRedshift (                                   &
@@ -207,6 +206,7 @@ contains
             &             backgroundRadiationTimeCount        , &
             &             rangeTypeLogarithmic                  &
             &            )
+       backgroundRadiationFlux=0.0d0
        ! Convert times to redshifts.
        do iTime=1,backgroundRadiationTimeCount
           backgroundRadiationRedshift(iTime)                                                       &
@@ -217,7 +217,7 @@ contains
                &                                                  )
        end do
        ! Initialize the background radiation to zero.
-       backgroundRadiationSpectrum=0.0d0
+       backgroundRadiationSpectrum  =0.0d0
        ! Initialize the emissivity to zero.
        backgroundRadiationEmissivity=0.0d0
        ! Construct tables of photoionization cross-sections.
@@ -230,21 +230,25 @@ contains
           crossSectionSinglyIonizedHelium(iWavelength)=Atomic_Cross_Section_Ionization_Photo(2,2,1,backgroundRadiationWavelength(iWavelength))
        end do
        ! Create the first interrupt event in the universe object.
-       thisEvent      => thisUniverse%createEvent()
-       thisEvent%time =  backgroundRadiationTime(1)
-       thisEvent%task => Radiation_Intergalactic_Background_Internal_Update
+       backgroundTimePrevious=  0.0d0
+       backgroundTimeNext    =  backgroundRadiationTime (1)
+       thisEvent             => thisUniverse%createEvent( )
+       thisEvent%time        =  backgroundRadiationTime (1)
+       thisEvent%task        => Radiation_Intergalactic_Background_Internal_Update
     end if
     return
   end subroutine Radiation_Intergalactic_Background_Internal_Initialize
   
   logical function Radiation_Intergalactic_Background_Internal_Update(thisEvent,thisUniverse) result (success)
     !% Update the radiation background for a given universe.
+    use               Galacticus_Output_Times
     use               Galacticus_Nodes
     use               Galacticus_Display
     use               Star_Formation_IMF
     use               Galactic_Structure_Options
     use               Galacticus_Error
     use               Stellar_Population_Spectra
+    use               Accretion_Disk_Spectra
     use               Arrays_Search
     use               FODEIV2
     use               ODEIV2_Solver
@@ -267,6 +271,7 @@ contains
     class           (nodeComponentDisk         ), pointer       :: thisDisk
     class           (nodeComponentSpheroid     ), pointer       :: thisSpheroid
     type            (universeEvent             ), pointer       :: newEvent
+    class           (accretionDiskSpectraClass ), pointer       :: accretionDiskSpectra_
     double precision                            , parameter     :: odeToleranceAbsolute        =1.0d-30, odeToleranceRelative        =1.0d-3
     double precision                            , parameter     :: integrationToleranceAbsolute=1.0d-30, integrationToleranceRelative=1.0d-3
     type            (fodeiv2_system            ), save          :: ode2System
@@ -276,7 +281,9 @@ contains
     double precision                                            :: starFormationRateDisk               , starFormationRateSpheroid          , &
          &                                                         gasMassDisk                         , gasMassSpheroid                    , &
          &                                                         ageEnd                              , ageStart                           , &
-         &                                                         stellarSpectrumDisk                 , stellarSpectrumSpheroid
+         &                                                         stellarSpectrumDisk                 , stellarSpectrumSpheroid            , & 
+         &                                                         timeStart                           , timeEnd                            , &
+         &                                                         treeTimeLatest
     type            (abundances                ), target        :: gasAbundancesDisk                   , gasAbundancesSpheroid
     integer                                                     :: imfIndexDisk                        , imfIndexSpheroid                   , &
          &                                                         iTime                               , iWavelength                        , &
@@ -285,6 +292,7 @@ contains
     type            (varying_string            )                :: message
     character       (len=6                     )                :: label
     type            (hdf5Object                )                :: backgroundRadiationGroup            , backgroundRadiationDataset
+    logical                                                     :: firstTime
 
     ! Display message.
     write (label,'(f6.3)') thisEvent%time
@@ -292,8 +300,11 @@ contains
     call Galacticus_Display_Indent(message)
     ! Find the current timestep.
     iNow=Search_Array_For_Closest(backgroundRadiationTime,thisEvent%time)
+    ! Get required objects.
+    accretionDiskSpectra_ => accretionDiskSpectra()
     ! Iterate over all nodes.
     call Galacticus_Display_Message('Accumulating emissivity')
+    treeTimeLatest=0.0d0
     thisForest => thisUniverse%trees
     do while (associated(thisForest))
        thisTree => thisForest%tree
@@ -301,6 +312,7 @@ contains
           thisNode => thisTree%baseNode
           do while (associated(thisNode))
              thisBasic => thisNode%basic()
+             treeTimeLatest=max(treeTimeLatest,thisBasic%time())
              if (thisBasic%time() == thisEvent%time) then
                 ! Get the star formation rates and metallicites for this node.
                 thisDisk                  => thisNode    %disk             ()
@@ -319,6 +331,7 @@ contains
                    imfIndexSpheroid=IMF_Select(starFormationRateSpheroid,gasAbundancesSpheroid,componentTypeSpheroid)
                    ! Find the duration of the current timestep.
                    ! Accumulate emissivity to each timestep.
+                   firstTime=.true.
                    do iTime=1,backgroundRadiationTimeCount
                       ! Skip times in the past.
                       if (backgroundRadiationTime(iTime) < thisEvent%time) cycle
@@ -357,16 +370,23 @@ contains
                               &                               toleranceRelative        =integrationToleranceRelative, &
                               &                               reset                    =integrationReset              &
                               &                              )
-                         backgroundRadiationEmissivity        (iWavelength,iTime) &
-                              & =backgroundRadiationEmissivity(iWavelength,iTime) &
-                              & +(                                                &
-                              &   +stellarSpectrumDisk                            &
-                              &   *starFormationRateDisk                          &
-                              &   +stellarSpectrumSpheroid                        &
-                              &   *starFormationRateSpheroid                      &
-                              &  )                                                &
+                         backgroundRadiationEmissivity        (iWavelength,iTime)          &
+                              & =backgroundRadiationEmissivity(iWavelength,iTime)          &
+                              & +(                                                         &
+                              &   +stellarSpectrumDisk                                     &
+                              &   *starFormationRateDisk                                   &
+                              &   +stellarSpectrumSpheroid                                 &
+                              &   *starFormationRateSpheroid                               &
+                              &  )                                                         &
                               & *thisTree%volumeWeight
+                         ! Add AGN emission. This accumulates only to the the current time.
+                         if (firstTime)                                                       &
+                              & backgroundRadiationEmissivity  (iWavelength,iTime)            &
+                              &  =backgroundRadiationEmissivity(iWavelength,iTime)            &
+                              &  +accretionDiskSpectra_        %spectrum(thisNode,wavelength) &
+                              &  *thisTree%volumeWeight
                       end do
+                      firstTime=.false.
                    end do
                 end if
              end if
@@ -382,13 +402,17 @@ contains
        emissivityTime(  0:1)=backgroundRadiationTime      (  iNow-1:iNow)
        emissivity    (:,0  )=backgroundRadiationEmissivity(:,iNow-1     )
        emissivity    (:,  1)=backgroundRadiationEmissivity(:,       iNow)
-       cosmologyFunctions_ => cosmologyFunctions()
+       cosmologyParameters_      => cosmologyParameters     ()
+       cosmologyFunctions_       => cosmologyFunctions      ()
+       intergalacticMediumState_ => intergalacticMediumState()
        odeReset=.true.
+       timeStart=backgroundRadiationTime(iNow-1)
+       timeEnd  =backgroundRadiationTime(iNow  )
        call ODEIV2_Solve(                                            &
             &            ode2Driver                                , &
             &            ode2System                                , &
-            &            backgroundRadiationTime           (iNow-1), &
-            &            backgroundRadiationTime           (iNow  ), &
+            &            timeStart                                 , &
+            &            timeEnd                                   , &
             &            backgroundRadiationWavelengthCount        , &
             &            backgroundRadiationSpectrum               , &
             &            backgroundRadiationODEs                   , &
@@ -399,22 +423,33 @@ contains
             &           )
        call ODEIV2_Solver_Free(ode2Driver,ode2System)
        ! Convert
-       backgroundRadiationFlux(:,iNow)           &
-            & =+plancksConstant                  &
-            &  *speedLight                   **2 &
-            &  *angstromsPerMeter                &
-            &  /4.0d0                            &
-            &  /Pi                               &
-            &  /backgroundRadiationWavelength    &
-            &  *backgroundRadiationSpectrum      &
-            &  *centi                        **2 &
-            &  /ergs
+       backgroundRadiationFlux(:,iNow)                &
+            & =max(                                   &
+            &      +plancksConstant                   &
+            &      *speedLight                   **2  &
+            &      *angstromsPerMeter                 &
+            &      /4.0d0                             &
+            &      /Pi                                &
+            &      /backgroundRadiationWavelength     &
+            &      *backgroundRadiationSpectrum       &
+            &      *centi                        **2  &
+            &      /ergs                            , &
+            &      +0.0d0                             &
+            &     )
     end if
     ! Add the next event to the universe.
-    if (iNow < backgroundRadiationTimeCount) then
-       newEvent      => thisUniverse%createEvent()
-       newEvent%time =  backgroundRadiationTime(iNow+1)
-       newEvent%task => Radiation_Intergalactic_Background_Internal_Update
+    backgroundTimeNext       =  backgroundRadiationTime(iNow+1)
+    if     (                                                                                          &
+         &                           iNow    <                        backgroundRadiationTimeCount    &
+         &  .and.                                                                                     &
+         &   backgroundRadiationTime(iNow+1) < treeTimeLatest                                         &
+         &  .and.                                                                                     &
+         &   backgroundRadiationTime(iNow+1) < Galacticus_Output_Time(Galacticus_Output_Time_Count()) &
+         & ) then
+       backgroundTimePrevious=  backgroundRadiationTime(iNow  )
+       newEvent              => thisUniverse%createEvent()
+       newEvent%time         =  backgroundRadiationTime(iNow+1)
+       newEvent%task         => Radiation_Intergalactic_Background_Internal_Update
     else
        ! Output the results to file.
        !$omp critical (HDF5_Access)
@@ -481,8 +516,11 @@ contains
     real     (kind=c_double               ), intent(in   )        :: spectrum            (backgroundRadiationWavelengthCount)
     real     (kind=c_double               ), intent(  out)        :: spectrumRateOfChange(backgroundRadiationWavelengthCount)
     real     (kind=c_double               )                       :: spectralGradient    (backgroundRadiationWavelengthCount)
+    real     (kind=c_double               )                       :: expansionFactor
     type     (c_ptr                       )               , value :: parameterPointer
 
+    ! Get the expansion factor.
+    expansionFactor=cosmologyFunctions_%expansionFactor(time)
     ! Add source terms, linearly interpolating between timesteps. Convert from emissivity units [L☉ Hz⁻¹ Mpc⁻³] to
     ! background units [photons m⁻³ Hz⁻¹].
     spectrumRateOfChange                                &
@@ -500,42 +538,120 @@ contains
          & /speedLight                                  &
          & /megaParsec**3
     ! Add expansion dilution: -3 H(t)      n_nu
-    spectrumRateOfChange=spectrumRateOfChange-3.0d0*cosmologyFunctions_%expansionRate(time)*spectrum
+    spectrumRateOfChange=spectrumRateOfChange-3.0d0*cosmologyFunctions_%expansionRate(expansionFactor)*spectrum
     ! Add redshifting       : +  H(t) d(nu n_nu)/dnu
     spectralGradient(1                                   )=-spectrum(1)
     spectralGradient (2:backgroundRadiationWavelengthCount)                                                                                                                                                                                             &
          & =-                                               backgroundRadiationWavelength(2:backgroundRadiationWavelengthCount)**2                                                                                                                      &
          & *(spectrum(2:backgroundRadiationWavelengthCount)/backgroundRadiationWavelength(2:backgroundRadiationWavelengthCount)-spectrum(1:backgroundRadiationWavelengthCount-1)/backgroundRadiationWavelength(1:backgroundRadiationWavelengthCount-1)) &
          & /(                                               backgroundRadiationWavelength(2:backgroundRadiationWavelengthCount)-                                                 backgroundRadiationWavelength(1:backgroundRadiationWavelengthCount-1))
-    spectrumRateOfChange=spectrumRateOfChange+spectralGradient*cosmologyFunctions_%expansionRate(time)
+    spectrumRateOfChange=spectrumRateOfChange+spectralGradient*cosmologyFunctions_%expansionRate(expansionFactor)
     ! Absorption.
-    spectrumRateOfChange                                                        &
-         & =+spectrumRateOfChange                                               &
-         &  -gigaYear                                                           &
-         &  *massSolar                                                          &
-         &  /megaParsec                                                     **3 &
-         &  *centi                                                          **2 &
-         &  *speedLight                                                         &
-         &  *(                                                                  &
-         &    +crossSectionNeutralHydrogen                                      &
-         &    *hydrogenByMassPrimordial                                         &
-         &    *intergalacticMediumState_  %neutralHydrogenFraction    (time)    &
-         &    +crossSectionNeutralHelium                                        &
-         &    *heliumByMassPrimordial                                           &
-         &    *intergalacticMediumState_  %neutralHeliumFraction      (time)    &
-         &    +crossSectionSinglyIonizedHelium                                  &
-         &    *heliumByMassPrimordial                                           &
-         &    *intergalacticMediumState_  %singlyIonizedHeliumFraction(time)    &
-         &   )                                                                  &
-         &  /atomicMassHydrogen                                                 &
-         &  *cosmologyParameters_       %OmegaBaryon                  (    )    &
-         &  *cosmologyParameters_       %densityCritical              (    )    &
-         &  /cosmologyFunctions_        %expansionFactor              (time)**3 &
-         &  /atomicMassUnit                                                     &
-         &  *spectrum
+    where (spectrum > 0.0d0)
+       spectrumRateOfChange                                                        &
+            & =+spectrumRateOfChange                                               &
+            &  -gigaYear                                                           &
+            &  *massSolar                                                          &
+            &  /megaParsec                                                     **3 &
+            &  *centi                                                          **2 &
+            &  *speedLight                                                         &
+            &  *(                                                                  &
+            &    +crossSectionNeutralHydrogen                                      &
+            &    *hydrogenByMassPrimordial                                         &
+            &    *intergalacticMediumState_  %neutralHydrogenFraction    (time)    &
+            &    /atomicMassHydrogen                                               &
+            &    +crossSectionNeutralHelium                                        &
+            &    *heliumByMassPrimordial                                           &
+            &    *intergalacticMediumState_  %neutralHeliumFraction      (time)    &
+            &    /atomicMassHelium                                                 &
+            &    +crossSectionSinglyIonizedHelium                                  &
+            &    *heliumByMassPrimordial                                           &
+            &    *intergalacticMediumState_  %singlyIonizedHeliumFraction(time)    &
+            &    /atomicMassHelium                                                 &
+            &   )                                                                  &
+            &  *cosmologyParameters_       %OmegaBaryon                  (    )    &
+            &  *cosmologyParameters_       %densityCritical              (    )    &
+            &  /cosmologyFunctions_        %expansionFactor              (time)**3 &
+            &  /atomicMassUnit                                                     &
+            &  *spectrum
+    end where
     ! Return success.
     backgroundRadiationODEs=FGSL_Success
     return
   end function backgroundRadiationODEs
+
+  !# <radiationIntergalacticBackgroundMethod>
+  !#  <unitName>Radiation_IGB_Internal_Initialize</unitName>
+  !# </radiationIntergalacticBackgroundMethod>
+  subroutine Radiation_IGB_Internal_Initialize(radiationIntergalacticBackgroundMethod,Radiation_Set_Intergalactic_Background_Do,Radiation_Flux_Intergalactic_Background_Do)
+    !% Initialize the internally-computed intergalactic background radiation component module.
+    implicit none
+    type     (varying_string             ), intent(in   )          :: radiationIntergalacticBackgroundMethod
+    procedure(Radiation_IGB_Internal_Set ), intent(inout), pointer :: Radiation_Set_Intergalactic_Background_Do
+    procedure(Radiation_IGB_Internal_Flux), intent(inout), pointer :: Radiation_Flux_Intergalactic_Background_Do
+
+    if (radiationIntergalacticBackgroundMethod == 'internal') then
+       Radiation_Set_Intergalactic_Background_Do  => Radiation_IGB_Internal_Set
+       Radiation_Flux_Intergalactic_Background_Do => Radiation_IGB_Internal_Flux
+    end if
+    return
+  end subroutine Radiation_IGB_Internal_Initialize
+
+  subroutine Radiation_IGB_Internal_Set(time,radiationProperties)
+    !% Property setting routine for the internally-computed intergalactic background radiation component method.
+    use Memory_Management
+    implicit none
+    double precision, intent(in   )                            :: time
+    double precision, allocatable, dimension(:), intent(inout) :: radiationProperties
+    
+    ! Ensure that the properties array is allocated.
+    if (.not.allocated(radiationProperties)) call Alloc_Array(radiationProperties,[1])
+    ! Store the time for the radiation field.
+    radiationProperties(1)=time
+    return
+  end subroutine Radiation_IGB_Internal_Set
+
+  subroutine Radiation_IGB_Internal_Flux(radiationProperties,wavelength,radiationFlux)
+    !% Flux method for the radiation component from file method.
+    use FGSL
+    use Numerical_Interpolation
+    use Numerical_Constants_Astronomical
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Units
+    use Numerical_Constants_Atomic
+    use Galacticus_Error
+    implicit none
+    double precision                                   , intent(in   ) :: wavelength
+    double precision                   , dimension( : ), intent(in   ) :: radiationProperties
+    double precision                                   , intent(inout) :: radiationFlux
+    double precision                   , dimension(0:1)                :: hWavelength                     , hTime
+    double precision                   , parameter                     :: timeTolerance=1.0d-3
+    double precision                                                   :: time
+    integer                                                            :: iWavelength                     , jWavelength                        , &
+         &                                                                iTime                           , jTime
+    logical                            , save                          :: interpolationReset      =.true. , interpolationResetTime      =.true.
+    type            (fgsl_interp_accel), save                          :: interpolationAccelerator        , interpolationAcceleratorTime
+    !$omp threadprivate(interpolationReset,interpolationResetTime,interpolationAccelerator,interpolationAcceleratorTime)
+
+    ! Check that the time is within the applicable range.
+    time=radiationProperties(1)
+    if (time > backgroundTimeNext*(1.0d0+timeTolerance)) call Galacticus_Error_Report('Radiation_IGB_Internal_Flux','time is out of range')
+    ! Find interpolation in the array of wavelengths.
+    iWavelength=Interpolate_Locate                 (backgroundRadiationWavelengthCount,backgroundRadiationWavelength,interpolationAccelerator,wavelength,reset=interpolationReset)
+    hWavelength=Interpolate_Linear_Generate_Factors(backgroundRadiationWavelengthCount,backgroundRadiationWavelength,iWavelength             ,wavelength)
+    ! Find interpolation in array of times.
+    iTime=Interpolate_Locate                 (backgroundRadiationTimeCount,backgroundRadiationTime,interpolationAcceleratorTime,time,reset=interpolationResetTime)
+    hTime=Interpolate_Linear_Generate_Factors(backgroundRadiationTimeCount,backgroundRadiationTime,iTime                       ,time                             )
+    if (time > backgroundTimePrevious) hTime=[1.0d0,0.0d0]
+    ! Interpolate in wavelength and time.
+    radiationFlux=0.0d0
+    do jTime=0,1
+       do jWavelength=0,1
+          radiationFlux=radiationFlux+hTime(jTime)*hWavelength(jWavelength)*backgroundRadiationFlux(jWavelength+iWavelength,jTime+iTime)
+       end do
+    end do
+    radiationFlux=max(radiationFlux,0.0d0)
+    return
+  end subroutine Radiation_IGB_Internal_Flux
 
 end module Radiation_Intergalactic_Background_Internal
