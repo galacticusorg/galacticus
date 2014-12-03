@@ -92,7 +92,9 @@ module Radiation_Structure
      !@ </objectMethods>
      procedure :: isDefined                =>Radiation_Is_Defined
      procedure :: define                   =>Radiation_Define
-     procedure :: set                      =>Radiation_Set
+     procedure ::                            Radiation_Set_Node
+     procedure ::                            Radiation_Set_Time
+     generic   :: set                      =>Radiation_Set_Node, Radiation_Set_Time
      procedure :: temperature              =>Radiation_Temperature
      procedure :: flux                     =>Radiation_Flux
      procedure :: integrateOverCrossSection=>Radiation_Integrate_Over_Cross_Section
@@ -136,7 +138,7 @@ contains
     return
   end subroutine Radiation_Define
 
-  subroutine Radiation_Set(radiation,thisNode)
+  subroutine Radiation_Set_Node(radiation,thisNode)
     !% Set the {\tt radiation} field as specified.
     !# <include directive="radiationSet" type="moduleUse">
     include 'objects.radiation.set.modules.inc'
@@ -164,7 +166,35 @@ contains
        !# </include>
     end do
     return
-  end subroutine Radiation_Set
+  end subroutine Radiation_Set_Node
+
+  subroutine Radiation_Set_Time(radiation,time)
+    !% Set the {\tt radiation} field as specified.
+    !# <include directive="radiationSet" type="moduleUse">
+    include 'objects.radiation.set.modules.inc'
+    !# </include>
+    use Galacticus_Nodes
+    implicit none
+    class           (radiationStructure), intent(inout)  :: radiation
+    double precision                    , intent(in   ) :: time
+    integer                                             :: iComponent
+
+    ! For an unallocated radiation object, return immediately.
+    if (.not.allocated(radiation%radiationType)) return
+
+    ! Set the time.
+    radiation%timeValue=time
+
+    ! Loop over all radiation components.
+    do iComponent=1,size(radiation%radiationType)
+       ! Call the appropriate routine to set the component.
+       !# <include directive="radiationSetTime" type="functionCall" functionType="void">
+       !#  <functionArgs>radiation%radiationType(iComponent)==radiationType#label,time,radiation%components(iComponent)%properties</functionArgs>
+       include 'objects.radiation.setTime.inc'
+       !# </include>
+    end do
+    return
+  end subroutine Radiation_Set_Time
 
   double precision function Radiation_Time(radiation)
     !% Return the time of the {\tt radiation} object.

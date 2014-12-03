@@ -21,7 +21,7 @@ module Radiation_CMB
   !% Implements a cosmic microwave background radiation component.
   implicit none
   private
-  public :: Radiation_Set_CMB, Radiation_Temperature_CMB, Radiation_Flux_CMB
+  public :: Radiation_Set_CMB, Radiation_Set_Time_CMB, Radiation_Temperature_CMB, Radiation_Flux_CMB
 
 contains
 
@@ -60,6 +60,34 @@ contains
 
     return
   end subroutine Radiation_Set_CMB
+
+  !# <radiationSetTime>
+  !#  <unitName>Radiation_Set_Time_CMB</unitName>
+  !#  <label>CMB</label>
+  !# </radiationSetTime>
+  subroutine Radiation_Set_Time_CMB(componentMatched,time,radiationProperties)
+    !% Property setting routine for the cosmic microwave background radiation component.
+    use Memory_Management
+    use Cosmology_Functions
+    implicit none
+    logical                                                             , intent(in   ) :: componentMatched
+    double precision                                                    , intent(in   ) :: time
+    double precision                         , allocatable, dimension(:), intent(inout) :: radiationProperties
+    class           (cosmologyFunctionsClass)             , pointer                     :: cosmologyFunctionsDefault
+
+    ! Return immediately if this component was not matched.
+    if (.not.componentMatched) return
+
+    ! Ensure that the properties array is allocated.
+    if (.not.allocated(radiationProperties)) call Alloc_Array(radiationProperties,[1])
+
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
+    ! Set the CMB temperature.
+    radiationProperties(1)=cosmologyFunctionsDefault%temperatureCMBEpochal(time)
+
+    return
+  end subroutine Radiation_Set_Time_CMB
 
   !# <radiationTemperature>
   !#  <unitName>Radiation_Temperature_CMB</unitName>

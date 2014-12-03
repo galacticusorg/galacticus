@@ -190,13 +190,13 @@ contains
        hSpectrum=Interpolate_Linear_Generate_Factors(spectraTimesCount,spectraTimes,iSpectrum,radiationProperties(1))
        previousTime=radiationProperties(1)
     end if
-
     ! Find interpolation in the array of wavelengths.
     iWavelength=Interpolate_Locate(spectraWavelengthsCount,spectraWavelengths,interpolationAccelerator,wavelength,reset=interpolationReset)
     hWavelength=Interpolate_Linear_Generate_Factors(spectraWavelengthsCount,spectraWavelengths,iWavelength,wavelength)
     do jSpectrum=0,1
        do jWavelength=0,1
-          radiationFlux=radiationFlux+hSpectrum(jSpectrum)*hWavelength(jWavelength)*spectra(jWavelength+iWavelength,jSpectrum&
+          if (iSpectrum+jSpectrum > 0) &
+               &         radiationFlux=radiationFlux+hSpectrum(jSpectrum)*hWavelength(jWavelength)*spectra(jWavelength+iWavelength,jSpectrum&
                &+iSpectrum)
        end do
     end do
