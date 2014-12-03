@@ -461,7 +461,8 @@ contains
     !% Computes the rate coefficient of direct collisional ionization (in units of cm$^3$ s$^{-1}$) at the specified {\tt
     !% temperature} for all ions of atoms with $Z<28$ by use of the fits from
     !% \citeauthor{voronov_practical_1997}~(\citeyear{voronov_practical_1997}; Version 2, March 24, 1997). Based on the
-    !% \href{ftp://gradj.pa.uky.edu//dima//col//cfit.f}{code} originally written by Dima Verner.
+    !% \href{ftp://gradj.pa.uky.edu//dima//col//cfit.f}{code} originally written by Dima Verner. The ionization state passed to
+    !% this function should be that of the atom/ion prior to ionization.
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
