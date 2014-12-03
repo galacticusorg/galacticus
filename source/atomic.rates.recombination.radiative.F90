@@ -31,13 +31,7 @@ module Atomic_Rates_Recombination_Radiative
   type     (varying_string                              )          :: atomicRadiativeRecombinationMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Atomic_Rate_Recombination_Radiative_Template), pointer :: Atomic_Rate_Recombination_Radiative_Get=>null()
-  abstract interface
-     double precision function Atomic_Rate_Recombination_Radiative_Template(atomicNumber,ionizationState,temperature)
-       integer         , intent(in   ) :: atomicNumber, ionizationState
-       double precision, intent(in   ) :: temperature
-     end function Atomic_Rate_Recombination_Radiative_Template
-  end interface
+  procedure(Atomic_Rate_Recombination_Radiative), pointer :: Atomic_Rate_Recombination_Radiative_Get=>null()
 
 contains
 
@@ -81,16 +75,17 @@ contains
     return
   end subroutine Atomic_Rate_Recombination_Radiative_Initialize
 
-  double precision function Atomic_Rate_Recombination_Radiative(atomicNumber,ionizationState,temperature)
+  double precision function Atomic_Rate_Recombination_Radiative(atomicNumber,ionizationState,temperature,level)
     implicit none
-    integer         , intent(in   ) :: atomicNumber, ionizationState
-    double precision, intent(in   ) :: temperature
+    integer         , intent(in   )           :: atomicNumber, ionizationState
+    double precision, intent(in   )           :: temperature
+    integer         , intent(in   ), optional :: level
 
     ! Initialize the module.
     call Atomic_Rate_Recombination_Radiative_Initialize
 
     ! Call the routine to do the calculation.
-    Atomic_Rate_Recombination_Radiative=Atomic_Rate_Recombination_Radiative_Get(atomicNumber,ionizationState,temperature)
+    Atomic_Rate_Recombination_Radiative=Atomic_Rate_Recombination_Radiative_Get(atomicNumber,ionizationState,temperature,level)
 
     return
   end function Atomic_Rate_Recombination_Radiative
