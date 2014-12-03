@@ -23,7 +23,10 @@ module Numerical_Constants_Math
   use Kind_Numbers
   implicit none
   public
-
+  
+  ! e.
+  double precision                , parameter :: e              =m_e
+  
   ! Pi.
   double precision                , parameter :: Pi             =m_pi
   real            (kind=kind_quad), parameter :: PiQuadPrecision=3.141592653589793238462643383279502884197_kind_quad
