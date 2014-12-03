@@ -896,7 +896,6 @@ contains
     !% Compute the hot halo node mass rate of change.
     use Abundances_Structure
     use Accretion_Halos
-    use Accretion_Halos_Options
     use Dark_Matter_Halo_Spins
     use Dark_Matter_Halo_Scales
     use Chemical_States
@@ -914,15 +913,14 @@ contains
     procedure       (Interrupt_Procedure_Template)           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo        )                          , pointer :: thisHotHaloComponent
     class           (nodeComponentBasic          )                          , pointer :: thisBasicComponent
-    type            (abundances                  ), save                              :: accretionRateAbundances
     class           (cosmologyParametersClass    )                          , pointer :: thisCosmologyParameters
     class           (hotHaloMassDistributionClass)                          , pointer :: defaultHotHaloMassDistribution
     class           (darkMatterHaloScaleClass    )                          , pointer :: darkMatterHaloScale_
-    type            (chemicalAbundances          ), save                              :: accretionRateChemicals                   , chemicalDensities      , &
-         &                                                                               chemicalDensitiesRates                   , chemicalMasses         , &
-         &                                                                               chemicalMassesRates                      , chemicalsCoolingRate
-    !$omp threadprivate(accretionRateAbundances,accretionRateChemicals,chemicalMasses)
-    !$omp threadprivate(chemicalDensities,chemicalDensitiesRates,chemicalMassesRates,chemicalsCoolingRate)
+    class           (accretionHaloClass          )                          , pointer :: accretionHalo_
+    type            (chemicalAbundances          ), save                              :: chemicalDensitiesRates                   , chemicalMasses         , &
+         &                                                                               chemicalMassesRates                      , chemicalsCoolingRate   , &
+         &                                                                               chemicalDensities
+    !$omp threadprivate(chemicalMasses,chemicalDensities,chemicalDensitiesRates,chemicalMassesRates,chemicalsCoolingRate)
     double precision                                                                  :: angularMomentumAccretionRate             , temperature            , &
          &                                                                               densityAtOuterRadius                     , failedMassAccretionRate, &
          &                                                                               massLossRate                             , massToDensityConversion, &
@@ -936,9 +934,11 @@ contains
     thisHotHaloComponent => thisNode%hotHalo()
     ! Ensure that the standard hot halo implementation is active.
     if (defaultHotHaloComponent%standardIsActive()) then
+       ! Get required objects.
+       accretionHalo_ => accretionHalo()
        ! Find the rate of gas mass accretion onto the halo.
-       massAccretionRate      =Halo_Baryonic_Accretion_Rate       (thisNode,accretionModeHot)
-       failedMassAccretionRate=Halo_Baryonic_Failed_Accretion_Rate(thisNode,accretionModeHot)
+       massAccretionRate      =accretionHalo_%accretionRate      (thisNode,accretionModeHot)
+       failedMassAccretionRate=accretionHalo_%failedAccretionRate(thisNode,accretionModeHot)
        ! Get the basic component.
        thisBasicComponent => thisNode%basic()
        ! Apply accretion rates.
@@ -951,8 +951,7 @@ contains
        ! Pipe the cooling rate to which ever component claimed it.
        call Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes(thisNode,coolingRate,interrupt,interruptProcedure)
        ! Get the rate at which abundances are accreted onto this halo.
-       call Halo_Baryonic_Accretion_Rate_Abundances(thisNode,accretionRateAbundances,accretionModeHot)
-       call thisHotHaloComponent%abundancesRate(accretionRateAbundances,interrupt,interruptProcedure)
+       call thisHotHaloComponent%abundancesRate(accretionHalo_%accretionRateMetals(thisNode,accretionModeHot),interrupt,interruptProcedure)
        ! Next block of tasks occur only if the accretion rate is non-zero.
           if (thisBasicComponent%accretionRate() /= 0.0d0) then
           ! Compute the rate of accretion of angular momentum.
@@ -964,8 +963,7 @@ contains
        ! Next block of tasks occur only if chemicals are being tracked.
        if (chemicalsCount > 0) then
           ! Get the rate at which chemicals are accreted onto this halo.
-          call Halo_Baryonic_Accretion_Rate_Chemicals(thisNode,accretionRateChemicals,accretionModeHot)
-          call thisHotHaloComponent%chemicalsRate(accretionRateChemicals,interrupt,interruptProcedure)
+          call thisHotHaloComponent%chemicalsRate(accretionHalo_%accretionRateChemicals(thisNode,accretionModeHot),interrupt,interruptProcedure)
           ! For non-zero cooling rate, adjust the rates of chemical masses.
           if (coolingRate > 0.0d0) then
              ! Compute the rate at which chemicals are lost via cooling.
@@ -1268,7 +1266,6 @@ contains
     !% Initialize the contents of the hot halo component for any sub-resolution accretion (i.e. the gas that would have been
     !% accreted if the merger tree had infinite resolution).
     use Accretion_Halos
-    use Accretion_Halos_Options
     use Dark_Matter_Halo_Spins
     use Chemical_Abundances_Structure
     use Abundances_Structure
@@ -1276,9 +1273,7 @@ contains
     type            (treeNode            ), intent(inout), pointer :: thisNode
     class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent, thisHotHaloComponent
     class           (nodeComponentBasic  )               , pointer :: thisBasicComponent
-    type            (abundances          ), save                   :: accretedAbundances
-    type            (chemicalAbundances  ), save                   :: accretedChemicals
-    !$omp threadprivate(accretedAbundances,accretedChemicals)
+    class           (accretionHaloClass  )               , pointer :: accretionHalo_
     double precision                                               :: angularMomentum        , failedHotHaloMass   , &
          &                                                            hotHaloMass
 
@@ -1290,9 +1285,11 @@ contains
     ! Ensure that it is of unspecified class.
     select type (currentHotHaloComponent)
     type is (nodeComponentHotHalo)
+       ! Get required objects.
+       accretionHalo_ => accretionHalo()
        ! Get the mass of hot gas accreted and the mass that failed to accrete.
-       hotHaloMass      =Halo_Baryonic_Accreted_Mass       (thisNode,accretionModeHot)
-       failedHotHaloMass=Halo_Baryonic_Failed_Accreted_Mass(thisNode,accretionModeHot)
+       hotHaloMass      =accretionHalo_%accretedMass      (thisNode,accretionModeHot)
+       failedHotHaloMass=accretionHalo_%failedAccretedMass(thisNode,accretionModeHot)
        ! If either is non-zero, then create a hot halo component and add these masses to it.
        if (hotHaloMass > 0.0d0 .or. failedHotHaloMass > 0.0d0) then
           call Node_Component_Hot_Halo_Standard_Create(thisNode)
@@ -1304,11 +1301,9 @@ contains
           angularMomentum=hotHaloMass*Dark_Matter_Halo_Angular_Momentum(thisNode)/thisBasicComponent%mass()
           call thisHotHaloComponent%angularMomentumSet(angularMomentum   )
           ! Add the appropriate abundances.
-          call Halo_Baryonic_Accreted_Abundances(thisNode,accretedAbundances,accretionModeHot)
-          call thisHotHaloComponent%     abundancesSet(accretedAbundances)
+          call thisHotHaloComponent%abundancesSet(accretionHalo_%accretedMassMetals   (thisNode,accretionModeHot))
           ! Also add the appropriate chemical masses.
-          call Halo_Baryonic_Accreted_Chemicals (thisNode,accretedChemicals ,accretionModeHot)
-          call thisHotHaloComponent%      chemicalsSet(accretedChemicals )
+          call thisHotHaloComponent%chemicalsSet (accretionHalo_%accretedMassChemicals(thisNode,accretionModeHot))
        end if
     end select
     return
