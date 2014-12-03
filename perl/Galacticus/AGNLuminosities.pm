@@ -50,8 +50,8 @@ sub Build_AGN_Spectra {
 
 	# Determine whether or not we should (re)make the file.
 	my $makeFile = 0;
-	if ( -e "data/blackHoles/AGN_SEDs.hdf5" ) {
-	    my $hdfFile = new PDL::IO::HDF5("data/blackHoles/AGN_SEDs.hdf5");
+	if ( -e "data/blackHoles/AGN_SEDs_Hopkins2007.hdf5" ) {
+	    my $hdfFile = new PDL::IO::HDF5("data/blackHoles/AGN_SEDs_Hopkins2007.hdf5");
 	    my @attributes = $hdfFile->attrs();
 	    if ( grep {$_ eq "fileFormat"} @attributes  ) {
 		my @fileFormatCurrentFile = $hdfFile->attrGet('fileFormat');
@@ -123,7 +123,7 @@ sub Build_AGN_Spectra {
 	    }
 	    
 	    # Store the data to file.
-	    my $hdfFile = new PDL::IO::HDF5(">data/blackHoles/AGN_SEDs.hdf5");
+	    my $hdfFile = new PDL::IO::HDF5(">data/blackHoles/AGN_SEDs_Hopkins2007.hdf5");
 	    my $wavelengthDataSet = new PDL::IO::HDF5::Dataset(
 		name    => "wavelength",
 		parent  => $hdfFile,
@@ -168,13 +168,13 @@ sub Build_AGN_Spectra {
 		);
 	} else {
 	    # Read the AGN SEDs from file.
-	    my $hdfFile             = new PDL::IO::HDF5("data/blackHoles/AGN_SEDs.hdf5");
+	    my $hdfFile             = new PDL::IO::HDF5("data/blackHoles/AGN_SEDs_Hopkins2007.hdf5");
 	    $wavelengths            = $hdfFile->dataset('wavelength'          )->get();
 	    $luminositiesBolometric = $hdfFile->dataset('bolometricLuminosity')->get();
 	    $SEDs                   = $hdfFile->dataset('SED'                 )->get();
 	}
-	die("Build_AGN_Spectra(): failed to created data/blackHoles/AGN_SEDs.hdf5")
-	    unless ( -e "data/blackHoles/AGN_SEDs.hdf5" );
+	die("Build_AGN_Spectra(): failed to created data/blackHoles/AGN_SEDs_Hopkins2007.hdf5")
+	    unless ( -e "data/blackHoles/AGN_SEDs_Hopkins2007.hdf5" );
     }
 }
 
