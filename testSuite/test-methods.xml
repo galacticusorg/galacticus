@@ -947,4 +947,59 @@
     </parameter>
   </parameters>
 
+  <!-- Internal IGM evolution -->
+  <parameters>
+    <!-- IGM evolver -->
+    <parameter>
+      <name>intergalacticMediumStateMethod</name>
+      <value>internal</value>
+    </parameter>
+    <parameter>
+      <name>igmPropertiesTimeCountPerDecade</name>
+      <value>2</value>
+    </parameter>
+    <parameter>
+      <name>igmPropertiesCompute</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>igmPropertiesRedshiftMaximum</name>
+      <value>150</value>
+    </parameter>
+    <!-- Background radiation -->
+    <parameter>
+      <name>backgroundRadiationCompute</name>
+    <value>true</value>
+    </parameter>
+    <parameter>
+      <name>radiationIntergalacticBackgroundMethod</name>
+      <value>internal</value>
+    </parameter>
+    <parameter>
+      <name>backgroundRadiationWavelengthCountPerDecade</name>
+      <value>5</value>
+    </parameter>
+    <parameter>
+      <name>backgroundRadiationTimeCountPerDecade</name>
+      <value>2</value>
+    </parameter>
+    <!-- Halo mass ranges -->
+    <parameter>
+      <name>mergerTreeBuildHaloMassMaximum</name>
+      <value>1.0e15</value>
+    </parameter>
+    <parameter>
+      <name>mergerTreeBuildHaloMassMinimum</name>
+      <value>1.0e10</value>
+    </parameter>
+    <parameter>
+      <name>mergerTreeBuildTreesPerDecade</name>
+      <value>5</value>
+    </parameter>
+    <parameter>
+      <name>mergerTreeBuildMassResolutionFixed</name>
+      <value>5.0e9</value>
+    </parameter>
+  </parameters>
+  
 </parameterGrid>
