@@ -18,7 +18,7 @@
 module Radiation_Null
   implicit none
   private
-  public :: Radiation_Set_Null, Radiation_Temperature_Null, Radiation_Flux_Null
+  public :: Radiation_Set_Null, Radiation_Set_Time_Null, Radiation_Temperature_Null, Radiation_Flux_Null
 
 contains
 
@@ -40,6 +40,20 @@ contains
 
     return
   end subroutine Radiation_Set_Null
+
+  !# <radiationSetTime>
+  !#  <unitName>Radiation_Set_Time_Null</unitName>
+  !#  <label>Null</label>
+  !# </radiationSetTime>
+  subroutine Radiation_Set_Time_Null(componentMatched,time,radiationProperties)
+    !% Property setting routine for null radiation component.
+    implicit none
+    logical                                    , intent(in   ) :: componentMatched
+    double precision                           , intent(in   ) :: time
+    double precision, allocatable, dimension(:), intent(inout) :: radiationProperties
+
+    return
+  end subroutine Radiation_Set_Time_Null
 
   !# <radiationTemperature>
   !#  <unitName>Radiation_Temperature_Null</unitName>
