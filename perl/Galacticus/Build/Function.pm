@@ -46,7 +46,10 @@ sub Functions_Parse_Directive {
     my $abstract  = "no";
     $abstract     = $buildData->{'currentDocument'}->{'abstract'}
         if ( exists($buildData->{'currentDocument'}->{'abstract'}) );
-    push(@{$buildData->{$directive}->{'classes'}},{name => $className, file => $fileName, description => $buildData->{'currentDocument'}->{'description'}, abstract => $abstract});
+    my $defaultThreadPrivate = "default";
+    $defaultThreadPrivate = $buildData->{'currentDocument'}->{'defaultThreadPrivate'}
+        if ( exists($buildData->{'currentDocument'}->{'defaultThreadPrivate'}) );
+    push(@{$buildData->{$directive}->{'classes'}},{name => $className, file => $fileName, description => $buildData->{'currentDocument'}->{'description'}, abstract => $abstract, defaultThreadPrivate => $defaultThreadPrivate});
 
 }
 
@@ -373,10 +376,20 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "   type(varying_string) :: ".$directive."Method\n\n";
 
     # Add default implementation.
+    $buildData->{'defaultThreadPrivate'} = "no"
+	unless ( exists($buildData->{'defaultThreadPrivate'}) );
+    my $requireThreadPublicDefault  = 0;    
+    foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
+	$class->{'defaultThreadPrivate'} = $buildData->{'defaultThreadPrivate'}
+	    if ( $class->{'defaultThreadPrivate'} eq "default" );
+	$requireThreadPublicDefault  = 1
+	    if ( $class->{'defaultThreadPrivate'} eq "no"      );
+    }
     $buildData->{'content'} .= "   ! Default ".$directive." object.\n";
-    $buildData->{'content'} .= "   class(".$directive."Class), private , pointer :: ".$directive."Default => null()\n";
-    $buildData->{'content'} .= "   !\$omp threadprivate(".$directive."Default)\n"
-	if ( exists($buildData->{'defaultThreadPrivate'}) && $buildData->{'defaultThreadPrivate'} eq "yes" );
+    $buildData->{'content'} .= "   class(".$directive."Class), private , pointer :: ".$directive."Default       => null()\n";
+    $buildData->{'content'} .= "   !\$omp threadprivate(".$directive."Default)\n";
+    $buildData->{'content'} .= "   class(".$directive."Class), private , pointer :: ".$directive."PublicDefault => null()\n"
+	if ( $requireThreadPublicDefault  == 1 );
     $buildData->{'content'} .= "\n";
 
     # If we need to generate C-bindings, insert a wrapper class to permit passing of polymorphic pointers between Fortran and C++.
@@ -480,11 +493,22 @@ sub Functions_Generate_Output {
 	$name = lcfirst($name)
 	    unless ( $name =~ m/^[A-Z]{2,}/ );
 	$buildData->{'content'} .= "     case ('".$name."')\n";
-	$buildData->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive."Default)\n";
-	$buildData->{'content'} .= "        select type (".$directive."Default)\n";
-	$buildData->{'content'} .= "          type is (".$class->{'name'}.")\n";
-	$buildData->{'content'} .= "            ".$directive."Default=".$class->{'name'}."()\n";
-	$buildData->{'content'} .= "         end select\n";
+	if ( $class->{'defaultThreadPrivate'} eq "yes" ) {
+	    $buildData->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive."Default)\n";
+	    $buildData->{'content'} .= "        select type (".$directive."Default)\n";
+	    $buildData->{'content'} .= "          type is (".$class->{'name'}.")\n";
+	    $buildData->{'content'} .= "            ".$directive."Default=".$class->{'name'}."()\n";
+	    $buildData->{'content'} .= "         end select\n";
+	} else {
+	    $buildData->{'content'} .= "        if (.not.associated(".$directive."PublicDefault)) then\n";
+	    $buildData->{'content'} .= "           allocate(".$class->{'name'}." :: ".$directive."PublicDefault)\n";
+	    $buildData->{'content'} .= "           select type (".$directive."PublicDefault)\n";
+	    $buildData->{'content'} .= "           type is (".$class->{'name'}.")\n";
+	    $buildData->{'content'} .= "             ".$directive."PublicDefault=".$class->{'name'}."()\n";
+	    $buildData->{'content'} .= "           end select\n";
+	    $buildData->{'content'} .= "        end if\n";
+	    $buildData->{'content'} .= "         ".$directive."Default => ".$directive."PublicDefault\n";
+	}
     }
     $buildData->{'content'} .= "      case default\n";
     $buildData->{'content'} .= "         message='Unrecognized option for [".$directive."Method](='//".$directive."Method//'). Available options are:'\n";
