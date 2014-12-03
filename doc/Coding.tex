@@ -172,6 +172,20 @@ void  Star_Formation_Timescale_Disk_Baugh2005_Initialize(char *starFormationTime
 \end{verbatim}
 The usual embedded XML directives specifies that this function should be called to initialize the method. The function is passed both the name of the method that has been selected and a function pointer. If the method is matched, the function simply sets the function pointer to point to the specific function implementing the timescale calculation.
 
+\section{Global Functions}
+
+In very exceptional circumstances it is necessary to subvert the module hierarchy used by \glc\ to permit one module to call a function in a higher level module\footnote{This usually arises because circular dependencies would arise if the called function were placed in a lower level module.}. Examples of where this approach is necessary usuually involve initial bootstrapping (i.e. to establish halo density contrasts, which requires knowledge of the halo density profile, which in turn requires knowledge of the halo density contrast\ldots).
+
+\glc\ provides for global functions which facilitate this---specifically, it is possible to generate function pointers to higher level functions which are accessible via a very low-level module. To create a globally callable copy of a function use add the follow prior to the function definition:
+\begin{verbatim}
+  !# <functionGlobal>
+  !#  <unitName>myFunction</unitName>
+  !#  <type>double precision</type>
+  !#  <arguments>double precision , intent(in   ) :: mass, time</arguments>
+  !# </functionGlobal>
+\end{verbatim}
+Here, {\tt myFunction} is the name of the function to make global, while the {\tt type} and {\tt arguments} (of which there may be more than one) elements are used to generate a suitable interface for the function. At run-time, a pointer to this function is then available from the {\tt Functions\_Global} module, named {\tt myFunction\_}. Note that {\tt Functions\_Global\_Set} provided by the {\tt Functions\_Global\_Utilities} module must be called once to initialize these global function pointers prior to their use.
+
 \section{Objects}
 
 \subsection{Enumerations}

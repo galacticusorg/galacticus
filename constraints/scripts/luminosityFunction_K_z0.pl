@@ -11,6 +11,7 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
+use PDL::IO::HDF5;
 use XML::Simple;
 require Galacticus::HDF5;
 require Galacticus::Magnitudes;
@@ -74,30 +75,10 @@ my $weight    = $dataSets->{'mergerTreeWeight'};
 
 # Output the results to file if requested.
 if ( exists($arguments{'resultFile'}) ) {
-    my $results;
-    @{$results->{'x'    }} = $xGalacticus    ->list();
-    @{$results->{'y'    }} = $yGalacticus    ->list();
-    @{$results->{'error'}} = $errorGalacticus->list();
-    my $xmlOut = new XML::Simple (RootName=>"results", NoAttr => 1);;
-    # Output the parameters to file.
-    open(pHndl,">".$arguments{'resultFile'});
-    print pHndl $xmlOut->XMLout($results);
-    close pHndl;
-}
-
-# Output accuracy to file if requested.
-if ( exists($arguments{'accuracyFile'}) ) {
-    my $results;
-    @{$results->{'x'         }} = $xGalacticus    ->list();
-    @{$results->{'yModel'    }} = $yGalacticus    ->list();
-    @{$results->{'yData'     }} = $y              ->list();
-    @{$results->{'errorModel'}} = $errorGalacticus->list();
-    @{$results->{'errorData' }} = $error          ->list();
-    my $xmlOut = new XML::Simple (RootName=>"accuracy", NoAttr => 1);;
-    # Output the parameters to file.
-    open(pHndl,">".$arguments{'accuracyFile'});
-    print pHndl $xmlOut->XMLout($results);
-    close pHndl;
+    my $resultFile = new PDL::IO::HDF5(">".$arguments{'resultFile'});
+    $resultFile->dataset('x'    )->set($xGalacticus    );
+    $resultFile->dataset('y'    )->set($yGalacticus    );
+    $resultFile->dataset('error')->set($errorGalacticus);
 }
 
 # Compute chi^2.
