@@ -52,6 +52,12 @@ module Stellar_Population_Spectra_File
   ! The current file format version.
   integer               , parameter                 :: fileFormatVersionCurrent=1
 
+  ! Module initialization state.
+  logical                                           :: moduleInitialized=.false.
+
+  ! Interpolation options.
+  logical                                           :: stellarPopulationSpectraFileForceZeroMetallicity
+
 contains
 
   integer function Stellar_Population_Spectra_File_Format_Current()
@@ -111,8 +117,29 @@ contains
     type   (varying_string)                :: defaultFile  , imfName                     , &
          &                                    parameterName, stellarPopulationSpectraFile
 
+    ! Initialize.
+    if (.not.moduleInitialized) then
+       !$omp critical(Stellar_Population_Spectra_File_Initialize_IMF)
+       if (.not.moduleInitialized) then
+          !@ <inputParameter>
+          !@   <name>stellarPopulationSpectraFileForceZeroMetallicity</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Force the use of zero metallicity (or, lowest metallicity available) for all stellar populations.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stellarPopulationSpectraFileForceZeroMetallicity',stellarPopulationSpectraFileForceZeroMetallicity,defaultValue=.false.)
+          ! Record that module is initialized.
+          moduleInitialized=.true.
+       end if
+       !$omp end critical(Stellar_Population_Spectra_File_Initialize_IMF)
+    end if
+    
     ! Decide if we need to read the file.
-    readFile=.not.allocated(imfLookup) ! If out lookup array is not allocated, we must read the file.
+    readFile=.not.allocated(imfLookup) ! If our lookup array is not allocated, we must read the file.
     if (.not.readFile) then
        if (size(imfLookup) < imfIndex) then
           readFile=.true.
@@ -172,16 +199,25 @@ contains
          &                                                        jWavelength
     double precision                                           :: metallicity
     type            (varying_string)                           :: message
-    character       (len=12        )                           :: metallicityLabel
+    character       (len=12        )                           :: metallicityLabel           , label
 
     ! Set status code if present.
     if (present(status)) status=errorStatusSuccess
     ! Find the internal lookup index for this IMF.
     imfLookupIndex=imfLookup(imfIndex)
     ! Check for out of range conditions.
-    if (age > spectra(imfLookupIndex)%stellarPopulationSpectraAges(spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints))&
-         & call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate','age exceeds the maximum tabulated')
-    metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=logarithmicByMassSolar)
+    if (age > spectra(imfLookupIndex)%stellarPopulationSpectraAges(spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints)) then
+       write (label,'(e12.4)') age 
+       message='age ['//trim(label)//'] exceeds the maximum tabulated ['
+       write (label,'(e12.4)') spectra(imfLookupIndex)%stellarPopulationSpectraAges(spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints)
+       message=message//trim(label)//']'
+       call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate',message)
+    end if
+    if (stellarPopulationSpectraFileForceZeroMetallicity) then
+       metallicity=logMetallicityZero
+    else
+       metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=logarithmicByMassSolar)
+    end if
     if (metallicity > spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)+metallicityTolerance) then
        if (present(status)) then
           metallicity=spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)
