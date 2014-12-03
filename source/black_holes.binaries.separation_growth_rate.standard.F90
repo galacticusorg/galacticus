@@ -94,24 +94,24 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    class           (nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent
-    type            (treeNode              )               , pointer :: thisNode
-    class           (nodeComponentBlackHole)               , pointer :: centralBlackHoleComponent
-    class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
+    class           (nodeComponentBlackHole  ), intent(inout)          :: thisBlackHoleComponent
+    type            (treeNode                )               , pointer :: thisNode
+    class           (nodeComponentBlackHole  )               , pointer :: centralBlackHoleComponent
+    class           (nodeComponentSpheroid   )               , pointer :: thisSpheroidComponent
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                        , parameter              :: hardeningRateDimensionless     =15.0d0
-    double precision                        , parameter              :: outerRadiusMultiplier          =10.0d0
-    double precision                        , parameter              :: dynamicalFrictionMinimumRadius =0.1d0
-    double precision                                                 :: coulombLogarithmDarkMatter            , coulombLogarithmSpheroid       , &
-         &                                                              densityDarkMatter                     , densitySpheroid                , &
-         &                                                              densityStellar                        , dynamicalFrictionAcceleration  , &
-         &                                                              dynamicalFrictionXDarkMatter          , dynamicalFrictionXSpheroid     , &
-         &                                                              radiusHardBinary                      , rateGravitationalWaves         , &
-         &                                                              rateScattering                        , rateScatteringDynamicalFriction, &
-         &                                                              rateScatteringStars                   , rotationCurveGradient          , &
-         &                                                              stellarDensityFractionRemaining       , velocityDispersionDarkMatter   , &
-         &                                                              velocityDispersionSpheroid
-    character       (len=24                )                         :: message
+    double precision                          , parameter              :: hardeningRateDimensionless     =15.0d0
+    double precision                          , parameter              :: outerRadiusMultiplier          =10.0d0
+    double precision                          , parameter              :: dynamicalFrictionMinimumRadius =0.1d0
+    double precision                                                   :: coulombLogarithmDarkMatter            , coulombLogarithmSpheroid       , &
+         &                                                                densityDarkMatter                     , densitySpheroid                , &
+         &                                                                densityStellar                        , dynamicalFrictionAcceleration  , &
+         &                                                                dynamicalFrictionXDarkMatter          , dynamicalFrictionXSpheroid     , &
+         &                                                                radiusHardBinary                      , rateGravitationalWaves         , &
+         &                                                                rateScattering                        , rateScatteringDynamicalFriction, &
+         &                                                                rateScatteringStars                   , rotationCurveGradient          , &
+         &                                                                stellarDensityFractionRemaining       , velocityDispersionDarkMatter   , &
+         &                                                                velocityDispersionSpheroid
+    character       (len=24                  )                         :: message
 
     ! Get the host node.
     thisNode                  => thisBlackHoleComponent%host()

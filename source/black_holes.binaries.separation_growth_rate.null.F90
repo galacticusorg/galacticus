@@ -45,7 +45,7 @@ contains
     !% Returns a separation growth rate for a binary black hole that is always zero.
     use Galacticus_Nodes
     implicit none
-    class(nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent
+    class(nodeComponentBlackHole), intent(inout) :: thisBlackHoleComponent
 
     Black_Hole_Binary_Separation_Growth_Rate_Null=0.0d0
     return
