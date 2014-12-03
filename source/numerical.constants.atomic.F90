@@ -32,8 +32,9 @@ module Numerical_Constants_Atomic
   double precision, parameter :: atomicMassHydrogen                =1.007825d0
   double precision, parameter :: atomicMassHelium                  =4.002602d0
 
-  ! Mass of hydrogen atom (in kg).
+  ! Mass of hydrogen and helium atom (in kg).
   double precision, parameter :: massHydrogenAtom                  =atomicMassHydrogen*atomicMassUnit
+  double precision, parameter :: massHeliumAtom                    =atomicMassHelium  *atomicMassUnit
 
   ! Ionization energies/wavelengths (in eV/Angstroms).
   ! Hydrogen Lyman series limit wavelength including correction for finite mass of the atom.

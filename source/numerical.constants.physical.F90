@@ -21,6 +21,7 @@ module Numerical_Constants_Physical
   !% Contains various useful physical constants.
   use FGSL
   use Numerical_Constants_Prefixes
+  use Numerical_Constants_Math
   implicit none
   public
 
@@ -50,5 +51,17 @@ module Numerical_Constants_Physical
 
   ! Planck's constant (in units of J s).
   double precision, parameter :: plancksConstant                =FGSL_CONST_MKSA_PLANCKS_CONSTANT_H
+  
+  ! Electron Charge (in units of C).
+  double precision, parameter :: electronCharge                 =FGSL_CONST_MKSA_ELECTRON_CHARGE
+
+  ! Permitivity of free space (in SI units).                           
+  double precision, parameter :: eps0                           =FGSL_CONST_MKSA_VACUUM_PERMITTIVITY
+
+  ! Fine structure constant (unitless)
+  double precision, parameter :: fineStructure                  =FGSL_CONST_NUM_FINE_STRUCTURE
+
+  ! classical electron radius (m)
+  double precision, parameter :: electronRadius                 = 1.0d0 / (4.0d0 * Pi * eps0) * electronCharge**2 / (electronMass * speedLight**2)
 
 end module Numerical_Constants_Physical
