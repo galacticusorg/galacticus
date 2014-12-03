@@ -46,7 +46,7 @@ contains
     include 'black_holes.binary.separation_growth_rate.modules.inc'
     !# </include>
     implicit none
-    class(nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent
+    class(nodeComponentBlackHole), intent(inout) :: thisBlackHoleComponent
 
     if (.not.blackHoleBinarySeparationGrowthRateInitialized) then
        !$omp critical(blackHoleBinarySeparationGrowthRateInitialize)
