@@ -513,3 +513,55 @@ To compute emission line luminosities it is therefore necessary to run \glc\ inc
 \end{itemize}
 
 Additionally, if a line is requested as {\tt totalLineLuminosity:balmerAlpha6563:<filterName>:rest:z0.0000} then the line luminosity is computed under the provided filter, and the luminosity is returned in units of \glspl{maggie} for easy conversion to magnitudes.
+
+\subsection{Reionization Calculations}\label{sed:ReionziationTutorial}\index{reionization}
+
+\glc\ can self-consistently solve for the evolution of the \gls{igm} as it becomes photoionized by light emitted by stars and AGN. To activate this calculation, include the following in your parameters file:
+\begin{verbatim}
+  <!-- IGM evolver -->
+  <parameter>
+    <name>intergalacticMediumStateMethod</name>
+    <value>internal</value>
+  </parameter>
+  <parameter>
+    <name>igmPropertiesCompute</name>
+    <value>true</value>
+  </parameter>
+  <parameter>
+    <name>igmPropertiesTimeCountPerDecade</name>
+    <value>10</value>
+  </parameter>
+  
+  <!-- Background radiation -->
+  <parameter>
+    <name>backgroundRadiationCompute</name>
+    <value>true</value>
+  </parameter>
+  <parameter>
+    <name>radiationIntergalacticBackgroundMethod</name>
+    <value>internal</value>
+  </parameter>
+  <parameter>
+    <name>backgroundRadiationWavelengthCountPerDecade</name>
+    <value>50</value>
+  </parameter>
+  <parameter>
+    <name>backgroundRadiationTimeCountPerDecade</name>
+    <value>10</value>
+  </parameter>
+
+  <!-- Halo accretion options -->
+  <parameter>
+    <name>accretionHaloMethod</name>
+    <value>naozBarkana2007</value>
+  </parameter>
+\end{verbatim}
+The first block of parameters switches \glc\ to using an internal calculation for the state of the \gls{igm}, instructs it to solve for \gls{igm} properties as a function of time, and specifies that \gls{igm} properties should be updated 10 times per decade of cosmic time. Specifically, at each of these time intervals, solving of galaxy evolution is halted and the \gls{igm} evolved up to this time using the currently computed photoionizing background spectrum.
+
+The second block of parameters activates an internal calculation of cosmic background radiation, in which the background is computed from the emissivities of model galaxies and AGN. The number of points at which to tabulate the background per decade of wavelength and cosmic time are specified.
+
+Finally, the third block of parameters tells \glc\ to use the \cite{naoz_formation_2007} prescription for computing gas accretion into halos from the \gls{igm}. This prescription uses the filtering mass to determine accretion rates, and will take the filtering mass from the internal \gls{igm} evolution calculation.
+
+With these three sets of configurations, \glc\ will perform a self-consistent evolution of the \gls{igm}---in the sense that the \gls{igm} is ionized by photons emitted by model galaxies and AGN, while galaxy evolution is affected by the computed state of the model \gls{igm}. Note that, when run in this way, \glc\ needs to keep all merger trees in memory simultaneously (as they are run synchronously to allow the \gls{igm} properties to evolved alongside galaxy properties).
+
+Once completed, data on the \gls{igm} and background radiation are written to the output file in the {\tt igmProperties} and {\tt backgroundRadiation} groups respectively.
