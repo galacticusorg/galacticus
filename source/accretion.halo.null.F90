@@ -73,7 +73,7 @@ contains
 
     nullAccretedMass=0.0d0
     return
-  end function 
+  end function nullAccretedMass
 
   double precision function nullFailedAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\tt node}.

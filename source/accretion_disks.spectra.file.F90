@@ -81,7 +81,6 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('accretionDiskSpectraFileName',accretionDiskSpectraFileName)
-          !@ <inputParameter>
           ! Record that this method is now initialized.
           fileInitialized=.true.
        end if

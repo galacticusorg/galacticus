@@ -29,7 +29,64 @@
           &                                           massFiltering   , densityHydrogen1, &
           &                                           densityHydrogen2, densityHelium1  , &
           &                                           densityHelium2  , densityHelium3
-  contains
+   contains
+     !@ <objectMethods>
+     !@   <object>intergalacticMediumStateInternal</object>
+     !@   <objectMethod>
+     !@     <method>densityH1Set</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ densityHydrogen1\argin</arguments>
+     !@     <description>Set the density of neutral hydrogen time series.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>densityH2Set</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ densityHydrogen2\argin</arguments>
+     !@     <description>Set the density of ionized hydrogen time series.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>densityHe1Set</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ densityHelium1\argin</arguments>
+     !@     <description>Set the density of neutral helium time series.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>densityHe2Set</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ densityHelium2\argin</arguments>
+     !@     <description>Set the density of singly-ionized helium time series.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>densityHe3Set</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ densityHelium3\argin</arguments>
+     !@     <description>Set the density of doubly-ionized helium time series.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>timeSet</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ times\argin</arguments>
+     !@     <description>Set the times to use for all time series.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>temperatureSet</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ temperature\argin</arguments>
+     !@     <description>Set the temperature time series.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>massFilteringSet</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ massFiltering\argin</arguments>
+     !@     <description>Set the filtering mass time series.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>filteringMAss</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <description>Return the filtering mass at the given {\tt time}.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: electronFraction            => internalElectronFraction
      procedure :: temperature                 => internalTemperature
      procedure :: neutralHydrogenFraction     => internalNeutralHydrogenFraction

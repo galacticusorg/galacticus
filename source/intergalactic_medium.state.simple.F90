@@ -40,6 +40,9 @@
      module procedure simpleConstructor
   end interface intergalacticMediumStateSimple
 
+  ! Initialization state.
+  logical :: simpleInitialized=.false.
+
 contains
 
   function simpleDefaultConstructor()
@@ -49,39 +52,47 @@ contains
     type            (intergalacticMediumStateSimple), target  :: simpleDefaultConstructor
     double precision                                          :: reionizationRedshift      , reionizationTemperature, &
          &                                                       preReionizationTemperature
-    !@ <inputParameter>
-    !@   <name>igmStateSimpleReionizationRedshift</name>
-    !@   <defaultValue>9.97 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The redshift of reionization in the simple \gls{igm} state model.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('igmStateSimpleReionizationRedshift',reionizationRedshift,defaultValue=9.97d0)
-    !@ <inputParameter>
-    !@   <name>igmStateSimpleReionizationTemperature</name>
-    !@   <defaultValue>$10^4$K</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The post-reionization temperature (in units of Kelvin) in the simple \gls{igm} state model.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('igmStateSimpleReionizationTemperature',reionizationTemperature,defaultValue=1.0d4)
-    !@ <inputParameter>
-    !@   <name>igmStateSimplePreReionizationTemperature</name>
-    !@   <defaultValue>$10$K</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The pre-reionization temperature (in units of Kelvin) in the simple \gls{igm} state model.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('igmStateSimplePreReionizationTemperature',preReionizationTemperature,defaultValue=1.0d1)
+
+    if (.not.simpleInitialized) then
+       !$omp critical(intergalacticMediumStateSimpleInitialize)
+       if (.not.simpleInitialized) then
+          !@ <inputParameter>
+          !@   <name>igmStateSimpleReionizationRedshift</name>
+          !@   <defaultValue>9.97 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The redshift of reionization in the simple \gls{igm} state model.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('igmStateSimpleReionizationRedshift',reionizationRedshift,defaultValue=9.97d0)
+          !@ <inputParameter>
+          !@   <name>igmStateSimpleReionizationTemperature</name>
+          !@   <defaultValue>$10^4$K</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The post-reionization temperature (in units of Kelvin) in the simple \gls{igm} state model.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('igmStateSimpleReionizationTemperature',reionizationTemperature,defaultValue=1.0d4)
+          !@ <inputParameter>
+          !@   <name>igmStateSimplePreReionizationTemperature</name>
+          !@   <defaultValue>$10$K</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The pre-reionization temperature (in units of Kelvin) in the simple \gls{igm} state model.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('igmStateSimplePreReionizationTemperature',preReionizationTemperature,defaultValue=1.0d1)
+          simpleInitialized=.true.
+       end if
+       !$omp end critical(intergalacticMediumStateSimpleInitialize)
+    end if
     ! Construct the object.
     simpleDefaultConstructor=simpleConstructor(reionizationRedshift,reionizationTemperature,preReionizationTemperature)
     return

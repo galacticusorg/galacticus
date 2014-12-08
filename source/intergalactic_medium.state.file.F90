@@ -60,6 +60,9 @@
      module procedure fileConstructor
   end interface intergalacticMediumStateFile
 
+  ! Initialization state.
+  logical :: fileInitialized=.false.
+
 contains
 
   function fileDefaultConstructor()
@@ -69,16 +72,23 @@ contains
     type(intergalacticMediumStateFile), target  :: fileDefaultConstructor
     type(varying_string              )          :: intergalaticMediumStateFileName
     
-    !@ <inputParameter>
-    !@   <name>intergalaticMediumStateFileName</name>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The name of the file from which to read intergalactic medium state data.
-    !@   </description>
-    !@   <type>string</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('intergalaticMediumStateFileName',intergalaticMediumStateFileName)
+    if (.not.fileInitialized) then
+       !$omp critical(intergalacticMediumStateFileInitialize)
+       if (.not.fileInitialized) then
+          !@ <inputParameter>
+          !@   <name>intergalaticMediumStateFileName</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the file from which to read intergalactic medium state data.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('intergalaticMediumStateFileName',intergalaticMediumStateFileName)
+          fileInitialized=.true.
+       end if
+       !$omp end critical(intergalacticMediumStateFileInitialize)
+    end if
     ! Construct the object.
     fileDefaultConstructor=fileConstructor(intergalaticMediumStateFileName)
     return
