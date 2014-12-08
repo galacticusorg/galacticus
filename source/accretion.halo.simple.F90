@@ -31,6 +31,33 @@
      logical                              :: negativeAccretionAllowed   , accreteNewGrowthOnly
      type            (radiationStructure) :: radiation
    contains
+     !@ <objectMethods>
+     !@   <object>accretionHaloSimple</object>
+     !@   <objectMethod>
+     !@     <method>accretionRateTotal</method>
+     !@     <type>double precision</type>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
+     !@     <description>Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>failedFraction</method>
+     !@     <type>double precision</type>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
+     !@     <description>Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>velocityScale</method>
+     !@     <type>double precision</type>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
+     !@     <description>Returns the velocity scale to use for {\tt node}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>massTotal</method>
+     !@     <type>double precision</type>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
+     !@     <description>Returns the total node mass.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: accretionRate          => simpleAccretionRate
      procedure :: accretedMass           => simpleAccretedMass
      procedure :: failedAccretionRate    => simpleFailedAccretionRate
@@ -483,7 +510,7 @@ contains
   end function simpleVelocityScale
 
   double precision function simpleAccretionRateTotal(self,node)
-    !% Returns the velocity scale to use for {\tt node}. Use the virial velocity.
+    !% Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter).
     use Galacticus_Nodes
     implicit none
     class(accretionHaloSimple     ), intent(inout)          :: self
@@ -496,7 +523,7 @@ contains
   end function simpleAccretionRateTotal
 
   double precision function simpleMassTotal(self,node)
-    !% Returns the velocity scale to use for {\tt node}. Use the virial velocity.
+    !% Returns the total node mass.
     use Galacticus_Nodes
     implicit none
     class(accretionHaloSimple     ), intent(inout)          :: self
@@ -509,7 +536,7 @@ contains
   end function simpleMassTotal
 
   double precision function simpleFailedFraction(self,node)
-    !% Returns the velocity scale to use for {\tt node}. Use the virial velocity.
+    !% Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails.
     use Galacticus_Nodes
     implicit none
     class(accretionHaloSimple), intent(inout)          :: self

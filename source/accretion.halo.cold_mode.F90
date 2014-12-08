@@ -27,6 +27,21 @@
      private
      double precision :: shockStabilityThreshold, shockStabilityTransitionWidth
    contains
+     !@ <objectMethods>
+     !@   <object>accretionHaloColdMode</object>
+     !@   <objectMethod>
+     !@     <method>chemicalMasses</method>
+     !@     <type>\textcolor{red}{\textless type(chemicalAbundances)\textgreater}</type>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout, \doublezero massAccreted\argin, \intzero accretionMode\argin</arguments>
+     !@     <description>Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>coldModeFraction</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout, \intzero accretionMode\argin</arguments>
+     !@     <description>Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter).</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: accretionRate          => coldModeAccretionRate
      procedure :: accretedMass           => coldModeAccretedMass
      procedure :: failedAccretionRate    => coldModeFailedAccretionRate
