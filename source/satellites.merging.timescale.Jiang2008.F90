@@ -16,7 +16,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of satellite merging times using the \cite{jiang_fitting_2008} method.
-
+  use FGSL
+  
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesJiang2008">
   !#  <description>Computes the merging timescale using the method of \cite{jiang_fitting_2008}.</description>
   !# </satelliteMergingTimescales>

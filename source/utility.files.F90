@@ -42,21 +42,37 @@ module File_Utilities
   end interface
 
   interface
-     function flock_C(name) bind(c,name='flock_C')
-       !% Template for a C function that calls {\tt flock()} to lock a file..
+     subroutine flock_C(name,ld) bind(c,name='flock_C')
+       !% Template for a C function that calls {\tt flock()} to lock a file.
        import
-       integer  (c_int ) :: flock_C
        character(c_char) :: name
-     end function flock_C
+       type     (c_ptr ) :: ld
+     end subroutine flock_C
   end interface
 
   interface
-     subroutine funlock_C(fd) bind(c,name='funlock_C')
-       !% Template for a C function that calls {\tt flock()} to unlock a file..
+     subroutine funlock_C(ld) bind(c,name='funlock_C')
+       !% Template for a C function that calls {\tt flock()} to unlock a file.
        import
-       integer(c_int ) :: fd
+       type(c_ptr) :: ld
      end subroutine funlock_C
   end interface
+
+  ! Declare the interface for POSIX fsync function.
+  interface
+     function fsync (fd) bind(c,name="fsync")
+       import
+       integer(c_int), value :: fd
+       integer(c_int) :: fsync
+     end function fsync
+  end interface
+
+  type, public :: lockDescriptor
+     !% Type used to store file lock descriptors.
+     private
+     type(c_ptr         ) :: lockDescriptorC
+     type(varying_string) :: fileName
+  end type lockDescriptor
 
 contains
 
@@ -121,21 +137,28 @@ contains
     return
   end function Count_Lines_in_File_Char
 
-  integer function File_Lock(fileName)
+  subroutine File_Lock(fileName,lock)
     !% Place a lock on a file.
     implicit none
-    character(len=*), intent(in   ) :: fileName
+    character(len=*         ), intent(in   ) :: fileName
+    type     (lockDescriptor), intent(  out) :: lock
 
-    File_Lock=flock_C(trim(fileName)//char(0))
+    call flock_C(trim(fileName)//".lock"//char(0),lock%lockDescriptorC)
+    lock%fileName=trim(fileName)
     return
-  end function File_Lock
+  end subroutine File_Lock
 
-  subroutine File_Unlock(fileDescriptor)
+  subroutine File_Unlock(lock)
     !% Remove a lock from a file.
+    use Galacticus_Error
     implicit none
-    integer(c_int), intent(in   ) :: fileDescriptor
+    type   (lockDescriptor), intent(inout) :: lock
+    integer                                :: fileUnit
 
-    call funlock_C(fileDescriptor)
+    call funlock_C(lock%lockDescriptorC)
+    open(newUnit=fileUnit,file=char(lock%fileName),status='unknown')
+    if (fsync(fnum(fileUnit)) /= 0) call Galacticus_Error_Report('File_Unlock','error syncing file at unlock')
+    close(fileUnit)
     return
   end subroutine File_Unlock
 
