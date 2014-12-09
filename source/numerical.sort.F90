@@ -29,6 +29,7 @@ module Sort
      !% Generic interface to index sort routines.
      module procedure Sort_Index_Do_Double
      module procedure Sort_Index_Do_Integer8
+     module procedure Sort_Index_Do_Integer
   end interface
 
   interface Sort_Do
@@ -102,12 +103,24 @@ contains
     return
   end function Sort_Index_Do_Integer8
 
+  function Sort_Index_Do_Integer(array)
+    !% Given an unsorted integer {\tt array}, sorts it in place.
+    use Kind_Numbers
+    implicit none
+    integer(kind=kind_int4), dimension(:)          , intent(in   ) :: array
+    integer(kind=c_size_t ), dimension(size(array))                :: Sort_Index_Do_Integer
+
+    call Sort_Index_Do_Integer_C(size(array),array,Sort_Index_Do_Integer)
+    Sort_Index_Do_Integer=Sort_Index_Do_Integer+1
+    return
+  end function Sort_Index_Do_Integer
+
   function Sort_Index_Do_Double(array)
     !% Given an unsorted double {\tt array}, sorts it in place.
     use Kind_Numbers
     implicit none
-    double precision                , dimension(:)          , intent(in   ) :: array
-    integer         (kind=c_size_t ), dimension(size(array))                :: Sort_Index_Do_Double
+    real   (kind=c_double), dimension(:)          , intent(in   ) :: array
+    integer(kind=c_size_t), dimension(size(array))                :: Sort_Index_Do_Double
 
     call Sort_Index_Do_Double_C(size(array),array,Sort_Index_Do_Double)
     Sort_Index_Do_Double=Sort_Index_Do_Double+1
@@ -173,20 +186,37 @@ contains
     return
   end subroutine Sort_Index_Do_Integer8_C
 
-  subroutine Sort_Index_Do_Double_C(arraySize,array,idx)
-    !% Do a integer sort.
+  subroutine Sort_Index_Do_Integer_C(arraySize,array,idx)
+    !% Do an integer sort.
     use Kind_Numbers
     implicit none
-    integer                         , intent(in   )         :: arraySize
-    double precision                , intent(in   ), target :: array       (arraySize)
-    integer         (kind=c_size_t ), intent(inout)         :: idx         (arraySize)
-    integer         (kind=c_size_t )                        :: arraySizeC
-    integer                                                 :: status
-    type            (c_ptr         )                        :: arrayPointer
+    integer                , intent(in   )         :: arraySize
+    integer(kind=kind_int4), intent(in   ), target :: array       (arraySize)
+    integer(kind=c_size_t ), intent(inout)         :: idx         (arraySize)
+    integer(kind=c_size_t )                        :: arraySizeC
+    integer                                        :: status
+    type   (c_ptr         )                        :: arrayPointer
 
     arrayPointer=c_loc(array)
     arraySizeC=arraySize
-    status=FGSL_HeapSort_Index(idx,arrayPointer,arraySizeC,sizeof(1_kind_int8),Compare_Double)
+    status=FGSL_HeapSort_Index(idx,arrayPointer,arraySizeC,sizeof(1_kind_int4),Compare_Integer)
+    return
+  end subroutine Sort_Index_Do_Integer_C
+
+  subroutine Sort_Index_Do_Double_C(arraySize,array,idx)
+    !% Do an double sort.
+    use Kind_Numbers
+    implicit none
+    integer                , intent(in   )         :: arraySize
+    real   (c_double)      , intent(in   ), target :: array       (arraySize)
+    integer(kind=c_size_t ), intent(inout)         :: idx         (arraySize)
+    integer(kind=c_size_t )                        :: arraySizeC
+    integer                                        :: status
+    type   (c_ptr         )                        :: arrayPointer
+
+    arrayPointer=c_loc(array)
+    arraySizeC=arraySize
+    status=FGSL_HeapSort_Index(idx,arrayPointer,arraySizeC,sizeof(1_c_double),Compare_Double)
     return
   end subroutine Sort_Index_Do_Double_C
 
