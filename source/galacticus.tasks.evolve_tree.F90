@@ -196,6 +196,7 @@ contains
     ! continues by popping trees off of the stack and processing them further (possibly to the next universal event).
 
     ! Allow events to be attached to the universe.
+    universeWaiting%event => null()
     !# <include directive="universePreEvolveTask" type="functionCall" functionType="void">
     !#  <functionArgs>universeWaiting</functionArgs>
     include 'galacticus.tasks.evolve_tree.universePreEvolveTask.inc'

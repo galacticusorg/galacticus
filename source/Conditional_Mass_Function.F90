@@ -33,24 +33,34 @@ program Conditional_Mass_Function
   use Command_Arguments
   use Cosmology_Functions
   use Geometry_Surveys
+  use Mass_Function_Incompletenesses
   implicit none
-  double precision                     , allocatable, dimension(:) :: mass,conditionalMassFunction
-  class(cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
-  type     (varying_string            )                            :: parameterFile,conditionalMassFunctionOutputFileName
-  character(len=32                    )                            :: conditionalMassFunctionHaloMassText
-  integer                                                          :: conditionalMassFunctionMassCount,iMass
-  logical                                                          :: conditionalMassFunctionUseSurveyLimits&
-       &,integrateOverHaloMassFunction,integrationReset=.true.,integrationResetNormalization=.true.
-  double precision                                                 :: conditionalMassFunctionHaloMass &
-       &,conditionalMassFunctionMassMinimum,conditionalMassFunctionMassMaximum &
-       &,conditionalMassFunctionRedshiftMinimum,conditionalMassFunctionRedshiftMaximum &
-       &,conditionalMassFunctionHaloMassMinimum ,conditionalMassFunctionHaloMassMaximum,massLogarithmDelta &
-       &,massBinMinimum,massBinMaximum,timeMinimum,timeMaximum,binTimeMinimum,binTimeMaximum,time,logHaloMassLower&
-       &,logHaloMassUpper,distanceMaximum
-  type     (fgsl_function             )                            :: integrandFunction,integrandFunctionNormalization
-  type     (fgsl_integration_workspace)                            :: integrationWorkspace,integrationWorkspaceNormalization
-  type     (c_ptr                     )                            :: parameterPointer
-  type     (hdf5Object                )                            :: outputFile
+  double precision                                 , allocatable, dimension(:) :: mass                                  , thisConditionalMassFunction           , &
+       &                                                                          massLogarithmDelta                    , conditionalMassFunctionIncomplete
+  class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_
+  class           (conditionalMassFunctionClass   ), pointer                   :: conditionalMassFunction_
+  class           (surveyGeometryClass            ), pointer                   :: surveyGeometry_
+  class           (massFunctionIncompletenessClass), pointer :: massFunctionIncompleteness_
+  type            (varying_string                 )                            :: parameterFile                         , conditionalMassFunctionOutputFileName
+  character       (len=32                         )                            :: conditionalMassFunctionHaloMassText
+  integer                                                                      :: conditionalMassFunctionMassCount      , iMass                                 , &
+       &                                                                          fieldCount                            , iField
+  logical                                                                      :: conditionalMassFunctionUseSurveyLimits, integrateOverHaloMassFunction         , &
+       &                                                                          integrationReset=.true.               , integrationResetNormalization=.true.
+  double precision                                                             :: conditionalMassFunctionHaloMass       , conditionalMassFunctionMassMinimum    , &
+       &                                                                          conditionalMassFunctionMassMaximum    , conditionalMassFunctionRedshiftMinimum, &
+       &                                                                          conditionalMassFunctionRedshiftMaximum, conditionalMassFunctionHaloMassMinimum, &
+       &                                                                          conditionalMassFunctionHaloMassMaximum, volumeIntegrand                       , &
+       &                                                                          massBinMinimum                        , massBinMaximum                        , &
+       &                                                                          timeMinimum                           , timeMaximum                           , &
+       &                                                                          binTimeMinimum                        , binTimeMaximum                        , &
+       &                                                                          time                                  , logHaloMassLower                      , &
+       &                                                                          logHaloMassUpper                      , distanceMaximum                       , &
+       &                                                                          massFunctionIntegrand
+  type     (fgsl_function             )                                        :: integrandFunction                     , integrandFunctionNormalization
+  type     (fgsl_integration_workspace)                                        :: integrationWorkspace                  , integrationWorkspaceNormalization
+  type     (c_ptr                     )                                        :: parameterPointer
+  type     (hdf5Object                )                                        :: outputFile
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Conditional_Mass_Function.size')
@@ -174,106 +184,167 @@ program Conditional_Mass_Function
   !@   <cardinality>1</cardinality>
   !@ </inputParameter>
   call Get_Input_Parameter('conditionalMassFunctionHaloMassMaximum',conditionalMassFunctionHaloMassMaximum,defaultValue=1.0d16)
+  ! Compute bin masses and widths.
+  call Alloc_Array(mass                             ,[conditionalMassFunctionMassCount])
+  call Alloc_Array(thisConditionalMassFunction      ,[conditionalMassFunctionMassCount])
+  call Alloc_Array(conditionalMassFunctionIncomplete,[conditionalMassFunctionMassCount])
+  call Alloc_Array(massLogarithmDelta               ,[conditionalMassFunctionMassCount])
+  if (Input_Parameter_Is_Present('conditionalMassFunctionMassBinCenters')) then
+     ! Read masses directly.
+     if (.not.Input_Parameter_Is_Present('conditionalMassFunctionMassBinWidths')) call Galacticus_Error_Report('Conditional_Mass_Function','[conditionalMassFunctionMassBinWidths] must be present')
+     !@ <inputParameter>
+     !@   <name>conditionalMassFunctionMassBinCenters</name>
+     !@   <attachedTo>program</attachedTo>
+     !@   <description>
+     !@     Logarithmic mass bins centers for conditional mass function calculations.
+     !@   </description>
+     !@   <type>real</type>
+     !@   <cardinality>1</cardinality>
+     !@ </inputParameter>
+     call Get_Input_Parameter('conditionalMassFunctionMassBinCenters',mass              )
+     !@ <inputParameter>
+     !@   <name>conditionalMassFunctionMassBinWidths</name>
+     !@   <attachedTo>program</attachedTo>
+     !@   <description>
+     !@     Logarithmic widths of mass bins for conditional mass function calculations.
+     !@   </description>
+     !@   <type>real</type>
+     !@   <cardinality>1</cardinality>
+     !@ </inputParameter>
+     call Get_Input_Parameter('conditionalMassFunctionMassBinWidths' ,massLogarithmDelta)
+     massLogarithmDelta=log(massLogarithmDelta)
+  else
+     ! Compute a range of masses.
+     mass              =Make_Range(conditionalMassFunctionMassMinimum,conditionalMassFunctionMassMaximum,conditionalMassFunctionMassCount,rangeType=rangeTypeLogarithmic)
+     massLogarithmDelta=log(mass(2)/mass(1))
+  end if
   
-  ! Get the default cosmology functions object.
-  cosmologyFunctionsDefault => cosmologyFunctions()     
+  ! Get the default cosmology functions, conditional mass function, and survey geometry objects.
+  cosmologyFunctions_      => cosmologyFunctions     ()     
+  conditionalMassFunction_ => conditionalMassFunction()
+  surveyGeometry_          => surveyGeometry         ()
 
   ! Decode the halo mass parameter.
   integrateOverHaloMassFunction=(conditionalMassFunctionHaloMassText == "all")
   if (.not.integrateOverHaloMassFunction) read (conditionalMassFunctionHaloMassText,*) conditionalMassFunctionHaloMass
 
   ! Compute the time corresponding to the specified redshift.
-  timeMinimum=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(conditionalMassFunctionRedshiftMaximum))
-  timeMaximum=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(conditionalMassFunctionRedshiftMinimum))
+  timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(conditionalMassFunctionRedshiftMaximum))
+  timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(conditionalMassFunctionRedshiftMinimum))
 
   ! Find logarithmic limits for halo mass in integrations.
   logHaloMassLower=log10(conditionalMassFunctionHaloMassMinimum)
   logHaloMassUpper=log10(conditionalMassFunctionHaloMassMaximum)
 
-  ! Compute a range of masses.
-  call Alloc_Array(mass                   ,[conditionalMassFunctionMassCount])
-  call Alloc_Array(conditionalMassFunction,[conditionalMassFunctionMassCount])
-  mass              =Make_Range(conditionalMassFunctionMassMinimum,conditionalMassFunctionMassMaximum,conditionalMassFunctionMassCount,rangeType=rangeTypeLogarithmic)
-  massLogarithmDelta=log(mass(2)/mass(1))
-
   ! Compute the conditional mass function and output to file.
   do iMass=1,conditionalMassFunctionMassCount
-     massBinMinimum=exp(log(mass(iMass))-0.5d0*massLogarithmDelta)
-     massBinMaximum=exp(log(mass(iMass))+0.5d0*massLogarithmDelta)
+     massBinMinimum=exp(log(mass(iMass))-0.5d0*massLogarithmDelta(iMass))
+     massBinMaximum=exp(log(mass(iMass))+0.5d0*massLogarithmDelta(iMass))
      ! Branch on whether the conditional mass function is to be integrated over the halo mass function.
      if (integrateOverHaloMassFunction) then
         ! Branch on whether a range of redshifts was given.
         if (conditionalMassFunctionRedshiftMaximum <= conditionalMassFunctionRedshiftMinimum) then
            ! No range of redshifts given. Compute the mass function at the minimum redshift.
            time=timeMaximum
-           conditionalMassFunction(iMass)=Integrate(                                           &
-                &                                          logHaloMassLower                  , &
-                &                                          logHaloMassUpper                  , &
-                &                                          Mass_Function_Halo_Mass_Integrand , &
-                &                                          parameterPointer                  , &
-                &                                          integrandFunction                 , &
-                &                                          integrationWorkspace              , &
-                &                                          toleranceRelative=1.0d-3          , &
-                &                                          reset=integrationReset              &
-                &                                         )
+           thisConditionalMassFunction(iMass)=Integrate(                                    &
+                &                                       logHaloMassLower                  , &
+                &                                       logHaloMassUpper                  , &
+                &                                       Mass_Function_Halo_Mass_Integrand , &
+                &                                       parameterPointer                  , &
+                &                                       integrandFunction                 , &
+                &                                       integrationWorkspace              , &
+                &                                       toleranceRelative=1.0d-3          , &
+                &                                       reset=integrationReset              &
+                &                                      )
         else
+           ! Determine number of fields to integrate over.
            if (conditionalMassFunctionUseSurveyLimits) then
-              ! A survey geometry is imposed. Find the maximum distance at which a galaxy of the present
-              ! mass can be detected in this survey.
-              distanceMaximum=Geometry_Survey_Distance_Maximum(sqrt(massBinMinimum*massBinMaximum))
-              ! Set integration limits appropriately.
-              binTimeMinimum=max(timeMinimum,cosmologyFunctionsDefault%timeAtDistanceComoving(distanceMaximum))
-              binTimeMaximum=timeMaximum
+              fieldCount=surveyGeometry_%fieldCount()
            else
-              ! No survey geometry is imposed, so use the full range of specified redshifts.
-              binTimeMinimum=timeMinimum
-              binTimeMaximum=timeMaximum
+              fieldCount=1
            end if
-           ! Range of redshifts was given, integrate the mass function over this time interval.
-           conditionalMassFunction(iMass)= Integrate(                                                    &
-                &                                           binTimeMinimum                             , &
-                &                                           binTimeMaximum                             , &
-                &                                           Mass_Function_Time_Integrand               , &
-                &                                           parameterPointer                           , &
-                &                                           integrandFunction                          , &
-                &                                           integrationWorkspace                       , &
-                &                                           toleranceRelative=1.0d-3                   , &
-                &                                           reset=integrationReset                       &
-                &                                          )                                             &
-                &                                   /Integrate(                                          &
-                &                                           binTimeMinimum                             , &
-                &                                           binTimeMaximum                             , &
-                &                                           Mass_Function_Time_Normalization_Integrand , &
-                &                                           parameterPointer                           , &
-                &                                           integrandFunctionNormalization             , &
-                &                                           integrationWorkspaceNormalization          , &
-                &                                           toleranceRelative=1.0d-3                   , &
-                &                                           reset=integrationResetNormalization          &
-                &                                          )
+           massFunctionIntegrand=0.0d0
+           volumeIntegrand      =0.0d0
+           do iField=1,fieldCount
+              if (conditionalMassFunctionUseSurveyLimits) then
+                 ! A survey geometry is imposed. Find the maximum distance at which a galaxy of the present
+                 ! mass can be detected in this survey.
+                 distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(massBinMinimum*massBinMaximum),iField)
+                 ! Set integration limits appropriately.
+                 binTimeMaximum=                                                       timeMaximum
+                 binTimeMinimum=min(                                                                 &
+                      &                                                                timeMaximum , &
+                      &             max(                                                             &
+                      &                                                                timeMinimum , &
+                      &                 cosmologyFunctions_%timeAtDistanceComoving(distanceMaximum)  &
+                      &                )                                                             &
+                      &            )
+              else
+                 ! No survey geometry is imposed, so use the full range of specified redshifts.
+                 binTimeMinimum=timeMinimum
+                 binTimeMaximum=timeMaximum
+              end if
+              ! Range of redshifts was given, integrate the mass function over this time interval.
+              massFunctionIntegrand=                                                        &
+                   &                +massFunctionIntegrand                                  &
+                   &                +surveyGeometry_%solidAngle(iField)                     &
+                   &                *Integrate(                                             &
+                   &                           binTimeMinimum                             , &
+                   &                           binTimeMaximum                             , &
+                   &                           Mass_Function_Time_Integrand               , &
+                   &                           parameterPointer                           , &
+                   &                           integrandFunction                          , &
+                   &                           integrationWorkspace                       , &
+                   &                           toleranceRelative=1.0d-3                   , &
+                   &                           reset=integrationReset                       &
+                   &                          )
+              volumeIntegrand      =                                                        &
+                   &                +volumeIntegrand                                        &
+                   &                +surveyGeometry_%solidAngle(iField)                     &
+                   &                *Integrate(                                             &
+                   &                           binTimeMinimum                             , &
+                   &                           binTimeMaximum                             , &
+                   &                           Mass_Function_Time_Normalization_Integrand , &
+                   &                           parameterPointer                           , &
+                   &                           integrandFunctionNormalization             , &
+                   &                           integrationWorkspaceNormalization          , &
+                   &                           toleranceRelative=1.0d-3                   , &
+                   &                           reset=integrationResetNormalization          &
+                   &                          )
+           end do
+           thisConditionalMassFunction(iMass)=massFunctionIntegrand/volumeIntegrand
         end if
      else
-        conditionalMassFunction(iMass)=                                                                                       &
-             &                                (                                                                               &
-             &                                  Cumulative_Conditional_Mass_Function(                                         &
-             &                                                                               conditionalMassFunctionHaloMass, &
-             &                                                                               massBinMinimum                   &
-             &                                                                              )                                 &
-             &                                 -Cumulative_Conditional_Mass_Function(                                         &
-             &                                                                               conditionalMassFunctionHaloMass, &
-             &                                                                               massBinMaximum                   &
-             &                                                                              )                                 &
-             &                                )
+        thisConditionalMassFunction(iMass)=                                                                         &
+             &                             (                                                                        &
+             &                               conditionalMassFunction_%massFunction(                                 &
+             &                                                                     conditionalMassFunctionHaloMass, &
+             &                                                                     massBinMinimum                   &
+             &                                                                    )                                 &
+             &                              -conditionalMassFunction_%massFunction(                                 &
+             &                                                                     conditionalMassFunctionHaloMass, &
+             &                                                                     massBinMaximum                   &
+             &                                                                    )                                 &
+             &                             )
      end if
   end do
-  conditionalMassFunction=conditionalMassFunction/massLogarithmDelta
+  thisConditionalMassFunction=thisConditionalMassFunction/massLogarithmDelta
+
+  ! Find the mass function with incompleteness.
+  massFunctionIncompleteness_ => massFunctionIncompleteness()
+  do iMass=1,conditionalMassFunctionMassCount
+     conditionalMassFunctionIncomplete(iMass)=thisConditionalMassFunction(iMass)*massFunctionIncompleteness_%completeness(mass(iMass))
+  end do
 
   ! Write the data to file.
   call outputFile%openFile(char(conditionalMassFunctionOutputFileName))
   call outputFile%writeDataset(mass,"mass" ,commentText="mass in units of M☉")
   if (integrateOverHaloMassFunction) then
-     call outputFile%writeDataset(conditionalMassFunction,"massFunction",commentText="mass function in units of Mpc⁻³ per lo(mass)")
+     call outputFile%writeDataset(thisConditionalMassFunction      ,"massFunction"          ,commentText="Mass function in units of Mpc⁻³ per log(mass)."           )
+     call outputFile%writeDataset(conditionalMassFunctionIncomplete,"massFunctionIncomplete",commentText="Incomplete mass function in units of Mpc⁻³ per log(mass).")
   else
-     call outputFile%writeDataset(conditionalMassFunction,"massFunction",commentText="conditional mass function in units of per log(mass)")
+     call outputFile%writeDataset(thisConditionalMassFunction      ,"massFunction"          ,commentText="Conditional mass function in units of per log(mass)."           )
+     call outputFile%writeDataset(conditionalMassFunctionIncomplete,"massFunctionIncomplete",commentText="Incomplete conditional mass function in units of per log(mass).")
   end if
   call outputFile%close()
 
@@ -305,7 +376,7 @@ contains
          &                                           toleranceRelative=1.0d-3          , &
          &                                           reset=integrationResetTime          &
          &                                          )                                    &
-         &                               *cosmologyFunctionsDefault%comovingVolumeElementTime(timePrime)
+         &                               *cosmologyFunctions_%comovingVolumeElementTime(timePrime)
     return
   end function Mass_Function_Time_Integrand
 
@@ -317,7 +388,7 @@ contains
     real(c_double), value :: timePrime
     type(c_ptr),    value :: parameterPointer
 
-    Mass_Function_Time_Normalization_Integrand=cosmologyFunctionsDefault%comovingVolumeElementTime(timePrime)
+    Mass_Function_Time_Normalization_Integrand=cosmologyFunctions_%comovingVolumeElementTime(timePrime)
     return
   end function Mass_Function_Time_Normalization_Integrand
 
@@ -330,16 +401,19 @@ contains
     real(c_double)          :: Mass_Function_Halo_Mass_Integrand
     real(c_double)  , value :: logMass
     type(c_ptr   )  , value :: parameterPointer
+    class            (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
     double precision        :: mass
 
+    conditionalMassFunction_ => conditionalMassFunction()
     mass=10.0d0**logMass
-    Mass_Function_Halo_Mass_Integrand= Halo_Mass_Function_Differential(time,mass)                          &
-         &                                    *                                     mass                   &
-         &                                    *log(10.0d0)                                                 &
-         &                                    *(                                                           &
-         &                                       Cumulative_Conditional_Mass_Function(mass,massBinMinimum) &
-         &                                      -Cumulative_Conditional_Mass_Function(mass,massBinMaximum) &
-         &                                     )
+    Mass_Function_Halo_Mass_Integrand= Halo_Mass_Function_Differential(time,mass)                               &
+         &                                    *                             mass                                &
+         &                                    *log(10.0d0)                                                      &
+         &                                    *max(                                                             &
+         &                                         +0.0d0                                                     , &
+         &                                         +conditionalMassFunction_%massFunction(mass,massBinMinimum)  &
+         &                                         -conditionalMassFunction_%massFunction(mass,massBinMaximum)  &
+         &                                        )
     return
   end function Mass_Function_Halo_Mass_Integrand
 

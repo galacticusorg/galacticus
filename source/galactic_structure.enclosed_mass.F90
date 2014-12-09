@@ -23,15 +23,15 @@ module Galactic_Structure_Enclosed_Masses
   use Galactic_Structure_Options
   implicit none
   private
-  public :: Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
+  public :: Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass, Galactic_Structure_Radius_Enclosing_Density
 
   ! Variables used in root finding.
   integer                             :: componentTypeShared, massTypeShared, weightByShared, &
        &                                 weightIndexShared
-  double precision                    :: massRoot           , radiusShared
+  double precision                    :: massRoot           , radiusShared  , densityRoot
   logical                             :: haloLoadedShared
   type            (treeNode), pointer :: activeNode
-  !$omp threadprivate(massRoot,radiusShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared,haloLoadedShared,activeNode)
+  !$omp threadprivate(massRoot,densityRoot,radiusShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared,haloLoadedShared,activeNode)
 contains
 
   double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
@@ -136,6 +136,65 @@ contains
     return
   end function Galactic_Structure_Radius_Enclosing_Mass
 
+  double precision function Galactic_Structure_Radius_Enclosing_Density(thisNode,density,densityContrast,componentType,massType,weightBy,weightIndex,haloLoaded)
+    !% Return the radius enclosing a given density (or density contrast) in {\tt thisNode}.
+    use Galacticus_Error
+    use Root_Finder
+    use Dark_Matter_Halo_Scales
+    use Cosmology_Functions
+    use Galacticus_Display
+    use ISO_Varying_String
+    use String_Handling
+    implicit none
+    type            (treeNode                ), intent(inout), pointer  :: thisNode
+    integer                                   , intent(in   ), optional :: componentType       , massType       , weightBy, weightIndex
+    double precision                          , intent(in   ), optional :: density             , densityContrast
+    logical                                   , intent(in   ), optional :: haloLoaded
+    class           (darkMatterHaloScaleClass)               , pointer  :: darkMatterHaloScale_
+    class           (cosmologyFunctionsClass )               , pointer  :: cosmologyFunctions_
+    class           (nodeComponentBasic      )               , pointer  :: basic
+    type            (rootFinder              ), save                    :: finder
+    !$omp threadprivate(finder)
+    type            (varying_string          )                          :: message
+    character       (len=11                  )                          :: densityLabel
+
+    ! Set default options.
+    call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
+    ! Determine what mass to use.
+    if (present(density)) then
+       if (present(densityContrast)) call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Density','only one density or&
+            & densityContrast can be specified')
+       densityRoot=density
+    else if (present(densityContrast)) then
+       cosmologyFunctions_ => cosmologyFunctions()
+       basic               => thisNode%basic    ()
+       densityRoot=densityContrast*cosmologyFunctions_%matterDensityEpochal(time=basic%time())
+    else
+       call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Density','either density or densityContrast must be specified')
+    end if
+    if (densityRoot <= 0.0d0) then
+       Galactic_Structure_Radius_Enclosing_Density=0.0d0
+       return
+    end if
+    ! Initialize our root finder.
+    if (.not.finder%isInitialized()) then
+       call finder%rangeExpand (                                                             &
+            &                   rangeExpandDownward          =0.5d0                        , &
+            &                   rangeExpandUpward            =2.0d0                        , &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+            &                   rangeExpandType              =rangeExpandMultiplicative      &
+            &                  )
+       call finder%rootFunction(Enclosed_Density_Root                           )
+       call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
+    end if
+    ! Solve for the radius.
+    activeNode           => thisNode
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    Galactic_Structure_Radius_Enclosing_Density=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(thisNode))
+    return
+  end function Galactic_Structure_Radius_Enclosing_Density
+
   subroutine Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Set the default values for options in the enclosed mass functions.
     use Galacticus_Error
@@ -183,6 +242,15 @@ contains
     Enclosed_Mass_Root=Galactic_Structure_Enclosed_Mass(activeNode,radius,componentTypeShared,massTypeShared,weightByShared&
          &,weightIndexShared,haloLoadedShared)-massRoot
   end function Enclosed_Mass_Root
+
+  double precision function Enclosed_Density_Root(radius)
+    !% Root function used in solving for the radius that encloses a given density.
+    use Numerical_Constants_Math
+    double precision, intent(in   ) :: radius
+
+    ! Evaluate the root function.
+    Enclosed_Density_Root=3.0d0*Enclosed_Mass_Root(radius)/4.0d0/Pi/radius**3-densityRoot
+  end function Enclosed_Density_Root
 
   double precision function Component_Enclosed_Mass(component)
     !% Unary function returning the enclosed mass in a component. Suitable for mapping over components.

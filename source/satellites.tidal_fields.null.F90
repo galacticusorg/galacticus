@@ -34,9 +34,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                 ), intent(in   )          :: satellitesTidalFieldMethod
-    procedure(Satellites_Tidal_Field_Null_Get), intent(inout), pointer :: Satellites_Tidal_Field_Get
-
+    type(varying_string),                 intent(in   ) :: satellitesTidalFieldMethod
+    procedure(Satellites_Tidal_Field_Null_Get), pointer, intent(inout) :: Satellites_Tidal_Field_Get
+    
     if (satellitesTidalFieldMethod == 'null') Satellites_Tidal_Field_Get => Satellites_Tidal_Field_Null_Get
     return
   end subroutine Satellites_Tidal_Fields_Null_Initialize
@@ -45,10 +45,10 @@ contains
     !% Computes the tidal field acting on a satellite in the {\tt null} implementation. Always returns zero.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type (treeNode), intent(inout), pointer :: thisNode
 
     Satellites_Tidal_Field_Null_Get=0.0d0
     return
   end function Satellites_Tidal_Field_Null_Get
-
+  
 end module Satellites_Tidal_Fields_Null

@@ -38,18 +38,21 @@ The HDF5 file should follow the general purpose format described in \S\ref{sec:M
 \begin{verbatim}
   <millenniumDB>
     <host>
-      <name>myHost</name>
+      <name>^myHost$</name>
       <user>myUserName</user>
-      <passwordFrom>kdewallet</passwordFrom>
+      <passwordFrom>input</passwordFrom>
+      <treePath>/path/to/trees</treePath>
     </host>
     <host>
       <name>default</name>
       <user>myUserName</user>
-      <passwordFrom>input</passwordFrom>
+      <password>myPassword</password>
     </host>
   </millenniumDB>
 \end{verbatim}
-Here, each {\tt host} section describes rules for a given computer (with ``default'' being used if no specific match is found). The {\tt user} element gives the user name to use, while the {\tt passwordFrom} element specifies how the password should be obtained. Currently allowed mechanisms are ``input'', in which case the password is read from standard input, and ``kdewallet'', in which case the password is stored in and retrieved from the \href{http://utils.kde.org/projects/kwalletmanager/}{KDE wallet} utility.
+Here, each {\tt host} section describes rules for a given computer (with ``default'' being used if no specific match to the regular expression give in {\tt name} is found). The {\tt user} element gives the user name to use, while the {\tt passwordFrom} element specifies how the password should be obtained. Currently the only allowed mechanism is ``input'', in which case the password is read from standard input. Alternatively, you can include a {\tt password} element which contains the password itself. Of course, this is insecure\ldots
+
+The optional {\tt treePath} element gives the location where merger trees from the Millennium Simulation can be stored. Some scripts will make use of this location so that Millennium Simulation merger trees can be shared between multiple scripts.
 
 \subsection{Processing of Merger Tree Files}\label{sec:MergerTreeFileProcessing}
 
