@@ -1044,7 +1044,7 @@ contains
   !# <radiusSolverTask>
   !#  <unitName>Node_Component_Disk_Exponential_Radius_Solver</unitName>
   !# </radiusSolverTask>
-  subroutine Node_Component_Disk_Exponential_Radius_Solver(thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
+  subroutine Node_Component_Disk_Exponential_Radius_Solver(thisNode,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
     use Tables
@@ -1053,6 +1053,7 @@ contains
     implicit none
     type            (treeNode                                                         ), intent(inout), pointer :: thisNode
     logical                                                                            , intent(  out)          :: componentActive
+    logical                                                                            , intent(in   )          :: specificAngularMomentumRequired
     double precision                                                                   , intent(  out)          :: specificAngularMomentum
     procedure       (Node_Component_Disk_Exponential_Radius_Solve                     ), intent(  out), pointer :: Radius_Get                 , Velocity_Get
     procedure       (Node_Component_Disk_Exponential_Radius_Solve_Set                 ), intent(  out), pointer :: Radius_Set                 , Velocity_Set
@@ -1067,34 +1068,34 @@ contains
        class is (nodeComponentDiskExponential)
        componentActive=.true.
        ! Get the angular momentum.
-       angularMomentum=thisDiskComponent%angularMomentum()
-       if (angularMomentum >= 0.0d0) then
-          ! Compute the specific angular momentum at the scale radius, assuming a flat rotation curve.
-          diskMass= thisDiskComponent%massGas    () &
-               &   +thisDiskComponent%massStellar()
-          if (diskMass > 0.0d0) then
-             specificAngularMomentumMean=angularMomentum/diskMass
-          else
-             specificAngularMomentumMean=0.0d0
+       if (specificAngularMomentumRequired) then
+          angularMomentum=thisDiskComponent%angularMomentum()
+          if (angularMomentum >= 0.0d0) then
+             ! Compute the specific angular momentum at the scale radius, assuming a flat rotation curve.
+             diskMass= thisDiskComponent%massGas    () &
+                  &   +thisDiskComponent%massStellar()
+             if (diskMass > 0.0d0) then
+                specificAngularMomentumMean=angularMomentum/diskMass
+             else
+                specificAngularMomentumMean=0.0d0
+             end if
+             specificAngularMomentum=specificAngularMomentumMean*diskStructureSolverSpecificAngularMomentum             
+             ! If using the Cole et al. (2000) method for disk radii, adjust the specific angular momentum to account for the
+             ! difference between rotation curves for thin disk and a spherical mass distribution. Trap instances where this leads to
+             ! imaginary specific angular momentum - this can happen as the radius solver explores the allowed range of radii when
+             ! seeking a solution.
+             if (diskRadiusSolverCole2000Method)                                                              &
+                  & specificAngularMomentum=sqrt(                                                            &
+                  &                               max(                                                        &
+                  &                                    0.0d0,                                                 &
+                  &                                    specificAngularMomentum**2                             &
+                  &                                   -diskRadiusSolverFlatVsSphericalFactor                  &
+                  &                                   *gravitationalConstantGalacticus                        &
+                  &                                   *diskMass                                               &
+                  &                                   *Node_Component_Disk_Exponential_Radius_Solve(thisNode) &
+                  &                                  )                                                        &
+                  )
           end if
-          specificAngularMomentum=specificAngularMomentumMean*diskStructureSolverSpecificAngularMomentum
-
-          ! If using the Cole et al. (2000) method for disk radii, adjust the specific angular momentum to account for the
-          ! difference between rotation curves for thin disk and a spherical mass distribution. Trap instances where this leads to
-          ! imaginary specific angular momentum - this can happen as the radius solver explores the allowed range of radii when
-          ! seeking a solution.
-          if (diskRadiusSolverCole2000Method)                                                              &
-               & specificAngularMomentum=sqrt(                                                            &
-               &                               max(                                                        &
-               &                                    0.0d0,                                                 &
-               &                                    specificAngularMomentum**2                             &
-               &                                   -diskRadiusSolverFlatVsSphericalFactor                  &
-               &                                   *gravitationalConstantGalacticus                        &
-               &                                   *diskMass                                               &
-               &                                   *Node_Component_Disk_Exponential_Radius_Solve(thisNode) &
-               &                                  )                                                        &
-               )
-
           ! Associate the pointers with the appropriate property routines.
           Radius_Get   => Node_Component_Disk_Exponential_Radius_Solve
           Radius_Set   => Node_Component_Disk_Exponential_Radius_Solve_Set
