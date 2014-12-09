@@ -15,6 +15,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+ Contributions to this file made by: Stephanie Dörschner.
+
 !% Contains a module which implements an object to store merger tree data for processing into \glc's preferred file format.
 
 module Merger_Tree_Data_Structure
@@ -34,6 +36,7 @@ module Merger_Tree_Data_Structure
   !@  <entry label="propertyTypeDescendentIndex"        />
   !@  <entry label="propertyTypeHostIndex"              />
   !@  <entry label="propertyTypeRedshift"               />
+  !@  <entry label="propertyTypeScaleFactor"            />
   !@  <entry label="propertyTypeNodeMass"               />
   !@  <entry label="propertyTypeParticleCount"          />
   !@  <entry label="propertyTypePositionX"              />
@@ -55,6 +58,7 @@ module Merger_Tree_Data_Structure
   !@  <entry label="propertyTypeSpecificAngularMomentumZ"/>
   !@  <entry label="propertyTypeSpecificAngularMomentum" />
   !@  <entry label="propertyTypeHalfMassRadius"          />
+  !@  <entry label="propertyTypeScaleRadius"             />
   !@  <entry label="propertyTypeParticleIndex"           />
   !@  <entry label="propertyTypeMostBoundParticleIndex"  />
   !@  <entry label="propertyTypeSnapshot"                />
@@ -68,42 +72,45 @@ module Merger_Tree_Data_Structure
   integer, parameter, public :: propertyTypeDescendentIndex         = 4
   integer, parameter, public :: propertyTypeHostIndex               = 5
   integer, parameter, public :: propertyTypeRedshift                = 6
-  integer, parameter, public :: propertyTypeNodeMass                = 7
-  integer, parameter, public :: propertyTypeParticleCount           = 8
-  integer, parameter, public :: propertyTypePositionX               = 9
-  integer, parameter, public :: propertyTypePositionY               =10
-  integer, parameter, public :: propertyTypePositionZ               =11
-  integer, parameter, public :: propertyTypeVelocityX               =12
-  integer, parameter, public :: propertyTypeVelocityY               =13
-  integer, parameter, public :: propertyTypeVelocityZ               =14
-  integer, parameter, public :: propertyTypeSpinX                   =15
-  integer, parameter, public :: propertyTypeSpinY                   =16
-  integer, parameter, public :: propertyTypeSpinZ                   =17
-  integer, parameter, public :: propertyTypeSpin                    =18
-  integer, parameter, public :: propertyTypeAngularMomentumX        =19
-  integer, parameter, public :: propertyTypeAngularMomentumY        =20
-  integer, parameter, public :: propertyTypeAngularMomentumZ        =21
-  integer, parameter, public :: propertyTypeAngularMomentum         =22
-  integer, parameter, public :: propertyTypeSpecificAngularMomentumX=23
-  integer, parameter, public :: propertyTypeSpecificAngularMomentumY=24
-  integer, parameter, public :: propertyTypeSpecificAngularMomentumZ=25
-  integer, parameter, public :: propertyTypeSpecificAngularMomentum =26
-  integer, parameter, public :: propertyTypeHalfMassRadius          =27
-  integer, parameter, public :: propertyTypeParticleIndex           =28
-  integer, parameter, public :: propertyTypeMostBoundParticleIndex  =29
-  integer, parameter, public :: propertyTypeSnapshot                =30
-  integer, parameter, public :: propertyTypeTreeWeight              =31
-  integer, parameter, public :: propertyTypeVelocityMaximum         =32
-  integer, parameter, public :: propertyTypeVelocityDispersion      =33
+  integer, parameter, public :: propertyTypeScaleFactor             = 7
+  integer, parameter, public :: propertyTypeNodeMass                = 8
+  integer, parameter, public :: propertyTypeParticleCount           = 9
+  integer, parameter, public :: propertyTypePositionX               =10
+  integer, parameter, public :: propertyTypePositionY               =11
+  integer, parameter, public :: propertyTypePositionZ               =12
+  integer, parameter, public :: propertyTypeVelocityX               =13
+  integer, parameter, public :: propertyTypeVelocityY               =14
+  integer, parameter, public :: propertyTypeVelocityZ               =15
+  integer, parameter, public :: propertyTypeSpinX                   =16
+  integer, parameter, public :: propertyTypeSpinY                   =17
+  integer, parameter, public :: propertyTypeSpinZ                   =18
+  integer, parameter, public :: propertyTypeSpin                    =19
+  integer, parameter, public :: propertyTypeAngularMomentumX        =20
+  integer, parameter, public :: propertyTypeAngularMomentumY        =21
+  integer, parameter, public :: propertyTypeAngularMomentumZ        =22
+  integer, parameter, public :: propertyTypeAngularMomentum         =23
+  integer, parameter, public :: propertyTypeSpecificAngularMomentumX=24
+  integer, parameter, public :: propertyTypeSpecificAngularMomentumY=25
+  integer, parameter, public :: propertyTypeSpecificAngularMomentumZ=26
+  integer, parameter, public :: propertyTypeSpecificAngularMomentum =27
+  integer, parameter, public :: propertyTypeHalfMassRadius          =28
+  integer, parameter, public :: propertyTypeScaleRadius             =29
+  integer, parameter, public :: propertyTypeParticleIndex           =30
+  integer, parameter, public :: propertyTypeMostBoundParticleIndex  =31
+  integer, parameter, public :: propertyTypeSnapshot                =32
+  integer, parameter, public :: propertyTypeTreeWeight              =33
+  integer, parameter, public :: propertyTypeVelocityMaximum         =34
+  integer, parameter, public :: propertyTypeVelocityDispersion      =35
 
   ! Property names.
-  character(len=*), parameter :: propertyNames(33)=[   &
+  character(len=*), parameter :: propertyNames(35)=[   &
        & 'null                    ',                   &
        & 'treeIndex               ',                   &
        & 'nodeIndex               ',                   &
        & 'descendentIndex         ',                   &
        & 'hostIndex               ',                   &
        & 'redshift                ',                   &
+       & 'scaleFactor             ',                   &
        & 'nodeMass                ',                   &
        & 'particleCount           ',                   &
        & 'positionX               ',                   &
@@ -125,6 +132,7 @@ module Merger_Tree_Data_Structure
        & 'specificAngularMomentumZ',                   &
        & 'specificAngularMomentum ',                   &
        & 'halfMassRadius          ',                   &
+       & 'scaleRadius             ',                   &
        & 'particleIndex           ',                   &
        & 'mostBoundParticleIndex  ',                   &
        & 'snapshot                ',                   &
@@ -212,8 +220,8 @@ character(len=100) :: textAttribute
   type mergerTreeData
      !% A structure that holds raw merger tree data.
      private
-     integer                                                                 :: nodeCount                          , particlesCount                   , &
-          &                                                                     treeCount
+     integer                                                                 :: dummyHostId                        , nodeCount                        , &
+          &                                                                     particlesCount                     , treeCount
      double precision                                                        :: particleMass               =0.0d0
      integer                         , allocatable, dimension(:)             :: columnProperties                   , particleColumnProperties         , &
           &                                                                     treeBeginsAt                       , treeNodeCount
@@ -225,7 +233,8 @@ character(len=100) :: textAttribute
           &                                                                     treeID                             , treeIndex
      double precision                , allocatable, dimension(:)             :: angularMomentumMagnitude           , halfMassRadius                   , &
           &                                                                     nodeMass                           , particleRedshift                 , &
-          &                                                                     redshift                           , spinMagnitude                    , &
+          &                                                                     redshift                           , scaleFactor                      , &
+          &                                                                     scaleRadius                        , spinMagnitude                    , &
           &                                                                     treeWeight                         , treeWeightNode                   , &
           &                                                                     specificAngularMomentumMagnitude   , velocityMaximum                  , &
           &                                                                     velocityDispersion
@@ -237,7 +246,8 @@ character(len=100) :: textAttribute
           &                                                                     hasAngularMomentumY                , hasAngularMomentumZ              , &
           &                                                                     hasSpecificAngularMomentumMagnitude, hasSpecificAngularMomentumX      , &
           &                                                                     hasSpecificAngularMomentumY        , hasSpecificAngularMomentumZ      , &
-          &                                                                     hasDescendentIndex                 , hasHalfMassRadius                , &
+          &                                                                     hasDescendentIndex                 , hasDummyHostId                   , &
+          &                                                                     hasHalfMassRadius                                                     , &
           &                                                                     hasHostIndex                       , hasMostBoundParticleIndex        , &
           &                                                                     hasNodeIndex                       , hasNodeMass                      , &
           &                                                                     hasParticleCount                   , hasParticleIndex                 , &
@@ -247,7 +257,8 @@ character(len=100) :: textAttribute
           &                                                                     hasParticleVelocityY               , hasParticleVelocityZ             , &
           &                                                                     hasParticles               =.false., hasPositionX                     , &
           &                                                                     hasPositionY                       , hasPositionZ                     , &
-          &                                                                     hasRedshift                        , hasSnapshot                      , &
+          &                                                                     hasRedshift                        , hasScaleFactor                   , &
+          &                                                                     hasScaleRadius                     , hasSnapshot                      , &
           &                                                                     hasSpinMagnitude                   , hasSpinX                         , &
           &                                                                     hasSpinY                           , hasSpinZ                         , &
           &                                                                     hasTreeIndex                       , hasVelocityX                     , &
@@ -353,6 +364,12 @@ character(len=100) :: textAttribute
      !@     <arguments>\logicalzero\ includesSubhaloMasses\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>setDummyHostId</method>
+     !@     <description>Set host ID for self-hosting halos if host ID is not node ID.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ dummyHostId\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>setUnits</method>
      !@     <description>Set the units used.</description>
      !@     <type>\void</type>
@@ -394,6 +411,7 @@ character(len=100) :: textAttribute
      procedure :: setIncludesHubbleFlow                          =>Merger_Tree_Data_Structure_Set_Includes_Hubble_Flow
      procedure :: setPositionsArePeriodic                        =>Merger_Tree_Data_Structure_Set_Is_Periodic
      procedure :: setIncludesSubhaloMasses                       =>Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses
+     procedure :: setDummyHostId                                 =>Merger_Tree_Data_Structure_Set_Self_Hosting_Halo_Id
      procedure :: setUnits                                       =>Merger_Tree_Data_Structure_Set_Units
      procedure :: Merger_Tree_Data_Structure_Add_Metadata_Double
      procedure :: Merger_Tree_Data_Structure_Add_Metadata_Integer
@@ -421,6 +439,7 @@ contains
     mergerTrees%hasDescendentIndex         =.false.
     mergerTrees%hasHostIndex               =.false.
     mergerTrees%hasRedshift                =.false.
+    mergerTrees%hasScaleFactor             =.false.
     mergerTrees%hasNodeMass                =.false.
     mergerTrees%hasParticleCount           =.false.
     mergerTrees%hasPositionX               =.false.
@@ -442,6 +461,7 @@ contains
     mergerTrees%hasSpecificAngularMomentumZ        =.false.
     mergerTrees%hasSpecificAngularMomentumMagnitude=.false.
     mergerTrees%hasHalfMassRadius          =.false.
+    mergerTrees%hasScaleRadius             =.false.
     mergerTrees%hasMostBoundParticleIndex  =.false.
     mergerTrees%hasVelocityMaximum                 =.false.
     mergerTrees%hasVelocityDispersion              =.false.
@@ -458,12 +478,14 @@ contains
     if (allocated(mergerTrees%descendentIndex       )) call Dealloc_Array(mergerTrees%descendentIndex       )
     if (allocated(mergerTrees%hostIndex             )) call Dealloc_Array(mergerTrees%hostIndex             )
     if (allocated(mergerTrees%redshift              )) call Dealloc_Array(mergerTrees%redshift              )
+    if (allocated(mergerTrees%scaleFactor           )) call Dealloc_Array(mergerTrees%scaleFactor           )
     if (allocated(mergerTrees%nodeMass              )) call Dealloc_Array(mergerTrees%nodeMass              )
     if (allocated(mergerTrees%particleCount         )) call Dealloc_Array(mergerTrees%particleCount         )
     if (allocated(mergerTrees%position              )) call Dealloc_Array(mergerTrees%position              )
     if (allocated(mergerTrees%velocity              )) call Dealloc_Array(mergerTrees%velocity              )
     if (allocated(mergerTrees%spin                  )) call Dealloc_Array(mergerTrees%spin                  )
     if (allocated(mergerTrees%halfMassRadius        )) call Dealloc_Array(mergerTrees%halfMassRadius        )
+    if (allocated(mergerTrees%scaleRadius           )) call Dealloc_Array(mergerTrees%scaleRadius           )
     if (allocated(mergerTrees%velocityMaximum       )) call Dealloc_Array(mergerTrees%velocityMaximum       )
     if (allocated(mergerTrees%velocityDispersion    )) call Dealloc_Array(mergerTrees%velocityDispersion    )
     return
@@ -676,6 +698,19 @@ contains
 
     return
   end subroutine Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses
+
+  subroutine Merger_Tree_Data_Structure_Set_Self_Hosting_Halo_Id(mergerTrees,dummyHostId)
+    !% Set the host_ID in case of self-hosting halos. Default is host_ID = node_ID.
+    implicit none
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    integer                , intent(in   ) :: dummyHostId
+
+    ! Set the value of the dummy-variable for self hosting halos.
+    mergerTrees%dummyHostId   =dummyHostId
+    mergerTrees%hasDummyHostId=.true.
+
+    return
+  end subroutine Merger_Tree_Data_Structure_Set_Self_Hosting_Halo_Id
 
   subroutine Merger_Tree_Data_Structure_Set_Units(mergerTrees,unitType,unitsInSI,hubbleExponent,scaleFactorExponent,name)
     !% Set the units system.
@@ -915,7 +950,7 @@ contains
     return
   end subroutine Merger_Tree_Data_Structure_Set_Property_Double
 
-  subroutine Merger_Tree_Data_Structure_Read_ASCII(mergerTrees,inputFile,lineNumberStart,lineNumberStop,separator)
+  subroutine Merger_Tree_Data_Structure_Read_ASCII(mergerTrees,inputFile,lineNumberStart,lineNumberStop,separator,maximumRedshift)
     !% Read in merger tree data from an ASCII file.
     use String_Handling
     use Memory_Management
@@ -925,12 +960,15 @@ contains
     implicit none
     class    (mergerTreeData), intent(inout)               :: mergerTrees
     character(len=*         ), intent(in   )               :: inputFile
-    integer                  , intent(in   ), optional     :: lineNumberStart     , lineNumberStop
+    integer                  , intent(in   ), optional     :: lineNumberStart               , lineNumberStop
     character(len=*         ), intent(in   ), optional     :: separator
+    double precision         , intent(in   ), optional     :: maximumRedshift
     character(len=32        ), allocatable  , dimension(:) :: inputColumns
-    integer                                                :: columnsCount        , fileUnit      , iColumn              , &
-         &                                                    iNode               , lineNumber    , lineNumberStartActual, &
-         &                                                    lineNumberStopActual, i
+    double precision         , parameter                   :: maximumRedshiftDefault=800.0d0
+    integer                                                :: columnsCount                  , fileUnit      , iColumn              , &
+         &                                                    iNode                         , lineNumber    , lineNumberStartActual, &
+         &                                                    lineNumberStopActual          , i
+    double precision                                       :: maximumRedshiftActual
     logical                                                :: gotFirstDataLine
     character(len=1024      )                              :: inputLine
     type     (varying_string)                              :: message
@@ -957,6 +995,7 @@ contains
     mergerTrees%hasDescendentIndex         =any(mergerTrees%columnProperties == propertyTypeDescendentIndex       )
     mergerTrees%hasHostIndex               =any(mergerTrees%columnProperties == propertyTypeHostIndex             )
     mergerTrees%hasRedshift                =any(mergerTrees%columnProperties == propertyTypeRedshift              )
+    mergerTrees%hasScaleFactor             =any(mergerTrees%columnProperties == propertyTypeScaleFactor           )
     mergerTrees%hasNodeMass                =any(mergerTrees%columnProperties == propertyTypeNodeMass              )
     mergerTrees%hasParticleCount           =any(mergerTrees%columnProperties == propertyTypeParticleCount         )
     mergerTrees%hasPositionX               =any(mergerTrees%columnProperties == propertyTypePositionX             )
@@ -978,6 +1017,7 @@ contains
     mergerTrees%hasSpecificAngularMomentumZ        =any(mergerTrees%columnProperties == propertyTypeSpecificAngularMomentumZ)
     mergerTrees%hasSpecificAngularMomentumMagnitude=any(mergerTrees%columnProperties == propertyTypeSpecificAngularMomentum )
     mergerTrees%hasHalfMassRadius          =any(mergerTrees%columnProperties == propertyTypeHalfMassRadius        )
+    mergerTrees%hasScaleRadius             =any(mergerTrees%columnProperties == propertyTypeScaleRadius           )
     mergerTrees%hasMostBoundParticleIndex          =any(mergerTrees%columnProperties == propertyTypeMostBoundParticleIndex  )
     mergerTrees%hasSnapshot                =any(mergerTrees%columnProperties == propertyTypeSnapshot              )
     mergerTrees%hasVelocityMaximum                 =any(mergerTrees%columnProperties == propertyTypeVelocityMaximum         )
@@ -1016,6 +1056,10 @@ contains
     if (mergerTrees%hasSpecificAngularMomentumX.and.mergerTrees%hasSpecificAngularMomentumMagnitude) call &
          & Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","can not specify both 3-D and scalar specific angular momentum")
 
+    ! Validate that either redshift or scale factor is given.
+    if (.not.(mergerTrees%hasRedshift .or. mergerTrees%hasScaleFactor)) call &
+         & Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","either redshift or scale factor has to be given")
+
     ! Deallocate internal arrays.
     if (allocated(mergerTrees%treeIndex             )) call Dealloc_Array(mergerTrees%treeIndex             )
     if (allocated(mergerTrees%treeWeightNode        )) call Dealloc_Array(mergerTrees%treeWeightNode        )
@@ -1025,12 +1069,14 @@ contains
     if (allocated(mergerTrees%descendentIndex       )) call Dealloc_Array(mergerTrees%descendentIndex       )
     if (allocated(mergerTrees%hostIndex             )) call Dealloc_Array(mergerTrees%hostIndex             )
     if (allocated(mergerTrees%redshift              )) call Dealloc_Array(mergerTrees%redshift              )
+    if (allocated(mergerTrees%scaleFactor           )) call Dealloc_Array(mergerTrees%scaleFactor           )
     if (allocated(mergerTrees%nodeMass              )) call Dealloc_Array(mergerTrees%nodeMass              )
     if (allocated(mergerTrees%particleCount         )) call Dealloc_Array(mergerTrees%particleCount         )
     if (allocated(mergerTrees%position              )) call Dealloc_Array(mergerTrees%position              )
     if (allocated(mergerTrees%velocity              )) call Dealloc_Array(mergerTrees%velocity              )
     if (allocated(mergerTrees%spin                  )) call Dealloc_Array(mergerTrees%spin                  )
     if (allocated(mergerTrees%halfMassRadius        )) call Dealloc_Array(mergerTrees%halfMassRadius        )
+    if (allocated(mergerTrees%scaleRadius           )) call Dealloc_Array(mergerTrees%scaleRadius           )
     if (allocated(mergerTrees%velocityMaximum       )) call Dealloc_Array(mergerTrees%velocityMaximum       )
     if (allocated(mergerTrees%velocityDispersion    )) call Dealloc_Array(mergerTrees%velocityDispersion    )
 
@@ -1043,6 +1089,7 @@ contains
     if (mergerTrees%hasDescendentIndex         ) call Alloc_Array(mergerTrees%descendentIndex         ,[  mergerTrees%nodeCount])
     if (mergerTrees%hasHostIndex               ) call Alloc_Array(mergerTrees%hostIndex               ,[  mergerTrees%nodeCount])
     if (mergerTrees%hasRedshift                ) call Alloc_Array(mergerTrees%redshift                ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasScaleFactor             ) call Alloc_Array(mergerTrees%scaleFactor             ,[  mergerTrees%nodeCount])
     if (mergerTrees%hasNodeMass                ) call Alloc_Array(mergerTrees%nodeMass                ,[  mergerTrees%nodeCount])
     if (mergerTrees%hasParticleCount           ) call Alloc_Array(mergerTrees%particleCount           ,[  mergerTrees%nodeCount])
     if (mergerTrees%hasPositionX               ) call Alloc_Array(mergerTrees%position                ,[3,mergerTrees%nodeCount])
@@ -1054,6 +1101,7 @@ contains
     if (mergerTrees%hasAngularMomentumMagnitude        ) call Alloc_Array(mergerTrees%angularMomentumMagnitude        ,[  mergerTrees%nodeCount])
     if (mergerTrees%hasSpecificAngularMomentumMagnitude) call Alloc_Array(mergerTrees%specificAngularMomentumMagnitude,[  mergerTrees%nodeCount])
     if (mergerTrees%hasHalfMassRadius          ) call Alloc_Array(mergerTrees%halfMassRadius          ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasScaleRadius             ) call Alloc_Array(mergerTrees%scaleRadius             ,[  mergerTrees%nodeCount])
     if (mergerTrees%hasVelocityMaximum                 ) call Alloc_Array(mergerTrees%velocityMaximum                 ,[  mergerTrees%nodeCount])
     if (mergerTrees%hasVelocityDispersion              ) call Alloc_Array(mergerTrees%velocityDispersion              ,[  mergerTrees%nodeCount])
 
@@ -1109,6 +1157,9 @@ contains
              case (propertyTypeRedshift              )
                 ! Column is redshift.
                 read (inputColumns(iColumn),*) mergerTrees%redshift                (  iNode)
+              case (propertyTypeScaleFactor          )
+                ! Column is scale factor.
+                read (inputColumns(iColumn),*) mergerTrees%scaleFactor             (  iNode)
              case (propertyTypeNodeMass              )
                 ! Column is mass.
                 read (inputColumns(iColumn),*) mergerTrees%nodeMass                (  iNode)
@@ -1172,6 +1223,9 @@ contains
              case (propertyTypeHalfMassRadius        )
                 ! Column is half mass radius.
                 read (inputColumns(iColumn),*) mergerTrees%halfMassRadius          (  iNode)
+             case (propertyTypeScaleRadius           )
+                ! Column is scale radius.
+                read (inputColumns(iColumn),*) mergerTrees%scaleRadius             (  iNode)
              case (propertyTypeMostBoundParticleIndex  )
                 ! Column is a node index.
                 read (inputColumns(iColumn),*) mergerTrees%mostBoundParticleIndex  (  iNode)
@@ -1223,6 +1277,33 @@ contains
        mergerTrees%hasAngularMomentumX        =.true.
        mergerTrees%hasAngularMomentumY        =.true.
        mergerTrees%hasAngularMomentumZ        =.true.
+    end if
+
+    ! If needed convert host IDs of self-hosting halos.
+    if (mergerTrees%hasDummyHostId) then
+       where (mergerTrees%hostIndex == mergerTrees%dummyHostId)
+          mergerTrees%hostIndex=mergerTrees%nodeIndex
+       end where
+    end if
+
+    ! If no redshift is given convert scale factor to redshift.
+    if(mergerTrees%hasScaleFactor.and..not.mergerTrees%hasRedshift) then
+        call Alloc_Array(mergerTrees%redshift,[ mergerTrees%nodeCount])
+        if(present(maximumRedshift)) then
+           maximumRedshiftActual=maximumRedshift
+        else
+           maximumRedshiftActual=maximumRedshiftDefault
+        end if
+        do iNode=1,mergerTrees%nodeCount
+           if (mergerTrees%scaleFactor(iNode) > 0.0d0) then
+              mergerTrees%redshift(iNode)=min((1.0d0/mergerTrees%scaleFactor(iNode))-1.0d0,maximumRedshiftActual)
+           else
+              mergerTrees%redshift(iNode)=                                                 maximumRedshiftActual
+            end if
+        end do
+        call Dealloc_Array(mergerTrees%scaleFactor)
+        mergerTrees%hasScaleFactor=.false.
+        mergerTrees%hasRedshift   =.true.
     end if
 
     ! Set tree indices.
@@ -1487,6 +1568,7 @@ contains
     if (mergerTrees%hasHostIndex               ) call haloTrees%writeDataset(mergerTrees%hostIndex               ,"hostIndex"      ,"The index of each host node."           ,appendTo=.true.                  )
     if (mergerTrees%hasNodeMass                ) call haloTrees%writeDataset(mergerTrees%nodeMass                ,"nodeMass"       ,"The mass of each node."                 ,appendTo=.true.                  )
     if (mergerTrees%hasRedshift                ) call haloTrees%writeDataset(mergerTrees%redshift                ,"redshift"       ,"The redshift of each node."             ,appendTo=.true.                  )
+    if (mergerTrees%hasScaleFactor             ) call haloTrees%writeDataset(mergerTrees%scaleFactor             ,"scaleFactor"    ,"The scale factor of each node."         ,appendTo=.true.                  )
     if (mergerTrees%hasPositionX               ) call haloTrees%writeDataset(mergerTrees%position                ,"position"       ,"The position of each node."             ,appendTo=.true.,appendDimension=2)
     if (mergerTrees%hasVelocityX               ) call haloTrees%writeDataset(mergerTrees%velocity                ,"velocity"       ,"The velocity of each node."             ,appendTo=.true.,appendDimension=2)
     if (mergerTrees%hasSpinX                   ) call haloTrees%writeDataset(mergerTrees%spin                    ,"spin"           ,"The spin of each node."                 ,appendTo=.true.                  )
@@ -1494,6 +1576,7 @@ contains
     if (mergerTrees%hasSpinMagnitude           ) call haloTrees%writeDataset(mergerTrees%spinMagnitude           ,"spin"           ,"The spin of each node."                 ,appendTo=.true.                  )
     if (mergerTrees%hasAngularMomentumMagnitude) call haloTrees%writeDataset(mergerTrees%angularMomentumMagnitude,"angularMomentum"    ,"The angular momentum spin of each node."            ,appendTo=.true.                  )
     if (mergerTrees%hasHalfMassRadius          ) call haloTrees%writeDataset(mergerTrees%halfMassRadius          ,"halfMassRadius" ,"The half mass radius of each node."     ,appendTo=.true.                  )
+    if (mergerTrees%hasScaleRadius             ) call haloTrees%writeDataset(mergerTrees%scaleRadius             ,"scaleRadius"    ,"The scale radius of each node."         ,appendTo=.true.                  )
     if (mergerTrees%hasVelocityMaximum         ) call haloTrees%writeDataset(mergerTrees%velocityMaximum         ,"velocityMaximum"    ,"The maximum velocity of each node's rotation curve.",appendTo=.true.                  )
     if (mergerTrees%hasVelocityDispersion      ) call haloTrees%writeDataset(mergerTrees%velocityDispersion      ,"velocityDispersion" ,"The velocity dispersion of each node."              ,appendTo=.true.                  )
     if (mergerTrees%hasParticleCount           ) call haloTrees%writeDataset(mergerTrees%particleCount           ,"particleCount"      ,"The number of particles in each node."              ,appendTo=.true.                  )
