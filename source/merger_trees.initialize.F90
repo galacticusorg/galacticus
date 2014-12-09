@@ -42,7 +42,7 @@ contains
        do while (associated(node))
           ! Initialize only nodes that exist before the end time.
           basic => node%basic()
-          if (basic%time() <= endTime) then
+          if (basic%time() > thisTree%initializedUntil .and. basic%time() <= endTime) then
              ! Call subroutines to perform any necessary initialization of this node.
              !# <include directive="mergerTreeInitializeTask" type="functionCall" functionType="void">
              !#  <functionArgs>node</functionArgs>
