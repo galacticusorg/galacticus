@@ -24,6 +24,7 @@ module Galacticus_Output_Analyses_Mass_Functions
   !% dex random errors on stellar masses. This is approximate, but motivated by the discussion of
   !% \cite{behroozi_comprehensive_2010}.
   !% \end{itemize}
+  use, intrinsic :: ISO_C_Binding
   use Galacticus_Nodes
   use Galactic_Structure_Options
   implicit none
@@ -206,7 +207,7 @@ module Galacticus_Output_Analyses_Mass_Functions
      ! Parameters for the systematic error model.
      double precision                        , allocatable, dimension(:  ) :: systematicCoefficients
      ! The index of the output corresponding to the required redshift.
-     integer                                                               :: outputNumber
+     integer         (c_size_t              )                              :: outputNumber
      ! The number of mass bins.
      integer                                                               :: massesCount
      ! Arrays for the masses and mass function.
@@ -259,6 +260,7 @@ contains
   !# </mergerTreeAnalysisTask>
   subroutine Galacticus_Output_Analysis_Mass_Functions(thisTree,thisNode,iOutput,mergerTreeAnalyses)
     !% Construct a mass functions to compare to various observational determinations.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Galacticus_Input_Paths
     use IO_HDF5
@@ -276,11 +278,12 @@ contains
     implicit none
     type            (mergerTree                    ), intent(in   )                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
-    integer                                         , intent(in   )                 :: iOutput
+    integer         (c_size_t                      ), intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     class           (nodeComponentBasic            )               , pointer        :: thisBasic
     type            (hdf5Object                    )                                :: dataFile,massDataset,parameters
-    integer                                                                         :: i,j,k,currentAnalysis,activeAnalysisCount,haloMassBin
+    integer         (c_size_t                      )                                :: k
+    integer                                                                         :: i,j,currentAnalysis,activeAnalysisCount,haloMassBin
     double precision                                                                :: dataHubbleParameter &
          &,mass,massLogarithmic,randomError,dataOmegaMatter,dataOmegaDarkEnergy
     type            (varying_string                )                                :: parameterName,analysisMassFunctionCovarianceModelText,cosmologyScalingMass,cosmologyScalingMassFunction

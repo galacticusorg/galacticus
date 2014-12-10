@@ -199,9 +199,8 @@ contains
        end do
     end if
     ! Interpolate to get cosmic time.
-    matterDarkEnergyCosmicTime                             &
+    matterDarkEnergyCosmicTime                         &
          & =Interpolate(                               &
-         &              self%ageTableNumberPoints    , &
          &              self%ageTableExpansionFactor , &
          &              self%ageTableTime            , &
          &              self%interpolationObject     , &
@@ -255,7 +254,6 @@ contains
     double precision                                    , intent(in   ) :: dominateFactor
     double precision                                                    :: aDominantCurvature              , aDominantDarkEnergy              , &
          &                                                                 aMatterEquality                 , darkEnergyExponentCurrent        , &
-         &                                                                 expansionFactorDominantCurvature, expansionFactorDominantDarkEnergy, &
          &                                                                 rangeExpandDownward             , rangeExpandUpward
 
     ! Choose present day as default - will be used if no other densities present (i.e. Einsetin-de Sitter).
@@ -373,7 +371,7 @@ contains
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
     logical                                             , intent(in   ), optional :: collapsingPhase
-    double precision                                                              :: expansionFactorActual, sqrtArgument
+    double precision                                                              :: expansionFactorActual
 
     ! Determine the actual expansion factor to use.
     if (present(time)) then
@@ -525,9 +523,8 @@ contains
     double precision                                    , allocatable, dimension(:)            :: ageTableExpansionFactorTemporary        , ageTableTimeTemporary
     integer                                                                                    :: iTime                                   , prefixPointCount
     double precision                                                                           :: OmegaDominant                           , deltaTime                      , &
-         &                                                                                        densityPower                            , expansionFactor      (1)       , &
-         &                                                                                        expansionFactorDominant                 , timeActual                     , &
-         &                                                                                        timeDominant
+         &                                                                                        densityPower                            , timeDominant                    , &
+         &                                                                                        expansionFactorDominant                 , timeActual
     logical                                                                                    :: solutionFound                           , timeExceeded
 
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.

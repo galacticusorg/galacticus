@@ -51,6 +51,7 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Regrid_Time(thisTree)
     !% Regrid times of halos in {\tt thisTree}.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Input_Parameters
     use Numerical_Ranges
@@ -75,8 +76,9 @@ contains
     class           (cosmologyFunctionsClass)                             , pointer :: cosmologyFunctionsDefault
     type            (fgsl_interp_accel      )                                       :: interpolationAccelerator
     logical                                                                         :: interpolationReset
-    integer                                                                         :: allocErr                 , iNow                , &
-         &                                                                             iParent                  , iTime
+    integer         (c_size_t               )                                       :: iNow                     , iParent             , &
+         &                                                                             iTime
+    integer                                                                         :: allocErr
     double precision                                                                :: massNow                  , massParent          , &
          &                                                                             timeNow                  , timeParent
     integer         (kind=kind_int8         )                                       :: firstNewNode             , nodeIndex
@@ -313,8 +315,8 @@ contains
                 end if
 
                 ! Locate these times in the list of grid times.
-                iNow   =Interpolate_Locate(mergerTreeRegridCount,mergerTreeRegridTimeGrid,interpolationAccelerator,timeNow   ,reset=interpolationReset)
-                iParent=Interpolate_Locate(mergerTreeRegridCount,mergerTreeRegridTimeGrid,interpolationAccelerator,timeParent,reset=interpolationReset)
+                iNow   =Interpolate_Locate(mergerTreeRegridTimeGrid,interpolationAccelerator,timeNow   ,reset=interpolationReset)
+                iParent=Interpolate_Locate(mergerTreeRegridTimeGrid,interpolationAccelerator,timeParent,reset=interpolationReset)
 
                 ! For nodes existing precisely at a grid time, ignore this grid point. (These are, typically, nodes which have been created at these points.)
                 if (timeParent == mergerTreeRegridTimeGrid(iParent)) iParent=iParent-1
@@ -410,7 +412,7 @@ contains
              timeNow=thisBasicComponent%time()
 
              ! Find the closest time in the new time grid.
-             iNow   =Interpolate_Locate(mergerTreeRegridCount,mergerTreeRegridTimeGrid,interpolationAccelerator,timeNow,reset=interpolationReset,closest=.true.)
+             iNow   =Interpolate_Locate(mergerTreeRegridTimeGrid,interpolationAccelerator,timeNow,reset=interpolationReset,closest=.true.)
 
              ! If this node does not lie precisely on the grid then remove it.
              if (associated(thisNode%parent) .and. timeNow /= mergerTreeRegridTimeGrid(iNow)) then

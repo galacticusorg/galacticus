@@ -79,6 +79,7 @@ contains
 
   subroutine Star_Formation_History_Output_Null(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
     !% Output the star formation history for {\tt thisNode}.
+    use, intrinsic :: ISO_C_Binding
     use Histories
     use Galacticus_Nodes
     use Kind_Numbers
@@ -86,7 +87,7 @@ contains
     type     (treeNode      ), intent(inout), pointer :: thisNode
     logical                  , intent(in   )          :: nodePassesFilter
     type     (history       ), intent(inout)          :: thisHistory
-    integer                  , intent(in   )          :: iOutput
+    integer  (c_size_t      ), intent(in   )          :: iOutput
     integer  (kind=kind_int8), intent(in   )          :: treeIndex
     character(len=*         ), intent(in   )          :: componentLabel
 

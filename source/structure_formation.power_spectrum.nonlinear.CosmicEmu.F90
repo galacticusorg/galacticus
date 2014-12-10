@@ -173,7 +173,7 @@ contains
     end if
 
     ! Interpolate in the tabulated data to get the power spectrum.
-    Power_Spectrum_Nonlinear_CosmicEmu=exp(Interpolate(wavenumberCount,wavenumberTable,powerSpectrumTable ,interpolationObject&
+    Power_Spectrum_Nonlinear_CosmicEmu=exp(Interpolate(wavenumberTable,powerSpectrumTable ,interpolationObject&
          &,interpolationAccelerator,log(wavenumber),reset=resetInterpolation,extrapolationType=extrapolationTypeLinear))
 
     return

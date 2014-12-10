@@ -53,6 +53,7 @@ contains
   !# </timeStepsTask>
   subroutine Merger_Tree_Timestep_Record_Evolution(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determines the timestep to go to the next tabulation point for galaxy evolution storage.
+    use, intrinsic :: ISO_C_Binding
     use Input_Parameters
     use Cosmology_Functions
     use Memory_Management
@@ -70,7 +71,7 @@ contains
     type            (varying_string               ), intent(inout), optional          :: lockType
     class           (nodeComponentBasic           )                         , pointer :: thisBasicComponent
     class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctionsDefault
-    integer                                                                           :: timeIndex
+    integer         (c_size_t                     )                                   :: timeIndex
     double precision                                                                  :: ourTimeStep              , time
 
     if (.not.timestepRecordEvolutionInitialized) then
@@ -155,7 +156,7 @@ contains
        time=thisBasicComponent%time()
 
        ! Determine how long until next available timestep.
-       timeIndex=Interpolate_Locate(timestepRecordEvolutionSteps,evolutionTime,interpolationAccelerator,time)
+       timeIndex=Interpolate_Locate(evolutionTime,interpolationAccelerator,time)
        if (time < evolutionTime(timeIndex+1)) then
           ! Find next time for storage.
           ourTimeStep=evolutionTime(timeIndex+1)-time
@@ -175,6 +176,7 @@ contains
 
   subroutine Merger_Tree_Record_Evolution_Store(thisTree,thisNode,deadlockStatus)
     !% Store properties of the main progenitor galaxy.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Numerical_Interpolation
     use Galactic_Structure_Options
@@ -184,7 +186,7 @@ contains
     type            (treeNode          ), intent(inout), pointer :: thisNode
     integer                             , intent(inout)          :: deadlockStatus
     class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    integer                                                      :: timeIndex
+    integer         (c_size_t          )                         :: timeIndex
     double precision                                             :: time
 
     ! Get current cosmic time.
@@ -195,7 +197,7 @@ contains
     if (time == evolutionTime(timestepRecordEvolutionSteps)) then
        timeIndex=timestepRecordEvolutionSteps
     else
-       timeIndex=Interpolate_Locate(timestepRecordEvolutionSteps,evolutionTime,interpolationAccelerator,time)
+       timeIndex=Interpolate_Locate(evolutionTime,interpolationAccelerator,time)
     end if
 
     ! Accumulate the properties.
@@ -210,6 +212,7 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Merger_Tree_Record_Evolution_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store Fourier-space halo profiles to the output file.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Galacticus_HDF5
     use Galacticus_Output_Times
@@ -218,7 +221,7 @@ contains
     use Numerical_Constants_Astronomical
     implicit none
     type   (treeNode      ), intent(inout), pointer :: thisNode
-    integer                , intent(in   )          :: iOutput
+    integer(c_size_t      ), intent(in   )          :: iOutput
     integer(kind=kind_int8), intent(in   )          :: treeIndex
     logical                , intent(in   )          :: nodePassesFilter
     type   (varying_string)                         :: datasetName

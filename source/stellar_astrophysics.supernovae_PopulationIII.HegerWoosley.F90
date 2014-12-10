@@ -99,7 +99,7 @@ contains
        massHeliumCore=(13.0d0/24.0d0)*(initialMass-20.0d0)
        ! Check if this is within the range tabulated.
        if (massHeliumCore >= supernovaeTableHeliumCoreMass(1) .and. massHeliumCore <= supernovaeTableHeliumCoreMass(supernovaeTableCount)) then
-          SNePopIII_Cumulative_Energy_HegerWoosley=Interpolate(supernovaeTableCount,supernovaeTableHeliumCoreMass&
+          SNePopIII_Cumulative_Energy_HegerWoosley=Interpolate(supernovaeTableHeliumCoreMass&
                &,supernovaeTableEnergy,interpolationObject,interpolationAccelerator,massHeliumCore ,reset=interpolationReset)
        else
           SNePopIII_Cumulative_Energy_HegerWoosley=0.0d0

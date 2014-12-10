@@ -107,6 +107,7 @@ contains
     use Stellar_Luminosities_Structure
     use Numerical_Interpolation
     use FGSL
+    use, intrinsic :: ISO_C_Binding
     implicit none
     double precision                     , intent(  out)                     :: energyInputRate          , fuelMassRate          , &
          &                                                                      stellarMassRate
@@ -121,11 +122,11 @@ contains
     double precision                     , dimension(elementsCount)          :: fuelMetallicity          , fuelMetalsRateOfChange, &
          &                                                                      metalReturnRate          , metalYieldRate        , &
          &                                                                      stellarMetalsRateOfChange
-    integer                                                                  :: iElement                 , iHistory              , &
-         &                                                                      imfSelected
+    integer                                                                  :: iElement                 , imfSelected
+    integer         (c_size_t          )                                     :: iHistory
     double precision                                                         :: ageMaximum               , ageMinimum            , &
          &                                                                      currentTime              , recyclingRate
-    type            (fgsl_interp_accel  )                                    :: interpolationAccelerator
+    type            (fgsl_interp_accel )                                     :: interpolationAccelerator
     logical                                                                  :: interpolationReset
 
     ! Get the current time.
@@ -134,7 +135,7 @@ contains
 
     ! Get interpolating factors in stellar population history.
     interpolationReset=.true.
-    iHistory          =Interpolate_Locate(size(thisHistory%time),thisHistory%time,interpolationAccelerator,currentTime,interpolationReset)
+    iHistory          =Interpolate_Locate(thisHistory%time,interpolationAccelerator,currentTime,interpolationReset)
     call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
 
     ! Get recycling, energy input, metal recycling and metal yield rates.

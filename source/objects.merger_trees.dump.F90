@@ -19,13 +19,14 @@
 
 module Merger_Trees_Dump
   !% Implements dumping of the structure of a merger tree to a file for plotting with \href{http://www.graphviz.org/}{\sc dot}.
+  use, intrinsic :: ISO_C_Binding
   use Kind_Numbers
   implicit none
   private
   public :: Merger_Tree_Dump
 
   ! Internal indices used for labelling outputs.
-  integer(kind=kind_int8) :: outputCount
+  integer(kind=c_size_t ) :: outputCount
   integer(kind=kind_int8) :: treeIndexPrevious=-1
   !$omp threadprivate(outputCount,treeIndexPrevious)
 contains

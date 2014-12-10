@@ -546,21 +546,20 @@ contains
     type(fgsl_interp)                       :: interpolationObject
     type(fgsl_interp_accel)                 :: interpolationAccelerator
     logical                                 :: interpolationReset
-    logical                                 :: integrationReset
     double precision                        :: biasI,biasJ,powerSpectrum
 
     ! Copy the time to module scope.
     time=timePrime
     ! Get the bias-mass function product for the I bin.
     interpolationReset=.true.
-    biasI=Interpolate(timeBinCount,timeTable,biasTable(:,binI),interpolationObject,interpolationAccelerator,time,reset=interpolationReset)
+    biasI=Interpolate(timeTable,biasTable(:,binI),interpolationObject,interpolationAccelerator,time,reset=interpolationReset)
     call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
     ! Get the bias-mass function product for the J bin.
     if (binJ == binI) then
        biasJ=biasI
     else
        interpolationReset=.true.
-       biasJ=Interpolate(timeBinCount,timeTable,biasTable(:,binJ),interpolationObject,interpolationAccelerator,time,reset=interpolationReset)
+       biasJ=Interpolate(timeTable,biasTable(:,binJ),interpolationObject,interpolationAccelerator,time,reset=interpolationReset)
        call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
     end if
     ! Get the nonlinear power spectrum for the current wavenumber and time.

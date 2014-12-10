@@ -77,7 +77,7 @@ contains
     !$omp end critical(Power_Spectrum_Initialization)
 
     ! Interpolate in the tabulated function and return a value.
-    Primordial_Power_Spectrum=exp(Interpolate(powerSpectrumNumberPoints,powerSpectrumLogWavenumber,powerSpectrumLogP &
+    Primordial_Power_Spectrum=exp(Interpolate(powerSpectrumLogWavenumber,powerSpectrumLogP &
          &,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation))
 
     return
@@ -111,7 +111,7 @@ contains
     !$omp end critical(Power_Spectrum_Initialization)
 
     ! Interpolate in the tabulated function and return a value.
-    Primordial_Power_Spectrum_Logarithmic_Derivative=Interpolate_Derivative(powerSpectrumNumberPoints,powerSpectrumLogWavenumber&
+    Primordial_Power_Spectrum_Logarithmic_Derivative=Interpolate_Derivative(powerSpectrumLogWavenumber&
          &,powerSpectrumLogP ,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation)
 
     return

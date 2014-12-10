@@ -112,16 +112,17 @@ contains
   double precision function Gaunt_Factor_Sutherland1998(atomicNumber,electronNumber,temperature) 
     !% Compute energy averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
     !% \cite{sutherland_accurate_1998}.
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     use Arrays_Search
     use Atomic_Ionization_Potentials
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ) :: temperature                     
-    integer         , intent(in   ) :: atomicNumber     , electronNumber
-    integer                         :: iTable
-    double precision                :: energyScaleOffset, energyScaleLogarithmic
+    double precision          , intent(in   ) :: temperature                     
+    integer                   , intent(in   ) :: atomicNumber     , electronNumber
+    integer         (c_size_t)                :: iTable
+    double precision                          :: energyScaleOffset, energyScaleLogarithmic
 
     ! Return zero for unphysical temperatures
     if (temperature <= 0.0d0) then

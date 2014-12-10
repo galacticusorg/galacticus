@@ -69,18 +69,19 @@ contains
     use Memory_Management
     use Galacticus_Display
     use Excursion_Sets_First_Crossing_Zhang_Hui_Utilities
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    double precision, intent(in   )                 :: time                                 , variance
-    double precision               , dimension(0:1) :: hTime                                , hVariance
-    double precision, allocatable  , dimension(:,:) :: firstCrossingProbabilityTablePrevious
-    logical                                         :: makeTable                            , tableIsExtendable
-    integer                                         :: i                                    , iTime                     , &
-         &                                             iVariance                            , j                         , &
-         &                                             jTime                                , jVariance                 , &
-         &                                             k                                    , varianceTableCountPrevious
-    double precision                                :: g2Average                            , summation0                , &
-         &                                             summation1                           , summation2                , &
-         &                                             timeMaximumPrevious                  , timeMinimumPrevious
+    double precision                , intent(in   )                 :: time                                 , variance
+    double precision                               , dimension(0:1) :: hTime                                , hVariance
+    double precision                , allocatable  , dimension(:,:) :: firstCrossingProbabilityTablePrevious
+    logical                                                         :: makeTable                            , tableIsExtendable
+    integer         (c_size_t      )                                :: iVariance                            , iTime
+    integer                                                         :: i                                    , j                         , &
+         &                                                             jTime                                , jVariance                 , &
+         &                                                             k                                    , varianceTableCountPrevious
+    double precision                                                :: g2Average                            , summation0                , &
+         &                                                             summation1                           , summation2                , &
+         &                                                             timeMaximumPrevious                  , timeMinimumPrevious
 
     ! Determine if we need to make the table. Only recompute if the variance is sufficiently larger than that tabulated that we
     ! will add at least one new point to the tabulation.
@@ -220,12 +221,12 @@ contains
     !$omp end critical (Excursion_Sets_First_Crossing_Probability_Zhang_Hui_High_Init)
 
     ! Get interpolation in time.
-    iTime    =Interpolate_Locate                 (timeTableCount      ,timeTable    ,interpolationAcceleratorTime    ,time    ,reset=interpolationResetTime    )
-    hTime    =Interpolate_Linear_Generate_Factors(timeTableCount      ,timeTable    ,iTime    ,time    )
+    iTime    =Interpolate_Locate                 (timeTable    ,interpolationAcceleratorTime    ,time    ,reset=interpolationResetTime    )
+    hTime    =Interpolate_Linear_Generate_Factors(timeTable    ,iTime    ,time    )
 
     ! Get interpolation in variance.
-    iVariance=Interpolate_Locate                 (varianceTableCount+1,varianceTable,interpolationAcceleratorVariance,variance,reset=interpolationResetVariance)
-    hVariance=Interpolate_Linear_Generate_Factors(varianceTableCount+1,varianceTable,iVariance,variance)
+    iVariance=Interpolate_Locate                 (varianceTable,interpolationAcceleratorVariance,variance,reset=interpolationResetVariance)
+    hVariance=Interpolate_Linear_Generate_Factors(varianceTable,iVariance,variance)
 
     ! Compute first crossing probability by interpolating.
     Excursion_Sets_First_Crossing_Probability_Zhang_Hui_High=0.0d0

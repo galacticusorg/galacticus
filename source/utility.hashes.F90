@@ -192,10 +192,11 @@ contains
     !% Deletes entry {\tt key} from {\tt Hash}.
     use Arrays_Search
     use Galacticus_Error
+    use, intrinsic :: ISO_C_Binding
     implicit none
     type   (varying_string   ), intent(in   ) :: key
     class  (integerScalarHash), intent(inout) :: thisHash
-    integer                   , save          :: iKey
+    integer(c_size_t         )   , save          :: iKey
 
     select type (thisHash)
     type is (integerScalarHash)
@@ -284,10 +285,11 @@ contains
     !% Returns the value of {\tt key} in {\tt thisHash}.
     use Arrays_Search
     use Galacticus_Error
+    use, intrinsic :: ISO_C_Binding
     implicit none
     class  (integerScalarHash), intent(in   ) :: thisHash
     type   (varying_string   ), intent(in   ) :: key
-    integer                                   :: iKey
+    integer(c_size_t         )                :: iKey
 
     select type (thisHash)
     type is (integerScalarHash)
@@ -317,11 +319,12 @@ contains
   subroutine Set_Integer_Scalar_VS(thisHash,key,value)
     !% Sets the value of {\tt key} in {\tt thisHash} to {\tt value}.
     use Arrays_Search
+    use, intrinsic :: ISO_C_Binding
     implicit none
     integer                                              , intent(in   ) :: Value
     type   (varying_string   )                           , intent(in   ) :: Key
     class  (integerScalarHash)                           , intent(inout) :: thisHash
-    integer                                                              :: iKey
+    integer(c_size_t         )                                           :: iKey
     logical                                                              :: keyExists
     integer                   , allocatable, dimension(:)                :: valuesTemporary
     type   (varying_string   ), allocatable, dimension(:)                :: keysTemporary

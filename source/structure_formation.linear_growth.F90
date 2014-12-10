@@ -105,6 +105,7 @@ contains
 
   double precision function Linear_Growth_Factor(time,aExpansion,collapsing,normalize,component,wavenumber)
     !% Return the linear growth factor.
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     use Cosmology_Functions
     use Galacticus_Error
@@ -114,7 +115,7 @@ contains
     integer                                                           , intent(in   ), optional :: component                , normalize
     double precision                                                  , intent(in   ), optional :: wavenumber
     double precision                         , dimension(:)  , pointer                          :: thisLinearGrowthFactor
-    integer                                  , dimension(0:1)                                   :: iWavenumber
+    integer         (c_size_t               ), dimension(0:1)                                   :: iWavenumber
     double precision                         , dimension(0:1)                                   :: hWavenumber
     class           (cosmologyFunctionsClass)                , pointer                          :: cosmologyFunctionsDefault
     integer                                                                                     :: componentActual          , jWavenumber, &
@@ -198,7 +199,7 @@ contains
        thisLinearGrowthFactor => linearGrowthTableFactor(:,iWavenumber(jWavenumber),componentActual)
 
        ! Interpolate to get the expansion factor.
-       Linear_Growth_Factor=Linear_Growth_Factor+Interpolate(linearGrowthTableNumberPoints,linearGrowthTableTime &
+       Linear_Growth_Factor=Linear_Growth_Factor+Interpolate(linearGrowthTableTime &
             &,thisLinearGrowthFactor,interpolationObject,interpolationAccelerator,timeActual,reset=resetInterpolation)&
             &*hWavenumber(jWavenumber)
     end do
@@ -218,13 +219,14 @@ contains
     use Numerical_Interpolation
     use Cosmology_Functions
     use Galacticus_Error
+    use, intrinsic :: ISO_C_Binding
     implicit none
     double precision                                                  , intent(in   ), optional :: aExpansion                      , time
     logical                                                           , intent(in   ), optional :: collapsing
     integer                                                           , intent(in   ), optional :: component
     double precision                                                  , intent(in   ), optional :: wavenumber
     double precision                         , dimension(:)  , pointer                          :: thisLinearGrowthFactor
-    integer                                  , dimension(0:1)                                   :: iWavenumber
+    integer         (c_size_t               ), dimension(0:1)                                   :: iWavenumber
     double precision                         , dimension(0:1)                                   :: hWavenumber
     class           (cosmologyFunctionsClass)                , pointer                          :: cosmologyFunctionsDefault
     integer                                                                                     :: componentActual                 , jWavenumber
@@ -282,8 +284,8 @@ contains
        thisLinearGrowthFactor => linearGrowthTableFactor(:,iWavenumber(jWavenumber),componentActual)
 
        ! Interpolate to get the expansion factor.
-       linearGrowthFactorTimeDerivative=linearGrowthFactorTimeDerivative+Interpolate_Derivative(linearGrowthTableNumberPoints&
-            &,linearGrowthTableTime ,thisLinearGrowthFactor,interpolationObject,interpolationAccelerator,timeActual,reset&
+       linearGrowthFactorTimeDerivative=linearGrowthFactorTimeDerivative+Interpolate_Derivative(&
+            &linearGrowthTableTime ,thisLinearGrowthFactor,interpolationObject,interpolationAccelerator,timeActual,reset&
             &=resetInterpolation)*hWavenumber(jWavenumber)
     end do
     !$omp end critical(Linear_Growth_Initialize)
@@ -301,22 +303,21 @@ contains
   subroutine Interpolate_In_Wavenumber(iWavenumber,hWavenumber,wavenumber)
     !% Find interpolating factors in the wavenumber dimesion for linear growth factor calculations.
     use Numerical_Interpolation
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    integer         , dimension(0:1), intent(  out)           :: iWavenumber
-    double precision, dimension(0:1), intent(  out)           :: hWavenumber
-    double precision                , intent(in   ), optional :: wavenumber
+    integer         (c_size_t), dimension(0:1), intent(  out)           :: iWavenumber
+    double precision          , dimension(0:1), intent(  out)           :: hWavenumber
+    double precision                          , intent(in   ), optional :: wavenumber
 
     if (present(wavenumber).and.size(linearGrowthTableWavenumber) > 1) then
        iWavenumber(0)=Interpolate_Locate              (                                    &
-            &                                           size(linearGrowthTableWavenumber)  &
-            &                                          ,     linearGrowthTableWavenumber   &
+            &                                           linearGrowthTableWavenumber        &
             &                                          ,interpolationAcceleratorWavenumber &
             &                                          ,wavenumber                         &
             &                                          ,reset=resetInterpolationWavenumber &
             &                                         )
        hWavenumber=Interpolate_Linear_Generate_Factors(                                    &
-            &                                           size(linearGrowthTableWavenumber)  &
-            &                                          ,     linearGrowthTableWavenumber   &
+            &                                           linearGrowthTableWavenumber        &
             &                                          ,iWavenumber(0)                     &
             &                                          ,wavenumber                         &
             &                                         )

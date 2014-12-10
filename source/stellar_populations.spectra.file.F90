@@ -185,6 +185,7 @@ contains
     use Abundances_Structure
     use Numerical_Interpolation
     use Galacticus_Error
+    use, intrinsic :: ISO_C_Binding
     implicit none
     type            (abundances    ), intent(in   )            :: abundancesStellar
     double precision                , intent(in   )            :: age                        , wavelength
@@ -193,10 +194,10 @@ contains
     double precision                , dimension(0:1)           :: hAge                       , hMetallicity  , &
          &                                                        hWavelength
     double precision                , parameter                :: metallicityTolerance=0.01d0
-    integer                                                    :: iAge                       , iMetallicity  , &
-         &                                                        iWavelength                , imfLookupIndex, &
-         &                                                        jAge                       , jMetallicity  , &
-         &                                                        jWavelength
+    integer         (c_size_t      )                           :: iAge                       , iMetallicity  , &
+         &                                                        iWavelength
+    integer                                                    :: jWavelength                , imfLookupIndex, &
+         &                                                        jAge                       , jMetallicity
     double precision                                           :: metallicity
     type            (varying_string)                           :: message
     character       (len=12        )                           :: metallicityLabel           , label
@@ -242,16 +243,12 @@ contains
     end if
 
     ! Get the interpolations.
-    iAge=Interpolate_Locate(spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints&
-         &,spectra(imfLookupIndex)%stellarPopulationSpectraAges,spectra(imfLookupIndex)%interpolationAcceleratorAge,age&
+    iAge=Interpolate_Locate(spectra(imfLookupIndex)%stellarPopulationSpectraAges,spectra(imfLookupIndex)%interpolationAcceleratorAge,age&
          &,spectra(imfLookupIndex)%resetAge)
-    hAge=Interpolate_Linear_Generate_Factors(spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints &
-         &,spectra(imfLookupIndex)%stellarPopulationSpectraAges,iAge,age)
-    iWavelength=Interpolate_Locate(spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints &
-         &,spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths &
+    hAge=Interpolate_Linear_Generate_Factors(spectra(imfLookupIndex)%stellarPopulationSpectraAges,iAge,age)
+    iWavelength=Interpolate_Locate(spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths &
          &,spectra(imfLookupIndex)%interpolationAcceleratorWavelength,wavelength,spectra(imfLookupIndex)%resetWavelength)
-    hWavelength=Interpolate_Linear_Generate_Factors(spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints &
-         &,spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths,iWavelength,wavelength)
+    hWavelength=Interpolate_Linear_Generate_Factors(spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths,iWavelength,wavelength)
 
     if (metallicity == logMetallicityZero .or. metallicity < spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(1)) then
        iMetallicity=1
@@ -260,11 +257,9 @@ contains
        iMetallicity=spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints-1
        hMetallicity=[0.0d0,1.0d0]
     else
-       iMetallicity=Interpolate_Locate(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints &
-            &,spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities &
+       iMetallicity=Interpolate_Locate(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities &
             &,spectra(imfLookupIndex)%interpolationAcceleratorMetallicity,metallicity,spectra(imfLookupIndex)%resetMetallicity)
-       hMetallicity=Interpolate_Linear_Generate_Factors(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints &
-            &,spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities,iMetallicity,metallicity)
+       hMetallicity=Interpolate_Linear_Generate_Factors(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities,iMetallicity,metallicity)
     end if
 
      ! Do the interpolation.

@@ -167,7 +167,6 @@ contains
     ! Interpolate in the tables to get the electron fraction.
     fileTemperature                                               &
          & =Interpolate(                                          &
-         &              self%redshiftCount                      , &
          &              self%timeTable                          , &
          &              self%temperatureTable                   , &
          &              self%interpolationObjectTemperature     , &
@@ -190,7 +189,6 @@ contains
     ! Interpolate in the tables to get the electron fraction.
     fileElectronFraction                                               &
          & =Interpolate(                                               &
-         &              self%redshiftCount                           , &
          &              self%timeTable                               , &
          &              self%electronFractionTable                   , &
          &              self%interpolationObjectElectronFraction     , &
@@ -214,7 +212,6 @@ contains
     fileNeutralHydrogenFraction                                                &
          & =+1.0d0                                                             &
          &  -Interpolate(                                                      &
-         &               self%redshiftCount                                  , &
          &               self%timeTable                                      , &
          &               self%ionizedHydrogenFractionTable                   , &
          &               self%interpolationObjectIonizedHydrogenFraction     , &
@@ -238,7 +235,6 @@ contains
     fileNeutralHeliumFraction                                                &
          & =+1.0d0                                                           &
          &  -Interpolate(                                                    &
-         &               self%redshiftCount                                , &
          &               self%timeTable                                    , &
          &               self%ionizedHeliumFractionTable                   , &
          &               self%interpolationObjectIonizedHeliumFraction     , &
@@ -261,7 +257,6 @@ contains
     ! Interpolate in the tables to get the electron fraction.
     fileSinglyIonizedHeliumFraction                                         &
          & =Interpolate(                                                    &
-         &              self%redshiftCount                                , &
          &              self%timeTable                                    , &
          &              self%ionizedHeliumFractionTable                   , &
          &              self%interpolationObjectIonizedHeliumFraction     , &
