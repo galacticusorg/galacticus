@@ -175,7 +175,7 @@ contains
   !# <mergerTreeAnalysisTask>
   !#  <unitName>Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins</unitName>
   !# </mergerTreeAnalysisTask>
-  subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins(thisTree,thisNode,iOutput,mergerTreeAnalyses)
+  subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins(thisTree,thisNode,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct a mass functions to compare to various observational determinations.
     use Galacticus_Nodes
     use Galacticus_Input_Paths
@@ -193,9 +193,11 @@ contains
     use IO_HDF5
     use Vectors
     use Galacticus_Output_Analyses_Cosmology_Scalings
+    use Galacticus_Output_Merger_Tree_Data
     implicit none
     type            (mergerTree                    ), intent(in   )                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
+    integer                                         , intent(in   )                 :: nodeStatus
     integer                                         , intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     class           (nodeComponentBasic            )               , pointer        :: thisBasic
@@ -575,6 +577,8 @@ contains
     end if
     ! Return if this analysis is not active.
     if (.not.analysisActive) return
+    ! Return if this is a tree finalization.
+    if (nodeStatus == nodeStatusFinal) return
     ! Allocate work arrays.
     if (.not.allocated(thisGalaxy)) allocate(thisGalaxy(size(sizeFunctions)))
     ! Iterate over active analyses.
