@@ -52,6 +52,7 @@ contains
     use               Numerical_Integration
     use               Dark_Matter_Profiles_Concentration
     use               Node_Component_Dark_Matter_Profile_Scale
+    use               Dark_Matter_Halo_Scales
     use               Numerical_Ranges
     use               Numerical_Constants_Math
     use               Power_Spectra
@@ -70,13 +71,16 @@ contains
     type            (treeNode                           ), pointer                                                   :: thisNode
     class           (nodeComponentBasic                 ), pointer                                                   :: thisBasic
     class           (nodeComponentDarkMatterProfile     ), pointer                                                   :: thisDarkMatterProfile
+    class           (darkMatterHaloScaleClass           ), pointer                                                   :: darkMatterHaloScale_
     procedure       (integrandWeight                    ), pointer                                                   :: integrandWeightFunction
     double precision                                     , allocatable  , dimension(                             : ) :: powerSpectrumOneHalo                              , powerSpectrumTwoHalo                              , &
          &                                                                                                              wavenumber                                        , powerSpectrum                                     , &
          &                                                                                                              separation                                        , correlation                                       , &
          &                                                                                                              projectedCorrelation
     integer                                              , parameter                                                 :: wavenumberCountPerDecade                   =10
-    double precision                                     , parameter                                                 :: wavenumberMinimum                          =1.0d-3, wavenumberMaximum                          =1.0d4
+    double precision                                     , parameter                                                 :: wavenumberMinimum                          =1.0d-3, wavenumberMaximum                          =1.0d4, &
+         &                                                                                                              virialWavenumberMultiplierMaximum          =1.0d+3
+    logical                                                                                                          :: integrationWarningIssued=.false.
     double precision                                                                                                 :: time                                              , timeMinimum                                       , &
          &                                                                                                              expansionFactor                                   , volume                                            , &
          &                                                                                                              timeMaximum                                       , galaxyDensity                                     , &
@@ -95,6 +99,7 @@ contains
     cosmologyFunctions_             => cosmologyFunctions            ()     
     surveyGeometry_                 => surveyGeometry                ()
     darkMatterProfileConcentration_ => darkMatterProfileConcentration()
+    darkMatterHaloScale_            => darkMatterHaloScale           ()
     ! Create worker node.
     thisNode              => treeNode                  (                 )
     thisBasic             => thisNode%basic            (autoCreate=.true.)
@@ -133,7 +138,7 @@ contains
             &            parameterPointer                        , &
             &            integrandFunction                       , &
             &            integrationWorkspace                    , &
-            &            toleranceRelative                =1.0d-3, &
+            &            toleranceRelative                =1.0d-2, &
             &            reset=integrationReset                    &
             &           )                                          &
             & *surveyGeometry_%solidAngle(iField)
@@ -149,43 +154,45 @@ contains
             &            parameterPointer                        , &
             &            integrandFunction                       , &
             &            integrationWorkspace                    , &
-            &            toleranceRelative                =1.0d-3, &
+            &            toleranceRelative                =1.0d-2, &
             &            reset=integrationReset                    &
             &           )                                          &
             & *surveyGeometry_%solidAngle(iField)
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       call Integrate_Done(integrandFunction,integrationWorkspace)       
        ! Iterate over wavenumbers.
-       do iWavenumber=1,wavenumberCount
+       do iWavenumber=1,wavenumberCount 
           ! Integrate the one-halo term.
           integrationReset    =.true.
-          powerSpectrumOneHalo        (iWavenumber)=                  &
-               & +powerSpectrumOneHalo(iWavenumber)                   &
-               & +Integrate(                                          &
-               &            timeMinimum                             , &
-               &            timeMaximum                             , &
-               &            powerSpectrumOneHaloTimeIntegrand       , &
-               &            parameterPointer                        , &
-               &            integrandFunction                       , &
-               &            integrationWorkspace                    , &
-               &            toleranceRelative                =1.0d-2, &
-               &            reset=integrationReset                    &
-               &           )                                          &
+          powerSpectrumOneHalo        (iWavenumber)=                              &
+               & +powerSpectrumOneHalo(iWavenumber)                               &
+               & +Integrate(                                                      &
+               &            timeMinimum                                         , &
+               &            timeMaximum                                         , &
+               &            powerSpectrumOneHaloTimeIntegrand                   , &
+               &            parameterPointer                                    , &
+               &            integrandFunction                                   , &
+               &            integrationWorkspace                                , &
+               &            toleranceRelative                =1.0d-2            , &
+               &            reset                            =integrationReset  , &
+               &            integrationRule                  =FGSL_Integ_Gauss61  &
+               &           )                                                      &
                & *surveyGeometry_%solidAngle(iField)
           call Integrate_Done(integrandFunction,integrationWorkspace)
           ! Integrate the two-halo term.
           integrationReset    =.true.
-          powerSpectrumTwoHalo        (iWavenumber)=                  &
-               & +powerSpectrumTwoHalo(iWavenumber)                   &
-               & +Integrate(                                          &
-               &            timeMinimum                             , &
-               &            timeMaximum                             , &
-               &            powerSpectrumTwoHaloTimeIntegrand       , &
-               &            parameterPointer                        , &
-               &            integrandFunction                       , &
-               &            integrationWorkspace                    , &
-               &            toleranceRelative                =1.0d-2, &
-               &            reset=integrationReset                    &
-               &           )                                          &
+          powerSpectrumTwoHalo        (iWavenumber)=                              &
+               & +powerSpectrumTwoHalo(iWavenumber)                               &
+               & +Integrate(                                                      &
+               &            timeMinimum                                         , &
+               &            timeMaximum                                         , &
+               &            powerSpectrumTwoHaloTimeIntegrand                   , &
+               &            parameterPointer                                    , &
+               &            integrandFunction                                   , &
+               &            integrationWorkspace                                , &
+               &            toleranceRelative                =1.0d-2            , &
+               &            reset                            =integrationReset  , &
+               &            integrationRule                  =FGSL_Integ_Gauss61  &
+               &           )                                                      &
                & *surveyGeometry_%solidAngle(iField)
           call Integrate_Done(integrandFunction,integrationWorkspace)
        end do
@@ -289,6 +296,7 @@ contains
 
     function powerSpectrumOneHaloTimeIntegrand(timePrime,parameterPointer) bind(c)
       !% Time integrand for the one-halo term in the power spectrum.
+      use Galacticus_Display
       implicit none
       real   (c_double                  )        :: powerSpectrumOneHaloTimeIntegrand
       real   (c_double                  ), value :: timePrime
@@ -296,25 +304,32 @@ contains
       type   (fgsl_function             )        :: integrandFunctionTime
       type   (fgsl_integration_workspace)        :: integrationWorkspaceTime
       logical                                    :: integrationResetTime
+      integer                                    :: errorStatus
 
       time           =timePrime
       expansionFactor=cosmologyFunctions_%expansionFactor(time)
       call thisBasic%timeSet                             (time)
       call thisBasic%timeLastIsolatedSet                 (time)
       integrationResetTime             =.true.
-      powerSpectrumOneHaloTimeIntegrand=                                    &
-           & +Integrate(                                                    &
-           &            projectedCorrelationFunctionHaloMassMinimum       , &
-           &            projectedCorrelationFunctionHaloMassMaximum       , &
-           &            powerSpectrumOneHaloIntegrand                     , &
-           &            parameterPointer                                  , &
-           &            integrandFunctionTime                             , &
-           &            integrationWorkspaceTime                          , &
-           &            toleranceRelative                          =1.0d-3, &
-           &            reset=integrationResetTime                          &
-           &           )                                                    &
+      powerSpectrumOneHaloTimeIntegrand=                                                  &
+           & +Integrate(                                                                  &
+           &            projectedCorrelationFunctionHaloMassMinimum                     , &
+           &            projectedCorrelationFunctionHaloMassMaximum                     , &
+           &            powerSpectrumOneHaloIntegrand                                   , &
+           &            parameterPointer                                                , &
+           &            integrandFunctionTime                                           , &
+           &            integrationWorkspaceTime                                        , &
+           &            toleranceRelative                          =1.0d-2              , &
+           &            reset                                      =integrationResetTime, &
+           &            integrationRule                            =FGSL_Integ_Gauss61  , &
+           &            errorStatus                                =errorStatus           &
+           &           )                                                                  &
            & *cosmologyFunctions_%comovingVolumeElementTime(time)
       call Integrate_Done(integrandFunctionTime,integrationWorkspaceTime)
+      if (errorStatus /= errorStatusSuccess .and. .not.integrationWarningIssued) then
+         call Galacticus_Display_Message('WARNING: [powerSpectrumOneHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityWarn)
+         integrationWarningIssued=.true.
+      end if
       return
     end function powerSpectrumOneHaloTimeIntegrand
 
@@ -330,43 +345,51 @@ contains
       real            (c_double              ), value   :: massHalo
       type            (c_ptr                 ), value   :: parameterPointer
       class           (darkMatterProfileClass), pointer :: darkMatterProfile_
-      double precision                                  :: darkMatterProfileKSpace      , numberCentrals, numberSatellites
+      double precision                                  :: darkMatterProfileKSpace      , numberCentrals, numberSatellites, wavenumberMaximum
 
       darkMatterProfile_   => darkMatterProfile  ()
       call Galacticus_Calculations_Reset(thisNode)
       call thisBasic            % massSet(massHalo                           )
       call Galacticus_Calculations_Reset(thisNode)
       call thisDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(thisNode))
-      darkMatterProfileKSpace=darkMatterProfile_%kSpace(thisNode,waveNumber(iWavenumber)/expansionFactor)
-      numberCentrals         =max(                                                                                                                       &
-           &                      +0.0d0                                                                                                               , &
-           &                      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum,haloModelGalaxyTypeCentral  )  &
-           &                      -conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMaximum,haloModelGalaxyTypeCentral  )  &
-           &                     )
-      numberSatellites       =max(                                                                                                                       &
-           &                      +0.0d0                                                                                                               , &
-           &                      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum,haloModelGalaxyTypeSatellite)  &
-           &                      -conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMaximum,haloModelGalaxyTypeSatellite)  &
-           &                     )
-      ! Note that we include 2 times the central-satellite term since we want to count each pair twice (i.e. central-satellite and
-      ! then satellite-central). This is consistent with the N(N-1) counting for the satellite-satellite term, and with the
-      ! counting in the two-halo term.
-      powerSpectrumOneHaloIntegrand=                         &
-           & +Halo_Mass_Function_Differential(time,massHalo) &
-           & *(                                              &
-           &   +darkMatterProfileKSpace                      &
-           &   *2.0d0                                        & 
-           &   *numberCentrals                               &
-           &   *numberSatellites                             &
-           &   +darkMatterProfileKSpace**2                   &
-           &   *numberSatellites       **2                   &
-           &  )
+      ! Return zero if we're more than some maximum factor above the virial wavenumber for this halo. This avoids attempting to
+      ! integrate rapidly oscillating Fourier profiles.
+      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%virialRadius(thisNode)/expansionFactor)
+      if (waveNumber(iWavenumber) > wavenumberMaximum) then
+         powerSpectrumOneHaloIntegrand=0.0d0
+      else
+         darkMatterProfileKSpace=darkMatterProfile_%kSpace(thisNode,waveNumber(iWavenumber)/expansionFactor)
+         numberCentrals         =max(                                                                                                                       &
+              &                      +0.0d0                                                                                                               , &
+              &                      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum,haloModelGalaxyTypeCentral  )  &
+              &                      -conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMaximum,haloModelGalaxyTypeCentral  )  &
+              &                     )
+         numberSatellites       =max(                                                                                                                       &
+              &                      +0.0d0                                                                                                               , &
+              &                      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum,haloModelGalaxyTypeSatellite)  &
+              &                      -conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMaximum,haloModelGalaxyTypeSatellite)  &
+              &                     )
+         ! Note that we include 2 times the central-satellite term since we want to count each pair twice (i.e. central-satellite and
+         ! then satellite-central). This is consistent with the N(N-1) counting for the satellite-satellite term, and with the
+         ! counting in the two-halo term.
+         powerSpectrumOneHaloIntegrand=                         &
+              & +Halo_Mass_Function_Differential(time,massHalo) &
+              & *(                                              &
+              &   +darkMatterProfileKSpace                      &
+              &   *2.0d0                                        & 
+              &   *numberCentrals                               &
+              &   *numberSatellites                             &
+              &   +darkMatterProfileKSpace**2                   &
+              &   *numberSatellites       **2                   &
+              &  )
+      end if
       return
     end function powerSpectrumOneHaloIntegrand
 
     function powerSpectrumTwoHaloTimeIntegrand(timePrime,parameterPointer) bind(c)
       !% Time integrand for the two-halo term in the power spectrum.
       use Linear_Growth
+      use Galacticus_Display
       implicit none
       real   (c_double                  )        :: powerSpectrumTwoHaloTimeIntegrand
       real   (c_double                  ), value :: timePrime
@@ -374,26 +397,33 @@ contains
       type   (fgsl_function             )        :: integrandFunctionTime
       type   (fgsl_integration_workspace)        :: integrationWorkspaceTime
       logical                                    :: integrationResetTime
+      integer                                    :: errorStatus
 
       time           =timePrime
       expansionFactor=cosmologyFunctions_%expansionFactor(time)
       call thisBasic%timeSet                             (time)
       call thisBasic%timeLastIsolatedSet                 (time)
       integrationResetTime             =.true.
-      powerSpectrumTwoHaloTimeIntegrand=                                    &
-           & +Integrate(                                                    &
-           &            projectedCorrelationFunctionHaloMassMinimum       , &
-           &            projectedCorrelationFunctionHaloMassMaximum       , &
-           &            powerSpectrumTwoHaloIntegrand                     , &
-           &            parameterPointer                                  , &
-           &            integrandFunctionTime                             , &
-           &            integrationWorkspaceTime                          , &
-           &            toleranceRelative                          =1.0d-3, &
-           &            reset=integrationResetTime                          &
-           &           )                                                    &
-           & *Linear_Growth_Factor                         (time)           &
+      powerSpectrumTwoHaloTimeIntegrand=                                                  &
+           & +Integrate(                                                                  &
+           &            projectedCorrelationFunctionHaloMassMinimum                     , &
+           &            projectedCorrelationFunctionHaloMassMaximum                     , &
+           &            powerSpectrumTwoHaloIntegrand                                   , &
+           &            parameterPointer                                                , &
+           &            integrandFunctionTime                                           , &
+           &            integrationWorkspaceTime                                        , &
+           &            toleranceRelative                          =1.0d-2              , &
+           &            reset                                      =integrationResetTime, &
+           &            integrationRule                            =FGSL_Integ_Gauss61  , &
+           &            errorStatus                                =errorStatus           &
+           &           )                                                                  &
+           & *Linear_Growth_Factor                         (time)                         &
            & *cosmologyFunctions_%comovingVolumeElementTime(time)
       call Integrate_Done(integrandFunctionTime,integrationWorkspaceTime)
+      if (errorStatus /= errorStatusSuccess .and. .not.integrationWarningIssued) then
+         call Galacticus_Display_Message('WARNING: [powerSpectrumTwoHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityWarn)
+         integrationWarningIssued=.true.
+      end if
       return
     end function powerSpectrumTwoHaloTimeIntegrand
 
@@ -405,25 +435,33 @@ contains
       use Galacticus_Calculations_Resets
       use Dark_Matter_Profile_Scales
       implicit none
-      real (c_double              )          :: powerSpectrumTwoHaloIntegrand
-      real (c_double              ), value   :: massHalo
-      type (c_ptr                 ), value   :: parameterPointer
-      class(darkMatterProfileClass), pointer :: darkMatterProfile_
+      real            (c_double              )          :: powerSpectrumTwoHaloIntegrand
+      real            (c_double              ), value   :: massHalo
+      type            (c_ptr                 ), value   :: parameterPointer
+      class           (darkMatterProfileClass), pointer :: darkMatterProfile_
+      double precision                                  :: wavenumberMaximum
 
       darkMatterProfile_   => darkMatterProfile  ()
       call Galacticus_Calculations_Reset(thisNode)
       call thisBasic            % massSet(massHalo                           )
       call Galacticus_Calculations_Reset(thisNode)
       call thisDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(thisNode))
-      powerSpectrumTwoHaloIntegrand=                                                                        &
-           & +Halo_Mass_Function_Differential(time    ,massHalo                               )             &
-           & *Dark_Matter_Halo_Bias          (thisNode                                        )             &
-           & *darkMatterProfile_%kSpace      (thisNode,waveNumber(iWavenumber)/expansionFactor)             &
-           & *max(                                                                                          &
-           &      +0.0d0                                                                                  , &
-           &      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum)  &
-           &      -conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMaximum)  &
-           &     )
+      ! Return zero if we're more than some maximum factor above the virial wavenumber for this halo. This avoids attempting to
+      ! integrate rapidly oscillating Fourier profiles.
+      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%virialRadius(thisNode)/expansionFactor)
+      if (waveNumber(iWavenumber) > wavenumberMaximum) then
+         powerSpectrumTwoHaloIntegrand=0.0d0
+      else
+         powerSpectrumTwoHaloIntegrand=                                                                        &
+              & +Halo_Mass_Function_Differential(time    ,massHalo                               )             &
+              & *Dark_Matter_Halo_Bias          (thisNode                                        )             &
+              & *darkMatterProfile_%kSpace      (thisNode,waveNumber(iWavenumber)/expansionFactor)             &
+              & *max(                                                                                          &
+              &      +0.0d0                                                                                  , &
+              &      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum)  &
+              &      -conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMaximum)  &
+              &     )
+      end if
       return
     end function powerSpectrumTwoHaloIntegrand
 
@@ -447,7 +485,7 @@ contains
            &            parameterPointer                                  , &
            &            integrandFunctionTime                             , &
            &            integrationWorkspaceTime                          , &
-           &            toleranceRelative                          =1.0d-3, &
+           &            toleranceRelative                          =1.0d-2, &
            &            reset=integrationResetTime                          &
            &           )                                                    &
            & *cosmologyFunctions_%comovingVolumeElementTime(time)
