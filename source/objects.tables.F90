@@ -732,7 +732,8 @@ contains
     integer                                   , intent(in   )           :: xCount
     integer                                   , intent(in   ), optional :: extrapolationType, tableCount
 
-    self%previousSet=.false.
+    self%previousSet    =.false.
+    self%xLinearPrevious=0.0d0
     ! Call the creator for linear tables with the logarithms of the input x range.
     call self%table1DLinearLinear%create(log(xMinimum),log(xMaximum),xCount,tableCount,extrapolationType)
     return
