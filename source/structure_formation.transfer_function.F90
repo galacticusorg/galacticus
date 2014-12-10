@@ -77,7 +77,7 @@ contains
     !$omp end critical(Transfer_Function_Initialization)
 
     ! Interpolate in the tabulated function and return a value.
-    Transfer_Function=exp(Interpolate(transferFunctionNumberPoints,transferFunctionLogWavenumber,transferFunctionLogT &
+    Transfer_Function=exp(Interpolate(transferFunctionLogWavenumber,transferFunctionLogT &
          &,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation,interpolationType=fgsl_interp_cspline))
 
     return
@@ -112,7 +112,7 @@ contains
     !$omp end critical(Transfer_Function_Initialization)
 
     ! Interpolate in the tabulated function and return a value.
-    Transfer_Function_Logarithmic_Derivative=Interpolate_Derivative(transferFunctionNumberPoints,transferFunctionLogWavenumber&
+    Transfer_Function_Logarithmic_Derivative=Interpolate_Derivative(transferFunctionLogWavenumber&
          &,transferFunctionLogT ,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation&
          &,interpolationType=fgsl_interp_cspline)
 

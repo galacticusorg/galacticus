@@ -288,7 +288,7 @@ contains
           massFunctionSampleProbability=massFunctionSampleProbability/massFunctionSampleProbability(massFunctionSampleCount)
           ! Compute the corresponding halo masses by interpolation in the cumulative probability distribution function.
           do iTree=1,treeCount
-             treeHaloMass(iTree)=Interpolate(massFunctionSampleCount,massFunctionSampleProbability(1:massFunctionSampleCount)&
+             treeHaloMass(iTree)=Interpolate(massFunctionSampleProbability(1:massFunctionSampleCount)&
                   &,massFunctionSampleLogMassMonotonic(1:massFunctionSampleCount),interpolationObject,interpolationAccelerator&
                   &,treeHaloMass(iTree) ,reset=interpolationReset,extrapolationType=extrapolationTypeFixed)
           end do

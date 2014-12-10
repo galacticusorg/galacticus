@@ -232,7 +232,7 @@ contains
              nodeRedshift   (nodeCount)=cosmologyFunctionsDefault%redshiftFromExpansionFactor(cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time()))
              if (defaultPositionComponent%positionIsGettable()) nodePosition(nodeCount,:)=thisPositionComponent%position()
              if (defaultPositionComponent%velocityIsGettable()) nodeVelocity(nodeCount,:)=thisPositionComponent%velocity()
-             if (needsSnapshots) nodeSnapshot(nodeCount)=Interpolate_Locate(snapshotCount,snapshotTime,snapshotInterpolatorAccelerator&
+             if (needsSnapshots) nodeSnapshot(nodeCount)=Interpolate_Locate(snapshotTime(1:snapshotCount),snapshotInterpolatorAccelerator&
                      &,thisBasicComponent%time(),reset=snapshotInterpolatorReset,closest=.true.)
              call thisNode%walkTree(thisNode)
           end do

@@ -189,7 +189,7 @@ contains
          &                                                      integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    double precision                                         :: accretionRateHot      ,accretionRateTotal
+
     ! Initialize the module.
     call Cooling_Cold_Mode_Infall_Output_Initialize()
 

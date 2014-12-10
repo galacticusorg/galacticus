@@ -60,15 +60,14 @@ contains
     use Galacticus_Input_Paths
     use String_Handling
     implicit none
-    double precision                                                     , intent(in   ) :: logWavenumber
-    double precision                          , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
-    integer                                                              , intent(  out) :: transferFunctionNumberPoints
-    class           (cosmologyParametersClass), pointer                                  :: thisCosmologyParameters
-    logical                                                                              :: makeFile
-    character       (len=32                  )                                           :: parameterLabel              , wavenumberLabel
-    type            (varying_string          )                                           :: command                     , parameterFile
-    type            (xmlf_t                  )                                           :: parameterDoc
-    type            (inputParameterList      )                                           :: dependentParameters
+    double precision                                               , intent(in   ) :: logWavenumber
+    double precision                    , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
+    integer                                                        , intent(  out) :: transferFunctionNumberPoints
+    logical                                                                        :: makeFile
+    character       (len=32            )                                           :: parameterLabel              , wavenumberLabel
+    type            (varying_string    )                                           :: command                     , parameterFile
+    type            (xmlf_t            )                                           :: parameterDoc
+    type            (inputParameterList)                                           :: dependentParameters
 
     ! Generate the name of the data file and an XML input parameter file.
     !# <uniqueLabel>

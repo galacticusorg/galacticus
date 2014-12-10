@@ -19,6 +19,7 @@
 
 module Galacticus_Output_Times
   !% Provides output times.
+  use, intrinsic :: ISO_C_Binding
   implicit none
   private
   public :: Galacticus_Output_Time_Count, Galacticus_Output_Time         , &
@@ -29,8 +30,8 @@ module Galacticus_Output_Times
   logical                                     :: outputsInitialized=.false.
 
   ! Array of output times.
-  integer                                     :: outputCount
-  double precision, allocatable, dimension(:) :: outputTimes, outputRedshifts
+  integer         (c_size_t)                            :: outputCount
+  double precision          , allocatable, dimension(:) :: outputTimes, outputRedshifts
 
 contains
 
@@ -43,7 +44,7 @@ contains
     use Cosmology_Functions
     implicit none
     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctionsDefault
-    integer                                            :: iOutput
+    integer         (c_size_t               )          :: iOutput
     double precision                                   :: aExpansion
 
     if (.not.outputsInitialized) then
@@ -95,9 +96,10 @@ contains
     return
   end subroutine Output_Times_Initialize
 
-  integer function Galacticus_Output_Time_Count()
+  function Galacticus_Output_Time_Count()
     !% Return the number of outputs.
     implicit none
+    integer(c_size_t) :: Galacticus_Output_Time_Count
 
     ! Ensure the module is initialized.
     call Output_Times_Initialize()
@@ -110,7 +112,7 @@ contains
   double precision function Galacticus_Output_Time(iOutput)
     !% Returns the time of the output indexed by {\tt iOutput}.
     implicit none
-    integer, intent(in   ) :: iOutput
+    integer(c_size_t), intent(in   ) :: iOutput
 
     ! Ensure the module is initialized.
     call Output_Times_Initialize()
@@ -127,7 +129,7 @@ contains
   double precision function Galacticus_Output_Redshift(iOutput)
     !% Returns the redshift of the output indexed by {\tt iOutput}.
     implicit none
-    integer, intent(in   ) :: iOutput
+    integer(c_size_t), intent(in   ) :: iOutput
 
     ! Ensure the module is initialized.
     call Output_Times_Initialize()
@@ -141,13 +143,15 @@ contains
     return
   end function Galacticus_Output_Redshift
 
-  integer function Galacticus_Output_Time_Index(time)
+  function Galacticus_Output_Time_Index(time)
     !% Returns the index of the output given the corresponding time.
+    use Kind_Numbers
     use Galacticus_Error
     use Numerical_Comparison
     use Arrays_Search
     implicit none
-    double precision, intent(in   ) :: time
+    integer         (c_size_t)                :: Galacticus_Output_Time_Index
+    double precision          , intent(in   ) :: time
 
     ! Ensure the module is initialized.
     call Output_Times_Initialize()
@@ -161,10 +165,11 @@ contains
   double precision function Galacticus_Next_Output_Time(currentTime,outputIndex)
     !% Returns the time of the next output after {\tt currentTime}.
     use Arrays_Search
+    use Kind_Numbers
     implicit none
-    double precision, intent(in   )           :: currentTime
-    integer         , intent(  out), optional :: outputIndex
-    integer                                   :: i
+    double precision          , intent(in   )           :: currentTime
+    integer         (c_size_t), intent(  out), optional :: outputIndex
+    integer         (c_size_t)                          :: i
 
     ! Ensure the module is initialized.
     call Output_Times_Initialize()

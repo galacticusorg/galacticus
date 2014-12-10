@@ -19,6 +19,7 @@
 
 module Galacticus_Output_Star_Formation_Histories
   !% Handles computation and output of star formation histories for galaxies.
+  use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
   use Galacticus_Nodes
   use Abundances_Structure
@@ -72,11 +73,11 @@ module Galacticus_Output_Star_Formation_Histories
   procedure(Star_Formation_History_Output_Template), pointer :: Star_Formation_History_Output_Do=>null()
   abstract interface
      subroutine Star_Formation_History_Output_Template(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
-       import treeNode, history, abundances, kind_int8
+       import treeNode, history, abundances, kind_int8, c_size_t
        type     (treeNode      ), intent(inout), pointer :: thisNode
        logical                  , intent(in   )          :: nodePassesFilter
        type     (history       ), intent(inout)          :: thisHistory
-       integer                  , intent(in   )          :: iOutput
+       integer  (c_size_t      ), intent(in   )          :: iOutput
        integer  (kind=kind_int8), intent(in   )          :: treeIndex
        character(len=*         ), intent(in   )          :: componentLabel
      end subroutine Star_Formation_History_Output_Template
@@ -163,7 +164,7 @@ contains
     type     (treeNode      ), intent(inout), pointer :: thisNode
     logical                  , intent(in   )          :: nodePassesFilter
     type     (history       ), intent(inout)          :: thisHistory
-    integer                  , intent(in   )          :: iOutput
+    integer  (c_size_t      ), intent(in   )          :: iOutput
     integer  (kind=kind_int8), intent(in   )          :: treeIndex
     character(len=*         ), intent(in   )          :: componentLabel
 

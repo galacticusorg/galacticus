@@ -19,6 +19,7 @@
 
 module Node_Component_Merging_Statistics_Recent
   !% Implements the recent merging statistics component.
+  use, intrinsic :: ISO_C_Binding
   use Galacticus_Nodes
   implicit none
   private
@@ -42,18 +43,18 @@ module Node_Component_Merging_Statistics_Recent
   !# </component>
 
   ! Parameters controlling the statistics gathered.
-  double precision                            :: nodeMajorMergerFraction                           , nodeRecentMajorMergerInterval
-  integer                                     :: nodeRecentMajorMergerIntervalType
-  integer         , parameter                 :: nodeRecentMajorMergerIntervalTypeAbsolute =0
-  integer         , parameter                 :: nodeRecentMajorMergerIntervalTypeDynamical=1
-  logical                                     :: nodeRecentMajorMergerFromInfall
+  double precision                             :: nodeMajorMergerFraction                           , nodeRecentMajorMergerInterval
+  integer                                      :: nodeRecentMajorMergerIntervalType
+  integer          , parameter                 :: nodeRecentMajorMergerIntervalTypeAbsolute =0
+  integer          , parameter                 :: nodeRecentMajorMergerIntervalTypeDynamical=1
+  logical                                      :: nodeRecentMajorMergerFromInfall
 
   ! Record of whether this module has been initialized.
   logical                                     :: moduleInitialized                         =.false.
 
   ! Initialization array for count of recent mergers.
-  integer                                     :: outputCount
-  integer         , allocatable, dimension(:) :: zeroCount
+  integer(c_size_t)                            :: outputCount
+  integer          , allocatable, dimension(:) :: zeroCount
 
 contains
 
@@ -162,6 +163,7 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Merging_Statistics_Recent_Node_Merger(thisNode)
     !% Record any major merger of {\tt thisNode}.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Error
     use Dark_Matter_Halo_Scales
     use Galacticus_Output_Times
@@ -171,9 +173,9 @@ contains
     class           (nodeComponentMergingStatistics)                        , pointer :: parentMergingStatistics
     class           (nodeComponentBasic            )                        , pointer :: descendentParentBasic  , parentBasic, &
          &                                                                               thisBasic
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass      )                        , pointer :: darkMatterHaloScale_
     integer                                         , dimension(outputCount)          :: mergerIncrement
-    integer                                                                           :: i
+    integer         (c_size_t                      )                                  :: i
     double precision                                                                  :: recentTimeInterval     , timeBase
 
     ! Return immediately if this class is not active.

@@ -18,6 +18,7 @@ require Galacticus::Launch::Hooks;
 require Galacticus::Launch::Local;
 require Galacticus::Launch::PBS;
 require Galacticus::Launch::MonolithicPBS;
+require Galacticus::Launch::Slurm;
 
 # Script to launch sets of Galacticus models, iterating over sets of parameters and performing analysis
 # on the results. Supports launching on a variety of platforms via modules.

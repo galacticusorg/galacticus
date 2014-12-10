@@ -137,7 +137,7 @@ module Merger_Tree_Read_Importers
   !#  </method>
   !#  <method name="treeCount" >
   !#   <description>Returns a count of the number of trees available.</description>
-  !#   <type>integer</type>
+  !#   <type>integer(c_size_t)</type>
   !#   <pass>yes</pass>
   !#  </method>
   !#  <method name="treeIndex" >
@@ -148,7 +148,7 @@ module Merger_Tree_Read_Importers
   !#  </method>
   !#  <method name="nodeCount" >
   !#   <description>Returns the number of nodes in the $i^{\rm th}$ tree.</description>
-  !#   <type>integer</type>
+  !#   <type>integer(c_size_t)</type>
   !#   <pass>yes</pass>
   !#   <argument>integer, intent(in   ) :: i</argument>
   !#  </method>
@@ -222,7 +222,7 @@ module Merger_Tree_Read_Importers
   !#  </method>
   !#  <method name="subhaloTraceCount" >
   !#   <description>Returns the length of a node's subhalo trace.</description>
-  !#   <type>integer</type>
+  !#   <type>integer(c_size_t)</type>
   !#   <pass>yes</pass>
   !#   <argument>class(nodeData), intent(in   ) :: node</argument>
   !#  </method>

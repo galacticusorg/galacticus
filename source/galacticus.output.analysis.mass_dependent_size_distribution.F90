@@ -22,6 +22,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
   !% \begin{itemize}
   !% \item The \gls{sdss} late-type galaxy size distributions from \cite{shen_size_2003}.
   !% \end{itemize}
+  use, intrinsic :: ISO_C_Binding
   use Galacticus_Nodes
   use Galactic_Structure_Options
   use Numerical_Constants_Astronomical
@@ -130,7 +131,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
      ! Parameters for the systematic error model.
      double precision                        , allocatable, dimension(:    ) :: massSystematicCoefficients, radiusSystematicCoefficients
      ! The index of the output corresponding to the required redshift.
-     integer                                                                 :: outputNumber
+     integer         (c_size_t              )                                :: outputNumber
      ! The number of bins.
      integer                                                                 :: massesCount               , radiiCount
      ! Arrays for the masses, radii and size function.
@@ -178,6 +179,7 @@ contains
   !# </mergerTreeAnalysisTask>
   subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins(thisTree,thisNode,iOutput,mergerTreeAnalyses)
     !% Construct a mass functions to compare to various observational determinations.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Galacticus_Input_Paths
     use ISO_Varying_String
@@ -198,7 +200,7 @@ contains
     implicit none
     type            (mergerTree             ), intent(in   )                 :: thisTree
     type            (treeNode               ), intent(inout), pointer        :: thisNode
-    integer                                  , intent(in   )                 :: iOutput
+    integer         (c_size_t               ), intent(in   )                 :: iOutput
     type            (varying_string         ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     class           (nodeComponentBasic     )               , pointer        :: thisBasic
     class           (nodeComponentSpin      )               , pointer        :: thisSpin
@@ -208,7 +210,8 @@ contains
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
-    integer                                                                  :: i,j,k,currentAnalysis,activeAnalysisCount,ioErr,haloMassBin,iDistribution,iRadius
+    integer         (c_size_t                      )                         :: k
+    integer                                                                  :: i,j,currentAnalysis,activeAnalysisCount,ioErr,haloMassBin,iDistribution,iRadius
     double precision                                                         :: dataHubbleParameter &
          &,mass,massLogarithmic,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter
     type            (varying_string                )                         :: parameterName,analysisSizeFunctionCovarianceModelText,cosmologyScalingSizeFunction,cosmologyScalingMass,cosmologyScalingSize

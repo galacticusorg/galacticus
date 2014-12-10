@@ -370,7 +370,7 @@
      type            (varying_string               )                           :: message
      character       (len=6                        )                           :: label
      type            (hdf5Object                   )                           :: igmGroup                            , igmDataset
-     integer                                                                   :: iNow
+     integer         (c_size_t                     )                           :: iNow
      double precision                                                          :: treetimeLatest                      , timeCurrent, &
           &                                                                       timeMaximum
 

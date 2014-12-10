@@ -24,6 +24,7 @@
 module Excursion_Sets_First_Crossing_Farahi
   !% Implements a fast and accurate method to solve the excursion set
   !% barrier crossing problem for generic barriers.
+  use, intrinsic :: ISO_C_Binding
   use FGSL
   use ISO_Varying_String
   private
@@ -68,7 +69,7 @@ module Excursion_Sets_First_Crossing_Farahi
   ! Record of variance and time in previous call to rate functions.
   double precision                                                              :: timeRatePrevious                                         , varianceRatePrevious
   double precision                                , dimension(0:1)              :: hTimeRate                                                , hVarianceRate
-  integer                                                                       :: iTimeRate                                                , iVarianceRate
+  integer         (c_size_t         )                                           :: iTimeRate                                                , iVarianceRate
 
 contains
 
@@ -133,8 +134,8 @@ contains
     double precision                , dimension(0:1) :: hTime                        , hVariance
     double precision                , parameter      :: varianceTableTolerance=1.0d-6
     logical                                          :: makeTable
-    integer                                          :: i                            , iTime         , &
-         &                                              iVariance                    , j             , &
+    integer         (c_size_t      )                 :: iTime                        , iVariance
+    integer                                          :: i                            , j             , &
          &                                              jTime                        , jVariance     , &
          &                                              loopCount                    , loopCountTotal
     double precision                                 :: sigma1f
@@ -255,12 +256,12 @@ contains
     end if
 
     ! Get interpolation in time.
-    iTime    =Interpolate_Locate                 (timeTableCount      ,timeTable    ,interpolationAcceleratorTime    ,time    ,reset=interpolationResetTime    )
-    hTime    =Interpolate_Linear_Generate_Factors(timeTableCount      ,timeTable    ,iTime    ,time    )
+    iTime    =Interpolate_Locate                 (timeTable    ,interpolationAcceleratorTime    ,time    ,reset=interpolationResetTime    )
+    hTime    =Interpolate_Linear_Generate_Factors(timeTable    ,iTime    ,time    )
 
     ! Get interpolation in variance.
-    iVariance=Interpolate_Locate                 (varianceTableCount+1,varianceTable,interpolationAcceleratorVariance,variance,reset=interpolationResetVariance)
-    hVariance=Interpolate_Linear_Generate_Factors(varianceTableCount+1,varianceTable,iVariance,variance)
+    iVariance=Interpolate_Locate                 (varianceTable,interpolationAcceleratorVariance,variance,reset=interpolationResetVariance)
+    hVariance=Interpolate_Linear_Generate_Factors(varianceTable,iVariance,variance)
 
     ! Compute first crossing probability by interpolating.
     Excursion_Sets_First_Crossing_Probability_Farahi=0.0d0
@@ -507,10 +508,10 @@ contains
     !% Return the rate for excursion set first crossing.
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in   )  :: time               , variance, varianceProgenitor
-    double precision, dimension(0:1) :: hVarianceProgenitor
-    integer                          :: iVarianceProgenitor, jTime   , jVariance         , &
-         &                              jVarianceProgenitor
+    double precision                , intent(in   )  :: time               , variance, varianceProgenitor
+    double precision                , dimension(0:1) :: hVarianceProgenitor
+    integer                                          :: jVarianceProgenitor, jTime   , jVariance
+    integer         (c_size_t      )                 :: iVarianceProgenitor
 
     ! For progenitor variances less than or equal to the original variance, return zero.
     if (varianceProgenitor <= variance) then
@@ -531,19 +532,19 @@ contains
     !$omp critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
     if (time /= timeRatePrevious) then
        timeRatePrevious    =time
-       iTimeRate       =Interpolate_Locate                 (timeTableCountRate      ,timeTableRate    ,interpolationAcceleratorTimeRate    ,time    ,reset=interpolationResetTimeRate    )
-       hTimeRate       =Interpolate_Linear_Generate_Factors(timeTableCountRate      ,timeTableRate    ,iTimeRate ,time    )
+       iTimeRate       =Interpolate_Locate                 (timeTableRate    ,interpolationAcceleratorTimeRate    ,time    ,reset=interpolationResetTimeRate    )
+       hTimeRate       =Interpolate_Linear_Generate_Factors(timeTableRate    ,iTimeRate ,time    )
     end if
 
     ! Get interpolation in variance.
     if (variance /= varianceRatePrevious) then
        varianceRatePrevious=variance
-       iVarianceRate   =Interpolate_Locate                 (varianceTableCountRateBase+1,varianceTableRateBase,interpolationAcceleratorVarianceRateBase,variance,reset=interpolationResetVarianceRateBase)
-       hVarianceRate   =Interpolate_Linear_Generate_Factors(varianceTableCountRateBase+1,varianceTableRateBase,iVarianceRate,variance)
+       iVarianceRate   =Interpolate_Locate                 (varianceTableRateBase,interpolationAcceleratorVarianceRateBase,variance,reset=interpolationResetVarianceRateBase)
+       hVarianceRate   =Interpolate_Linear_Generate_Factors(varianceTableRateBase,iVarianceRate,variance)
     end if
 
     ! Get interpolation in progenitor variance.
-    iVarianceProgenitor=Interpolate_Locate                 (varianceTableCountRate+1,varianceTableRate,interpolationAcceleratorVarianceRate,varianceProgenitor-variance,reset=interpolationResetVarianceRate)
+    iVarianceProgenitor=Interpolate_Locate                 (varianceTableRate,interpolationAcceleratorVarianceRate,varianceProgenitor-variance,reset=interpolationResetVarianceRate)
 
     ! Catch cases where the maximum variance is approached.
     if (varianceTableRate(iVarianceProgenitor)+variance > varianceMaximumRate) then
@@ -556,7 +557,7 @@ contains
             &               +0.0d0                                                                      &
             &              ]
     else
-       hVarianceProgenitor=Interpolate_Linear_Generate_Factors(varianceTableCountRate+1,varianceTableRate,iVarianceProgenitor,varianceProgenitor-variance)
+       hVarianceProgenitor=Interpolate_Linear_Generate_Factors(varianceTableRate,iVarianceProgenitor,varianceProgenitor-variance)
     end if
 
     ! Compute first crossing probability by interpolating.
@@ -591,15 +592,15 @@ contains
     !$omp critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
     if (time /= timeRatePrevious) then
        timeRatePrevious    =time
-       iTimeRate    =Interpolate_Locate                 (timeTableCountRate      ,timeTableRate    ,interpolationAcceleratorTimeRate    ,time    ,reset=interpolationResetTimeRate    )
-       hTimeRate    =Interpolate_Linear_Generate_Factors(timeTableCountRate      ,timeTableRate    ,iTimeRate    ,time    )
+       iTimeRate    =Interpolate_Locate                 (timeTableRate    ,interpolationAcceleratorTimeRate    ,time    ,reset=interpolationResetTimeRate    )
+       hTimeRate    =Interpolate_Linear_Generate_Factors(timeTableRate    ,iTimeRate    ,time    )
     end if
 
     ! Get interpolation in variance.
     if (variance /= varianceRatePrevious) then
        varianceRatePrevious=variance
-       iVarianceRate=Interpolate_Locate                 (varianceTableCountRateBase+1,varianceTableRateBase,interpolationAcceleratorVarianceRateBase,variance,reset=interpolationResetVarianceRateBase)
-       hVarianceRate=Interpolate_Linear_Generate_Factors(varianceTableCountRateBase+1,varianceTableRateBase,iVarianceRate,variance)
+       iVarianceRate=Interpolate_Locate                 (varianceTableRateBase,interpolationAcceleratorVarianceRateBase,variance,reset=interpolationResetVarianceRateBase)
+       hVarianceRate=Interpolate_Linear_Generate_Factors(varianceTableRateBase,iVarianceRate,variance)
     end if
 
     ! Compute non-crossing probability by interpolating.

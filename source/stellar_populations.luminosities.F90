@@ -89,10 +89,10 @@ contains
     double precision                                         , dimension(2)                                    :: wavelengthRange
     double precision                                         , dimension(0:1)                                  :: hAge                            , hMetallicity
     integer         (c_int                     )                                                               :: lockFileDescriptor
-    integer                                                                                                    :: iAge                            , iLuminosity                , &
-         &                                                                                                        iMetallicity                    , jAge                       , &
-         &                                                                                                        jMetallicity                    , loopCount                  , &
-         &                                                                                                        loopCountMaximum
+    integer         (c_size_t                  )                                                               :: iAge                            , iLuminosity                , &
+         &                                                                                                        iMetallicity
+    integer                                                                                                    :: loopCountMaximum                , jAge                       , &
+         &                                                                                                        jMetallicity                    , loopCount
     logical                                                                                                    :: computeTable                    , calculateLuminosity
     double precision                                                                                           :: ageLast                         , metallicity                , &
          &                                                                                                        normalization
@@ -313,11 +313,10 @@ contains
        iMetallicity=luminosityTables(imfIndex)%metallicitiesCount-1
        hMetallicity=[0.0d0,1.0d0]
     else
-       iMetallicity=Interpolate_Locate(luminosityTables(imfIndex)%metallicitiesCount,luminosityTables(imfIndex)%metallicity &
+       iMetallicity=Interpolate_Locate(luminosityTables(imfIndex)%metallicity &
             &,luminosityTables(imfIndex)%interpolationAcceleratorMetallicity,metallicity &
             &,luminosityTables(imfIndex)%resetMetallicity)
-       hMetallicity=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%metallicitiesCount &
-            &,luminosityTables(imfIndex)%metallicity ,iMetallicity,metallicity)
+       hMetallicity=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%metallicity ,iMetallicity,metallicity)
     end if
 
     ! Do the interpolation.
@@ -332,9 +331,9 @@ contains
              ! Check for out of range age.
              if (age(iLuminosity) > luminosityTables(imfIndex)%age(luminosityTables(imfIndex)%agesCount)) call&
                   & Galacticus_Error_Report('Stellar_Population_Luminosity','age exceeds the maximum tabulated')
-                iAge=Interpolate_Locate(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age &
+                iAge=Interpolate_Locate(luminosityTables(imfIndex)%age &
                      &,luminosityTables(imfIndex)%interpolationAcceleratorAge,age(iLuminosity),luminosityTables(imfIndex)%resetAge)
-                hAge=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age,iAge&
+                hAge=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%age,iAge&
                      &,age(iLuminosity))
              ageLast=age(iLuminosity)
           end if

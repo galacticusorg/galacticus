@@ -230,6 +230,7 @@ contains
 
   double precision function Cooling_Function_CIE_File_Interpolate(temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Compute the cooling function by interpolation in the tabulated data.
+    use, intrinsic :: ISO_C_Binding
     use Abundances_Structure
     use Radiation_Structure
     use Numerical_Constants_Astronomical
@@ -241,7 +242,7 @@ contains
     double precision                    , save          :: coolingFunctionPrevious       , metallicityPrevious=-1.0d0, &
          &                                                 temperaturePrevious    =-1.0d0
     !$omp threadprivate(temperaturePrevious,metallicityPrevious,coolingFunctionPrevious)
-    integer                                             :: iMetallicity                  , iTemperature
+    integer         (c_size_t          )                :: iMetallicity                  , iTemperature
     double precision                                    :: hMetallicity                  , hTemperature              , &
          &                                                 metallicityUse                , temperatureUse
 
@@ -309,6 +310,7 @@ contains
 
   double precision function Cooling_Function_CIE_File_logTemperature_Interpolate(temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Compute the logarithmic gradient of the cooling function with respect to temperature by interpolation in the tabulated data.
+    use, intrinsic :: ISO_C_Binding
     use Abundances_Structure
     use Radiation_Structure
     use Numerical_Constants_Astronomical
@@ -320,7 +322,7 @@ contains
     double precision                    , save          :: coolingFunctionSlopePrevious       , metallicityPrevious=-1.0d0, &
          &                                                 temperaturePrevious         =-1.0d0
     !$omp threadprivate(temperaturePrevious,metallicityPrevious,coolingFunctionSlopePrevious)
-    integer                                             :: iMetallicity                       , iTemperature
+    integer         (c_size_t          )                :: iMetallicity                       , iTemperature
     double precision                                    :: hMetallicity                       , hTemperature              , &
          &                                                 metallicityUse                     , temperatureUse
 
@@ -570,19 +572,20 @@ contains
 
   subroutine Get_Interpolation(temperatureIn,metallicityIn,iTemperature,hTemperature,iMetallicity,hMetallicity)
     !% Determine the interpolating paramters.
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in   ) :: metallicityIn , temperatureIn
-    integer         , intent(  out) :: iMetallicity  , iTemperature
-    double precision, intent(  out) :: hMetallicity  , hTemperature
-    double precision                :: metallicityUse, temperatureUse
+    double precision          , intent(in   ) :: metallicityIn , temperatureIn
+    integer         (c_size_t), intent(  out) :: iMetallicity  , iTemperature
+    double precision          , intent(  out) :: hMetallicity  , hTemperature
+    double precision                          :: metallicityUse, temperatureUse
 
     ! Copy the input parameters.
     temperatureUse=temperatureIn
     metallicityUse=max(metallicityIn,0.0d0)
     ! Get interpolation in temperature.
     if (logarithmicTable) temperatureUse=log(temperatureUse)
-    iTemperature=Interpolate_Locate(coolingFunctionTemperatureNumberPoints,coolingFunctionTemperatures&
+    iTemperature=Interpolate_Locate(coolingFunctionTemperatures&
          &,interpolationAcceleratorTemperature,temperatureUse,resetTemperature)
     iTemperature=max(min(iTemperature,coolingFunctionTemperatureNumberPoints),1)
     hTemperature=(temperatureUse-coolingFunctionTemperatures(iTemperature))/(coolingFunctionTemperatures(iTemperature+1)&
@@ -594,7 +597,7 @@ contains
        hMetallicity=metallicityUse/firstNonZeroMetallicity
     else
        if (logarithmicTable) metallicityUse=log(metallicityUse)
-       iMetallicity=Interpolate_Locate(coolingFunctionMetallicityNumberPoints,coolingFunctionMetallicities&
+       iMetallicity=Interpolate_Locate(coolingFunctionMetallicities&
          &,interpolationAcceleratorMetallicity,metallicityUse,resetMetallicity)
        iMetallicity=max(min(iMetallicity,coolingFunctionMetallicityNumberPoints),1)
        hMetallicity=(metallicityUse-coolingFunctionMetallicities(iMetallicity))/(coolingFunctionMetallicities(iMetallicity+1)&
@@ -605,9 +608,10 @@ contains
 
   double precision function Do_Interpolation(iTemperature,hTemperature,iMetallicity,hMetallicity)
     !% Perform the interpolation.
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    integer         , intent(in   ) :: iMetallicity, iTemperature
-    double precision, intent(in   ) :: hMetallicity, hTemperature
+    integer         (c_size_t), intent(in   ) :: iMetallicity, iTemperature
+    double precision          , intent(in   ) :: hMetallicity, hTemperature
 
     ! Do the interpolation.
     Do_Interpolation=coolingFunctionTable(iTemperature  ,iMetallicity  )*(1.0d0-hTemperature)*(1.0d0-hMetallicity)&

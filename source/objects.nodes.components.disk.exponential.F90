@@ -1140,12 +1140,13 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Disk_Exponential_Star_Formation_History_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
+    use, intrinsic :: ISO_C_Binding
     use Kind_Numbers
     use Histories
     use Galacticus_Output_Star_Formation_Histories
     implicit none
     type   (treeNode         ), intent(inout), pointer :: thisNode
-    integer                   , intent(in   )          :: iOutput
+    integer(c_size_t         ), intent(in   )          :: iOutput
     integer(kind=kind_int8   ), intent(in   )          :: treeIndex
     logical                   , intent(in   )          :: nodePassesFilter
     class  (nodeComponentDisk)               , pointer :: thisDiskComponent
