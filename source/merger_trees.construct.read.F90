@@ -19,6 +19,7 @@
 
 module Merger_Tree_Read
   !% Implements reading of merger trees from a file.
+  use, intrinsic :: ISO_C_Binding
   use Galacticus_Nodes
   use ISO_Varying_String
   use Kind_Numbers
@@ -77,7 +78,7 @@ module Merger_Tree_Read
   integer                                                                    , parameter          :: nodeIsReachable                          = 0                                                  
   
   ! Internal list of output times and the relative tolerance used to "snap" nodes to output times.
-  integer                                                                                         :: outputTimesCount                                                                             
+  integer         (c_size_t                      )                                                :: outputTimesCount                                                                             
   double precision                                                                                :: mergerTreeReadOutputTimeSnapTolerance                                                        
   double precision                                , allocatable, dimension(:)                     :: outputTimes                                                                                  
   
@@ -88,7 +89,7 @@ module Merger_Tree_Read
   double precision                                                                                :: halfMassRadius                                                                               
   !$omp threadprivate(activeDarkMatterProfileComponent,activeBasicComponent,activeNode,halfMassRadius)
   ! Sorted node index list.
-  integer         (kind=kind_int8                ), allocatable, dimension(:)                     :: descendentLocations                              , nodeLocations                             
+  integer         (c_size_t                      ), allocatable, dimension(:)                     :: descendentLocations                              , nodeLocations                             
   integer         (kind=kind_int8                ), allocatable, dimension(:)                     :: descendentIndicesSorted                          , nodeIndicesSorted                         
   
   ! Effective infinity for merging times.
@@ -99,7 +100,8 @@ module Merger_Tree_Read
   
   ! Iterator object for iterating over progenitor nodes.
   type :: progenitorIterator
-     integer(kind=kind_int8) :: progenitorIndex , progenitorLocation, targetIndex 
+     integer(c_size_t      ) :: progenitorLocation
+     integer(kind=kind_int8) :: progenitorIndex   , targetIndex 
      logical                 :: progenitorsFound                                  
    contains
      !@ <objectMethods>
@@ -149,6 +151,7 @@ contains
   !# </mergerTreeConstructMethod>
   subroutine Merger_Tree_Read_Initialize(mergerTreeConstructMethod,Merger_Tree_Construct)
     !% Initializes the merger tree reading module.
+    use, intrinsic :: ISO_C_Binding
     use Input_Parameters
     use Galacticus_Error
     use Galacticus_Display
@@ -160,7 +163,7 @@ contains
     implicit none
     type     (varying_string          ), intent(in   )          :: mergerTreeConstructMethod 
     procedure(Merger_Tree_Read_Do     ), intent(inout), pointer :: Merger_Tree_Construct     
-    integer                                                     :: iOutput                   
+    integer  (c_size_t                )                         :: iOutput                   
     type     (varying_string          )                         :: message                  ,  mergerTreeReadSubhaloAngularMomentaMethodText
     
     ! Check if our method is to be used.
@@ -654,8 +657,9 @@ contains
     logical                                         , allocatable, dimension(:  )                        :: childIsSubhalo                         
     double precision                                             , dimension(3  )                        :: relativePosition      , relativeVelocity , &
          &                                                                                                  orbitalAngularMomentum
-    integer                                                                                              :: iOutput               , isolatedNodeCount 
-    integer         (kind=kind_int8                )                                                     :: historyCountMaximum   , iNode             
+    integer                                                                                              :: isolatedNodeCount 
+    integer         (c_size_t                      )                                                     :: historyCountMaximum   , iNode            , &
+         &                                                                                                  iOutput
     logical                                                                                              :: haveTree                               
     type            (varying_string                )                                                     :: message
 
@@ -1100,9 +1104,9 @@ contains
     !% Return the location in the original array of the given {\tt nodeIndex}.
     use Arrays_Search
     implicit none
-    integer(kind=kind_int8)                :: Node_Location 
+    integer(c_size_t      )                :: Node_Location 
     integer(kind=kind_int8), intent(in   ) :: nodeIndex     
-    integer(kind=kind_int8)                :: iNode         
+    integer(c_size_t      )                :: iNode         
     
     iNode=Search_Array(nodeIndicesSorted,nodeIndex)
     if (iNode < 1 .or. iNode > size(nodeIndicesSorted)) then
@@ -1113,10 +1117,11 @@ contains
     return
   end function Node_Location
 
-  integer function Descendent_Node_Sort_Index(descendentIndex)
+  function Descendent_Node_Sort_Index(descendentIndex)
     !% Return the sort index of the given {\tt descendentIndex}.
     use Arrays_Search
     implicit none
+    integer(c_size_t      )                :: Descendent_Node_Sort_Index
     integer(kind=kind_int8), intent(in   ) :: descendentIndex 
     
     Descendent_Node_Sort_Index=Search_Array(descendentIndicesSorted,descendentIndex)
@@ -1142,7 +1147,7 @@ contains
     use Galacticus_Display
     implicit none
     class  (nodeData      ), dimension(:), intent(inout), target :: nodes                 
-    integer(kind=kind_int8)                                      :: iNode  , nodeLocation 
+    integer(c_size_t      )                                      :: iNode  , nodeLocation 
     type   (varying_string)                                      :: message               
     
     do iNode=1,size(nodes)
@@ -1188,7 +1193,7 @@ contains
     implicit none
     class  (nodeData          ), dimension(:), intent(inout), target :: nodes                                    
     class  (nodeData          ), pointer                             :: descendentNode, progenitorNode           
-    integer(kind=kind_int8    )                                      :: iNode                                    
+    integer(c_size_t          )                                      :: iNode                                    
     logical                                                          :: failed        , isolatedProgenitorExists 
     type   (varying_string    )                                      :: message                                  
     type   (progenitorIterator)                                      :: progenitors                              
@@ -1261,7 +1266,7 @@ contains
     class  (nodeData          ), pointer                                      :: descendentNode          , progenitorNode 
     type   (nodeEvent         ), pointer                                      :: newEvent                , pairEvent      
     type   (treeNode          ), pointer                                      :: promotionNode           , thisNode       
-    integer(kind=kind_int8    )                                               :: iNode                                    
+    integer(c_size_t          )                                               :: iNode                                    
     logical                                                                   :: isolatedProgenitorExists                 
     type   (progenitorIterator)                                               :: progenitors                              
     
@@ -1308,7 +1313,7 @@ contains
     implicit none
     class  (nodeData      ), dimension(:), intent(inout), target :: nodes      
     class  (nodeData      ), pointer                             :: parentNode 
-    integer(kind=kind_int8)                                      :: iNode      
+    integer(c_size_t      )                                      :: iNode      
     type   (varying_string)                                      :: message    
     
     do iNode=1,size(nodes)
@@ -1354,7 +1359,7 @@ contains
     type   (treeNodeList      ), allocatable, dimension(:), intent(inout) :: nodeList                                 
     logical                    , allocatable, dimension(:), intent(inout) :: childIsSubhalo                           
     integer                                               , intent(  out) :: isolatedNodeCount                        
-    integer(kind=kind_int8    )                                           :: iNode                                    
+    integer(c_size_t          )                                           :: iNode                                    
     integer                                                               :: iIsolatedNode    , initialSatelliteCount 
     logical                                                               :: createNode                               
     type   (progenitorIterator)                                           :: progenitors
@@ -1416,7 +1421,7 @@ contains
     type     (mergerTree        ), pointer                              ::      currentTree                    
     class    (nodeData          ), pointer                              ::      parentNode                     
     integer                                                             ::      iNode                          
-    integer  (kind=kind_int8    )                                       ::      iIsolatedNode                  
+    integer  (c_size_t          )                                       ::      iIsolatedNode                  
     type     (varying_string    )                                       ::      message                        
     character(len=12            )                                       ::      label                          
     logical                                                             ::      assignLastIsolatedTime         
@@ -1498,7 +1503,7 @@ contains
     logical                    , allocatable, dimension(:), intent(inout) :: childIsSubhalo                            
     class  (nodeComponentBasic), pointer                                  :: nodeBasicComponent, primaryBasicComponent 
     integer                                                               :: iNode                                     
-    integer(kind=kind_int8    )                                           :: iIsolatedNode                             
+    integer(c_size_t          )                                           :: iIsolatedNode                             
     logical                                                               :: descendsToSubhalo                         
     
     childIsSubhalo=.false.
@@ -1579,7 +1584,7 @@ contains
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     integer                                                                                             :: iNode                                            , status                     , &
          &                                                                                                 messageVerbosity
-    integer         (kind=kind_int8                     )                                               :: iIsolatedNode                                                         
+    integer         (c_size_t                           )                                               :: iIsolatedNode                                                         
     double precision                                                                                    :: radiusScale                                                           
     logical                                                                                             :: excessiveHalfMassRadii                           , excessiveScaleRadii        , &
          &                                                                                                 useFallbackScaleMethod
@@ -1744,7 +1749,7 @@ contains
     class           (nodeComponentSpin     ), pointer                              :: thisSpinComponent  
     class           (darkMatterProfileClass), pointer                              :: darkMatterProfile_
     integer                                                                        :: iNode              
-    integer         (kind=kind_int8        )                                       :: iIsolatedNode      
+    integer         (c_size_t              )                                       :: iIsolatedNode      
     double precision                                                               :: spin              , spinNormalization        
     double precision                                 , dimension(3)                :: spin3D               
     
@@ -1800,7 +1805,7 @@ contains
     type            (treeNodeList      )         , dimension(:), intent(inout) :: nodeList           
     class           (nodeComponentNBody), pointer                              :: thisNBody
     integer                                                                    :: iNode              
-    integer         (kind=kind_int8    )                                       :: iIsolatedNode      
+    integer         (c_size_t          )                                       :: iIsolatedNode      
     
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
@@ -1822,7 +1827,7 @@ contains
     type            (treeNodeList      )         , dimension(:), intent(inout) :: nodeList           
     class           (nodeComponentNBody), pointer                              :: thisNBody
     integer                                                                    :: iNode              
-    integer         (kind=kind_int8    )                                       :: iIsolatedNode      
+    integer         (c_size_t          )                                       :: iIsolatedNode      
     
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
@@ -1844,7 +1849,7 @@ contains
     type            (treeNodeList      )         , dimension(:), intent(inout) :: nodeList           
     class           (nodeComponentNBody), pointer                              :: thisNBody
     integer                                                                    :: iNode              
-    integer         (kind=kind_int8    )                                       :: iIsolatedNode      
+    integer         (c_size_t          )                                       :: iIsolatedNode      
     
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
@@ -1880,7 +1885,7 @@ contains
     implicit none
     class  (nodeData      ), dimension(:), intent(inout) :: nodes         
     class  (nodeData      ), pointer                     :: thisNode      
-    integer(kind=kind_int8)                              :: iIsolatedNode 
+    integer(c_size_t      )                              :: iIsolatedNode 
     integer                                              :: iNode         
     logical                                              :: endOfBranch   
     
@@ -1928,7 +1933,7 @@ contains
     implicit none
     class           (nodeData                       )           , dimension(:), intent(inout), target :: nodes                                                                
     type            (treeNodeList                   )           , dimension(:), intent(inout)         :: nodeList                                                             
-    integer         (kind=kind_int8                 )                         , intent(  out)         :: historyCountMaximum                                                  
+    integer         (c_size_t                       )                         , intent(  out)         :: historyCountMaximum                                                  
     class           (nodeData                       ), pointer                                        :: lastSeenNode                       , progenitorNode              , & 
          &                                                                                               thisNode                                                             
     type            (treeNode                       ), pointer                                        :: firstProgenitor                    , hostNode                    , & 
@@ -1947,7 +1952,7 @@ contains
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     type            (keplerOrbit                    )                                                 :: thisOrbit                                                            
     integer                                                                                           :: iNode                              , thispass
-    integer         (kind=kind_int8                 )                                                 :: historyCount                       , iIsolatedNode                   
+    integer         (c_size_t                       )                                                 :: historyCount                       , iIsolatedNode                   
     logical                                                                                           :: branchMerges                       , branchTipReached            , & 
          &                                                                                               endOfBranch                        , isolatedProgenitorExists    , & 
          &                                                                                               nodeWillMerge                                                        
@@ -2208,7 +2213,7 @@ contains
     class  (nodeData      ), dimension(:), intent(inout) :: nodes    
     type   (treeNodeList  ), dimension(:), intent(inout) :: nodeList 
     integer                                              :: iNode    
-    integer(kind=kind_int8)                              :: jNode    
+    integer(c_size_t      )                              :: jNode    
     type   (varying_string)                              :: message  
     
     if (mergerTreeReadPresetMergerNodes) then
@@ -2254,7 +2259,7 @@ contains
     class           (nodeData      ), pointer                             :: currentHost  , descendentNode, hostDescendent, jumpToHost, & 
          &                                                                   previousNode                                                 
     integer                                                               :: iNode                                                        
-    integer         (kind=kind_int8)                                      :: iIsolatedNode                                                
+    integer         (c_size_t      )                                      :: iIsolatedNode                                                
     logical                                                               :: isMergerEvent, subhaloJumps  , wasMergerEvent                
     double precision                                                      :: timeOfJump                                                   
     type            (varying_string)                                      :: message                                                      
@@ -2434,15 +2439,14 @@ contains
     class           (nodeData               )         , dimension(:  ), intent(inout), target :: nodes                                    
     type            (treeNodeList           )         , dimension(:  ), intent(inout)         :: nodeList                                 
     integer         (kind=kind_int8         )         , dimension(:  ), intent(inout)         :: historyIndex
-    integer         (kind=kind_int8         )                         , intent(in   )         :: historyCountMaximum
+    integer         (c_size_t               )                         , intent(in   )         :: historyCountMaximum
     double precision                                  , dimension(:  ), intent(inout)         :: historyMass              , historyTime   
     double precision                                  , dimension(:,:), intent(inout)         :: position                 , velocity      
     class           (nodeData               ), pointer                                        :: progenitorNode           , thisNode      
-    type            (treeNode               ), pointer                                        :: firstProgenitor                          
     class           (nodeComponentSatellite ), pointer                                        :: thisSatelliteComponent                   
     class           (nodeComponentPosition  ), pointer                                        :: thisPositionComponent                    
     class           (cosmologyFunctionsClass), pointer                                        :: cosmologyFunctionsDefault                
-    integer         (kind=kind_int8         )                                                 :: historyCount             , iIsolatedNode 
+    integer         (c_size_t               )                                                 :: historyCount             , iIsolatedNode 
     integer                                                                                   :: iNode                                    
     logical                                                                                   :: endOfBranch                              
     type            (varying_string         )                                                 :: message                                  
@@ -2582,7 +2586,7 @@ contains
     type   (treeNode          ), pointer                     :: newNode          , thisSatellite 
     class  (nodeComponentBasic), pointer                     :: newBasicComponent                
     integer                                                  :: iNode                            
-    integer(kind=kind_int8    )                              :: iIsolatedNode                    
+    integer(c_size_t          )                              :: iIsolatedNode                    
     
     ! Search for cases where a node has no progenitors which do not descend into subhalos.
     do iNode=1,size(nodes)
@@ -2747,10 +2751,9 @@ contains
     integer                                                                       , intent(in   ) ::      iNode                                                                             
     double precision                                                              , intent(inout) ::      timeSubhaloMerges                                                                 
     class           (nodeData                       ), pointer                                    ::      primaryProgenitor                                    , progenitorNode         , & 
-         &                                                                                                thisNode                                             , isolatedProgenitor
+         &                                                                                                thisNode
     class           (satelliteMergingTimescalesClass), pointer, save                              ::      thisSatelliteMergingTimescales                                                    
     type            (treeNode                       ), pointer                                    ::      hostNode                                             , satelliteNode
-    class           (nodeComponentBasic             ), pointer                                    ::      hostBasicComponent                                   , satelliteBasicComponent    
     double precision                                                , dimension(3)                ::      relativePosition                                     , relativeVelocity           
     logical                                                   , save                              ::      functionInitialized                          =.false.                             
     type            (keplerOrbit                    )                                             ::      thisOrbit                                                                         

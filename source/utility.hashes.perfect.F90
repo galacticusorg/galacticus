@@ -21,6 +21,7 @@ module Hashes_Perfect
   !% Implements a perfact hash algorithm for long integer keys based on methods described by \cite{czech_fundamental_1997}. The
   !% specific implementation follows the general structure of that given in a Dr. Dobbs
   !% \href{http://drdobbs.com/architecture-and-design/184404506}{article}.
+  use, intrinsic :: ISO_C_Binding
   use Kind_Numbers
   private
   public :: hashPerfect
@@ -28,11 +29,11 @@ module Hashes_Perfect
   type hashPerfect
      !% A derived type which stores perfect long integer hashes.
      private
-     logical                                            :: created , hasInverseTable                                                , hasValues
-     integer(kind=kind_int8)                            :: hashSize, rowSize
-     integer(kind=kind_int8), allocatable, dimension(:) :: r                         !  r(R)=amount row A(R,:) was shifted.
-     integer(kind=kind_int8), allocatable, dimension(:) :: C                         !  the shifted rows of A() collapse into C().
-     integer(kind=kind_int8), allocatable, dimension(:) :: v                         !  the values corresponding to the keys in C().
+     logical                                      :: created , hasInverseTable                                                , hasValues
+     integer(c_size_t)                            :: hashSize, rowSize
+     integer(c_size_t), allocatable, dimension(:) :: r                         !  r(R)=amount row A(R,:) was shifted.
+     integer(c_size_t), allocatable, dimension(:) :: C                         !  the shifted rows of A() collapse into C().
+     integer(c_size_t), allocatable, dimension(:) :: v                         !  the values corresponding to the keys in C().
    contains
      !@ <objectMethods>
      !@   <object>hashPerfect</object>
@@ -83,8 +84,8 @@ module Hashes_Perfect
 
   type rowStructure
      !% A row structure used in building hashes
-     integer(kind=kind_int8) :: rowNumber    !  the row number in array A().
-     integer(kind=kind_int8) :: rowItemCount !  the number of items in this row of A().
+     integer(c_size_t) :: rowNumber    !  the row number in array A().
+     integer(c_size_t) :: rowItemCount !  the number of items in this row of A().
   end type rowStructure
 
   ! A key value that is impossible
@@ -101,12 +102,12 @@ contains
     integer(kind=kind_int8)             , dimension(:)  , intent(in   )           :: keys
     integer(kind=kind_int8)             , dimension(:)  , intent(in   ), optional :: values
     logical                                             , intent(in   ), optional :: keepInverseTable
-    integer(kind=kind_int8), allocatable, dimension(:,:)                          :: A                   !  A(i,j)=K (i=K/t, j=K mod t) for each key K.
-    integer(kind=kind_int8), allocatable, dimension(:,:)                          :: B                   !  B(i,j)=v (i=K/t, j=K mod t) for each key K.
+    integer(c_size_t      ), allocatable, dimension(:,:)                          :: A                   !  A(i,j)=K (i=K/t, j=K mod t) for each key K.
+    integer(c_size_t      ), allocatable, dimension(:,:)                          :: B                   !  B(i,j)=v (i=K/t, j=K mod t) for each key K.
     integer(kind=kind_int8), allocatable, dimension(:)                            :: resizeTemp
     ! row() exists to facilitate sorting the rows of A() by their "fullness".
     type   (rowStructure  ), allocatable, dimension(:)                            :: row                 !  Entry counts for the rows in A().
-    integer(kind=kind_int8)                                                       :: hashTableMax    , i                                               , iColumn, iKey   , &
+    integer(c_size_t      )                                                       :: hashTableMax    , i                                               , iColumn, iKey   , &
          &                                                                           iRow            , j                                               , k      , offset
     type   (rowStructure  )                                                       :: tmp
 
@@ -251,8 +252,8 @@ contains
    !% Return the size of the hash table.
    use Galacticus_Error
    implicit none
-   integer(kind=kind_int8)                :: Hash_Perfect_Size
-   class  (hashPerfect   ), intent(in   ) :: hash
+   integer(c_size_t   )                :: Hash_Perfect_Size
+   class  (hashPerfect), intent(in   ) :: hash
 
    if (.not.hash%created) call Galacticus_Error_Report('Hash_Perfect_Size','hash has not been created')
    Hash_Perfect_Size=hash%hashSize
@@ -263,10 +264,10 @@ contains
    !% Return the index corresponding to a hash key.
    use Galacticus_Error
    implicit none
-   integer(kind=kind_int8)                :: Hash_Perfect_Index
+   integer(c_size_t      )                :: Hash_Perfect_Index
    class  (hashPerfect   ), intent(in   ) :: hash
    integer(kind=kind_int8), intent(in   ) :: key
-   integer(kind=kind_int8)                :: x                 , y
+   integer(c_size_t      )                :: x                 , y
 
    if (.not.hash%created) call Galacticus_Error_Report('Hash_Perfect_Index','hash has not been created')
    x                 =    key/hash%rowSize
@@ -281,7 +282,7 @@ contains
    implicit none
    class  (hashPerfect   ), intent(in   ) :: hash
    integer(kind=kind_int8), intent(in   ) :: key
-   integer(kind=kind_int8)                :: hashIndex
+   integer(c_size_t      )                :: hashIndex
 
    hashIndex=hash%index(key)
    if (.not.hash%hasInverseTable) call Galacticus_Error_Report('Hash_Perfect_Is_Present','hash does not store inverse table')
@@ -296,7 +297,7 @@ contains
    integer(kind=kind_int8)                :: Hash_Perfect_Value
    class  (hashPerfect   ), intent(in   ) :: hash
    integer(kind=kind_int8), intent(in   ) :: key
-   integer(kind=kind_int8)                :: hashIndex
+   integer(c_size_t      )                :: hashIndex
 
    hashIndex=hash%index(key)
    if (.not.hash%hasValues) call Galacticus_Error_Report('Hash_Perfect_Value','hash does not store values')

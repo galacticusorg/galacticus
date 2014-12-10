@@ -35,22 +35,22 @@ program Test_Interpolation
 
   ! Test interpolations.
   x=5.5d0
-  y=Interpolate(10,xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset)
+  y=Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset)
   call Assert("linear interpolation",y,5.0d0)
 
   ! Test derivative interpolations.
   x=5.5d0
-  y=Interpolate_Derivative(10,xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset)
+  y=Interpolate_Derivative(xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset)
   call Assert("linear derivative interpolation",y,2.0d0/2.4d0,relTol=1.0d-6)
 
   ! Test linear extrapolation.
   x=15.0d0
-  y=Interpolate(10,xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset,extrapolationType=extrapolationTypeLinear)
+  y=Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset,extrapolationType=extrapolationTypeLinear)
   call Assert("linear extrapolation",y,17.0d0)
 
   ! Test fixed extrapolation.
   x=15.0d0
-  y=Interpolate(10,xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset,extrapolationType=extrapolationTypeFixed)
+  y=Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset,extrapolationType=extrapolationTypeFixed)
   call Assert("fixed extrapolation",y,9.0d0)
 
   ! End unit tests.

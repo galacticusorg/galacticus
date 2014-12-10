@@ -142,7 +142,7 @@ contains
 
     ! Normalize to growth factor of unity at present day.
     do iComponent=1,3
-       linearGrowthFactorPresent=Interpolate(growthTableNumberPoints,growthTableTime,growthTableGrowthFactor(:,1,iComponent)&
+       linearGrowthFactorPresent=Interpolate(growthTableTime,growthTableGrowthFactor(:,1,iComponent)&
             &,interpolationObject,interpolationAccelerator,tPresent,reset=resetInterpolation)
        call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
        resetInterpolation=.true.

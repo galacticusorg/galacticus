@@ -138,7 +138,6 @@ contains
     double precision         , intent(  out)                                               :: boxLength
     complex(c_double_complex), intent(  out),     dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
     double precision         ,                    dimension(3                            ) :: origin,position1,position2
-    double precision         ,                    dimension(2                            ) :: phiRange,thetaRange
     type   (c_ptr           )                                                              :: plan
     complex(c_double_complex),                    dimension(gridCount,gridCount,gridCount) :: selectionFunction1,selectionFunction2
     complex(c_double_complex)                                                              :: normalization
@@ -147,7 +146,6 @@ contains
     integer                  , parameter                                                   :: randomsCount=1000000
     type   (fgsl_rng        ), save                                                        :: pseudoSequenceObject
     logical                  , save                                                        :: reset=.true.
-    type   (varying_string  )                                                              :: message
     double precision         , save                                                        :: surveyDistanceMinimum&
          &,surveyDistanceMaximum
     integer                  , parameter                                                   :: regionCount=3
@@ -157,9 +155,9 @@ contains
     &   regionDeclinationRange   =reshape([24.0d0,32.0d0,04.0d0,16.0d0,24.0d0,28.0d0],[2,regionCount])
     double precision                            , dimension(2,regionCount                ) :: regionPhiRange,regionThetaRange
     double precision                            , dimension(  regionCount                ) :: regionSolidAngle
-    integer                                                                                :: i,j,iRegion,iRandom
+    integer                                                                                :: i,iRegion,iRandom
     double precision                                                                       :: comovingDistanceMaximum1&
-         &,comovingDistanceMaximum2,comovingDistanceMinimum1,comovingDistanceMinimum2,rightAscension,declination ,distance1&
+         &,comovingDistanceMaximum2,comovingDistanceMinimum1,comovingDistanceMinimum2 ,distance1&
          &,distance2,uniformRandom
     class    (cosmologyParametersClass              )               , pointer :: thisCosmologyParameters
 

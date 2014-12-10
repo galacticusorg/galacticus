@@ -62,18 +62,20 @@ contains
 
   double precision function Excursion_Sets_First_Crossing_Probability_Zhang_Hui(variance,time)
     !% Return the probability for excursion set first crossing using the methodology of \cite{zhang_random_2006}.
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     use Numerical_Ranges
     use Memory_Management
     use Galacticus_Display
     use Excursion_Sets_First_Crossing_Zhang_Hui_Utilities
     implicit none
-    double precision, intent(in   )  :: time             , variance
-    double precision, dimension(0:1) :: hTime            , hVariance
-    logical                          :: makeTable
-    integer                          :: i                , iTime    , iVariance, &
-         &                              j                , jTime    , jVariance
-    double precision                 :: summedProbability
+    double precision                , intent(in   )  :: time             , variance
+    double precision                , dimension(0:1) :: hTime            , hVariance
+    logical                                          :: makeTable
+    integer         (c_size_t      )                 :: iTime            , iVariance
+    integer                                          :: i                , j        , &
+         &                                              jTime            , jVariance
+    double precision                                 :: summedProbability
 
     ! Determine if we need to make the table.
     !$omp critical (Excursion_Sets_First_Crossing_Probability_Zhang_Hui_Init)
@@ -134,12 +136,12 @@ contains
     !$omp end critical (Excursion_Sets_First_Crossing_Probability_Zhang_Hui_Init)
 
     ! Get interpolation in time.
-    iTime    =Interpolate_Locate                 (timeTableCount      ,timeTable    ,interpolationAcceleratorTime    ,time    ,reset=interpolationResetTime    )
-    hTime    =Interpolate_Linear_Generate_Factors(timeTableCount      ,timeTable    ,iTime    ,time    )
+    iTime    =Interpolate_Locate                 (timeTable    ,interpolationAcceleratorTime    ,time    ,reset=interpolationResetTime    )
+    hTime    =Interpolate_Linear_Generate_Factors(timeTable    ,iTime    ,time    )
 
     ! Get interpolation in variance.
-    iVariance=Interpolate_Locate                 (varianceTableCount+1,varianceTable,interpolationAcceleratorVariance,variance,reset=interpolationResetVariance)
-    hVariance=Interpolate_Linear_Generate_Factors(varianceTableCount+1,varianceTable,iVariance,variance)
+    iVariance=Interpolate_Locate                 (varianceTable,interpolationAcceleratorVariance,variance,reset=interpolationResetVariance)
+    hVariance=Interpolate_Linear_Generate_Factors(varianceTable,iVariance,variance)
 
     ! Compute first crossing probability by interpolating.
     Excursion_Sets_First_Crossing_Probability_Zhang_Hui=0.0d0

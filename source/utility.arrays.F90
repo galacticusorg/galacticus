@@ -31,6 +31,7 @@ module Array_Utilities
      !% Interface to generic routines which reverse the direction of an array.
      module procedure Array_Reverse_Real
      module procedure Array_Reverse_Double
+     module procedure Array_Reverse_SizeT
   end interface
 
   interface Array_Cumulate
@@ -57,6 +58,20 @@ module Array_Utilities
   integer, parameter, public :: directionIncreasing=1
 
 contains
+
+  function Array_Reverse_SizeT(array) result (reversedArray)
+    !% Reverses the direction of a real array.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    integer(c_size_t), intent(in   )          :: array        (:)
+    integer(c_size_t), dimension(size(array)) :: reversedArray
+    integer                                   :: i
+
+    forall (i=1:size(array))
+       reversedArray(i)=array(size(array)+1-i)
+    end forall
+    return
+  end function Array_Reverse_SizeT
 
   function Array_Reverse_Real(array) result (reversedArray)
     !% Reverses the direction of a real array.

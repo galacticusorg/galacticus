@@ -486,7 +486,7 @@ contains
 
     tableActual=1
     if (present(table)) tableActual=table
-    Table_Generic_1D_Interpolate=Interpolate(size(self%xv),self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),reset=self%reset)
+    Table_Generic_1D_Interpolate=Interpolate(self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),reset=self%reset)
     return
   end function Table_Generic_1D_Interpolate
 
@@ -501,7 +501,7 @@ contains
 
     tableActual=1
     if (present(table)) tableActual=table
-    Table_Generic_1D_Interpolate_Gradient=Interpolate_Derivative(size(self%xv),self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),reset=self%reset)
+    Table_Generic_1D_Interpolate_Gradient=Interpolate_Derivative(self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),reset=self%reset)
     return
   end function Table_Generic_1D_Interpolate_Gradient
 

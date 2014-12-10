@@ -432,12 +432,12 @@ contains
     type            (c_ptr                     )                                                              ::        parameterPointer
     type            (fgsl_function             )                                                              ::        integrandFunction
     type            (fgsl_integration_workspace)                                                              ::        integrationWorkspace
+    integer         (c_size_t                  )                                                              ::        metallicityIndex
     integer                                                                                                   ::        fileFormat                                         , iAge                                      , &
          &                                                                                                              iMetallicity                                       , iRecycledFraction                         , &
          &                                                                                                              imfCount                                           , imfSelected                               , &
          &                                                                                                              ioErr                                              , loopCount                                 , &
-         &                                                                                                              loopCountTotal                                     , metallicityIndex                          , &
-         &                                                                                                              tableIndex
+         &                                                                                                              loopCountTotal                                     , tableIndex
     double precision                                                                                          ::        maximumMass                                        , minimumMass                               , &
          &                                                                                                              recycledFractionMaximum                            , recycledFractionMinimum
     character       (len=20                    )                                                              ::        parameterValue                                     , progressMessage
@@ -697,47 +697,46 @@ contains
        if (present(ageMaximum)) then
           ! Get average recycling rate between ageMinimum and ageMaximum.
           if (ageMinimum > 0.0d0) then
-             recycledFractionMinimum=Interpolate(recycledFractionTableAgeCount&
-                  &,recycledFractionTableAge ,recycledFractionTable(: ,metallicityIndex,tableIndex),interpolationAgeObject&
+             recycledFractionMinimum=Interpolate(recycledFractionTableAge ,recycledFractionTable(: ,metallicityIndex,tableIndex),interpolationAgeObject&
                   &,interpolationAgeAccelerator ,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
           else
              recycledFractionMinimum=0.0d0
           end if
-          recycledFractionMaximum=Interpolate(recycledFractionTableAgeCount,recycledFractionTableAge,recycledFractionTable(: &
+          recycledFractionMaximum=Interpolate(recycledFractionTableAge,recycledFractionTable(: &
                &,metallicityIndex,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMaximum,reset &
                &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
           recycleRate(1)=(recycledFractionMaximum-recycledFractionMinimum)/(ageMaximum-ageMinimum)
        else
           ! Get instantaneous recycling rate at ageMinimum.
-          recycleRate(1)=Interpolate_Derivative(recycledFractionTableAgeCount,recycledFractionTableAge,recycledFractionTable(: &
+          recycleRate(1)=Interpolate_Derivative(recycledFractionTableAge,recycledFractionTable(: &
                &,metallicityIndex,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMinimum,reset&
                &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
        end if
        recycleRate(2)=0.0d0
     else
-       metallicityIndex=Interpolate_Locate(recycledFractionTableMetallicityCount,recycledFractionTableMetallicity&
+       metallicityIndex=Interpolate_Locate(recycledFractionTableMetallicity&
             &,interpolationMetallicityAccelerator,metallicity,reset=interpolationMetallicityReset)
-       metallicityFactors=Interpolate_Linear_Generate_Factors(recycledFractionTableMetallicityCount,recycledFractionTableMetallicity&
+       metallicityFactors=Interpolate_Linear_Generate_Factors(recycledFractionTableMetallicity&
             &,metallicityIndex,metallicity)
        ! Interpolate in age at both metallicities.
        do iMetallicity=0,1
           if (present(ageMaximum)) then
              ! Get average recycling rate between ageMinimum and ageMaximum.
              if (ageMinimum > 0.0d0) then
-                recycledFractionMinimum=Interpolate(recycledFractionTableAgeCount,recycledFractionTableAge ,recycledFractionTable(:,metallicityIndex&
+                recycledFractionMinimum=Interpolate(recycledFractionTableAge ,recycledFractionTable(:,metallicityIndex&
                      &+iMetallicity,tableIndex),interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset&
                      &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
              else
                 recycledFractionMinimum=0.0d0
              end if
-             recycledFractionMaximum=Interpolate(recycledFractionTableAgeCount,recycledFractionTableAge&
+             recycledFractionMaximum=Interpolate(recycledFractionTableAge&
                   &,recycledFractionTable(: ,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject&
                   &,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
 
              recycleRate(iMetallicity+1)=(recycledFractionMaximum-recycledFractionMinimum)/(ageMaximum-ageMinimum)
           else
              ! Get instantaneous recycling rate at ageMinimum.
-             recycleRate(iMetallicity+1)=Interpolate_Derivative(recycledFractionTableAgeCount,recycledFractionTableAge&
+             recycleRate(iMetallicity+1)=Interpolate_Derivative(recycledFractionTableAge&
                   &,recycledFractionTable(: ,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject&
                   &,interpolationAgeAccelerator,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
           end if
@@ -803,41 +802,42 @@ contains
     use Galacticus_Error
     use Dates_and_Times
     use Galacticus_Input_Paths
-     implicit none
-     double precision                                                                            , intent(in   )           :: ageMinimum                         , starFormationRate
-     double precision                                                                            , intent(in   ), optional :: ageMaximum
-     integer                                                                                     , intent(in   ), optional :: abundanceIndex
-     type            (abundances                )                                                , intent(in   )           :: fuelAbundances
-     integer                                                                                     , intent(in   )           :: component
-     logical                                                    , allocatable, dimension(:      )                          :: metalYieldTabulatedTemporary
-     integer                                                    , allocatable, dimension(:      )                          :: metalYieldIndexTemporary
-     double precision                                           , allocatable, dimension(:    )                            :: tableTemporary
-     double precision                                           , allocatable, dimension(:,:,:,:)                          :: metalYieldTableTemporary
-     double precision                                                        , dimension(2      )                          :: metalYieldRate                     , metallicityFactors
-     type            (fgsl_interp               )         , save                                                           :: interpolationAgeObject
-     type            (fgsl_interp_accel         )         , save                                                           :: interpolationAgeAccelerator        , interpolationMetallicityAccelerator
-     logical                                              , save                                                           :: interpolationAgeReset       =.true., interpolationMetallicityReset      =.true.
-     !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &
-     !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
-     type            (Node                      ), pointer                                                                 :: doc                                , thisItem
-     type            (NodeList                  ), pointer                                                                 :: dataList
-     type            (c_ptr                     )                                                                          :: parameterPointer
-     type            (fgsl_function             )                                                                          :: integrandFunction
-     type            (fgsl_integration_workspace)                                                                          :: integrationWorkspace
-     integer                                                                                                               :: abundanceIndexActual               , fileFormat                                , &
-          &                                                                                                                   iAge                               , iElement                                  , &
-          &                                                                                                                   iMetalYield                        , iMetallicity                              , &
-          &                                                                                                                   imfCount                           , imfSelected                               , &
-          &                                                                                                                   ioErr                              , loopCount                                 , &
-          &                                                                                                                   loopCountTotal                     , metallicityIndex                          , &
-          &                                                                                                                   tableIndex
-     double precision                                                                                                      :: maximumMass                        , minimumMass                               , &
-          &                                                                                                                   yieldMaximum                       , yieldMinimum
-     character       (len=20                    )                                                                          :: parameterValue                     , progressMessage
-     type            (xmlf_t                    )                                                                          :: metalYieldDoc
-     type            (varying_string            )                                                                          :: fileName
-     logical                                                                                                               :: makeFile
-
+    use Kind_Numbers
+    implicit none
+    double precision                                                                            , intent(in   )           :: ageMinimum                         , starFormationRate
+    double precision                                                                            , intent(in   ), optional :: ageMaximum
+    integer                                                                                     , intent(in   ), optional :: abundanceIndex
+    type            (abundances                )                                                , intent(in   )           :: fuelAbundances
+    integer                                                                                     , intent(in   )           :: component
+    logical                                                    , allocatable, dimension(:      )                          :: metalYieldTabulatedTemporary
+    integer                                                    , allocatable, dimension(:      )                          :: metalYieldIndexTemporary
+    double precision                                           , allocatable, dimension(:    )                            :: tableTemporary
+    double precision                                           , allocatable, dimension(:,:,:,:)                          :: metalYieldTableTemporary
+    double precision                                                        , dimension(2      )                          :: metalYieldRate                     , metallicityFactors
+    type            (fgsl_interp               )         , save                                                           :: interpolationAgeObject
+    type            (fgsl_interp_accel         )         , save                                                           :: interpolationAgeAccelerator        , interpolationMetallicityAccelerator
+    logical                                              , save                                                           :: interpolationAgeReset       =.true., interpolationMetallicityReset      =.true.
+    !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &
+    !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
+    type            (Node                      ), pointer                                                                 :: doc                                , thisItem
+    type            (NodeList                  ), pointer                                                                 :: dataList
+    type            (c_ptr                     )                                                                          :: parameterPointer
+    type            (fgsl_function             )                                                                          :: integrandFunction
+    type            (fgsl_integration_workspace)                                                                          :: integrationWorkspace
+    integer         (c_size_t                  )                                                                          :: metallicityIndex
+    integer                                                                                                               :: abundanceIndexActual               , fileFormat                                , &
+         &                                                                                                                   iAge                               , iElement                                  , &
+         &                                                                                                                   iMetalYield                        , iMetallicity                              , &
+         &                                                                                                                   imfCount                           , imfSelected                               , &
+         &                                                                                                                   ioErr                              , loopCount                                 , &
+         &                                                                                                                   loopCountTotal                     , tableIndex
+    double precision                                                                                                      :: maximumMass                        , minimumMass                               , &
+         &                                                                                                                   yieldMaximum                       , yieldMinimum
+    character       (len=20                    )                                                                          :: parameterValue                     , progressMessage
+    type            (xmlf_t                    )                                                                          :: metalYieldDoc
+    type            (varying_string            )                                                                          :: fileName
+    logical                                                                                                               :: makeFile
+    
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
 
@@ -1144,46 +1144,46 @@ contains
         if (present(ageMaximum)) then
            ! Get average recycling rate between ageMinimum and ageMaximum.
            if (ageMinimum > 0.0d0) then
-              yieldMinimum=Interpolate(metalYieldTableAgeCount,metalYieldTableAge &
+              yieldMinimum=Interpolate(metalYieldTableAge &
                    &,metalYieldTable(: ,metallicityIndex,abundanceIndexActual,tableIndex) ,interpolationAgeObject&
                    &,interpolationAgeAccelerator ,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
            else
               yieldMinimum=0.0d0
            end if
-           yieldMaximum=Interpolate(metalYieldTableAgeCount,metalYieldTableAge,metalYieldTable(: ,metallicityIndex &
+           yieldMaximum=Interpolate(metalYieldTableAge,metalYieldTable(: ,metallicityIndex &
                 &,abundanceIndexActual,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMaximum,reset &
                 &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
            metalYieldRate(1)=(yieldMaximum-yieldMinimum)/(ageMaximum-ageMinimum)
         else
            ! Get instantaneous recycling rate at ageMinimum.
-           metalYieldRate(1)=Interpolate_Derivative(metalYieldTableAgeCount,metalYieldTableAge,metalYieldTable(: &
+           metalYieldRate(1)=Interpolate_Derivative(metalYieldTableAge,metalYieldTable(: &
                 &,metallicityIndex,abundanceIndexActual,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMinimum&
                 & ,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
         end if
         metalYieldRate(2)=0.0d0
      else
-        metallicityIndex=Interpolate_Locate(metalYieldTableMetallicityCount,metalYieldTableMetallicity &
+        metallicityIndex=Interpolate_Locate(metalYieldTableMetallicity &
              &,interpolationMetallicityAccelerator,metallicity,reset=interpolationMetallicityReset)
-        metallicityFactors=Interpolate_Linear_Generate_Factors(metalYieldTableMetallicityCount,metalYieldTableMetallicity&
+        metallicityFactors=Interpolate_Linear_Generate_Factors(metalYieldTableMetallicity&
              &,metallicityIndex,metallicity)
         ! Interpolate in age at both metallicities.
         do iMetallicity=0,1
           if (present(ageMaximum)) then
              ! Get average recycling rate between ageMinimum and ageMaximum.
              if (ageMinimum > 0.0d0) then
-                yieldMinimum=Interpolate(metalYieldTableAgeCount ,metalYieldTableAge,metalYieldTable(:,metallicityIndex+iMetallicity&
+                yieldMinimum=Interpolate(metalYieldTableAge,metalYieldTable(:,metallicityIndex+iMetallicity&
                      &,abundanceIndexActual,tableIndex) ,interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset &
                      &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
              else
                 yieldMinimum=0.0d0
              end if
-             yieldMaximum=Interpolate(metalYieldTableAgeCount,metalYieldTableAge ,metalYieldTable(: &
+             yieldMaximum=Interpolate(metalYieldTableAge ,metalYieldTable(: &
                   &,metallicityIndex+iMetallicity,abundanceIndexActual,tableIndex),interpolationAgeObject &
                   &,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
              metalYieldRate(iMetallicity+1)=(yieldMaximum-yieldMinimum)/(ageMaximum-ageMinimum)
           else
              ! Get instantaneous recycling rate at ageMinimum.
-             metalYieldRate(iMetallicity+1)=Interpolate_Derivative(metalYieldTableAgeCount,metalYieldTableAge ,metalYieldTable(: &
+             metalYieldRate(iMetallicity+1)=Interpolate_Derivative(metalYieldTableAge ,metalYieldTable(: &
                   &,metallicityIndex+iMetallicity,abundanceIndexActual,tableIndex),interpolationAgeObject &
                   &,interpolationAgeAccelerator,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
           end if
@@ -1284,8 +1284,8 @@ contains
          &                                                                                                              iEnergyInput                                  , iMetallicity                              , &
          &                                                                                                              imfCount                                      , imfSelected                               , &
          &                                                                                                              ioErr                                         , loopCount                                 , &
-         &                                                                                                              loopCountTotal                                , metallicityIndex                          , &
-         &                                                                                                              tableIndex
+         &                                                                                                              loopCountTotal                                , tableIndex
+    integer         (c_size_t                  )                                                              ::        metallicityIndex
     double precision                                                                                          ::        energyInputMaximum                            , energyInputMinimum                        , &
          &                                                                                                              maximumMass                                   , minimumMass
     character       (len=20                    )                                                              ::        parameterValue                                , progressMessage
@@ -1535,42 +1535,41 @@ contains
        metallicityFactors=[1.0d0,0.0d0]
        if (present(ageMaximum)) then
           ! Get average recycling rate between ageMinimum and ageMaximum.
-          energyInputRate(1)=(Interpolate(energyInputTableAgeCount,energyInputTableAge,energyInputTable(: ,metallicityIndex&
+          energyInputRate(1)=(Interpolate(energyInputTableAge,energyInputTable(: ,metallicityIndex&
                &,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMaximum,reset =interpolationAgeReset&
-               &,extrapolationType=extrapolationTypeLinear)-Interpolate(energyInputTableAgeCount,energyInputTableAge ,energyInputTable(: &
+               &,extrapolationType=extrapolationTypeLinear)-Interpolate(energyInputTableAge ,energyInputTable(: &
                &,metallicityIndex,tableIndex),interpolationAgeObject,interpolationAgeAccelerator ,ageMinimum,reset &
                &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear))/(ageMaximum-ageMinimum)
        else
           ! Get instantaneous energy input rate at ageMinimum.
-          energyInputRate(1)=Interpolate_Derivative(energyInputTableAgeCount,energyInputTableAge,energyInputTable(: &
+          energyInputRate(1)=Interpolate_Derivative(energyInputTableAge,energyInputTable(: &
                &,metallicityIndex,tableIndex),interpolationAgeObject,interpolationAgeAccelerator,ageMinimum,reset &
                &=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
        end if
        energyInputRate(2)=0.0d0
     else
-       metallicityIndex=Interpolate_Locate(energyInputTableMetallicityCount,energyInputTableMetallicity &
+       metallicityIndex=Interpolate_Locate(energyInputTableMetallicity &
             &,interpolationMetallicityAccelerator,metallicity,reset=interpolationMetallicityReset)
-       metallicityFactors=Interpolate_Linear_Generate_Factors(energyInputTableMetallicityCount,energyInputTableMetallicity &
+       metallicityFactors=Interpolate_Linear_Generate_Factors(energyInputTableMetallicity &
             &,metallicityIndex,metallicity)
        ! Interpolate in age at both metallicities.
        do iMetallicity=0,1
           if (present(ageMaximum)) then
              ! Get average recycling rate between ageMinimum and ageMaximum.
              if (ageMinimum > 0.0d0) then
-                energyInputMinimum=Interpolate(energyInputTableAgeCount&
-                     &,energyInputTableAge ,energyInputTable(: ,metallicityIndex +iMetallicity,tableIndex),interpolationAgeObject&
+                energyInputMinimum=Interpolate(energyInputTableAge ,energyInputTable(: ,metallicityIndex +iMetallicity,tableIndex),interpolationAgeObject&
                      &,interpolationAgeAccelerator ,ageMinimum ,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
              else
                 energyInputMinimum=0.0d0
              end if
-             energyInputMaximum=Interpolate(energyInputTableAgeCount,energyInputTableAge ,energyInputTable(: &
+             energyInputMaximum=Interpolate(energyInputTableAge,energyInputTable(: &
                   &,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject ,interpolationAgeAccelerator,ageMaximum &
                   &,reset =interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
 
              energyInputRate(iMetallicity+1)=(energyInputMaximum-energyInputMinimum)/(ageMaximum-ageMinimum)
           else
              ! Get instantaneous recycling rate at ageMinimum.
-             energyInputRate(iMetallicity+1)=Interpolate_Derivative(energyInputTableAgeCount,energyInputTableAge &
+             energyInputRate(iMetallicity+1)=Interpolate_Derivative(energyInputTableAge &
                   &,energyInputTable(: ,metallicityIndex+iMetallicity,tableIndex),interpolationAgeObject &
                   &,interpolationAgeAccelerator,ageMinimum,reset=interpolationAgeReset,extrapolationType=extrapolationTypeLinear)
           end if

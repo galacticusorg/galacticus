@@ -137,25 +137,26 @@ contains
 
   double precision function internalFilteringMass(self,time)
     !% Return the filtering mass of the \gls{igm} in the internal model.
+    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Numerical_Interpolation
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self
     double precision                                  , intent(in   )   :: time
     double precision                                  , dimension(0:1)  :: h
-    integer                                                             :: i                              , j
+    integer         (c_size_t                        )                  :: i                              , j
     logical                                           , save            :: interpolationReset      =.true.
     type            (fgsl_interp_accel               ), save            :: interpolationAccelerator 
     !$omp threadprivate(interpolationReset,interpolationAccelerator)
 
     if (size(self%time) > 1) then
-       i=Interpolate_Locate(size(self%time),self%time,interpolationAccelerator,time,reset=interpolationReset)
+       i=Interpolate_Locate(self%time,interpolationAccelerator,time,reset=interpolationReset)
     else 
        internalFilteringMass=self%massFiltering(1)
        return
     end if
     if (self%time(i+1)-self%time(i) > 0.0d0) then
-       h   =Interpolate_Linear_Generate_Factors(size(self%time),self%time,i,time)
+       h   =Interpolate_Linear_Generate_Factors(self%time,i,time)
     else
        h(0)=0.0d0 
        h(1)=1.0d0
@@ -169,20 +170,21 @@ contains
 
   double precision function internalElectronFraction(self,time)
     !% Return the electron fraction of the \gls{igm} in the internal model.
+    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Numerical_Interpolation
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self
     double precision                                  , intent(in   )   :: time
     double precision                                  , dimension(0:1)  :: h
-    integer                                                             :: i                              , j
+    integer         (c_size_t                        )                  :: i                              , j
     logical                                           , save            :: interpolationReset      =.true.
     type            (fgsl_interp_accel               ), save            :: interpolationAccelerator 
     !$omp threadprivate(interpolationReset,interpolationAccelerator)
     double precision                                                    :: densityHydrogen                , densityHelium
 
     if (size(self%time) > 1) then
-       i=Interpolate_Locate(size(self%time),self%time,interpolationAccelerator,time,reset=interpolationReset)
+       i=Interpolate_Locate(self%time,interpolationAccelerator,time,reset=interpolationReset)
     else 
        densityHydrogen         =self%densityHydrogen1(1)+self%densityHydrogen2(1)
        densityHelium           =self%densityHelium1  (1)+self%densityHelium2  (1)+self%densityHelium3(1)
@@ -191,7 +193,7 @@ contains
        return
     end if
     if (self%time(i+1)-self%time(i) > 0.0d0) then
-       h   =Interpolate_Linear_Generate_Factors(size(self%time),self%time,i,time)
+       h   =Interpolate_Linear_Generate_Factors(self%time,i,time)
     else
        h(0)=0.0d0 
        h(1)=1.0d0
@@ -215,6 +217,7 @@ contains
 
   double precision function internalNeutralHydrogenFraction(self,time)
     !% Return the neutral hydrogen fraction of the \gls{igm} in the internal model.
+    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Numerical_Interpolation
     implicit none
@@ -224,18 +227,18 @@ contains
     logical                                           , save            :: interpolationReset      =.true.
     type            (fgsl_interp_accel               ), save            :: interpolationAccelerator 
     !$omp threadprivate(interpolationReset,interpolationAccelerator)
-    integer                                                             :: i                              , j
+    integer         (c_size_t                        )                  :: i                              , j
     double precision                                                    :: densityHydrogen
     
     if (size(self%time) > 1) then
-       i=Interpolate_Locate(size(self%time),self%time,interpolationAccelerator,time,reset=interpolationReset)
+       i=Interpolate_Locate(self%time,interpolationAccelerator,time,reset=interpolationReset)
     else 
        densityHydrogen                =self%densityHydrogen1(1)+self%densityHydrogen2(1)
        internalNeutralHydrogenFraction=self%densityHydrogen1(1)/densityHydrogen
        return
     end if
     if (self%time(i+1)-self%time(i) > 0.0d0) then
-       h   =Interpolate_Linear_Generate_Factors(size(self%time),self%time,i,time)
+       h   =Interpolate_Linear_Generate_Factors(self%time,i,time)
     else
        h(0)=0.0d0 
        h(1)=1.0d0
@@ -254,6 +257,7 @@ contains
 
   double precision function internalNeutralHeliumFraction(self,time)
     !% Return the neutral helium fraction of the \gls{igm} in the internal model.
+    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Numerical_Interpolation
     implicit none
@@ -263,18 +267,18 @@ contains
     logical                                           , save           :: interpolationReset      =.true.
     type            (fgsl_interp_accel               ), save           :: interpolationAccelerator 
     !$omp threadprivate(interpolationReset,interpolationAccelerator)
-    integer                                                            :: i                       , j
+    integer         (c_size_t                        )                  :: i                              , j
     double precision                                                   :: densityHelium
     
     if (size(self%time) > 1) then
-       i=Interpolate_Locate(size(self%time),self%time,interpolationAccelerator,time,reset=interpolationReset)
+       i=Interpolate_Locate(self%time,interpolationAccelerator,time,reset=interpolationReset)
     else 
        densityHelium                =self%densityHelium1(1)+self%densityHelium2(1)+self%densityHelium3(1)
        internalNeutralHeliumFraction=self%densityHelium1(1)/densityHelium
        return
     end if
     if (self%time(i+1)-self%time(i) > 0.0d0) then
-       h   =Interpolate_Linear_Generate_Factors(size(self%time),self%time,i,time)
+       h   =Interpolate_Linear_Generate_Factors(self%time,i,time)
     else
        h(0)=0.0d0 
        h(1)=1.0d0
@@ -293,6 +297,7 @@ contains
 
   double precision function internalSinglyIonizedHeliumFraction(self,time)
     !% Return the singly ionized helium fraction of the \gls{igm} in the internal model.
+    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Numerical_Interpolation
     implicit none
@@ -302,18 +307,18 @@ contains
     logical                                           , save            :: interpolationReset      =.true.
     type            (fgsl_interp_accel)               , save            :: interpolationAccelerator 
     !$omp threadprivate(interpolationReset,interpolationAccelerator)
-    integer                                                             :: i                              , j
+    integer         (c_size_t                        )                  :: i                              , j
     double precision                                                    :: densityHelium
 
     if (size(self%time) > 1) then
-       i=Interpolate_Locate(size(self%time),self%time,interpolationAccelerator,time,reset=interpolationReset)
+       i=Interpolate_Locate(self%time,interpolationAccelerator,time,reset=interpolationReset)
     else 
        densityHelium                      =self%densityHelium1(1)+self%densityHelium2(1)+self%densityHelium3(1)
        internalSinglyIonizedHeliumFraction=self%densityHelium2(1)/densityHelium
        return
     end if
     if (self%time(i+1)-self%time(i) > 0.0d0) then
-       h   =Interpolate_Linear_Generate_Factors(size(self%time),self%time,i,time)
+       h   =Interpolate_Linear_Generate_Factors(self%time,i,time)
     else
        h(0)=0.0d0 
        h(1)=1.0d0
@@ -332,6 +337,7 @@ contains
 
   double precision function internalTemperature(self,time)
     !% Return the temperature of the \gls{igm} in the internal model.
+    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Numerical_Interpolation
     implicit none
@@ -341,16 +347,16 @@ contains
     logical                                           , save            :: interpolationReset      =.true.
     type            (fgsl_interp_accel)               , save            :: interpolationAccelerator 
     !$omp threadprivate(interpolationReset,interpolationAccelerator)
-    integer                                                             :: i                              , j
+    integer         (c_size_t                        )                  :: i                              , j
 
     if (size(self%time) > 1) then
-       i=Interpolate_Locate(size(self%time),self%time,interpolationAccelerator,time,reset=interpolationReset)
+       i=Interpolate_Locate(self%time,interpolationAccelerator,time,reset=interpolationReset)
     else 
        internalTemperature=self%temperatureIGM(1)
        return
     end if
     if (self%time(i+1)-self%time(i) > 0.0d0) then
-       h   =Interpolate_Linear_Generate_Factors(size(self%time),self%time,i,time)
+       h   =Interpolate_Linear_Generate_Factors(self%time,i,time)
     else
        h(0)=0.0d0 
        h(1)=1.0d0

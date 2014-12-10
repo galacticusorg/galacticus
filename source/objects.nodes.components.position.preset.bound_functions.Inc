@@ -19,6 +19,7 @@
 
 function PositionPresetPosition(self)
   !% Return the position of the node.
+  use, intrinsic :: ISO_C_Binding
   use Numerical_Interpolation
   use FGSL
   implicit none
@@ -27,7 +28,7 @@ function PositionPresetPosition(self)
   type            (treeNode                   ), pointer                     :: selfNode
   class           (nodeComponentBasic         ), pointer                     :: selfBasicComponent
   integer                                      , parameter                   :: historyBegin            =1, historyEnd  =3
-  integer                                                                    :: iTime
+  integer         (c_size_t                   )                              :: iTime
   logical                                                                    :: interpolationReset        , usingHistory
   type            (fgsl_interp_accel          )                              :: interpolationAccelerator
   type            (history                    )                              :: positionHistory
@@ -40,7 +41,7 @@ function PositionPresetPosition(self)
      selfBasicComponent => selfNode%basic()
      if (positionHistory%time(1) <= selfBasicComponent%time()) then
         interpolationReset=.true.
-        iTime=Interpolate_Locate(size(positionHistory%time) ,positionHistory%time,interpolationAccelerator &
+        iTime=Interpolate_Locate(positionHistory%time,interpolationAccelerator &
              &,selfBasicComponent%time(),reset=interpolationReset,closest=.true.)
         PositionPresetPosition=positionHistory%data(iTime,historyBegin:historyEnd)
         call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
@@ -53,6 +54,7 @@ end function PositionPresetPosition
 
 function PositionPresetVelocity(self)
   !% Return the velocity of the node.
+  use, intrinsic :: ISO_C_Binding
   use Numerical_Interpolation
   use FGSL
   implicit none
@@ -61,7 +63,7 @@ function PositionPresetVelocity(self)
   type            (treeNode                   ), pointer                     :: selfNode
   class           (nodeComponentBasic         ), pointer                     :: selfBasicComponent
   integer                                      , parameter                   :: historyBegin            =4, historyEnd  =6
-  integer                                                                    :: iTime
+  integer         (c_size_t                   )                              :: iTime
   logical                                                                    :: interpolationReset        , usingHistory
   type            (fgsl_interp_accel          )                              :: interpolationAccelerator
   type            (history                    )                              :: positionHistory
@@ -74,7 +76,7 @@ function PositionPresetVelocity(self)
      selfBasicComponent => selfNode%basic()
      if (positionHistory%time(1) <= selfBasicComponent%time()) then
         interpolationReset=.true.
-        iTime=Interpolate_Locate(size(positionHistory%time) ,positionHistory%time,interpolationAccelerator &
+        iTime=Interpolate_Locate(positionHistory%time,interpolationAccelerator &
              &,selfBasicComponent%time(),reset=interpolationReset,closest=.true.)
         PositionPresetVelocity=positionHistory%data(iTime,historyBegin:historyEnd)
         call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)

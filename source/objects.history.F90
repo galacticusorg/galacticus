@@ -394,7 +394,7 @@ contains
              thisHistory%rangeType=rangeTypeUndefined
              thisHistory%time=0.0d0
           end if
-          if (historyCount > 0) thisHistory%data=0.0d0
+          if (historyCount > 0) thisHistory%data=0_kind_int8
        end if
     end if
     return
@@ -886,14 +886,16 @@ contains
      !% Adds the data in {\tt addHistory} to that in {\tt thisHistory}. This function is designed for histories that track
      !% instantaneous rates. The rates in {\tt addHistory} are interpolated to the times in {\tt thisHistory} and added to the
      !% rates in {\tt thisHistory}.
+     use, intrinsic :: ISO_C_Binding
      use FGSL
      use Numerical_Interpolation
      use Galacticus_Error
      implicit none
      class           (history          ), intent(inout) :: thisHistory
      type            (history          ), intent(in   ) :: addHistory
-     integer                                            :: addHistoryPointCount       , iHistory          , &
-          &                                                iPoint                     , interpolationPoint
+     integer                                            :: iPoint                     , iHistory
+          &                                                
+     integer         (c_size_t         )                :: interpolationPoint         , addHistoryPointCount
      double precision                                   :: interpolationFactors    (2)
      type            (fgsl_interp_accel)                :: interpolationAccelerator
      logical                                            :: interpolationReset
@@ -939,9 +941,9 @@ contains
 
              ! Interpolate addHistory to point in thisHistory.
               interpolationReset=.true.
-              interpolationPoint  =Interpolate_Locate(addHistoryPointCount,addHistory%time,interpolationAccelerator&
+              interpolationPoint  =Interpolate_Locate(addHistory%time,interpolationAccelerator&
                    &,thisHistory%time(iPoint),interpolationReset)
-              interpolationFactors=Interpolate_Linear_Generate_Factors(addHistoryPointCount,addHistory%time,interpolationPoint&
+              interpolationFactors=Interpolate_Linear_Generate_Factors(addHistory%time,interpolationPoint&
                    &,thisHistory%time(iPoint))
               call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
 
@@ -968,14 +970,15 @@ contains
      use Galacticus_Error
      use Arrays_Search
      use Numerical_Ranges
+     use, intrinsic :: ISO_C_Binding
      implicit none
-     class           (history), intent(inout) :: thisHistory
-     type            (history), intent(in   ) :: combineHistory
-     integer                                  :: combineCount       , combineHistoryPointCount, &
-          &                                      iPoint             , jPoint                  , &
-          &                                      timeBeginIndex     , timeEndIndex
-     double precision                         :: fractionContributed, timeBegin               , &
-          &                                      timeEnd
+     class           (history ), intent(inout) :: thisHistory
+     type            (history ), intent(in   ) :: combineHistory
+     integer                                   :: combineCount       , combineHistoryPointCount
+     integer         (c_size_t)                :: timeBeginIndex     , timeEndIndex            , &
+          &                                       iPoint             , jPoint
+     double precision                          :: fractionContributed, timeBegin               , &
+          &                                       timeEnd
 
      select type (thisHistory)
      type is (history)
