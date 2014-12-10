@@ -219,7 +219,7 @@ contains
 
     ! Interpolate in the tabulated response curve.
     !$omp critical (Filter_Get_Index_Lock)
-    Filter_Response=Interpolate(filterResponses(filterIndex)%nPoints,filterResponses(filterIndex)%wavelength&
+    Filter_Response=Interpolate(filterResponses(filterIndex)%wavelength&
          &,filterResponses(filterIndex)%response,filterResponses(filterIndex)%interpolationObject&
          &,filterResponses(filterIndex)%interpolationAccelerator,wavelength ,reset=filterResponses(filterIndex)%reset)
     !$omp end critical (Filter_Get_Index_Lock)

@@ -129,10 +129,11 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Inter_Output_Standard_Reset(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Reset interoutput accumulated quantities.
+    use, intrinsic :: ISO_C_Binding
     use Kind_Numbers
     implicit none
     type   (treeNode                ), intent(inout), pointer :: thisNode
-    integer                          , intent(in   )          :: iOutput
+    integer(c_size_t                ), intent(in   )          :: iOutput
     integer(kind=kind_int8          ), intent(in   )          :: treeIndex
     logical                          , intent(in   )          :: nodePassesFilter
     class  (nodeComponentInterOutput)               , pointer :: thisInterOutput

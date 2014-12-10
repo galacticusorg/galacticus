@@ -232,6 +232,7 @@ contains
   
   double precision function percolationDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based on the percolation algorithm of \cite{more_overdensity_2011}.
+    use, intrinsic :: ISO_C_Binding
     use Cosmology_Functions
     use Numerical_Interpolation
     implicit none
@@ -240,7 +241,7 @@ contains
     double precision                                  , intent(in   ) , optional :: time               , expansionFactor
     logical                                           , intent(in   ) , optional :: collapsing
     class           (cosmologyFunctionsClass         ), pointer                  :: cosmologyFunctions_
-    integer                                           , dimension(0:1)           :: jMass
+    integer         (c_size_t                        ), dimension(0:1)           :: jMass
     double precision                                  , dimension(0:1)           :: hMass
     double precision                                                             :: timeActual
     integer                                                                      :: iMass
@@ -254,17 +255,16 @@ contains
        ! Ensure tabulation is built.
        call self%tabulate(mass,timeActual)  
        ! Get interpolating factors in mass.
-       jMass(0)=Interpolate_Locate(self%densityContrastTableMassCount,self%densityContrastTableMass&
+       jMass(0)=Interpolate_Locate(self%densityContrastTableMass&
             &,self%densityContrastTableMassInterpolationAccelerator,mass,reset=self%densityContrastTableMassInterpolationReset)
        jMass(1)=jMass(0)+1
-       hMass=Interpolate_Linear_Generate_Factors(self%densityContrastTableMassCount,self%densityContrastTableMass,jMass(0),mass)       
+       hMass=Interpolate_Linear_Generate_Factors(self%densityContrastTableMass,jMass(0),mass)       
        ! Interpolate in time to get density contrast.
        percolationDensityContrast=0.0d0
        do iMass=0,1
           percolationDensityContrast=                                                &
                &  percolationDensityContrast                                         &
-               & +Interpolate(self%densityContrastTableTimeCount                   , &
-               &              self%densityContrastTableTime                        , &
+               & +Interpolate(self%densityContrastTableTime                        , &
                &              self%densityContrastTable(:,jMass(iMass))            , &
                &              self%densityContrastTableTimeInterpolationObject     , &
                &              self%densityContrastTableTimeInterpolationAccelerator, &
@@ -279,6 +279,7 @@ contains
 
   double precision function percolationDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based on the percolation algorithm of \cite{more_overdensity_2011}.
+    use, intrinsic :: ISO_C_Binding
     use Cosmology_Functions
     use Numerical_Interpolation
     implicit none
@@ -287,7 +288,7 @@ contains
     double precision                                  , intent(in   ), optional :: time               , expansionFactor
     logical                                           , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass         ), pointer                 :: cosmologyFunctions_
-    integer                                           , dimension(0:1)          :: jMass
+    integer         (c_size_t                        ), dimension(0:1)          :: jMass
     double precision                                  , dimension(0:1)          :: hMass
     double precision                                                            :: timeActual
     integer                                                                     :: iMass
@@ -298,17 +299,16 @@ contains
     ! Ensure tabulation is built.
     call self%tabulate(mass,timeActual)  
     ! Get interpolating factors in mass.
-    jMass(0)=Interpolate_Locate(self%densityContrastTableMassCount,self%densityContrastTableMass&
+    jMass(0)=Interpolate_Locate(self%densityContrastTableMass&
          &,self%densityContrastTableMassInterpolationAccelerator,mass,reset=self%densityContrastTableMassInterpolationReset)
     jMass(1)=jMass(0)+1
-    hMass=Interpolate_Linear_Generate_Factors(self%densityContrastTableMassCount,self%densityContrastTableMass,jMass(0),mass)       
+    hMass=Interpolate_Linear_Generate_Factors(self%densityContrastTableMass,jMass(0),mass)       
     ! Interpolate in time to get density contrast.
     percolationDensityContrastRateOfChange=0.0d0
     do iMass=0,1
        percolationDensityContrastRateOfChange=                                               &
             &  percolationDensityContrastRateOfChange                                        &
-            & +Interpolate_Derivative(self%densityContrastTableTimeCount                   , &
-            &                         self%densityContrastTableTime                        , &
+            & +Interpolate_Derivative(self%densityContrastTableTime                        , &
             &                         self%densityContrastTable(:,jMass(iMass))            , &
             &                         self%densityContrastTableTimeInterpolationObject     , &
             &                         self%densityContrastTableTimeInterpolationAccelerator, &

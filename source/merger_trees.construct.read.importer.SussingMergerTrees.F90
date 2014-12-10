@@ -38,7 +38,7 @@
      type            (varying_string), allocatable, dimension(:) :: snapshotFileName
      integer         (kind=kind_int8), allocatable, dimension(:) :: treeIndices
      integer         (kind=c_size_t ), allocatable, dimension(:) :: treeIndexRanks
-     integer                         , allocatable, dimension(:) :: treeSizes               , treeBegins
+     integer         (c_size_t      ), allocatable, dimension(:) :: treeSizes               , treeBegins
      type            (nodeData      ), allocatable, dimension(:) :: nodes
      double precision                , allocatable, dimension(:) :: snapshotTimes
      integer                                                     :: subvolumeCount
@@ -125,6 +125,7 @@
   integer                                        :: mergerTreeImportSussingForestFirst
   integer                                        :: mergerTreeImportSussingForestLast
   integer                                        :: mergerTreeImportSussingMassOption
+  logical                                        :: mergerTreeImportSussingForestReverseSnapshotOrder
 
   ! Bad value detection limits.
   integer                         , parameter    :: sussingBadValueLessThan                  =-1
@@ -298,31 +299,42 @@ contains
              !@ </inputParameter>
              call Get_Input_Parameter('mergerTreeImportSussingForestLast',mergerTreeImportSussingForestLast,defaultValue=-1)
              !@ <inputParameter>
-             !@   <name>mergerTreeImportSussingMassOption</name>
+             !@   <name>mergerTreeImportSussingForestReverseSnapshotOrder</name>
              !@   <attachedTo>module</attachedTo>
-             !@   <defaultValue>default</defaultValue>
+             !@   <defaultValue>false</defaultValue>
              !@   <description>
-             !@     Mass option for Sussing merger trees.
+             !@     If true, the order of forest snapshots will be reversed after being read. This may be necessary to cause them to match the order of snapshot files.
              !@   </description>
-             !@   <type>string</type>
+             !@   <type>integer</type>
              !@   <cardinality>1</cardinality>
              !@ </inputParameter>
-             call Get_Input_Parameter('mergerTreeImportSussingMassOption',mergerTreeImportSussingMassOptionText,defaultValue="default")
-             select case (char(mergerTreeImportSussingMassOptionText))
-             case ("default")
-                mergerTreeImportSussingMassOption=sussingMassDefault
-             case ("FoF"    )
-                mergerTreeImportSussingMassOption=sussingMassFoF
-             case ("200Mean")
-                mergerTreeImportSussingMassOption=sussingMass200Mean
-             case ("200Crit")
-                mergerTreeImportSussingMassOption=sussingMass200Crit
-             case ("TopHat" )
-                mergerTreeImportSussingMassOption=sussingMassTopHat
-             case default
-                call Galacticus_Error_Report('sussingDefaultConstructor','unrecognized mass option')
-             end select
+             call Get_Input_Parameter('mergerTreeImportSussingForestReverseSnapshotOrder',mergerTreeImportSussingForestReverseSnapshotOrder,defaultValue=.false.)
           end if
+          !@ <inputParameter>
+          !@   <name>mergerTreeImportSussingMassOption</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <defaultValue>default</defaultValue>
+          !@   <description>
+          !@     Mass option for Sussing merger trees.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeImportSussingMassOption',mergerTreeImportSussingMassOptionText,defaultValue="default")
+          select case (char(mergerTreeImportSussingMassOptionText))
+          case ("default")
+             mergerTreeImportSussingMassOption=sussingMassDefault
+          case ("FoF"    )
+             mergerTreeImportSussingMassOption=sussingMassFoF
+          case ("200Mean")
+             mergerTreeImportSussingMassOption=sussingMass200Mean
+          case ("200Crit")
+             mergerTreeImportSussingMassOption=sussingMass200Crit
+          case ("TopHat" )
+             mergerTreeImportSussingMassOption=sussingMassTopHat
+          case default
+             call Galacticus_Error_Report('sussingDefaultConstructor','unrecognized mass option')
+          end select
           sussingInitialized=.true.
        end if
        !$omp end critical (mergerTreeImporterSussingInitialize)
@@ -375,10 +387,9 @@ contains
          &                                                           parameterValue
     character       (len=14                      )                :: valueString             , unitString
     type            (regEx                       )                :: parameterRegEx
-    type            (importerUnits               )                :: boxLengthUnits
-    integer                                                       :: simulationDefintion     , fileUnit             , &
+    integer                                                       :: fileUnit                , snapshotNumber       , &
          &                                                           ioStat                  , snapshotFileCount    , &
-         &                                                           i                       , snapshotNumber
+         &                                                           i
     double precision                                              :: localLittleH0           , localOmegaMatter     , &
          &                                                           localOmegaDE            , cosmologicalParameter, &
          &                                                           expansionFactor         , redshift             , &
@@ -572,7 +583,7 @@ contains
     return
   end function sussingCubeLength
 
-  integer function sussingTreeCount(self)
+  integer(c_size_t) function sussingTreeCount(self)
     !% Return a count of the number of trees available.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
@@ -582,7 +593,7 @@ contains
     return
   end function sussingTreeCount
 
-  integer(kind=kind_int8) function sussingTreeIndex(self,i)
+  integer(c_size_t) function sussingTreeIndex(self,i)
     !% Return the index of the $i^{\rm th}$ tree.
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
@@ -593,11 +604,12 @@ contains
     return
   end function sussingTreeIndex
 
-  integer function sussingNodeCount(self,i)
+  function sussingNodeCount(self,i)
     !% Return a count of the number of nodes in the $i^{\rm th}$ tree.
     implicit none
+    integer(c_size_t                 )                :: sussingNodeCount
     class  (mergerTreeImporterSussing), intent(inout) :: self
-    integer                              , intent(in   ) :: i
+    integer                           , intent(in   ) :: i
 
     call sussingTreeIndicesRead(self)
     sussingNodeCount=self%treeSizes(i)
@@ -614,77 +626,80 @@ contains
     use File_Utilities
     use Memory_Management
     use Arrays_Search
+    use Array_Utilities
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     use, intrinsic :: ISO_C_Binding
     implicit none
-    class    (mergerTreeImporterSussing), intent(inout)               :: self
-    integer  (kind=c_size_t            ), allocatable  , dimension(:) :: nodeIndexRanks
-    integer  (kind=kind_int8           ), allocatable  , dimension(:) :: nodeSelfIndices           , nodeTreeIndices       , &
-         &                                                               nodeDescendentLocations   , nodesInSubvolume      , &
-         &                                                               nodesTmp                  , hostsInSubvolume
-    logical                             , allocatable  , dimension(:) :: nodeIncomplete            , nodeIncompleteTmp
-    integer  (kind=kind_int8           ), allocatable  , dimension(:) :: forestSnapshotHaloCount   , forestSnapshotHaloCountFirst, &
-         &                                                               forestSnapshotHaloCountLast
-    integer                             , parameter                   :: fileFormatVersionCurrent=1
-    integer                             , parameter                   :: stepCountMaximum        =1000000
-    logical                                                           :: nodeIsActive              , doBinaryConversion    , &
-         &                                                               readBinary                , mergerTreeFileIsBinary, &
-         &                                                               mergerTreeFileConvert     , processHalo
-    integer                                                           :: fileUnit                  , progenitorCount       , &
-         &                                                               ioStat                    , lineStat              , &
-         &                                                               nodeCountSubvolume        , nodeCount             , &
-         &                                                               fileFormatVersion         , iProgenitor           , &
-         &                                                               snapshotUnit              , snapshotOutUnit       , &
-         &                                                               fileUnitOut               , nodeCountTrees
-    character(len=1024                 )                              :: line
-    character(len=32                   )                              :: label
-    integer  (kind=c_size_t            )                              :: l
-    integer  (kind=kind_int8           )                              :: nodeIndex                 , treeIndexPrevious     , &
-         &                                                               treeIndexCurrent          , i                     , &
-         &                                                               j                         , k                     , &
-         &                                                               iNode                     , iStart                , &
-         &                                                               jNode                     , iCount
-    type     (varying_string           )                              :: message
-    integer  (kind=kind_int8           )                              :: ID                        , hostHalo              , &
-         &                                                               treeIndexFrom             , treeIndexTo           , &
-         &                                                               progenitorIndex           , forestCount           , &
-         &                                                               forestFirst               , forestLast            , &
-         &                                                               forestHaloCountLast       , forestHaloCountFirst  , &
-         &                                                               forestHaloCount
-    integer                                                           :: numSubStruct              , npart                 , &
-         &                                                               descendentStepCount       , hostStepCount         , &
-         &                                                               haloFormat
-    double precision                                                  :: Mvir                      , Xc                    , &
-               &                                                         Yc                        , Zc                    , &
-               &                                                         VXc                       , Vyc                   , &
-               &                                                         VZc                       , Rvir                  , &
-               &                                                         Rmax                      , r2                    , &
-               &                                                         mbp_offset                , com_offset            , &
-               &                                                         Vmax                      , v_esc                 , &
-               &                                                         sigV                      , lambda                , &
-               &                                                         lambdaE                   , Lx                    , &
-               &                                                         Ly                        , Lz                    , &
-               &                                                         b                         , c                     , &
-               &                                                         Eax                       , Eay                   , &
-               &                                                         Eaz                       , Ebx                   , &
-               &                                                         Eby                       , Ebz                   , &
-               &                                                         Ecx                       , Ecy                   , &
-               &                                                         Ecz                       , ovdens                , &
-               &                                                         fMhires                   , Ekin                  , &
-               &                                                         Epot                      , SurfP                 , &
-               &                                                         Phi0                      , cNFW                  , &
-               &                                                         nbins                     , FoFMass               , &
-               &                                                         M_200Mean                 , M_200Crit             , &
-               &                                                         M_TopHat                  , R_200Mean             , &
-               &                                                         R_200Crit                 , R_TopHat              , &
-               &                                                         HalfMassRadius            , sigV_200Mean          , &
-               &                                                         sigV_200Crit              , sigV_TopHat           , &
-               &                                                         Xcm                       , Ycm                   , &
-               &                                                         Zcm                       , Xgroup                , &
-               &                                                         Ygroup                    , Zgroup
-    type            (importerUnits     )                              :: massUnits                 , lengthUnits           , &
-         &                                                               velocityUnits
+    class    (mergerTreeImporterSussing), intent(inout)                 :: self
+    integer  (kind=c_size_t            ), allocatable  , dimension(:  ) :: nodeIndexRanks            , nodeDescendentLocations
+    integer  (kind=kind_int8           ), allocatable  , dimension(:  ) :: nodeSelfIndices           , nodeTreeIndices       , &
+         &                                                                 nodesTmp                  , hostsInSubvolume      , &
+         &                                                                 nodesInSubvolume
+    logical                             , allocatable  , dimension(:  ) :: nodeIncomplete            , nodeIncompleteTmp
+    integer  (c_size_t                 ), allocatable  , dimension(:  ) :: forestSnapshotHaloCount   , forestSnapshotHaloCountFirst, &
+         &                                                                 forestSnapshotHaloCountLast, forestID
+    integer  (c_size_t                 ), allocatable  , dimension(:,:) :: forestSnapshotHaloCounts
+    integer                             , parameter                     :: fileFormatVersionCurrent=1
+    integer                             , parameter                     :: stepCountMaximum        =1000000
+    logical                                                             :: nodeIsActive              , doBinaryConversion    , &
+         &                                                                 readBinary                , mergerTreeFileIsBinary, &
+         &                                                                 mergerTreeFileConvert     , processHalo
+    integer                                                             :: fileUnit                  , progenitorCount       , &
+         &                                                                 fileFormatVersion         , fileUnitOut           , &
+         &                                                                 snapshotUnit              , snapshotOutUnit       , &
+         &                                                                 ioStat
+    character(len=1024                 )                                :: line
+    character(len=32                   )                                :: label
+    integer  (kind=c_size_t            )                                :: l                         , i                     , &
+         &                                                                 j                         , k                     , &
+         &                                                                 iNode                     , iStart                , &
+         &                                                                 jNode                     , iCount                , &
+         &                                                                 nodeCount                 , nodeCountSubvolume    , &
+         &                                                                 nodeCountTrees            , iProgenitor           , &
+         &                                                                 jCount                    , jForest
+    integer  (kind=kind_int8           )                                :: nodeIndex                 , treeIndexPrevious     , &
+         &                                                                 treeIndexCurrent
+    type     (varying_string           )                                :: message
+    integer  (kind=kind_int8           )                                :: ID                        , hostHalo              , &
+         &                                                                 treeIndexFrom             , treeIndexTo           , &
+         &                                                                 progenitorIndex 
+    integer  (c_size_t                 )                                :: forestCount               , forestHaloCount       , &
+         &                                                                 forestFirst               , forestLast            , &
+         &                                                                 forestHaloCountLast       , forestHaloCountFirst
+    integer                                                             :: numSubStruct              , npart                 , &
+         &                                                                 descendentStepCount       , hostStepCount         , &
+         &                                                                 haloFormat
+    double precision                                                    :: Mvir                      , Xc                    , &
+               &                                                           Yc                        , Zc                    , &
+               &                                                           VXc                       , Vyc                   , &
+               &                                                           VZc                       , Rvir                  , &
+               &                                                           Rmax                      , r2                    , &
+               &                                                           mbp_offset                , com_offset            , &
+               &                                                           Vmax                      , v_esc                 , &
+               &                                                           sigV                      , lambda                , &
+               &                                                           lambdaE                   , Lx                    , &
+               &                                                           Ly                        , Lz                    , &
+               &                                                           b                         , c                     , &
+               &                                                           Eax                       , Eay                   , &
+               &                                                           Eaz                       , Ebx                   , &
+               &                                                           Eby                       , Ebz                   , &
+               &                                                           Ecx                       , Ecy                   , &
+               &                                                           Ecz                       , ovdens                , &
+               &                                                           fMhires                   , Ekin                  , &
+               &                                                           Epot                      , SurfP                 , &
+               &                                                           Phi0                      , cNFW                  , &
+               &                                                           nbins                     , FoFMass               , &
+               &                                                           M_200Mean                 , M_200Crit             , &
+               &                                                           M_TopHat                  , R_200Mean             , &
+               &                                                           R_200Crit                 , R_TopHat              , &
+               &                                                           HalfMassRadius            , sigV_200Mean          , &
+               &                                                           sigV_200Crit              , sigV_TopHat           , &
+               &                                                           Xcm                       , Ycm                   , &
+               &                                                           Zcm                       , Xgroup                , &
+               &                                                           Ygroup                    , Zgroup
+    type            (importerUnits     )                                :: massUnits                 , lengthUnits           , &
+         &                                                                 velocityUnits
      
     ! Return if indices have been read previously.
     if (self%treeIndicesRead) return
@@ -694,13 +709,16 @@ contains
     ! If a forest field is provided, scan it now to find the ranges to read from subsequent files.
     if (mergerTreeImportSussingUseForestFile) then
        forestCount=Count_Lines_in_File(mergerTreeImportSussingForestFile,'#')
-       call Alloc_Array(forestSnapshotHaloCount     ,shape(self%snapshotFileName))
-       call Alloc_Array(forestSnapshotHaloCountFirst,shape(self%snapshotFileName))
-       call Alloc_Array(forestSnapshotHaloCountLast ,shape(self%snapshotFileName))
+       call Alloc_Array(forestSnapshotHaloCount     ,                                                                        shape(self%snapshotFileName) )
+       call Alloc_Array(forestSnapshotHaloCountFirst,                                                                        shape(self%snapshotFileName) )
+       call Alloc_Array(forestSnapshotHaloCountLast ,                                                                        shape(self%snapshotFileName) )
+       call Alloc_Array(forestSnapshotHaloCounts    ,[mergerTreeImportSussingForestLast-mergerTreeImportSussingForestFirst+1,size (self%snapshotFileName)])
+       call Alloc_Array(forestID                    ,[mergerTreeImportSussingForestLast-mergerTreeImportSussingForestFirst+1                             ])
        forestHaloCountFirst        =0
        forestHaloCountLast         =0
        forestSnapshotHaloCountFirst=0
        forestSnapshotHaloCountLast =0
+       j                           =0
        forestFirst=mergerTreeImportSussingForestFirst
        forestLast =mergerTreeImportSussingForestLast
        if (forestLast < 0) forestLast=forestCount
@@ -711,12 +729,24 @@ contains
           forestHaloCountLast        =forestHaloCountLast        +forestHaloCount
           forestSnapshotHaloCountLast=forestSnapshotHaloCountLast+forestSnapshotHaloCount
           if (i < forestFirst) then
-             forestHaloCountFirst        =forestHaloCountLast        +1
-             forestSnapshotHaloCountFirst=forestSnapshotHaloCountLast+1
+             forestHaloCountFirst         =forestHaloCountLast        +1
+             forestSnapshotHaloCountFirst =forestSnapshotHaloCountLast+1
+          else
+             j                            =j                          +1
+             forestID                (j  )=ID
+             forestSnapshotHaloCounts(j,:)=forestSnapshotHaloCount
           end if
        end do
        close(fileUnit)
        call Dealloc_Array(forestSnapshotHaloCount)
+       ! Reverse order of forest snapshots to match the order of snapshot files if necessary.
+       if (mergerTreeImportSussingForestReverseSnapshotOrder) then
+          forestSnapshotHaloCountFirst=Array_Reverse(forestSnapshotHaloCountFirst)
+          forestSnapshotHaloCountLast =Array_Reverse(forestSnapshotHaloCountLast )
+          do j=1,size(forestSnapshotHaloCounts,dim=1)
+             forestSnapshotHaloCounts(j,:)=Array_Reverse(forestSnapshotHaloCounts(j,:))
+          end do
+       end if
     end if
     ! Open the merger tree file.
     mergerTreeFileIsBinary=File_Exists(char(self%mergerTreeFile//".bin"))
@@ -733,21 +763,21 @@ contains
     ! Read header information.
     call Galacticus_Display_Message('Reading header',verbosityWorking)
     if (mergerTreeFileIsBinary) then
-       read     (fileUnit     ,ioStat=ioStat) fileFormatVersion
-       read     (fileUnit     ,ioStat=ioStat) nodeCount
+       read     (fileUnit         ,ioStat=ioStat) fileFormatVersion
+       read     (fileUnit         ,ioStat=ioStat) nodeCount
     else
-       read     (fileUnit   ,*,ioStat=ioStat) fileFormatVersion
-       read     (fileUnit   ,*,ioStat=ioStat) line
-       read     (fileUnit   ,*,ioStat=ioStat) nodeCount
+       read     (fileUnit   ,*    ,ioStat=ioStat) fileFormatVersion
+       read     (fileUnit   ,'(a)',ioStat=ioStat) line
+       read     (fileUnit   ,*    ,ioStat=ioStat) nodeCount
        if (mergerTreeFileConvert) then
           write (fileUnitOut                ) fileFormatVersion
           write (fileUnitOut                ) nodeCount
        end if
     end if
-    ! Validate file format version/
+    ! Validate file format version.
     if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('sussingTreeIndicesRead','incorrect file format version')
     ! Allocate storage for list of nodes in subvolume.
-    nodeCountSubVolume=int(dble(nodeCount)/dble(self%subvolumeCount)**3)+1
+    nodeCountSubVolume=int(dble(nodeCount)/dble(self%subvolumeCount)**3,kind=c_size_t)+1
     call Alloc_Array(nodesInSubvolume,[nodeCountSubVolume])
     call Alloc_Array(hostsInSubvolume,[nodeCountSubVolume])
     ! Read snapshot halo catalogs.
@@ -1153,6 +1183,7 @@ contains
     else
        open(newUnit=fileUnit,file=char(self%mergerTreeFile        ),status='old',form='formatted'  ,ioStat=ioStat)
     end if
+    if (ioStat /= 0) call Galacticus_Error_Report('sussingTreeIndicesRead','failed to open merger tree file "'//char(self%mergerTreeFile)//'"')
     ! Read progenitor indices and make links.
     call Galacticus_Display_Message('Reading trees',verbosityWorking)
     if (mergerTreeFileIsBinary) then
@@ -1160,10 +1191,14 @@ contains
        read (fileUnit  ,ioStat=ioStat) nodeCount
     else
        read (fileUnit,*,ioStat=ioStat) fileFormatVersion
-       read (fileUnit,*,ioStat=ioStat) line
+       if (ioStat /= 0) call Galacticus_Error_Report('sussingTreeIndicesRead','failed to read merger tree file "'//char(self%mergerTreeFile)//'" header line 1')
+       read (fileUnit,'(a)',ioStat=ioStat) line
+       if (ioStat /= 0) call Galacticus_Error_Report('sussingTreeIndicesRead','failed to read merger tree file "'//char(self%mergerTreeFile)//'" header line 2')
        read (fileUnit,*,ioStat=ioStat) nodeCount
+       if (ioStat /= 0) call Galacticus_Error_Report('sussingTreeIndicesRead','failed to read merger tree file "'//char(self%mergerTreeFile)//'" header line 3')
     end if
     i                      = 0
+    iCount                 = 0
     nodeDescendentLocations=-1
     nodeIncomplete         =.false.
     nodeIsActive           =.false.
@@ -1191,7 +1226,7 @@ contains
              read (fileUnit  ,ioStat=ioStat) nodeIndex
           else
              read (fileUnit,*,ioStat=ioStat) nodeIndex
-          end if          
+          end if   
           if (nodeIsActive) then
              ! This line represents a progenitor. Locate the progenitor in the list of halos.
              iProgenitor=Search_Indexed(nodeSelfIndices,nodeIndexRanks,nodeIndex)
@@ -1256,6 +1291,8 @@ contains
              end if
           end if
        end do
+       iCount=iCount+1
+       if (mergerTreeImportSussingUseForestFile .and. iCount == forestHaloCountLast) exit
     end do
     call Dealloc_Array(hostsInSubvolume)
     ! Close the merger tree file.
@@ -1286,9 +1323,11 @@ contains
        else
           ! No binary version of this file exists, use the ASCII version.
           open(newUnit=snapshotUnit,file=char(self%snapshotFileName(i)        ),status='old',form='formatted'  ,ioStat=ioStat)
-          read (snapshotUnit,*,ioStat=ioStat) line
+          read (snapshotUnit,'(a)',ioStat=ioStat) line
        end if
-       iCount=0
+       iCount =0
+       jCount =0
+       jForest=1
        do while (ioStat == 0)
           ! Increment count of number of halos read.
           iCount=iCount+1
@@ -1486,6 +1525,12 @@ contains
           if (ioStat /= 0) exit
           ! Check if halo is to be processed.
           if (processHalo) then 
+              ! Update forest ID.
+             jCount=jCount+1
+             do while (jCount > forestSnapshotHaloCounts(jForest,i))
+                jForest=jForest+1
+                jCount =        1
+             end do
              ! Locate this node in the list of nodes in our subvolume.
              iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),ID)
              if (iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == ID) then
@@ -1506,6 +1551,7 @@ contains
                    end if
                 end if
                 ! Store properties to node array.
+                nodeTreeIndices(l)=forestID(jForest)
                 if (hostHalo <= 0) then
                    self%nodes(l)%hostIndex         =ID
                 else
@@ -1527,6 +1573,8 @@ contains
                    self%nodes(l)%nodeMass          =M_200Crit
                 case (sussingMassTopHat )
                    self%nodes(l)%nodeMass          =M_TopHat
+                case default
+                   call Galacticus_Error_Report('sussingTreeIndicesRead','unrecognized mass option')
                 end select
                 if (self%nodes(l)%nodeMass == 0.0d0 .or. self%valueIsBad(self%nodes(l)%nodeMass)) self%nodes(l)%nodeMass=Mvir
                 self   %nodes(l)%nodeTime          =self%snapshotTimes(i)
@@ -1629,80 +1677,27 @@ contains
     ! Assign tree indices.
     call Galacticus_Display_Message('Assigning tree indices',verbosityWorking)
     call Alloc_Array(nodeTreeIndices,[nodeCountTrees])
-    nodeTreeIndices=nodeSelfIndices
-    do i=1,nodeCountTrees
-       call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(nodeCountTrees)),i==1,verbosityWorking)
-       l=i
-       hostStepCount=0
-       do while (l /= -1 .and. self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex) 
-          ! Find the host halo.
-          k=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
-          ! Check for missing hosts.
-          if (k < 1 .or. k > nodeCountTrees .or. self%nodes(l)%hostIndex /= self%nodes(nodeIndexRanks(k))%nodeIndex) then
-             ! No host can be found (it must be outside of the buffered subvolume). Assign this node its own index as a tree
-             ! index, and skip looking for hosts.
-             nodeTreeIndices(i)=self%nodes(i)%nodeIndex
-             exit
-          end if
-          ! Perform sanity checks.
-          if (k >= 0 .and. self%nodes(nodeIndexRanks(k))%nodeTime /= self%nodes(l)%nodeTime) then
-             message='host exists at different time from hosted node'
-             message=message//char(10)//' hosted node index: '//self%nodes(               l )%nodeIndex
-             message=message//char(10)//'   host node index: '//self%nodes(nodeIndexRanks(k))%nodeIndex
-             write (label,'(f7.4)') self%nodes(               l )%nodeTime
-             message=message//char(10)//'  hosted node time: '//label
-             write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
-             message=message//char(10)//'    host node time: '//label
-             call Galacticus_Error_Report('sussingTreeIndicesRead',message)
-          end if
-          hostStepCount=hostStepCount+1
-          if (hostStepCount > stepCountMaximum) then
-             message='infinite (or at least, very large) loop detect in halo hosting'
-             message=message//char(10)//' hosted node index: '//self%nodes(               l )%nodeIndex
-             message=message//char(10)//'   host node index: '//self%nodes(nodeIndexRanks(k))%nodeIndex
-             write (label,'(f7.4)') self%nodes(               l )%nodeTime
-             message=message//char(10)//'  hosted node time: '//label
-             write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
-             message=message//char(10)//'    host node time: '//label
-             call Galacticus_Error_Report('sussingTreeIndicesRead',message)
-          end if
-          l=nodeIndexRanks(k)
-       end do
-       descendentStepCount=0
-       do while (l /= -1)
-          nodeTreeIndices(i)=nodeTreeIndices(l)
-          k=nodeDescendentLocations(l)
-          ! Check for missing descendents.
-          if (k < 0 .or. self%nodes(l)%descendentIndex /= self%nodes(k)%nodeIndex) exit
-          ! Perform sanity checks.
-          if (k >= 0 .and. self%nodes(k)%nodeTime <= self%nodes(l)%nodeTime) then
-             message='descendent exists before progenitor node'
-             message=message//char(10)//' progenitor node index: '//self%nodes(l)%nodeIndex
-             message=message//char(10)//' descendent node index: '//self%nodes(k)%nodeIndex
-             write (label,'(f7.4)') self%nodes(l)%nodeTime
-             message=message//char(10)//'  progenitor node time: '//label
-             write (label,'(f7.4)') self%nodes(k)%nodeTime
-             message=message//char(10)//'  descendent node time: '//label
-             call Galacticus_Error_Report('sussingTreeIndicesRead',message)
-          end if
-          descendentStepCount=descendentStepCount+1
-          if (descendentStepCount > stepCountMaximum) then
-             message='infinite (or at least, very large) loop detect in halo descent'
-             message=message//char(10)//' progenitor node index: '//self%nodes(l)%nodeIndex
-             message=message//char(10)//' descendent node index: '//self%nodes(k)%nodeIndex
-             write (label,'(f7.4)') self%nodes(l)%nodeTime
-             message=message//char(10)//'  progenitor node time: '//label
-             write (label,'(f7.4)') self%nodes(k)%nodeTime
-             message=message//char(10)//'  descendent node time: '//label
-             call Galacticus_Error_Report('sussingTreeIndicesRead',message)
-          end if
-          l=k
+    if (mergerTreeImportSussingUseForestFile) then
+       ! We've already done tree index assignment in this case.
+       call Dealloc_Array(forestSnapshotHaloCounts)
+       call Dealloc_Array(forestID                )
+    else
+       nodeTreeIndices=nodeSelfIndices
+       do i=1,nodeCountTrees
+          call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(nodeCountTrees)),i==1,verbosityWorking)
+          l=i
           hostStepCount=0
           do while (l /= -1 .and. self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex) 
+             ! Find the host halo.
              k=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
              ! Check for missing hosts.
-             if (self%nodes(l)%hostIndex /= self%nodes(nodeIndexRanks(k))%nodeIndex) exit
-             ! Perform sanity checks. 
+             if (k < 1 .or. k > nodeCountTrees .or. self%nodes(l)%hostIndex /= self%nodes(nodeIndexRanks(k))%nodeIndex) then
+                ! No host can be found (it must be outside of the buffered subvolume). Assign this node its own index as a tree
+                ! index, and skip looking for hosts.
+                nodeTreeIndices(i)=self%nodes(i)%nodeIndex
+                exit
+             end if
+             ! Perform sanity checks.
              if (k >= 0 .and. self%nodes(nodeIndexRanks(k))%nodeTime /= self%nodes(l)%nodeTime) then
                 message='host exists at different time from hosted node'
                 message=message//char(10)//' hosted node index: '//self%nodes(               l )%nodeIndex
@@ -1726,38 +1721,101 @@ contains
              end if
              l=nodeIndexRanks(k)
           end do
+          descendentStepCount=0
+          do while (l /= -1)
+             nodeTreeIndices(i)=nodeTreeIndices(l)
+             k=nodeDescendentLocations(l)
+             ! Check for missing descendents.
+             if (k < 0 .or. self%nodes(l)%descendentIndex /= self%nodes(k)%nodeIndex) exit
+             ! Perform sanity checks.
+             if (k >= 0 .and. self%nodes(k)%nodeTime <= self%nodes(l)%nodeTime) then
+                message='descendent exists before progenitor node'
+                message=message//char(10)//' progenitor node index: '//self%nodes(l)%nodeIndex
+                message=message//char(10)//' descendent node index: '//self%nodes(k)%nodeIndex
+                write (label,'(f7.4)') self%nodes(l)%nodeTime
+                message=message//char(10)//'  progenitor node time: '//label
+                write (label,'(f7.4)') self%nodes(k)%nodeTime
+                message=message//char(10)//'  descendent node time: '//label
+                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+             end if
+             descendentStepCount=descendentStepCount+1
+             if (descendentStepCount > stepCountMaximum) then
+                message='infinite (or at least, very large) loop detect in halo descent'
+                message=message//char(10)//' progenitor node index: '//self%nodes(l)%nodeIndex
+                message=message//char(10)//' descendent node index: '//self%nodes(k)%nodeIndex
+                write (label,'(f7.4)') self%nodes(l)%nodeTime
+                message=message//char(10)//'  progenitor node time: '//label
+                write (label,'(f7.4)') self%nodes(k)%nodeTime
+                message=message//char(10)//'  descendent node time: '//label
+                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+             end if
+             l=k
+             hostStepCount=0
+             do while (l /= -1 .and. self%nodes(l)%hostIndex /= self%nodes(l)%nodeIndex) 
+                k=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(l)%hostIndex)
+                ! Check for missing hosts.
+                if (self%nodes(l)%hostIndex /= self%nodes(nodeIndexRanks(k))%nodeIndex) exit
+                ! Perform sanity checks. 
+                if (k >= 0 .and. self%nodes(nodeIndexRanks(k))%nodeTime /= self%nodes(l)%nodeTime) then
+                   message='host exists at different time from hosted node'
+                   message=message//char(10)//' hosted node index: '//self%nodes(               l )%nodeIndex
+                   message=message//char(10)//'   host node index: '//self%nodes(nodeIndexRanks(k))%nodeIndex
+                   write (label,'(f7.4)') self%nodes(               l )%nodeTime
+                   message=message//char(10)//'  hosted node time: '//label
+                   write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
+                   message=message//char(10)//'    host node time: '//label
+                   call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                end if
+                hostStepCount=hostStepCount+1
+                if (hostStepCount > stepCountMaximum) then
+                   message='infinite (or at least, very large) loop detect in halo hosting'
+                   message=message//char(10)//' hosted node index: '//self%nodes(               l )%nodeIndex
+                   message=message//char(10)//'   host node index: '//self%nodes(nodeIndexRanks(k))%nodeIndex
+                   write (label,'(f7.4)') self%nodes(               l )%nodeTime
+                   message=message//char(10)//'  hosted node time: '//label
+                   write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
+                   message=message//char(10)//'    host node time: '//label
+                   call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                end if
+                l=nodeIndexRanks(k)
+             end do
+          end do
        end do
-    end do
+    end if
     call Galacticus_Display_Counter_Clear(       verbosityWorking)
     ! Check for nodes jumping between trees and join any such trees.
-    call Galacticus_Display_Message('Checking for branch jumps',verbosityWorking)
-    do i=1,nodeCountTrees
-       call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(nodeCountTrees)),i==1,verbosityWorking)
-       l=nodeDescendentLocations(i)
-       if (l /= -1) then
-          if (nodeTreeIndices(i) /= nodeTreeIndices(l)) then
-             ! Merge the trees by assigning the higher tree index to all nodes in the other tree.
-             if (nodeTreeIndices(i) > nodeTreeIndices(l)) then
-                treeIndexFrom=nodeTreeIndices(l)
-                treeIndexTo  =nodeTreeIndices(i)
-             else
-                treeIndexFrom=nodeTreeIndices(i)
-                treeIndexTo  =nodeTreeIndices(l)
+    if (.not.mergerTreeImportSussingUseForestFile) then
+       call Galacticus_Display_Message('Checking for branch jumps',verbosityWorking)
+       do i=1,nodeCountTrees
+          call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(nodeCountTrees)),i==1,verbosityWorking)
+          l=nodeDescendentLocations(i)
+          if (l /= -1) then
+             if (nodeTreeIndices(i) /= nodeTreeIndices(l)) then
+                ! Merge the trees by assigning the higher tree index to all nodes in the other tree.
+                if (nodeTreeIndices(i) > nodeTreeIndices(l)) then
+                   treeIndexFrom=nodeTreeIndices(l)
+                   treeIndexTo  =nodeTreeIndices(i)
+                else
+                   treeIndexFrom=nodeTreeIndices(i)
+                   treeIndexTo  =nodeTreeIndices(l)
+                end if
+                !$omp parallel do
+                do j=1,nodeCountTrees
+                   if (nodeTreeIndices(j) == treeIndexFrom) nodeTreeIndices(j)=treeIndexTo
+                end do
+                !$omp end parallel do
              end if
-             where (nodeTreeIndices == treeIndexFrom)
-                nodeTreeIndices=treeIndexTo
-             end where
           end if
-       end if
-    end do
-    do i=1,nodeCountTrees
-       l=nodeDescendentLocations(i)
-       if (l /= -1) then
-          if (nodeTreeIndices(i) /= nodeTreeIndices(l))                                              &
-               & call Galacticus_Error_Report('sussingTreeIndicesRead','failed to cross-link trees')
-       end if
-    end do
-    call Galacticus_Display_Counter_Clear(verbosityWorking)
+       end do
+       do i=1,nodeCountTrees
+          l=nodeDescendentLocations(i)
+          if (l /= -1) then
+             if (nodeTreeIndices(i) /= nodeTreeIndices(l))                                              &
+                  & call Galacticus_Error_Report('sussingTreeIndicesRead','failed to cross-link trees')
+          end if
+       end do
+       call Galacticus_Display_Counter_Clear(verbosityWorking)
+    end if
     ! Generate an index into nodes sorted by tree index.
     self%treeIndexRanks=Sort_Index_Do(nodeTreeIndices)
     ! Identify trees which contain incomplete nodes.
@@ -2032,11 +2090,12 @@ contains
     return
   end subroutine sussingSubhaloTrace
 
-  integer function sussingSubhaloTraceCount(self,node)
+  function sussingSubhaloTraceCount(self,node)
     !% Returns the length of a subhalo trace.
     implicit none
-    class(mergerTreeImporterSussing), intent(inout) :: self
-    class(nodeData                 ), intent(in   ) :: node
+    integer(c_size_t                 )                :: sussingSubhaloTraceCount
+    class  (mergerTreeImporterSussing), intent(inout) :: self
+    class  (nodeData                 ), intent(in   ) :: node
 
     ! No particle data is available.
     sussingSubhaloTraceCount=0
@@ -2055,7 +2114,7 @@ contains
          &                                                                                     requireParticleCounts     , requireVelocityMaxima, &
          &                                                                                     requireVelocityDispersions, requireSpin         , &
          &                                                                                     requireSpin3D
-    integer                                                                                 :: j
+    integer         (c_size_t                 )                                             :: j
 
     ! Allocate the nodes array.
     allocate(nodeData :: nodes(self%treeSizes(i)))

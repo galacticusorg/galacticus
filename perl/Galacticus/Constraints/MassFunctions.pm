@@ -108,7 +108,7 @@ sub Construct {
     	}
     }
     # Read galaxy data and construct mass function if necessary.
-    if ( $gotModelMassFunction == 0 ) {
+    if ( $gotModelMassFunction == 0 || (exists($arguments{'recompute'}) && $arguments{'recompute'} eq "yes") ) {
 	# If this mass function requires modeling of incompleteness, we cannot proceed.
 	die('MassFunctions::Construct: incompleteness modeling is not supported')
 	    if ( exists($arguments{'incompletenessModel'}) );
@@ -122,16 +122,16 @@ sub Construct {
 	# Find cosmological conversion factors.
 	my $cosmologyObserved = Astro::Cosmology->new(omega_matter => $config->{'omegaMatterObserved'}, omega_lambda =>  $config->{'omegaDarkEnergyObserved'}, h0 =>  $config->{'hubbleConstantObserved'});
 	my $cosmologyModel    = Astro::Cosmology->new(omega_matter => $galacticus->{'parameters'}->{'Omega_Matter'}, omega_lambda => $galacticus->{'parameters'}->{'Omega_DE'}, h0 => $galacticus->{'parameters'}->{'H_0'});
-	my $cosmologyScalingMass        ;
-	my $cosmologyScalingMassFunction;
-	if ( $config->{'cosmologyScalingMass'}->atstr(0) eq 'none' ) {
+	my $cosmologyScalingMass         = 1.0;
+	my $cosmologyScalingMassFunction = 1.0;
+	if ( $config->{'cosmologyScalingMass'}->atstr(0) eq 'none' || $config->{'redshift'} <= 0.0 ) {
 	    # Nothing to do.
 	} elsif ( $config->{'cosmologyScalingMass'}->atstr(0) eq 'luminosity' ) {
 	    $cosmologyScalingMass = ($cosmologyObserved->luminosity_distance($config->{'redshift'})/$cosmologyModel->luminosity_distance($config->{'redshift'}))**2;
 	} else {
 	    die('MassFunctions::Construct: unrecognized cosmology scaling');
 	}
-	if ( $config->{'cosmologyScalingMassFunction'}->atstr(0) eq 'none' ) {
+	if ( $config->{'cosmologyScalingMassFunction'}->atstr(0) eq 'none' || $config->{'redshift'} <= 0.0 ) {
 	    # Nothing to do.
 	} elsif ( $config->{'cosmologyScalingMassFunction'}->atstr(0) eq 'inverseComovingVolume' ) {
 	    $cosmologyScalingMassFunction =
@@ -151,7 +151,7 @@ sub Construct {
 	}
 	# Add random Gaussian errors to the masses.
 	my $sigma = pdl ones(nelem($logarithmicMass));
-	if ( reftype($config->{'massErrorRandomDex'}) eq "CODE" ) {
+	if ( ref($config->{'massErrorRandomDex'}) && reftype($config->{'massErrorRandomDex'}) eq "CODE" ) {
 	    $sigma .= &{$config->{'massErrorRandomDex'}}($logarithmicMass,$galacticus);
 	} else {
 	    $sigma *= $config->{'massErrorRandomDex'};

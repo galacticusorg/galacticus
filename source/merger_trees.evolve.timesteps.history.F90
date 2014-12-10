@@ -52,6 +52,7 @@ contains
   !# </timeStepsTask>
   subroutine Merger_Tree_Timestep_History(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determines the timestep to go to the next tabulation point for global history storage.
+    use, intrinsic :: ISO_C_Binding
     use Input_Parameters
     use Cosmology_Functions
     use Memory_Management
@@ -69,7 +70,7 @@ contains
     type            (varying_string               ), intent(inout), optional          :: lockType
     class           (nodeComponentBasic           )                         , pointer :: thisBasicComponent
     class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctionsDefault
-    integer                                                                           :: timeIndex
+    integer         (c_size_t                     )                                   :: timeIndex
     double precision                                                                  :: ourTimeStep              , time
 
     if (.not.timestepHistoryInitialized) then
@@ -156,7 +157,7 @@ contains
     time=thisBasicComponent%time()
 
     ! Determine how long until next available timestep.
-    timeIndex=Interpolate_Locate(timestepHistorySteps,historyTime,interpolationAccelerator,time)
+    timeIndex=Interpolate_Locate(historyTime,interpolationAccelerator,time)
     if (time < historyTime(timeIndex+1)) then
        ! Find next time for storage.
        ourTimeStep=historyTime(timeIndex+1)-time
@@ -175,6 +176,7 @@ contains
 
   subroutine Merger_Tree_History_Store(thisTree,thisNode,deadlockStatus)
     !% Store various properties in global arrays.
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
@@ -185,7 +187,7 @@ contains
     class           (nodeComponentBasic   )               , pointer :: thisBasicComponent
     class           (nodeComponentDisk    )               , pointer :: thisDiskComponent
     class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
-    integer                                                         :: timeIndex
+    integer         (c_size_t             )                         :: timeIndex
     double precision                                                :: diskStarFormationRate    , hotGasMass, &
          &                                                             spheroidStarFormationRate, time
 
@@ -201,7 +203,7 @@ contains
     if (time == historyTime(timestepHistorySteps)) then
        timeIndex=timestepHistorySteps
     else
-       timeIndex=Interpolate_Locate(timestepHistorySteps,historyTime,interpolationAccelerator,time)
+       timeIndex=Interpolate_Locate(historyTime,interpolationAccelerator,time)
     end if
 
     ! Accumulate the properties.

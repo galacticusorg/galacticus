@@ -946,6 +946,7 @@ contains
 
   subroutine Stellar_Luminosities_Special_Cases(luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet)
     !% Modify the input list of luminosities for special cases.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Output_Times
     use Cosmology_Functions
     use Memory_Management
@@ -954,8 +955,8 @@ contains
     type            (varying_string         ), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
          &                                                                                 luminosityType           , luminosityPostprocessSet
     double precision                         , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
-    integer                                                                             :: i                        , outputCount                , &
-         &                                                                                 newFilterCount          , j                                                                                
+    integer         (c_size_t               )                                           :: j                        , outputCount                , &
+         &                                                                                 i                        , newFilterCount
     type            (varying_string         )               , allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
          &                                                                                 luminosityTypeTmp        , luminosityPostprocessSetTmp
     type            (varying_string         )                            , dimension(4) :: specialFilterWords
@@ -966,9 +967,7 @@ contains
     character       (len=128                )                                           :: newFilterName
     double precision                                                                    :: outputRedshift           , resolution               , &
          &                                                                                 wavelengthMinimum        , wavelengthMaximum        , &
-         &                                                                                 wavelengthRatio          , wavelengthCentral        , &
-         &                                                                                 wavelengthLow            , wavelengthHigh
-
+         &                                                                                 wavelengthRatio          , wavelengthCentral
     ! Get cosmology functions.
     cosmologyFunctions_ => cosmologyFunctions()
     ! Get number of output redshifts.
@@ -1099,9 +1098,10 @@ contains
        & luminosityBandRedshiftTmp                   &
        &                                           )
     !% Expand the filter set by removing the filter at index {\tt expandFrom} by adding {\tt expandCount} replicas of the filter at that point.
+    use, intrinsic :: ISO_C_Binding
     use Memory_Management
     implicit none
-    integer                         , intent(in   )                            :: expandFrom               , expandCount
+    integer         (c_size_t      ), intent(in   )                            :: expandFrom               , expandCount
     type            (varying_string), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
          &                                                                        luminosityType           , luminosityPostprocessSet
     double precision                , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift

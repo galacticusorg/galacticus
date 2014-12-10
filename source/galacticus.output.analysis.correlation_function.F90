@@ -463,7 +463,7 @@ contains
        mass=                                                                                                                                                   &
             &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=correlationFunctions(i)%descriptor%massType) &
             & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=correlationFunctions(i)%descriptor%massType)
-       if (mass <= 0.0d0) return
+       if (mass <= 0.0d0) cycle
        if (associated(correlationFunctions(i)%descriptor%mapMass)) mass=correlationFunctions(i)%descriptor%mapMass(mass,thisNode)
        mass=mass*correlationFunctions(i)%cosmologyConversionMass(iOutput) ! Convert for cosmology.
        massLogarithmic=log10(mass)
@@ -475,7 +475,7 @@ contains
                &            -correlationFunctions(i)%descriptor%massSystematicLogM0 &
                &          )**(j-1)
        end do
-       if (massLogarithmic < correlationFunctions(i)%descriptor%massLogarithmicMinimum) return
+       if (massLogarithmic < correlationFunctions(i)%descriptor%massLogarithmicMinimum) cycle
        ! Accumulate the node.
        call Accumulate_Node(correlationFunctions(i),thisHalo(i),thisTree,thisNode,nodeStatus,massLogarithmic,iOutput)
        ! Accumulate halo if this is the last node in the tree.

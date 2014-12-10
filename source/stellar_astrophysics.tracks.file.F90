@@ -183,15 +183,16 @@ contains
 
   double precision function Stellar_Luminosity_File(initialMass,metallicity,age)
     !% Return the bolometric luminosity (in $L_\odot$) for a star of given {\tt initialMass}, {\tt metallicity} and {\tt age}.
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    double precision, intent(in   ) :: age                                   , initialMass                  , &
-         &                             metallicity
-    integer                         :: interpolationIndicesAge        (2,2,2), interpolationIndicesMass(2,2), &
-         &                             interpolationIndicesMetallicity(2    )
-    double precision                :: interpolationFactorsAge        (2,2,2), interpolationFactorsMass(2,2), &
-         &                             interpolationFactorsMetallicity(2    )
-    logical                         :: ageOutOfRange                         , massOutOfRange               , &
-         &                             metallicityOutOfRange
+    double precision          , intent(in   ) :: age                                   , initialMass                  , &
+         &                                       metallicity
+    integer         (c_size_t)                :: interpolationIndicesAge        (2,2,2), interpolationIndicesMass(2,2), &
+         &                                       interpolationIndicesMetallicity(2    )
+    double precision                          :: interpolationFactorsAge        (2,2,2), interpolationFactorsMass(2,2), &
+         &                                       interpolationFactorsMetallicity(2    )
+    logical                                   :: ageOutOfRange                         , massOutOfRange               , &
+         &                                       metallicityOutOfRange
 
     ! Get the interpolating factors.
     call Stellar_Tracks_Interpolation_Get(initialMass,metallicity,age,interpolationIndicesMetallicity,interpolationIndicesMass &
@@ -212,15 +213,16 @@ contains
 
   double precision function Stellar_Effective_Temperature_File(initialMass,metallicity,age)
     !% Return the effective temperature (in Kelvin) for a star of given {\tt initialMass}, {\tt metallicity} and {\tt age}.
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    double precision, intent(in   ) :: age                                   , initialMass                  , &
-         &                             metallicity
-    integer                         :: interpolationIndicesAge        (2,2,2), interpolationIndicesMass(2,2), &
-         &                             interpolationIndicesMetallicity(2    )
-    double precision                :: interpolationFactorsAge        (2,2,2), interpolationFactorsMass(2,2), &
-         &                             interpolationFactorsMetallicity(2    )
-    logical                         :: ageOutOfRange                         , massOutOfRange               , &
-         &                             metallicityOutOfRange
+    double precision          , intent(in   ) :: age                                   , initialMass                  , &
+         &                                       metallicity
+    integer         (c_size_t)                :: interpolationIndicesAge        (2,2,2), interpolationIndicesMass(2,2), &
+         &                                       interpolationIndicesMetallicity(2    )
+    double precision                          :: interpolationFactorsAge        (2,2,2), interpolationFactorsMass(2,2), &
+         &                                       interpolationFactorsMetallicity(2    )
+    logical                                   :: ageOutOfRange                         , massOutOfRange               , &
+         &                                       metallicityOutOfRange
 
     ! Get the interpolating factors.
     call Stellar_Tracks_Interpolation_Get(initialMass,metallicity,age,interpolationIndicesMetallicity,interpolationIndicesMass &
@@ -243,15 +245,17 @@ contains
        &,interpolationIndicesAge,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
        &,stellarTracks)
     !% Using precomputed factors, interpolate in metallicity, mass and age in the given {\tt stellarTracks}.
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    integer         , intent(in   ) :: interpolationIndicesAge        (2,2,2), interpolationIndicesMass(2,2), &
-         &                             interpolationIndicesMetallicity(2    )
-    double precision, intent(in   ) :: interpolationFactorsAge        (2,2,2), interpolationFactorsMass(2,2), &
-         &                             interpolationFactorsMetallicity(2    )
-    double precision, intent(in   ) :: stellarTracks                  (:,:,:)
-    integer                         :: iAge                                  , iMass                        , &
-         &                             iMetallicity                          , jAge                         , &
-         &                             jMass                                 , jMetallicity
+    integer         (c_size_t), intent(in   ) :: interpolationIndicesAge        (2,2,2), interpolationIndicesMass(2,2), &
+         &                                       interpolationIndicesMetallicity(2    )
+    double precision          , intent(in   ) :: interpolationFactorsAge        (2,2,2), interpolationFactorsMass(2,2), &
+         &                                       interpolationFactorsMetallicity(2    )
+    double precision          , intent(in   ) :: stellarTracks                  (:,:,:)
+    integer                                   :: iAge                                  , iMass                        , &
+         &                                       iMetallicity
+    integer         (c_size_t)                :: jAge                                  , jMetallicity                 , &
+         &                                       jMass
 
     Stellar_Tracks_Interpolation_Do=0.0d0
     do iMetallicity=1,2
@@ -274,22 +278,24 @@ contains
        &,metallicityOutOfRange,massOutOfRange,ageOutOfRange)
     !% Get interpolating factors for stellar tracks.
     use Numerical_Interpolation
+    use, intrinsic :: ISO_C_Binding
     implicit none
     double precision                         , intent(in   ) :: age                                          , initialMass                             , &
          &                                                      metallicity
-    integer                                  , intent(  out) :: interpolationIndicesAge        (2,2,2)       , interpolationIndicesMass    (2,2)       , &
+    integer         (c_size_t        )       , intent(  out) :: interpolationIndicesAge        (2,2,2)       , interpolationIndicesMass    (2,2)       , &
          &                                                      interpolationIndicesMetallicity(2    )
     double precision                         , intent(  out) :: interpolationFactorsAge        (2,2,2)       , interpolationFactorsMass    (2,2)       , &
          &                                                      interpolationFactorsMetallicity(2    )
     logical                                  , intent(  out) :: ageOutOfRange                                , massOutOfRange                          , &
          &                                                      metallicityOutOfRange
-    integer                                                  :: iMass                                        , iMetallicity                            , &
-         &                                                      jMass                                        , jMetallicity
+    integer                                                  :: iMass                                        , iMetallicity
+    integer         (c_size_t         )                      :: jMass                                        , jMetallicity
     double precision                                         :: logMetallicity
     type            (fgsl_interp_accel), save                :: interpolationAcceleratorAge                  , interpolationAcceleratorMass
     logical                            , save                :: interpolationResetAge                 =.true., interpolationResetMass           =.true.
     !$omp threadprivate(interpolationAcceleratorMass,interpolationAcceleratorAge,interpolationResetMass,interpolationResetAge)
     !$omp critical (Stellar_Tracks_Interpolate)
+
     ! Assume everything is in range initially.
     metallicityOutOfRange=.false.
     massOutOfRange       =.false.
@@ -310,11 +316,10 @@ contains
        interpolationFactorsMetallicity=[0.0d0,1.0d0]
        metallicityOutOfRange=.true.
     else
-       interpolationIndicesMetallicity(1)=Interpolate_Locate(stellarTrackMetallicityCount,stellarTrackLogMetallicities&
+       interpolationIndicesMetallicity(1)=Interpolate_Locate(stellarTrackLogMetallicities&
             &,interpolationAcceleratorMetallicity,logMetallicity,reset=interpolationResetMetallicity)
        interpolationIndicesMetallicity(2)=interpolationIndicesMetallicity(1)+1
-       interpolationFactorsMetallicity=Interpolate_Linear_Generate_Factors(stellarTrackMetallicityCount&
-            &,stellarTrackLogMetallicities,interpolationIndicesMetallicity(1),logMetallicity)
+       interpolationFactorsMetallicity=Interpolate_Linear_Generate_Factors(stellarTrackLogMetallicities,interpolationIndicesMetallicity(1),logMetallicity)
     end if
 
     ! Loop over metallicities.
@@ -332,12 +337,10 @@ contains
           massOutOfRange=.true.
        else
           interpolationResetMass=.true.
-          interpolationIndicesMass(iMetallicity,1)=Interpolate_Locate(stellarTrackInitialMassCount(jMetallicity)&
-               &,stellarTrackInitialMasses(:,jMetallicity),interpolationAcceleratorMass,initialMass,reset=interpolationResetMass)
+          interpolationIndicesMass(iMetallicity,1)=Interpolate_Locate(stellarTrackInitialMasses(1:stellarTrackInitialMassCount(jMetallicity),jMetallicity),interpolationAcceleratorMass,initialMass,reset=interpolationResetMass)
           call Interpolate_Done(interpolationAccelerator=interpolationAcceleratorMass,reset=interpolationResetMass)
           interpolationIndicesMass(iMetallicity,2)=interpolationIndicesMass(iMetallicity,1)+1
-          interpolationFactorsMass(iMetallicity,:)=Interpolate_Linear_Generate_Factors(stellarTrackInitialMassCount(jMetallicity)&
-               &,stellarTrackInitialMasses(:,jMetallicity),interpolationIndicesMass(iMetallicity,1),initialMass)
+          interpolationFactorsMass(iMetallicity,:)=Interpolate_Linear_Generate_Factors(stellarTrackInitialMasses(1:stellarTrackInitialMassCount(jMetallicity),jMetallicity),interpolationIndicesMass(iMetallicity,1),initialMass)
        end if
 
        ! Loop over masses.
@@ -355,12 +358,10 @@ contains
              ageOutOfRange=.true.
           else
              interpolationResetAge=.true.
-             interpolationIndicesAge(iMetallicity,iMass,1)=Interpolate_Locate(stellarTrackAgesCount(jMass,jMetallicity)&
-                  &,stellarTrackAges(:,jMass,jMetallicity) ,interpolationAcceleratorAge,age,reset=interpolationResetAge)
+             interpolationIndicesAge(iMetallicity,iMass,1)=Interpolate_Locate(stellarTrackAges(1:stellarTrackAgesCount(jMass,jMetallicity),jMass,jMetallicity) ,interpolationAcceleratorAge,age,reset=interpolationResetAge)
              call Interpolate_Done(interpolationAccelerator=interpolationAcceleratorAge,reset=interpolationResetAge)
              interpolationIndicesAge(iMetallicity,iMass,2)=interpolationIndicesAge(iMetallicity,iMass,1)+1
-             interpolationFactorsAge(iMetallicity,iMass,:)=Interpolate_Linear_Generate_Factors(stellarTrackAgesCount(jMass,jMetallicity)&
-                  &,stellarTrackAges(:,jMass,jMetallicity),interpolationIndicesAge(iMetallicity,iMass,1),age)
+             interpolationFactorsAge(iMetallicity,iMass,:)=Interpolate_Linear_Generate_Factors(stellarTrackAges(1:stellarTrackAgesCount(jMass,jMetallicity),jMass,jMetallicity),interpolationIndicesAge(iMetallicity,iMass,1),age)
           end if
        end do
 

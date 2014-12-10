@@ -40,6 +40,7 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Mass_Accretion_History_Output(thisTree)
     !% Output the mass accretion history of {\tt thisTree}.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management
@@ -55,7 +56,7 @@ contains
     double precision                    , allocatable  , dimension(:)          :: accretionHistoryNodeMass , accretionHistoryNodeTime
     class           (nodeComponentBasic)                             , pointer :: thisBasicComponent
     type            (mergerTree        )                             , pointer :: currentTree
-    integer         (kind=kind_int8    )                                       :: accretionHistoryCount
+    integer         (c_size_t          )                                       :: accretionHistoryCount
     type            (varying_string    )                                       :: groupName
     type            (hdf5Object        )                                       :: accretionDataset         , treeGroup
 

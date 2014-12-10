@@ -23,7 +23,7 @@
 
   type, public, extends(nodeData) :: nodeDataGalacticus
      !% Extension of the {\tt nodeData} class for \glc\ format merger trees. Stores particle indices and counts for nodes.
-     integer(kind=kind_int8) :: particleIndexCount, particleIndexStart
+     integer(c_size_t) :: particleIndexCount, particleIndexStart
   end type nodeDataGalacticus
 
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
@@ -506,7 +506,6 @@ contains
     double precision                              , intent(in   )           :: time
     integer                                       , intent(  out), optional :: status
     type            (hdf5Object                  )                          :: simulationGroup
-    double precision                                                        :: lengthSimulationBox
 
     if (.not.self%length%isSet) then
        !$omp critical(HDF5_Access)
@@ -536,10 +535,11 @@ contains
     return
   end function galacticusCubeLength
 
-  integer function galacticusTreeCount(self)
+  function galacticusTreeCount(self)
     !% Return a count of the number of trees available.
     implicit none
-    class(mergerTreeImporterGalacticus), intent(inout) :: self
+    integer(c_size_t                    )                :: galacticusTreeCount
+    class  (mergerTreeImporterGalacticus), intent(inout) :: self
 
     call galacticusTreeIndicesRead(self)
     galacticusTreeCount=self%treesCount
@@ -557,9 +557,10 @@ contains
     return
   end function galacticusTreeIndex
 
-  integer function galacticusNodeCount(self,i)
+  function galacticusNodeCount(self,i)
     !% Return a count of the number of nodes in the $i^{\rm th}$ tree.
     implicit none
+    integer(c_size_t                    )                :: galacticusNodeCount
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                              , intent(in   ) :: i
 
@@ -584,7 +585,8 @@ contains
     integer         (kind=HSIZE_T                )             , dimension(1) :: firstNodeIndex , nodeCount
     integer         (kind=c_size_t               ), allocatable, dimension(:) :: sortOrder
     class           (cosmologyFunctionsClass     ), pointer                   :: cosmologyFunctionsDefault
-    integer                                                                   :: i              , iNode
+    integer                                                                   :: i
+    integer         (c_size_t                    )                            :: iNode
     double precision                                                          :: massMinimum    , massMaximum
     
     if (self%treeIndicesRead) return
@@ -683,7 +685,6 @@ contains
     class           (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                       , intent(in   ) :: i
     class           (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctionsDefault
-    type            (hdf5Object                  )                :: simulationGroup
     double precision                                              :: lengthSimulationBox      , timePresent
     integer                                                       :: statusActual
 
@@ -850,12 +851,13 @@ contains
     return
   end subroutine galacticusSubhaloTrace
 
-  integer function galacticusSubhaloTraceCount(self,node)
+  function galacticusSubhaloTraceCount(self,node)
     !% Returns the length of a subhalo trace.
     use Galacticus_Error
     implicit none
-    class(mergerTreeImporterGalacticus), intent(inout) :: self
-    class(nodeData                    ), intent(in   ) :: node
+    integer(c_size_t                    )                :: galacticusSubhaloTraceCount
+    class  (mergerTreeImporterGalacticus), intent(inout) :: self
+    class  (nodeData                    ), intent(in   ) :: node
     
     select type (node)
     type is (nodeDataGalacticus)
@@ -887,7 +889,7 @@ contains
          &                                                                                        requireSpin3D
     class           (cosmologyFunctionsClass     ), pointer                                    :: cosmologyFunctionsDefault
     integer         (kind=HSIZE_T                )                            , dimension(1  ) :: firstNodeIndex           , nodeCount
-    integer         (kind=kind_int8              )                                             :: iNode
+    integer         (c_size_t                    )                                             :: iNode
     double precision                                             , allocatable, dimension(:,:) :: angularMomentum3D        , position             , &
          &                                                                                        velocity                 , spin3D
     logical                                                                                    :: timesAreInternal
@@ -962,7 +964,7 @@ contains
     ! Halo angular momenta.
     if (present(requireAngularMomenta).and.requireAngularMomenta) then
        if (self%angularMomentaIsVector) then
-          call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+          call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
           ! Transfer to nodes.
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum3D(:,iNode))
@@ -976,12 +978,12 @@ contains
     end if
     if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
        if (.not.self%angularMomentaIsVector) call Galacticus_Error_Report("galacticusImport","vector angular momentum is not available")
-       call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+       call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
     end if
     ! Halo spins.
     if (present(requireSpin).and.requireSpin) then
        if (self%spinIsVector) then
-          call self%haloTrees%readDataset("spin",spin3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+          call self%haloTrees%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
           ! Transfer to nodes.
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%spin=Vector_Magnitude(spin3D(:,iNode))
@@ -995,7 +997,7 @@ contains
     end if
     if (present(requireSpin3D).and.requireSpin3D) then
        if (.not.self%spinIsVector) call Galacticus_Error_Report("galacticusImport","vector spin is not available")
-       call self%haloTrees%readDataset("spin",spin3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+       call self%haloTrees%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
        ! Transfer to nodes.
        forall(iNode=1:nodeCount(1))
           nodes(iNode)%spin3D=spin3D(:,iNode)
@@ -1005,14 +1007,14 @@ contains
     select type (nodes)
     type is (nodeDataGalacticus)
        ! Initialize particle data to null values.
-       nodes%particleIndexStart=-1_kind_int8
-       nodes%particleIndexCount=-1_kind_int8
+       nodes%particleIndexStart=-1_c_size_t
+       nodes%particleIndexCount=-1_c_size_t
        ! Positions (and velocities).
        if (present(requirePositions).and.requirePositions) then
           ! position.
-          call self%haloTrees%readDataset("position",position,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+          call self%haloTrees%readDataset("position",position,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
           ! velocity.
-          call self%haloTrees%readDataset("velocity",velocity,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+          call self%haloTrees%readDataset("velocity",velocity,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
           ! If a set of most bound particle indices are present, read them.
           if (self%haloTrees%hasDataset("particleIndexStart").and.self%haloTrees%hasDataset("particleIndexCount")) then
              call self%haloTrees%readDatasetStatic("particleIndexStart",nodes%particleIndexStart,firstNodeIndex,nodeCount)

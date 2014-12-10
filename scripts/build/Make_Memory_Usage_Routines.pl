@@ -52,6 +52,9 @@ $preBlocks{"allocInterfaceCode"} = "interface Alloc_Array\n  !% Generic interfac
 # Open interface to Dealloc_Array routines.
 $preBlocks{"deallocInterfaceCode"} = "interface Dealloc_Array\n  !% Generic interface to routines which deallocate arrays.\n";
 
+# Dimension types.
+my @dimensionTypes = ( "", "kind_int8" );
+
 # Loop over all classes of allocatable variable and generate code for them.
 foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
     my $typeName  = $allocatable->{'type'};      # Type of variable.
@@ -87,7 +90,12 @@ foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
     my $typeLabel = $type."_".$dimension."D";
 		
     # Append code to the various interfaces for this variable type.
-    $preBlocks{"allocInterfaceCode"}    .= "  module procedure Alloc_Array_"  .$typeLabel.       "\n";
+    foreach my $type ( @dimensionTypes ) {
+	my $suffix = "";
+	$suffix = "_".$type
+	    unless ( $type eq "" );
+	$preBlocks{"allocInterfaceCode"}    .= "  module procedure Alloc_Array_"  .$typeLabel.$suffix.       "\n";
+    }
     $preBlocks{"deallocInterfaceCode"}  .= "  module procedure Dealloc_Array_".$typeLabel.       "\n";
 
     # Add block of code containing Dealloc_Array unit.
@@ -132,52 +140,60 @@ foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
     $postBlocks{"deallocCode"} .= "end subroutine Dealloc_Array_".$typeLabel."\n\n";
 
     # Add block of code containing Alloc_Array unit.
-    $postBlocks{"allocCode"} .= "subroutine Alloc_Array_".$typeLabel."(thisArray,dimensions,lowerBounds,memoryType,file,line)\n";
-    $postBlocks{"allocCode"} .= "  !% Allocate a ".$dimension."D ".$variableTypeLatex." array.\n";
-    $postBlocks{"allocCode"} .= "  use Galacticus_Display\n";
-    $postBlocks{"allocCode"} .= "  use ISO_Varying_String\n";
-    $postBlocks{"allocCode"} .= "  use String_Handling\n";
-    $postBlocks{"allocCode"} .= "  implicit none\n";
-    $c1_width = 16;
-    if ( length($typeName) > $c1_width ) {$c1_width = length($typeName)};
-    $pad = " " x ($c1_width-length($typeName));
-    $postBlocks{"allocCode"} .= "  ".$typeName.",".$pad." allocatable             :: thisArray(".join(",",split(//,":" x $dimension)).")\n";
-    $pad = " " x ($c1_width-length("integer"));
-    $postBlocks{"allocCode"} .= "  integer,".$pad." intent(in),    optional :: memoryType\n";
-    $postBlocks{"allocCode"} .= "  integer,".$pad." intent(in)              :: dimensions (".$dimension.")\n";
-    $postBlocks{"allocCode"} .= "  integer,".$pad." intent(in),    optional :: lowerBounds(".$dimension.")\n";
-    $postBlocks{"allocCode"} .= "  character(len=*),".$pad." intent(in),    optional :: file\n";
-    $postBlocks{"allocCode"} .= "  integer,".$pad." intent(in),    optional :: line\n";
-    $postBlocks{"allocCode"} .= "  type(varying_string)".$pad." :: message\n";
-    $pad = " " x ($c1_width-length("character(len=*)"));
-    $pad = " " x ($c1_width-length("integer")+1);
-    $postBlocks{"allocCode"} .= "  integer ".$pad."                        :: memoryTypeActual\n\n";
-    $postBlocks{"allocCode"} .= "  if (allocated(thisArray)) call Dealloc_Array_".$typeLabel."(thisArray,memoryType)\n";
-    $postBlocks{"allocCode"} .= "  if (present(lowerBounds)) then\n";
-    $postBlocks{"allocCode"} .= "     allocate(thisArray(".join(",",map {"lowerBounds(".$_."):lowerBounds(".$_.")+dimensions(".$_.")-1"} 1..$dimension)."))\n";
-    $postBlocks{"allocCode"} .= "  else\n";
-    $postBlocks{"allocCode"} .= "     allocate(thisArray(".join(",",map {"dimensions(".$_.")"} 1..$dimension)."))\n";
-    $postBlocks{"allocCode"} .= "  end if\n";
-    $postBlocks{"allocCode"} .= "  if (present(memoryType)) then\n";
-    $postBlocks{"allocCode"} .= "     memoryTypeActual=memoryType\n";
-    $postBlocks{"allocCode"} .= "  else\n";
-    $postBlocks{"allocCode"} .= "     memoryTypeActual=memoryTypeMisc\n";
-    $postBlocks{"allocCode"} .= "  end if\n";
-    $postBlocks{"allocCode"} .= "\n";
-    $postBlocks{"allocCode"} .= "  !\$omp critical(Memory_Management_Usage)\n";
-    $postBlocks{"allocCode"} .= "  usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+sizeof(thisArray)+allocationOverhead\n";
-    $postBlocks{"allocCode"} .= "  !\$omp end critical(Memory_Management_Usage)\n";
-    $postBlocks{"allocCode"} .= "  if (Galacticus_Verbosity_Level() >= verbosityDebug) then\n";
-    $postBlocks{"allocCode"} .= "     if (present(file).and.present(line)) then\n";
-    $postBlocks{"allocCode"} .= "      message='memory allocate: '\n";
-    $postBlocks{"allocCode"} .= "      message=message//sizeof(thisArray)+allocationOverhead\n";
-    $postBlocks{"allocCode"} .= "      message=message//' ['//file//':'//line//']'\n";
-    $postBlocks{"allocCode"} .= "      call Galacticus_Display_Message(message)\n";
-    $postBlocks{"allocCode"} .= "    end if\n";
-    $postBlocks{"allocCode"} .= "  end if\n";
-    $postBlocks{"allocCode"} .= "  call Memory_Usage_Report\n";
-    $postBlocks{"allocCode"} .= "  return\n";
-    $postBlocks{"allocCode"} .= "end subroutine Alloc_Array_".$typeLabel."\n\n";
+    foreach my $type ( @dimensionTypes ) {
+	my $suffix = "";
+	$suffix = "_".$type
+	    unless ( $type eq "" );
+	$postBlocks{"allocCode"} .= "subroutine Alloc_Array_".$typeLabel.$suffix."(thisArray,dimensions,lowerBounds,memoryType,file,line)\n";
+	$postBlocks{"allocCode"} .= "  !% Allocate a ".$dimension."D ".$variableTypeLatex." array.\n";
+	$postBlocks{"allocCode"} .= "  use Galacticus_Display\n";
+	$postBlocks{"allocCode"} .= "  use ISO_Varying_String\n";
+	$postBlocks{"allocCode"} .= "  use String_Handling\n";
+	$postBlocks{"allocCode"} .= "  implicit none\n";
+	$c1_width = 16;
+	if ( length($typeName) > $c1_width ) {$c1_width = length($typeName)};
+	$pad = " " x ($c1_width-length($typeName));
+	$postBlocks{"allocCode"} .= "  ".$typeName.",".$pad." allocatable             :: thisArray(".join(",",split(//,":" x $dimension)).")\n";
+	$pad = " " x ($c1_width-length("integer"));
+	$postBlocks{"allocCode"} .= "  integer,".$pad." intent(in),    optional :: memoryType\n";
+	my $typeDefinition = "";
+	$typeDefinition = "(kind=".$type.")"
+	    unless ( $type eq "" );
+	$postBlocks{"allocCode"} .= "  integer".$typeDefinition.",".$pad." intent(in)              :: dimensions (".$dimension.")\n";
+	$postBlocks{"allocCode"} .= "  integer,".$pad." intent(in),    optional :: lowerBounds(".$dimension.")\n";
+	$postBlocks{"allocCode"} .= "  character(len=*),".$pad." intent(in),    optional :: file\n";
+	$postBlocks{"allocCode"} .= "  integer,".$pad." intent(in),    optional :: line\n";
+	$postBlocks{"allocCode"} .= "  type(varying_string)".$pad." :: message\n";
+	$pad = " " x ($c1_width-length("character(len=*)"));
+	$pad = " " x ($c1_width-length("integer")+1);
+	$postBlocks{"allocCode"} .= "  integer ".$pad."                        :: memoryTypeActual\n\n";
+	$postBlocks{"allocCode"} .= "  if (allocated(thisArray)) call Dealloc_Array_".$typeLabel."(thisArray,memoryType)\n";
+	$postBlocks{"allocCode"} .= "  if (present(lowerBounds)) then\n";
+	$postBlocks{"allocCode"} .= "     allocate(thisArray(".join(",",map {"lowerBounds(".$_."):lowerBounds(".$_.")+dimensions(".$_.")-1"} 1..$dimension)."))\n";
+	$postBlocks{"allocCode"} .= "  else\n";
+	$postBlocks{"allocCode"} .= "     allocate(thisArray(".join(",",map {"dimensions(".$_.")"} 1..$dimension)."))\n";
+	$postBlocks{"allocCode"} .= "  end if\n";
+	$postBlocks{"allocCode"} .= "  if (present(memoryType)) then\n";
+	$postBlocks{"allocCode"} .= "     memoryTypeActual=memoryType\n";
+	$postBlocks{"allocCode"} .= "  else\n";
+	$postBlocks{"allocCode"} .= "     memoryTypeActual=memoryTypeMisc\n";
+	$postBlocks{"allocCode"} .= "  end if\n";
+	$postBlocks{"allocCode"} .= "\n";
+	$postBlocks{"allocCode"} .= "  !\$omp critical(Memory_Management_Usage)\n";
+	$postBlocks{"allocCode"} .= "  usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+sizeof(thisArray)+allocationOverhead\n";
+	$postBlocks{"allocCode"} .= "  !\$omp end critical(Memory_Management_Usage)\n";
+	$postBlocks{"allocCode"} .= "  if (Galacticus_Verbosity_Level() >= verbosityDebug) then\n";
+	$postBlocks{"allocCode"} .= "     if (present(file).and.present(line)) then\n";
+	$postBlocks{"allocCode"} .= "      message='memory allocate: '\n";
+	$postBlocks{"allocCode"} .= "      message=message//sizeof(thisArray)+allocationOverhead\n";
+	$postBlocks{"allocCode"} .= "      message=message//' ['//file//':'//line//']'\n";
+	$postBlocks{"allocCode"} .= "      call Galacticus_Display_Message(message)\n";
+	$postBlocks{"allocCode"} .= "    end if\n";
+	$postBlocks{"allocCode"} .= "  end if\n";
+	$postBlocks{"allocCode"} .= "  call Memory_Usage_Report\n";
+	$postBlocks{"allocCode"} .= "  return\n";
+	$postBlocks{"allocCode"} .= "end subroutine Alloc_Array_".$typeLabel.$suffix."\n\n";
+    }
 }
 
 # Add closing statements to the various interface blocks.

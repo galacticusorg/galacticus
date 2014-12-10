@@ -180,6 +180,7 @@ contains
 
   double precision function Electron_Density_CIE_File_Interpolate(temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Compute the chemical state by interpolation in the tabulated data.
+    use, intrinsic :: ISO_C_Binding
     use Abundances_Structure
     use Radiation_Structure
     use Numerical_Constants_Astronomical
@@ -191,7 +192,7 @@ contains
     double precision                    , save          :: electronDensityPrevious       , metallicityPrevious=-1.0d0, &
          &                                                 temperaturePrevious    =-1.0d0
     !$omp threadprivate(temperaturePrevious,metallicityPrevious,electronDensityPrevious)
-    integer                                             :: iMetallicity                  , iTemperature
+    integer         (c_size_t          )                :: iMetallicity                  , iTemperature
     double precision                                    :: hMetallicity                  , hTemperature              , &
          &                                                 metallicityUse                , temperatureUse
 
@@ -280,6 +281,7 @@ contains
 
   double precision function Electron_Density_CIE_File_logTemperature_Interpolate(temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Compute the logarithmic gradient of the electron density with respect to temperature by interpolation in the tabulated data.
+    use, intrinsic :: ISO_C_Binding
     use Abundances_Structure
     use Radiation_Structure
     use Numerical_Constants_Astronomical
@@ -291,7 +293,7 @@ contains
     double precision                    , save          :: electronDensitySlopePrevious       , metallicityPrevious=-1.0d0, &
          &                                                 temperaturePrevious         =-1.0d0
     !$omp threadprivate(temperaturePrevious,metallicityPrevious,electronDensitySlopePrevious)
-    integer                                             :: iMetallicity                       , iTemperature
+    integer         (c_size_t          )                :: iMetallicity                       , iTemperature
     double precision                                    :: hMetallicity                       , hTemperature              , &
          &                                                 metallicityUse                     , temperatureUse
 
@@ -560,19 +562,20 @@ contains
 
   subroutine Get_Interpolation(temperatureIn,metallicityIn,iTemperature,hTemperature,iMetallicity,hMetallicity)
     !% Determine the interpolating paramters.
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in   ) :: metallicityIn , temperatureIn
-    integer         , intent(  out) :: iMetallicity  , iTemperature
-    double precision, intent(  out) :: hMetallicity  , hTemperature
-    double precision                :: metallicityUse, temperatureUse
+    double precision          , intent(in   ) :: metallicityIn , temperatureIn
+    integer         (c_size_t), intent(  out) :: iMetallicity  , iTemperature
+    double precision          , intent(  out) :: hMetallicity  , hTemperature
+    double precision                          :: metallicityUse, temperatureUse
 
     ! Copy the input parameters.
     temperatureUse=temperatureIn
     metallicityUse=max(metallicityIn,0.0d0)
     ! Get interpolation in temperature.
     if (logarithmicTable) temperatureUse=log(temperatureUse)
-    iTemperature=Interpolate_Locate(chemicalStateTemperatureNumberPoints,chemicalStateTemperatures&
+    iTemperature=Interpolate_Locate(chemicalStateTemperatures&
          &,interpolationAcceleratorTemperature,temperatureUse,resetTemperature)
     iTemperature=max(min(iTemperature,chemicalStateTemperatureNumberPoints),1)
     hTemperature=(temperatureUse-chemicalStateTemperatures(iTemperature))/(chemicalStateTemperatures(iTemperature+1)&
@@ -584,7 +587,7 @@ contains
        hMetallicity=metallicityUse/firstNonZeroMetallicity
     else
        if (logarithmicTable) metallicityUse=log(metallicityUse)
-       iMetallicity=Interpolate_Locate(chemicalStateMetallicityNumberPoints,chemicalStateMetallicities&
+       iMetallicity=Interpolate_Locate(chemicalStateMetallicities&
             &,interpolationAcceleratorMetallicity,metallicityUse,resetMetallicity)
        iMetallicity=max(min(iMetallicity,chemicalStateMetallicityNumberPoints),1)
        hMetallicity=(metallicityUse-chemicalStateMetallicities(iMetallicity))/(chemicalStateMetallicities(iMetallicity+1)&
@@ -595,10 +598,11 @@ contains
 
   double precision function Do_Interpolation(iTemperature,hTemperature,iMetallicity,hMetallicity,densityTable)
     !% Perform the interpolation.
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    integer                         , intent(in   ) :: iMetallicity, iTemperature
-    double precision                , intent(in   ) :: hMetallicity, hTemperature
-    double precision, dimension(:,:), intent(in   ) :: densityTable
+    integer         (c_size_t)                , intent(in   ) :: iMetallicity, iTemperature
+    double precision                          , intent(in   ) :: hMetallicity, hTemperature
+    double precision          , dimension(:,:), intent(in   ) :: densityTable
 
     ! Do the interpolation.
     Do_Interpolation=densityTable(iTemperature  ,iMetallicity  )*(1.0d0-hTemperature)*(1.0d0-hMetallicity)&
@@ -635,6 +639,7 @@ contains
 
   subroutine Chemical_Densities_CIE_File_Interpolate(theseChemicals,temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Compute the chemical state by interpolation in the tabulated data.
+    use, intrinsic :: ISO_C_Binding
     use Abundances_Structure
     use Radiation_Structure
     use Chemical_Abundances_Structure
@@ -648,7 +653,7 @@ contains
     double precision                    , save                :: metallicityPrevious      =-1.0d0, temperaturePrevious=-1.0d0
     type            (chemicalAbundances), save                :: chemicalDensitiesPrevious
     !$omp threadprivate(temperaturePrevious,metallicityPrevious,chemicalDensitiesPrevious)
-    integer                                                   :: iMetallicity                    , iTemperature
+    integer         (c_size_t          )                      :: iMetallicity                    , iTemperature
     double precision                                          :: hMetallicity                    , hTemperature              , &
          &                                                       metallicityUse                  , temperatureUse
 

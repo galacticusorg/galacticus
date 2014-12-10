@@ -38,6 +38,7 @@ contains
 
   subroutine Galacticus_Meta_Evolver_Profile(timeStep,propertyName)
     !% Record profiling information on the ODE evolver.
+    use, intrinsic :: ISO_C_Binding
     use Input_Parameters
     use Memory_Management
     use Numerical_Ranges
@@ -46,7 +47,8 @@ contains
     implicit none
     double precision                , intent(in   ) :: timeStep
     type            (varying_string), intent(in   ) :: propertyName
-    integer                                         :: hitCount    , iStep
+    integer                                         :: hitCount
+    integer         (c_size_t      )                :: iStep
 
     !$omp critical (Meta_Profile_Record)
     if (.not.metaProfileInitialized) then

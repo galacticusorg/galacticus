@@ -153,7 +153,6 @@ contains
     use Galacticus_Nodes
     use Kind_Numbers
     use Histories
-use iso_varying_string
     implicit none
     double precision                        , intent(in   )          :: time
     type            (treeNode              ), intent(inout), pointer :: thisNode

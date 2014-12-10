@@ -19,6 +19,7 @@
 
 module Galacticus_Output_Merger_Tree
   !% Implements writing a merger tree to the \glc\ output file.
+  use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
   use Galacticus_HDF5
   use Kind_Numbers
@@ -29,16 +30,16 @@ module Galacticus_Output_Merger_Tree
   ! Output groups.
   type outputGroup
      !% Type used for output group information.
-     logical                                            :: doubleAttributesWritten, integerAttributesWritten, &
-          &                                                opened
-     type   (hdf5Object    )                            :: hdf5Group              , nodeDataGroup
-     integer(kind=kind_int8)                            :: length
-     type   (hdf5Object    ), allocatable, dimension(:) :: integerDataset         , doubleDataset
+     logical                                        :: doubleAttributesWritten, integerAttributesWritten, &
+          &                                            opened
+     type   (hdf5Object)                            :: hdf5Group              , nodeDataGroup
+     integer(c_size_t  )                            :: length
+     type   (hdf5Object), allocatable, dimension(:) :: integerDataset         , doubleDataset
   end type outputGroup
   type            (hdf5Object          )                                         :: outputsGroup
   logical                                                                        :: outputsGroupOpened         =.false.
   type            (outputGroup         )           , allocatable, dimension(:)   :: outputGroups
-  integer                                                                        :: outputGroupsCount          =0
+  integer         (c_size_t            )                                         :: outputGroupsCount          =0
   integer                               , parameter                              :: outputGroupsIncrement      =10
 
   ! Number of properties of each type.
@@ -73,6 +74,7 @@ contains
 
   subroutine Galacticus_Merger_Tree_Output(thisTree,iOutput,time,isLastOutput)
     !% Write properties of nodes in {\tt thisTree} to the \glc\ output file.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Galacticus_Output_Open
     use Galacticus_Merger_Tree_Output_Filters
@@ -90,15 +92,16 @@ contains
     !# </include>
     implicit none
     type            (mergerTree        )              , intent(inout), target   :: thisTree
-    integer                                           , intent(in   )           :: iOutput
+    integer         (c_size_t          )              , intent(in   )           :: iOutput
     double precision                                  , intent(in   )           :: time
     logical                                           , intent(in   ), optional :: isLastOutput
     type            (treeNode          ), pointer                               :: thisNode          , nextNode
     integer         (kind=HSIZE_T      ), dimension(1)                          :: referenceLength   , referenceStart
     class           (nodeComponentBasic), pointer                               :: thisBasicComponent
     type            (mergerTree        ), pointer                               :: currentTree
-    integer                                                                     :: doubleProperty    , iGroup        , iProperty , &
-         &                                                                         integerProperty   , analysisCount , nodeStatus
+    integer                                                                     :: doubleProperty    , nodeStatus    , iProperty , &
+         &                                                                         integerProperty   , analysisCount
+    integer         (c_size_t          )                                        :: iGroup
     logical                                                                     :: nodePassesFilter
     type            (hdf5Object        )                                        :: toDataset
 
@@ -200,6 +203,7 @@ contains
        ! Iterate over trees.
        currentTree => thisTree
        do while (associated(currentTree))          
+    do while (associated(currentTree))
           ! Get the base node of the tree.
           thisNode => currentTree%baseNode
           ! Initialize output buffers.
@@ -313,14 +317,14 @@ contains
   subroutine Galacticus_Merger_Tree_Output_Finalize()
     !% Finalize merger tree output by closing any open groups.
     implicit none
-    integer :: iGroup, iDataset
+    integer(c_size_t) :: iGroup, iDataset
 
     ! Close any open output groups.
     !$omp critical(HDF5_Access)
     do iGroup=1,outputGroupsCount
        if (outputGroups(iGroup)%opened) then
           if (allocated(outputGroups(iGroup)%integerDataset)) then
-             do iDataset=1,size(outputGroups(iGroup)%integerDataset)
+             do iDataset=1,size(outputGroups(iGroup)%integerDataset,kind=c_size_t)
                 if (outputGroups(iGroup)%integerDataset(iDataset)%isOpen()) call outputGroups(iGroup)%integerDataset(iDataset)%close()
              end do
           end if
@@ -340,12 +344,13 @@ contains
 
   subroutine Galacticus_Merger_Tree_Output_Make_Group(thisTree,iOutput)
     !% Make an group in the \glc\ file in which to store {\tt thisTree}.
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Astronomical
     use String_Handling
     use Galacticus_Nodes
     implicit none
     type   (mergerTree    ), intent(inout) :: thisTree
-    integer                , intent(in   ) :: iOutput
+    integer(c_size_t      ), intent(in   ) :: iOutput
     type   (varying_string)                :: commentText, groupName
 
     ! Create a name for the group.
@@ -367,9 +372,10 @@ contains
 
   subroutine Integer_Buffer_Dump(iOutput)
     !% Dump the contents of the integer properties buffer to the \glc\ output file.
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    integer, intent(in   ) :: iOutput
-    integer                :: iProperty
+    integer(c_size_t), intent(in   ) :: iOutput
+    integer                          :: iProperty
 
     ! Write integer data from the buffer.
     if (integerPropertyCount > 0) then
@@ -381,7 +387,7 @@ contains
                &                                                   integerPropertyNames   (iProperty)                     , &
                &                                                   integerPropertyComments(iProperty)                     , &
                &                                                   datasetDataType                   =hdf5DataTypeInteger8, &
-               &                                                   datasetDimensions                 =[0_kind_int8]       , &
+               &                                                   datasetDimensions                 =[0_c_size_t]        , &
                &                                                   appendTo                          =.true.                &
                &                                                  )
           call outputGroups(iOutput)%integerDataset(iProperty)%writeDataset(integerBuffer(1:integerBufferCount,iProperty),integerPropertyNames(iProperty) &
@@ -399,10 +405,10 @@ contains
 
   subroutine Double_Buffer_Dump(iOutput)
     !% Dump the contents of the double precision properties buffer to the \glc\ output file.
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    integer            , intent(in   ) :: iOutput
+    integer(c_size_t  ), intent(in   ) :: iOutput
     integer                            :: iProperty
-    type   (hdf5Object)                :: thisDataset
 
     ! Write double data from the buffer.
     if (doublePropertyCount > 0) then
@@ -414,7 +420,7 @@ contains
                &                                                    doublePropertyNames   (iProperty)                     , &
                &                                                    doublePropertyComments(iProperty)                     , &
                &                                                   datasetDataType                   =hdf5DataTypeDouble  , &
-               &                                                   datasetDimensions                 =[0_kind_int8]       , &
+               &                                                   datasetDimensions                 =[0_c_size_t]        , &
                &                                                   appendTo                          =.true.                &
                &                                                  )
           call outputGroups(iOutput)% doubleDataset(iProperty)%writeDataset( doubleBuffer(1: doubleBufferCount,iProperty), doublePropertyNames(iProperty) &
@@ -452,9 +458,10 @@ contains
 
   subroutine Allocate_Buffers(iOutput)
     !% Allocate buffers for storage of properties.
+    use, intrinsic :: ISO_C_Binding
     use Memory_Management
     implicit none
-    integer, intent(in   ) :: iOutput
+    integer(c_size_t), intent(in   ) :: iOutput
 
     if (integerPropertyCount > 0 .and. (.not.allocated(integerBuffer) .or. integerPropertyCount > size(integerPropertyNames)) ) then
        if (allocated(integerBuffer)) then
@@ -510,6 +517,7 @@ contains
 
   subroutine Make_Output_Group(iOutput,time)
     !% Create a group in which to store this output.
+    use, intrinsic :: ISO_C_Binding
     use String_Handling
     use Cosmology_Functions
     use Memory_Management
@@ -518,7 +526,7 @@ contains
     include 'galacticus.output.merger_tree.outputGroup.tasks.modules.inc'
     !# </include>
     implicit none
-    integer                                  , intent(in   )               :: iOutput
+    integer         (c_size_t               ), intent(in   )               :: iOutput
     double precision                         , intent(in   )               :: time
     type            (outputGroup            ), allocatable  , dimension(:) :: outputGroupsTemporary
     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctionsDefault

@@ -1312,7 +1312,7 @@ IF (a >= t) THEN
   RETURN
 END IF
 
-n = a
+n = int(a)
 t = n
 a = a - t
 IF (a <= 0.75_dp) THEN
@@ -1379,7 +1379,7 @@ IF (ABS(a) <= 20._dp) THEN
 !             EVALUATION OF DGAMMA(A) FOR ABS(A) <= 20
 !-----------------------------------------------------------------------
   t = 1._dp
-  n = x
+  n = int(x)
   n = n - 1
 
 !     LET T BE THE PRODUCT OF A-J WHEN A >= 2
@@ -1650,7 +1650,7 @@ IF (a <= 2.5_dp) THEN
 END IF
 
 IF (a < 10._dp) THEN
-  n = a - 1.5_dp
+  n = int(a - 1.5_dp)
   x = a
   w = 1._dp
   DO i = 1, n

@@ -47,7 +47,7 @@ contains
     implicit none
     double precision, dimension(:), intent(inout) :: array
 
-    call Sort_Do_Double_C(size(array),array)
+    call Sort_Do_Double_C(size(array,kind=c_size_t),array)
     return
   end subroutine Sort_Do_Double
 
@@ -56,7 +56,7 @@ contains
     implicit none
     integer, dimension(:), intent(inout) :: array
 
-    call Sort_Do_Integer_C(size(array),array)
+    call Sort_Do_Integer_C(size(array,kind=c_size_t),array)
     return
   end subroutine Sort_Do_Integer
 
@@ -66,7 +66,7 @@ contains
     implicit none
     integer(kind=kind_int8), dimension(:), intent(inout) :: array
 
-    call Sort_Do_Integer8_C(size(array),array)
+    call Sort_Do_Integer8_C(size(array,kind=c_size_t),array)
     return
   end subroutine Sort_Do_Integer8
 
@@ -74,17 +74,17 @@ contains
     !% Given an unsorted long integer {\tt array}, sorts it in place while also rearraning {\tt array2} in the same way.
     use Kind_Numbers
     implicit none
-    integer(kind=kind_int8), dimension(:          ), intent(inout) :: array    , array2
-    integer(kind=c_size_t ), dimension(size(array))                :: sortIndex
-    integer(kind=kind_int8), dimension(size(array))                :: tmp
-    integer                                                        :: i
+    integer(kind=kind_int8), dimension(:          )              , intent(inout) :: array    , array2
+    integer(kind=c_size_t ), dimension(size(array,kind=c_size_t))                :: sortIndex
+    integer(kind=kind_int8), dimension(size(array,kind=c_size_t))                :: tmp
+    integer(kind=c_size_t )                                                      :: i
 
     sortIndex=Sort_Index_Do(array)
-    forall(i=1:size(array))
+    forall(i=1:size(array,kind=c_size_t))
        tmp(i)=array(sortIndex(i))
     end forall
     array=tmp
-    forall(i=1:size(array))
+    forall(i=1:size(array,kind=c_size_t))
        tmp(i)=array2(sortIndex(i))
     end forall
     array2=tmp
@@ -95,10 +95,10 @@ contains
     !% Given an unsorted integer {\tt array}, sorts it in place.
     use Kind_Numbers
     implicit none
-    integer(kind=kind_int8), dimension(:)          , intent(in   ) :: array
-    integer(kind=c_size_t ), dimension(size(array))                :: Sort_Index_Do_Integer8
+    integer(kind=kind_int8), dimension(:)                        , intent(in   ) :: array
+    integer(kind=c_size_t ), dimension(size(array,kind=c_size_t))                :: Sort_Index_Do_Integer8
 
-    call Sort_Index_Do_Integer8_C(size(array),array,Sort_Index_Do_Integer8)
+    call Sort_Index_Do_Integer8_C(size(array,kind=c_size_t),array,Sort_Index_Do_Integer8)
     Sort_Index_Do_Integer8=Sort_Index_Do_Integer8+1
     return
   end function Sort_Index_Do_Integer8
@@ -119,10 +119,10 @@ contains
     !% Given an unsorted double {\tt array}, sorts it in place.
     use Kind_Numbers
     implicit none
-    real   (kind=c_double), dimension(:)          , intent(in   ) :: array
-    integer(kind=c_size_t), dimension(size(array))                :: Sort_Index_Do_Double
+    real   (kind=c_double), dimension(:                        ), intent(in   ) :: array
+    integer(kind=c_size_t), dimension(size(array,kind=c_size_t))                :: Sort_Index_Do_Double
 
-    call Sort_Index_Do_Double_C(size(array),array,Sort_Index_Do_Double)
+    call Sort_Index_Do_Double_C(size(array,kind=c_size_t),array,Sort_Index_Do_Double)
     Sort_Index_Do_Double=Sort_Index_Do_Double+1
     return
   end function Sort_Index_Do_Double
@@ -130,7 +130,7 @@ contains
   subroutine Sort_Do_Double_C(arraySize,array)
     !% Do a double precision sort.
     implicit none
-    integer               , intent(in   )         :: arraySize
+    integer(kind=c_size_t), intent(in   )         :: arraySize
     real   (kind=c_double), intent(inout), target :: array       (arraySize)
     integer(kind=c_size_t)                        :: arraySizeC
     type   (c_ptr        )                        :: arrayPointer
@@ -144,7 +144,7 @@ contains
   subroutine Sort_Do_Integer_C(arraySize,array)
     !% Do a integer sort.
     implicit none
-    integer               , intent(in   )         :: arraySize
+    integer(kind=c_size_t), intent(in   )         :: arraySize
     integer(kind=c_int   ), intent(inout), target :: array       (arraySize)
     integer(kind=c_size_t)                        :: arraySizeC
     type   (c_ptr        )                        :: arrayPointer
@@ -159,7 +159,7 @@ contains
     !% Do a long integer sort.
     use Kind_Numbers
     implicit none
-    integer                  , intent(in   )         :: arraySize
+    integer(kind=c_size_t   ), intent(in   )         :: arraySize
     integer(kind=c_long_long), intent(inout), target :: array       (arraySize)
     integer(kind=c_size_t   )                        :: arraySizeC
     type   (c_ptr           )                        :: arrayPointer
@@ -169,11 +169,12 @@ contains
     call FGSL_HeapSort(arrayPointer,arraySizeC,FGSL_SizeOf(1_kind_int8),Compare_Integer8)
     return
   end subroutine Sort_Do_Integer8_C
+
   subroutine Sort_Index_Do_Integer8_C(arraySize,array,idx)
     !% Do a integer sort.
     use Kind_Numbers
     implicit none
-    integer                , intent(in   )         :: arraySize
+    integer(kind=c_size_t ), intent(in   )         :: arraySize
     integer(kind=kind_int8), intent(in   ), target :: array       (arraySize)
     integer(kind=c_size_t ), intent(inout)         :: idx         (arraySize)
     integer(kind=c_size_t )                        :: arraySizeC
@@ -207,12 +208,12 @@ contains
     !% Do an double sort.
     use Kind_Numbers
     implicit none
-    integer                , intent(in   )         :: arraySize
-    real   (c_double)      , intent(in   ), target :: array       (arraySize)
-    integer(kind=c_size_t ), intent(inout)         :: idx         (arraySize)
-    integer(kind=c_size_t )                        :: arraySizeC
-    integer                                        :: status
-    type   (c_ptr         )                        :: arrayPointer
+    integer(kind=c_size_t), intent(in   )         :: arraySize
+    real   (c_double     ), intent(in   ), target :: array       (arraySize)
+    integer(kind=c_size_t), intent(inout)         :: idx         (arraySize)
+    integer(kind=c_size_t)                        :: arraySizeC
+    integer                                       :: status
+    type   (c_ptr        )                        :: arrayPointer
 
     arrayPointer=c_loc(array)
     arraySizeC=arraySize

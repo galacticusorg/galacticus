@@ -335,7 +335,6 @@ contains
     ! Interpolate to get cosmic time.
     matterLambdaCosmicTime                             &
          & =Interpolate(                               &
-         &              self%ageTableNumberPoints    , &
          &              self%ageTableExpansionFactor , &
          &              self%ageTableTime            , &
          &              self%interpolationObject     , &
@@ -418,7 +417,6 @@ contains
        end if
        self%expansionFactorPrevious                              &
             & =Interpolate(                                      &
-            &              self%ageTableNumberPoints           , &
             &              self%ageTableTime                   , &
             &              self%ageTableExpansionFactor        , &
             &              self%interpolationObjectInverse     , &
@@ -954,7 +952,6 @@ contains
     ! Interpolate to get the comoving distance.
     matterLambdaTimeAtDistanceComoving                                &
          & =Interpolate(                                              &
-         &              self%distanceTableNumberPoints              , &
          &              self%distanceTableComovingDistanceNegated   , &
          &              self%distanceTableTime                      , &
          &              self%interpolationObjectDistanceInverse     , &
@@ -991,7 +988,6 @@ contains
     ! Interpolate to get the comoving distance.
     matterLambdaDistanceComoving                               &
          & =Interpolate(                                       &
-         &              self%distanceTableNumberPoints       , &
          &              self%distanceTableTime               , &
          &              self%distanceTableComovingDistance   , &
          &              self%interpolationObjectDistance     , &
@@ -1051,7 +1047,6 @@ contains
        end do
        comovingDistance                                                      &
             & =-Interpolate(                                                 &
-            &               self%distanceTableNumberPoints                 , &
             &               self%distanceTableLuminosityDistanceNegated    , &
             &               self%distanceTableComovingDistanceNegated      , &
             &               self%interpolationObjectLuminosityDistance     , &
