@@ -1201,6 +1201,7 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Black_Hole_Standard_Output_Properties(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Output properties for all black holes in {\tt thisNode}.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_HDF5
     use Memory_Management
     use Kind_Numbers
@@ -1211,7 +1212,7 @@ contains
     implicit none
     type            (treeNode              )                           , intent(inout), pointer :: thisNode
     integer         (kind=kind_int8        )                           , intent(in   )          :: treeIndex
-    integer                                                            , intent(in   )          :: iOutput
+    integer         (c_size_t              )                           , intent(in   )          :: iOutput
     logical                                                            , intent(in   )          :: nodePassesFilter
     class           (nodeComponentBlackHole)                                          , pointer :: thisBlackHoleComponent
     integer         (kind=kind_int8        ), allocatable, dimension(:)                         :: mergerTreeIndex       , nodeIndex

@@ -913,7 +913,6 @@ contains
     procedure       (Interrupt_Procedure_Template)           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo        )                          , pointer :: thisHotHaloComponent
     class           (nodeComponentBasic          )                          , pointer :: thisBasicComponent
-    class           (cosmologyParametersClass    )                          , pointer :: thisCosmologyParameters
     class           (hotHaloMassDistributionClass)                          , pointer :: defaultHotHaloMassDistribution
     class           (darkMatterHaloScaleClass    )                          , pointer :: darkMatterHaloScale_
     class           (accretionHaloClass          )                          , pointer :: accretionHalo_
@@ -925,8 +924,7 @@ contains
          &                                                                               densityAtOuterRadius                     , failedMassAccretionRate, &
          &                                                                               massLossRate                             , massToDensityConversion, &
          &                                                                               outerRadius                              , outerRadiusGrowthRate  , &
-         &                                                                               massAccretionRate                        , densityMinimum         , &
-         &                                                                               radiusVirial
+         &                                                                               massAccretionRate
 
     ! Get required objects.
     darkMatterHaloScale_ => darkMatterHaloScale()

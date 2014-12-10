@@ -521,11 +521,12 @@ contains
   double precision function einastoRadiusFromSpecificAngularMomentumScaleFree(self,alpha,specificAngularMomentumScaleFree)
     !% Comptue the radius at which a circular orbit has the given {\tt specificAngularMomentumScaleFree} in a scale free Einasto
     !% profile.
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     implicit none
     class           (darkMatterProfileEinasto), intent(inout)  :: self
     double precision                          , intent(in   )  :: alpha , specificAngularMomentumScaleFree
-    integer                                   , dimension(0:1) :: jAlpha
+    integer         (c_size_t                ), dimension(0:1) :: jAlpha
     double precision                          , dimension(0:1) :: hAlpha
     integer                                                    :: iAlpha
 
@@ -539,18 +540,17 @@ contains
     call self%radiusFromSpecificAngularMomentumTableMake(alpha,specificAngularMomentumScaleFree)
 
     ! Get interpolating factors in alpha.
-    jAlpha(0)=Interpolate_Locate(self%angularMomentumTableAlphaCount,self%angularMomentumTableAlpha&
+    jAlpha(0)=Interpolate_Locate(self%angularMomentumTableAlpha&
          &,self%angularMomentumTableAlphaInterpolationAccelerator,alpha,reset=self%angularMomentumTableAlphaInterpolationReset)
     jAlpha(1)=jAlpha(0)+1
-    hAlpha=Interpolate_Linear_Generate_Factors(self%angularMomentumTableAlphaCount,self%angularMomentumTableAlpha,jAlpha(0),alpha)
+    hAlpha=Interpolate_Linear_Generate_Factors(self%angularMomentumTableAlpha,jAlpha(0),alpha)
 
     ! Interpolate in specific angular momentum to get radius.
     einastoRadiusFromSpecificAngularMomentumScaleFree=0.0d0
     do iAlpha=0,1
        einastoRadiusFromSpecificAngularMomentumScaleFree=                      &
             &  einastoRadiusFromSpecificAngularMomentumScaleFree               &
-            & +Interpolate( self%angularMomentumTableRadiusCount                    &
-            &              ,self%angularMomentumTable(:,jAlpha(iAlpha))             &
+            & +Interpolate( self%angularMomentumTable(:,jAlpha(iAlpha))             &
             &              ,self%angularMomentumTableRadius                         &
             &              ,self%angularMomentumTableRadiusInterpolationObject      &
             &              ,self%angularMomentumTableRadiusInterpolationAccelerator &
@@ -676,6 +676,7 @@ contains
 
   double precision function einastoEnergy(self,node)
     !% Return the energy of an Einasto halo density profile.
+    use, intrinsic :: ISO_C_Binding
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
@@ -683,7 +684,7 @@ contains
     type            (treeNode                      ), intent(inout) , pointer :: node
     class           (nodeComponentBasic            )                , pointer :: thisBasicComponent
     class           (nodeComponentDarkMatterProfile)                , pointer :: thisDarkMatterProfileComponent
-    integer                                         , dimension(0:1)          :: jAlpha
+    integer         (c_size_t                      ), dimension(0:1)          :: jAlpha
     double precision                                , dimension(0:1)          :: hAlpha
     integer                                                                   :: iAlpha
     double precision                                                          :: alpha                         , scaleRadius, &
@@ -702,16 +703,15 @@ contains
     call self%energyTableMake(virialRadiusOverScaleRadius,alpha)
 
     ! Get interpolating factors in alpha.
-    jAlpha(0)=Interpolate_Locate(self%energyTableAlphaCount,self%energyTableAlpha,self%energyTableAlphaInterpolationAccelerator,alpha,reset&
+    jAlpha(0)=Interpolate_Locate(self%energyTableAlpha,self%energyTableAlphaInterpolationAccelerator,alpha,reset&
          &=self%energyTableAlphaInterpolationReset)
     jAlpha(1)=jAlpha(0)+1
-    hAlpha=Interpolate_Linear_Generate_Factors(self%energyTableAlphaCount,self%energyTableAlpha,jAlpha(0),alpha)
+    hAlpha=Interpolate_Linear_Generate_Factors(self%energyTableAlpha,jAlpha(0),alpha)
 
     ! Find the energy by interpolation.
     einastoEnergy=0.0d0
     do iAlpha=0,1
-       einastoEnergy=einastoEnergy+Interpolate(self%energyTableConcentrationCount&
-            &,self%energyTableConcentration,self%energyTable(:,jAlpha(iAlpha)),self%energyTableConcentrationInterpolationObject &
+       einastoEnergy=einastoEnergy+Interpolate(self%energyTableConcentration,self%energyTable(:,jAlpha(iAlpha)),self%energyTableConcentrationInterpolationObject &
             &,self%energyTableConcentrationInterpolationAccelerator,virialRadiusOverScaleRadius,reset&
             &=self%energyTableConcentrationInterpolationReset)*hAlpha(iAlpha)
     end do
@@ -724,6 +724,7 @@ contains
 
   double precision function einastoEnergyGrowthRate(self,node)
     !% Return the energy of an Einasto halo density profile.
+    use, intrinsic :: ISO_C_Binding
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
@@ -731,7 +732,7 @@ contains
     type            (treeNode                      ), intent(inout) , pointer :: node
     class           (nodeComponentBasic            )                , pointer :: thisBasicComponent
     class           (nodeComponentDarkMatterProfile)                , pointer :: thisDarkMatterProfileComponent
-    integer                                         , dimension(0:1)          :: jAlpha
+    integer         (c_size_t                      ), dimension(0:1)          :: jAlpha
     double precision                                , dimension(0:1)          :: hAlpha
     integer                                                                   :: iAlpha
     double precision                                                          :: alpha                         , energy     , &
@@ -751,19 +752,19 @@ contains
     call self%energyTableMake(virialRadiusOverScaleRadius,alpha)
 
     ! Get interpolating factors in alpha.
-    jAlpha(0)=Interpolate_Locate(self%energyTableAlphaCount,self%energyTableAlpha,self%energyTableAlphaInterpolationAccelerator,alpha,reset&
+    jAlpha(0)=Interpolate_Locate(self%energyTableAlpha,self%energyTableAlphaInterpolationAccelerator,alpha,reset&
          &=self%energyTableAlphaInterpolationReset)
     jAlpha(1)=jAlpha(0)+1
-    hAlpha=Interpolate_Linear_Generate_Factors(self%energyTableAlphaCount,self%energyTableAlpha,jAlpha(0),alpha)
+    hAlpha=Interpolate_Linear_Generate_Factors(self%energyTableAlpha,jAlpha(0),alpha)
 
     ! Find the energy gradient by interpolation.
     energy        =0.0d0
     energyGradient=0.0d0
     do iAlpha=0,1
-       energy        =energy        +Interpolate           (self%energyTableConcentrationCount,self%energyTableConcentration,self%energyTable(:&
+       energy        =energy        +Interpolate           (self%energyTableConcentration,self%energyTable(:&
             &,jAlpha(iAlpha)),self%energyTableConcentrationInterpolationObject ,self%energyTableConcentrationInterpolationAccelerator&
             &,virialRadiusOverScaleRadius,reset=self%energyTableConcentrationInterpolationReset)*hAlpha(iAlpha)
-       energyGradient=energyGradient+Interpolate_Derivative(self%energyTableConcentrationCount,self%energyTableConcentration,self%energyTable(:&
+       energyGradient=energyGradient+Interpolate_Derivative(self%energyTableConcentration,self%energyTable(:&
             &,jAlpha(iAlpha)),self%energyTableConcentrationInterpolationObject ,self%energyTableConcentrationInterpolationAccelerator&
             &,virialRadiusOverScaleRadius,reset=self%energyTableConcentrationInterpolationReset)*hAlpha(iAlpha)
     end do
@@ -1000,6 +1001,7 @@ contains
 
   double precision function einastoKSpace(self,node,wavenumber)
     !% Returns the Fourier transform of the Einasto density profile at the specified {\tt waveNumber} (given in Mpc$^{-1}$)).
+    use, intrinsic :: ISO_C_Binding
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
@@ -1007,7 +1009,7 @@ contains
     type            (treeNode                      )                , intent(inout), pointer :: node
     double precision                                                , intent(in   )          :: wavenumber
     class           (nodeComponentDarkMatterProfile)                               , pointer :: thisDarkMatterProfileComponent
-    integer                                         , dimension(0:1)                         :: jAlpha                        , jConcentration
+    integer         (c_size_t                      ), dimension(0:1)                         :: jAlpha                        , jConcentration
     double precision                                , dimension(0:1)                         :: hAlpha                        , hConcentration
     integer                                                                                  :: iAlpha                        , iConcentration
     double precision                                                                         :: alpha                         , scaleRadius        , &
@@ -1026,25 +1028,25 @@ contains
     call self%fourierProfileTableMake(wavenumberScaleFree,virialRadiusOverScaleRadius,alpha)
 
     ! Get interpolating factors in alpha.
-    jAlpha(0)=Interpolate_Locate(self%fourierProfileTableAlphaCount,self%fourierProfileTableAlpha&
+    jAlpha(0)=Interpolate_Locate(self%fourierProfileTableAlpha&
          &,self%fourierProfileTableAlphaInterpolationAccelerator,alpha,reset=self%fourierProfileTableAlphaInterpolationReset)
     jAlpha(1)=jAlpha(0)+1
-    hAlpha=Interpolate_Linear_Generate_Factors(self%fourierProfileTableAlphaCount,self%fourierProfileTableAlpha,jAlpha(0),alpha)
+    hAlpha=Interpolate_Linear_Generate_Factors(self%fourierProfileTableAlpha,jAlpha(0),alpha)
 
     ! Get interpolating factors in concentration.
-    jConcentration(0)=Interpolate_Locate(self%fourierProfileTableConcentrationCount,self%fourierProfileTableConcentration &
+    jConcentration(0)=Interpolate_Locate(self%fourierProfileTableConcentration &
          &,self%fourierProfileTableConcentrationInterpolationAccelerator,virialRadiusOverScaleRadius,reset &
          &=self%fourierProfileTableConcentrationInterpolationReset)
     jConcentration(1)=jConcentration(0)+1
-    hConcentration=Interpolate_Linear_Generate_Factors(self%fourierProfileTableConcentrationCount,self%fourierProfileTableConcentration&
+    hConcentration=Interpolate_Linear_Generate_Factors(self%fourierProfileTableConcentration&
          &,jConcentration(0),virialRadiusOverScaleRadius)
 
     ! Find the Fourier profile by interpolation.
     einastoKSpace=0.0d0
     do iAlpha=0,1
        do iConcentration=0,1
-          einastoKSpace=einastoKSpace+Interpolate(self%fourierProfileTableWavenumberCount &
-               &,self%fourierProfileTableWavenumber,self%fourierProfileTable(:,jConcentration(iConcentration),jAlpha(iAlpha))&
+          einastoKSpace=einastoKSpace+Interpolate( &
+               &self%fourierProfileTableWavenumber,self%fourierProfileTable(:,jConcentration(iConcentration),jAlpha(iAlpha))&
                &,self%fourierProfileTableWavenumberInterpolationObject ,self%fourierProfileTableWavenumberInterpolationAccelerator&
                &,wavenumberScaleFree,reset =self%fourierProfileTableWavenumberInterpolationReset)*hAlpha(iAlpha)*hConcentration(iConcentration)
        end do
@@ -1189,6 +1191,7 @@ contains
 
   double precision function einastoFreefallRadius(self,node,time)
     !% Returns the freefall radius in the Einasto density profile at the specified {\tt time} (given in Gyr).
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
@@ -1198,7 +1201,7 @@ contains
     double precision                                                , intent(in   )          :: time
     class           (nodeComponentBasic            )                               , pointer :: thisBasicComponent
     class           (nodeComponentDarkMatterProfile)                               , pointer :: thisDarkMatterProfileComponent
-    integer                                         , dimension(0:1)                         :: jAlpha
+    integer         (c_size_t                      ), dimension(0:1)                         :: jAlpha
     double precision                                , dimension(0:1)                         :: hAlpha
     integer                                                                                  :: iAlpha
     double precision                                                                         :: alpha                         , freefallTimeScaleFree, &
@@ -1235,14 +1238,14 @@ contains
 
     ! Interpolate to get the freefall radius.
     ! Get interpolating factors in alpha.
-    jAlpha(0)=Interpolate_Locate(self%freefallRadiusTableAlphaCount,self%freefallRadiusTableAlpha&
+    jAlpha(0)=Interpolate_Locate(self%freefallRadiusTableAlpha&
          &,self%freefallRadiusTableAlphaInterpolationAccelerator,alpha,reset=self%freefallRadiusTableAlphaInterpolationReset)
     jAlpha(1)=jAlpha(0)+1
-    hAlpha=Interpolate_Linear_Generate_Factors(self%freefallRadiusTableAlphaCount,self%freefallRadiusTableAlpha,jAlpha(0),alpha)
+    hAlpha=Interpolate_Linear_Generate_Factors(self%freefallRadiusTableAlpha,jAlpha(0),alpha)
 
     einastoFreefallRadius=0.0d0
     do iAlpha=0,1
-       einastoFreefallRadius=einastoFreefallRadius+Interpolate(self%freefallRadiusTableRadiusCount,self%freefallRadiusTable(:&
+       einastoFreefallRadius=einastoFreefallRadius+Interpolate(self%freefallRadiusTable(:&
             &,jAlpha(iAlpha)),self%freefallRadiusTableRadius ,self%freefallRadiusTableRadiusInterpolationObject&
             &,self%freefallRadiusTableRadiusInterpolationAccelerator ,freefallTimeScaleFree,reset&
             &=self%freefallRadiusTableRadiusInterpolationReset)*hAlpha(iAlpha)
@@ -1254,6 +1257,7 @@ contains
   double precision function einastoFreefallRadiusIncreaseRate(self,node,time)
     !% Returns the rate of increase of the freefall radius in the Einasto density profile at the specified {\tt time} (given in
     !% Gyr).
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
@@ -1263,7 +1267,7 @@ contains
     double precision                                                , intent(in   )          :: time
     class           (nodeComponentBasic            )                               , pointer :: thisBasicComponent
     class           (nodeComponentDarkMatterProfile)                               , pointer :: thisDarkMatterProfileComponent
-    integer                                         , dimension(0:1)                         :: jAlpha
+    integer         (c_size_t                      ), dimension(0:1)                         :: jAlpha
     double precision                                , dimension(0:1)                         :: hAlpha
     integer                                                                                  :: iAlpha
     double precision                                                                         :: alpha                         , freefallTimeScaleFree, &
@@ -1300,14 +1304,14 @@ contains
 
     ! Interpolate to get the freefall radius.
     ! Get interpolating factors in alpha.
-    jAlpha(0)=Interpolate_Locate(self%freefallRadiusTableAlphaCount,self%freefallRadiusTableAlpha&
+    jAlpha(0)=Interpolate_Locate(self%freefallRadiusTableAlpha&
          &,self%freefallRadiusTableAlphaInterpolationAccelerator,alpha,reset=self%freefallRadiusTableAlphaInterpolationReset)
     jAlpha(1)=jAlpha(0)+1
-    hAlpha=Interpolate_Linear_Generate_Factors(self%freefallRadiusTableAlphaCount,self%freefallRadiusTableAlpha,jAlpha(0),alpha)
+    hAlpha=Interpolate_Linear_Generate_Factors(self%freefallRadiusTableAlpha,jAlpha(0),alpha)
 
     einastoFreefallRadiusIncreaseRate=0.0d0
     do iAlpha=0,1
-       einastoFreefallRadiusIncreaseRate=einastoFreefallRadiusIncreaseRate+Interpolate_Derivative(self%freefallRadiusTableRadiusCount,self%freefallRadiusTable(:&
+       einastoFreefallRadiusIncreaseRate=einastoFreefallRadiusIncreaseRate+Interpolate_Derivative(self%freefallRadiusTable(:&
             &,jAlpha(iAlpha)),self%freefallRadiusTableRadius ,self%freefallRadiusTableRadiusInterpolationObject&
             &,self%freefallRadiusTableRadiusInterpolationAccelerator ,freefallTimeScaleFree,reset&
             &=self%freefallRadiusTableRadiusInterpolationReset)*hAlpha(iAlpha)

@@ -325,6 +325,7 @@ contains
 
   subroutine Star_Formation_History_Record_Metallicity_Split(thisNode,thisHistory,fuelAbundances,starFormationRate)
     !% Record the star formation history for {\tt thisNode}.
+    use, intrinsic :: ISO_C_Binding
     use Histories
     use Galacticus_Nodes
     use Abundances_Structure
@@ -335,7 +336,8 @@ contains
     type            (abundances        ), intent(in   )          :: fuelAbundances
     double precision                    , intent(in   )          :: starFormationRate
     class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    integer                                                      :: historyCount      , iHistory, iMetallicity
+    integer                                                      :: historyCount
+    integer         (c_size_t          )                         :: iHistory          , iMetallicity
     double precision                                             :: fuelMetallicity   , timeNode
 
     ! Get the current time for this node.
@@ -364,6 +366,7 @@ contains
 
   subroutine Star_Formation_History_Output_Metallicity_Split(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
     !% Output the star formation history for {\tt thisNode}.
+    use, intrinsic :: ISO_C_Binding
     use Histories
     use ISO_Varying_String
     use Galacticus_HDF5
@@ -375,7 +378,7 @@ contains
     type            (treeNode          ), intent(inout), pointer :: thisNode
     logical                             , intent(in   )          :: nodePassesFilter
     type            (history           ), intent(inout)          :: thisHistory
-    integer                             , intent(in   )          :: iOutput
+    integer         (c_size_t          ), intent(in   )          :: iOutput
     integer         (kind=kind_int8    ), intent(in   )          :: treeIndex
     character       (len=*             ), intent(in   )          :: componentLabel
     class           (nodeComponentBasic)               , pointer :: parentBasicComponent

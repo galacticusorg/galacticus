@@ -241,6 +241,7 @@ contains
   
   logical function Radiation_Intergalactic_Background_Internal_Update(thisEvent,thisUniverse) result (success)
     !% Update the radiation background for a given universe.
+    use               Kind_Numbers
     use               Galacticus_Output_Times
     use               Galacticus_Nodes
     use               Galacticus_Display
@@ -286,12 +287,11 @@ contains
          &                                                         treeTimeLatest
     type            (abundances                ), target        :: gasAbundancesDisk                   , gasAbundancesSpheroid
     integer                                                     :: imfIndexDisk                        , imfIndexSpheroid                   , &
-         &                                                         iTime                               , iWavelength                        , &
-         &                                                         statusDisk                          , statusSpheroid                     , &
-         &                                                         iNow
+         &                                                         iTime                               , iWavelength
     type            (varying_string            )                :: message
     character       (len=6                     )                :: label
     type            (hdf5Object                )                :: backgroundRadiationGroup            , backgroundRadiationDataset
+    integer         (c_size_t                  )                :: iNow
     logical                                                     :: firstTime
 
     ! Display message.
@@ -613,6 +613,7 @@ contains
 
   subroutine Radiation_IGB_Internal_Flux(radiationProperties,wavelength,radiationFlux)
     !% Flux method for the radiation component from file method.
+    use, intrinsic :: ISO_C_Binding
     use FGSL
     use Numerical_Interpolation
     use Numerical_Constants_Astronomical
@@ -627,7 +628,7 @@ contains
     double precision                   , dimension(0:1)                :: hWavelength                     , hTime
     double precision                   , parameter                     :: timeTolerance=1.0d-3
     double precision                                                   :: time
-    integer                                                            :: iWavelength                     , jWavelength                        , &
+    integer         (c_size_t         )                                :: iWavelength                     , jWavelength                        , &
          &                                                                iTime                           , jTime
     logical                            , save                          :: interpolationReset      =.true. , interpolationResetTime      =.true.
     type            (fgsl_interp_accel), save                          :: interpolationAccelerator        , interpolationAcceleratorTime
@@ -637,11 +638,11 @@ contains
     time=radiationProperties(1)
     if (time > backgroundTimeNext*(1.0d0+timeTolerance)) call Galacticus_Error_Report('Radiation_IGB_Internal_Flux','time is out of range')
     ! Find interpolation in the array of wavelengths.
-    iWavelength=Interpolate_Locate                 (backgroundRadiationWavelengthCount,backgroundRadiationWavelength,interpolationAccelerator,wavelength,reset=interpolationReset)
-    hWavelength=Interpolate_Linear_Generate_Factors(backgroundRadiationWavelengthCount,backgroundRadiationWavelength,iWavelength             ,wavelength)
+    iWavelength=Interpolate_Locate                 (backgroundRadiationWavelength,interpolationAccelerator,wavelength,reset=interpolationReset)
+    hWavelength=Interpolate_Linear_Generate_Factors(backgroundRadiationWavelength,iWavelength             ,wavelength)
     ! Find interpolation in array of times.
-    iTime=Interpolate_Locate                 (backgroundRadiationTimeCount,backgroundRadiationTime,interpolationAcceleratorTime,time,reset=interpolationResetTime)
-    hTime=Interpolate_Linear_Generate_Factors(backgroundRadiationTimeCount,backgroundRadiationTime,iTime                       ,time                             )
+    iTime=Interpolate_Locate                 (backgroundRadiationTime,interpolationAcceleratorTime,time,reset=interpolationResetTime)
+    hTime=Interpolate_Linear_Generate_Factors(backgroundRadiationTime,iTime                       ,time                             )
     if (time > backgroundTimePrevious) hTime=[1.0d0,0.0d0]
     ! Interpolate in wavelength and time.
     radiationFlux=0.0d0

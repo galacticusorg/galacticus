@@ -78,7 +78,6 @@ contains
     character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
          &                                                              integerPropertyComments, integerPropertyNames
     double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    integer                                                          :: iLuminosity
 
     ! Initialize the module.
     call Galacticus_Output_Tree_Half_Mass_Initialize

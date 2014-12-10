@@ -169,7 +169,7 @@ contains
        else if (massScaleFree < deltaTableMass(1)) then
           Critical_Overdensity_Mass_Scaling_WDM=exp(deltaTableDelta(1)+(massScaleFree-deltaTableMass(1))*smallMassLogarithmicSlope)
        else
-          Critical_Overdensity_Mass_Scaling_WDM=exp(Interpolate(deltaTableCount,deltaTableMass,deltaTableDelta,interpolationObject&
+          Critical_Overdensity_Mass_Scaling_WDM=exp(Interpolate(deltaTableMass,deltaTableDelta,interpolationObject&
                &,interpolationAccelerator,massScaleFree,extrapolationType=extrapolationTypeFixed,reset=interpolationReset,interpolationType=fgsl_interp_cspline))
        end if
     end if
@@ -208,7 +208,7 @@ contains
        else if (massScaleFree < deltaTableMass(1)) then
           Critical_Overdensity_Mass_Scaling_Gradient_WDM=smallMassLogarithmicSlope*Critical_Overdensity_Mass_Scaling_WDM(mass)/mass
        else
-          Critical_Overdensity_Mass_Scaling_Gradient_WDM=Interpolate_Derivative(deltaTableCount,deltaTableMass,deltaTableDelta&
+          Critical_Overdensity_Mass_Scaling_Gradient_WDM=Interpolate_Derivative(deltaTableMass,deltaTableDelta&
                &,interpolationObject,interpolationAccelerator,massScaleFree,extrapolationType=extrapolationTypeFixed,reset&
                &=interpolationReset,interpolationType=fgsl_interp_cspline)*Critical_Overdensity_Mass_Scaling_WDM(mass)/mass
        end if

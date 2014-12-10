@@ -333,6 +333,7 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Galacticus_Extra_Output_Halo_Fourier_Profile(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store Fourier-space halo profiles to the output file.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Galacticus_HDF5
     use ISO_Varying_String
@@ -343,7 +344,7 @@ contains
     use Kind_Numbers
     implicit none
     type            (treeNode               ), intent(inout), pointer      :: thisNode
-    integer                                  , intent(in   )               :: iOutput
+    integer         (c_size_t               ), intent(in   )               :: iOutput
     integer         (kind=kind_int8         ), intent(in   )               :: treeIndex
     logical                                  , intent(in   )               :: nodePassesFilter
     type            (treeNode          )                    , pointer      :: hostNode

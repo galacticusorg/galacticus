@@ -228,10 +228,10 @@ contains
 
     aa=a
     xx=x
-    inverseCosineIntegral=(sin(xx)*(sqrt((aa**2+1.0d0)*cos(2.0d0*xx)+aa**2-1.0d0)*(log(aa*(sqrt(2.0d0)*sqrt(2.0d0*aa**2*cos(xx)&
+    inverseCosineIntegral=real((sin(xx)*(sqrt((aa**2+1.0d0)*cos(2.0d0*xx)+aa**2-1.0d0)*(log(aa*(sqrt(2.0d0)*sqrt(2.0d0*aa**2*cos(xx)&
          &**2+cos(2.0d0*xx)-1.0d0)+2.0d0*aa))-log(sqrt(cos(2.0d0*xx)-1.0d0)))*sqrt(cosec(xx)**2*(-((aa**2+1.0d0)*cos(2.0d0*xx)+aa&
          &**2-1.0d0)))-cot(xx)*((aa**2+1.0d0)*cos(2.0d0*xx)+aa**2-1.0d0)*acos(aa*cot(xx))))/((aa**2+1.0d0)*cos(2.0d0*xx)+aa**2&
-         &-1.0d0)
+         &-1.0d0))
     return
   end function inverseCosineIntegral
   
@@ -267,6 +267,7 @@ contains
     use Arrays_Search
     use Cosmology_Functions
     use Vectors
+    use, intrinsic :: ISO_C_Binding
     implicit none
     type            (treeNode               )                , intent(inout), pointer :: thisNode
     logical                                                  , intent(inout)          :: doOutput
@@ -278,9 +279,9 @@ contains
     double precision                         , dimension(3  )                         :: galaxyPosition                  , galaxyVelocity
     logical                                                                           :: galaxyIsInFieldOfView           , galaxyIsInLightcone
     integer                                                                           :: i                               , iAxis              , &
-         &                                                                               iOutput                         , j                  , &
-         &                                                                               k
+         &                                                                               j                               , k
     double precision                                                                  :: lightconeRadialDistance
+    integer         (c_size_t              )                                          :: iOutput
 
     ! Return immediately if this filter is not active.
     if (.not.lightconeFilterActive) return

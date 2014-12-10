@@ -163,18 +163,19 @@ contains
 
   subroutine Radiation_IGB_File_Flux(radiationProperties,wavelength,radiationFlux)
     !% Flux method for the radiation component from file method.
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     implicit none
-    double precision                      , intent(in   ) :: wavelength
-    double precision, dimension(:)        , intent(in   ) :: radiationProperties
-    double precision                      , intent(inout) :: radiationFlux
-    double precision, dimension(0:1), save                :: hSpectrum
+    double precision                                      , intent(in   ) :: wavelength
+    double precision                , dimension(:)        , intent(in   ) :: radiationProperties
+    double precision                                      , intent(inout) :: radiationFlux
+    double precision                , dimension(0:1), save                :: hSpectrum
     !$omp threadprivate(hSpectrum)
-    double precision, dimension(0:1)                      :: hWavelength
-    integer                         , save                :: iSpectrum
+    double precision                , dimension(0:1)                      :: hWavelength
+    integer         (c_size_t      )                , save                :: iSpectrum
     !$omp threadprivate(iSpectrum)
-    double precision                , save                :: previousTime       =-1.0d0
-    integer                                               :: iWavelength               , jSpectrum, jWavelength
+    double precision                                , save                :: previousTime       =-1.0d0
+    integer         (c_size_t      )                                      :: iWavelength               , jSpectrum, jWavelength
 
     ! Return if out of range.
     if     (    radiationProperties(1) < spectraTimes      (1                      ) &
@@ -186,13 +187,13 @@ contains
     !$omp critical (Radiation_Interpolation)
     ! Find interpolate in the array of times (only necessary if the time differs from that on the previous call).
     if (radiationProperties(1) /= previousTime) then
-       iSpectrum=Interpolate_Locate(spectraTimesCount,spectraTimes,interpolationAcceleratorTimes,radiationProperties(1),reset=interpolationResetTimes)
-       hSpectrum=Interpolate_Linear_Generate_Factors(spectraTimesCount,spectraTimes,iSpectrum,radiationProperties(1))
+       iSpectrum=Interpolate_Locate(spectraTimes,interpolationAcceleratorTimes,radiationProperties(1),reset=interpolationResetTimes)
+       hSpectrum=Interpolate_Linear_Generate_Factors(spectraTimes,iSpectrum,radiationProperties(1))
        previousTime=radiationProperties(1)
     end if
     ! Find interpolation in the array of wavelengths.
-    iWavelength=Interpolate_Locate(spectraWavelengthsCount,spectraWavelengths,interpolationAccelerator,wavelength,reset=interpolationReset)
-    hWavelength=Interpolate_Linear_Generate_Factors(spectraWavelengthsCount,spectraWavelengths,iWavelength,wavelength)
+    iWavelength=Interpolate_Locate(spectraWavelengths,interpolationAccelerator,wavelength,reset=interpolationReset)
+    hWavelength=Interpolate_Linear_Generate_Factors(spectraWavelengths,iWavelength,wavelength)
     do jSpectrum=0,1
        do jWavelength=0,1
           if (iSpectrum+jSpectrum > 0) &

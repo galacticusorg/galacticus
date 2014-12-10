@@ -307,8 +307,6 @@ contains
     class           (nodeComponentBasic                                )               , pointer :: thisBasic
     class           (cosmologyFunctionsClass                           )               , pointer :: cosmologyFunctionsDefault
     double precision                                                                             :: aExpansion               , time
-    double precision                                                    , save                   :: densityGrowthRatePrevious, timePrevious=-1.0d0
-    !$omp threadprivate(timePrevious,densityGrowthRatePrevious)
 
     if (thisNode%isSatellite()) then
        ! Satellite halo is not growing, return zero rate.

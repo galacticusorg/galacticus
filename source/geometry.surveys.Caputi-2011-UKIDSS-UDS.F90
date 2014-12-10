@@ -116,7 +116,7 @@ contains
     double precision         , intent(  out)                                               :: boxLength
     complex(c_double_complex), intent(  out),     dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
     double precision         ,                    dimension(3                            ) :: origin,position1,position2
-    integer                                                                                :: i,j
+    integer                                                                                :: i
     double precision                                                                       :: comovingDistanceMaximum1&
          &,comovingDistanceMaximum2,comovingDistanceMinimum1,comovingDistanceMinimum2
  
@@ -124,12 +124,11 @@ contains
     complex(c_double_complex),                    dimension(gridCount,gridCount,gridCount) :: selectionFunction1,selectionFunction2
     complex(c_double_complex)                                                              :: normalization
     logical                  , save                                                        :: geometryInitialized=.false.
-    double precision                                                                       :: rightAscension,declination,distance1,distance2
+    double precision                                                                       :: distance1,distance2
     double precision         , save, allocatable, dimension(:                            ) :: randomTheta,randomPhi
     integer                  , save                                                        :: randomsCount
     type   (fgsl_rng        ), save                                                        :: pseudoSequenceObject
     logical                  , save                                                        :: reset=.true.
-    type   (varying_string  )                                                              :: message
     double precision         , save                                                        :: surveyDistanceMinimum&
          &,surveyDistanceMaximum
     type(hdf5Object)                                                                       :: surveyGeometryRandomsFile
