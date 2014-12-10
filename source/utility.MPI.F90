@@ -293,12 +293,14 @@ contains
     integer                    , intent(in   ), dimension(                            :) :: requestFrom
     double precision           , intent(in   ), dimension(          :                  ) :: array
     double precision                          , dimension(size(array),size(requestFrom)) :: mpiRequestData1D
+    double precision                          , dimension(size(array)                  ) :: receivedData
     integer                                   , dimension(                            1) :: requester       , requestedBy
     integer                                   , dimension(         0: self%countValue-1) :: requestFromID
     integer                    , allocatable  , dimension(                            :) :: requestID       , requestIDtemp
     integer                                   , dimension(              MPI_Status_Size) :: messageStatus
     integer                                                                              :: i               , iError       , &
-         &                                                                                  iRequest
+         &                                                                                  iRequest        , receivedFrom , &
+         &                                                                                  j
     
     ! Record our own rank as the requester.
     requester=self%rank()
@@ -339,7 +341,12 @@ contains
     end do
     ! Receive data.
     do i=1,size(requestFrom)
-       call MPI_Recv(mpiRequestData1D(:,i),size(array),MPI_Double_Precision,MPI_Any_Source,tagState,MPI_Comm_World,messageStatus,iError)
+       call MPI_Recv(receivedData,size(array),MPI_Double_Precision,MPI_Any_Source,tagState,MPI_Comm_World,messageStatus,iError)
+       ! Find who sent this data and apply to the relevant part of the results array.
+       receivedFrom=messageStatus(MPI_SOURCE)
+       do j=1,size(requestFrom)
+          if (requestFrom(j) == receivedFrom) mpiRequestData1D(:,j)=receivedData
+       end do
     end do
     ! Wait until all of our sends have been received.
     do i=1,iRequest
@@ -359,12 +366,14 @@ contains
     integer                    , intent(in   ), dimension(                                                    :) :: requestFrom
     double precision           , intent(in   ), dimension(                :,                :                  ) :: array
     double precision                          , dimension(size(array,dim=1),size(array,dim=2),size(requestFrom)) :: mpiRequestData2D
+    double precision                          , dimension(size(array,dim=1),size(array,dim=2)                  ) :: receivedData
     integer                                   , dimension(                                                    1) :: requester       , requestedBy
     integer                                   , dimension(                                 0: self%countValue-1) :: requestFromID
     integer                    , allocatable  , dimension(                                                    :) :: requestID       , requestIDtemp
     integer                                   , dimension(                                      MPI_Status_Size) :: messageStatus
     integer                                                                                                      :: i               , iError       , &
-         &                                                                                                          iRequest
+         &                                                                                                          iRequest        , j            , &
+         &                                                                                                          receivedFrom
 
     ! Record our own rank as the requester.
     requester=self%rank()
@@ -405,7 +414,12 @@ contains
     end do
     ! Receive data.
     do i=1,size(requestFrom)
-       call MPI_Recv(mpiRequestData2D(:,:,i),product(shape(array)),MPI_Double_Precision,requestFrom(i),tagState,MPI_Comm_World,messageStatus,iError)
+       call MPI_Recv(receivedData,product(shape(array)),MPI_Double_Precision,requestFrom(i),tagState,MPI_Comm_World,messageStatus,iError)
+       ! Find who sent this data and apply to the relevant part of the results array.
+       receivedFrom=messageStatus(MPI_SOURCE)
+       do j=1,size(requestFrom)
+          if (requestFrom(j) == receivedFrom) mpiRequestData2D(:,:,j)=receivedData
+       end do
     end do
     ! Wait until all of our sends have been received.
     do i=1,iRequest
@@ -425,12 +439,14 @@ contains
     integer           , intent(in   ), dimension(                            :) :: requestFrom
     integer           , intent(in   ), dimension(          :                  ) :: array
     integer                          , dimension(size(array),size(requestFrom)) :: mpiRequestDataInt1D
+    integer                          , dimension(size(array)                  ) :: receivedData
     integer                          , dimension(                            1) :: requester       , requestedBy
     integer                          , dimension(         0: self%countValue-1) :: requestFromID
     integer           , allocatable  , dimension(                            :) :: requestID       , requestIDtemp
     integer                          , dimension(              MPI_Status_Size) :: messageStatus
     integer                                                                     :: i               , iError       , &
-         &                                                                         iRequest
+         &                                                                         iRequest        , j            , &
+         &                                                                         receivedFrom
     
     ! Record our own rank as the requester.
     requester=self%rank()
@@ -471,7 +487,12 @@ contains
     end do
     ! Receive data.
     do i=1,size(requestFrom)
-       call MPI_Recv(mpiRequestDataInt1D(:,i),size(array),MPI_Integer,requestFrom(i),tagState,MPI_Comm_World,messageStatus,iError)
+       call MPI_Recv(receivedData,size(array),MPI_Integer,requestFrom(i),tagState,MPI_Comm_World,messageStatus,iError)
+       ! Find who sent this data and apply to the relevant part of the results array.
+       receivedFrom=messageStatus(MPI_SOURCE)
+       do j=1,size(requestFrom)
+          if (requestFrom(j) == receivedFrom) mpiRequestDataInt1D(:,j)=receivedData
+       end do
     end do
     ! Wait until all of our sends have been received.
     do i=1,iRequest
