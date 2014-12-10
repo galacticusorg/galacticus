@@ -340,6 +340,7 @@ contains
     double precision                                     , intent(  out)         :: numberCentrals          , numberSatellites
     double precision                                     , parameter             :: massNormalization=1.0d12
     double precision                                     , parameter             :: massMinimum      =1.0d-12
+    double precision                                     , parameter             :: massHaloMaximum  =1.0d+17
     double precision                                                             :: fMassHalo               , massCut         , &
          &                                                                          massSatellite
 
@@ -391,7 +392,7 @@ contains
        self%massSatelliteStored(2)=self%massSatelliteStored(1)
        self%massCutStored      (2)=self%massCutStored      (1)
        self%massPrevious       (2)=self%massPrevious       (1)
-       fMassHalo                  =behroozi2010fSHMRInverse(mass)
+       fMassHalo                  =min(behroozi2010fSHMRInverse(mass),massHaloMaximum)
        massSatellite              =massNormalization*self%BSatellite*(fMassHalo/massNormalization)**self%betaSatellite
        massCut                    =massNormalization*self%BCut      *(fMassHalo/massNormalization)**self%betaCut
        self%fMassHaloStored    (1)=fMassHalo
