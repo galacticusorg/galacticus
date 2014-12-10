@@ -43,6 +43,7 @@ contains
   !# </galacticusTask>
   logical function Galacticus_Task_Evolve_Tree()
     !% Evolves the complete set of merger trees as specified.
+    use, intrinsic :: ISO_C_Binding
     use ISO_Varying_String
     use String_Handling
     use Merger_Trees_Evolve
@@ -71,7 +72,7 @@ contains
     type            (mergerTree        ), pointer     , save :: thisTree
     logical                                           , save :: finished                        , skipTree               , &
          &                                                      treeIsNew
-    integer                                           , save :: iOutput
+    integer         (c_size_t          )              , save :: iOutput
     double precision                                  , save :: evolveToTime                    , treeTimeEarliest       , &
          &                                                      universalEvolveToTime           , treeTimeLatest         , &
          &                                                      outputTimeNext

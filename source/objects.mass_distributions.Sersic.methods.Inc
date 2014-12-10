@@ -86,11 +86,11 @@ double precision function Mass_Distribution_Sersic_Density(self,coordinates)
    ! Compute the density at this position.
    r=position%r()/self%radiusHalfMass
    call Sersic_Profile_Tabulate(r)
-  !$omp critical (Sersic_Profile_Tabulation)
-   Mass_Distribution_Sersic_Density=(self%mass/self%radiusHalfMass**3)*Interpolate(sersicTableCount,sersicTableRadius&
+   !$omp critical (Sersic_Profile_Tabulation)
+   Mass_Distribution_Sersic_Density=(self%mass/self%radiusHalfMass**3)*Interpolate(sersicTableRadius&
         &,sersicTableDensity,sersicTableInterpolationObject,sersicTableInterpolationAccelerator,r,reset &
         &=sersicTableInterpolationReset,extrapolationType=extrapolationTypeLinear)
-  !$omp end critical (Sersic_Profile_Tabulation)
+   !$omp end critical (Sersic_Profile_Tabulation)
   return
 end function Mass_Distribution_Sersic_Density
 
@@ -158,7 +158,7 @@ double precision function Mass_Distribution_Sersic_Mass_Enc_By_Sphere(self,radiu
      call Sersic_Profile_Tabulate(fractionalRadius)
      if (fractionalRadius < sersicTableRadius(sersicTableCount)) then
         !$omp critical (Sersic_Profile_Tabulation)
-        Mass_Distribution_Sersic_Mass_Enc_By_Sphere=self%mass*Interpolate(sersicTableCount,sersicTableRadius,sersicTableEnclosedMass&
+        Mass_Distribution_Sersic_Mass_Enc_By_Sphere=self%mass*Interpolate(sersicTableRadius,sersicTableEnclosedMass&
              & ,sersicTableInterpolationObject,sersicTableInterpolationAccelerator,fractionalRadius,reset &
              &=sersicTableInterpolationReset)
         !$omp end critical (Sersic_Profile_Tabulation)
@@ -187,7 +187,7 @@ double precision function Mass_Distribution_Sersic_Potential(self,coordinates)
   call Sersic_Profile_Tabulate(r)
   if (r < sersicTableRadius(sersicTableCount)) then
      !$omp critical (Sersic_Profile_Tabulation)
-     Mass_Distribution_Sersic_Potential=(self%mass/self%radiusHalfMass)*Interpolate(sersicTableCount,sersicTableRadius&
+     Mass_Distribution_Sersic_Potential=(self%mass/self%radiusHalfMass)*Interpolate(sersicTableRadius&
           &,sersicTablePotential ,sersicTableInterpolationObject,sersicTableInterpolationAccelerator,r,reset &
           &=sersicTableInterpolationReset)
      !$omp end critical (Sersic_Profile_Tabulation)
@@ -328,7 +328,6 @@ subroutine Sersic_Profile_Tabulate(radius)
         call Interpolate_Done(sersicTableInterpolationObject,sersicTableInterpolationAccelerator,sersicTableInterpolationReset)
         sersicTableInterpolationReset=.true.
         sersicTable3dHalfMassRadius=Interpolate(                                                                  &
-             &                                                            maxloc(sersicTableEnclosedMass,dim=1),  &
              &                                  sersicTableEnclosedMass(1:maxloc(sersicTableEnclosedMass,dim=1)), &
              &                                  sersicTableRadius      (1:maxloc(sersicTableEnclosedMass,dim=1)), &
              &                                  sersicTableInterpolationObject,                                   &

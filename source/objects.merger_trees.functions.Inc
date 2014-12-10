@@ -21,7 +21,7 @@ subroutine Merger_Tree_Destroy(thisTree)
   !% Destroys the entire merger tree.
   implicit none
   class(mergerTree), intent(inout) :: thisTree
-  type (treeEvent ), pointer       :: thisEvent, lastEvent, nextEvent 
+  type (treeEvent ), pointer       :: thisEvent, nextEvent 
 
   select type (thisTree)
   type is (mergerTree)

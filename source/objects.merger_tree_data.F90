@@ -21,6 +21,7 @@
 
 module Merger_Tree_Data_Structure
   !% Implements an object to store merger tree data for processing into \glc's preferred file format.
+  use, intrinsic :: ISO_C_Binding
   use Kind_Numbers
   use ISO_Varying_String
   implicit none
@@ -227,10 +228,11 @@ character(len=100) :: textAttribute
           &                                                                     treeBeginsAt                       , treeNodeCount
      integer         (kind=kind_int8), allocatable, dimension(:)             :: descendentIndex                    , hostIndex                        , &
           &                                                                     mostBoundParticleIndex             , nodeIndex                        , &
-          &                                                                     particleCount                      , particleIndex                    , &
+          &                                                                     particleIndex                      , treeID                           , &
+          &                                                                     treeIndex
+     integer         (c_size_t      ), allocatable, dimension(:)             :: particleCount                      , snapshot                         , &
           &                                                                     particleReferenceCount             , particleReferenceStart           , &
-          &                                                                     particleSnapshot                   , snapshot                         , &
-          &                                                                     treeID                             , treeIndex
+          &                                                                     particleSnapshot
      double precision                , allocatable, dimension(:)             :: angularMomentumMagnitude           , halfMassRadius                   , &
           &                                                                     nodeMass                           , particleRedshift                 , &
           &                                                                     redshift                           , scaleFactor                      , &
@@ -1796,11 +1798,11 @@ contains
          &                                                                               simulationGroup               , snapshotGroup       , &
          &                                                                               thisDataset
     integer                         , allocatable, dimension(:)                ::        nodeSnapshotIndices           , thisSnapshotIndices
-    integer         (kind=kind_int8), allocatable, dimension(:)                ::        descendentSnapshot
+    integer         (c_size_t      ), allocatable, dimension(:)                ::        descendentSnapshot
     double precision                , allocatable, dimension(:)                ::        particleMass
     integer                                                                    ::        iAttribute                    , nodesOnSnapshotCount, &
          &                                                                               particlesOnSnapshotCount
-    integer         (kind=kind_int8)                                           ::        iDescendent                   , iNode               , &
+    integer         (c_size_t      )                                           ::        iDescendent                   , iNode               , &
          &                                                                               iSnapshot                     , snapshotMaximum     , &
          &                                                                               snapshotMinimum
     character       (len=14        )                                           ::        snapshotGroupName

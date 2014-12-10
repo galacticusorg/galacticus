@@ -144,8 +144,7 @@ contains
       double precision            , intent(in   ) :: massDefinitionTrial
       double precision                            :: radiusOuterDefinition, concentrationDefinition  , &
            &                                         radiusCore           , massOuterDefinition      , &
-           &                                         radiusOuter          , densityContrastDefinition, &
-           &                                         densityContrast      , massOuter
+           &                                         radiusOuter          , massOuter
       type            (rootFinder)                :: radiusFinder
       
       ! Set the mass of the worker node.

@@ -115,13 +115,13 @@ contains
        growthFactor   =Linear_Growth_Factor                     (     time)
 
        ! Compute coefficients of fitting function.
-       normalization0=Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableNormalization &
+       normalization0=Interpolate(deltaTableDelta,deltaTableNormalization &
             &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)
-       a0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableA &
+       a0            =Interpolate(deltaTableDelta,deltaTableA &
             &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)
-       b0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableB &
+       b0            =Interpolate(deltaTableDelta,deltaTableB &
             &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)
-       c0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableC &
+       c0            =Interpolate(deltaTableDelta,deltaTableC &
             &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)
 
        ! Extrapolate to higher redshift using redshift scalings given by Tinker et al. (2008; eqns. 5-8).

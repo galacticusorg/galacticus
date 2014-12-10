@@ -327,6 +327,7 @@ double precision :: normalization
   function Stellar_Population_Luminosity(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,abundancesStellar,age,redshift)
     !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\tt abundances} and {\tt age} drawn from IMF
     !% specified by {\tt imfIndex} and observed through the filter specified by {\tt filterIndex}.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Error
     use Numerical_Interpolation
     implicit none
@@ -336,7 +337,7 @@ double precision :: normalization
     type            (abundances                )                                               , intent(in   ) :: abundancesStellar
     double precision                                         , dimension(size(luminosityIndex))                :: Stellar_Population_Luminosity
     double precision                                         , dimension(0:1)                                  :: hAge                            , hMetallicity
-    integer                                                                                                    :: iAge                            , iLuminosity                , &
+    integer         (c_size_t                  )                                                               :: iAge                            , iLuminosity                , &
          &                                                                                                        iMetallicity                    , jAge                       , &
          &                                                                                                        jMetallicity
     double precision                                                                                           :: ageLast                         , metallicity
@@ -352,11 +353,10 @@ double precision :: normalization
        iMetallicity=luminosityTables(imfIndex)%metallicitiesCount-1
        hMetallicity=[0.0d0,1.0d0]
     else
-       iMetallicity=Interpolate_Locate(luminosityTables(imfIndex)%metallicitiesCount,luminosityTables(imfIndex)%metallicity &
+       iMetallicity=Interpolate_Locate(luminosityTables(imfIndex)%metallicity &
             &,luminosityTables(imfIndex)%interpolationAcceleratorMetallicity,metallicity &
             &,luminosityTables(imfIndex)%resetMetallicity)
-       hMetallicity=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%metallicitiesCount &
-            &,luminosityTables(imfIndex)%metallicity ,iMetallicity,metallicity)
+       hMetallicity=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%metallicity ,iMetallicity,metallicity)
     end if
 
     ! Do the interpolation.
@@ -378,9 +378,9 @@ double precision :: normalization
                    hAge=[0.0d0,1.0d0]
                 end if
              else
-                iAge=Interpolate_Locate(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age &
+                iAge=Interpolate_Locate(luminosityTables(imfIndex)%age &
                      &,luminosityTables(imfIndex)%interpolationAcceleratorAge,age(iLuminosity),luminosityTables(imfIndex)%resetAge)
-                hAge=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%agesCount,luminosityTables(imfIndex)%age,iAge&
+                hAge=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%age,iAge&
                      &,age(iLuminosity))
              end if
              ageLast=age(iLuminosity)
@@ -403,6 +403,7 @@ double precision :: normalization
   subroutine Stellar_Population_Luminosity_Track(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,abundancesStellar,redshift,ages,luminosities)
     !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\tt abundances} drawn from IMF
     !% specified by {\tt imfIndex} and observed through the filter specified by {\tt filterIndex}, for all available ages.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Error
     use Memory_Management
     use Numerical_Interpolation
@@ -415,7 +416,7 @@ double precision :: normalization
     double precision                            , allocatable, dimension(:  ,:                    ), intent(  out) :: luminosities
     double precision                                         , dimension(    size(luminosityIndex))                :: Stellar_Population_Luminosity
     double precision                                         , dimension(0:1                      )                :: hMetallicity
-    integer                                                                                                        :: iLuminosity                     , iMetallicity               , &
+    integer         (c_size_t                  )                                                                   :: iLuminosity                     , iMetallicity               , &
          &                                                                                                            jMetallicity
     double precision                                                                                               :: metallicity
 
@@ -430,11 +431,10 @@ double precision :: normalization
        iMetallicity=luminosityTables(imfIndex)%metallicitiesCount-1
        hMetallicity=[0.0d0,1.0d0]
     else
-       iMetallicity=Interpolate_Locate(luminosityTables(imfIndex)%metallicitiesCount,luminosityTables(imfIndex)%metallicity &
+       iMetallicity=Interpolate_Locate(luminosityTables(imfIndex)%metallicity &
             &,luminosityTables(imfIndex)%interpolationAcceleratorMetallicity,metallicity &
             &,luminosityTables(imfIndex)%resetMetallicity)
-       hMetallicity=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%metallicitiesCount &
-            &,luminosityTables(imfIndex)%metallicity ,iMetallicity,metallicity)
+       hMetallicity=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%metallicity ,iMetallicity,metallicity)
     end if
     ! Allocate arrays for ages and luminosities.
     call Alloc_Array(ages        ,[luminosityTables(imfIndex)%agesCount                      ])

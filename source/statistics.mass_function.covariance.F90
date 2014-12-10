@@ -739,7 +739,7 @@ contains
     time=timePrime
     ! Get the bias-mass function product for the I bin.
     interpolationReset=.true.
-    bias=Interpolate(timeBinCount,timeTable,biasTable(:,lssBin),interpolationObject,interpolationAccelerator,time,reset=interpolationReset)
+    bias=Interpolate(timeTable,biasTable(:,lssBin),interpolationObject,interpolationAccelerator,time,reset=interpolationReset)
     call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
     ! Get the nonlinear power spectrum for the current wavenumber and time.
     powerSpectrum=Power_Spectrum_Nonlinear(waveNumberGlobal,time)

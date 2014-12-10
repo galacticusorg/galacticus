@@ -22,6 +22,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
   !% \begin{itemize}
   !% \item The \gls{sdss} late-type galaxy size distributions from \cite{shen_size_2003}.
   !% \end{itemize}
+  use, intrinsic :: ISO_C_Binding
   use Galacticus_Nodes
   use Galactic_Structure_Options
   use Geometry_Surveys
@@ -177,6 +178,7 @@ contains
   !# </mergerTreeAnalysisTask>
   subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins(thisTree,thisNode,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct a mass functions to compare to various observational determinations.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Galacticus_Input_Paths
     use ISO_Varying_String
@@ -198,7 +200,7 @@ contains
     type            (mergerTree                    ), intent(in   )                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
     integer                                         , intent(in   )                 :: nodeStatus
-    integer                                         , intent(in   )                 :: iOutput
+    integer         (c_size_t                      ), intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     class           (nodeComponentBasic            )               , pointer        :: thisBasic
     class           (nodeComponentDisk             )               , pointer        :: thisDisk
@@ -206,7 +208,8 @@ contains
     class           (darkMatterHaloScaleClass      )               , pointer        :: darkMatterHaloScale_
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
-    integer                                                                         :: i,j,k,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution,jOutput
+    integer         (c_size_t                      )                                :: k
+    integer                                                                         :: i,j,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution,jOutput
     double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
          &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter,sersicIndexMaximum,redshift,timeMinimum,timeMaximum,distanceMinimum,distanceMaximum
     type            (varying_string                )                                :: parameterName&
@@ -583,7 +586,7 @@ contains
     if (.not.allocated(thisGalaxy)) allocate(thisGalaxy(size(sizeFunctions)))
     ! Iterate over active analyses.
     do i=1,size(sizeFunctions)
-       ! Return if this size function receives no contribution from this output number.
+       ! Cycle if this size function receives no contribution from this output number.
        if (all(sizeFunctions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
        if (.not.allocated(thisGalaxy(i)%sizeFunction       )) call Alloc_Array(thisGalaxy(i)%sizeFunction       ,[sizeFunctions(i)%radiiCount,sizeFunctions(i)%massesCount])
@@ -597,14 +600,14 @@ contains
        mass=                                                                                                                                            &
             &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=sizeFunctions(i)%descriptor%massType) &
             & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=sizeFunctions(i)%descriptor%massType)
-       if (mass            <=                  0.0d0) return
+       if (mass            <=                  0.0d0) cycle
        if (associated(sizeFunctions(i)%descriptor%mapMass)) mass=sizeFunctions(i)%descriptor%mapMass(mass,thisNode)
        mass=mass*sizeFunctions(i)%cosmologyConversionMass(iOutput) ! Convert for cosmology.
        massLogarithmic=log10(mass)
        do j=1,sizeFunctions(i)%descriptor%massSystematicCoefficientCount
           massLogarithmic=massLogarithmic+sizeFunctions(i)%massSystematicCoefficients(j)*(log10(mass)-sizeFunctions(i)%descriptor%massSystematicLogM0)**(j-1)
        end do
-       if (massLogarithmic <  sizeFunctions(i)%descriptor%massLogarithmicMinimum) return
+       if (massLogarithmic <  sizeFunctions(i)%descriptor%massLogarithmicMinimum) cycle
        ! Get the galactic radius.
        thisDisk => thisNode%disk  ()
        radius   =  thisDisk%radius()

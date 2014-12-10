@@ -66,7 +66,8 @@ module IO_HDF5
      type   (varying_string)          :: objectLocation
      type   (varying_string)          :: objectName
      integer                          :: hdf5ObjectType
-     integer                          :: chunkSize             , compressionLevel
+     integer(kind=HSIZE_T  )          :: chunkSize
+     integer                          :: compressionLevel
      logical                          :: chunkSizeSet          , compressionLevelSet
      type   (hdf5Object    ), pointer :: parentObject
    contains

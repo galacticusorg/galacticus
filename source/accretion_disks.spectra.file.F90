@@ -164,6 +164,7 @@ contains
 
   double precision function fileSpectrum(self,node,wavelength)
     !% Return the accretion disk spectrum for tabulated spectra.
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
@@ -173,7 +174,7 @@ contains
     double precision                          , intent(in   )  :: wavelength
     class           (nodeComponentBlackHole  ), pointer        :: blackHole
     double precision                          , dimension(0:1) :: hLuminosity         , hWavelength
-    integer                                                    :: iLuminosity         , iWavelength, &
+    integer         (c_size_t                )                 :: iLuminosity         , iWavelength, &
          &                                                        jLuminosity         , jWavelength
     double precision                                           :: luminosityBolometric
 
@@ -191,10 +192,10 @@ contains
          &   wavelength > self%wavelength(size(self%wavelength)) &
          & ) return
     ! Get the interpolating factors.
-    iLuminosity=Interpolate_Locate(size(self%luminosity),self%luminosity,self%interpolationAcceleratorLuminosity,log10(luminosityBolometric),self%resetLuminosity)
-    iWavelength=Interpolate_Locate(size(self%wavelength),self%wavelength,self%interpolationAcceleratorWavelength,      wavelength           ,self%resetWavelength)
-    hLuminosity=Interpolate_Linear_Generate_Factors(size(self%luminosity),self%luminosity,iLuminosity,log10(luminosityBolometric))
-    hWavelength=Interpolate_Linear_Generate_Factors(size(self%wavelength),self%wavelength,iWavelength,      wavelength           )
+    iLuminosity=Interpolate_Locate(self%luminosity,self%interpolationAcceleratorLuminosity,log10(luminosityBolometric),self%resetLuminosity)
+    iWavelength=Interpolate_Locate(self%wavelength,self%interpolationAcceleratorWavelength,      wavelength           ,self%resetWavelength)
+    hLuminosity=Interpolate_Linear_Generate_Factors(self%luminosity,iLuminosity,log10(luminosityBolometric))
+    hWavelength=Interpolate_Linear_Generate_Factors(self%wavelength,iWavelength,      wavelength           )
     ! Do the interpolation.
     do jLuminosity=0,1
        do jWavelength=0,1

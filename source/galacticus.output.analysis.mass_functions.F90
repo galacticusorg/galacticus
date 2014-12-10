@@ -24,6 +24,7 @@ module Galacticus_Output_Analyses_Mass_Functions
   !% dex random errors on stellar masses. This is approximate, but motivated by the discussion of
   !% \cite{behroozi_comprehensive_2010}.
   !% \end{itemize}
+  use, intrinsic :: ISO_C_Binding
   use Galacticus_Nodes
   use Galactic_Structure_Options
   use Geometry_Surveys
@@ -688,7 +689,7 @@ contains
     type            (mergerTree                    ), intent(in   )                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
     integer                                         , intent(in   )                 :: nodeStatus
-    integer                                         , intent(in   )                 :: iOutput
+    integer         (c_size_t                      ), intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     class           (nodeComponentBasic            )               , pointer        :: thisBasic
     double precision                                , allocatable  , dimension(:  ) :: randomError, randomErrorWeight
@@ -696,7 +697,9 @@ contains
     class           (gravitationalLensingClass     )               , pointer        :: gravitationalLensing_
     double precision                                , parameter                     :: massBufferFactor              =100.0d+0 ! Multiplicative buffer size in mass to add below/above observed masses.
     type            (hdf5Object                    )                                :: dataFile,massDataset,parameters
-    integer                                                                         :: i,j,k,currentAnalysis,activeAnalysisCount,haloMassBin,jOutput,iError
+    integer         (c_size_t                      )                                :: k
+    integer                                                                         :: i,j,currentAnalysis,activeAnalysisCount,haloMassBin,jOutput,iError
+    integer                                                                         :: i,j,currentAnalysis,activeAnalysisCount,haloMassBin
     double precision                                                                :: dataHubbleParameter &
          &,mass,massLogarithmic,dataOmegaMatter,dataOmegaDarkEnergy,distanceMinimum,distanceMaximum,timeMinimum,timeMaximum,galaxySize,redshift,surfaceBrightnessModelSlope,surfaceBrightnessModelOffset,surfaceBrightnessModelScatter
     type            (varying_string                )                                :: parameterName,analysisMassFunctionCovarianceModelText,cosmologyScalingMass,cosmologyScalingMassFunction,message
@@ -1334,7 +1337,7 @@ contains
     if (.not.allocated(thisGalaxy)) allocate(thisGalaxy(size(massFunctions)))
     ! Iterate over active analyses.
     do i=1,size(massFunctions)
-       ! Return if this mass function receives no contribution from this output number.
+       ! Cycle if this mass function receives no contribution from this output number.
        if (all(massFunctions(i)%outputWeight(:,iOutput) <= 0.0d0)) cycle
        ! Allocate workspace.
        if (.not.allocated(thisGalaxy(i)%massFunction)) then
@@ -1349,15 +1352,15 @@ contains
        mass=                                                                                                                &
             &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=massFunctions(i)%descriptor%massType) &
             & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=massFunctions(i)%descriptor%massType)
-       if (mass <= 0.0d0) return
+       if (mass <= 0.0d0) cycle
        if (associated(massFunctions(i)%descriptor%mapMass)) mass=massFunctions(i)%descriptor%mapMass(mass,thisNode)
-       if (mass <= 0.0d0) return
+       if (mass <= 0.0d0) cycle
        mass=mass*massFunctions(i)%cosmologyConversionMass(iOutput) ! Convert for cosmology.
        massLogarithmic=log10(mass)
        do j=1,massFunctions(i)%descriptor%systematicCoefficientCount
           massLogarithmic=massLogarithmic+massFunctions(i)%systematicCoefficients(j)*(log10(mass)-massFunctions(i)%descriptor%systematicLogM0)**(j-1)
        end do
-       if (massLogarithmic <  massFunctions(i)%descriptor%massLogarithmicMinimum) return
+       if (massLogarithmic <  massFunctions(i)%descriptor%massLogarithmicMinimum) cycle
        ! Compute contributions to each bin.
        if (associated(massFunctions(i)%descriptor%randomErrorFunction)) then
           call massFunctions(i)%descriptor%randomErrorFunction(mass,thisNode,randomError,randomErrorWeight)

@@ -68,37 +68,39 @@ program Test_Search
 
   ! Test searching of double arrays.
   do i=1,size(mySearch)
-     myIndices(i)=Search_Array(myArray,mySearch(i))
+     myIndices(i)=int(Search_Array(myArray,mySearch(i)))
   end do
   call Assert('search double array',myIndices,max(min(int(mySearch)+1,9),1))
   do i=1,size(mySearch)
-     myIndices(i)=Search_Array_For_Closest(myArray,mySearch(i))
+     myIndices(i)=int(Search_Array_For_Closest(myArray,mySearch(i)))
   end do
   call Assert('search double array for closest match',myIndices,max(min(nint(mySearch)+1,10),1))
 
   ! Test searching of long integer arrays.
   do i=1,size(mySearch)
-     myIndices(i)=Search_Array(myIntArray,myIntSearch(i))
+     myIndices(i)=int(Search_Array(myIntArray,myIntSearch(i)))
   end do
   call Assert('search long integer array',myIndices,myIntExpect)
 
   ! Test searching of varying string arrays.
-  call Assert('search string array',[                                               &
-       &                             Search_Array(stringArray,var_str('Monkey'  )), &
-       &                             Search_Array(stringArray,var_str('Unicorn' )), &
-       &                             Search_Array(stringArray,var_str('Beaver'  )), &
-       &                             Search_Array(stringArray,var_str('Fox'     )), &
-       &                             Search_Array(stringArray,var_str('Oscar'   )), &
-       &                             Search_Array(stringArray,var_str('Shoggoth'))  &
-       &                            ],                                              &
-       &                            [                                               &
-       &                             13,                                            &
-       &                             20,                                            &
-       &                              1,                                            &
-       &                              5,                                            &
-       &                             15,                                            &
-       &                             18                                             &
-       &                            ]                                               &
+  call Assert('search string array',int(                                                &
+       &                                [                                               &
+       &                                 Search_Array(stringArray,var_str('Monkey'  )), &
+       &                                 Search_Array(stringArray,var_str('Unicorn' )), &
+       &                                 Search_Array(stringArray,var_str('Beaver'  )), &
+       &                                 Search_Array(stringArray,var_str('Fox'     )), &
+       &                                 Search_Array(stringArray,var_str('Oscar'   )), &
+       &                                 Search_Array(stringArray,var_str('Shoggoth'))  &
+       &                                ]                                               &
+       &                               ),                                               &
+       &                                [                                               &
+       &                                 13,                                            &
+       &                                 20,                                            &
+       &                                  1,                                            &
+       &                                  5,                                            &
+       &                                 15,                                            &
+       &                                 18                                             &
+       &                                ]                                               &
        &     )
 
   ! End unit tests.
