@@ -61,7 +61,10 @@
   end interface intergalacticMediumStateFile
 
   ! Initialization state.
-  logical :: fileInitialized=.false.
+  logical                 :: fileInitialized                =.false.
+
+  ! Default file to read.
+  type   (varying_string) :: intergalaticMediumStateFileName
 
 contains
 
@@ -70,7 +73,6 @@ contains
     use Input_Parameters
     implicit none
     type(intergalacticMediumStateFile), target  :: fileDefaultConstructor
-    type(varying_string              )          :: intergalaticMediumStateFileName
     
     if (.not.fileInitialized) then
        !$omp critical(intergalacticMediumStateFileInitialize)
