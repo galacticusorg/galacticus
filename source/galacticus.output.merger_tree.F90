@@ -78,6 +78,7 @@ contains
     use Galacticus_Merger_Tree_Output_Filters
     use Input_Parameters
     use Galactic_Structure_Radii
+    use Galacticus_Output_Merger_Tree_Data
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
     !# </include>
@@ -92,12 +93,12 @@ contains
     integer                                           , intent(in   )           :: iOutput
     double precision                                  , intent(in   )           :: time
     logical                                           , intent(in   ), optional :: isLastOutput
-    type            (treeNode          ), pointer                               :: thisNode
+    type            (treeNode          ), pointer                               :: thisNode          , nextNode
     integer         (kind=HSIZE_T      ), dimension(1)                          :: referenceLength   , referenceStart
     class           (nodeComponentBasic), pointer                               :: thisBasicComponent
     type            (mergerTree        ), pointer                               :: currentTree
-    integer                                                                     :: doubleProperty    , iGroup        , iProperty, &
-         &                                                                         integerProperty   , analysisCount
+    integer                                                                     :: doubleProperty    , iGroup        , iProperty , &
+         &                                                                         integerProperty   , analysisCount , nodeStatus
     logical                                                                     :: nodePassesFilter
     type            (hdf5Object        )                                        :: toDataset
 
@@ -159,17 +160,32 @@ contains
     ! Analysis block.
     ! Iterate over trees.
     currentTree => thisTree
-    do while (associated(currentTree))          
+    do while (associated(currentTree))     
        ! Iterate over nodes.
-       thisNode => currentTree%baseNode
+       thisNode   => currentTree%baseNode
+       nodeStatus =  nodeStatusFirst       
        do while (associated(thisNode))
-          ! Perform analysis tasks.
-          !# <include directive="mergerTreeAnalysisTask" type="functionCall" functionType="void">
-          !#  <functionArgs>currentTree,thisNode,iOutput,mergerTreeAnalyses</functionArgs>
-          include 'galacticus.output.merger_tree.analysis.inc'
-          !# </include>
-          call thisNode%walkTreeWithSatellites(thisNode)
+          ! Find the next node.
+          call thisNode%walkTreeWithSatellites(nextNode)
+          ! Check for final node.
+          if (.not.associated(nextNode)) nodeStatus=nodeStatusLast
+          ! Get the basic component.
+          thisBasicComponent => thisNode%basic()
+          if (thisBasicComponent%time() == time) then
+             ! Perform analysis tasks.
+             !# <include directive="mergerTreeAnalysisTask" type="functionCall" functionType="void">
+             !#  <functionArgs>currentTree,thisNode,nodeStatus,iOutput,mergerTreeAnalyses</functionArgs>
+             include 'galacticus.output.merger_tree.analysis.inc'
+             !# </include>
+          end if
+          ! Move to the next node.
+          nodeStatus=nodeStatusNull
+          thisNode => nextNode
        end do
+       ! Record end of tree.
+       thisNode   => currentTree%baseNode
+       nodeStatus =  nodeStatusFinal
+       include 'galacticus.output.merger_tree.analysis.inc'
        ! Skip to the next tree.
        currentTree => currentTree%nextTree
     end do

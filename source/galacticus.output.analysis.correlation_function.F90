@@ -166,7 +166,7 @@ contains
   !# <mergerTreeAnalysisTask>
   !#  <unitName>Galacticus_Output_Analysis_Correlation_Functions</unitName>
   !# </mergerTreeAnalysisTask>
-  subroutine Galacticus_Output_Analysis_Correlation_Functions(thisTree,thisNode,iOutput,mergerTreeAnalyses)
+  subroutine Galacticus_Output_Analysis_Correlation_Functions(thisTree,thisNode,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct correlation functions to compare to various observational determinations.
     use Galacticus_Nodes
     use Galacticus_Input_Paths
@@ -184,9 +184,11 @@ contains
     use Numerical_Ranges
     use IO_HDF5
     use Linear_Growth
+    use Galacticus_Output_Merger_Tree_Data
     implicit none
     type            (mergerTree                    ), intent(in   )                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
+    integer                                         , intent(in   )                 :: nodeStatus
     integer                                         , intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
@@ -439,6 +441,15 @@ contains
     end if
     ! Return if this analysis is not active.
     if (.not.analysisActive) return
+    ! Accumulate halo and return on tree finalization.
+    if (nodeStatus == nodeStatusFinal) then
+       if (allocated(thisHalo)) then
+          do i=1,size(correlationFunctions)
+             if (thisHalo(i)%initialized) call Accumulate_Halo(correlationFunctions(i),thisHalo(i))
+          end do
+       end if
+       return
+    end if
     ! Allocate work arrays.
     if (.not.allocated(thisHalo)) then
        allocate(thisHalo(size(correlationFunctions)))
@@ -465,13 +476,15 @@ contains
                &          )**(j-1)
        end do
        if (massLogarithmic < correlationFunctions(i)%descriptor%massLogarithmicMinimum) return
-       ! Accumulate the halo.
-       call Accumulate_Node(correlationFunctions(i),thisHalo(i),thisTree,thisNode,massLogarithmic,iOutput)
+       ! Accumulate the node.
+       call Accumulate_Node(correlationFunctions(i),thisHalo(i),thisTree,thisNode,nodeStatus,massLogarithmic,iOutput)
+       ! Accumulate halo if this is the last node in the tree.
+       if (nodeStatus == nodeStatusLast) call Accumulate_Halo(correlationFunctions(i),thisHalo(i))
     end do
     return
   end subroutine Galacticus_Output_Analysis_Correlation_Functions
 
-  subroutine Accumulate_Node(thisCorrelationFunction,thisHalo,thisTree,thisNode,massLogarithmic,iOutput)
+  subroutine Accumulate_Node(thisCorrelationFunction,thisHalo,thisTree,thisNode,nodeStatus,massLogarithmic,iOutput)
     !% Accumulate a single galaxy to the population of the current halo. Since galaxy masses
     !% have random errors, each galaxy added is assigned an inclusion probability, which will be
     !% taken into account when evaluating the one- and two-halo terms from this halo in the halo
@@ -480,11 +493,13 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Profiles
     use Memory_Management
+    use Galacticus_Output_Merger_Tree_Data
     implicit none
     type            (correlationFunction    ), intent(inout)                 :: thisCorrelationFunction
     type            (correlationFunctionWork), intent(inout)                 :: thisHalo
     type            (mergerTree             ), intent(in   )                 :: thisTree
     type            (treeNode               ), intent(inout), pointer        :: thisNode
+    integer                                  , intent(in   )                 :: nodeStatus
     double precision                         , intent(in   )                 :: massLogarithmic
     integer                                  , intent(in   )                 :: iOutput
     type            (treeNode               )               , pointer        :: hostNode
@@ -519,7 +534,11 @@ contains
        thisHalo%initialized       =.true.
     end if
     ! Check if the host has changed.
-    if (thisTree%index /= thisCorrelationFunction%treeIndex .or. hostIndex /= thisCorrelationFunction%haloIndex) &
+    if     (                                                     &
+         &   thisTree%index /= thisCorrelationFunction%treeIndex &
+         &  .or.                                                 &
+         &   hostIndex      /= thisCorrelationFunction%haloIndex &
+         & )                                                     &
          & call Accumulate_Halo(thisCorrelationFunction,thisHalo)
     ! Accumulate properties to the current halo.
     thisCorrelationFunction%treeIndex=thisTree%index
@@ -834,8 +853,6 @@ contains
     if (.not.analysisActive) return
     ! Iterate over mass functions.
     do k=1,size(correlationFunctions)
-       ! Accumulate any final halo.
-       if (allocated(thisHalo).and.thisHalo(k)%initialized) call Accumulate_Halo(correlationFunctions(k),thisHalo(k))
        ! Copy upper to lower triangle of covariance matrix (we've accumulated only the upper triangle).
        correlationFunctions(k)%termCovariance=Matrix_Copy_Upper_To_Lower_Triangle(correlationFunctions(k)%termCovariance)
        ! Get count of mass bins and wavenumbers.
