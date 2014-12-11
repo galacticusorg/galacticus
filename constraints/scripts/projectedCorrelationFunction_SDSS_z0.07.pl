@@ -37,20 +37,18 @@ my %arguments =
 my $data;
 
 # Load observational data.
+my $observations = new PDL::IO::HDF5("data/observations/correlationFunctions/Projected_Correlation_Functions_Hearin_2013.hdf5");
+my $massMinimum = $observations->dataset('massMinimum')->get();
+my $separation  = $observations->dataset('separation' )->get();
+my $correlationFunction = $observations->dataset('projectedCorrelationFunctionObserved')->get();
+my $covarianceMatrix    = $observations->dataset('covariance')->get();
 for(my $entry=0;$entry<3;++$entry) {
-    my $xml          = new XML::Simple;
-    my $observations = $xml->XMLin("data/observations/correlationFunctions/Projected_Correlation_Functions_Hearin_2013.xml");
-    my $columns      = $observations->{'correlationFunction'}->{'columns'}->[$entry];
-    foreach ( "separation", "correlationFunction", "lowerError", "upperError" ) {
-	$data->{'observed'}->{$entry}->{$_} = pdl @{$columns->{$_}->{'datum'}};
-	if ( exists($columns->{$_}->{'scaling'}) ) {
-	    my $scaling = $columns->{$_}->{'scaling'};
-	    $data->{'observed'}->{$entry}->{$_} .= 10.0**$data->{'observed'}->{$entry}->{$_}
-	        if ( $scaling eq "log10" );
-	}
-    }
-    $data->{'observed'}->{$entry}->{'massMinimum'} = $columns->{'mass'}->{'minimum'};
+    $data->{'observed'}->{$entry}->{'massMinimum'        } = log10($massMinimum->(($entry)));
+    $data->{'observed'}->{$entry}->{'separation'         } = $separation;
+    $data->{'observed'}->{$entry}->{'correlationFunction'} = $correlationFunction->(:,($entry));
+    $data->{'observed'}->{$entry}->{'error'              } = $covarianceMatrix->diagonal(0,1)->($entry*nelem($separation):($entry+1)*nelem($separation)-1)->sqrt();
 }
+$data->{'observed'}->{'combined'}->{'correlationFunctionCovariance'} = $covarianceMatrix;
 
 # Load model data.
 my $galacticusFile   = new PDL::IO::HDF5($galacticusFileName);
@@ -96,8 +94,8 @@ if ( exists($arguments{'plotFile'}) ) {
 	&PrettyPlots::Prepare_Dataset(\$plot,
 				      $data->{'observed'}->{$entry}->{'separation'         },
 				      $data->{'observed'}->{$entry}->{'correlationFunction'},
-				      errorUp   => $data->{'observed'}->{$entry}->{'upperError'},
-				      errorDown => $data->{'observed'}->{$entry}->{'lowerError'},
+				      errorUp   => $data->{'observed'}->{$entry}->{'error'},
+				      errorDown => $data->{'observed'}->{$entry}->{'error'},
 				      style     => "point",
 				      symbol    => [6,7], 
 				      weight    => [5,3],
@@ -134,17 +132,14 @@ if ( exists($arguments{'plotFile'}) ) {
 my $separationCount = nelem(	$data->{'observed'}->{'0'}->{'separation'});
 $data->{'observed'}->{'combined'}->{'separation'                   } = pdl zeroes(3*$separationCount                   );
 $data->{'observed'}->{'combined'}->{'correlationFunction'          } = pdl zeroes(3*$separationCount                   );
-$data->{'observed'}->{'combined'}->{'correlationFunctionCovariance'} = pdl zeroes(3*$separationCount,3*$separationCount);
 $data->{'observed'}->{'combined'}->{'correlationFunctionError'     } = pdl zeroes(3*$separationCount                   );
 for(my $entry=0;$entry<3;++$entry) {
-    $data->{'observed'}->{'combined'}->{'separation'                   }               ->($entry*$separationCount:($entry+1)*$separationCount-1)
+    $data->{'observed'}->{'combined'}->{'separation'              }->($entry*$separationCount:($entry+1)*$separationCount-1)
 	.= $data->{'observed'}->{$entry}->{'separation'         };
-    $data->{'observed'}->{'combined'}->{'correlationFunction'          }               ->($entry*$separationCount:($entry+1)*$separationCount-1)
+    $data->{'observed'}->{'combined'}->{'correlationFunction'     }->($entry*$separationCount:($entry+1)*$separationCount-1)
 	.= $data->{'observed'}->{$entry}->{'correlationFunction'};
-    $data->{'observed'}->{'combined'}->{'correlationFunctionCovariance'}->diagonal(0,1)->($entry*$separationCount:($entry+1)*$separationCount-1)
-	.= $data->{'observed'}->{$entry}->{'lowerError'}*$data->{'observed'}->{$entry}->{'upperError'};
-    $data->{'observed'}->{'combined'}->{'correlationFunctionError'     }               ->($entry*$separationCount:($entry+1)*$separationCount-1)
-	.= $data->{'observed'}->{$entry}->{'lowerError'}*$data->{'observed'}->{$entry}->{'upperError'};
+    $data->{'observed'}->{'combined'}->{'correlationFunctionError'}->($entry*$separationCount:($entry+1)*$separationCount-1)
+	.= $data->{'observed'}->{$entry}->{'error'};
 }
 $data->{'model'}->{'combined'}->{'correlationFunction'          } =      $data->{'model'}->{'correlationFunction'          }->flat();
 $data->{'model'}->{'combined'}->{'correlationFunctionCovariance'} =      $data->{'model'}->{'correlationFunctionCovariance'};
@@ -183,7 +178,7 @@ if ( exists($arguments{'outputFile'}) ) {
     my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
     open(oHndl,">".$arguments{'outputFile'});
     print oHndl $xmlOutput->XMLout($constraint);
-	close(oHndl);
+    close(oHndl);
 }
 
 exit;
