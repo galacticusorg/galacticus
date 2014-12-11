@@ -582,7 +582,7 @@ contains
     return
   end function sussingCubeLength
 
-  integer(c_size_t) function sussingTreeCount(self)
+  integer(kind=c_size_t) function sussingTreeCount(self)
     !% Return a count of the number of trees available.
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
@@ -592,7 +592,7 @@ contains
     return
   end function sussingTreeCount
 
-  integer(c_size_t) function sussingTreeIndex(self,i)
+  integer(kind=c_size_t) function sussingTreeIndex(self,i)
     !% Return the index of the $i^{\rm th}$ tree.
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
