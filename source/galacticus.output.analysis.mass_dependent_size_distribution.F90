@@ -208,8 +208,8 @@ contains
     class           (darkMatterHaloScaleClass      )               , pointer        :: darkMatterHaloScale_
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
-    integer         (c_size_t                      )                                :: k
-    integer                                                                         :: i,j,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution,jOutput
+    integer         (c_size_t                      )                                :: k,jOutput
+    integer                                                                         :: i,j,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution
     double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
          &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter,sersicIndexMaximum,redshift,timeMinimum,timeMaximum,distanceMinimum,distanceMaximum
     type            (varying_string                )                                :: parameterName&
@@ -509,7 +509,7 @@ contains
                               &                           )
                       end do
                       ! Compute output weights for mass function.
-                      call Alloc_Array(sizeFunctions(currentAnalysis)%outputWeight,[sizeFunctions(currentAnalysis)%massesCount,Galacticus_Output_Time_Count()])
+                      call Alloc_Array(sizeFunctions(currentAnalysis)%outputWeight,[int(sizeFunctions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
                       sizeFunctions(currentAnalysis)%outputWeight=0.0d0
                       do k=1,sizeFunctions(currentAnalysis)%massesCount
                          do jOutput=1,Galacticus_Output_Time_Count()

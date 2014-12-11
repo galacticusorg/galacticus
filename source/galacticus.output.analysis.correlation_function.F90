@@ -168,6 +168,7 @@ contains
   !# </mergerTreeAnalysisTask>
   subroutine Galacticus_Output_Analysis_Correlation_Functions(thisTree,thisNode,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct correlation functions to compare to various observational determinations.
+    use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Galacticus_Input_Paths
     use ISO_Varying_String
@@ -189,7 +190,7 @@ contains
     type            (mergerTree                    ), intent(in   )                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
     integer                                         , intent(in   )                 :: nodeStatus
-    integer                                         , intent(in   )                 :: iOutput
+    integer         (c_size_t                      ), intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     integer                                         , parameter                     :: wavenumberCount  =60
@@ -197,7 +198,8 @@ contains
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
     double precision                                                                :: mass, massLogarithmic, dataHubbleParameter, dataOmegaMatter, dataOmegaDarkEnergy, redshift, timeMinimum, timeMaximum, distanceMinimum, distanceMaximum, weight
-    integer                                                                         :: i,j,k,m, currentAnalysis, activeAnalysisCount,massCount, jOutput
+    integer                                                                         :: i,j,k,m, currentAnalysis, activeAnalysisCount,massCount
+    integer         (c_size_t                      )                                :: jOutput
     type            (varying_string                )                                :: parameterName, cosmologyScalingMass, cosmologyScalingSize, message
     type            (hdf5Object                    )                                :: dataFile        , parameters, dataset
 
@@ -360,8 +362,8 @@ contains
                               &                           )
                       end do
                       ! Compute output weights for correlation function. We assume a volume limited survey at the minimum mass.
-                      call Alloc_Array(correlationFunctions(currentAnalysis)%linearGrowthFactor,[massCount                               ])
-                      call Alloc_Array(correlationFunctions(currentAnalysis)%outputWeight      ,[massCount,Galacticus_Output_Time_Count()])
+                      call Alloc_Array(correlationFunctions(currentAnalysis)%linearGrowthFactor,[    massCount                                              ])
+                      call Alloc_Array(correlationFunctions(currentAnalysis)%outputWeight      ,[int(massCount,kind=c_size_t),Galacticus_Output_Time_Count()])
                       correlationFunctions(currentAnalysis)%outputWeight      =0.0d0
                       correlationFunctions(currentAnalysis)%linearGrowthFactor=0.0d0
                       do k=1,massCount
@@ -489,6 +491,7 @@ contains
     !% have random errors, each galaxy added is assigned an inclusion probability, which will be
     !% taken into account when evaluating the one- and two-halo terms from this halo in the halo
     !% model.
+    use, intrinsic :: ISO_C_Binding
     use Dark_Matter_Halo_Biases
     use Cosmology_Functions
     use Dark_Matter_Profiles
@@ -501,7 +504,7 @@ contains
     type            (treeNode               ), intent(inout), pointer        :: thisNode
     integer                                  , intent(in   )                 :: nodeStatus
     double precision                         , intent(in   )                 :: massLogarithmic
-    integer                                  , intent(in   )                 :: iOutput
+    integer         (c_size_t               ), intent(in   )                 :: iOutput
     type            (treeNode               )               , pointer        :: hostNode
     class           (cosmologyFunctionsClass)               , pointer        :: cosmologyFunctions_    
     class           (nodeComponentBasic     )               , pointer        :: thisBasic                , rootBasic

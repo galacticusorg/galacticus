@@ -203,7 +203,6 @@ contains
        ! Iterate over trees.
        currentTree => thisTree
        do while (associated(currentTree))          
-    do while (associated(currentTree))
           ! Get the base node of the tree.
           thisNode => currentTree%baseNode
           ! Initialize output buffers.
