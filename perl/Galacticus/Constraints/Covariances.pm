@@ -37,6 +37,8 @@ sub SVDInvert {
     # Set default options.
     $options{'errorTolerant'} = 0
 	unless ( exists($options{'errorTolerant'}) );
+    $options{'quiet'        } = 0
+	unless ( exists($options{'quiet'        }) );
     # Do the Singular Value Decomposition.
     (my $r1, my $s, my $r2)                             = svd($C);
     # Invert the matrix.
