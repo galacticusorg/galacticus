@@ -334,7 +334,7 @@ if ( exists($arguments{'plotFile'}) ) {
 	# Declare variables for GnuPlot;
 	my ($gnuPlot, $plotFileEPS, $plot);
 	# Open a pipe to GnuPlot.
-	(my $plotFile = $arguments{'plotFile'}) =~ s/\.pdf$/$i.pdf/;
+	(my $plotFile = $arguments{'plotFile'}) =~ s/\.pdf$/_$i.pdf/;
 	($plotFileEPS = $plotFile             ) =~ s/\.pdf$/.eps/;
 	push(@plotFiles,$plotFile);
 	open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
