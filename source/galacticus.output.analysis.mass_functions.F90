@@ -697,11 +697,10 @@ contains
     class           (gravitationalLensingClass     )               , pointer        :: gravitationalLensing_
     double precision                                , parameter                     :: massBufferFactor              =100.0d+0 ! Multiplicative buffer size in mass to add below/above observed masses.
     type            (hdf5Object                    )                                :: dataFile,massDataset,parameters
-    integer         (c_size_t                      )                                :: k
-    integer                                                                         :: i,j,currentAnalysis,activeAnalysisCount,haloMassBin,jOutput,iError
-    integer                                                                         :: i,j,currentAnalysis,activeAnalysisCount,haloMassBin
-    double precision                                                                :: dataHubbleParameter &
-         &,mass,massLogarithmic,dataOmegaMatter,dataOmegaDarkEnergy,distanceMinimum,distanceMaximum,timeMinimum,timeMaximum,galaxySize,redshift,surfaceBrightnessModelSlope,surfaceBrightnessModelOffset,surfaceBrightnessModelScatter
+    integer         (c_size_t                      )                                :: k,jOutput
+    integer                                                                         :: i,j,currentAnalysis,activeAnalysisCount,haloMassBin,iError
+    double precision                                                                :: dataHubbleParameter,mass,massLogarithmic,dataOmegaMatter,dataOmegaDarkEnergy,distanceMinimum,distanceMaximum,timeMinimum, &
+         &                                                                             timeMaximum,galaxySize,redshift,surfaceBrightnessModelSlope,surfaceBrightnessModelOffset,surfaceBrightnessModelScatter
     type            (varying_string                )                                :: parameterName,analysisMassFunctionCovarianceModelText,cosmologyScalingMass,cosmologyScalingMassFunction,message
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
@@ -1170,7 +1169,7 @@ contains
                    end if
                 end do
                 ! Compute output weights for mass function.
-                call Alloc_Array(massFunctions(currentAnalysis)%outputWeight,[massFunctions(currentAnalysis)%massesCount,Galacticus_Output_Time_Count()])
+                call Alloc_Array(massFunctions(currentAnalysis)%outputWeight,[int(massFunctions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
                 massFunctions(currentAnalysis)%outputWeight=0.0d0
                 do k=1,massFunctions(currentAnalysis)%massesCount
                    do jOutput=1,Galacticus_Output_Time_Count()
@@ -1229,13 +1228,13 @@ contains
                         &          (massFunctions(i)%massesLogarithmicMaximum(                           1)-massFunctions(i)%massesLogarithmicMinimum(                           1)), &
                         &          (massFunctions(i)%massesLogarithmicMaximum(massFunctions(i)%massesCount)-massFunctions(i)%massesLogarithmicMinimum(massFunctions(i)%massesCount))  &
                         &         )                                                                                                                                                   &
-                        &    )                                                                                                                                                   &
+                        &    )                                                                                                                                                        &
                         & +1
-                   call Alloc_Array(massFunctions(i)%lensingTransfer                 ,[                                                                   &
-                        &                                                              massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount, &
-                        &                                                              massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount, &
-                        &                                                              Galacticus_Output_Time_Count()                                     &
-                        &                                                             ]                                                                   &
+                   call Alloc_Array(massFunctions(i)%lensingTransfer                 ,[                                                                                      &
+                        &                                                              int(massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount,kind=c_size_t), &
+                        &                                                              int(massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount,kind=c_size_t), &
+                        &                                                              Galacticus_Output_Time_Count()                                                        &
+                        &                                                             ]                                                                                      &
                         &          )
                 else
                    massFunctions(i)%massesBufferCount=0
