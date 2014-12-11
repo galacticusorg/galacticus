@@ -702,7 +702,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses
 
   subroutine Merger_Tree_Data_Structure_Set_Self_Hosting_Halo_Id(mergerTrees,dummyHostId)
-    !% Set the host_ID in case of self-hosting halos. Default is host_ID = node_ID.
+    !% Set the host ID in case of self-hosting halos. Default is host ID = node ID.
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
     integer                , intent(in   ) :: dummyHostId
@@ -710,7 +710,6 @@ contains
     ! Set the value of the dummy-variable for self hosting halos.
     mergerTrees%dummyHostId   =dummyHostId
     mergerTrees%hasDummyHostId=.true.
-
     return
   end subroutine Merger_Tree_Data_Structure_Set_Self_Hosting_Halo_Id
 
