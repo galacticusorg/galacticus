@@ -15,6 +15,8 @@ use Fcntl qw(:DEFAULT :flock);
 use MIME::Lite;
 use List::Util;
 use Storable;
+use Fcntl;
+use POSIX::RT::Semaphore;
 require File::Which;
 require File::NFSLock;
 require System::Redirect;
@@ -311,12 +313,16 @@ push(@temporaryFiles,$logFile);
 # my $timeGalacticusStart = [gettimeofday];
 SystemRedirect::tofile($glcCommand,$logFile);
 unless ( $? == 0 ) {
+    # Since a failure occurred, post to the semaphore to avoid blocking other jobs.
+    &semaphorePost($config->{'likelihood'}->{'threads'});
     # Issue a failure.
     print "ERROR: Galacticus model failed to complete - retrying\n";
     &reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot);
     # Try running the model again - in case this was a random error.
     SystemRedirect::tofile($glcCommand,$logFile);
     unless ( $? == 0 ) {
+	# Since a failure occurred, post to the semaphore to avoid blocking other jobs.
+	&semaphorePost($config->{'likelihood'}->{'threads'});
 	# Display the final likelihood.
 	&outputLikelihood($config,$badLogLikelihood);
 	print "constrainGalacticus.pl: Galacticus model failed to complete - second attempt";
@@ -419,21 +425,21 @@ sub reportFailure {
     # Handle failures of model or analysis.
     my $config           = shift;
     my $scratchDirectory = shift;
-    my $logFile       = shift;
-    my $stateFileRoot = shift;
+    my $logFile          = shift;
+    my $stateFileRoot    = shift;
     if ( exists($config->{'likelihood'}->{'failDirectory'}) ) {
 	system("mkdir -p ".$config->{'likelihood'}->{'failDirectory'});
 	my $failArchiveName = $config->{'likelihood'}->{'failDirectory'}."/archive.tar.bz2";
 	if ( ! -e $failArchiveName && -e "galacticusConfig.xml" ) {
 	    # Send an email if possible.
 	    my $xml     = new XML::Simple;
-	    my $config  = $xml->XMLin("galacticusConfig.xml");
-	    if ( exists($config->{'contact'}->{'email'}) && &File::Which::which('sendmail') ) {
+	    my $galacticusConfig  = $xml->XMLin("galacticusConfig.xml");
+	    if ( exists($galacticusConfig->{'contact'}->{'email'}) && &File::Which::which('sendmail') ) {
 		my $message  = "A Galacticus model failed while seeking constraints.\n";
 		$message    .= "Failed model is in: ".$failArchiveName."\n";
 		my $msg = MIME::Lite->new(
 		    From    => '',
-		    To      => $config->{'contact'}->{'email'},
+		    To      => $galacticusConfig->{'contact'}->{'email'},
 		    Subject => 'Galacticus model failed while seeking constraints',
 		    Type    => 'TEXT',
 		    Data    => $message
@@ -478,4 +484,22 @@ sub reportFailure {
 	print oHndl $count."\n";
 	close(oHndl);
     }
+}
+
+sub semaphorePost {
+    # When a model fails, it may not be able to release semaphores that it was holding. Therefore, we post to the semaphore to
+    # free it.
+    my $threadCount = shift();
+
+    # Open the semaphore.
+    my $galacticusSemaphore = POSIX::RT::Semaphore->open("/galacticus", O_CREAT, 0660, $threadCount);
+    # Repeatedly post.
+    print "Posting to semaphore....\n";
+    for(my $i=0;$i<$threadCount;++$i) {
+	my $count = $galacticusSemaphore->getvalue();
+	print "Current semaphore value is: ".$count."\n";
+	$galacticusSemaphore->post();
+    }
+    my $count = $galacticusSemaphore->getvalue();
+    print "Final semaphore value is: ".$count."\n";    
 }
