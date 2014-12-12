@@ -180,7 +180,11 @@ my @executablesToRun = (
 	valgrind => 0
     },
     {
-	name     => "tests.cosmic_age.exe",                                               # Tests of cosmic age calculations.
+	name     => "tests.tensors.exe",                                                  # Tests of tensor functions.
+	valgrind => 0
+
+    },
+    {	name     => "tests.cosmic_age.exe",                                               # Tests of cosmic age calculations.
 	valgrind => 0
     },
     {
