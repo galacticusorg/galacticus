@@ -1,0 +1,147 @@
+<!-- A standard set of constraints for Galacticus which uses various stellar mass functions, -->
+<!-- ALFALFA z=0.00 HI mass function, and galaxy sizes                                      -->
+<constraintCompilation>
+
+  <!-- SDSS z=0.07 stellar mass function -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_SDSS_z0.07.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- GAMA z=0.03 stellar mass function -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_GAMA_z0.03.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- UKIDSS UDS stellar mass functions -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_UKIDSS_UDS_z3.250.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_UKIDSS_UDS_z3.875.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_UKIDSS_UDS_z4.625.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- VIPERS stellar mass functions -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_VIPERS_z0.55.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+   <constraint>
+    <definition>constraints/constraints/stellarMassFunction_VIPERS_z0.70.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_VIPERS_z0.90.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!--  PRIMUS stellar mass functions -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.250.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.350.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.450.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.575.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.725.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.900.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!--  ZFOURGE stellar mass functions -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z0.350.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z0.625.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z0.875.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z1.125.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z1.375.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z1.750.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z2.250.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ZFOURGE_2014_z2.750.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!--  ULTRAVISTA stellar mass functions -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z0.35.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z0.75.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z1.25.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z1.75.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z2.25.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z2.75.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_ULTRAVISTA_2013_z3.50.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=0.00 HI mass function -->
+  <constraint>
+    <definition>constraints/constraints/hiMassFunction_ALFALFA_z0.00.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=0.07 galaxy size distribution -->
+  <constraint>
+    <definition>constraints/constraints/diskGalaxySizes_SDSS_z0.07.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+</constraintCompilation>

@@ -17,6 +17,10 @@ open(iHndl,"Galacticus.bib");
 open(oHndl,">GalacticusAccented.bib");
 while ( my $line = <iHndl> ) {
 
+    # Special cases.
+    # zwaan_hipass_2005 title
+    $line =~ s/{\\\${\\textbackslash}Omega\\\$\\_{{\\textbackslash}rm} {HI}}/\$\\Omega_{\\rm HI}\$/;
+
     # Percentages.
     $line =~ s/[^\\]%/\\%/g;
 
