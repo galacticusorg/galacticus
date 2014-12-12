@@ -274,6 +274,9 @@ sub Get_Suffix {
     elsif ( $propertyType eq "keplerOrbit"         ) {
 	$suffix = "_Kepler_Orbit"        ;
     }
+    elsif ( $propertyType eq "tensorRank2Dimension3Symmetric" ) {
+	$suffix = "_Tensor_Rank2_Dimension3_Symmetric";
+    }
     elsif ( $propertyType eq "stellarLuminosities" ) {
 	$suffix = "_Stellar_Luminosities";
     }
@@ -300,6 +303,7 @@ sub dataObjectDocName {
 	elsif ( $dataObject->{'type'} eq "longIntegerHistory"  ) {$name .= "type(longIntegerHistory)" }
 	elsif ( $dataObject->{'type'} eq "keplerOrbit"         ) {$name .= "type(keplerOrbit)"        }
 	elsif ( $dataObject->{'type'} eq "stellarLuminosities" ) {$name .= "type(stellarLuminosities)"}
+	elsif ( $dataObject->{'type'} eq "tensorRank2Dimension3Symmetric" ) {$name .= "type(tensorRank2Dimension3Symmetric)" }
 	elsif ( $dataObject->{'type'} eq "void"                ) {$name .= "void"                     }
 	else {die "Build_Include_File.pl::dataObjectDocName: 'type' specifier '".$dataObject->{'type'}."' is unknown"}
     } else {
@@ -333,6 +337,7 @@ sub dataObjectName {
 	elsif ( $dataObject->{'type'} eq "longIntegerHistory"  ) {$name .= "LongIntegerHistory" }
 	elsif ( $dataObject->{'type'} eq "keplerOrbit"         ) {$name .= "KeplerOrbit"        }
 	elsif ( $dataObject->{'type'} eq "stellarLuminosities" ) {$name .= "StellarLuminosities"}
+	elsif ( $dataObject->{'type'} eq "tensorRank2Dimension3Symmetric" ) {$name .= "TensorRank2Dimension3Symmetric" }
 	else {die "Build_Include_File.pl::dataObjectName: 'type' specifier is unknown"}
     } else {
 	die "Build_Include_File.pl::dataObjectName: no 'type' specifier present";
@@ -396,7 +401,11 @@ sub dataObjectPrimitiveName {
 	    $name = "type(keplerOrbit)"        ;
 	    $type = "KeplerOrbit"              ;
 	}
-	elsif ( $dataObject->{'type'} eq "stellarLuminosities" ) {
+	elsif ( $dataObject->{'type'} eq "tensorRank2Dimension3Symmetric" ) {
+	    $name = "type(tensorRank2Dimension3Symmetric)";
+	    $type = "TensorRank2Dimension3Symmetric"      ;
+	}
+	elsif  ( $dataObject->{'type'} eq "stellarLuminosities" ) {
 	    $name = "type(stellarLuminosities)";
 	    $type = "StellarLuminosities"      ;
 	}
@@ -472,6 +481,11 @@ sub Data_Object_Definition {
 	    $intrinsicName = "type"                   ;
 	    $type          = "keplerOrbit"            ;
 	    $label         = "KeplerOrbit"            ;
+	    }
+	elsif ( $dataObject->{'type'} eq "tensorRank2Dimension3Symmetric" ) {
+		$intrinsicName = "type"                          ;
+		$type          = "tensorRank2Dimension3Symmetric";
+		$label         = "TensorRank2Dimension3Symmetric";
 	}
 	elsif ( $dataObject->{'type'} eq "stellarLuminosities" ) {
 	    $intrinsicName = "type"                   ;
