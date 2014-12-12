@@ -42,9 +42,10 @@ program Tests_Excursion_Sets
        &                                                                                          powerSpectrum                   , variance                      , &
        &                                                                                          wavenumber
   double precision                                    , allocatable, dimension(:,:)            :: firstCrossingRate
+  integer                                                                                      :: iMass                       , jMass                          , &
+       &                                                                                          verbosityLevel
   class           (cosmologyParametersClass ), pointer                                         :: thisCosmologyParameters
   class           (cosmologyFunctionsClass  ), pointer                                         :: cosmologyFunctionsDefault
-  integer                                                                                      :: iMass                           , jMass
   double precision                                                                             :: time                            , varianceProgenitor
   character       (len=fileNameLengthMaximum)                                                  :: fileCharacter
   type            (varying_string           )                                                  :: outputFileName                  , parameterFile
@@ -68,7 +69,8 @@ program Tests_Excursion_Sets
   call Input_Parameters_File_Open(parameterFile,outputFile,allowedParametersFile='Excursion_Sets.parameters.xml')
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(1)
+  call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
+  call Galacticus_Verbosity_Level_Set(verbosityLevel)
 
   ! Get the default cosmology functions object.
   cosmologyFunctionsDefault => cosmologyFunctions()
@@ -98,11 +100,11 @@ program Tests_Excursion_Sets
   ! Loop over masses.
   do iMass=1,massCount
      wavenumber              (iMass)=(3.0d0*haloMass(iMass)/4.0d0/Pi/thisCosmologyParameters%densityCritical()/thisCosmologyParameters%OmegaMatter())**(-1.0d0/3.0d0)
-     powerSpectrum           (iMass)=Power_Spectrum                           (wavenumber   (iMass))
-     variance                (iMass)=Cosmological_Mass_Root_Variance          (     haloMass(iMass))**2
-     barrier                 (iMass)=Excursion_Sets_Barrier                   (variance(iMass),time)
-     firstCrossingProbability(iMass)=Excursion_Sets_First_Crossing_Probability(variance(iMass),time)
-     haloMassFunction        (iMass)=Halo_Mass_Function_Differential          (time,haloMass(iMass))
+     powerSpectrum           (iMass)=Power_Spectrum                           (wavenumber(iMass)                     )
+     variance                (iMass)=Cosmological_Mass_Root_Variance          (                       haloMass(iMass))**2
+     barrier                 (iMass)=Excursion_Sets_Barrier                   (variance  (iMass),time                )
+     firstCrossingProbability(iMass)=Excursion_Sets_First_Crossing_Probability(variance  (iMass),time                )
+     haloMassFunction        (iMass)=Halo_Mass_Function_Differential          (                  time,haloMass(iMass))
 
      ! Compute halo branching rates.
      do jMass=1,iMass-1
