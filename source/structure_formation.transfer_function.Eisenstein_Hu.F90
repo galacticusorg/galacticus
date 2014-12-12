@@ -15,6 +15,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
+
 !% Contains a module which generates a tabulated transfer function using the Eisenstein \& Hu fitting formula.
 
 module Transfer_Function_Eisenstein_Hu
@@ -44,15 +46,18 @@ contains
   !# <transferFunctionMethod>
   !#  <unitName>Transfer_Function_Eisenstein_Hu_Initialize</unitName>
   !# </transferFunctionMethod>
-  subroutine Transfer_Function_Eisenstein_Hu_Initialize(transferFunctionMethod,Transfer_Function_Tabulate)
+  subroutine Transfer_Function_Eisenstein_Hu_Initialize(transferFunctionMethod,Transfer_Function_Tabulate&
+       &,Transfer_Function_Half_Mode_Mass)
     !% Initializes the ``transfer function from Eisenstein \& Hu'' module.
     use Input_Parameters
     implicit none
-    type     (varying_string                      ), intent(in   )          :: transferFunctionMethod
-    procedure(Transfer_Function_Eisenstein_Hu_Make), intent(inout), pointer :: Transfer_Function_Tabulate
+    type     (varying_string                                ), intent(in   )          :: transferFunctionMethod
+    procedure(Transfer_Function_Eisenstein_Hu_Make          ), intent(inout), pointer :: Transfer_Function_Tabulate
+    procedure(Transfer_Function_Half_Mode_Mass_Eisenstein_Hu), intent(inout), pointer :: Transfer_Function_Half_Mode_Mass
 
     if (transferFunctionMethod == 'Eisenstein-Hu1999') then
-       Transfer_Function_Tabulate => Transfer_Function_Eisenstein_Hu_Make
+       Transfer_Function_Tabulate       => Transfer_Function_Eisenstein_Hu_Make
+       Transfer_Function_Half_Mode_Mass => Transfer_Function_Half_Mode_Mass_Eisenstein_Hu
        !@ <inputParameter>
        !@   <name>effectiveNumberNeutrinos</name>
        !@   <defaultValue>3.046 \citep{mangano_relic_2005}</defaultValue>
@@ -266,5 +271,31 @@ contains
     read (stateFile) logWavenumberMinimum,logWavenumberMaximum
     return
   end subroutine Transfer_Function_Eisenstein_Hu_State_Retrieve
+
+  double precision function Transfer_Function_Half_Mode_Mass_Eisenstein_Hu()
+    !% Find the half-mode mass for \gls{wdm} calculations using the result from
+    !% \citeauthor{schneider_non-linear_2012}~(\citeyear{schneider_non-linear_2012}; their eqns. 8 \& 9).
+    use Cosmology_Parameters
+    use Numerical_Constants_Math
+    class           (cosmologyParametersClass), pointer :: thisCosmologyParameters
+    double precision                                    :: matterDensity          , halfModeWavenumber
+    
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
+    ! Compute matter density
+    matterDensity    =thisCosmologyParameters%omegaMatter()*thisCosmologyParameters%densityCritical()
+    ! Compute half-mode wavenumber.
+    halfModeWavenumber= 2.0d0                                                    &
+         &             *Pi                                                       &
+         &             *transferFunctionWdmEpsilon                               &
+         &             *transferFunctionWdmCutOffScale                           &
+         &             *(                                                        &
+         &                2.0d0**(+transferFunctionWdmNu/transferFunctionWdmEta) &
+         &               -1.0d0                                                  &
+         &              )      **(-                 0.5d0/transferFunctionWdmNu)
+    ! Compute the half-mode mass.
+    Transfer_Function_Half_Mode_Mass_Eisenstein_Hu=4.0d0*Pi/3.0d0*matterDensity*(halfModeWavenumber/2.0d0)**3
+    return
+  end function Transfer_Function_Half_Mode_Mass_Eisenstein_Hu
 
 end module Transfer_Function_Eisenstein_Hu
