@@ -24,6 +24,7 @@ module Galacticus_Nodes
   use Memory_Management
   use ISO_Varying_String
   use Kepler_Orbits
+  use Tensors
   use Abundances_Structure
   use Chemical_Abundances_Structure
   use Stellar_Luminosities_Structure
@@ -106,6 +107,11 @@ module Galacticus_Nodes
      type(keplerOrbit        ) :: value
   end type nodeDataKeplerOrbitScalar
 
+  type, private :: nodeDataTensorRank2Dimension3SymmetricScalarEvolvable
+     !% Type describing an evolvable scalar {\\tt tensorRank2Dimension3Symmetric} property of a node component.
+     type(tensorRank2Dimension3Symmetric   )                    :: value,rate,scale
+  end type nodeDataTensorRank2Dimension3SymmetricScalarEvolvable
+  
   type, private :: nodeDataStellarLuminositiesScalarEvolvable
      !% Type describing an evolvable scalar {\\normalfont \ttfamily stellarLuminosities} property of a node component.
      type(stellarLuminosities) :: rate, scale, value
