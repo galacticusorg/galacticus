@@ -155,7 +155,12 @@ The {\normalfont \ttfamily runFile} is an XML file with the following structure:
   <ompThreads>6</ompThreads>
   <jobWaitSleepDuration>60</jobWaitSleepDuration>
   <analyze>no</analyze>
-  <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>                                                                   
+  <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>
+  <includePath>/my/include/path</includePath>
+  <libraryPath>/opt/sgi/mpt/mpt-2.04/lib</libraryPath>
+  <shell>csh</shell>
+  <pbsCommand>source /usr/share/modules/init/csh</pbsCommand>
+  <pbsCommand>module load mpi-sgi/2.04_64</pbsCommand>
  </monolithicPBS>
                   
  <parameters>

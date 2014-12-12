@@ -4581,11 +4581,13 @@ Here, {\normalfont \ttfamily Transfer\_Function\_File\_Initialize} is the name o
 \begin{verbatim}
   subroutine Method_Initialize(transferFunctionMethod,Transfer_Function_Tabulate)
     implicit none
-    type(varying_string),          intent(in)    :: transferFunctionMethod
-    procedure(),          pointer, intent(inout) :: Transfer_Function_Tabulate
-    
+    type     (varying_string),          intent(in   ) :: transferFunctionMethod
+    procedure(              ), pointer, intent(inout) :: Transfer_Function_Tabulate
+    procedure(              ), pointer, intent(inout) :: Transfer_Function_Half_Mode_Mass
+
     if (transferFunctionMethod == 'myMethod') then
-       Transfer_Function_Tabulate => My_Do_Tabulate
+       Transfer_Function_Tabulate                         => My_Do_Tabulate
+       Transfer_Function_Half_Mode_Mass_Function_Tabulate => My_Do_Half_Mode_Mass
        .
        .
        .
@@ -4609,6 +4611,18 @@ The tabulation subroutine must have the form:
    end subroutine Transfer_Function_Tabulate
 \end{verbatim}
 The subroutine must tabulate the natural log of the transfer function in array {\normalfont \ttfamily transferFunctionLogT()} as a function of the natural log of wavenumber {\normalfont \ttfamily transferFunctionLogWavenumber()} (these arrays must be allocated to the correct size, and may be prevously allocated, therefore requiring a deallocation). The number of tabulated points should be returned in {\normalfont \ttfamily transferFunctionNumberPoints}. The subroutine should ensure that the currently requested {\normalfont \ttfamily wavenumber} is within the range of the tabulated function (preferably with some buffer).
+
+The half-mode mass function must have the form:
+\begin{verbatim}
+   double precision function Transfer_Function_Half_Mode_Mass()
+    implicit none
+    .
+    .
+    .
+    return
+   end function Transfer_Function_Half_Mode_Mass
+\end{verbatim}
+The function should return the mass, $M_{\rm hm} = (4 \pi / 3 ) (\Pi/k_{\rm hm})^3$, (in units of $M_\odot$) corresponding to the wavenumber, $k_{\rm hm}$, at which the transfer function is reduced by a factor 2 relative to the \gls{cdm} case by small-scale dark matter particle physics. 
 
 Currently defined transfer function methods are:
 \begin{description}
