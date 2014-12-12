@@ -21,7 +21,7 @@ module Vectors
   !% Implements calculations of vectors.
   implicit none
   private
-  public :: Vector_Magnitude, Vector_Product, Vector_Outer_Product
+  public :: Vector_Magnitude, Vector_Product, Vector_Self_Outer_Product, Vector_Outer_Product
 
 contains
 
@@ -56,5 +56,23 @@ contains
     forall(i=1:size(vector1)) Vector_Outer_Product(i,:)=vector1(i)*vector2(:)
     return
   end function Vector_Outer_Product
+  
+  function Vector_Self_Outer_Product(vector)
+    !% Find the outer product of a vector with itself, returning the result as a rank 2, 3D, symmetric tensor.
+    use Tensors
+    implicit none
+    type            (tensorRank2Dimension3Symmetric)                :: Vector_Self_Outer_Product
+    double precision                                , intent(in   ) :: vector(3)
+    double precision                                                :: matrix(3,3)
+    integer                                                         :: i,j
+
+    forall(i=1:3) 
+       forall(j=1:3)
+          matrix(i,j)=vector(i)*vector(j)
+       end forall
+    end forall
+    call Vector_Self_Outer_Product%fromMatrix(matrix)
+    return
+  end function Vector_Self_Outer_Product
 
 end module Vectors
