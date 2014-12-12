@@ -37,16 +37,18 @@ contains
   !# <transferFunctionMethod>
   !#  <unitName>Transfer_Function_BBKS_Initialize</unitName>
   !# </transferFunctionMethod>
-  subroutine Transfer_Function_BBKS_Initialize(transferFunctionMethod,Transfer_Function_Tabulate)
+  subroutine Transfer_Function_BBKS_Initialize(transferFunctionMethod,Transfer_Function_Tabulate,Transfer_Function_Half_Mode_Mass)
     !% Initializes the ``transfer function from BBKS'' module.
     use Input_Parameters
     implicit none
-    type     (varying_string             ), intent(in   )          :: transferFunctionMethod
-    procedure(Transfer_Function_BBKS_Make), intent(inout), pointer :: Transfer_Function_Tabulate
+    type     (varying_string                       ), intent(in   )          :: transferFunctionMethod
+    procedure(Transfer_Function_BBKS_Make          ), intent(inout), pointer :: Transfer_Function_Tabulate
+    procedure(Transfer_Function_Half_Mode_Mass_Null), intent(inout), pointer :: Transfer_Function_Half_Mode_Mass
 
     if (transferFunctionMethod == 'BBKS') then
        ! Return a pointer to our tabulation function.
-       Transfer_Function_Tabulate => Transfer_Function_BBKS_Make
+       Transfer_Function_Tabulate       => Transfer_Function_BBKS_Make
+       Transfer_Function_Half_Mode_Mass => Transfer_Function_Half_Mode_Mass_Null
 
        ! Get input parameters.
        !@ <inputParameter>
@@ -108,6 +110,16 @@ contains
     end do
     return
   end subroutine Transfer_Function_BBKS_Make
+
+  double precision function Transfer_Function_Half_Mode_Mass_Null()
+    !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
+    !% to a \gls{cdm} transfer function. Not supported in this implementation.
+    use Galacticus_Error
+    implicit none
+
+    call Galacticus_Error_Report('Transfer_Function_Half_Mode_Mass_Null','not supported by this implementation')
+    return
+  end function Transfer_Function_Half_Mode_Mass_Null
 
   !# <galacticusStateStoreTask>
   !#  <unitName>Transfer_Function_BBKS_State_Store</unitName>

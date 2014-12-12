@@ -20,7 +20,8 @@ module Transfer_Functions
   use FGSL
   implicit none
   private
-  public :: Transfer_Function, Transfer_Function_Logarithmic_Derivative, Transfer_Function_State_Retrieve
+  public :: Transfer_Function                       , Transfer_Function_Half_Mode_Mass, &
+       &    Transfer_Function_Logarithmic_Derivative, Transfer_Function_State_Retrieve
 
   ! Flag to indicate if this module has been initialized.
   logical                                                                          :: tablesInitialized           =.false., transferFunctionInitialized  =.false.
@@ -45,6 +46,7 @@ module Transfer_Functions
     integer                                    , intent(  out) :: transferFunctionNumberPoints
   end subroutine Transfer_Function_Tabulate_Template
  end interface
+ procedure       (Transfer_Function_Half_Mode_Mass ), pointer                   :: Transfer_Function_Half_Mode_Mass_Get =>null()
 
 contains
 
@@ -119,6 +121,21 @@ contains
     return
   end function Transfer_Function_Logarithmic_Derivative
 
+  double precision function Transfer_Function_Half_Mode_Mass()
+    !% Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of
+    !% two due to small-scale dark matter particle physics.
+    implicit none
+
+    !$omp critical(Transfer_Function_Initialization)
+    ! Initialize if necessary.
+    if (.not.transferFunctionInitialized) call Transfer_Function_Initialize(1.0d0)
+    !$omp end critical(Transfer_Function_Initialization)
+
+    ! Call the function to get the half-mode mass.
+    Transfer_Function_Half_Mode_Mass=Transfer_Function_Half_Mode_Mass_Get()
+    return
+  end function Transfer_Function_Half_Mode_Mass
+
   subroutine Transfer_Function_Initialize(logWavenumber)
     !% Initializes the transfer function module.
     use Galacticus_Error
@@ -144,11 +161,20 @@ contains
        call Get_Input_Parameter('transferFunctionMethod',transferFunctionMethod,defaultValue='Eisenstein-Hu1999')
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="transferFunctionMethod" type="functionCall" functionType="void">
-       !#  <functionArgs>transferFunctionMethod,Transfer_Function_Tabulate</functionArgs>
+       !#  <functionArgs>transferFunctionMethod,Transfer_Function_Tabulate,Transfer_Function_Half_Mode_Mass_Get</functionArgs>
        include 'structure_formation.transfer_function.inc'
        !# </include>
-       if (.not.associated(Transfer_Function_Tabulate)) call Galacticus_Error_Report('Transfer_Function_Initialize','method '&
-            &//char(transferFunctionMethod)//' is unrecognized')
+       if     (                                                                                           &
+            &  .not.                                                                                      &
+            &  (                                                                                          &
+            &    associated(Transfer_Function_Tabulate          )                                         &
+            &   .and.                                                                                     & 
+            &    associated(Transfer_Function_Half_Mode_Mass_Get)                                         &
+            &  )                                                                                          &
+            & ) call Galacticus_Error_Report(                                                             &
+            &                                'Transfer_Function_Initialize'                             , &
+            &                                'method '//char(transferFunctionMethod)//' is unrecognized'  &
+            &                               )
     end if
     ! Call routine to initialize the transfer function.
     call Transfer_Function_Tabulate(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber,transferFunctionLogT)
