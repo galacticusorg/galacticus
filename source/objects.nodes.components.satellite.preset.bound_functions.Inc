@@ -18,7 +18,7 @@
 !% Contains custom functions for the prest satellite component.
 
 double precision function Node_Component_Satellite_Preset_Merge_Time(self)
-  !% Return the {\tt mergeTime} property of the {\tt satellitePreset} component class.
+  !% Return the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satellitePreset} component class.
   implicit none
   class(nodeComponentSatellitePreset), intent(inout) :: self
   type (treeNode                    ), pointer       :: selfNode
@@ -35,7 +35,7 @@ double precision function Node_Component_Satellite_Preset_Merge_Time(self)
 end function Node_Component_Satellite_Preset_Merge_Time
 
 subroutine Node_Component_Satellite_Preset_Merge_Time_Set(self,setValue)
-  !% Sets the {\tt mergeTime} property of the {\tt satellitePreset} component class.
+  !% Sets the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satellitePreset} component class.
   implicit none
   class           (nodeComponentSatellitePreset)         , intent(inout) :: self
   double precision                                       , intent(in   ) :: setValue

@@ -79,7 +79,7 @@ contains
   end subroutine Galacticus_Merger_Tree_Output_Filter_Initialize
 
   logical function Galacticus_Merger_Tree_Output_Filter(thisNode)
-    !% Return true if {\tt thisNode} should be included in the output. Always arbitrary filters to block output of {\tt thisNode}.
+    !% Return true if {\normalfont \ttfamily thisNode} should be included in the output. Always arbitrary filters to block output of {\normalfont \ttfamily thisNode}.
     use Galacticus_Nodes
     !# <include directive="mergerTreeOutputFilter" type="moduleUse">
     include 'galacticus.output.merger_tree.filters.modules.inc'

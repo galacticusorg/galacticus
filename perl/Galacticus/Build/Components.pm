@@ -972,7 +972,7 @@ sub Generate_Node_Component_Type{
 	     type        => "procedure"                                                                                            ,
 	     name        => "host"                                                                                                 ,
 	     function    => "Node_Component_Host_Node"                                                                             ,
-	     description => "Return a pointer to the host {\\tt treeNode} object."                                                 ,
+	     description => "Return a pointer to the host {\\normalfont \\ttfamily treeNode} object."                                                 ,
 	     returnType  => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater}"                                            ,
 	     arguments   => ""
 	 },
@@ -1234,7 +1234,7 @@ sub Generate_Component_Classes{
 		    unless ( exists($propertiesCreated{$functionName}) ) {
 			push(
 			    @typeBoundFunctions,
-			    {type => "procedure", pass => "nopass", name => $functionName, function => "Boolean_False", description => "Specify whether the {\\tt ".$propertyName."} property of the {\\tt ".$componentClass."} component is settable.", returnType => "\\logicalzero", arguments => ""}
+			    {type => "procedure", pass => "nopass", name => $functionName, function => "Boolean_False", description => "Specify whether the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClass."} component is settable.", returnType => "\\logicalzero", arguments => ""}
 			    );
 			$propertiesCreated{$functionName} = 1;
 		    }
@@ -1254,7 +1254,7 @@ sub Generate_Component_Classes{
 			    }
 			    push(
 				@typeBoundFunctions,
-				{type => "procedure", name => $functionName, function => $boundTo, description => "Set the {\\tt ".$propertyName."} property of the {\\tt ".$componentClass."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
+				{type => "procedure", name => $functionName, function => $boundTo, description => "Set the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClass."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
 				);
 			    $propertiesCreated{$functionName} = 1;
 			}
@@ -1267,7 +1267,7 @@ sub Generate_Component_Classes{
 			unless ( exists($propertiesCreated{$functionName}) ) {
 			    push(
 				@typeBoundFunctions,
-				{type => "procedure", name => $functionName, function => $componentClass."NullBindingInteger0In", description => "Compute the count of evolvable quantities in the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component.", returnType => "\\intzero", arguments => ""}
+				{type => "procedure", name => $functionName, function => $componentClass."NullBindingInteger0In", description => "Compute the count of evolvable quantities in the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component.", returnType => "\\intzero", arguments => ""}
 				);
 			    $propertiesCreated{$functionName} = 1;
 			}
@@ -1287,13 +1287,13 @@ sub Generate_Component_Classes{
 				}
 				push(
 				    @typeBoundFunctions,
-				    {type => "procedure", name => $functionName, function => $boundTo, description => "Cumulate to the rate of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
+				    {type => "procedure", name => $functionName, function => $boundTo, description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
 				    );
 			    }
 			    # Create a "scale" function unless this is a virtual property.
 			    push(
 				@typeBoundFunctions,
-				{type => "procedure", name => $propertyName."Scale", function => $componentClass."NullBindingSet".$type, description => "Set the scale of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
+				{type => "procedure", name => $propertyName."Scale", function => $componentClass."NullBindingSet".$type, description => "Set the scale of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
 				)
 				unless ( $property->{'isVirtual'} eq "true" );
 			    $propertiesCreated{$functionName} = 1;
@@ -1322,7 +1322,7 @@ sub Generate_Component_Classes{
 					function    => $componentClass.$_->{'method'}."DeferredFunctionSet",
 					returnType  => "\\void",
 					arguments   => "procedure(".$componentClass.$_->{'method'}."Interface) deferredFunction",
-					description => "Set the function for the deferred {\\tt ".$_->{'method'}."} propert of the {\tt ". $componentClass."} component."
+					description => "Set the function for the deferred {\\normalfont \\ttfamily ".$_->{'method'}."} propert of the {\\normalfont \\ttfamily ". $componentClass."} component."
 					);
 				    my %testFunction = (
 					type        => "procedure",
@@ -1331,7 +1331,7 @@ sub Generate_Component_Classes{
 					function    => $componentClass.$_->{'method'}."DfrrdFnctnIsSet",
 					returnType  => "\\logicalzero",
 					arguments   => "",
-					description => "Specift whether the deferred function for the {\\tt ".$_->{'method'}."} propert of the {\tt ". $componentClass."} component has been set."
+					description => "Specift whether the deferred function for the {\\normalfont \\ttfamily ".$_->{'method'}."} propert of the {\\normalfont \\ttfamily ". $componentClass."} component has been set."
 					);
 				    push(@typeBoundFunctions,\%setFunction,\%testFunction);
 				}
@@ -1349,7 +1349,7 @@ sub Generate_Component_Classes{
 	# Create the type.
 	$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClass)} = {
 	    name           => "nodeComponent".ucfirst($componentClass),
-	    comment        => "Type for the {\\tt ".$componentClass."} component class.",
+	    comment        => "Type for the {\\normalfont \\ttfamily ".$componentClass."} component class.",
 	    isPublic       => "true",
 	    extends        => "nodeComponent",
 	    boundFunctions => \@typeBoundFunctions,
@@ -1412,7 +1412,7 @@ sub Generate_Implementations {
 	# Add binding for deferred create function set function.
 	push(
 	    @typeBoundFunctions,
-	    {type => "procedure", pass => "nopass", name => "createFunctionSet", function => $componentID."CreateFunctionSet", description => "Set the function used to create {\\tt ".$componentID."} components.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless function()\\textgreater}"}
+	    {type => "procedure", pass => "nopass", name => "createFunctionSet", function => $componentID."CreateFunctionSet", description => "Set the function used to create {\\normalfont \\ttfamily ".$componentID."} components.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless function()\\textgreater}"}
 	    )
 	    if ( 
 		exists($component->{'createFunction'})
@@ -1433,7 +1433,7 @@ sub Generate_Implementations {
 		    $function{'function'   } = $componentID.$_->{'method'};
 		    $function{'returnType' } = &dataObjectDocName($_->{'interface'});
 		    $function{'arguments'  } = "";
-		    $function{'description'} = "Get the {\\tt ".$_->{'method'}."} property of the {\tt ". $componentID."} component.";
+		    $function{'description'} = "Get the {\\normalfont \\ttfamily ".$_->{'method'}."} property of the {\\normalfont \\ttfamily ". $componentID."} component.";
 		    # Also add bindings to functions to set and test the deferred function.
 		    my %setFunction = (
 			type        => "procedure",
@@ -1442,7 +1442,7 @@ sub Generate_Implementations {
 			function    => $componentID.$_->{'method'}."DeferredFunctionSet",
 			returnType  => "\\void",
 			arguments   => "procedure(".$componentID.$_->{'method'}."Interface) deferredFunction",
-			description => "Set the function for the deferred {\\tt ".$_->{'method'}."} propert of the {\tt ". $componentID."} component."
+			description => "Set the function for the deferred {\\normalfont \\ttfamily ".$_->{'method'}."} propert of the {\\normalfont \\ttfamily ". $componentID."} component."
 			);
 		    my %testFunction = (
 			type        => "procedure",
@@ -1451,7 +1451,7 @@ sub Generate_Implementations {
 			function    => $componentID.$_->{'method'}."DfrrdFnctnIsSet",
 			returnType  => "\\logicalzero",
 			arguments   => "",
-			description => "Specify whether the deferred function for the {\\tt ".$_->{'method'}."} property of the {\tt ". $componentID."} component has been set."
+			description => "Specify whether the deferred function for the {\\normalfont \\ttfamily ".$_->{'method'}."} property of the {\\normalfont \\ttfamily ". $componentID."} component has been set."
 			);
 		    push(@typeBoundFunctions,\%setFunction,\%testFunction);
 		}
@@ -1649,7 +1649,7 @@ sub Generate_Deferred_Binding_Functions {
 			);
 		    my $functionCode;
 		    $functionCode  = "  subroutine ".$classFunctionName."DeferredFunctionSet(deferredFunction)\n";
-		    $functionCode .= "    !% Set the function to be used for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$component->{'class'}."} component class.\n";
+		    $functionCode .= "    !% Set the function to be used for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$component->{'class'}."} component class.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    $functionCode .= "    ".$classFunctionName."Deferred   => deferredFunction\n";
@@ -1662,7 +1662,7 @@ sub Generate_Deferred_Binding_Functions {
 			$functionCode
 			);
 		    $functionCode  = "  logical function ".$classFunctionName."DfrrdFnctnIsSet()\n";
-		    $functionCode .= "    !% Return true if the deferred function for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$component->{'class'}."} component class has been set.\n";
+		    $functionCode .= "    !% Return true if the deferred function for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$component->{'class'}."} component class has been set.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= "    ".$classFunctionName."DfrrdFnctnIsSet=".$classFunctionName."IsSetValue\n";
 		    $functionCode .= "    return\n";
@@ -1674,7 +1674,7 @@ sub Generate_Deferred_Binding_Functions {
 			);
 		    # Create a function to call the deferred function.
 		    $functionCode  = "  ".$type." ".$classFunctionName."(".join(",",@arguments).")\n";
-		    $functionCode .= "    !% Call the deferred function for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$component->{'class'}."} component class.\n";
+		    $functionCode .= "    !% Call the deferred function for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$component->{'class'}."} component class.\n";
 		    $functionCode .= "    use Galacticus_Error\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= "    class(nodeComponent".ucfirst($component->{'class'})."), intent(".$binding->{'interface'}->{'self'}->{'intent'}.") :: self\n";
@@ -1711,7 +1711,7 @@ sub Generate_Deferred_Binding_Functions {
 		    );
 		my $functionCode;
 		$functionCode  = "  subroutine ".$componentFunctionName."DeferredFunctionSet(deferredFunction)\n";
-		$functionCode .= "    !% Set the function to be used for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$componentID."} component.\n";
+		$functionCode .= "    !% Set the function to be used for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$componentID."} component.\n";
 		$functionCode .= "    implicit none\n";
 		$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		$functionCode .= "    ".$componentFunctionName."Deferred   => deferredFunction\n";
@@ -1724,7 +1724,7 @@ sub Generate_Deferred_Binding_Functions {
 		    $functionCode
 		    );
 		$functionCode  = "  logical function ".$componentFunctionName."DfrrdFnctnIsSet()\n";
-		$functionCode .= "    !% Return true if the deferred function for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$componentID."} component has been set.\n";
+		$functionCode .= "    !% Return true if the deferred function for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$componentID."} component has been set.\n";
 		$functionCode .= "    implicit none\n";
 		$functionCode .= "    ".$componentFunctionName."DfrrdFnctnIsSet=".$componentFunctionName."IsSetValue\n";
 		$functionCode .= "    return\n";
@@ -1736,7 +1736,7 @@ sub Generate_Deferred_Binding_Functions {
 		    );
 		# Create a function that calls the deferred function.
 		$functionCode  = "  ".$type." ".$componentFunctionName."(".join(",",@arguments).")\n";
-		$functionCode .= "    !% Call the deferred function for the {\\tt ".$binding->{'method'}."} method of the {\\tt ".$componentID."} component.\n";
+		$functionCode .= "    !% Call the deferred function for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$componentID."} component.\n";
 		$functionCode .= "    use Galacticus_Error\n";
 		$functionCode .= "    implicit none\n";
 		$functionCode .= "    class(nodeComponent".ucfirst($componentID)."), intent(".$binding->{'interface'}->{'self'}->{'intent'}.") :: self\n";
@@ -2175,7 +2175,7 @@ sub Generate_Tree_Node_Object {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "createEvent"                                                                                                     ,
 	     function    => "Tree_Node_Create_Event"                                                                                          ,
-	     description => "Create a {\\tt nodeEvent} object in this node."                                                                  ,
+	     description => "Create a {\\normalfont \\ttfamily nodeEvent} object in this node."                                                                  ,
 	     returnType  => "\\textcolor{red}{\\textless *type(nodeEvent)\\textgreater}"                                                      ,
 	     arguments   => ""
 	 },
@@ -2183,7 +2183,7 @@ sub Generate_Tree_Node_Object {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "removePairedEvent"                                                                                               ,
 	     function    => "Tree_Node_Remove_Paired_Event"                                                                                   ,
-	     description => "Remove a paired {\\tt nodeEvent} from this node."                                                                ,
+	     description => "Remove a paired {\\normalfont \\ttfamily nodeEvent} from this node."                                                                ,
 	     returnType  => "\\void"                                                                                                          ,
 	     arguments   => "\\textcolor{red}{\\textless type(nodeEvent)\\textgreater} event\\argin"
 	 }
@@ -2382,7 +2382,7 @@ sub Generate_Initialization_Function {
 		    $functionCode .= "    !@   <defaultValue>false</defaultValue>\n";
 		    $functionCode .= "    !@   <attachedTo>module</attachedTo>\n";
 		    $functionCode .= "    !@   <description>\n";
-		    $functionCode .= "    !@    Specifies whether the {\\tt ".$propertyName."} method of the {\\tt ".$implementationName."} implemention of the {\\tt ".$componentClass."} component class should be output.\n";
+		    $functionCode .= "    !@    Specifies whether the {\\normalfont \\ttfamily ".$propertyName."} method of the {\\normalfont \\ttfamily ".$implementationName."} implemention of the {\\normalfont \\ttfamily ".$componentClass."} component class should be output.\n";
 		    $functionCode .= "    !@   </description>\n";
 		    $functionCode .= "    !@   <type>string</type>\n";
 		    $functionCode .= "    !@   <cardinality>1</cardinality>\n";
@@ -2533,7 +2533,7 @@ sub Generate_Map_Functions {
 	 }
 	);
     $functionCode  = "  double precision function mapComponentsDouble0(self,mapFunction,reduction)\n";
-    $functionCode .= "    !% Map a scalar double function over components with a specified {\\tt reduction}.\n";
+    $functionCode .= "    !% Map a scalar double function over components with a specified {\\normalfont \\ttfamily reduction}.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    select case (reduction)\n";
@@ -3098,7 +3098,7 @@ sub Generate_Node_Serialization_Functions {
 	);
     my $functionCode;
     $functionCode .= "  function SerializeToArrayCount(self) result (count)\n";
-    $functionCode .= "    !% Return a count of the size of the serialized {\\tt treeNode} object.\n";
+    $functionCode .= "    !% Return a count of the size of the serialized {\\normalfont \\ttfamily treeNode} object.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    count=0\n";
@@ -3196,7 +3196,7 @@ sub Generate_Node_Serialization_Functions {
 	# Insert a type-binding for this function into the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => "serialize".ucfirst($content)."s", function => "serializeToArray".ucfirst($content)."s", description => "Serialize ".$content."s to {\\tt array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argout"}
+	    {type => "procedure", name => "serialize".ucfirst($content)."s", function => "serializeToArray".ucfirst($content)."s", description => "Serialize ".$content."s to {\\normalfont \\ttfamily array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argout"}
 	    );
 	# Create the deserialization function.
 	@dataContent =
@@ -3218,7 +3218,7 @@ sub Generate_Node_Serialization_Functions {
 	     }
 	    );
 	$functionCode  = "  subroutine DeserializeFromArray".pad(ucfirst($content)."s",5)."(self,array)\n";
-	$functionCode .= "    !% Deserialize ".$content."s from {\\tt array}.\n";
+	$functionCode .= "    !% Deserialize ".$content."s from {\\normalfont \\ttfamily array}.\n";
 	$functionCode .= "    use Memory_Management\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
@@ -3254,7 +3254,7 @@ sub Generate_Node_Serialization_Functions {
 	# Insert a type-binding for this function into the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => "deserialize".ucfirst($content)."s", function => "deserializeFromArray".ucfirst($content)."s", description => "Deserialize ".$content."s from {\\tt array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argin"}
+	    {type => "procedure", name => "deserialize".ucfirst($content)."s", function => "deserializeFromArray".ucfirst($content)."s", description => "Deserialize ".$content."s from {\\normalfont \\ttfamily array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argin"}
 	    );
     }
 }
@@ -3278,7 +3278,7 @@ sub Generate_Node_ODE_Initialization_Functions {
 	);
     my $functionCode;
     $functionCode  = "  subroutine Tree_Node_ODE_Step_Rates_Initialize(self)\n";
-    $functionCode .= "    !% Initialize the rates in components of tree node {\\tt self} in preparation for an ODE solver step.\n";
+    $functionCode .= "    !% Initialize the rates in components of tree node {\\normalfont \\ttfamily self} in preparation for an ODE solver step.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Loop over all component classes
@@ -3312,7 +3312,7 @@ sub Generate_Node_ODE_Initialization_Functions {
 	);    
     # Create functions to initialize property scales for an ODE step.
     $functionCode  = "  subroutine Tree_Node_ODE_Step_Scales_Initialize(self)\n";
-    $functionCode .= "    !% Initialize the scales in components of tree node {\\tt self} in preparation for an ODE solver step.\n";
+    $functionCode .= "    !% Initialize the scales in components of tree node {\\normalfont \\ttfamily self} in preparation for an ODE solver step.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Loop over all component classes
@@ -3849,7 +3849,7 @@ sub Generate_Implementation_Dump_Functions {
 	# Insert a type-binding for this function into the implementation type.
 	push(
 	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-	    {type => "procedure", name => "readRaw", function => "Node_Component_".ucfirst($componentID)."_Read_Raw", description => "Read a binary dump of the {\\tt nodeComponent} from the given {\\tt fileHandle}.", returnType => "\\void", arguments => "\\intzero\\ fileHandle\\argin"},
+	    {type => "procedure", name => "readRaw", function => "Node_Component_".ucfirst($componentID)."_Read_Raw", description => "Read a binary dump of the {\\normalfont \\ttfamily nodeComponent} from the given {\\normalfont \\ttfamily fileHandle}.", returnType => "\\void", arguments => "\\intzero\\ fileHandle\\argin"},
 	    );
     }
 }
@@ -5033,7 +5033,7 @@ sub Generate_Component_Count_Functions {
 	    );
 	# Generate code for the count function.
     	$functionCode  = "  integer function ".$componentClassName."CountLinked(self)\n";
-	$functionCode .= "    !% Returns the number of {\\tt ".$componentClassName."} components in {\\tt self}.\n";
+	$functionCode .= "    !% Returns the number of {\\normalfont \\ttfamily ".$componentClassName."} components in {\\normalfont \\ttfamily self}.\n";
     	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     	$functionCode .= "    select type (self)\n";
@@ -5059,7 +5059,7 @@ sub Generate_Component_Count_Functions {
 	# Bind this function to the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Count", function => $componentClassName."CountLinked", description => "Returns the number of {\\tt ".$componentClassName."} components in the node.", returnType => "\\intzero", arguments => ""}
+	    {type => "procedure", name => $componentClassName."Count", function => $componentClassName."CountLinked", description => "Returns the number of {\\normalfont \\ttfamily ".$componentClassName."} components in the node.", returnType => "\\intzero", arguments => ""}
 	    );
     }
 }
@@ -5109,7 +5109,7 @@ sub Generate_Component_Get_Functions {
 	    );
 	# Generate code for the get function.
     	$functionCode  = "  recursive function ".$componentClassName."Get(self,instance,autoCreate)\n";
-	$functionCode .= "    !% Returns the {\\tt ".$componentClassName."} component of {\\tt self}.\n";
+	$functionCode .= "    !% Returns the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self}.\n";
 	$functionCode .= "    use Galacticus_Error\n";   
  	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
@@ -5140,7 +5140,7 @@ sub Generate_Component_Get_Functions {
 	# Bind this function to the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName, function => $componentClassName."Get", description => "Return a ".$componentClassName." component member of the node. If no {\\tt instance} is specified, return the first instance. If {\\tt autoCreate} is {\\tt true} then create a single instance of the component if none exists in the node.", returnType => "\\textcolor{red}{\\textless *class(nodeComponent".ucfirst($componentClassName).")\\textgreater}", arguments => "\\intzero\\ [instance]\\argin, \\logicalzero\\ [autoCreate]\\argin"}
+	    {type => "procedure", name => $componentClassName, function => $componentClassName."Get", description => "Return a ".$componentClassName." component member of the node. If no {\\normalfont \\ttfamily instance} is specified, return the first instance. If {\\normalfont \\ttfamily autoCreate} is {\\normalfont \\ttfamily true} then create a single instance of the component if none exists in the node.", returnType => "\\textcolor{red}{\\textless *class(nodeComponent".ucfirst($componentClassName).")\\textgreater}", arguments => "\\intzero\\ [instance]\\argin, \\logicalzero\\ [autoCreate]\\argin"}
 	    );
 	# Specify data content for create-by-interrupt function.
 	@dataContent =
@@ -5160,7 +5160,7 @@ sub Generate_Component_Get_Functions {
 	    );
 	# Generate function to create component via an interrupt.
    	$functionCode  = "  subroutine ".$componentClassName."CreateByInterrupt(self)\n";
-	$functionCode .= "    !% Create the {\\tt ".$componentClassName."} component of {\\tt self} via an interrupt.\n";
+	$functionCode .= "    !% Create the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self} via an interrupt.\n";
     	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    ".$componentClassName." => self%".$componentClassName."(autoCreate=.true.)\n";
@@ -5205,7 +5205,7 @@ sub Generate_Component_Get_Functions {
 		$component->{'createFunction'}->{'isDeferred'} eq "true"
 		) {
 		$functionCode  = "   subroutine ".$componentID."CreateFunctionSet(createFunction)\n";
-		$functionCode .= "     !% Set the create function for the {\\tt ".$componentID."} component.\n";
+		$functionCode .= "     !% Set the create function for the {\\normalfont \\ttfamily ".$componentID."} component.\n";
 		$functionCode .= "     implicit none\n";
 		$functionCode .= "     external createFunction\n";
 		my $createFunction = $componentID."CreateFunction"; 
@@ -5241,7 +5241,7 @@ sub Generate_Component_Destruction_Functions {
 	     }
 	    );
     	my $functionCode = "  subroutine ".$componentClassName."DestroyLinked(self)\n";
-	$functionCode   .= "    !% Destroy the {\\tt ".$componentClassName."} component of {\\tt self}.\n";
+	$functionCode   .= "    !% Destroy the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self}.\n";
     	$functionCode   .= "    implicit none\n";
 	$functionCode   .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     	$functionCode   .= "    if (allocated(self%component".ucfirst($componentClassName).")) then\n";
@@ -5260,7 +5260,7 @@ sub Generate_Component_Destruction_Functions {
 	# Bind this function to the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Destroy" , function => $componentClassName."DestroyLinked", description => "Destroy the {\\tt ".$componentClassName."} component(s) of the node.", returnType => "\\void", arguments => ""}
+	    {type => "procedure", name => $componentClassName."Destroy" , function => $componentClassName."DestroyLinked", description => "Destroy the {\\normalfont \\ttfamily ".$componentClassName."} component(s) of the node.", returnType => "\\void", arguments => ""}
 	    );
     }
 }
@@ -5298,7 +5298,7 @@ sub Generate_Component_Creation_Functions {
 	# Generate function code.
 	my $functionCode;
     	$functionCode .= "  subroutine ".$componentClassName."CreateLinked(self,template)\n";
-	$functionCode .= "    !% Create the {\\tt ".$componentClassName."} component of {\\tt self}.\n";
+	$functionCode .= "    !% Create the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self}.\n";
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    use Galacticus_Display\n";
 	$functionCode .= "    use String_Handling\n";
@@ -5331,7 +5331,7 @@ sub Generate_Component_Creation_Functions {
 	# Bind this function to the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Create" , function => $componentClassName."CreateLinked", description => "Create a {\\tt ".$componentClassName."} component in the node. If no {\\tt template} is specified use the active implementation of this class.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(nodeComponent".ucfirst($componentClassName).")\\textgreater}\\ [template]\\argin"}
+	    {type => "procedure", name => $componentClassName."Create" , function => $componentClassName."CreateLinked", description => "Create a {\\normalfont \\ttfamily ".$componentClassName."} component in the node. If no {\\normalfont \\ttfamily template} is specified use the active implementation of this class.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(nodeComponent".ucfirst($componentClassName).")\\textgreater}\\ [template]\\argin"}
 	    );
     }
 }
@@ -5375,7 +5375,7 @@ sub Generate_Node_Copy_Function {
     # Generate the code.
     my $functionCode;
     $functionCode .= "  subroutine Tree_Node_Copy_Node_To(self,targetNode,skipFormationNode)\n";
-    $functionCode .= "    !% Make a copy of {\\tt self} in {\\tt targetNode}.\n";
+    $functionCode .= "    !% Make a copy of {\\normalfont \\ttfamily self} in {\\normalfont \\ttfamily targetNode}.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    skipFormationNodeActual=.false.\n";
@@ -5427,7 +5427,7 @@ sub Generate_Node_Copy_Function {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "copyNodeTo", function => "Tree_Node_Copy_Node_To", description => "Make a copy of the node in {\\tt targetNode}. If {\\tt skipFormationNode} is {\tt true} then do not copy any pointer to the formation node.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout, \\logicalzero\\ [skipFormationNode]\\argin"}
+	{type => "procedure", name => "copyNodeTo", function => "Tree_Node_Copy_Node_To", description => "Make a copy of the node in {\\normalfont \\ttfamily targetNode}. If {\\normalfont \\ttfamily skipFormationNode} is {\\normalfont \\ttfamily true} then do not copy any pointer to the formation node.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout, \\logicalzero\\ [skipFormationNode]\\argin"}
 	);
 }
 
@@ -5458,7 +5458,7 @@ sub Generate_Node_Move_Function {
     my $functionCode;
     # Create functions for moving node components.
     $functionCode .= "  subroutine Tree_Node_Move_Components(self,targetNode)\n";
-    $functionCode .= "    !% Move components from {\\tt self} to {\\tt targetNode}.\n";
+    $functionCode .= "    !% Move components from {\\normalfont \\ttfamily self} to {\\normalfont \\ttfamily targetNode}.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Loop over all component classes
@@ -5486,7 +5486,7 @@ sub Generate_Node_Move_Function {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "moveComponentsTo", function => "Tree_Node_Move_Components", description => "Move components from a node to {\\tt targetNode}.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout"}
+	{type => "procedure", name => "moveComponentsTo", function => "Tree_Node_Move_Components", description => "Move components from a node to {\\normalfont \\ttfamily targetNode}.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout"}
 	);
 }
 
@@ -5532,7 +5532,7 @@ sub Generate_Deferred_Function_Attacher {
 	# Construct the function code.
 	my $functionCode;
 	$functionCode  = "  subroutine ".$functionName."(deferredFunction)\n";
-	$functionCode .= "    !% Set the function to be used for ".$gsr." of the {\\tt ".$propertyName."} property of the {\\tt ".$attachTo."} component class.\n";
+	$functionCode .= "    !% Set the function to be used for ".$gsr." of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$attachTo."} component class.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    ".$functionLabel."Deferred       => deferredFunction\n";
@@ -5554,12 +5554,12 @@ sub Generate_Deferred_Function_Attacher {
 		if ( $gsr eq "get" );
 	    push(
 		@{$buildData->{'types'}->{"nodeComponent".ucfirst($attachTo)}->{'boundFunctions'}},
-		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."Function", function => $functionName, description => "Set the function to be used for the {\\tt ".$gsr."} method of the {\\tt ".$propertyName."} property of the {\\tt ".$attachTo."} component.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless function()\\textgreater} deferredFunction"}
+		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."Function", function => $functionName, description => "Set the function to be used for the {\\normalfont \\ttfamily ".$gsr."} method of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$attachTo."} component.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless function()\\textgreater} deferredFunction"}
 		);
 	}
 	# Also create a function to return whether or not the deferred function has been attached.
 	$functionCode  = "  logical function ".$functionLabel."IsAttached()\n";
-	$functionCode .= "    !% Return true if the deferred function used to ".$gsr." the {\\tt ".$propertyName."} property of the {\\tt ".$attachTo."} component class has been attached.\n";
+	$functionCode .= "    !% Return true if the deferred function used to ".$gsr." the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$attachTo."} component class has been attached.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= "    ".$functionLabel."IsAttached=".$functionLabel."IsAttachedValue\n";
 	$functionCode .= "    return\n";
@@ -5576,7 +5576,7 @@ sub Generate_Deferred_Function_Attacher {
 	    ) {
 	    push(
 		@{$buildData->{'types'}->{"nodeComponent".ucfirst($attachTo)}->{'boundFunctions'}},
-		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."IsAttached", function => $functionLabel."IsAttached", description => "Return whether the ".$gsr." method of the ".$propertyName." property of the {\\tt ".$attachTo."} component has been attached to a function.", returnType => "\\logicalzero", arguments => ""}
+		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."IsAttached", function => $functionLabel."IsAttached", description => "Return whether the ".$gsr." method of the ".$propertyName." property of the {\\normalfont \\ttfamily ".$attachTo."} component has been attached to a function.", returnType => "\\logicalzero", arguments => ""}
 		);
 	}
 	# Record that these functions have now been created.
@@ -5629,7 +5629,7 @@ sub Generate_Deferred_GSR_Function {
 			);
 		    # Construct the function code.
 		    $functionCode  = "  function ".$componentName.ucfirst($propertyName)."Get(self)\n";
-		    $functionCode .= "    !% Get the value of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
+		    $functionCode .= "    !% Get the value of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    $functionCode .= "    ".$componentName.ucfirst($propertyName)."Get=".$componentName.ucfirst($propertyName)."GetDeferred(self)\n";
@@ -5669,7 +5669,7 @@ sub Generate_Deferred_GSR_Function {
 			 },
 			);
 		    $functionCode  = "  subroutine ".$componentName.ucfirst($propertyName)."Set(self,setValue)\n";
-		    $functionCode .= "    !% Set the value of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
+		    $functionCode .= "    !% Set the value of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    $functionCode .= "    call ".$componentName.ucfirst($propertyName)."SetDeferred(self,setValue)\n";
@@ -5724,7 +5724,7 @@ sub Generate_Deferred_GSR_Function {
 			 }
 			);
 		    $functionCode  = "  subroutine ".$componentName.ucfirst($propertyName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
-		    $functionCode .= "    !% Set the rate of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
+		    $functionCode .= "    !% Set the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    $functionCode .= "    call ".$attachTo.ucfirst($propertyName)."RateDeferred(self,setValue,interrupt,interruptProcedure)\n";
@@ -5740,7 +5740,7 @@ sub Generate_Deferred_GSR_Function {
 		    unless ( exists($bindings{$bindingName}) && $property->{'attributes' }->{'bindsTo'} eq "top" ) {
 			push(
 			    @{$buildData->{'types'}->{$type}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName."Rate", function => $componentName.ucfirst($propertyName)."Rate", description => "Cumulate to the rate of the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
+			    {type => "procedure", name => $propertyName."Rate", function => $componentName.ucfirst($propertyName)."Rate", description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
 			    );
 			$bindings{$bindingName} = 1;
 		    }
@@ -5827,7 +5827,7 @@ sub Generate_GSR_Functions {
 			    );
 			# Generate the code.
 			$functionCode  = "  function ".$componentID.ucfirst($propertyName)."Get".$suffix."(self)\n";
-			$functionCode .= "    !% Return the {\\tt ".$propertyName."} property of the {\\tt ".$componentID."} component implementation.\n";
+			$functionCode .= "    !% Return the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
 			$functionCode .= "    implicit none\n";
 			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			$functionCode .= "    ".$componentID.$propertyName."Get".$suffix."=self%".$linkedDataName."%value\n";
@@ -5841,7 +5841,7 @@ sub Generate_GSR_Functions {
 			# Insert a type-binding for this function into the implementation type.
 			push(
 			    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName.$suffix, function => $componentID.ucfirst($propertyName)."Get".$suffix, description => "Get the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
+			    {type => "procedure", name => $propertyName.$suffix, function => $componentID.ucfirst($propertyName)."Get".$suffix, description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
 			    );
 		    }
 		}
@@ -5867,7 +5867,7 @@ sub Generate_GSR_Functions {
 			    );
 			# Generate the function code.
 			$functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Set".$suffix."(self,setValue)\n";
-			$functionCode .= "    !% Set the {\\tt ".$propertyName."} property of the {\\tt ".$componentID."} component implementation.\n";
+			$functionCode .= "    !% Set the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
 			$functionCode .= "    use Memory_Management\n";
 			$functionCode .= "    implicit none\n";
 			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
@@ -5904,7 +5904,7 @@ sub Generate_GSR_Functions {
 			# Insert a type-binding for this function into the implementation type.
 			push(
 			    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName."Set".$suffix, function => $componentID.ucfirst($propertyName)."Set".$suffix, description => "Set the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
+			    {type => "procedure", name => $propertyName."Set".$suffix, function => $componentID.ucfirst($propertyName)."Set".$suffix, description => "Set the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
 			    );
 		    }
 		}
@@ -5921,7 +5921,7 @@ sub Generate_GSR_Functions {
 			);
 		    # Generate the "count" function code.
 		    $functionCode  = "  integer function ".$componentID.ucfirst($propertyName)."Count(self)\n";
-		    $functionCode .= "    !% Return a count of the number of scalar properties in the {\\tt ".$propertyName."} property of the {\\tt ".lcfirst($componentID)."} component implementation.\n";
+		    $functionCode .= "    !% Return a count of the number of scalar properties in the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".lcfirst($componentID)."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    if ( $linkedData->{'rank'} ==  0 ) {
@@ -5975,7 +5975,7 @@ sub Generate_GSR_Functions {
 			    );
 			# Generate the rate function code.
 			$functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
-			$functionCode .= "    !% Accumulate to the {\\tt ".$propertyName."} property rate of change of the {\\tt ".$componentID."} component implementation.\n";
+			$functionCode .= "    !% Accumulate to the {\\normalfont \\ttfamily ".$propertyName."} property rate of change of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
 			$functionCode .= "    implicit none\n";
 			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			if ( $linkedData->{'type'} eq "real" ) {
@@ -6034,7 +6034,7 @@ sub Generate_GSR_Functions {
 			    );
 			# Generate the function code.
 			$functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."RateGeneric(self,setValue,interrupt,interruptProcedure)\n";
-			$functionCode .= "    !% Set the rate of the {\\tt ".$propertyName."} property of the {\\tt ".$componentID."} component via a generic {\\tt nodeComponent}.\n";
+			$functionCode .= "    !% Set the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component via a generic {\\normalfont \\ttfamily nodeComponent}.\n";
 			$functionCode .= "    use Galacticus_Error\n"
 			    if ( $property->{'attributes'}->{'createIfNeeded'} eq "true" );
 			$functionCode .= "    implicit none\n";
@@ -6121,7 +6121,7 @@ sub Generate_GSR_Functions {
 				);
 			    # Generate the function code.
 			    $functionCode  = "  subroutine ".$componentClassName.ucfirst($propertyName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
-			    $functionCode .= "    !% Accept a rate set for the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component class. Trigger an interrupt to create the component.\n";
+			    $functionCode .= "    !% Accept a rate set for the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component class. Trigger an interrupt to create the component.\n";
 			    $functionCode .= "    use Galacticus_Error\n";
 			    $functionCode .= "    implicit none\n";
 			    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
@@ -6183,7 +6183,7 @@ sub Generate_GSR_Functions {
 			);
 		    # Generate a function to set the "scale".
 		    $functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Scale(self,setValue)\n";
-		    $functionCode .= "    !% Set the {\\tt ".$propertyName."} property scale of the {\\tt ".$componentID."} component implementation.\n";
+		    $functionCode .= "    !% Set the {\\normalfont \\ttfamily ".$propertyName."} property scale of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
  		    $functionCode .= "    self%".$linkedDataName."%scale=setValue\n";
@@ -6233,7 +6233,7 @@ sub Generate_Tree_Node_Creation_Function {
     # Create the function code.
     my $functionCode;
     $functionCode .= "  subroutine treeNodeInitialize(self,index,hostTree)\n";
-    $functionCode .= "    !% Initialize a {\\tt treeNode} object.\n";
+    $functionCode .= "    !% Initialize a {\\normalfont \\ttfamily treeNode} object.\n";
     $functionCode .= "    use Galacticus_Error\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
@@ -6294,7 +6294,7 @@ sub Generate_Tree_Node_Destruction_Function {
     # Create the function code.
     my $functionCode;
     $functionCode .= "  subroutine treeNodeDestroy(self)\n";
-    $functionCode .= "    !% Destroy a {\\tt treeNode} object.\n";
+    $functionCode .= "    !% Destroy a {\\normalfont \\ttfamily treeNode} object.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
@@ -6384,7 +6384,7 @@ sub Generate_Tree_Node_Builder_Function {
     # Create the function code.
     my $functionCode;
     $functionCode .= "  subroutine Tree_Node_Component_Builder(self,nodeDefinition)\n";
-    $functionCode .= "    !% Build components in a {\\tt treeNode} object given an XML definition.\n";
+    $functionCode .= "    !% Build components in a {\\normalfont \\ttfamily treeNode} object given an XML definition.\n";
     $functionCode .= "    use FoX_Dom\n";
     $functionCode .= "    use Hashes\n";
     $functionCode .= "    implicit none\n";
@@ -6456,7 +6456,7 @@ sub Generate_GSR_Availability_Functions {
 	    my $functionName = $componentClassName.ucfirst($propertyName)."AttributeMatch";
 	    my $functionCode;
 	    $functionCode  = "  function ".$functionName."(requireSettable,requireGettable,requireEvolvable)\n";
-	    $functionCode .= "   !% Return a text list of component implementations in the {\\tt ".$componentClassName."} class that have the desired attributes for the {\\tt ".$propertyName."} property\n";
+	    $functionCode .= "   !% Return a text list of component implementations in the {\\normalfont \\ttfamily ".$componentClassName."} class that have the desired attributes for the {\\normalfont \\ttfamily ".$propertyName."} property\n";
 	    $functionCode .= "   use ISO_Varying_String\n";
 	    $functionCode .= "   implicit none\n";
 	    $functionCode .= "   type   (varying_string), allocatable  , dimension(:) :: ".$functionName."\n";
@@ -6507,7 +6507,7 @@ sub Generate_GSR_Availability_Functions {
 	    # Bind this function to the relevant type.
 	    push(
 		@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-		{type => "procedure", pass => "nopass", name => $propertyName."AttributeMatch", function => $functionName, description => "Return a list of implementations that provide the given list off attributes for the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component", returnType => "\\textcolor{red}{\\textless type(varying\\_string)(:)\\textgreater}", arguments => "\\logicalzero [requireGettable]\\argin, \\logicalzero [requireSettable]\\argin, \\logicalzero [requireEvolvable]\\argin"}
+		{type => "procedure", pass => "nopass", name => $propertyName."AttributeMatch", function => $functionName, description => "Return a list of implementations that provide the given list off attributes for the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component", returnType => "\\textcolor{red}{\\textless type(varying\\_string)(:)\\textgreater}", arguments => "\\logicalzero [requireGettable]\\argin, \\logicalzero [requireSettable]\\argin, \\logicalzero [requireEvolvable]\\argin"}
 		);
 	}
     }
@@ -6796,7 +6796,7 @@ sub Generate_Component_Class_Removal_Functions {
 	# Bind this function to the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Remove", function => "Node_Component_".ucfirst($componentClassName)."_Remove", description => "Remove an instance of the ".$componentClassName." component, shifting other instances to keep the array contiguous. If no {\\tt instance} is specified, the first instance is assumed.", returnType => "\\void", arguments => "\\intzero\\ [instance]\\argin"}
+	    {type => "procedure", name => $componentClassName."Remove", function => "Node_Component_".ucfirst($componentClassName)."_Remove", description => "Remove an instance of the ".$componentClassName." component, shifting other instances to keep the array contiguous. If no {\\normalfont \\ttfamily instance} is specified, the first instance is assumed.", returnType => "\\void", arguments => "\\intzero\\ [instance]\\argin"}
 	    );
     }
 }
@@ -7017,7 +7017,7 @@ sub Generate_Component_Class_Builder_Functions {
 	# Insert a type-binding for this function into the implementation type.
 	push(
 	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-	    {type => "procedure", name => "builder", function => "Node_Component_".ucfirst($componentClassName)."_Builder", description => "Build a {\\tt nodeComponent} from a supplied XML definition.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless *type(node)\\textgreater}componentDefinition\\argin"},
+	    {type => "procedure", name => "builder", function => "Node_Component_".ucfirst($componentClassName)."_Builder", description => "Build a {\\normalfont \\ttfamily nodeComponent} from a supplied XML definition.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless *type(node)\\textgreater}componentDefinition\\argin"},
 	    );
     }
 }
@@ -7784,7 +7784,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Generate code for "isGettable" function.
 		    my $functionCode;
 		    $functionCode  = "   logical function ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable()\n";
-		    $functionCode .= "     !% Returns true if the {\\tt ".$propertyName."} property is gettable for the {\\tt ".$componentClassName."} component class.\n\n"; 
+		    $functionCode .= "     !% Returns true if the {\\normalfont \\ttfamily ".$propertyName."} property is gettable for the {\\normalfont \\ttfamily ".$componentClassName."} component class.\n\n"; 
 		    $functionCode .= "     implicit none\n";
 		    $functionCode .= "     ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable=.false.\n";
 		    foreach my $componentName2 ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
@@ -7806,11 +7806,11 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Bind this function to the implementation type.
 		    push(
 			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-			{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => ucfirst($componentClassName).ucfirst($propertyName)."IsGettable", description => "Get the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
+			{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => ucfirst($componentClassName).ucfirst($propertyName)."IsGettable", description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
 			);
 		    # Generate code for default value function.
 		    $functionCode  = "  function ".ucfirst($componentClassName).ucfirst($propertyName)."(self)\n";
-		    $functionCode .= "    !% Returns the default value for the {\\tt ".$propertyName."} property for the {\\tt ".$componentClassName."} component class.\n";
+		    $functionCode .= "    !% Returns the default value for the {\\normalfont \\ttfamily ".$propertyName."} property for the {\\normalfont \\ttfamily ".$componentClassName."} component class.\n";
 		    # Insert any required modules.
 		    if ( exists($property->{'classDefault'}) && exists($property->{'classDefault'}->{'modules'}) ) {
 			foreach ( @{$property->{'classDefault'}->{'modules'}} ) {
@@ -7903,7 +7903,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Bind this function to the implementation type.
 		    push(
 			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-			{type => "procedure", name => $propertyName, function => ucfirst($componentClassName).ucfirst($propertyName), description => "Get the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
+			{type => "procedure", name => $propertyName, function => ucfirst($componentClassName).ucfirst($propertyName), description => "Get the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
 			);
 		    # Record that this property has been created.
 		    $propertiesCreated{$propertyName} = 1;

@@ -185,7 +185,7 @@ contains
   end subroutine Excursion_Sets_Barrier_Initialize
 
   double precision function Excursion_Sets_Barrier(variance,time,ratesCalculation)
-    !% Return the barrier for excursion sets at the given {\tt variance} and {\tt time}.
+    !% Return the barrier for excursion sets at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.
     include 'structure_formation.excursion_sets.barrier.remap.moduleUse.inc'
     implicit none
     double precision, intent(in   )           :: time                  , variance
@@ -217,7 +217,7 @@ contains
   end function Excursion_Sets_Barrier
 
   double precision function Excursion_Sets_Barrier_Gradient(variance,time,ratesCalculation)
-    !% Return the gradient (with respect to mass) of the barrier for excursion sets at the given {\tt variance} and {\tt time}.
+    !% Return the gradient (with respect to mass) of the barrier for excursion sets at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.
     include 'structure_formation.excursion_sets.barrier.remap.moduleUse.inc'
     implicit none
     double precision, intent(in   )           :: time                  , variance

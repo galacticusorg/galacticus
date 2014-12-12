@@ -94,8 +94,8 @@ contains
   end subroutine Stellar_Population_Spectrum_Initialize
 
   double precision function Stellar_Population_Spectrum(abundancesStellar,age,wavelength,imfIndex,status)
-    !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\tt abundances}, of the
-    !% given {\tt age} (in Gyr) and the specified {\tt wavelength} (in Angstroms).
+    !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\normalfont \ttfamily abundances}, of the
+    !% given {\normalfont \ttfamily age} (in Gyr) and the specified {\normalfont \ttfamily wavelength} (in Angstroms).
     implicit none
     type            (abundances), intent(in   )           :: abundancesStellar
     double precision            , intent(in   )           :: age              , wavelength

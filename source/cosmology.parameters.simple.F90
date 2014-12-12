@@ -18,7 +18,7 @@
 !% A simple implementation of the cosmological parameters class.
 
   !# <cosmologyParameters name="cosmologyParametersSimple">
-  !#  <description>Provides basic cosmological parameters: $(H_0,\Omega_{\rm M},\Omega_\Lambda,\Omega_{\rm b},T_{\rm CMB})$. Also provides derived quantities $(\Omega_{\rm K},\Omega_{\rm r},\rho_{\rm crit})$.</description>
+  !#  <description>Provides basic cosmological parameters: $(H_0,\Omega_{\mathrm M},\Omega_\Lambda,\Omega_{\mathrm b},T_{\mathrm CMB})$. Also provides derived quantities $(\Omega_{\mathrm K},\Omega_{\mathrm r},\rho_{\mathrm crit})$.</description>
   !# </cosmologyParameters>
   type, extends(cosmologyParametersClass) :: cosmologyParametersSimple
      !% A simple cosmological parameters class.

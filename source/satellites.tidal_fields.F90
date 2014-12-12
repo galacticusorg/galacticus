@@ -36,7 +36,7 @@ module Satellites_Tidal_Fields
 contains
 
   double precision function Satellite_Tidal_Field(thisNode)
-    !% Return the tidal field acting on a satellite {\tt thisNode}.
+    !% Return the tidal field acting on a satellite {\normalfont \ttfamily thisNode}.
     use Galacticus_Nodes
     use Galacticus_Error
     use Input_Parameters

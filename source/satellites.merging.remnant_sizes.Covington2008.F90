@@ -63,7 +63,7 @@ contains
        !@   <defaultValue>2.75 \citep{covington_predicting_2008}</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The coefficient, $C_{\rm rad}$ energy used in the \cite{covington_predicting_2008} merger remnant size algorithm.
+       !@     The coefficient, $C_{\mathrm rad}$ energy used in the \cite{covington_predicting_2008} merger remnant size algorithm.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -74,7 +74,7 @@ contains
   end subroutine Satellite_Merging_Remnant_Sizes_Covington2008_Initialize
 
   subroutine Satellite_Merging_Remnant_Size_Covington2008(thisNode)
-    !% Compute the size of the merger remnant for {\tt thisNode} using the \cite{covington_predicting_2008} algorithm.
+    !% Compute the size of the merger remnant for {\normalfont \ttfamily thisNode} using the \cite{covington_predicting_2008} algorithm.
     use Galacticus_Nodes
     use Numerical_Constants_Physical
     use Numerical_Comparison

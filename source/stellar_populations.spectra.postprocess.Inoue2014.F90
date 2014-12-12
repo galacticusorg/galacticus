@@ -29,7 +29,7 @@
   end type spectraPostprocessorInoue2014
 
   interface spectraPostprocessorInoue2014
-     !% Constructors for the {\tt inoue2014} spectrum postprocessor class.
+     !% Constructors for the {\normalfont \ttfamily inoue2014} spectrum postprocessor class.
      module procedure inoue2014DefaultConstructor
   end interface spectraPostprocessorInoue2014
 
@@ -128,7 +128,7 @@
 contains
 
   function inoue2014DefaultConstructor()
-    !% Default constructor for the {\tt inoue2014} spectrum postprocessor class.
+    !% Default constructor for the {\normalfont \ttfamily inoue2014} spectrum postprocessor class.
     implicit none
     type(spectraPostprocessorInoue2014), target :: inoue2014DefaultConstructor
     

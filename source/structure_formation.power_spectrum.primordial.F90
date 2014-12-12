@@ -50,7 +50,7 @@ module Primordial_Power_Spectra
 contains
 
   double precision function Primordial_Power_Spectrum(wavenumber)
-    !% Return the CDM primordial power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$].
+    !% Return the CDM primordial power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
     use Numerical_Interpolation
     implicit none
     double precision, intent(in   ) :: wavenumber
@@ -84,7 +84,7 @@ contains
   end function Primordial_Power_Spectrum
 
   double precision function Primordial_Power_Spectrum_Logarithmic_Derivative(wavenumber)
-    !% Return the logarithmic derivative CDM primordial power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$].
+    !% Return the logarithmic derivative CDM primordial power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
     use Numerical_Interpolation
     implicit none
     double precision, intent(in   ) :: wavenumber

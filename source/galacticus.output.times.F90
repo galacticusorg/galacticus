@@ -110,7 +110,7 @@ contains
   end function Galacticus_Output_Time_Count
 
   double precision function Galacticus_Output_Time(iOutput)
-    !% Returns the time of the output indexed by {\tt iOutput}.
+    !% Returns the time of the output indexed by {\normalfont \ttfamily iOutput}.
     implicit none
     integer(c_size_t), intent(in   ) :: iOutput
 
@@ -127,7 +127,7 @@ contains
   end function Galacticus_Output_Time
 
   double precision function Galacticus_Output_Redshift(iOutput)
-    !% Returns the redshift of the output indexed by {\tt iOutput}.
+    !% Returns the redshift of the output indexed by {\normalfont \ttfamily iOutput}.
     implicit none
     integer(c_size_t), intent(in   ) :: iOutput
 
@@ -163,7 +163,7 @@ contains
   end function Galacticus_Output_Time_Index
 
   double precision function Galacticus_Next_Output_Time(currentTime,outputIndex)
-    !% Returns the time of the next output after {\tt currentTime}.
+    !% Returns the time of the next output after {\normalfont \ttfamily currentTime}.
     use Arrays_Search
     use Kind_Numbers
     implicit none
@@ -190,7 +190,7 @@ contains
   end function Galacticus_Next_Output_Time
 
   double precision function Galacticus_Previous_Output_Time(currentTime)
-    !% Returns the time of the previous output prior to {\tt currentTime}.
+    !% Returns the time of the previous output prior to {\normalfont \ttfamily currentTime}.
     use Arrays_Search
     implicit none
     double precision, intent(in   ) :: currentTime

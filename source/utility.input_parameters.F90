@@ -253,7 +253,7 @@ contains
   end subroutine Input_Parameters_File_Close
 
   logical function Input_Parameter_Is_Present(parameterName)
-    !% Return true if {\tt parameterName} is present in the input file.
+    !% Return true if {\normalfont \ttfamily parameterName} is present in the input file.
     implicit none
     character(len=*), intent(in   ) :: parameterName
     type     (Node ), pointer       :: nameElement  , thisParameter
@@ -276,7 +276,7 @@ contains
   end function Input_Parameter_Is_Present
 
   integer function Get_Input_Parameter_Array_Size(parameterName)
-    !% Get the number of elements in the parameter specified by parameter name is specified by {\tt parameterName}.
+    !% Get the number of elements in the parameter specified by parameter name is specified by {\normalfont \ttfamily parameterName}.
     use String_Handling
     implicit none
     character(len=*         ), intent(in   ) :: parameterName
@@ -314,10 +314,10 @@ contains
   end function Get_Input_Parameter_Array_Size
 
   subroutine Get_Input_Parameter_Char(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\tt varying\_string} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
-    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily varying\_string} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
+    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
     character(len=*       ), intent(  out)           :: parameterValue
     character(len=*       ), intent(in   )           :: parameterName
@@ -380,10 +380,10 @@ contains
   end subroutine Get_Input_Parameter_Char
 
   subroutine Get_Input_Parameter_Char_Array(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\tt varying\_string} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
-    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily varying\_string} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
+    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
     use String_Handling
     implicit none
     character(len=*         ), intent(  out)           :: parameterValue(:)
@@ -454,10 +454,10 @@ contains
   end subroutine Get_Input_Parameter_Char_Array
 
   subroutine Get_Input_Parameter_VarString(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\tt varying\_string} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
-    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily varying\_string} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
+    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
     type     (varying_string), intent(  out)           :: parameterValue
     character(len=*         ), intent(in   )           :: parameterName
@@ -520,10 +520,10 @@ contains
   end subroutine Get_Input_Parameter_VarString
 
   subroutine Get_Input_Parameter_VarString_Array(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\tt varying\_string} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
-    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily varying\_string} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
+    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
     use String_Handling
     implicit none
     type     (varying_string), intent(  out)           :: parameterValue(:)
@@ -594,10 +594,10 @@ contains
   end subroutine Get_Input_Parameter_VarString_Array
 
   subroutine Get_Input_Parameter_Double(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\tt double precision} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
-    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily double precision} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
+    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
     character       (len=*       ), intent(in   )           :: parameterName
     double precision              , intent(  out)           :: parameterValue
@@ -659,10 +659,10 @@ contains
   end subroutine Get_Input_Parameter_Double
 
   subroutine Get_Input_Parameter_Double_Array(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\tt double precision} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
-    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily double precision} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
+    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
     character       (len=*       ), intent(in   )           :: parameterName
     double precision              , intent(  out)           :: parameterValue(:)
@@ -725,10 +725,10 @@ contains
   end subroutine Get_Input_Parameter_Double_Array
 
   subroutine Get_Input_Parameter_Integer(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\tt integer} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
-    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily integer} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
+    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
     character(len=*       ), intent(in   )           :: parameterName
     integer                , intent(  out)           :: parameterValue
@@ -791,10 +791,10 @@ contains
   end subroutine Get_Input_Parameter_Integer
 
   subroutine Get_Input_Parameter_Integer_Array(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read an {\tt integer} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
-    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read an {\normalfont \ttfamily integer} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
+    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
     character(len=*       ), intent(in   )           :: parameterName
     integer                , intent(  out)           :: parameterValue(:)
@@ -857,10 +857,10 @@ contains
   end subroutine Get_Input_Parameter_Integer_Array
 
   subroutine Get_Input_Parameter_Logical(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\tt logical} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
-    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily logical} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
+    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
     character(len=*       ), intent(in   )           :: parameterName
     logical                , intent(  out)           :: parameterValue
@@ -930,10 +930,10 @@ contains
   end subroutine Get_Input_Parameter_Logical
 
   subroutine Get_Input_Parameter_Logical_Array(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read an {\tt logical} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
-    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read an {\normalfont \ttfamily logical} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
+    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
     character(len=*       ), intent(in   )           :: parameterName
     logical                , intent(  out)           :: parameterValue(:                   )
@@ -1003,10 +1003,10 @@ contains
   end subroutine Get_Input_Parameter_Logical_Array
 
   subroutine Get_Input_Parameter_Integer_Long(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a long {\tt integer} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
-    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a long {\normalfont \ttfamily integer} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
+    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
     use Kind_Numbers
     implicit none
     character(len=*                     ), intent(in   )           :: parameterName
@@ -1070,10 +1070,10 @@ contains
   end subroutine Get_Input_Parameter_Integer_Long
 
   subroutine Get_Input_Parameter_Integer_Long_Array(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a long {\tt integer} parameter from the parameter file. The parameter name is specified by {\tt parameterName} and
-    !% its value is returned in {\tt parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a long {\normalfont \ttfamily integer} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
+    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
+    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
+    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
     use Kind_Numbers
     implicit none
     character(len=*                     ), intent(in   )           :: parameterName
@@ -1160,7 +1160,7 @@ contains
   end subroutine Close_Parameters_Group
 
   subroutine Get_Input_Parameter_Double_C(parameterNameLength,parameterName,parameterValue,defaultValue) bind(c,name="Get_Input_Parameter_Double")
-    !% C-bound wrapper function for getting {\tt double precision} parameter values.
+    !% C-bound wrapper function for getting {\normalfont \ttfamily double precision} parameter values.
     use String_Handling
     implicit none
     integer  (kind=c_int    ), value :: parameterNameLength
@@ -1175,7 +1175,7 @@ contains
   end subroutine Get_Input_Parameter_Double_C
 
   subroutine Get_Input_Parameter_Integer_C(parameterNameLength,parameterName,parameterValue,defaultValue) bind(c,name="Get_Input_Parameter_Integer")
-    !% C-bound wrapper function for getting {\tt integer} parameter values.
+    !% C-bound wrapper function for getting {\normalfont \ttfamily integer} parameter values.
     use String_Handling
     implicit none
     integer  (kind=c_int    ), value :: parameterNameLength
@@ -1208,7 +1208,7 @@ contains
   end subroutine Write_Parameter_XML
 
   subroutine inputParameterListDestructor(self)
-    !% Destroy an {\tt inputParameterList} object.
+    !% Destroy an {\normalfont \ttfamily inputParameterList} object.
     implicit none
     type(inputParameterList), intent(inout) :: self
 

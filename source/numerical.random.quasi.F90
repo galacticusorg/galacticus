@@ -64,7 +64,7 @@ contains
   end function Quasi_Random_Get_Scalar
 
   function Quasi_Random_Get_Array(quasiSequenceObject,quasiSequenceDimension,reset,quasiSequenceType) result (quasiSequencePoint)
-    !% Returns an array giving a quasi-random points in a {\tt quasiSequenceDimension}-dimensional space.
+    !% Returns an array giving a quasi-random points in a {\normalfont \ttfamily quasiSequenceDimension}-dimensional space.
     implicit none
     type            (fgsl_qrng     ), intent(inout)                               :: quasiSequenceObject
     integer         (kind=4        ), intent(in   )                               :: quasiSequenceDimension

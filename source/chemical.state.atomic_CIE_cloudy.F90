@@ -15,10 +15,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which generates a tabulated atomic collisional ionization equilibrium ionization state using {\sc Cloudy}.
+!% Contains a module which generates a tabulated atomic collisional ionization equilibrium ionization state using {\normalfont \scshape Cloudy}.
 
 module Chemical_States_Atomic_CIE_Cloudy
-  !% Generates a tabulated atomic collisional ionization equilibrium ionization state using {\sc Cloudy}.
+  !% Generates a tabulated atomic collisional ionization equilibrium ionization state using {\normalfont \scshape Cloudy}.
   use ISO_Varying_String
   implicit none
   private
@@ -48,7 +48,7 @@ contains
   !# </chemicalStateMethod>
   subroutine Chemical_State_Atomic_CIE_Cloudy_Initialize(chemicalStateMethod,Electron_Density_Get &
        &,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Chemical_Densities_Get)
-    !% Initializes the ``atomic CIE ionization state from {\sc Cloudy}'' module.
+    !% Initializes the ``atomic CIE ionization state from {\normalfont \scshape Cloudy}'' module.
     implicit none
     type     (varying_string  ), intent(in   )          :: chemicalStateMethod
     procedure(Electron_Density_Atomic_CIE_Cloudy), intent(inout), pointer :: Electron_Density_Density_Log_Slope_Get
@@ -127,7 +127,7 @@ contains
   end subroutine Chemical_State_Atomic_CIE_Cloudy_Create
 
   double precision function Electron_Density_Atomic_CIE_Cloudy(temperature,numberDensityHydrogen,gasAbundances,radiation)
-    !% Return the electron density assuming atomic CIE as computed by {\sc Cloudy}.
+    !% Return the electron density assuming atomic CIE as computed by {\normalfont \scshape Cloudy}.
     use Chemical_States_CIE_File
     use Abundances_Structure
     use Radiation_Structure
@@ -147,7 +147,7 @@ contains
 
   double precision function Electron_Density_Temperature_Log_Slope_Atomic_CIE_Cloudy(temperature,numberDensityHydrogen,gasAbundances&
        &,radiation)
-    !% Return the logarithmic slope of the electron density with respect to temperature assuming atomic CIE as computed by {\sc Cloudy}.
+    !% Return the logarithmic slope of the electron density with respect to temperature assuming atomic CIE as computed by {\normalfont \scshape Cloudy}.
     use Chemical_States_CIE_File
     use Abundances_Structure
     use Radiation_Structure
@@ -168,7 +168,7 @@ contains
 
   double precision function Electron_Density_Density_Log_Slope_Atomic_CIE_Cloudy(temperature,numberDensityHydrogen,gasAbundances&
        &,radiation)
-    !% Return the logarithmic slope of the electron density with respect to density assuming atomic CIE as computed by {\sc Cloudy}.
+    !% Return the logarithmic slope of the electron density with respect to density assuming atomic CIE as computed by {\normalfont \scshape Cloudy}.
     use Abundances_Structure
     use Radiation_Structure
     implicit none

@@ -32,7 +32,7 @@
   end type accretionHaloNaozBarkana2007
 
   interface accretionHaloNaozBarkana2007
-     !% Constructors for the {\tt naozBarkana2007} halo accretion class.
+     !% Constructors for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
      module procedure naozBarkana2007Constructor
      module procedure naozBarkana2007DefaultConstructor
   end interface accretionHaloNaozBarkana2007
@@ -44,7 +44,7 @@
 contains
 
   subroutine naozBarkana2007FromSimple(naozBarkana2007,simple)
-    !% Assign a {\tt simple} halo accretion object to a {\tt naozBarkana2007} halo accretion object.
+    !% Assign a {\normalfont \ttfamily simple} halo accretion object to a {\normalfont \ttfamily naozBarkana2007} halo accretion object.
     implicit none
     type(accretionHaloNaozBarkana2007), intent(inout) :: naozBarkana2007
     type(accretionHaloSimple         ), intent(in   ) :: simple
@@ -58,7 +58,7 @@ contains
   end subroutine naozBarkana2007FromSimple
   
   function naozBarkana2007DefaultConstructor()
-    !% Default constructor for the {\tt naozBarkana2007} halo accretion class.
+    !% Default constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
     implicit none
     type(accretionHaloNaozBarkana2007), target :: naozBarkana2007DefaultConstructor
 
@@ -67,7 +67,7 @@ contains
   end function naozBarkana2007DefaultConstructor
        
   function naozBarkana2007Constructor(reionizationSuppressionTime,reionizationSuppressionVelocity,negativeAccretionAllowed,accreteNewGrowthOnly)
-    !% Default constructor for the {\tt naozBarkana2007} halo accretion class.
+    !% Default constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
     implicit none
     type            (accretionHaloNaozBarkana2007), target        :: naozBarkana2007Constructor
     double precision                              , intent(in   ) :: reionizationSuppressionTime, reionizationSuppressionVelocity
@@ -78,7 +78,7 @@ contains
   end function naozBarkana2007Constructor
 
   double precision function naozBarkana2007FailedFraction(self,node)
-    !% Returns the velocity scale to use for {\tt node}. Use the virial velocity.
+    !% Returns the velocity scale to use for {\normalfont \ttfamily node}. Use the virial velocity.
     use Galacticus_Nodes
     use Intergalactic_Medium_State
     use Cosmology_Parameters

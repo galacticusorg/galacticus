@@ -41,7 +41,7 @@ module Merger_Tree_Read_Importers
      !@     <method>multiply</method>
      !@     <type>\textcolor{red}{\textless type(importerUnits)\textgreater}</type>
      !@     <arguments>\textcolor{red}{\textless type(importerUnits)\textgreater} units2\argin</arguments>
-     !@     <description>Multiply by another {\tt importerUnits} object.</description>
+     !@     <description>Multiply by another {\normalfont \ttfamily importerUnits} object.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>exponentiate</method>
@@ -137,23 +137,23 @@ module Merger_Tree_Read_Importers
   !#  </method>
   !#  <method name="treeCount" >
   !#   <description>Returns a count of the number of trees available.</description>
-  !#   <type>integer(c_size_t)</type>
+  !#   <type>integer(kind=c_size_t)</type>
   !#   <pass>yes</pass>
   !#  </method>
   !#  <method name="treeIndex" >
-  !#   <description>Returns the index of the $i^{\rm th}$ tree.</description>
+  !#   <description>Returns the index of the $i^{\mathrm th}$ tree.</description>
   !#   <type>integer(kind=kind_int8)</type>
   !#   <pass>yes</pass>
   !#   <argument>integer, intent(in   ) :: i</argument>
   !#  </method>
   !#  <method name="nodeCount" >
-  !#   <description>Returns the number of nodes in the $i^{\rm th}$ tree.</description>
-  !#   <type>integer(c_size_t)</type>
+  !#   <description>Returns the number of nodes in the $i^{\mathrm th}$ tree.</description>
+  !#   <type>integer(kind=c_size_t)</type>
   !#   <pass>yes</pass>
   !#   <argument>integer, intent(in   ) :: i</argument>
   !#  </method>
   !#  <method name="treeWeight" >
-  !#   <description>Returns the weight to assign to the $i^{\rm th}$ tree.</description>
+  !#   <description>Returns the weight to assign to the $i^{\mathrm th}$ tree.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>integer, intent(in   ) :: i</argument>
@@ -205,7 +205,7 @@ module Merger_Tree_Read_Importers
   !#   <pass>yes</pass>
   !#  </method>
   !#  <method name="import" >
-  !#   <description>Imports the $i^{\rm th}$ tree.</description>
+  !#   <description>Imports the $i^{\mathrm th}$ tree.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <argument>integer          , intent(in   )                            :: i</argument>
@@ -222,7 +222,7 @@ module Merger_Tree_Read_Importers
   !#  </method>
   !#  <method name="subhaloTraceCount" >
   !#   <description>Returns the length of a node's subhalo trace.</description>
-  !#   <type>integer(c_size_t)</type>
+  !#   <type>integer(kind=c_size_t)</type>
   !#   <pass>yes</pass>
   !#   <argument>class(nodeData), intent(in   ) :: node</argument>
   !#  </method>
@@ -230,7 +230,7 @@ module Merger_Tree_Read_Importers
   !# </include>
 
   function importerUnitsMultiply(units1,units2)
-    !% Multiply to {\tt importerUnits} objects.
+    !% Multiply to {\normalfont \ttfamily importerUnits} objects.
     implicit none
     type (importerUnits)                :: importerUnitsMultiply 
     class(importerUnits), intent(in   ) :: units1                
@@ -244,7 +244,7 @@ module Merger_Tree_Read_Importers
   end function importerUnitsMultiply
 
   function importerUnitsExponentiate(units1,exponent)
-    !% Exponentiate {\tt importerUnits} objects.
+    !% Exponentiate {\normalfont \ttfamily importerUnits} objects.
     implicit none
     type   (importerUnits)                :: importerUnitsExponentiate 
     class  (importerUnits), intent(in   ) :: units1                    

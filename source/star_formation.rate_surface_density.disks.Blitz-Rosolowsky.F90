@@ -140,7 +140,7 @@ contains
        !@   <defaultValue>4.54 \citep{blitz_role_2006}</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The characteristic pressure (given as $P_0/k_{\rm B}$ in units of K cm$^{-3}$) in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky'' star formation timescale calculation.
+       !@     The characteristic pressure (given as $P_0/k_{\mathrm B}$ in units of K cm$^{-3}$) in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky'' star formation timescale calculation.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -170,7 +170,7 @@ contains
 
   double precision function Star_Formation_Rate_Surface_Density_Disk_BR(thisNode,radius)
     !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
-    !% in the galactic disk of {\tt thisNode}. The disk is assumed to obey the
+    !% in the galactic disk of {\normalfont \ttfamily thisNode}. The disk is assumed to obey the
     !% \cite{blitz_role_2006} star formation rule.
     use Numerical_Constants_Math
     use Numerical_Constants_Physical

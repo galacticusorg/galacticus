@@ -116,7 +116,7 @@ contains
   !#  <unitName>Node_Component_Basic_Standard_Tree_Initialize</unitName>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Basic_Standard_Tree_Initialize(thisNode)
-    !% Set the mass accretion rate for {\tt thisNode}.
+    !% Set the mass accretion rate for {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     type            (treeNode          )               , pointer :: childNode          , parentNode
@@ -209,7 +209,7 @@ contains
    !#  <unitName>Node_Component_Basic_Standard_Promote</unitName>
    !# </nodePromotionTask>
    subroutine Node_Component_Basic_Standard_Promote(thisNode)
-     !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the mass of {\tt thisNode}
+     !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily thisNode}
      !% to be that of its parent.
      use Galacticus_Error
      implicit none
@@ -237,7 +237,7 @@ contains
    end subroutine Node_Component_Basic_Standard_Promote
 
   double precision function Node_Component_Basic_Standard_Unresolved_Mass(thisNode)
-    !% Return the unresolved mass for {\tt thisNode}.
+    !% Return the unresolved mass for {\normalfont \ttfamily thisNode}.
     implicit none
     type (treeNode          ), intent(inout), pointer :: thisNode
     type (treeNode          )               , pointer :: childNode

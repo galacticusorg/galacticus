@@ -28,7 +28,7 @@
   end type hotHaloMassDistributionRicotti2000
 
   interface hotHaloMassDistributionRicotti2000
-     !% Constructors for the {\tt ricotti2000} hot halo mass distribution class.
+     !% Constructors for the {\normalfont \ttfamily ricotti2000} hot halo mass distribution class.
      module procedure ricotti2000DefaultConstructor
   end interface hotHaloMassDistributionRicotti2000
 
@@ -86,7 +86,7 @@ contains
   end function ricotti2000DefaultConstructor
 
   subroutine ricotti2000Initialize(self,node)
-    !% Initialize the {\tt ricotti2000} hot halo density profile for the given {\tt node}. Parameterizations of $\beta$ and core
+    !% Initialize the {\normalfont \ttfamily ricotti2000} hot halo density profile for the given {\normalfont \ttfamily node}. Parameterizations of $\beta$ and core
     !% radius are taken from section 2.1 of \cite{ricotti_feedback_2000}.
     use Dark_Matter_Halo_Scales
     implicit none

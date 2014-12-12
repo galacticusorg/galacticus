@@ -127,7 +127,7 @@ contains
        &,transferFunctionLogT)
     !% Build a transfer function using the \cite{eisenstein_power_1999} fitting formula. Includes a modification for warm dark
     !% matter using the fitting function of \citeauthor{bode_halo_2001}~(\citeyear{bode_halo_2001}; as re-expressed by
-    !% \citealt{barkana_constraints_2001}) to impose a cut-off below a specified {\tt [transferFunctionWdmCutOffScale]}.
+    !% \citealt{barkana_constraints_2001}) to impose a cut-off below a specified {\normalfont \ttfamily [transferFunctionWdmCutOffScale]}.
     use Memory_Management
     use Cosmology_Parameters
     use Numerical_Ranges

@@ -262,7 +262,7 @@ contains
   !#   <unitName>Galacticus_Merger_Tree_Output_Filter_Lightcone</unitName>
   !# </mergerTreeOutputFilter>
   subroutine Galacticus_Merger_Tree_Output_Filter_Lightcone(thisNode,doOutput)
-    !% Determines whether {\tt thisNode} lies within a lightcone and, therefore, should be output.
+    !% Determines whether {\normalfont \ttfamily thisNode} lies within a lightcone and, therefore, should be output.
     use Galacticus_Nodes
     use Arrays_Search
     use Cosmology_Functions
@@ -557,7 +557,7 @@ contains
   !#   <unitName>Merger_Tree_Prune_Lightcone</unitName>
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Prune_Lightcone(thisTree)
-    !% Prune branches from {\tt thisTree}.
+    !% Prune branches from {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
     use Input_Parameters
     implicit none

@@ -31,7 +31,7 @@
   end type virialDensityContrastBryanNorman1998
 
   interface virialDensityContrastBryanNorman1998
-     !% Constructors for the {\tt bryanNorman1998} dark matter halo virial density contrast class.
+     !% Constructors for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class.
      module procedure bryanNorman1998DefaultConstructor
   end interface virialDensityContrastBryanNorman1998
 
@@ -41,7 +41,7 @@
 contains
 
   function bryanNorman1998DefaultConstructor()
-    !% Default constructor for the {\tt bryanNorman1998} dark matter halo virial density contrast class.
+    !% Default constructor for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class.
     use Cosmology_Parameters
     use Galacticus_Error
     use Numerical_Comparison

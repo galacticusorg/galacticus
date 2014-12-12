@@ -33,7 +33,7 @@ module Tidal_Stripping_Mass_Loss_Rate_Spheroids
 contains
 
   double precision function Tidal_Stripping_Mass_Loss_Rate_Spheroid(thisNode)
-    !% Return the tidal force for the hot halo of {\tt thisNode}.
+    !% Return the tidal force for the hot halo of {\normalfont \ttfamily thisNode}.
     use Galacticus_Nodes
     use Galacticus_Error
     use Input_Parameters

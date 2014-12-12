@@ -76,7 +76,7 @@ contains
   end subroutine Power_Spectrum_Nonlinear_Initialize
 
   double precision function Power_Spectrum_Nonlinear(waveNumber,time)
-    !% Return the nonlinear power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$] at the given cosmic {\tt time} [Gyr].
+    !% Return the nonlinear power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$] at the given cosmic {\normalfont \ttfamily time} [Gyr].
     implicit none
     double precision, intent(in   ) :: time, waveNumber
 

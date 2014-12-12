@@ -83,8 +83,8 @@ contains
   end subroutine Collisional_Excitation_Rate_Initialize
 
   double precision function Collisional_Excitation_Cooling_Rate(atomicNumber, electronNumber, temperature)
-    !% Return the collisional excitation cooling rate , in units of J/m$^3$/s, for ion of given {\tt atomicNumber} and {\tt
-    !% electronNumber} at temperature {\tt T} (in Kelvin).
+    !% Return the collisional excitation cooling rate , in units of J/m$^3$/s, for ion of given {\normalfont \ttfamily atomicNumber} and {\tt
+    !% electronNumber} at temperature {\normalfont \ttfamily T} (in Kelvin).
     implicit none
     double precision, intent(in   ) :: temperature                     
     integer         , intent(in   ) :: atomicNumber, electronNumber

@@ -64,7 +64,7 @@ contains
        !@   <defaultValue>0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The running, $\d n_{\rm s} / \d \ln k$, of the power spectrum index.
+       !@     The running, $\d n_{\mathrm s} / \d \ln k$, of the power spectrum index.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -75,7 +75,7 @@ contains
        !@   <defaultValue>1</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     When a running power spectrum index is used, this is the wavenumber at which the index is equal to {\tt [powerSpectrumIndex]}.
+       !@     When a running power spectrum index is used, this is the wavenumber at which the index is equal to {\normalfont \ttfamily [powerSpectrumIndex]}.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>

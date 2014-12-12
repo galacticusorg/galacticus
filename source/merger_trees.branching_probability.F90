@@ -60,7 +60,7 @@ module Merger_Tree_Branching
 contains
 
   double precision function Tree_Maximum_Step(haloMass,deltaCritical,massResolution)
-    !% Return the maximum step in $\delta_{\rm crit}$ allowed for a halo in a merger tree.
+    !% Return the maximum step in $\delta_{\mathrm crit}$ allowed for a halo in a merger tree.
     implicit none
     double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
 
@@ -73,7 +73,7 @@ contains
   end function Tree_Maximum_Step
 
   double precision function Tree_Branching_Probability(haloMass,deltaCritical,massResolution)
-    !% Return the branching probability per unit $\delta_{\rm crit}$ for a halo in a merger tree.
+    !% Return the branching probability per unit $\delta_{\mathrm crit}$ for a halo in a merger tree.
     implicit none
     double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
 
@@ -86,7 +86,7 @@ contains
   end function Tree_Branching_Probability
 
   double precision function Tree_Subresolution_Fraction(haloMass,deltaCritical,massResolution)
-    !% Return the fraction of mass accreted below the resolution limit per $\delta_{\rm crit}$ in a halo in a merger tree.
+    !% Return the fraction of mass accreted below the resolution limit per $\delta_{\mathrm crit}$ in a halo in a merger tree.
     implicit none
     double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
 

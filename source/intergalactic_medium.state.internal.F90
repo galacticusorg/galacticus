@@ -84,7 +84,7 @@
      !@     <method>filteringMAss</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Return the filtering mass at the given {\tt time}.</description>
+     !@     <description>Return the filtering mass at the given {\normalfont \ttfamily time}.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: electronFraction            => internalElectronFraction
@@ -111,7 +111,7 @@
 contains
 
   function internalDefaultConstructor()
-    !% Default constructor for the {\tt internal} \gls{igm} state class.
+    !% Default constructor for the {\normalfont \ttfamily internal} \gls{igm} state class.
     use Input_Parameters
     implicit none
     type    (intergalacticMediumStateInternal), target  :: internalDefaultConstructor

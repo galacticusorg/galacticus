@@ -48,7 +48,7 @@ contains
   double precision function Dielectronic_Recombination_Rate_Arnaud1985(atomicNumber,electronNumber,temperature)
     !% This function calculates rates of dielectric recombination for all ionization stages of all elements from H to Ni ($Z=28$)
     !% by use of the fits from \cite{aldrovandi_radiative_1973}, \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.
-    !% Input parameters: {\tt atomicNumber}: atomic number; {\tt electronNumber}: number of electrons; {\tt temperature}: temperature [K].
+    !% Input parameters: {\normalfont \ttfamily atomicNumber}: atomic number; {\normalfont \ttfamily electronNumber}: number of electrons; {\normalfont \ttfamily temperature}: temperature [K].
     !% Output parameter: rate coefficient [cm$^3$ s$^{-1}$].
     use Galacticus_Error
     implicit none
@@ -78,7 +78,7 @@ contains
   end function Dielectronic_Recombination_Rate_Arnaud1985
 
   subroutine  Set_coefficients
-    !% Populate the array of fitting function coefficients for the {\tt Arnaud1985} dielectronic recombination rates.
+    !% Populate the array of fitting function coefficients for the {\normalfont \ttfamily Arnaud1985} dielectronic recombination rates.
     implicit none
 
     coefficientsSet=.true.

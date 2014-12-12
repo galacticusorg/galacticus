@@ -104,7 +104,7 @@ contains
   !#  <unitName>Node_Component_Basic_Non_Evolving_Promote</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Basic_Non_Evolving_Promote(thisNode)
-    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the mass of {\tt thisNode}
+    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily thisNode}
     !% to be that of its parent.
     use Galacticus_Error
     implicit none

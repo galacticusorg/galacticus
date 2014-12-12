@@ -90,7 +90,7 @@ contains
   end subroutine Conditional_Mass_Functions_Initialize
 
   double precision function Cumulative_Conditional_Mass_Function(massHalo,mass)
-    !% Returns the cumulative conditional mass function at a mass of {\tt mass} in a halo of mass {\tt massHalo}.
+    !% Returns the cumulative conditional mass function at a mass of {\normalfont \ttfamily mass} in a halo of mass {\normalfont \ttfamily massHalo}.
     implicit none
     double precision, intent(in   ) :: massHalo, mass
 
@@ -104,7 +104,7 @@ contains
   end function Cumulative_Conditional_Mass_Function
 
   double precision function Cumulative_Conditional_Mass_Function_Variance(massHalo,massLow,massHigh)
-    !% Returns the cumulative conditional mass function at a mass of {\tt mass} in a halo of mass {\tt massHalo}.
+    !% Returns the cumulative conditional mass function at a mass of {\normalfont \ttfamily mass} in a halo of mass {\normalfont \ttfamily massHalo}.
     implicit none
     double precision, intent(in   ) :: massHalo, massHigh, massLow
 

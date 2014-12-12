@@ -35,8 +35,8 @@ contains
   !#  <unitName>Merger_Tree_Timestep_Simple</unitName>
   !# </timeStepsTask>
   subroutine Merger_Tree_Timestep_Simple(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
-    !% Determine a suitable timestep for {\tt thisNode} using the simple method. This simply selects the smaller of {\tt
-    !% timestepSimpleAbsolute} and {\tt timestepSimpleRelative}$H^{-1}(t)$.
+    !% Determine a suitable timestep for {\normalfont \ttfamily thisNode} using the simple method. This simply selects the smaller of {\tt
+    !% timestepSimpleAbsolute} and {\normalfont \ttfamily timestepSimpleRelative}$H^{-1}(t)$.
     use Galacticus_Nodes
     use Input_Parameters
     use Cosmology_Functions

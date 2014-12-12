@@ -55,7 +55,7 @@ contains
   !#  <unitName>Node_Component_Inter_Output_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Inter_Output_Standard_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}.
+    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode                ), intent(inout), pointer :: thisNode
     class           (nodeComponentInterOutput)               , pointer :: thisInterOutput
@@ -153,7 +153,7 @@ contains
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Inter_Output_Standard_Satellite_Merger(thisNode)
-    !% Remove any inter-output quantities associated with {\tt thisNode} and add them to the merge target.
+    !% Remove any inter-output quantities associated with {\normalfont \ttfamily thisNode} and add them to the merge target.
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     implicit none

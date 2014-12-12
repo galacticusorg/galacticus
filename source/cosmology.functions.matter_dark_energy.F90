@@ -51,7 +51,7 @@
      !@     <method>targetSelf</method>
      !@     <type>void</type>
      !@     <arguments></arguments>
-     !@     <description>Set a module-scope pointer to {\tt self}.</description>
+     !@     <description>Set a module-scope pointer to {\normalfont \ttfamily self}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>exponentDarkEnergyDerivative</method>
@@ -212,7 +212,7 @@ contains
   end function matterDarkEnergyCosmicTime
 
   double precision function matterDarkEnergyOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
-    !% Return the dark energy density parameter at expansion factor {\tt expansionFactor}.
+    !% Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
     use Galacticus_Error
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
@@ -317,7 +317,7 @@ contains
   end function matterDarkEnergyDominationEpochMatter
 
   double precision function matterDarkEnergyHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
-    !% Returns the Hubble parameter at the request cosmological time, {\tt time}, or expansion factor, {\tt expansionFactor}.
+    !% Returns the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
     use Galacticus_Error
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
@@ -365,7 +365,7 @@ contains
   end function matterDarkEnergyHubbleParameterEpochal
 
   double precision function matterDarkEnergyHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
-    !% Returns the rate of change of the Hubble parameter at the requested cosmological time, {\tt time}, or expansion factor, {\tt expansionFactor}.
+    !% Returns the rate of change of the Hubble parameter at the requested cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
     use Galacticus_Error
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
@@ -660,7 +660,7 @@ contains
   end subroutine matterDarkEnergyMakeExpansionFactorTable
 
   double precision function matterDarkEnergyExpansionFactorChange(timeStart,timeEnd,expansionFactorStart)
-    !% Compute the expansion factor at time {\tt timeEnd} given an initial value {\tt expansionFactorStart} at time {\tt
+    !% Compute the expansion factor at time {\normalfont \ttfamily timeEnd} given an initial value {\normalfont \ttfamily expansionFactorStart} at time {\tt
     !% timeStart}.
     use ODE_Solver
     use, intrinsic :: ISO_C_Binding
@@ -704,7 +704,7 @@ contains
   end function matterDarkEnergyAgeTableODEs
 
   double precision function matterDarkEnergyTimeAtDistanceComoving(self,comovingDistance)
-    !% Returns the cosmological time corresponding to given {\tt comovingDistance}.
+    !% Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
     use Galacticus_Error
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
@@ -715,7 +715,7 @@ contains
   end function matterDarkEnergyTimeAtDistanceComoving
 
   double precision function matterDarkEnergyDistanceComoving(self,time)
-    !% Returns the comoving distance to cosmological time {\tt time}.
+    !% Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
     use Galacticus_Error
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self

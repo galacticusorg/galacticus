@@ -72,7 +72,7 @@ subroutine Mass_Distribution_Sersic_Initialize(self,index,halfMassRadius,density
 end subroutine Mass_Distribution_Sersic_Initialize
 
 double precision function Mass_Distribution_Sersic_Density(self,coordinates)
-  !% Return the density at the specified {\tt coordinates} in a S\'ersic mass distribution.
+  !% Return the density at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
   use Coordinates
   use Numerical_Interpolation
   implicit none
@@ -143,7 +143,7 @@ double precision function Mass_Distribution_Sersic_Density_Radial_Moment(self,mo
 end function Mass_Distribution_Sersic_Density_Radial_Moment
 
 double precision function Mass_Distribution_Sersic_Mass_Enc_By_Sphere(self,radius)
-  !% Computes the mass enclosed within a sphere of given {\tt radius} for S\'ersic mass distributions.
+  !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for S\'ersic mass distributions.
   use Numerical_Constants_Math
   use Numerical_Interpolation
   implicit none
@@ -170,7 +170,7 @@ double precision function Mass_Distribution_Sersic_Mass_Enc_By_Sphere(self,radiu
 end function Mass_Distribution_Sersic_Mass_Enc_By_Sphere
 
 double precision function Mass_Distribution_Sersic_Potential(self,coordinates)
-  !% Return the potential at the specified {\tt coordinates} in a S\'ersic mass distribution.
+  !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
   use Numerical_Constants_Physical
   use Coordinates
   use Numerical_Interpolation

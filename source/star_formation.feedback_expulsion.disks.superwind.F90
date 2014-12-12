@@ -74,13 +74,13 @@ contains
   end subroutine Star_Formation_Expulsive_Feedback_Disks_SW_Initialize
 
   double precision function Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_SW(thisNode,starFormationRate,energyInputRate)
-    !% Returns the expulsive outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\tt thisNode}. The outflow
+    !% Returns the expulsive outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode}. The outflow
     !% rate is given by
     !% \begin{equation}
-    !% \dot{M}_{\rm outflow} = f_{\rm SW,0} \left\{ \begin{array}{ll} 1 & \hbox{ if } V_{\rm disk} < V_{\rm disk,SW} \\ (V_{\rm disk,SW}/V_{\rm disk})^2 &  \hbox{ if } V_{\rm disk} \ge V_{\rm disk,SW} \end{array} \right. ,
+    !% \dot{M}_{\mathrm outflow} = f_{\mathrm SW,0} \left\{ \begin{array}{ll} 1 & \hbox{ if } V_{\mathrm disk} < V_{\mathrm disk,SW} \\ (V_{\mathrm disk,SW}/V_{\mathrm disk})^2 &  \hbox{ if } V_{\mathrm disk} \ge V_{\mathrm disk,SW} \end{array} \right. ,
     !% \end{equation}
-    !%  where $V_{\rm disk,SW}=${\tt
-    !% [diskSuperwindVelocity]} and $f_{\rm SW,0}=${\tt [diskSuperwindMassLoading]}. Note that the velocity $V_{\rm
+    !%  where $V_{\mathrm disk,SW}=${\tt
+    !% [diskSuperwindVelocity]} and $f_{\mathrm SW,0}=${\normalfont \ttfamily [diskSuperwindMassLoading]}. Note that the velocity $V_{\rm
     !% disk}$ is whatever characteristic value returned by the disk method. This scaling is functionally similar to
     !% that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005}, except that they specifically used the
     !% circular velocity at half-mass radius.

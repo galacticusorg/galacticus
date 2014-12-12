@@ -15,10 +15,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which defines a {\tt table} class with optimized interpolation operators.
+!% Contains a module which defines a {\normalfont \ttfamily table} class with optimized interpolation operators.
 
 module Tables
-  !% Defines a {\tt table} class with optimized interpolation operators.
+  !% Defines a {\normalfont \ttfamily table} class with optimized interpolation operators.
   use FGSL
   private
   public :: table,table1D,table1DGeneric,table1DLinearLinear,table1DLogarithmicLinear,table1DLinearCSpline,table1DLogarithmicCSpline
@@ -51,7 +51,7 @@ module Tables
 
   interface
      subroutine Table_Destroy(self)
-       !% Interface to {\tt table} destructor.
+       !% Interface to {\normalfont \ttfamily table} destructor.
        import table
        implicit none
        class(table), intent(inout) :: self
@@ -70,25 +70,25 @@ module Tables
      !@     <method>interpolate</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
-     !@     <description>Interpolate to {\tt x} in the {\tt table}$^{\rm th}$ table.</description>
+     !@     <description>Interpolate to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^{\mathrm th}$ table.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>interpolateGradient</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
-     !@     <description>Interpolate the gradient to {\tt x} in the {\tt table}$^{\rm th}$ table.</description>
+     !@     <description>Interpolate the gradient to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^{\mathrm th}$ table.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>reverse</method>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} reversedSelf,\intzero\ [table]</arguments>
-     !@     <description>Reverse the table (i.e. swap $x$ and $y$ components) and return in {\tt reversedSelf}. If {\tt table} is specified then the {\tt table}$^{\rm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@     <description>Reverse the table (i.e. swap $x$ and $y$ components) and return in {\normalfont \ttfamily reversedSelf}. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isMonotonic</method>
      !@     <type>\logicalzero</type>
      !@     <arguments>\enum\ [directionDecreasing|directionIncreasing],\logicalzero\ [allowEqual],\intzero\ [table]</arguments>
-     !@     <description>Return true if the table $y$-values are monotonic. Optionally, the direction of monotonicity can be specified via the {\tt direction} argument---by default either direction is allowed. By default consecutive equal values are considered non-monotonic. This behavior can be changed via the optional {\tt allowEqual} argument. If {\tt table} is specified then the {\tt table}$^{\rm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@     <description>Return true if the table $y$-values are monotonic. Optionally, the direction of monotonicity can be specified via the {\normalfont \ttfamily direction} argument---by default either direction is allowed. By default consecutive equal values are considered non-monotonic. This behavior can be changed via the optional {\normalfont \ttfamily allowEqual} argument. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>size</method>
@@ -100,13 +100,13 @@ module Tables
      !@     <method>x</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\intzero\ i</arguments>
-     !@     <description>Return the {\tt i}$^{\rm th}$ $x$-value.</description>
+     !@     <description>Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $x$-value.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>y</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\intzero\ i,\intzero\ [table]</arguments>
-     !@     <description>Return the {\tt i}$^{\rm th}$ $y$-value. If {\tt table} is specified then the {\tt table}$^{\rm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@     <description>Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $y$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>xs</method>
@@ -118,7 +118,7 @@ module Tables
      !@     <method>ys</method>
      !@     <type>\doubleone</type>
      !@     <arguments>\intzero\ i,\intzero\ [table]</arguments>
-     !@     <description>Return an array of all $y$-values. If {\tt table} is specified then the {\tt table}$^{\rm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@     <description>Return an array of all $y$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>xEffective</method>
@@ -142,7 +142,7 @@ module Tables
 
   interface
      double precision function Table1D_Interpolate(self,x,table)
-       !% Interface to {\tt table} interpolator.
+       !% Interface to {\normalfont \ttfamily table} interpolator.
        import table1D
        implicit none
        class           (table1D), intent(inout)           :: self
@@ -163,13 +163,13 @@ module Tables
      !@     <method>create</method>
      !@     <type>\void</type>
      !@     <arguments>\doubleone\ x,\intzero\ [tableCount]</arguments>
-     !@     <description>Create the object with the specified {\tt x} values, and with {\tt tableCount} tables.</description>
+     !@     <description>Create the object with the specified {\normalfont \ttfamily x} values, and with {\normalfont \ttfamily tableCount} tables.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>populate</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\tt table}$^{\rm th}$ table with elements {\tt y}. If {\tt y} is a scalar, then the index, {\tt i}, of the element to set must also be specified.</description>
+     !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: create                          =>Table_Generic_1D_Create
@@ -194,13 +194,13 @@ module Tables
      !@     <type>\void</type>
      !@     <method>create</method>
      !@     <arguments>\doublezero\ xMinimum,\doublezero\ xMaximum,\intzero xCount,\intzero [tableCount]</arguments>
-     !@     <description>Create the object with $x$-values spanning the range {\tt xMinimum} to {\tt xMaximum} in {\tt xCount} steps, and with {\tt tableCount} tables.</description>
+     !@     <description>Create the object with $x$-values spanning the range {\normalfont \ttfamily xMinimum} to {\normalfont \ttfamily xMaximum} in {\normalfont \ttfamily xCount} steps, and with {\normalfont \ttfamily tableCount} tables.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>populate</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\tt table}$^{\rm th}$ table with elements {\tt y}. If {\tt y} is a scalar, then the index, {\tt i}, of the element to set must also be specified.</description>
+     !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: create                         =>Table_Linear_1D_Create
@@ -237,13 +237,13 @@ module Tables
      !@     <method>create</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero\ xMinimum,\doublezero\ xMaximum,\intzero xCount,\intzero [tableCount]</arguments>
-     !@     <description>Create the object with $x$-values spanning the range {\tt xMinimum} to {\tt xMaximum} in {\tt xCount} steps, and with {\tt tableCount} tables.</description>
+     !@     <description>Create the object with $x$-values spanning the range {\normalfont \ttfamily xMinimum} to {\normalfont \ttfamily xMaximum} in {\normalfont \ttfamily xCount} steps, and with {\normalfont \ttfamily tableCount} tables.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>populate</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\tt table}$^{\rm th}$ table with elements {\tt y}. If {\tt y} is a scalar, then the index, {\tt i}, of the element to set must also be specified.</description>
+     !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: create                                 =>Table_Linear_CSpline_1D_Create
@@ -283,7 +283,7 @@ contains
   end subroutine Table_1D_Destroy
 
   double precision function Table1D_X(self,i)
-    !% Return the {\tt i}$^{\rm th}$ $x$-value for a 1D table.
+    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $x$-value for a 1D table.
     implicit none
     class  (table1D), intent(inout) :: self
     integer         , intent(in   ) :: i
@@ -306,7 +306,7 @@ contains
   end function Table1D_Xs
 
   double precision function Table1D_Y(self,i,table)
-    !% Return the {\tt i}$^{\rm th}$ $y$-value for a 1D table.
+    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $y$-value for a 1D table.
     implicit none
     class  (table1D), intent(in   )           :: self
     integer         , intent(in   )           :: i
@@ -671,7 +671,7 @@ contains
   end subroutine Table_Logarithmic_1D_Create
 
   double precision function Table_Logarithmic_1D_X(self,i)
-    !% Return the {\tt i}$^{\rm th}$ $x$-value for a logarithmic 1D table.
+    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $x$-value for a logarithmic 1D table.
     implicit none
     class  (table1DLogarithmicLinear), intent(inout) :: self
     integer                          , intent(in   ) :: i
@@ -978,7 +978,7 @@ contains
   end subroutine Table_Logarithmic_CSpline_1D_Create
 
   double precision function Table_Logarithmic_CSpline_1D_X(self,i)
-    !% Return the {\tt i}$^{\rm th}$ $x$-value for a logarithmic 1D table.
+    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $x$-value for a logarithmic 1D table.
     implicit none
     class  (table1DLogarithmicCSpline), intent(inout) :: self
     integer                           , intent(in   ) :: i

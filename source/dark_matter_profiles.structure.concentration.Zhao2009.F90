@@ -31,14 +31,14 @@
   end type darkMatterProfileConcentrationZhao2009
 
   interface darkMatterProfileConcentrationZhao2009
-     !% Constructors for the {\tt zhao2009} dark matter halo profile concentration class.
+     !% Constructors for the {\normalfont \ttfamily zhao2009} dark matter halo profile concentration class.
      module procedure zhao2009DefaultConstructor
   end interface darkMatterProfileConcentrationZhao2009
 
 contains
 
   function zhao2009DefaultConstructor()
-    !% Default constructor for the {\tt zhao2009} dark matter halo profile concentration class.
+    !% Default constructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile concentration class.
     use Input_Parameters
     implicit none
     type(darkMatterProfileConcentrationZhao2009), target  :: zhao2009DefaultConstructor
@@ -46,7 +46,7 @@ contains
   end function zhao2009DefaultConstructor
 
   double precision function zhao2009Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\tt node} using the \cite{zhao_accurate_2009} algorithm.
+    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{zhao_accurate_2009} algorithm.
     use Dark_Matter_Halo_Formation_Times
     implicit none
     class           (darkMatterProfileConcentrationZhao2009), intent(inout)          :: self

@@ -77,37 +77,37 @@ module Galacticus_Nodes
   end type nodeDataDouble1d
 
   type, private :: nodeDataAbundancesScalarEvolvable
-     !% Type describing an evolvable scalar {\\tt abundances} property of a node component.
+     !% Type describing an evolvable scalar {\\normalfont \ttfamily abundances} property of a node component.
      type(abundances         ) :: rate, scale, value
   end type nodeDataAbundancesScalarEvolvable
 
   type, private :: nodeDataChemicalAbundancesScalarEvolvable
-     !% Type describing an evolvable scalar {\\tt chemicalAbundances} property of a node component.
+     !% Type describing an evolvable scalar {\\normalfont \ttfamily chemicalAbundances} property of a node component.
      type(chemicalAbundances ) :: rate, scale, value
   end type nodeDataChemicalAbundancesScalarEvolvable
 
   type, private :: nodeDataHistoryScalarEvolvable
-     !% Type describing an evolvable scalar {\\tt history} property of a node component.
+     !% Type describing an evolvable scalar {\\normalfont \ttfamily history} property of a node component.
      type(history            ) :: rate, scale, value
   end type nodeDataHistoryScalarEvolvable
 
   type, private :: nodeDataHistoryScalar
-     !% Type describing an non-evolvable scalar {\\tt history} property of a node component.
+     !% Type describing an non-evolvable scalar {\\normalfont \ttfamily history} property of a node component.
      type(history            ) :: value
   end type nodeDataHistoryScalar
 
   type, private :: nodeDataLongIntegerHistoryScalar
-     !% Type describing an non-evolvable scalar {\\tt longIntegerHistory} property of a node component.
+     !% Type describing an non-evolvable scalar {\\normalfont \ttfamily longIntegerHistory} property of a node component.
      type(longIntegerHistory ) :: value
   end type nodeDataLongIntegerHistoryScalar
 
   type, private :: nodeDataKeplerOrbitScalar
-     !% Type describing a non-evolvable scalar {\\tt keplerOrbit} property of a node component.
+     !% Type describing a non-evolvable scalar {\\normalfont \ttfamily keplerOrbit} property of a node component.
      type(keplerOrbit        ) :: value
   end type nodeDataKeplerOrbitScalar
 
   type, private :: nodeDataStellarLuminositiesScalarEvolvable
-     !% Type describing an evolvable scalar {\\tt stellarLuminosities} property of a node component.
+     !% Type describing an evolvable scalar {\\normalfont \ttfamily stellarLuminosities} property of a node component.
      type(stellarLuminosities) :: rate, scale, value
   end type nodeDataStellarLuminositiesScalarEvolvable
 
@@ -160,7 +160,7 @@ module Galacticus_Nodes
   !
   ! Functions for treeNode class.
   function Tree_Node_Constructor(index,hostTree)
-    !% Return a pointer to a newly created and initialized {\tt treeNode}.
+    !% Return a pointer to a newly created and initialized {\normalfont \ttfamily treeNode}.
     implicit none
     type   (treeNode      ), pointer                         :: Tree_Node_Constructor
     integer(kind=kind_int8), intent(in   ), optional         :: index
@@ -181,7 +181,7 @@ module Galacticus_Nodes
   end function Tree_Node_Constructor
 
   function Tree_Node_Type(self)
-    !% Returns the name of a {\tt treeNode} object.
+    !% Returns the name of a {\normalfont \ttfamily treeNode} object.
     implicit none
     class(treeNode      ), intent(in   ) :: self
     type (varying_string)                :: Tree_Node_Type
@@ -191,7 +191,7 @@ module Galacticus_Nodes
   end function Tree_Node_Type
 
   function Tree_Node_Index(self)
-    !% Returns the index of a {\tt treeNode}.
+    !% Returns the index of a {\normalfont \ttfamily treeNode}.
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     type   (treeNode      ), pointer               :: workNode
@@ -210,7 +210,7 @@ module Galacticus_Nodes
   end function Tree_Node_Index
 
   subroutine Tree_Node_Index_Set(self,index)
-    !% Sets the index of a {\tt treeNode}.
+    !% Sets the index of a {\normalfont \ttfamily treeNode}.
     implicit none
     class  (treeNode      ), intent(inout) :: self
     integer(kind=kind_int8), intent(in   ) :: index
@@ -220,7 +220,7 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Index_Set
 
   function Tree_Node_Unique_ID(self)
-    !% Returns the unique ID of a {\tt treeNode}.
+    !% Returns the unique ID of a {\normalfont \ttfamily treeNode}.
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     type   (treeNode      ), pointer               :: workNode
@@ -239,7 +239,7 @@ module Galacticus_Nodes
   end function Tree_Node_Unique_ID
 
   subroutine Tree_Node_Unique_ID_Set(self,uniqueID)
-    !% Sets the index of a {\tt treeNode}.
+    !% Sets the index of a {\normalfont \ttfamily treeNode}.
     implicit none
     class  (treeNode      ), intent(inout)           :: self
     integer(kind=kind_int8), intent(in   ), optional :: uniqueID
@@ -280,7 +280,7 @@ module Galacticus_Nodes
   end function Tree_Node_Create_Event
 
   subroutine Tree_Node_Remove_Paired_Event(self,event)
-    !% Removed a paired event from {\tt self}. Matching is done on the basis of event ID.
+    !% Removed a paired event from {\normalfont \ttfamily self}. Matching is done on the basis of event ID.
     implicit none
     class  (treeNode ), intent(inout) :: self
     type   (nodeEvent), intent(in   ) :: event
@@ -315,7 +315,7 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Remove_Paired_Event
 
   logical function Tree_Node_Is_Primary_Progenitor(self)
-    !% Returns true if {\tt self} is the primary progenitor of its parent node.
+    !% Returns true if {\normalfont \ttfamily self} is the primary progenitor of its parent node.
     implicit none
     class(treeNode), intent(inout) :: self
 
@@ -331,7 +331,7 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Primary_Progenitor
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Index(self,targetNodeIndex)
-    !% Return true if {\tt self} is a progenitor of the node with index {\tt targetNodeIndex}.
+    !% Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     integer(kind=kind_int8), intent(in   )         :: targetNodeIndex
@@ -354,7 +354,7 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Primary_Progenitor_Of_Index
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Node(self,targetNode)
-    !% Return true if {\tt self} is a progenitor of {\tt targetNode}.
+    !% Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
     implicit none
     class(treeNode), intent(in   ), target  :: self
     type (treeNode), intent(in   ), pointer :: targetNode
@@ -377,7 +377,7 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Primary_Progenitor_Of_Node
 
   logical function Tree_Node_Is_Progenitor_Of_Index(self,targetNodeIndex)
-    !% Return true if {\tt self} is a progenitor of the node with index {\tt targetNodeIndex}.
+    !% Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     integer(kind=kind_int8), intent(in   )         :: targetNodeIndex
@@ -399,7 +399,7 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Progenitor_Of_Index
 
   logical function Tree_Node_Is_Progenitor_Of_Node(self,targetNode)
-    !% Return true if {\tt self} is a progenitor of {\tt targetNode}.
+    !% Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
     implicit none
     class(treeNode), intent(in   ), target  :: self
     type (treeNode), intent(in   ), pointer :: targetNode
@@ -421,7 +421,7 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Progenitor_Of_Node
 
   logical function Tree_Node_Is_On_Main_Branch(self)
-    !% Returns true if {\tt self} is on the main branch.
+    !% Returns true if {\normalfont \ttfamily self} is on the main branch.
     implicit none
     class(treeNode), intent(inout), target :: self
     type (treeNode), pointer               :: workNode
@@ -440,7 +440,7 @@ module Galacticus_Nodes
   end function Tree_Node_Is_On_Main_Branch
 
   logical function Tree_Node_Is_Satellite(self)
-    !% Returns true if {\tt self} is a satellite.
+    !% Returns true if {\normalfont \ttfamily self} is a satellite.
     implicit none
     class(treeNode), intent(in   ), target :: self
     type (treeNode), pointer               :: childNode, parentNode, selfActual
@@ -469,7 +469,7 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Satellite
 
   function Tree_Node_Get_Last_Satellite(self) result (satelliteNode)
-    !% Returns a pointer to the final satellite node associated with {\tt self}.
+    !% Returns a pointer to the final satellite node associated with {\normalfont \ttfamily self}.
     implicit none
     class(treeNode), intent(in   ) :: self
     type (treeNode), pointer       :: satelliteNode
@@ -482,7 +482,7 @@ module Galacticus_Nodes
   end function Tree_Node_Get_Last_Satellite
 
   function Tree_Node_Get_Earliest_Progenitor(self) result (progenitorNode)
-    !% Returns a pointer to the earliest progenitor of {\tt self}.
+    !% Returns a pointer to the earliest progenitor of {\normalfont \ttfamily self}.
     implicit none
     type (treeNode), pointer       :: progenitorNode
     class(treeNode), intent(inout) :: self
@@ -498,7 +498,7 @@ module Galacticus_Nodes
   end function Tree_Node_Get_Earliest_Progenitor
 
   function Tree_Node_Merges_With_Node(thisNode)
-    !% Returns a pointer to the node with which {\tt thisNode} will merge.
+    !% Returns a pointer to the node with which {\normalfont \ttfamily thisNode} will merge.
     implicit none
     class(treeNode), intent(in   ) :: thisNode
     type (treeNode), pointer       :: Tree_Node_Merges_With_Node
@@ -515,7 +515,7 @@ module Galacticus_Nodes
   end function Tree_Node_Merges_With_Node
 
   subroutine Tree_Node_Remove_From_Host(self)
-    !% Remove {\tt self} from the linked list of its host node's satellites.
+    !% Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
     use Galacticus_Display
     use String_Handling
     implicit none
@@ -553,7 +553,7 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Remove_From_Host
 
   subroutine Tree_Node_Remove_from_Mergee(self)
-    !% Remove {\tt self} from the linked list of its host node's satellites.
+    !% Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
     use Galacticus_Display
     use String_Handling
     implicit none
@@ -593,10 +593,10 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Remove_from_Mergee
 
   subroutine Tree_Node_Walk_Tree(self,nextNode)
-    !% This function provides a mechanism for walking through an entire merger tree. Given a pointer {\tt self}
-    !% to a node of the tree, it will return the next node that should be visited in the tree. Thus, if {\tt self} is
-    !% initially set to the base of the merger tree and {\tt Merger\_Tree\_Walk()} is called repeatedly it will walk through every node
-    !% of the tree. Once the entire tree has been walked, a {\tt null()} pointer will be returned, indicating that there
+    !% This function provides a mechanism for walking through an entire merger tree. Given a pointer {\normalfont \ttfamily self}
+    !% to a node of the tree, it will return the next node that should be visited in the tree. Thus, if {\normalfont \ttfamily self} is
+    !% initially set to the base of the merger tree and {\normalfont \ttfamily Merger\_Tree\_Walk()} is called repeatedly it will walk through every node
+    !% of the tree. Once the entire tree has been walked, a {\normalfont \ttfamily null()} pointer will be returned, indicating that there
     !% are no more nodes to walk. Each node will be visited once and once only if the tree is walked in this way.
     implicit none
     class(treeNode), intent(inout), target  :: self
@@ -725,10 +725,10 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Walk_Tree_With_Satellites
 
   subroutine Tree_Node_Walk_Branch(self,startNode,nextNode)
-    !% This function provides a mechanism for walking through the branches of the merger tree. Given a pointer {\tt self}
-    !% to a branch of the tree, it will return the next node that should be visited in the tree. Thus, if {\tt self} is
-    !% initially set to the base of the merger tree and {\tt Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every node
-    !% of the branch. Once the entire branch has been walked, a {\tt null()} pointer will be returned, indicating that there
+    !% This function provides a mechanism for walking through the branches of the merger tree. Given a pointer {\normalfont \ttfamily self}
+    !% to a branch of the tree, it will return the next node that should be visited in the tree. Thus, if {\normalfont \ttfamily self} is
+    !% initially set to the base of the merger tree and {\normalfont \ttfamily Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every node
+    !% of the branch. Once the entire branch has been walked, a {\normalfont \ttfamily null()} pointer will be returned, indicating that there
     !% are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way.
     implicit none
     class(treeNode), intent(inout), target  :: self
@@ -762,10 +762,10 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Walk_Branch
 
   subroutine Tree_Node_Walk_Branch_With_Satellites(self,startNode,nextNode)
-    !% This function provides a mechanism for walking through the branches of the merger tree. Given a pointer {\tt self} to a
-    !% branch of the tree, it will return the next node that should be visited in the tree. Thus, if {\tt self} is initially
-    !% set to the base of the merger tree and {\tt Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every
-    !% node of the branch. Once the entire branch has been walked, a {\tt null()} pointer will be returned, indicating that there
+    !% This function provides a mechanism for walking through the branches of the merger tree. Given a pointer {\normalfont \ttfamily self} to a
+    !% branch of the tree, it will return the next node that should be visited in the tree. Thus, if {\normalfont \ttfamily self} is initially
+    !% set to the base of the merger tree and {\normalfont \ttfamily Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every
+    !% node of the branch. Once the entire branch has been walked, a {\normalfont \ttfamily null()} pointer will be returned, indicating that there
     !% are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way. Note that it
     !% is important that the walk descends to satellites before descending to children: the routines that destroy merger tree
     !% branches rely on this since child nodes are used in testing whether a node is a satellite---if they are destroyed prior to
@@ -817,7 +817,7 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Walk_Branch_With_Satellites
 
   function Merger_Tree_Walk_Descend_to_Progenitors(self) result (progenitorNode)
-    !% Descend to the deepest progenitor (satellites and children) of {\tt self}.
+    !% Descend to the deepest progenitor (satellites and children) of {\normalfont \ttfamily self}.
     implicit none
     type(treeNode), intent(in   ), pointer :: self
     type(treeNode)               , pointer :: progenitorNode
@@ -970,7 +970,7 @@ module Galacticus_Nodes
   end function Node_Component_Host_Node
 
   subroutine Node_Component_Null_Void0_InOut(self)
-    !% A null {\tt void} function for rank 0 {\tt nodeComponent} arrays.
+    !% A null {\normalfont \ttfamily void} function for rank 0 {\normalfont \ttfamily nodeComponent} arrays.
     implicit none
     class(nodeComponent), intent(inout) :: self
 
@@ -978,7 +978,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_Null_Void0_InOut
 
   double precision function Node_Component_Null_Double0_InOut(self)
-    !% A null {\tt double} function for rank 0 {\tt nodeComponent} arrays..
+    !% A null {\normalfont \ttfamily double} function for rank 0 {\normalfont \ttfamily nodeComponent} arrays..
     implicit none
     class(nodeComponent), intent(inout) :: self
 

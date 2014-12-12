@@ -87,8 +87,8 @@ contains
   end subroutine Stellar_Population_Spectra_File_Initialize
 
   double precision function Stellar_Population_Spectra_File_Get(abundancesStellar,age,wavelength,imfIndex,status)
-    !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\tt abundances}, of the
-    !% given {\tt age} (in Gyr) and the specified {\tt wavelength} (in Angstroms). This is found by interpolating in tabulated
+    !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\normalfont \ttfamily abundances}, of the
+    !% given {\normalfont \ttfamily age} (in Gyr) and the specified {\normalfont \ttfamily wavelength} (in Angstroms). This is found by interpolating in tabulated
     !% spectra.
     use Abundances_Structure
     implicit none
@@ -163,7 +163,7 @@ contains
        ! Get the file name.
        !@ <inputParameter>
        !@   <regEx>stellarPopulationSpectraFor(#imfRegisterName->name)IMF</regEx>
-       !@   <defaultValue>{\tt data/SSP\_Spectra\_imf\$1.hdf5}</defaultValue>
+       !@   <defaultValue>{\normalfont \ttfamily data/SSP\_Spectra\_imf\$1.hdf5}</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the file of stellar populations to use for the named \gls{imf}.

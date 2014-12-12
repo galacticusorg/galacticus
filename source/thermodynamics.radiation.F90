@@ -29,7 +29,7 @@ contains
 
   double precision function Blackbody_Emission(wavelength,temperature,radianceType)
     !% Compute the Planck blackbody spectral radiance (defined per unit wavelength, in units of J s$^{-1}$ m$^{-2}$ sr$^{-1}$
-    !% \AA$^{-1}$) or J s$^{-1}$ m$^{-2}$ sr$^{-1}$ Hz$^{-1}$ depending on the optional {\tt radianceType} argument). Input {\tt
+    !% \AA$^{-1}$) or J s$^{-1}$ m$^{-2}$ sr$^{-1}$ Hz$^{-1}$ depending on the optional {\normalfont \ttfamily radianceType} argument). Input {\tt
     !% wavelength} is in Angstroms, input temperature is in Kelvin.
     use Numerical_Constants_Physical
     use Numerical_Constants_Units

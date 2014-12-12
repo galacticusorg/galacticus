@@ -90,7 +90,7 @@ contains
   end subroutine Excursion_Sets_Barriers_Quadratic_Initialize
 
   double precision function Excursion_Sets_Barrier_Quadratic(variance,time)
-    !% Return a quadratic barrier for excursion set calculations at the given {\tt variance}.
+    !% Return a quadratic barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
     implicit none
     double precision, intent(in   ) :: time, variance
 
@@ -100,7 +100,7 @@ contains
   end function Excursion_Sets_Barrier_Quadratic
 
   double precision function Excursion_Sets_Barrier_Gradient_Quadratic(variance,time)
-    !% Return the gradient of a quadratic barrier for excursion set calculations at the given {\tt variance}.
+    !% Return the gradient of a quadratic barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
     implicit none
     double precision, intent(in   ) :: time, variance
 

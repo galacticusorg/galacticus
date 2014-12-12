@@ -64,7 +64,7 @@ contains
           !@   <name>luminosityFilterAbsoluteMagnitudeThresholds</name>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The maximum absolute magnitudes (in the AB system) of a galaxy to pass the {\tt luminosity} output filter.
+          !@    The maximum absolute magnitudes (in the AB system) of a galaxy to pass the {\normalfont \ttfamily luminosity} output filter.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..*</cardinality>
@@ -82,7 +82,7 @@ contains
   !#   <unitName>Galacticus_Merger_Tree_Output_Filter_Luminosity</unitName>
   !# </mergerTreeOutputFilter>
   subroutine Galacticus_Merger_Tree_Output_Filter_Luminosity(thisNode,doOutput)
-    !% Determines whether {\tt thisNode} has sufficient stellar mass to be output.
+    !% Determines whether {\normalfont \ttfamily thisNode} has sufficient stellar mass to be output.
     use Galacticus_Nodes
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options

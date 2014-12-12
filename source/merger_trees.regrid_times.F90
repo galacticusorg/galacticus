@@ -50,7 +50,7 @@ contains
   !#   <unitName>Merger_Tree_Regrid_Time</unitName>
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Regrid_Time(thisTree)
-    !% Regrid times of halos in {\tt thisTree}.
+    !% Regrid times of halos in {\normalfont \ttfamily thisTree}.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Input_Parameters
@@ -230,7 +230,7 @@ contains
                 !@   <name>mergerTreeRegridRedshifts</name>
                 !@   <attachedTo>module</attachedTo>
                 !@   <description>
-                !@     The redshifts at which merger trees are to regridded when the {\tt [mergerTreeRegridSpacing]}$=${\tt read} option is selected.
+                !@     The redshifts at which merger trees are to regridded when the {\normalfont \ttfamily [mergerTreeRegridSpacing]}$=${\normalfont \ttfamily read} option is selected.
                 !@   </description>
                 !@   <type>real</type>
                 !@   <cardinality>0..</cardinality>

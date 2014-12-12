@@ -60,17 +60,17 @@ contains
     !% Computes the mass loss rate from disks due to ram pressure stripping assuming a simple model. Specifically, the mass loss
     !% rate is
     !% \begin{equation}
-    !% \dot{M}_{\rm gas} = -\alpha M_{\rm gas}/\tau_{\rm disk},
+    !% \dot{M}_{\mathrm gas} = -\alpha M_{\mathrm gas}/\tau_{\mathrm disk},
     !% \end{equation}
     !% where
     !% \begin{equation}
-    !% \alpha = F_{\rm ram}/F_{\rm gravity},
+    !% \alpha = F_{\mathrm ram}/F_{\mathrm gravity},
     !% \end{equation}
-    !% $F_{\rm ram}$ is the ram pressure force from the hot halo (see \S\ref{sec:HotHaloRamPressureForce}), and
+    !% $F_{\mathrm ram}$ is the ram pressure force from the hot halo (see \S\ref{sec:HotHaloRamPressureForce}), and
     !% \begin{equation}
-    !% F_{\rm gravity} = 2 \pi {\rm G} \Sigma_{\rm gas}(r_{1/2}) \Sigma_{\rm total}(r_{1/2})
+    !% F_{\mathrm gravity} = 2 \pi {\mathrm G} \Sigma_{\mathrm gas}(r_{1/2}) \Sigma_{\mathrm total}(r_{1/2})
     !% \end{equation}
-    !% is the gravitational restoring force in the disk at the half-mass radius, $r_{\rm 1/2}$.
+    !% is the gravitational restoring force in the disk at the half-mass radius, $r_{\mathrm 1/2}$.
     use Galacticus_Nodes
     use Hot_Halo_Ram_Pressure_Forces
     use Galactic_Structure_Options

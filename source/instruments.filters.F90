@@ -200,7 +200,7 @@ contains
   end subroutine Filter_Response_Load
 
   double precision function Filter_Response(filterIndex,wavelength)
-    !% Return the filter response function at the given {\tt wavelength} (specified in Angstroms).  Note that we follow the
+    !% Return the filter response function at the given {\normalfont \ttfamily wavelength} (specified in Angstroms).  Note that we follow the
     !% convention of \cite{hogg_k_2002} and assume that the filter response gives the fraction of incident photons received by the
     !% detector at a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector
     !% such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector.

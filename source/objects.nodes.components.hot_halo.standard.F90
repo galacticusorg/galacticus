@@ -346,7 +346,7 @@ contains
        !@   <defaultValue>0.1</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; i.e. this is the parameter $\epsilon_{\rm strip}$ in their eqn.~6).
+       !@    Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; i.e. this is the parameter $\epsilon_{\mathrm strip}$ in their eqn.~6).
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -386,7 +386,7 @@ contains
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    Controls whether the hot gas content of nodes should be limited to not exceed the universal baryon fraction at node
-       !@    merger events. If set to {\tt true}, hot gas (and angular momentum, abundances, and chemicals proportionally) will be
+       !@    merger events. If set to {\normalfont \ttfamily true}, hot gas (and angular momentum, abundances, and chemicals proportionally) will be
        !@    removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon
        !@    fraction where possible.
        !@   </description>
@@ -766,7 +766,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Push_From_Halo
 
   double precision function Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction(thisNode,thisHotHaloComponent)
-    !% Compute the fraction of material outflowing into the hot halo of {\tt thisNode} which is susceptible to being stripped
+    !% Compute the fraction of material outflowing into the hot halo of {\normalfont \ttfamily thisNode} which is susceptible to being stripped
     !% away.
     use Hot_Halo_Mass_Distributions
     use Dark_Matter_Halo_Scales
@@ -1212,7 +1212,7 @@ contains
   !#  <unitName>Node_Component_Hot_Halo_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Hot_Halo_Standard_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}.
+    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Dark_Matter_Halo_Scales
@@ -1311,7 +1311,7 @@ contains
   !#  <unitName>Node_Component_Hot_Halo_Standard_Node_Merger</unitName>
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Standard_Node_Merger(thisNode)
-    !% Starve {\tt thisNode} by transferring its hot halo to its parent.
+    !% Starve {\normalfont \ttfamily thisNode} by transferring its hot halo to its parent.
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Dark_Matter_Halo_Scales
@@ -1441,7 +1441,7 @@ contains
   !#  <unitName>Node_Component_Hot_Halo_Standard_Satellite_Merger</unitName>
   !# </satelliteMergerTask>
   subroutine Node_Component_Hot_Halo_Standard_Satellite_Merger(thisNode)
-    !% Remove any hot halo associated with {\tt thisNode} before it merges with its host halo.
+    !% Remove any hot halo associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Dark_Matter_Halo_Scales
@@ -1536,7 +1536,7 @@ contains
   !#  <unitName>Node_Component_Hot_Halo_Standard_Promote</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Hot_Halo_Standard_Promote(thisNode)
-    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\tt
+    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\tt
     !% thisNode} to account for any hot halo already in the parent.
     use Dark_Matter_Halo_Scales
     implicit none
@@ -1600,7 +1600,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Promote
 
   subroutine Node_Component_Hot_Halo_Standard_Cooling_Rate(thisNode)
-    !% Get and store the cooling rate for {\tt thisNode}.
+    !% Get and store the cooling rate for {\normalfont \ttfamily thisNode}.
     use Cooling_Rates
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
@@ -1633,7 +1633,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Cooling_Rate
 
   subroutine Node_Component_Hot_Halo_Standard_Create(thisNode)
-    !% Creates a hot halo component for {\tt thisNode}.
+    !% Creates a hot halo component for {\normalfont \ttfamily thisNode}.
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     class(nodeComponentHotHalo)               , pointer :: thisHotHalo

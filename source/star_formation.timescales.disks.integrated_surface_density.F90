@@ -49,7 +49,7 @@ contains
 
   double precision function Star_Formation_Timescale_Disk_Integrated_SD(thisNode)
     !% Returns the timescale (in Gyr) for star formation in the
-    !% galactic disk of {\tt thisNode}, by integrating over the surface
+    !% galactic disk of {\normalfont \ttfamily thisNode}, by integrating over the surface
     !% density of star formation rate.
     use Numerical_Constants_Math
     use Numerical_Integration

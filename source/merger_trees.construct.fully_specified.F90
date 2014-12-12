@@ -175,7 +175,7 @@ contains
   end function Node_Definition_Index
 
   function Node_Lookup(nodeArray,indexValue) result (node)
-    !% Find the position of a node in the {\tt nodeArray} array given its {\tt indexValue}.
+    !% Find the position of a node in the {\normalfont \ttfamily nodeArray} array given its {\normalfont \ttfamily indexValue}.
     use Galacticus_Nodes
     use Kind_Numbers
     use Galacticus_Error

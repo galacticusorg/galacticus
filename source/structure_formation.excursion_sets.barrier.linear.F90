@@ -76,7 +76,7 @@ contains
   end subroutine Excursion_Sets_Barriers_Linear_Initialize
 
   double precision function Excursion_Sets_Barrier_Linear(variance,time)
-    !% Return a linear barrier for excursion set calculations at the given {\tt variance}.
+    !% Return a linear barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
     implicit none
     double precision, intent(in   ) :: time, variance
 
@@ -85,7 +85,7 @@ contains
   end function Excursion_Sets_Barrier_Linear
 
   double precision function Excursion_Sets_Barrier_Gradient_Linear(variance,time)
-    !% Return the gradient of a linear barrier for excursion set calculations at the given {\tt variance}.
+    !% Return the gradient of a linear barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
     implicit none
     double precision, intent(in   ) :: time, variance
 

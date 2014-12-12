@@ -183,7 +183,7 @@ contains
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Node_Merger</unitName>
   !# </nodeMergerTask>
   subroutine Node_Component_Merging_Statistics_Standard_Node_Merger(thisNode)
-    !% Record any major merger of {\tt thisNode}.
+    !% Record any major merger of {\normalfont \ttfamily thisNode}.
     implicit none
     type (treeNode                      ), intent(inout), pointer :: thisNode
     class(nodeComponentMergingStatistics)               , pointer :: parentMergingStatisticsComponent
@@ -205,7 +205,7 @@ contains
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Node_Promotion</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Merging_Statistics_Standard_Node_Promotion(thisNode)
-    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the node merger time.
+    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the node merger time.
     implicit none
     type (treeNode                      ), intent(inout), pointer :: thisNode
     class(nodeComponentMergingStatistics)               , pointer :: parentMergingStatisticsComponent, thisMergingStatisticsComponent
@@ -227,7 +227,7 @@ contains
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Merging_Statistics_Standard_Satellite_Merger(thisNode)
-    !% Record properties of a merging event for {\tt thisNode}.
+    !% Record properties of a merging event for {\normalfont \ttfamily thisNode}.
     use Satellite_Merging_Mass_Movements_Descriptors
     implicit none
     type (treeNode                      ), intent(inout), pointer :: thisNode

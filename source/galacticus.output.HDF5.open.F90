@@ -56,7 +56,7 @@ contains
        ! Get file name parameter.
        !@ <inputParameter>
        !@   <name>galacticusOutputScratchFileName</name>
-       !@   <defaultValue>{\tt [galacticusOutputFileName]}</defaultValue>
+       !@   <defaultValue>{\normalfont \ttfamily [galacticusOutputFileName]}</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the file to which \glc\ results will be written temporarily during runs.

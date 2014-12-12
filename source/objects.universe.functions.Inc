@@ -41,7 +41,7 @@ function universeCreateEvent(self) result (newEvent)
 end function universeCreateEvent
 
 subroutine universeRemoveEvent(self,event)
-  !% Remove an event from {\tt self}.
+  !% Remove an event from {\normalfont \ttfamily self}.
   implicit none
   class  (universe     ), intent(inout) :: self
   type   (universeEvent), intent(in   ) :: event

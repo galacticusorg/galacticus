@@ -104,7 +104,7 @@ contains
   end subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Initialize
 
   double precision function Star_Formation_Timescale_Disk_Halo_Scaling(thisNode)
-    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\tt thisNode} in the halo scaling timescale model.
+    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily thisNode} in the halo scaling timescale model.
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     implicit none

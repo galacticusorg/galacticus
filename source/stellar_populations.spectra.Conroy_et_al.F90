@@ -127,8 +127,8 @@ contains
   end subroutine Stellar_Population_Spectra_Conroy_Initialize_IMF
 
   double precision function Stellar_Population_Spectra_Conroy_Get(abundancesStellar,age,wavelength,imfIndex,status)
-    !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\tt abundances}, of the
-    !% given {\tt age} (in Gyr) and the specified {\tt wavelength} (in Angstroms). This is computed using the
+    !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\normalfont \ttfamily abundances}, of the
+    !% given {\normalfont \ttfamily age} (in Gyr) and the specified {\normalfont \ttfamily wavelength} (in Angstroms). This is computed using the
     !% \cite{conroy_propagation_2009} package.
     use Stellar_Population_Spectra_File
     use Abundances_Structure

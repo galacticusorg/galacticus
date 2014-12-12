@@ -46,7 +46,7 @@ contains
   !#  <unitName>Galactic_Structure_Radii_Solve</unitName>
   !# </preDerivativeTask>
   subroutine Galactic_Structure_Radii_Solve(thisNode)
-    !% Solve for the radii of galactic components in {\tt thisNode}.
+    !% Solve for the radii of galactic components in {\normalfont \ttfamily thisNode}.
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="galacticStructureRadiusSolverMethod" type="moduleUse">

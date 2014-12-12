@@ -40,7 +40,7 @@ module Arrays_Search
 contains
 
   function Search_Array_Double(arrayToSearch,valueToFind)
-    !% Searches an array, $x=(${\tt arrayToSearch}$)$, for value, $v(=${\tt valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
+    !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
     use FGSL
     implicit none
     integer         (c_size_t)                              :: Search_Array_Double
@@ -53,7 +53,7 @@ contains
   end function Search_Array_Double
 
    function Search_Array_Integer8(arrayToSearch,valueToFind)
-    !% Searches a long integer array, $x=(${\tt arrayToSearch}$)$, for value, $v(=${\tt valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
+    !% Searches a long integer array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
     use Kind_Numbers
     implicit none
     integer(c_size_t      )                              :: Search_Array_Integer8
@@ -99,7 +99,7 @@ contains
   end function Search_Array_Integer8
 
   function Search_Array_VarString(arrayToSearch,valueToFind)
-    !% Searches an array, $x=(${\tt arrayToSearch}$)$, for value, $v(=${\tt valueToFind}$)$, to find the index $i$ such that $x(i)
+    !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i)
     !% = v$. With this algorithm, if multiple elements of $x()$ have the same value, then the largest value of $i$ for which
     !% $x(i)=v$ occurs will be returned.
     use ISO_Varying_String
@@ -147,7 +147,7 @@ contains
   end function Search_Array_VarString
 
    function Search_Array_For_Closest(arrayToSearch,valueToFind,tolerance)
-    !% Searches an array, $x=(${\tt arrayToSearch}$)$, for the entry closest to value, $v(=${\tt valueToFind}$)$ and returns the
+    !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for the entry closest to value, $v(=${\normalfont \ttfamily valueToFind}$)$ and returns the
     !% index of that element in the array. Optionally, a tolerance may be specified within which the two values must match.
     use FGSL
     use Galacticus_Error
@@ -183,7 +183,7 @@ contains
   end function Search_Array_For_Closest
 
   function Search_Indexed_Integer8(arrayToSearch,arrayIndex,valueToFind)
-    !% Searches a long integer array, $x=(${\tt arrayToSearch}$)$, which is rank ordered when indexed by {\tt arrayIndex}, for value, $v(=${\tt valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
+    !% Searches a long integer array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, which is rank ordered when indexed by {\normalfont \ttfamily arrayIndex}, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
     use Kind_Numbers
     use, intrinsic :: ISO_C_Binding
     implicit none

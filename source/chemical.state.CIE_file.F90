@@ -370,7 +370,7 @@ contains
 
   double precision function Electron_Density_Density_Log_Slope_CIE_File(temperature,numberDensityHydrogen,gasAbundances&
        &,radiation)
-    !% Return the logarithmic slope of the electron density with respect to density assuming atomic CIE as computed by {\sc Cloudy}.
+    !% Return the logarithmic slope of the electron density with respect to density assuming atomic CIE as computed by {\normalfont \scshape Cloudy}.
     use Abundances_Structure
     use Radiation_Structure
     implicit none

@@ -31,7 +31,7 @@ module Dark_Matter_Profile_Scales
 contains
 
   double precision function Dark_Matter_Profile_Scale(node,concentrationMethod)
-    !% Compute the scale radius of the dark matter profile of {\tt node}.
+    !% Compute the scale radius of the dark matter profile of {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     use Dark_Matter_Profiles
     use Dark_Matter_Profiles_Concentration

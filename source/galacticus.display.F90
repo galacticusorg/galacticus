@@ -183,7 +183,7 @@ contains
   end subroutine Galacticus_Display_Unindent
 
   subroutine Galacticus_Display_Message_Char(message,verbosity)
-    !% Display a message (input as a {\tt character} variable).
+    !% Display a message (input as a {\normalfont \ttfamily character} variable).
     implicit none
     character(len=*), intent(in   )           :: message
     integer         , intent(in   ), optional :: verbosity
@@ -214,7 +214,7 @@ contains
   end subroutine Galacticus_Display_Message_Char
 
   subroutine Galacticus_Display_Message_VarStr(message,verbosity)
-    !% Display a message (input as a {\tt varying\_string} variable).
+    !% Display a message (input as a {\normalfont \ttfamily varying\_string} variable).
     implicit none
     type   (varying_string), intent(in   )           :: message
     integer                , intent(in   ), optional :: verbosity

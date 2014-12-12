@@ -118,7 +118,7 @@ contains
   end subroutine Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate
 
   double precision function Variance_Integral(mass,useTopHat)
-    !% Compute the root-variance of mass in spheres enclosing the given {\tt mass} from the power spectrum.
+    !% Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Math
     use Numerical_Integration

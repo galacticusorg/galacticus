@@ -187,7 +187,7 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Simple_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Black_Hole_Simple_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}.
+    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
     implicit none
     type (treeNode              ), intent(inout), pointer :: thisNode
     class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
@@ -300,7 +300,7 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Simple_Satellite_Merging</unitName>
   !# </satelliteMergerTask>
   subroutine Node_Component_Black_Hole_Simple_Satellite_Merging(thisNode)
-    !% Merge (instantaneously) any simple black hole associated with {\tt thisNode} before it merges with its host halo.
+    !% Merge (instantaneously) any simple black hole associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
     use Black_Hole_Binary_Mergers
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
@@ -331,7 +331,7 @@ contains
   end subroutine Node_Component_Black_Hole_Simple_Satellite_Merging
 
   subroutine Node_Component_Black_Hole_Simple_Create(thisNode)
-    !% Creates a simple black hole component for {\tt thisNode}.
+    !% Creates a simple black hole component for {\normalfont \ttfamily thisNode}.
     implicit none
     type (treeNode              ), intent(inout), pointer :: thisNode
     class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
@@ -439,7 +439,7 @@ contains
   end subroutine Node_Component_Black_Hole_Simple_Output
 
   logical function Node_Component_Black_Hole_Simple_Matches(thisNode)
-    !% Return true if the black hole component of {\tt thisNode} is a match to the simple implementation.
+    !% Return true if the black hole component of {\normalfont \ttfamily thisNode} is a match to the simple implementation.
     implicit none
     type (treeNode              ), intent(inout), pointer :: thisNode
     class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent

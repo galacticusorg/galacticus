@@ -59,7 +59,7 @@ contains
    !#  <unitName>Node_Component_NBody_Standard_Promote</unitName>
    !# </nodePromotionTask>
    subroutine Node_Component_NBody_Standard_Promote(thisNode)
-     !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the properties of {\tt thisNode}
+     !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the properties of {\normalfont \ttfamily thisNode}
      !% to be those of its parent.
      implicit none
      type (treeNode          ), intent(inout), pointer :: thisNode

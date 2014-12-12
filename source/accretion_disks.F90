@@ -110,7 +110,7 @@ contains
   end function Accretion_Disk_Jet_Power
 
   double precision function Black_Hole_Spin_Up_Rate(thisBlackHole,massAccretionRate)
-    !% Computes the spin up rate of the black hole in {\tt thisNode} due to accretion from an accretion
+    !% Computes the spin up rate of the black hole in {\normalfont \ttfamily thisNode} due to accretion from an accretion
     !% disk.
     use Galacticus_Nodes
     implicit none

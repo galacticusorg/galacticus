@@ -18,7 +18,7 @@
 !% Contains custom functions for the standard basic component.
 
 double precision function BasicNonEvolvingTimeLastIsolated(self)
-  !% Return the {\tt timeLastIsolated} property of the {\tt Basic} component class.
+  !% Return the {\normalfont \ttfamily timeLastIsolated} property of the {\normalfont \ttfamily Basic} component class.
   implicit none
   class(nodeComponentBasicNonEvolving), intent(inout) :: self
   type (treeNode                     ), pointer       :: selfNode

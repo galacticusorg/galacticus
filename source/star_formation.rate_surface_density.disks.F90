@@ -79,7 +79,7 @@ contains
 
   double precision function Star_Formation_Rate_Surface_Density_Disk(thisNode,radius)
     !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) in the disk component of
-    !% {\tt thisNode} at the given {\tt radius}.
+    !% {\normalfont \ttfamily thisNode} at the given {\normalfont \ttfamily radius}.
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: radius

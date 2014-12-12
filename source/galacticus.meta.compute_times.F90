@@ -79,7 +79,7 @@ contains
   end subroutine Galacticus_Time_Per_Tree_Initialize
 
   double precision function Galacticus_Time_Per_Tree(treeRootMass)
-    !% Returns the time (in seconds) to compute a tree of mass {\tt treeRootMass}.
+    !% Returns the time (in seconds) to compute a tree of mass {\normalfont \ttfamily treeRootMass}.
     implicit none
     double precision, intent(in   ) :: treeRootMass
 

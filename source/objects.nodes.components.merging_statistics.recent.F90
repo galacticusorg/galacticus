@@ -87,7 +87,7 @@ contains
        !@   <defaultValue>2.0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The time interval used to define ``recent'' mergers in the {\tt recent} merging statistics component. This parameter is in units of Gyr if {\tt [nodeRecentMajorMergerIntervalType]}$={\tt absolute}, or in units of the halo dynamical time if {\tt [nodeRecentMajorMergerIntervalType]}$={\tt dynmical}.
+       !@     The time interval used to define ``recent'' mergers in the {\normalfont \ttfamily recent} merging statistics component. This parameter is in units of Gyr if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily dynmical}.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -98,7 +98,7 @@ contains
        !@   <defaultValue>dynamical</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     Specifies the units for the {\tt [nodeRecentMajorMergerInterval]} parameter. If set to {\tt absolute} then {\tt [nodeRecentMajorMergerInterval]} is given in Gyr, while if set to {\tt dynamical} {\tt [nodeRecentMajorMergerInterval]} is given in units of the halo dynamical time.
+       !@     Specifies the units for the {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} parameter. If set to {\normalfont \ttfamily absolute} then {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in Gyr, while if set to {\normalfont \ttfamily dynamical} {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in units of the halo dynamical time.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -162,7 +162,7 @@ contains
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Node_Merger</unitName>
   !# </nodeMergerTask>
   subroutine Node_Component_Merging_Statistics_Recent_Node_Merger(thisNode)
-    !% Record any major merger of {\tt thisNode}.
+    !% Record any major merger of {\normalfont \ttfamily thisNode}.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Error
     use Dark_Matter_Halo_Scales
@@ -234,7 +234,7 @@ contains
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Node_Promotion</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Merging_Statistics_Recent_Node_Promotion(thisNode)
-    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the node merger time.
+    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the node merger time.
     implicit none
     type (treeNode                      ), intent(inout), pointer :: thisNode
     class(nodeComponentMergingStatistics)               , pointer :: parentMergingStatistics, thisMergingStatistics
@@ -342,7 +342,7 @@ contains
   end subroutine Node_Component_Merging_Statistics_Recent_Output
 
   logical function Node_Component_Merging_Statistics_Recent_Matches(thisNode)
-    !% Return true if the black hole component of {\tt thisNode} is a match to the standard implementation.
+    !% Return true if the black hole component of {\normalfont \ttfamily thisNode} is a match to the standard implementation.
     implicit none
     type (treeNode                      ), intent(inout), pointer :: thisNode
     class(nodeComponentMergingStatistics)               , pointer :: thisMergingStatistics

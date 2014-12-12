@@ -288,7 +288,7 @@ module Histories
 contains
 
   subroutine History_Set_Times(timeEarliest,timeLatest)
-    !% Extend the range of history times to include the given {\tt timeEarliest} and {\tt timeLatest}.
+    !% Extend the range of history times to include the given {\normalfont \ttfamily timeEarliest} and {\normalfont \ttfamily timeLatest}.
     implicit none
     double precision, intent(in   ), optional :: timeEarliest, timeLatest
 
@@ -428,7 +428,7 @@ contains
   end subroutine History_Long_Integer_Destroy
 
   subroutine History_Builder(self,historyDefinition)
-    !% Build a {\tt history} object from the given XML {\tt historyDefinition}.
+    !% Build a {\normalfont \ttfamily history} object from the given XML {\normalfont \ttfamily historyDefinition}.
     use FoX_DOM
     use Galacticus_Error
     implicit none
@@ -440,7 +440,7 @@ contains
   end subroutine History_Builder
 
   subroutine History_Long_Integer_Builder(self,historyDefinition)
-    !% Build a {\tt longIntegerHistory} object from the given XML {\tt historyDefinition}.
+    !% Build a {\normalfont \ttfamily longIntegerHistory} object from the given XML {\normalfont \ttfamily historyDefinition}.
     use FoX_DOM
     use Galacticus_Error
     implicit none
@@ -754,8 +754,8 @@ contains
 
   subroutine History_Trim(thisHistory,currentTime,minimumPointsToRemove)
     !% Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
-    !% but one entry prior to the given {\tt currentTime} (this allows for interpolation of the history to the current
-    !% time). Optionally, the remove is done only if it will remove more than {\tt minimumPointsToRemove} entries (since the
+    !% but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
+    !% time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
     !% removal can be slow this allows for some optimization).
     use Galacticus_Error
     use Memory_Management
@@ -819,8 +819,8 @@ contains
 
   subroutine History_Long_Integer_Trim(thisHistory,currentTime,minimumPointsToRemove)
     !% Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
-    !% but one entry prior to the given {\tt currentTime} (this allows for interpolation of the history to the current
-    !% time). Optionally, the remove is done only if it will remove more than {\tt minimumPointsToRemove} entries (since the
+    !% but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
+    !% time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
     !% removal can be slow this allows for some optimization).
     use Galacticus_Error
     use Memory_Management
@@ -883,9 +883,9 @@ contains
   end subroutine History_Long_Integer_Trim
 
    subroutine History_Increment(thisHistory,addHistory)
-     !% Adds the data in {\tt addHistory} to that in {\tt thisHistory}. This function is designed for histories that track
-     !% instantaneous rates. The rates in {\tt addHistory} are interpolated to the times in {\tt thisHistory} and added to the
-     !% rates in {\tt thisHistory}.
+     !% Adds the data in {\normalfont \ttfamily addHistory} to that in {\normalfont \ttfamily thisHistory}. This function is designed for histories that track
+     !% instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to the times in {\normalfont \ttfamily thisHistory} and added to the
+     !% rates in {\normalfont \ttfamily thisHistory}.
      use, intrinsic :: ISO_C_Binding
      use FGSL
      use Numerical_Interpolation
@@ -962,11 +962,11 @@ contains
    end subroutine History_Increment
 
    subroutine History_Combine(thisHistory,combineHistory)
-     !% Combines the data in {\tt combineHistory} with that in {\tt thisHistory}. This function is designed for histories that
-     !% track integrated quantities (such as total mass of stars formed in a time interval for example). {\tt thisHistory} will be
-     !% extended if necessary to span the range of {\tt combineHistory}. Then, the data from {\tt combineHistory} will be added to
-     !% that in {\tt thisHistory} by finding the fraction of each timestep in {\tt combineHistory} that overlaps with each timestep
-     !% in {\tt thisHistory} and assuming that the corresponding fraction of the data value should be added to {\tt thisHistory}.
+     !% Combines the data in {\normalfont \ttfamily combineHistory} with that in {\normalfont \ttfamily thisHistory}. This function is designed for histories that
+     !% track integrated quantities (such as total mass of stars formed in a time interval for example). {\normalfont \ttfamily thisHistory} will be
+     !% extended if necessary to span the range of {\normalfont \ttfamily combineHistory}. Then, the data from {\normalfont \ttfamily combineHistory} will be added to
+     !% that in {\normalfont \ttfamily thisHistory} by finding the fraction of each timestep in {\normalfont \ttfamily combineHistory} that overlaps with each timestep
+     !% in {\normalfont \ttfamily thisHistory} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily thisHistory}.
      use Galacticus_Error
      use Arrays_Search
      use Numerical_Ranges
@@ -1046,7 +1046,7 @@ contains
    end subroutine History_Combine
 
    function History_Divide(self,divisor)
-     !% Divides history data by a double precision {\tt divisor}.
+     !% Divides history data by a double precision {\normalfont \ttfamily divisor}.
      implicit none
      type            (history)                :: History_Divide
      class           (history), intent(in   ) :: self
@@ -1209,7 +1209,7 @@ contains
   end subroutine Histories_State_Retrieve
 
   subroutine History_Timesteps(thisHistory,timeSteps)
-    !% Return an array of time intervals in {\tt thisHistory}.
+    !% Return an array of time intervals in {\normalfont \ttfamily thisHistory}.
     use Memory_Management
     use Numerical_Ranges
     implicit none

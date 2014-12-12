@@ -36,7 +36,7 @@ module Hot_Halo_Ram_Pressure_Forces
 contains
 
   double precision function Hot_Halo_Ram_Pressure_Force(thisNode)
-    !% Return the ram pressure force for the hot halo of {\tt thisNode}.
+    !% Return the ram pressure force for the hot halo of {\normalfont \ttfamily thisNode}.
     use Galacticus_Nodes
     use Galacticus_Error
     use Input_Parameters

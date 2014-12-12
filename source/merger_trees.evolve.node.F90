@@ -156,7 +156,7 @@ contains
   end subroutine Tree_Node_Evolve_Initialize
 
   subroutine Tree_Node_Evolve(thisTree,thisNode,endTime,interrupted,interruptProcedure)
-    !% Evolves {\tt thisNode} to time {\tt endTime}, or until evolution is interrupted.
+    !% Evolves {\normalfont \ttfamily thisNode} to time {\normalfont \ttfamily endTime}, or until evolution is interrupted.
     use ODEIV2_Solver
     use Memory_Management
     use Galacticus_Calculations_Resets
@@ -362,7 +362,7 @@ contains
   end function Tree_Node_ODEs
 
   subroutine Tree_Node_Compute_Derivatives(thisNode,interrupt,interruptProcedureReturn)
-    !% Call routines to set alls derivatives for {\tt thisNode}.
+    !% Call routines to set alls derivatives for {\normalfont \ttfamily thisNode}.
     use Galacticus_Calculations_Resets
     !# <include directive="preDerivativeTask" type="moduleUse">
     include 'objects.merger_trees.prederivative.tasks.modules.inc'
@@ -452,7 +452,7 @@ contains
 #endif
 
   subroutine Tree_Node_Promote(thisTree,thisNode)
-    !% Transfer the properties of {\tt thisNode} to its parent node, then destroy it.
+    !% Transfer the properties of {\normalfont \ttfamily thisNode} to its parent node, then destroy it.
     use String_Handling
     use Galacticus_Display
     !# <include directive="nodePromotionTask" type="moduleUse">
@@ -524,7 +524,7 @@ contains
   end subroutine Tree_Node_Promote
 
   subroutine Events_Node_Merger(thisTree,thisNode)
-    !% Handles instances where {\tt thisNode} is about to merge with its parent node.
+    !% Handles instances where {\normalfont \ttfamily thisNode} is about to merge with its parent node.
     use Input_Parameters
     use Galacticus_Error
     use Galacticus_Display

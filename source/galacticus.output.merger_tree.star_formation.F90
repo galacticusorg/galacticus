@@ -142,7 +142,7 @@ contains
   end subroutine Star_Formation_History_Create
 
   subroutine Star_Formation_History_Record(thisNode,thisHistory,fuelAbundances,starFormationRate)
-    !% Record the star formation history for {\tt thisNode}.
+    !% Record the star formation history for {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode  ), intent(inout), pointer :: thisNode
     type            (history   ), intent(inout)          :: thisHistory
@@ -159,7 +159,7 @@ contains
   end subroutine Star_Formation_History_Record
 
   subroutine Star_Formation_History_Output(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
-    !% Output the star formation history for {\tt thisNode}.
+    !% Output the star formation history for {\normalfont \ttfamily thisNode}.
     implicit none
     type     (treeNode      ), intent(inout), pointer :: thisNode
     logical                  , intent(in   )          :: nodePassesFilter

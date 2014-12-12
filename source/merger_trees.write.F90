@@ -45,7 +45,7 @@ contains
   !#   <unitName>Merger_Tree_Write</unitName>
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Write(thisTree)
-    !% Output the structure of {\tt thisTree}.
+    !% Output the structure of {\normalfont \ttfamily thisTree}.
     use HDF5
     use Cosmology_Parameters
     use Cosmology_Functions

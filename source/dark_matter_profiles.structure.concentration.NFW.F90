@@ -39,7 +39,7 @@
   end type darkMatterProfileConcentrationNFW1996
 
   interface darkMatterProfileConcentrationNFW1996
-     !% Constructors for the {\tt nfw1996} dark matter halo profile concentration class.
+     !% Constructors for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
      module procedure nfw1996DefaultConstructor
      module procedure nfw1996Constructor
   end interface darkMatterProfileConcentrationNFW1996
@@ -47,7 +47,7 @@
 contains
 
   function nfw1996DefaultConstructor()
-    !% Default constructor for the {\tt nfw1996} dark matter halo profile concentration class.
+    !% Default constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
     use Input_Parameters
     implicit none
     type(darkMatterProfileConcentrationNFW1996), target :: nfw1996DefaultConstructor
@@ -89,7 +89,7 @@ contains
   end function nfw1996DefaultConstructor
 
   function nfw1996Constructor(F,C)
-    !% Constructor for the {\tt nfw1996} dark matter halo profile concentration class.
+    !% Constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
     implicit none
     type            (darkMatterProfileConcentrationNFW1996)                :: nfw1996Constructor
     double precision                                       , intent(in   ) :: F                 , C
@@ -100,7 +100,7 @@ contains
   end function nfw1996Constructor
 
   double precision function nfw1996Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\tt node} using the \cite{navarro_structure_1996} algorithm.
+    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{navarro_structure_1996} algorithm.
     use Cosmology_Functions
     use Power_Spectra
     use Critical_Overdensity
