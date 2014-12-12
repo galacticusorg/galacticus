@@ -47,7 +47,7 @@ contains
        !@   <defaultValue>1.0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The factor by which to boost satellite tidal fields in the {\tt sphericalSymmetry} tidal field method.
+       !@     The factor by which to boost satellite tidal fields in the {\normalfont \ttfamily sphericalSymmetry} tidal field method.
        !@   </description>
        !@   <type>float</type>
        !@   <cardinality>1</cardinality>

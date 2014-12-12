@@ -546,7 +546,7 @@ contains
   end function Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd
 
   double precision function Spherical_Shell_Solid_Angle_In_Cylcinder(radius)
-    !% Computes the solid angle of a spherical shelll of given {\tt radius} that lies within a cylinder of radius {\tt
+    !% Computes the solid angle of a spherical shelll of given {\normalfont \ttfamily radius} that lies within a cylinder of radius {\tt
     !% radiusImpact}.
     use Numerical_Constants_Math
     implicit none
@@ -564,7 +564,7 @@ contains
   end function Spherical_Shell_Solid_Angle_In_Cylcinder
 
   double precision function Galacticus_Output_Trees_Line_of_Sight_Velocity_Dispersion(radius)
-    !% Compute the line-of-sight velocity dispersion at the given {\tt radius}.
+    !% Compute the line-of-sight velocity dispersion at the given {\normalfont \ttfamily radius}.
     use FGSL
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration

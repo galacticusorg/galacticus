@@ -39,7 +39,7 @@ contains
   !#   <unitName>Merger_Tree_Mass_Accretion_History_Output</unitName>
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Mass_Accretion_History_Output(thisTree)
-    !% Output the mass accretion history of {\tt thisTree}.
+    !% Output the mass accretion history of {\normalfont \ttfamily thisTree}.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Input_Parameters

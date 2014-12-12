@@ -47,14 +47,14 @@
   end type virialDensityContrastSphericalCollapseMatterLambda
 
   interface virialDensityContrastSphericalCollapseMatterLambda
-     !% Constructors for the {\tt sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
+     !% Constructors for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
      module procedure sphericalCollapseMatterLambdaDefaultConstructor
   end interface virialDensityContrastSphericalCollapseMatterLambda
 
 contains
 
   function sphericalCollapseMatterLambdaDefaultConstructor()
-    !% Default constructor for the {\tt sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
+    !% Default constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
     use Input_Parameters
     implicit none
     type (virialDensityContrastSphericalCollapseMatterLambda), target  :: sphericalCollapseMatterLambdaDefaultConstructor
@@ -64,7 +64,7 @@ contains
   end function sphericalCollapseMatterLambdaDefaultConstructor
 
   subroutine sphericalCollapseMatterLambdaDestructor(self)
-    !% Destructor for the {\tt sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
+    !% Destructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
     implicit none
     type (virialDensityContrastSphericalCollapseMatterLambda), intent(inout) :: self
     

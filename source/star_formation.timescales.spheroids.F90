@@ -83,7 +83,7 @@ contains
   end subroutine Star_Formation_Timescale_Spheroids_Initialize
 
   double precision function Star_Formation_Timescale_Spheroid(thisNode)
-    !% Returns the timescale (in Gyr) for star formation in the spheroid component of {\tt thisNode}.
+    !% Returns the timescale (in Gyr) for star formation in the spheroid component of {\normalfont \ttfamily thisNode}.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

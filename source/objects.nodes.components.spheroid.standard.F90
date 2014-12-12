@@ -249,7 +249,7 @@ contains
        ! Read parameters controlling the physical implementation.
        !@ <inputParameter>
        !@   <name>spheroidAngularMomentumAtScaleRadius</name>
-       !@   <defaultValue>$I_2/I_3$ where $I_n=\int_0^\infty \rho(r) r^n {\rm d}r$, where $\rho(r)$ is the spheroid density profile, unless either $I_2$ or $I_3$ is infinite, in which case a default of $1/2$ is used instead</defaultValue>
+       !@   <defaultValue>$I_2/I_3$ where $I_n=\int_0^\infty \rho(r) r^n {\mathrm d}r$, where $\rho(r)$ is the spheroid density profile, unless either $I_2$ or $I_3$ is infinite, in which case a default of $1/2$ is used instead</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of the standard spheroid component.
@@ -263,7 +263,7 @@ contains
        !@   <defaultValue>0.01</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_{\rm spheroid}^2$.
+       !@    The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_{\mathrm spheroid}^2$.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -692,7 +692,7 @@ contains
   !#  <unitName>Node_Component_Spheroid_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Spheroid_Standard_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}. Note that gas masses get an additional scaling down since they can approach
+    !% Set scales for properties of {\normalfont \ttfamily thisNode}. Note that gas masses get an additional scaling down since they can approach
     !% zero and we'd like to prevent them from becoming negative.
     use Abundances_Structure
     use Galacticus_Output_Star_Formation_Histories
@@ -780,7 +780,7 @@ contains
   !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Spheroid_Standard_Satellite_Merging(thisNode)
-    !% Transfer any standard spheroid associated with {\tt thisNode} to its host halo.
+    !% Transfer any standard spheroid associated with {\normalfont \ttfamily thisNode} to its host halo.
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     use Satellite_Merging_Remnant_Sizes_Properties
@@ -1291,7 +1291,7 @@ contains
   end function Node_Component_Spheroid_Standard_Star_Formation_Rate
 
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend(thisNode)
-    !% Extend the range of a star formation history in a standard spheroid component for {\tt thisNode}.
+    !% Extend the range of a star formation history in a standard spheroid component for {\normalfont \ttfamily thisNode}.
     implicit none
     type (treeNode             ), intent(inout), pointer :: thisNode
     class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent

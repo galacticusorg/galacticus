@@ -16,42 +16,42 @@ The following \hyperlink{merger_trees.evolve.F90:merger_trees_evolve:evolve_to_t
 
 For \glspl{node} which are the \gls{primary progenitor} of their \gls{parent}, the ``branch segment'' criterion asserts that
 \begin{equation}
- \Delta t \le t_{\rm parent} - t
+ \Delta t \le t_{\mathrm parent} - t
 \end{equation}
-where $t$ is current time in the \gls{node} and $t_{\rm parent}$ is the time of the \gls{parent} \gls{node}. This ensures that \gls{primary progenitor} \glspl{node} to not evolve beyond the time at which their \gls{parent} (which they will replace) exists.  If this criterion is the limiting criteria for $\Delta t$ then the \gls{node} will be promoted to replace its \gls{parent} at the end of the timestep. 
+where $t$ is current time in the \gls{node} and $t_{\mathrm parent}$ is the time of the \gls{parent} \gls{node}. This ensures that \gls{primary progenitor} \glspl{node} to not evolve beyond the time at which their \gls{parent} (which they will replace) exists.  If this criterion is the limiting criteria for $\Delta t$ then the \gls{node} will be promoted to replace its \gls{parent} at the end of the timestep. 
 
 \subsubsection{``Parent'' Criteria}
 
 For \glspl{node} which are satellites in a hosting \gls{node} the ``\gls{parent}'' timestep criterion asserts that
 \begin{eqnarray}
-\Delta t &\le& t_{\rm host}, \\
-\Delta t &\le& \epsilon_{\rm host} (a/\dot{a}),
+\Delta t &\le& t_{\mathrm host}, \\
+\Delta t &\le& \epsilon_{\mathrm host} (a/\dot{a}),
 \end{eqnarray}
-where $t_{\rm host}=${\tt [timestepHostAbsolute]}, $\epsilon_{\rm host}=${\tt [timestepHostRelative]}, and $a$ is expansion factor. These criteria are intended to prevent a satellite for evolving too far ahead of the host node before the host is allowed to ``catch up''.
+where $t_{\mathrm host}=${\normalfont \ttfamily [timestepHostAbsolute]}, $\epsilon_{\mathrm host}=${\normalfont \ttfamily [timestepHostRelative]}, and $a$ is expansion factor. These criteria are intended to prevent a satellite for evolving too far ahead of the host node before the host is allowed to ``catch up''.
 
 \subsubsection{``Satellite'' Criteria}
 
 For \glspl{node} which host satellite \glspl{node}, the ``satellite'' criterion asserts that
 \begin{equation}
- \Delta t \le \hbox{min}(t_{\rm satellite}) - t,
+ \Delta t \le \hbox{min}(t_{\mathrm satellite}) - t,
 \end{equation}
-where $t$ is the time of the host \gls{node} and $t_{\rm satellite}$ are the times of all satellite \glspl{node} in the host. This criterion prevents a host from evolving ahead of any satellites.
+where $t$ is the time of the host \gls{node} and $t_{\mathrm satellite}$ are the times of all satellite \glspl{node} in the host. This criterion prevents a host from evolving ahead of any satellites.
 
 \subsubsection{``Sibling'' Criteria}
 
 For \glspl{node} which are \glspl{primary progenitor}, the ``sibling'' criterion asserts that
 \begin{equation}
- \Delta t \le \hbox{min}(t_{\rm sibling}) - t,
+ \Delta t \le \hbox{min}(t_{\mathrm sibling}) - t,
 \end{equation}
-where $t$ is the time of the host \gls{node} and $t_{\rm sibling}$ are the times of all siblings of the \gls{node}. This criterion prevents a \gls{node} from reaching its \gls{parent} (and being promoted to replace it) before all of its siblings have reach the \gls{parent} and have become satellites within it.
+where $t$ is the time of the host \gls{node} and $t_{\mathrm sibling}$ are the times of all siblings of the \gls{node}. This criterion prevents a \gls{node} from reaching its \gls{parent} (and being promoted to replace it) before all of its siblings have reach the \gls{parent} and have become satellites within it.
 
 \subsubsection{``Mergee'' Criteria}
 
 For \glspl{node} with \gls{mergee} \glspl{node}, the ``\gls{mergee}'' criterion asserts that
 \begin{equation}
- \Delta t \le \hbox{min}(t_{\rm merge}) - t,
+ \Delta t \le \hbox{min}(t_{\mathrm merge}) - t,
 \end{equation}
-where $t$ is the time of the host \gls{node} and $t_{\rm merge}$ are the times at which the \glspl{mergee} will merge. This criterion prevents a \gls{node} from evolving past the time at which a merger event takes place.
+where $t$ is the time of the host \gls{node} and $t_{\mathrm merge}$ are the times at which the \glspl{mergee} will merge. This criterion prevents a \gls{node} from evolving past the time at which a merger event takes place.
 
 \subsection{General Criteria}
 
@@ -59,24 +59,24 @@ where $t$ is the time of the host \gls{node} and $t_{\rm merge}$ are the times a
 
 The \hyperlink{merger_trees.evolve.timesteps.simple.F90:merger_tree_timesteps_simple:merger_tree_timestep_simple}{``simple''} timestep criteria assert that
 \begin{eqnarray}
-\Delta t &\le& t_{\rm simple}, \\
-\Delta t &\le& \epsilon_{\rm simple} (a/\dot{a}),
+\Delta t &\le& t_{\mathrm simple}, \\
+\Delta t &\le& \epsilon_{\mathrm simple} (a/\dot{a}),
 \end{eqnarray}
-where $t_{\rm simple}=${\tt [timestepSimpleAbsolute]}, $\epsilon_{\rm simple}=${\tt [timestepSimpleRelative]}, and $a$ is expansion factor. These criteria are intended to prevent any one node evolving over an excessively large time in one step. In general, these criteria are not necessary, as nodes should be free to evolve as far as possible unless prevented by some physical requirement. These criteria are therefore present to provide a simple example of how timestep criteria work.
+where $t_{\mathrm simple}=${\normalfont \ttfamily [timestepSimpleAbsolute]}, $\epsilon_{\mathrm simple}=${\normalfont \ttfamily [timestepSimpleRelative]}, and $a$ is expansion factor. These criteria are intended to prevent any one node evolving over an excessively large time in one step. In general, these criteria are not necessary, as nodes should be free to evolve as far as possible unless prevented by some physical requirement. These criteria are therefore present to provide a simple example of how timestep criteria work.
 
 \subsubsection{``Satellite'' Criteria}
 
-The \hyperlink{merger_trees.evolve.timesteps.satellite.F90:merger_tree_timesteps_satellite:merger_tree_timestep_satellite}{``satellite''} timestep criteria asserts the following for satellite \glspl{node}. If the satellite's merge target has been advanced to at least a time of $t_{\rm required} = t_{\rm satellite} + \Delta t_{\rm merge} - \delta t_{\rm merge,maximum}$ then 
+The \hyperlink{merger_trees.evolve.timesteps.satellite.F90:merger_tree_timesteps_satellite:merger_tree_timestep_satellite}{``satellite''} timestep criteria asserts the following for satellite \glspl{node}. If the satellite's merge target has been advanced to at least a time of $t_{\mathrm required} = t_{\mathrm satellite} + \Delta t_{\mathrm merge} - \delta t_{\mathrm merge,maximum}$ then 
 \begin{equation}
-\Delta t \le \Delta t_{\rm merge},
+\Delta t \le \Delta t_{\mathrm merge},
 \end{equation}
-where $t_{\rm satellite}$ is the current time for the satellite \gls{node}, $\Delta t_{\rm merge}$ is the time until the satellite is due to merge and $\delta t_{\rm merge,maximum}$ is the maximum allowed time difference between merging galaxies. This ensures that the satellite is not evolved past the time at which it is due to merge. If this criterion is the limiting criteria for $\Delta t$ then the merging of the satellite will be triggered at the end of the timestep.
+where $t_{\mathrm satellite}$ is the current time for the satellite \gls{node}, $\Delta t_{\mathrm merge}$ is the time until the satellite is due to merge and $\delta t_{\mathrm merge,maximum}$ is the maximum allowed time difference between merging galaxies. This ensures that the satellite is not evolved past the time at which it is due to merge. If this criterion is the limiting criteria for $\Delta t$ then the merging of the satellite will be triggered at the end of the timestep.
 
-If the merge target has not been advanced to at least $t_{\rm required}$ then instead
+If the merge target has not been advanced to at least $t_{\mathrm required}$ then instead
 \begin{equation}
-\Delta t \le \hbox{max}(\Delta t_{\rm merge}-\delta t_{\rm merge,maximum}/2,0),
+\Delta t \le \hbox{max}(\Delta t_{\mathrm merge}-\delta t_{\mathrm merge,maximum}/2,0),
 \end{equation}
-is asserted to ensure that the satellite does not reach the time of merging until its merge target is sufficiently close (within $\delta t_{\rm merge,maximum}$) of the time of merging.
+is asserted to ensure that the satellite does not reach the time of merging until its merge target is sufficiently close (within $\delta t_{\mathrm merge,maximum}$) of the time of merging.
 
 \subsection{Output Criteria}
 
@@ -84,14 +84,14 @@ is asserted to ensure that the satellite does not reach the time of merging unti
 
 The \hyperlink{merger_trees.evolve.timesteps.history.F90:merger_tree_timesteps_history:merger_tree_timestep_history}{``history''} timestep criterion asserts that
 \begin{equation}
- \Delta t \le t_{{\rm history},i} - t
+ \Delta t \le t_{{\mathrm history},i} - t
 \end{equation}
-where $t$ is the current time, $t_{{\rm history},i}$ is the $i^{\rm th}$ time at which the global history (see \S\ref{sec:globalHistory}) of galaxies is to be output and $i$ is chosen to be the smallest $i$ such that $t_{{\rm history},i} > t$. If there is no $i$ for which $t_{{\rm history},i} > t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta t$ then the properties of the galaxy will be accumulated to the global history arrays at the end of the timestep.
+where $t$ is the current time, $t_{{\mathrm history},i}$ is the $i^{\mathrm th}$ time at which the global history (see \S\ref{sec:globalHistory}) of galaxies is to be output and $i$ is chosen to be the smallest $i$ such that $t_{{\mathrm history},i} > t$. If there is no $i$ for which $t_{{\mathrm history},i} > t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta t$ then the properties of the galaxy will be accumulated to the global history arrays at the end of the timestep.
 
 \subsubsection{``Main Branch Evolution'' Criteria}
 
-If {\tt timestepRecordEvolution}$=${\tt true}, then the \hyperlink{merger_trees.evolve.timesteps.record_evolution.F90:merger_tree_timesteps_record_evolution:merger_tree_timestep_record_evolution}{``main branch evolution''} timestep criterion asserts that
+If {\normalfont \ttfamily timestepRecordEvolution}$=${\normalfont \ttfamily true}, then the \hyperlink{merger_trees.evolve.timesteps.record_evolution.F90:merger_tree_timesteps_record_evolution:merger_tree_timestep_record_evolution}{``main branch evolution''} timestep criterion asserts that
 \begin{equation}
- \Delta t \le t_{{\rm record},i} - t
+ \Delta t \le t_{{\mathrm record},i} - t
 \end{equation}
-where $t$ is the current time, $t_{{\rm record},i}$ is the $i^{\rm th}$ time at which the evolution of main branch galaxies is to be output and $i$ is chosen to be the smallest $i$ such that $t_{{\rm record},i} > t$. If there is no $i$ for which $t_{{\rm record},i} > t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta t$ then the properties of the galaxy will be recorded at the end of the timestep.
+where $t$ is the current time, $t_{{\mathrm record},i}$ is the $i^{\mathrm th}$ time at which the evolution of main branch galaxies is to be output and $i$ is chosen to be the smallest $i$ such that $t_{{\mathrm record},i} > t$. If there is no $i$ for which $t_{{\mathrm record},i} > t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta t$ then the properties of the galaxy will be recorded at the end of the timestep.

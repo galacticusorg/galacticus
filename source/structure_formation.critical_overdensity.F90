@@ -255,7 +255,7 @@ contains
   end function Critical_Overdensity_for_Collapse_Time_Gradient
 
   double precision function Time_of_Collapse(criticalOverdensity,mass)
-    !% Returns the time of collapse for a perturbation of linear theory overdensity {\tt criticalOverdensity}.
+    !% Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.
     use Cosmology_Functions
     implicit none
     double precision                         , intent(in   )           :: criticalOverdensity

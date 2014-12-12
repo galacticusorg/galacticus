@@ -24,7 +24,7 @@ module Atomic_Cross_Sections_Ionization_Photo_Verner
   !% \item Outer shells of the Opacity Project (OP) elements: \cite{verner_atomic_1996_1}
   !% \item Inner shells of all elements, and outer shells of the non-OP elements: \cite{verner_analytic_1995}
   !% \end{itemize}
-  !% Original version (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\tt phfit2.f}) written by
+  !% Original version (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\normalfont \ttfamily phfit2.f}) written by
   !% \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
   !% Inner-shell ionization energies of some low-ionized species are slightly
   !% improved to fit smoothly the experimental inner-shell ionization energies
@@ -1955,7 +1955,7 @@ contains
     !% \item Outer shells of the Opacity Project (OP) elements: \cite{verner_atomic_1996_1}
     !% \item Inner shells of all elements, and outer shells of the non-OP elements: \cite{verner_analytic_1995}
     !% \end{itemize}
-    !% Original version (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\tt phfit2.f}) written by
+    !% Original version (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\normalfont \ttfamily phfit2.f}) written by
     !% \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
     !% Inner-shell ionization energies of some low-ionized species are slightly
     !% improved to fit smoothly the experimental inner-shell ionization energies

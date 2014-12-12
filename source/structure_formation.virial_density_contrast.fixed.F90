@@ -32,7 +32,7 @@
   end type virialDensityContrastFixed
 
   interface virialDensityContrastFixed
-     !% Constructors for the {\tt fixed} dark matter halo virial density contrast class.
+     !% Constructors for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
      module procedure fixedDefaultConstructor
      module procedure fixedConstructor
   end interface virialDensityContrastFixed
@@ -52,7 +52,7 @@
 contains
 
   function fixedDefaultConstructor()
-    !% Default constructor for the {\tt fixed} dark matter halo virial density contrast class.
+    !% Default constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
     use Input_Parameters
     use Galacticus_Error
     implicit none
@@ -77,7 +77,7 @@ contains
           !@   <defaultValue>criticalDensity</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     The reference density to use in the fixed value virial density contrast model. Either of {\tt critical density} and {\tt mean density} are allowed.
+          !@     The reference density to use in the fixed value virial density contrast model. Either of {\normalfont \ttfamily critical density} and {\normalfont \ttfamily mean density} are allowed.
           !@   </description>
           !@   <type>string</type>
           !@   <cardinality>1</cardinality>
@@ -101,7 +101,7 @@ contains
   end function fixedDefaultConstructor
 
   function fixedConstructor(densityContrast,densityType)
-    !% Constructor for the {\tt fixed} dark matter halo virial density contrast class.
+    !% Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
     use Galacticus_Error
     implicit none
     type            (virialDensityContrastFixed)                :: fixedConstructor

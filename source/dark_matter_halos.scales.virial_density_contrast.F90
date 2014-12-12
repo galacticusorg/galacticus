@@ -58,7 +58,7 @@
   end type darkMatterHaloScaleVirialDensityContrastDefinition
 
   interface darkMatterHaloScaleVirialDensityContrastDefinition
-     !% Constructors for the {\tt virialDensityContrastDefinition} dark matter halo scales class.
+     !% Constructors for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
      module procedure virialDensityContrastDefinitionDefaultConstructor
      module procedure virialDensityContrastDefinitionConstructor
   end interface darkMatterHaloScaleVirialDensityContrastDefinition
@@ -68,7 +68,7 @@
 contains
 
   function virialDensityContrastDefinitionDefaultConstructor()
-    !% Default constructor for the {\tt virialDensityContrastDefinition} dark matter halo scales class.
+    !% Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
     implicit none
     type (darkMatterHaloScaleVirialDensityContrastDefinition), target  :: virialDensityContrastDefinitionDefaultConstructor
     class(virialDensityContrastClass              ), pointer :: virialDensityContrast_
@@ -79,7 +79,7 @@ contains
   end function virialDensityContrastDefinitionDefaultConstructor
 
   function virialDensityContrastDefinitionConstructor(virialDensityContrastDefinition)
-    !% Default constructor for the {\tt virialDensityContrastDefinition} dark matter halo scales class.
+    !% Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
     implicit none
     type (darkMatterHaloScaleVirialDensityContrastDefinition)               , target :: virialDensityContrastDefinitionConstructor
     class(virialDensityContrastClass                        ), intent(in   ), target :: virialDensityContrastDefinition
@@ -98,7 +98,7 @@ contains
   end function virialDensityContrastDefinitionConstructor
 
   subroutine virialDensityContrastDefinitionDestructor(self)
-    !% Destructir for the {\tt virialDensityContrastDefinition} dark matter halo scales class.
+    !% Destructir for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
     implicit none
     type (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
 
@@ -122,7 +122,7 @@ contains
   end subroutine virialDensityContrastDefinitionCalculationReset
 
   double precision function virialDensityContrastDefinitionDynamicalTimescale(self,thisNode)
-    !% Returns the dynamical timescale for {\tt thisNode}.
+    !% Returns the dynamical timescale for {\normalfont \ttfamily thisNode}.
     use Numerical_Constants_Astronomical
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
@@ -143,7 +143,7 @@ contains
   end function virialDensityContrastDefinitionDynamicalTimescale
 
   double precision function virialDensityContrastDefinitionVirialVelocity(self,thisNode)
-    !% Returns the virial velocity scale for {\tt thisNode}.
+    !% Returns the virial velocity scale for {\normalfont \ttfamily thisNode}.
     use Numerical_Constants_Physical
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
@@ -168,7 +168,7 @@ contains
   end function virialDensityContrastDefinitionVirialVelocity
 
   double precision function virialDensityContrastDefinitionVirialVelocityGrowthRate(self,thisNode)
-    !% Returns the growth rate of the virial velocity scale for {\tt thisNode}.
+    !% Returns the growth rate of the virial velocity scale for {\normalfont \ttfamily thisNode}.
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
     type (treeNode                                          ), intent(inout), pointer :: thisNode
@@ -189,7 +189,7 @@ contains
   end function virialDensityContrastDefinitionVirialVelocityGrowthRate
 
   double precision function virialDensityContrastDefinitionVirialTemperature(self,thisNode)
-    !% Returns the virial temperature (in Kelvin) for {\tt thisNode}.
+    !% Returns the virial temperature (in Kelvin) for {\normalfont \ttfamily thisNode}.
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
@@ -210,7 +210,7 @@ contains
   end function virialDensityContrastDefinitionVirialTemperature
 
   double precision function virialDensityContrastDefinitionVirialRadius(self,thisNode)
-    !% Returns the virial radius scale for {\tt thisNode}.
+    !% Returns the virial radius scale for {\normalfont \ttfamily thisNode}.
     use Numerical_Constants_Math
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
@@ -234,7 +234,7 @@ contains
   end function virialDensityContrastDefinitionVirialRadius
 
   double precision function virialDensityContrastDefinitionVirialRadiusGrowthRate(self,thisNode)
-    !% Returns the growth rate of the virial radius scale for {\tt thisNode}.
+    !% Returns the growth rate of the virial radius scale for {\normalfont \ttfamily thisNode}.
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
     type (treeNode                                          ), intent(inout), pointer :: thisNode
@@ -249,7 +249,7 @@ contains
   end function virialDensityContrastDefinitionVirialRadiusGrowthRate
 
   double precision function virialDensityContrastDefinitionMeanDensity(self,thisNode)
-    !% Returns the mean density for {\tt thisNode}.
+    !% Returns the mean density for {\normalfont \ttfamily thisNode}.
     use Cosmology_Parameters
     use Cosmology_Functions
     implicit none
@@ -299,7 +299,7 @@ contains
   end function virialDensityContrastDefinitionMeanDensity
 
   double precision function virialDensityContrastDefinitionMeanDensityGrowthRate(self,thisNode)
-    !% Returns the growth rate of the mean density for {\tt thisNode}.
+    !% Returns the growth rate of the mean density for {\normalfont \ttfamily thisNode}.
     use Cosmology_Functions
     implicit none
     class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self

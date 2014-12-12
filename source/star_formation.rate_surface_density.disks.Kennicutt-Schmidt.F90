@@ -113,7 +113,7 @@ contains
        !@   <defaultValue>true</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The exponent of the $\Sigma_{\rm gas}/\Sigma_{\rm crit}$ term used in truncating the Kennicutt-Schmidt star formation law.
+       !@     The exponent of the $\Sigma_{\mathrm gas}/\Sigma_{\mathrm crit}$ term used in truncating the Kennicutt-Schmidt star formation law.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -153,18 +153,18 @@ contains
   end subroutine Star_Formation_Rate_Surface_Density_Disks_KS_Initialize
 
   double precision function Star_Formation_Rate_Surface_Density_Disk_KS(thisNode,radius)
-    !% Returns the star formation rate surface density  (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation in the galactic disk of {\tt thisNode}. The disk is assumed to obey the Kennicutt-Schmidt law:
+    !% Returns the star formation rate surface density  (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode}. The disk is assumed to obey the Kennicutt-Schmidt law:
     !% \begin{equation}
-    !% \Sigma_\star = A \left(x_{\rm H} {\Sigma_{\rm gas}\over M_\odot \hbox{pc}^{-2}}\right)^N,
+    !% \Sigma_\star = A \left(x_{\mathrm H} {\Sigma_{\mathrm gas}\over M_\odot \hbox{pc}^{-2}}\right)^N,
     !% \end{equation}
-    !% where $A=${\tt [starFormationKennicuttSchmidtNormalization]} and $N=${\tt
+    !% where $A=${\normalfont \ttfamily [starFormationKennicuttSchmidtNormalization]} and $N=${\tt
     !% [starFormationKennicuttSchmidtExponent]}. Optionally, star formation is truncated for gas surface densities below a critical density of:
     !% \begin{equation}
-    !% \Sigma_{\rm crit} = {q_{\rm crit} \kappa \sigma_{\rm gas} \over \pi \G},
+    !% \Sigma_{\mathrm crit} = {q_{\mathrm crit} \kappa \sigma_{\mathrm gas} \over \pi \G},
     !% \end{equation}
-    !% where $\kappa$ is the epicyclic frequency in the disk, $\sigma_{\rm gas}$ is the velocity dispersion of gas in the disk and
-    !% $q_{\rm crit}=${\tt [toomreParameterCritical]} is a dimensionless constant of order unity which controls where the critical
-    !% density occurs. $\sigma_{\rm gas}$ is assumed to be a constant equal to {\tt [velocityDispersionDiskGas]} and the disk is
+    !% where $\kappa$ is the epicyclic frequency in the disk, $\sigma_{\mathrm gas}$ is the velocity dispersion of gas in the disk and
+    !% $q_{\mathrm crit}=${\normalfont \ttfamily [toomreParameterCritical]} is a dimensionless constant of order unity which controls where the critical
+    !% density occurs. $\sigma_{\mathrm gas}$ is assumed to be a constant equal to {\normalfont \ttfamily [velocityDispersionDiskGas]} and the disk is
     !% assumed to have a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
     use Numerical_Constants_Math
     use Numerical_Constants_Physical

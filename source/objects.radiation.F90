@@ -78,7 +78,7 @@ module Radiation_Structure
      !@     <method>integrateOverCrossSection</method>
      !@     <description>
      !@       Integrates the flux (in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation structure between
-     !@       the wavelengths given in {\tt wavelengthRange} over a cross section specified by the function {\tt crossSectionFunction}.
+     !@       the wavelengths given in {\normalfont \ttfamily wavelengthRange} over a cross section specified by the function {\normalfont \ttfamily crossSectionFunction}.
      !@     </description>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ wavelength\argin, \intone\ [radiationType]\argin</arguments>
@@ -117,7 +117,7 @@ contains
   end function Radiation_Is_Defined
 
   subroutine Radiation_Define(radiation,radiationTypes)
-    !% Define which radiation fields are active in this {\tt radiation} object.
+    !% Define which radiation fields are active in this {\normalfont \ttfamily radiation} object.
     use Memory_Management
     implicit none
     class  (radiationStructure)              , intent(inout) :: radiation
@@ -139,7 +139,7 @@ contains
   end subroutine Radiation_Define
 
   subroutine Radiation_Set_Node(radiation,thisNode)
-    !% Set the {\tt radiation} field as specified.
+    !% Set the {\normalfont \ttfamily radiation} field as specified.
     !# <include directive="radiationSet" type="moduleUse">
     include 'objects.radiation.set.modules.inc'
     !# </include>
@@ -169,7 +169,7 @@ contains
   end subroutine Radiation_Set_Node
 
   subroutine Radiation_Set_Time(radiation,time)
-    !% Set the {\tt radiation} field as specified.
+    !% Set the {\normalfont \ttfamily radiation} field as specified.
     !# <include directive="radiationSet" type="moduleUse">
     include 'objects.radiation.set.modules.inc'
     !# </include>
@@ -197,7 +197,7 @@ contains
   end subroutine Radiation_Set_Time
 
   double precision function Radiation_Time(radiation)
-    !% Return the time of the {\tt radiation} object.
+    !% Return the time of the {\normalfont \ttfamily radiation} object.
     implicit none
     class(radiationStructure), intent(in   ) :: radiation
 
@@ -206,7 +206,7 @@ contains
   end function Radiation_Time
 
   double precision function Radiation_Temperature(radiation,radiationType)
-    !% Return the temperature of the {\tt radiation} object.
+    !% Return the temperature of the {\normalfont \ttfamily radiation} object.
     !# <include directive="radiationTemperature" type="moduleUse">
     include 'objects.radiation.temperature.modules.inc'
     !# </include>
@@ -228,7 +228,7 @@ contains
   end function Radiation_Temperature
 
   double precision function Radiation_Flux(radiation,wavelength,radiationType)
-    !% Return the flux of the {\tt radiation} object in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$ at the specified {\tt
+    !% Return the flux of the {\normalfont \ttfamily radiation} object in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$ at the specified {\tt
     !% wavelength} (in \AA).
     !# <include directive="radiationFlux" type="moduleUse">
     include 'objects.radiation.flux.modules.inc'
@@ -255,7 +255,7 @@ contains
     !% Integrate the photon number of the radiation field over a given cross-section function (which should return the cross
     !% section in units of cm$^2$), i.e.:
     !% \begin{equation}
-    !% {4 \pi \over {\rm h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {{\rm d}\lambda \over \lambda},
+    !% {4 \pi \over {\mathrm h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {{\mathrm d}\lambda \over \lambda},
     !% \end{equation}
     !% where $j_{\nu}$ is the flux of energy per unit area per unit solid angle and per unit frequency.
     use, intrinsic :: ISO_C_Binding

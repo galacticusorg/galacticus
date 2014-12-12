@@ -130,9 +130,9 @@ foreach my $person ( @sortedNames ) {
     print oHndl "\\begin{itemize}\n";
     foreach my $fileName ( sort(keys(%{$contributions->{$person}})) ) {
 	unless ( $fileName =~ m/\.pm$/ ) {
-	    print oHndl "\\item \\hyperlink{".$fileName."}{\\tt ".latex_encode($fileName)."}\n";
+	    print oHndl "\\item \\hyperlink{".$fileName."}{\\normalfont \\ttfamily ".latex_encode($fileName)."}\n";
 	} else {
-	    print oHndl "\\item {\\tt ".latex_encode($fileName)."}\n";
+	    print oHndl "\\item {\\normalfont \\ttfamily ".latex_encode($fileName)."}\n";
 	}
     }
     print oHndl "\\end{itemize}\n";

@@ -29,14 +29,14 @@
   end type spectraPostprocessorMadau1995
 
   interface spectraPostprocessorMadau1995
-     !% Constructors for the {\tt madau1995} spectrum postprocessor class.
+     !% Constructors for the {\normalfont \ttfamily madau1995} spectrum postprocessor class.
      module procedure madau1995DefaultConstructor
   end interface spectraPostprocessorMadau1995
 
 contains
 
   function madau1995DefaultConstructor()
-    !% Default constructor for the {\tt madau1995} spectrum postprocessor class.
+    !% Default constructor for the {\normalfont \ttfamily madau1995} spectrum postprocessor class.
     implicit none
     type(spectraPostprocessorMadau1995), target :: madau1995DefaultConstructor
     

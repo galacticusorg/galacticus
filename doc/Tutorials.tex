@@ -20,9 +20,9 @@ To utilize merger trees from the file that you created in a \glc\ run it's neces
     <value>myNBodyTrees.hdf5</value>
   </parameter>
 \end{verbatim}
-The first of these {\tt [mergerTreeConstructMethod]}$=${\tt read} tells \glc\ that merger trees will be constructed by reading them from a file. The second, {\tt [mergerTreeReadFileName]}, gives the name of the file from which to read the trees. In this example, we use the name of the file that was jus created.
+The first of these {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tells \glc\ that merger trees will be constructed by reading them from a file. The second, {\normalfont \ttfamily [mergerTreeReadFileName]}, gives the name of the file from which to read the trees. In this example, we use the name of the file that was jus created.
 
-In addition to specifying that trees should be read from a file, it's also important to ensure that the values of cosmological parameters in \glc\ match those in the merger tree file. (If they don't match, \glc\ will stop with an error message unless you set {\tt [mergerTreeReadMismatchIsFatal]}$=${\tt false} in which case you'll just be warned about any mismatch.) In our case of using merger trees from the Millennium Simulation, the correct cosmological parameter values can be set as follows:
+In addition to specifying that trees should be read from a file, it's also important to ensure that the values of cosmological parameters in \glc\ match those in the merger tree file. (If they don't match, \glc\ will stop with an error message unless you set {\normalfont \ttfamily [mergerTreeReadMismatchIsFatal]}$=${\normalfont \ttfamily false} in which case you'll just be warned about any mismatch.) In our case of using merger trees from the Millennium Simulation, the correct cosmological parameter values can be set as follows:
 \begin{verbatim}
   <!-- Use Millennium Simulation cosmology. -->
   <parameter>
@@ -127,7 +127,7 @@ If position and velocity information for tree nodes is available within the merg
     <value>true</value>
   </parameter>
 \end{verbatim}
-Typically, a merging halo is not seen at precisely the time at which it crosses the virial radius of its host (due to the fact that N-body simulations are output at discretely spaced timesteps). Therefore, \glc\ computes the orbit at the time just prior to merging and assumes that the orbital parameters (energy and angular momentum) remain fixed to propagate the orbit to the virial radius of the host. The second parameter in the above example, {\tt [mergerTreeReadPresetOrbitsBoundOnly]}, specifies whether or not only bound orbits should be set. Some calculations (e.g. of subhalo merging times) assume bound orbits and may fail if given an unbound orbit. Setting this option to {\tt true} causes only bound orbits to be preset---unbound orbits are ignored. Note that some orbits cannot be propagated to the virial radius (i.e. their pericenter is larger than the virial radius). The {\tt [mergerTreeReadPresetOrbitsSetAll]} option, if true, will cause such orbits to be assigned randomly using the selected XXXXX method, such that all orbits are assigned. The {\tt [mergerTreeReadPresetOrbitsAssertAllSet]} option requires that all orbits be set---if {\tt [mergerTreeReadPresetOrbitsSetAll]}$=${\tt false} and {\tt [mergerTreeReadPresetOrbitsAssertAllSet]}$=${\tt true} then \glc\ will exit with an error message if any orbit cannot be set.
+Typically, a merging halo is not seen at precisely the time at which it crosses the virial radius of its host (due to the fact that N-body simulations are output at discretely spaced timesteps). Therefore, \glc\ computes the orbit at the time just prior to merging and assumes that the orbital parameters (energy and angular momentum) remain fixed to propagate the orbit to the virial radius of the host. The second parameter in the above example, {\normalfont \ttfamily [mergerTreeReadPresetOrbitsBoundOnly]}, specifies whether or not only bound orbits should be set. Some calculations (e.g. of subhalo merging times) assume bound orbits and may fail if given an unbound orbit. Setting this option to {\normalfont \ttfamily true} causes only bound orbits to be preset---unbound orbits are ignored. Note that some orbits cannot be propagated to the virial radius (i.e. their pericenter is larger than the virial radius). The {\normalfont \ttfamily [mergerTreeReadPresetOrbitsSetAll]} option, if true, will cause such orbits to be assigned randomly using the selected XXXXX method, such that all orbits are assigned. The {\normalfont \ttfamily [mergerTreeReadPresetOrbitsAssertAllSet]} option requires that all orbits be set---if {\normalfont \ttfamily [mergerTreeReadPresetOrbitsSetAll]}$=${\normalfont \ttfamily false} and {\normalfont \ttfamily [mergerTreeReadPresetOrbitsAssertAllSet]}$=${\normalfont \ttfamily true} then \glc\ will exit with an error message if any orbit cannot be set.
 
 \subsubsection{Merging Times and Targets}
 
@@ -157,7 +157,7 @@ which select a satellite orbit method that allows merger times to be present and
     <value>Jiang2008</value>
   </parameter>
 \end{verbatim}
-which selects a standard satellite orbit method, prevents attempts to preset the merger times and selects the {\tt Jiang2008} method for computing merger times instead.
+which selects a standard satellite orbit method, prevents attempts to preset the merger times and selects the {\normalfont \ttfamily Jiang2008} method for computing merger times instead.
 
 In addition to setting the times of merger events, it is possible to set the target node with which a merging node should merge. By default, \glc\ will assume that all merging occurs with the non-subhalo host node in which a subhalo is located. This may not be the desired behavior when using N-body merger trees. For example, such trees may indicate that a subhalo merges with another subhalo. Setting
 \begin{verbatim}
@@ -168,7 +168,7 @@ In addition to setting the times of merger events, it is possible to set the tar
 \end{verbatim}
 will cause the target node with which each merger should occur to be determined from the merger tree structure and preset for use in \glc.
 
-It is possible to add a delay between the last time at which a subhalo was seen in a simulation and the time at which it is considered to merge. This functionality is motivated by the consideration that a subhalo vanishing from a simulation may be simply due to it dropping below resolution rather than it actually having undergone a merger. The parameter {\tt [mergerTreeReadSubresolutionMergingMethod]} can be used to select a satellite merging timescale method (see \S\ref{sec:SatelliteMergingTimescales}) to use in this case. (It is set by default to ``{\tt null}'' such that no delay before merging occurs.) The orbit of the subhalo around its parent at the last time it is present in the merger tree is passed to this method and used to estimate a time until merging. This delay is added to the time at which the subhalo merges and, if merge target nodes are being set, the target node is updated accordingly.
+It is possible to add a delay between the last time at which a subhalo was seen in a simulation and the time at which it is considered to merge. This functionality is motivated by the consideration that a subhalo vanishing from a simulation may be simply due to it dropping below resolution rather than it actually having undergone a merger. The parameter {\normalfont \ttfamily [mergerTreeReadSubresolutionMergingMethod]} can be used to select a satellite merging timescale method (see \S\ref{sec:SatelliteMergingTimescales}) to use in this case. (It is set by default to ``{\normalfont \ttfamily null}'' such that no delay before merging occurs.) The orbit of the subhalo around its parent at the last time it is present in the merger tree is passed to this method and used to estimate a time until merging. This delay is added to the time at which the subhalo merges and, if merge target nodes are being set, the target node is updated accordingly.
 
 \subsubsection{Subhalo Indices}
 
@@ -183,7 +183,7 @@ The indices of subhalos are usually frozen at the index of the halo just prior t
     <value>true</value>
   </parameter>
 \end{verbatim}
-to first select the ``preset'' satellite orbit method (which allows subhalo indices to be preset) and, second, to instruct the merger tree construction algorithm to preset those indices. The index will then be available in output as {\tt satelliteNodeIndex}.
+to first select the ``preset'' satellite orbit method (which allows subhalo indices to be preset) and, second, to instruct the merger tree construction algorithm to preset those indices. The index will then be available in output as {\normalfont \ttfamily satelliteNodeIndex}.
 
 \subsubsection{Subhalo Masses}
 
@@ -213,9 +213,9 @@ If information on the angular momenta of nodes is available in the merger tree f
 
 The spin parameter is set using the spin of each node if available, or otherwise using the angular momentum of each node stored in the merger tree file using:
 \begin{equation}
- \lambda = {|{\bf J}| |E|^{1/2} \over {\rm G} M^{5/2}}
+ \lambda = {|{\mathbf J}| |E|^{1/2} \over {\mathrm G} M^{5/2}}
 \end{equation}
-where $|{\bf J}|$ is the magnitude of the node's angular momentum, $M$ is the node's mass and $E$ is its energy. Additionally, by setting:
+where $|{\mathbf J}|$ is the magnitude of the node's angular momentum, $M$ is the node's mass and $E$ is its energy. Additionally, by setting:
 
 \begin{verbatim}
   <parameter>
@@ -225,10 +225,10 @@ where $|{\bf J}|$ is the magnitude of the node's angular momentum, $M$ is the no
 \end{verbatim}
 the spin vector of each node will be set (assuming that the vector spin or angular momenta of nodes are available in the merger tree file) using:
 \begin{equation}
- {\boldmath \lambda} = {{\bf J} |E|^{1/2} \over {\rm G} M^{5/2}}.
+ {\boldmath \lambda} = {{\mathbf J} |E|^{1/2} \over {\mathrm G} M^{5/2}}.
 \end{equation}
 
-If spins could not be determined for some halos the spin (or angular momentum) should be set to zero in the merger tree file, and the parameter {\tt [mergerTreeReadPresetUnphysicalSpins]} set to {\tt true}. \glc\ will then assign a spin to such halos by sampling from the selected spin distribution (see \S\ref{sec:SpinParameterDistribution}). 
+If spins could not be determined for some halos the spin (or angular momentum) should be set to zero in the merger tree file, and the parameter {\normalfont \ttfamily [mergerTreeReadPresetUnphysicalSpins]} set to {\normalfont \ttfamily true}. \glc\ will then assign a spin to such halos by sampling from the selected spin distribution (see \S\ref{sec:SpinParameterDistribution}). 
 
 \subsubsection{Node Scale Radii}
 
@@ -241,17 +241,17 @@ If information on the half-mass or scale radii of nodes is available in the merg
   </parameter>
 \end{verbatim}
 
-Before doing this, it is important to be sure that the half-mass or scale radii of the nodes are reliable. For example, in low mass nodes extracted from an N-body simulation resolution effect may limit the accuracy of the measured half-mass or scale radius. In such cases, use the {\tt [mergerTreeReadPresetScaleRadiiMinimumMass]} parameter to specify the lowest mass halos for which the scale radii should be preset---lower mass halos will be assigned a scale radius using the method specified by the {\tt [mergerTreeReadConcentrationFallbackMethod]} parameter (which will default to the value of {\tt [darkMatterConcentrationMethod]}; see \S\ref{sec:DarkMatterProfileConcentration}). It is also possible to specify minimum and maximum allowed concentrations when computing the scale radius from the half mass radius using the {\tt [mergerTreeReadPresetScaleRadiiConcentrationMinimum]} and {\tt [mergerTreeReadPresetScaleRadiiConcentrationMaximum]} parameters. If matching the half mass radius would require a concentration outside of this range, \glc\ will abort unless {\tt [mergerTreeReadPresetScaleRadiiFailureIsFatal]}$=${\tt false}, in which case it will instead silently use the fallback concentration method described above.
+Before doing this, it is important to be sure that the half-mass or scale radii of the nodes are reliable. For example, in low mass nodes extracted from an N-body simulation resolution effect may limit the accuracy of the measured half-mass or scale radius. In such cases, use the {\normalfont \ttfamily [mergerTreeReadPresetScaleRadiiMinimumMass]} parameter to specify the lowest mass halos for which the scale radii should be preset---lower mass halos will be assigned a scale radius using the method specified by the {\normalfont \ttfamily [mergerTreeReadConcentrationFallbackMethod]} parameter (which will default to the value of {\normalfont \ttfamily [darkMatterConcentrationMethod]}; see \S\ref{sec:DarkMatterProfileConcentration}). It is also possible to specify minimum and maximum allowed concentrations when computing the scale radius from the half mass radius using the {\normalfont \ttfamily [mergerTreeReadPresetScaleRadiiConcentrationMinimum]} and {\normalfont \ttfamily [mergerTreeReadPresetScaleRadiiConcentrationMaximum]} parameters. If matching the half mass radius would require a concentration outside of this range, \glc\ will abort unless {\normalfont \ttfamily [mergerTreeReadPresetScaleRadiiFailureIsFatal]}$=${\normalfont \ttfamily false}, in which case it will instead silently use the fallback concentration method described above.
 
 If only half-mass radii are available, the scale radius is set by using a root finding algorithm to ensure that half of the total halo mass is enclosed within the specified half-mass radius.
 
 \subsubsection{Miscellaneous N-body Properties}
 
-Several miscellaneous properties often available from N-body merger trees can also be preset by setting the following parameters to {\tt true}:
+Several miscellaneous properties often available from N-body merger trees can also be preset by setting the following parameters to {\normalfont \ttfamily true}:
 \begin{description}
-\item[{mergerTreeReadPresetParticleCounts}] Sets the number of particles in each halo (requires the {\tt particleCount} dataset to be present in the merger tree file);
-\item[{mergerTreeReadPresetVelocityMaxima}] Sets the maxima of halo rotation curves (requires the {\tt velocityMaximum} dataset to be present in the merger tree file);
-\item[{mergerTreeReadPresetVelocityDispersions}] Sets the velocity dispersion of halos (requires the {\tt velocityDispersion} dataset to be present in the merger tree file).
+\item[{mergerTreeReadPresetParticleCounts}] Sets the number of particles in each halo (requires the {\normalfont \ttfamily particleCount} dataset to be present in the merger tree file);
+\item[{mergerTreeReadPresetVelocityMaxima}] Sets the maxima of halo rotation curves (requires the {\normalfont \ttfamily velocityMaximum} dataset to be present in the merger tree file);
+\item[{mergerTreeReadPresetVelocityDispersions}] Sets the velocity dispersion of halos (requires the {\normalfont \ttfamily velocityDispersion} dataset to be present in the merger tree file).
 \end{description}
 
 \subsubsection{``Fly-by'' Halos}
@@ -273,11 +273,11 @@ In this case, nodes with missing hosts are simply treated as being isolated halo
 
 \subsubsection{Positions and Velocities}
 
-Components of the position of each node are output as {\tt positionX}, {\tt positionY} and {\tt positionZ} and can be accessed in the same way as other output properties from \glc\ (see \S\ref{sec:nodeDataGroup} and \S\ref{sec:perlModuleDataExtraction}).
+Components of the position of each node are output as {\normalfont \ttfamily positionX}, {\normalfont \ttfamily positionY} and {\normalfont \ttfamily positionZ} and can be accessed in the same way as other output properties from \glc\ (see \S\ref{sec:nodeDataGroup} and \S\ref{sec:perlModuleDataExtraction}).
 
 \subsubsection{Subhalo Masses}
 
-The current mass of subhalos is available via the {\tt nodeBoundMass} otuput dataset and can be accessed in the same way as other output properties from \glc\ (see \S\ref{sec:nodeDataGroup} and \S\ref{sec:perlModuleDataExtraction}). For non-subhalos this property is equal to the usual {\tt nodeMass} property.
+The current mass of subhalos is available via the {\normalfont \ttfamily nodeBoundMass} otuput dataset and can be accessed in the same way as other output properties from \glc\ (see \S\ref{sec:nodeDataGroup} and \S\ref{sec:perlModuleDataExtraction}). For non-subhalos this property is equal to the usual {\normalfont \ttfamily nodeMass} property.
 
 \section{Generating Mock Catalogs with Lightcones from the Millennium Simulation}\index{lightcone}\index{Millennium Simulation}\index{mock catalog}
 
@@ -285,16 +285,16 @@ Suppose that you want to create a catalog of galaxies as would be found in a sur
 
 Generating such a mock catalog using \glc\ involves first extracting the halos (and their merger trees) within this ``lightcone'' from a suitable N-body simulation, and then processing them through \glc. In this tutorial, we will specifically make use of the \href{http://gavo.mpa-garching.mpg.de/MyMillennium3/MyDB}{Millennium Simulation database} to provide the merger trees, but the same principles apply to any N-body simulation.
 
-The script, {\tt scripts/aux/Millennium\_Lightcone\_Grab.pl} can be used to retrieve merger trees that intersect a given lightcone from the Millennium Database and to store them in \glc's format (see \S\ref{sec:MergerTreeFileFormat}). The script is used as follows:
+The script, {\normalfont \ttfamily scripts/aux/Millennium\_Lightcone\_Grab.pl} can be used to retrieve merger trees that intersect a given lightcone from the Millennium Database and to store them in \glc's format (see \S\ref{sec:MergerTreeFileFormat}). The script is used as follows:
 \begin{verbatim}
 scripts/aux/Millennium_Lightcone_Grab.pl <lightconeDirectory> <fieldSize> <maximumRedshift>
     --user <myUserName> --password <myPassword> --treesPerFile <treesPerFile>
 \end{verbatim}
-Here, {\tt \textless lightconeDirectory\textgreater} is the name of a (pre-existing) directory into which merger tree data will be stored, {\tt \textless fieldSize\textgreater} is the length (in degrees) of one side of the square field of view of the lightcone, {\tt \textless maximumRedshift\textgreater} is the highist redshift for which halos should be included in the catalog. The {\tt --user} and {\tt --password} options allow you to specify your username and password for accessing the Millennium Simulation database. Finally, the {\tt --treesPerFile} specifies how many merger trees should be stored in each file (the script will split the lightcone between many files---this is primarily so that each request sent to the Millennium Database server is not too large). If no value is specified a default of 200 trees per file will be used.
+Here, {\normalfont \ttfamily \textless lightconeDirectory\textgreater} is the name of a (pre-existing) directory into which merger tree data will be stored, {\normalfont \ttfamily \textless fieldSize\textgreater} is the length (in degrees) of one side of the square field of view of the lightcone, {\normalfont \ttfamily \textless maximumRedshift\textgreater} is the highist redshift for which halos should be included in the catalog. The {\normalfont \ttfamily --user} and {\normalfont \ttfamily --password} options allow you to specify your username and password for accessing the Millennium Simulation database. Finally, the {\normalfont \ttfamily --treesPerFile} specifies how many merger trees should be stored in each file (the script will split the lightcone between many files---this is primarily so that each request sent to the Millennium Database server is not too large). If no value is specified a default of 200 trees per file will be used.
 
-The script generates multiple SQL queries to the Millennium database in order to first find all halos which intersect the lightcone and second to retrieve the complete merger tree associated with each such halo. These merger trees are then stored in \glc's merger tree file format in files named {\tt Lightcone\_Trees\_AAA:BBB.hdf5} in the given {\tt \textless lightconeDirectory\textgreater}, where {\tt AAA} and {\tt BBB} are numbers giving the first and last trees in the file\footnote{Note that these are not the ID numbers of the trees, just a sequential count of all trees retrieved.}
+The script generates multiple SQL queries to the Millennium database in order to first find all halos which intersect the lightcone and second to retrieve the complete merger tree associated with each such halo. These merger trees are then stored in \glc's merger tree file format in files named {\normalfont \ttfamily Lightcone\_Trees\_AAA:BBB.hdf5} in the given {\normalfont \ttfamily \textless lightconeDirectory\textgreater}, where {\normalfont \ttfamily AAA} and {\normalfont \ttfamily BBB} are numbers giving the first and last trees in the file\footnote{Note that these are not the ID numbers of the trees, just a sequential count of all trees retrieved.}
 
-Each of the merger tree files created can then be run through \glc\ in the usual way (see \S\ref{sec:nBodyRun}).  Outputs should be requested at every Millennium snapshot (up to the largest redshift to be considered), and the {\tt lightcone} filter should be used to cause only those galaxies which intersect the lightcone to be output---for example:
+Each of the merger tree files created can then be run through \glc\ in the usual way (see \S\ref{sec:nBodyRun}).  Outputs should be requested at every Millennium snapshot (up to the largest redshift to be considered), and the {\normalfont \ttfamily lightcone} filter should be used to cause only those galaxies which intersect the lightcone to be output---for example:
 \begin{verbatim}
 <!-- Set output redshifts to the snapshots in the milliMillennium. -->                                                                                                
 <parameter>
@@ -318,15 +318,15 @@ Each of the merger tree files created can then be run through \glc\ in the usual
   <value>lightconeDirectory/geometry.xml</value>
 </parameter>                                                                                                                                                          
 \end{verbatim}
-where the {\tt geometry.xml} file will have been automatically created within the {\tt \textless lightconeDirectory\textgreater} directory.
+where the {\normalfont \ttfamily geometry.xml} file will have been automatically created within the {\normalfont \ttfamily \textless lightconeDirectory\textgreater} directory.
 
 Selecting the lightcone filter automatically causes lightcone coordinate information (i.e. the position and velocity of each galaxy in a coordinate system with axes aligned along the line of sight of the lightcone and parallel to the two edges of the square field of view) to be output (see \S\ref{sec:OutputLightcone}). The redshift of each galaxy is also output.
 
 \section{Using the Instantaneous Recycling Approximation}\index{recycling!instantaneous}\index{instantaneous recycling approximation}
 
-Choosing {\tt [stellarPopulationPropertiesMethod]}$=${\tt instantaneous} will cause \glc\ to use the instantaneous recycling approximation for all calculations of stellar populations. The recyling rate and yield to use are set by the {\tt [imfNAMERecycledInstantaneous]} and {\tt [imfNAMEYieldInstantaneous]} parameters respectively, where {\tt NAME} is the name of the appropriate \gls{imf}.
+Choosing {\normalfont \ttfamily [stellarPopulationPropertiesMethod]}$=${\normalfont \ttfamily instantaneous} will cause \glc\ to use the instantaneous recycling approximation for all calculations of stellar populations. The recyling rate and yield to use are set by the {\normalfont \ttfamily [imfNAMERecycledInstantaneous]} and {\normalfont \ttfamily [imfNAMEYieldInstantaneous]} parameters respectively, where {\normalfont \ttfamily NAME} is the name of the appropriate \gls{imf}.
 
-Setting {\tt [stellarPopulationPropertiesMethod]}$=${\tt noninstantaneous} causes \glc\ to use a fully non-instantaneous, metal-depdendent calculation of recycling, metal production and \gls{sne} rates. However, it is possible to force this method to operate in the instantaneous recycling approximation limit (which can be useful for testing and comparison) by setting:
+Setting {\normalfont \ttfamily [stellarPopulationPropertiesMethod]}$=${\normalfont \ttfamily noninstantaneous} causes \glc\ to use a fully non-instantaneous, metal-depdendent calculation of recycling, metal production and \gls{sne} rates. However, it is possible to force this method to operate in the instantaneous recycling approximation limit (which can be useful for testing and comparison) by setting:
 \begin{verbatim}
 <parameter>
   <!-- Force the calculation of recycling, yields etc. to   -->
@@ -349,31 +349,31 @@ Setting {\tt [stellarPopulationPropertiesMethod]}$=${\tt noninstantaneous} cause
 </parameter>
 \end{verbatim}
 
-\section{Computing Dust Attenuation and Emission Using Galacticus+Grasil}\label{sec:TutorialGrasil}\index{dust!emission}\index{dust!attenutation}\index{Grasil@{\sc Grasil}}
+\section{Computing Dust Attenuation and Emission Using Galacticus+Grasil}\label{sec:TutorialGrasil}\index{dust!emission}\index{dust!attenutation}\index{Grasil@{\normalfont \scshape Grasil}}
 
-\glc\ can interface with the \href{http://adlibitum.oat.ts.astro.it/silva/grasil/grasil.html}{\sc Grasil} code to compute the attenutation of starlight by dust, along with the re-emission of absorbed energy by that dust. To do this, it is necessary to store the entire star formation history of galaxies in a \glc\ model, as {\sc Grasil} uses this information to determine the attenuation of stellar populations as a function of their age.
+\glc\ can interface with the \href{http://adlibitum.oat.ts.astro.it/silva/grasil/grasil.html}{\normalfont \scshape Grasil} code to compute the attenutation of starlight by dust, along with the re-emission of absorbed energy by that dust. To do this, it is necessary to store the entire star formation history of galaxies in a \glc\ model, as {\normalfont \scshape Grasil} uses this information to determine the attenuation of stellar populations as a function of their age.
 
-Recording star formation histories is as simple as setting the {\tt [starFormationHistoriesMethod]} parameter to {\tt metallicitySplit}. This particular star formation history method stores the star formation in each galaxy as a function of time and metallicity, as required by {\sc Grasil}. The level of detail with which the star formation history is stored is controlled by several parameters:
+Recording star formation histories is as simple as setting the {\normalfont \ttfamily [starFormationHistoriesMethod]} parameter to {\normalfont \ttfamily metallicitySplit}. This particular star formation history method stores the star formation in each galaxy as a function of time and metallicity, as required by {\normalfont \scshape Grasil}. The level of detail with which the star formation history is stored is controlled by several parameters:
 \begin{description}
-\item [{\tt starFormationHistoryTimeStep}] The timestep used in discretizing star formation histories.
-\item [{\tt starFormationHistoryFineTimeStep}] The timestep to use in discretizing star formation histories just prior to output times. This should typically be smaller than {\tt [starFormationHistoryTimeStep]} to give improved resolution in the star formation hsitory for recently formed stars.
-\item [{\tt starFormationHistoryFineTime}] The period before each output for which the {\tt [starFormationHistoryFineTimeStep]} should be used.
-\item [{\tt starFormationHistoryMetallicityCount}] The number of bins in metallicity to use when discretizing the star formation history.
-\item [{\tt starFormationHistoryMetallicityMinimum}] The upper limit to the metallicity in the lowest metallicity bin (i.e. the lowest metallicity bin will extend from zero to this value).
-\item [{\tt starFormationHistoryMetallicityMaximum}] The upper limit to the metallicity in the highest metallicity bin.
+\item [{\normalfont \ttfamily starFormationHistoryTimeStep}] The timestep used in discretizing star formation histories.
+\item [{\normalfont \ttfamily starFormationHistoryFineTimeStep}] The timestep to use in discretizing star formation histories just prior to output times. This should typically be smaller than {\normalfont \ttfamily [starFormationHistoryTimeStep]} to give improved resolution in the star formation hsitory for recently formed stars.
+\item [{\normalfont \ttfamily starFormationHistoryFineTime}] The period before each output for which the {\normalfont \ttfamily [starFormationHistoryFineTimeStep]} should be used.
+\item [{\normalfont \ttfamily starFormationHistoryMetallicityCount}] The number of bins in metallicity to use when discretizing the star formation history.
+\item [{\normalfont \ttfamily starFormationHistoryMetallicityMinimum}] The upper limit to the metallicity in the lowest metallicity bin (i.e. the lowest metallicity bin will extend from zero to this value).
+\item [{\normalfont \ttfamily starFormationHistoryMetallicityMaximum}] The upper limit to the metallicity in the highest metallicity bin.
 \end{description}
 Default values set a timestep of 0.1~Gyr, with 0.01~Gyr timesteps for 0.1~Gyr before each output, along with 10 metallicity bins ranging from $10^{-4}Z_\odot$ to $10Z_\odot$. It is always recommended to check that these values result in a sufficiently well-resolved star formation history for your purposes.
 
-When run with these parameter settings \glc\ will output an additional group to the output file called {\tt starFormationHistories}. This contains a hierarchically arranged set of datasets describing the star formation histories. The hierarchy extends through output number, and merger tree index. For example {\tt starFormationHistories/Output5/mergerTree3/} will contain the star formation history for merger tree 3 at output 5. This group will, in general, contain many datasets, e.g.
+When run with these parameter settings \glc\ will output an additional group to the output file called {\normalfont \ttfamily starFormationHistories}. This contains a hierarchically arranged set of datasets describing the star formation histories. The hierarchy extends through output number, and merger tree index. For example {\normalfont \ttfamily starFormationHistories/Output5/mergerTree3/} will contain the star formation history for merger tree 3 at output 5. This group will, in general, contain many datasets, e.g.
 \begin{verbatim}
 diskSFH7819       Dataset {11, 34}
 diskTime7819      Dataset {34}
 spheroidSFH7819   Dataset {11, 34}
 spheroidTime7819  Dataset {34}
 \end{verbatim}
-In this case, datasets are present for both a disk and bulge component of node 7819. (If a node does not contain one of these components, the corresponding dataset will be missing.) The ``{\tt Time}'' datasets give the times at which the star formation history is stored, while the ``{\tt SFH}'' datasets give the mass of stars formed in each time/metallicity bin. (The metallicities themselves are available in the {\tt starFormationHistories/metallicities} dataset.)
+In this case, datasets are present for both a disk and bulge component of node 7819. (If a node does not contain one of these components, the corresponding dataset will be missing.) The ``{\normalfont \ttfamily Time}'' datasets give the times at which the star formation history is stored, while the ``{\normalfont \ttfamily SFH}'' datasets give the mass of stars formed in each time/metallicity bin. (The metallicities themselves are available in the {\normalfont \ttfamily starFormationHistories/metallicities} dataset.)
 
-Properties of the {\sc Grasil} \gls{sed} can now be accessed using the {\tt Galacticus::Grasil} module (see \S\ref{sec:Grasil}). When such properties are requested, {\sc Grasil} will be automatically run on each selected galaxy, the \gls{sed} computed and stored to the \glc\ file\footnote{{\sc Grasil} \glspl{sed} are stored in the {\tt grasilSEDs} group in a hierarchy of output, merger tree, and node groups, as for the star formation histories. Within each node group three datasets are stored, giving the {\tt wavelength}, {\tt inclination}, and {\tt SED} of the galaxy.}, and the relevant fluxes computed. If necessary, {\sc Grasil} and its data files will be downloaded automatically. Multiple {\sc Grasil} models will be run simultaneously if multiple cores are available.
+Properties of the {\normalfont \scshape Grasil} \gls{sed} can now be accessed using the {\normalfont \ttfamily Galacticus::Grasil} module (see \S\ref{sec:Grasil}). When such properties are requested, {\normalfont \scshape Grasil} will be automatically run on each selected galaxy, the \gls{sed} computed and stored to the \glc\ file\footnote{{\normalfont \scshape Grasil} \glspl{sed} are stored in the {\normalfont \ttfamily grasilSEDs} group in a hierarchy of output, merger tree, and node groups, as for the star formation histories. Within each node group three datasets are stored, giving the {\normalfont \ttfamily wavelength}, {\normalfont \ttfamily inclination}, and {\normalfont \ttfamily SED} of the galaxy.}, and the relevant fluxes computed. If necessary, {\normalfont \scshape Grasil} and its data files will be downloaded automatically. Multiple {\normalfont \scshape Grasil} models will be run simultaneously if multiple cores are available.
 
 For example:
 \begin{verbatim}
@@ -401,13 +401,13 @@ $galacticus->{'grasilOptions'}->{'recomputeSEDs'          } = 0;
                             'grasilInfraredLuminosity'
                            ]
 \end{verbatim}
-The {\tt grasilOptions} block in the above controls the behavior of {\sc Grasil}. Here we've chosen to include calculations of \gls{pah} features, have accounted for fluctuating tempertures in small grains (both of which slow down the calculation but make it more accurate), have specified the number of wavelengths and the size of the radial grid used to model each galaxy. We have also specified that the \gls{sed} should not be recomputed---if {\sc Grasil} fluxes are requested in future for galaxies in this model, they will be computed from the stored {\sc Grasil} \gls{sed}. If you want to change the parameters of the {\sc Grasil} calculation then set the {\tt recomputeSED} option to 1 instead\footnote{Exercise caution when using this option. Recomputing SEDs requires deleting the old SED group. The HDF5 library currently does not clean up the space occupied by the datasets in this deleted group, so the file size can grow rapidly if you repeatedly recompute {\sc Grasil} SEDs.}. Fluxes are returned in units of Janskys, while the total infrared luminosity ({\tt grasilInfraredLuminosity}) is returned in units of Solar luminosities.
+The {\normalfont \ttfamily grasilOptions} block in the above controls the behavior of {\normalfont \scshape Grasil}. Here we've chosen to include calculations of \gls{pah} features, have accounted for fluctuating tempertures in small grains (both of which slow down the calculation but make it more accurate), have specified the number of wavelengths and the size of the radial grid used to model each galaxy. We have also specified that the \gls{sed} should not be recomputed---if {\normalfont \scshape Grasil} fluxes are requested in future for galaxies in this model, they will be computed from the stored {\normalfont \scshape Grasil} \gls{sed}. If you want to change the parameters of the {\normalfont \scshape Grasil} calculation then set the {\normalfont \ttfamily recomputeSED} option to 1 instead\footnote{Exercise caution when using this option. Recomputing SEDs requires deleting the old SED group. The HDF5 library currently does not clean up the space occupied by the datasets in this deleted group, so the file size can grow rapidly if you repeatedly recompute {\normalfont \scshape Grasil} SEDs.}. Fluxes are returned in units of Janskys, while the total infrared luminosity ({\normalfont \ttfamily grasilInfraredLuminosity}) is returned in units of Solar luminosities.
 
-A simple plotting script is provided which illustrates how to access and use the {\sc Grasil} \glspl{sed} stored in \glc\ files. For example:
+A simple plotting script is provided which illustrates how to access and use the {\normalfont \scshape Grasil} \glspl{sed} stored in \glc\ files. For example:
 \begin{verbatim}
 scripts/plotting/plotGrasilSpectrum.pl galacticus.hdf5 5 9 217 43.2 SED.pdf
 \end{verbatim}
-will plot the \gls{sed} of node 217, in merger tree 9, at output 5 from the {\tt galacticus.hdf5} file. The \gls{sed} will be shown for an inclination of $43.2^\circ$ and the plot will be written to {\tt SED.pdf}.
+will plot the \gls{sed} of node 217, in merger tree 9, at output 5 from the {\normalfont \ttfamily galacticus.hdf5} file. The \gls{sed} will be shown for an inclination of $43.2^\circ$ and the plot will be written to {\normalfont \ttfamily SED.pdf}.
 
 \section{Outputting Stellar Luminosities}\index{luminosities!stellar}\index{stellar!luminosities}\index{luminosities!galactic}\index{galaxy!luminosities}
 
@@ -426,9 +426,9 @@ will plot the \gls{sed} of node 217, in merger tree 9, at output 5 from the {\tt
   <value>observed</value>
  </parameter>
 \end{verbatim}
-This would result in a dataset called {\tt diskLuminositiesStellar:SDSS\_r:observed:z0.1000} being output (along with a similar dataset for the spheroid component), corresponding to the luminosity in the SDSS r-band filter, as observed at $z=0.1$. To get the same filter but in the rest-frame of the galaxy, change the {\tt luminosityType} to ``{\tt rest}''. If instead of specifying a unique redshift you instead specify ``{\tt all}'' for a filter in the {\tt luminosityRedshift} element, then the filter will be replicated to all output redshifts.
+This would result in a dataset called {\normalfont \ttfamily diskLuminositiesStellar:SDSS\_r:observed:z0.1000} being output (along with a similar dataset for the spheroid component), corresponding to the luminosity in the SDSS r-band filter, as observed at $z=0.1$. To get the same filter but in the rest-frame of the galaxy, change the {\normalfont \ttfamily luminosityType} to ``{\normalfont \ttfamily rest}''. If instead of specifying a unique redshift you instead specify ``{\normalfont \ttfamily all}'' for a filter in the {\normalfont \ttfamily luminosityRedshift} element, then the filter will be replicated to all output redshifts.
 
-Available filters can be found in the {\tt data/filters} folder. Additionally, it is possible to specify top-hat filters (which have unit transmission over a range of wavelengths) without the need to create a filter file for them. A filter named {\tt topHat\_L\_R} will be interpretted as a top-hat filter where {\tt L}$=\lambda$ is the central wavelength (in \AA ngstroms) and {\tt R}$=R$ is the resolution. A top-hat filter is constructed such that the transmission is unity between $\lambda_1$ and $\lambda_2$, and zero outside that range, and such that $\lambda_1\lambda_2=\lambda^2$, $\lambda_2-\lambda_1=\lambda/R$. Furthermore, a filter specified as {\tt topHat\_Llow\_Lhigh\_R} will be expanded into a set of contiguous top-hat filters with resolution {\tt R} spanning the wavelength range {\tt Llow} to {\tt Lhigh} with the first filter's lower wavelenght limit aligned with {\tt Llow} and continuing until the central wavelength of the filter is no longer below {\tt Lhigh}.
+Available filters can be found in the {\normalfont \ttfamily data/filters} folder. Additionally, it is possible to specify top-hat filters (which have unit transmission over a range of wavelengths) without the need to create a filter file for them. A filter named {\normalfont \ttfamily topHat\_L\_R} will be interpretted as a top-hat filter where {\normalfont \ttfamily L}$=\lambda$ is the central wavelength (in \AA ngstroms) and {\normalfont \ttfamily R}$=R$ is the resolution. A top-hat filter is constructed such that the transmission is unity between $\lambda_1$ and $\lambda_2$, and zero outside that range, and such that $\lambda_1\lambda_2=\lambda^2$, $\lambda_2-\lambda_1=\lambda/R$. Furthermore, a filter specified as {\normalfont \ttfamily topHat\_Llow\_Lhigh\_R} will be expanded into a set of contiguous top-hat filters with resolution {\normalfont \ttfamily R} spanning the wavelength range {\normalfont \ttfamily Llow} to {\normalfont \ttfamily Lhigh} with the first filter's lower wavelenght limit aligned with {\normalfont \ttfamily Llow} and continuing until the central wavelength of the filter is no longer below {\normalfont \ttfamily Lhigh}.
 
 Luminosities are always output in units of the zero-point of the AB magnitude system, such that $-2.5\log_{10}L$ (where $L$ is the output luminosity) gives the AB absolute magnitude of the galaxy.
 
@@ -447,7 +447,7 @@ You can add additional luminosities by simply adding more entries in these param
    <value>observed rest</value>
  </parameter>
 \end{verbatim}
-would result in datasets {\tt diskLuminositiesStellar:SDSS\_r:observed:z0.1000} and {\tt diskLuminositiesStellar:SDSS\_g:rest:z0.3000}. 
+would result in datasets {\normalfont \ttfamily diskLuminositiesStellar:SDSS\_r:observed:z0.1000} and {\normalfont \ttfamily diskLuminositiesStellar:SDSS\_g:rest:z0.3000}. 
 
 \subsection{Postprocessing of Stellar Spectra}
 
@@ -455,14 +455,14 @@ Stellar luminosities are computed by convolving a library of simple stellar popu
 
 Typical uses of stellar spectra postprocessors include accounting for absorption of galaxy light by the intervening \gls{igm}, or capturing only the light from recent star formation\footnote{Perhaps so that additional dust extinction can be applied to the light of recently formed stars.}. A full list of the available postprocessors can be found in \S\ref{sec:StellarSpectraPostprocessing}.
 
-If you don't specify a postprocessing set, the ``default'' set (consisting of the {\tt inoue2014} postprocessor; see \S\ref{phys:spectraPostprocessor:spectraPostprocessorInoue2014}) is applied to each luminosity calculation. To specify other postprocessing sets add the following to your parameter file:
+If you don't specify a postprocessing set, the ``default'' set (consisting of the {\normalfont \ttfamily inoue2014} postprocessor; see \S\ref{phys:spectraPostprocessor:spectraPostprocessorInoue2014}) is applied to each luminosity calculation. To specify other postprocessing sets add the following to your parameter file:
 \begin{verbatim}
  <parameter>
    <name>luminosityFilter</name>
    <value>default recent unabsorbded recentUnabsorbed</value>
  </parameter>
 \end{verbatim}
-where one set must be specified for each luminosity specified in the {\tt luminosityFilter} parameter. Note that set names can be reused in order to apply the same postprocessor set to multiple luminosities.
+where one set must be specified for each luminosity specified in the {\normalfont \ttfamily luminosityFilter} parameter. Note that set names can be reused in order to apply the same postprocessor set to multiple luminosities.
 
 The chain of postprocessors to apply for each set is then specified as follows:
 \begin{verbatim}
@@ -479,9 +479,9 @@ The chain of postprocessors to apply for each set is then specified as follows:
    <value>recent</value>
  </parameter>
 \end{verbatim}
-In this case we've constructed three new sets, in addition to the default set (which applies just the {\tt inoue2014} postprocessor). The {\tt recent} set applies both the {\tt inoue2014} \gls{igm} absorption postprocessor, followed by the {\tt recent} postprocessor to retain only recently emitted light. The {\tt unabsorbed} set ignores \gls{igm} absorption entirely---it does this by using the {\tt identity} postprocessor which leaves the spectrum unaffected. Finally, the {\tt recentUnabsorbed} set applies only the {\tt recent} filter while ignoring \gls{igm} absorption.
+In this case we've constructed three new sets, in addition to the default set (which applies just the {\normalfont \ttfamily inoue2014} postprocessor). The {\normalfont \ttfamily recent} set applies both the {\normalfont \ttfamily inoue2014} \gls{igm} absorption postprocessor, followed by the {\normalfont \ttfamily recent} postprocessor to retain only recently emitted light. The {\normalfont \ttfamily unabsorbed} set ignores \gls{igm} absorption entirely---it does this by using the {\normalfont \ttfamily identity} postprocessor which leaves the spectrum unaffected. Finally, the {\normalfont \ttfamily recentUnabsorbed} set applies only the {\normalfont \ttfamily recent} filter while ignoring \gls{igm} absorption.
 
-In this way it is relatively easy to extract multiple different measures of luminosity from a \glc\ model. For example, you could construct four postprocessor sets, each corresponding to one of the four different \gls{igm} absorption models ({\tt lycSuppress}, {\tt madau1995}, {\tt meiksin2006}, and {\tt inoue2014}) and apply these to the same luminosity filter to assess how luminosity depends on the \gls{igm} model used.
+In this way it is relatively easy to extract multiple different measures of luminosity from a \glc\ model. For example, you could construct four postprocessor sets, each corresponding to one of the four different \gls{igm} absorption models ({\normalfont \ttfamily lycSuppress}, {\normalfont \ttfamily madau1995}, {\normalfont \ttfamily meiksin2006}, and {\normalfont \ttfamily inoue2014}) and apply these to the same luminosity filter to assess how luminosity depends on the \gls{igm} model used.
 
 \subsection{Migrating Parameter Files to a New Version}\index{migration}\index{parameters}
 
@@ -489,30 +489,30 @@ The names and allowed values of parameters often change between versions of \glc
 \begin{verbatim}
 scripts/aux/parametersMigrate.pl parameters.xml newParameters.xml
 \end{verbatim}
-By default, this script will translate from the previous to the current version of \glc. If your parameter file contains a {\tt version} element then this will be used to determine which version of \glc\ the parameter file was constructed for. The migration script will then migrate the parameter file through all intermediate versions to bring it into compliance with the current version. You can also specify input and output versions directly:
+By default, this script will translate from the previous to the current version of \glc. If your parameter file contains a {\normalfont \ttfamily version} element then this will be used to determine which version of \glc\ the parameter file was constructed for. The migration script will then migrate the parameter file through all intermediate versions to bring it into compliance with the current version. You can also specify input and output versions directly:
 \begin{verbatim}
 scripts/aux/parametersMigrate.pl parameters.xml newParameters.xml --inputVersion 0.9.0 --outputVersion 0.9.3
 \end{verbatim}
-will convert {\tt parameters.xml} from version 0.9.0 syntax to version 0.9.3 syntax.
+will convert {\normalfont \ttfamily parameters.xml} from version 0.9.0 syntax to version 0.9.3 syntax.
 
 \subsection{Computing Emission Lines}\label{sec:EmissionLineTutorial}\index{emission lines}\index{lines!emission}
 
-\glc\ can compute emission line luminosities for galaxies. This calculation is based on the methodology of \cite{panuzzo_dust_2003}. Briefly, HII region models are constructed using {\sc Cloudy} for a variety of gas densities and metallicities, and HI, HeI, and OII ionizing luminosities. Emission line luminosities are then computed by interpolating in these tables based on the instantaneous properties of model galaxies.
+\glc\ can compute emission line luminosities for galaxies. This calculation is based on the methodology of \cite{panuzzo_dust_2003}. Briefly, HII region models are constructed using {\normalfont \scshape Cloudy} for a variety of gas densities and metallicities, and HI, HeI, and OII ionizing luminosities. Emission line luminosities are then computed by interpolating in these tables based on the instantaneous properties of model galaxies.
 
-To compute emission line luminosities it is therefore necessary to run \glc\ including the following rest-frame luminosity filters at each redshift of interest: {\tt Lyc}, {\tt HeliumContinuum}, {\tt OxygenContinuum}. This causes the ionizing luminosity for each three species to be computed and output. Emission line luminosities can then be found using \glc's data extraction modules (see \S\ref{sec:perlModuleDataExtraction}), by simply importing the {\tt Galacticus::EmissionLines} module. Emission line luminosites (in units of Solar luminosities) can then be accessed as named properties using names such as {\tt totalLineLuminosity:balmerAlpha6563:rest:z0.0000}, which will return the H$\alpha$ luminosity at $z=0$. Equivalent properties for disk and spheroid are provided (simply replace ``{\tt total}'' with ``{\tt disk}'' or ``{\tt spheroid}''). Currently available lines are:
+To compute emission line luminosities it is therefore necessary to run \glc\ including the following rest-frame luminosity filters at each redshift of interest: {\normalfont \ttfamily Lyc}, {\normalfont \ttfamily HeliumContinuum}, {\normalfont \ttfamily OxygenContinuum}. This causes the ionizing luminosity for each three species to be computed and output. Emission line luminosities can then be found using \glc's data extraction modules (see \S\ref{sec:perlModuleDataExtraction}), by simply importing the {\normalfont \ttfamily Galacticus::EmissionLines} module. Emission line luminosites (in units of Solar luminosities) can then be accessed as named properties using names such as {\normalfont \ttfamily totalLineLuminosity:balmerAlpha6563:rest:z0.0000}, which will return the H$\alpha$ luminosity at $z=0$. Equivalent properties for disk and spheroid are provided (simply replace ``{\normalfont \ttfamily total}'' with ``{\normalfont \ttfamily disk}'' or ``{\normalfont \ttfamily spheroid}''). Currently available lines are:
 \begin{itemize}
-\item {\tt balmerAlpha6563}
-\item {\tt balmerBeta4861}
-\item {\tt oxygenII3726}
-\item {\tt oxygenII3729}
-\item {\tt oxygenIII4959}
-\item {\tt oxygenIII5007}
-\item {\tt nitrogenII6584}
-\item {\tt sulfurII6731}
-\item {\tt sulfurII6716}
+\item {\normalfont \ttfamily balmerAlpha6563}
+\item {\normalfont \ttfamily balmerBeta4861}
+\item {\normalfont \ttfamily oxygenII3726}
+\item {\normalfont \ttfamily oxygenII3729}
+\item {\normalfont \ttfamily oxygenIII4959}
+\item {\normalfont \ttfamily oxygenIII5007}
+\item {\normalfont \ttfamily nitrogenII6584}
+\item {\normalfont \ttfamily sulfurII6731}
+\item {\normalfont \ttfamily sulfurII6716}
 \end{itemize}
 
-Additionally, if a line is requested as {\tt totalLineLuminosity:balmerAlpha6563:<filterName>:rest:z0.0000} then the line luminosity is computed under the provided filter, and the luminosity is returned in units of \glspl{maggie} for easy conversion to magnitudes.
+Additionally, if a line is requested as {\normalfont \ttfamily totalLineLuminosity:balmerAlpha6563:<filterName>:rest:z0.0000} then the line luminosity is computed under the provided filter, and the luminosity is returned in units of \glspl{maggie} for easy conversion to magnitudes.
 
 \subsection{Reionization Calculations}\label{sed:ReionziationTutorial}\index{reionization}
 
@@ -564,4 +564,4 @@ Finally, the third block of parameters tells \glc\ to use the \cite{naoz_formati
 
 With these three sets of configurations, \glc\ will perform a self-consistent evolution of the \gls{igm}---in the sense that the \gls{igm} is ionized by photons emitted by model galaxies and AGN, while galaxy evolution is affected by the computed state of the model \gls{igm}. Note that, when run in this way, \glc\ needs to keep all merger trees in memory simultaneously (as they are run synchronously to allow the \gls{igm} properties to evolved alongside galaxy properties).
 
-Once completed, data on the \gls{igm} and background radiation are written to the output file in the {\tt igmProperties} and {\tt backgroundRadiation} groups respectively.
+Once completed, data on the \gls{igm} and background radiation are written to the output file in the {\normalfont \ttfamily igmProperties} and {\normalfont \ttfamily backgroundRadiation} groups respectively.

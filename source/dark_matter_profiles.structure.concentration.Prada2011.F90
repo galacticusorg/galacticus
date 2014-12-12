@@ -41,7 +41,7 @@
   end type darkMatterProfileConcentrationPrada2011
   
   interface darkMatterProfileConcentrationPrada2011
-     !% Constructors for the {\tt prada2011} dark matter halo profile concentration class.
+     !% Constructors for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
      module procedure prada2011DefaultConstructor
      module procedure prada2011Constructor
   end interface darkMatterProfileConcentrationPrada2011
@@ -49,7 +49,7 @@
 contains
   
   function prada2011DefaultConstructor()
-    !% Default constructor for the {\tt prada2011} dark matter halo profile concentration class.
+    !% Default constructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
     use Input_Parameters
     implicit none
     type(darkMatterProfileConcentrationPrada2011), target  :: prada2011DefaultConstructor
@@ -215,7 +215,7 @@ contains
   end function prada2011DefaultConstructor
   
   function prada2011Constructor(A,B,C,D,C0,C1,X0,X1,InverseSigma0,InverseSigma1,Alpha,Beta)
-    !% Constructor for the {\tt prada2011} dark matter halo profile concentration class.
+    !% Constructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
     implicit none
     type            (darkMatterProfileConcentrationPrada2011)                :: prada2011Constructor
     double precision                                         , intent(in   ) :: A                   , B            , &
@@ -241,7 +241,7 @@ contains
   end function prada2011Constructor
   
   double precision function prada2011Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\tt node} using the \cite{prada_halo_2011} algorithm.
+    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{prada_halo_2011} algorithm.
     use Power_Spectra
     use Cosmology_Functions
     use Cosmology_Parameters
@@ -287,7 +287,7 @@ contains
   end function prada2011B1
   
   double precision function prada2011cMin(self,x)
-    !% The function $c_{\rm min}(x)$ as defined in eqn.~(19) of \cite{prada_halo_2011}.
+    !% The function $c_{\mathrm min}(x)$ as defined in eqn.~(19) of \cite{prada_halo_2011}.
     use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileConcentrationPrada2011), intent(inout) :: self
@@ -297,7 +297,7 @@ contains
   end function prada2011cMin
   
   double precision function prada2011InverseSigmaMin(self,x)
-    !% The function $\sigma^{-1}_{\rm min}(x)$ as defined in eqn.~(20) of \cite{prada_halo_2011}.
+    !% The function $\sigma^{-1}_{\mathrm min}(x)$ as defined in eqn.~(20) of \cite{prada_halo_2011}.
     use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileConcentrationPrada2011), intent(inout) :: self

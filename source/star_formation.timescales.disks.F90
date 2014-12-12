@@ -111,7 +111,7 @@ contains
   end subroutine Star_Formation_Timescale_Disks_Initialize
 
   double precision function Star_Formation_Timescale_Disk(thisNode)
-    !% Returns the timescale (in Gyr) for star formation in the disk component of {\tt thisNode}.
+    !% Returns the timescale (in Gyr) for star formation in the disk component of {\normalfont \ttfamily thisNode}.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
     type(c_ptr   )                         :: cNode

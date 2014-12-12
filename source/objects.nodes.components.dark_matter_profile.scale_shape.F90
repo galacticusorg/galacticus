@@ -108,7 +108,7 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Rate_Compute
 
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize_Shape(thisNode)
-    !% Initialize the shape parameter of {\tt thisNode}.
+    !% Initialize the shape parameter of {\normalfont \ttfamily thisNode}.
     use Dark_Matter_Profiles_Shapes
     implicit none
     type (treeNode                      ), intent(inout), pointer :: thisNode
@@ -128,7 +128,7 @@ contains
   !#  <sortName>darkMatterProfile</sortName>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Initialize(thisNode)
-    !% Initialize the scale radius of {\tt thisNode}.
+    !% Initialize the scale radius of {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
     class           (nodeComponentDarkMatterProfile)               , pointer :: parentDarkMatterProfileComponent, thisDarkMatterProfileComponent
@@ -173,7 +173,7 @@ contains
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_Promote</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Promote(thisNode)
-    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the growth rate of {\tt thisNode}
+    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily thisNode}
     !% to be that of its parent.
     use Galacticus_Error
     implicit none
@@ -203,7 +203,7 @@ contains
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}.
+    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
     implicit none
     type (treeNode                      ), intent(inout), pointer :: thisNode
     class(nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent

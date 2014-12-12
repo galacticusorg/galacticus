@@ -82,7 +82,7 @@ contains
   end subroutine Dark_Matter_Shapes_Initialize
 
   double precision function Dark_Matter_Profile_Shape(thisNode)
-    !% Returns the shape of the dark matter profile of {\tt thisNode}.
+    !% Returns the shape of the dark matter profile of {\normalfont \ttfamily thisNode}.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

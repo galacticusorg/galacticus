@@ -70,7 +70,7 @@ contains
   end function Galactic_Structure_Enclosed_Mass
 
   double precision function Galactic_Structure_Radius_Enclosing_Mass(thisNode,mass,fractionalMass,componentType,massType,weightBy,weightIndex,haloLoaded)
-    !% Return the radius enclosing a given mass (or fractional mass) in {\tt thisNode}.
+    !% Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily thisNode}.
     use Galacticus_Error
     use Root_Finder
     use Dark_Matter_Halo_Scales

@@ -268,7 +268,7 @@ contains
   end subroutine Stellar_Astrophysics_File_Initialize
 
   double precision function Star_Initial_Mass_File(lifetime,metallicity)
-    !% Return the initial mass of a star of given {\tt lifetime} and {\tt metallicity}.
+    !% Return the initial mass of a star of given {\normalfont \ttfamily lifetime} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision                         , intent(in   ) :: lifetime                     , metallicity
     type            (interp2dIrregularObject), save          :: interpolationWorkspace
@@ -282,7 +282,7 @@ contains
   end function Star_Initial_Mass_File
 
   double precision function Star_Lifetime_File(initialMass,metallicity)
-    !% Return the lifetime of a star (in Gyr) given an {\tt initialMass} and {\tt metallicity}.
+    !% Return the lifetime of a star (in Gyr) given an {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision                         , intent(in   ) :: initialMass                  , metallicity
     type            (interp2dIrregularObject), save          :: interpolationWorkspace
@@ -297,7 +297,7 @@ contains
   end function Star_Lifetime_File
 
   double precision function Star_Ejected_Mass_File(initialMass,metallicity)
-    !% Return the mass ejected during the lifetime of a star of given {\tt initialMass} and {\tt metallicity}.
+    !% Return the mass ejected during the lifetime of a star of given {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision                         , intent(in   ) :: initialMass                  , metallicity
     type            (interp2dIrregularObject), save          :: interpolationWorkspace
@@ -313,7 +313,7 @@ contains
   end function Star_Ejected_Mass_File
 
   double precision function Star_Metal_Yield_Mass_File(initialMass,metallicity,atomIndex)
-    !% Return the mass of metals yielded by a star of given {\tt initialMass} and {\tt metallicity}.
+    !% Return the mass of metals yielded by a star of given {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision                         , intent(in   )           :: initialMass                  , metallicity
     integer                                  , intent(in   ), optional :: atomIndex

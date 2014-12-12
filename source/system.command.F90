@@ -26,7 +26,7 @@ module System_Command
 contains
 
   subroutine System_Command_Do(command,iStatus)
-    !% Executes the system command {\tt command}, optionally returning the resulting status in {\tt iStatus}.
+    !% Executes the system command {\normalfont \ttfamily command}, optionally returning the resulting status in {\normalfont \ttfamily iStatus}.
     use ISO_Varying_String
     use Galacticus_Error
     implicit none

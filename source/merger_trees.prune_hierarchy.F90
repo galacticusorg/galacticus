@@ -35,7 +35,7 @@ contains
   !#   <unitName>Merger_Tree_Prune_Hierarchy</unitName>
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Prune_Hierarchy(thisTree)
-    !% Prune hierarchy from {\tt thisTree}.
+    !% Prune hierarchy from {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
     use Input_Parameters
     implicit none

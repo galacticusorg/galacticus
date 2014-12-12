@@ -33,25 +33,25 @@
      !@   <object>universe</object>
      !@   <objectMethod>
      !@    <method>createEvent</method>
-     !@    <description>Create a {\tt treeEvent} object in this universe.</description>
+     !@    <description>Create a {\normalfont \ttfamily treeEvent} object in this universe.</description>
      !@     <type>\textcolor{red}{\textless *type(universeEvent)\textgreater}</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@    <method>removeEvent</method>
-     !@    <description>Remove a {\tt treeEvent} from this universe.</description>
+     !@    <description>Remove a {\normalfont \ttfamily treeEvent} from this universe.</description>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless type(universeEvent)\textgreater} event\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@    <method>popTree</method>
-     !@    <description>Pop a {\tt mergerTree} from this universe.</description>
+     !@    <description>Pop a {\normalfont \ttfamily mergerTree} from this universe.</description>
      !@     <type>\textcolor{red}{\textless *type(mergerTree)\textgreater}</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@    <method>pushTree</method>
-     !@    <description>Pop a {\tt mergerTree} from this universe.</description>
+     !@    <description>Pop a {\normalfont \ttfamily mergerTree} from this universe.</description>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless *type(mergerTree)\textgreater} thisTree\argin</arguments>
      !@   </objectMethod>

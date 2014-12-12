@@ -35,7 +35,7 @@
      !@     <method>initialize</method>
      !@     <type>void</type>
      !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\argin</arguments>
-     !@     <description>Initialize the $\beta$-profile density hot halo mass distribution for the given {\tt node}.</description>
+     !@     <description>Initialize the $\beta$-profile density hot halo mass distribution for the given {\normalfont \ttfamily node}.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      final     ::                          betaProfileDestructor
@@ -105,7 +105,7 @@ contains
   end function betaProfileDefaultConstructor
   
   function betaProfileConstructor(beta)
-    !% Default constructor for the {\tt betaProfile} hot halo mass distribution class.
+    !% Default constructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
     use Input_Parameters
     implicit none
     type            (hotHaloMassDistributionBetaProfile)                :: betaProfileConstructor
@@ -116,7 +116,7 @@ contains
   end function betaProfileConstructor
   
   elemental subroutine betaProfileDestructor(self)
-    !% Destructor for the {\tt betaProfile} hot halo mass distribution class.
+    !% Destructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
     implicit none
     type(hotHaloMassDistributionBetaProfile), intent(inout) :: self
 
@@ -125,7 +125,7 @@ contains
   end subroutine betaProfileDestructor
 
   subroutine betaProfileInitialize(self,node)
-    !% Initialize the $\beta$-profile hot halo density profile for the given {\tt node}.
+    !% Initialize the $\beta$-profile hot halo density profile for the given {\normalfont \ttfamily node}.
     use Hot_Halo_Mass_Distributions_Core_Radii
     implicit none
     class           (hotHaloMassDistributionBetaProfile    ), intent(inout)          :: self
@@ -172,7 +172,7 @@ contains
   end function betaProfileDensity
 
   double precision function betaProfileDensityLogSlope(self,node,radius)
-    !% Return the logarithmic slope of the density of the hot halo at the given {\tt radius}.
+    !% Return the logarithmic slope of the density of the hot halo at the given {\normalfont \ttfamily radius}.
     use Coordinates
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout)          :: self
@@ -187,7 +187,7 @@ contains
   end function betaProfileDensityLogSlope
   
   double precision function betaProfileEnclosedMass(self,node,radius)
-    !% Return the mass enclosed in the hot halo at the given {\tt radius}.
+    !% Return the mass enclosed in the hot halo at the given {\normalfont \ttfamily radius}.
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout)          :: self
     type            (treeNode                          ), intent(inout), pointer :: node
@@ -205,7 +205,7 @@ contains
   end function betaProfileEnclosedMass
   
   double precision function betaProfileRadialMoment(self,node,moment,radius)
-    !% Return the radial moment of the density profile of the hot halo to the given {\tt radius}.
+    !% Return the radial moment of the density profile of the hot halo to the given {\normalfont \ttfamily radius}.
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout)          :: self
     type            (treeNode                          ), intent(inout), pointer :: node
@@ -230,8 +230,8 @@ contains
 
   double precision function betaProfileRotationNormalization(self,node)
     !% Returns the relation between specific angular momentum and rotation velocity (assuming a
-    !% rotation velocity that is constant in radius) for {\tt node}. Specifically, the
-    !% normalization, $A$, returned is such that $V_{\rm rot} = A J/M$.
+    !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
+    !% normalization, $A$, returned is such that $V_{\mathrm rot} = A J/M$.
     implicit none
     class(hotHaloMassDistributionBetaProfile), intent(inout)          :: self
     type (treeNode                          ), intent(inout), pointer :: node

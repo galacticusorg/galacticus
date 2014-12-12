@@ -384,7 +384,7 @@ contains
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}.
+    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
     use Abundances_Structure
     use Dark_Matter_Halo_Scales
     implicit none
@@ -464,7 +464,7 @@ contains
   !#  <before>Node_Component_Hot_Halo_Standard_Node_Merger</before>
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Node_Merger(thisNode)
-    !% Starve {\tt thisNode} by transferring its hot halo to its parent.
+    !% Starve {\normalfont \ttfamily thisNode} by transferring its hot halo to its parent.
     use Abundances_Structure
     use Dark_Matter_Halo_Scales
     use Galactic_Structure_Enclosed_Masses
@@ -558,7 +558,7 @@ contains
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Satellite_Merger</unitName>
   !# </satelliteMergerTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Satellite_Merger(thisNode)
-    !% Remove any cold mode gas associated with {\tt thisNode} before it merges with its host halo.
+    !% Remove any cold mode gas associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
     use Abundances_Structure
     use Dark_Matter_Halo_Scales
     use Node_Component_Hot_Halo_Standard_Data
@@ -615,8 +615,8 @@ contains
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Promote</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Promote(thisNode)
-    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply
-    !% update the cold mode mass of {\tt thisNode} to account for any cold mode gas already in the
+    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply
+    !% update the cold mode mass of {\normalfont \ttfamily thisNode} to account for any cold mode gas already in the
     !% parent.
     use Dark_Matter_Halo_Scales
     implicit none

@@ -114,7 +114,7 @@ module Star_Formation_IMF
 contains
 
   integer function IMF_Select(starFormationRate,fuelAbundances,component)
-    !% Selects an IMF give an input {\tt starFormationRate} and {\tt fuelAbundances}.
+    !% Selects an IMF give an input {\normalfont \ttfamily starFormationRate} and {\normalfont \ttfamily fuelAbundances}.
     implicit none
     double precision            , intent(in   ) :: starFormationRate
     type            (abundances), intent(in   ) :: fuelAbundances
@@ -377,7 +377,7 @@ contains
   end function IMF_Maximum_Mass
 
   double precision function IMF_Phi(initialMass,imfSelected)
-    !% Returns the IMF, $\Phi(M)$, at mass $M=${\tt initialMass} for the selected IMF.
+    !% Returns the IMF, $\Phi(M)$, at mass $M=${\normalfont \ttfamily initialMass} for the selected IMF.
     implicit none
     integer         , intent(in   ) :: imfSelected
     double precision, intent(in   ) :: initialMass
@@ -394,9 +394,9 @@ contains
   end function IMF_Phi
 
   double precision function IMF_Recycling_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum)
-    !% Returns the recycling rate for a simple stellar population. The \gls{imf} is determined from the given {\tt starFormationRate}
-    !% and {\tt fuelAbundances}. The recycling rate (in the fraction of the population's mass returned to the \gls{ism} per Gyr) is
-    !% computed for the given {\tt age} (in Gyr). The recycled fraction is computed on a grid of age and metallicity. This is
+    !% Returns the recycling rate for a simple stellar population. The \gls{imf} is determined from the given {\normalfont \ttfamily starFormationRate}
+    !% and {\normalfont \ttfamily fuelAbundances}. The recycling rate (in the fraction of the population's mass returned to the \gls{ism} per Gyr) is
+    !% computed for the given {\normalfont \ttfamily age} (in Gyr). The recycled fraction is computed on a grid of age and metallicity. This is
     !% stored to file and will be read back in on subsequent runs. This is useful as computation of the table is relatively slow.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
@@ -750,7 +750,7 @@ contains
   end function IMF_Recycling_Rate_NonInstantaneous
 
   logical function Star_Is_Evolved(initialMass,metallicity,age)
-    !% Returns true if the specified star is evolved by the given {\tt age}.
+    !% Returns true if the specified star is evolved by the given {\normalfont \ttfamily age}.
     use Stellar_Astrophysics
     implicit none
     double precision, intent(in   ) :: age, initialMass, metallicity
@@ -783,10 +783,10 @@ contains
   end function Recycled_Fraction_Integrand
 
   double precision function IMF_Metal_Yield_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum,abundanceIndex)
-    !% Returns the metal yield rate for a simple stellar population, either for the total metallicity or, if {\tt atomIndex} is
-    !% given, for the specified element. The \gls{imf} is determined from the given {\tt starFormationRate} and {\tt fuelAbundances}.
+    !% Returns the metal yield rate for a simple stellar population, either for the total metallicity or, if {\normalfont \ttfamily atomIndex} is
+    !% given, for the specified element. The \gls{imf} is determined from the given {\normalfont \ttfamily starFormationRate} and {\normalfont \ttfamily fuelAbundances}.
     !% The metal yield rate (in fraction of the population's mass returned to the \gls{ism} as new metals per Gyr) is computed for the
-    !% given {\tt age} (in Gyr). The metal yield is computed on a grid of age and metallicity. This is stored to file and will be
+    !% given {\normalfont \ttfamily age} (in Gyr). The metal yield is computed on a grid of age and metallicity. This is stored to file and will be
     !% read back in on subsequent runs. This is useful as computation of the table is relatively slow.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
@@ -1243,7 +1243,7 @@ contains
 
   double precision function IMF_Energy_Input_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum)
     !% Returns the energy input rate for a simple stellar population in (km/s)$^2$ Gyr$^{-1}$. The \gls{imf} is determined from the
-    !% given {\tt starFormationRate} and {\tt fuelAbundances}. The energy input rate is computed for the given {\tt age} (in
+    !% given {\normalfont \ttfamily starFormationRate} and {\normalfont \ttfamily fuelAbundances}. The energy input rate is computed for the given {\normalfont \ttfamily age} (in
     !% Gyr). The cumulative energy input is computed on a grid of age and metallicity. This is stored to file and will be read
     !% back in on subsequent runs. This is useful as computation of the table is relatively slow.
     use, intrinsic :: ISO_C_Binding

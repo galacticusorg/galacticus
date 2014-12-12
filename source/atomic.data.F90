@@ -273,7 +273,7 @@ contains
   end subroutine Atomic_Data_Initialize
 
   integer function Atom_Lookup(atomicNumber,shortLabel,name)
-    !% Returns the position in the {\tt atoms()} array of an element specified by atomic number, name or short label.
+    !% Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
     use String_Handling
     use Galacticus_Error
     implicit none
@@ -318,7 +318,7 @@ contains
   end function Atom_Lookup
 
   integer function Abundance_Pattern_Lookup(abundanceIndex,abundanceName)
-    !% Returns the position in the {\tt atoms()} array of an element specified by atomic number, name or short label.
+    !% Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
     use String_Handling
     use Galacticus_Error
     implicit none

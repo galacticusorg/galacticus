@@ -28,7 +28,7 @@ module Root_Finder
   ! Enumeration of range expansion types.
   !@ <enumeration>
   !@  <name>rangeExpand</name>
-  !@  <description>Used to specify the way in which the bracketing range should be expanded when searching for roots using a {\tt rootFinder} object.</description>
+  !@  <description>Used to specify the way in which the bracketing range should be expanded when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
   !@  <entry label="rangeExpandNull"           />
   !@  <entry label="rangeExpandAdditive"       />
   !@  <entry label="rangeExpandMultiplicative" />
@@ -40,7 +40,7 @@ module Root_Finder
   ! Enumeration of sign expectations.
   !@ <enumeration>
   !@  <name>rangeExpandSignExpect</name>
-  !@  <description>Used to specify the expected sign of the root function when searching for roots using a {\tt rootFinder} object.</description>
+  !@  <description>Used to specify the expected sign of the root function when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
   !@  <entry label="rangeExpandSignExpectNegative" />
   !@  <entry label="rangeExpandSignExpectNone"     />
   !@  <entry label="rangeExpandSignExpectPositive" />
@@ -74,25 +74,25 @@ module Root_Finder
      !@   <object>rootFinder</object>
      !@   <objectMethod>
      !@     <method>rootFunction</method>
-     !@     <description>Set the function that evaluates $f(x)$ to use in a {\tt rootFinder} object.</description>
+     !@     <description>Set the function that evaluates $f(x)$ to use in a {\normalfont \ttfamily rootFinder} object.</description>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless function(\textless double\textgreater} x\argin\textcolor{red}{)\textgreater} rootFunction</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>type</method>
-     !@     <description>Set the type of algorithm to use in a {\tt rootFinder} object.</description>
+     !@     <description>Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object.</description>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless type(fgsl\_root\_fsolver\_type)\textgreater} solverType\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>tolerance</method>
-     !@     <description>Set the tolerance to use in a {\tt rootFinder} object.</description>
+     !@     <description>Set the tolerance to use in a {\normalfont \ttfamily rootFinder} object.</description>
      !@     <type>\void</type>
      !@     <arguments>\doublezero\ [toleranceAbsolute]\argin, \doublezero\ [toleranceRelative]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>rangeExpand</method>
-     !@     <description>Specify how the initial range will be expanded in a {\tt rootFinder} object to bracket the root.</description>
+     !@     <description>Specify how the initial range will be expanded in a {\normalfont \ttfamily rootFinder} object to bracket the root.</description>
      !@     <type>\void</type>
      !@     <arguments>\doublezero\ [rangeExpandUpward]\argin,\doublezero\ [rangeExpandDownward]\argin, \enumRangeExpand\ [rangeExpandType]\argin, \doublezero\ [rangeUpwardLimit]\argin, \doublezero\ [rangeDownwardLimit]\argin, \enumRangeExpandSignExpect\ [rangeExpandDownwardSignExpect]\argin, \enumRangeExpandSignExpect\ [rangeExpandUpwardSignExpect]\argin</arguments>
      !@   </objectMethod>
@@ -104,7 +104,7 @@ module Root_Finder
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isInitialized</method>
-     !@     <description>Return the initialization state of a {\tt rootFinder} object.</description>
+     !@     <description>Return the initialization state of a {\normalfont \ttfamily rootFinder} object.</description>
      !@     <type>\logicalzero</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
@@ -128,7 +128,7 @@ module Root_Finder
 contains
 
   logical function Root_Finder_Is_Initialized(self)
-    !% Return whether a {\tt rootFinder} object is initalized.
+    !% Return whether a {\normalfont \ttfamily rootFinder} object is initalized.
     implicit none
     class(rootFinder), intent(in   ) :: self
 
@@ -137,7 +137,7 @@ contains
   end function Root_Finder_Is_Initialized
 
   recursive double precision function Root_Finder_Find(self,rootGuess,rootRange,status)
-    !% Finds the root of the supplied {\tt root} function.
+    !% Finds the root of the supplied {\normalfont \ttfamily root} function.
     use Galacticus_Error
     use Galacticus_Display
     use ISO_Varying_String
@@ -356,7 +356,7 @@ contains
   end function Root_Finder_Find
 
   subroutine Root_Finder_Root_Function(self,rootFunction)
-    !% Sets the function to use in a {\tt rootFinder} object.
+    !% Sets the function to use in a {\normalfont \ttfamily rootFinder} object.
     implicit none
     class    (rootFinder          ), intent(inout) :: self
     procedure(rootFunctionTemplate)                :: rootFunction
@@ -367,7 +367,7 @@ contains
   end subroutine Root_Finder_Root_Function
 
   subroutine Root_Finder_Type(self,solverType)
-    !% Sets the type to use in a {\tt rootFinder} object.
+    !% Sets the type to use in a {\normalfont \ttfamily rootFinder} object.
     implicit none
     class(rootFinder            ), intent(inout) :: self
     type (fgsl_root_fsolver_type), intent(in   ) :: solverType
@@ -379,7 +379,7 @@ contains
   end subroutine Root_Finder_Type
 
   subroutine Root_Finder_Tolerance(self,toleranceAbsolute,toleranceRelative)
-    !% Sets the tolerances to use in a {\tt rootFinder} object.
+    !% Sets the tolerances to use in a {\normalfont \ttfamily rootFinder} object.
     implicit none
     class           (rootFinder), intent(inout)           :: self
     double precision            , intent(in   ), optional :: toleranceAbsolute, toleranceRelative
@@ -390,7 +390,7 @@ contains
   end subroutine Root_Finder_Tolerance
 
   subroutine Root_Finder_Range_Expand(self,rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect)
-    !% Sets the rules for range expansion to use in a {\tt rootFinder} object.
+    !% Sets the rules for range expansion to use in a {\normalfont \ttfamily rootFinder} object.
     use Galacticus_Error
     implicit none
     class           (rootFinder), intent(inout)           :: self
@@ -428,7 +428,7 @@ contains
   end subroutine Root_Finder_Range_Expand
 
   function Root_Finder_Wrapper_Function(x,parameterPointer) bind(c)
-    !% Wrapper function callable by {\tt FGSL} used in root finding.
+    !% Wrapper function callable by {\normalfont \ttfamily FGSL} used in root finding.
     implicit none
     real(kind=c_double), value :: x
     type(c_ptr        ), value :: parameterPointer

@@ -114,7 +114,7 @@ contains
   end subroutine Cooling_Rate_Output_Initialize
 
   double precision function Cooling_Rate(thisNode)
-    !% Return the cooling rate for {\tt thisNode} (in units of $M_\odot$ Gyr$^{-1}$).
+    !% Return the cooling rate for {\normalfont \ttfamily thisNode} (in units of $M_\odot$ Gyr$^{-1}$).
     !# <include directive="coolingRateModifierMethod" type="moduleUse">
     include 'cooling.cooling_rate.modifier.modules.inc'
     !# </include>

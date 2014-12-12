@@ -93,7 +93,7 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
 end subroutine Mass_Distribution_Beta_Profile_Initialize
 
 double precision function Mass_Distribution_Beta_Profile_Density(self,coordinates)
-  !% Return the density at the specified {\tt coordinates} in a $\beta$-profile mass distribution.
+  !% Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
   use Coordinates
   implicit none
   class           (massDistributionBetaProfile), intent(in   ) :: self
@@ -110,7 +110,7 @@ double precision function Mass_Distribution_Beta_Profile_Density(self,coordinate
 end function Mass_Distribution_Beta_Profile_Density
 
 double precision function Mass_Distribution_Beta_Profile_Density_Gradient_Radial(self,coordinates,logarithmic)
-  !% Return the density at the specified {\tt coordinates} in a $\beta$-profile mass distribution.
+  !% Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
   use Coordinates
   implicit none
   class           (massDistributionBetaProfile), intent(in   )           :: self
@@ -146,7 +146,7 @@ double precision function Mass_Distribution_Beta_Profile_Density_Gradient_Radial
 end function Mass_Distribution_Beta_Profile_Density_Gradient_Radial
 
 double precision function Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere(self,radius)
-  !% Computes the mass enclosed within a sphere of given {\tt radius} for $\beta$-profile mass distributions. Result computed
+  !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for $\beta$-profile mass distributions. Result computed
   !% using \href{http://www.wolframalpha.com/input/?i=integrate+4*pi*r^2*rho\%2F\%281\%2Br^2\%29^\%283*beta\%2F2\%29}{Wolfram Alpha}.
   use Numerical_Constants_Math
   use Hypergeometric_Functions
@@ -171,7 +171,7 @@ double precision function Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere(self
 end function Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere
 
 double precision function Mass_Distribution_Beta_Profile_Potential(self,coordinates)
-  !% Return the potential at the specified {\tt coordinates} in a $\beta$-profile mass distribution. Calculated using
+  !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution. Calculated using
   !% \href{http://www.wolframalpha.com/input/?i=integrate+4\%2F3+\%CF\%80+r+\%CF\%81+2F1\%283\%2F2\%2C+\%283+\%CE\%B2\%29\%2F2\%2C+5\%2F2\%2C+-r^2\%29}{Wolfram
   !% Alpha}.
   use Numerical_Constants_Physical

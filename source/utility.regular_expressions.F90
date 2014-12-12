@@ -37,7 +37,7 @@ module Regular_Expressions
      !@     <method>matches</method>
      !@     <type>\logicalzero</type>
      !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} string\argin</arguments>
-     !@     <description>Return true if a regular expression matches the supplied {\tt string}.</description>
+     !@     <description>Return true if a regular expression matches the supplied {\normalfont \ttfamily string}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>destroy</method>
@@ -85,7 +85,7 @@ module Regular_Expressions
 contains
 
   function Regular_Expression_Constructor(regularExpression)
-    !% Constructor for {\tt regEx} objects.
+    !% Constructor for {\normalfont \ttfamily regEx} objects.
     implicit none
     type     (regEx)                :: Regular_Expression_Constructor
     character(len=*), intent(in   ) :: regularExpression
@@ -95,7 +95,7 @@ contains
   end function Regular_Expression_Constructor
 
   subroutine Regular_Expression_Destructor(self)
-    !% Destructor for {\tt regEx} objects.
+    !% Destructor for {\normalfont \ttfamily regEx} objects.
     implicit none
     type(regEx), intent(inout) :: self
     
@@ -105,7 +105,7 @@ contains
   end subroutine Regular_Expression_Destructor
 
   subroutine Regular_Expression_Destroy(self)
-    !% Destroy a {\tt regEx} object.
+    !% Destroy a {\normalfont \ttfamily regEx} object.
     implicit none
     class(regEx), intent(inout) :: self
     
@@ -117,7 +117,7 @@ contains
   end subroutine Regular_Expression_Destroy
 
   logical function Regular_Expression_Match(self,string)
-    !% Returns true if a {\tt regEx} object matches the supplied {\tt string}.
+    !% Returns true if a {\normalfont \ttfamily regEx} object matches the supplied {\normalfont \ttfamily string}.
     implicit none
     class    (regEx)                :: self
     character(len=*), intent(in   ) :: string

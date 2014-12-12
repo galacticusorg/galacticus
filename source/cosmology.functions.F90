@@ -52,27 +52,27 @@ module Cosmology_Functions
   !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
   !#  </method>
   !#  <method name="expansionFactor" >
-  !#   <description>Returns the expansion factor at cosmological time {\tt time}.</description>
+  !#   <description>Returns the expansion factor at cosmological time {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: time</argument>
   !#   <bindC>true</bindC>
   !#  </method>
   !#  <method name="expansionRate" >
-  !#   <description>Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor {\tt expansionFactor}.</description>
+  !#   <description>Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor {\normalfont \ttfamily expansionFactor}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: expansionFactor</argument>
   !#  </method>
   !#  <method name="hubbleParameterEpochal" >
-  !#   <description>Returns the Hubble parameter at the requested cosmological time, {\tt time}, or expansion factor, {\tt expansionFactor}.</description>
+  !#   <description>Returns the Hubble parameter at the requested cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ), optional :: time,expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
   !#  </method>
   !#  <method name="hubbleParameterRateOfChange" >
-  !#   <description>Returns the rate of change of the Hubble parameter at the requested cosmological time, {\tt time}, or expansion factor, {\tt expansionFactor}.</description>
+  !#   <description>Returns the rate of change of the Hubble parameter at the requested cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ), optional :: time,expansionFactor</argument>
@@ -87,21 +87,21 @@ module Cosmology_Functions
   !#   <argument>double precision, intent(  out), optional :: OmegaDominant</argument>
   !#  </method>
   !#  <method name="omegaMatterEpochal" >
-  !#   <description>Return the matter density parameter at expansion factor {\tt expansionFactor}.</description>
+  !#   <description>Return the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ), optional :: time  , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
   !#  </method>
   !#  <method name="omegaMatterRateOfChange" >
-  !#   <description>Return the rate of change of the matter density parameter at expansion factor {\tt expansionFactor}.</description>
+  !#   <description>Return the rate of change of the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ), optional :: time  , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
   !#  </method>
   !#  <method name="omegaDarkEnergyEpochal" >
-  !#   <description>Return the dark energy density parameter at expansion factor {\tt expansionFactor}.</description>
+  !#   <description>Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ), optional :: time  , expansionFactor</argument>
@@ -138,32 +138,32 @@ module Cosmology_Functions
   !#   <argument>double precision, intent(in   ) :: dominateFactor</argument>
   !#  </method>
   !#  <method name="temperatureCMBEpochal" >
-  !#   <description>Return the temperature of the cosmic microwave background at {\tt expansionFactor}.</description>
+  !#   <description>Return the temperature of the cosmic microwave background at {\normalfont \ttfamily expansionFactor}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ), optional :: time  , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
   !#  </method>
   !#  <method name="distanceComoving" >
-  !#   <description>Return the comoving distance to the given cosmic {\tt time}.</description>
+  !#   <description>Return the comoving distance to the given cosmic {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: time</argument>
   !#  </method>
   !#  <method name="distanceLuminosity" >
-  !#   <description>Return the luminosity distance to the given cosmic {\tt time}.</description>
+  !#   <description>Return the luminosity distance to the given cosmic {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: time</argument>
   !#  </method>
   !#  <method name="distanceAngular" >
-  !#   <description>Return the angular diameter distance to the given cosmic {\tt time}.</description>
+  !#   <description>Return the angular diameter distance to the given cosmic {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: time</argument>
   !#  </method>
   !#  <method name="timeAtDistanceComoving" >
-  !#   <description>Return the cosmic time corresponding to the given {\tt comovingDistance}.</description>
+  !#   <description>Return the cosmic time corresponding to the given {\normalfont \ttfamily comovingDistance}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: comovingDistance</argument>
@@ -190,7 +190,7 @@ module Cosmology_Functions
   !#   <code>cosmologyFunctionsExpansionFactorFromRedshift=1.0d0/(1.0d0+redshift)</code>
   !#  </method>
   !#  <method name="comovingVolumeElementRedshift" >
-  !#   <description>Returns the differential comoving volume element ${\rm d}V/{\rm d}z = r_{\rm c}^2(t) {\rm c} H^{-1}(t)$ (where $r_{\rm c}$ is the comoving distance to time $t$ and $H(t)$ is the Hubble parameter at that time) for unit solid angle at the specified {\tt time}.</description>
+  !#   <description>Returns the differential comoving volume element ${\mathrm d}V/{\mathrm d}z = r_{\mathrm c}^2(t) {\mathrm c} H^{-1}(t)$ (where $r_{\mathrm c}$ is the comoving distance to time $t$ and $H(t)$ is the Hubble parameter at that time) for unit solid angle at the specified {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <modules>Numerical_Constants_Physical</modules>
@@ -198,7 +198,7 @@ module Cosmology_Functions
   !#   <code>cosmologyFunctionsComovingVolumeElementRedshift=self%distanceComoving(time)**2*(speedLight/kilo)/self%hubbleParameterEpochal(time=time)</code>
   !#  </method>
   !#  <method name="comovingVolumeElementTime" >
-  !#   <description>Returns the differential comoving volume element ${\rm d}V/{\rm d}t = r_{\rm c}^2(t) {\rm c} a(t)$ (where $r_{\rm c}$ is the comoving distance to time $t$ and $a(t)$ is the expansion at that time) for unit solid angle at the specified {\tt time}.</description>
+  !#   <description>Returns the differential comoving volume element ${\mathrm d}V/{\mathrm d}t = r_{\mathrm c}^2(t) {\mathrm c} a(t)$ (where $r_{\mathrm c}$ is the comoving distance to time $t$ and $a(t)$ is the expansion at that time) for unit solid angle at the specified {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <modules>Numerical_Constants_Astronomical Numerical_Constants_Physical</modules>

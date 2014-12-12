@@ -17,19 +17,19 @@
 
 !+    Contributions to this file made by:  Luiz Felippe S. Rodrigues.
 
-  !% An implementation of the intergalactic medium state class in which state is computed using {\sc RecFast}.
+  !% An implementation of the intergalactic medium state class in which state is computed using {\normalfont \scshape RecFast}.
 
   !# <intergalacticMediumState name="intergalacticMediumStateRecFast">
-  !#  <description>The intergalactic medium state is computed using {\sc RecFast}.</description>
+  !#  <description>The intergalactic medium state is computed using {\normalfont \scshape RecFast}.</description>
   !# </intergalacticMediumState>
 
   type, extends(intergalacticMediumStateFile) :: intergalacticMediumStateRecFast
-     !% An \gls{igm} state class which computes state using {\sc RecFast}.
+     !% An \gls{igm} state class which computes state using {\normalfont \scshape RecFast}.
      private
   end type intergalacticMediumStateRecFast
   
   interface intergalacticMediumStateRecFast
-     !% Constructors for the {\sc RecFast} intergalactic medium state class.
+     !% Constructors for the {\normalfont \scshape RecFast} intergalactic medium state class.
      module procedure recFastDefaultConstructor
      module procedure recFastConstructor
   end interface intergalacticMediumStateRecFast
@@ -37,7 +37,7 @@
 contains
 
   function recFastDefaultConstructor()
-    !% Default constructor for the {\sc RecFast} \gls{igm} state class.
+    !% Default constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
     use Cosmology_Parameters
     implicit none
     type (intergalacticMediumStateRecFast), target  :: recFastDefaultConstructor
@@ -49,7 +49,7 @@ contains
   end function recFastDefaultConstructor
 
   function recFastConstructor(thisCosmologyParameters)
-    !% Constructor for the {\sc RecFast} \gls{igm} state class.
+    !% Constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
     use Cosmology_Parameters
     use FoX_wxml
     use System_Command

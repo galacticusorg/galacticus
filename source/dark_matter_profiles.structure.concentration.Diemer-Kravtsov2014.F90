@@ -32,7 +32,7 @@
   end type darkMatterProfileConcentrationDiemerKravtsov2014
 
   interface darkMatterProfileConcentrationDiemerKravtsov2014
-     !% Constructors for the {\tt diemerKravtsov2014} dark matter halo profile concentration class.
+     !% Constructors for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile concentration class.
      module procedure diemerKravtsov2014DefaultConstructor
      module procedure diemerKravtsov2014Constructor
   end interface darkMatterProfileConcentrationDiemerKravtsov2014
@@ -49,7 +49,7 @@
 contains
 
   function diemerKravtsov2014DefaultConstructor()
-    !% Default constructor for the {\tt diemerKravtsov2014} dark matter halo profile concentration class.
+    !% Default constructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile concentration class.
     use Input_Parameters
     implicit none
     type(darkMatterProfileConcentrationDiemerKravtsov2014), target :: diemerKravtsov2014DefaultConstructor
@@ -155,7 +155,7 @@ contains
   end function diemerKravtsov2014DefaultConstructor
 
   function diemerKravtsov2014Constructor(kappa,phi0,phi1,eta0,eta1,alpha,beta)
-    !% Constructor for the {\tt diemerKravtsov2014} dark matter halo profile concentration class.
+    !% Constructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile concentration class.
     use Galacticus_Error
     implicit none
     type            (darkMatterProfileConcentrationDiemerKravtsov2014)                :: diemerKravtsov2014Constructor
@@ -172,7 +172,7 @@ contains
   end function diemerKravtsov2014Constructor
   
   double precision function diemerKravtsov2014Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\tt node} using the \cite{diemer_universal_2014} algorithm.
+    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{diemer_universal_2014} algorithm.
     use Numerical_Constants_Math
     use Power_Spectra
     use Critical_Overdensity

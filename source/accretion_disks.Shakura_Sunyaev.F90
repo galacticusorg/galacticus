@@ -104,7 +104,7 @@ contains
   end function Accretion_Disk_Jet_Power_Shakura_Sunyaev
 
   double precision function Black_Hole_Spin_Up_Rate_Shakura_Sunyaev(thisBlackHole,massAccretionRate)
-    !% Computes the spin up rate of the black hole in {\tt thisBlackHole} due to accretion from a Shakura-Sunyaev (thin) accretion
+    !% Computes the spin up rate of the black hole in {\normalfont \ttfamily thisBlackHole} due to accretion from a Shakura-Sunyaev (thin) accretion
     !% disk.
     use Galacticus_Nodes
     use Black_Hole_Fundamentals

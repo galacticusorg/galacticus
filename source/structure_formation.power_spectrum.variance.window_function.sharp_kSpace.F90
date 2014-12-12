@@ -56,11 +56,11 @@ contains
        !@   <defaultValue>natural</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The parameter $a$ in the relation $k_{\rm s} = a/r_{\rm s}$, where $k_{\rm s}$ is the cut-off wavenumber for
-       !@     the sharp $k$-space window function and $r_{\rm s}$ is the radius of a sphere (in real-space) enclosing the
-       !@     requested smoothing mass. Alternatively, a value of {\tt natural} will be supplied in which case the normalization
+       !@     The parameter $a$ in the relation $k_{\mathrm s} = a/r_{\mathrm s}$, where $k_{\mathrm s}$ is the cut-off wavenumber for
+       !@     the sharp $k$-space window function and $r_{\mathrm s}$ is the radius of a sphere (in real-space) enclosing the
+       !@     requested smoothing mass. Alternatively, a value of {\normalfont \ttfamily natural} will be supplied in which case the normalization
        !@     is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass
-       !@     of $M=6 \pi^2 \bar{\rho} k_{\rm s}^{-3}$.
+       !@     of $M=6 \pi^2 \bar{\rho} k_{\mathrm s}^{-3}$.
        !@   </description>
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
@@ -83,7 +83,7 @@ contains
   double precision function Power_Spectrum_Window_Function_Sharp_kSpace(wavenumber,smoothingMass)
     !% Top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the power
     !% spectrum. The normalization of the filter is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass
-    !% of $M=6 \pi^2 \bar{\rho} k_{\rm s}^{-3}$ if $k_{\rm s}$ is the cut-off wavelength for the filter.
+    !% of $M=6 \pi^2 \bar{\rho} k_{\mathrm s}^{-3}$ if $k_{\mathrm s}$ is the cut-off wavelength for the filter.
     implicit none
     double precision, intent(in   ) :: smoothingMass   , wavenumber
     double precision                :: wavenumberCutOff
@@ -102,7 +102,7 @@ contains
   double precision function Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace(smoothingMass)
     !% Top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the power
     !% spectrum. The normalization of the filter is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass
-    !% of $M=6 \pi^2 \bar{\rho} k_{\rm s}^{-3}$ if $k_{\rm s}$ is the cut-off wavelength for the filter.
+    !% of $M=6 \pi^2 \bar{\rho} k_{\mathrm s}^{-3}$ if $k_{\mathrm s}$ is the cut-off wavelength for the filter.
     implicit none
     double precision, intent(in   ) :: smoothingMass
 

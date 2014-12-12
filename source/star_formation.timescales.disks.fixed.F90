@@ -59,7 +59,7 @@ contains
   end subroutine Star_Formation_Timescale_Disks_Fixed_Initialize
 
   double precision function Star_Formation_Timescale_Disk_Fixed(thisNode)
-    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\tt thisNode}, assuming a fixed timecale.
+    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily thisNode}, assuming a fixed timecale.
     use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode

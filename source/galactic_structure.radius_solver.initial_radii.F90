@@ -91,7 +91,7 @@ contains
   end subroutine Galactic_Structure_Radius_Initial_Initialize
 
   double precision function Galactic_Structure_Radius_Initial(thisNode,radius)
-    !% Find the initial radius in the dark matter halo of {\tt thisNode} corresponding to the given final {\tt radius}.
+    !% Find the initial radius in the dark matter halo of {\normalfont \ttfamily thisNode} corresponding to the given final {\normalfont \ttfamily radius}.
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: radius
@@ -104,8 +104,8 @@ contains
   end function Galactic_Structure_Radius_Initial
 
   double precision function Galactic_Structure_Radius_Initial_Derivative(thisNode,radius)
-    !% Find the derivative of the initial radius in the dark matter halo of {\tt thisNode} with respect to the final radius
-    !% corresponding to the given final {\tt radius}.
+    !% Find the derivative of the initial radius in the dark matter halo of {\normalfont \ttfamily thisNode} with respect to the final radius
+    !% corresponding to the given final {\normalfont \ttfamily radius}.
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: radius

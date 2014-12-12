@@ -33,7 +33,7 @@
   end type hotHaloMassDistributionCoreRadiusVirialFraction
 
   interface hotHaloMassDistributionCoreRadiusVirialFraction
-     !% Constructors for the {\tt virialFraction} hot halo mass distribution core radius class.
+     !% Constructors for the {\normalfont \ttfamily virialFraction} hot halo mass distribution core radius class.
      module procedure virialFractionDefaultConstructor
      module procedure virialFractionConstructor
   end interface hotHaloMassDistributionCoreRadiusVirialFraction
@@ -41,7 +41,7 @@
 contains
 
   function virialFractionDefaultConstructor()
-    !% Default constructor for the {\tt virialFraction} hot halo mass distribution core radius class.
+    !% Default constructor for the {\normalfont \ttfamily virialFraction} hot halo mass distribution core radius class.
     use Input_Parameters
     implicit none
     type(hotHaloMassDistributionCoreRadiusVirialFraction) :: virialFractionDefaultConstructor
@@ -70,7 +70,7 @@ contains
   end function virialFractionDefaultConstructor
 
   function virialFractionConstructor(coreRadiusOverVirialRadius)
-    !% Default constructor for the {\tt virialFraction} hot halo mass distribution core radius class.
+    !% Default constructor for the {\normalfont \ttfamily virialFraction} hot halo mass distribution core radius class.
     use Input_Parameters
     implicit none
     type            (hotHaloMassDistributionCoreRadiusVirialFraction)                :: virialFractionConstructor
@@ -81,7 +81,7 @@ contains
   end function virialFractionConstructor
 
   elemental subroutine virialFractionDestructor(self)
-    !% Destructor for the {\tt virialFraction} hot halo mass distribution class.
+    !% Destructor for the {\normalfont \ttfamily virialFraction} hot halo mass distribution class.
     implicit none
     type(hotHaloMassDistributionCoreRadiusVirialFraction), intent(inout) :: self
 

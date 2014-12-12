@@ -156,7 +156,7 @@ contains
   end subroutine fileReadData
 
   double precision function fileTemperature(self,time)
-    !% Return the temperature of the intergalactic medium at the specified {\tt time} by interpolating in tabulated data.
+    !% Return the temperature of the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data.
     use Numerical_Interpolation
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
@@ -178,7 +178,7 @@ contains
   end function fileTemperature
 
   double precision function fileElectronFraction(self,time)
-    !% Return the electron fraction in the intergalactic medium at the specified {\tt time} by interpolating in tabulated data,
+    !% Return the electron fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
     use Numerical_Interpolation
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
@@ -200,7 +200,7 @@ contains
   end function fileElectronFraction
 
   double precision function fileNeutralHydrogenFraction(self,time)
-    !% Return the neutral hydrogen fraction in the intergalactic medium at the specified {\tt time} by interpolating in tabulated data,
+    !% Return the neutral hydrogen fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
     use Numerical_Interpolation
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
@@ -223,7 +223,7 @@ contains
   end function fileNeutralHydrogenFraction
 
   double precision function fileNeutralHeliumFraction(self,time)
-    !% Return the neutral helium fraction in the intergalactic medium at the specified {\tt time} by interpolating in tabulated data,
+    !% Return the neutral helium fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
     use Numerical_Interpolation
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
@@ -246,7 +246,7 @@ contains
   end function fileNeutralHeliumFraction
 
   double precision function fileSinglyIonizedHeliumFraction(self,time)
-    !% Return the neutral helium fraction in the intergalactic medium at the specified {\tt time} by interpolating in tabulated data,
+    !% Return the neutral helium fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
     use Numerical_Interpolation
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self

@@ -82,7 +82,7 @@ contains
   end subroutine Stellar_Tracks_Initialize
 
   double precision function Stellar_Luminosity(initialMass,metallicity,age)
-    !% Returns the bolometric luminosity of a star of given {\tt initialMass}, {\tt metallicity} and {\tt age}.
+    !% Returns the bolometric luminosity of a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
     implicit none
     double precision, intent(in   ) :: age, initialMass, metallicity
 
@@ -96,7 +96,7 @@ contains
   end function Stellar_Luminosity
 
   double precision function Stellar_Effective_Temperature(initialMass,metallicity,age)
-    !% Returns the effective temperature of a star of given {\tt initialMass}, {\tt metallicity} and {\tt age}.
+    !% Returns the effective temperature of a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
     implicit none
     double precision, intent(in   ) :: age, initialMass, metallicity
 

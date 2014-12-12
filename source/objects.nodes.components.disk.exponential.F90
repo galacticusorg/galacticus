@@ -717,7 +717,7 @@ contains
   !#  <unitName>Node_Component_Disk_Exponential_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Disk_Exponential_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}.
+    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
     use Histories
     use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
@@ -803,7 +803,7 @@ contains
   !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Disk_Exponential_Satellite_Merging(thisNode)
-    !% Transfer any exponential disk associated with {\tt thisNode} to its host halo.
+    !% Transfer any exponential disk associated with {\normalfont \ttfamily thisNode} to its host halo.
     use Histories
     use Abundances_Structure
     use Satellite_Merging_Mass_Movements_Descriptors

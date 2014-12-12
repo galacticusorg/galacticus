@@ -74,13 +74,13 @@ contains
   end subroutine Star_Formation_Expulsive_Feedback_Spheroids_SW_Initialize
 
   double precision function Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_SW(thisNode,starFormationRate,energyInputRate)
-    !% Returns the expulsive outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic spheroid of {\tt thisNode}. The outflow
+    !% Returns the expulsive outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic spheroid of {\normalfont \ttfamily thisNode}. The outflow
     !% rate is given by
     !% \begin{equation}
-    !% \dot{M}_{\rm outflow} = f_{\rm SW,0} \left\{ \begin{array}{ll} 1 & \hbox{ if } V_{\rm spheroid} < V_{\rm spheroid,SW} \\ (V_{\rm spheroid,SW}/V_{\rm spheroid})^2 &  \hbox{ if } V_{\rm spheroid} \ge V_{\rm spheroid,SW} \end{array} \right. ,
+    !% \dot{M}_{\mathrm outflow} = f_{\mathrm SW,0} \left\{ \begin{array}{ll} 1 & \hbox{ if } V_{\mathrm spheroid} < V_{\mathrm spheroid,SW} \\ (V_{\mathrm spheroid,SW}/V_{\mathrm spheroid})^2 &  \hbox{ if } V_{\mathrm spheroid} \ge V_{\mathrm spheroid,SW} \end{array} \right. ,
     !% \end{equation}
-    !%  where $V_{\rm spheroid,SW}=${\tt
-    !% [spheroidSuperwindVelocity]} and $f_{\rm SW,0}=${\tt [spheroidSuperwindMassLoading]}. Note that the velocity $V_{\rm
+    !%  where $V_{\mathrm spheroid,SW}=${\tt
+    !% [spheroidSuperwindVelocity]} and $f_{\mathrm SW,0}=${\normalfont \ttfamily [spheroidSuperwindMassLoading]}. Note that the velocity $V_{\rm
     !% spheroid}$ is whatever characteristic value returned by the spheroid method. This scaling is functionally similar to
     !% that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005}, except that they specifically used the
     !% circular velocity at half-mass radius.

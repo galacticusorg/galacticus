@@ -49,7 +49,7 @@ contains
   end subroutine Stellar_Winds_Leitherer1992_Initialize
 
   double precision function Stellar_Winds_Mass_Loss_Rate_Leitherer1992(initialMass,age,metallicity)
-    !% Compute the mass loss rate (in $M_\odot$/Gyr) from a star of given {\tt initialMass}, {\tt age} and {\tt metallicity} using
+    !% Compute the mass loss rate (in $M_\odot$/Gyr) from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity} using
     !% the fitting formula of \cite{leitherer_deposition_1992}.
     use Stellar_Astrophysics_Tracks
     implicit none
@@ -73,7 +73,7 @@ contains
   end function Stellar_Winds_Mass_Loss_Rate_Leitherer1992
 
   double precision function Stellar_Winds_Terminal_Velocity_Leitherer1992(initialMass,age,metallicity)
-    !% Compute the terminal velocity (in km/s) from a star of given {\tt initialMass}, {\tt age} and {\tt metallicity} using
+    !% Compute the terminal velocity (in km/s) from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity} using
     !% the fitting formula of \cite{leitherer_deposition_1992}.
     use Stellar_Astrophysics_Tracks
     implicit none

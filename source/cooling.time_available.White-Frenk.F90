@@ -51,7 +51,7 @@ contains
        !@   <defaultValue>0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     Interpolates (geometrically) between the age of the Universe and the halo dynamical time for the time available for cooling in the {\tt White-Frenk1991} method.
+       !@     Interpolates (geometrically) between the age of the Universe and the halo dynamical time for the time available for cooling in the {\normalfont \ttfamily White-Frenk1991} method.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>

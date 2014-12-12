@@ -58,7 +58,7 @@ contains
   !#   <after>Merger_Tree_Regrid_Time</after>
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Conditional_Mass_Function(thisTree)
-    !% Compute conditional mass function on {\tt thisTree}.
+    !% Compute conditional mass function on {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management

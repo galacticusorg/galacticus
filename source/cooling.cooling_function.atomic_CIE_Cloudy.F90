@@ -15,10 +15,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which generates a tabulated atomic collisional ionization equilibrium cooling function using {\sc Cloudy}.
+!% Contains a module which generates a tabulated atomic collisional ionization equilibrium cooling function using {\normalfont \scshape Cloudy}.
 
 module Cooling_Functions_Atomic_CIE_Cloudy
-  !% Generates a tabulated atomic collisional ionization equilibrium cooling function using {\sc Cloudy}.
+  !% Generates a tabulated atomic collisional ionization equilibrium cooling function using {\normalfont \scshape Cloudy}.
   use ISO_Varying_String
   implicit none
   private
@@ -52,7 +52,7 @@ contains
   !#  <methodName>atomicCIECloudy</methodName>
   !# </coolingFunctionMethods>
   subroutine Cooling_Function_Atomic_CIE_Cloudy_Initialize(coolingFunctionMethods,coolingFunctionsMatched)
-    !% Initializes the ``atomic CIE cooling function from {\sc Cloudy}'' module.
+    !% Initializes the ``atomic CIE cooling function from {\normalfont \scshape Cloudy}'' module.
     implicit none
     type   (varying_string), intent(in   ) :: coolingFunctionMethods (:)
     integer                , intent(inout) :: coolingFunctionsMatched
@@ -129,7 +129,7 @@ contains
   !#   <unitName>Cooling_Function_Atomic_CIE_Cloudy</unitName>
   !# </coolingFunctionCompute>
   subroutine Cooling_Function_Atomic_CIE_Cloudy(coolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
-    !% Return the cooling function assuming atomic CIE as computed by {\sc Cloudy}.
+    !% Return the cooling function assuming atomic CIE as computed by {\normalfont \scshape Cloudy}.
     use Cooling_Functions_CIE_File
     use Abundances_Structure
     use Chemical_Abundances_Structure
@@ -165,7 +165,7 @@ contains
   !# </coolingFunctionDensitySlopeCompute>
   subroutine Cooling_Function_Density_Slope_Atomic_CIE_Cloudy(coolingFunctionDensitySlope,temperature,numberDensityHydrogen,gasAbundances&
        &,chemicalDensities,radiation)
-    !% Return the gradient with respect to density of cooling function assuming atomic CIE as computed by {\sc Cloudy}.
+    !% Return the gradient with respect to density of cooling function assuming atomic CIE as computed by {\normalfont \scshape Cloudy}.
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
@@ -201,7 +201,7 @@ contains
   !# </coolingFunctionTemperatureSlopeCompute>
   subroutine Cooling_Function_Temperature_Slope_Atomic_CIE_Cloudy(coolingFunctionTemperatureSlope,temperature&
        &,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
-    !% Return the cooling function assuming atomic CIE as computed by {\sc Cloudy}.
+    !% Return the cooling function assuming atomic CIE as computed by {\normalfont \scshape Cloudy}.
     use Cooling_Functions_CIE_File
     use Abundances_Structure
     use Chemical_Abundances_Structure

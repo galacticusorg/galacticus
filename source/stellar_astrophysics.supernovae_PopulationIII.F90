@@ -80,7 +80,7 @@ contains
   end subroutine Supernovae_Population_III_Initialize
 
   double precision function SNePopIII_Cumulative_Energy(initialMass,age,metallicity)
-    !% Return the cumulative energy input from Population III supernovae from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
+    !% Return the cumulative energy input from Population III supernovae from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision, intent(in   ) :: age, initialMass, metallicity
 

@@ -102,7 +102,7 @@ contains
        !@   <defaultValue>0.1</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    The width (in $\ln[\dot{M}/\dot{M}_{\rm Eddington}]$) over which transitions between accretion disk states occur.
+       !@    The width (in $\ln[\dot{M}/\dot{M}_{\mathrm Eddington}]$) over which transitions between accretion disk states occur.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -157,7 +157,7 @@ contains
   end function Accretion_Disk_Jet_Power_Switched
 
   double precision function Black_Hole_Spin_Up_Rate_Switched(thisBlackHole,massAccretionRate)
-    !% Computes the spin up rate of the black hole in {\tt thisBlackHole} due to accretion from a switching accretion disk.
+    !% Computes the spin up rate of the black hole in {\normalfont \ttfamily thisBlackHole} due to accretion from a switching accretion disk.
     !% disk.
     use Galacticus_Nodes
     implicit none

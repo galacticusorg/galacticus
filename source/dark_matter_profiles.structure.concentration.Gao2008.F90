@@ -31,14 +31,14 @@
   end type darkMatterProfileConcentrationGao2008
   
   interface darkMatterProfileConcentrationGao2008
-     !% Constructors for the {\tt gao2008} dark matter halo profile concentration class.
+     !% Constructors for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
      module procedure gao2008DefaultConstructor
   end interface darkMatterProfileConcentrationGao2008
 
 contains
 
   function gao2008DefaultConstructor()
-    !% Default constructor for the {\tt gao2008} dark matter halo profile concentration class.
+    !% Default constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
     implicit none
     type(darkMatterProfileConcentrationGao2008), target  :: gao2008DefaultConstructor
 
@@ -46,7 +46,7 @@ contains
   end function gao2008DefaultConstructor
 
   double precision function gao2008Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\tt node} using the \cite{gao_redshift_2008} algorithm.
+    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{gao_redshift_2008} algorithm.
     use Cosmology_Functions
     implicit none
     class           (darkMatterProfileConcentrationGao2008), intent(inout)          :: self

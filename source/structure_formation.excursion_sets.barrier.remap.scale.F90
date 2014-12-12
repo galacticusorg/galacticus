@@ -74,7 +74,7 @@ contains
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>
           !@   <description>
-          !@     The factor by which the excursion set barrier should be rescaled if the {\tt scale} remapping method is active.
+          !@     The factor by which the excursion set barrier should be rescaled if the {\normalfont \ttfamily scale} remapping method is active.
           !@   </description>
           !@ </inputParameter>
           call Get_Input_Parameter('excursionSetBarrierRemapScalingFactor',excursionSetBarrierRemapScalingFactor,defaultValue=1.0d0)

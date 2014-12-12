@@ -16,12 +16,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a program which tests the \cite{navarro_structure_1996} halo concentration algorithm in a dark energy Universe.
-!% Comparisons are made to the \href{http://www.astro.uvic.ca/~jfn/charden/charden.tar.gz}{``{\tt charden}''} code written by
+!% Comparisons are made to the \href{http://www.astro.uvic.ca/~jfn/charden/charden.tar.gz}{``{\normalfont \ttfamily charden}''} code written by
 !% Julio Navarro.
 
 program Test_NFW96_Concentration_Dark_Energy
   !% Tests the \cite{navarro_structure_1996} halo concentration algorithm in a dark energy Universe. Comparisons are made to the
-  !% \href{http://www.astro.uvic.ca/~jfn/charden/charden.tar.gz}{``{\tt charden}''} code written by Julio Navarro.
+  !% \href{http://www.astro.uvic.ca/~jfn/charden/charden.tar.gz}{``{\normalfont \ttfamily charden}''} code written by Julio Navarro.
   use ISO_Varying_String
   use Memory_Management
   use Input_Parameters

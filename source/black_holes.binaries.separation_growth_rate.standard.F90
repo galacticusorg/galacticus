@@ -68,7 +68,7 @@ contains
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     Specifies whether or not the velocity dispersion of dark matter and stars should be computed using Jeans equation
-       !@     in black hole binary hardening calculations. If {\tt false}, then the velocity dispersions are assumed to equal
+       !@     in black hole binary hardening calculations. If {\normalfont \ttfamily false}, then the velocity dispersions are assumed to equal
        !@     the characteristic velocity of dark matter and spheroid.
        !@   </description>
        !@   <type>boolean</type>

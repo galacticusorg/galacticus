@@ -49,7 +49,7 @@ contains
        !@   <defaultValue>$\sqrt{1/2}$ \citep{mo_formation_1998}</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The ratio of galaxy radius to $\lambda r_{\rm vir}$ in the ``fixed'' galactic structure radius solver algorithm.
+       !@     The ratio of galaxy radius to $\lambda r_{\mathrm vir}$ in the ``fixed'' galactic structure radius solver algorithm.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -60,7 +60,7 @@ contains
   end subroutine Galactic_Structure_Radii_Fixed_Initialize
 
   subroutine Galactic_Structure_Radii_Solve_Fixed(thisNode)
-    !% Find the radii of galactic components in {\tt thisNode} using the ``fixed'' method.
+    !% Find the radii of galactic components in {\normalfont \ttfamily thisNode} using the ``fixed'' method.
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none

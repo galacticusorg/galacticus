@@ -344,7 +344,7 @@ contains
   end function Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver
 
   double precision function Adiabatic_Solver_Mean_Orbital_Radius(radius)
-    !% Returns the orbit averaged radius for dark matter corresponding the given {\tt radius} using the model of
+    !% Returns the orbit averaged radius for dark matter corresponding the given {\normalfont \ttfamily radius} using the model of
     !% \cite{gnedin_response_2004}.
     implicit none
     double precision, intent(in   ) :: radius
@@ -357,7 +357,7 @@ contains
   end function Adiabatic_Solver_Mean_Orbital_Radius
 
   double precision function Adiabatic_Solver_Mean_Orbital_Radius_Derivative(radius)
-    !% Returns the derivative of the orbit averaged radius for dark matter corresponding the given {\tt radius} using the model of
+    !% Returns the derivative of the orbit averaged radius for dark matter corresponding the given {\normalfont \ttfamily radius} using the model of
     !% \cite{gnedin_response_2004}.
     implicit none
     double precision, intent(in   ) :: radius

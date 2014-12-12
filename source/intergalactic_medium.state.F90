@@ -77,7 +77,7 @@ module Intergalactic_Medium_State
   !#   <argument>double precision, intent(in   ) :: time</argument>
   !#  </method>
   !#  <method name="electronScatteringOpticalDepth" >
-  !#   <description>Return the electron scattering optical depth from the present day back to the given {\tt time} in the \gls{igm}.</description>
+  !#   <description>Return the electron scattering optical depth from the present day back to the given {\normalfont \ttfamily time} in the \gls{igm}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <modules>Galacticus_Error</modules>
@@ -105,7 +105,7 @@ module Intergalactic_Medium_State
   !#   </code>
   !#  </method>
   !#  <method name="electronScatteringTime" >
-  !#   <description>Return the cosmological time at which the given electron scattering {\tt opticalDepth} is reached (integrating from the present day) in the \gls{igm}.</description>
+  !#   <description>Return the cosmological time at which the given electron scattering {\normalfont \ttfamily opticalDepth} is reached (integrating from the present day) in the \gls{igm}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <modules>Galacticus_Error Cosmology_Functions</modules>

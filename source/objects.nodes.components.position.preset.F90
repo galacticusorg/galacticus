@@ -63,7 +63,7 @@ contains
   !#  <unitName>Node_Component_Position_Preset_Node_Promotion</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Position_Preset_Node_Promotion(thisNode)
-    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, update the position of {\tt
+    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, update the position of {\tt
     !% thisNode} to that of the parent.
     implicit none
     type (treeNode             ), intent(inout), pointer :: thisNode

@@ -36,7 +36,7 @@ module Hot_Halo_Ram_Pressure_Stripping
 contains
 
   double precision function Hot_Halo_Ram_Pressure_Stripping_Radius(thisNode)
-    !% Return the ram pressure stripping radius for the hot halo of {\tt thisNode} (in units of Mpc).
+    !% Return the ram pressure stripping radius for the hot halo of {\normalfont \ttfamily thisNode} (in units of Mpc).
     use Galacticus_Nodes
     use Galacticus_Error
     use Input_Parameters

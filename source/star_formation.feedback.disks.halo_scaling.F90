@@ -96,7 +96,7 @@ contains
   end subroutine Star_Formation_Feedback_Disks_Halo_Scaling_Initialize
 
   double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling(thisNode,starFormationRate,energyInputRate)
-    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\tt thisNode}.
+    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode}.
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     implicit none

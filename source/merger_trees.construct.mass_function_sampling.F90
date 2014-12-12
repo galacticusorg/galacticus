@@ -82,7 +82,7 @@ contains
   end subroutine Merger_Trees_Mass_Function_Sampling_Initialize
 
   double precision function Merger_Tree_Construct_Mass_Function_Sampling(mass,time,massMinimum,massMaximum)
-    !% Returns the sampling rate for merger trees of the given {\tt mass}, per decade of halo mass.
+    !% Returns the sampling rate for merger trees of the given {\normalfont \ttfamily mass}, per decade of halo mass.
     implicit none
     double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
 

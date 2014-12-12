@@ -67,10 +67,10 @@ contains
        ! Get parameters of the fitting function.
        !@ <inputParameter>
        !@   <name>conditionalMassFunctionBehrooziAlphaSatellite</name>
-       !@   <defaultValue>1.0 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\tt SIG\_MOD1} method)</defaultValue>
+       !@   <defaultValue>1.0 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The parameter $\alpha_{\rm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
+       !@     The parameter $\alpha_{\mathrm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -80,7 +80,7 @@ contains
 
        !@ <inputParameter>
        !@   <name>conditionalMassFunctionBehrooziLog10M1</name>
-       !@   <defaultValue>12.520 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\tt SIG\_MOD1} method)</defaultValue>
+       !@   <defaultValue>12.520 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The parameter $\log_{10}M_1$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
@@ -93,7 +93,7 @@ contains
 
        !@ <inputParameter>
        !@   <name>conditionalMassFunctionBehrooziLog10Mstar0</name>
-       !@   <defaultValue>10.916 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\tt SIG\_MOD1} method)</defaultValue>
+       !@   <defaultValue>10.916 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The parameter $\log_{10}M_{\star,0}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
@@ -106,7 +106,7 @@ contains
 
        !@ <inputParameter>
        !@   <name>conditionalMassFunctionBehrooziBeta</name>
-       !@   <defaultValue>0.457 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\tt SIG\_MOD1} method)</defaultValue>
+       !@   <defaultValue>0.457 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The parameter $\beta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
@@ -119,7 +119,7 @@ contains
 
        !@ <inputParameter>
        !@   <name>conditionalMassFunctionBehrooziDelta</name>
-       !@   <defaultValue>0.5666 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\tt SIG\_MOD1} method)</defaultValue>
+       !@   <defaultValue>0.5666 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The parameter $\delta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
@@ -132,7 +132,7 @@ contains
 
        !@ <inputParameter>
        !@   <name>conditionalMassFunctionBehrooziGamma</name>
-       !@   <defaultValue>1.53 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\tt SIG\_MOD1} method)</defaultValue>
+       !@   <defaultValue>1.53 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The parameter $\gamma$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
@@ -145,7 +145,7 @@ contains
 
        !@ <inputParameter>
        !@   <name>conditionalMassFunctionBehrooziSigmaLogMstar</name>
-       !@   <defaultValue>0.206 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\tt SIG\_MOD1} method)</defaultValue>
+       !@   <defaultValue>0.206 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The parameter $\sigma_{\log M_\star}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
@@ -158,10 +158,10 @@ contains
 
        !@ <inputParameter>
        !@   <name>conditionalMassFunctionBehrooziBCut</name>
-       !@   <defaultValue>1.47 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\tt SIG\_MOD1} method)</defaultValue>
+       !@   <defaultValue>1.47 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The parameter $B_{\rm cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
+       !@     The parameter $B_{\mathrm cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -171,10 +171,10 @@ contains
 
        !@ <inputParameter>
        !@   <name>conditionalMassFunctionBehrooziBSatellite</name>
-       !@   <defaultValue>10.62 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\tt SIG\_MOD1} method)</defaultValue>
+       !@   <defaultValue>10.62 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The parameter $B_{\rm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
+       !@     The parameter $B_{\mathrm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -184,10 +184,10 @@ contains
 
        !@ <inputParameter>
        !@   <name>conditionalMassFunctionBehrooziBetaCut</name>
-       !@   <defaultValue>$-0.13$ (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\tt SIG\_MOD1} method)</defaultValue>
+       !@   <defaultValue>$-0.13$ (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The parameter $\beta_{\rm cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
+       !@     The parameter $\beta_{\mathrm cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -197,10 +197,10 @@ contains
 
        !@ <inputParameter>
        !@   <name>conditionalMassFunctionBehrooziBetaSatellite</name>
-       !@   <defaultValue>0.859 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\tt SIG\_MOD1} method)</defaultValue>
+       !@   <defaultValue>0.859 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The parameter $\beta_{\rm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
+       !@     The parameter $\beta_{\mathrm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -215,7 +215,7 @@ contains
   end subroutine Conditional_Mass_Functions_Behroozi2010_Initialize
 
   double precision function Cumulative_Conditional_Mass_Function_Behroozi2010(massHalo,mass)
-    !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_{\rm halo}) \rangle \equiv \phi(M_\star|M_{\rm
+    !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_{\mathrm halo}) \rangle \equiv \phi(M_\star|M_{\rm
     !% halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
     implicit none
     double precision, intent(in   ) :: massHalo      , mass
@@ -230,8 +230,8 @@ contains
   end function Cumulative_Conditional_Mass_Function_Behroozi2010
 
   double precision function Cumulative_Conditional_Mass_Function_Var_Behroozi2010(massHalo,massLow,massHigh)
-    !% Computes the variance in the cumulative conditional mass function, $\langle N(M_\star|M_{\rm halo}) \rangle \equiv
-    !% \phi(M_\star|M_{\rm halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}. Assumes that the number of
+    !% Computes the variance in the cumulative conditional mass function, $\langle N(M_\star|M_{\mathrm halo}) \rangle \equiv
+    !% \phi(M_\star|M_{\mathrm halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}. Assumes that the number of
     !% satellite galaxies is Poisson distributed, while the number of central galaxies follows a Bernoulli distribution, and that
     !% the numbers of satellites and centrals are uncorrelated.
     implicit none
@@ -253,7 +253,7 @@ contains
   end function Cumulative_Conditional_Mass_Function_Var_Behroozi2010
 
   subroutine Cumulative_Conditional_Mass_Function_Compute(massHalo,mass,numberCentrals,numberSatellites)
-    !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_{\rm halo}) \rangle \equiv \phi(M_\star|M_{\rm
+    !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_{\mathrm halo}) \rangle \equiv \phi(M_\star|M_{\rm
     !% halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
     implicit none
     double precision                    , intent(in   ) :: massHalo                  , mass

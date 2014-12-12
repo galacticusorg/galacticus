@@ -44,7 +44,7 @@ contains
   end subroutine Collisional_Excitation_Cooling_Rate_ScholzWalters91_Initialize
   
   double precision function Collisional_Excitation_Cooling_Rate(atomicNumber, electronNumber, temperature)
-    !% Return collisional excitation cooling rates, in units of J/m$^3$/s, for ion {\tt Ion} at temperature {\tt T} (in Kelvin)
+    !% Return collisional excitation cooling rates, in units of J/m$^3$/s, for ion {\normalfont \ttfamily Ion} at temperature {\normalfont \ttfamily T} (in Kelvin)
     !% using the fitting functions of \cite{scholz_collisional_1991}.
     use Galacticus_Error
     implicit none

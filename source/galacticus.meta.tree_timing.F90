@@ -95,7 +95,7 @@ contains
   !#   <unitName>Meta_Tree_Timing_Pre_Evolve</unitName>
   !# </mergerTreePreEvolveTask>
   subroutine Meta_Tree_Timing_Pre_Evolve(thisTree)
-    !% Record the CPU time prior to evolving {\tt thisTree}.
+    !% Record the CPU time prior to evolving {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
     implicit none
     type (mergerTree        ), intent(in   ) :: thisTree

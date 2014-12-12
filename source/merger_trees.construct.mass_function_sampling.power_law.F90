@@ -46,7 +46,7 @@ contains
        !@   <defaultValue>1</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     Halo masses will be (pseudo-)uniformly distributed in $[\log(M)]^{1/(1+\alpha)}$ where $\alpha=${\tt mergerTreeBuildTreesHaloMassExponent}.
+       !@     Halo masses will be (pseudo-)uniformly distributed in $[\log(M)]^{1/(1+\alpha)}$ where $\alpha=${\normalfont \ttfamily mergerTreeBuildTreesHaloMassExponent}.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>

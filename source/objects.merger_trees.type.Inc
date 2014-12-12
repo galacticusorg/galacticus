@@ -51,13 +51,13 @@
      !@   </objectMethod>
      !@   <objectMethod>
      !@    <method>createEvent</method>
-     !@    <description>Create a {\tt treeEvent} object in this tree.</description>
+     !@    <description>Create a {\normalfont \ttfamily treeEvent} object in this tree.</description>
      !@     <type>\textcolor{red}{\textless *type(treeEvent)\textgreater}</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@    <method>removeEvent</method>
-     !@    <description>Remove a {\tt treeEvent} from this tree.</description>
+     !@    <description>Remove a {\normalfont \ttfamily treeEvent} from this tree.</description>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless type(treeEvent)\textgreater} event\argin</arguments>
      !@   </objectMethod>

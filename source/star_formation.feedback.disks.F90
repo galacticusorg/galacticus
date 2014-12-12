@@ -84,7 +84,7 @@ contains
   end subroutine Star_Formation_Feedback_Disks_Initialize
 
   double precision function Star_Formation_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
-    !% Returns the outflow rate due to star formation in the disk component of {\tt thisNode}.
+    !% Returns the outflow rate due to star formation in the disk component of {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: energyInputRate, starFormationRate

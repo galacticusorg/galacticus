@@ -33,7 +33,7 @@ contains
   !#  <unitName>Critical_Overdensity_Kitayama_Suto1996_Initialize</unitName>
   !# </criticalOverdensityMethod>
   subroutine Critical_Overdensity_Kitayama_Suto1996_Initialize(criticalOverdensityMethod,Critical_Overdensity_Contrast_Tabulate)
-    !% Initializes the $\delta_{\rm c}$ calculation for the \cite{kitayama_semianalytic_1996} fitting function module.
+    !% Initializes the $\delta_{\mathrm c}$ calculation for the \cite{kitayama_semianalytic_1996} fitting function module.
     use ISO_Varying_String
     use Numerical_Comparison
     use Galacticus_Error

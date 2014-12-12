@@ -57,7 +57,7 @@ contains
   end subroutine Satellite_Merging_Remnant_Sizes_Cole2000_Initialize
 
   subroutine Satellite_Merging_Remnant_Size_Cole2000(satelliteNode)
-    !% Compute the size of the merger remnant for {\tt satelliteNode} using the \cite{cole_hierarchical_2000} algorithm.
+    !% Compute the size of the merger remnant for {\normalfont \ttfamily satelliteNode} using the \cite{cole_hierarchical_2000} algorithm.
     use Galacticus_Nodes
     use Numerical_Constants_Physical
     use Numerical_Comparison

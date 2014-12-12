@@ -77,7 +77,7 @@ contains
   end subroutine Hot_Halo_Cold_Mode_Density_CIso_CoreR_Init
 
   double precision function Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radius(thisNode)
-    !% Returns the radius (in Mpc) of the core in a cored isothermal hot halo density profile for {\tt thisNode}.
+    !% Returns the radius (in Mpc) of the core in a cored isothermal hot halo density profile for {\normalfont \ttfamily thisNode}.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

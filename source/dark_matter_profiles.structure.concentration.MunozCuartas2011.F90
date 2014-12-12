@@ -31,14 +31,14 @@
   end type darkMatterProfileConcentrationMunozCuartas2011
 
   interface darkMatterProfileConcentrationMunozCuartas2011
-     !% Constructors for the {\tt munozCuartas2011} dark matter halo profile concentration class.
+     !% Constructors for the {\normalfont \ttfamily munozCuartas2011} dark matter halo profile concentration class.
      module procedure munozCuartas2011DefaultConstructor
   end interface darkMatterProfileConcentrationMunozCuartas2011
 
 contains
 
   function munozCuartas2011DefaultConstructor()
-    !% Default constructor for the {\tt munozCuartas2011} dark matter halo profile concentration class.
+    !% Default constructor for the {\normalfont \ttfamily munozCuartas2011} dark matter halo profile concentration class.
     implicit none
     type(darkMatterProfileConcentrationMunozCuartas2011), target  :: munozCuartas2011DefaultConstructor
 
@@ -46,7 +46,7 @@ contains
   end function munozCuartas2011DefaultConstructor
 
   double precision function munozCuartas2011Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\tt node} using the \cite{munoz-cuartas_redshift_2011} algorithm.
+    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{munoz-cuartas_redshift_2011} algorithm.
     use Cosmology_Functions
     use Cosmology_Parameters
     implicit none
