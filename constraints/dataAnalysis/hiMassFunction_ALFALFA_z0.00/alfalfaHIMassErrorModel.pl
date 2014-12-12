@@ -29,9 +29,9 @@ my $logarithmicMass      = pdl @{$data->{'mass'     }->{'datum'}};
 my $logarithmicMassError = pdl @{$data->{'massError'}->{'datum'}};
 
 # Generate a fit to the data. Functional form chosen by simple eyeball examination of the data.
-my $aBest          = -1.0;
-my $bBest = 5.8;
-my $cBest = 0.5;
+my $aBest          = 0.100;
+my $bBest          = 5.885;
+my $cBest          = 0.505;
 my $fitMeasureBest = 1.0e30;
 for(my $a=0.05;$a<=0.15;$a+=0.005) {
     for(my $b=5.00;$b<=7.00;$b+=0.005) {

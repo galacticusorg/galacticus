@@ -17,6 +17,7 @@ use Switch;
 require Galacticus::Constraints::Parameters;
 require Galacticus::Constraints::DiscrepancySystematics;
 require Galacticus::HDF5;
+require Galacticus::Launch::PBS;
 
 # Run calculations to determine the model discrepancy arising from the use of Monte Carlo merger trees.
 # Andrew Benson (16-November-2012)
@@ -44,17 +45,17 @@ my $xml    = new XML::Simple;
 my $config = $xml->XMLin($configFile, KeyAttr => 0);
 
 # Validate the config file.
-die("monteCarloTrees.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'workDirectory' }) );
-die("monteCarloTrees.pl: compilation must be specified in config file"   ) unless ( exists($config->{'compilation'   }) );
-die("monteCarloTrees.pl: baseParameters must be specified in config file") unless ( exists($config->{'baseParameters'}) );
+die("monteCarloTrees.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
+die("monteCarloTrees.pl: compilation must be specified in config file"   ) unless ( exists($config->{'likelihood'}->{'compilation'   }) );
+die("monteCarloTrees.pl: baseParameters must be specified in config file") unless ( exists($config->{'likelihood'}->{'baseParameters'}) );
 
 # Determine the scratch and work directories.
-my $workDirectory    = $config->{'workDirectory'};
-my $scratchDirectory = $config->{'workDirectory'};
-$scratchDirectory    = $config->{'scratchDirectory'} if ( exists($config->{'scratchDirectory'}) );
+my $workDirectory    = $config->{'likelihood'}->{'workDirectory'};
+my $scratchDirectory = $config->{'likelihood'}->{'workDirectory'};
+$scratchDirectory    = $config->{'likelihood'}->{'scratchDirectory'} if ( exists($config->{'likelihood'}->{'scratchDirectory'}) );
 
 # Create the work and scratch directories.
-system("mkdir -p ".$config->{'workDirectory'});
+system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'});
 
 # Ensure that Galacticus is built.
 if ( $arguments{'make'} eq "yes" ) {
@@ -155,7 +156,7 @@ if ( defined($millenniumDbCommand) ) {
 }
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'compilation'},$config->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Ensure we have redshift zero included in the outputs.
@@ -193,6 +194,11 @@ for(my $iSubvolume=0;$iSubvolume<$subVolumeCount;++$iSubvolume) {
 	if ( $haveSubvolumes == 1 );
     my @monteCarloParameters =
 	(
+	 # Store merging statistics.
+	 {
+	     name => "treeNodeMethodMergingStatistics",
+	     value => "standard"
+	 },
 	 # Switch to using Monte-Carlo trees.
 	 {
 	     name  => "mergerTreeConstructMethod",
@@ -669,48 +675,39 @@ foreach my $model ( @models ) {
 	my $parameterFileName = $modelDirectory."/parameters.xml";
 	&Parameters::Output($newParameters,$parameterFileName);
 	# Create a batch script for PBS.
-	my $batchScriptFileName = $modelDirectory."/launch.pbs";
-	open(oHndl,">".$batchScriptFileName);
-	print oHndl "#!/bin/bash\n";
-	print oHndl "#PBS -N monteCarloTrees".$model->{'label'}."\n";
-	print oHndl "#PBS -l walltime=3:00:00\n";
-	print oHndl "#PBS -l mem=4gb\n";
-	print oHndl "#PBS -l nodes=1:ppn=12\n";
-	print oHndl "#PBS -j oe\n";
-	print oHndl "#PBS -o ".$modelDirectory."/launch.log\n";
-	print oHndl "#PBS -V\n";
-	print oHndl "cd \$PBS_O_WORKDIR\n";
-	print oHndl "export LD_LIBRARY_PATH=/home/abenson/Galacticus/Tools/lib:/home/abenson/Galacticus/Tools/lib64:\$LD_LIBRARY_PATH\n";
-	print oHndl "export PATH=/home/abenson/Galacticus/Tools/bin:\$PATH\n";
-	print oHndl "export GFORTRAN_ERROR_DUMPCORE=YES\n";
-	print oHndl "ulimit -t unlimited\n";
-	print oHndl "ulimit -c unlimited\n";
-	print oHndl "export OMP_NUM_THREADS=12\n";
-	print oHndl "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
-	print oHndl $galacticusPath."/constraints/modelDiscrepancy/monteCarloTreesExtractHaloMasses.pl ".$modelDirectory."\n"
+	my $command = "mpirun --bynode -np 1 Galacticus.exe ".$parameterFileName."\n";
+	$command .= $galacticusPath."/constraints/modelDiscrepancy/monteCarloTreesExtractHaloMasses.pl ".$modelDirectory."\n"
 	    if ( $model->{'label'} =~ m/^nBody/ );
 	foreach my $constraint ( @constraints ) {
 	    # Parse the definition file.
 	    my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
 	    # Insert code to run the analysis code.
 	    my $analysisCode = $constraintDefinition->{'analysis'};
-	    print oHndl $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".xml\n";
+	    $command .=  $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5\n";
 	}
-	close(oHndl);
 	# Queue the calculation.
-	my %pbsData = 
+	my %job =
 	    (
-	     script    => $batchScriptFileName,
-	     model     => $modelDirectory,
-	     label     => $model->{'label'}
+	     launchFile => $modelDirectory."/launch.pbs",
+	     label      => "monteCarloTrees".$model->{'label'},
+	     logFile    => $modelDirectory."/launch.log",
+	     command    => $command
 	    );
-	$pbsData{'dependsOn'} = $model->{'dependsOn'}
-	   if ( exists( $model->{'dependsOn'}) );
-	push(@pbsStack,\%pbsData);   
+	$job{'dependsOn'} = $model->{'dependsOn'}
+	    if ( exists( $model->{'dependsOn'}) );
+	foreach ( 'ppn', 'walltime', 'memory' ) {
+	    $job{$_} = $arguments{$_}
+	    if ( exists($arguments{$_}) );
+	}
+	# Queue the calculation.
+	push(
+	    @pbsStack,
+	    \%job
+	    );
     }
 }
 # Send jobs to PBS.
-&PBS_Submit(@pbsStack)
+&PBS::SubmitJobs(\%arguments,@pbsStack)
     if ( scalar(@pbsStack) > 0 );
 
 # Iterate over constraints.
@@ -727,19 +724,17 @@ foreach my $constraint ( @constraints ) {
 	$subVolumeSuffix = $iSubvolume
 	    if ( $haveSubvolumes == 1 );
 	# Locate the Monte Carlo model results.
-	my $monteCarloResultFileName   = $modelsDirectory."monteCarlo".$subVolumeSuffix."/".$constraintDefinition->{'label'}.".xml";
+	my $monteCarloResultFileName   = $modelsDirectory."monteCarlo".$subVolumeSuffix."/".$constraintDefinition->{'label'}.".hdf5";
 	# Read the results.
-	my $monteCarloResult           = $xml->XMLin($monteCarloResultFileName);
+	my $monteCarloResult           = new PDL::IO::HDF5($monteCarloResultFileName);
 	# Extract the results.
-	my $thisMonteCarloMass         = pdl @{$monteCarloResult->{'x'         }};
-	my $thisMonteCarloMassFunction = pdl @{$monteCarloResult->{'y'         }};
-	my $thisMonteCarloCovariance   = pdl @{$monteCarloResult->{'covariance'}};
-	my $ySize                      = nelem($thisMonteCarloMassFunction);
-	$thisMonteCarloCovariance      = reshape($thisMonteCarloCovariance,$ySize,$ySize);
+	my $thisMonteCarloMass         = $monteCarloResult->dataset('x'         )->get();
+	my $thisMonteCarloMassFunction = $monteCarloResult->dataset('y'         )->get();
+	my $thisMonteCarloCovariance   = $monteCarloResult->dataset('covariance')->get();
 	unless ( defined($monteCarloMass) ) {
 	    $monteCarloMass         = $thisMonteCarloMass;
-	    $monteCarloMassFunction = pdl zeroes($ySize       );
-	    $monteCarloCovariance   = pdl zeroes($ySize,$ySize);
+	    $monteCarloMassFunction = pdl zeroes(shape($thisMonteCarloMassFunction));
+	    $monteCarloCovariance   = pdl zeroes(shape($thisMonteCarloCovariance  ));
 	}
 	$monteCarloMassFunction += $thisMonteCarloMassFunction;
 	$monteCarloCovariance   += $thisMonteCarloCovariance  ;
@@ -758,15 +753,13 @@ foreach my $constraint ( @constraints ) {
 	$subVolumeSuffix = $iSubvolume
 	    if ( $haveSubvolumes == 1 );
 	# Locate the N-body model results.
-	my $nbodyResultFileName = $modelsDirectory."nBody".$subVolumeSuffix."/".$constraintDefinition->{'label'}.".xml";
+	my $nbodyResultFileName = $modelsDirectory."nBody".$subVolumeSuffix."/".$constraintDefinition->{'label'}.".hdf5";
 	# Read the results.
-	my $nbodyResult         = $xml->XMLin($nbodyResultFileName);
+	my $nbodyResult         = new PDL::IO::HDF5($nbodyResultFileName);
 	# Extract the results.
-	$nBodyMass                        = pdl @{$nbodyResult->{'x'         }};
-	my $thisMassFunction              = pdl @{$nbodyResult->{'y'         }};
-	my $thisCovariance                = pdl @{$nbodyResult->{'covariance'}};
-	my $ySize                         = nelem($thisMassFunction);
-	$thisCovariance                   = reshape($thisCovariance,$ySize,$ySize);
+	$nBodyMass                        = $nbodyResult->dataset('x'         )->get();
+	my $thisMassFunction              = $nbodyResult->dataset('y'         )->get();
+	my $thisCovariance                = $nbodyResult->dataset('covariance')->get();
 	push(@nBodyMassFunctions          ,$thisMassFunction);
 	push(@nBodyMassFunctionCovariances,$thisCovariance);
     }
@@ -832,6 +825,7 @@ foreach my $constraint ( @constraints ) {
 		%{$systematicResults{$model}} =
 		    &{$DiscrepancySystematics::models{$model}}(
 		    \%arguments                ,
+		    $constraintDefinition      ,
 		    $nBodyMass                 ,
 		    $monteCarloMassFunction    ,
 		    $monteCarloCovariance      ,
@@ -867,55 +861,3 @@ foreach my $constraint ( @constraints ) {
 }
 
 exit;
-
-sub PBS_Submit {
-    # Submit jobs to PBS and wait for them to finish.
-    my @pbsStack = @_;
-    my %pbsJobs;
-    # Determine maximum number allowed in queue at once.
-    my $jobMaximum = 10;
-    $jobMaximum = $arguments{'pbsJobMaximum'}
-    if ( exists($arguments{'pbsJobMaximum'}) );
-    # Submit jobs and wait.
-    print "Waiting for PBS jobs to finish...\n";
-    while ( scalar(keys %pbsJobs) > 0 || scalar(@pbsStack) > 0 ) {
-	# Find all PBS jobs that are running.
-	my %runningPBSJobs;
-	undef(%runningPBSJobs);
-	open(pHndl,"qstat -f|");
-	while ( my $line = <pHndl> ) {
-	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$runningPBSJobs{$1} = 1};
-	}
-	close(pHndl);
-	foreach my $jobID ( keys(%pbsJobs) ) {
-	    unless ( exists($runningPBSJobs{$jobID}) ) {
-		print "PBS job ".$jobID." has finished.\n";
-		# Remove the job ID from the list of active PBS jobs.
-		delete($pbsJobs{$jobID});
-	    }
-	}
-	# If fewer than maximum number of jobs are in the queue, pop one off the stack.
-	while ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < $jobMaximum ) {
-	    my $pbsData     = pop(@pbsStack);
-	    my $batchScript = $pbsData->{'script'};
-	    if ( exists($pbsData->{'dependsOn'}) && ! -e $pbsData->{'dependsOn'} ) {
-		unshift(@pbsStack,$pbsData);
-		sleep 5;
-		last;
-	    } else {
-		# Submit the PBS job.
-		open(pHndl,"qsub ".$batchScript."|");
-		my $jobID = "";
-		while ( my $line = <pHndl> ) {
-		    if ( $line =~ m/^(\d+\S+)/ ) {$jobID = $1};
-		}
-		close(pHndl);	    
-		# Add the job number to the active job hash.
-		unless ( $jobID eq "" ) {
-		    $pbsJobs{$jobID} = $pbsData;
-		}
-	    }
-	}
-	sleep 5;
-    }
-}

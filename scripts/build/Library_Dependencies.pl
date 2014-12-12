@@ -20,7 +20,10 @@ my %dependencies =
      fgsl_gfortran => [ "gsl"                              ],
      gsl           => [ "gslcblas"                         ],
      FoX_dom       => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
-     FoX_sax       => [ "FoX_common"                       ]
+     FoX_sax       => [ "FoX_common"                       ],
+     yepLibrary    => [ "yeppp"                            ],
+     yepCore       => [ "yeppp"                            ],
+     yepMath       => [ "yeppp"                            ]
     );
 
 # Library order dependencies for static linking.
@@ -32,7 +35,10 @@ my %staticLinkDependencies =
      gsl           => [ "gslcblas"                         ],
      FoX_dom       => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
      FoX_sax       => [ "FoX_common"                       ],
-     FoX_common    => [ "FoX_fsys"                         ]
+     FoX_common    => [ "FoX_fsys"                         ],
+     YEPLibrary    => [ "yeppp"                            ],
+     YEPCore       => [ "yeppp"                            ],
+     YEPMath       => [ "yeppp"                            ]
     );
 
 # Detect static linking.
@@ -89,10 +95,17 @@ my @sortedLibraries = toposort(\&staticLinkDependency, \@unsortedLibraries);
 
 # Add static link options.
 my $staticOptions = "";
-$staticOptions = "-Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
+$staticOptions = " -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
     if ( $isStatic == 1 && $pthreadIncluded == 0 );
 
 # Write the linker options to standard output.
-print join(" ",map {"-l".$_} @sortedLibraries)." ".$staticOptions."\n";
+print join(" ",map {"-l".$_} @sortedLibraries).$staticOptions;
+
+# If we are linking BLAS, cause GFortran to use the external BLAS library.
+print " -fexternal-blas"
+    if ( grep{$_ eq "blas"} @sortedLibraries );
+
+# Write newline.
+print "\n";
 
 exit;
