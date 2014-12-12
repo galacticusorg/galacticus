@@ -30,14 +30,14 @@
   end type virialDensityContrastSphericalCollapseMatterDE
 
   interface virialDensityContrastSphericalCollapseMatterDE
-     !% Constructors for the {\tt sphericalCollapseMatterDE} dark matter halo virial density contrast class.
+     !% Constructors for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class.
      module procedure sphericalCollapseMatterDEDefaultConstructor
   end interface virialDensityContrastSphericalCollapseMatterDE
 
 contains
 
   function sphericalCollapseMatterDEDefaultConstructor()
-    !% Default constructor for the {\tt sphericalCollapseMatterDE} dark matter halo virial density contrast class.
+    !% Default constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class.
     use Input_Parameters
     implicit none
     type (virialDensityContrastSphericalCollapseMatterDE), target  :: sphericalCollapseMatterDEDefaultConstructor

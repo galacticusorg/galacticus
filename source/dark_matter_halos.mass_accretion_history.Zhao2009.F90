@@ -61,7 +61,7 @@ contains
   end subroutine Dark_Matter_Mass_Accretion_Zhao2009_Initialize
 
   double precision function Dark_Matter_Halo_Mass_Accretion_Time_Zhao2009(baseNode,nodeMass)
-    !% Compute the time corresponding to {\tt nodeMass} in the mass accretion history of {\tt thisNode} using the algorithm of
+    !% Compute the time corresponding to {\normalfont \ttfamily nodeMass} in the mass accretion history of {\normalfont \ttfamily thisNode} using the algorithm of
     !% \cite{zhao_accurate_2009}.
     use ODE_Solver
     use Galacticus_Error

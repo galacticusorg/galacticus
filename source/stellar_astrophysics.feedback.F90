@@ -85,7 +85,7 @@ contains
   end subroutine Stellar_Feedback_Initialize
 
   double precision function Stellar_Feedback_Cumulative_Energy_Input(initialMass,age,metallicity)
-    !% Return the cumulative energy input per from stellar feedback from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
+    !% Return the cumulative energy input per from stellar feedback from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision, intent(in   ) :: age, initialMass, metallicity
 

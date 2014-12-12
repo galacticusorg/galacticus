@@ -173,7 +173,7 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Rate_Compute
 
   subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize_Scale(thisNode)
-    !% Initialize the scale radius of {\tt thisNode}.
+    !% Initialize the scale radius of {\normalfont \ttfamily thisNode}.
     use Dark_Matter_Profile_Scales
     use Dark_Matter_Halo_Scales
     implicit none
@@ -222,7 +222,7 @@ contains
   !#  <sortName>darkMatterProfile</sortName>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize(thisNode)
-    !% Initialize the scale radius of {\tt thisNode}.
+    !% Initialize the scale radius of {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
     class           (nodeComponentDarkMatterProfile)               , pointer :: parentDarkMatterProfileComponent, thisDarkMatterProfileComponent
@@ -267,7 +267,7 @@ contains
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Promote</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Promote(thisNode)
-    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the growth rate of {\tt thisNode}
+    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily thisNode}
     !% to be that of its parent.
     use Galacticus_Error
     implicit none
@@ -297,7 +297,7 @@ contains
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}.
+    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
     implicit none
     type (treeNode                      ), intent(inout), pointer :: thisNode
     class(nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent

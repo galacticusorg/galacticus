@@ -33,7 +33,7 @@
   end type darkMatterProfileConcentrationDuttonMaccio2014
 
   interface darkMatterProfileConcentrationDuttonMaccio2014
-     !% Constructors for the {\tt duttonMaccio2014} dark matter halo profile concentration class.
+     !% Constructors for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
      module procedure duttonMaccio2014DefaultConstructor
      module procedure duttonMaccio2014Constructor
   end interface darkMatterProfileConcentrationDuttonMaccio2014
@@ -55,7 +55,7 @@
 contains
 
   function duttonMaccio2014DefaultConstructor()
-    !% Default constructor for the {\tt duttonMaccio2014} dark matter halo profile concentration class.
+    !% Default constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
     use Input_Parameters
     implicit none
     type(darkMatterProfileConcentrationDuttonMaccio2014), target :: duttonMaccio2014DefaultConstructor
@@ -86,7 +86,7 @@ contains
   end function duttonMaccio2014DefaultConstructor
 
   function duttonMaccio2014Constructor(fitType)
-    !% Constructor for the {\tt duttonMaccio2014} dark matter halo profile concentration class.
+    !% Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
     use Galacticus_Error
     implicit none
     type     (darkMatterProfileConcentrationDuttonMaccio2014)                :: duttonMaccio2014Constructor
@@ -127,7 +127,7 @@ contains
   end function duttonMaccio2014Constructor
   
   double precision function duttonMaccio2014Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\tt node} using the \cite{dutton_cold_2014} algorithm.
+    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{dutton_cold_2014} algorithm.
     use Cosmology_Functions
     implicit none
     class           (darkMatterProfileConcentrationDuttonMaccio2014), intent(inout)          :: self

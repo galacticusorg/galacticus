@@ -76,7 +76,7 @@ contains
   end subroutine Cooling_Specific_Angular_Momentum_Initialize
 
   double precision function Cooling_Specific_Angular_Momentum(thisNode,radius)
-    !% Return the specific angular momentum (in units of km/s Mpc) of cooling gas in {\tt thisNode}.
+    !% Return the specific angular momentum (in units of km/s Mpc) of cooling gas in {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: radius

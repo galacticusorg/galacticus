@@ -95,7 +95,7 @@ contains
   !#  <unitName>Node_Component_Formation_Time_Cole2000_Rate_Compute</unitName>
   !# </rateComputeTask>
   subroutine Node_Component_Formation_Time_Cole2000_Rate_Compute(thisNode,interrupt,interruptProcedure)
-    !% Check for need to update the formation time of a node in the {\tt Cole2000} formation time component.
+    !% Check for need to update the formation time of a node in the {\normalfont \ttfamily Cole2000} formation time component.
     implicit none
     type     (treeNode                                              ), intent(inout), pointer :: thisNode
     logical                                                          , intent(inout)          :: interrupt
@@ -146,7 +146,7 @@ contains
   end subroutine Node_Component_Formation_Time_Cole2000_Node_Promotion
 
   subroutine Node_Component_Formation_Time_Cole2000_Create(thisNode)
-    !% Creates a halo formation time component for {\tt thisNode}. This function is also used to ``reform'' the halo, since it
+    !% Creates a halo formation time component for {\normalfont \ttfamily thisNode}. This function is also used to ``reform'' the halo, since it
     !% simply resets the formation time and mass to the current values.
     use Events_Halo_Formation
     implicit none

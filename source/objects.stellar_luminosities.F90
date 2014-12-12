@@ -141,7 +141,7 @@ module Stellar_Luminosities_Structure
      !@     <method>luminosity</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\intzero\ index\argin</arguments>
-     !@     <description>Return the $i^{\rm th}$ luminosity.</description>
+     !@     <description>Return the $i^{\mathrm th}$ luminosity.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>output</method>
@@ -257,7 +257,7 @@ module Stellar_Luminosities_Structure
 contains
 
   subroutine Stellar_Luminosities_Initialize
-    !% Initialize the {\tt stellarLuminositiestructure} object module. Determines which stellar luminosities are to be tracked.
+    !% Initialize the {\normalfont \ttfamily stellarLuminositiestructure} object module. Determines which stellar luminosities are to be tracked.
     use Input_Parameters
     use Galacticus_Error
     use Memory_Management
@@ -349,7 +349,7 @@ contains
                 !@   <name>luminosityBandRedshift</name>
                 !@   <attachedTo>module</attachedTo>
                 !@   <description>
-                !@     If present, force filters to be shifted to this redshift rather than that specified by {\tt [luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.
+                !@     If present, force filters to be shifted to this redshift rather than that specified by {\normalfont \ttfamily [luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.
                 !@   </description>
                 !@   <type>real</type>
                 !@   <cardinality>0..*</cardinality>
@@ -464,7 +464,7 @@ contains
   end subroutine Stellar_Luminosities_Initialize
 
   subroutine Stellar_Luminosities_Destructor(self)
-    !% Destructor for a {\tt stellarLuminosities} object.
+    !% Destructor for a {\normalfont \ttfamily stellarLuminosities} object.
     use Memory_Management
     implicit none
     type(stellarLuminosities), intent(inout) :: self
@@ -484,7 +484,7 @@ contains
   end subroutine Stellar_Luminosities_Destroy
 
   subroutine Stellar_Luminosities_Builder(self,stellarLuminositiesDefinition)
-    !% Build a {\tt stellarLuminosities} object from the given XML {\tt stellarLuminositiesDefinition}.
+    !% Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
     use FoX_DOM
     use Galacticus_Error
     implicit none
@@ -600,7 +600,7 @@ contains
   end function Stellar_Luminosities_Is_Zero
 
   double precision function Stellar_Luminosities_Luminosity(self,index)
-    !% Return the requested luminosity from a {\tt stellarLuminosities} object.
+    !% Return the requested luminosity from a {\normalfont \ttfamily stellarLuminosities} object.
     use Galacticus_Error
     implicit none
     class  (stellarLuminosities), intent(inout) :: self
@@ -622,7 +622,7 @@ contains
   end function Stellar_Luminosities_Luminosity
 
   function stellarLuminositiesMax(luminosities1,luminosities2)
-    !% Return an element-by-element {\tt max()} on two stellar luminosity objects.
+    !% Return an element-by-element {\normalfont \ttfamily max()} on two stellar luminosity objects.
     implicit none
     type(stellarLuminosities)                :: stellarLuminositiesMax
     type(stellarLuminosities), intent(in   ) :: luminosities1         , luminosities2
@@ -750,7 +750,7 @@ contains
   end function Stellar_Luminosities_Name
 
   subroutine Stellar_Luminosities_Create(self)
-    !% Ensure that the {\tt luminosity} array in a {\tt stellarLuminosities} is allocated.
+    !% Ensure that the {\normalfont \ttfamily luminosity} array in a {\normalfont \ttfamily stellarLuminosities} is allocated.
     use Memory_Management
     implicit none
     type(stellarLuminosities), intent(inout) :: self
@@ -760,7 +760,7 @@ contains
   end subroutine Stellar_Luminosities_Create
 
   subroutine Stellar_Luminosities_Deserialize(self,stellarLuminositiesArray)
-    !% Pack stellar luminosities from an array into a {\tt stellarLuminosities} structure.
+    !% Pack stellar luminosities from an array into a {\normalfont \ttfamily stellarLuminosities} structure.
     implicit none
     class           (stellarLuminosities)              , intent(inout) :: self
     double precision                     , dimension(:), intent(in   ) :: stellarLuminositiesArray
@@ -778,7 +778,7 @@ contains
   end subroutine Stellar_Luminosities_Deserialize
 
   subroutine Stellar_Luminosities_Serialize(self,stellarLuminositiesArray)
-    !% Unpack stellar luminosities from a {\tt stellarLuminosities} structure into an array.
+    !% Unpack stellar luminosities from a {\normalfont \ttfamily stellarLuminosities} structure into an array.
     implicit none
     double precision                     , dimension(:), intent(  out) :: stellarLuminositiesArray(:)
     class           (stellarLuminosities)              , intent(in   ) :: self
@@ -796,7 +796,7 @@ contains
 
   subroutine Stellar_Luminosities_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
        &,doubleBuffer,time)
-    !% Store a {\tt stellarLuminosities} object in the output buffers.
+    !% Store a {\normalfont \ttfamily stellarLuminosities} object in the output buffers.
     use Kind_Numbers
     implicit none
     class           (stellarLuminosities)                , intent(in   ) :: self
@@ -821,7 +821,7 @@ contains
   end subroutine Stellar_Luminosities_Output
 
   subroutine Stellar_Luminosities_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
-    !% Increment the output count to account for a {\tt stellarLuminosities} object.
+    !% Increment the output count to account for a {\normalfont \ttfamily stellarLuminosities} object.
     implicit none
     class           (stellarLuminosities), intent(in   ) :: self
     integer                              , intent(inout) :: doublePropertyCount, integerPropertyCount
@@ -850,7 +850,7 @@ contains
 
   subroutine Stellar_Luminosities_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
        &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,prefix,comment,unitsInSI)
-    !% Assign names to output buffers for a {\tt stellarLuminosities} object.
+    !% Assign names to output buffers for a {\normalfont \ttfamily stellarLuminosities} object.
     implicit none
     class           (stellarLuminosities)              , intent(in   ) :: self
     double precision                                   , intent(in   ) :: time
@@ -878,7 +878,7 @@ contains
   end subroutine Stellar_Luminosities_Output_Names
 
   logical function Stellar_Luminosities_Is_Output(luminosityIndex,time)
-    !% Return true or false depending on whether {\tt luminosityIndex} should be output at {\tt time}.
+    !% Return true or false depending on whether {\normalfont \ttfamily luminosityIndex} should be output at {\normalfont \ttfamily time}.
     use Galacticus_Error
     implicit none
     integer         , intent(in   ) :: luminosityIndex
@@ -901,8 +901,8 @@ contains
   end function Stellar_Luminosities_Is_Output
 
   subroutine Stellar_Luminosities_Set(self,mass,imfSelected,time,abundancesStellar)
-    !% Set the luminosity in each band for a single stellar population of given {\tt mass} with the specified {\tt abundancesStellar} and
-    !% which formed at cosmological {\tt time} with IMF specified by {\tt imfSelected}.
+    !% Set the luminosity in each band for a single stellar population of given {\normalfont \ttfamily mass} with the specified {\normalfont \ttfamily abundancesStellar} and
+    !% which formed at cosmological {\normalfont \ttfamily time} with IMF specified by {\normalfont \ttfamily imfSelected}.
     use Abundances_Structure
     use Stellar_Population_Luminosities
     implicit none
@@ -1097,7 +1097,7 @@ contains
        & luminosityRedshiftTmp      ,                &
        & luminosityBandRedshiftTmp                   &
        &                                           )
-    !% Expand the filter set by removing the filter at index {\tt expandFrom} by adding {\tt expandCount} replicas of the filter at that point.
+    !% Expand the filter set by removing the filter at index {\normalfont \ttfamily expandFrom} by adding {\normalfont \ttfamily expandCount} replicas of the filter at that point.
     use, intrinsic :: ISO_C_Binding
     use Memory_Management
     implicit none

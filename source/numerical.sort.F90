@@ -42,7 +42,7 @@ module Sort
 contains
 
   subroutine Sort_Do_Double(array)
-    !% Given an unsorted double precision {\tt array}, sorts it in place.
+    !% Given an unsorted double precision {\normalfont \ttfamily array}, sorts it in place.
     implicit none
     double precision, dimension(:), intent(inout) :: array
 
@@ -51,7 +51,7 @@ contains
   end subroutine Sort_Do_Double
 
   subroutine Sort_Do_Integer(array)
-    !% Given an unsorted integer {\tt array}, sorts it in place.
+    !% Given an unsorted integer {\normalfont \ttfamily array}, sorts it in place.
     implicit none
     integer, dimension(:), intent(inout) :: array
 
@@ -60,7 +60,7 @@ contains
   end subroutine Sort_Do_Integer
 
   subroutine Sort_Do_Integer8(array)
-    !% Given an unsorted long integer {\tt array}, sorts it in place.
+    !% Given an unsorted long integer {\normalfont \ttfamily array}, sorts it in place.
     use Kind_Numbers
     implicit none
     integer(kind=kind_int8), dimension(:), intent(inout) :: array
@@ -70,7 +70,7 @@ contains
   end subroutine Sort_Do_Integer8
 
   subroutine Sort_Do_Integer8_Both(array,array2)
-    !% Given an unsorted long integer {\tt array}, sorts it in place while also rearraning {\tt array2} in the same way.
+    !% Given an unsorted long integer {\normalfont \ttfamily array}, sorts it in place while also rearraning {\normalfont \ttfamily array2} in the same way.
     use Kind_Numbers
     implicit none
     integer(kind=kind_int8), dimension(:          )              , intent(inout) :: array    , array2
@@ -91,7 +91,7 @@ contains
   end subroutine Sort_Do_Integer8_Both
 
   function Sort_Index_Do_Integer8(array)
-    !% Given an unsorted integer {\tt array}, sorts it in place.
+    !% Given an unsorted integer {\normalfont \ttfamily array}, sorts it in place.
     use Kind_Numbers
     implicit none
     integer(kind=kind_int8), dimension(:)                        , intent(in   ) :: array
@@ -103,7 +103,7 @@ contains
   end function Sort_Index_Do_Integer8
 
   function Sort_Index_Do_Double(array)
-    !% Given an unsorted double {\tt array}, sorts it in place.
+    !% Given an unsorted double {\normalfont \ttfamily array}, sorts it in place.
     use Kind_Numbers
     implicit none
     double precision                , dimension(:)                        , intent(in   ) :: array

@@ -10,7 +10,7 @@ Installing all the tools required for \glc\ can take some time. To make this pro
 
 \section{Required Libraries and Tools}
 
-We run \glc\ on \href{http://fedoraproject.org/}{Fedora} Linux primarily. Installation instructions below are general, but we give some examples that are specific to Fedora (they probably work on other \href{http://yum.baseurl.org/}{{\tt yum}}-based Linux distributions though). For other distributions/OSs you'll need to figure out how to install pre-built packages or else install from source. We list tools and libraries in three categories: ``essential'', ``typical'' and ``full''. Essential tools are those required to compile and run \glc. Typical tools includes those additionally needed for common analysis tasks. The full set of tools allows you to run any of the scripts/programs included with \glc. The order in which tools are listed is the suggested order for installation---some tools depend on others which should therefore be installed first.
+We run \glc\ on \href{http://fedoraproject.org/}{Fedora} Linux primarily. Installation instructions below are general, but we give some examples that are specific to Fedora (they probably work on other \href{http://yum.baseurl.org/}{{\normalfont \ttfamily yum}}-based Linux distributions though). For other distributions/OSs you'll need to figure out how to install pre-built packages or else install from source. We list tools and libraries in three categories: ``essential'', ``typical'' and ``full''. Essential tools are those required to compile and run \glc. Typical tools includes those additionally needed for common analysis tasks. The full set of tools allows you to run any of the scripts/programs included with \glc. The order in which tools are listed is the suggested order for installation---some tools depend on others which should therefore be installed first.
 
 \subsection{Essential Requirements}\label{sec:requirementsEssential}
 
@@ -19,9 +19,9 @@ We run \glc\ on \href{http://fedoraproject.org/}{Fedora} Linux primarily. Instal
 \begin{verbatim}
 yum install perl
 \end{verbatim}
-If you need to install from source visit \href{http://www.perl.org/}{\tt http://www.perl.org/} and follow the instructions given there. We currently use Perl v5.12.4, although earlier versions may work (for compiling \glc\ we have had success with versions as early as 5.8.8---you can use {\tt perl -v} to discover which version of Perl you have installed).
+If you need to install from source visit \href{http://www.perl.org/}{\normalfont \ttfamily http://www.perl.org/} and follow the instructions given there. We currently use Perl v5.12.4, although earlier versions may work (for compiling \glc\ we have had success with versions as early as 5.8.8---you can use {\normalfont \ttfamily perl -v} to discover which version of Perl you have installed).
 
-\item [GNU Make] \glc\ uses \href{http://www.gnu.org/software/make/}{GNU Make} to build executables. Other implementations of {\tt make} may work, but we make no guarantees. On Fedora the following (as root) will install GNU Make:
+\item [GNU Make] \glc\ uses \href{http://www.gnu.org/software/make/}{GNU Make} to build executables. Other implementations of {\normalfont \ttfamily make} may work, but we make no guarantees. On Fedora the following (as root) will install GNU Make:
 \begin{verbatim}
 yum install make
 \end{verbatim}
@@ -31,7 +31,7 @@ Alternatively, GNU Make can be downloaded and installed from source as described
 \begin{verbatim}
 yum install gcc-gfortran
 \end{verbatim}
-Alternatively, GNU Fortran can be downloaded and installed from source as described online. Note that \glc\ requires v4.9.0 or later of {\tt gcc-gfortran}---earlier versions \emph{will not work}\footnote{We cannot predict if significantly later versions of GNU Fortran will successfully compile \protect\glc.}.
+Alternatively, GNU Fortran can be downloaded and installed from source as described online. Note that \glc\ requires v4.9.0 or later of {\normalfont \ttfamily gcc-gfortran}---earlier versions \emph{will not work}\footnote{We cannot predict if significantly later versions of GNU Fortran will successfully compile \protect\glc.}.
 
 \item [g++] \glc\ contains some C++ components. We use \href{http://gcc.gnu.org/projects/cxx0x.html}{GNU C++} to compile \glc. You can use other C++ compilers, but we make no claims as to whether they will produce correctly working code. On Fedora the following (as root) will install GNU C++:
 \begin{verbatim}
@@ -39,13 +39,13 @@ yum install gcc-c++
 \end{verbatim}
 Alternatively, GNU C++ can be downloaded and installed from source as described online.
 
-\item [GNU Scientific Library] The \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} (GSL) is used extensively by \glc\ to perform numerous numerical functions. We currently use v1.15 of GSL---earlier versions will not work (due to \glc's use of the {\tt odeiv2} ODE solver interface that was introduced in GSL v1.15). On Fedora the following (as root) will install GSL:
+\item [GNU Scientific Library] The \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} (GSL) is used extensively by \glc\ to perform numerous numerical functions. We currently use v1.15 of GSL---earlier versions will not work (due to \glc's use of the {\normalfont \ttfamily odeiv2} ODE solver interface that was introduced in GSL v1.15). On Fedora the following (as root) will install GSL:
 \begin{verbatim}
 yum install gsl gsl-devel
 \end{verbatim}
 Alternatively, GSL can be downloaded and installed from source as described online.
 
-\item [FoX] \href{http://uszla.me.uk/space/software/FoX/}{FoX} is an XML parser for Fortran. The source can be downloaded from \newline\href{http://www1.gly.bris.ac.uk/~walker/FoX/source/FoX-4.1.1-full.tar.gz}{\tt http://www1.gly.bris.ac.uk/\textasciitilde{}walker/FoX/source/FoX-4.1.1-full.tar.gz}. We recommend following the instructions provided with the download for install. We use FoX v4.1.0.
+\item [FoX] \href{http://uszla.me.uk/space/software/FoX/}{FoX} is an XML parser for Fortran. The source can be downloaded from \newline\href{http://www1.gly.bris.ac.uk/~walker/FoX/source/FoX-4.1.1-full.tar.gz}{\normalfont \ttfamily http://www1.gly.bris.ac.uk/\textasciitilde{}walker/FoX/source/FoX-4.1.1-full.tar.gz}. We recommend following the instructions provided with the download for install. We use FoX v4.1.0.
 
 \item [HDF5] The \href{http://www.hdfgroup.org/HDF5/}{HDF5} specification is used for storing output data from \glc. We currently use HDF5\footnote{Early versions of HDF5 may work, but versions prior to v1.8.5 have known memory leak problems.} v1.8.8. On Fedora the following (as root) will install the HDF5 libraries:
 \begin{verbatim}
@@ -76,14 +76,14 @@ Note that you can check if any of the following Perl modules are already install
 \begin{verbatim}
  perl -e "use Module::Name"
 \end{verbatim}
-If no error message is given, the module is already installed. When installing modules using CPAN (see below for example), if the install fails because of a failed test, you can often force the install by running {\tt perl -MCPAN -e 'force("install","Module::Name")'}. Of course, this may mean that the module is not working correctly\ldots
+If no error message is given, the module is already installed. When installing modules using CPAN (see below for example), if the install fails because of a failed test, you can often force the install by running {\normalfont \ttfamily perl -MCPAN -e 'force("install","Module::Name")'}. Of course, this may mean that the module is not working correctly\ldots
 
-\item [\href{http://search.cpan.org/~rgarcia/Switch-2.16/Switch.pm}{{\tt Switch }}] This module implements distributed conditional testing. It is part of the core Perl distribution up to Perl v5.12.0. From Perl v5.14.0 onward it must be installed using
+\item [\href{http://search.cpan.org/~rgarcia/Switch-2.16/Switch.pm}{{\normalfont \ttfamily Switch }}] This module implements distributed conditional testing. It is part of the core Perl distribution up to Perl v5.12.0. From Perl v5.14.0 onward it must be installed using
 \begin{verbatim}
 perl -MCPAN -e 'install Switch'
 \end{verbatim}
 
-\item [\href{http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm}{{\tt XML::Simple}}] Provides a simple interface in Perl for processing XML files. It is used extensively by \glc\ for building the code and for handling various data files. On Fedora the following (as root) will install {\tt XML::Simple}:
+\item [\href{http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm}{{\normalfont \ttfamily XML::Simple}}] Provides a simple interface in Perl for processing XML files. It is used extensively by \glc\ for building the code and for handling various data files. On Fedora the following (as root) will install {\normalfont \ttfamily XML::Simple}:
 \begin{verbatim}
 yum install perl-XML-Simple
 \end{verbatim}
@@ -92,7 +92,7 @@ Alternatively, it can be installed from CPAN using:
 perl -MCPAN -e 'install XML::Simple'
 \end{verbatim}
 
-\item [\href{http://search.cpan.org/~adamk/List-MoreUtils-0.33/lib/List/MoreUtils.pm}{{\tt List::MoreUtils}}] Provides additional list-oriented utilities in Perl. It is used when automatically constructing lists of parameters that are accepted by a given executable when that executable is compiled. On Fedora the following (as root) will install {\tt List::MoreUtils}:
+\item [\href{http://search.cpan.org/~adamk/List-MoreUtils-0.33/lib/List/MoreUtils.pm}{{\normalfont \ttfamily List::MoreUtils}}] Provides additional list-oriented utilities in Perl. It is used when automatically constructing lists of parameters that are accepted by a given executable when that executable is compiled. On Fedora the following (as root) will install {\normalfont \ttfamily List::MoreUtils}:
 \begin{verbatim}
 yum install perl-List-MoreUtils
 \end{verbatim}
@@ -101,12 +101,12 @@ Alternatively, it can be installed from CPAN using:
 perl -MCPAN -e 'install List::MoreUtils'
 \end{verbatim}
 
-\item [\href{http://search.cpan.org/~jfitz/List-Uniq-0.20/lib/List/Uniq.pm}{{\tt List::Uniq}}] Provides functionality to find unique items in lists in Perl. It is used in \glc's build system. It can be installed from CPAN using:
+\item [\href{http://search.cpan.org/~jfitz/List-Uniq-0.20/lib/List/Uniq.pm}{{\normalfont \ttfamily List::Uniq}}] Provides functionality to find unique items in lists in Perl. It is used in \glc's build system. It can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install List::Uniq'
 \end{verbatim}
 
-\item [\href{http://search.cpan.org/~grantm/XML-SAX-0.99/SAX.pm}{{\tt XML::SAX}}] Provides functionality to parse XML in Perl. It is used in \glc's build system. On Fedora the following (as root) will install {\tt XML::SAX}:
+\item [\href{http://search.cpan.org/~grantm/XML-SAX-0.99/SAX.pm}{{\normalfont \ttfamily XML::SAX}}] Provides functionality to parse XML in Perl. It is used in \glc's build system. On Fedora the following (as root) will install {\normalfont \ttfamily XML::SAX}:
 \begin{verbatim}
 yum install perl-XML-SAX
 \end{verbatim}
@@ -115,22 +115,22 @@ Alternatively, it can be installed from CPAN using:
 perl -MCPAN -e 'install XML::SAX
 \end{verbatim}
 
-\item [\href{http://search.cpan.org/~samtregar/XML-Validator-Schema-1.08/Schema.pm}{{\tt XML::Validator::Schema}}] Provides functionality to validate XML in Perl. It is used in \glc's build system to validate the \gls{component} \gls{dsl}. It can be installed from CPAN using:
+\item [\href{http://search.cpan.org/~samtregar/XML-Validator-Schema-1.08/Schema.pm}{{\normalfont \ttfamily XML::Validator::Schema}}] Provides functionality to validate XML in Perl. It is used in \glc's build system to validate the \gls{component} \gls{dsl}. It can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install XML::Validator::Schema
 \end{verbatim}
 
-\item [\href{http://search.cpan.org/~kstephens/Data-Match-0.06/lib/Sort/Topological.pm}{{\tt Sort::Topological }}] This module implements dependency based sort and is used by the \glc\ build system to ensure that tasks are performed in the correct order. It can be installed using
+\item [\href{http://search.cpan.org/~kstephens/Data-Match-0.06/lib/Sort/Topological.pm}{{\normalfont \ttfamily Sort::Topological }}] This module implements dependency based sort and is used by the \glc\ build system to ensure that tasks are performed in the correct order. It can be installed using
 \begin{verbatim}
 perl -MCPAN -e 'install Sort::Topological'
 \end{verbatim}
 
-\item [\href{http://search.cpan.org/~drolsky/DateTime-0.70/lib/DateTime.pm}{{\tt Date::Time }}] This module implements handling of dates and times and is used by various scripts to timestamp files that they create. It can be installed using
+\item [\href{http://search.cpan.org/~drolsky/DateTime-0.70/lib/DateTime.pm}{{\normalfont \ttfamily Date::Time }}] This module implements handling of dates and times and is used by various scripts to timestamp files that they create. It can be installed using
 \begin{verbatim}
 perl -MCPAN -e 'install Date::Time'
 \end{verbatim}
 
-\item [\href{http://search.cpan.org/~smueller/Data-Dumper-2.131/Dumper.pm}{{\tt Data::Dumper }}] This module provides formatted output of arbitrary data structures. On Fedora the following (as root) will install {\tt Date::Time}:
+\item [\href{http://search.cpan.org/~smueller/Data-Dumper-2.131/Dumper.pm}{{\normalfont \ttfamily Data::Dumper }}] This module provides formatted output of arbitrary data structures. On Fedora the following (as root) will install {\normalfont \ttfamily Date::Time}:
 \begin{verbatim}
 yum install perl-DateTime
 \end{verbatim}
@@ -145,7 +145,7 @@ perl -MCPAN -e 'install Data::Dumper'
 In addition to the tools listed in \S\ref{sec:requirementsEssential} a typical install (allowing you to run typical analysis tasks for example) requires the following tools to be installed:
 
 \begin{description}
-\item [\href{http://search.cpan.org/~chm/PDL-IO-HDF5-0.6501/hdf5.pd}{{\tt PDL::IO::HDF5}}] Provides a simple Perl interface to HDF5 files. It is used by analysis scripts to extract data from \glc\ output files. It can be installed from CPAN using:
+\item [\href{http://search.cpan.org/~chm/PDL-IO-HDF5-0.6501/hdf5.pd}{{\normalfont \ttfamily PDL::IO::HDF5}}] Provides a simple Perl interface to HDF5 files. It is used by analysis scripts to extract data from \glc\ output files. It can be installed from CPAN using:
 \begin{verbatim}
  perl -MCPAN -e 'install PDL::IO::HDF5'
 \end{verbatim}
@@ -158,7 +158,7 @@ In addition to the tools listed in \S\ref{sec:requirementsEssential} a typical i
  make install
 \end{verbatim}
 
-  \item [\href{http://perldoc.perl.org/IO/Compress/Bzip2.html}{{\tt IO::Compress::Bzip2}}] This module provides the {\tt bzip2} compression tool in Perl. On Fedora the following (as root) will install {\tt IO::Compress::Bzip2}:
+  \item [\href{http://perldoc.perl.org/IO/Compress/Bzip2.html}{{\normalfont \ttfamily IO::Compress::Bzip2}}] This module provides the {\normalfont \ttfamily bzip2} compression tool in Perl. On Fedora the following (as root) will install {\normalfont \ttfamily IO::Compress::Bzip2}:
 \begin{verbatim}
 yum install perl-Compress-Bzip2
 \end{verbatim}
@@ -167,7 +167,7 @@ Alternatively, it can be installed from CPAN using:
 perl -MCPAN -e 'install IO::Compress::Bzip2'
 \end{verbatim}
 
-  \item [\href{http://search.cpan.org/~dconway/IO-Prompt-0.997002/lib/IO/Prompt.pm}{{\tt IO::Prompt}}] This module provides convenient reading from the prompt in Perl. On Fedora the following (as root) will install {\tt IO::Prompt}:
+  \item [\href{http://search.cpan.org/~dconway/IO-Prompt-0.997002/lib/IO/Prompt.pm}{{\normalfont \ttfamily IO::Prompt}}] This module provides convenient reading from the prompt in Perl. On Fedora the following (as root) will install {\normalfont \ttfamily IO::Prompt}:
 \begin{verbatim}
 yum install perl-IO-prompt
 \end{verbatim}
@@ -176,12 +176,12 @@ Alternatively, it can be installed from CPAN using:
 perl -MCPAN -e 'install IO::Prompt
 \end{verbatim}
 
-  \item [\href{http://search.cpan.org/~bdfoy/IO-Interactive-0.0.6/lib/IO/Interactive.pm}{{\tt IO::Interactive}}] This module provides functionality to determine if a Perl script is running interactively. It can be installed from CPAN using:
+  \item [\href{http://search.cpan.org/~bdfoy/IO-Interactive-0.0.6/lib/IO/Interactive.pm}{{\normalfont \ttfamily IO::Interactive}}] This module provides functionality to determine if a Perl script is running interactively. It can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install IO::Interactive
 \end{verbatim}
 
-  \item [\href{http://search.cpan.org/~anno/Text-Table-1.114/lib/Text/Table.pm}{{\tt Text::Table}}] This module provides formatted table output in Perl. On Fedora the following (as root) will install {\tt Text::Table}:
+  \item [\href{http://search.cpan.org/~anno/Text-Table-1.114/lib/Text/Table.pm}{{\normalfont \ttfamily Text::Table}}] This module provides formatted table output in Perl. On Fedora the following (as root) will install {\normalfont \ttfamily Text::Table}:
 \begin{verbatim}
 yum install perl-Text-Table
 \end{verbatim}
@@ -189,11 +189,11 @@ Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install Text::Table'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~jhi/perl-5.8.0/lib/Text/Wrap.pm}{{\tt Text::Wrap}}] This module provides formatted paragraph output in Perl. It is most likely part of a standard Perl install, but if not it can be installed from CPAN using:
+  \item [\href{http://search.cpan.org/~jhi/perl-5.8.0/lib/Text/Wrap.pm}{{\normalfont \ttfamily Text::Wrap}}] This module provides formatted paragraph output in Perl. It is most likely part of a standard Perl install, but if not it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install Text::Wrap
 \end{verbatim}
-\item [\href{http://pdl.perl.org/}{{\tt PDL}}] Provides array math handling in Perl. It is used extensively by \glc\ for analysis of models. On Fedora the following (as root) will install {\tt PDL}:
+\item [\href{http://pdl.perl.org/}{{\normalfont \ttfamily PDL}}] Provides array math handling in Perl. It is used extensively by \glc\ for analysis of models. On Fedora the following (as root) will install {\normalfont \ttfamily PDL}:
 \begin{verbatim}
 yum install perl-PDL
 \end{verbatim}
@@ -202,17 +202,17 @@ Alternatively, it can be installed from CPAN using:
 perl -MCPAN -e 'install PDL'
 \end{verbatim}
 
-\item [\href{http://search.cpan.org/dist/PDL-NiceSlice/NiceSlice.pm}{{\tt PDL::NiceSlice}}] Provides convenient array slicing for PDL. {\tt PDL::NiceSlice} can be installed from CPAN using:
+\item [\href{http://search.cpan.org/dist/PDL-NiceSlice/NiceSlice.pm}{{\normalfont \ttfamily PDL::NiceSlice}}] Provides convenient array slicing for PDL. {\normalfont \ttfamily PDL::NiceSlice} can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install PDL::NiceSlice'
 \end{verbatim}
 
-item [\href{http://search.cpan.org/~sbeck/Math-SigFigs-1.09/lib/Math/SigFigs.pod}{{\tt Math::SigFigs}}] Provides formatting of numbers to a given number of significant figures. It is used by \glc\ when making plots. It can be installed from CPAN using:
+item [\href{http://search.cpan.org/~sbeck/Math-SigFigs-1.09/lib/Math/SigFigs.pod}{{\normalfont \ttfamily Math::SigFigs}}] Provides formatting of numbers to a given number of significant figures. It is used by \glc\ when making plots. It can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install Math::SigFigs'
 \end{verbatim}
 
-\item [\href{http://search.cpan.org/~djburke/Astro-Cosmology-0.90/Cosmology.pm}{{\tt Astro::Cosmology}}] Provides basic cosmological calculations. It is used by \glc\ when making plots to convert data points measured under the assumptions of one set of cosmological parameters to the cosmological parameters assumed by \glc. It can be installed from CPAN using:
+\item [\href{http://search.cpan.org/~djburke/Astro-Cosmology-0.90/Cosmology.pm}{{\normalfont \ttfamily Astro::Cosmology}}] Provides basic cosmological calculations. It is used by \glc\ when making plots to convert data points measured under the assumptions of one set of cosmological parameters to the cosmological parameters assumed by \glc. It can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'force("install","Astro::Cosmology")'
 \end{verbatim}
@@ -223,19 +223,19 @@ perl -MCPAN -e 'force("install","Astro::Cosmology")'
 In addition to the tools listed in \S\ref{sec:requirementsEssential} and \S\ref{sec:requirementsTypical} a full install (allowing you to run all scripts and programs included with \glc) requires the following tools to be installed:
 
 \begin{description}
-\item [\href{http://search.cpan.org/~andrewf/LaTeX-Encode-0.03/lib/LaTeX/Encode.pm}{{\tt LaTeX::Encode }}] This module formats text for output to a \LaTeX\ document. It can be installed using\footnote{On some systems, {\tt LaTeX::Encode} seems to have problems. Once installed, try executing: {\tt perl -e ``use LaTeX::Encode''}. If this issues any error messages, then you should locate the {\tt LaTeX\/Encode.pm} file on your system edit it to comment out (or remove) the ``{\tt use strict;}'' line.}
+\item [\href{http://search.cpan.org/~andrewf/LaTeX-Encode-0.03/lib/LaTeX/Encode.pm}{{\normalfont \ttfamily LaTeX::Encode }}] This module formats text for output to a \LaTeX\ document. It can be installed using\footnote{On some systems, {\normalfont \ttfamily LaTeX::Encode} seems to have problems. Once installed, try executing: {\normalfont \ttfamily perl -e ``use LaTeX::Encode''}. If this issues any error messages, then you should locate the {\normalfont \ttfamily LaTeX\/Encode.pm} file on your system edit it to comment out (or remove) the ``{\normalfont \ttfamily use strict;}'' line.}
 \begin{verbatim}
 perl -MCPAN -e 'install LaTeX::Encode'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~jesse/perl-5.12.1/lib/File/Find.pm}{{\tt File::Find}}] This module provides functionality for searching directory structures for files. It can be installed from CPAN using:
+  \item [\href{http://search.cpan.org/~jesse/perl-5.12.1/lib/File/Find.pm}{{\normalfont \ttfamily File::Find}}] This module provides functionality for searching directory structures for files. It can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install File::Find'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~jesse/perl-5.12.1/lib/File/Copy.pm}{{\tt File::Copy}}] This module provides interfaces for copying and moving files in Perl. It can be installed from CPAN using:
+  \item [\href{http://search.cpan.org/~jesse/perl-5.12.1/lib/File/Copy.pm}{{\normalfont \ttfamily File::Copy}}] This module provides interfaces for copying and moving files in Perl. It can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install File::Copy'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~jcristy/PerlMagick-6.59/Magick.pm}{{\tt Image::Magick}}] This module provides access to the {\sc ImageMagick} tools from Perl. On Fedora the following (as root) will install {\tt Image::Magick}:
+  \item [\href{http://search.cpan.org/~jcristy/PerlMagick-6.59/Magick.pm}{{\normalfont \ttfamily Image::Magick}}] This module provides access to the {\normalfont \scshape ImageMagick} tools from Perl. On Fedora the following (as root) will install {\normalfont \ttfamily Image::Magick}:
 \begin{verbatim}
 yum install ImageMagick-perl
 \end{verbatim}
@@ -244,7 +244,7 @@ Alternatively, it can be installed from CPAN using:
 perl -MCPAN -e 'install Image::Magick'
 \end{verbatim}
 
-  \item [\href{http://search.cpan.org/dist/TermReadKey/ReadKey.pm}{{\tt Term::ReadKey}}] This module provides a simple interface for accepting key reads from standard input in Perl. On Fedora the following (as root) will install {\tt Term::ReadKey}:
+  \item [\href{http://search.cpan.org/dist/TermReadKey/ReadKey.pm}{{\normalfont \ttfamily Term::ReadKey}}] This module provides a simple interface for accepting key reads from standard input in Perl. On Fedora the following (as root) will install {\normalfont \ttfamily Term::ReadKey}:
 \begin{verbatim}
 yum install perl-TermReadKey
 \end{verbatim}
@@ -252,7 +252,7 @@ Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install Term::ReadKey'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~rjbs/MIME-Lite-3.027/lib/MIME/Lite.pm}{{\tt MIME::Lite}}] This module provides simple e-mail sending functionality in Perl. On Fedora the following (as root) will install {\tt MIME::Lite}:
+  \item [\href{http://search.cpan.org/~rjbs/MIME-Lite-3.027/lib/MIME/Lite.pm}{{\normalfont \ttfamily MIME::Lite}}] This module provides simple e-mail sending functionality in Perl. On Fedora the following (as root) will install {\normalfont \ttfamily MIME::Lite}:
 \begin{verbatim}
 yum install perl-MIME-Lite
 \end{verbatim}
@@ -260,7 +260,7 @@ Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install MIME::Lite'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~gbarr/TimeDate-1.20/lib/Date/Format.pm}{{\tt Date::Time}}] This module provides date/time formatting functionality in Perl. On Fedora the following (as root) will install {\tt Date::Time}:
+  \item [\href{http://search.cpan.org/~gbarr/TimeDate-1.20/lib/Date/Format.pm}{{\normalfont \ttfamily Date::Time}}] This module provides date/time formatting functionality in Perl. On Fedora the following (as root) will install {\normalfont \ttfamily Date::Time}:
 \begin{verbatim}
 yum install perl-DateTime
 \end{verbatim}
@@ -268,7 +268,7 @@ Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install Date::Format'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~cwest/Net-SMTP-SSL-1.01/lib/Net/SMTP/SSL.pm}{{\tt Net::SMTP::SSL}}] This module implements an SSL authenticated SMTP e-mail protocol in Perl. On Fedora the following (as root) will install {\tt Net::SMTP::SSL}:
+  \item [\href{http://search.cpan.org/~cwest/Net-SMTP-SSL-1.01/lib/Net/SMTP/SSL.pm}{{\normalfont \ttfamily Net::SMTP::SSL}}] This module implements an SSL authenticated SMTP e-mail protocol in Perl. On Fedora the following (as root) will install {\normalfont \ttfamily Net::SMTP::SSL}:
 \begin{verbatim}
 yum install perl-Net-SMTP-SSL
 \end{verbatim}
@@ -276,7 +276,7 @@ Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install Net::SMTP::SSL'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~danberr/Net-DBus-0.33.6/lib/Net/DBus.pm}{{\tt Net::DBus}}] This module implements interaction with the \href{http://www.freedesktop.org/wiki/Software/dbus}{DBus} message bus system in Perl. On Fedora the following (as root) will install {\tt Net::DBus}:
+  \item [\href{http://search.cpan.org/~danberr/Net-DBus-0.33.6/lib/Net/DBus.pm}{{\normalfont \ttfamily Net::DBus}}] This module implements interaction with the \href{http://www.freedesktop.org/wiki/Software/dbus}{DBus} message bus system in Perl. On Fedora the following (as root) will install {\normalfont \ttfamily Net::DBus}:
 \begin{verbatim}
 yum install perl-Net-DBus
 \end{verbatim}
@@ -285,20 +285,20 @@ Alternatively, it can be installed from CPAN using:
 perl -MCPAN -e 'install Net::DBus'
 \end{verbatim}
 
-  \item [\href{http://search.cpan.org/~chm/PDL-2.4.7/Basic/MatrixOps/matrixops.pd}{{\tt PDL::MatrixOps}}] Provides matrix operators for PDL. It is used when generating Monte Carlo samples of parameters from covariance matrices. {\tt PDL::MatrixOps} can be installed from CPAN using:
+  \item [\href{http://search.cpan.org/~chm/PDL-2.4.7/Basic/MatrixOps/matrixops.pd}{{\normalfont \ttfamily PDL::MatrixOps}}] Provides matrix operators for PDL. It is used when generating Monte Carlo samples of parameters from covariance matrices. {\normalfont \ttfamily PDL::MatrixOps} can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install PDL::MatrixOps'
 \end{verbatim}
-  \item [\href{http://search.cpan.org/~ellipse/PDL-LinearAlgebra-0.06/LinearAlgebra.pm}{{\tt PDL::LinearAlgebra}}] Provides linear algebra algorithms for PDL. It is used for Cholesky decomposition when generating Monte Carlo samples of parameters from covariance matrices. {\tt PDL::LinearAlgebra} can be installed from CPAN using:
+  \item [\href{http://search.cpan.org/~ellipse/PDL-LinearAlgebra-0.06/LinearAlgebra.pm}{{\normalfont \ttfamily PDL::LinearAlgebra}}] Provides linear algebra algorithms for PDL. It is used for Cholesky decomposition when generating Monte Carlo samples of parameters from covariance matrices. {\normalfont \ttfamily PDL::LinearAlgebra} can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install PDL::LinearAlgebra'
 \end{verbatim}
 
-\item[Gnuplot] The \href{http://www.gnuplot.info/}{\sc Gnuplot} plotting package is used extensively by \glc\ to produce plots. While not required for running \glc\ it is recommended as it allows you to easily check model results using the preexisting plotting scripts. On Fedora the following (as root) will install {\tt Gnuplot}:
+\item[Gnuplot] The \href{http://www.gnuplot.info/}{\normalfont \scshape Gnuplot} plotting package is used extensively by \glc\ to produce plots. While not required for running \glc\ it is recommended as it allows you to easily check model results using the preexisting plotting scripts. On Fedora the following (as root) will install {\normalfont \ttfamily Gnuplot}:
 \begin{verbatim}
 yum install gnuplot
 \end{verbatim}
-Alternatively, {\sc Gnuplot} can be installed from source, following the online instructions. Note that some scripts require {\sc Gnuplot} v4.4 or later.
+Alternatively, {\normalfont \scshape Gnuplot} can be installed from source, following the online instructions. Note that some scripts require {\normalfont \scshape Gnuplot} v4.4 or later.
 
 \item[GraphViz] The \href{http://www.graphviz.org/}{GraphViz} package is used to create plots of merger tree structures. While not required to run \glc\ it is recommended to allow simple graphing of such structures (useful to get a visual impression of what's going on in the code). On Fedora the following (as root) will install GraphViz and a module that allows Perl to interact with it:
 \begin{verbatim}
@@ -313,24 +313,24 @@ perl -MCPAN -e 'install GraphViz'
 
 \section{Compiling Galacticus}
 
-To build \glc\ (after installing all required libraries) ensure that you are in the {\tt Galacticus/v0.0.1} directory and then simply type:
+To build \glc\ (after installing all required libraries) ensure that you are in the {\normalfont \ttfamily Galacticus/v0.0.1} directory and then simply type:
 \begin{verbatim}
  make Galacticus.exe
 \end{verbatim}
-This will create the {\tt Galacticus.exe} executable. The build takes some time, you'll see a set of XML files get created first which \glc\ uses to figure out how modules link in to the \glc\ code. After that, the Fortran files are compiled. We regularly build \glc\ using a parallel make without any problems.
+This will create the {\normalfont \ttfamily Galacticus.exe} executable. The build takes some time, you'll see a set of XML files get created first which \glc\ uses to figure out how modules link in to the \glc\ code. After that, the Fortran files are compiled. We regularly build \glc\ using a parallel make without any problems.
 
-The {\tt Makefile} contains a few options that you may want to adjust:
+The {\normalfont \ttfamily Makefile} contains a few options that you may want to adjust:
 \begin{description}
- \item[{\tt FCCOMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only tried it using {\sc GFortran} v4.9.0+\footnote{We cannot predict if significantly later versions of GNU Fortran will successfully compile \protect\glc.}. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers, type-bound procedures and class variables) which older compilers might not handle (and some newer compilers might still have difficulty with);
- \item[{\tt CCOMPILER}] The command to invoke a C compiler.
- \item[{\tt CPPCOMPILER}] The command to invoke a C++ compiler.
- \item[{\tt PREPROCESSOR}] The command to invoke a preprocessor to handle {\tt \#IFDEF} etc. statements. We normally use {\tt cpp};
- \item[{\tt MODULETYPE}] A label identifying the structure of modules built by the compiler. This is used to detected when module interfaces have been changed (requiring a recompile of all dependent code) and when only the module internals have changed. When the {\sc GFortran} compiler is used {\tt GCC-f95-on-LINUX} should be used here. Look in {\tt ./scripts/build/Compare\_Module\_Files.pl} for other possibilities (if your compiler isn't listed you'll need to either edit that script or deal with longer recompiles if you edit the code).
- \item[{\tt FCFLAGS}] Flags to pass to the Fortran compiler. Standard options for both error-checking and optimized builds for the {\sc GFortran} compiler are given in the {\tt Makefile}.
- \item[{\tt CFLAGS}] Flags to pass to the C compiler.
- \item[{\tt CPPFLAGS}] Flags to pass to the C++ compiler.
+ \item[{\normalfont \ttfamily FCCOMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only tried it using {\normalfont \scshape GFortran} v4.9.0+\footnote{We cannot predict if significantly later versions of GNU Fortran will successfully compile \protect\glc.}. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers, type-bound procedures and class variables) which older compilers might not handle (and some newer compilers might still have difficulty with);
+ \item[{\normalfont \ttfamily CCOMPILER}] The command to invoke a C compiler.
+ \item[{\normalfont \ttfamily CPPCOMPILER}] The command to invoke a C++ compiler.
+ \item[{\normalfont \ttfamily PREPROCESSOR}] The command to invoke a preprocessor to handle {\normalfont \ttfamily \#IFDEF} etc. statements. We normally use {\normalfont \ttfamily cpp};
+ \item[{\normalfont \ttfamily MODULETYPE}] A label identifying the structure of modules built by the compiler. This is used to detected when module interfaces have been changed (requiring a recompile of all dependent code) and when only the module internals have changed. When the {\normalfont \scshape GFortran} compiler is used {\normalfont \ttfamily GCC-f95-on-LINUX} should be used here. Look in {\normalfont \ttfamily ./scripts/build/Compare\_Module\_Files.pl} for other possibilities (if your compiler isn't listed you'll need to either edit that script or deal with longer recompiles if you edit the code).
+ \item[{\normalfont \ttfamily FCFLAGS}] Flags to pass to the Fortran compiler. Standard options for both error-checking and optimized builds for the {\normalfont \scshape GFortran} compiler are given in the {\normalfont \ttfamily Makefile}.
+ \item[{\normalfont \ttfamily CFLAGS}] Flags to pass to the C compiler.
+ \item[{\normalfont \ttfamily CPPFLAGS}] Flags to pass to the C++ compiler.
 \end{description}
-Additionally, you can add compiler options to the {\tt GALACTICUS\_FCFLAGS}, {\tt GALACTICUS\_CFLAGS}, and {\tt GALACTICUS\_CPPFLAGS} environment variables. This is useful to add machine-specific options.
+Additionally, you can add compiler options to the {\normalfont \ttfamily GALACTICUS\_FCFLAGS}, {\normalfont \ttfamily GALACTICUS\_CFLAGS}, and {\normalfont \ttfamily GALACTICUS\_CPPFLAGS} environment variables. This is useful to add machine-specific options.
 
 \subsection{Compiling with OpenMP Parallelism}\index{OpenMP}\index{parallel}
 
@@ -342,20 +342,20 @@ line in the Makefile. When running \glc\ in parallel using OpenMP it may be nece
 \begin{verbatim}
 setenv KMP_STACKSIZE 16777216
 \end{verbatim}
-in {\tt csh} and variants or
+in {\normalfont \ttfamily csh} and variants or
 \begin{verbatim}
 export KMP_STACKSIZE=16777216
 \end{verbatim}
-in {\tt bash} and variants. If you get stack overflows while running \glc\ in parallel, try increasing this value further.
+in {\normalfont \ttfamily bash} and variants. If you get stack overflows while running \glc\ in parallel, try increasing this value further.
 
-\glc\ currently implements parallel calculations at the tree level---that is, each parallel thread works on a separate merger tree. This means that you need sufficient memory to hold multiple merger trees at once. The advantage of this approach is that it is highly scalable (assuming no need for communication between trees), and \glc\ can achieve close to optimal speed-up in many cases. The limit to the speed-up is usually determined by the workload balance between the trees. If one tree requires significantly more time to run that all other trees combined then one thread will be left working on that tree while all others have finished. To limit this problem, it is recommended that parallel runs which use {\tt mergerTreeConstructMethod}$=${\tt build} (see \S{sec:MergerTreeConstruction}) be conducted with the {\tt [mergerTreeBuildTreesProcessDescending]}$=${\tt true} parameter set to true. This will cause the most massive merger trees (i.e. those which take longest to process) to be processed first.
+\glc\ currently implements parallel calculations at the tree level---that is, each parallel thread works on a separate merger tree. This means that you need sufficient memory to hold multiple merger trees at once. The advantage of this approach is that it is highly scalable (assuming no need for communication between trees), and \glc\ can achieve close to optimal speed-up in many cases. The limit to the speed-up is usually determined by the workload balance between the trees. If one tree requires significantly more time to run that all other trees combined then one thread will be left working on that tree while all others have finished. To limit this problem, it is recommended that parallel runs which use {\normalfont \ttfamily mergerTreeConstructMethod}$=${\normalfont \ttfamily build} (see \S{sec:MergerTreeConstruction}) be conducted with the {\normalfont \ttfamily [mergerTreeBuildTreesProcessDescending]}$=${\normalfont \ttfamily true} parameter set to true. This will cause the most massive merger trees (i.e. those which take longest to process) to be processed first.
 
 \section{Installing Without Root Access}
 
-It is possible to install \glc\ without root access to your computer. The following approach has worked in many cases---some adjustments may be required for your specific system. Depending on what is already installed on your system, you may be able to skip some of the following installs. Refer to \S\ref{sec:requirementsEssential}, \S\ref{sec:requirementsTypical} and \S\ref{sec:requirementsFull} to decide which of the following tools you want to install. (Or, alternatively, you may need to install additional tools.) Choose a location to install that has at least 4Gb of free space. In the following, this install location is referred to as {\tt /your/install/path}. In the following, we assume you're using some variant of the C-shell. If you're using {\tt bash} or some other Bourne shell, {\tt setenv VAR abcd} should be translated to {\tt export VAR=abcd}.
+It is possible to install \glc\ without root access to your computer. The following approach has worked in many cases---some adjustments may be required for your specific system. Depending on what is already installed on your system, you may be able to skip some of the following installs. Refer to \S\ref{sec:requirementsEssential}, \S\ref{sec:requirementsTypical} and \S\ref{sec:requirementsFull} to decide which of the following tools you want to install. (Or, alternatively, you may need to install additional tools.) Choose a location to install that has at least 4Gb of free space. In the following, this install location is referred to as {\normalfont \ttfamily /your/install/path}. In the following, we assume you're using some variant of the C-shell. If you're using {\normalfont \ttfamily bash} or some other Bourne shell, {\normalfont \ttfamily setenv VAR abcd} should be translated to {\normalfont \ttfamily export VAR=abcd}.
 
 \lstdefinelanguage{simple}{morecomment=[l]!}
-\begin{lstlisting}[language=simple,stringstyle=\ttfamily,commentstyle=\itshape]
+\begin{lstlisting}[language=simple,stringstyle=\normalfont \ttfamily,commentstyle=\itshape]
 
 ! Install GFortran, GCC and G++:
 
@@ -529,19 +529,19 @@ The following guidelines have been tested on a MacBook Pro, running Mac OS X V10
 
 \subsection{Update GNU compilers}
 
-It is likely that the default compiler is older than GCC v4.9 that is required to properly compile the code without any errors. Use a package manager to download as recent a version as possible of {\tt gcc}. For the case of MacPorts, this requires,
+It is likely that the default compiler is older than GCC v4.9 that is required to properly compile the code without any errors. Use a package manager to download as recent a version as possible of {\normalfont \ttfamily gcc}. For the case of MacPorts, this requires,
 
 \begin{verbatim}
 $ sudo port -v install gcc48 +gfortran
 \end{verbatim}
 
-and reset the default version of {\tt gcc} compilers by first listing available options
+and reset the default version of {\normalfont \ttfamily gcc} compilers by first listing available options
 
 \begin{verbatim}
 $ sudo port select --list gcc
 \end{verbatim}
 
-and then explicitly setting to {\tt mp-gcc48} by
+and then explicitly setting to {\normalfont \ttfamily mp-gcc48} by
 
 \begin{verbatim}
 $ sudo port select --set mp-gcc48
@@ -549,13 +549,13 @@ $ sudo port select --set mp-gcc48
 
 \subsection{Installing HDF5, FoX and FGSL}
 
-Once you have installed the latest compiler suite, you will need to recompile your {\tt HDF5}, {\tt FoX} and {\tt FGSL} libraries. Download {\tt FoX} (for XML parsing) from
+Once you have installed the latest compiler suite, you will need to recompile your {\normalfont \ttfamily HDF5}, {\normalfont \ttfamily FoX} and {\normalfont \ttfamily FGSL} libraries. Download {\normalfont \ttfamily FoX} (for XML parsing) from
 
 \begin{verbatim}
 http://www1.gly.bris.ac.uk/~walker/FoX/source/FoX-4.1.2-full.tar.gz
 \end{verbatim}
 
-and run {\tt configure}
+and run {\normalfont \ttfamily configure}
 
 \begin{verbatim}
 $ sudo ./configure --prefix=/opt/local
@@ -573,7 +573,7 @@ Similarly download FGSL from
 http://www.lrz.de/services/software/mathematik/gsl/fortran/
 \end{verbatim}
 
-and, assuming that you have downloaded GSL with MacPorts and they are installed in {\tt /opt/local/include} and {\tt /opt/local/lib}, run {\tt configure}
+and, assuming that you have downloaded GSL with MacPorts and they are installed in {\normalfont \ttfamily /opt/local/include} and {\normalfont \ttfamily /opt/local/lib}, run {\normalfont \ttfamily configure}
 
 \begin{verbatim}
 $ sudo ./configure --f90 gfortran --gsl /opt/local --prefix /opt/local
@@ -597,11 +597,11 @@ and do the usual
 $ sudo make clean; sudo make; sudo make test; sudo make install
 \end{verbatim}
 
-This should ensure that the modules ({\tt hdf5.mod}, {\tt fox\_dom.mod}, \ldots) are compatible with the \glc\ build.
+This should ensure that the modules ({\normalfont \ttfamily hdf5.mod}, {\normalfont \ttfamily fox\_dom.mod}, \ldots) are compatible with the \glc\ build.
 
-\glc\ requires {\tt crypt.h} to install on linux-based systems; this is part of the GNU C library {\tt glibc}. However, {\tt glibc} has not been ported to Mac OS X and so this will not work properly. To get it working, edit {\tt source/utility.hashes.cryptographic.md5.c} and comment out {\tt \#include \textless crypt.h\textgreater}, replacing it with {\tt \#include \textless unistd.h\textgreater}.
+\glc\ requires {\normalfont \ttfamily crypt.h} to install on linux-based systems; this is part of the GNU C library {\normalfont \ttfamily glibc}. However, {\normalfont \ttfamily glibc} has not been ported to Mac OS X and so this will not work properly. To get it working, edit {\normalfont \ttfamily source/utility.hashes.cryptographic.md5.c} and comment out {\normalfont \ttfamily \#include \textless crypt.h\textgreater}, replacing it with {\normalfont \ttfamily \#include \textless unistd.h\textgreater}.
 
-Note that you will need to amend the {\tt Makefile} so that \glc\ knows where these {\tt .mod} files are, which you can do by adding
+Note that you will need to amend the {\normalfont \ttfamily Makefile} so that \glc\ knows where these {\normalfont \ttfamily .mod} files are, which you can do by adding
 
 \begin{verbatim}
 FCFLAGS += -fintrinsic-modules-path /opt/local/include 
@@ -617,17 +617,17 @@ export GALACTICUS_FCFLAGS = "-L/opt/local/lib"
 
 You can also add
 
-to your {\tt .profile} (i.e. {\tt .bashrc}) file so that \glc\ knows where to find libraries (for FoX, {\tt libcrypt}, \ldots) during linking.
+to your {\normalfont \ttfamily .profile} (i.e. {\normalfont \ttfamily .bashrc}) file so that \glc\ knows where to find libraries (for FoX, {\normalfont \ttfamily libcrypt}, \ldots) during linking.
 
 \subsection{Installing Perl Modules}
 
-Follow the instructions in the previous section to download and install new {\tt perl} modules. You may need to upgrade CPAN using
+Follow the instructions in the previous section to download and install new {\normalfont \ttfamily perl} modules. You may need to upgrade CPAN using
 
 \begin{verbatim}
 $ sudo perl -MCPAN -e 'install Bundles::CPAN'
 \end{verbatim}
 
-before installation of certain modules (e.g. {\tt DateTime.pm}) would proceed correctly. To install {\tt PDF::Labels}, I found it necessary to
+before installation of certain modules (e.g. {\normalfont \ttfamily DateTime.pm}) would proceed correctly. To install {\normalfont \ttfamily PDF::Labels}, I found it necessary to
 
 \begin{verbatim}
 $ sudo perl -MCPAN -e 'install PDF::Create"

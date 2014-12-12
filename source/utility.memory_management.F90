@@ -194,13 +194,13 @@ contains
   end subroutine Set_Memory_Prefix
 
   subroutine Code_Memory_Usage(codeSizeFile)
-    !% If present reads the file {\tt $\langle$executable$\rangle$.size} to determine the amount
-    !% of memory the {\tt $\langle$executable$\rangle$.exe} code needs before other memory is
+    !% If present reads the file {\normalfont \ttfamily $\langle$executable$\rangle$.size} to determine the amount
+    !% of memory the {\normalfont \ttfamily $\langle$executable$\rangle$.exe} code needs before other memory is
     !% allocated. This is stored to allow an accurate calculation of the
     !% memory used by the code.
     !%
-    !% The {\tt $\langle$executable$\rangle$.size} file is made by running the Perl script {\tt Find\_Executable\_Size.pl} (which is done
-    !% automatically when the executable is built by {\tt make}).
+    !% The {\normalfont \ttfamily $\langle$executable$\rangle$.size} file is made by running the Perl script {\normalfont \ttfamily Find\_Executable\_Size.pl} (which is done
+    !% automatically when the executable is built by {\normalfont \ttfamily make}).
     use ISO_Varying_String
     use Galacticus_Display
     use Galacticus_Input_Paths

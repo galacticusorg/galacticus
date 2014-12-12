@@ -26,7 +26,7 @@ module FFTW3
 contains
 
   double precision function FFTW_Wavenumber(k,n)
-    !% Return the wavenumber (in units of $1/L$ where $L$ is the box length) corresponding to element {\tt k} out of {\tt n} of a
+    !% Return the wavenumber (in units of $1/L$ where $L$ is the box length) corresponding to element {\normalfont \ttfamily k} out of {\normalfont \ttfamily n} of a
     !% 1-D FFT using the FFTW convention.
     implicit none
     integer, intent(in   ) :: k , n

@@ -87,7 +87,7 @@ contains
   end subroutine Supernovae_Type_Ia_Initialize
 
   double precision function SNeIa_Cumulative_Number(initialMass,age,metallicity)
-    !% Return the cumulative number of Type Ia supernovae from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
+    !% Return the cumulative number of Type Ia supernovae from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision, intent(in   ) :: age, initialMass, metallicity
 
@@ -100,7 +100,7 @@ contains
   end function SNeIa_Cumulative_Number
 
   double precision function SNeIa_Cumulative_Yield(initialMass,age,metallicity,atomIndex)
-    !% Return the cumulative yield of Type Ia supernovae from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
+    !% Return the cumulative yield of Type Ia supernovae from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision, intent(in   )           :: age      , initialMass, metallicity
     integer         , intent(in   ), optional :: atomIndex

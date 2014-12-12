@@ -41,7 +41,7 @@ subroutine Merger_Tree_Destroy(thisTree)
 end subroutine Merger_Tree_Destroy
 
 subroutine Merger_Tree_Destroy_Branch(thisTree,thisNode)
-  !% Destroy a branch of a tree which begins at {\tt thisNode}.
+  !% Destroy a branch of a tree which begins at {\normalfont \ttfamily thisNode}.
   implicit none
   class(mergerTree), intent(inout)          :: thisTree
   type (treeNode  ), intent(inout), pointer :: thisNode
@@ -95,7 +95,7 @@ subroutine Tree_Node_Create_Initialize
 end subroutine Tree_Node_Create_Initialize
 
 function Merger_Tree_Node_Get(thisTree,nodeIndex)
-  !% Return a pointer to a node in {\tt thisTree} given the index of the node.
+  !% Return a pointer to a node in {\normalfont \ttfamily thisTree} given the index of the node.
   implicit none
   class  (mergerTree    ), intent(in   ) :: thisTree
   integer(kind=kind_int8), intent(in   ) :: nodeIndex
@@ -138,7 +138,7 @@ function Merger_Tree_Create_Event(self) result (newEvent)
 end function Merger_Tree_Create_Event
 
 subroutine Merger_Tree_Remove_Event(self,event)
-  !% Removed an event from {\tt self}.
+  !% Removed an event from {\normalfont \ttfamily self}.
   implicit none
   class  (mergerTree), intent(inout) :: self
   type   (treeEvent ), intent(in   ) :: event

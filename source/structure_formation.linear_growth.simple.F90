@@ -65,7 +65,7 @@ contains
 
   subroutine Linear_Growth_Factor_Simple_Tabulate(time,growthTableNumberPoints,growthTableTime,growthTableWavenumber&
        &,growthTableGrowthFactor ,normalizationMatterDominated)
-    !% Returns the linear growth factor $D(a)$ for expansion factor {\tt aExpansion}, normalized such that $D(1)=1$ for a simple
+    !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that $D(1)=1$ for a simple
     !% matter plus cosmological constant cosmology.
     use Numerical_Interpolation
     use Memory_Management

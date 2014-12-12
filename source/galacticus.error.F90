@@ -15,10 +15,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements error reporting for the {\sc Galacticus} package.
+!% Contains a module which implements error reporting for the {\normalfont \scshape Galacticus} package.
 
 module Galacticus_Error
-  !% Implements error reporting for the {\sc Galacticus} package.
+  !% Implements error reporting for the {\normalfont \scshape Galacticus} package.
   use HDF5
   use FGSL
   use Semaphores
@@ -97,7 +97,7 @@ contains
   end subroutine Galacticus_Error_Handler_Register
 
   subroutine Galacticus_Signal_Handler_SIGINT()
-    !% Handle {\tt SIGINT} signals, by flushing all data and then aborting.
+    !% Handle {\normalfont \ttfamily SIGINT} signals, by flushing all data and then aborting.
     !$ use OMP_Lib
     implicit none
     integer :: error
@@ -117,7 +117,7 @@ contains
   end subroutine Galacticus_Signal_Handler_SIGINT
 
   subroutine Galacticus_Signal_Handler_SIGSEGV()
-    !% Handle {\tt SIGSEGV} signals, by flushing all data and then aborting.
+    !% Handle {\normalfont \ttfamily SIGSEGV} signals, by flushing all data and then aborting.
     !$ use OMP_Lib
     implicit none
     integer :: error
@@ -137,7 +137,7 @@ contains
   end subroutine Galacticus_Signal_Handler_SIGSEGV
 
   subroutine Galacticus_Signal_Handler_SIGFPE()
-    !% Handle {\tt SIGFPE} signals, by flushing all data and then aborting.
+    !% Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
     !$ use OMP_Lib
     implicit none
     integer :: error

@@ -91,7 +91,7 @@ contains
   end subroutine Stellar_Astrophysics_Initialize
 
   double precision function Star_Initial_Mass(lifetime,metallicity)
-    !% Returns the initial mass of a star of given {\tt lifetime} and {\tt metallicity}.
+    !% Returns the initial mass of a star of given {\normalfont \ttfamily lifetime} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision, intent(in   ) :: lifetime, metallicity
 
@@ -105,7 +105,7 @@ contains
   end function Star_Initial_Mass
 
   double precision function Star_Ejected_Mass(initialMass,metallicity)
-    !% Returns the mass ejected by a star of given {\tt initialMass} and {\tt metallicity}.
+    !% Returns the mass ejected by a star of given {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision, intent(in   ) :: initialMass, metallicity
 
@@ -119,7 +119,7 @@ contains
   end function Star_Ejected_Mass
 
   double precision function Star_Metal_Yield_Mass(initialMass,metallicity,atomIndex)
-    !% Returns the metal mass yielded by a star of given {\tt initialMass} and {\tt metallicity}.
+    !% Returns the metal mass yielded by a star of given {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision, intent(in   )           :: initialMass, metallicity
     integer         , intent(in   ), optional :: atomIndex
@@ -134,7 +134,7 @@ contains
   end function Star_Metal_Yield_Mass
 
   double precision function Star_Lifetime(initialMass,metallicity)
-    !% Returns the lifetime of a star of given {\tt initialMass} and {\tt metallicity}.
+    !% Returns the lifetime of a star of given {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision, intent(in   ) :: initialMass, metallicity
 

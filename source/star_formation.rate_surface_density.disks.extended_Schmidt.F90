@@ -120,13 +120,13 @@ contains
 
   double precision function Star_Formation_Rate_Surface_Density_Disk_ExSchmidt(thisNode,radius)
     !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
-    !% in the galactic disk of {\tt thisNode}. The disk is assumed to obey the extended Schmidt law of \cite{shi_extended_2011}:
+    !% in the galactic disk of {\normalfont \ttfamily thisNode}. The disk is assumed to obey the extended Schmidt law of \cite{shi_extended_2011}:
     !% \begin{equation}
-    !% \dot{\Sigma}_\star = A \left(x_{\rm H} {\Sigma_{\rm gas}\over M_\odot \hbox{pc}^{-2}}\right)
+    !% \dot{\Sigma}_\star = A \left(x_{\mathrm H} {\Sigma_{\mathrm gas}\over M_\odot \hbox{pc}^{-2}}\right)
     !% ^{N_1} \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2},
     !% \end{equation}
-    !% where $A=${\tt [starFormationExtendedSchmidtNormalization]} and $N_1=${\tt
-    !% [starFormationExtendedSchmidtGasExponent]}. $N_2=${\tt [starFormationExtendedSchmidtStarExponent]}.
+    !% where $A=${\normalfont \ttfamily [starFormationExtendedSchmidtNormalization]} and $N_1=${\tt
+    !% [starFormationExtendedSchmidtGasExponent]}. $N_2=${\normalfont \ttfamily [starFormationExtendedSchmidtStarExponent]}.
     use Abundances_Structure
     use Galactic_Structure_Surface_Densities
     use Galactic_Structure_Options

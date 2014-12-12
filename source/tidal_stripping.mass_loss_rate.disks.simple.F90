@@ -61,17 +61,17 @@ contains
     !% Computes the mass loss rate from disks due to tidal stripping assuming a simple model. Specifically, the mass loss
     !% rate is
     !% \begin{equation}
-    !% \dot{M} = -\alpha M/\tau_{\rm disk},
+    !% \dot{M} = -\alpha M/\tau_{\mathrm disk},
     !% \end{equation}
     !% where
     !% \begin{equation}
-    !% \alpha = F_{\rm tidal}/F_{\rm gravity},
+    !% \alpha = F_{\mathrm tidal}/F_{\mathrm gravity},
     !% \end{equation}
-    !% $F_{\rm tidal}=\mathcal{F}_{\rm tidal} r_{1/2}$, $\mathcal{F}_{\rm tidal}$ is the tidal field from the host halo (see \S\ref{sec:SatelliteTidalFields}), and
+    !% $F_{\mathrm tidal}=\mathcal{F}_{\mathrm tidal} r_{1/2}$, $\mathcal{F}_{\mathrm tidal}$ is the tidal field from the host halo (see \S\ref{sec:SatelliteTidalFields}), and
     !% \begin{equation}
-    !% F_{\rm gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
+    !% F_{\mathrm gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
     !% \end{equation}
-    !% is the gravitational restoring force in the disk at the half-mass radius, $r_{\rm 1/2}$.
+    !% is the gravitational restoring force in the disk at the half-mass radius, $r_{\mathrm 1/2}$.
     use Galacticus_Nodes
     use Satellites_Tidal_Fields
     use Galactic_Structure_Options

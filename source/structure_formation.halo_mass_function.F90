@@ -74,7 +74,7 @@ contains
   end subroutine Halo_Mass_Function_Initialize
 
   double precision function Halo_Mass_Function_Differential(time,mass)
-    !% Return the differential halo mass function for {\tt mass} [$M_\odot$] at {\tt time}.
+    !% Return the differential halo mass function for {\normalfont \ttfamily mass} [$M_\odot$] at {\normalfont \ttfamily time}.
     !# <include directive="haloMassFunctionModifierMethod" type="moduleUse">
     include 'structure_formation.halo_mass_function.modifier.modules.inc'
     !# </include>
@@ -96,7 +96,7 @@ contains
   end function Halo_Mass_Function_Differential
 
   double precision function Halo_Mass_Function_Integrated(time,massLow,massHigh)
-    !% Return tha halo mass function integrated between {\tt massLow} and {\tt massHigh}.
+    !% Return tha halo mass function integrated between {\normalfont \ttfamily massLow} and {\normalfont \ttfamily massHigh}.
     use Numerical_Integration
     implicit none
     double precision                            , intent(in   ) :: massHigh            , massLow   , time
@@ -135,7 +135,7 @@ contains
   end function Halo_Mass_Function_Integrand
 
   double precision function Halo_Mass_Fraction_Integrated(time,massLow,massHigh)
-    !% Return the halo mass fraction integrated between {\tt massLow} and {\tt massHigh}.
+    !% Return the halo mass fraction integrated between {\normalfont \ttfamily massLow} and {\normalfont \ttfamily massHigh}.
     use Numerical_Integration
     use Cosmology_Parameters
     implicit none

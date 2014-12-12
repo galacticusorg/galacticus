@@ -29,14 +29,14 @@
   end type spectraPostprocessorLycSuppress
 
   interface spectraPostprocessorLycSuppress
-     !% Constructors for the {\tt lycSuppress} spectrum postprocessor class.
+     !% Constructors for the {\normalfont \ttfamily lycSuppress} spectrum postprocessor class.
      module procedure lycSuppressDefaultConstructor
   end interface spectraPostprocessorLycSuppress
 
 contains
 
   function lycSuppressDefaultConstructor()
-    !% Default constructor for the {\tt lycSuppress} spectrum postprocessor class.
+    !% Default constructor for the {\normalfont \ttfamily lycSuppress} spectrum postprocessor class.
     implicit none
     type(spectraPostprocessorLycSuppress), target :: lycSuppressDefaultConstructor
     

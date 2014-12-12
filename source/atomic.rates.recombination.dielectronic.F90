@@ -83,8 +83,8 @@ contains
   end subroutine Dielectronic_Recombination_Ratebination_Rate_Initialize
 
   double precision function Dielectronic_Recombination_Rate(atomicNumber, electronNumber, temperature)
-    !% Return the dielectroninc recombination rate (in units of cm$^3$ s$^{-1}$) for the ion of given {\tt atomicNumber} and {\tt
-    !% electronNumber} at the given {\tt temperature} (in Kelvin).
+    !% Return the dielectroninc recombination rate (in units of cm$^3$ s$^{-1}$) for the ion of given {\normalfont \ttfamily atomicNumber} and {\tt
+    !% electronNumber} at the given {\normalfont \ttfamily temperature} (in Kelvin).
     implicit none
     double precision, intent(in   ) :: temperature                     
     integer         , intent(in   ) :: atomicNumber, electronNumber

@@ -398,7 +398,7 @@ sub Output_Data {
 	
 	# Output header line for unit, skipping nameless interfaces (i.e. abstract interfaces) and any children of such interfaces.
 	unless ( $unitIsAbstract == 1 || $parentUnitIsAbstract == 1 ) {
-	    print $outputHandle "\\noindent{\\bf ".$unitType.":} \\hypertarget{".$unitID."}{{\\tt ".$unitName."}}\\index[code]{".$unitName."\@\{\\tt ".$unitName."} (".$unitType.")}\n\n";
+	    print $outputHandle "\\noindent{\\normalfont \\bfseries ".$unitType.":} \\hypertarget{".$unitID."}{{\\normalfont \\ttfamily ".$unitName."}}\\index[code]{".$unitName."\@\{\\normalfont \\ttfamily ".$unitName."} (".$unitType.")}\n\n";
 
 	    # Begin tabulated output.
 	    my $tableOpen = "\\begin{supertabular}{lp{70mm}p{70mm}}\n";
@@ -434,7 +434,7 @@ sub Output_Data {
 		    print $outputHandle $tableOpen;
 		    $tableIsOpen = 1;
 		}
-		print $outputHandle "\\emph{Contained by:} & \\multicolumn{2}{l}{".$units{$parentID}->{"unitType"}." \\hyperlink{".$parentID."}{{\\tt ".&latex_encode($units{$parentID}->{"unitName"})."}}} \\\\ \n" 
+		print $outputHandle "\\emph{Contained by:} & \\multicolumn{2}{l}{".$units{$parentID}->{"unitType"}." \\hyperlink{".$parentID."}{{\\normalfont \\ttfamily ".&latex_encode($units{$parentID}->{"unitName"})."}}} \\\\ \n" 
 	    }
 	    
 	    # Output lists of modules used.
@@ -449,12 +449,12 @@ sub Output_Data {
 		foreach ( @sortedModules ) {
 		    if ( exists($modules{$_}) ) {
 			if ( $modules{$_} eq "" ) {
-			    $_ = "{\\tt ".&latex_encode($_)."}";
+			    $_ = "{\\normalfont \\ttfamily ".&latex_encode($_)."}";
 			} else {
-			    $_ = "\\hyperlink{".$modules{$_}."}{{\\tt ".&latex_encode($_)."}}";
+			    $_ = "\\hyperlink{".$modules{$_}."}{{\\normalfont \\ttfamily ".&latex_encode($_)."}}";
 			}
 		    } else {
-			$_ = "{\\tt ".&latex_encode($_)."}";
+			$_ = "{\\normalfont \\ttfamily ".&latex_encode($_)."}";
 		    }
 		}
 		&printTwoColumn($outputHandle,\@sortedModules);
@@ -471,9 +471,9 @@ sub Output_Data {
 		my @sortedUnits = sort(@unsortedUnits);
 		foreach ( @sortedUnits ) {
 		    if ( $_ eq "" ) {
-			$_ = $units{$_}->{"unitType"}." {\\tt ".&latex_encode($units{$_}->{"unitName"})."}";
+			$_ = $units{$_}->{"unitType"}." {\\normalfont \\ttfamily ".&latex_encode($units{$_}->{"unitName"})."}";
 		    } else {
-			$_ = $units{$_}->{"unitType"}." \\hyperlink{".$_."}{{\\tt ".&latex_encode($units{$_}->{"unitName"})."}}";
+			$_ = $units{$_}->{"unitType"}." \\hyperlink{".$_."}{{\\normalfont \\ttfamily ".&latex_encode($units{$_}->{"unitName"})."}}";
 		    }
 		}
 		&printTwoColumn($outputHandle,\@sortedUnits);

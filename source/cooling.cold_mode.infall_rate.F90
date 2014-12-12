@@ -78,7 +78,7 @@ contains
   end subroutine Cooling_Cold_Mode_Infall_Rate_Initialize
 
   double precision function Cooling_Cold_Mode_Infall_Rate(thisNode)
-    !% Return the cold mode infall rate for {\tt thisNode} (in units of $M_\odot$ Gyr$^{-1}$).
+    !% Return the cold mode infall rate for {\normalfont \ttfamily thisNode} (in units of $M_\odot$ Gyr$^{-1}$).
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

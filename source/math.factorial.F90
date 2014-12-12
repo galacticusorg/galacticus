@@ -26,7 +26,7 @@ module Factorials
 contains
 
   double precision function Factorial(argument)
-    !% Computes the factorial of {\tt argument}.
+    !% Computes the factorial of {\normalfont \ttfamily argument}.
     use FGSL
     implicit none
     integer, intent(in   ) :: argument

@@ -31,7 +31,7 @@ contains
 
   recursive double precision function Integrate(lowerLimit,upperLimit,integrand,parameterPointer,integrandFunction&
        &,integrationWorkspace,maxIntervals,toleranceAbsolute,toleranceRelative,hasSingularities,integrationRule,reset,errorStatus)
-    !% Integrates the supplied {\tt integrand} function.
+    !% Integrates the supplied {\normalfont \ttfamily integrand} function.
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     implicit none

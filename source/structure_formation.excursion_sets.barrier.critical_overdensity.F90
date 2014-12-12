@@ -48,7 +48,7 @@ contains
   end subroutine Excursion_Sets_Barriers_Critical_Overdensity_Initialize
 
   double precision function Excursion_Sets_Barrier_Critical_Overdensity(variance,time)
-    !% Return a critical overdensity barrier for excursion set calculations at the given {\tt variance}.
+    !% Return a critical overdensity barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
     use Power_Spectra
     use Critical_Overdensity
     implicit none
@@ -68,7 +68,7 @@ contains
   end function Excursion_Sets_Barrier_Critical_Overdensity
 
   double precision function Excursion_Sets_Barrier_Gradient_Critical_Overdensity(variance,time)
-    !% Return the gradient of a critical overdensity barrier for excursion set calculations at the given {\tt variance}.
+    !% Return the gradient of a critical overdensity barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
     use Power_Spectra
     use Critical_Overdensity
     implicit none

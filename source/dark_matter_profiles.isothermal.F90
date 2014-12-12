@@ -45,7 +45,7 @@
   end type darkMatterProfileIsothermal
 
   interface darkMatterProfileIsothermal
-     !% Constructors for the {\tt isothermal} dark matter halo profile class.
+     !% Constructors for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
      module procedure isothermalDefaultConstructor
      module procedure isothermalConstructor
   end interface darkMatterProfileIsothermal
@@ -53,7 +53,7 @@
 contains
 
   function isothermalDefaultConstructor()
-    !% Default constructor for the {\tt isothermal} dark matter halo profile class.
+    !% Default constructor for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
     use Input_Parameters
     implicit none
     type(darkMatterProfileIsothermal), target :: isothermalDefaultConstructor
@@ -63,7 +63,7 @@ contains
   end function isothermalDefaultConstructor
 
   function isothermalConstructor(scale)
-    !% Generic constructor for the {\tt isothermal} dark matter halo profile class.
+    !% Generic constructor for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
     use Input_Parameters
     implicit none
     type (darkMatterProfileIsothermal), target :: isothermalConstructor
@@ -74,7 +74,7 @@ contains
   end function isothermalConstructor
   
   subroutine isothermalDestructor(self)
-    !% Destructor for the {\tt isothermal} dark matter halo profile class.
+    !% Destructor for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
     implicit none
     type(darkMatterProfileIsothermal), intent(inout) :: self
 
@@ -93,7 +93,7 @@ contains
   end subroutine isothermalCalculationReset
 
   double precision function isothermalDensity(self,node,radius)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt node} at the given {\tt radius} (given
+    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
     !% in units of Mpc).
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
@@ -110,7 +110,7 @@ contains
   end function isothermalDensity
 
   double precision function isothermalEnclosedMass(self,node,radius)
-    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt node} at the given {\tt radius} (given in
+    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
@@ -126,7 +126,7 @@ contains
   end function isothermalEnclosedMass
 
   double precision function isothermalPotential(self,node,radius,status)
-    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt node} at the given {\tt radius} (given in
+    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
     use Galacticus_Nodes
     use Dark_Matter_Profiles_Error_Codes
@@ -153,7 +153,7 @@ contains
   end function isothermalPotential
 
   double precision function isothermalCircularVelocity(self,node,radius)
-    !% Returns the circular velocity (in km/s) in the dark matter profile of {\tt node} at the given {\tt radius} (given in
+    !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc). For an isothermal halo this is independent of radius and therefore equal to the virial velocity.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
@@ -167,7 +167,7 @@ contains
   end function isothermalCircularVelocity
 
   double precision function isothermalCircularVelocityMaximum(self,node)
-    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\tt node}. For an isothermal halo circular
+    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}. For an isothermal halo circular
     !% velocity is independent of radius.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
@@ -180,9 +180,9 @@ contains
   end function isothermalCircularVelocityMaximum
 
   double precision function isothermalRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
-    !% Returns the radius (in Mpc) in {\tt node} at which a circular orbit has the given {\tt specificAngularMomentum} (given
+    !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc). For an isothermal halo, the circular velocity is constant (and therefore equal to the virial
-    !% velocity). Therefore, $r = j/V_{\rm virial}$ where $j$(={\tt specificAngularMomentum}) is the specific angular momentum and
+    !% velocity). Therefore, $r = j/V_{\mathrm virial}$ where $j$(={\normalfont \ttfamily specificAngularMomentum}) is the specific angular momentum and
     !% $r$ the required radius.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
@@ -238,7 +238,7 @@ contains
   end function isothermalEnergyGrowthRate
 
   double precision function isothermalKSpace(self,node,waveNumber)
-    !% Returns the Fourier transform of the isothermal density profile at the specified {\tt waveNumber} (given in Mpc$^{-1}$), using the
+    !% Returns the Fourier transform of the isothermal density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$), using the
     !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; table~1).
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
@@ -262,10 +262,10 @@ contains
   end function isothermalKSpace
 
   double precision function isothermalFreefallRadius(self,node,time)
-    !% Returns the freefall radius in the isothermal density profile at the specified {\tt time} (given in Gyr). For an isothermal
-    !% potential, the freefall radius, $r_{\rm ff}(t)$, is:
+    !% Returns the freefall radius in the isothermal density profile at the specified {\normalfont \ttfamily time} (given in Gyr). For an isothermal
+    !% potential, the freefall radius, $r_{\mathrm ff}(t)$, is:
     !% \begin{equation}
-    !% r_{\rm ff}(t) = \sqrt{{2 \over \pi}} V_{\rm virial} t.
+    !% r_{\mathrm ff}(t) = \sqrt{{2 \over \pi}} V_{\mathrm virial} t.
     !% \end{equation}
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
@@ -281,10 +281,10 @@ contains
   end function isothermalFreefallRadius
 
   double precision function isothermalFreefallRadiusIncreaseRate(self,node,time)
-    !% Returns the rate of increase of the freefall radius in the isothermal density profile at the specified {\tt time} (given in
-    !% Gyr). For an isothermal potential, the rate of increase of the freefall radius, $\dot{r}_{\rm ff}(t)$, is:
+    !% Returns the rate of increase of the freefall radius in the isothermal density profile at the specified {\normalfont \ttfamily time} (given in
+    !% Gyr). For an isothermal potential, the rate of increase of the freefall radius, $\dot{r}_{\mathrm ff}(t)$, is:
     !% \begin{equation}
-    !% \dot{r}_{\rm ff}(t) = \sqrt{{2 \over \pi}} V_{\rm virial}.
+    !% \dot{r}_{\mathrm ff}(t) = \sqrt{{2 \over \pi}} V_{\mathrm virial}.
     !% \end{equation}
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales

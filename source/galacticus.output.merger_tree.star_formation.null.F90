@@ -62,7 +62,7 @@ contains
   end subroutine Star_Formation_History_Create_Null
 
   subroutine Star_Formation_History_Record_Null(thisNode,thisHistory,fuelAbundances,starFormationRate)
-    !% Record the star formation history for {\tt thisNode}.
+    !% Record the star formation history for {\normalfont \ttfamily thisNode}.
     use Histories
     use Galacticus_Nodes
     use Abundances_Structure
@@ -78,7 +78,7 @@ contains
   end subroutine Star_Formation_History_Record_Null
 
   subroutine Star_Formation_History_Output_Null(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
-    !% Output the star formation history for {\tt thisNode}.
+    !% Output the star formation history for {\normalfont \ttfamily thisNode}.
     use, intrinsic :: ISO_C_Binding
     use Histories
     use Galacticus_Nodes

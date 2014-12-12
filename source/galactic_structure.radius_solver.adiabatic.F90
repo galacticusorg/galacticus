@@ -91,7 +91,7 @@ contains
   end subroutine Galactic_Structure_Radii_Adiabatic_Initialize
 
   subroutine Galactic_Structure_Radii_Solve_Adiabatic(thisNode)
-    !% Find the radii of galactic components in {\tt thisNode} using the ``adiabatic'' method.
+    !% Find the radii of galactic components in {\normalfont \ttfamily thisNode} using the ``adiabatic'' method.
     use Cosmology_Parameters
     use Galacticus_Error
     use Galacticus_Display

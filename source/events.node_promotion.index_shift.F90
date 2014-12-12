@@ -37,7 +37,7 @@ contains
   !#  <unitName>Node_Promotion_Index_Shift</unitName>
   !# </nodePromotionTask>
   subroutine Node_Promotion_Index_Shift(thisNode)
-    !% Shifts the index of {\tt thisNode} to its parent node just prior to promotion, thereby allowing indices to track galaxies
+    !% Shifts the index of {\normalfont \ttfamily thisNode} to its parent node just prior to promotion, thereby allowing indices to track galaxies
     !% through the tree.
     use Input_Parameters
     use Galacticus_Nodes

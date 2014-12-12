@@ -416,7 +416,7 @@ sub Functions_Generate_Output {
 
     # Create default constructor.
     $buildData->{'content'} .= "   function ".$directive."ConstructorDefault()\n";
-    $buildData->{'content'} .= "      !% Return a pointer to the default {\\tt ".$directive."} object.\n";
+    $buildData->{'content'} .= "      !% Return a pointer to the default {\\normalfont \\ttfamily ".$directive."} object.\n";
     $buildData->{'content'} .= "      implicit none\n";
     $buildData->{'content'} .= "      class(".$directive."Class), pointer :: ".$directive."ConstructorDefault\n\n";
     $buildData->{'content'} .= "      if (.not.associated(".$directive."Default)) call ".$directive."Initialize()\n";
@@ -426,7 +426,7 @@ sub Functions_Generate_Output {
 
     # Create named constructor.
     $buildData->{'content'} .= "   function ".$directive."ConstructorNamed(typeName)\n";
-    $buildData->{'content'} .= "      !% Return a pointer to a newly created {\\tt ".$directive."} object of the specified type.\n";
+    $buildData->{'content'} .= "      !% Return a pointer to a newly created {\\normalfont \\ttfamily ".$directive."} object of the specified type.\n";
     $buildData->{'content'} .= "      use ISO_Varying_String\n";
     $buildData->{'content'} .= "      use Galacticus_Error\n";
     $buildData->{'content'} .= "      implicit none\n";
@@ -463,7 +463,7 @@ sub Functions_Generate_Output {
 
     # Create initialization function.
     $buildData->{'content'} .= "   subroutine ".$directive."Initialize()\n";
-    $buildData->{'content'} .= "      !% Initialize the default {\\tt ".$directive."} object.\n";
+    $buildData->{'content'} .= "      !% Initialize the default {\\normalfont \\ttfamily ".$directive."} object.\n";
     $buildData->{'content'} .= "      use ISO_Varying_String\n";
     $buildData->{'content'} .= "      use Input_Parameters\n";
     $buildData->{'content'} .= "      use Galacticus_Error\n";
@@ -477,7 +477,7 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "            !@   <defaultValue>".$buildData->{'default'}."</defaultValue>\n";
     $buildData->{'content'} .= "            !@   <attachedTo>module</attachedTo>\n";
     $buildData->{'content'} .= "            !@   <description>\n";
-    $buildData->{'content'} .= "            !@     The method to be used for {\\tt ".$directive."}.\n";
+    $buildData->{'content'} .= "            !@     The method to be used for {\\normalfont \\ttfamily ".$directive."}.\n";
     $buildData->{'content'} .= "            !@   </description>\n";
     $buildData->{'content'} .= "            !@   <type>string</type>\n";
     $buildData->{'content'} .= "            !@   <cardinality>1</cardinality>\n";
@@ -845,18 +845,18 @@ sub Functions_Generate_Output {
     }
     # Generate documentation.
     my $documentation = "\\subsubsection{".$buildData->{'descriptiveName'}."}\\label{sec:methods".ucfirst($directive)."}\n\n";
-    $documentation   .= "Additional implementations for ".lc($buildData->{'descriptiveName'})." are added using the {\\tt ".$directive."} class.\n";
+    $documentation   .= "Additional implementations for ".lc($buildData->{'descriptiveName'})." are added using the {\\normalfont \\ttfamily ".$directive."} class.\n";
     $documentation   .= "The implementation should be placed in a file containing the directive:\n";
     $documentation   .= "\\begin{verbatim}\n";
     $documentation   .= "!# <".$directive." name=\"".$directive."MyImplementation\">\n";
     $documentation   .= "!# <description>A short description of the implementation.</description>\n";
     $documentation   .= "!# </".$directive.">\n";
     $documentation   .= "\\end{verbatim}\n";
-    $documentation   .= "where {\\tt MyImplementation} is an appropriate name for the implemention. This file should be treated as a regular Fortran module, but without the initial {\\tt module} and final {\\tt end module} lines. That is, it may contain {\\tt use} statements and variable declarations prior to the {\\tt contains} line, and should contain all functions required by the implementation after that line. Function names should begin with {\\tt ".&LaTeX_Breakable($directive."MyImplementation")."}. The file \\emph{must} define a type that extends the {\\tt ".$directive."Class} class (or extends another type which is itself an extension of the {\\tt ".$directive."Class} class), containing any data needed by the implementation along with type-bound functions required by the implementation. The following type-bound functions are required (unless inherited from the parent type):\n";
+    $documentation   .= "where {\\normalfont \\ttfamily MyImplementation} is an appropriate name for the implemention. This file should be treated as a regular Fortran module, but without the initial {\\normalfont \\ttfamily module} and final {\\normalfont \\ttfamily end module} lines. That is, it may contain {\\normalfont \\ttfamily use} statements and variable declarations prior to the {\\normalfont \\ttfamily contains} line, and should contain all functions required by the implementation after that line. Function names should begin with {\\normalfont \\ttfamily ".&LaTeX_Breakable($directive."MyImplementation")."}. The file \\emph{must} define a type that extends the {\\normalfont \\ttfamily ".$directive."Class} class (or extends another type which is itself an extension of the {\\normalfont \\ttfamily ".$directive."Class} class), containing any data needed by the implementation along with type-bound functions required by the implementation. The following type-bound functions are required (unless inherited from the parent type):\n";
     $documentation   .= "\\begin{description}\n";
     # Create functions.
     foreach my $method ( @methods ) {
-	$documentation   .= "\\item[{\\tt ".$method->{'name'}."}] ".$method->{'description'};
+	$documentation   .= "\\item[{\\normalfont \\ttfamily ".$method->{'name'}."}] ".$method->{'description'};
 	if ( exists($method->{'code'}) ) {
 	    $documentation .= " A default implementation exists. If overridden the following interface must be used:\n";
 	} else {
@@ -929,7 +929,7 @@ sub Functions_Generate_Output {
     $documentation   .= "Existing implementations are:\n";
     $documentation   .= "\\begin{description}\n";
     foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
-	$documentation   .= "\\item[{\\tt ".$class->{'name'}."}] ".$class->{'description'};
+	$documentation   .= "\\item[{\\normalfont \\ttfamily ".$class->{'name'}."}] ".$class->{'description'};
 	$documentation   .= " \\iflabelexists{phys:".$directive.":".$class->{'name'}."}{See \\S\\ref{phys:".$directive.":".$class->{'name'}."}.}{}\n";
     }
     $documentation   .= "\\end{description}\n\n";

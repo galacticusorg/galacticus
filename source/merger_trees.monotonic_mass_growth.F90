@@ -34,7 +34,7 @@ contains
   !#   <unitName>Merger_Tree_Monotonic_Mass_Growth</unitName>
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Monotonic_Mass_Growth(thisTree)
-    !% Enforce monotonic mass growth along branches of {\tt thisTree}.
+    !% Enforce monotonic mass growth along branches of {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
     use Input_Parameters
     implicit none

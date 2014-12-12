@@ -23,7 +23,7 @@
   use ISO_Varying_String
 
   type, public, extends(nodeData) :: nodeDataSussing
-     !% Extension of the {\tt nodeData} class for ``Sussing Merger Trees'' format merger trees \citep{srisawat_sussing_2013}.
+     !% Extension of the {\normalfont \ttfamily nodeData} class for ``Sussing Merger Trees'' format merger trees \citep{srisawat_sussing_2013}.
   end type nodeDataSussing
 
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterSussing
@@ -54,19 +54,19 @@
      !@     <method>inSubvolume</method>
      !@     <type>\logicalzero</type>
      !@     <arguments>\doublezero\ x\argin, \doublezero\ y\argin, \doublezero\ z\argin, \logicalzero\ [buffered]\argin</arguments>
-     !@     <description>Return true if the given {\tt x,y,z} position lies within the current subvolume (plus the buffer region if {\tt buffered} is true.</description>
+     !@     <description>Return true if the given {\normalfont \ttfamily x,y,z} position lies within the current subvolume (plus the buffer region if {\normalfont \ttfamily buffered} is true.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>inSubvolume1D</method>
      !@     <type>\logicalzero</type>
      !@     <arguments>\doublezero\ x\argin, \intzero\ iSubvolume\argin, \logicalzero\ [buffered]\argin</arguments>
-     !@     <description>Return true if the given {\tt x} position lies within the {\tt iSubvolume}$^{\rm th}$ subvolume (plus the buffer region if {\tt buffered} is true.</description>
+     !@     <description>Return true if the given {\normalfont \ttfamily x} position lies within the {\normalfont \ttfamily iSubvolume}$^{\mathrm th}$ subvolume (plus the buffer region if {\normalfont \ttfamily buffered} is true.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>valueIsBad</method>
      !@     <type>\logicalzero</type>
      !@     <arguments>\doublezero\ x\argin</arguments>
-     !@     <description>Return true if the given {\tt x} value is bad.</description>
+     !@     <description>Return true if the given {\normalfont \ttfamily x} value is bad.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
@@ -205,7 +205,7 @@ contains
           !@   <attachedTo>module</attachedTo>
           !@   <defaultValue>[0,0,0]</defaultValue>
           !@   <description>
-          !@     Specifies the index (in each dimension) of the subvolume of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file to process. Indices range from 0 to {\tt [mergerTreeImportSussingSubvolumeCount]}$-1$.
+          !@     Specifies the index (in each dimension) of the subvolume of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file to process. Indices range from 0 to {\normalfont \ttfamily [mergerTreeImportSussingSubvolumeCount]}$-1$.
           !@   </description>
           !@   <type>boolean</type>
           !@   <cardinality>1</cardinality>
@@ -593,7 +593,7 @@ contains
   end function sussingTreeCount
 
   integer(kind=c_size_t) function sussingTreeIndex(self,i)
-    !% Return the index of the $i^{\rm th}$ tree.
+    !% Return the index of the $i^{\mathrm th}$ tree.
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     integer                              , intent(in   ) :: i
@@ -604,7 +604,7 @@ contains
   end function sussingTreeIndex
 
   function sussingNodeCount(self,i)
-    !% Return a count of the number of nodes in the $i^{\rm th}$ tree.
+    !% Return a count of the number of nodes in the $i^{\mathrm th}$ tree.
     implicit none
     integer(c_size_t                 )                :: sussingNodeCount
     class  (mergerTreeImporterSussing), intent(inout) :: self
@@ -2102,7 +2102,7 @@ contains
   end function sussingSubhaloTraceCount
 
   subroutine sussingImport(self,i,nodes,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions)
-    !% Import the $i^{\rm th}$ merger tree.
+    !% Import the $i^{\mathrm th}$ merger tree.
     use Memory_Management
     implicit none
     class           (mergerTreeImporterSussing), intent(inout)                              :: self

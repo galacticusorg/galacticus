@@ -26,7 +26,7 @@ module Vectors
 contains
 
   pure double precision function Vector_Magnitude(vector1)
-    !% Computes the magnitude of {\tt vector1}.
+    !% Computes the magnitude of {\normalfont \ttfamily vector1}.
     implicit none
     double precision, dimension(3), intent(in   ) :: vector1
 
@@ -35,7 +35,7 @@ contains
   end function Vector_Magnitude
 
   pure function Vector_Product(vector1,vector2) result(vector3)
-    !% Computes the vector product of {\tt vector1} and {\tt vector2}.
+    !% Computes the vector product of {\normalfont \ttfamily vector1} and {\normalfont \ttfamily vector2}.
     implicit none
     double precision, dimension(3)                :: vector3
     double precision, dimension(3), intent(in   ) :: vector1, vector2

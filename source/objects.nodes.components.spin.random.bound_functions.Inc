@@ -18,7 +18,7 @@
 !% Contains custom functions for the random spin component.
 
 double precision function SpinRandomSpinGrowthRate(self)
-  !% Return the {\tt spinGrowthRate} property of the {\tt SpinRandom} component.
+  !% Return the {\normalfont \ttfamily spinGrowthRate} property of the {\normalfont \ttfamily SpinRandom} component.
   implicit none
   class(nodeComponentSpinRandom), intent(inout) :: self
 

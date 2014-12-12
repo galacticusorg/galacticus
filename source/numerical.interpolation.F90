@@ -36,7 +36,7 @@ module Numerical_Interpolation
 contains
 
   double precision function Interpolate_Linear_Do(yArray,iInterpolate,interpolationFactors)
-    !% Given an array index {\tt iInterpolate} and interpolating factors {\tt interpolationFactors} for array {\tt yArray}, return
+    !% Given an array index {\normalfont \ttfamily iInterpolate} and interpolating factors {\normalfont \ttfamily interpolationFactors} for array {\normalfont \ttfamily yArray}, return
     !% a linearly interpolated value.
     use Kind_Numbers
     implicit none
@@ -49,8 +49,8 @@ contains
   end function Interpolate_Linear_Do
 
   function Interpolate_Linear_Generate_Factors(xArray,iInterpolate,x)
-    !% Return interpolating factors for linear interpolation in the array {\tt xArray()} given the index in the array which
-    !% brackets value {\tt x}.
+    !% Return interpolating factors for linear interpolation in the array {\normalfont \ttfamily xArray()} given the index in the array which
+    !% brackets value {\normalfont \ttfamily x}.
     use Kind_Numbers
     implicit none
     double precision          , dimension(0:1)                :: Interpolate_Linear_Generate_Factors
@@ -64,8 +64,8 @@ contains
   end function Interpolate_Linear_Generate_Factors
 
   function Interpolate_Linear_Generate_Gradient_Factors(xArray,iInterpolate,x)
-    !% Return interpolating factors for linear interpolation in the array {\tt xArray()} given the index in the array which
-    !% brackets value {\tt x}.
+    !% Return interpolating factors for linear interpolation in the array {\normalfont \ttfamily xArray()} given the index in the array which
+    !% brackets value {\normalfont \ttfamily x}.
     implicit none
     double precision, dimension(0:1)                :: Interpolate_Linear_Generate_Gradient_Factors
     integer                         , intent(in   ) :: iInterpolate
@@ -79,7 +79,7 @@ contains
 
   double precision function Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,interpolationType&
        &,extrapolationType,reset)
-    !% Perform an interpolation of {\tt x} into {\tt xArray()} and return the corresponding value in {\tt yArray()}.
+    !% Perform an interpolation of {\normalfont \ttfamily x} into {\normalfont \ttfamily xArray()} and return the corresponding value in {\normalfont \ttfamily yArray()}.
     use Galacticus_Error
     use ISO_Varying_String
     implicit none
@@ -184,7 +184,7 @@ contains
 
   double precision function Interpolate_Derivative(xArray,yArray,interpolationObject,interpolationAccelerator,x&
        &,interpolationType ,extrapolationType,reset)
-    !% Perform an interpolation of {\tt x} into {\tt xArray()} and return the corresponding first derivative of {\tt yArray()}.
+    !% Perform an interpolation of {\normalfont \ttfamily x} into {\normalfont \ttfamily xArray()} and return the corresponding first derivative of {\normalfont \ttfamily yArray()}.
     use Galacticus_Error
     use ISO_Varying_String
     implicit none
@@ -255,7 +255,7 @@ contains
    end function Interpolate_Derivative
 
    function Interpolate_Locate(xArray,interpolationAccelerator,x,reset,closest)
-    !% Perform an interpolation of {\tt x} into {\tt xArray()} and return the corresponding value in {\tt yArray()}.
+    !% Perform an interpolation of {\normalfont \ttfamily x} into {\normalfont \ttfamily xArray()} and return the corresponding value in {\normalfont \ttfamily yArray()}.
     use Galacticus_Error
     use Kind_Numbers
     implicit none

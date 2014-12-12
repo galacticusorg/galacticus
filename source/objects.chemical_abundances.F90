@@ -208,7 +208,7 @@ module Chemical_Abundances_Structure
 contains
 
   subroutine Chemical_Abundances_Initialize
-    !% Initialize the {\tt chemicalAbundanceStructure} object module. Determines which chemicals are to be tracked.
+    !% Initialize the {\normalfont \ttfamily chemicalAbundanceStructure} object module. Determines which chemicals are to be tracked.
     use Input_Parameters
     use Memory_Management
     use Chemical_Structures
@@ -296,7 +296,7 @@ contains
   end function Chemicals_Names
 
   integer function Chemicals_Index(chemicalName)
-    !% Returns the index of a chemical in the chemical abundances structure given the {\tt chemicalName}.
+    !% Returns the index of a chemical in the chemical abundances structure given the {\normalfont \ttfamily chemicalName}.
     implicit none
     character(len=*), intent(in   ) :: chemicalName
     integer                         :: iChemical
@@ -411,7 +411,7 @@ contains
   end function Chemical_Abundances_Divide
 
   double precision function Chemicals_Abundances(chemicals,moleculeIndex)
-    !% Returns the abundance of a molecule in the chemical abundances structure given the {\tt moleculeIndex}.
+    !% Returns the abundance of a molecule in the chemical abundances structure given the {\normalfont \ttfamily moleculeIndex}.
     implicit none
     class  (chemicalAbundances), intent(in   ) :: chemicals
     integer                    , intent(in   ) :: moleculeIndex
@@ -474,7 +474,7 @@ contains
   end subroutine Chemicals_Enforce_Positive
 
   subroutine Chemicals_Builder(self,chemicalsDefinition)
-    !% Build a {\tt chemicalAbundances} object from the given XML {\tt chemicalsDefinition}.
+    !% Build a {\normalfont \ttfamily chemicalAbundances} object from the given XML {\normalfont \ttfamily chemicalsDefinition}.
     use FoX_DOM
     use Galacticus_Error
     implicit none
@@ -532,7 +532,7 @@ contains
   end subroutine Chemicals_Read_Raw
 
   subroutine Chemicals_Abundances_Set(chemicals,moleculeIndex,abundance)
-    !% Sets the abundance of a molecule in the chemical abundances structure given the {\tt moleculeIndex}.
+    !% Sets the abundance of a molecule in the chemical abundances structure given the {\normalfont \ttfamily moleculeIndex}.
     implicit none
     class           (chemicalAbundances), intent(inout) :: chemicals
     integer                             , intent(in   ) :: moleculeIndex
@@ -591,7 +591,7 @@ contains
   end subroutine Chemicals_Abundances_Destroy
 
   subroutine Chemical_Abundances_Allocate_Values(chemicals)
-    !% Ensure that the {\tt chemicalValue} array in an {\tt chemicalsStructure} is allocated.
+    !% Ensure that the {\normalfont \ttfamily chemicalValue} array in an {\normalfont \ttfamily chemicalsStructure} is allocated.
     use Memory_Management
     implicit none
     class(chemicalAbundances), intent(inout) :: chemicals

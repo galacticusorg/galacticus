@@ -26,7 +26,7 @@ module Star_Formation_IMF_Utilities
 contains
 
   integer function IMF_Index_Lookup(imfSelection,imfNames)
-    !% Returns the internal index of a stellar initial mass function specified by name via {\tt imfSelection}.
+    !% Returns the internal index of a stellar initial mass function specified by name via {\normalfont \ttfamily imfSelection}.
     use ISO_Varying_String
     use Galacticus_Error
     implicit none

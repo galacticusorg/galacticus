@@ -84,7 +84,7 @@ contains
   end subroutine Star_Formation_Expulsive_Feedback_Spheroids_Initialize
 
   double precision function Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
-    !% Returns the expulsive outflow rate due to star formation in the spheroid component of {\tt thisNode}.
+    !% Returns the expulsive outflow rate due to star formation in the spheroid component of {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: energyInputRate, starFormationRate

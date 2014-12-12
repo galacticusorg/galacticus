@@ -86,7 +86,7 @@ contains
   end subroutine Geometry_Surveys_Initialize
 
   double precision function Geometry_Survey_Distance_Maximum(mass)
-    !% Returns the maximum distance (in Mpc) at which a galaxy of the specified {\tt mass} (in $M_\odot$) could be detected.
+    !% Returns the maximum distance (in Mpc) at which a galaxy of the specified {\normalfont \ttfamily mass} (in $M_\odot$) could be detected.
     implicit none
     double precision, intent(in) :: mass
 
@@ -113,7 +113,7 @@ contains
   end function Geometry_Survey_Solid_Angle
   
   double precision function Geometry_Survey_Volume_Maximum(mass)
-    !% Returns the maximum volume (in Mpc$^3$) at which a galaxy of the specified {\tt mass} (in $M_\odot$) could be detected.
+    !% Returns the maximum volume (in Mpc$^3$) at which a galaxy of the specified {\normalfont \ttfamily mass} (in $M_\odot$) could be detected.
     implicit none
     double precision, intent(in) :: mass
 
@@ -127,8 +127,8 @@ contains
   end function Geometry_Survey_Volume_Maximum
   
   subroutine Geometry_Survey_Window_Functions(mass1,mass2,boxLength,gridCount,windowFunction1,windowFunction2)
-    !% Returns the window functions on a grid of the specified size ({\tt gridCount} cells in each dimension) for galaxies of the
-    !% specified {\tt mass1} and {\tt mass2} (in $M_\odot$). The {\tt boxLength} should be set to an appropriate value to fully
+    !% Returns the window functions on a grid of the specified size ({\normalfont \ttfamily gridCount} cells in each dimension) for galaxies of the
+    !% specified {\normalfont \ttfamily mass1} and {\normalfont \ttfamily mass2} (in $M_\odot$). The {\normalfont \ttfamily boxLength} should be set to an appropriate value to fully
     !% enclose (with sufficient buffering to allow for Fourier transformation) the two window functions.
     use, intrinsic :: ISO_C_Binding
     implicit none

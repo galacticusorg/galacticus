@@ -26,7 +26,7 @@ module System_Load
 contains
 
   subroutine System_Load_Get(loadAverage,activeTasks,totalTasks)
-    !% Reports on system load via {\tt /proc/loadavg}.
+    !% Reports on system load via {\normalfont \ttfamily /proc/loadavg}.
     implicit none
     double precision         , intent(  out) :: loadAverage       (3)
     integer                  , intent(  out) :: activeTasks          , totalTasks

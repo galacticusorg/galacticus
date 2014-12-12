@@ -42,7 +42,7 @@ contains
   !#   <unitName>Merger_Tree_Non_Essential_Branches</unitName>
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Non_Essential_Branches(thisTree)
-    !% Prune branches from {\tt thisTree}.
+    !% Prune branches from {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
     use Input_Parameters
     implicit none

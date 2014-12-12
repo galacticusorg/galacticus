@@ -105,13 +105,13 @@ contains
   end subroutine Star_Formation_Timescale_Disks_Dynamical_Time_Initialize
 
   double precision function Star_Formation_Timescale_Disk_Dynamical_Time(thisNode)
-    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\tt thisNode}. The timescale is given by
+    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily thisNode}. The timescale is given by
     !% \begin{equation}
-    !% \tau_\star = \epsilon_\star^{-1} \tau_{\rm dynamical, disk} \left( {V_{\rm disk} \over 200\hbox{km/s}} \right)^{\alpha_\star},
+    !% \tau_\star = \epsilon_\star^{-1} \tau_{\mathrm dynamical, disk} \left( {V_{\mathrm disk} \over 200\hbox{km/s}} \right)^{\alpha_\star},
     !% \end{equation}
-    !% where $\epsilon_\star$(={\tt starFormationDiskEfficiency}) is a star formation efficiency and $\alpha_\star$(={\tt
-    !% starFormationDiskVelocityExponent}) controls the scaling with velocity. Note that $\tau_{\rm dynamical,disk}=R_{\rm
-    !% disk}/V_{\rm disk}$ where the radius and velocity are whatever characteristic values returned by the disk method. This
+    !% where $\epsilon_\star$(={\normalfont \ttfamily starFormationDiskEfficiency}) is a star formation efficiency and $\alpha_\star$(={\tt
+    !% starFormationDiskVelocityExponent}) controls the scaling with velocity. Note that $\tau_{\mathrm dynamical,disk}=R_{\rm
+    !% disk}/V_{\mathrm disk}$ where the radius and velocity are whatever characteristic values returned by the disk method. This
     !% scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the
     !% half-mass radius and circular velocity at that radius.
     use Galacticus_Nodes

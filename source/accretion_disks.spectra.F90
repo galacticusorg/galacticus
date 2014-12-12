@@ -32,7 +32,7 @@ module Accretion_Disk_Spectra
   !#  <default>hopkins2007</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="spectrum" >
-  !#   <description>Returns the spectrum (in units of $L_\odot$~Hz$^{-1}$) of the accretion disk at the given wavelength (in units of \AA) for {\tt node} .</description>
+  !#   <description>Returns the spectrum (in units of $L_\odot$~Hz$^{-1}$) of the accretion disk at the given wavelength (in units of \AA) for {\normalfont \ttfamily node} .</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>

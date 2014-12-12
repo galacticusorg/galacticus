@@ -182,7 +182,7 @@ contains
   end subroutine Stellar_Tracks_Initialize_File
 
   double precision function Stellar_Luminosity_File(initialMass,metallicity,age)
-    !% Return the bolometric luminosity (in $L_\odot$) for a star of given {\tt initialMass}, {\tt metallicity} and {\tt age}.
+    !% Return the bolometric luminosity (in $L_\odot$) for a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
     use, intrinsic :: ISO_C_Binding
     implicit none
     double precision          , intent(in   ) :: age                                   , initialMass                  , &
@@ -212,7 +212,7 @@ contains
   end function Stellar_Luminosity_File
 
   double precision function Stellar_Effective_Temperature_File(initialMass,metallicity,age)
-    !% Return the effective temperature (in Kelvin) for a star of given {\tt initialMass}, {\tt metallicity} and {\tt age}.
+    !% Return the effective temperature (in Kelvin) for a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
     use, intrinsic :: ISO_C_Binding
     implicit none
     double precision          , intent(in   ) :: age                                   , initialMass                  , &
@@ -244,7 +244,7 @@ contains
   double precision function Stellar_Tracks_Interpolation_Do(interpolationIndicesMetallicity,interpolationIndicesMass &
        &,interpolationIndicesAge,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
        &,stellarTracks)
-    !% Using precomputed factors, interpolate in metallicity, mass and age in the given {\tt stellarTracks}.
+    !% Using precomputed factors, interpolate in metallicity, mass and age in the given {\normalfont \ttfamily stellarTracks}.
     use, intrinsic :: ISO_C_Binding
     implicit none
     integer         (c_size_t), intent(in   ) :: interpolationIndicesAge        (2,2,2), interpolationIndicesMass(2,2), &

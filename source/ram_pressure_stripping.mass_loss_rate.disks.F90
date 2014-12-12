@@ -33,7 +33,7 @@ module Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
 contains
 
   double precision function Ram_Pressure_Stripping_Mass_Loss_Rate_Disk(thisNode)
-    !% Return the ram pressure force for the hot halo of {\tt thisNode}.
+    !% Return the ram pressure force for the hot halo of {\normalfont \ttfamily thisNode}.
     use Galacticus_Nodes
     use Galacticus_Error
     use Input_Parameters

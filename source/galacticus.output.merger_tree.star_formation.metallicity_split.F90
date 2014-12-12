@@ -324,7 +324,7 @@ contains
   end subroutine Star_Formation_History_Metallicity_Split_Make_History
 
   subroutine Star_Formation_History_Record_Metallicity_Split(thisNode,thisHistory,fuelAbundances,starFormationRate)
-    !% Record the star formation history for {\tt thisNode}.
+    !% Record the star formation history for {\normalfont \ttfamily thisNode}.
     use, intrinsic :: ISO_C_Binding
     use Histories
     use Galacticus_Nodes
@@ -365,7 +365,7 @@ contains
   end subroutine Star_Formation_History_Record_Metallicity_Split
 
   subroutine Star_Formation_History_Output_Metallicity_Split(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
-    !% Output the star formation history for {\tt thisNode}.
+    !% Output the star formation history for {\normalfont \ttfamily thisNode}.
     use, intrinsic :: ISO_C_Binding
     use Histories
     use ISO_Varying_String

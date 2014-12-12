@@ -41,12 +41,12 @@ contains
   end subroutine Dark_Matter_Shapes_Gao2008_Initialize
 
   double precision function Dark_Matter_Profile_Shape_Gao2008(thisNode)
-    !% Returns the Einasto shape parameter, $alpha$, of the dark matter profile of {\tt thisNode} using the method of
+    !% Returns the Einasto shape parameter, $alpha$, of the dark matter profile of {\normalfont \ttfamily thisNode} using the method of
     !% \cite{gao_redshift_2008}. More specifically, the parameter is given by:
     !% \begin{equation}
     !% \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 & \hbox{ if } \nu < 3.907 \\ 0.3 & \hbox{ if } \nu \ge 3.907, \end{array} \right.
     !% \end{equation}
-    !% where $\nu=\delta_{\rm c}(t)/\sigma(M)$ is the peak height of the halo.
+    !% where $\nu=\delta_{\mathrm c}(t)/\sigma(M)$ is the peak height of the halo.
     use Galacticus_Nodes
     use Power_Spectra
     use Critical_Overdensity

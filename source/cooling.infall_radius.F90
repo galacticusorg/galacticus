@@ -83,7 +83,7 @@ contains
   end subroutine Infall_Radius_Initialize
 
   double precision function Infall_Radius(thisNode)
-    !% Return the infall radius for {\tt thisNode} (in units of Mpc).
+    !% Return the infall radius for {\normalfont \ttfamily thisNode} (in units of Mpc).
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -97,7 +97,7 @@ contains
   end function Infall_Radius
 
   double precision function Infall_Radius_Growth_Rate(thisNode)
-    !% Return the rate at which the infall radius grows for {\tt thisNode} (in units of Mpc/Gyr).
+    !% Return the rate at which the infall radius grows for {\normalfont \ttfamily thisNode} (in units of Mpc/Gyr).
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

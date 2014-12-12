@@ -60,7 +60,7 @@ contains
   end subroutine Star_Formation_Feedback_Disks_Fixed_Initialize
 
   double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Fixed(thisNode,starFormationRate,energyInputRate)
-    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\tt thisNode}. Assumes a
+    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode}. Assumes a
     !% fixed ratio of outflow rate to star formation rate.
     use Stellar_Feedback
     implicit none

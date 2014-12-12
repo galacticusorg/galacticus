@@ -36,7 +36,7 @@ contains
   end function Ideal_Gas_Jeans_Length
 
   double precision function Ideal_Gas_Sound_Speed(temperature,meanAtomicMass)
-    !% Return the sound speed (in km/s) for an ideal gas of given {\tt temperature} and (optionally) {\tt meanAtomicMass}.
+    !% Return the sound speed (in km/s) for an ideal gas of given {\normalfont \ttfamily temperature} and (optionally) {\normalfont \ttfamily meanAtomicMass}.
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none

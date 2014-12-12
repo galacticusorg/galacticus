@@ -72,14 +72,14 @@ contains
   end subroutine Star_Formation_Feedback_Spheroids_Power_Law_Initialize
 
   double precision function Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law(thisNode,starFormationRate,energyInputRate)
-    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic spheroid of {\tt thisNode}. The outflow
+    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic spheroid of {\normalfont \ttfamily thisNode}. The outflow
     !% rate is given by
     !% \begin{equation}
-    !% \dot{M}_{\rm outflow} = \left({V_{\rm spheroid,outflow} \over V_{\rm spheroid}}\right)^{\alpha_{\rm spheroid,outflow}},
+    !% \dot{M}_{\mathrm outflow} = \left({V_{\mathrm spheroid,outflow} \over V_{\mathrm spheroid}}\right)^{\alpha_{\mathrm spheroid,outflow}},
     !% \end{equation}
-    !% where $V_{\rm spheroid,outflow}$(={\tt spheroidOutflowVelocity}) is the velocity scale at which outflow rate equals star formation
-    !% rate and $\alpha_{\rm spheroid,outflow}$(={\tt spheroidOutflowExponent}) controls the scaling with velocity. Note that the velocity
-    !% $V_{\rm spheroid}$ is whatever characteristic value returned by the spheroid method. This scaling is functionally similar to that
+    !% where $V_{\mathrm spheroid,outflow}$(={\normalfont \ttfamily spheroidOutflowVelocity}) is the velocity scale at which outflow rate equals star formation
+    !% rate and $\alpha_{\mathrm spheroid,outflow}$(={\normalfont \ttfamily spheroidOutflowExponent}) controls the scaling with velocity. Note that the velocity
+    !% $V_{\mathrm spheroid}$ is whatever characteristic value returned by the spheroid method. This scaling is functionally similar to that
     !% adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
     use Galacticus_Nodes
     use Stellar_Feedback

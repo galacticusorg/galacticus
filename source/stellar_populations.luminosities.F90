@@ -59,8 +59,8 @@ module Stellar_Population_Luminosities
 contains
 
   function Stellar_Population_Luminosity(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,abundancesStellar,age,redshift)
-    !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\tt abundances} and {\tt age} drawn from IMF
-    !% specified by {\tt imfIndex} and observed through the filter specified by {\tt filterIndex}.
+    !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\normalfont \ttfamily abundances} and {\normalfont \ttfamily age} drawn from IMF
+    !% specified by {\normalfont \ttfamily imfIndex} and observed through the filter specified by {\normalfont \ttfamily filterIndex}.
     use Memory_Management
     use Stellar_Population_Spectra
     use Stellar_Population_Spectra_Postprocess

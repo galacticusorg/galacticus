@@ -64,7 +64,7 @@ contains
           !@   <defaultValue>boylanKolchin2008</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     The base {\tt satelliteMergingTimescales} method to which the \cite{villalobos_improved_2013} modifier for satellite merging timescales should be applied.
+          !@     The base {\normalfont \ttfamily satelliteMergingTimescales} method to which the \cite{villalobos_improved_2013} modifier for satellite merging timescales should be applied.
           !@   </description>
           !@   <type>string</type>
           !@   <cardinality>1</cardinality>

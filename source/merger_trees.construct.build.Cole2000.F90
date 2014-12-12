@@ -97,7 +97,7 @@ contains
        mergerTreeBuildCole2000EarliestTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeBuildCole2000HighestRedshift))
        !@ <inputParameter>
        !@   <name>mergerTreeBuildCole2000FixedRandomSeeds</name>
-       !@   <defaultValue>{\tt false}</defaultValue>
+       !@   <defaultValue>{\normalfont \ttfamily false}</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     Specifies whether the random number sequence should be restarted for each tree using a deterministically derived (from the tree index) seed. This allows the exact same tree to be generated even when running multiple threads.

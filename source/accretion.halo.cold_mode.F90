@@ -55,7 +55,7 @@
   end type accretionHaloColdMode
 
   interface accretionHaloColdMode
-     !% Constructors for the {\tt coldMode} halo accretion class.
+     !% Constructors for the {\normalfont \ttfamily coldMode} halo accretion class.
      module procedure coldModeConstructor
      module procedure coldModeDefaultConstructor
   end interface accretionHaloColdMode
@@ -73,7 +73,7 @@
 contains
   
   subroutine coldModeFromSimple(coldMode,simple)
-    !% Assign a {\tt simple} halo accretion object to a {\tt coldMode} halo accretion object.
+    !% Assign a {\normalfont \ttfamily simple} halo accretion object to a {\normalfont \ttfamily coldMode} halo accretion object.
     implicit none
     type(accretionHaloColdMode), intent(inout) :: coldMode
     type(accretionHaloSimple  ), intent(in   ) :: simple
@@ -87,7 +87,7 @@ contains
   end subroutine coldModeFromSimple
   
   function coldModeDefaultConstructor()
-    !% Default constructor for the {\tt coldMode} halo accretion class.
+    !% Default constructor for the {\normalfont \ttfamily coldMode} halo accretion class.
     use Intergalactic_Medium_State
     use Cosmology_Functions
     use Galacticus_Error
@@ -105,7 +105,7 @@ contains
           !@   <defaultValue>0.0126 \citep{birnboim_virial_2003}</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The threshold value, $\epsilon_{\rm s,crit}$, for shock stability in the model of \cite{birnboim_virial_2003}.
+          !@    The threshold value, $\epsilon_{\mathrm s,crit}$, for shock stability in the model of \cite{birnboim_virial_2003}.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>1</cardinality>
@@ -134,7 +134,7 @@ contains
   end function coldModeDefaultConstructor
        
   function coldModeConstructor(reionizationSuppressionTime,reionizationSuppressionVelocity,negativeAccretionAllowed,accreteNewGrowthOnly,shockStabilityThreshold,shockStabilityTransitionWidth)
-    !% Default constructor for the {\tt coldMode} halo accretion class.
+    !% Default constructor for the {\normalfont \ttfamily coldMode} halo accretion class.
     implicit none
     type            (accretionHaloColdMode), target        :: coldModeConstructor
     double precision                       , intent(in   ) :: reionizationSuppressionTime, reionizationSuppressionVelocity, &
@@ -148,7 +148,7 @@ contains
   end function coldModeConstructor
 
   double precision function coldModeAccretionRate(self,node,accretionMode)
-    !% Computes the baryonic accretion rate onto {\tt node}.
+    !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
     class  (accretionHaloColdMode), intent(inout)          :: self
@@ -162,7 +162,7 @@ contains
   end function coldModeAccretionRate
   
   double precision function coldModeAccretedMass(self,node,accretionMode)
-    !% Computes the mass of baryons accreted into {\tt node}.
+    !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
     class  (accretionHaloColdMode), intent(inout)          :: self
@@ -176,7 +176,7 @@ contains
   end function coldModeAccretedMass
 
   double precision function coldModeFailedAccretionRate(self,node,accretionMode)
-    !% Computes the baryonic accretion rate onto {\tt node}.
+    !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
     class  (accretionHaloColdMode), intent(inout)          :: self
@@ -190,7 +190,7 @@ contains
   end function coldModeFailedAccretionRate
 
   double precision function coldModeFailedAccretedMass(self,node,accretionMode)
-    !% Computes the mass of baryons accreted into {\tt node}.
+    !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
     class  (accretionHaloColdMode), intent(inout)          :: self
@@ -204,7 +204,7 @@ contains
   end function coldModeFailedAccretedMass
 
   function coldModeAccretionRateMetals(self,node,accretionMode)
-    !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\tt node} from the intergalactic medium.
+    !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
     type  (abundances           )                         :: coldModeAccretionRateMetals
@@ -219,7 +219,7 @@ contains
   end function coldModeAccretionRateMetals
 
   function coldModeAccretedMassMetals(self,node,accretionMode)
-    !% Computes the mass of abundances accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
+    !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
     type   (abundances           )                         :: coldModeAccretedMassMetals
@@ -234,7 +234,7 @@ contains
   end function coldModeAccretedMassMetals
 
   function coldModeAccretionRateChemicals(self,node,accretionMode)
-    !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\tt node} from the intergalactic medium. Assumes a
+    !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium. Assumes a
     !% primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
     !% temperature.
     use Galacticus_Nodes
@@ -258,7 +258,7 @@ contains
   end function coldModeAccretionRateChemicals
 
   function coldModeAccretedMassChemicals(self,node,accretionMode)
-    !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
+    !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
@@ -280,7 +280,7 @@ contains
   end function coldModeAccretedMassChemicals
 
   function coldModeChemicalMasses(self,node,massAccreted,accretionMode)
-    !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
+    !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     use Cosmology_Parameters
     use Dark_Matter_Halo_Scales

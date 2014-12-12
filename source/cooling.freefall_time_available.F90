@@ -83,7 +83,7 @@ contains
   end subroutine Cooling_Freefall_Time_Available_Initialize
 
   double precision function Cooling_Freefall_Time_Available(thisNode)
-    !% Return the time available for freefall in cooling calculations in {\tt thisNode}.
+    !% Return the time available for freefall in cooling calculations in {\normalfont \ttfamily thisNode}.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -97,7 +97,7 @@ contains
   end function Cooling_Freefall_Time_Available
 
   double precision function Cooling_Freefall_Time_Available_Increase_Rate(thisNode)
-    !% Return the rate at which the time available for freefall in cooling calculations increases in {\tt thisNode}.
+    !% Return the rate at which the time available for freefall in cooling calculations increases in {\normalfont \ttfamily thisNode}.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

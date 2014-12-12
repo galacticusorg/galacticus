@@ -36,7 +36,7 @@ contains
   !#  <methodName>CMBCompton</methodName>
   !# </coolingFunctionMethods>
   subroutine Cooling_Function_CMB_Compton_Initialize(coolingFunctionMethods,coolingFunctionsMatched)
-    !% Initializes the ``atomic CIE cooling function from {\sc Cloudy}'' module.
+    !% Initializes the ``atomic CIE cooling function from {\normalfont \scshape Cloudy}'' module.
     implicit none
     type   (varying_string), intent(in   ) :: coolingFunctionMethods (:)
     integer                , intent(inout) :: coolingFunctionsMatched
@@ -54,7 +54,7 @@ contains
   !#   <unitName>Cooling_Function_CMB_Compton</unitName>
   !# </coolingFunctionCompute>
   subroutine Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
-    !% Return the cooling function assuming atomic CIE as computed by {\sc Cloudy}.
+    !% Return the cooling function assuming atomic CIE as computed by {\normalfont \scshape Cloudy}.
     use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
@@ -95,7 +95,7 @@ contains
   !# </coolingFunctionDensitySlopeCompute>
   subroutine Cooling_Function_Density_Slope_CMB_Compton(coolingFunctionDensitySlope,temperature,numberDensityHydrogen,gasAbundances&
        &,chemicalDensities ,radiation)
-    !% Return the gradient with respect to density of cooling function assuming atomic CIE as computed by {\sc Cloudy}.
+    !% Return the gradient with respect to density of cooling function assuming atomic CIE as computed by {\normalfont \scshape Cloudy}.
     use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
@@ -136,7 +136,7 @@ contains
   !# </coolingFunctionTemperatureSlopeCompute>
   subroutine Cooling_Function_Temperature_Slope_CMB_Compton(coolingFunctionTemperatureSlope,temperature,numberDensityHydrogen&
        &,gasAbundances,chemicalDensities,radiation)
-    !% Return the cooling function assuming atomic CIE as computed by {\sc Cloudy}.
+    !% Return the cooling function assuming atomic CIE as computed by {\normalfont \scshape Cloudy}.
     use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure

@@ -18,7 +18,7 @@
 !% Contains custom functions for the standard satellite component.
 
 double precision function Node_Component_Satellite_Standard_Merge_Time(self)
-  !% Return the {\tt mergeTime} property of the {\tt satelliteStandard} component.
+  !% Return the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satelliteStandard} component.
   implicit none
   class(nodeComponentSatelliteStandard), intent(inout) :: self
   type (treeNode                      ), pointer       :: selfNode
@@ -33,7 +33,7 @@ double precision function Node_Component_Satellite_Standard_Merge_Time(self)
 end function Node_Component_Satellite_Standard_Merge_Time
 
 double precision function Node_Component_Satellite_Standard_Time_Of_Merging(self)
-  !% Return the {\tt timeOfMerging} property of the {\tt satelliteStandard} component class.
+  !% Return the {\normalfont \ttfamily timeOfMerging} property of the {\normalfont \ttfamily satelliteStandard} component class.
   implicit none
   class(nodeComponentSatelliteStandard), intent(inout) :: self
   type (treeNode                      ), pointer       :: selfNode

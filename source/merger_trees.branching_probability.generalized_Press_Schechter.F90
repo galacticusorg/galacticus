@@ -82,7 +82,7 @@ contains
        !@   <defaultValue>0.1</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     Limits the step in $\delta_{\rm crit}$ when constructing merger trees using the generalized Press-Schechter branching algorithm.
+       !@     Limits the step in $\delta_{\mathrm crit}$ when constructing merger trees using the generalized Press-Schechter branching algorithm.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -143,7 +143,7 @@ contains
 
   double precision function Generalized_Press_Schechter_Branch_Mass(haloMass,deltaCritical,massResolution,probability)
     !% Determine the mass of one of the halos to which the given halo branches, given the branching probability,
-    !% {\tt probability}. Typically, {\tt probabilityFraction} is found by multiplying {\tt
+    !% {\normalfont \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\tt
     !% Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     !% branches. This routine then finds the progenitor mass corresponding to this value.
     use ISO_Varying_String
@@ -233,7 +233,7 @@ contains
   end function Generalized_Press_Schechter_Branch_Mass_Root
 
   double precision function Generalized_Press_Schechter_Branching_Maximum_Step(haloMass,deltaCritical,massResolution)
-    !% Return the maximum allowed step in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt
+    !% Return the maximum allowed step in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
     !% deltaCritical} should be allowed to take.
     implicit none
     double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
@@ -243,8 +243,8 @@ contains
   end function Generalized_Press_Schechter_Branching_Maximum_Step
 
   double precision function Generalized_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
-    !% Return the probability per unit change in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt
-    !% deltaCritical} will undergo a branching to progenitors with mass greater than {\tt massResolution}.
+    !% Return the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
+    !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
@@ -274,8 +274,8 @@ contains
   end function Generalized_Press_Schechter_Branching_Probability
 
   double precision function Generalized_Press_Schechter_Subresolution_Fraction(haloMass,deltaCritical,massResolution)
-    !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\tt massResolution}, per unit change in
-    !% $\delta_{\rm crit}$ for a halo of mass {\tt haloMass} at time {\tt deltaCritical}. The integral is computed numerically.
+    !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
+    !% $\delta_{\mathrm crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     use Excursion_Sets_First_Crossings
@@ -394,10 +394,10 @@ contains
   double precision function Merging_Rate(childSigma,childAlpha)
     !% Computes the merging rate of dark matter halos in the generalized Press-Schechter algorithm. This ``merging rate'' is specifically defined as
     !% \begin{equation}
-    !% {{\rm d}^2 f \over {\rm d} \ln M_{\rm child} {\rm d} \delta_{\rm c}} = 2 \sigma^2(M_{\rm child}) \left.{{\rm d} \ln \sigma \over {\rm d} \ln M}\right|_{M=M_{\rm child}} {{\rm d}t\over {\rm d}\delta_{\rm c}} {{\rm d}f_{12}\over {\rm d}t},
+    !% {{\mathrm d}^2 f \over {\mathrm d} \ln M_{\mathrm child} {\mathrm d} \delta_{\mathrm c}} = 2 \sigma^2(M_{\mathrm child}) \left.{{\mathrm d} \ln \sigma \over {\mathrm d} \ln M}\right|_{M=M_{\mathrm child}} {{\mathrm d}t\over {\mathrm d}\delta_{\mathrm c}} {{\mathrm d}f_{12}\over {\mathrm d}t},
     !% \end{equation}
-    !% where ${\rm d} f_{12}/{\rm d}t$ is the excursion set barrier crossing probabilty per unit time for the effective barrier
-    !% $B^\prime(S_{\rm child}|S_{\rm parent},t)\equiv B(S_{\rm child},t-\delta t)-B(S_{\rm parent},t)$ in the limit $\delta t
+    !% where ${\mathrm d} f_{12}/{\mathrm d}t$ is the excursion set barrier crossing probabilty per unit time for the effective barrier
+    !% $B^\prime(S_{\mathrm child}|S_{\mathrm parent},t)\equiv B(S_{\mathrm child},t-\delta t)-B(S_{\mathrm parent},t)$ in the limit $\delta t
     !% \rightarrow 0$.
     use Merger_Tree_Branching_Modifiers
     use Excursion_Sets_First_Crossings

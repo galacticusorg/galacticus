@@ -29,14 +29,14 @@
   end type spectraPostprocessorMeiksin2006
 
   interface spectraPostprocessorMeiksin2006
-     !% Constructors for the {\tt meiksin2006} spectrum postprocessor class.
+     !% Constructors for the {\normalfont \ttfamily meiksin2006} spectrum postprocessor class.
      module procedure meiksin2006DefaultConstructor
   end interface spectraPostprocessorMeiksin2006
 
 contains
 
   function meiksin2006DefaultConstructor()
-    !% Default constructor for the {\tt meiksin2006} spectrum postprocessor class.
+    !% Default constructor for the {\normalfont \ttfamily meiksin2006} spectrum postprocessor class.
     implicit none
     type(spectraPostprocessorMeiksin2006), target :: meiksin2006DefaultConstructor
     

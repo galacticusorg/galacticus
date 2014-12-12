@@ -26,7 +26,7 @@ module Dark_Matter_Halo_Formation_Times
 contains
 
   double precision function Dark_Matter_Halo_Formation_Time(thisNode,formationMassFraction)
-    !% Returns the time at which the main branch progenitor of {\tt thisNode} first had a mass equal to {\tt
+    !% Returns the time at which the main branch progenitor of {\normalfont \ttfamily thisNode} first had a mass equal to {\tt
     !% formationMassFraction} of the current mass.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Mass_Accretion_Histories

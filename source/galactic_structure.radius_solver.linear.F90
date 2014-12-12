@@ -43,7 +43,7 @@ contains
   end subroutine Galactic_Structure_Radii_Linear_Initialize
 
   subroutine Galactic_Structure_Radii_Solve_Linear(thisNode)
-    !% Find the radii of galactic components in {\tt thisNode} using the ``linear'' method.
+    !% Find the radii of galactic components in {\normalfont \ttfamily thisNode} using the ``linear'' method.
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none

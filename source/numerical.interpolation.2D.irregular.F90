@@ -15,11 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a convenient interface to the {\tt BIVAR} 2D interpolation on irregularly spaced points
+!% Contains a module which implements a convenient interface to the {\normalfont \ttfamily BIVAR} 2D interpolation on irregularly spaced points
 !% package.
 
 module Numerical_Interpolation_2D_Irregular
-  !% Implements a convenient interface to the {\tt BIVAR} 2D interpolation on irregularly spaced points package.
+  !% Implements a convenient interface to the {\normalfont \ttfamily BIVAR} 2D interpolation on irregularly spaced points package.
   implicit none
   private
   public :: Interpolate_2D_Irregular, interp2dIrregularObject

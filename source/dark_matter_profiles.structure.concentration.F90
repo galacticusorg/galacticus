@@ -36,18 +36,18 @@ module Dark_Matter_Profiles_Concentration
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <stateful>no</stateful>
   !#  <method name="concentration" >
-  !#   <description>Returns the concentration parameter for the given {\tt node}.</description>
+  !#   <description>Returns the concentration parameter for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
   !#  </method>
   !#  <method name="densityContrastDefinition" >
-  !#   <description>Returns a {\tt virialDensityContrast} object describing the virial density contrast used to define this concentration.</description>
+  !#   <description>Returns a {\normalfont \ttfamily virialDensityContrast} object describing the virial density contrast used to define this concentration.</description>
   !#   <type>class(virialDensityContrastClass)</type>
   !#   <pass>yes</pass>
   !#  </method>
   !#  <method name="darkMatterProfileDefinition" >
-  !#   <description>Returns a {\tt darkMatterProfile} object describing the dark matter density profile used to define this concentration.</description>
+  !#   <description>Returns a {\normalfont \ttfamily darkMatterProfile} object describing the dark matter density profile used to define this concentration.</description>
   !#   <type>class(darkMatterProfileClass)</type>
   !#   <pass>yes</pass>
   !#  </method>

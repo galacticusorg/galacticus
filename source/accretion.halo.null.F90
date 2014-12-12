@@ -36,14 +36,14 @@
   end type accretionHaloNull
 
   interface accretionHaloNull
-     !% Constructors for the {\tt null} halo accretion class.
+     !% Constructors for the {\normalfont \ttfamily null} halo accretion class.
      module procedure nullConstructor
   end interface accretionHaloNull
 
 contains
 
   function nullConstructor()
-    !% Default constructor for the {\tt null} halo accretion class.
+    !% Default constructor for the {\normalfont \ttfamily null} halo accretion class.
     use Input_Parameters
     implicit none
     type (accretionHaloNull), target  :: nullConstructor
@@ -52,7 +52,7 @@ contains
   end function nullConstructor
 
   double precision function nullAccretionRate(self,node,accretionMode)
-    !% Computes the baryonic accretion rate onto {\tt node}.
+    !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
     class  (accretionHaloNull), intent(inout)          :: self
@@ -64,7 +64,7 @@ contains
   end function nullAccretionRate
 
   double precision function nullAccretedMass(self,node,accretionMode)
-    !% Computes the mass of baryons accreted into {\tt node}.
+    !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
     class  (accretionHaloNull), intent(inout)          :: self
@@ -76,7 +76,7 @@ contains
   end function nullAccretedMass
 
   double precision function nullFailedAccretionRate(self,node,accretionMode)
-    !% Computes the baryonic accretion rate onto {\tt node}.
+    !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
     class  (accretionHaloNull), intent(inout)          :: self
@@ -88,7 +88,7 @@ contains
   end function nullFailedAccretionRate
 
   double precision function nullFailedAccretedMass(self,node,accretionMode)
-    !% Computes the mass of baryons accreted into {\tt node}.
+    !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
     class  (accretionHaloNull), intent(inout)          :: self
@@ -100,7 +100,7 @@ contains
   end function nullFailedAccretedMass
 
   function nullAccretionRateMetals(self,node,accretionMode)
-    !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\tt node} from the intergalactic medium.
+    !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
     type   (abundances       )                         :: nullAccretionRateMetals
@@ -113,7 +113,7 @@ contains
   end function nullAccretionRateMetals
 
   function nullAccretedMassMetals(self,node,accretionMode)
-    !% Computes the mass of abundances accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
+    !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
     type   (abundances       )                         :: nullAccretedMassMetals
@@ -126,7 +126,7 @@ contains
   end function nullAccretedMassMetals
 
   function nullAccretionRateChemicals(self,node,accretionMode)
-    !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\tt node} from the intergalactic medium.
+    !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
@@ -140,7 +140,7 @@ contains
   end function nullAccretionRateChemicals
 
   function nullAccretedMassChemicals(self,node,accretionMode)
-    !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
+    !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none

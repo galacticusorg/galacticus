@@ -186,7 +186,7 @@ contains
   !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}.
+    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode
     double precision                      , parameter              :: scaleMassRelative   =1.0d-2
@@ -261,7 +261,7 @@ contains
   !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Satellite_Merger</unitName>
   !# </satelliteMergerTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Satellite_Merger(thisNode)
-    !% Remove any hot halo associated with {\tt thisNode} before it merges with its host halo.
+    !% Remove any hot halo associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     type (treeNode            )               , pointer :: hostNode
@@ -293,7 +293,7 @@ contains
   !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Promote</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Promote(thisNode)
-    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\tt
+    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\tt
     !% thisNode} to account for any hot halo already in the parent.
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
@@ -354,7 +354,7 @@ contains
   !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Node_Merger</unitName>
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger(thisNode)
-    !% Starve {\tt thisNode} by transferring its hot halo to its parent.
+    !% Starve {\normalfont \ttfamily thisNode} by transferring its hot halo to its parent.
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     type (treeNode            )               , pointer :: parentNode
@@ -376,7 +376,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Cooling_Rate(thisNode)
-    !% Get and store the cooling rate for {\tt thisNode}.
+    !% Get and store the cooling rate for {\normalfont \ttfamily thisNode}.
     use Cooling_Rates
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
@@ -398,7 +398,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Very_Simple_Cooling_Rate
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Create(thisNode)
-    !% Creates a very simple hot halo component for {\tt thisNode}.
+    !% Creates a very simple hot halo component for {\normalfont \ttfamily thisNode}.
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     class(nodeComponentHotHalo)               , pointer :: thisHotHaloComponent

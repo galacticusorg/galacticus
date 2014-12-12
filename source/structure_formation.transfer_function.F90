@@ -49,7 +49,7 @@ module Transfer_Functions
 contains
 
   double precision function Transfer_Function(wavenumber)
-    !% Return the transfer function for $k=${\tt wavenumber} [Mpc$^{-1}$].
+    !% Return the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
     use Numerical_Interpolation
     implicit none
     double precision, intent(in   ) :: wavenumber
@@ -84,7 +84,7 @@ contains
   end function Transfer_Function
 
   double precision function Transfer_Function_Logarithmic_Derivative(wavenumber)
-    !% Return the logarithmic derivative of the transfer function for $k=${\tt wavenumber} [Mpc$^{-1}$].
+    !% Return the logarithmic derivative of the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
     use Numerical_Interpolation
     implicit none
     double precision, intent(in   ) :: wavenumber

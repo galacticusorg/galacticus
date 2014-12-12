@@ -43,7 +43,7 @@ module Satellite_Orbits
 contains
 
   double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit,errorCode)
-    !% Solves for the equivalent circular orbit radius for {\tt thisOrbit} in {\tt hostNode}.
+    !% Solves for the equivalent circular orbit radius for {\normalfont \ttfamily thisOrbit} in {\normalfont \ttfamily hostNode}.
     use Root_Finder
     use Kepler_Orbits
     use Dark_Matter_Halo_Scales
@@ -121,7 +121,7 @@ contains
   end function Equivalent_Circular_Orbit_Solver
 
   subroutine Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,thisOrbit,extremumType,radius,velocity)
-    !% Solves for the pericentric radius and velocity of {\tt thisOrbit} in {\tt hostNode}.
+    !% Solves for the pericentric radius and velocity of {\normalfont \ttfamily thisOrbit} in {\normalfont \ttfamily hostNode}.
     use Root_Finder
     use Kepler_Orbits
     use Dark_Matter_Profiles
@@ -234,9 +234,9 @@ contains
   function Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,currentHost)
     !% Takes a virial orbit and adjusts the energy to account for the change in the definition of potential between the original
     !% halo in which the orbit was defined and the current halo. Since the potential at the virial radius of halos is always
-    !% defined to be $\Phi(r_{\rm vir}) = - V_{\rm vir}^2$ then the specific energy transforms as:
+    !% defined to be $\Phi(r_{\mathrm vir}) = - V_{\mathrm vir}^2$ then the specific energy transforms as:
     !% \begin{equation}
-    !% e \rightarrow e + V^2_{\rm vir,0} + \Phi(r_{\rm vir,0}),
+    !% e \rightarrow e + V^2_{\mathrm vir,0} + \Phi(r_{\mathrm vir,0}),
     !% \end{equation}
     !% where subscript $0$ refers to the original halo in which the orbit was defined and $\Phi(r)$ is the potential of the
     !% current halo.

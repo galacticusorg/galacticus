@@ -99,7 +99,7 @@ contains
           !@   <defaultValue>after</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    Specifies whether cooling is cut off before or after {\tt [coolingCutOffRedshift]}.
+          !@    Specifies whether cooling is cut off before or after {\normalfont \ttfamily [coolingCutOffRedshift]}.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>1</cardinality>

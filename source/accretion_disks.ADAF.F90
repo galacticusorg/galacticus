@@ -104,8 +104,8 @@ contains
           !@   <defaultValue>thinDisk</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     Specifies the specific energy of material at the inner edge of an ADAF. {\tt pureADAF} makes the specific energy equal
-          !@     to 1 (i.e. all energy is advected with the flow); {\tt ISCO} makes the specific energy equal to that for the innermost
+          !@     Specifies the specific energy of material at the inner edge of an ADAF. {\normalfont \ttfamily pureADAF} makes the specific energy equal
+          !@     to 1 (i.e. all energy is advected with the flow); {\normalfont \ttfamily ISCO} makes the specific energy equal to that for the innermost
           !@     stable circular orbit.
           !@   </description>
           !@   <type>string</type>
@@ -136,8 +136,8 @@ contains
           !@   <defaultValue>pureADAF</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     Specifies the specific energy of material at the inner edge of an ADAF. {\tt pureADAF} makes the specific energy equal
-          !@     to 1 (i.e. all energy is advected with the flow); {\tt ISCO} makes the specific energy equal to that for the innermost
+          !@     Specifies the specific energy of material at the inner edge of an ADAF. {\normalfont \ttfamily pureADAF} makes the specific energy equal
+          !@     to 1 (i.e. all energy is advected with the flow); {\normalfont \ttfamily ISCO} makes the specific energy equal to that for the innermost
           !@     stable circular orbit.
           !@   </description>
           !@   <type>string</type>
@@ -157,8 +157,8 @@ contains
           !@   <defaultValue>exponential</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    Controls how the field enhancing shear is determined. {\tt exponential} will cause the form $g=\exp(\omega t)$ \citep{benson_maximum_2009}
-          !@    to be used, while {\tt linear} will cause $g=1+\omega t$ to be used instead. The functional form of $\alpha(j)$ (if used) will be adjusted
+          !@    Controls how the field enhancing shear is determined. {\normalfont \ttfamily exponential} will cause the form $g=\exp(\omega t)$ \citep{benson_maximum_2009}
+          !@    to be used, while {\normalfont \ttfamily linear} will cause $g=1+\omega t$ to be used instead. The functional form of $\alpha(j)$ (if used) will be adjusted
           !@    to achieve a sensible spin-up function in each case.
           !@   </description>
           !@   <type>string</type>
@@ -192,8 +192,8 @@ contains
           !@   <defaultValue>fit</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    Controls how the viscosity parameter $\alpha$ in an ADAF is determined. {\tt fit} will cause $\alpha$ to be computed
-          !@    using the fitting function of \cite{benson_maximum_2009}; {\tt fixed} will cause $\alpha=${\tt [adafViscosityFixedAlpha]}
+          !@    Controls how the viscosity parameter $\alpha$ in an ADAF is determined. {\normalfont \ttfamily fit} will cause $\alpha$ to be computed
+          !@    using the fitting function of \cite{benson_maximum_2009}; {\normalfont \ttfamily fixed} will cause $\alpha=${\normalfont \ttfamily [adafViscosityFixedAlpha]}
           !@    to be used.
           !@   </description>
           !@   <type>string</type>
@@ -208,7 +208,7 @@ contains
              !@   <defaultValue>0.1</defaultValue>
              !@   <attachedTo>module</attachedTo>
              !@   <description>
-             !@    The value for the viscosity parameter $\alpha$ in an ADAF to be used if {\tt [adafViscosityOption]}$=${\tt fixed}.
+             !@    The value for the viscosity parameter $\alpha$ in an ADAF to be used if {\normalfont \ttfamily [adafViscosityOption]}$=${\normalfont \ttfamily fixed}.
              !@   </description>
              !@   <type>real</type>
              !@   <cardinality>1</cardinality>
@@ -361,7 +361,7 @@ contains
   end function Accretion_Disk_Jet_Power_ADAF
 
   double precision function Black_Hole_Spin_Up_Rate_ADAF(thisBlackHole,massAccretionRate)
-    !% Computes the spin up rate of the black hole in {\tt thisBlackHole} due to accretion from an ADAF.
+    !% Computes the spin up rate of the black hole in {\normalfont \ttfamily thisBlackHole} due to accretion from an ADAF.
     !% disk.
     use Galacticus_Nodes
     implicit none
@@ -758,8 +758,8 @@ contains
   end function ADAF_Temperature
 
   double precision function ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)
-    !% Return the (dimensionless) velocity in an ADAF at given {\tt radius}, for a black hole of given {\tt blackHoleSpin} and a
-    !% flow with viscosity parameter {\tt adafViscosityAlpha}.
+    !% Return the (dimensionless) velocity in an ADAF at given {\normalfont \ttfamily radius}, for a black hole of given {\normalfont \ttfamily blackHoleSpin} and a
+    !% flow with viscosity parameter {\normalfont \ttfamily adafViscosityAlpha}.
     use Black_Hole_Fundamentals
     implicit none
     double precision, intent(in   ) :: adafViscosityAlpha         , blackHoleSpin             , &
@@ -798,8 +798,8 @@ contains
   end function ADAF_V
 
   double precision function ADAF_Height(radius,blackHoleSpin,adafViscosityAlpha)
-    !% Return the (dimensionless) height in an ADAF at given {\tt radius}, for a black hole of given {\tt blackHoleSpin} and a
-    !% flow with viscosity parameter {\tt adafViscosityAlpha}.
+    !% Return the (dimensionless) height in an ADAF at given {\normalfont \ttfamily radius}, for a black hole of given {\normalfont \ttfamily blackHoleSpin} and a
+    !% flow with viscosity parameter {\normalfont \ttfamily adafViscosityAlpha}.
     use Black_Hole_Fundamentals
     implicit none
     double precision, intent(in   ) :: adafViscosityAlpha         , blackHoleSpin             , &

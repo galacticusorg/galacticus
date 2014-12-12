@@ -38,37 +38,37 @@ module Mass_Distributions
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isDimensionless</method>
-     !@     <description>Returns {\tt true} is this is a dimensionless mass distribution, {\tt false} otherwise.</description>
+     !@     <description>Returns {\normalfont \ttfamily true} is this is a dimensionless mass distribution, {\normalfont \ttfamily false} otherwise.</description>
      !@     <type>\logicalzero</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>density</method>
-     !@     <description>Returns the density of the mass distribution at the supplied {\tt coordinates}.</description>
+     !@     <description>Returns the density of the mass distribution at the supplied {\normalfont \ttfamily coordinates}.</description>
      !@     <type>\doublezero</type>
      !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>densityGradientRadial</method>
-     !@     <description>Returns the gradient with respect to radius of the density of the mass distribution at the supplied {\tt coordinates}. If the optional {\tt logarithmic} argument is set to true, return the logarithmic gradient.</description>
+     !@     <description>Returns the gradient with respect to radius of the density of the mass distribution at the supplied {\normalfont \ttfamily coordinates}. If the optional {\normalfont \ttfamily logarithmic} argument is set to true, return the logarithmic gradient.</description>
      !@     <type>\doublezero</type>
      !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin, \logicalzero\ [logarithmic]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>densityRadialMoment</method>
-     !@     <description>Returns the $n^{\rm th}$ moment of the integral of the density over radius, $\int_0^\infty \rho({\bf x}) |x|^n {\rm d} {\bf x}$.</description>
+     !@     <description>Returns the $n^{\mathrm th}$ moment of the integral of the density over radius, $\int_0^\infty \rho({\mathbf x}) |x|^n {\mathrm d} {\mathbf x}$.</description>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ moment\argin, \doublezero\ radiusMinimum\argin, \doublezero\ radiusMaximum\argin, \logicalzero\ [isInfinite]\argout</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>massEnclosedBySphere</method>
-     !@     <description>Returns the mass enclosed by a sphere of given {\tt radius} centered on the origin.</description>
+     !@     <description>Returns the mass enclosed by a sphere of given {\normalfont \ttfamily radius} centered on the origin.</description>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ radius\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>potential</method>
-     !@     <description>Returns the gravitational potential at the specified {\tt coordinates}.</description>
+     !@     <description>Returns the gravitational potential at the specified {\normalfont \ttfamily coordinates}.</description>
      !@     <type>\doublezero</type>
      !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin</arguments>
      !@   </objectMethod>
@@ -115,7 +115,7 @@ module Mass_Distributions
   ! Labels for mass distribution symmetries.
   !@ <enumeration>
   !@  <name>massDistributionSymmetry</name>
-  !@  <description>Used to specify the symmetry of {\tt massDistribution} objects.</description>
+  !@  <description>Used to specify the symmetry of {\normalfont \ttfamily massDistribution} objects.</description>
   !@  <entry label="massDistributionSymmetryNone"        />
   !@  <entry label="massDistributionSymmetryCylindrical" />
   !@  <entry label="massDistributionSymmetrySpherical"   />
@@ -178,7 +178,7 @@ contains
   end function Mass_Distribution_Symmetry_Spherical
 
   logical function Mass_Distribution_Is_Dimensionless(self)
-    !% Return true if {\tt self} is a dimensionless mass distribution.
+    !% Return true if {\normalfont \ttfamily self} is a dimensionless mass distribution.
     implicit none
     class(massDistribution), intent(in   ) :: self
 
@@ -236,7 +236,7 @@ contains
   end function Mass_Distribution_Mass_Enc_By_Sphere_Null
 
   double precision function Mass_Distribution_Mass_Enc_By_Sphere_Spherical(self,radius)
-    !% Computes the mass enclosed within a sphere of given {\tt radius} for spherically-symmetric mass distributions using
+    !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass distributions using
     !% numerical integration.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration

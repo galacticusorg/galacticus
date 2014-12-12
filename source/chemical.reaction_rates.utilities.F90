@@ -26,8 +26,8 @@ module Chemical_Reaction_Rates_Utilities
 contains
 
   double precision function Chemicals_Mass_To_Density_Conversion(radius)
-    !% Returns the conversion factor from mass of chemicals in ($M_\odot/M_{\rm atomic}$) to number density in cm$^{-3}$ assuming
-    !% that the mass is distributed uniformly in a sphere of the given {\tt radius} (in Mpc).
+    !% Returns the conversion factor from mass of chemicals in ($M_\odot/M_{\mathrm atomic}$) to number density in cm$^{-3}$ assuming
+    !% that the mass is distributed uniformly in a sphere of the given {\normalfont \ttfamily radius} (in Mpc).
     use Numerical_Constants_Astronomical
     implicit none
     double precision, intent(in   ) :: radius

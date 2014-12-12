@@ -78,7 +78,7 @@ contains
 
   subroutine Transfer_Function_Named_File_Read(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber&
        &,transferFunctionLogT,fileName)
-    !% Read the transfer function from a file specified by {\tt fileName}.
+    !% Read the transfer function from a file specified by {\normalfont \ttfamily fileName}.
     implicit none
     double precision                                           , intent(in   ) :: logWavenumber
     double precision                , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
