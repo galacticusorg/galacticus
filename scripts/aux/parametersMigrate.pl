@@ -190,8 +190,7 @@ my @translations =
 	     mergerTreeBuildCole2000MassResolution       => "mergerTreeHaloMassResolution",
 	     nfw96ConcentrationC                         => "nfw1996ConcentrationC",
 	     satelliteMergingMethod                      => "satelliteMergingTimescalesMethod"    ,
-	     treeNodeMethodFormationTimes                => "treeNodeMethodFormationTime",
-	     virialOrbitsMethod                          => "virialOrbitMethod"
+	     treeNodeMethodFormationTimes                => "treeNodeMethodFormationTime"
 	 },
 	 values        =>
          {
@@ -226,7 +225,7 @@ my @translations =
 		 "sphericalTopHat"           => "sphericalCollapseMatterLambda",
 		 "Kitayama-Suto1996"         => "kitayamaSuto1996"
 	     },
-	     virialOrbitMethod                    =>
+	     virialOrbitsMethod                   =>
 	     {
 		 "Benson2005"                => "benson2005"                   ,
 		 "Wetzel2010"                => "wetzel2010"
