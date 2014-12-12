@@ -53,7 +53,7 @@ module Power_Spectra
 contains
 
   double precision function Power_Spectrum_Dimensionless(wavenumber)
-    !% Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=${\tt wavenumber} [Mpc$^{-1}$].
+    !% Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
     use Numerical_Constants_Math
     implicit none
     double precision, intent(in   ) :: wavenumber
@@ -63,7 +63,7 @@ contains
   end function Power_Spectrum_Dimensionless
 
   double precision function Power_Spectrum_Logarithmic_Derivative(wavenumber)
-    !% Return the logarithmic derivative of the power spectrum, ${\rm d}\ln P(k)/{\rm d}\ln k$, for $k=${\tt wavenumber} [Mpc$^{-1}$].
+    !% Return the logarithmic derivative of the power spectrum, ${\mathrm d}\ln P(k)/{\mathrm d}\ln k$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
     use Transfer_Functions
     use Primordial_Power_Spectra
     implicit none
@@ -76,7 +76,7 @@ contains
   end function Power_Spectrum_Logarithmic_Derivative
 
   double precision function Power_Spectrum(wavenumber)
-    !% Return the cosmological power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$].
+    !% Return the cosmological power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
     use Primordial_Power_Spectra_Transferred
     use Numerical_Constants_Math
     use Cosmology_Parameters
@@ -147,7 +147,7 @@ contains
   end function Mass_from_Cosmolgical_Root_Variance
 
   double precision function Cosmological_Mass_Root_Variance(mass)
-    !% Computes the fractional mass fluctuation in real-space spherical top hats enclosing mass {\tt mass}.
+    !% Computes the fractional mass fluctuation in real-space spherical top hats enclosing mass {\normalfont \ttfamily mass}.
     implicit none
     double precision, intent(in   ) :: mass
 
@@ -173,7 +173,7 @@ contains
   end function Cosmological_Mass_Root_Variance_Logarithmic_Derivative
 
   subroutine Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(mass,sigma,sigmaLogarithmicDerivative)
-    !% Returns both the fractional mass fluctuation in real-space spherical top hats enclosing mass {\tt mass} and its logarithmic derivative.
+    !% Returns both the fractional mass fluctuation in real-space spherical top hats enclosing mass {\normalfont \ttfamily mass} and its logarithmic derivative.
     implicit none
     double precision, intent(in   ) :: mass
     double precision, intent(  out) :: sigma, sigmaLogarithmicDerivative
@@ -205,7 +205,7 @@ contains
   end function sigma_8
 
   subroutine Initialize_Cosmological_Mass_Variance(mass)
-    !% Ensure that $\sigma(M)$ is tabulated over a range that includes {\tt logMass}. The default normalization, $\sigma_9=0.817$,
+    !% Ensure that $\sigma(M)$ is tabulated over a range that includes {\normalfont \ttfamily logMass}. The default normalization, $\sigma_9=0.817$,
     !% is taken from \citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO).
     use Input_Parameters
     use Cosmology_Parameters

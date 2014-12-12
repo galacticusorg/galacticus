@@ -36,7 +36,7 @@ module Numerical_Comparison
 contains
 
   elemental logical function Values_Differ_Real(value1,value2,absTol,relTol)
-    !% Returns true if {\tt value1} and {\tt value2} differ by more than {\tt absTol} in absolute terms, or {\tt relTol} in
+    !% Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} differ by more than {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
     !% relative terms.
     implicit none
     real, intent(in   )           :: value1, value2
@@ -50,7 +50,7 @@ contains
   end function Values_Differ_Real
 
   elemental logical function Values_Differ_Double(value1,value2,absTol,relTol)
-    !% Returns true if {\tt value1} and {\tt value2} differ by more than {\tt absTol} in absolute terms, or {\tt relTol} in
+    !% Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} differ by more than {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
     !% relative terms.
     implicit none
     double precision, intent(in   )           :: value1, value2
@@ -64,7 +64,7 @@ contains
   end function Values_Differ_Double
 
   logical function Values_Agree_Real(value1,value2,absTol,relTol)
-    !% Returns true if {\tt value1} and {\tt value2} agree to within {\tt absTol} in absolute terms, or {\tt relTol} in
+    !% Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} agree to within {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
     !% relative terms.
     implicit none
     real   , intent(in   )           :: value1         , value2
@@ -91,7 +91,7 @@ contains
   end function Values_Agree_Real
 
   logical function Values_Agree_Double(value1,value2,absTol,relTol)
-    !% Returns true if {\tt value1} and {\tt value2} agree to within {\tt absTol} in absolute terms, or {\tt relTol} in
+    !% Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} agree to within {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
     !% relative terms.
     implicit none
     double precision, intent(in   )           :: value1         , value2

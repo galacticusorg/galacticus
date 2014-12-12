@@ -18,7 +18,7 @@
 !% Contains custom functions for the Cole2000 formation times component.
 
 double precision function FormationTimeCole2000FormationTime(self)
-  !% Return the {\tt formationTime} property of the {\tt formationTime} component class.
+  !% Return the {\normalfont \ttfamily formationTime} property of the {\normalfont \ttfamily formationTime} component class.
   implicit none
   class(nodeComponentFormationTimeCole2000), intent(inout) :: self
   type (treeNode                          ), pointer       :: formationNode         , selfNode

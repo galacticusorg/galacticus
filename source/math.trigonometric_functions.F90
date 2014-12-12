@@ -37,7 +37,7 @@ module Trigonometric_Functions
 contains
   
   double precision function cotDouble(x)
-    !% Implements cotangent for double precision {\tt x}.
+    !% Implements cotangent for double precision {\normalfont \ttfamily x}.
     implicit none
     double precision, intent(in   ) :: x
     
@@ -46,7 +46,7 @@ contains
   end function cotDouble
   
   double complex function cotDoubleComplex(x)
-    !% Implements cotangent for double precision complex {\tt x}.
+    !% Implements cotangent for double precision complex {\normalfont \ttfamily x}.
     implicit none
     double complex, intent(in   ) :: x
     
@@ -55,7 +55,7 @@ contains
   end function cotDoubleComplex
   
   double precision function cosecDouble(x)
-    !% Implements cosecant for double precision {\tt x}.
+    !% Implements cosecant for double precision {\normalfont \ttfamily x}.
     implicit none
     double precision, intent(in   ) :: x
     
@@ -64,7 +64,7 @@ contains
   end function cosecDouble
   
   double complex function cosecDoubleComplex(x)
-    !% Implements cosecant for double precision complex {\tt x}.
+    !% Implements cosecant for double precision complex {\normalfont \ttfamily x}.
     implicit none
     double complex, intent(in   ) :: x
     

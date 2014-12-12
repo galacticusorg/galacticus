@@ -175,7 +175,7 @@ contains
        !@   <name>mergerTreeReadFileName</name>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The name of the file from which merger tree data should be read when using the {\tt [mergerTreeConstructMethod]}$=${\tt read} tree construction method.
+       !@     The name of the file from which merger tree data should be read when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.
        !@   </description>
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
@@ -282,7 +282,7 @@ contains
        !@   <attachedTo>module</attachedTo>
        !@   <defaultValue>3</defaultValue>
        !@   <description>
-       !@     The lowest concentration ($c=r_{\rm vir}/r_{\rm s}$) allowed when setting scale radii, $r_{\rm s}$.
+       !@     The lowest concentration ($c=r_{\mathrm vir}/r_{\mathrm s}$) allowed when setting scale radii, $r_{\mathrm s}$.
        !@   </description>
        !@   <type>boolean</type>
        !@   <cardinality>1</cardinality>
@@ -293,7 +293,7 @@ contains
        !@   <attachedTo>module</attachedTo>
        !@   <defaultValue>60</defaultValue>
        !@   <description>
-       !@     The largest concentration ($c=r_{\rm vir}/r_{\rm s}$) allowed when setting scale radii, $r_{\rm s}$.
+       !@     The largest concentration ($c=r_{\mathrm vir}/r_{\mathrm s}$) allowed when setting scale radii, $r_{\mathrm s}$.
        !@   </description>
        !@   <type>boolean</type>
        !@   <cardinality>1</cardinality>
@@ -304,7 +304,7 @@ contains
        !@   <attachedTo>module</attachedTo>
        !@   <defaultValue>0</defaultValue>
        !@   <description>
-       !@     The minimum halo mass for which scale radii should be preset (if {\tt [mergerTreeReadPresetScaleRadii]}$=${\tt true}).
+       !@     The minimum halo mass for which scale radii should be preset (if {\normalfont \ttfamily [mergerTreeReadPresetScaleRadii]}$=${\normalfont \ttfamily true}).
        !@   </description>
        !@   <type>boolean</type>
        !@   <cardinality>1</cardinality>
@@ -1101,7 +1101,7 @@ contains
   end subroutine Create_Node_Indices
 
   function Node_Location(nodeIndex)
-    !% Return the location in the original array of the given {\tt nodeIndex}.
+    !% Return the location in the original array of the given {\normalfont \ttfamily nodeIndex}.
     use Arrays_Search
     implicit none
     integer(c_size_t      )                :: Node_Location 
@@ -1118,7 +1118,7 @@ contains
   end function Node_Location
 
   function Descendent_Node_Sort_Index(descendentIndex)
-    !% Return the sort index of the given {\tt descendentIndex}.
+    !% Return the sort index of the given {\normalfont \ttfamily descendentIndex}.
     use Arrays_Search
     implicit none
     integer(c_size_t      )                :: Descendent_Node_Sort_Index
@@ -1603,7 +1603,7 @@ contains
           if (Input_Parameter_Is_Present('mergerTreeReadConcentrationFallbackMethod')) then
              !@ <inputParameter>
              !@   <name>mergerTreeReadConcentrationFallbackMethod</name>
-             !@   <defaultValue>{\tt [darkMatterProfileConcentrationMethod]}</defaultValue>
+             !@   <defaultValue>{\normalfont \ttfamily [darkMatterProfileConcentrationMethod]}</defaultValue>
              !@   <attachedTo>module</attachedTo>
              !@   <description>
              !@     The method to be used for setting node scale radii when reading merger trees from file and the node mass falls below the reliability threshold.
@@ -2397,7 +2397,7 @@ contains
   end subroutine Scan_for_Branch_Jumps
 
   function Last_Host_Descendent(thisNode) result (currentHost)
-    !% Return a pointer to the last descendent that can be reached from {\tt thisNode} when descending through hosts.
+    !% Return a pointer to the last descendent that can be reached from {\normalfont \ttfamily thisNode} when descending through hosts.
     implicit none
     class(nodeData), pointer               :: currentHost 
     class(nodeData), intent(inout), target :: thisNode    
@@ -2639,7 +2639,7 @@ contains
   end subroutine Assign_UniqueIDs_To_Clones
 
   logical function Is_Subhalo_Subhalo_Merger(nodes,thisNode)
-    !% Returns true if {\tt thisNode} undergoes a subhalo-subhalo merger.
+    !% Returns true if {\normalfont \ttfamily thisNode} undergoes a subhalo-subhalo merger.
     implicit none
     class(nodeData          ), dimension(:), intent(inout) :: nodes          
     class(nodeData          )              , intent(in   ) :: thisNode       
@@ -2670,7 +2670,7 @@ contains
   end function Is_Subhalo_Subhalo_Merger
 
   subroutine Dump_Tree(nodes,highlightNodes,branchRoot)
-    !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\sc dot}.
+    !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\normalfont \scshape dot}.
     implicit none
     class    (nodeData      ), dimension(:), intent(in   ), target   :: nodes                 
     integer  (kind=kind_int8), dimension(:), intent(in   ), optional :: highlightNodes        
@@ -2912,7 +2912,7 @@ contains
   end subroutine Phase_Space_Position_Realize
 
   subroutine progenitorIteratorDescendentSet(self,node,nodes)
-    !% Initialize a progenitor iterator object by storing the index of the taget {\tt node} and finding the location of the first
+    !% Initialize a progenitor iterator object by storing the index of the taget {\normalfont \ttfamily node} and finding the location of the first
     !% progenitor (if any).
     implicit none
     class(progenitorIterator)              , intent(inout) :: self  

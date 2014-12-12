@@ -61,7 +61,7 @@ contains
   end subroutine Galactic_Structure_Radii_Simple_Initialize
 
   subroutine Galactic_Structure_Radii_Solve_Simple(thisNode)
-    !% Find the radii of galactic components in {\tt thisNode} using the ``simple'' method.
+    !% Find the radii of galactic components in {\normalfont \ttfamily thisNode} using the ``simple'' method.
     use Galacticus_Error
     !# <include directive="radiusSolverTask" type="moduleUse">
     include 'galactic_structure.radius_solver.tasks.modules.inc'

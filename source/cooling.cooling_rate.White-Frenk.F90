@@ -51,7 +51,7 @@ contains
        !@   <defaultValue>10000</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The halo virial velocity (in km/s) above which cooling rates are forced to zero in the {\tt White-Frenk1991} cooling rate model.
+       !@     The halo virial velocity (in km/s) above which cooling rates are forced to zero in the {\normalfont \ttfamily White-Frenk1991} cooling rate model.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>

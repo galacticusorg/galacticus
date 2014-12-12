@@ -15,10 +15,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which defines and keeps track of the current task in {\sc Galacticus}.
+!% Contains a module which defines and keeps track of the current task in {\normalfont \scshape Galacticus}.
 
 module Galacticus_Tasks
-  !% Defines and keeps track of the current task in {\sc Galacticus}.
+  !% Defines and keeps track of the current task in {\normalfont \scshape Galacticus}.
   implicit none
   private
   public :: Galacticus_Task_Do

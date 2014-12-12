@@ -82,7 +82,7 @@ contains
   end subroutine Cooling_Time_Available_Initialize
 
   double precision function Cooling_Time_Available(thisNode)
-    !% Return the time available for cooling in {\tt thisNode}.
+    !% Return the time available for cooling in {\normalfont \ttfamily thisNode}.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -96,7 +96,7 @@ contains
   end function Cooling_Time_Available
 
   double precision function Cooling_Time_Available_Increase_Rate(thisNode)
-    !% Return the rate at which the time available for cooling increases in {\tt thisNode}.
+    !% Return the rate at which the time available for cooling increases in {\normalfont \ttfamily thisNode}.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

@@ -66,7 +66,7 @@ subroutine Mass_Distribution_Hernquist_Initialize(self,scaleLength,densityNormal
 end subroutine Mass_Distribution_Hernquist_Initialize
 
 double precision function Mass_Distribution_Hernquist_Density(self,coordinates)
-  !% Return the density at the specified {\tt coordinates} in a Hernquist mass distribution.
+  !% Return the density at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
   use Coordinates
   implicit none
   class           (massDistributionHernquist), intent(in   ) :: self
@@ -121,7 +121,7 @@ double precision function Mass_Distribution_Hernquist_Density_Radial_Moment(self
 end function Mass_Distribution_Hernquist_Density_Radial_Moment
 
 double precision function Mass_Distribution_Hernquist_Mass_Enc_By_Sphere(self,radius)
-  !% Computes the mass enclosed within a sphere of given {\tt radius} for Hernquist mass distributions.
+  !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for Hernquist mass distributions.
   use Numerical_Constants_Math
   implicit none
   class           (massDistributionHernquist), intent(in   ), target :: self
@@ -134,7 +134,7 @@ double precision function Mass_Distribution_Hernquist_Mass_Enc_By_Sphere(self,ra
 end function Mass_Distribution_Hernquist_Mass_Enc_By_Sphere
 
 double precision function Mass_Distribution_Hernquist_Potential(self,coordinates)
-  !% Return the potential at the specified {\tt coordinates} in a Hernquist mass distribution.
+  !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
   use Numerical_Constants_Physical
   use Coordinates
   implicit none

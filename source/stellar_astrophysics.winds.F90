@@ -81,7 +81,7 @@ contains
   end subroutine Stellar_Winds_Initialize
 
   double precision function Stellar_Winds_Mass_Loss_Rate(initialMass,age,metallicity)
-    !% Return the mass loss rate (in $M_\odot$/Gyr) from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
+    !% Return the mass loss rate (in $M_\odot$/Gyr) from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision, intent(in   ) :: age, initialMass, metallicity
 
@@ -94,7 +94,7 @@ contains
   end function Stellar_Winds_Mass_Loss_Rate
 
   double precision function Stellar_Winds_Terminal_Velocity(initialMass,age,metallicity)
-    !% Return the terminal velocity (in km/s) of winds from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
+    !% Return the terminal velocity (in km/s) of winds from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
     implicit none
     double precision, intent(in   ) :: age, initialMass, metallicity
 

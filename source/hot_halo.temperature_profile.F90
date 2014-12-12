@@ -83,7 +83,7 @@ contains
   end subroutine Hot_Halo_Temperature_Initialize
 
   double precision function Hot_Halo_Temperature(thisNode,radius)
-    !% Return the temperature of the hot halo in {\tt thisNode} at radius {\tt radius}.
+    !% Return the temperature of the hot halo in {\normalfont \ttfamily thisNode} at radius {\normalfont \ttfamily radius}.
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: radius
@@ -98,7 +98,7 @@ contains
   end function Hot_Halo_Temperature
 
   double precision function Hot_Halo_Temperature_Logarithmic_Slope(thisNode,radius)
-    !% Return the temperature of the hot halo in {\tt thisNode} at radius {\tt radius}.
+    !% Return the temperature of the hot halo in {\normalfont \ttfamily thisNode} at radius {\normalfont \ttfamily radius}.
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: radius

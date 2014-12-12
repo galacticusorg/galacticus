@@ -42,7 +42,7 @@ contains
   end subroutine Satellites_Tidal_Fields_Null_Initialize
 
   double precision function Satellites_Tidal_Field_Null_Get(thisNode)
-    !% Computes the tidal field acting on a satellite in the {\tt null} implementation. Always returns zero.
+    !% Computes the tidal field acting on a satellite in the {\normalfont \ttfamily null} implementation. Always returns zero.
     use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode

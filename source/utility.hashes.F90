@@ -59,7 +59,7 @@ module Hashes
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>key</method>
-     !@     <description>Return the key of the {\tt indexValue}$^{\rm th}$ entry in the hash.</description>
+     !@     <description>Return the key of the {\normalfont \ttfamily indexValue}$^{\mathrm th}$ entry in the hash.</description>
      !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
      !@     <arguments>\intzero\ indexValue\argin</arguments>
      !@   </objectMethod>
@@ -136,7 +136,7 @@ contains
   end subroutine Initialize_Integer_Scalar
 
   integer function Size_Integer_Scalar(thisHash)
-    !% Returns the number of elements in the specified {\tt Hash}.
+    !% Returns the number of elements in the specified {\normalfont \ttfamily Hash}.
     implicit none
     class(integerScalarHash), intent(in   ) :: thisHash
 
@@ -148,7 +148,7 @@ contains
   end function Size_Integer_Scalar
 
   logical function Exists_Integer_Scalar_CH(thisHash,keyCH)
-    !% Returns true if the specified {\tt key} exists in the specified {\tt thisHash}, false otherwise.
+    !% Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily thisHash}, false otherwise.
     implicit none
     class    (integerScalarHash), intent(in   ) :: thisHash
     character(len=*            ), intent(in   ) :: keyCH
@@ -160,7 +160,7 @@ contains
   end function Exists_Integer_Scalar_CH
 
   logical function Exists_Integer_Scalar_VS(thisHash,key)
-    !% Returns true if the specified {\tt key} exists in the specified {\tt thisHash}, false otherwise.
+    !% Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily thisHash}, false otherwise.
     implicit none
     class(integerScalarHash), intent(in   ) :: thisHash
     type (varying_string   ), intent(in   ) :: key
@@ -177,7 +177,7 @@ contains
   end function Exists_Integer_Scalar_VS
 
   subroutine Delete_Integer_Scalar_CH(thisHash,keyCH)
-    !% Deletes entry {\tt key} from {\tt thisHash}.
+    !% Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily thisHash}.
     implicit none
     character(len=*            ), intent(in   ) :: keyCH
     class    (integerScalarHash), intent(inout) :: thisHash
@@ -189,7 +189,7 @@ contains
   end subroutine Delete_Integer_Scalar_CH
 
   subroutine Delete_Integer_Scalar_VS(thisHash,key)
-    !% Deletes entry {\tt key} from {\tt Hash}.
+    !% Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily Hash}.
     use Arrays_Search
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
@@ -213,7 +213,7 @@ contains
   end subroutine Delete_Integer_Scalar_VS
 
   function Key_Integer_Scalar_I(thisHash,indexValue) result (key)
-    !% Returns the key of entry number {\tt index} in {\tt thisHash}.
+    !% Returns the key of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily thisHash}.
     implicit none
     type   (varying_string   )                :: key
     integer                   , intent(in   ) :: indexValue
@@ -227,7 +227,7 @@ contains
   end function Key_Integer_Scalar_I
 
   subroutine Keys_Integer_Scalar(thisHash,keys)
-    !% Returns an array of all keys in {\tt thisHash}.
+    !% Returns an array of all keys in {\normalfont \ttfamily thisHash}.
     implicit none
     type (varying_string   ), allocatable, dimension(:), intent(inout) :: keys
     class(integerScalarHash)                           , intent(in   ) :: thisHash
@@ -242,7 +242,7 @@ contains
   end subroutine Keys_Integer_Scalar
 
   subroutine Values_Integer_Scalar(thisHash,values)
-    !% Returns an array of all values in {\tt thisHash}.
+    !% Returns an array of all values in {\normalfont \ttfamily thisHash}.
     implicit none
     integer                   , allocatable, dimension(:), intent(inout) :: values
     class  (integerScalarHash)                           , intent(in   ) :: thisHash
@@ -257,7 +257,7 @@ contains
   end subroutine Values_Integer_Scalar
 
   integer function Value_Integer_Scalar_I(thisHash,indexValue)
-    !% Returns the value of entry number {\tt index} in {\tt Hash}.
+    !% Returns the value of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily Hash}.
     implicit none
     class  (integerScalarHash), intent(in   ) :: thisHash
     integer                   , intent(in   ) :: indexValue
@@ -270,7 +270,7 @@ contains
   end function Value_Integer_Scalar_I
 
   integer function Value_Integer_Scalar_CH(thisHash,keyCH)
-    !% Returns the value of {\tt Key} in {\tt Hash}.
+    !% Returns the value of {\normalfont \ttfamily Key} in {\normalfont \ttfamily Hash}.
     implicit none
     character(len=*            ), intent(in   ) :: keyCH
     class    (integerScalarHash), intent(in   ) :: thisHash
@@ -282,7 +282,7 @@ contains
   end function Value_Integer_Scalar_CH
 
   integer function Value_Integer_Scalar_VS(thisHash,key)
-    !% Returns the value of {\tt key} in {\tt thisHash}.
+    !% Returns the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash}.
     use Arrays_Search
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
@@ -304,7 +304,7 @@ contains
   end function Value_Integer_Scalar_VS
 
   subroutine Set_Integer_Scalar_CH(thisHash,keyCH,value)
-    !% Sets the value of {\tt key} in {\tt thisHash} to {\tt value}.
+    !% Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash} to {\normalfont \ttfamily value}.
     implicit none
     integer                     , intent(in   ) :: value
     character(len=*            ), intent(in   ) :: keyCH
@@ -317,7 +317,7 @@ contains
   end subroutine Set_Integer_Scalar_CH
 
   subroutine Set_Integer_Scalar_VS(thisHash,key,value)
-    !% Sets the value of {\tt key} in {\tt thisHash} to {\tt value}.
+    !% Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash} to {\normalfont \ttfamily value}.
     use Arrays_Search
     use, intrinsic :: ISO_C_Binding
     implicit none
@@ -387,7 +387,7 @@ contains
   end subroutine Set_Integer_Scalar_VS
 
   subroutine Destroy_Integer_Scalar(thisHash)
-    !% Destroys {\tt thisHash}.
+    !% Destroys {\normalfont \ttfamily thisHash}.
     implicit none
     class  (integerScalarHash), intent(inout) :: thisHash
     integer                                   :: i

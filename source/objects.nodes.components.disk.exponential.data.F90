@@ -78,7 +78,7 @@ contains
   end subroutine Node_Component_Disk_Exponential_Reset
 
   double precision function Node_Component_Disk_Exponential_Enclosed_Mass_Dimensionless(radius)
-    !% Returns the fractional mass enclosed within {\tt radius} in a dimensionless exponential disk.
+    !% Returns the fractional mass enclosed within {\normalfont \ttfamily radius} in a dimensionless exponential disk.
     implicit none
     double precision, intent(in   ) :: radius
 

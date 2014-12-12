@@ -26,7 +26,7 @@ module Primordial_Power_Spectra_Transferred
 contains
 
   double precision function Primordial_Power_Spectrum_Transferred(wavenumber)
-    !% Return the primordial power spectrum transferred to late times for $k=${\tt wavenumber} [Mpc$^{-1}$].
+    !% Return the primordial power spectrum transferred to late times for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
     use Transfer_Functions
     use Primordial_Power_Spectra
     implicit none

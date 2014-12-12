@@ -71,14 +71,14 @@ contains
   end subroutine Star_Formation_Feedback_Disks_Power_Law_Initialize
 
   double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Power_Law(thisNode,starFormationRate,energyInputRate)
-    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\tt thisNode}. The outflow
+    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode}. The outflow
     !% rate is given by
     !% \begin{equation}
-    !% \dot{M}_{\rm outflow} = \left({V_{\rm disk,outflow} \over V_{\rm disk}}\right)^{\alpha_{\rm disk,outflow}},
+    !% \dot{M}_{\mathrm outflow} = \left({V_{\mathrm disk,outflow} \over V_{\mathrm disk}}\right)^{\alpha_{\mathrm disk,outflow}},
     !% \end{equation}
-    !% where $V_{\rm disk,outflow}$(={\tt diskOutflowVelocity}) is the velocity scale at which outflow rate equals star formation
-    !% rate and $\alpha_{\rm disk,outflow}$(={\tt diskOutflowExponent}) controls the scaling with velocity. Note that the velocity
-    !% $V_{\rm disk}$ is whatever characteristic value returned by the disk method. This scaling is functionally similar to that
+    !% where $V_{\mathrm disk,outflow}$(={\normalfont \ttfamily diskOutflowVelocity}) is the velocity scale at which outflow rate equals star formation
+    !% rate and $\alpha_{\mathrm disk,outflow}$(={\normalfont \ttfamily diskOutflowExponent}) controls the scaling with velocity. Note that the velocity
+    !% $V_{\mathrm disk}$ is whatever characteristic value returned by the disk method. This scaling is functionally similar to that
     !% adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
     use Galacticus_Nodes
     use Stellar_Feedback

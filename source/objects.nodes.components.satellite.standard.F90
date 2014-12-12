@@ -223,7 +223,7 @@ contains
   !#  <unitName>Node_Component_Satellite_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Satellite_Standard_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}.
+    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     class           (nodeComponentSatellite)               , pointer :: satelliteComponent

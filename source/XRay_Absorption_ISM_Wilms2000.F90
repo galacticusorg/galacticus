@@ -15,10 +15,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which wraps the {\tt dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
-!% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\sc XSpec} to produce a table of X-ray absorption cross-sections in the
-!% \gls{ism}. This program assumes that various files from \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\sc XSpec} have been
-!% downloaded into the {\tt aux/XSpec} folder---usually this program will be run automatically as needed by the {\tt
+!% Contains a program which wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
+!% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption cross-sections in the
+!% \gls{ism}. This program assumes that various files from \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been
+!% downloaded into the {\normalfont \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\tt
 !% Galacticus::ISMCrossSections} module.
 
 ! Add explicit dependencies on the XSpec files.
@@ -26,10 +26,10 @@
 !/ exclude
 
 program XRay_Absorption_ISM_Wilms2000
-  !% Wraps the {\tt dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
-  !% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\sc XSpec} to produce a table of X-ray absorption cross-sections in the
-  !% \gls{ism}. This program assumes that various files from \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\sc XSpec} have
-  !% been downloaded into the {\tt aux/XSpec} folder---usually this program will be run automatically as needed by the {\tt
+  !% Wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
+  !% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption cross-sections in the
+  !% \gls{ism}. This program assumes that various files from \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have
+  !% been downloaded into the {\normalfont \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\tt
   !% Galacticus::ISMColumnDensity} module.
   use Numerical_Ranges
   use Numerical_Constants_Units
@@ -113,7 +113,7 @@ program XRay_Absorption_ISM_Wilms2000
 end program XRay_Absorption_ISM_Wilms2000
 
 subroutine xwrite(msg,i)
-  !% Message display function required by {\tt dotbvabs}.
+  !% Message display function required by {\normalfont \ttfamily dotbvabs}.
   implicit none
   character(len=*), intent(in   ) :: msg
   integer         , intent(in   ) :: i
@@ -123,7 +123,7 @@ subroutine xwrite(msg,i)
 end subroutine xwrite
 
 subroutine xermsg(a,b,c,i,j)
-  !% Error message function required by {\tt dotbvabs}.
+  !% Error message function required by {\normalfont \ttfamily dotbvabs}.
   use Galacticus_Error
   implicit none
   character(len=*), intent(in   ) :: a, b, c
@@ -137,7 +137,7 @@ subroutine xermsg(a,b,c,i,j)
 end subroutine xermsg
 
 real function fgabnd(c)
-  !% Function to return the abundance (relative to hydrogen) of elements. Required by {\tt dotbvabs}.
+  !% Function to return the abundance (relative to hydrogen) of elements. Required by {\normalfont \ttfamily dotbvabs}.
   use Galacticus_Error
   implicit none
   character(len=2), intent(in   ) :: c

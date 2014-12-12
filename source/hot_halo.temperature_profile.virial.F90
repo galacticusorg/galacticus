@@ -44,7 +44,7 @@ contains
   end subroutine Hot_Halo_Temperature_Virial
 
   double precision function Hot_Halo_Temperature_Virial_Get(thisNode,radius)
-    !% Compute the temperature at radius {\tt radius} in an isothermal (virial) temperature profile for {\tt thisNode}.
+    !% Compute the temperature at radius {\normalfont \ttfamily radius} in an isothermal (virial) temperature profile for {\normalfont \ttfamily thisNode}.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
@@ -58,8 +58,8 @@ contains
   end function Hot_Halo_Temperature_Virial_Get
 
   double precision function Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get(thisNode,radius)
-    !% Compute the logarithmic slope of the temperature at radius {\tt radius} in an isothermal temperature profile
-    !% for {\tt thisNode}.
+    !% Compute the logarithmic slope of the temperature at radius {\normalfont \ttfamily radius} in an isothermal temperature profile
+    !% for {\normalfont \ttfamily thisNode}.
     use Galacticus_Nodes
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode

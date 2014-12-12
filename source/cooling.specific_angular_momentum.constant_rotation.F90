@@ -62,7 +62,7 @@ contains
        !@   <defaultValue>hotGas</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The component (``{\tt hotGas}'' or ``{\tt darkMatter}'') from which the mean specific angular momentum should be computed for
+       !@     The component (``{\normalfont \ttfamily hotGas}'' or ``{\normalfont \ttfamily darkMatter}'') from which the mean specific angular momentum should be computed for
        !@     calculations of cooling gas specific angular momentum.
        !@   </description>
        !@   <type>string</type>
@@ -81,7 +81,7 @@ contains
        !@   <defaultValue>hotGas</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The component (``{\tt hotGas}'' or ``{\tt darkMatter}'') from which the constant rotation speed should be computed for
+       !@     The component (``{\normalfont \ttfamily hotGas}'' or ``{\normalfont \ttfamily darkMatter}'') from which the constant rotation speed should be computed for
        !@     calculations of cooling gas specific angular momentum.
        !@   </description>
        !@   <type>string</type>

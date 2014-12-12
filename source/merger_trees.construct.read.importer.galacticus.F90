@@ -22,7 +22,7 @@
   use Stateful_Types
 
   type, public, extends(nodeData) :: nodeDataGalacticus
-     !% Extension of the {\tt nodeData} class for \glc\ format merger trees. Stores particle indices and counts for nodes.
+     !% Extension of the {\normalfont \ttfamily nodeData} class for \glc\ format merger trees. Stores particle indices and counts for nodes.
      integer(c_size_t) :: particleIndexCount, particleIndexStart
   end type nodeDataGalacticus
 
@@ -547,7 +547,7 @@ contains
   end function galacticusTreeCount
 
   integer(kind=kind_int8) function galacticusTreeIndex(self,i)
-    !% Return the index of the $i^{\rm th}$ tree.
+    !% Return the index of the $i^{\mathrm th}$ tree.
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                              , intent(in   ) :: i
@@ -558,7 +558,7 @@ contains
   end function galacticusTreeIndex
 
   function galacticusNodeCount(self,i)
-    !% Return a count of the number of nodes in the $i^{\rm th}$ tree.
+    !% Return a count of the number of nodes in the $i^{\mathrm th}$ tree.
     implicit none
     integer(c_size_t                    )                :: galacticusNodeCount
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
@@ -869,7 +869,7 @@ contains
   end function galacticusSubhaloTraceCount
 
   subroutine galacticusImport(self,i,nodes,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions)
-    !% Import the $i^{\rm th}$ merger tree.
+    !% Import the $i^{\mathrm th}$ merger tree.
     use Memory_Management
     use Cosmology_Functions
     use HDF5

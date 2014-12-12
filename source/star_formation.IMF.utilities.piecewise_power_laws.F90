@@ -68,7 +68,7 @@ contains
   end subroutine Piecewise_Power_Law_IMF_Normalize
 
   pure double precision function Piecewise_Power_Law_IMF_Phi_Scalar(massLower,massUpper,massExponent,imfNormalization,mass)
-    !% Returns the IMF at given {\tt mass}.
+    !% Returns the IMF at given {\normalfont \ttfamily mass}.
     implicit none
     double precision, intent(in   ) :: imfNormalization(:), mass        , massExponent(:), &
          &                             massLower       (:), massUpper(:)
@@ -89,7 +89,7 @@ contains
   end function Piecewise_Power_Law_IMF_Phi_Scalar
 
   function Piecewise_Power_Law_IMF_Phi_Array(massLower,massUpper,massExponent,imfNormalization,mass)
-    !% Returns the IMF at given {\tt mass()}.
+    !% Returns the IMF at given {\normalfont \ttfamily mass()}.
     implicit none
     double precision, intent(in   ) :: imfNormalization                 (:         ), mass     (:), &
          &                             massExponent                     (:         ), massLower(:), &

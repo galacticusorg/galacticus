@@ -68,7 +68,7 @@ contains
   end subroutine Dark_Matter_Halo_Spins_Initialize
 
   double precision function Dark_Matter_Halo_Angular_Momentum(thisNode)
-    !% Returns the total anuglar momentum of {\tt thisNode} based on its mass, energy and spin parameter.
+    !% Returns the total anuglar momentum of {\normalfont \ttfamily thisNode} based on its mass, energy and spin parameter.
     use Galacticus_Nodes
     use Numerical_Constants_Physical
     use Dark_Matter_Profiles
@@ -90,7 +90,7 @@ contains
   end function Dark_Matter_Halo_Angular_Momentum
 
   double precision function Dark_Matter_Halo_Angular_Momentum_Growth_Rate(thisNode)
-    !% Returns the rate of change of the total anuglar momentum of {\tt thisNode} based on its mass, energy and spin parameter.
+    !% Returns the rate of change of the total anuglar momentum of {\normalfont \ttfamily thisNode} based on its mass, energy and spin parameter.
     use Galacticus_Nodes
     use Dark_Matter_Profiles
     implicit none

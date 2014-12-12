@@ -205,7 +205,7 @@ contains
        !@   <defaultValue>$2.4\times 10^{-3}$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The efficiency of the black hole-driven wind: $L_{\rm wind} = \epsilon_{\rm wind} \dot{M}_\bullet \clight^2$.
+       !@     The efficiency of the black hole-driven wind: $L_{\mathrm wind} = \epsilon_{\mathrm wind} \dot{M}_\bullet \clight^2$.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -547,7 +547,7 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Black_Hole_Standard_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}.
+    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     double precision                        , parameter              :: scaleMassRelative     =1.0d-4
@@ -596,7 +596,7 @@ contains
   !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Black_Hole_Standard_Satellite_Merging(thisNode)
-    !% Merge any black hole associated with {\tt thisNode} before it merges with its host halo.
+    !% Merge any black hole associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
     use Black_Hole_Binary_Mergers
     use Black_Hole_Binary_Initial_Radii
     use Black_Hole_Binary_Recoil_Velocities
@@ -839,7 +839,7 @@ contains
 
   subroutine Node_Component_Black_Hole_Standard_Mass_Accretion_Rate(thisBlackHoleComponent,accretionRateSpheroid&
        &,accretionRateHotHalo)
-    !% Returns the rate of mass accretion onto the black hole in {\tt thisNode}.
+    !% Returns the rate of mass accretion onto the black hole in {\normalfont \ttfamily thisNode}.
     use Bondi_Hoyle_Lyttleton_Accretion
     use Galactic_Structure_Densities
     use Galactic_Structure_Options
@@ -989,7 +989,7 @@ contains
   end subroutine Node_Component_Black_Hole_Standard_Mass_Accretion_Rate
 
   subroutine Node_Component_Black_Hole_Standard_Create(thisNode)
-    !% Creates a black hole component for {\tt thisNode}.
+    !% Creates a black hole component for {\normalfont \ttfamily thisNode}.
     implicit none
     type (treeNode              ), intent(inout), pointer :: thisNode
     class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
@@ -1146,7 +1146,7 @@ contains
   end subroutine Node_Component_Black_Hole_Standard_Output
 
   logical function Node_Component_Black_Hole_Standard_Matches(thisNode)
-    !% Return true if the black hole component of {\tt thisNode} is a match to the standard implementation.
+    !% Return true if the black hole component of {\normalfont \ttfamily thisNode} is a match to the standard implementation.
     implicit none
     type (treeNode              ), intent(inout), pointer :: thisNode
     class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
@@ -1200,7 +1200,7 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Standard_Output_Properties</unitName>
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Black_Hole_Standard_Output_Properties(thisNode,iOutput,treeIndex,nodePassesFilter)
-    !% Output properties for all black holes in {\tt thisNode}.
+    !% Output properties for all black holes in {\normalfont \ttfamily thisNode}.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_HDF5
     use Memory_Management

@@ -40,7 +40,7 @@ contains
   end subroutine Hot_Halo_Ram_Pressure_Force_Null_Initialize
 
   double precision function Hot_Halo_Ram_Pressure_Force_Null_Get(thisNode)
-    !% Computes the ram pressure force from the hot halo in the {\tt null} implementation. Always returns zero.
+    !% Computes the ram pressure force from the hot halo in the {\normalfont \ttfamily null} implementation. Always returns zero.
     use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode

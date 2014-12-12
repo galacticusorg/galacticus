@@ -71,7 +71,7 @@ contains
           !@   <defaultValue>$0$</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     Specifies whether or not to add random scatter to the dynamical friction timescales in the {\tt Jiang2008} satellite merging time implementation.
+          !@     Specifies whether or not to add random scatter to the dynamical friction timescales in the {\normalfont \ttfamily Jiang2008} satellite merging time implementation.
           !@   </description>
           !@   <type>string</type>
           !@   <cardinality>1</cardinality>

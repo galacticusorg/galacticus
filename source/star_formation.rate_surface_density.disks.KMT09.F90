@@ -128,7 +128,7 @@ contains
 
   double precision function Star_Formation_Rate_Surface_Density_Disk_KMT09(thisNode,radius)
     !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
-    !% in the galactic disk of {\tt thisNode}. The disk is assumed to obey the
+    !% in the galactic disk of {\normalfont \ttfamily thisNode}. The disk is assumed to obey the
     !% \cite{krumholz_star_2009} star formation rule.
     use Abundances_Structure
     use Galactic_Structure_Surface_Densities

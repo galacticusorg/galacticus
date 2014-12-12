@@ -28,14 +28,14 @@
   end type accretionDiskSpectraHopkins2007
 
   interface accretionDiskSpectraHopkins2007
-     !% Constructors for the {\tt hopkins2007} accretion disk spectra class.
+     !% Constructors for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
      module procedure hopkins2007Constructor
   end interface accretionDiskSpectraHopkins2007
 
 contains
 
   function hopkins2007Constructor()
-    !% Constructor for the {\tt hopkins2007} accretion disk spectra class.
+    !% Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
     use System_Command
     use Galacticus_Input_Paths
     use String_Handling

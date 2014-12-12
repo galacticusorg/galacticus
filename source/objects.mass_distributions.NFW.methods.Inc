@@ -64,7 +64,7 @@ subroutine Mass_Distribution_NFW_Initialize(self,scaleLength,concentration,densi
 end subroutine Mass_Distribution_NFW_Initialize
 
 double precision function Mass_Distribution_NFW_Density(self,coordinates)
-  !% Return the density at the specified {\tt coordinates} in an NFW mass distribution.
+  !% Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW mass distribution.
   use Coordinates
   implicit none
   class           (massDistributionNFW), intent(in   ) :: self

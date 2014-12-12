@@ -110,7 +110,7 @@ contains
           !@   <defaultValue>false</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     Specifies whether merger tree structure should be dumped to a \href{http://www.graphviz.org/}{\sc dot} file.
+          !@     Specifies whether merger tree structure should be dumped to a \href{http://www.graphviz.org/}{\normalfont \scshape dot} file.
           !@   </description>
           !@   <type>boolean</type>
           !@   <cardinality>1</cardinality>
@@ -387,7 +387,7 @@ contains
   end subroutine Merger_Tree_Evolve_To
 
   double precision function Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task,report,lockNode,lockType)
-    !% Determine the time to which {\tt thisNode} should be evolved.
+    !% Determine the time to which {\normalfont \ttfamily thisNode} should be evolved.
     use Merger_Trees_Evolve_Timesteps_Template
     use Merger_Trees_Evolve_Node
     use Merger_Tree_Timesteps
@@ -646,7 +646,7 @@ contains
   end subroutine Deadlock_Add_Node
 
   subroutine Deadlock_Tree_Output(endTime)
-    !% Output the deadlocked nodes in {\tt dot} format.
+    !% Output the deadlocked nodes in {\normalfont \ttfamily dot} format.
     implicit none
     double precision                    , intent(in   ) :: endTime
     type            (deadlockList      ), pointer       :: lockNode          , testNode, thisNode
@@ -741,7 +741,7 @@ contains
   end subroutine Deadlock_Tree_Output
 
   subroutine Perform_Node_Events(thisTree,thisNode,deadlockStatus)
-    !% Perform any events associated with {\tt thisNode}.
+    !% Perform any events associated with {\normalfont \ttfamily thisNode}.
     implicit none
     type            (mergerTree        ), intent(in   )          :: thisTree
     type            (treeNode          ), intent(inout), pointer :: thisNode
@@ -789,7 +789,7 @@ contains
   end subroutine Perform_Node_Events
 
   subroutine Perform_Tree_Events(thisTree,deadlockStatus)
-    !% Perform any events associated with {\tt thisNode}.
+    !% Perform any events associated with {\normalfont \ttfamily thisNode}.
     implicit none
     type            (mergerTree        ), intent(inout), target  :: thisTree
     integer                             , intent(inout)          :: deadlockStatus

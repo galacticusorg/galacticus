@@ -60,7 +60,7 @@ contains
   !#  <unitName>Spherical_Collapse_Dark_Energy_Delta_Critical_Initialize</unitName>
   !# </criticalOverdensityMethod>
   subroutine Spherical_Collapse_Dark_Energy_Delta_Critical_Initialize(criticalOverdensityMethod,Critical_Overdensity_Tabulate)
-    !% Initializes the $\delta_{\rm crit}$ calculation for the spherical collapse module.
+    !% Initializes the $\delta_{\mathrm crit}$ calculation for the spherical collapse module.
     implicit none
     type     (varying_string                                     ), intent(in   )          :: criticalOverdensityMethod
     procedure(Spherical_Collapse_Dark_Energy_Critical_Overdensity), intent(inout), pointer :: Critical_Overdensity_Tabulate
@@ -97,7 +97,7 @@ contains
   end subroutine Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate
 
   subroutine Make_Table(time,deltaTable,calculationType)
-    !% Tabulate $\delta_{\rm crit}$ or $\Delta_{\rm vir}$ vs. time.
+    !% Tabulate $\delta_{\mathrm crit}$ or $\Delta_{\mathrm vir}$ vs. time.
     use Linear_Growth
     use Root_Finder
     use Tables
@@ -267,7 +267,7 @@ contains
 
   double precision function radiusPerturbation(epsilonPerturbation)
     !% Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    !% amplitude {\tt epsilonPerturbation}.
+    !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
 
@@ -277,7 +277,7 @@ contains
 
   double precision function expansionRatePerturbation(time)
     !% Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    !% amplitude {\tt epsilonPerturbation}.
+    !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
     implicit none
     double precision, intent(in   ) :: time
 
@@ -287,7 +287,7 @@ contains
 
   subroutine Perturbation_Dynamics_Solver(epsilonPerturbation,time,perturbationRadius,perturbationExpansionRate)
     !% Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    !% amplitude {\tt epsilonPerturbation}.
+    !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
     use ODEIV2_Solver
     use FODEIV2
     implicit none

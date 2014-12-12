@@ -31,7 +31,7 @@
   end type virialDensityContrastFriendsOfFriends
 
   interface virialDensityContrastFriendsOfFriends
-     !% Constructors for the {\tt friendsOfFriends} dark matter halo virial density contrast class.
+     !% Constructors for the {\normalfont \ttfamily friendsOfFriends} dark matter halo virial density contrast class.
      module procedure friendsOfFriendsDefaultConstructor
      module procedure friendsOfFriendsConstructor
   end interface virialDensityContrastFriendsOfFriends
@@ -45,7 +45,7 @@
 contains
 
   function friendsOfFriendsDefaultConstructor()
-    !% Default constructor for the {\tt friendsOfFriends} dark matter halo virial density contrast class.
+    !% Default constructor for the {\normalfont \ttfamily friendsOfFriends} dark matter halo virial density contrast class.
     use Input_Parameters
     implicit none
     type (virialDensityContrastFriendsOfFriends), target  :: friendsOfFriendsDefaultConstructor
@@ -86,7 +86,7 @@ contains
   end function friendsOfFriendsDefaultConstructor
 
   function friendsOfFriendsConstructor(linkingLength,densityRatio)
-    !% Generic constructor for the {\tt friendsOfFriends} dark matter halo virial density contrast class.
+    !% Generic constructor for the {\normalfont \ttfamily friendsOfFriends} dark matter halo virial density contrast class.
     use Input_Parameters
     implicit none
     type            (virialDensityContrastFriendsOfFriends), target        :: friendsOfFriendsConstructor

@@ -58,7 +58,7 @@ contains
   !#  <sortName>spin</sortName>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Spin_Preset3D_Initialize(thisNode)
-    !% Initialize the spin of {\tt thisNode}.
+    !% Initialize the spin of {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     class           (nodeComponentSpin )               , pointer :: parentSpinComponent , thisSpinComponent
@@ -137,7 +137,7 @@ contains
   !#  <unitName>Node_Component_Spin_Preset3D_Promote</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Spin_Preset3D_Promote(thisNode)
-    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the spin of {\tt thisNode}
+    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily thisNode}
     !% to be that of its parent.
     use Galacticus_Error
     implicit none

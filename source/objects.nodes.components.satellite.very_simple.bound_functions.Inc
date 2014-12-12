@@ -18,7 +18,7 @@
 !% Contains custom functions for the very simple satellite component.
 
 double precision function Node_Component_Satellite_Very_Simple_Merge_Time(self)
-  !% Return the {\tt mergeTime} property of the {\tt satelliteVerySimple} component.
+  !% Return the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satelliteVerySimple} component.
   implicit none
   class(nodeComponentSatelliteVerySimple), intent(inout) :: self
   type (treeNode                        ), pointer       :: selfNode
@@ -33,7 +33,7 @@ double precision function Node_Component_Satellite_Very_Simple_Merge_Time(self)
 end function Node_Component_Satellite_Very_Simple_Merge_Time
 
 double precision function Node_Component_Satellite_Very_Simple_Time_Of_Merging(self)
-  !% Return the {\tt timeOfMerging} property of the {\tt satelliteVerySimple} component.
+  !% Return the {\normalfont \ttfamily timeOfMerging} property of the {\normalfont \ttfamily satelliteVerySimple} component.
   implicit none
   class(nodeComponentSatelliteVerysimple), intent(inout) :: self
   type (treeNode                        ), pointer       :: selfNode

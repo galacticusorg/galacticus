@@ -49,7 +49,7 @@
      !@     <method>velocityScale</method>
      !@     <type>double precision</type>
      !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Returns the velocity scale to use for {\tt node}.</description>
+     !@     <description>Returns the velocity scale to use for {\normalfont \ttfamily node}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>massTotal</method>
@@ -73,7 +73,7 @@
   end type accretionHaloSimple
 
   interface accretionHaloSimple
-     !% Constructors for the {\tt simple} halo accretion class.
+     !% Constructors for the {\normalfont \ttfamily simple} halo accretion class.
      module procedure simpleConstructor
      module procedure simpleDefaultConstructor
   end interface accretionHaloSimple
@@ -98,7 +98,7 @@
 contains
 
   function simpleDefaultConstructor()
-    !% Default constructor for the {\tt simple} halo accretion class.
+    !% Default constructor for the {\normalfont \ttfamily simple} halo accretion class.
     use Intergalactic_Medium_State
     use Cosmology_Functions
     use Galacticus_Error
@@ -186,7 +186,7 @@ contains
   end function simpleDefaultConstructor
        
   function simpleConstructor(reionizationSuppressionTime,reionizationSuppressionVelocity,negativeAccretionAllowed,accreteNewGrowthOnly)
-    !% Default constructor for the {\tt simple} halo accretion class.
+    !% Default constructor for the {\normalfont \ttfamily simple} halo accretion class.
     use Input_Parameters
     use Galacticus_Nodes
     use Galacticus_Error
@@ -233,7 +233,7 @@ contains
   end function simpleConstructor
 
   double precision function simpleAccretionRate(self,node,accretionMode)
-    !% Computes the baryonic accretion rate onto {\tt node}.
+    !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     use Cosmology_Parameters
     implicit none
@@ -274,7 +274,7 @@ contains
   end function simpleAccretionRate
 
   double precision function simpleAccretedMass(self,node,accretionMode)
-    !% Computes the mass of baryons accreted into {\tt node}.
+    !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     use Cosmology_Parameters
     implicit none
@@ -298,7 +298,7 @@ contains
   end function simpleAccretedMass
 
   double precision function simpleFailedAccretionRate(self,node,accretionMode)
-    !% Computes the baryonic accretion rate onto {\tt node}.
+    !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
@@ -338,7 +338,7 @@ contains
   end function simpleFailedAccretionRate
 
   double precision function simpleFailedAccretedMass(self,node,accretionMode)
-    !% Computes the mass of baryons accreted into {\tt node}.
+    !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
@@ -363,7 +363,7 @@ contains
   end function simpleFailedAccretedMass
   
   function simpleAccretionRateMetals(self,node,accretionMode)
-    !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\tt node} from the intergalactic medium.
+    !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
     type  (abundances         )                         :: simpleAccretionRateMetals
@@ -377,7 +377,7 @@ contains
   end function simpleAccretionRateMetals
 
   function simpleAccretedMassMetals(self,node,accretionMode)
-    !% Computes the mass of abundances accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
+    !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
     type   (abundances         )                         :: simpleAccretedMassMetals
@@ -391,7 +391,7 @@ contains
   end function simpleAccretedMassMetals
 
   function simpleAccretionRateChemicals(self,node,accretionMode)
-    !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\tt node} from the intergalactic medium. Assumes a
+    !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium. Assumes a
     !% primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
     !% temperature.
     use Galacticus_Nodes
@@ -419,7 +419,7 @@ contains
   end function simpleAccretionRateChemicals
 
   function simpleAccretedMassChemicals(self,node,accretionMode)
-    !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
+    !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
@@ -445,7 +445,7 @@ contains
   end function simpleAccretedMassChemicals
 
   function simpleChemicalMasses(self,node,massAccreted)
-    !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\tt node} from the intergalactic medium.
+    !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
@@ -487,7 +487,7 @@ contains
   end function simpleChemicalMasses
 
   double precision function simpleVelocityScale(self,node)
-    !% Returns the velocity scale to use for {\tt node}. Use the virial velocity.
+    !% Returns the velocity scale to use for {\normalfont \ttfamily node}. Use the virial velocity.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none

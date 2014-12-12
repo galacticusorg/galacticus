@@ -29,8 +29,8 @@ module Numerical_Ranges
 contains
 
   recursive function Make_Range(rangeMinimum,rangeMaximum,rangeNumber,rangeType) result (rangeValues)
-    !% Builds a numerical range between {\tt rangeMinimum} and {\tt rangeMaximum} using {\tt rangeNumber} points and spacing as
-    !% specified by {\tt rangeType} (defaulting to linear spacing if no {\tt rangeType} is given).
+    !% Builds a numerical range between {\normalfont \ttfamily rangeMinimum} and {\normalfont \ttfamily rangeMaximum} using {\normalfont \ttfamily rangeNumber} points and spacing as
+    !% specified by {\normalfont \ttfamily rangeType} (defaulting to linear spacing if no {\normalfont \ttfamily rangeType} is given).
     use Galacticus_Error
     implicit none
     double precision, intent(in   )           :: rangeMaximum             , rangeMinimum

@@ -74,7 +74,7 @@ module Semaphores
 
   interface
      function Semaphore_Open_C(name,initialValue) bind(c,name='Semaphore_Open_C')
-       !% Template for a C function that calls {\tt sem\_open()}.
+       !% Template for a C function that calls {\normalfont \ttfamily sem\_open()}.
        import
        type     (c_ptr )        :: Semaphore_Open_C
        character(c_char)        :: name
@@ -84,7 +84,7 @@ module Semaphores
 
   interface
      subroutine Semaphore_Close_C(s) bind(c,name='Semaphore_Close_C')
-       !% Template for a C function that calls {\tt sem\_close()}.
+       !% Template for a C function that calls {\normalfont \ttfamily sem\_close()}.
        import
        type(c_ptr), value :: s
      end subroutine Semaphore_Close_C
@@ -92,7 +92,7 @@ module Semaphores
 
   interface
      subroutine Semaphore_Wait_C(s) bind(c,name='Semaphore_Wait_C')
-       !% Template for a C function that calls {\tt sem\_wait()}.
+       !% Template for a C function that calls {\normalfont \ttfamily sem\_wait()}.
        import
        type(c_ptr), value :: s
      end subroutine Semaphore_Wait_C
@@ -100,7 +100,7 @@ module Semaphores
 
   interface
      subroutine Semaphore_Post_C(s) bind(c,name='Semaphore_Post_C')
-       !% Template for a C function that calls {\tt sem\_post()}.
+       !% Template for a C function that calls {\normalfont \ttfamily sem\_post()}.
        import
        type(c_ptr), value :: s
      end subroutine Semaphore_Post_C
@@ -108,7 +108,7 @@ module Semaphores
 
   interface
      subroutine Semaphore_Unlink_C(name) bind(c,name='Semaphore_Unlink_C')
-       !% Template for a C function that calls {\tt sem\_unlink()}.
+       !% Template for a C function that calls {\normalfont \ttfamily sem\_unlink()}.
        import
        character(c_char) :: name
      end subroutine Semaphore_Unlink_C

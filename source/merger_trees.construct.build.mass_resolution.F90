@@ -73,7 +73,7 @@ contains
   end subroutine Merger_Tree_Build_Mass_Resolution_Initialize
 
   double precision function Merger_Tree_Build_Mass_Resolution(thisTree)
-    !% Return the mass resolution to use when building {\tt thisTree}.
+    !% Return the mass resolution to use when building {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
     implicit none
     type(mergerTree), intent(in   ) :: thisTree

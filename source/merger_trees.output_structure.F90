@@ -42,7 +42,7 @@ contains
   !#   <unitName>Merger_Tree_Structure_Output</unitName>
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Structure_Output(thisTree)
-    !% Output the structure of {\tt thisTree}.
+    !% Output the structure of {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management

@@ -261,7 +261,7 @@ contains
   end function Cooling_Radius_Simple
 
   subroutine Cooling_Radius_Solver_Initialize(thisNode)
-    !% Initialize the abundances, chemical properties and radiation field for {\tt thisNode} for use in cooling radius
+    !% Initialize the abundances, chemical properties and radiation field for {\normalfont \ttfamily thisNode} for use in cooling radius
     !% calculations.
     use Chemical_Reaction_Rates_Utilities
     implicit none
@@ -299,7 +299,7 @@ contains
   end subroutine Cooling_Radius_Solver_Initialize
 
   double precision function Cooling_Radius_Root(radius)
-    !% Root function which evaluates the difference between the cooling time at {\tt radius} and the time available for cooling.
+    !% Root function which evaluates the difference between the cooling time at {\normalfont \ttfamily radius} and the time available for cooling.
     use Cooling_Times
     use Hot_Halo_Temperature_Profile
     implicit none

@@ -80,7 +80,7 @@ contains
   end subroutine Excursion_Sets_First_Crossings_Initialize
 
   double precision function Excursion_Sets_First_Crossing_Probability(variance,time)
-    !% Return the probability of first crossing for excursion sets at the given {\tt variance} and {\tt time}.
+    !% Return the probability of first crossing for excursion sets at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.
     implicit none
     double precision, intent(in   ) :: time, variance
 
@@ -92,7 +92,7 @@ contains
   end function Excursion_Sets_First_Crossing_Probability
 
   double precision function Excursion_Sets_First_Crossing_Rate(variance,varianceProgenitor,time)
-    !% Return the rate of first crossing for excursion sets beginning at the given {\tt variance} and {\tt time} to transition to a first crossing at the given {\tt varianceProgenitor}.
+    !% Return the rate of first crossing for excursion sets beginning at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time} to transition to a first crossing at the given {\normalfont \ttfamily varianceProgenitor}.
     implicit none
     double precision, intent(in   ) :: time, variance, varianceProgenitor
 
@@ -104,7 +104,7 @@ contains
   end function Excursion_Sets_First_Crossing_Rate
 
   double precision function Excursion_Sets_Non_Crossing_Rate(variance,time)
-    !% Return the rate of non-crossing for excursion sets beginning at the given {\tt variance} and {\tt time}.
+    !% Return the rate of non-crossing for excursion sets beginning at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.
     implicit none
     double precision, intent(in   ) :: time, variance
 

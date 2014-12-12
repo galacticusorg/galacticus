@@ -83,7 +83,7 @@ contains
   end subroutine Dark_Matter_Mass_Accretion_Initialize
 
   double precision function Dark_Matter_Halo_Mass_Accretion_Time(baseNode,nodeMass)
-    !% Returns the time for {\tt thisNode} in {\tt thisTree} according to the mass accretion history.
+    !% Returns the time for {\normalfont \ttfamily thisNode} in {\normalfont \ttfamily thisTree} according to the mass accretion history.
     implicit none
     type            (treeNode), intent(inout), pointer :: baseNode
     double precision          , intent(in   )          :: nodeMass

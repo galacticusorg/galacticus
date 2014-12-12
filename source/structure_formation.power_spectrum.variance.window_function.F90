@@ -76,8 +76,8 @@ contains
   end subroutine Power_Spectrum_Window_Functions_Initialize
 
   double precision function Power_Spectrum_Window_Function(wavenumber,smoothingMass)
-    !% Returns the window function for power spectrum variance computation at the specified {\tt wavenumber} (in Mpc$^{-1}$) for a
-    !% given {\tt smoothingMass} (in $M_\odot$).
+    !% Returns the window function for power spectrum variance computation at the specified {\normalfont \ttfamily wavenumber} (in Mpc$^{-1}$) for a
+    !% given {\normalfont \ttfamily smoothingMass} (in $M_\odot$).
     implicit none
     double precision, intent(in   ) :: smoothingMass, wavenumber
 
@@ -91,7 +91,7 @@ contains
 
   double precision function Power_Spectrum_Window_Function_Wavenumber_Maximum(smoothingMass)
     !% Returns the maximum wavenumber for which the window function for power spectrum variance computation is non-zero for a
-    !% given {\tt smoothingMass} (in $M_\odot$).
+    !% given {\normalfont \ttfamily smoothingMass} (in $M_\odot$).
     implicit none
     double precision, intent(in   ) :: smoothingMass
 

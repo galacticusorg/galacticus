@@ -82,7 +82,7 @@ contains
   end subroutine Dark_Matter_Halo_Mass_Loss_Rates_Initialize
 
   double precision function Dark_Matter_Halos_Mass_Loss_Rate(thisNode)
-    !% Returns the rate of mass loss (in $M_\odot$/Gyr) from {\tt thisNode}.
+    !% Returns the rate of mass loss (in $M_\odot$/Gyr) from {\normalfont \ttfamily thisNode}.
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

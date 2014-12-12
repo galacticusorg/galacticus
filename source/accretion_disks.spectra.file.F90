@@ -46,7 +46,7 @@
   end type accretionDiskSpectraFile
 
   interface accretionDiskSpectraFile
-     !% Constructors for the {\tt file} accretion disk spectra class.
+     !% Constructors for the {\normalfont \ttfamily file} accretion disk spectra class.
      module procedure fileDefaultConstructor
      module procedure fileConstructor
   end interface accretionDiskSpectraFile
@@ -63,7 +63,7 @@
 contains
 
   function fileDefaultConstructor()
-    !% Default constructor for the {\tt file} accretion disk spectra class.
+    !% Default constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
     use Input_Parameters
     implicit none
     type (accretionDiskSpectraFile), target :: fileDefaultConstructor
@@ -91,7 +91,7 @@ contains
   end function fileDefaultConstructor
 
   function fileConstructor(fileName)
-    !% Constructor for the {\tt file} accretion disk spectra class.
+    !% Constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
     use Galacticus_Error
     use Array_Utilities
     implicit none
@@ -124,7 +124,7 @@ contains
   end function fileConstructor
 
   subroutine fileDestructor(self)
-    !% Default destructor for the {\tt file} accretion disk spectra class.
+    !% Default destructor for the {\normalfont \ttfamily file} accretion disk spectra class.
     use Numerical_Interpolation
     use Memory_Management
     implicit none

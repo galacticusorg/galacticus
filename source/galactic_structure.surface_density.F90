@@ -33,7 +33,7 @@ module Galactic_Structure_Surface_Densities
 contains
 
   double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,componentType,massType,haloLoaded)
-    !% Compute the density (of given {\tt massType}) at the specified {\tt position}. Assumes that galactic structure has already
+    !% Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     !% been computed.
     use Galacticus_Error
     use Coordinate_Systems

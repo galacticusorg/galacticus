@@ -48,7 +48,7 @@ contains
   !#  <unitName>Node_Component_Basic_Standard_Tree_Tracking_Initialize</unitName>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Basic_Standard_Tree_Tracking_Initialize(thisNode)
-    !% Set the mass accretion rate for {\tt thisNode}.
+    !% Set the mass accretion rate for {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     type            (treeNode          )               , pointer :: progenitorNode
@@ -77,7 +77,7 @@ contains
   !#  <unitName>Node_Component_Basic_Standard_Tracking_Promote</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Basic_Standard_Tracking_Promote(thisNode)
-    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the maximum mass of {\tt
+    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the maximum mass of {\tt
     !% thisNode} to be that of its parent.
     use Galacticus_Error
     implicit none

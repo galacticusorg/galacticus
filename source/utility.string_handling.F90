@@ -55,7 +55,7 @@ module String_Handling
 contains
 
   integer function String_Count_Words(inputString,separator)
-    !% Return a count of the number of space separated words in {\tt inputString}.
+    !% Return a count of the number of space separated words in {\normalfont \ttfamily inputString}.
     implicit none
     character(len=*         ), intent(in   )           :: inputString
     character(len=*         ), intent(in   ), optional :: separator
@@ -85,7 +85,7 @@ contains
   end function String_Count_Words
 
   subroutine String_Split_Words_VarString(words,inputString,separator,bracketing)
-    !% Split {\tt inputString} into words and return as an array.
+    !% Split {\normalfont \ttfamily inputString} into words and return as an array.
     implicit none
     type     (varying_string), dimension(:), intent(  out)           :: words
     character(len=*         )              , intent(in   )           :: inputString
@@ -133,7 +133,7 @@ contains
   end subroutine String_Split_Words_VarString
 
   subroutine String_Split_Words_Char(words,inputString,separator,bracketing)
-    !% Split {\tt inputString} into words and return as an array.
+    !% Split {\normalfont \ttfamily inputString} into words and return as an array.
     implicit none
     character(len=*         ), dimension(:), intent(  out)           :: words
     character(len=*         )              , intent(in   )           :: inputString
@@ -181,7 +181,7 @@ contains
   end subroutine String_Split_Words_Char
 
   function Concatenate_VarStr_Integer(varStrVariable,intVariable)
-    !% Provides a concatenation operator to append an integer number to a {\tt varying\_string}.
+    !% Provides a concatenation operator to append an integer number to a {\normalfont \ttfamily varying\_string}.
     implicit none
     type     (varying_string    ), intent(in   ) :: varStrVariable
     integer                      , intent(in   ) :: intVariable
@@ -194,7 +194,7 @@ contains
   end function Concatenate_VarStr_Integer
 
   function Concatenate_VarStr_Integer8(varStrVariable,intVariable)
-    !% Provides a concatenation operator to append an integer number to a {\tt varying\_string}.
+    !% Provides a concatenation operator to append an integer number to a {\normalfont \ttfamily varying\_string}.
     use Kind_Numbers
     implicit none
     type     (varying_string    ), intent(in   ) :: varStrVariable
@@ -323,7 +323,7 @@ contains
   end function String_Superscript
 
   integer function String_Levenshtein_Distance(s,t)
-    !% Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings {\tt a} and {\tt
+    !% Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings {\normalfont \ttfamily a} and {\tt
     !% b}.
     implicit none
     character(len=*), intent(in   )                :: s, t

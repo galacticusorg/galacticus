@@ -15,10 +15,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which generates a tabulated transfer function using \href{http://camb.info}{\sc CAMB}.
+!% Contains a module which generates a tabulated transfer function using \href{http://camb.info}{\normalfont \scshape CAMB}.
 
 module Transfer_Function_CAMB
-  !% Implements generation of a tabulated transfer function using \href{http://camb.info}{\sc CAMB}.
+  !% Implements generation of a tabulated transfer function using \href{http://camb.info}{\normalfont \scshape CAMB}.
   use ISO_Varying_String
   implicit none
   private
@@ -50,7 +50,7 @@ contains
 
   subroutine Transfer_Function_CAMB_Make(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber&
        &,transferFunctionLogT)
-    !% Build a transfer function using \href{http://camb.info}{\sc CAMB}.
+    !% Build a transfer function using \href{http://camb.info}{\normalfont \scshape CAMB}.
     use FoX_wxml
     use System_Command
     use Transfer_Functions_File

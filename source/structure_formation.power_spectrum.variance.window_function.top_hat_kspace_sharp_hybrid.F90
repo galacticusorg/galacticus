@@ -58,11 +58,11 @@ contains
        !@   <defaultValue>natural</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The parameter $a$ in the relation $k_{\rm s} = a/r_{\rm s}$, where $k_{\rm s}$ is the cut-off wavenumber for
-       !@     the sharp $k$-space window function and $r_{\rm s}$ is the radius of a sphere (in real-space) enclosing the
-       !@     requested smoothing mass. Alternatively, a value of {\tt natural} will be supplied in which case the normalization
+       !@     The parameter $a$ in the relation $k_{\mathrm s} = a/r_{\mathrm s}$, where $k_{\mathrm s}$ is the cut-off wavenumber for
+       !@     the sharp $k$-space window function and $r_{\mathrm s}$ is the radius of a sphere (in real-space) enclosing the
+       !@     requested smoothing mass. Alternatively, a value of {\normalfont \ttfamily natural} will be supplied in which case the normalization
        !@     is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass
-       !@     of $M=6 \pi^2 \bar{\rho} k_{\rm s}^{-3}$.
+       !@     of $M=6 \pi^2 \bar{\rho} k_{\mathrm s}^{-3}$.
        !@   </description>
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
@@ -83,7 +83,7 @@ contains
        !@   <defaultValue>1</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The parameter $\beta$ in the relation $r_{\rm s}=\beta r_{\rm th}$ between $k$-space sharp and top-hat window function radii in the hybrid window function used for computing the variance in the power spectrum.
+       !@     The parameter $\beta$ in the relation $r_{\mathrm s}=\beta r_{\mathrm th}$ between $k$-space sharp and top-hat window function radii in the hybrid window function used for computing the variance in the power spectrum.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -96,10 +96,10 @@ contains
 
   double precision function Power_Spectrum_Window_Function_TH_KSS_Hybrid(wavenumber,smoothingMass)
     !% Computes a window function for calculations of the variance in the power spectrum. Specifically, uses a convolution of
-    !% top-hat real-space and sharp $k$-space window functions. The top-hat radius is $r_{\rm th}$, while the $k$-space cut-off
-    !% wavenumber is $k_{\rm s}=a/r_{\rm s}$, where $a=${\tt [powerSpectrumWindowFunctionSharpKSpaceNormalization]}. The two radii
-    !% are chosen such that $r_{\rm th}^2 + r_{\rm s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_{\rm s}=\beta r_{\rm th}$ where
-    !% $\beta=${\tt [powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio]}.
+    !% top-hat real-space and sharp $k$-space window functions. The top-hat radius is $r_{\mathrm th}$, while the $k$-space cut-off
+    !% wavenumber is $k_{\mathrm s}=a/r_{\mathrm s}$, where $a=${\normalfont \ttfamily [powerSpectrumWindowFunctionSharpKSpaceNormalization]}. The two radii
+    !% are chosen such that $r_{\mathrm th}^2 + r_{\mathrm s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_{\mathrm s}=\beta r_{\mathrm th}$ where
+    !% $\beta=${\normalfont \ttfamily [powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio]}.
     use Numerical_Constants_Math
     use Cosmology_Parameters
     implicit none
@@ -155,9 +155,9 @@ contains
   double precision function Power_Spectrum_Window_Function_Wavenumber_Maximum_TH_KSS_Hybrid(smoothingMass)
     !% Computes the maximum wavenumber at which the window function for calculations of the variance in the power spectrum is
     !% non-zero. Specifically, uses a convolution of top-hat real-space and sharp $k$-space window functions. The top-hat radius
-    !% is $r_{\rm th}$, while the $k$-space cut-off wavenumber is $k_{\rm s}=a/r_{\rm s}$, where $a=${\tt
-    !% [powerSpectrumWindowFunctionSharpKSpaceNormalization]}. The two radii are chosen such that $r_{\rm th}^2 + r_{\rm s}^2 = (3
-    !% M / 4 \pi \bar{rho})^{1/3}$ and $r_{\rm s}=\beta r_{\rm th}$ where $\beta=${\tt
+    !% is $r_{\mathrm th}$, while the $k$-space cut-off wavenumber is $k_{\mathrm s}=a/r_{\mathrm s}$, where $a=${\tt
+    !% [powerSpectrumWindowFunctionSharpKSpaceNormalization]}. The two radii are chosen such that $r_{\mathrm th}^2 + r_{\mathrm s}^2 = (3
+    !% M / 4 \pi \bar{rho})^{1/3}$ and $r_{\mathrm s}=\beta r_{\mathrm th}$ where $\beta=${\tt
     !% [powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio]}.
     implicit none
     double precision, intent(in   ) :: smoothingMass

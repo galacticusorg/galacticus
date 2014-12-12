@@ -228,7 +228,7 @@ contains
   !#  <unitName>Node_Component_Disk_Very_Simple_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Disk_Very_Simple_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}.
+    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
     implicit none
     type            (treeNode         ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk)               , pointer :: thisDiskComponent
@@ -254,7 +254,7 @@ contains
   !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Disk_Very_Simple_Satellite_Merging(thisNode)
-    !% Transfer any very simple disk associated with {\tt thisNode} to its host halo.
+    !% Transfer any very simple disk associated with {\normalfont \ttfamily thisNode} to its host halo.
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     implicit none

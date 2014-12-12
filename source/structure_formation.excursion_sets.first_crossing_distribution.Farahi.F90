@@ -99,7 +99,7 @@ contains
        !@   <type>string</type>
        !@   <cardinality>0..1</cardinality>
        !@   <description>
-       !@     The name of the file to/from which tabulations of barrier first crossing probabilities should be written/read. If set to ``{\tt none}'' tables will not be stored.
+       !@     The name of the file to/from which tabulations of barrier first crossing probabilities should be written/read. If set to ``{\normalfont \ttfamily none}'' tables will not be stored.
        !@   </description>
        !@ </inputParameter>
        call Get_Input_Parameter('excursionSetFirstCrossingFarahiFileName',excursionSetFirstCrossingFarahiFileName,defaultValue='none')
@@ -779,8 +779,8 @@ contains
   end subroutine Excursion_Sets_First_Crossing_Farahi_Write_File
 
   function Make_Variance_Range(rangeMinimum,rangeMaximum,rangeNumber,ratioAtMaximum) result (rangeValues)
-    !% Builds a numerical range between {\tt rangeMinimum} and {\tt rangeMaximum} using {\tt rangeNumber} points with spacing that
-    !% varies from logarithmic to linear spacing with the transition point controlled by {\tt ratioAtMaximum}.
+    !% Builds a numerical range between {\normalfont \ttfamily rangeMinimum} and {\normalfont \ttfamily rangeMaximum} using {\normalfont \ttfamily rangeNumber} points with spacing that
+    !% varies from logarithmic to linear spacing with the transition point controlled by {\normalfont \ttfamily ratioAtMaximum}.
     implicit none
     double precision, intent(in   )          :: rangeMaximum               , rangeMinimum    , &
          &                                      ratioAtMaximum

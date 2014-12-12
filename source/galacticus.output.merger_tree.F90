@@ -73,7 +73,7 @@ module Galacticus_Output_Merger_Tree
 contains
 
   subroutine Galacticus_Merger_Tree_Output(thisTree,iOutput,time,isLastOutput)
-    !% Write properties of nodes in {\tt thisTree} to the \glc\ output file.
+    !% Write properties of nodes in {\normalfont \ttfamily thisTree} to the \glc\ output file.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Galacticus_Output_Open
@@ -322,7 +322,7 @@ contains
   end subroutine Galacticus_Merger_Tree_Output_Finalize
 
   subroutine Galacticus_Merger_Tree_Output_Make_Group(thisTree,iOutput)
-    !% Make an group in the \glc\ file in which to store {\tt thisTree}.
+    !% Make an group in the \glc\ file in which to store {\normalfont \ttfamily thisTree}.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Astronomical
     use String_Handling

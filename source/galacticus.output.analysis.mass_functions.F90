@@ -753,7 +753,7 @@ contains
           !@   <defaultValue>0.9</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The parameter, $\mu$, appearing in the model for the H$_2$/HI mass ratio used when constructing the ALFALFA HI mass function. Specifically, $\log_{10}R_{\rm mol} = \mu + \kappa \log_{10}(M_{\rm gas}/10^9M_\odot)$.
+          !@    The parameter, $\mu$, appearing in the model for the H$_2$/HI mass ratio used when constructing the ALFALFA HI mass function. Specifically, $\log_{10}R_{\mathrm mol} = \mu + \kappa \log_{10}(M_{\mathrm gas}/10^9M_\odot)$.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>
@@ -765,7 +765,7 @@ contains
           !@   <defaultValue>1.3</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    The parameter, $\kappa$, appearing in the model for the H$_2$/HI mass ratio used when constructing the ALFALFA HI mass function. Specifically, $\log_{10}R_{\rm mol} = \mu + \kappa \log_{10}(M_{\rm gas}/10^9M_\odot)$.
+          !@    The parameter, $\kappa$, appearing in the model for the H$_2$/HI mass ratio used when constructing the ALFALFA HI mass function. Specifically, $\log_{10}R_{\mathrm mol} = \mu + \kappa \log_{10}(M_{\mathrm gas}/10^9M_\odot)$.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>0..1</cardinality>

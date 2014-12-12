@@ -100,7 +100,7 @@ contains
 
   double precision function SNeIa_Cumulative_Number_Nagashima(initialMass,age,metallicity)
     !% Compute the cumulative number of Type Ia supernovae originating per unit mass of stars that form with given {\tt
-    !% initialMass} and {\tt metallicity} after a time {\tt age}. The calculation is based on that of \cite{nagashima_metal_2005}. The
+    !% initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. The calculation is based on that of \cite{nagashima_metal_2005}. The
     !% number returned here assumes a distribution of binary mass ratios and so only makes sense once it is integrated over an initial
     !% mass function.
     use Stellar_Astrophysics
@@ -131,7 +131,7 @@ contains
 
   double precision function SNeIa_Cumulative_Yield_Nagashima(initialMass,age,metallicity,atomIndex)
     !% Compute the cumulative yield from Type Ia supernovae originating per unit mass of stars that form with given {\tt
-    !% initialMass} and {\tt metallicity} after a time {\tt age}. The calculation is based on the Type Ia rate calculation of
+    !% initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. The calculation is based on the Type Ia rate calculation of
     !% \cite{nagashima_metal_2005} and the Type Ia yields from \cite{nomoto_nucleosynthesis_1997}. The number returned here
     !% assumes a distribution of binary mass ratios and so only makes sense once it is integrated over an initial mass function.
     implicit none

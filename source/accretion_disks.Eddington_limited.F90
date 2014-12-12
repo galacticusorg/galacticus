@@ -99,7 +99,7 @@ contains
   end function Accretion_Disk_Jet_Power_Eddington
 
   double precision function Black_Hole_Spin_Up_Rate_Eddington(thisBlackHole,massAccretionRate)
-    !% Computes the spin up rate of the black hole in {\tt thisNode} due to accretion from an Eddington-limited accretion disk.
+    !% Computes the spin up rate of the black hole in {\normalfont \ttfamily thisNode} due to accretion from an Eddington-limited accretion disk.
     !% disk. This is always zero, as no physical model is specified for this accretion disk method.
     use Galacticus_Nodes
     implicit none

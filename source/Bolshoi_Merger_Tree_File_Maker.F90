@@ -22,7 +22,7 @@
 
 program Bolshoi_Merger_Tree_File_Maker
   !% Driver program for reading CSV files of Rockstar merger trees from the Bolshoi Simulation and converting to \glc's HDF5
-  !% format merger tree files. Run {\tt scripts/aux/Bolshoi\_Trees\_Grab.pl} on raw data files before converting to HDF5.
+  !% format merger tree files. Run {\normalfont \ttfamily scripts/aux/Bolshoi\_Trees\_Grab.pl} on raw data files before converting to HDF5.
   use Merger_Tree_Data_Structure
   use Merger_Trees_Bolshoi
   use Command_Arguments

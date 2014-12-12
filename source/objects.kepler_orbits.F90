@@ -93,19 +93,19 @@ module Kepler_Orbits
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>output</method>
-     !@     <description>Store a {\tt keplerOrbit} object in the output buffers.</description>
+     !@     <description>Store a {\normalfont \ttfamily keplerOrbit} object in the output buffers.</description>
      !@     <type>\void</type>
      !@     <arguments>\intzero\ integerProperty\arginout, \intzero\ integerBufferCount\arginout, \inttwo\ integerBuffer\arginout, \intzero doubleProperty\arginout, \intzero\ doubleBufferCount\arginout, \doubletwo\ doubleBuffer\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>outputCount</method>
-     !@     <description>Specify the count of a {\tt keplerOrbit} object for output.</description>
+     !@     <description>Specify the count of a {\normalfont \ttfamily keplerOrbit} object for output.</description>
      !@     <type>\void</type>
      !@     <arguments>\intzero\ integerPropertyCount\arginout, \intzero\ doublePropertyCount\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>outputNames</method>
-     !@     <description>Specify the names of a {\tt keplerOrbit} object properties for output.</description>
+     !@     <description>Specify the names of a {\normalfont \ttfamily keplerOrbit} object properties for output.</description>
      !@     <type>\void</type>
      !@     <arguments>\intzero\ integerProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyComments\arginout, \doubleone\ integerPropertyUnitsSI\arginout, \intzero\ doubleProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyComments\arginout, \doubleone\ doublePropertyUnitsSI\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
      !@   </objectMethod>
@@ -207,7 +207,7 @@ module Kepler_Orbits
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>specificReducedMass</method>
-     !@     <description>Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_{\rm s} = M_{\rm host}/(M_{\rm satellite}+M_{\rm host})$) of the orbit.</description>
+     !@     <description>Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_{\mathrm s} = M_{\mathrm host}/(M_{\mathrm satellite}+M_{\mathrm host})$) of the orbit.</description>
      !@     <type>\doublezero</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
@@ -316,7 +316,7 @@ contains
 
   subroutine Kepler_Orbits_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
        &,doubleBuffer,time)
-    !% Store a {\tt keplerOrbit} object in the output buffers.
+    !% Store a {\normalfont \ttfamily keplerOrbit} object in the output buffers.
     use Kind_Numbers
     implicit none
     class           (keplerOrbit   )                , intent(inout) :: self
@@ -339,7 +339,7 @@ contains
   end subroutine Kepler_Orbits_Output
 
   subroutine Kepler_Orbits_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
-    !% Increment the output count to account for a {\tt keplerOrbit} object.
+    !% Increment the output count to account for a {\normalfont \ttfamily keplerOrbit} object.
     implicit none
     class           (keplerOrbit), intent(in   ) :: self
     integer                      , intent(inout) :: doublePropertyCount, integerPropertyCount
@@ -351,7 +351,7 @@ contains
 
   subroutine Kepler_Orbits_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
        &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,prefix,comment,unitsInSI)
-    !% Assign names to output buffers for a {\tt keplerOrbit} object.
+    !% Assign names to output buffers for a {\normalfont \ttfamily keplerOrbit} object.
     use Numerical_Constants_Astronomical
     implicit none
     class           (keplerOrbit)              , intent(in   ) :: self
@@ -383,7 +383,7 @@ contains
   end subroutine Kepler_Orbits_Output_Names
 
   subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
-    !% Build a {\tt keplerOrbit} object from the given XML {\tt keplerOrbitDefinition}.
+    !% Build a {\normalfont \ttfamily keplerOrbit} object from the given XML {\normalfont \ttfamily keplerOrbitDefinition}.
     use FoX_DOM
     use Galacticus_Error
     implicit none
@@ -500,7 +500,7 @@ contains
   end subroutine Kepler_Orbits_Dump
 
   subroutine Kepler_Orbits_Dump_Raw(self,fileHandle)
-    !% Dump a {\tt keplerOrbit} object in binary.
+    !% Dump a {\normalfont \ttfamily keplerOrbit} object in binary.
     implicit none
     class  (keplerOrbit), intent(in   ) :: self
     integer             , intent(in   ) :: fileHandle
@@ -522,7 +522,7 @@ contains
   end subroutine Kepler_Orbits_Dump_Raw
 
   subroutine Kepler_Orbits_Read_Raw(self,fileHandle)
-    !% Read a {\tt keplerOrbit} object in binary.
+    !% Read a {\normalfont \ttfamily keplerOrbit} object in binary.
     implicit none
     class  (keplerOrbit), intent(inout) :: self
     integer             , intent(in   ) :: fileHandle
@@ -566,7 +566,7 @@ contains
   end subroutine Kepler_Orbits_Reset
 
   subroutine Kepler_Orbits_Masses_Set(thisOrbit,satelliteMass,hostMass)
-    !% Sets the masses of the two orbitting objects in a {\tt keplerOrbit} object.
+    !% Sets the masses of the two orbitting objects in a {\normalfont \ttfamily keplerOrbit} object.
     implicit none
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision             , intent(in   ) :: hostMass , satelliteMass

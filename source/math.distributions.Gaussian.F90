@@ -25,7 +25,7 @@ module Math_Distributions_Gaussian
 contains
 
   double precision function Gaussian_Distribution(x,sigma)
-    !% Computes the Gaussian distribution with dispersion {\tt sigma} at argument {\tt x}.
+    !% Computes the Gaussian distribution with dispersion {\normalfont \ttfamily sigma} at argument {\normalfont \ttfamily x}.
     use Numerical_Constants_Math
     implicit none
     double precision, intent(in   ) :: sigma, x

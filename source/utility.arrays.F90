@@ -201,7 +201,7 @@ contains
   end function Array_Is_Monotonic_Double
 
   subroutine Array_Which(mask,indices)
-    !% Return an array of indices for which {\tt mask} is true.
+    !% Return an array of indices for which {\normalfont \ttfamily mask} is true.
     use Galacticus_Error
     implicit none
     logical, intent(in   ) :: mask   (:)

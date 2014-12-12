@@ -30,7 +30,7 @@ module File_Utilities
   public :: Count_Lines_in_File, File_Exists, File_Lock, File_Unlock
 
   interface Count_Lines_in_File
-     !% Generic interface for {\tt Count\_Lines\_in\_File} function.
+     !% Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
      module procedure Count_Lines_in_File_Char
      module procedure Count_Lines_in_File_VarStr
   end interface
@@ -43,7 +43,7 @@ module File_Utilities
 
   interface
      function flock_C(name) bind(c,name='flock_C')
-       !% Template for a C function that calls {\tt flock()} to lock a file..
+       !% Template for a C function that calls {\normalfont \ttfamily flock()} to lock a file..
        import
        integer  (c_int ) :: flock_C
        character(c_char) :: name
@@ -52,7 +52,7 @@ module File_Utilities
 
   interface
      subroutine funlock_C(fd) bind(c,name='funlock_C')
-       !% Template for a C function that calls {\tt flock()} to unlock a file..
+       !% Template for a C function that calls {\normalfont \ttfamily flock()} to unlock a file..
        import
        integer(c_int ) :: fd
      end subroutine funlock_C
@@ -61,7 +61,7 @@ module File_Utilities
 contains
 
   logical function File_Exists_VarStr(FileName)
-    !% Checks for existance of file {\tt FileName} (version for varying string argument).
+    !% Checks for existance of file {\normalfont \ttfamily FileName} (version for varying string argument).
     implicit none
     type(varying_string), intent(in   ) :: FileName
 
@@ -70,7 +70,7 @@ contains
   end function File_Exists_VarStr
 
   logical function File_Exists_Char(FileName)
-    !% Checks for existance of file {\tt FileName} (version for character argument).
+    !% Checks for existance of file {\normalfont \ttfamily FileName} (version for character argument).
     implicit none
     character(len=*), intent(in   ) :: FileName
 
@@ -79,7 +79,7 @@ contains
   end function File_Exists_Char
 
   integer function Count_Lines_in_File_VarStr(in_file,comment_char)
-    !% Returns the number of lines in the file {\tt in\_file} (version for varying string argument).
+    !% Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for varying string argument).
     implicit none
     type     (varying_string), intent(in   )           :: in_file
     character(len=1         ), intent(in   ), optional :: comment_char
@@ -93,7 +93,7 @@ contains
   end function Count_Lines_in_File_VarStr
 
   integer function Count_Lines_in_File_Char(in_file,comment_char)
-    !% Returns the number of lines in the file {\tt in\_file} (version for character argument).
+    !% Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for character argument).
     use Galacticus_Error
     implicit none
     character(len=*), intent(in   )           :: in_file

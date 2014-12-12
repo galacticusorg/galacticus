@@ -63,7 +63,7 @@ module Cosmology_Parameters
   !#   <pass>yes</pass>
   !#  </method>
   !#  <method name="HubbleConstant" >
-  !#   <description>Return the Hubble constant at the present day. The optional {\tt units} argument specifies if the return value should be in units of km/s/Mpc (unitsStandard), Gyr$^{-1}$ (unitsTime), or 100 km/s/Mpc (unitsLittleH).</description>
+  !#   <description>Return the Hubble constant at the present day. The optional {\normalfont \ttfamily units} argument specifies if the return value should be in units of km/s/Mpc (unitsStandard), Gyr$^{-1}$ (unitsTime), or 100 km/s/Mpc (unitsLittleH).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>integer, intent(in   ), optional :: units</argument>

@@ -2652,7 +2652,7 @@ contains
   end subroutine destroy_VS
 
   subroutine load_from_file_VS(string,fileName)
-    !% Load a varying string object with the contents of a file (specified by {\tt fileName}).
+    !% Load a varying string object with the contents of a file (specified by {\normalfont \ttfamily fileName}).
     class(varying_string), intent(inout) :: string
     character(len=*),      intent(in   ) :: fileName
     character(len=1)                     :: thisChar

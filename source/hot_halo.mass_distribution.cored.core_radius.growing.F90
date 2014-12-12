@@ -45,7 +45,7 @@
   end type hotHaloMassDistributionCoreRadiusGrowing
 
   interface hotHaloMassDistributionCoreRadiusGrowing
-     !% Constructors for the {\tt growing} hot halo mass distribution core radius class.
+     !% Constructors for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
      module procedure growingDefaultConstructor
      module procedure growingConstructor
   end interface hotHaloMassDistributionCoreRadiusGrowing
@@ -53,7 +53,7 @@
 contains
 
   function growingDefaultConstructor()
-    !% Default constructor for the {\tt growing} hot halo mass distribution core radius class.
+    !% Default constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
     use Input_Parameters
     implicit none
     type(hotHaloMassDistributionCoreRadiusGrowing) :: growingDefaultConstructor
@@ -91,7 +91,7 @@ contains
   end function growingDefaultConstructor
 
   function growingConstructor(coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum)
-    !% Default constructor for the {\tt growing} hot halo mass distribution core radius class.
+    !% Default constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
     use Input_Parameters
     use Galacticus_Error
     implicit none
@@ -116,7 +116,7 @@ contains
   end function growingConstructor
 
   subroutine growingDestructor(self)
-    !% Destructor for the {\tt growing} hot halo mass distribution class.
+    !% Destructor for the {\normalfont \ttfamily growing} hot halo mass distribution class.
     implicit none
     type(hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
 
@@ -201,8 +201,8 @@ contains
   end function growingRadius
 
   elemental double precision function growingCoreVirialDensityFunction(radiusOverVirialRadius)
-    !% Returns the function $(1+r_{\rm c}^2)[1-r_{\rm c} \tan^{-1}(1/r_{\rm c}]$ which is proportional to the density at the
-    !% virial radius of a cored isothermal profile with core radius $r_{\rm c}$ (in units of the virial radius) per unit mass.
+    !% Returns the function $(1+r_{\mathrm c}^2)[1-r_{\mathrm c} \tan^{-1}(1/r_{\mathrm c}]$ which is proportional to the density at the
+    !% virial radius of a cored isothermal profile with core radius $r_{\mathrm c}$ (in units of the virial radius) per unit mass.
     implicit none
     double precision, intent(in   ) :: radiusOverVirialRadius
 

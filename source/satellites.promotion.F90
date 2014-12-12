@@ -26,7 +26,7 @@ module Satellite_Promotion
 contains
 
   subroutine Satellite_Move_To_New_Host(satelliteNode,newHostNode)
-    !% Move {\tt satelliteNode} to be a satellite of {\tt newHostNode}.
+    !% Move {\normalfont \ttfamily satelliteNode} to be a satellite of {\normalfont \ttfamily newHostNode}.
     use Galacticus_Nodes
     use Galacticus_Display
     use ISO_Varying_String

@@ -198,8 +198,8 @@ foreach my $fileName ( @fileNames ) {
 			}
 			# Construct output data for this parameter.
 			(my $printName = $contents->{'name'}) =~ s/([^\\])_/$1\\_/g;
-			my $buffer  = "\\noindent {\\bf Name:} {\\tt ".$printName."}\\\\\n";
-			$buffer .= "{\\bf Attached to:} ";
+			my $buffer  = "\\noindent {\\normalfont \\bfseries Name:} {\\normalfont \ttfamily ".$printName."}\\\\\n";
+			$buffer .= "{\\normalfont \\bfseries Attached to:} ";
 			my $attachedTo;
 			my $attachedAt;
 			# Detect empty "defaultValue" elements.
@@ -223,14 +223,14 @@ foreach my $fileName ( @fileNames ) {
 				--$programUnitIndex
 			    }
 			    if ( $programUnitIndex >= 0 ) {
-				$attachedTo = "{\\tt ".$programUnits[$programUnitIndex]."}";
+				$attachedTo = "{\\normalfont \ttfamily ".$programUnits[$programUnitIndex]."}";
 				$attachedAt = $programUnitIndex;
 			    } else {
 				$attachedTo = "unknown";
 				$attachedAt = -1;
 			    }
 			} else {
-			    $attachedTo = "{\\tt ".$programUnits[-1]."}";
+			    $attachedTo = "{\\normalfont \ttfamily ".$programUnits[-1]."}";
 			    $attachedAt = scalar(@programUnits)-1;
 			}
 			my $attachedLink = $leafName.":";
@@ -258,15 +258,15 @@ foreach my $fileName ( @fileNames ) {
 			}
 			$attachedTo =~ s/_/\\_/g;
 			$buffer .= $targetPrefix.$attachedTo.$targetSuffix."\\\\\n";
-			$buffer .= "{\\bf File:} \\hyperlink{".$leafName."}{{\\tt ".$leafNamePrint."}}\\\\\n";
-			$buffer .= "{\\bf Default value:} ";
+			$buffer .= "{\\normalfont \\bfseries File:} \\hyperlink{".$leafName."}{{\\normalfont \ttfamily ".$leafNamePrint."}}\\\\\n";
+			$buffer .= "{\\normalfont \\bfseries Default value:} ";
 			if ( exists($contents->{'defaultValue'}) ) {
 			    $buffer .= $contents->{'defaultValue'};
 			} else {
 			    $buffer .= "none";
 			}
 			$buffer .= "\\\\\n";
-			$buffer .= "{\\bf Description:} ".$contents->{'description'};
+			$buffer .= "{\\normalfont \\bfseries Description:} ".$contents->{'description'};
 			$buffer .= "\\\\" unless ( $buffer =~ m/\}\s*$/ );
 			$buffer .= "\n\n";
 			my $descriptor = 
@@ -365,11 +365,11 @@ foreach my $object ( sort(keys(%objects)) ) {
 	}
     }
     if ( $hasEntries == 1 ) {
-	print methodHndl "\\subsubsection{\\large {\\tt ".$objects{$object}->{'name'}."}}\\label{sec:AutoMethods".ucfirst($objects{$object}->{'name'})."}\n\n";
+	print methodHndl "\\subsubsection{\\large {\\normalfont \ttfamily ".$objects{$object}->{'name'}."}}\\label{sec:AutoMethods".ucfirst($objects{$object}->{'name'})."}\n\n";
 	print methodHndl "\\begin{description}\n";
 	foreach my $method ( sort(keys(%{$objects{$object}->{'methods'}})) ) {
 	    if ( $objects{$object}->{'methods'}->{$method}->{'description'} ne "UNDEFINED" ) {
-		print methodHndl "\\item[]{\\tt ";
+		print methodHndl "\\item[]{\\normalfont \ttfamily ";
 		if ( exists($objects{$object}->{'methods'}->{$method}->{'type'}) ) {
 		    print methodHndl latex_encode($objects{$object}->{'methods'}->{$method}->{'type'})."\\ ";
 		} else {
@@ -415,15 +415,15 @@ foreach ( @emptyDefaults ) {
 open(oHndl,">".$outputRoot."Enumerations.tex");
 open(sHndl,">".$outputRoot."EnumerationSpecifiers.tex");
 foreach ( sort(keys(%enumerations)) ) {
-    print oHndl "\\subsubsection{\\large {\\tt ".$_."}}\\hypertarget{ht:AutoEnumerations".ucfirst($_)."}{}\\label{sec:AutoEnumerations".ucfirst($_)."}\\index{enumerations!".$_."\@{\\tt ".$_."}}\n\n";
+    print oHndl "\\subsubsection{\\large {\\normalfont \ttfamily ".$_."}}\\hypertarget{ht:AutoEnumerations".ucfirst($_)."}{}\\label{sec:AutoEnumerations".ucfirst($_)."}\\index{enumerations!".$_."\@{\\normalfont \ttfamily ".$_."}}\n\n";
     print oHndl "\\begin{tabular}{rp{130mm}}\n";
     print oHndl "Description: & ".$enumerations{$_}->{'description'}." \\\\\n";
-    print oHndl "Provided by: & {\\tt module} \\hyperlink{".$enumerations{$_}->{'file'}.":".lc($enumerations{$_}->{'module'})."}{\\tt ".latex_encode($enumerations{$_}->{'module'})."} \\\\\n";
+    print oHndl "Provided by: & {\\normalfont \ttfamily module} \\hyperlink{".$enumerations{$_}->{'file'}.":".lc($enumerations{$_}->{'module'})."}{\\normalfont \ttfamily ".latex_encode($enumerations{$_}->{'module'})."} \\\\\n";
     my $first = 1;
     foreach my $entry ( @{$enumerations{$_}->{'entry'}} ) {
 	print oHndl "Members:"
 	    if ( $first == 1 );
-	print oHndl " & {\\tt ".$entry."}\\\\\n";
+	print oHndl " & {\\normalfont \ttfamily ".$entry."}\\\\\n";
 	$first = 0;
     }
     print oHndl "\\end{tabular}\n";

@@ -31,7 +31,7 @@ module Merger_Tree_Data_Structure
   ! Property labels.
   !@ <enumeration>
   !@  <name>propertyType</name>
-  !@  <description>Used to specify properties in a {\tt mergerTreeData} structure.</description>
+  !@  <description>Used to specify properties in a {\normalfont \ttfamily mergerTreeData} structure.</description>
   !@  <entry label="propertyTypeTreeIndex"              />
   !@  <entry label="propertyTypeNodeIndex"              />
   !@  <entry label="propertyTypeDescendentIndex"        />
@@ -154,7 +154,7 @@ module Merger_Tree_Data_Structure
   ! Units labels.
   !@ <enumeration>
   !@  <name>units</name>
-  !@  <description>Used to specify the type of units being stored in a {\tt mergerTreeData} structure.</description>
+  !@  <description>Used to specify the type of units being stored in a {\normalfont \ttfamily mergerTreeData} structure.</description>
   !@  <entry label="unitsMass"     />
   !@  <entry label="unitsLength"   />
   !@  <entry label="unitsTime"     />
@@ -177,7 +177,7 @@ character(len=100) :: name
   ! Metadata labels.
   !@ <enumeration>
   !@  <name>metaDataType</name>
-  !@  <description>Used to specify the type of metadata being stored in a {\tt mergerTreeData} structure.</description>
+  !@  <description>Used to specify the type of metadata being stored in a {\normalfont \ttfamily mergerTreeData} structure.</description>
   !@  <entry label="metaDataGeneric"     />
   !@  <entry label="metaDataCosmology"   />
   !@  <entry label="metaDataSimulation"  />
@@ -196,7 +196,7 @@ character(len=100) :: name
   ! Data types for metadata.
   !@ <enumeration>
   !@  <name>dataType</name>
-  !@  <description>Used to specify the type of data being stored in a {\tt mergerTreeData} structure metadata entry.</description>
+  !@  <description>Used to specify the type of data being stored in a {\normalfont \ttfamily mergerTreeData} structure metadata entry.</description>
   !@  <entry label="dataTypeInteger" />
   !@  <entry label="dataTypeDouble"  />
   !@  <entry label="dataTypeText"    />

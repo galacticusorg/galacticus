@@ -62,8 +62,8 @@ contains
   end subroutine Cooling_Time_Simple_Initialize
 
   double precision function Cooling_Time_Simple(temperature,density,gasAbundances,chemicalDensities,radiation)
-    !% Compute the cooling time (in Gyr) for gas at the given {\tt temperature} (in Kelvin), {\tt density} (in $M_\odot$
-    !% Mpc$^{-3}$), composition specified by {\tt gasAbundances} and experiencing a radiation field as described by {\tt radiation}.
+    !% Compute the cooling time (in Gyr) for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
+    !% Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     use Abundances_Structure
@@ -104,8 +104,8 @@ contains
   end function Cooling_Time_Simple
 
   double precision function Cooling_Time_Density_Log_Slope_Simple(temperature,density,gasAbundances,chemicalDensities,radiation)
-    !% Return $\d\ln t_{\rm cool}/\d\ln \rho$ for gas at the given {\tt temperature} (in Kelvin), {\tt density} (in $M_\odot$
-    !% Mpc$^{-3}$), composition specified by {\tt gasAbundances} and experiencing a radiation field as described by {\tt radiation}.
+    !% Return $\d\ln t_{\mathrm cool}/\d\ln \rho$ for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
+    !% Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
@@ -121,8 +121,8 @@ contains
   end function Cooling_Time_Density_Log_Slope_Simple
 
   double precision function Cooling_Time_Temperature_Log_Slope_Simple(temperature,density,gasAbundances,chemicalDensities,radiation)
-    !% Return $\d\ln t_{\rm cool}/\d\ln T$ for gas at the given {\tt temperature} (in Kelvin), {\tt density} (in $M_\odot$
-    !% Mpc$^{-3}$), composition specified by {\tt gasAbundances} and experiencing a radiation field as described by {\tt radiation}.
+    !% Return $\d\ln t_{\mathrm cool}/\d\ln T$ for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
+    !% Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure

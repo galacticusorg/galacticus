@@ -43,10 +43,10 @@ contains
 
   double precision function Hot_Halo_Ram_Pressure_Timescale_Ram_Pressure_Accel(thisNode)
     !% Computes the hot halo ram pressure stripping timescale, based on the acceleration due to ram pressure forces. This
-    !% timescale is approximated as \citep{roediger_ram_2007} $\tau \approx \sqrt{2 r_{\rm outer} \Sigma_{\rm outer} / P_{\rm
-    !% ram}}$, where $r_{\rm outer}$ is the current outer radius of the hot halo, $\Sigma_{\rm outer}$ is the surface density at
-    !% that radius, and $P_{\rm ram}$ is the ram pressure force (per unit area). The surface density is approximated as
-    !% $\Sigma_{\rm outer} \approx r_{\rm outer} \rho_{\rm outer}$, where $\rho_{\rm outer}$ is the density at the outer radius.
+    !% timescale is approximated as \citep{roediger_ram_2007} $\tau \approx \sqrt{2 r_{\mathrm outer} \Sigma_{\mathrm outer} / P_{\rm
+    !% ram}}$, where $r_{\mathrm outer}$ is the current outer radius of the hot halo, $\Sigma_{\mathrm outer}$ is the surface density at
+    !% that radius, and $P_{\mathrm ram}$ is the ram pressure force (per unit area). The surface density is approximated as
+    !% $\Sigma_{\mathrm outer} \approx r_{\mathrm outer} \rho_{\mathrm outer}$, where $\rho_{\mathrm outer}$ is the density at the outer radius.
     use Galacticus_Nodes
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical

@@ -45,7 +45,7 @@ contains
   !#  <unitName>Spherical_Collape_Delta_Critical_Initialize</unitName>
   !# </criticalOverdensityMethod>
   subroutine Spherical_Collape_Delta_Critical_Initialize(criticalOverdensityMethod,Critical_Overdensity_Tabulate)
-    !% Initializes the $\delta_{\rm crit}$ calculation for the spherical collapse module.
+    !% Initializes the $\delta_{\mathrm crit}$ calculation for the spherical collapse module.
     use ISO_Varying_String
     implicit none
     type     (varying_string                         ), intent(in   )          :: criticalOverdensityMethod
@@ -83,7 +83,7 @@ contains
   end subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate
 
   subroutine Make_Table(time,deltaTable,calculationType)
-    !% Tabulate $\delta_{\rm crit}$ or $\Delta_{\rm vir}$ vs. time.
+    !% Tabulate $\delta_{\mathrm crit}$ or $\Delta_{\mathrm vir}$ vs. time.
     use Linear_Growth
     use Cosmology_Functions
     use Root_Finder
@@ -209,7 +209,7 @@ contains
   end function collapseRoot
 
   double precision function Perturbation_Maximum_Radius(epsilonPerturbation)
-    !% Find the maximum radius of a perturbation with initial curvature {\tt epsilonPerturbation}.
+    !% Find the maximum radius of a perturbation with initial curvature {\normalfont \ttfamily epsilonPerturbation}.
     use Root_Finder
     implicit none
     double precision            , intent(in   ) :: epsilonPerturbation

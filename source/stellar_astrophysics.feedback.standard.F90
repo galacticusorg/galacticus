@@ -79,7 +79,7 @@ contains
   end subroutine Stellar_Feedback_Standard_Initialize
 
   double precision function Stellar_Feedback_Cumulative_Energy_Input_Standard(initialMass,age,metallicity)
-    !% Compute the cumulative energy input from a star of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
+    !% Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
     use, intrinsic :: ISO_C_Binding
     use Stellar_Astrophysics
     use Supernovae_Type_Ia

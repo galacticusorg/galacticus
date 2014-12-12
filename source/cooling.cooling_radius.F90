@@ -118,7 +118,7 @@ contains
   end subroutine Cooling_Radius_Output_Initialize
 
   double precision function Cooling_Radius(thisNode)
-    !% Return the cooling radius for {\tt thisNode} (in units of Mpc).
+    !% Return the cooling radius for {\normalfont \ttfamily thisNode} (in units of Mpc).
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -132,7 +132,7 @@ contains
   end function Cooling_Radius
 
   double precision function Cooling_Radius_Growth_Rate(thisNode)
-    !% Return the rate at which the cooling radius grows for {\tt thisNode} (in units of Mpc/Gyr).
+    !% Return the rate at which the cooling radius grows for {\normalfont \ttfamily thisNode} (in units of Mpc/Gyr).
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

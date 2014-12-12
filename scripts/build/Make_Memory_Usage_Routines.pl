@@ -42,9 +42,9 @@ open(postContainHandle,">./work/build/utility.memory_management.postcontain.inc.
 
 # Write some header information to these files.
 print preContainHandle  "!% Contains interface and type definitions for memory management routines along with storage space for pointers and sizes.\n";
-print preContainHandle  "!% This file was created automatically by {\\tt Make\\_Memory\\_Usage\\_Routines.pl}\n\n";
+print preContainHandle  "!% This file was created automatically by {\\normalfont \ttfamily Make\\_Memory\\_Usage\\_Routines.pl}\n\n";
 print postContainHandle "!% Contains memory management subroutines.\n";
-print postContainHandle "!% This file was created automatically by {\\tt Make\\_Memory\\_Usage\\_Routines.pl}\n\n";
+print postContainHandle "!% This file was created automatically by {\\normalfont \ttfamily Make\\_Memory\\_Usage\\_Routines.pl}\n\n";
 
 # Open interface to Alloc_Array routines.
 $preBlocks{"allocInterfaceCode"} = "interface Alloc_Array\n  !% Generic interface to routines which allocate arrays.\n";

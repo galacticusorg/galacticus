@@ -94,7 +94,7 @@ contains
   !#  <unitName>Node_Component_Satellite_Preset_Promote</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Satellite_Preset_Promote(thisNode)
-    !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
+    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
     !% from the parent.
     implicit none
     type (treeNode              ), intent(inout), pointer :: thisNode

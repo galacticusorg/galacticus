@@ -30,14 +30,14 @@
   end type virialDensityContrastKitayamaSuto1996
 
   interface virialDensityContrastKitayamaSuto1996
-     !% Constructors for the {\tt kitayamaSuto1996} dark matter halo virial density contrast class.
+     !% Constructors for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class.
      module procedure kitayamaSuto1996DefaultConstructor
   end interface virialDensityContrastKitayamaSuto1996
 
 contains
 
   function kitayamaSuto1996DefaultConstructor()
-    !% Default constructor for the {\tt kitayamaSuto1996} dark matter halo virial density contrast class.
+    !% Default constructor for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class.
     implicit none
     type (virialDensityContrastKitayamaSuto1996), target  :: kitayamaSuto1996DefaultConstructor
 

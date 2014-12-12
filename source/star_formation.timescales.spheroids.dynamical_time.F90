@@ -85,13 +85,13 @@ contains
   end subroutine Star_Formation_Timescale_Spheroids_Dynamical_time_Initialize
 
   double precision function Star_Formation_Timescale_Spheroid_Dynamical_Time(thisNode)
-    !% Returns the timescale (in Gyr) for star formation in the galactic spheroid of {\tt thisNode}. The timescale is given by
+    !% Returns the timescale (in Gyr) for star formation in the galactic spheroid of {\normalfont \ttfamily thisNode}. The timescale is given by
     !% \begin{equation}
-    !% \tau_\star = \epsilon_\star^{-1} \tau_{\rm dynamical, spheroid} \left( {V_{\rm spheroid} \over 200\hbox{km/s}} \right)^{\alpha_\star},
+    !% \tau_\star = \epsilon_\star^{-1} \tau_{\mathrm dynamical, spheroid} \left( {V_{\mathrm spheroid} \over 200\hbox{km/s}} \right)^{\alpha_\star},
     !% \end{equation}
-    !% where $\epsilon_\star$(={\tt starFormationSpheroidEfficiency}) is a star formation efficiency and $\alpha_\star$(={\tt
-    !% starFormationSpheroidVelocityExponent}) controls the scaling with velocity. Note that $\tau_{\rm dynamical,spheroid}=R_{\rm
-    !% spheroid}/V_{\rm spheroid}$ where the radius and velocity are whatever characteristic values returned by the spheroid method. This
+    !% where $\epsilon_\star$(={\normalfont \ttfamily starFormationSpheroidEfficiency}) is a star formation efficiency and $\alpha_\star$(={\tt
+    !% starFormationSpheroidVelocityExponent}) controls the scaling with velocity. Note that $\tau_{\mathrm dynamical,spheroid}=R_{\rm
+    !% spheroid}/V_{\mathrm spheroid}$ where the radius and velocity are whatever characteristic values returned by the spheroid method. This
     !% scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the
     !% half-mass radius and circular velocity at that radius.
     use Galacticus_Nodes

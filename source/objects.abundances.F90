@@ -78,13 +78,13 @@ module Abundances_Structure
      !@     <method>metallicitySet</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero\ metallicity\argin, \enumMetallicityScale\ [metallicityType]\argin, \enumAdjustElements\ [adjustElements]\argin, \intzero\ [abundanceIndex]\argin</arguments>
-     !@     <description>Sets the metallicity to {\tt metallicity}.</description>
+     !@     <description>Sets the metallicity to {\normalfont \ttfamily metallicity}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>massToMassFraction</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero\ mass\argin</arguments>
-     !@     <description>Converts abundance masses to mass fractions by dividing by the given {\tt mass} while ensuring that fractions are in the range 0--1.</description>
+     !@     <description>Converts abundance masses to mass fractions by dividing by the given {\normalfont \ttfamily mass} while ensuring that fractions are in the range 0--1.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>increment</method>
@@ -246,7 +246,7 @@ module Abundances_Structure
   ! Type of metallicity/abundance measure required.
   !@ <enumeration>
   !@  <name>metallicityScale</name>
-  !@  <description>Used to specify the metallicity scale when working with {\tt abundances} objects.</description>
+  !@  <description>Used to specify the metallicity scale when working with {\normalfont \ttfamily abundances} objects.</description>
   !@  <entry label="linearByMass"             />
   !@  <entry label="linearByNumber"           />
   !@  <entry label="logarithmicByMassSolar"   />
@@ -270,7 +270,7 @@ module Abundances_Structure
   ! Labels used in determining how to update elemental abundances when metallicity is adjusted.
   !@ <enumeration>
   !@  <name>adjustElements</name>
-  !@  <description>Used to specify how elements should be adjusted when the metallicity of an {\tt abundances} object is changed.</description>
+  !@  <description>Used to specify how elements should be adjusted when the metallicity of an {\normalfont \ttfamily abundances} object is changed.</description>
   !@  <entry label="adjustElementsNone"   />
   !@  <entry label="adjustElementsReset"  />
   !@  <entry label="adjustElementsUpdate" />
@@ -285,7 +285,7 @@ module Abundances_Structure
 contains
 
   subroutine Abundances_Initialize
-    !% Initialize the {\tt abundanceStructure} object module. Determines which abundances are to be tracked.
+    !% Initialize the {\normalfont \ttfamily abundanceStructure} object module. Determines which abundances are to be tracked.
     use Input_Parameters
     use Memory_Management
     use Atomic_Data
@@ -345,7 +345,7 @@ contains
   end subroutine Abundances_Destroy
 
   subroutine Abundances_Builder(self,abundancesDefinition)
-    !% Build a {\tt abundances} object from the given XML {\tt abundancesDefinition}.
+    !% Build a {\normalfont \ttfamily abundances} object from the given XML {\normalfont \ttfamily abundancesDefinition}.
     use FoX_DOM
     use Galacticus_Error
     implicit none
@@ -551,7 +551,7 @@ contains
   end function Abundances_Multiply_Switched
 
   function Abundances_Max(abundances1,abundances2)
-    !% Return an element-by-element {\tt max()} on two abundances objects.
+    !% Return an element-by-element {\normalfont \ttfamily max()} on two abundances objects.
     implicit none
     type(abundances)                :: Abundances_Max
     type(abundances), intent(in   ) :: abundances1   , abundances2
@@ -637,7 +637,7 @@ contains
   end function Abundances_Atomic_Index
 
   subroutine Abundances_Allocate_Elemental_Values(self)
-    !% Ensure that the {\tt elementalValue} array in an {\tt abundances} is allocated.
+    !% Ensure that the {\normalfont \ttfamily elementalValue} array in an {\normalfont \ttfamily abundances} is allocated.
     use Memory_Management
     implicit none
     type(abundances), intent(inout) :: self
@@ -688,7 +688,7 @@ contains
   end subroutine Abundances_Serialize
 
   double precision function Abundances_Get_Metallicity(self,metallicityType)
-    !% Return the metallicity of the {\tt self} structure.
+    !% Return the metallicity of the {\normalfont \ttfamily self} structure.
     use Galacticus_Error
     implicit none
     class  (abundances), intent(in   )           :: self
@@ -730,7 +730,7 @@ contains
   end function Abundances_Get_Metallicity
 
   subroutine Abundances_Set_Metallicity(self,metallicity,metallicityType,adjustElements,abundanceIndex)
-    !% Set the metallicity of the {\tt self} structure to {\tt metallicity}.
+    !% Set the metallicity of the {\normalfont \ttfamily self} structure to {\normalfont \ttfamily metallicity}.
     use Galacticus_Error
     use Atomic_Data
     implicit none
@@ -810,7 +810,7 @@ contains
   end subroutine Abundances_Set_Metallicity
 
   subroutine Abundances_Mass_To_Mass_Fraction_Packed(self,mass)
-    !% Convert abundance masses to mass fractions by dividing by {\tt mass} while ensuring that the fractions remain within the range 0--1.
+    !% Convert abundance masses to mass fractions by dividing by {\normalfont \ttfamily mass} while ensuring that the fractions remain within the range 0--1.
     implicit none
     class           (abundances), intent(inout) :: self
     double precision            , intent(in   ) :: mass
@@ -841,7 +841,7 @@ contains
   end subroutine Abundances_Mass_To_Mass_Fraction_Packed
 
   subroutine Abundances_Mass_To_Mass_Fraction(self,mass)
-    !% Convert abundance masses to mass fractions by dividing by {\tt mass} while ensuring that the fractions remain within the range 0--1.
+    !% Convert abundance masses to mass fractions by dividing by {\normalfont \ttfamily mass} while ensuring that the fractions remain within the range 0--1.
     implicit none
     double precision, dimension(:), intent(inout) :: self
     double precision              , intent(in   ) :: mass

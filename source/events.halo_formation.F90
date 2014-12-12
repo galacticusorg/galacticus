@@ -26,7 +26,7 @@ module Events_Halo_Formation
 contains
 
   subroutine Event_Halo_Formation(thisNode)
-    !% Perform tasks associated with a ``halo formation'' event in {\tt thisNode}.
+    !% Perform tasks associated with a ``halo formation'' event in {\normalfont \ttfamily thisNode}.
     use Galacticus_Nodes
     !# <include directive="haloFormationTask" type="moduleUse">
     include 'events.halo_formation.moduleUse.inc'

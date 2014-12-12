@@ -524,7 +524,7 @@ contains
   end subroutine Atomic_Ionization_Potentials_Verner_Initialize
 
   double precision function Atomic_Ionization_Potential_Verner(atomicNumber,electronNumber)
-    !% Return the ionization potential (in units of electon volts) for the ion with given {\tt atomicNumber} and {\tt
+    !% Return the ionization potential (in units of electon volts) for the ion with given {\normalfont \ttfamily atomicNumber} and {\tt
     !% electronNumber} using data taken from Dima Verner's \href{ftp://gradj.pa.uky.edu//dima//col//cfit.f}{code}.
     implicit none
     integer, intent(in) :: atomicNumber,electronNumber

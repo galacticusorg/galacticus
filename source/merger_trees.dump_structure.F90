@@ -42,7 +42,7 @@ contains
   !#   <unitName>Merger_Tree_Structure_Dump</unitName>
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Structure_Dump(thisTree)
-    !% Output the structure of {\tt thisTree}.
+    !% Output the structure of {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
     use Input_Parameters
     use Merger_Trees_Dump
@@ -70,7 +70,7 @@ contains
           call Get_Input_Parameter('mergerTreeStructureDump',mergerTreeStructureDump,defaultValue=.false.)
           !@ <inputParameter>
           !@   <name>mergerTreeStructureDumpDirectory</name>
-          !@   <defaultValue>{\tt .}</defaultValue>
+          !@   <defaultValue>{\normalfont \ttfamily .}</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     Specifies the directory to which merger tree structure should be dumped.
