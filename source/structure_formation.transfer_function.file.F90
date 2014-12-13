@@ -53,15 +53,17 @@ contains
   !# <transferFunctionMethod>
   !#  <unitName>Transfer_Function_File_Initialize</unitName>
   !# </transferFunctionMethod>
-  subroutine Transfer_Function_File_Initialize(transferFunctionMethod,Transfer_Function_Tabulate)
+  subroutine Transfer_Function_File_Initialize(transferFunctionMethod,Transfer_Function_Tabulate,Transfer_Function_Half_Mode_Mass)
     !% Initializes the ``transfer function from file'' module.
     use Input_Parameters
     implicit none
-    type     (varying_string             ), intent(in   )          :: transferFunctionMethod
-    procedure(Transfer_Function_File_Read), intent(inout), pointer :: Transfer_Function_Tabulate
+    type     (varying_string                       ), intent(in   )          :: transferFunctionMethod
+    procedure(Transfer_Function_File_Read          ), intent(inout), pointer :: Transfer_Function_Tabulate
+    procedure(Transfer_Function_Half_Mode_Mass_Null), intent(inout), pointer :: Transfer_Function_Half_Mode_Mass
 
     if (transferFunctionMethod == 'file') then
-       Transfer_Function_Tabulate => Transfer_Function_File_Read
+       Transfer_Function_Tabulate       => Transfer_Function_File_Read
+       Transfer_Function_Half_Mode_Mass => Transfer_Function_Half_Mode_Mass_Null
        !@ <inputParameter>
        !@   <name>transferFunctionFile</name>
        !@   <attachedTo>module</attachedTo>
@@ -272,5 +274,15 @@ contains
     end if
     return
   end subroutine Transfer_Function_File_Read
+
+  double precision function Transfer_Function_Half_Mode_Mass_Null()
+    !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
+    !% to a \gls{cdm} transfer function. Not supported in this implementation.
+    use Galacticus_Error
+    implicit none
+
+    call Galacticus_Error_Report('Transfer_Function_Half_Mode_Mass_Null','not supported by this implementation')
+    return
+  end function Transfer_Function_Half_Mode_Mass_Null
 
 end module Transfer_Functions_File

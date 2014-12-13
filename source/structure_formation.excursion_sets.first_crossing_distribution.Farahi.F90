@@ -648,9 +648,15 @@ contains
     implicit none
     real(kind=kind_quad)                :: erfApproximation
     real(kind=kind_quad), intent(in   ) :: x
-    real(kind=kind_quad), parameter     :: a               =8.0_kind_quad*(PiQuadPrecision-3.0_kind_quad)/3.0_kind_quad/PiQuadPrecision/(4.0_kind_quad-PiQuadPrecision)
+    real(kind=kind_quad), parameter     :: a               =8.00_kind_quad*(PiQuadPrecision-3.0_kind_quad)/3.0_kind_quad/PiQuadPrecision/(4.0_kind_quad-PiQuadPrecision)
+    ! Value above which erf(x)=1 to quad precision.
+    real(kind=kind_quad), parameter     :: xMaximum        =8.75_kind_quad
 
-    erfApproximation=sqrt(1.0_kind_quad-exp(-x**2*(4.0_kind_quad/PiQuadPrecision+a*x**2)/(1.0_kind_quad+a*x**2)))
+    if (x > xMaximum) then
+       erfApproximation=1.0_kind_quad
+    else
+       erfApproximation=sqrt(1.0_kind_quad-exp(-x**2*(4.0_kind_quad/PiQuadPrecision+a*x**2)/(1.0_kind_quad+a*x**2)))
+    end if
     return
   end function erfApproximation
 
