@@ -48,7 +48,7 @@ contains
        !@   <defaultValue>3</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     Parameter, $\epsilon$, controlling the tidal heating rate of satellites in the {\tt Gnedin1999} method.
+       !@     Parameter, $\epsilon$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -60,7 +60,7 @@ contains
        !@   <defaultValue>2.5</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     Parameter, $\gamma$, controlling the tidal heating rate of satellites in the {\tt Gnedin1999} method.
+       !@     Parameter, $\gamma$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>

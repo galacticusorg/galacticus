@@ -83,7 +83,7 @@ contains
   end subroutine Satellite_Tidal_Heating_Rate_Initialize
 
   double precision function Satellite_Tidal_Heating_Rate(thisNode)
-    !% Return the satellite tidal heating rate for {\tt thisNode} (in units of (km/s/Mpc)$^2$/Gyr).
+    !% Return the satellite tidal heating rate for {\normalfont \ttfamily thisNode} (in units of (km/s/Mpc)$^2$/Gyr).
     use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
