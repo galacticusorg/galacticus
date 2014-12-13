@@ -83,7 +83,7 @@ contains
   end subroutine Satellite_Tidal_Stripping_Initialize
 
   double precision function Satellite_Tidal_Stripping_Rate(thisNode)
-    !% Return the satellite mass loss rate due to tidal stripping for {\tt thisNode} (in units of $M_\odot$/Gyr).
+    !% Return the satellite mass loss rate due to tidal stripping for {\normalfont \ttfamily thisNode} (in units of $M_\odot$/Gyr).
     use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode

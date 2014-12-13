@@ -108,7 +108,7 @@ module Galacticus_Nodes
   end type nodeDataKeplerOrbitScalar
 
   type, private :: nodeDataTensorRank2Dimension3SymmetricScalarEvolvable
-     !% Type describing an evolvable scalar {\\tt tensorRank2Dimension3Symmetric} property of a node component.
+     !% Type describing an evolvable scalar {\\normalfont \ttfamily tensorRank2Dimension3Symmetric} property of a node component.
      type(tensorRank2Dimension3Symmetric   )                    :: value,rate,scale
   end type nodeDataTensorRank2Dimension3SymmetricScalarEvolvable
   

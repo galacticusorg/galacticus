@@ -273,7 +273,7 @@ contains
   !#  <unitName>Node_Component_Satellite_Orbiting_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Satellite_Orbiting_Scale_Set(thisNode)
-    !% Set scales for properties of {\tt thisNode}.
+    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
     use Dark_Matter_Halo_Scales
     use Galactic_Structure_Enclosed_Masses
     use Numerical_Constants_Prefixes

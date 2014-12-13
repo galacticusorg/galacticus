@@ -751,11 +751,11 @@ where $c_{\mathrm min}=\phi_0+\phi_1 n$, $\nu_{\mathrm min}=\eta_0+\eta_1 n$, $n
 
 \subsubsection{WDM}
 
-Selected with {\tt darkMatterProfileConcentrationMethod}$=${\tt WDM}, under this method the concentration is computed by applying the correction factor of \cite{schneider_non-linear_2012}:
+Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\normalfont \ttfamily WDM}, under this method the concentration is computed by applying the correction factor of \cite{schneider_non-linear_2012}:
 \begin{equation}
-c_{\rm WDM} = c_{\rm CDM} \left[ 1 + \gamma_1 \left( {M_{\rm 1/2} \over M_{\rm halo}} \right)^{\gamma_2}\right]^{-1},
+c_{\mathrm WDM} = c_{\mathrm CDM} \left[ 1 + \gamma_1 \left( {M_{\mathrm 1/2} \over M_{\mathrm halo}} \right)^{\gamma_2}\right]^{-1},
 \end{equation}
-where $\gamma_1=15$, $\gamma_2=0.3$, $M_{\rm 1/2}$ is the mass corresponding to the wavenumber at which the WDM transfer function is suppressed below the CDM transfer function by a factor of 2, and $M_{\rm halo}$ is the mass of the dark matter halo, to a CDM concentration algorithm as specified by {\tt [darkMatterProfileConcentrationCDMMethod]}.
+where $\gamma_1=15$, $\gamma_2=0.3$, $M_{\mathrm 1/2}$ is the mass corresponding to the wavenumber at which the WDM transfer function is suppressed below the CDM transfer function by a factor of 2, and $M_{\mathrm halo}$ is the mass of the dark matter halo, to a CDM concentration algorithm as specified by {\normalfont \ttfamily [darkMatterProfileConcentrationCDMMethod]}.
 
 \subsection{Density Profile Shape}\label{sec:DarkMatterProfileShape}\index{dark matter profile!shape}
 
@@ -1897,19 +1897,19 @@ Selected with {\normalfont \ttfamily ramPressureStrippingMassLossRate(Disks|Sphe
 
 \section{Satellite Dynamical Friction}\label{sec:satelliteDynamicalFrictionMethod}\index{dynamical friction!satellites}
 
-The method to be used for computing the satellite vector acceleration due to dynamical friction is specified by the {\tt satelliteDynamicalFrictionMethod} parameter.
+The method to be used for computing the satellite vector acceleration due to dynamical friction is specified by the {\normalfont \ttfamily satelliteDynamicalFrictionMethod} parameter.
 
 \subsection{Null}
 
-Selected with {\tt satelliteDynamicalFrictionMethod}$=${\tt null}, this method assumes that there is no dynamical friction in the system.
+Selected with {\normalfont \ttfamily satelliteDynamicalFrictionMethod}$=${\normalfont \ttfamily null}, this method assumes that there is no dynamical friction in the system.
 
 \subsection{Chandrasekhar (1943)}
 
-Selected with {\tt satelliteDynamicalFrictionMethod}$=${\tt Chandrasekhar1943}, this method uses the \cite{chandrasekhar_dynamical_1943} formula to compute the acceleration of a satellite at radius $r$ from the center of the host due to dynamical friction:
+Selected with {\normalfont \ttfamily satelliteDynamicalFrictionMethod}$=${\normalfont \ttfamily Chandrasekhar1943}, this method uses the \cite{chandrasekhar_dynamical_1943} formula to compute the acceleration of a satellite at radius $r$ from the center of the host due to dynamical friction:
 \begin{equation}
-{\bf a}_{DF} = -\frac{4\pi {\rm G}^2M_{\rm sat}\rho_{\rm host}(r)}{v_{\rm sat}^3}\ln \Lambda\left[{\rm erf}(x)-\frac{2x}{\sqrt{\pi}}\exp(-x^2)\right]\mathbf{v}_{\rm sat},
+{\mathbf a}_{DF} = -\frac{4\pi {\mathrm G}^2M_{\mathrm sat}\rho_{\mathrm host}(r)}{v_{\mathrm sat}^3}\ln \Lambda\left[{\mathrm erf}(x)-\frac{2x}{\sqrt{\pi}}\exp(-x^2)\right]\mathbf{v}_{\mathrm sat},
 \end{equation}
-where $M_{\rm sat}$ and $\mathbf{v}_{\rm sat}$ are the satellite's mass and velocity, respectively, $v_{\rm sat}=|\mathbf{v}_{\rm sat}|$, $\rho_{\rm host}(r)$ is the host's density profile, $\ln\Lambda=${\tt [satelliteDynamicalFrictionChandrasekharCoulombLogarithm]} is the Coulomb logarithm, and $x\equiv v_{\rm sat}/\sqrt{2}\sigma(r)$, where $\sigma(r)$ is the velocity dispersion of the host halo at radius $r$, approximated to be equal to the host virial velocity, $v_{\rm vir}$.
+where $M_{\mathrm sat}$ and $\mathbf{v}_{\mathrm sat}$ are the satellite's mass and velocity, respectively, $v_{\mathrm sat}=|\mathbf{v}_{\mathrm sat}|$, $\rho_{\mathrm host}(r)$ is the host's density profile, $\ln\Lambda=${\normalfont \ttfamily [satelliteDynamicalFrictionChandrasekharCoulombLogarithm]} is the Coulomb logarithm, and $x\equiv v_{\mathrm sat}/\sqrt{2}\sigma(r)$, where $\sigma(r)$ is the velocity dispersion of the host halo at radius $r$, approximated to be equal to the host virial velocity, $v_{\mathrm vir}$.
 
 \section{Satellite Tidal Fields}\label{sec:SatelliteTidalFields}\index{satellites!tidal fields}\index{tidal fields!satellites}
 
@@ -1929,41 +1929,41 @@ where $r_{\mathrm p}$ is the pericentric radius. $M_{\mathrm host}(<r)$ is the m
 
 \section{Satellite Tidal Stripping} \label{sec:satelliteTidalStrippingMethod}\index{tidal stripping!satellites}
 
-The method to be used for computing the satellite mass loss rate due to tidal stripping is specified by the {\tt satelliteTidalStrippingMethod} parameter.
+The method to be used for computing the satellite mass loss rate due to tidal stripping is specified by the {\normalfont \ttfamily satelliteTidalStrippingMethod} parameter.
 
 \subsection{Null}
 
-Selected with {\tt satelliteTidalStrippingMethod}$=${\tt null}, this method assumes that there is no tidal stripping in the system.
+Selected with {\normalfont \ttfamily satelliteTidalStrippingMethod}$=${\normalfont \ttfamily null}, this method assumes that there is no tidal stripping in the system.
 
 \subsection{Zentner (2005)}
 
-Selected by default with {\tt satelliteTidalStrippingMethod}$=${\tt Zentner2005}, this method uses the formalism of \cite{zentner_physics_2005} to compute the mass loss rate $\dot{M}_{\rm sat}$:
+Selected by default with {\normalfont \ttfamily satelliteTidalStrippingMethod}$=${\normalfont \ttfamily Zentner2005}, this method uses the formalism of \cite{zentner_physics_2005} to compute the mass loss rate $\dot{M}_{\mathrm sat}$:
 \begin{equation}
-\dot{M}_{\rm sat}=-\alpha \frac{M_{\rm sat}(>r_{\rm tidal})}{T_{\rm orb}},
+\dot{M}_{\mathrm sat}=-\alpha \frac{M_{\mathrm sat}(>r_{\mathrm tidal})}{T_{\mathrm orb}},
 \end{equation}
-where $\alpha=${\tt [satelliteTidalStrippingZentnerRate]}, $T_{\rm orb}$ is the orbital period of the satellite, and $r_{\rm tidal}$ is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
+where $\alpha=${\normalfont \ttfamily [satelliteTidalStrippingZentnerRate]}, $T_{\mathrm orb}$ is the orbital period of the satellite, and $r_{\mathrm tidal}$ is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
 \begin{equation}
-r_{\rm tidal}=\left(\frac{GM_{\rm sat}}{\omega^2-d^2\Phi/dr^2}\right)^{1/3},
+r_{\mathrm tidal}=\left(\frac{GM_{\mathrm sat}}{\omega^2-d^2\Phi/dr^2}\right)^{1/3},
 \end{equation}
 where $\omega$ is the orbital angular velocity of the satellite, and $\Phi(r)$ is the gravitational potential due to the host.
 
 \section{Satellite Tidal Heating} \label{sec:satelliteTidalHeatingMethod}\index{tidal heating!satellites}
 
-The method to be used for computing the integrated, normalized (i.e. the energy divided by radius squared) tidal heating energy, $Q_{\rm tidal}$, for subhalos is specified by the {\tt satelliteTidalHeatingMethod} parameter.
+The method to be used for computing the integrated, normalized (i.e. the energy divided by radius squared) tidal heating energy, $Q_{\mathrm tidal}$, for subhalos is specified by the {\normalfont \ttfamily satelliteTidalHeatingMethod} parameter.
 
 \subsection{Null}
 
-Selected with {\tt satelliteTidalHeatingMethod}$=${\tt null}, this method assumes that there is no tidal heating.
+Selected with {\normalfont \ttfamily satelliteTidalHeatingMethod}$=${\normalfont \ttfamily null}, this method assumes that there is no tidal heating.
 
 \subsection{Gnedin (1999)}
 
-Selected by default with {\tt satelliteTidalHeatingMethod}$=${\tt Gnedin1999}, this method uses the formalism of \cite{gnedin_tidal_1999} to compute the heating rate:
+Selected by default with {\normalfont \ttfamily satelliteTidalHeatingMethod}$=${\normalfont \ttfamily Gnedin1999}, this method uses the formalism of \cite{gnedin_tidal_1999} to compute the heating rate:
 \begin{equation}
-\dot{Q}_{\rm tidal}=\frac{1}{3}\epsilon\left[1+\left(\frac{T_{\rm shock}}{T_{\rm orb}}\right)^2\right]^{-\gamma}  g_{ij} G^{ij}
+\dot{Q}_{\mathrm tidal}=\frac{1}{3}\epsilon\left[1+\left(\frac{T_{\mathrm shock}}{T_{\mathrm orb}}\right)^2\right]^{-\gamma}  g_{ij} G^{ij}
 \end{equation}
-where $T_{\rm orb}$ and $T_{\rm shock}$ are the orbital period and shock duration, respectively, of the satellite, $\epsilon=${\tt [satelliteTidalHeatingGnedinEpsilon]} and $\gamma=${\tt [satelliteTidalHeatingGnedinGamma]} are model parameters, $g_{ij}$ is the tidal tensor, and $G_{ij}$ is the integral with respect to time of $g_{ij}$ along the orbit of the satellite.  Upon tidal heating, a mass element at radius $r_{\rm i}$ expands to radius $r_{\rm f}$, according to the equation
+where $T_{\mathrm orb}$ and $T_{\mathrm shock}$ are the orbital period and shock duration, respectively, of the satellite, $\epsilon=${\normalfont \ttfamily [satelliteTidalHeatingGnedinEpsilon]} and $\gamma=${\normalfont \ttfamily [satelliteTidalHeatingGnedinGamma]} are model parameters, $g_{ij}$ is the tidal tensor, and $G_{ij}$ is the integral with respect to time of $g_{ij}$ along the orbit of the satellite.  Upon tidal heating, a mass element at radius $r_{\mathrm i}$ expands to radius $r_{\mathrm f}$, according to the equation
 \begin{equation}
-\frac{1}{r_{\rm f}}=\frac{1}{r_{\rm i}}-\frac{2r_{\rm i}^3Q_{\rm tidal}}{{\rm G}M_{\rm sat}(<r_{\rm i})}.
+\frac{1}{r_{\mathrm f}}=\frac{1}{r_{\mathrm i}}-\frac{2r_{\mathrm i}^3Q_{\mathrm tidal}}{{\mathrm G}M_{\mathrm sat}(<r_{\mathrm i})}.
 \end{equation}
 
 \section{Star Formation Rate Surface Densities}\label{sec:StarFormationRateSurfaceDensity}\index{star formation!rate!surface density}

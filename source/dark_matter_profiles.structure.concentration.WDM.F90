@@ -32,7 +32,7 @@
   end type darkMatterProfileConcentrationWDM
 
   interface darkMatterProfileConcentrationWDM
-     !% Constructors for the {\tt WDM} dark matter halo profile concentration class.
+     !% Constructors for the {\normalfont \ttfamily WDM} dark matter halo profile concentration class.
      module procedure wdmDefaultConstructor
      module procedure wdmGenericConstructor
   end interface darkMatterProfileConcentrationWDM
@@ -46,7 +46,7 @@
 contains
 
   function wdmDefaultConstructor()
-    !% Default constructor for the {\tt wdm} dark matter halo profile concentration class.
+    !% Default constructor for the {\normalfont \ttfamily wdm} dark matter halo profile concentration class.
     use Input_Parameters
     implicit none
     type(darkMatterProfileConcentrationWDM), target :: wdmDefaultConstructor
@@ -61,7 +61,7 @@ contains
           !@   <defaultValue>gao2008</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     The {\tt darkMatterProfileConcentration} method to which the \cite{schneider_non-linear_2012} modifier for WDM halo concentrations should be applied.
+          !@     The {\normalfont \ttfamily darkMatterProfileConcentration} method to which the \cite{schneider_non-linear_2012} modifier for WDM halo concentrations should be applied.
           !@   </description>
           !@   <type>string</type>
           !@   <cardinality>1</cardinality>
@@ -78,7 +78,7 @@ contains
   end function wdmDefaultConstructor
 
   function wdmGenericConstructor(cdmMethod)
-    !% Generic constructor for the \cite{wdm} dark matter halo concentration class.
+    !% Generic constructor for the \gls{wdm} dark matter halo concentration class.
     implicit none
     type (darkMatterProfileConcentrationWDM  )                        :: wdmGenericConstructor
     class(darkMatterProfileConcentrationClass), intent(in   ), target :: cdmMethod
@@ -89,7 +89,7 @@ contains
   end function wdmGenericConstructor
 
   double precision function wdmConcentration(self,node)
-    !% Return  the  concentration of  the  dark  matter halo  profile  of  {\tt  node} using  the  warm  dark matter  modifier  of
+    !% Return  the  concentration of  the  dark  matter halo  profile  of  {\normalfont \ttfamily  node} using  the  warm  dark matter  modifier  of
     !% \cite{schneider_non-linear_2012}.
     use Transfer_Functions
     implicit none

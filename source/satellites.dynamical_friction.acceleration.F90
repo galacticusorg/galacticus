@@ -82,7 +82,7 @@ contains
   end subroutine Satellite_Dynamical_Friction_Acceleration_Initialize
 
   function Satellite_Dynamical_Friction_Acceleration(thisNode)
-    !% Return the satellite acceleration due to dynamical friction for {\tt thisNode} (in units of km/s/Gyr).
+    !% Return the satellite acceleration due to dynamical friction for {\normalfont \ttfamily thisNode} (in units of km/s/Gyr).
     use Galacticus_Nodes
     implicit none
     double precision             , dimension(3)           :: Satellite_Dynamical_Friction_Acceleration

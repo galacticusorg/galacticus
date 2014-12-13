@@ -20,7 +20,7 @@
 !% Contains custom functions for the orbiting satellite component.
 
 double precision function Node_Component_Satellite_Orbiting_Time_Of_Merging(self)
-  !% Return the {\tt timeOfMerging} property of the {\tt satelliteOrbiting} component class.
+  !% Return the {\normalfont \ttfamily timeOfMerging} property of the {\normalfont \ttfamily satelliteOrbiting} component class.
   implicit none
   class(nodeComponentSatelliteOrbiting), intent(inout) :: self
   type (treeNode                      ), pointer       :: selfNode
