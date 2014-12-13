@@ -1890,14 +1890,18 @@ contains
          &    )                                                   &
          &   /diskRadius**4                                       &
          &  )**alfalfaHiMassFunctionZ0_00MolecularFractionBeta
-    Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00                                      &
-         & = 1.0d0                                                                      &
-         &  /(                                                                          &
-         &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA1     &
-         &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1 &
-         &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA2     &
-         &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2 &
-         &   )
+    if (molecularRatioCentral > 0.0d0) then
+       Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00                                      &
+            & = 1.0d0                                                                      &
+            &  /(                                                                          &
+            &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA1     &
+            &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1 &
+            &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA2     &
+            &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2 &
+            &   )
+    else
+       Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00=0.0d0
+    end if
     return
   end function Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00
 
