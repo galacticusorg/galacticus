@@ -32,7 +32,7 @@ my $writer = XML::SAX::Writer->new(Output => \$content);
 my $filter = XML::Filter::XInclude->new(Handler => $writer);
 # Construct an XML parser.
 my $parser = XML::SAX::ParserFactory->parser(Handler => $filter);
-# Parse the file/
+# Parse the file.
 $parser->parse_uri($inFile);
 # Strip comments.
 my $twig = XML::Twig->new (comments => 'drop', pretty_print => 'indented');
