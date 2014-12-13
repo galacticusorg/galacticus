@@ -821,6 +821,48 @@ with $\dot{M}_{\mathrm node,bound}$ set to the rate given by the {\normalfont \t
 
 \noindent\emph{Node promotion:} Not applicable (component only exists for satellite nodes).\\
 
+\subsection{``Orbiting'' Implementation}
+
+\subsubsection{Properties}
+
+The orbiting satellite orbit implementation defines the following properties:
+\begin{description}
+ \item [{\normalfont \ttfamily position}] The 3-dimensional position of the satellite relative to its host: $\mathbf{r}=(x,y,z)$.
+ \item [{\normalfont \ttfamily velocity}] The 3-dimensional velocity of the satellite relative to its host: $\mathbf{v}=(v_x,v_y,v_z)$.
+ \item [{\normalfont \ttfamily mergeTime}] The time until the satellite will merge with its host: $t_{\mathrm satellite, merge}$ [{\normalfont \ttfamily satelliteMergeTime}].
+ \item [{\normalfont \ttfamily boundMass}] The remaining, total bound mass of the satellite: $M_{\mathrm node,bound}$ [{\normalfont \ttfamily satelliteBoundMass}].
+ \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a {\normalfont \ttfamily keplerOrbit} object; see \S\ref{sec:KeplerOrbits}) of the satellite at the point of virial radius crossing.
+ \item[{\normalfont \ttfamily tidalTensorPathIntegrated}] The time integral of the tidal tensor along the orbit of the satellite from initialization: $G_{ij}$.
+ \item[{\normalfont \ttfamily tidalHeatingNormalized}] The tidal heating energy per radius squared desposited into the satellite: $Q_{\mathrm tidal}$.
+\end{description}
+
+\subsubsection{Initialization}
+
+The satellite position, if not already assigned, is selected such that its magnitude is set according to its virial orbit parameters and its direction is chosen at random assuming an isotropic distribution.  The satellite velocity is similarly selected.  The integrated tidal tensor, $G_{ij}$, is initialized to the null tensor, while $Q_{\mathrm tidal}$ is initialized to zero.
+
+\subsubsection{Differential Evolution}
+
+Properties are evolved according to:
+\begin{eqnarray}
+\dot{\mathbf{r}}&=&\mathbf{v}\\
+\dot{\mathbf{v}}&=&-\frac{G M_{\mathrm host}(<r)\mathbf{r}}{r^3}+{\mathbf a}_{\mathrm DF}\\
+\dot{G}_{ij}&=&g_{ij}-G_{ij}/T_{\mathrm orb},
+\end{eqnarray}
+with $r=|\mathbf{r}|$, ${\mathbf a}_{DF}$ set to the rate given by the {\normalfont \ttfamily satelliteDynamicalFrictionMethod} (see \S\ref{sec:satelliteDynamicalFrictionMethod}), $g_{ij}$ being the tidal tensor, $T_{\mathrm orb}$ being the satellite's orbital period, $\dot{M}_{\mathrm node,bound}$ set to the rate given by the {\normalfont \ttfamily satelliteTidalStrippingMethod} (see \S\ref{sec:satelliteTidalStrippingMethod}), and $\dot{Q}_{\mathrm tidal}$ set to the rate given by the {\normalfont \ttfamily satelliteTidalHeatingMethod} (see \S\ref{sec:satelliteTidalHeatingMethod}). Note that in the evolution of $G_{ij}$ a decay term is artificially introduced such that the integration of $g_{ij}$ is effectively over just the previous orbit (i.e. over the previous tidal shock).
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} The \gls{component} is created and the time to merging is given a value of -1 to indicate that the satellite is not about to merge as unmerged.  Once the satellite satisfies one of the two merging conditions:
+\begin{eqnarray}
+r&<&R_{\mathrm host}+R_{\mathrm satellite}\\
+M_{\mathrm node,bound}&<&f_{\mathrm d} M_{\mathrm node,basic},
+\end{eqnarray}
+with $R$ being the node's half-mass radius, $M_{\mathrm node,basic}$ being the node's initial mass, and $f_{\mathrm d}=${\normalfont \ttfamily [satelliteOrbitingDestructionMassFraction]}, the node is considered merged and the time to merging is set to zero. The bound mass is set to the current total mass of the node. A virial orbit is selected using the {\normalfont \ttfamily virialOrbitsMethod} (see \S\ref{sec:SatelliteVirialOrbits}). \\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} Not applicable (component only exists for satellite nodes).\\
+
 \section{N-body Halo Properties}
 
 This component is intended for tracking of miscellaneous properties derived from N-body simulation merger trees.

@@ -778,6 +778,14 @@ c = {c_{\mathrm min} \over 2} \left[ \left({\nu\over\nu_{\mathrm min}}\right)^{-
 \end{equation}
 where $c_{\mathrm min}=\phi_0+\phi_1 n$, $\nu_{\mathrm min}=\eta_0+\eta_1 n$, $n$ is the logarithmic slope of the linear power spectrum at wavenumber $k = \kappa 2 \pi / R$, $R$ is the comoving Lagrangian radius of the halo, $R=[3 M / 4 \pi \rho_{\mathrm M}(z=0)]^{1/3}$, and $\nu=\delta_{\mathrm crit}(t)/\sigma(M)$ is the peak height parameter. The numerical parameters $(\kappa,\phi_0,\phi_1,\eta_0,\eta_1,\alpha,\beta)$ are set by the parameters {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Kappa]},  {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Phi0]},  {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Phi1]},  {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Eta0]},  {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Eta1]},  {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Alpha]},  {\normalfont \ttfamily [darkMatterProfileConcentrationDiemerKravtsov2014Beta]}, respectively, and default to the values given in Table 3 of \cite{diemer_universal_2014} for the median relation, namely $(0.69,6.58,1.37,6.82,1.42,1.12,1.69)$.
 
+\subsubsection{WDM}
+
+Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\normalfont \ttfamily WDM}, under this method the concentration is computed by applying the correction factor of \cite{schneider_non-linear_2012}:
+\begin{equation}
+c_{\mathrm WDM} = c_{\mathrm CDM} \left[ 1 + \gamma_1 \left( {M_{\mathrm 1/2} \over M_{\mathrm halo}} \right)^{\gamma_2}\right]^{-1},
+\end{equation}
+where $\gamma_1=15$, $\gamma_2=0.3$, $M_{\mathrm 1/2}$ is the mass corresponding to the wavenumber at which the WDM transfer function is suppressed below the CDM transfer function by a factor of 2, and $M_{\mathrm halo}$ is the mass of the dark matter halo, to a CDM concentration algorithm as specified by {\normalfont \ttfamily [darkMatterProfileConcentrationCDMMethod]}.
+
 \subsection{Density Profile Shape}\label{sec:DarkMatterProfileShape}\index{dark matter profile!shape}
 
 The method used to compute any shape parameter of dark matter profiles is selected via the {\normalfont \ttfamily darkMatterShapeMethod} parameter.
@@ -1990,6 +1998,22 @@ is the gravitational restoring force in the spheroid at the half-mass radius, $r
 
 Selected with {\normalfont \ttfamily ramPressureStrippingMassLossRate(Disks|Spheroids)Method}$=${\normalfont \ttfamily null} this method assumes zero mass loss rate always.
 
+\section{Satellite Dynamical Friction}\label{sec:satelliteDynamicalFrictionMethod}\index{dynamical friction!satellites}
+
+The method to be used for computing the satellite vector acceleration due to dynamical friction is specified by the {\normalfont \ttfamily satelliteDynamicalFrictionMethod} parameter.
+
+\subsection{Null}
+
+Selected with {\normalfont \ttfamily satelliteDynamicalFrictionMethod}$=${\normalfont \ttfamily null}, this method assumes that there is no dynamical friction in the system.
+
+\subsection{Chandrasekhar (1943)}
+
+Selected with {\normalfont \ttfamily satelliteDynamicalFrictionMethod}$=${\normalfont \ttfamily Chandrasekhar1943}, this method uses the \cite{chandrasekhar_dynamical_1943} formula to compute the acceleration of a satellite at radius $r$ from the center of the host due to dynamical friction:
+\begin{equation}
+{\mathbf a}_{DF} = -\frac{4\pi {\mathrm G}^2M_{\mathrm sat}\rho_{\mathrm host}(r)}{v_{\mathrm sat}^3}\ln \Lambda\left[{\mathrm erf}(x)-\frac{2x}{\sqrt{\pi}}\exp(-x^2)\right]\mathbf{v}_{\mathrm sat},
+\end{equation}
+where $M_{\mathrm sat}$ and $\mathbf{v}_{\mathrm sat}$ are the satellite's mass and velocity, respectively, $v_{\mathrm sat}=|\mathbf{v}_{\mathrm sat}|$, $\rho_{\mathrm host}(r)$ is the host's density profile, $\ln\Lambda=${\normalfont \ttfamily [satelliteDynamicalFrictionChandrasekharCoulombLogarithm]} is the Coulomb logarithm, and $x\equiv v_{\mathrm sat}/\sqrt{2}\sigma(r)$, where $\sigma(r)$ is the velocity dispersion of the host halo at radius $r$, approximated to be equal to the host virial velocity, $v_{\mathrm vir}$.
+
 \section{Satellite Tidal Fields}\label{sec:SatelliteTidalFields}\index{satellites!tidal fields}\index{tidal fields!satellites}
 
 The method for computing the tidal field experienced by satellite galaxies is selected via {\normalfont \ttfamily satellitesTidalFieldMethod}.
@@ -2005,6 +2029,45 @@ Selected with {\normalfont \ttfamily satellitesTidalFieldMethod}$=${\normalfont 
  \mathcal{F} = {{\mathrm G} M_{\mathrm host}(<r_{\mathrm p}) \over r_{\mathrm p}^3} - 4 \pi {\mathrm G} \rho_{\mathrm host}(r_{\mathrm p}) + \omega_{\mathrm p}^2,
 \end{equation}
 where $r_{\mathrm p}$ is the pericentric radius. $M_{\mathrm host}(<r)$ is the mass of the host halo enclosed within a sphere of radius $r$, $\rho_{\mathrm host}(r)$ is the host density at radius $r$, and $\omega_{\mathrm p}$ is the orbital angular velocity at pericenter.
+
+\section{Satellite Tidal Stripping} \label{sec:satelliteTidalStrippingMethod}\index{tidal stripping!satellites}
+
+The method to be used for computing the satellite mass loss rate due to tidal stripping is specified by the {\normalfont \ttfamily satelliteTidalStrippingMethod} parameter.
+
+\subsection{Null}
+
+Selected with {\normalfont \ttfamily satelliteTidalStrippingMethod}$=${\normalfont \ttfamily null}, this method assumes that there is no tidal stripping in the system.
+
+\subsection{Zentner (2005)}
+
+Selected by default with {\normalfont \ttfamily satelliteTidalStrippingMethod}$=${\normalfont \ttfamily Zentner2005}, this method uses the formalism of \cite{zentner_physics_2005} to compute the mass loss rate $\dot{M}_{\mathrm sat}$:
+\begin{equation}
+\dot{M}_{\mathrm sat}=-\alpha \frac{M_{\mathrm sat}(>r_{\mathrm tidal})}{T_{\mathrm orb}},
+\end{equation}
+where $\alpha=${\normalfont \ttfamily [satelliteTidalStrippingZentnerRate]}, $T_{\mathrm orb}$ is the orbital period of the satellite, and $r_{\mathrm tidal}$ is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
+\begin{equation}
+r_{\mathrm tidal}=\left(\frac{GM_{\mathrm sat}}{\omega^2-d^2\Phi/dr^2}\right)^{1/3},
+\end{equation}
+where $\omega$ is the orbital angular velocity of the satellite, and $\Phi(r)$ is the gravitational potential due to the host.
+
+\section{Satellite Tidal Heating} \label{sec:satelliteTidalHeatingMethod}\index{tidal heating!satellites}
+
+The method to be used for computing the integrated, normalized (i.e. the energy divided by radius squared) tidal heating energy, $Q_{\mathrm tidal}$, for subhalos is specified by the {\normalfont \ttfamily satelliteTidalHeatingMethod} parameter.
+
+\subsection{Null}
+
+Selected with {\normalfont \ttfamily satelliteTidalHeatingMethod}$=${\normalfont \ttfamily null}, this method assumes that there is no tidal heating.
+
+\subsection{Gnedin (1999)}
+
+Selected by default with {\normalfont \ttfamily satelliteTidalHeatingMethod}$=${\normalfont \ttfamily Gnedin1999}, this method uses the formalism of \cite{gnedin_tidal_1999} to compute the heating rate:
+\begin{equation}
+\dot{Q}_{\mathrm tidal}=\frac{1}{3}\epsilon\left[1+\left(\frac{T_{\mathrm shock}}{T_{\mathrm orb}}\right)^2\right]^{-\gamma}  g_{ij} G^{ij}
+\end{equation}
+where $T_{\mathrm orb}$ and $T_{\mathrm shock}$ are the orbital period and shock duration, respectively, of the satellite, $\epsilon=${\normalfont \ttfamily [satelliteTidalHeatingGnedinEpsilon]} and $\gamma=${\normalfont \ttfamily [satelliteTidalHeatingGnedinGamma]} are model parameters, $g_{ij}$ is the tidal tensor, and $G_{ij}$ is the integral with respect to time of $g_{ij}$ along the orbit of the satellite.  Upon tidal heating, a mass element at radius $r_{\mathrm i}$ expands to radius $r_{\mathrm f}$, according to the equation
+\begin{equation}
+\frac{1}{r_{\mathrm f}}=\frac{1}{r_{\mathrm i}}-\frac{2r_{\mathrm i}^3Q_{\mathrm tidal}}{{\mathrm G}M_{\mathrm sat}(<r_{\mathrm i})}.
+\end{equation}
 
 \section{Star Formation Rate Surface Densities}\label{sec:StarFormationRateSurfaceDensity}\index{star formation!rate!surface density}
 

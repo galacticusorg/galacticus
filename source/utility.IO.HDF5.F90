@@ -9926,12 +9926,12 @@ contains
     call h5tclose_f(dataTypeID(1),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(datasetNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Character__1D_Array_Allocatable',message)
+       call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Character_1D_Array_Allocatable',message)
     end if
     call h5tclose_f(dataTypeID(2),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(datasetNameActual)//"' in object '"//thisObject%objectName//"'"
-       call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Character__1D_Array_Allocatable',message)
+       call Galacticus_Error_Report('IO_HDF5_Read_Dataset_Character_1D_Array_Allocatable',message)
     end if
 
     ! Determine how to close the object.

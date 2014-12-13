@@ -26,7 +26,7 @@
      double precision :: HubbleConstantValue, OmegaBaryonValue   , OmegaDarkEnergyValue, &
           &              OmegaMatterValue   , temperatureCMBValue
    contains
-     final            :: cosmologyParametersSimpleDestructor
+     final     :: cosmologyParametersSimpleDestructor
      procedure :: OmegaMatter    =>OmegaMatterSimple
      procedure :: OmegaDarkEnergy=>OmegaDarkEnergySimple
      procedure :: OmegaBaryon    =>OmegaBaryonSimple
