@@ -549,7 +549,7 @@ If the {\normalfont \ttfamily [spheroidOutputStarFormationRate]}\index{spheroid!
 
 This component class tracks various properties of the host halo of each \gls{node} over time.
 
-\subsection{``Standard Implemenation}
+\subsection{``Standard'' Implemenation}
 
 \subsubsection{Properties}
 
@@ -575,6 +575,40 @@ N/A.
 \noindent\emph{Satellite merging:} None.\\
 
 \noindent\emph{Node promotion:} As for ``post evolution''.\\
+
+\section{Mass Flow Statistics}
+
+This component class tracks the flow of mass between different components of a \gls{node}.
+
+\subsection{``Standard'' Implemenation}
+
+\subsubsection{Properties}
+
+The standard mass flow statistics implementation defines the following properties:
+\begin{description}
+ \item [{\normalfont \ttfamily cooledMass}] The cumulative mass of has which has cooled directly onto this galaxy: $M_{\mathrm cooled}$ [{\normalfont \ttfamily massFlowStatisticsCooledMass}].
+\end{description}
+
+\subsubsection{Initialization}
+
+The cooled mass is initialized to zero.
+
+\subsubsection{Differential Evolution}
+
+The cooled mass increases at a rate equal to the cooling rate onto the galaxy:
+\begin{equation}
+  \dot{M_{\mathrm cooled}} = \dot{M}_{\mathrm cool}.
+\end{equation}
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Post evolution:} None.\\
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} None.\\
 
 \section{Basic Properties}\label{sec:ComponentBasicProperties}
 

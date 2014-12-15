@@ -1229,5 +1229,11 @@
       <value>standard</value>
     </parameter>
   </parameters>
-  
+    <parameters>
+    <parameter>
+      <name>treeNodeMethodMassFlowStatistics</name>
+      <value>standard</value>
+    </parameter>
+  </parameters>
+
 </parameterGrid>
