@@ -4,6 +4,7 @@ package GasMass;
 use strict;
 use warnings;
 use PDL;
+use PDL::NiceSlice;
 use Data::Dumper;
 require Galacticus::HDF5;
 
