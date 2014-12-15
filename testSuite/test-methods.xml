@@ -1232,4 +1232,12 @@
     </parameter>
   </parameters>
 
+  <!-- Statistics and tracking components -->
+  <parameters>
+    <parameter>
+      <name>treeNodeMethodHostHistory</name>
+      <value>standard</value>
+    </parameter>
+  </parameters>
+  
 </parameterGrid>
