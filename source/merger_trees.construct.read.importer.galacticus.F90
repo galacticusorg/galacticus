@@ -199,25 +199,6 @@ contains
              call Galacticus_Display_Message(message,verbosityWarn)
           end if
        end if
-    else if (cosmologicalParametersGroup%hasAttribute("Omega0")) then
-       ! <expiry>
-       !  <label>Warning regarding use of Omega0 in merger tree files.</label>
-       !  <date>25-Aug-2012</date>
-       ! </expiry>
-       call Galacticus_Display_Message('WARNING: Use of "Omega0" in merger tree files is deprecated - use OmegaMatter instead',verbosityWarn)
-       call cosmologicalParametersGroup%readAttribute("Omega0",cosmologicalParameter,allowPseudoScalar=.true.)
-       if (Values_Differ(cosmologicalParameter,localOmegaMatter,absTol=0.001d0)) then
-          message='Omega_Matter in merger tree file ['
-          write (valueString,'(e14.8)') cosmologicalParameter
-          message=message//trim(valueString)//'] differs from the internal value ['
-          write (valueString,'(e14.8)') localOmegaMatter
-          message=message//trim(valueString)//']'
-          if (self%fatalMismatches) then
-             call Galacticus_Error_Report('galacticusOpen',message)
-          else
-             call Galacticus_Display_Message(message,verbosityWarn)
-          end if
-       end if
     end if
     if (cosmologicalParametersGroup%hasAttribute("OmegaBaryon")) then
        call cosmologicalParametersGroup%readAttribute("OmegaBaryon",cosmologicalParameter,allowPseudoScalar=.true.)
