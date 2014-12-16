@@ -338,6 +338,36 @@ A fraction $1-${\normalfont \ttfamily [hotHaloAngularMomentumLossFraction]} of t
 
 \noindent\emph{Halo formation:} If {\normalfont \ttfamily [hotHaloOutflowReturnOnFormation]}$=${\normalfont \ttfamily true} then all outflowed gas is returned to the hot gas reservoir on halo formation events (see \S\ref{sec:HaloFormationEvents}).\\
 
+\subsection{``Outflow Tracking'' Implementation}
+
+\subsubsection{Properties}
+
+The outflow tracking hot halo implementation extends the ``standard'' implementation by adding the following properties:
+\begin{description}
+ \item [{\normalfont \ttfamily trackedOutflowMass}] The mass of gas in the hot halo which arrived there directly via outflow: $M_{\mathrm outflow, track}$ {\normalfont \ttfamily [hotHaloTrackedOutflowMass]}.
+ \item [{\normalfont \ttfamily trackedOutflowAbundances}] The mass of elements in the hot halo which arrived there directly via outflow: $M_{Z, {\mathrm outflow, track}}$ {\normalfont \ttfamily [hotHaloTrackedOutflowAbundances]}.
+\end{description}
+
+\subsubsection{Initialization}
+
+Outflowed masses and element masses are initialized to zero.
+
+\subsubsection{Differential Evolution}
+
+The tracked outflow masses evolve according to:
+\begin{eqnarray}
+ \dot{M}|\dot{M}_{Z_{\mathrm outflow, track}} &=& \alpha_{\mathrm outflow~return~rate} {M|M_{Z_{\mathrm outflowed}}\over \tau_{\mathrm dynamical, halo}} -  M|M_{Z_{\mathrm outflow, track}} \dot{M}_{\mathrm expelled} / M\\
+\end{eqnarray}
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} None.\\ 
+
+\noindent\emph{Halo formation:} None.\\
 
 \section{Galactic Disk}
 

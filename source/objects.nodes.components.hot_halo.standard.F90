@@ -174,6 +174,7 @@ module Node_Component_Hot_Halo_Standard
   !#   </property>
   !#  </properties>
   !#  <bindings>
+   !#    <binding method="massRemovalRate" function="Node_Component_Hot_Halo_Standard_Mass_Removal_Rate" description="Called whenever the standard hot halo component removes mass from the halo." returnType="\void" arguments="" bindsTo="component" />
   !#    <binding method="outflowReturn" bindsTo="component" isDeferred="true" >
   !#     <interface>
   !#      <type>void</type>
@@ -190,6 +191,7 @@ module Node_Component_Hot_Halo_Standard
   !#     </interface>
   !#    </binding>
   !#  </bindings>
+  !#  <functions>objects.nodes.components.hot_halo.standard.bound_functions.inc</functions>
   !# </component>
 
   ! Internal count of abundances and chemicals.
@@ -641,7 +643,10 @@ contains
         excessMassHeatingRate=inputMassHeatingRate-massHeatingRate
 
         ! Remove any excess mass heating rate from the halo.
-        call Node_Component_Hot_Halo_Standard_Push_From_Halo(thisNode,excessMassHeatingRate)
+        select type (thisHotHaloComponent)
+        class is (nodeComponentHotHaloStandard)
+           call Node_Component_Hot_Halo_Standard_Push_From_Halo(thisHotHaloComponent,excessMassHeatingRate)
+        end select
 
      end if
 
@@ -674,7 +679,8 @@ contains
        if (massRate /= 0.0d0 .and. thisHotHaloComponent%mass() > 0.0d0 .and. thisHotHaloComponent%angularMomentum() > 0.0d0) then
 
           ! Remove mass from the hot component.
-          call    thisHotHaloComponent%massRate       (-massRate                             )
+          call    thisHotHaloComponent%massRate       (-massRate)
+          call    thisHotHaloComponent%massRemovalRate(+massRate)
           ! Pipe the mass rate to whichever component claimed it.
           if (thisHotHaloComponent%hotHaloCoolingMassRateIsAttached()) then
              call thisHotHaloComponent%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
@@ -714,7 +720,7 @@ contains
           coolingFromHotHaloComponent => coolingFromNode%hotHalo()
           abundancesCoolingRate=coolingFromHotHaloComponent%abundances()
           abundancesCoolingRate=massRate*abundancesCoolingRate/coolingFromHotHaloComponent%mass()
-          call    thisHotHaloComponent%abundancesRate       (-abundancesCoolingRate                             )
+          call    thisHotHaloComponent%abundancesRate       (-abundancesCoolingRate )
           ! Pipe the cooling rate to which ever component claimed it.
           if (thisHotHaloComponent%hotHaloCoolingAbundancesRateIsAttached()) then
              call thisHotHaloComponent%hotHaloCoolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
@@ -725,41 +731,40 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes
 
-  subroutine Node_Component_Hot_Halo_Standard_Push_From_Halo(thisNode,massRate)
+  subroutine Node_Component_Hot_Halo_Standard_Push_From_Halo(thisHotHaloComponent,massRate)
     !% Push mass from the hot halo into an infinite sink (along with appropriate amounts of metals, chemicals and angular momentum) at the given rate.
     use Dark_Matter_Halo_Scales
     use Abundances_Structure
     use Chemical_Abundances_Structure
     implicit none
-    type            (treeNode            )      , intent(inout), pointer :: thisNode
-    double precision                            , intent(in   )          :: massRate
-    class           (nodeComponentHotHalo)                     , pointer :: thisHotHalo
+    class           (nodeComponentHotHaloStandard), intent(inout) :: thisHotHaloComponent
+    double precision                              , intent(in   ) :: massRate 
+    type            (treeNode                    ), pointer       :: thisNode
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    type            (abundances          ), save                         :: abundancesRates
-    type            (chemicalAbundances  ), save                         :: chemicalsRates
+    type            (abundances                  ), save          :: abundancesRates
+    type            (chemicalAbundances          ), save          :: chemicalsRates
     !$omp threadprivate(abundancesRates,chemicalsRates)
-    double precision                                                     :: angularMomentumRate , massRateLimited
+    double precision                                              :: angularMomentumRate , massRateLimited
 
-    ! Get the hot halo component.
-    thisHotHalo => thisNode%hotHalo()
     ! Ignore zero rates.
-    if (massRate /= 0.0d0 .and. thisHotHalo%mass() > 0.0d0) then
+    if (massRate /= 0.0d0 .and. thisHotHaloComponent%mass() > 0.0d0) then
        ! Limit the mass expulsion rate to a fraction of the halo dynamical timescale.
+       thisNode => thisHotHaloComponent%hostNode
        darkMatterHaloScale_ => darkMatterHaloScale()
-       massRateLimited=min(massRate,hotHaloExpulsionRateMaximum*thisHotHalo%mass()/darkMatterHaloScale_%dynamicalTimescale(thisNode))
+       massRateLimited=min(massRate,hotHaloExpulsionRateMaximum*thisHotHaloComponent%mass()/darkMatterHaloScale_%dynamicalTimescale(thisNode))
        ! Get the rate of change of abundances, chemicals, and angular momentum.
-       abundancesRates    =thisHotHalo%abundances     ()*massRateLimited/thisHotHalo%mass()
-       angularMomentumRate=thisHotHalo%angularMomentum()*massRateLimited/thisHotHalo%mass()
-       chemicalsRates     =thisHotHalo%chemicals      ()*massRateLimited/thisHotHalo%mass()
-       ! Remove mass, etc. from the hot component.
-       call thisHotHalo%           massRate(-    massRateLimited)
-       call thisHotHalo%     abundancesRate(-    abundancesRates)
-       call thisHotHalo%angularMomentumRate(-angularMomentumRate)
-       call thisHotHalo%      chemicalsRate(-     chemicalsRates)
+       abundancesRates    =thisHotHaloComponent%abundances     ()*massRateLimited/thisHotHaloComponent%mass()
+       angularMomentumRate=thisHotHaloComponent%angularMomentum()*massRateLimited/thisHotHaloComponent%mass()
+       chemicalsRates     =thisHotHaloComponent%chemicals      ()*massRateLimited/thisHotHaloComponent%mass()
+       call thisHotHaloComponent%    massRemovalRate(+    massRateLimited)
+       call thisHotHaloComponent%           massRate(-    massRateLimited)
+       call thisHotHaloComponent%     abundancesRate(-    abundancesRates)
+       call thisHotHaloComponent%angularMomentumRate(-angularMomentumRate)
+       call thisHotHaloComponent%      chemicalsRate(-     chemicalsRates)
        ! If this node is a satellite and stripped gas is being tracked, move mass and abundances to the stripped reservoir.
        if (thisNode%isSatellite().and.hotHaloTrackStrippedGas) then
-          call thisHotHalo%      strippedMassRate(+massRateLimited)
-          call thisHotHalo%strippedAbundancesRate(+abundancesRates)
+          call thisHotHaloComponent%      strippedMassRate(+massRateLimited)
+          call thisHotHaloComponent%strippedAbundancesRate(+abundancesRates)
        end if
     end if
     return
@@ -904,6 +909,7 @@ contains
     use Chemical_Reaction_Rates_Utilities
     use Numerical_Constants_Astronomical
     use Hot_Halo_Mass_Distributions
+    use Node_Component_Hot_Halo_Standard_Data
     use Hot_Halo_Ram_Pressure_Stripping_Timescales
     use Cosmology_Parameters
     use Node_Component_Hot_Halo_Standard_Data
