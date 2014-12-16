@@ -28,7 +28,8 @@ module Galacticus_Merger_Tree_Output_Filter_Luminosities
   logical                                     :: luminosityFilterActive
 
   ! The absolute magnitude thresholds for this filter.
-  double precision, allocatable, dimension(:) :: luminosityFilterAbsoluteMagnitudeThresholds
+  double precision, allocatable, dimension(:) :: luminosityFilterAbsoluteMagnitudeThresholdMinima
+  double precision, allocatable, dimension(:) :: luminosityFilterAbsoluteMagnitudeThresholdMaxima
 
 contains
 
@@ -52,16 +53,33 @@ contains
        ! If this filter is active, read the minimum stellar mass.
        if (luminosityFilterActive) then
           ! Check that the list of thresholds has the correct size.
-          if (Get_Input_Parameter_Array_Size('luminosityFilterAbsoluteMagnitudeThresholds') /= unitStellarLuminosities%luminosityCount())                      &
-               & call  Galacticus_Error_Report(                                                                                                                &
-               &                               'Galacticus_Merger_Tree_Output_Filter_Luminosity_Initialize'                                                  , &
-               &                               'luminosityFilterAbsoluteMagnitudeThresholds input arrays must have same dimension as other luminosity arrays'  &
+          if     (                                                                                                                                 &
+               &   Get_Input_Parameter_Array_Size('luminosityFilterAbsoluteMagnitudeThresholdMinima') /= unitStellarLuminosities%luminosityCount() &
+               &  .or.                                                                                                                             &
+               &   Get_Input_Parameter_Array_Size('luminosityFilterAbsoluteMagnitudeThresholdMaxima') /= unitStellarLuminosities%luminosityCount() &
+               & )                                                                                                                                 &
+               & call  Galacticus_Error_Report(                                                                                                    &
+               &                                 'Galacticus_Merger_Tree_Output_Filter_Luminosity_Initialize'              ,                       &
+               &                                 'luminosityFilterAbsoluteMagnitudeThreshold(Minima|Maxima) input arrays '                         &
+               &                               //'must have same dimension as other luminosity arrays'                                             &
                &                              )
-          call Alloc_Array(luminosityFilterAbsoluteMagnitudeThresholds,[unitStellarLuminosities%luminosityCount()])
+          call Alloc_Array(luminosityFilterAbsoluteMagnitudeThresholdMinima,[unitStellarLuminosities%luminosityCount()])
+          call Alloc_Array(luminosityFilterAbsoluteMagnitudeThresholdMaxima,[unitStellarLuminosities%luminosityCount()])
 
-          ! Get the minimum stellar mass for output
+          ! Get the magnitude limits.
           !@ <inputParameter>
-          !@   <name>luminosityFilterAbsoluteMagnitudeThresholds</name>
+          !@   <name>luminosityFilterAbsoluteMagnitudeThresholdMinima</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The minimum absolute magnitudes (in the AB system) of a galaxy to pass the {\tt luminosity} output filter.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..*</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('luminosityFilterAbsoluteMagnitudeThresholdMinima',luminosityFilterAbsoluteMagnitudeThresholdMinima)
+          !@ <inputParameter>
+          !@   <name>luminosityFilterAbsoluteMagnitudeThresholdMaxima</name>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@    The maximum absolute magnitudes (in the AB system) of a galaxy to pass the {\normalfont \ttfamily luminosity} output filter.
@@ -70,7 +88,7 @@ contains
           !@   <cardinality>0..*</cardinality>
           !@   <group>output</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('luminosityFilterAbsoluteMagnitudeThresholds',luminosityFilterAbsoluteMagnitudeThresholds)
+          call Get_Input_Parameter('luminosityFilterAbsoluteMagnitudeThresholdMaxima',luminosityFilterAbsoluteMagnitudeThresholdMaxima)
        end if
        ! Flag that this filter is now initialized.
        luminosityFilterInitialized=.true.
@@ -119,7 +137,11 @@ contains
              abMagnitude=-2.5d0*log10(luminosity)
 
              ! Filter out the galaxy if it is below the stellar mass threshold.
-             if (abMagnitude > luminosityFilterAbsoluteMagnitudeThresholds(iLuminosity)) then
+             if     (                                                                             &
+                  &   abMagnitude > luminosityFilterAbsoluteMagnitudeThresholdMaxima(iLuminosity) &
+                  &  .or.                                                                         &
+                  &   abMagnitude < luminosityFilterAbsoluteMagnitudeThresholdMinima(iLuminosity) &
+                  & ) then
                 doOutput=.false.
                 return
              end if
