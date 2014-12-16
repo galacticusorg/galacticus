@@ -26,13 +26,13 @@ module Galactic_Structure_Surface_Densities
   public :: Galactic_Structure_Surface_Density
 
   ! Module scope variables used in mapping over components.
-  integer                        :: componentTypeShared      , massTypeShared
+  integer                        :: componentTypeShared      , massTypeShared, weightByShared, weightIndexShared
   logical                        :: haloLoadedShared
   double precision, dimension(3) :: positionCylindricalShared
-  !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,positionCylindricalShared)
+  !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,positionCylindricalShared,weightByShared,weightIndexShared)
 contains
 
-  double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,componentType,massType,haloLoaded)
+  double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     !% been computed.
     use Galacticus_Error
@@ -43,7 +43,8 @@ contains
     implicit none
     type            (treeNode                 ), intent(inout)          , pointer :: thisNode
     integer                                    , intent(in   ), optional          :: componentType                     , coordinateSystem, &
-         &                                                                           massType
+         &                                                                           massType                          , weightBy        , &
+         &                                                                           weightIndex
     logical                                    , intent(in   ), optional          :: haloLoaded
     double precision                           , intent(in   )                    :: position                       (3)
     procedure       (Component_Surface_Density)                         , pointer :: componentSurfaceDensityFunction
@@ -55,6 +56,16 @@ contains
        coordinateSystemActual=coordinateSystem
     else
        coordinateSystemActual=coordinateSystemCylindrical
+    end if
+    if (present(weightBy        )) then
+       weightByShared=weightBy
+    else
+       weightByShared=weightByMass
+    end if
+    if (present(weightIndex        )) then
+       weightIndexShared=weightIndex
+    else
+       weightIndexShared=weightIndexNull
     end if
     select case (coordinateSystemActual)
     case (coordinateSystemSpherical)
@@ -88,7 +99,7 @@ contains
     componentSurfaceDensityFunction => Component_Surface_Density
     Galactic_Structure_Surface_Density=thisNode%mapDouble0(componentSurfaceDensityFunction,reductionSummation)
     !# <include directive="surfaceDensityTask" type="functionCall" functionType="function" returnParameter="componentDensity">
-    !#  <functionArgs>thisNode,positionCylindricalShared,massTypeShared,componentTypeShared,haloLoadedShared</functionArgs>
+    !#  <functionArgs>thisNode,positionCylindricalShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared,haloLoadedShared</functionArgs>
     !#  <onReturn>Galactic_Structure_Surface_Density=Galactic_Structure_Surface_Density+componentDensity</onReturn>
     include 'galactic_structure.surface_density.tasks.inc'
     !# </include>
@@ -101,7 +112,7 @@ contains
     class(nodeComponent), intent(inout) :: component
 
     Component_Surface_Density=component%surfaceDensity(positionCylindricalShared,componentTypeShared&
-         &,massTypeShared,haloLoadedShared)
+         &,massTypeShared,weightByShared,weightIndexShared,haloLoadedShared)
     return
   end function Component_Surface_Density
 
