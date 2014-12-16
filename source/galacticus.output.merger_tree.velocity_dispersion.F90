@@ -58,6 +58,7 @@ module Galacticus_Output_Trees_Velocity_Dispersion
   integer                          , parameter                            :: directionRadial                    =0
   integer                          , parameter                            :: directionLineOfSight               =1
   integer                          , parameter                            :: directionLineOfSightInteriorAverage=2
+  integer                          , parameter                            :: directionLambdaR                   =3
 
   ! Module scope variables used in integrations.
   type            (treeNode       ), pointer                              :: activeNode
@@ -79,7 +80,7 @@ contains
     type     (varying_string), dimension(6) :: radiusDefinition
     type     (varying_string), dimension(3) :: fractionDefinition
     type     (varying_string), dimension(2) :: weightingDefinition
-    type     (varying_string)               :: valueDefinition
+    type     (varying_string)               :: valueDefinition    , message
     character(len=20        )               :: fractionLabel      , radiusLabel
     integer                                 :: i
 
@@ -237,7 +238,11 @@ contains
                 end select
                 ! Detect cases which specify the weighting for integrals over the velocity dispersion.
                 valueDefinition=radiusDefinition(5)
-                if (extract(valueDefinition,1,11) == 'lineOfSight') then
+                if     (                                                &
+                     &   extract(valueDefinition,1,11) == 'lineOfSight' &
+                     &  .or.                                            &
+                     &   extract(valueDefinition,1, 7) == 'lambdaR'     &
+                     & ) then
                    call String_Split_Words(weightingDefinition,char(valueDefinition),'{}')
                    radiusDefinition(5)=weightingDefinition(1)
                    if (weightingDefinition(2) == "mass" .or. weightingDefinition(2) == "") then
@@ -256,8 +261,16 @@ contains
                    radii(i)%direction=directionLineOfSight
                 case ('lineOfSightInteriorAverage')
                    radii(i)%direction=directionLineOfSightInteriorAverage
+                case ('lambdaR'                   )
+                   radii(i)%direction=directionLambdaR
                 case default
-                   call Galacticus_Error_Report('Galacticus_Output_Tree_Velocity_Dispersion_Initialize','unrecognized direction specifier')
+                   message='unrecognized direction specifier: "'//radiusDefinition(5)//'"'
+                   message=message//char(10)//'available specifiers are:'
+                   message=message//char(10)//' --> radial'
+                   message=message//char(10)//' --> lineOfSight'
+                   message=message//char(10)//' --> lineOfSightInteriorAverage'
+                   message=message//char(10)//' --> lambdaR'
+                   call Galacticus_Error_Report('Galacticus_Output_Tree_Velocity_Dispersion_Initialize',message)
                 end select
                 radiusLabel=radiusDefinition(6)
                 read (radiusLabel,*) radii(i)%value
@@ -338,7 +351,7 @@ contains
   !# </mergerTreeOutputTask>
   subroutine Galacticus_Output_Tree_Velocity_Dispersion(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
-    !% Store velocity dispersoin properties in the \glc\ output file buffers.
+    !% Store velocity dispersion properties in the \glc\ output file buffers.
     use Kind_Numbers
     use Galactic_Structure_Velocity_Dispersions
     use Dark_Matter_Halo_Scales
@@ -366,7 +379,9 @@ contains
     logical                                                                  :: scaleIsZero
     double precision                                                         :: densityIntegrand                 , radius                  , &
          &                                                                      radiusFromFraction               , radiusVirial            , &
-         &                                                                      radiusZero                       , velocityDensityIntegrand
+         &                                                                      radiusZero                       , velocityDensityIntegrand, &
+         &                                                                      numerator                        , denominator             , &
+         &                                                                      massDisk                         , massSpheroid
 
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Dispersion_Initialize
@@ -473,12 +488,250 @@ contains
                 else
                    doubleBuffer(doubleBufferCount,doubleProperty)=sqrt(velocityDensityIntegrand/densityIntegrand)
                 end if
+             case (directionLambdaR                   )
+                ! The "lambdaR" parameter of Cappellari et al. (2007; MNRAS; 379; 418)
+                activeNode   => thisNode
+                massType     =  radii(i)%mass
+                componentType=  radii(i)%component
+                haloLoaded   =  radii(i)%loaded
+                weightBy     =  radii(i)%integralWeightBy
+                weightIndex  =  radii(i)%integralWeightByIndex
+                ! Check the total masses of the disk and spheroid components. If either is zero we can use the solutions for the
+                ! appropriate limiting case.
+                massSpheroid=Galactic_Structure_Enclosed_Mass(                                 &
+                     &                                        thisNode                       , &
+                     &                                        radiusLarge                    , &
+                     &                                        massType     =massType         , &
+                     &                                        componentType=componentType    , &
+                     &                                        weightBy     =weightBy         , &
+                     &                                        weightIndex  =weightIndex      , &
+                     &                                        haloLoaded   =haloLoaded         &
+                     &                                       )
+                massDisk    =Galactic_Structure_Enclosed_Mass(                                 &
+                     &                                        thisNode                       , &
+                     &                                        radiusLarge                    , &
+                     &                                        massType     =massTypeStellar  , &
+                     &                                        componentType=componentTypeDisk, &
+                     &                                        weightBy     =weightBy         , &
+                     &                                        weightIndex  =weightIndex      , &
+                     &                                        haloLoaded   =haloLoaded         &
+                     &                                       )                             
+                if (massDisk <= 0.0d0) then
+                   doubleBuffer(doubleBufferCount,doubleProperty)=0.0d0
+                else if (massSpheroid <= 0.0d0) then
+                   doubleBuffer(doubleBufferCount,doubleProperty)=1.0d0
+                else
+                   ! Full calculation is required.
+                   radiusZero=0.0d0
+                   numerator=Integrate(                                                                 &
+                        &                radiusZero                                                   , &
+                        &                radius                                                       , &
+                        &                Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2        , &
+                        &                parameterPointer                                             , &
+                        &                integrandFunction                                            , &
+                        &                integrationWorkspace                                         , &
+                        &                toleranceAbsolute                                     =0.0d0 , &
+                        &                toleranceRelative                                     =1.0d-2  &
+                        &               )
+                   call Integrate_Done(integrandFunction,integrationWorkspace)
+                   denominator=Integrate(                                                               &
+                        &                radiusZero                                                   , &
+                        &                radius                                                       , &
+                        &                Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1        , &
+                        &                parameterPointer                                             , &
+                        &                integrandFunction                                            , &
+                        &                integrationWorkspace                                         , &
+                        &                toleranceAbsolute                                     =0.0d0 , &
+                        &                toleranceRelative                                     =1.0d-2  &
+                        &               )
+                   call Integrate_Done(integrandFunction,integrationWorkspace)                      
+                   if (denominator <= 0.0d0) then
+                      doubleBuffer(doubleBufferCount,doubleProperty)=0.0d0
+                   else
+                      doubleBuffer(doubleBufferCount,doubleProperty)=numerator/denominator
+                   end if
+                end if
              end select
           end if
        end do
     end if
     return
   end subroutine Galacticus_Output_Tree_Velocity_Dispersion
+
+  function Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1(radius,parameterPointer) bind(c)
+    !% Integrand function used for integrating the $\lambda_{\rm R}$ statistic of \cite{cappellari_sauron_2007}. In this case we
+    !% want to evaluate
+    !% \begin{equation}
+    !% \int_0^r 2 \pi r^\prime \Sigma(r^\prime) \sqrt{\sigma^2(r^\prime)+V^2(r^\prime)} {\rm d}r^\prime,
+    !% \end{equation}
+    !% where $\Sigma(r)$ is the projected surface density (in mass or light) of the galaxy at radius $r$, $\sigma^2(r)$ is the
+    !% measured velocity dispersion and $V(r)$ the measured rotation speed. Assuming that the selected component is purely
+    !% dispersion dominated with velocity dispersion $\sigma_{\rm s}(r)$, and that rotation is present in only the disk component
+    !% with rotation curve $V_{\rm d}(r)$ then we can model the velocity distribution, $P(V)$, at $r$ as the sum of a Gaussian of
+    !% width $\sigma_{\rm s}(r)$ and normalized area $\Sigma_{\rm s}(r)$, and a delta function at $V_{\rm d}(r)$ with normalized
+    !% area $\Sigma_{\rm d}(r)$. The measured rotation speed is then:
+    !% \begin{equation}
+    !% V(r) = \left. \int_{-\infty}^{+\infty} P(V) V {\rm d}V \right/ \int_{-\infty}^{+\infty} P(V) {\rm d}V = {\Sigma_{\rm d}(r) V_{\rm d}(r) \over [\Sigma_{\rm d}(r)+\Sigma_{\rm s}(r)]},
+    !% \end{equation}
+    !% and the measured velocity dispersion is:
+    !% \begin{equation}
+    !% \sigma^2(r) = \left. \int_{-\infty}^{+\infty} P(V) [V-V(r)]^2 {\rm d}V \right/ \int_{-\infty}^{+\infty} P(V) {\rm d}V = {  \Sigma_{\rm s}(r) [\sigma_{\rm s}^2(r)] + \Sigma_{\rm d}(r) [V_{\rm d}(r)-V(r)]^2  \over [\Sigma_{\rm d}(r)+\Sigma_{\rm s}(r)]}.
+    !% \end{equation}
+    use, intrinsic :: ISO_C_Binding
+    use Galactic_Structure_Options
+    use Galactic_Structure_Densities
+    use Galactic_Structure_Velocity_Dispersions
+    use Galactic_Structure_Rotation_Curves
+    use Galactic_Structure_Surface_Densities
+    use Numerical_Constants_Math
+    use Numerical_Integration
+    use FGSL
+    implicit none
+    real            (kind=c_double             )            :: Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1
+    real            (kind=c_double             ), value     :: radius
+    type            (c_ptr                     ), value     :: parameterPointer
+    double precision                            , parameter :: fractionSmall=1.0d-3
+    type            (fgsl_function             )            :: integrandFunction
+    type            (fgsl_integration_workspace)            :: integrationWorkspace
+    double precision                                        :: sigmaLineOfSightSquaredSpheroidDensity, densitySpheroid        , &
+         &                                                     densityDisk                           , velocityDisk           , &
+         &                                                     velocityMean                          , sigmaLineOfSightSquared
+
+    if (radius <= 0.0d0) then
+       Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1=0.0d0
+    else
+       radiusImpact=radius
+       densitySpheroid                                                                         &
+            & =Integrate(                                                                      &
+            &            radius                                                              , &
+            &            radiusOuter                                                         , &
+            &            Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand       , &
+            &            parameterPointer                                                    , &
+            &            integrandFunction                                                   , &
+            &            integrationWorkspace                                                , &
+            &            toleranceAbsolute                                            =0.0d0 , &
+            &            toleranceRelative                                            =1.0d-2  &
+            &           )
+       call Integrate_Done(integrandFunction,integrationWorkspace)       
+       densityDisk=Galactic_Structure_Surface_Density            (                                        &
+            &                                                     activeNode                            , &
+            &                                                     [radius,0.0d0,0.0d0]                  , &
+            &                                                     massType            =massTypeStellar  , &
+            &                                                     componentType       =componentTypeDisk, &
+            &                                                     weightBy            =weightBy         , &
+            &                                                     weightIndex         =weightIndex      , &
+            &                                                     haloLoaded          =haloLoaded         &
+            &                                                    )                     
+       velocityDisk=Galactic_Structure_Rotation_Curve            (                                        &
+            &                                                     activeNode                            , &
+            &                                                     radius                                , &
+            &                                                     massType            =massTypeAll      , &
+            &                                                     componentType       =componentTypeAll , &
+            &                                                     haloLoaded          =haloLoaded         &
+            &                                                    )
+       ! Test if the spheroid density is significant....
+       if (densitySpheroid < fractionSmall*densityDisk) then
+          ! ...it is not, so we can avoid computing the spheroid velocity dispersion.
+          Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1 &
+               & =2.0d0                                         &
+               & *Pi                                            &
+               & *radius                                        &
+               & *densityDisk                                   &
+               & *velocityDisk
+       else
+          ! ...it is, so we must do the full calculation.
+          sigmaLineOfSightSquaredSpheroidDensity                                                  &
+               & =Integrate(                                                                      &
+               &            radius                                                              , &
+               &            radiusOuter                                                         , &
+               &            Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd        , &
+               &            parameterPointer                                                    , &
+               &            integrandFunction                                                   , &
+               &            integrationWorkspace                                                , &
+               &            toleranceAbsolute                                            =0.0d0 , &
+               &            toleranceRelative                                            =1.0d-2  &
+               &           )
+          call Integrate_Done(integrandFunction,integrationWorkspace)
+          velocityMean                                          &
+               & =densityDisk                                   &
+               & *velocityDisk                                  &
+               & /(densityDisk+densitySpheroid)
+          sigmaLineOfSightSquared                               &
+               & =(                                             &
+               &    sigmaLineOfSightSquaredSpheroidDensity      &
+               &   +densitySpheroid                             &
+               &   *velocityMean**2                             &
+               &   +densityDisk                                 &
+               &   *(velocityDisk-velocityMean)**2              &
+               &  )                                             &
+               & /(densityDisk+densitySpheroid)
+          Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1 &
+               & =2.0d0                                         &
+               & *Pi                                            &
+               & *radius                                        &
+               & *(densityDisk+densitySpheroid)                 &
+               & *sqrt(                                         &
+               &        sigmaLineOfSightSquared                 &
+               &       +velocityMean**2                         &
+               &      )
+       end if
+    end if
+    return
+  end function Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1
+  
+  function Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2(radius,parameterPointer) bind(c)
+    !% Integrand function used for integrating the $\lambda_{\rm R}$ statistic of \cite{cappellari_sauron_2007}. In this case we
+    !% want to evaluate
+    !% \begin{equation}
+    !% \int_0^r 2 \pi r^\prime \Sigma(r^\prime) V(r^\prime) {\rm d}r^\prime,
+    !% \end{equation}
+    !% where $\Sigma(r)$ is the projected surface density (in mass or light) of the galaxy at radius $r$, and $V(r)$ the measured
+    !% rotation speed. Assuming that the selected component is purely dispersion dominated with velocity dispersion $\sigma_{\rm
+    !% s}(r)$, and that rotation is present in only the disk component with rotation curve $V_{\rm d}(r)$ then we can model the
+    !% velocity distribution, $P(V)$, at $r$ as the sum of a Gaussian of width $\sigma_{\rm s}(r)$ and normalized area
+    !% $\Sigma_{\rm s}(r)$, and a delta function at $V_{\rm d}(r)$ with normalized area $\Sigma_{\rm d}(r)$. The measured rotation
+    !% speed is then:
+    !% \begin{equation}
+    !% V(r) = \left. \int_{-\infty}^{+\infty} P(V) V {\rm d}V \right/ \int_{-\infty}^{+\infty} P(V) {\rm d}V = {\Sigma_{\rm d}(r) V_{\rm d}(r) \over [\Sigma_{\rm d}(r)+\Sigma_{\rm s}(r)]}.
+    !% \end{equation}
+    use, intrinsic :: ISO_C_Binding
+    use Galactic_Structure_Options
+    use Galactic_Structure_Rotation_Curves
+    use Galactic_Structure_Surface_Densities
+    use Numerical_Integration
+    use Numerical_Constants_Math
+    use FGSL
+    implicit none
+    real            (kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2
+    real            (kind=c_double             ), value :: radius
+    type            (c_ptr                     ), value :: parameterPointer
+    type            (fgsl_function             )        :: integrandFunction
+    type            (fgsl_integration_workspace)        :: integrationWorkspace
+    double precision                                    :: densityDisk         , velocityDisk
+
+    if (radius <= 0.0d0) then
+       Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2=0.0d0
+    else
+       densityDisk=Galactic_Structure_Surface_Density(                                        &
+            &                                         activeNode                            , &
+            &                                         [radius,0.0d0,0.0d0]                  , &
+            &                                         massType            =massTypeStellar  , &
+            &                                         componentType       =componentTypeDisk, &
+            &                                         weightBy            =weightBy         , &
+            &                                         weightIndex         =weightIndex      , &
+            &                                         haloLoaded          =haloLoaded         &
+            &                                        )                     
+       velocityDisk=Galactic_Structure_Rotation_Curve(                                        &
+            &                                         activeNode                            , &
+            &                                         radius                                , &
+            &                                         massType            =massTypeAll      , &
+            &                                         componentType       =componentTypeAll , &
+            &                                         haloLoaded          =haloLoaded         &
+            &                                        )           
+       Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2=2.0d0*Pi*radius*densityDisk*velocityDisk
+    end if
+    return
+  end function Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2
 
   function Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd(radius,parameterPointer) bind(c)
     !% Integrand function used for integrating line-of-sight velocity dispersion over surface density.
@@ -619,10 +872,35 @@ contains
   end function Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand
 
   function Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd(radius,parameterPointer) bind(c)
-    !% Integrand function used for computing line-of-sight velocity dispersions.
+    !% Integrand function used for computing line-of-sight velocity dispersions. Specifically, we wish to evaluate the integral:
+    !% \begin{equation}
+    !% \int_{r_{\rm i}}^{r_{\rm o}} \sigma^2(r) \rho(r) {r \over \sqrt{r^2-r_{\rm i}^2}} {\rm d}r,
+    !% \label{eq:velocityDispersionDensityIntegral}
+    !% \end{equation}
+    !% where $r_{\rm i}$ is the impact parameter, $r_{\rm o}$ is an outer radius at which we assume $\rho(r_{\rm
+    !% o})\sigma^2(r_{\rm o}) = 0$ (i.e. it is the radius at which we begin integrating the Jeans equation), $\rho(r)$ is density,
+    !% and $\sigma(r)$ is the velocity dispersion at radius $r$. Assuming spherical symmetry and isotropic velocity dispersion,
+    !% the Jeans equation tells us
+    !% \begin{equation}
+    !% \rho(r) \sigma^2(r) = \int^{r_{\rm o}}_r {{\rm G} M(<r^\prime) \over r^{\prime 2}} \rho(r^\prime) {\rm d}r^\prime,
+    !% \label{eq:sphericalIsotropicJeans}
+    !% \end{equation}
+    !% where ${\rm G}$ is the gravitational constant, and $M(<r)$ is the total mass contained within radius
+    !% $r$. Equation~(\ref{eq:velocityDispersionDensityIntegral}) can then be simplified using integration by parts to give:
+    !% \begin{equation}
+    !% \left[ \sigma^2(r)\rho(r)\sqrt{r^2-r_{\rm i}^2}\right]_{r_{\rm i}}^{r_{\rm o}} + \int_{r_{\rm i}}^{r_{\rm o}} {{\rm d}\over {\rm d}r} \left[ \sigma^2(r) \rho(r) \right] \sqrt{r^2-r_{\rm i}^2} {\rm d}r.
+    !% \end{equation}
+    !% The first term is zero at both limits (due to the constraint $\rho(r_{\rm o})\sigma^2(r_{\rm o}) = 0$ at $r_{\rm o}$ and
+    !% due to $sqrt{r^2-r_{\rm i}^2}=0$ at $r_{\rm i}$), and the second term can be simplified using
+    !% eqn.~(\ref{eq:sphericalIsotropicJeans}) to give
+    !% \begin{equation}
+    !% \int_{r_{\rm i}}^{r_{\rm o}} {{\rm G} M(<r) \over r^2} \rho(r) \sqrt{r^2-r_{\rm i}^2} {\rm d}r.
+    !% \end{equation}
     use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Densities
-    use Galactic_Structure_Velocity_Dispersions
+    use Galactic_Structure_Enclosed_Masses
+    use Galactic_Structure_Options
+    use Numerical_Constants_Physical
     implicit none
     real(kind=c_double)        :: Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd
     real(kind=c_double), value :: radius
@@ -631,26 +909,26 @@ contains
     if (radius <= radiusImpact) then
        Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd=0.0d0
     else
-       Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd=                                     &
-            &                        Galactic_Structure_Density           (                              &
-            &                                                               activeNode                 , &
-            &                                                               [radius,0.0d0,0.0d0]       , &
-            &                                                               massType     =massType     , &
-            &                                                               componentType=componentType, &
-            &                                                               weightBy     =weightBy     , &
-            &                                                               weightIndex  =weightIndex  , &
-            &                                                               haloLoaded   =haloLoaded     &
-            &                                                              )                             &
-            &                       *Galactic_Structure_Velocity_Dispersion(                             &
-            &                                                               activeNode                 , &
-            &                                                               radius                     , &
-            &                                                               radiusOuter                , &
-            &                                                               massType     =massType     , &
-            &                                                               componentType=componentType, &
-            &                                                               haloLoaded   =haloLoaded     &
-            &                                                              )**2                          &
-            &                       *     radius                                                         &
-            &                       /sqrt(radius**2-radiusImpact**2)
+       Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd=                                        &
+            &                        gravitationalConstantGalacticus                                        &
+            &                       *Galactic_Structure_Density           (                                 &
+            &                                                               activeNode                    , &
+            &                                                               [radius,0.0d0,0.0d0]          , &
+            &                                                               massType     =massType        , &
+            &                                                               componentType=componentType   , &
+            &                                                               weightBy     =weightBy        , &
+            &                                                               weightIndex  =weightIndex     , &
+            &                                                               haloLoaded   =haloLoaded        &
+            &                                                              )                                &
+            &                       *Galactic_Structure_Enclosed_Mass(                                      &
+            &                                                               activeNode                    , &
+            &                                                               radius                        , &
+            &                                                               massType     =massTypeAll     , &
+            &                                                               componentType=componentTypeAll, &
+            &                                                               haloLoaded   =haloLoaded        &
+            &                                                              )                                &
+            &                       /     radius**2                                                         &
+            &                       *sqrt(radius**2-radiusImpact**2)
     end if
     return
   end function Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd

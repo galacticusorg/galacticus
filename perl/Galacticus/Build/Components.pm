@@ -1140,7 +1140,7 @@ sub Generate_Node_Component_Type{
 	     function    => "Node_Component_Surface_Density_Null"                                                                  ,
 	     description => "Compute the surface density."                                                                         ,
 	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionCylindrical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
+	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionCylindrical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,

@@ -1016,11 +1016,12 @@ module Galacticus_Nodes
     return
   end function Node_Component_Density_Null
 
-  double precision function Node_Component_Surface_Density_Null(self,positionCylindrical,componentType,massType,haloLoaded)
+  double precision function Node_Component_Surface_Density_Null(self,positionCylindrical,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% A null implementation of the surface density in a component. Always returns zero.
     implicit none
     class           (nodeComponent)              , intent(inout)           :: self
-    integer                                      , intent(in   )           :: componentType      , massType
+    integer                                      , intent(in   )           :: componentType      , massType   , &
+         &                                                                    weightBy           , weightIndex
     double precision               , dimension(3), intent(in   )           :: positionCylindrical
     logical                                      , intent(in   ), optional :: haloLoaded
 
