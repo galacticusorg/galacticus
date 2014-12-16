@@ -355,6 +355,7 @@ contains
 
   subroutine sussingDestructor(self)
     !% Destructor for the \glc\ format merger tree importer class.
+    use Memory_Management
     implicit none
     type(mergerTreeImporterSussing), intent(inout) :: self
 
