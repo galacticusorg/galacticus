@@ -170,23 +170,25 @@ our %colors = (
 
 # Sets of color pairs suitable for plotting points with a light middle and darker border.
 our %colorPairs = (
-    greenRed       => [$colors{'Green'        },$colors{'Red'           }],
-    redYellow      => [$colors{'Red'          },$colors{'Yellow'        }],
+    greenRed       => [$colors{'Green'         },$colors{'Red'           }],
+    redYellow      => [$colors{'Red'           },$colors{'Yellow'        }],
     redYellowFaint => [$colors{'OrangeRed'    },$colors{'LightYellow'   }],
-    blackGray      => [$colors{'SlateGray'    },$colors{'Black'         }],
-    blueCyan       => [$colors{'Blue'         },$colors{'Cyan'          }],
-    peachPuff      => [$colors{'Bisque3'      },$colors{'PeachPuff'     }],
-    slateGray      => [$colors{'DarkSlateGray'},$colors{'SlateGray'     }],
-    cornflowerBlue => [$colors{'DarkSlateBlue'},$colors{'CornflowerBlue'}],
-    lightSkyBlue   => [$colors{'DodgerBlue'   },$colors{'LightSkyBlue'  }],
-    mediumSeaGreen => [$colors{'SeaGreen'     },$colors{'MediumSeaGreen'}],
-    yellowGreen    => [$colors{'OliveDrab'    },$colors{'YellowGreen'   }],
-    lightGoldenrod => [$colors{'Goldenrod'    },$colors{'LightGoldenrod'}],
-    indianRed      => [$colors{'Sienna'       },$colors{'IndianRed'     }],
-    orange         => [$colors{'OrangeRed'    },$colors{'Orange'        }],
-    plum           => [$colors{'VioletRed'    },$colors{'Plum'          }],
-    thistle        => [$colors{'MediumPurple' },$colors{'Thistle'       }],
-    hotPink        => [$colors{'Maroon'       },$colors{'HotPink'       }]
+    blackGray      => [$colors{'SlateGray'     },$colors{'Black'         }],
+    blueCyan       => [$colors{'Blue'          },$colors{'Cyan'          }],
+    peachPuff      => [$colors{'Bisque3'       },$colors{'PeachPuff'     }],
+    slateGray      => [$colors{'DarkSlateGray' },$colors{'SlateGray'     }],
+    cornflowerBlue => [$colors{'DarkSlateBlue' },$colors{'CornflowerBlue'}],
+    lightSkyBlue   => [$colors{'DodgerBlue'    },$colors{'LightSkyBlue'  }],
+    mediumSeaGreen => [$colors{'SeaGreen'      },$colors{'MediumSeaGreen'}],
+    lightSeaGreen  => [$colors{'MediumSeaGreen'},$colors{'LightSeaGreen' }],
+    yellowGreen    => [$colors{'OliveDrab'     },$colors{'YellowGreen'   }],
+    lightGoldenrod => [$colors{'Goldenrod'     },$colors{'LightGoldenrod'}],
+    indianRed      => [$colors{'Sienna'        },$colors{'IndianRed'     }],
+    orange         => [$colors{'OrangeRed'     },$colors{'Orange'        }],
+    plum           => [$colors{'VioletRed'     },$colors{'Plum'          }],
+    thistle        => [$colors{'MediumPurple'  },$colors{'Thistle'       }],
+    hotPink        => [$colors{'Maroon'        },$colors{'HotPink'       }],
+    midnightBlue   => [$colors{'Navy'          },$colors{'MidnightBlue'  }]
     );
 
 # Sets of sequences of color pairs suitable for plotting multiple datasets.

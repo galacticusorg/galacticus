@@ -48,8 +48,9 @@ module Galacticus_Output_Merger_Tree
   ! Buffers for properties.
   integer                                                                        :: doublePropertiesWritten    =0      , integerPropertiesWritten=0
   integer                                                                        :: doubleBufferCount          =0      , integerBufferCount      =0
-  integer                               , parameter                              :: bufferSize                 =1024   , commentLengthMax        =256, &
+  integer                               , parameter                              :: bufferSizeIncrement        =1024   , commentLengthMax        =256, &
        &                                                                            nameLengthMax              =256
+  integer                                                                        :: integerBufferSize          =bufferSizeIncrement, doubleBufferSize=bufferSizeIncrement
   integer         (kind=kind_int8      )           , allocatable, dimension(:,:) :: integerBuffer
   double precision                                 , allocatable, dimension(:,:) :: doubleBuffer
   character       (len=nameLengthMax   )           , allocatable, dimension(:)   :: doublePropertyNames                , integerPropertyNames
@@ -57,7 +58,7 @@ module Galacticus_Output_Merger_Tree
   double precision                                 , allocatable, dimension(:)   :: doublePropertyUnitsSI              , integerPropertyUnitsSI
   !$omp threadprivate(integerPropertiesWritten,doublePropertiesWritten,integerBufferCount,doubleBufferCount,integerBuffer)
   !$omp threadprivate(doubleBuffer,integerPropertyNames,doublePropertyNames,integerPropertyUnitsSI,doublePropertyUnitsSI)
-  !$omp threadprivate(integerPropertyComments,doublePropertyComments)
+  !$omp threadprivate(integerPropertyComments,doublePropertyComments,integerBufferSize,doubleBufferSize)
   ! Flag indicating if module is initialized.
   logical                                                                        :: mergerTreeOutputInitialized=.false.
 
@@ -241,8 +242,8 @@ contains
                       include 'galacticus.output.merger_tree.tasks.inc'
                       !# </include>
                       ! If buffer is full, dump it to file.
-                      if (integerBufferCount == bufferSize) call Integer_Buffer_Dump(iOutput)
-                      if (doubleBufferCount  == bufferSize) call Double_Buffer_Dump (iOutput)
+                      if (integerBufferCount == integerBufferSize) call Integer_Buffer_Extend()
+                      if (doubleBufferCount  ==  doubleBufferSize) call Double_Buffer_Extend ()
                    end if
                    ! Do any extra output tasks.
                    !# <include directive="mergerTreeExtraOutputTask" type="functionCall" functionType="void">
@@ -402,6 +403,34 @@ contains
     return
   end subroutine Integer_Buffer_Dump
 
+  subroutine Integer_Buffer_Extend()
+    !% Extend the size of the integer buffer.
+    use Memory_Management
+    implicit none
+    integer(kind=kind_int8), allocatable, dimension(:,:) :: integerBufferTemporary
+    
+    call Move_Alloc   (integerBuffer, integerBufferTemporary                                     )
+    call Alloc_Array  (integerBuffer,[integerBufferSize+bufferSizeIncrement,integerPropertyCount])
+    integerBuffer(1:integerBufferSize,:)=integerBufferTemporary
+    integerBufferSize=integerBufferSize+bufferSizeIncrement
+    call Dealloc_Array(               integerBufferTemporary                                     )
+    return
+  end subroutine Integer_Buffer_Extend
+
+  subroutine Double_Buffer_Extend()
+    !% Extend the size of the double buffer.
+    use Memory_Management
+    implicit none
+    double precision, allocatable, dimension(:,:) :: doubleBufferTemporary
+    
+    call Move_Alloc   (doubleBuffer, doubleBufferTemporary                                    )
+    call Alloc_Array  (doubleBuffer,[doubleBufferSize+bufferSizeIncrement,doublePropertyCount])
+    doubleBuffer(1:doubleBufferSize,:)=doubleBufferTemporary
+    doubleBufferSize=doubleBufferSize+bufferSizeIncrement
+    call Dealloc_Array(              doubleBufferTemporary                                    )
+    return
+  end subroutine Double_Buffer_Extend
+
   subroutine Double_Buffer_Dump(iOutput)
     !% Dump the contents of the double precision properties buffer to the \glc\ output file.
     use, intrinsic :: ISO_C_Binding
@@ -469,10 +498,10 @@ contains
           call Dealloc_Array(integerPropertyComments)
           call Dealloc_Array(integerPropertyUnitsSI )
        end if
-       call Alloc_Array(integerBuffer          ,[bufferSize,integerPropertyCount])
-       call Alloc_Array(integerPropertyNames              ,[integerPropertyCount])
-       call Alloc_Array(integerPropertyComments           ,[integerPropertyCount])
-       call Alloc_Array(integerPropertyUnitsSI            ,[integerPropertyCount])
+       call Alloc_Array(integerBuffer          ,[integerBufferSize,integerPropertyCount])
+       call Alloc_Array(integerPropertyNames                      ,[integerPropertyCount])
+       call Alloc_Array(integerPropertyComments                   ,[integerPropertyCount])
+       call Alloc_Array(integerPropertyUnitsSI                    ,[integerPropertyCount])
     end if
     if (doublePropertyCount  > 0 .and. (.not.allocated(doubleBuffer ) .or. doublePropertyCount  > size(doublePropertyNames ))) then
        if (allocated(doubleBuffer )) then
@@ -481,10 +510,10 @@ contains
           call Dealloc_Array(doublePropertyComments )
           call Dealloc_Array(doublePropertyUnitsSI  )
        end if
-       call Alloc_Array(doubleBuffer           ,[bufferSize,doublePropertyCount])
-       call Alloc_Array(doublePropertyNames               ,[doublePropertyCount])
-       call Alloc_Array(doublePropertyComments            ,[doublePropertyCount])
-       call Alloc_Array(doublePropertyUnitsSI             ,[doublePropertyCount])
+       call Alloc_Array(doubleBuffer           ,[doubleBufferSize,doublePropertyCount])
+       call Alloc_Array(doublePropertyNames                      ,[doublePropertyCount])
+       call Alloc_Array(doublePropertyComments                   ,[doublePropertyCount])
+       call Alloc_Array(doublePropertyUnitsSI                    ,[doublePropertyCount])
     end if
     ! Allocate datasets.
     if (.not.allocated(outputGroups(iOutput)%integerDataset)) allocate(outputGroups(iOutput)%integerDataset(integerPropertyCount))

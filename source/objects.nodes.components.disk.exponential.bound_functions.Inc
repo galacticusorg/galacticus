@@ -300,7 +300,7 @@ double precision function Node_Component_Disk_Exponential_Rotation_Curve_Gradien
 end function Node_Component_Disk_Exponential_Rotation_Curve_Gradient
 
 double precision function Node_Component_Disk_Exponential_Surface_Density(self,positionCylindrical,componentType,massType&
-     &,haloLoaded)
+     &,weightBy,weightIndex,haloLoaded)
   !% Computes the surface density at a given position for an exponential disk.
   use Galactic_Structure_Options
   use Numerical_Constants_Math
@@ -308,11 +308,13 @@ double precision function Node_Component_Disk_Exponential_Surface_Density(self,p
   use Node_Component_Disk_Exponential_Data
   implicit none
   class           (nodeComponentDiskExponential), intent(inout)           :: self
-  integer                                       , intent(in   )           :: componentType         , massType
+  integer                                       , intent(in   )           :: componentType         , massType   , &
+       &                                                                     weightBy              , weightIndex
   double precision                              , intent(in   )           :: positionCylindrical(3)
   logical                                       , intent(in   ), optional :: haloLoaded
   type            (treeNode                    ), pointer                 :: selfNode
   double precision                                                        :: fractionalRadius
+  type            (stellarLuminosities         )                          :: luminositiesDisk
 
     ! Return immediately if disk component is not requested.
   Node_Component_Disk_Exponential_Surface_Density=0.0d0
@@ -331,25 +333,34 @@ double precision function Node_Component_Disk_Exponential_Surface_Density(self,p
      return
   end if
   ! Determine mass type.
-  select case (massType)
-  case (massTypeAll,massTypeBaryonic,massTypeGalactic)
-     if (.not.surfaceDensityCentralTotalComputed  ) then
-        surfaceDensityCentralTotal          =(self%massGas()+self%massStellar())/2.0d0/Pi/radiusScaleDisk**2
-        surfaceDensityCentralTotalComputed  =.true.
-     end if
-     Node_Component_Disk_Exponential_Surface_Density=surfaceDensityCentralTotal
-  case (massTypeGaseous)
-     if (.not.surfaceDensityCentralGasComputed    ) then
-        surfaceDensityCentralGas            = self%massGas()                    /2.0d0/Pi/radiusScaleDisk**2
-        surfaceDensityCentralGasComputed    =.true.
-     end if
-     Node_Component_Disk_Exponential_Surface_Density=surfaceDensityCentralGas
-  case (massTypeStellar)
-     if (.not.surfaceDensityCentralStellarComputed) then
-        surfaceDensityCentralStellar        =                self%massStellar() /2.0d0/Pi/radiusScaleDisk**2
-        surfaceDensityCentralStellarComputed=.true.
-     end if
-     Node_Component_Disk_Exponential_Surface_Density=surfaceDensityCentralStellar
+  select case (weightBy)
+  case (weightByMass      )
+     select case (massType)
+     case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+        if (.not.surfaceDensityCentralTotalComputed  ) then
+           surfaceDensityCentralTotal          =(self%massGas()+self%massStellar())/2.0d0/Pi/radiusScaleDisk**2
+           surfaceDensityCentralTotalComputed  =.true.
+        end if
+        Node_Component_Disk_Exponential_Surface_Density=surfaceDensityCentralTotal
+     case (massTypeGaseous)
+        if (.not.surfaceDensityCentralGasComputed    ) then
+           surfaceDensityCentralGas            = self%massGas()                    /2.0d0/Pi/radiusScaleDisk**2
+           surfaceDensityCentralGasComputed    =.true.
+        end if
+        Node_Component_Disk_Exponential_Surface_Density=surfaceDensityCentralGas
+     case (massTypeStellar)
+        if (.not.surfaceDensityCentralStellarComputed) then
+           surfaceDensityCentralStellar        =                self%massStellar() /2.0d0/Pi/radiusScaleDisk**2
+           surfaceDensityCentralStellarComputed=.true.
+        end if
+        Node_Component_Disk_Exponential_Surface_Density=surfaceDensityCentralStellar
+     end select
+  case (weightByLuminosity)
+     select case (massType)
+     case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
+        luminositiesDisk=self%luminositiesStellar()
+        Node_Component_Disk_Exponential_Surface_Density=luminositiesDisk%luminosity(weightIndex)/2.0d0/Pi/radiusScaleDisk**2
+     end select
   end select
   ! Return if no density.
   if (Node_Component_Disk_Exponential_Surface_Density <= 0.0d0) return
