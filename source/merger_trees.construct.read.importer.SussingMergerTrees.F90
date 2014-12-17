@@ -69,9 +69,7 @@
      !@     <description>Return true if the given {\normalfont \ttfamily x} value is bad.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
-     !# final     :: sussingDestructor
-     !# </workaround>
+     final     ::                                  sussingDestructor
      procedure :: open                          => sussingOpen
      procedure :: close                         => sussingClose
      procedure :: treesHaveSubhalos             => sussingTreesHaveSubhalos
@@ -355,6 +353,7 @@ contains
 
   subroutine sussingDestructor(self)
     !% Destructor for the \glc\ format merger tree importer class.
+    use Memory_Management
     implicit none
     type(mergerTreeImporterSussing), intent(inout) :: self
 
