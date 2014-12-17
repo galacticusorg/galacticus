@@ -49,9 +49,7 @@
      integer                                             :: particleEpochType
      type   (varying_string )                            :: particleEpochDataSetName
    contains
-     !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
-     !# final     :: galacticusDestructor
-     !# </workaround>
+     final     ::                                  galacticusDestructor
      procedure :: open                          => galacticusOpen
      procedure :: close                         => galacticusClose
      procedure :: treesHaveSubhalos             => galacticusTreesHaveSubhalos
