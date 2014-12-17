@@ -499,7 +499,7 @@ contains
     class           (nodeComponentDisk           )               , pointer :: thisDisk
     class           (nodeComponentSpheroid       )               , pointer :: thisSpheroid
     class           (nodeComponentHotHalo        )               , pointer :: thisHotHalo
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
     logical                                       , intent(inout)          :: interrupt
     procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedureReturn
     procedure       (Interrupt_Procedure_Template)               , pointer :: interruptProcedure
@@ -619,7 +619,6 @@ contains
           ! case as the disk radius may be unphysical also.
           barInstabilityTimescale=-1.0d0
        end if
-
        ! Negative timescale indicates no bar instability.
        if (barInstabilityTimescale >= 0.0d0) then
           ! Disk is unstable, so compute rates at which material is transferred to the spheroid.
@@ -649,7 +648,7 @@ contains
           call                                      thisDisk    %luminositiesStellarRate(-luminositiesTransferRate                             )
           call                                      thisSpheroid%luminositiesStellarRate(+luminositiesTransferRate,interrupt,interruptProcedure)
           ! Stellar properties history.
-          historyTransferRate=thisDisk%stellarPropertiesHistory()
+          historyTransferRate=thisDisk%stellarPropertiesHistory()         
           if (historyTransferRate%exists()) then
              historyTransferRate=historyTransferRate/barInstabilityTimescale
              call thisDisk    %stellarPropertiesHistoryRate(-historyTransferRate                             )
@@ -663,6 +662,7 @@ contains
              call thisDisk    %starFormationHistoryRate(-historyTransferRate                             )
              call thisSpheroid%starFormationHistoryRate(+historyTransferRate,interrupt,interruptProcedure)
           end if
+          call historyTransferRate%destroy()
           ! Additional external torque.
           darkMatterHaloScale_ => darkMatterHaloScale()
           if (thisSpheroid%angularMomentum() < (thisSpheroid%massGas()+thisSpheroid%massStellar())*darkMatterHaloScale_%virialRadius(thisNode)*darkMatterHaloScale_%virialVelocity(thisNode) .and. thisSpheroid%radius() < darkMatterHaloScale_%virialRadius(thisNode)) then
@@ -699,8 +699,19 @@ contains
                 call thisHotHalo%outflowingAngularMomentumRate(+fractionGas    *massLossRate*thisDisk%angularMomentum  ()/(thisDisk%massGas()+thisDisk%massStellar()))
              end if
              if (fractionStellar > 0.0d0 .and. thisDisk%massStellar() > 0.0d0) then
-                call    thisDisk%              massStellarRate(-fractionStellar*massLossRate                                                                       )
-                call    thisDisk%        abundancesStellarRate(-fractionStellar*massLossRate*thisDisk%abundancesStellar()/                  thisDisk%massStellar() )
+                call    thisDisk%              massStellarRate(-fractionStellar*massLossRate                                                                         )
+                call    thisDisk%        abundancesStellarRate(-fractionStellar*massLossRate*thisDisk%abundancesStellar()/                    thisDisk%massStellar() )
+                ! Stellar properties history.
+                historyTransferRate=thisDisk%stellarPropertiesHistory()         
+                if (historyTransferRate%exists()) then
+                   call thisDisk%stellarPropertiesHistoryRate (-fractionStellar*massLossRate*historyTransferRate         /                    thisDisk%massStellar() )
+                end if
+                call historyTransferRate%destroy()
+                ! Star formation history.
+                historyTransferRate=thisDisk%starFormationHistory()
+                if (historyTransferRate%exists()) then
+                   call thisDisk    %starFormationHistoryRate (-fractionStellar*massLossRate*historyTransferRate         /                    thisDisk%massStellar() )
+                end if
              end if
              call       thisDisk%          angularMomentumRate(-                massLossRate*thisDisk%angularMomentum  ()/(thisDisk%massGas()+thisDisk%massStellar()))
           end if
@@ -1067,33 +1078,32 @@ contains
        class is (nodeComponentDiskExponential)
        componentActive=.true.
        ! Get the angular momentum.
-       angularMomentum=thisDiskComponent%angularMomentum()
-       if (angularMomentum >= 0.0d0) then
-          ! Compute the specific angular momentum at the scale radius, assuming a flat rotation curve.
-          diskMass= thisDiskComponent%massGas    () &
-               &   +thisDiskComponent%massStellar()
-          if (diskMass > 0.0d0) then
-             specificAngularMomentumMean=angularMomentum/diskMass
-          else
-             specificAngularMomentumMean=0.0d0
-          end if
-          specificAngularMomentum=specificAngularMomentumMean*diskStructureSolverSpecificAngularMomentum
-
-          ! If using the Cole et al. (2000) method for disk radii, adjust the specific angular momentum to account for the
-          ! difference between rotation curves for thin disk and a spherical mass distribution. Trap instances where this leads to
-          ! imaginary specific angular momentum - this can happen as the radius solver explores the allowed range of radii when
-          ! seeking a solution.
-          if (diskRadiusSolverCole2000Method)                                                              &
-               & specificAngularMomentum=sqrt(                                                            &
-               &                               max(                                                        &
-               &                                    0.0d0,                                                 &
-               &                                    specificAngularMomentum**2                             &
-               &                                   -diskRadiusSolverFlatVsSphericalFactor                  &
-               &                                   *gravitationalConstantGalacticus                        &
-               &                                   *diskMass                                               &
-               &                                   *Node_Component_Disk_Exponential_Radius_Solve(thisNode) &
-               &                                  )                                                        &
-               )
+          angularMomentum=thisDiskComponent%angularMomentum()
+          if (angularMomentum >= 0.0d0) then
+             ! Compute the specific angular momentum at the scale radius, assuming a flat rotation curve.
+             diskMass= thisDiskComponent%massGas    () &
+                  &   +thisDiskComponent%massStellar()
+             if (diskMass > 0.0d0) then
+                specificAngularMomentumMean=angularMomentum/diskMass
+             else
+                specificAngularMomentumMean=0.0d0
+             end if
+             specificAngularMomentum=specificAngularMomentumMean*diskStructureSolverSpecificAngularMomentum             
+             ! If using the Cole et al. (2000) method for disk radii, adjust the specific angular momentum to account for the
+             ! difference between rotation curves for thin disk and a spherical mass distribution. Trap instances where this leads to
+             ! imaginary specific angular momentum - this can happen as the radius solver explores the allowed range of radii when
+             ! seeking a solution.
+             if (diskRadiusSolverCole2000Method)                                                              &
+                  & specificAngularMomentum=sqrt(                                                            &
+                  &                               max(                                                        &
+                  &                                    0.0d0,                                                 &
+                  &                                    specificAngularMomentum**2                             &
+                  &                                   -diskRadiusSolverFlatVsSphericalFactor                  &
+                  &                                   *gravitationalConstantGalacticus                        &
+                  &                                   *diskMass                                               &
+                  &                                   *Node_Component_Disk_Exponential_Radius_Solve(thisNode) &
+                  &                                  )                                                        &
+                  )
 
           ! Associate the pointers with the appropriate property routines.
           Radius_Get   => Node_Component_Disk_Exponential_Radius_Solve
