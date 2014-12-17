@@ -524,7 +524,7 @@ contains
          &                                                             spheroidDynamicalTime     , spheroidMass            , &
          &                                                             starFormationRate         , stellarMassRate         , &
          &                                                             tidalField                , tidalTorque
-    type            (history              )                         :: stellarHistoryRate
+    type            (history              )                         :: historyTransferRate       , stellarHistoryRate
     type            (stellarLuminosities  )                         :: luminositiesStellarRates
 
     ! Get the disk and check that it is of our class.
@@ -626,17 +626,29 @@ contains
              fractionGas    =  min(1.0d0,max(0.0d0,thisSpheroid%massGas()/(thisSpheroid%massGas()+thisSpheroid%massStellar())))
              fractionStellar=  1.0d0-fractionGas
              if (fractionGas    > 0.0d0 .and. thisSpheroid%massGas    () > 0.0d0) then
-                call thisSpheroid%                  massGasRate(-fractionGas    *massLossRate                                                                                     )
-                call thisSpheroid%            abundancesGasRate(-fractionGas    *massLossRate*thisSpheroid%abundancesGas    ()/ thisSpheroid%massGas()                            )
-                call thisHotHalo %           outflowingMassRate(+fractionGas    *massLossRate                                                                                     )
-                call thisHotHalo %outflowingAbundancesRate     (+fractionGas    *massLossRate*thisSpheroid%abundancesGas    ()/ thisSpheroid%massGas()                            )
-                call thisHotHalo %outflowingAngularMomentumRate(+fractionGas    *massLossRate*thisSpheroid%angularMomentum  ()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
+                call    thisSpheroid%                  massGasRate(-fractionGas    *massLossRate                                                                                     )
+                call    thisSpheroid%            abundancesGasRate(-fractionGas    *massLossRate*thisSpheroid%abundancesGas    ()/ thisSpheroid%massGas()                            )
+                call    thisHotHalo %           outflowingMassRate(+fractionGas    *massLossRate                                                                                     )
+                call    thisHotHalo %outflowingAbundancesRate     (+fractionGas    *massLossRate*thisSpheroid%abundancesGas    ()/ thisSpheroid%massGas()                            )
+                call    thisHotHalo %outflowingAngularMomentumRate(+fractionGas    *massLossRate*thisSpheroid%angularMomentum  ()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
              end if
              if (fractionStellar > 0.0d0 .and. thisSpheroid%massStellar() > 0.0d0) then
-                call thisSpheroid%              massStellarRate(-fractionStellar*massLossRate                                                                                     )
-                call thisSpheroid%        abundancesStellarRate(-fractionStellar*massLossRate*thisSpheroid%abundancesStellar()/                        thisSpheroid%massStellar() )
+                call    thisSpheroid%              massStellarRate(-fractionStellar*massLossRate                                                                                     )
+                call    thisSpheroid%        abundancesStellarRate(-fractionStellar*massLossRate*thisSpheroid%abundancesStellar()/                        thisSpheroid%massStellar() )
+                ! Stellar properties history.
+                historyTransferRate=thisSpheroid%stellarPropertiesHistory()         
+                if (historyTransferRate%exists()) then
+                   call thisSpheroid%stellarPropertiesHistoryRate (-fractionStellar*massLossRate*historyTransferRate             /                        thisSpheroid%massStellar() )
+                end if
+                call historyTransferRate%destroy()
+                ! Star formation history.
+                historyTransferRate=thisSpheroid%starFormationHistory()         
+                if (historyTransferRate%exists()) then
+                   call thisSpheroid%starFormationHistoryRate     (-fractionStellar*massLossRate*historyTransferRate             /                        thisSpheroid%massStellar() )
+                end if
+                call historyTransferRate%destroy()
              end if
-             call    thisSpheroid%          angularMomentumRate(-                massLossRate*thisSpheroid%angularMomentum  ()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
+             call       thisSpheroid%          angularMomentumRate(-                massLossRate*thisSpheroid%angularMomentum  ()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
           end if
        end if
 
