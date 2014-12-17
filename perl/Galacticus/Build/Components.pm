@@ -2829,6 +2829,7 @@ sub Generate_Node_Dump_Function {
 	}
 	$functionCode .= "      end do\n";
 	$functionCode .= "    else\n";
+	$functionCode .= "       if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) deallocate(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "       allocate(self%component".padComponentClass(ucfirst($_),[0,0])."(1))\n";
 	$functionCode .= "    end if\n";
     }

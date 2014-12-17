@@ -22,7 +22,12 @@ module Histories
   use Kind_Numbers
   implicit none
   private
-  public :: history, longIntegerHistory, History_Set_Times, Histories_State_Store, Histories_State_Retrieve
+  public :: history, longIntegerHistory, History_Set_Times, Histories_State_Store, Histories_State_Retrieve, operator(*)
+
+  ! Interface to multiplication operators with history objects as their second argument.
+  interface operator(*)
+     module procedure History_Multiply_Switched
+  end interface operator(*)
 
   type history
      !% The history object type.
@@ -168,9 +173,11 @@ module Histories
      procedure :: add     =>History_Add
      procedure :: subtract=>History_Subtract
      procedure :: divide  =>History_Divide
+     procedure :: multiply=>History_Multiply
      generic                   :: operator(+)            => add
      generic                   :: operator(-)            => subtract
      generic                   :: operator(/)            => divide
+     generic                   :: operator(*)            => multiply
      procedure :: isZero        =>History_Is_Zero
      procedure :: builder       =>History_Builder
      procedure :: dump          =>History_Dump
@@ -708,11 +715,20 @@ contains
     class(history), intent(in   )           :: history1
     class(history), intent(in   ), optional :: history2
 
-    if (present(history2)) then
-       if (any(shape(history1%data) /= shape(history2%data))) call Galacticus_Error_Report('History_Subtract','mismatch in history object shape')
-       History_Subtract%data= history1%data-history2%data
+    ! Clone the first history.
+    if (.not.(history1%exists().or.(present(history2).and.history2%exists()))) then
+       call History_Subtract%reset()
     else
-       History_Subtract%data=-history1%data
+       select type (history1)
+       type is (history)
+          History_Subtract=history1
+          if (present(history2)) then
+             if (any(shape(history1%data) /= shape(history2%data))) call Galacticus_Error_Report('History_Subtract','mismatch in history object shape')
+             History_Subtract%data= history1%data-history2%data
+          else
+             History_Subtract%data=-history1%data
+          end if
+       end select
     end if
     return
   end function History_Subtract
@@ -902,40 +918,31 @@ contains
 
      select type (thisHistory)
      type is (history)
-
         ! Return if addHistory does not exist.
         if (.not.allocated(addHistory%time)) return
-
         ! Get size of addHistory.
         addHistoryPointCount=size(addHistory%time)
-
         ! Return if addHistory has zero size.
         if (addHistoryPointCount == 0) return
-
         ! If thisHistory does not exist, just replace it with addHistory.
         if (.not.allocated(thisHistory%time)) then
            call thisHistory%destroy()
            thisHistory=addHistory
            return
         end if
-
         ! If thisHistory has zero size, just replace it with addHistory.
         if (size(thisHistory%time) == 0) then
            call thisHistory%destroy()
            thisHistory=addHistory
            return
         end if
-
         ! addHistory must have at least two points to permit interpolation.
         if (addHistoryPointCount  < 2) call Galacticus_Error_Report('History_Add','history to add must have at least two points')
-
         ! The two objects must contain the same number of histories.
         if (size(thisHistory%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('History_Add','two objects contain differing numbers of histories')
-
         ! Loop over each entry in thisHistory.
         interpolationReset=.true.
         do iPoint=1,size(thisHistory%time)
-
            ! If within range of history spanned by addHistory then....
            if (thisHistory%time(iPoint) >= addHistory%time(1) .and. thisHistory%time(iPoint) <= addHistory%time(addHistoryPointCount)) then
 
@@ -946,7 +953,6 @@ contains
               interpolationFactors=Interpolate_Linear_Generate_Factors(addHistory%time,interpolationPoint&
                    &,thisHistory%time(iPoint))
               call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
-
               ! Add them.
               forall(iHistory=1:size(thisHistory%data,dim=2))
                  thisHistory%data (iPoint,iHistory)=thisHistory%data (iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&
@@ -1059,6 +1065,32 @@ contains
      end select
      return
    end function History_Divide
+
+   function History_Multiply(self,multiplier)
+     !% Multiplies history data by a double precision {\normalfont \ttfamily multiplier}.
+     implicit none
+     type            (history)                :: History_Multiply
+     class           (history), intent(in   ) :: self
+     double precision         , intent(in   ) :: multiplier
+
+     select type(self)
+     type is (history)
+        History_Multiply=self
+        if (allocated(History_Multiply%data)) History_Multiply%data=History_Multiply%data*multiplier
+     end select
+     return
+   end function History_Multiply
+
+  function History_Multiply_Switched(multiplier,history1)
+    !% Multiply a scalar by an history object.
+    implicit none
+    type            (history)                :: History_Multiply_Switched
+    type            (history), intent(in   ) :: history1
+    double precision         , intent(in   ) :: multiplier
+
+    History_Multiply_Switched=History_Multiply(history1,multiplier)
+    return
+  end function History_Multiply_Switched
 
    subroutine History_Extend(thisHistory,timeRange,times)
      !% Extends a history to encompass the given time range.
