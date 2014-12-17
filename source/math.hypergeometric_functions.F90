@@ -50,17 +50,15 @@ contains
     !% Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
     use Galacticus_Error
     implicit none
-    double precision                      , intent(in   )           :: a(2), b(1), x
-    integer         (fgsl_int            ), intent(  out), optional :: status
-    double precision                      , intent(  out), optional :: error
-    type            (fgsl_sf_result      )                          :: gslResult
-    type            (fgsl_error_handler_t)                          :: hypergeometric2F1ErrorHandler, standardGslErrorHandler
+    double precision                , intent(in   )           :: a(2), b(1), x
+    integer         (fgsl_int      ), intent(  out), optional :: status
+    double precision                , intent(  out), optional :: error
+    type            (fgsl_sf_result)                          :: gslResult
 
     ! Use our own error handler.
     if (present(status)) then
-       hypergeometric2F1ErrorHandler=FGSL_Error_Handler_Init(Hypergeometric_2F1_GSL_Error_Handler)
-       standardGslErrorHandler      =FGSL_Set_Error_Handler (hypergeometric2F1ErrorHandler       )
-       statusActual                 =FGSL_Success
+       call Galacticus_GSL_Error_Handler_Abort_Off()
+       statusActual=FGSL_Success
     end if
     ! GSL only evaluates this function for |x|<1.
     if (abs(x) <= 1.0d0) then
@@ -79,22 +77,12 @@ contains
     if (present(status)) then
        status=statusActual
        ! Reset error handler.
-       standardGslErrorHandler=FGSL_Set_Error_Handler(standardGslErrorHandler)
+       call Galacticus_GSL_Error_Handler_Abort_On()
     else if (statusActual /= FGSL_Success) then
        call Galacticus_Error_Report('Hypergeometric_2F1','GSL failed')
     end if
     return
   end function Hypergeometric_2F1
-  
-  subroutine Hypergeometric_2F1_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
-    !% Handle errors from the GSL library during hypergeometric 2F1 function evaluation.
-    use, intrinsic :: ISO_C_Binding
-    type   (c_ptr     ), value :: file       , reason
-    integer(kind=c_int), value :: errorNumber, line
-    
-    statusActual=errorNumber
-    return
-  end subroutine Hypergeometric_2F1_GSL_Error_Handler
 
   double complex function Hypergeometric_pFq_Complex(a,b,x)
     !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$, using the algorithm of
