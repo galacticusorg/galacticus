@@ -20,6 +20,7 @@
 module Galacticus_Error
   !% Implements error reporting for the {\normalfont \scshape Galacticus} package.
   use HDF5
+  use Semaphores
   use FGSL
   use Semaphores
   implicit none
@@ -91,6 +92,7 @@ contains
     call Signal( 8,Galacticus_Signal_Handler_SIGFPE )
     call Signal(11,Galacticus_Signal_Handler_SIGSEGV)
     call Signal(15,Galacticus_Signal_Handler_SIGINT )
+    call Signal(24,Galacticus_Signal_Handler_SIGXCPU)
     galacticusGslErrorHandler=FGSL_Error_Handler_Init(Galacticus_GSL_Error_Handler)
     standardGslErrorHandler  =FGSL_Set_Error_Handler (galacticusGslErrorHandler   )
    return
@@ -155,6 +157,21 @@ contains
     call Abort()
     return
   end subroutine Galacticus_Signal_Handler_SIGFPE
+
+  subroutine Galacticus_Signal_Handler_SIGXCPU()
+    !% Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
+    !$ use OMP_Lib
+    implicit none
+    integer :: error
+
+    write (0,*) 'Galacticus exceeded available CPU time - will try to flush data before exiting.'
+    call Semaphore_Post_On_Error()
+    call Flush(0)
+    call H5Close_F(error)
+    call H5Close_C()
+    call Abort()
+    return
+  end subroutine Galacticus_Signal_Handler_SIGXCPU
 
   subroutine Galacticus_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
     !% Handle errors from the GSL library, by flushing all data and then aborting.
