@@ -269,12 +269,13 @@ contains
     use Hypergeometric_Functions
     use FGSL
     implicit none
-    double precision         , intent(in   ) :: deltaCritical                   , haloMass                 , &
+    double precision          , intent(in   ) :: deltaCritical                   , haloMass                 , &
          &                                       massResolution
     integer                   , intent(in   ) :: bound
     double precision          , save          :: massResolutionPrevious   =-1.0d0, resolutionSigma          , &
          &                                       resolutionAlpha
     !$omp threadprivate(resolutionSigma,resolutionAlpha,massResolutionPrevious)
+    double precision          , parameter     :: alphaMinimum             =5.0d-3
     double precision                          :: probabilityIntegrandLower       , probabilityIntegrandUpper, &
          &                                       halfParentSigma                 , halfParentAlpha          , &
          &                                       gammaEffective
@@ -301,8 +302,16 @@ contains
           call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(0.5d0*parentHaloMass,halfParentSigma,halfParentAlpha)
           ! Iterative over available bounds.
           do iBound=1,2
-             ! Determine if CDM assumptions can be used.
-             usingCDMAssumptions=modifiedPressSchechterUseCDMAssumptions.and.(iBound == 1)
+             ! Determine if CDM assumptions can be used. Do this only is these have been explicitly allowed, if this is our first
+             ! pass through the bounds evaluation, and if both alphas are sufficiently large. (This last condition is required
+             ! since we raise quantities to the power of 1/alpha which can cause problems for very small alpha.)
+             usingCDMAssumptions= modifiedPressSchechterUseCDMAssumptions &
+                  &              .and.                                    &
+                  &               iBound               == 1               &
+                  &              .and.                                    &
+                  &               abs(resolutionAlpha) >  alphaMinimum    &
+                  &              .and.                                    &
+                  &               abs(halfParentAlpha) >  alphaMinimum
              ! Compute the effective value of gamma.             
              gammaEffective=modifiedPressSchechterGamma1
              if (usingCDMAssumptions) then
