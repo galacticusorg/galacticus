@@ -1229,10 +1229,16 @@
       <value>standard</value>
     </parameter>
   </parameters>
-    <parameters>
+  <parameters>
     <parameter>
       <name>treeNodeMethodMassFlowStatistics</name>
       <value>standard</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>treeNodeMethodDynamicsStatistics</name>
+      <value>bars</value>
     </parameter>
   </parameters>
 
