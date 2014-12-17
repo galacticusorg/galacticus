@@ -594,6 +594,7 @@ contains
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%inverseDeltaX=1.0d0/(self%xv(2)-self%xv(1))
     self%tablePrevious=-1
+    self%dxPrevious   =-1.0d0
     self%xPrevious    =-1.0d0
     ! Set extrapolation type.
     if (present(extrapolationType)) then
