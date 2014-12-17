@@ -198,9 +198,7 @@ module Stellar_Luminosities_Structure
      !@     <description>Return the name of a luminosity specified by index.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     !# <workaround type="gfortran" PR="58880" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58880">
-     !#     final             ::                   Stellar_Luminosities_Destructor
-     !# </workaround>
+     final             ::                          Stellar_Luminosities_Destructor
      procedure         :: add                   => Stellar_Luminosities_Add
      procedure         :: subtract              => Stellar_Luminosities_Subtract
      procedure         :: multiply              => Stellar_Luminosities_Multiply
