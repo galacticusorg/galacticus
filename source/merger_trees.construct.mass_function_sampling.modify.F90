@@ -35,6 +35,7 @@ module Merger_Trees_Mass_Function_Sampling_Modifiers
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, allocatable, dimension(:), intent(inout) :: treeHaloMass</argument>
+  !#   <argument>double precision                           , intent(in   ) :: treeBaseTime</argument>
   !#  </method>
   include 'massFunctionSamplingModifier.type.inc'
   !# </include>

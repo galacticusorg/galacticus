@@ -45,11 +45,12 @@ contains
     return
   end function nullDefaultConstructor
 
-  subroutine nullModify(self,treeHaloMass)
+  subroutine nullModify(self,treeHaloMass,treeBaseTime)
     !% Perform no modification of a halo mass sample.
     implicit none
     class           (massFunctionSamplingModifierNull)                           , intent(inout) :: self
     double precision                                  , allocatable, dimension(:), intent(inout) :: treeHaloMass
+    double precision                                                             , intent(in   ) :: treeBaseTime
     
     return
   end subroutine nullModify

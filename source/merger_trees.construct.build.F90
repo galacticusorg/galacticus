@@ -301,7 +301,7 @@ contains
           call Dealloc_Array(massFunctionSampleLogMassMonotonic)
           ! Allow modification of the halo mass sample.
           massFunctionSamplingModifier_ => massFunctionSamplingModifier()
-          call massFunctionSamplingModifier_%modify(treeHaloMass)
+          call massFunctionSamplingModifier_%modify(treeHaloMass,mergerTreeBuildTreesBaseTime)
           call Sort_Do(treeHaloMass)
           treeCount=size(treeHaloMass)
           call Alloc_Array(treeWeight,[treeCount])
