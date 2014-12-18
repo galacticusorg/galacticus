@@ -26,7 +26,7 @@ module Merger_Tree_Build_Cole2000
        & Merger_Tree_Build_Cole2000_State_Retrieve
 
   ! Variables controlling merger tree accuracy.
-  double precision           :: mergerTreeBuildCole2000AccretionLimit         , mergerTreeBuildCole2000EarliestTime  , &
+  double precision           :: mergerTreeBuildCole2000AccretionLimit         , mergerTreeBuildCole2000EarliestTime    , &
        &                        mergerTreeBuildCole2000HighestRedshift        , mergerTreeBuildCole2000MergeProbability
   ! Option controlling random number sequences.
   logical          :: mergerTreeBuildCole2000FixedRandomSeeds
