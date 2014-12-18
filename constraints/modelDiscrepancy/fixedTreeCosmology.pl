@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
+if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
+    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
     $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
     $galacticusPath = "./";
