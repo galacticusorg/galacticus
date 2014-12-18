@@ -702,12 +702,10 @@ contains
     use Numerical_Constants_Math
     use FGSL
     implicit none
-    real            (kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2
-    real            (kind=c_double             ), value :: radius
-    type            (c_ptr                     ), value :: parameterPointer
-    type            (fgsl_function             )        :: integrandFunction
-    type            (fgsl_integration_workspace)        :: integrationWorkspace
-    double precision                                    :: densityDisk         , velocityDisk
+    real            (kind=c_double)        :: Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2
+    real            (kind=c_double), value :: radius
+    type            (c_ptr        ), value :: parameterPointer
+    double precision                       :: densityDisk         , velocityDisk
 
     if (radius <= 0.0d0) then
        Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2=0.0d0
