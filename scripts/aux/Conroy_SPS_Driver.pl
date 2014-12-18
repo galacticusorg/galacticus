@@ -59,7 +59,7 @@ if ( $makeFile == 1 ) {
     # Check for updates to the code.
     my $availableRevision;
     my $currentRevision;
-    open(pHndl,"svn info -r HEAD ".$galacticusPath."aux/FSPS_v2.4 |");
+    open(pHndl,"svn info -r 177 ".$galacticusPath."aux/FSPS_v2.4 |");
     while ( my $line = <pHndl> ) {
  	if ( $line =~ m/Last Changed Rev:\s*(\d+)/ ) {$availableRevision = $1};
     }
@@ -72,7 +72,7 @@ if ( $makeFile == 1 ) {
     if ( $currentRevision < $availableRevision ) {
  	print "Conroy_SPS_Driver.pl: updating source code.\n";
  	system("svn revert -R ".$galacticusPath."aux/FSPS_v2.4"); # Revert the code.
- 	system("svn update ".$galacticusPath."aux/FSPS_v2.4"); # Grab updates
+ 	system("svn update -r 177 ".$galacticusPath."aux/FSPS_v2.4"); # Grab updates
  	unlink($galacticusPath."aux/FSPS_v2.4/src/galacticus_IMF.f90") # Remove this file to trigger re-patching of the code.
     }
     
