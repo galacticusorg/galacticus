@@ -388,12 +388,14 @@ contains
     use Memory_Management
     implicit none
     integer(kind=kind_int8), allocatable, dimension(:,:) :: integerBufferTemporary
-    
-    call Move_Alloc   (integerBuffer, integerBufferTemporary                                     )
-    call Alloc_Array  (integerBuffer,[integerBufferSize+bufferSizeIncrement,integerPropertyCount])
+    integer                                              :: integerPropertyCountMaximum
+
+    integerPropertyCountMaximum=size(integerBuffer,dim=2)
+    call Move_Alloc   (integerBuffer, integerBufferTemporary                                            )
+    call Alloc_Array  (integerBuffer,[integerBufferSize+bufferSizeIncrement,integerPropertyCountMaximum])
     integerBuffer(1:integerBufferSize,:)=integerBufferTemporary
     integerBufferSize=integerBufferSize+bufferSizeIncrement
-    call Dealloc_Array(               integerBufferTemporary                                     )
+    call Dealloc_Array(               integerBufferTemporary                                            )
     return
   end subroutine Integer_Buffer_Extend
 
@@ -402,12 +404,14 @@ contains
     use Memory_Management
     implicit none
     double precision, allocatable, dimension(:,:) :: doubleBufferTemporary
-    
-    call Move_Alloc   (doubleBuffer, doubleBufferTemporary                                    )
-    call Alloc_Array  (doubleBuffer,[doubleBufferSize+bufferSizeIncrement,doublePropertyCount])
+    integer                                       :: doublePropertyCountMaximum
+
+    doublePropertyCountMaximum=size(doubleBuffer,dim=2)
+    call Move_Alloc   (doubleBuffer, doubleBufferTemporary                                           )
+    call Alloc_Array  (doubleBuffer,[doubleBufferSize+bufferSizeIncrement,doublePropertyCountMaximum])
     doubleBuffer(1:doubleBufferSize,:)=doubleBufferTemporary
     doubleBufferSize=doubleBufferSize+bufferSizeIncrement
-    call Dealloc_Array(              doubleBufferTemporary                                    )
+    call Dealloc_Array(              doubleBufferTemporary                                           )
     return
   end subroutine Double_Buffer_Extend
 
