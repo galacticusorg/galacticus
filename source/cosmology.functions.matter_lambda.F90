@@ -35,7 +35,7 @@
   type, extends(cosmologyFunctionsClass) :: cosmologyFunctionsMatterLambda
      !% A cosmological functions class for cosmologies consisting of matter plus a cosmological constant.
      private
-     class           (cosmologyParametersClass), pointer                   :: cosmology
+     class           (cosmologyParametersClass), pointer                   :: cosmology                                 => null()
      logical                                                               :: collapsingUniverse                        =.false.
      integer                                                               :: iTableTurnaround
      double precision                                                      :: expansionFactorMaximum                            , expansionFactorPrevious                =-1.0d0, &
@@ -278,13 +278,17 @@ contains
     implicit none
     type(cosmologyFunctionsMatterLambda), intent(inout) :: self
 
-    if (allocated(self%ageTableExpansionFactor               )) deallocate(self%ageTableExpansionFactor               )
-    if (allocated(self%ageTableTime                          )) deallocate(self%ageTableTime                          )
-    if (allocated(self%distanceTableComovingDistance         )) deallocate(self%distanceTableComovingDistance         )
-    if (allocated(self%distanceTableComovingDistanceNegated  )) deallocate(self%distanceTableComovingDistanceNegated  )
-    if (allocated(self%distanceTableLuminosityDistanceNegated)) deallocate(self%distanceTableLuminosityDistanceNegated)
-    if (allocated(self%distanceTableTime                     )) deallocate(self%distanceTableTime                     )
-    if (          self%cosmology%isFinalizable()              ) deallocate(self%cosmology                             )
+    if     ( allocated (self%ageTableExpansionFactor               )) deallocate(self%ageTableExpansionFactor               )
+    if     ( allocated (self%ageTableTime                          )) deallocate(self%ageTableTime                          )
+    if     ( allocated (self%distanceTableComovingDistance         )) deallocate(self%distanceTableComovingDistance         )
+    if     ( allocated (self%distanceTableComovingDistanceNegated  )) deallocate(self%distanceTableComovingDistanceNegated  )
+    if     ( allocated (self%distanceTableLuminosityDistanceNegated)) deallocate(self%distanceTableLuminosityDistanceNegated)
+    if     ( allocated (self%distanceTableTime                     )) deallocate(self%distanceTableTime                     )
+    if     (                                                                                                                  &
+         &   associated(self%cosmology                             )                                                          &
+         &  .and.                                                                                                             &
+         &              self%cosmology%isFinalizable()                                                                        &
+         & )                                                          deallocate(self%cosmology                             )
     call Interpolate_Done(self%interpolationObject       ,self%interpolationAccelerator       ,self%resetInterpolation       )
     call Interpolate_Done(self%interpolationObjectInverse,self%interpolationAcceleratorInverse,self%resetInterpolationInverse)
     return
