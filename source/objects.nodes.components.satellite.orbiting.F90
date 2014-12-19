@@ -199,7 +199,7 @@ contains
           velocity                 =  satelliteComponent%velocity                 ()
           tidalTensorPathIntegrated=  satelliteComponent%tidalTensorPathIntegrated()
           tidalHeatingNormalized   =  satelliteComponent%tidalHeatingNormalized   ()
-          positionTensor           =  Vector_Self_Outer_Product       (         position                          )
+          positionTensor           =  Vector_Outer_Product            (         position                          )
           radius                   =  Vector_Magnitude                (         position                          )
           parentDensity            =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian)
           parentEnclosedMass       =  Galactic_Structure_Enclosed_Mass(hostNode,radius                            )
@@ -345,6 +345,7 @@ contains
     type            (treeNode              ), pointer     , intent(inout) :: thisNode
     type            (treeNode              ), pointer                     :: hostNode
     class           (nodeComponentSatellite), pointer                     :: satelliteComponent
+    class           (virialOrbitClass      ), pointer                     :: virialOrbit_
     logical                                                               :: isNewSatellite
     type            (keplerOrbit           )                              :: thisOrbit
     double precision                        , dimension(3)                :: radialVector                    , velocityRadialVector     , &
@@ -374,7 +375,8 @@ contains
     class is (nodeComponentSatelliteOrbiting)
        ! Get an orbit for this satellite.
        hostNode => thisNode%parent
-       thisOrbit=Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits)
+       virialOrbit_ => virialOrbit()
+       thisOrbit=virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
        ! Store the orbit.
        call satelliteComponent%virialOrbitSet(thisOrbit)
        orbitalRadius            =thisOrbit%radius()
