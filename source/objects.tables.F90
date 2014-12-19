@@ -21,7 +21,7 @@ module Tables
   !% Defines a {\normalfont \ttfamily table} class with optimized interpolation operators.
   use FGSL
   private
-  public :: table,table1D,table1DGeneric,table1DLinearLinear,table1DLogarithmicLinear,table1DLinearCSpline,table1DLogarithmicCSpline
+  public :: table,table1D,table1DGeneric,table1DLinearLinear,table1DLogarithmicLinear,table1DNonUniformLinearLogarithmic,table1DLinearCSpline,table1DLogarithmicCSpline
 
   !@ <enumeration>
   !@  <name>extrapolationType</name>
@@ -81,8 +81,8 @@ module Tables
      !@   <objectMethod>
      !@     <method>reverse</method>
      !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} reversedSelf,\intzero\ [table]</arguments>
-     !@     <description>Reverse the table (i.e. swap $x$ and $y$ components) and return in {\normalfont \ttfamily reversedSelf}. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} reversedSelf,\intzero\ [table], \logicalzero\ [precise]</arguments>
+     !@     <description>Reverse the table (i.e. swap $x$ and $y$ components) and return in {\normalfont \ttfamily reversedSelf}. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used. If the optional {\normalfont \ttfamily precise} argument is set to {\normalfont \ttfamily true} then the reversal must be precisely invertible---if this is not possible the method will abort.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isMonotonic</method>
@@ -126,6 +126,12 @@ module Tables
      !@     <arguments>\doublezero\ x</arguments>
      !@     <description>Return the effective value of $x$ to use in table interpolations.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>integrationWeights</method>
+     !@     <type>\doubleone</type>
+     !@     <arguments>\doublezero\ x0\argin, \doublezero\ x1\argin</arguments>
+     !@     <description>Return the weights to be applied to the table to integrate (using the trapezium rule) between {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure(Table1D_Interpolate ), deferred :: interpolate
      procedure(Table1D_Interpolate ), deferred :: interpolateGradient
@@ -138,6 +144,7 @@ module Tables
      procedure                                 :: xs                 =>Table1D_Xs
      procedure                                 :: ys                 =>Table1D_Ys
      procedure                                 :: xEffective         =>Table1D_Find_Effective_X
+     procedure                                 :: integrationWeights =>Table1D_Integration_Weights
   end type table1D
 
   interface
@@ -203,12 +210,12 @@ module Tables
      !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create                         =>Table_Linear_1D_Create
+     procedure :: create                          => Table_Linear_1D_Create
      procedure :: Table_Linear_1D_Populate
      procedure :: Table_Linear_1D_Populate_Single
-     generic   :: populate                        => Table_Linear_1D_Populate, Table_Linear_1D_Populate_Single
-     procedure :: interpolate        =>Table_Linear_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Linear_1D_Interpolate_Gradient
+     generic   :: populate                        => Table_Linear_1D_Populate            , Table_Linear_1D_Populate_Single
+     procedure :: interpolate                     => Table_Linear_1D_Interpolate
+     procedure :: interpolateGradient             => Table_Linear_1D_Interpolate_Gradient
   end type table1DLinearLinear
 
   type, extends(table1DLinearLinear) :: table1DLogarithmicLinear
@@ -216,16 +223,31 @@ module Tables
      logical          :: previousSet
      double precision :: xLinearPrevious,xLogarithmicPrevious
    contains
-     procedure :: create             =>Table_Logarithmic_1D_Create
-     procedure :: interpolate        =>Table_Logarithmic_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Logarithmic_1D_Interpolate_Gradient
-     procedure :: x                  =>Table_Logarithmic_1D_X
-     procedure :: xs                 =>Table_Logarithmic_1D_Xs
+     procedure :: create              => Table_Logarithmic_1D_Create
+     procedure :: interpolate         => Table_Logarithmic_1D_Interpolate
+     procedure :: interpolateGradient => Table_Logarithmic_1D_Interpolate_Gradient
+     procedure :: x                   => Table_Logarithmic_1D_X
+     procedure :: xs                  => Table_Logarithmic_1D_Xs
+     procedure :: integrationWeights  => Table_Logarithmic_Integration_Weights
+     procedure :: reverse             => Table_Logarithmic_1D_Reverse
   end type table1DLogarithmicLinear
+
+  type, extends(table1DGeneric) :: table1DNonUniformLinearLogarithmic
+     !% Table type supporting one dimensional table with non-uniform x-axis and logarithmic in $y$.
+   contains
+     procedure :: Table_Generic_1D_Populate        => Table_NonUniform_Linear_Logarithmic_1D_Populate
+     procedure :: Table_Generic_1D_Populate_Single => Table_NonUniform_Linear_Logarithmic_1D_Populate_Single
+     procedure :: interpolate                      => Table_NonUniform_Linear_Logarithmic_1D_Interpolate
+     procedure :: interpolateGradient              => Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient
+     procedure :: y                                => Table_NonUniform_Linear_Logarithmic_1D_Y
+     procedure :: ys                               => Table_NonUniform_Linear_Logarithmic_1D_Ys
+     procedure :: integrationWeights               => Table_NonUniform_Linear_Logarithmic_Integration_Weights
+  end type table1DNonUniformLinearLogarithmic
 
   type, extends(table1D) :: table1DLinearCSpline
      !% Table type supporting one dimensional table with linear spacing in $x$ and cubic spline interpolation.
-     double precision, allocatable, dimension(:,:) :: sv
+     double precision, allocatable, dimension(:,:) :: sv            , av           , bv           , cv       , &
+          &                                           dv
      integer                                       :: dTablePrevious, iPrevious    , tablePrevious
      double precision                              :: deltaX        , inverseDeltaX
      double precision                              :: aPrevious     , bPrevious    , cPrevious    , dPrevious, &
@@ -254,13 +276,14 @@ module Tables
           &                                                  Table_Linear_CSpline_1D_Populate_Single
      procedure :: interpolate        =>Table_Linear_CSpline_1D_Interpolate
      procedure :: interpolateGradient=>Table_Linear_CSpline_1D_Interpolate_Gradient
+     procedure :: integrationWeights =>Table_Linear_CSpline_Integration_Weights
   end type table1DLinearCSpline
 
   type, extends(table1DLinearCSpline) :: table1DLogarithmicCSpline
      !% Table type supporting one dimensional table with logarithmic spacing in $x$ and cubic spline interpolation.
      logical          :: previousSet
-     double precision :: xLinearPrevious,xLogarithmicPrevious
-     double precision :: xMinimum,xMaximum
+     double precision :: xLinearPrevious, xLogarithmicPrevious
+     double precision :: xMinimum       , xMaximum
    contains
      procedure :: create             =>Table_Logarithmic_CSpline_1D_Create
      procedure :: interpolate        =>Table_Logarithmic_CSpline_1D_Interpolate
@@ -268,6 +291,12 @@ module Tables
      procedure :: x                  =>Table_Logarithmic_CSpline_1D_X
      procedure :: xs                 =>Table_Logarithmic_CSpline_1D_Xs
   end type table1DLogarithmicCSpline
+
+  abstract interface
+     double precision function integrandTemplate(x)
+       double precision, intent(in   ) :: x
+     end function integrandTemplate
+  end interface
 
 contains
 
@@ -331,7 +360,7 @@ contains
     return
   end function Table1D_Ys
 
-  subroutine Table_1D_Reverse(self,reversedSelf,table)
+  subroutine Table_1D_Reverse(self,reversedSelf,table,precise)
     !% Reverse a 1D table (i.e. swap $x$ and $y$ components). Optionally allows specification of
     !% which $y$ table to swap with.
     use Array_Utilities
@@ -340,8 +369,10 @@ contains
     class  (table1D)             , intent(in   )           :: self
     class  (table1D), allocatable, intent(inout)           :: reversedSelf
     integer                      , intent(in   ), optional :: table
+    logical                      , intent(in   ), optional :: precise
     integer                                                :: i           , tableActual
 
+    if (present(precise).and.precise) call Galacticus_Error_Report('Table_1D_Reverse','table cannot be precisely reversed')
     tableActual=1
     if (present(table)) tableActual=table
     if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('Table_1D_Reverse','reversed table would not be monotonic')
@@ -392,6 +423,35 @@ contains
     return
   end function Table1D_Size
 
+  function Table1D_Integration_Weights(self,x0,x1,integrand)
+    !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
+    use Galacticus_Error
+    implicit none
+    class           (table1D          ), intent(inout)                               :: self
+    double precision                   , intent(in   )                               :: x0, x1
+    procedure       (integrandTemplate), intent(in   )           , pointer, optional :: integrand
+    double precision                   , dimension(size(self%xv))                    :: Table1D_Integration_Weights
+    double precision                                                                 :: weight, lx0, lx1
+    integer                                                                          :: i
+
+    if (x1 < x0           ) call Galacticus_Error_Report('Table1D_Integration_Weights','inverted limits'         )
+    if (present(integrand)) call Galacticus_Error_Report('Table1D_Integration_Weights','integrands not supported')
+    Table1D_Integration_Weights=0.0d0
+    do i=2,size(self%xv)
+       if (self%xv(i) <= x1 .and. self%xv(i-1) >= x0) then
+          weight=self%xv(i)-self%xv(i-1)
+       else if ((self%xv(i-1) < x1 .and. self%xv(i) > x1) .or. (self%xv(i) > x0 .and. self%xv(i-1) < x0)) then
+          lx0=max(self%xv(i-1),x0)
+          lx1=min(self%xv(i  ),x1)
+          weight=lx1-lx0
+       else
+          weight=0.0d0
+       end if
+       Table1D_Integration_Weights(i-1:i)=Table1D_Integration_Weights(i-1:i)+0.5d0*weight
+    end do
+    return
+  end function Table1D_Integration_Weights
+  
   subroutine Table_Generic_1D_Create(self,x,tableCount,extrapolationType)
     !% Create a 1-D generic table.
     use Memory_Management
@@ -482,11 +542,19 @@ contains
     class           (table1DGeneric), intent(inout)           :: self
     double precision                , intent(in   )           :: x
     integer                         , intent(in   ), optional :: table
-    integer                                                   :: tableActual
+    integer                                                   :: tableActual, extrapolationType
 
     tableActual=1
     if (present(table)) tableActual=table
-    Table_Generic_1D_Interpolate=Interpolate(self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),reset=self%reset)
+    select case (self%extrapolationType)
+    case (extrapolationTypeAbort)
+       extrapolationType=extrapolationTypeNone
+    case (extrapolationTypeExtrapolate)
+       extrapolationType=extrapolationTypeLinear
+    case (extrapolationTypeFix)
+       extrapolationType=extrapolationTypeFixed
+    end select
+    Table_Generic_1D_Interpolate=Interpolate(self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),extrapolationType=extrapolationType,reset=self%reset)
     return
   end function Table_Generic_1D_Interpolate
 
@@ -526,6 +594,7 @@ contains
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%inverseDeltaX=1.0d0/(self%xv(2)-self%xv(1))
     self%tablePrevious=-1
+    self%dxPrevious   =-1.0d0
     self%xPrevious    =-1.0d0
     ! Set extrapolation type.
     if (present(extrapolationType)) then
@@ -664,7 +733,8 @@ contains
     integer                                   , intent(in   )           :: xCount
     integer                                   , intent(in   ), optional :: extrapolationType, tableCount
 
-    self%previousSet=.false.
+    self%previousSet    =.false.
+    self%xLinearPrevious=0.0d0
     ! Call the creator for linear tables with the logarithms of the input x range.
     call self%table1DLinearLinear%create(log(xMinimum),log(xMaximum),xCount,tableCount,extrapolationType)
     return
@@ -712,7 +782,7 @@ contains
     class           (table1DLogarithmicLinear), intent(inout)           :: self
     double precision                          , intent(in   )           :: x
     integer                                   , intent(in   ), optional :: table
-
+   
     if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
        self%previousSet         =.true.
        self%xLinearPrevious     =    x
@@ -721,6 +791,147 @@ contains
     Table_Logarithmic_1D_Interpolate_Gradient=self%table1DLinearLinear%interpolateGradient(self%xLogarithmicPrevious,table)/self%xEffective(x)
     return
   end function Table_Logarithmic_1D_Interpolate_Gradient
+
+  function Table_Logarithmic_Integration_Weights(self,x0,x1,integrand)
+    !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
+    use, intrinsic :: ISO_C_Binding
+    use FGSL
+    use Numerical_Integration
+    use Galacticus_Error
+    implicit none
+    class           (table1DLogarithmicLinear ), intent(inout)                               :: self
+    double precision                           , intent(in   )                               :: x0, x1
+    procedure       (integrandTemplate        ), intent(in   )           , pointer, optional :: integrand
+    double precision                           , dimension(size(self%xv))                    :: Table_Logarithmic_Integration_Weights
+    double precision                           , parameter                                   :: logTolerance=1.0d-12
+    double precision                                                                         :: gradientTerm, lx0, lx1, factor0, factor1
+    integer                                                                                  :: i
+    type            (fgsl_function             )                                             :: integrandFunction
+    type            (fgsl_integration_workspace)                                             :: integrationWorkspace
+    type            (c_ptr                     )                                             :: parameterPointer
+    logical                                                                                  :: integrationReset
+ 
+    if (x1 < x0) call Galacticus_Error_Report('Table_Logarithmic_Integration_Weights','inverted limits')
+    Table_Logarithmic_Integration_Weights=0.0d0    
+    do i=2,size(self%xv)
+       ! Evaluate integration range for this interval of the table.
+       if (self%xv(i) <= log(x1) .and. self%xv(i-1) >= log(x0)) then
+          lx0=self%xv(i-1)
+          lx1=self%xv(i  )
+       else if ((self%xv(i-1) < log(x1) .and. self%xv(i) > log(x1)) .or. (self%xv(i) > log(x0) .and. self%xv(i-1) < log(x0))) then
+          lx0=max(self%xv(i-1),log(x0))
+          lx1=min(self%xv(i  ),log(x1))
+       else
+          cycle
+       end if
+       ! Proceed only for non-zero ranges. Add some tolerance to avoid attempting to evaluate for tiny ranges which arise from
+       ! numerical imprecision.
+       if (lx1 > lx0+logTolerance) then
+          if (present(integrand)) then
+             ! An integrand is given, numerically integrate the relevant terms over the integrand.
+             integrationReset=.true.
+             factor0=Integrate(                                       &
+                  &            lx0                                  , &
+                  &            lx1                                  , &
+                  &            factor0Integrand                     , &
+                  &            parameterPointer                     , &
+                  &            integrandFunction                    , &
+                  &            integrationWorkspace                 , &
+                  &            toleranceRelative   =1.0d-4          , &
+                  &            reset               =integrationReset  &
+                  &           )
+             call Integrate_Done(integrandFunction,integrationWorkspace)
+             integrationReset=.true.
+             factor1=Integrate(                                       &
+                  &            lx0                                  , &
+                  &            lx1                                  , &
+                  &            factor1Integrand                     , &
+                  &            parameterPointer                     , &
+                  &            integrandFunction                    , &
+                  &            integrationWorkspace                 , &
+                  &            toleranceRelative   =1.0d-4          , &
+                  &            reset               =integrationReset  &
+                  &           )
+             call Integrate_Done(integrandFunction,integrationWorkspace)
+             Table_Logarithmic_Integration_Weights        (i-1) &
+                  & =Table_Logarithmic_Integration_Weights(i-1) &
+                  & +factor0                                    &
+                  & -factor1
+             Table_Logarithmic_Integration_Weights        (i  ) &
+                  & =Table_Logarithmic_Integration_Weights(i  ) &
+                  & +factor1  
+          else
+             ! No additional integrand, use analytic solution.
+             gradientTerm=(exp(lx1)*((lx1-lx0)-1.0d0)+exp(lx0))/(lx1-lx0)
+             Table_Logarithmic_Integration_Weights(i-1)=Table_Logarithmic_Integration_Weights(i-1)+max((exp(lx1)-exp(lx0))-gradientTerm,0.0d0)
+             Table_Logarithmic_Integration_Weights(i  )=Table_Logarithmic_Integration_Weights(i  )+max(                   +gradientTerm,0.0d0)
+          end if
+       end if
+    end do
+    return
+    
+  contains
+    
+    function factor0Integrand(logx,parameterPointer) bind(c)
+      !% Integrand used to evaluate integration weights over logarithmically spaced tables
+      implicit none
+      real(c_double)        :: factor0Integrand
+      real(c_double), value :: logx
+      type(c_ptr),    value :: parameterPointer
+      real(c_double)        :: x
+      
+      x=exp(logx)
+      factor0Integrand=x*integrand(x)
+      return
+    end function factor0Integrand
+    
+    function factor1Integrand(logx,parameterPointer) bind(c)
+      !% Integrand used to evaluate integration weights over logarithmically spaced tables
+      implicit none
+      real(c_double)        :: factor1Integrand
+      real(c_double), value :: logx
+      type(c_ptr),    value :: parameterPointer
+      real(c_double)        :: x
+      
+      x=exp(logx)
+      factor1Integrand=x*integrand(x)*(logx-self%xv(i-1))/(self%xv(i)-self%xv(i-1))
+      return
+    end function factor1Integrand
+    
+  end function Table_Logarithmic_Integration_Weights
+
+  subroutine Table_Logarithmic_1D_Reverse(self,reversedSelf,table,precise)
+    !% Reverse a 1D logarithmic-linear table (i.e. swap $x$ and $y$ components). Optionally allows specification of
+    !% which $y$ table to swap with.
+    use Array_Utilities
+    use Galacticus_Error
+    implicit none
+    class  (table1DLogarithmicLinear)             , intent(in   )           :: self
+    class  (table1D                 ), allocatable, intent(inout)           :: reversedSelf
+    integer                                       , intent(in   ), optional :: table
+    logical                                       , intent(in   ), optional :: precise
+    integer                                                                 :: i           , tableActual
+
+    tableActual=1
+    if (present(table)) tableActual=table
+    if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('Table_Logarithmic_1D_Reverse','reversed table would not be monotonic')
+    if (allocated(reversedSelf)) deallocate(reversedSelf)
+    allocate(table1DNonUniformLinearLogarithmic :: reversedSelf)
+    select type (reversedSelf)
+    type is (table1DNonUniformLinearLogarithmic)
+       call reversedSelf%create(self%yv(:,tableActual),size(self%yv,dim=2),extrapolationType=self%extrapolationType)
+       reversedSelf%yv               =self%yv
+       reversedSelf%yv(:,tableActual)=self%xv
+        ! If the table is monotonically decreasing when reversed, we will also need to switch the order.
+       if (Array_Is_Monotonic(reversedSelf%xv,direction=directionDecreasing)) then
+          reversedSelf%xv(:)=Array_Reverse(reversedSelf%xv(:))
+          do i=1,size(reversedSelf%yv,dim=2)
+             reversedSelf%yv(:,i)=Array_Reverse(reversedSelf%yv(:,i))
+          end do
+       end if
+    end select
+    return
+  end subroutine Table_Logarithmic_1D_Reverse
 
   subroutine Table_Linear_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D linear table.
@@ -738,13 +949,18 @@ contains
     if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
-    call Alloc_Array(self%xv,[xCount                 ])
-    call Alloc_Array(self%yv,[xCount,tableCountActual])
-    call Alloc_Array(self%sv,[xCount,tableCountActual])
+    call Alloc_Array(self%xv,[xCount                   ])
+    call Alloc_Array(self%yv,[xCount  ,tableCountActual])
+    call Alloc_Array(self%sv,[xCount  ,tableCountActual])
+    call Alloc_Array(self%av,[xCount-1,tableCountActual])
+    call Alloc_Array(self%bv,[xCount-1,tableCountActual])
+    call Alloc_Array(self%cv,[xCount-1,tableCountActual])
+    call Alloc_Array(self%dv,[xCount-1,tableCountActual])
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%       deltaX=self%xv(2)-self%xv(1)
     self%inverseDeltaX=1.0d0/self%deltaX
     self%tablePrevious=-1
+    self%iPrevious    =-1
     ! Set extrapolation type.
     if (present(extrapolationType)) then
        self%extrapolationType=extrapolationType
@@ -762,6 +978,10 @@ contains
 
     call Table_1D_Destroy(self)
     if (allocated(self%sv)) call Dealloc_Array(self%sv)
+    if (allocated(self%av)) call Dealloc_Array(self%av)
+    if (allocated(self%bv)) call Dealloc_Array(self%bv)
+    if (allocated(self%cv)) call Dealloc_Array(self%cv)
+    if (allocated(self%dv)) call Dealloc_Array(self%dv)
     return
   end subroutine Table_Linear_CSpline_1D_Destroy
 
@@ -857,38 +1077,22 @@ contains
     end do
     self%sv(            1,table)=0.0d0
     deallocate(b,u,v)
+    ! Compute polynomial coefficients.
+    do i=1,size(self%xv)-1
+       self%av(i,table)=                      self%yv(i  ,table)
+       self%bv(i,table)=-self%       deltaX*  self%sv(i+1,table)/6.0d0 &
+            &           -self%       deltaX*  self%sv(i  ,table)/3.0d0 &
+            &           +self%inverseDeltaX*( self%yv(i+1,table)       &
+            &                                -self%yv(i  ,table)       &
+            &                             )
+       self%cv(i,table)=                      self%sv(i  ,table)/2.0d0
+       self%dv(i,table)= self%inverseDeltaX*(                          &
+            &                                 self%sv(i+1,table)       &
+            &                                -self%sv(i  ,table)       &
+            &                               )                   /6.0d0
+    end do
     return
   end subroutine Table_Linear_CSpline_1D_Compute_Spline
-
-  subroutine Table_Linear_CSpline_1D_Coefficients(self,table,x,i,a,b,c,d,dx)
-    !% Compute coefficients for a spline interpolation.
-    implicit none
-    type            (table1DLinearCSpline), intent(inout) :: self
-    double precision                      , intent(in   ) :: x
-    integer                               , intent(in   ) :: i   , table
-    double precision                      , intent(  out) :: a   , b    , c, d, dx
-
-    if (i /= self%iPrevious) then
-       self%aPrevious=                      self%yv(i  ,table)
-       self%bPrevious=-self%       deltaX*  self%sv(i+1,table)/6.0d0 &
-            &         -self%       deltaX*  self%sv(i  ,table)/3.0d0 &
-            &         +self%inverseDeltaX*( self%yv(i+1,table)       &
-            &                              -self%yv(i  ,table)       &
-            &                             )
-       self%cPrevious=                      self%sv(i  ,table)/2.0d0
-       self%dPrevious= self%inverseDeltaX*(                          &
-            &                               self%sv(i+1,table)       &
-            &                              -self%sv(i  ,table)       &
-            &                             )                   /6.0d0
-       self%iPrevious=i
-    end if
-    a =  self%aPrevious
-    b =  self%bPrevious
-    c =  self%cPrevious
-    d =  self%dPrevious
-    dx=x-self%xv       (i)
-    return
-  end subroutine Table_Linear_CSpline_1D_Coefficients
 
   double precision function Table_Linear_CSpline_1D_Interpolate(self,x,table)
     !% Perform linear interpolation in a linear 1D table.
@@ -904,8 +1108,8 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
-    xEffective=self%xEffective(x)
-    if (xEffective /= self%xPrevious .or. tableActual /= self%tablePrevious) then
+    if (x /= self%xPrevious .or. tableActual /= self%tablePrevious) then
+       xEffective=self%xEffective(x)
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
           i=1
@@ -914,12 +1118,12 @@ contains
        else
           i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
        end if
-       ! Compute polynomial coefficients.
-       call Table_Linear_CSpline_1D_Coefficients(self,tableActual,xEffective,i,a,b,c,d,dx)
+       ! Compute offset from tabulated point.
+       dx=xEffective-self%xv(i)
        ! Interpolate in the table.
-       self%xPrevious    =xEffective
+       self%xPrevious    =x
        self%tablePrevious=tableActual
-       self%    yPrevious=a+dx*(b+dx*(c+dx*d))
+       self%    yPrevious=self%av(i,tableActual)+dx*(self%bv(i,tableActual)+dx*(self%cv(i,tableActual)+dx*self%dv(i,tableActual)))
     end if
     Table_Linear_CSpline_1D_Interpolate=self%yPrevious
     return
@@ -939,8 +1143,8 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
-    xEffective=self%xEffective(x)
-    if (xEffective /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
+    if (x /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
+       xEffective=self%xEffective(x)
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
           i=1
@@ -949,12 +1153,12 @@ contains
        else
           i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
        end if
-       ! Compute polynomial coefficients.
-       call Table_Linear_CSpline_1D_Coefficients(self,tableActual,xEffective,i,a,b,c,d,dx)
+       ! Compute offset from tabulated point.
+       dx=xEffective-self%xv(i)
        ! Interpolate in the table.
-       self%dxPrevious    =xEffective
+       self%dxPrevious    =x
        self%dTablePrevious=tableActual
-       self%    dyPrevious=b+dx*(2.0d0*c+dx*3.0d0*d)
+       self%    dyPrevious=self%bv(i,tableActual)+dx*(2.0d0*self%cv(i,tableActual)+dx*3.0d0*self%dv(i,tableActual))
     end if
     Table_Linear_CSpline_1D_Interpolate_Gradient=self%dyPrevious
     return
@@ -968,7 +1172,9 @@ contains
     integer                                    , intent(in   )           :: xCount
     integer                                    , intent(in   ), optional :: extrapolationType, tableCount
 
-    self%previousSet=.false.
+    self%previousSet         =.false.
+    self%xLinearPrevious     =-1.0d0
+    self%xLogarithmicPrevious=-1.0d0
     ! Call the creator for linear tables with the logarithms of the input x range.
     call self%table1DLinearCSpline%create(log(xMinimum),log(xMaximum),xCount,tableCount,extrapolationType)
     ! Store the minimum and maximum x-values for rapid look-up.
@@ -1037,6 +1243,19 @@ contains
     return
   end function Table_Logarithmic_CSpline_1D_Interpolate_Gradient
 
+  function Table_Linear_CSpline_Integration_Weights(self,x0,x1,integrand)
+    !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
+    use Galacticus_Error
+    implicit none
+    class           (table1DLinearCSpline), intent(inout)                               :: self
+    double precision                      , intent(in   )                               :: x0, x1
+    procedure       (integrandTemplate   ), intent(in   )           , pointer, optional :: integrand
+    double precision                      , dimension(size(self%xv))                    :: Table_Linear_CSpline_Integration_Weights
+
+    call Galacticus_Error_Report('Table_Linear_CSpline_Integration_Weights','integration weights not supported')
+    return
+  end function Table_Linear_CSpline_Integration_Weights
+  
   double precision function Table1D_Find_Effective_X(self,x)
     !% Return the effective value of $x$ to use in table interpolations.
     use Galacticus_Error
@@ -1062,5 +1281,91 @@ contains
     end if
     return
   end function Table1D_Find_Effective_X
+
+  subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate(self,y,table)
+    !% Populate a 1-D linear-logarihtmic table.
+    use Galacticus_Error
+    implicit none
+    class           (table1DNonUniformLinearLogarithmic)              , intent(inout)           :: self
+    double precision                                    , dimension(:), intent(in   )           :: y
+    integer                                                          , intent(in   ), optional :: table
+
+    call self%table1DGeneric%populate(log(y),table)
+    return
+  end subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate
+
+  subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate_Single(self,y,i,table)
+    !% Populate a single element of a 1-D linear table.
+    use Galacticus_Error
+    implicit none
+    class           (table1DNonUniformLinearLogarithmic), intent(inout)           :: self
+    double precision                                    , intent(in   )           :: y
+    integer                                             , intent(in   )           :: i
+    integer                                             , intent(in   ), optional :: table
+
+    call self%table1DGeneric%populate(log(y),i,table)
+    return
+  end subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate_Single
+
+  double precision function Table_NonUniform_Linear_Logarithmic_1D_Interpolate(self,x,table)
+    !% Perform linear interpolation in a linear-logarithmic 1D table.
+    implicit none
+    class           (table1DNonUniformLinearLogarithmic), intent(inout)           :: self
+    double precision                                    , intent(in   )           :: x
+    integer                                             , intent(in   ), optional :: table
+
+    Table_NonUniform_Linear_Logarithmic_1D_Interpolate=exp(self%table1DGeneric%interpolate(x,table))
+    return
+  end function Table_NonUniform_Linear_Logarithmic_1D_Interpolate
+
+  double precision function Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient(self,x,table)
+    !% Perform linear interpolation in a linear-logarithmic 1D table.
+    implicit none
+    class           (table1DNonUniformLinearLogarithmic), intent(inout)           :: self
+    double precision                                    , intent(in   )           :: x
+    integer                                             , intent(in   ), optional :: table
+   
+    Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient=self%interpolate(x,table)*self%table1DGeneric%interpolateGradient(x,table)
+    return
+  end function Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient
+
+  function Table_NonUniform_Linear_Logarithmic_Integration_Weights(self,x0,x1,integrand)
+    !% Returns a set of weights for integration on a linear-logarithmic table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
+    use Galacticus_Error
+    implicit none
+    class           (table1DNonUniformLinearLogarithmic ), intent(inout)                               :: self
+    double precision                                     , intent(in   )                               :: x0, x1
+    procedure       (integrandTemplate                  ), intent(in   )           , pointer, optional :: integrand
+    double precision                                     , dimension(size(self%xv))                    :: Table_NonUniform_Linear_Logarithmic_Integration_Weights
+
+    call Galacticus_Error_Report('Table_NonUniform_Linear_Logarithmic_Integration_Weights','integrand is not linear in y')
+    return    
+  end function Table_NonUniform_Linear_Logarithmic_Integration_Weights
+  
+  double precision function Table_NonUniform_Linear_Logarithmic_1D_Y(self,i,table)
+    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $y$-value for a 1D table.
+    implicit none
+    class  (table1DNonUniformLinearLogarithmic), intent(in   )           :: self
+    integer                                    , intent(in   )           :: i
+    integer                                    , intent(in   ), optional :: table
+    integer                                                              :: ii   , tableActual
+
+    tableActual=1
+    if (present(table)) tableActual=table
+    ii=i
+    if (ii < 0) ii=ii+size(self%xv)+1
+    Table_NonUniform_Linear_Logarithmic_1D_Y=exp(self%yv(ii,tableActual))
+    return
+  end function Table_NonUniform_Linear_Logarithmic_1D_Y
+
+  function Table_NonUniform_Linear_Logarithmic_1D_Ys(self)
+    !% Return the $y$-values for a 1D table.
+    implicit none
+    class           (table1DNonUniformLinearLogarithmic), intent(in   )                                      :: self
+    double precision                                    , dimension(size(self%yv,dim=1),size(self%yv,dim=2)) :: Table_NonUniform_Linear_Logarithmic_1D_Ys
+
+    Table_NonUniform_Linear_Logarithmic_1D_Ys=exp(self%yv)
+    return
+  end function Table_NonUniform_Linear_Logarithmic_1D_Ys
 
 end module Tables
