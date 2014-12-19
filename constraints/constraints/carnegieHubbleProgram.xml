@@ -1,0 +1,6 @@
+<!-- Defines the Carnegie Hubble Program constraint on H_0. -->
+<constraint>
+  <name>Carnegie Hubble Program constraint on H_0</name>
+  <label>carnegieHubbleProgram</label>
+  <analysis>constraints/scripts/carnegieHubbleProgram.pl</analysis>
+</constraint>
