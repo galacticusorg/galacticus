@@ -177,12 +177,13 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Conditional_Mass_Functions
     implicit none
-    real            (kind=c_double)        :: Xi_Integrand
-    real            (kind=c_double), value :: logStellarMass
-    type            (c_ptr        ), value :: parameterPointer
-    double precision                       :: conditionalMassFunctionVariance , stellarMass       , &
-         &                                    stellarMassFunctionObservedError, stellarMassMaximum, &
-         &                                    stellarMassMinimum
+    real            (kind=c_double               )          :: Xi_Integrand
+    real            (kind=c_double               ), value   :: logStellarMass
+    type            (c_ptr                       ), value   :: parameterPointer
+    class           (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
+    double precision                                        :: conditionalMassFunctionVariance , stellarMass       , &
+         &                                                     stellarMassFunctionObservedError, stellarMassMaximum, &
+         &                                                     stellarMassMinimum
 
     ! Compute the stellar mass and range corresponding to data bins.
     stellarMass       =10.0d0** logStellarMass
@@ -190,7 +191,8 @@ contains
     stellarMassMaximum=10.0d0**(logStellarMass+0.5d0*haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth)
 
     ! Compute the variance in the model conditional stellar mass function.
-    conditionalMassFunctionVariance=Cumulative_Conditional_Mass_Function_Variance(massHalo,stellarMassMinimum,stellarMassMaximum)
+    conditionalMassFunction_        => conditionalMassFunction()
+    conditionalMassFunctionVariance =  conditionalMassFunction_%massFunctionVariance(massHalo,stellarMassMinimum,stellarMassMaximum)
 
     ! Compute the error in the observed stellar mass. We use a simple Schechter function (plus minimum error) fit.
     stellarMassFunctionObservedError= haloMassFunctionSamplingStellarMassFunctionErrorPhi0                                                                             &

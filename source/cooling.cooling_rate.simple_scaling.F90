@@ -141,31 +141,38 @@ contains
     use Cosmology_Functions
     implicit none
     type            (treeNode               ), intent(inout), pointer :: thisNode
-    double precision                         , parameter              :: expArgumentMaximum         =100.0d0
+    double precision                         , parameter              :: expArgumentMaximum       =100.0d0
     class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
     class           (nodeComponentHotHalo   )               , pointer :: thisHotHaloComponent
     class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
-    double precision                                                  :: coolingRate                        , expansionFactor, &
-         &                                                               expArgument                        , expFactor
+    double precision                         , save                   :: expansionFactorPrevious  =-1.0d0 , massBasicPrevious=-1.0d0, &
+         &                                                               coolingRate
+    !$omp threadprivate(expansionFactorPrevious,massBasicPrevious,coolingRate)
+    double precision                                                  :: expFactor                          , expansionFactor, &
+         &                                                               expArgument
 
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()
-    thisBasicComponent   => thisNode%basic  ()
-    thisHotHaloComponent => thisNode%hotHalo()
-    expansionFactor      =cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time())
-    expArgument          =log10(                                     &
-         &                       thisBasicComponent%mass()           &
-         &                      /coolingRateSimpleScalingCutOffMass  &
-         &                     )                                     &
-         &                /coolingRateSimpleScalingCutOffWidth
-    if (expArgument < expArgumentMaximum) then
-       expFactor=1.0d0/(1.0d0+exp(+expArgument))**coolingRateSimpleScalingCutOffExponent
-    else
-       expFactor=             exp(-expArgument   *coolingRateSimpleScalingCutOffExponent)
+    thisBasicComponent        => thisNode%basic    ()
+    thisHotHaloComponent      => thisNode%hotHalo  ()
+    expansionFactor           =  cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time())
+    if (expansionFactor /= expansionFactorPrevious .or. thisBasicComponent%mass() /= massBasicPrevious) then
+       expArgument               =log10(                                &
+            &                       thisBasicComponent%mass()           &
+            &                      /coolingRateSimpleScalingCutOffMass  &
+            &                     )                                     &
+            &                /coolingRateSimpleScalingCutOffWidth
+       if (expArgument < expArgumentMaximum) then
+          expFactor=1.0d0/(1.0d0+exp(+expArgument))**coolingRateSimpleScalingCutOffExponent
+       else
+          expFactor=             exp(-expArgument   *coolingRateSimpleScalingCutOffExponent)
+       end if
+       coolingRate    = expansionFactor**coolingRateSimpleScalingTimescaleExponent &
+            &          /coolingRateSimpleScalingTimescale                          &
+            &          *expFactor
+       expansionFactorPrevious=expansionFactor
+       massBasicPrevious=thisBasicComponent%mass()
     end if
-    coolingRate    = expansionFactor**coolingRateSimpleScalingTimescaleExponent &
-         &          /coolingRateSimpleScalingTimescale                          &
-         &          *expFactor
     Cooling_Rate_Simple_Scaling=thisHotHaloComponent%mass()*coolingRate
     return
   end function Cooling_Rate_Simple_Scaling
