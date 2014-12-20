@@ -61,8 +61,6 @@ program Tests_Cosmic_Age
   cosmologyFunctionsCosmologicalConstant          =cosmologyFunctionsMatterLambda    (cosmologyParametersCosmologicalConstant                   )
   ! Cosmology functions for a cosmological constant Universe using dark energy method.
   cosmologyFunctionsDarkEnergyCosmologicalConstant=cosmologyFunctionsMatterDarkEnergy(cosmologyParametersCosmologicalConstant,-1.0d0      ,0.0d0)
-  ! Cosmology functions for a cosmological constant Universe using dark energy method.
-  cosmologyFunctionsDarkEnergyCosmologicalConstant=cosmologyFunctionsMatterDarkEnergy(cosmologyParametersCosmologicalConstant,-1.0d0      ,0.0d0)
   ! Cosmology functions for a closed Universe using dark energy method.
   cosmologyFunctionsDarkEnergyClosed              =cosmologyFunctionsMatterDarkEnergy(cosmologyParametersClosed              , 0.0d0      ,0.0d0)
   ! Cosmology functions for a closed Universe using dark energy method.
