@@ -56,6 +56,12 @@ module Histories
      !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} / \textcolor{red}{\textless type(history)\textgreater}</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>multiply</method>
+     !@     <description>Multiplication operator.</description>
+     !@     <type>\textcolor{red}{\textless type(history)\textgreater}</type>
+     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} * \textcolor{red}{\textless type(history)\textgreater}</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>isZero</method>
      !@     <description>Returns true if the history is entirely zero.</description>
      !@     <type>\logicalzero</type>
