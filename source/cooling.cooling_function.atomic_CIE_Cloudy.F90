@@ -73,11 +73,13 @@ contains
     use System_Command
     use Galacticus_Input_Paths
     use String_Handling
+    use Galacticus_Display
     implicit none
     type     (abundances    ), intent(in   ) :: gasAbundances
     logical                                  :: makeFile
     character(len=32        )                :: metallicityLabel
     type     (varying_string)                :: command         , coolingFunctionFileVarString
+    integer                                  :: status
 
     ! Generate the name of the data file and an XML input parameter file.
     !$omp critical (Cooling_Function_Atomic_CIE_Cloudy_Initialize)
@@ -108,11 +110,19 @@ contains
        end if
        write (metallicityLabel,'(e12.6)') log10(metallicityMaximum)
 
-       ! Run Atomic_CIE_Cloudy wrapper script.
-       command=char(Galacticus_Input_Path())//'scripts/aux/Atomic_CIE_Cloudy_Driver.pl '//metallicityLabel//' '//char(Galacticus_Input_Path())//trim(coolingFunctionFile)//' '&
-            &//char(Galacticus_Input_Path())//trim(chemicalStateFile)
-       command=command//" "//Cooling_Function_CIE_File_Format_Version()
-       call System_Command_Do(command)
+       ! Test if we can compile the Cloudy driver script.
+       command='perl -c '//char(Galacticus_Input_Path())//'scripts/aux/Atomic_CIE_Cloudy_Driver.pl'
+       call System_Command_Do(command,status)
+       if (status == 0) then       
+          ! Run Atomic_CIE_Cloudy wrapper script.
+          command=char(Galacticus_Input_Path())//'scripts/aux/Atomic_CIE_Cloudy_Driver.pl '//metallicityLabel//' '//char(Galacticus_Input_Path())//trim(coolingFunctionFile)//' '&
+               &//char(Galacticus_Input_Path())//trim(chemicalStateFile)
+          command=command//" "//Cooling_Function_CIE_File_Format_Version()
+          call System_Command_Do(command)
+       else
+          call Galacticus_Display_Message('Cooling_Function_Atomic_CIE_Cloudy_Create',verbosity=verbosityWarn)
+          stop 'failed it'
+       end if
 
        ! Call routine to read in the tabulated data.
        coolingFunctionFileVarString=char(Galacticus_Input_Path())//trim(coolingFunctionFile)
