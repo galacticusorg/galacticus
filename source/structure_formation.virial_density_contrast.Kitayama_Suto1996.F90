@@ -44,12 +44,13 @@ contains
     return
   end function kitayamaSuto1996DefaultConstructor
 
-  double precision function kitayamaSuto1996DensityContrast(self,time,expansionFactor,collapsing)
+  double precision function kitayamaSuto1996DensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{kitayama_semianalytic_1996}.
     use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
     class           (virialDensityContrastKitayamaSuto1996), intent(inout)           :: self
+    double precision                                       , intent(in   )           :: mass
     double precision                                       , intent(in   ), optional :: time               , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass              ), pointer                 :: cosmologyFunctions_
@@ -61,12 +62,13 @@ contains
     return
   end function kitayamaSuto1996DensityContrast
 
-  double precision function kitayamaSuto1996DensityContrastRateOfChange(self,time,expansionFactor,collapsing)
+  double precision function kitayamaSuto1996DensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{kitayama_semianalytic_1996}.
     use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
     class           (virialDensityContrastKitayamaSuto1996), intent(inout)           :: self
+    double precision                                       , intent(in   )           :: mass
     double precision                                       , intent(in   ), optional :: time      , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
     class           (cosmologyFunctionsClass              ), pointer                 :: cosmologyFunctions_

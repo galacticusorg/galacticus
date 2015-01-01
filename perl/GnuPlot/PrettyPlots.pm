@@ -172,6 +172,7 @@ our %colors = (
 our %colorPairs = (
     greenRed       => [$colors{'Green'         },$colors{'Red'           }],
     redYellow      => [$colors{'Red'           },$colors{'Yellow'        }],
+    redYellowFaint => [$colors{'OrangeRed'    },$colors{'LightYellow'   }],
     blackGray      => [$colors{'SlateGray'     },$colors{'Black'         }],
     blueCyan       => [$colors{'Blue'          },$colors{'Cyan'          }],
     peachPuff      => [$colors{'Bisque3'       },$colors{'PeachPuff'     }],
