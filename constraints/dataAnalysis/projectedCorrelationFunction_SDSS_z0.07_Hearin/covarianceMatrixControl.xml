@@ -1,0 +1,49 @@
+<constrain>
+  <!-- Configuration file for fitting of CSMF to Li & White mass function -->
+  <!-- Andrew Benson                                                      -->
+  <!-- 06-July-2012                                                       -->
+
+  <observedDataFile>data/observations/correlationFunctions/Projected_Correlation_Functions_Hearin_2013.xml</observedDataFile>
+
+  <baseDirectory>constraints/dataAnalysis/projectedCorrelationFunction_SDSS_z0.07_Hearin/</baseDirectory>
+  
+  <mcmcConfigFile>constraints/dataAnalysis/projectedCorrelationFunction_SDSS_z0.07_Hearin/mcmcConfig.xml</mcmcConfigFile>
+  
+  <constraintFile>constraints/dataAnalysis/projectedCorrelationFunction_SDSS_z0.07_Hearin/covarianceMatrix.hdf5</constraintFile>
+
+  <parameterFile>constraints/dataAnalysis/projectedCorrelationFunction_SDSS_z0.07_Hearin/covarianceMatrix.xml</parameterFile>
+
+  <!-- Label for PBS jobs -->
+  <pbsLabel>wSDSS</pbsLabel>
+
+  <!-- Number of stages (iterations) to carry out -->
+  <stageCount>4</stageCount>
+
+  <!-- Source for mass function -->
+  <sourceLabel>Hearin et al. (2014)</sourceLabel>
+
+  <!-- Label for mass type -->
+  <massType>stellar</massType>
+  <massVariable>M_\star</massVariable>
+
+  <!-- Redshift ranges -->
+  <redshift>
+    <minimum>0.020</minimum>
+    <maximum>0.068</maximum>
+  </redshift>
+
+  <!-- Thread control -->
+  <nodeCount>1</nodeCount>
+  <threadsPerNode>12</threadsPerNode>
+
+  <!-- Pinocchio control -->
+  <pinocchio>
+    <realizationCount>100</realizationCount>
+  </pinocchio>
+
+  <!-- NBody control -->
+  <nBody>
+    <realizationCount>25</realizationCount>
+  </nBody>
+
+</constrain>

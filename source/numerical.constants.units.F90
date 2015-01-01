@@ -39,6 +39,9 @@ module Numerical_Constants_Units
   ! Barn (cross section unit, in units of m^2).
   double precision, parameter :: barn              =1.0d-28
 
+  ! Degree (in units of radians).
+  double precision, parameter :: degree            =Pi/180.0d0
+
   ! Arcsecond (in units of radians).
   double precision, parameter :: arcsecond         =Pi/180.0d0/60.0d0/60.0d0
 
