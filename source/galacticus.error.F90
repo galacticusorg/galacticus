@@ -36,7 +36,7 @@ module Galacticus_Error
   end interface
 
   ! Specify an explicit dependence on the hdf5_cFuncs.o object file.
-  !: ./work/build/hdf5_cFuncs.o
+  !: $(BUILDPATH)/hdf5_cFuncs.o
   interface
      subroutine H5Close_C() bind(c,name='H5Close_C')
      end subroutine H5Close_C

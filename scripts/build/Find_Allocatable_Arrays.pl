@@ -22,19 +22,6 @@ my $sourcedir = $ARGV[0];
 # Build a list of source directories.
 my @sourcedirs = ( $sourcedir."/source" );
 my @bases      = ( "" );
-if ( -e $sourcedir."/Source_Codes" ) {
-    opendir(my $sdir,"$sourcedir/Source_Codes");
-    while ( my $line = readdir $sdir ) {
-	$line =~ s/\n//;
-	if ( -d $sourcedir."/Source_Codes/".$line ) {
-	    unless ( $line =~ m/^\.+$/ ) {
-		push(@sourcedirs,$sourcedir."/Source_Codes/".$line    );
-		push(@bases     ,            "Source_Codes/".$line."/");
-	    }
-	}
-    }
-    closedir($sdir);
-}
 
 # Open the source directorys and scan
 my $ibase = -1;
@@ -112,20 +99,20 @@ foreach my $type ( sort keys %type_dim ) {
 
 # Create XML object.
 my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"allocatables");
-open(outHndl,">./work/build/Allocatable_Arrays.xml.tmp");
+open(outHndl,">".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml.tmp");
 print outHndl $xmlOutput->XMLout(\%allocatables);
 close(outHndl);
 
 # Replace original file only if it has changed.
-if ( -e $sourcedir."/work/build/Allocatable_Arrays.xml" ) {
-    &SystemRedirect::tofile("diff -q  $sourcedir/work/build/Allocatable_Arrays.xml.tmp $sourcedir/work/build/Allocatable_Arrays.xml","/dev/null");
+if ( -e $sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml" ) {
+    &SystemRedirect::tofile("diff -q  ".$sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml.tmp ".$sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml","/dev/null");
     if ( $? == 0 ) {
-	system("rm -f $sourcedir/work/build/Allocatable_Arrays.xml.tmp");
+	system("rm -f ".$sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml.tmp");
     } else {
-	system("mv $sourcedir/work/build/Allocatable_Arrays.xml.tmp $sourcedir/work/build/Allocatable_Arrays.xml");
+	system("mv ".$sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml.tmp ".$sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml");
     }
 } else {
-    system("mv $sourcedir/work/build/Allocatable_Arrays.xml.tmp $sourcedir/work/build/Allocatable_Arrays.xml");
+    system("mv ".$sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml.tmp ".$sourcedir."/".$ENV{'BUILDPATH'}."/Allocatable_Arrays.xml");
 }
 
 exit;

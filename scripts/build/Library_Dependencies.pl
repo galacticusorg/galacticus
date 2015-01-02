@@ -57,7 +57,7 @@ $pthreadIncluded = 1
 my %libraries;
 
 # Open the file of dependencies for the executable.
-(my $dependencyFile = "./work/build/".$executable) =~ s/\.exe$/\.d/;
+(my $dependencyFile = $ENV{'BUILDPATH'}."/".$executable) =~ s/\.exe$/\.d/;
 die("Library_Dependencies.pl: dependency file is missing")
     unless ( -e $dependencyFile );
 open(iHndl,$dependencyFile);

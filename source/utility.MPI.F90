@@ -19,6 +19,10 @@
 
 module MPI_Utilities
   !% Implements useful MPI utilities.
+#ifdef USEMPI
+  use MPI
+#endif
+  use Galacticus_Error
   private
   public :: mpiInitialize, mpiFinalize, mpiBarrier, mpiSelf
 
@@ -165,13 +169,13 @@ contains
 
   subroutine mpiInitialize()
     !% Initialize MPI.
-    use MPI
+#ifdef USEMPI
     use Memory_Management
     use Galacticus_Error
     implicit none
-    integer :: i, iError
+    integer :: i, iError, MPI_Threading_Provided
     
-    call MPI_Init(iError)
+    call MPI_Init_Thread(MPI_THREAD_FUNNELED,MPI_Threading_Provided,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','failed to initialize MPI'     )
     call MPI_Comm_Size(MPI_Comm_World,mpiSelf%countValue,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','failed to determine MPI count')
@@ -184,12 +188,13 @@ contains
     end forall
     ! Record that MPI is active.
     mpiIsActiveValue=.true.
+#endif
     return
   end subroutine mpiInitialize
   
   subroutine mpiFinalize()
     !% Finalize MPI.
-    use MPI
+#ifdef USEMPI
     use Galacticus_Error
     implicit none
     integer :: iError
@@ -198,18 +203,19 @@ contains
     if (iError /= 0) call Galacticus_Error_Report('mpiFinalize','failed to finalize MPI')
     ! Record that MPI is inactive.
     mpiIsActiveValue=.false.
+#endif
     return
   end subroutine mpiFinalize
   
   subroutine mpiBarrier()
     !% Block until all MPI processes are synchronized.
-    use MPI
-    use Galacticus_Error
+#ifdef USEMPI
     implicit none
     integer :: iError
     
     call MPI_Barrier(MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiBarrier','MPI barrier failed')
+#endif
     return
   end subroutine mpiBarrier
   
@@ -227,7 +233,11 @@ contains
     implicit none
     class(mpiObject), intent(in   ) :: self
     
+#ifdef USEMPI
     mpiIsMaster=(.not.self%isActive() .or. self%rank() == 0)
+#else
+    call Galacticus_Error_Report('mpiIsMaster','code was not compiled for MPI')
+#endif
     return
   end function mpiIsMaster
   
@@ -236,7 +246,11 @@ contains
     implicit none
     class(mpiObject), intent(in   ) :: self
     
+#ifdef USEMPI
     mpiGetRank=self%rankValue
+#else
+    call Galacticus_Error_Report('mpiGetRank','code was not compiled for MPI')
+#endif
     return
   end function mpiGetRank
   
@@ -246,6 +260,7 @@ contains
     implicit none
     type     (varying_string)                :: mpiGetRankLabel
     class    (mpiObject     ), intent(in   ) :: self
+#ifdef USEMPI
     character(len=4         )                :: label
 
     if (self%isActive()) then
@@ -254,6 +269,9 @@ contains
     else
        mpiGetRankLabel=''
     end if
+#else
+    call Galacticus_Error_Report('mpiGetRankLabel','code was not compiled for MPI')
+#endif
     return
   end function mpiGetRankLabel
   
@@ -262,17 +280,20 @@ contains
     implicit none
     class(mpiObject), intent(in   ) :: self
     
+#ifdef USEMPI
     mpiGetCount=self%countValue
+#else
+    call Galacticus_Error_Report('mpiGetCount','code was not compiled for MPI')
+#endif
     return
   end function mpiGetCount
   
   logical function mpiMessageWaiting(self,from,tag)
     !% Return true if an MPI message (matching the optional {\normalfont \ttfamily from} and {\normalfont \ttfamily tag} if given) is waiting for receipt.
-    use MPI
-    use Galacticus_Error
     implicit none
     class  (mpiObject), intent(in   )                        :: self
     integer           , intent(in   )             , optional :: from         , tag
+#ifdef USEMPI
     integer           , dimension(MPI_Status_Size)           :: messageStatus
     integer                                                  :: fromActual   , tagActual, iError
    
@@ -282,17 +303,20 @@ contains
     if (present(tag ) ) tagActual=tag
     call MPI_IProbe(fromActual,tagActual,MPI_Comm_World,mpiMessageWaiting,messageStatus,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiMessageWaiting','failed to probe for waiting messages')
+#else
+    call Galacticus_Error_Report('mpiMessageWaiting','code was not compiled for MPI')
+#endif
     return
   end function mpiMessageWaiting
 
   function mpiRequestData1D(self,requestFrom,array)
     !% Request and receive data from other MPI processes.
-    use MPI
     implicit none
     class           (mpiObject), intent(in   )                                           :: self
     integer                    , intent(in   ), dimension(                            :) :: requestFrom
     double precision           , intent(in   ), dimension(          :                  ) :: array
     double precision                          , dimension(size(array),size(requestFrom)) :: mpiRequestData1D
+#ifdef USEMPI
     double precision                          , dimension(size(array)                  ) :: receivedData
     integer                                   , dimension(                            1) :: requester       , requestedBy
     integer                                   , dimension(         0: self%countValue-1) :: requestFromID
@@ -355,17 +379,20 @@ contains
     call mpiBarrier()
     ! Deallocate request ID workspace.
     deallocate(requestID)
+#else
+    call Galacticus_Error_Report('mpiRequestData1D','code was not compiled for MPI')
+#endif
     return
   end function mpiRequestData1D
 
   function mpiRequestData2D(self,requestFrom,array)
     !% Request and receive data from other MPI processes.
-    use MPI
     implicit none
     class           (mpiObject), intent(in   )                                                                   :: self
     integer                    , intent(in   ), dimension(                                                    :) :: requestFrom
     double precision           , intent(in   ), dimension(                :,                :                  ) :: array
     double precision                          , dimension(size(array,dim=1),size(array,dim=2),size(requestFrom)) :: mpiRequestData2D
+#ifdef USEMPI
     double precision                          , dimension(size(array,dim=1),size(array,dim=2)                  ) :: receivedData
     integer                                   , dimension(                                                    1) :: requester       , requestedBy
     integer                                   , dimension(                                 0: self%countValue-1) :: requestFromID
@@ -428,17 +455,20 @@ contains
     call mpiBarrier()
     ! Deallocate request ID workspace.
     deallocate(requestID)
+#else
+    call Galacticus_Error_Report('mpiRequestData2D','code was not compiled for MPI')
+#endif
     return
   end function mpiRequestData2D
 
   function mpiRequestDataInt1D(self,requestFrom,array)
     !% Request and receive data from other MPI processes.
-    use MPI
     implicit none
     class  (mpiObject), intent(in   )                                           :: self
     integer           , intent(in   ), dimension(                            :) :: requestFrom
     integer           , intent(in   ), dimension(          :                  ) :: array
     integer                          , dimension(size(array),size(requestFrom)) :: mpiRequestDataInt1D
+#ifdef USEMPI
     integer                          , dimension(size(array)                  ) :: receivedData
     integer                          , dimension(                            1) :: requester       , requestedBy
     integer                          , dimension(         0: self%countValue-1) :: requestFromID
@@ -501,18 +531,21 @@ contains
     call mpiBarrier()
     ! Deallocate request ID workspace.
     deallocate(requestID)
+#else
+    call Galacticus_Error_Report('mpiRequestDataInt1D','code was not compiled for MPI')
+#endif
     return
   end function mpiRequestDataInt1D
 
   function mpiSumArrayInt(self,array,mask)
     !% Sum an integer array over all processes, returning it to all processes.
-    use MPI
     use Galacticus_Error
     implicit none
     class  (mpiObject), intent(in   )                                    :: self
     integer           , intent(in   ), dimension( :          )           :: array
     logical           , intent(in   ), dimension(0:          ), optional :: mask
     integer                          , dimension(size(array))            :: mpiSumArrayInt, maskedArray
+#ifdef USEMPI
     integer                                                              :: iError        , activeCount
 
     ! Sum the array over all processes.
@@ -524,33 +557,37 @@ contains
     end if
     call MPI_AllReduce(maskedArray,mpiSumArrayInt,size(array),MPI_Integer,MPI_Sum,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiSumArrayInt','MPI all reduce failed')
+#else
+    call Galacticus_Error_Report('mpiSumArrayInt','code was not compiled for MPI')
+#endif
     return
   end function mpiSumArrayInt
 
   integer function mpiSumScalarInt(self,scalar,mask)
     !% Sum an integer scalar over all processes, returning it to all processes.
-    use MPI
-    use Galacticus_Error
     implicit none
     class  (mpiObject), intent(in   )                         :: self
     integer           , intent(in   )                         :: scalar
     logical           , intent(in   ), dimension(:), optional :: mask
+#ifdef USEMPI
     integer                          , dimension(1)           :: array
 
     array=self%sum([scalar],mask)
     mpiSumScalarInt=array(1)
+#else
+    call Galacticus_Error_Report('mpisumScalarInt','code was not compiled for MPI')
+#endif
     return
   end function mpiSumScalarInt
 
   function mpiSumArrayDouble(self,array,mask)
     !% Sum an integer array over all processes, returning it to all processes.
-    use MPI
-    use Galacticus_Error
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
     double precision           , intent(in   ), dimension( :          )           :: array
     logical                    , intent(in   ), dimension(0:          ), optional :: mask
     double precision                          , dimension(size(array))            :: mpiSumArrayDouble, maskedArray
+#ifdef USEMPI
     integer                                                                       :: iError           , activeCount
 
     ! Sum the array over all processes.
@@ -562,33 +599,37 @@ contains
     end if
     call MPI_AllReduce(maskedArray,mpiSumArrayDouble,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiSumArrayDouble','MPI all reduce failed')
+#else
+    call Galacticus_Error_Report('mpiSumArrayDouble','code was not compiled for MPI')
+#endif
     return
   end function mpiSumArrayDouble
 
   double precision function mpiSumScalarDouble(self,scalar,mask)
     !% Sum an integer scalar over all processes, returning it to all processes.
-    use MPI
-    use Galacticus_Error
     implicit none
     class           (mpiObject), intent(in   )                         :: self
     double precision           , intent(in   )                         :: scalar
     logical                    , intent(in   ), dimension(:), optional :: mask
+#ifdef USEMPI
     double precision                          , dimension(1)           :: array
 
     array=self%sum([scalar],mask)
     mpiSumScalarDouble=array(1)
+#else
+    call Galacticus_Error_Report('mpisumScalarDouble','code was not compiled for MPI')
+#endif
     return
   end function mpiSumScalarDouble
 
   function mpiAverageArray(self,array,mask)
     !% Average an array over all processes, returning it to all processes.
-    use MPI
-    use Galacticus_Error
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
     double precision           , intent(in   ), dimension( :          )           :: array
     logical                    , intent(in   ), dimension(0:          ), optional :: mask
     double precision                          , dimension(size(array) )           :: mpiAverageArray, maskedArray
+#ifdef USEMPI
     integer                                                                       :: iError         , activeCount
 
     ! Sum the array over all processes.
@@ -602,19 +643,23 @@ contains
     if (iError /= 0) call Galacticus_Error_Report('mpiAverageArray','MPI all reduce failed')
     ! Convert the sum into an average.
     mpiAverageArray=mpiAverageArray/dble(activeCount)
+#else
+    call Galacticus_Error_Report('mpiAverageArray','code was not compiled for MPI')
+#endif
     return
   end function mpiAverageArray
 
   function mpiMedianArray(self,array,mask)
     !% Find the median of an array over all processes, returning it to all processes.
-    use MPI
+#ifdef USEMPI
     use Sort
-    use Galacticus_Error
+#endif
     implicit none
     class           (mpiObject), intent(in   )                                                   :: self
     integer                    , intent(in   ), dimension(:                          )           :: array
     logical                    , intent(in   ), dimension(:                          ), optional :: mask
     integer                                   , dimension(size(array)                )           :: mpiMedianArray
+#ifdef USEMPI
     integer                                   , dimension(size(array),self%countValue)           :: allArray
     integer                                   , dimension(1:2                        )           :: indexMedian
     integer                                                                                      :: i             , activeCount
@@ -646,33 +691,37 @@ contains
        ! Compute the median.
        mpiMedianArray(i)=(allArray(i,indexMedian(1))+allArray(i,indexMedian(2)))/2
     end do
+#else
+    call Galacticus_Error_Report('mpiMedianArray','code was not compiled for MPI')
+#endif
     return
   end function mpiMedianArray
 
   double precision function mpiAverageScalar(self,scalar,mask)
     !% Find the maximum values of a scalar over all processes, returning it to all processes.
-    use MPI
-    use Galacticus_Error
     implicit none
     class           (mpiObject), intent(in   )                         :: self
     double precision           , intent(in   )                         :: scalar
     logical                    , intent(in   ), dimension(:), optional :: mask
+#ifdef USEMPI
     double precision                          , dimension(1)           :: array
 
     array=self%average([scalar],mask)
     mpiAverageScalar=array(1)
+#else
+    call Galacticus_Error_Report('mpiAverageScalar','code was not compiled for MPI')
+#endif
     return
   end function mpiAverageScalar
 
   function mpiMaxvalArray(self,array,mask)
     !% Find the maximum values of an array over all processes, returning it to all processes.
-    use MPI
-    use Galacticus_Error
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
     double precision           , intent(in   ), dimension( :          )           :: array
     logical                    , intent(in   ), dimension(0:          ), optional :: mask
     double precision                          , dimension(size(array) )           :: mpiMaxvalArray, maskedArray
+#ifdef USEMPI
     integer                                                                       :: iError
 
     ! Find the maximum over all processes.
@@ -682,33 +731,37 @@ contains
     end if
     call MPI_AllReduce(maskedArray,mpiMaxvalArray,size(array),MPI_Double_Precision,MPI_Max,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiMaxvalArray','MPI all reduce failed')
+#else
+    call Galacticus_Error_Report('mpiMaxvalArray','code was not compiled for MPI')
+#endif
     return
   end function mpiMaxvalArray
 
   double precision function mpiMaxvalScalar(self,scalar,mask)
     !% Find the maximum values of a scalar over all processes, returning it to all processes.
-    use MPI
-    use Galacticus_Error
     implicit none
     class           (mpiObject), intent(in   )                         :: self
     double precision           , intent(in   )                         :: scalar
     logical                    , intent(in   ), dimension(:), optional :: mask
+#ifdef USEMPI
     double precision                          , dimension(1)           :: array
 
     array=self%maxval([scalar],mask)
     mpiMaxvalScalar=array(1)
+#else
+    call Galacticus_Error_Report('mpiMaxvalScalar','code was not compiled for MPI')
+#endif
     return
   end function mpiMaxvalScalar
 
   function mpiMaxloc(self,array,mask)
     !% Find the rank of the process having maximum values of an array over all processes, returning it to all processes.
-    use MPI
-    use Galacticus_Error
     implicit none
     class           (mpiObject), intent(in   )                                      :: self
     double precision           , intent(in   ), dimension( :            )           :: array
     logical                    , intent(in   ), dimension(0:            ), optional :: mask
     integer                                   , dimension(   size(array))           :: mpiMaxloc
+#ifdef USEMPI
     double precision                          , dimension(2 ,size(array))           :: arrayIn  , arrayOut
     integer                                                                         :: iError
 
@@ -721,18 +774,20 @@ contains
     call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MaxLoc,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiMax','MPI all reduce failed')
     mpiMaxloc=int(arrayOut(2,:))
+#else
+    call Galacticus_Error_Report('mpiMaxloc','code was not compiled for MPI')
+#endif
     return
   end function mpiMaxloc
 
   function mpiMinvalArray(self,array,mask)
     !% Find the minimum values of an array over all processes, returning it to all processes.
-    use MPI
-    use Galacticus_Error
     implicit none
     class           (mpiObject), intent(in   )                                    :: self
     double precision           , intent(in   ), dimension( :          )           :: array
     logical                    , intent(in   ), dimension(0:          ), optional :: mask
     double precision                          , dimension(size(array) )           :: mpiMinvalArray, maskedArray
+#ifdef USEMPI
     integer                                                                       :: iError
 
     ! Find the minimum over all processes.
@@ -742,33 +797,37 @@ contains
     end if
     call MPI_AllReduce(maskedArray,mpiMinvalArray,size(array),MPI_Double_Precision,MPI_Min,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiMinvalArray','MPI all reduce failed')
+#else
+    call Galacticus_Error_Report('mpiMinvalArray','code was not compiled for MPI')
+#endif
     return
   end function mpiMinvalArray
 
   double precision function mpiMinvalScalar(self,scalar,mask)
     !% Find the minimum values of a scalar over all processes, returning it to all processes.
-    use MPI
-    use Galacticus_Error
     implicit none
     class           (mpiObject), intent(in   )                         :: self
     double precision           , intent(in   )                         :: scalar
     logical                    , intent(in   ), dimension(:), optional :: mask
+#ifdef USEMPI
     double precision                          , dimension(1)           :: array
 
     array=self%minval([scalar],mask)
     mpiMinvalScalar=array(1)
+#else
+    call Galacticus_Error_Report('mpiMinvalScalar','code was not compiled for MPI')
+#endif
     return
   end function mpiMinvalScalar
 
   function mpiMinloc(self,array,mask)
     !% Find the rank of the process having minimum values of an array over all processes, returning it to all processes.
-    use MPI
-    use Galacticus_Error
     implicit none
     class           (mpiObject), intent(in   )                                      :: self
     double precision           , intent(in   ), dimension( :            )           :: array
     logical                    , intent(in   ), dimension(0:            ), optional :: mask
     integer                                   , dimension(   size(array))           :: mpiMinloc
+#ifdef USEMPI
     double precision                          , dimension(2 ,size(array))           :: arrayIn  , arrayOut
     integer                                                                         :: iError
 
@@ -781,60 +840,71 @@ contains
     call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MinLoc,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiMin','MPI all reduce failed')
     mpiMinloc=int(arrayOut(2,:))
+#else
+    call Galacticus_Error_Report('mpiMinloc','code was not compiled for MPI')
+#endif
     return
   end function mpiMinloc
 
   function mpiGatherScalar(self,scalar)
     !% Gather a scalar from all processes, returning it as a 1-D array.
-    use MPI
-    use Galacticus_Error
     implicit none
     class           (mpiObject), intent(in   )                :: self
     double precision           , intent(in   )                :: scalar
     double precision           , dimension(  self%countValue) :: mpiGatherScalar
+#ifdef USEMPI
     double precision           , dimension(1,self%countValue) :: array
 
     array=self%requestData(self%allRanks,[scalar])
     mpiGatherScalar=array(1,:)
+#else
+    call Galacticus_Error_Report('mpiGatherScalar','code was not compiled for MPI')
+#endif
     return
   end function mpiGatherScalar
   
   function mpiGather1D(self,array)
     !% Gather a 1-D array from all processes, returning it as a 2-D array.
-    use MPI
-    use Galacticus_Error
     implicit none
     class           (mpiObject), intent(in   )                                         :: self
     double precision           , intent(in   ), dimension(          :                ) :: array
     double precision           ,                dimension(size(array),self%countValue) :: mpiGather1D
 
+#ifdef USEMPI
     mpiGather1D=self%requestData(self%allRanks,array)
+#else
+    call Galacticus_Error_Report('mpiGather1D','code was not compiled for MPI')
+#endif
     return
   end function mpiGather1D
 
   function mpiGather2D(self,array)
     !% Gather a 1-D array from all processes, returning it as a 2-D array.
-    use MPI
-    use Galacticus_Error
     implicit none
     class           (mpiObject), intent(in   )                                                                 :: self
     double precision           , intent(in   ), dimension(                :,                :                ) :: array
     double precision           ,                dimension(size(array,dim=1),size(array,dim=2),self%countValue) :: mpiGather2D
 
+#ifdef USEMPI
     mpiGather2D=self%requestData(self%allRanks,array)
+#else
+    call Galacticus_Error_Report('mpiGather2D','code was not compiled for MPI')
+#endif
     return
   end function mpiGather2D
 
   function mpiGatherInt1D(self,array)
     !% Gather an integer 1-D array from all processes, returning it as a 2-D array.
-    use MPI
-    use Galacticus_Error
     implicit none
     class  (mpiObject), intent(in   )                                         :: self
     integer           , intent(in   ), dimension(          :                ) :: array
     integer           ,                dimension(size(array),self%countValue) :: mpiGatherInt1D
 
+#ifdef USEMPI
     mpiGatherInt1D=self%requestData(self%allRanks,array)
+#else
+    call Galacticus_Error_Report('mpiGatherInt1D','code was not compiled for MPI')
+#endif
     return
   end function mpiGatherInt1D
 

@@ -18,7 +18,7 @@
 !% Contains a module which stores file units and finds available file units.
 
 ! Specify an explicit dependence on the flock.o object file.
-!: ./work/build/flock.o
+!: $(BUILDPATH)/flock.o
 
 module File_Utilities
   !% Contains a function which returns an available file unit. Also stores the name of the output directory and unit numbers for
