@@ -64,7 +64,6 @@ contains
   subroutine Stellar_Population_Luminosity_Tabulate(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,redshift)
     !% Tabulate stellar population luminosity in the given filters.
     use, intrinsic :: ISO_C_Binding
-    use MPI_Utilities
     use Numerical_Constants_Astronomical
     use File_Utilities
     use IO_HDF5
@@ -95,9 +94,9 @@ contains
     character       (len=16                    )                                                               :: datasetName                     , redshiftLabel
     type            (hdf5Object                )                                                               :: luminositiesFile
     logical                                                                                                    :: computeTable                    , calculateLuminosity
-integer :: iAge, iLuminosity, iMetallicity, loopCount, loopCountMaximum
-double precision :: normalization
-
+    integer                                                                                                    :: iAge, iLuminosity, iMetallicity, loopCount, loopCountMaximum
+    double precision                                                                                           :: normalization
+    
     ! Determine if we have created space for this IMF yet.
     !$omp critical (Luminosity_Tables_Initialize)
     if (.not.moduleInitialized) then
@@ -244,7 +243,7 @@ double precision :: normalization
 
           ! Compute the luminosity if necessary.
           if (calculateLuminosity) then
-          ! Display a message and counter.
+             ! Display a message and counter.
              message='Tabulating stellar luminosities for '//char(IMF_Name(imfIndex))//' IMF, luminosity '
              write (redshiftLabel,'(f6.3)') redshift(iLuminosity)
              message=message                                                                                     // &

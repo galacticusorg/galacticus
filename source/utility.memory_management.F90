@@ -68,7 +68,7 @@ module Memory_Management
 
 #ifdef PROCPS
   interface
-     !: ./work/build/utility.memory_usage.o
+     !: $(BUILDPATH)/utility.memory_usage.o
      function Memory_Usage_Get_C() bind(c,name='Memory_Usage_Get_C')
        !% Template for a C function that returns the current memory usage.
        import
@@ -212,7 +212,7 @@ contains
     type            (varying_string)                :: codeSizeFileExtension
 
     usedMemory%memoryType(memoryTypeCode)%usage=0  ! Default value in case size file is unreadable.
-    codeSizeFileExtension=char(Galacticus_Input_Path())//'work/build/'//trim(codeSizeFile)
+    codeSizeFileExtension=char(Galacticus_Input_Path())//BUILDPATH//'/'//trim(codeSizeFile)
     open (newunit=unitNumber,file=char(codeSizeFileExtension),iostat=ioError,status='old',form='formatted')
     read (unitNumber,'(a80)',iostat=ioError) line ! Read header line.
     line=adjustl(line)

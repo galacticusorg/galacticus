@@ -876,7 +876,7 @@ sub Functions_Generate_Output {
 	$cBindings .= "};\n\n";
 	# Create methods.
 	$cBindings .= $methodCode;
-	open(cHndl,">work/build/".$directive.".h");
+	open(cHndl,">".$ENV{'BUILDPATH'}."/".$directive.".h");
 	print cHndl $cBindings;
 	close(cHndl);
     }

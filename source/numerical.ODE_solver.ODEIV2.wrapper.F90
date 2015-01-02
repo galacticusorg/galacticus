@@ -37,7 +37,7 @@ module fodeiv2
        fodeiv2_driver_set_hmax, fodeiv2_driver_set_nmax, fodeiv2_driver_status
 
   ! Specify an explicit dependence on the bivar.o object file.
-  !: ./work/build/numerical.ODE_solver.ODEIV2.utils.o
+  !: $(BUILDPATH)/numerical.ODE_solver.ODEIV2.utils.o
 
 !
 ! Types: Ordinary Differential Equations

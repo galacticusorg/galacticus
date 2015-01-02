@@ -18,7 +18,7 @@
 !% Contains a module that implements simple and convenient interfaces to a variety of HDF5 functionality.
 
 ! Specify an explicit dependence on the hdf5_cTypes.o object file.
-!: ./work/build/hdf5_cTypes.o
+!: $(BUILDPATH)/hdf5_cTypes.o
 
 module IO_HDF5
   !% Implements simple and convenient interfaces to a variety of HDF5 functionality.

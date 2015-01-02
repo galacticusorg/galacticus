@@ -18,7 +18,7 @@
 !% Contains a module which wraps the \href{http://www.cs.umd.edu/~mount/ANN/}{ANN} (Approximate Nearest Neighbor) library.
 
 ! Specify an explicit dependence on the ANN.o object file.
-!: ./work/build/ANN.o
+!: $(BUILDPATH)/ANN.o
 
 module Nearest_Neighbors
   !% Wraps the \href{http://www.cs.umd.edu/~mount/ANN/}{ANN} (Approximate Nearest Neighbor) library.

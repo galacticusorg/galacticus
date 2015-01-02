@@ -18,7 +18,7 @@
 !% Contains a module which implements semaphores.
 
 ! Specify an explicit dependence on the semaphores.o object file.
-!: ./work/build/semaphores.o
+!: $(BUILDPATH)/semaphores.o
 
 module Semaphores
   !% Implements semaphores.

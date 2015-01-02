@@ -22,11 +22,11 @@ module FFTLogs
   private
   public :: FFTLog
 
-  !: ./work/build/FFTlog/cdgamma.o
-  !: ./work/build/FFTlog/drfftb.o
-  !: ./work/build/FFTlog/drfftf.o
-  !: ./work/build/FFTlog/drffti.o
-  !: ./work/build/FFTlog/fftlog.o
+  !: $(BUILDPATH)/FFTlog/cdgamma.o
+  !: $(BUILDPATH)/FFTlog/drfftb.o
+  !: $(BUILDPATH)/FFTlog/drfftf.o
+  !: $(BUILDPATH)/FFTlog/drffti.o
+  !: $(BUILDPATH)/FFTlog/fftlog.o
 
   ! Labels for forward/backward FFTs.
   integer         , parameter, public :: fftLogForward =+1

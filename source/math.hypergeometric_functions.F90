@@ -15,7 +15,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!: ./work/build/pFq/pfq.new.o
+!: $(BUILDPATH)/pFq/pfq.new.o
 
 !% Contains a module which implements hypergeometric functions.
 

@@ -60,7 +60,9 @@ contains
   double precision function Pseudo_Random_Get(pseudoSequenceObject,reset,ompThreadOffset,mpiRankOffset,incrementSeed)
     !% Returns a scalar giving a pseudo-random number.
     use Input_Parameters
+#ifdef USEMPI
     use MPI
+#endif
     !$ use OMP_Lib
     implicit none
     type   (fgsl_rng), intent(inout)           :: pseudoSequenceObject
@@ -104,7 +106,9 @@ contains
           !$    if (ompThreadOffset) randomSeedC=randomSeedC+omp_get_thread_num()
           !$ end if
           if (present(mpiRankOffset).and.mpiRankOffset) then
+#ifdef USEMPI
              call MPI_Comm_Rank(MPI_Comm_World,mpiRank,iError)
+#endif
              randomSeedC=randomSeedC+mpiRank
           end if
           if (present(incrementSeed)) randomSeedC=randomSeedC+incrementSeed
