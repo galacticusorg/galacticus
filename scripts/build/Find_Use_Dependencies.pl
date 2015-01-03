@@ -243,9 +243,6 @@ foreach my $srcdir ( @sourcedirs ) {
 			if ( $line =~ m/^\s*include\s+(\'|\")([\w\.\-]+)(\'|\")/i ) {
 			    my $ifile = $2;
 			    (my $Ifile = $ifile) =~ s/\.inc$/.Inc/;
-
-			    print $sourcedir."\t".$Ifile."\n";
-
 			    if ( -e $sourcedir."/source/".$Ifile ) {
 				push(@scanfiles,$sourcedir."/source/".$Ifile);
 			    } elsif ( -e $workDir.$ifile ) {
