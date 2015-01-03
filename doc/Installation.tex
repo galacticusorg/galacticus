@@ -354,6 +354,14 @@ in {\normalfont \ttfamily bash} and variants. If you get stack overflows while r
 
 \glc\ currently implements parallel calculations at the tree level---that is, each parallel thread works on a separate merger tree. This means that you need sufficient memory to hold multiple merger trees at once. The advantage of this approach is that it is highly scalable (assuming no need for communication between trees), and \glc\ can achieve close to optimal speed-up in many cases. The limit to the speed-up is usually determined by the workload balance between the trees. If one tree requires significantly more time to run that all other trees combined then one thread will be left working on that tree while all others have finished. To limit this problem, it is recommended that parallel runs which use {\normalfont \ttfamily mergerTreeConstructMethod}$=${\normalfont \ttfamily build} (see \S{sec:MergerTreeConstruction}) be conducted with the {\normalfont \ttfamily [mergerTreeBuildTreesProcessDescending]}$=${\normalfont \ttfamily true} parameter set to true. This will cause the most massive merger trees (i.e. those which take longest to process) to be processed first.
 
+\subsection{Compiling with MPI Parallelism}\index{MPI}\index{parallel}
+
+While \glc\ currently does not support \gls{mpi} parallelism, certain other codes included with \glc\ do. To compile such a code use
+\begin{verbatim}
+make GALACTICUS_BUILD_OPTION=MPI Constrain_Galacticus.exe
+\end{verbatim}
+for example. The {\tt GALACTICUS\_BUILD\_OPTION=MPI} option instructs the build system to compile all codes into the {\tt work/buildMPI} directory, and define a {\tt USEMPI} preprocessor macro to allow the compiled code to be modified appropriately for \gls{mpi}. Note that you must have a working \gls{mpi} installed of course.
+
 \section{Installing Without Root Access}
 
 It is possible to install \glc\ without root access to your computer. The following approach has worked in many cases---some adjustments may be required for your specific system. Depending on what is already installed on your system, you may be able to skip some of the following installs. Refer to \S\ref{sec:requirementsEssential}, \S\ref{sec:requirementsTypical} and \S\ref{sec:requirementsFull} to decide which of the following tools you want to install. (Or, alternatively, you may need to install additional tools.) Choose a location to install that has at least 4Gb of free space. In the following, this install location is referred to as {\normalfont \ttfamily /your/install/path}. In the following, we assume you're using some variant of the C-shell. If you're using {\normalfont \ttfamily bash} or some other Bourne shell, {\normalfont \ttfamily setenv VAR abcd} should be translated to {\normalfont \ttfamily export VAR=abcd}.
