@@ -236,7 +236,7 @@ contains
 #ifdef USEMPI
     mpiIsMaster=(.not.self%isActive() .or. self%rank() == 0)
 #else
-    call Galacticus_Error_Report('mpiIsMaster','code was not compiled for MPI')
+    mpiIsMaster=.true.
 #endif
     return
   end function mpiIsMaster
