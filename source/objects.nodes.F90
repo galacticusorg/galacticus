@@ -897,6 +897,15 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Dump_Raw_Null
 
+  subroutine Node_Component_Read_Raw_Null(self,fileHandle)
+    !% Read a generic tree node component in binary.
+    implicit none
+    class  (nodeComponent), intent(inout) :: self
+    integer               , intent(in   ) :: fileHandle
+
+    return
+  end subroutine Node_Component_Read_Raw_Null
+
   subroutine Node_Component_Output_Count_Null(self,integerPropertyCount,doublePropertyCount,time,instance)
     !% Dump a generic tree node component.
     implicit none
