@@ -105,6 +105,7 @@ contains
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
     class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    logical                                   , parameter              :: specificAngularMomentumRequired=.true.
     logical                                                            :: componentActive
     double precision                                                   :: specificAngularMomentum
 
