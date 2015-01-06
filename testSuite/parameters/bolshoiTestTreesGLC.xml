@@ -266,7 +266,7 @@
 
   <!-- Halo accretion options -->
   <parameter>
-    <name>accretionHalosMethod</name>
+    <name>accretionHaloMethod</name>
     <value>simple</value>
   </parameter>
   <parameter>
