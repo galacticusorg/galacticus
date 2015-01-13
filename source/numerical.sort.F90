@@ -23,7 +23,7 @@ module Sort
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
-  public :: Sort_Do, Sort_Index_Do
+  public :: Sort_Do, Sort_Index_Do, Sort_By_Index
 
   interface Sort_Index_Do
      !% Generic interface to index sort routines.
@@ -38,6 +38,13 @@ module Sort
      module procedure Sort_Do_Integer8
      module procedure Sort_Do_Integer8_Both
   end interface
+
+  interface Sort_By_Index
+     !% Generic interface to in-place sort routines using a supplied index.
+     module procedure Sort_By_Index_Integer
+     module procedure Sort_By_Index_Double
+     module procedure Sort_By_Index_Varying_String
+  end interface Sort_By_Index
 
 contains
 
@@ -244,5 +251,53 @@ contains
     end if
     return
   end function Compare_Integer8
+
+  subroutine Sort_By_Index_Double(array,index)
+    !% Given a double precision {\normalfont \ttfamily array}, sort it in place using the supplied index.
+    use Kind_Numbers
+    implicit none
+    double precision                , dimension(:          ), intent(inout) :: array
+    integer         (kind=c_size_t ), dimension(:          ), intent(in   ) :: index
+    double precision                , dimension(size(array))                :: arrayTmp
+    integer         (kind=c_size_t )                                        :: i
+
+    forall(i=1:size(array))
+       arrayTmp(i)=array(index(i))
+    end forall
+    array=arrayTmp
+    return
+  end subroutine Sort_By_Index_Double
+
+  subroutine Sort_By_Index_Integer(array,index)
+    !% Given a integer {\normalfont \ttfamily array}, sort it in place using the supplied index.
+    use Kind_Numbers
+    implicit none
+    integer                , dimension(:          ), intent(inout) :: array
+    integer(kind=c_size_t ), dimension(:          ), intent(in   ) :: index
+    integer                , dimension(size(array))                :: arrayTmp
+    integer(kind=c_size_t )                                        :: i
+
+    forall(i=1:size(array))
+       arrayTmp(i)=array(index(i))
+    end forall
+    array=arrayTmp
+    return
+  end subroutine Sort_By_Index_Integer
+
+  subroutine Sort_By_Index_Varying_String(array,index)
+    !% Given a integer {\normalfont \ttfamily array}, sort it in place using the supplied index.
+    use ISO_Varying_String
+    implicit none
+    type   (varying_string), dimension(:          ), intent(inout) :: array
+    integer(kind=c_size_t ), dimension(:          ), intent(in   ) :: index
+    type   (varying_string), dimension(size(array))                :: arrayTmp
+    integer(kind=c_size_t )                                        :: i
+
+    forall(i=1:size(array))
+       arrayTmp(i)=array(index(i))
+    end forall
+    array=arrayTmp
+    return
+  end subroutine Sort_By_Index_Varying_String
 
 end module Sort
