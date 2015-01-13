@@ -7397,6 +7397,7 @@ sub Generate_Component_Class_Output_Functions {
 			}
 			$functionCode .= "      output".ucfirst($type)."=self%".$propertyName."()\n";
 			$functionCode .= "      call output".ucfirst($type)."%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)\n";
+			$functionCode .= "      call self%".$propertyName."Set(output".ucfirst($type).")\n";
 			$functionCode .= "    end if\n"
 			    if ( exists($property->{'output'}->{'condition'}) );			 
 		    }
