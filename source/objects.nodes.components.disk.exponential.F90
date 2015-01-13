@@ -517,7 +517,8 @@ contains
          &                                                                     outflowToHotHaloFraction    , starFormationRate         , &
          &                                                                     stellarMassRate             , transferRate
     type            (history                      )                         :: historyTransferRate         , stellarHistoryRate
-    type            (stellarLuminosities          )                         :: luminositiesStellarRates    , luminositiesTransferRate
+    type            (stellarLuminosities          ), save                   :: luminositiesStellarRates    , luminositiesTransferRate
+    !$omp threadprivate(luminositiesStellarRates,luminositiesTransferRate)
 
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn

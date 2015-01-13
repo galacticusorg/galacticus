@@ -525,7 +525,8 @@ contains
          &                                                             starFormationRate         , stellarMassRate         , &
          &                                                             tidalField                , tidalTorque
     type            (history              )                         :: historyTransferRate       , stellarHistoryRate
-    type            (stellarLuminosities  )                         :: luminositiesStellarRates
+    type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
+    !$omp threadprivate(luminositiesStellarRates)
 
     ! Get the disk and check that it is of our class.
     thisSpheroid => thisNode%spheroid()
