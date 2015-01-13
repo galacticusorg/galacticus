@@ -109,7 +109,7 @@ contains
     speed                     =  Vector_Magnitude                (         velocity                          )
     parentDensity             =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian)
     parentEnclosedMass        =  Galactic_Structure_Enclosed_Mass(hostNode,radius                            )
-    positionTensor            =  Vector_Self_Outer_Product       (         position                          )
+    positionTensor            =  Vector_Outer_Product            (         position                          )
     ! Find the gravitational tidal tensor.
     tidalTensor=                                                                                          &
          & -(gravitationalConstantGalacticus*parentEnclosedMass         /radius**3)*tensorIdentityR2D3Sym &
