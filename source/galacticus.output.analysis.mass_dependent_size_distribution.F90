@@ -207,7 +207,7 @@ contains
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     class           (darkMatterHaloScaleClass      )               , pointer        :: darkMatterHaloScale_
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
-    type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
+    type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
     integer         (c_size_t                      )                                :: k,jOutput
     integer                                                                         :: i,j,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution
     double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
@@ -451,6 +451,7 @@ contains
                          call dataFile%close()
                          !$omp end critical(HDF5_Access)
                          ! Create the observed cosmology.
+                         allocate(cosmologyParametersObserved)
                          cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
                               &                                                     OmegaMatter    =dataOmegaMatter    , &
                               &                                                     OmegaDarkEnergy=dataOmegaDarkEnergy, &
@@ -508,6 +509,7 @@ contains
                               &                            cosmologyConversionMassFunction=sizeFunctions(currentAnalysis)%cosmologyConversionSizeFunction(jOutput)  &
                               &                           )
                       end do
+                      nullify(cosmologyParametersObserved)
                       ! Compute output weights for mass function.
                       call Alloc_Array(sizeFunctions(currentAnalysis)%outputWeight,[int(sizeFunctions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
                       sizeFunctions(currentAnalysis)%outputWeight=0.0d0

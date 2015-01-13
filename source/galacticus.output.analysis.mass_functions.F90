@@ -703,7 +703,7 @@ contains
          &                                                                             timeMaximum,galaxySize,redshift,surfaceBrightnessModelSlope,surfaceBrightnessModelOffset,surfaceBrightnessModelScatter
     type            (varying_string                )                                :: parameterName,analysisMassFunctionCovarianceModelText,cosmologyScalingMass,cosmologyScalingMassFunction,message
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
-    type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
+    type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
     type            (fgsl_function                 )                                :: integrandFunction
     type            (fgsl_integration_workspace    )                                :: integrationWorkspace
     type            (c_ptr                         )                                :: parameterPointer
@@ -1073,6 +1073,7 @@ contains
                          end do
                       end if
                       ! Read the appropriate observational data definition.
+                      allocate(cosmologyParametersObserved)
                       select case (trim(massFunctionLabels(j)))
                       case ('sdssStellarMassFunctionZ0.07')
                          ! SDSS z=0.07 stellar mass function.
@@ -1164,9 +1165,10 @@ contains
                               &                            cosmologyConversionMass        =massFunctions(currentAnalysis)%cosmologyConversionMass        (jOutput), &
                               &                            cosmologyConversionMassFunction=massFunctions(currentAnalysis)%cosmologyConversionMassFunction(jOutput)  &
                               &                           )
-                      end do
-                      exit
-                   end if
+                     end do
+                     nullify(cosmologyParametersObserved) 
+                     exit
+                  end if
                 end do
                 ! Compute output weights for mass function.
                 call Alloc_Array(massFunctions(currentAnalysis)%outputWeight,[int(massFunctions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
