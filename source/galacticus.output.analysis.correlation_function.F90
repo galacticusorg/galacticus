@@ -70,6 +70,7 @@ module Galacticus_Output_Analyses_Correlation_Functions
      integer                                                    :: massSystematicCoefficientCount
      integer                                                    :: massType
      double precision                                           :: massUnitsInSI
+     logical                                                    :: halfIntegral
      character       (len= 32            )                      :: label
      character       (len=128            )                      :: comment
      procedure       (Map_Mass           ), pointer    , nopass :: mapMass
@@ -88,6 +89,7 @@ module Galacticus_Output_Analyses_Correlation_Functions
        &                                                          2                                                      ,      &
        &                                                          massTypeStellar                                        ,      &
        &                                                          massSolar                                              ,      &
+       &                                                          .false.                                                ,      &
        &                                                          'sdssClusteringZ0.07'                                  ,      &
        &                                                          'SDSS galaxy clustering at z=0.07'                     ,      &
        &                                                          null()                                                 ,      &
@@ -196,7 +198,7 @@ contains
     integer                                         , parameter                     :: wavenumberCount  =60
     double precision                                , parameter                     :: wavenumberMinimum=0.001d0, wavenumberMaximum=10000.0d0
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
-    type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
+    type            (cosmologyParametersSimple     ), pointer                       :: cosmologyParametersObserved => null()
     double precision                                                                :: mass, massLogarithmic, dataHubbleParameter, dataOmegaMatter, dataOmegaDarkEnergy, redshift, timeMinimum, timeMaximum, distanceMinimum, distanceMaximum, weight
     integer                                                                         :: i,j,k,m, currentAnalysis, activeAnalysisCount,massCount
     integer         (c_size_t                      )                                :: jOutput
@@ -316,6 +318,7 @@ contains
                          call dataFile%close()
                          !$omp end critical(HDF5_Access)                      
                          ! Create the observed cosmology.
+                         allocate(cosmologyParametersObserved)
                          cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
                               &                                                     OmegaMatter    =dataOmegaMatter    , &
                               &                                                     OmegaDarkEnergy=dataOmegaDarkEnergy, &
@@ -361,6 +364,7 @@ contains
                               &                            cosmologyConversionSize        =correlationFunctions(currentAnalysis)%cosmologyConversionSize(jOutput)  &
                               &                           )
                       end do
+                      nullify(cosmologyParametersObserved)
                       ! Compute output weights for correlation function. We assume a volume limited survey at the minimum mass.
                       call Alloc_Array(correlationFunctions(currentAnalysis)%linearGrowthFactor,[    massCount                                              ])
                       call Alloc_Array(correlationFunctions(currentAnalysis)%outputWeight      ,[int(massCount,kind=c_size_t),Galacticus_Output_Time_Count()])
@@ -1125,6 +1129,12 @@ contains
        covarianceMatrix              =correlationCovariance
        projectedCorrelationCovariance=jacobianMatrix*(covarianceMatrix*jacobianMatrix%transpose())
        call Dealloc_Array(jacobian)
+       ! If the integral was taken over the half range, 0<pi<pi_max, rather than the full range, -pi_max<pi<pi_max, then divide
+       ! the projected correlation function by two.
+       if (correlationFunctions(k)%descriptor%halfIntegral) then
+          projectedCorrelation          =projectedCorrelation          /2.0d0
+          projectedCorrelationCovariance=projectedCorrelationCovariance/2.0d0**2
+       end if
        ! Integrate the projected correlation function over bins.
        call Alloc_Array(binnedProjectedCorrelation          ,[          size(correlationFunctions(k)%separation),massCount                                         ])
        call Alloc_Array(binnedProjectedCorrelationCovariance,[massCount*size(correlationFunctions(k)%separation),massCount*size(correlationFunctions(k)%separation)])
