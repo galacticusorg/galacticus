@@ -58,11 +58,11 @@ my $sourceDirectory = $galacticusDirectory."/source";
 
 # Parse the code directive locations file.
 my $codeDirectiveLocationsXML = new XML::Simple;
-my $codeDirectiveLocations    =$codeDirectiveLocationsXML->XMLin($galacticusDirectory."/work/build/Code_Directive_Locations.xml");
+my $codeDirectiveLocations    = $codeDirectiveLocationsXML->XMLin($ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
 
 # Open the output file.
-open(my $functionHandle,">".$galacticusDirectory."/work/build/utility.input_parameters.unique_labels.inc"             );
-open(my $scopeHandle,">".$galacticusDirectory."/work/build/utility.input_parameters.unique_labels.visibilities.inc");
+open(my $functionHandle,">".$ENV{'BUILDPATH'}."/utility.input_parameters.unique_labels.inc"             );
+open(my $scopeHandle,">".$ENV{'BUILDPATH'}."/utility.input_parameters.unique_labels.visibilities.inc");
 
 # Store for default parameter values.
 my %defaultValues;
@@ -276,7 +276,7 @@ CODE
 	    }
 	    # Add a source MD5 digest for this file.
 	    my $ctx = Digest::MD5->new();
-	    $ctx->add(&Fortran_Utils::read_file($sourceFile,state => "raw", followIncludes => 1, includeLocations => [ "../source", "../work/build" ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
+	    $ctx->add(&Fortran_Utils::read_file($sourceFile,state => "raw", followIncludes => 1, includeLocations => [ "../source", ".".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
 	    # Search for use on any files from the data directory by this source file.
 	    &Hash_Data_Files(
 		$ctx,
@@ -346,7 +346,7 @@ CODE
 		    if ( $suffix eq ".c" || $suffix eq ".cpp" ) {
 			# For C and C++ files, run them through the preprocessor to have any include files included.
 			my $includeOptions = join(" ",map {"-I".$_} @includeDirectories);
-			open($sourceHandle,"cpp -I".$galacticusDirectory."/source/ -I".$galacticusDirectory."/work/build/ ".$includeOptions." ".$sourceFile."|");
+			open($sourceHandle,"cpp -I".$galacticusDirectory."/source/ -I".$ENV{'BUILDPATH'}."/ ".$includeOptions." ".$sourceFile."|");
 		    } else {
 			# For other files, simply read the file directly.
 			open($sourceHandle,       $sourceFile    );
