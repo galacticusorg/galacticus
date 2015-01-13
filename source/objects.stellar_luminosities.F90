@@ -218,7 +218,7 @@ module Stellar_Luminosities_Structure
      procedure         :: luminosity            => Stellar_Luminosities_Luminosity
      procedure         :: setLuminosities       => Stellar_Luminosities_Set
      procedure, nopass :: luminosityCount       => Stellar_Luminosities_Property_Count
-     procedure, nopass :: serializeCount        => Stellar_Luminosities_Property_Count
+     procedure         :: serializeCount        => Stellar_Luminosities_Serialize_Count
      procedure         :: serialize             => Stellar_Luminosities_Serialize
      procedure         :: deserialize           => Stellar_Luminosities_Deserialize
      procedure         :: increment             => Stellar_Luminosities_Increment
@@ -256,19 +256,23 @@ contains
 
   subroutine Stellar_Luminosities_Initialize
     !% Initialize the {\normalfont \ttfamily stellarLuminositiestructure} object module. Determines which stellar luminosities are to be tracked.
+    use, intrinsic :: ISO_C_Binding
     use Input_Parameters
     use Galacticus_Error
     use Memory_Management
     use Instruments_Filters
     use Cosmology_Functions
     use Stellar_Population_Spectra_Postprocess
+    use Array_Utilities
+    use Sort
     implicit none
-    class           (cosmologyFunctionsClass), pointer :: cosmologyFunctionsDefault
-    integer                                            :: iLuminosity               , jLuminosity
-    double precision                                   :: expansionFactor
-    character       (len=10                 )          :: redshiftLabel
-    type            (varying_string         )          :: luminosityOutputOptionText
-
+    class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctionsDefault
+    integer                                                              :: iLuminosity               , jLuminosity
+    double precision                                                     :: expansionFactor
+    character       (len=10                 )                            :: redshiftLabel
+    type            (varying_string         )                            :: luminosityOutputOptionText
+    integer         (c_size_t               ), allocatable, dimension(:) :: luminosityTimeIndex
+    
     ! Initialize the module if necessary.
     if (.not.luminositiesInitialized) then
        !$omp critical (Stellar_Luminosities_Initialize)
@@ -403,13 +407,14 @@ contains
              end if
              ! Handle luminosity definition special cases.
              call Stellar_Luminosities_Special_Cases(luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet)
-             luminosityCount=size(luminosityRedshift)      
+             luminosityCount=size(luminosityRedshift)
              ! Allocate remaining required arrays.
              allocate(luminosityName(luminosityCount))
              call Alloc_Array(luminosityFilterIndex             ,[luminosityCount])
              call Alloc_Array(luminosityIndex                   ,[luminosityCount])
              call Alloc_Array(luminosityPostprocessingChainIndex,[luminosityCount])
              call Alloc_Array(luminosityCosmicTime              ,[luminosityCount])
+             call Alloc_Array(luminosityTimeIndex               ,[luminosityCount])
              ! Get the default cosmology functions object.
              cosmologyFunctionsDefault => cosmologyFunctions()
              ! Process the list of luminosities.
@@ -448,6 +453,13 @@ contains
                 ! Find the index for the postprocessing chain to be applied to this filter.
                 luminosityPostprocessingChainIndex(iLuminosity)=Stellar_Population_Spectrum_Postprocess_Index(luminosityPostprocessSet(iLuminosity))
              end do
+             ! Sort the luminosities such that the latest luminosities are stored first.
+             luminosityTimeIndex=Array_Reverse(Sort_Index_Do(luminosityCosmicTime))
+             call Sort_By_Index(luminosityFilterIndex             ,luminosityTimeIndex)
+             call Sort_By_Index(luminosityIndex                   ,luminosityTimeIndex)
+             call Sort_By_Index(luminosityPostprocessingChainIndex,luminosityTimeIndex)
+             call Sort_By_Index(luminosityCosmicTime              ,luminosityTimeIndex)
+             call Sort_By_Index(luminosityName                    ,luminosityTimeIndex)
              ! Allocate unit and zero stellar abundance objects.
              call Alloc_Array(unitStellarLuminosities%luminosityValue,[luminosityCount])
              call Alloc_Array(zeroStellarLuminosities%luminosityValue,[luminosityCount])
@@ -517,7 +529,11 @@ contains
     ! Dump the contents.
     if (luminosityCount > 0) then
        do i=1,luminosityCount
-          write (label,'(e12.6)') self%luminosityValue(i)
+          if (i <= size(self%luminosityValue)) then
+             write (label,'(e12.6)') self%luminosityValue(i)
+          else
+             label="pruned"
+          end if
           message=luminosityName(i)//':          '//label
           call Galacticus_Display_Message(message)
        end do
@@ -534,21 +550,29 @@ contains
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     ! Dump the content.
-    if (luminosityCount > 0) write (fileHandle) self%luminosityValue
+    if (luminosityCount > 0) then
+       write (fileHandle) size(self%luminosityValue)
+       write (fileHandle) self%luminosityValue
+    end if
     return
   end subroutine Stellar_Luminosities_Dump_Raw
 
   subroutine Stellar_Luminosities_Read_Raw(self,fileHandle)
     !% Read an stellarLuminosities object from binary.
+    use Memory_Management
     implicit none
     class  (stellarLuminosities), intent(inout) :: self
     integer                     , intent(in   ) :: fileHandle
-
+    integer                                     :: luminosityActiveCount
+    
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     ! Read the content.
     if (luminosityCount > 0) then
        call Stellar_Luminosities_Create(self)
+       read (fileHandle) luminosityActiveCount
+       call Dealloc_Array(self%luminosityValue                        )
+       call Alloc_Array  (self%luminosityValue,[luminosityActiveCount])
        read (fileHandle) self%luminosityValue
     end if
     return
@@ -606,15 +630,15 @@ contains
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
-    ! Set values to unity.
-    if (index > 0 .and. index <= luminosityCount) then
-       if (allocated(self%luminosityValue)) then
+    ! Return the requested luminosity.
+    if (allocated(self%luminosityValue)) then
+       if (index > 0 .and. index <= size(self%luminosityValue)) then
           Stellar_Luminosities_Luminosity=self%luminosityValue(index)
        else
-          Stellar_Luminosities_Luminosity=0.0d0
+          call Galacticus_Error_Report('Stellar_Luminosities_Luminosity','index out of range')
        end if
     else
-       call Galacticus_Error_Report('Stellar_Luminosities_Luminosity','index out of range')
+       Stellar_Luminosities_Luminosity=0.0d0
     end if
     return
   end function Stellar_Luminosities_Luminosity
@@ -622,25 +646,39 @@ contains
   function stellarLuminositiesMax(luminosities1,luminosities2)
     !% Return an element-by-element {\normalfont \ttfamily max()} on two stellar luminosity objects.
     implicit none
-    type(stellarLuminosities)                :: stellarLuminositiesMax
-    type(stellarLuminosities), intent(in   ) :: luminosities1         , luminosities2
+    type   (stellarLuminosities)                :: stellarLuminositiesMax
+    type   (stellarLuminosities), intent(in   ) :: luminosities1         , luminosities2
+    integer                                     :: luminosityCountActual
 
-    if (luminosityCount > 0) stellarLuminositiesMax%luminosityValue=max(luminosities1%luminosityValue,luminosities2%luminosityValue)
+    if (luminosityCount > 0) then
+       luminosityCountActual=luminosityCount
+       if (allocated(luminosities1%luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(luminosities1%luminosityValue))
+       if (allocated(luminosities2%luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(luminosities2%luminosityValue))
+       stellarLuminositiesMax%luminosityValue=max(                                                        &
+            &                                     luminosities1%luminosityValue(1:luminosityCountActual), &
+            &                                     luminosities2%luminosityValue(1:luminosityCountActual)  &
+            &                                    )
+    end if
     return
   end function stellarLuminositiesMax
 
   function Stellar_Luminosities_Add(stellarLuminosities1,stellarLuminosities2)
     !% Add two stellar luminosities objects.
     implicit none
-    type (stellarLuminosities)                          :: Stellar_Luminosities_Add
-    class(stellarLuminosities), intent(in   )           :: stellarLuminosities1
-    class(stellarLuminosities), intent(in   ), optional :: stellarLuminosities2
+    type   (stellarLuminosities)                          :: Stellar_Luminosities_Add
+    class  (stellarLuminosities), intent(in   )           :: stellarLuminosities1
+    class  (stellarLuminosities), intent(in   ), optional :: stellarLuminosities2
+    integer                                               :: luminosityCountActual
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     if (luminosityCount > 0) then
        if (present(stellarLuminosities2)) then
-          Stellar_Luminosities_Add%luminosityValue=stellarLuminosities1%luminosityValue+stellarLuminosities2%luminosityValue
+          luminosityCountActual=luminosityCount
+          if (allocated(stellarLuminosities1%luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(stellarLuminosities1%luminosityValue))
+          if (allocated(stellarLuminosities2%luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(stellarLuminosities2%luminosityValue))
+          Stellar_Luminosities_Add%luminosityValue=+stellarLuminosities1%luminosityValue(1:luminosityCountActual) &
+               &                                   +stellarLuminosities2%luminosityValue(1:luminosityCountActual)
        else
           Stellar_Luminosities_Add%luminosityValue=stellarLuminosities1%luminosityValue
        end if
@@ -651,28 +689,40 @@ contains
   subroutine Stellar_Luminosities_Increment(self,increment)
     !% Increment a stellar luminosities object.
     implicit none
-    class(stellarLuminosities), intent(inout) :: self
-    class(stellarLuminosities), intent(in   ) :: increment
+    class  (stellarLuminosities), intent(inout) :: self
+    class  (stellarLuminosities), intent(in   ) :: increment
+    integer                                     :: luminosityCountActual
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     ! Increment.
-    if (luminosityCount > 0) self%luminosityValue=self%luminosityValue+increment%luminosityValue
+    if (luminosityCount > 0) then
+       luminosityCountActual=luminosityCount
+       if (allocated(self     %luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(self     %luminosityValue))
+       if (allocated(increment%luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(increment%luminosityValue))
+       self%luminosityValue(1:luminosityCountActual)=+self     %luminosityValue(1:luminosityCountActual) &
+            &                                        +increment%luminosityValue(1:luminosityCountActual)
+    end if
     return
   end subroutine Stellar_Luminosities_Increment
 
   function Stellar_Luminosities_Subtract(stellarLuminosities1,stellarLuminosities2)
     !% Subtract two stellar luminosities objects.
     implicit none
-    type (stellarLuminosities)                          :: Stellar_Luminosities_Subtract
-    class(stellarLuminosities), intent(in   )           :: stellarLuminosities1
-    class(stellarLuminosities), intent(in   ), optional :: stellarLuminosities2
+    type   (stellarLuminosities)                          :: Stellar_Luminosities_Subtract
+    class  (stellarLuminosities), intent(in   )           :: stellarLuminosities1
+    class  (stellarLuminosities), intent(in   ), optional :: stellarLuminosities2
+    integer                                               :: luminosityCountActual
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     if (luminosityCount > 0) then
        if (present(stellarLuminosities2)) then
-          Stellar_Luminosities_Subtract%luminosityValue=+stellarLuminosities1%luminosityValue-stellarLuminosities2%luminosityValue
+          luminosityCountActual=luminosityCount
+          if (allocated(stellarLuminosities1%luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(stellarLuminosities1%luminosityValue))
+          if (allocated(stellarLuminosities2%luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(stellarLuminosities2%luminosityValue))
+          Stellar_Luminosities_Subtract%luminosityValue=+stellarLuminosities1%luminosityValue(1:luminosityCountActual) &
+               &                                        -stellarLuminosities2%luminosityValue(1:luminosityCountActual)
        else
           Stellar_Luminosities_Subtract%luminosityValue=-stellarLuminosities1%luminosityValue
        end if
@@ -729,6 +779,19 @@ contains
     return
   end function Stellar_Luminosities_Property_Count
 
+  integer function Stellar_Luminosities_Serialize_Count(self)
+    !% Return the number of properties required to track stellar luminosities.
+    implicit none
+    class(stellarLuminosities), intent(in   ) :: self
+
+    if (allocated(self%luminosityValue)) then
+       Stellar_Luminosities_Serialize_Count=size(self%luminosityValue)
+    else
+       Stellar_Luminosities_Serialize_Count=luminosityCount
+    end if
+    return
+  end function Stellar_Luminosities_Serialize_Count
+
   function Stellar_Luminosities_Name(index)
     !% Return a name for the specified entry in the stellar luminosities structure.
     use Galacticus_Error
@@ -770,7 +833,7 @@ contains
        ! Ensure luminosities array exists.
        call Stellar_Luminosities_Create(self)
        ! Extract luminosity values from array.
-       self%luminosityValue=stellarLuminositiesArray(1:luminosityCount)
+       self%luminosityValue=stellarLuminositiesArray(1:size(self%luminosityValue))
     end select
     return
   end subroutine Stellar_Luminosities_Deserialize
@@ -785,9 +848,9 @@ contains
     call Stellar_Luminosities_Initialize()
     ! Place luminosities into array.
     if (allocated(self%luminosityValue)) then
-       stellarLuminositiesArray(1:luminosityCount)=self%luminosityValue
+       stellarLuminositiesArray(1:size(self%luminosityValue))=self%luminosityValue
     else
-       stellarLuminositiesArray(1:luminosityCount)=0.0d0
+       stellarLuminositiesArray(1:luminosityCount           )=0.0d0
     end if
     return
   end subroutine Stellar_Luminosities_Serialize
@@ -796,15 +859,17 @@ contains
        &,doubleBuffer,time)
     !% Store a {\normalfont \ttfamily stellarLuminosities} object in the output buffers.
     use Kind_Numbers
+    use Memory_Management
     implicit none
-    class           (stellarLuminosities)                , intent(in   ) :: self
+    class           (stellarLuminosities)                , intent(inout) :: self
     double precision                                     , intent(in   ) :: time
     integer                                              , intent(inout) :: doubleBufferCount, doubleProperty, integerBufferCount, &
          &                                                                  integerProperty
     integer         (kind=kind_int8     ), dimension(:,:), intent(inout) :: integerBuffer
     double precision                     , dimension(:,:), intent(inout) :: doubleBuffer
-    integer                                                              :: i
-
+    double precision                     , dimension(:  ), allocatable   :: luminosityTmp
+    integer                                                              :: i                , luminosityRemainingCount
+    
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     if (luminosityCount > 0) then
@@ -814,6 +879,20 @@ contains
              doubleProperty=doubleProperty+1
           end if
        end do
+       ! Test if we can prune luminosities.
+       select case (luminosityOutputOption)
+       case (luminosityOutputOptionFuture,luminosityOutputOptionPresent)
+          ! Luminosities from this and earlier outputs no longer needed, so prune them.
+          call Move_Alloc(self%luminosityValue,luminosityTmp)
+          luminosityRemainingCount=size(luminosityTmp)
+          do i=1,luminosityCount
+             if (Stellar_Luminosities_Is_Output(i,time,luminosityOutputOptionPresent)) &
+                  & luminosityRemainingCount=luminosityRemainingCount-1
+          end do          
+          call Alloc_Array(self%luminosityValue,[luminosityRemainingCount])
+          self%luminosityValue=luminosityTmp(1:luminosityRemainingCount)
+          call Dealloc_Array(luminosityTmp)
+       end select
     end if
     return
   end subroutine Stellar_Luminosities_Output
@@ -875,17 +954,25 @@ contains
     return
   end subroutine Stellar_Luminosities_Output_Names
 
-  logical function Stellar_Luminosities_Is_Output(luminosityIndex,time)
+  logical function Stellar_Luminosities_Is_Output(luminosityIndex,time,outputOption)
     !% Return true or false depending on whether {\normalfont \ttfamily luminosityIndex} should be output at {\normalfont \ttfamily time}.
     use Galacticus_Error
     implicit none
-    integer         , intent(in   ) :: luminosityIndex
-    double precision, intent(in   ) :: time
-    double precision, parameter     :: timeTolerance  =1.0d-3
+    integer         , intent(in   )           :: luminosityIndex
+    double precision, intent(in   )           :: time
+    integer         , intent(in   ), optional :: outputOption
+    double precision, parameter               :: timeTolerance  =1.0d-3
+    integer                                   :: outputOptionActual
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
-    select case (luminosityOutputOption)
+    ! Determine output option to use.
+    if (present(outputOption)) then
+       outputOptionActual=outputOption
+    else
+       outputOptionActual=luminosityOutputOption
+    end if
+    select case (outputOptionActual)
     case (luminosityOutputOptionAll)
        Stellar_Luminosities_Is_Output=.true.
     case (luminosityOutputOptionFuture)
@@ -906,9 +993,9 @@ contains
     implicit none
     class           (stellarLuminosities)                             :: self
     integer                              , intent(in   )              :: imfSelected
-    double precision                     , intent(in   )              :: mass             ,time
+    double precision                     , intent(in   )              :: mass             , time
     type            (abundances         ), intent(in   )              :: abundancesStellar
-    double precision                     , dimension(luminosityCount) :: ages
+    double precision                     , dimension(luminosityCount) :: ages             , massToLightRatio
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
@@ -920,8 +1007,17 @@ contains
     ages=luminosityCosmicTime-time
 
     ! Get the luminosities for each requested band.
-    self%luminosityValue=mass*Stellar_Population_Luminosity(luminosityIndex,luminosityFilterIndex&
-         &,luminosityPostprocessingChainIndex,imfSelected,abundancesStellar,ages,luminosityRedshift)
+    massToLightRatio=Stellar_Population_Luminosity(                                    &
+         &                                         luminosityIndex                   , &
+         &                                         luminosityFilterIndex             , &
+         &                                         luminosityPostprocessingChainIndex, &
+         &                                         imfSelected                       , &
+         &                                         abundancesStellar                 , &
+         &                                         ages                              , &
+         &                                         luminosityRedshift                  &
+         &                                        )
+    call Stellar_Luminosities_Create(self)
+    self%luminosityValue=mass*massToLightRatio(1:size(self%luminosityValue))
     return
   end subroutine Stellar_Luminosities_Set
 
