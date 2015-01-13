@@ -111,7 +111,7 @@ contains
        write (metallicityLabel,'(e12.6)') log10(metallicityMaximum)
 
        ! Test if we can compile the Cloudy driver script.
-       command='perl -c '//char(Galacticus_Input_Path())//'scripts/aux/Atomic_CIE_Cloudy_Driver.pl'
+       command='perl -c '//char(Galacticus_Input_Path())//'scripts/aux/Atomic_CIE_Cloudy_Driver.pl &> /dev/null'
        call System_Command_Do(command,status)
        if (status == 0) then       
           ! Run Atomic_CIE_Cloudy wrapper script.
@@ -119,9 +119,6 @@ contains
                &//char(Galacticus_Input_Path())//trim(chemicalStateFile)
           command=command//" "//Cooling_Function_CIE_File_Format_Version()
           call System_Command_Do(command)
-       else
-          call Galacticus_Display_Message('Cooling_Function_Atomic_CIE_Cloudy_Create',verbosity=verbosityWarn)
-          stop 'failed it'
        end if
 
        ! Call routine to read in the tabulated data.
