@@ -52,6 +52,7 @@ program Projected_Correlation_Function
        &                                                                              projectedCorrelationFunctionHaloMassMinimum  , projectedCorrelationFunctionHaloMassMaximum  , &
        &                                                                              projectedCorrelationFunctionLineOfSightDepth
   integer                                                                          :: projectedCorrelationFunctionSeparationCount
+  logical                                                                          :: projectedCorrelationFunctionHalfIntegral
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Projected_Correlation_Function.size')
@@ -102,6 +103,17 @@ program Projected_Correlation_Function
   !@   <cardinality>1</cardinality>
   !@ </inputParameter>
   call Get_Input_Parameter('projectedCorrelationFunctionLineOfSightDepth',projectedCorrelationFunctionLineOfSightDepth)
+  !@ <inputParameter>
+  !@   <name>projectedCorrelationFunctionHalfIntegral</name>
+  !@   <attachedTo>program</attachedTo>
+  !@   <defaultValue>false</defaultValue>
+  !@   <description>
+  !@     Set to {\tt true} if the projected correlation function is computed as $w_{\mathrm p}(r_{\mathrm p})=\int_0^{+\pi_{\mathrm max}} \xi(r_{\mathrm p},\pi) {\mathrm d} \pi$, instead of the usual $w_{\mathrm p}(r_{\mathrm p})=\int_{-\pi_{\mathrm max}}^{+\pi_{\mathrm max}} \xi(r_{\mathrm p},\pi) {\mathrm d} \pi$.
+  !@   </description>
+  !@   <type>string</type>
+  !@   <cardinality>1</cardinality>
+  !@ </inputParameter>
+  call Get_Input_Parameter('projectedCorrelationFunctionHalfIntegral',projectedCorrelationFunctionHalfIntegral,defaultValue=.false.)
   !@ <inputParameter>
   !@   <name>projectedCorrelationFunctionOutputFileName</name>
   !@   <attachedTo>program</attachedTo>
@@ -174,6 +186,7 @@ program Projected_Correlation_Function
        &                                projectedCorrelationFunctionHaloMassMinimum , &
        &                                projectedCorrelationFunctionHaloMassMaximum , &
        &                                projectedCorrelationFunctionLineOfSightDepth, &
+       &                                projectedCorrelationFunctionHalfIntegral    , &
        &                                projectedCorrelationBinned                    &
        &                               )
   ! Write the data to file.

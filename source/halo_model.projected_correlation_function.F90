@@ -38,6 +38,7 @@ contains
        &                                      projectedCorrelationFunctionHaloMassMinimum , &
        &                                      projectedCorrelationFunctionHaloMassMaximum , &
        &                                      projectedCorrelationFunctionLineOfSightDepth, &
+       &                                      projectedCorrelationFunctionHalfIntegral    , &
        &                                      projectedCorrelationBinned                    &
        &                                     )
     !% Compute the projected correlation function of galaxies above a specified mass using the halo model.
@@ -64,6 +65,7 @@ contains
     double precision                                     , intent(in   )                                             :: projectedCorrelationFunctionMassMinimum     , projectedCorrelationFunctionMassMaximum    , &
        &                                                                                                                projectedCorrelationFunctionHaloMassMinimum , projectedCorrelationFunctionHaloMassMaximum, &
        &                                                                                                                projectedCorrelationFunctionLineOfSightDepth
+    logical                                              , intent(in   )                                             :: projectedCorrelationFunctionHalfIntegral
     double precision                                     , intent(  out), dimension(size(projectedSeparationBinned)) :: projectedCorrelationBinned
     class           (cosmologyFunctionsClass            ), pointer                                                   :: cosmologyFunctions_
     class           (surveyGeometryClass                ), pointer                                                   :: surveyGeometry_
@@ -158,7 +160,7 @@ contains
             &            reset=integrationReset                    &
             &           )                                          &
             & *surveyGeometry_%solidAngle(iField)
-       call Integrate_Done(integrandFunction,integrationWorkspace)       
+       call Integrate_Done(integrandFunction,integrationWorkspace)
        ! Iterate over wavenumbers.
        do iWavenumber=1,wavenumberCount 
           ! Integrate the one-halo term.
@@ -244,6 +246,9 @@ contains
                &                                          *correlation                                                                                &
                &                                         )
        end do
+       ! If the integral was taken over the half range, 0<pi<pi_max, rather than the full range, -pi_max<pi<pi_max, then divide
+       ! the projected correlation function by two.
+       if (projectedCorrelationFunctionHalfIntegral) projectedCorrelation=projectedCorrelation/2.0d0
        ! Average the projected correlation function into bins.
        projectedCorrelationFunctionSeparationCount=size(projectedSeparationBinned)
        binWidthLogarithmic=log(projectedSeparationBinned(2)/projectedSeparationBinned(1))
@@ -489,7 +494,7 @@ contains
            &            reset=integrationResetTime                          &
            &           )                                                    &
            & *cosmologyFunctions_%comovingVolumeElementTime(time)
-      call Integrate_Done(integrandFunctionTime,integrationWorkspaceTime)
+       call Integrate_Done(integrandFunctionTime,integrationWorkspaceTime)
       return
     end function normalizationTimeIntegrand
 

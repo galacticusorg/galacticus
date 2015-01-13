@@ -107,7 +107,7 @@ contains
          &                                                           likelihoodModelSurfaceBrightnessDefinition     , likelihoodSurfaceBrightnessLimitDefinition              , &
          &                                                           likelihoodChainBaseNameDefinition              , likelihoodToleranceDefinition                           , &
          &                                                           likelihoodNeighborCountDefinition              , likelihoodProjectedCorrelationFunctionFileNameDefinition, &
-         &                                                           likelihoodLineOfSightDepthDefinition
+         &                                                           likelihoodLineOfSightDepthDefinition           , likelihoodHalfIntegralDefinition
     type            (nodeList      ), pointer                     :: covarianceRows
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
@@ -121,7 +121,7 @@ contains
          &                                                           likelihoodLogLikelihoodErrorTolerance          , likelihoodSurfaceBrightnessLimit          , &
          &                                                           likelihoodTolerance                            , likelihoodLineOfSightDepth
     logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits                 , &
-         &                                                           likelihoodModelSurfaceBrightness
+         &                                                           likelihoodModelSurfaceBrightness               , likelihoodHalfIntegral
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
     case ("multivariateNormal")
@@ -262,14 +262,17 @@ contains
           likelihoodHaloMassMinimumDefinition                      => XML_Get_First_Element_By_Tag_Name(definition,"haloMassMinimum"                     )
           likelihoodHaloMassMaximumDefinition                      => XML_Get_First_Element_By_Tag_Name(definition,"haloMassMaximum"                     )
           likelihoodLineOfSightDepthDefinition                     => XML_Get_First_Element_By_Tag_Name(definition,"lineOfSightDepth"                    )
+          likelihoodHalfIntegralDefinition                         => XML_Get_First_Element_By_Tag_Name(definition,"halfIntegral"                        )
           likelihoodProjectedCorrelationFunctionFileNameDefinition => XML_Get_First_Element_By_Tag_Name(definition,"projectedCorrelationFunctionFileName")
           call extractDataContent(likelihoodHaloMassMinimumDefinition ,likelihoodHaloMassMinimum )
           call extractDataContent(likelihoodHaloMassMaximumDefinition ,likelihoodHaloMassMaximum )
           call extractDataContent(likelihoodLineOfSightDepthDefinition,likelihoodLineOfSightDepth)
+          call extractDataContent(likelihoodHalfIntegralDefinition    ,likelihoodHalfIntegral    )
           newLikelihood=likelihoodProjectedCorrelationFunction(                                                                          &
                &                                               likelihoodHaloMassMinimum                                               , &
                &                                               likelihoodHaloMassMaximum                                               , &
                &                                               likelihoodLineOfSightDepth                                              , &
+               &                                               likelihoodHalfIntegral                                                  , &
                &                                               getTextContent(likelihoodProjectedCorrelationFunctionFileNameDefinition)  &
                &                                              )
        end select

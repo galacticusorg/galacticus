@@ -17,7 +17,7 @@
 
 !% Defines methods for a projected correlation function likelihood function.
 
-function likelihoodProjectedCorrelationFunctionConstructor(haloMassMinimum,haloMassMaximum,lineOfSightDepth,projectedCorrelationFunctionFileName)
+function likelihoodProjectedCorrelationFunctionConstructor(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,projectedCorrelationFunctionFileName)
   !% Constructor for the projected correlation function likelihood class.
   use Galacticus_Input_Paths
   use IO_HDF5
@@ -29,6 +29,7 @@ function likelihoodProjectedCorrelationFunctionConstructor(haloMassMinimum,haloM
   type            (likelihoodProjectedCorrelationFunction)                              :: likelihoodProjectedCorrelationFunctionConstructor
   double precision                                        , intent(in   )               :: haloMassMinimum                                  , haloMassMaximum, &
        &                                                                                   lineOfSightDepth
+  logical                                                 , intent(in   )               :: halfIntegral
   character       (len=*                 )                , intent(in   )               :: projectedCorrelationFunctionFileName
   double precision                                        , allocatable  , dimension(:) :: separationBinWidth
   type            (hdf5Object            )                                              :: projectedCorrelationFunctionFile
@@ -37,6 +38,7 @@ function likelihoodProjectedCorrelationFunctionConstructor(haloMassMinimum,haloM
   likelihoodProjectedCorrelationFunctionConstructor% haloMassMinimum= haloMassMinimum
   likelihoodProjectedCorrelationFunctionConstructor% haloMassMaximum= haloMassMaximum
   likelihoodProjectedCorrelationFunctionConstructor%lineOfSightDepth=lineOfSightDepth
+  likelihoodProjectedCorrelationFunctionConstructor%    halfIntegral=    halfIntegral
   ! Read the projected correlation function file.
   !$omp critical(HDF5_Access)
   call projectedCorrelationFunctionFile%openFile(char(Galacticus_Input_Path())//projectedCorrelationFunctionFileName,readOnly=.true.)
@@ -125,6 +127,7 @@ double precision function likelihoodProjectedCorrelationFunctionEvaluate(self,si
           &                                self%haloMassMinimum                  , &
           &                                self%haloMassMaximum                  , &
           &                                self%lineOfSightDepth                 , &
+          &                                self%halfIntegral                     , &
           &                                self%projectedCorrelationFunction(:,i)  &
           &                               )
      ! Apply the integral constraint.

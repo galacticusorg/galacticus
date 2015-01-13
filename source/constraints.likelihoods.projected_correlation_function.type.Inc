@@ -22,6 +22,7 @@
      private
      double precision                                      :: haloMassMinimum                     , haloMassMaximum             , &
           &                                                   lineOfSightDepth
+     logical                                               :: halfIntegral
      double precision        , dimension(:  ), allocatable :: separation                          , massMaximum                 , &
           &                                                   massMinimum
      double precision        , dimension(:,:), allocatable :: covarianceMatrix                    , projectedCorrelationFunction, &

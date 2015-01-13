@@ -24,7 +24,7 @@ module Statistics_Points_Correlations
 
 contains
 
-  subroutine Statistics_Points_Correlation(dataPosition,randomPosition,separationMinimum,separationMaximum,separationCount,separation,correlation,projected,radialSeparationMaximum)
+  subroutine Statistics_Points_Correlation(dataPosition,randomPosition,separationMinimum,separationMaximum,separationCount,separation,correlation,projected,radialSeparationMaximum,halfIntegral)
     !% Compute the correlation function from a set of points.
     use Nearest_Neighbors
     use Memory_Management
@@ -37,7 +37,7 @@ contains
     double precision                  , intent(in   ), dimension(:,:), target      :: dataPosition                    , randomPosition
     double precision                  , intent(in   )                              :: separationMinimum               , separationMaximum
     double precision                  , intent(  out), dimension(:  ), allocatable :: correlation                     , separation
-    logical                           , intent(in   ), optional                    :: projected
+    logical                           , intent(in   ), optional                    :: projected                       , halfIntegral
     double precision                  , intent(in   ), optional                    :: radialSeparationMaximum
     integer                                                                        :: separationCount
     double precision                  , allocatable  , dimension(:  )              :: separationSquaredMaximum        , neighborDistance            , &
@@ -228,7 +228,7 @@ contains
     if (projectedActual) then
        ! For projected correlation weight each radial bin by the step in radius, then sum them (to integrate over radial
        ! separation). Summation is multiplied by a factor two since the projected correlation function sums over positive and
-       ! negative radial separations.
+       ! negative radial separations, unless a half integral is requested.
        forall(jBin=1:radialBinCount)
           correlationTmp        (:,jBin)=                               &
                & +correlationTmp(:,jBin)                                &
@@ -239,6 +239,7 @@ contains
                & )
        end forall
        correlation=2.0d0*sum(correlationTmp,dim=2)
+       if (present(halfIntegral).and.halfIntegral) correlation=correlation/2.0d0
     else
        ! For non-projected correlation simply copy.
        correlation=correlationTmp(:,1)
