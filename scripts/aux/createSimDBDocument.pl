@@ -253,7 +253,7 @@ foreach my $fileName ( @filesToProcess ) {
 system("make work/build/objects.tree_node.create.definitions.Inc &> /dev/null");
 open(sFile,"work/build/objects.tree_node.create.definitions.Inc");
 while ( my $line = <sFile> ) {
-    if ( $line =~ m/^\s*type\(varying_string\)\s*::\s*treeNodeMethod(\S*)/ ) {
+    if ( $line =~ m/^\s*call\s+Get_Input_Parameter\(\'treeNodeMethod(\S*)\'/ ) {
 	my $component = $1;
 	$writer->startTag("parameter");
 	$writer->emptyTag('identity','publisherDID' => "ivo://www.mpa-garching.mpg.de/galacticus#param/treeNodeMethod".$component,'xmlId' => 'PAR_treeNodeMethod'.$component);
