@@ -66,6 +66,7 @@ program Mocks_Correlation_Functions
        &                                                                    mockCorrelationFunctionRandomSampleCountType, replicatedGalaxyCount
   type            (pseudoRandom  )                                       :: randomSequence
   character       (len=128       )                                       :: label
+  logical                                                                :: mockCorrelationFunctionHalfIntegral
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Mocks_Correlation_Functions.size')
@@ -163,6 +164,17 @@ program Mocks_Correlation_Functions
   !@   <cardinality>1</cardinality>
   !@ </inputParameter>
   call Get_Input_Parameter('mockCorrelationFunctionRadialSeparationMaximum',mockCorrelationFunctionRadialSeparationMaximum,defaultValue=40.0d0)
+  !@ <inputParameter>
+  !@   <name>mockCorrelationFunctionHalfIntegral</name>
+  !@   <attachedTo>program</attachedTo>
+  !@   <defaultValue>false</defaultValue>
+  !@   <description>
+  !@     Set to {\tt true} if the projected correlation function is computed as $w_{\mathrm p}(r_{\mathrm p})=\int_0^{+\pi_{\mathrm max}} \xi(r_{\mathrm p},\pi) {\mathrm d} \pi$, instead of the usual $w_{\mathrm p}(r_{\mathrm p})=\int_{-\pi_{\mathrm max}}^{+\pi_{\mathrm max}} \xi(r_{\mathrm p},\pi) {\mathrm d} \pi$.
+  !@   </description>
+  !@   <type>float</type>
+  !@   <cardinality>1</cardinality>
+  !@ </inputParameter>
+  call Get_Input_Parameter('mockCorrelationFunctionHalfIntegral',mockCorrelationFunctionHalfIntegral,defaultValue=.false.)
   !@ <inputParameter>
   !@   <name>mockCorrelationFunctionBufferWidth</name>
   !@   <attachedTo>program</attachedTo>
@@ -317,7 +329,8 @@ program Mocks_Correlation_Functions
        &                             separation                                                                             , &
        &                             correlationSurvey                                                                      , &
        &                             projected                               =.true.                                        , &
-       &                             radialSeparationMaximum                 =mockCorrelationFunctionRadialSeparationMaximum  &
+       &                             radialSeparationMaximum                 =mockCorrelationFunctionRadialSeparationMaximum, &
+       &                             halfIntegral                            =mockCorrelationFunctionHalfIntegral             &
        &                            )
   ! Write correlations to file.
   call correlationFunctionFile%openFile(char(correlationFunctionFileName))
