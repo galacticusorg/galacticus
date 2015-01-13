@@ -326,7 +326,7 @@ contains
     !% Store a snapshot of the random number generator internal state.
     use Pseudo_Random
     implicit none
-    
+
     if (.not.reset) then
        if (FGSL_Well_Defined(clonedPseudoSequenceObject)) call Pseudo_Random_Free(clonedPseudoSequenceObject)
        clonedPseudoSequenceObject=FGSL_Rng_Clone(pseudoSequenceObject)
@@ -340,6 +340,7 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Merger_Tree_Build_Cole2000_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
+    use, intrinsic :: ISO_C_Binding
     use Pseudo_Random
     implicit none
     integer           , intent(in   ) :: stateFile
@@ -349,6 +350,7 @@ contains
     if (.not.resetSnapshot) then
        call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
        call FGSL_RNG_Free      (clonedPseudoSequenceObject              )
+       call FGSL_Obj_C_Ptr     (clonedPseudoSequenceObject,C_Null_Ptr   )
     end if
     return
   end subroutine Merger_Tree_Build_Cole2000_State_Store
