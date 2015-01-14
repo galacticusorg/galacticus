@@ -258,7 +258,7 @@ contains
 
           ! Write the tree to file.
           !$omp critical (Merger_Tree_Write)
-          call mergerTrees%export(char(mergerTreeExportFileName),char(mergerTreeExportOutputFormat),hdfChunkSize,hdfCompressionLevel,append=firstTreeWritten)
+          call mergerTrees%export(char(mergerTreeExportFileName),char(mergerTreeExportOutputFormat),hdfChunkSize,hdfCompressionLevel,append=.true.)
           firstTreeWritten=.true.
           !$omp end critical (Merger_Tree_Write)
 
