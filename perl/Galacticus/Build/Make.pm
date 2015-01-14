@@ -23,10 +23,10 @@ sub Module_Name {
 	    $moduleName = $fileName;
 	}
     }
-    my $moduleFileName = "./work/build/".$fileName.".m";
+    my $moduleFileName = $ENV{'BUILDPATH'}."/".$fileName.".m";
     if ( -e $moduleFileName ) {
 	open(my $moduleHandle,$moduleFileName);
-	($moduleName =<$moduleHandle>) =~ s/\.\/work\/build\/(.*)\.mod\n$/$1/
+	($moduleName =<$moduleHandle>) =~ s/$ENV{'BUILDPATH'}\/(.*)\.mod\n$/$1/
 	    unless ( eof($moduleHandle) );
 	close($moduleHandle);
     }

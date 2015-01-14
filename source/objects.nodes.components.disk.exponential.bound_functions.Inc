@@ -57,7 +57,8 @@ double precision function Node_Component_Disk_Exponential_Enclosed_Mass(self,rad
   double precision                              , intent(in   )           :: radius
   logical                                       , intent(in   ), optional :: haloLoaded
   double precision                                                        :: diskRadius      , fractionalRadius
-  type            (stellarLuminosities         )                          :: luminositiesDisk
+  type            (stellarLuminosities         ), save                    :: luminositiesDisk
+  !$omp threadprivate(luminositiesDisk)
 
   ! Return immediately if disk component is not requested.
   Node_Component_Disk_Exponential_Enclosed_Mass=0.0d0
@@ -111,7 +112,8 @@ double precision function Node_Component_Disk_Exponential_Density(self,positionS
   double precision                              , parameter                          :: coshArgumentMaximum       =50.0d0
   double precision                                                                   :: coshTerm                         , fractionalHeight      , &
        &                                                                                fractionalRadius                 , positionCylindrical(3)
-  type            (stellarLuminosities         )                                     :: luminositiesDisk
+  type            (stellarLuminosities         ), save                               :: luminositiesDisk
+  !$omp threadprivate(luminositiesDisk)
 
   ! Return immediately if disk component is not requested.
   Node_Component_Disk_Exponential_Density=0.0d0
@@ -314,7 +316,8 @@ double precision function Node_Component_Disk_Exponential_Surface_Density(self,p
   logical                                       , intent(in   ), optional :: haloLoaded
   type            (treeNode                    ), pointer                 :: selfNode
   double precision                                                        :: fractionalRadius
-  type            (stellarLuminosities         )                          :: luminositiesDisk
+  type            (stellarLuminosities         ), save                    :: luminositiesDisk
+  !$omp threadprivate(luminositiesDisk)
 
     ! Return immediately if disk component is not requested.
   Node_Component_Disk_Exponential_Surface_Density=0.0d0
