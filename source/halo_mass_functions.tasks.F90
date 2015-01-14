@@ -154,12 +154,12 @@ use iso_varying_string
 
     ! Compute output time properties.
     do iOutput=1,outputCount
-       outputExpansionFactors     (iOutput)=cosmologyFunctionsDefault%expansionFactorFromRedshift(outputRedshifts       (iOutput))
-       outputTimes                (iOutput)=cosmologyFunctionsDefault%cosmicTime                 (outputExpansionFactors(iOutput))
-       outputGrowthFactors        (iOutput)=Linear_Growth_Factor                                 (outputTimes           (iOutput))
-       outputCriticalOverdensities(iOutput)=Critical_Overdensity_for_Collapse                    (outputTimes           (iOutput))
-       outputVirialDensityContrast(iOutput)=virialDensityContrast_%densityContrast               (outputTimes           (iOutput))
-       outputCharacteristicMass   (iOutput)=Critical_Overdensity_Collapsing_Mass                 (outputTimes           (iOutput))
+       outputExpansionFactors     (iOutput)=cosmologyFunctionsDefault%expansionFactorFromRedshift(                             outputRedshifts       (iOutput))
+       outputTimes                (iOutput)=cosmologyFunctionsDefault%cosmicTime                 (                             outputExpansionFactors(iOutput))
+       outputGrowthFactors        (iOutput)=Linear_Growth_Factor                                 (                             outputTimes           (iOutput))
+       outputCriticalOverdensities(iOutput)=Critical_Overdensity_for_Collapse                    (                             outputTimes           (iOutput))
+       outputVirialDensityContrast(iOutput)=virialDensityContrast_%densityContrast               (haloMassFunctionsMassMinimum,outputTimes           (iOutput))
+       outputCharacteristicMass   (iOutput)=Critical_Overdensity_Collapsing_Mass                 (                             outputTimes           (iOutput))
     end do
 
     ! Find the mass range and increment size.

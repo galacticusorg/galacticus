@@ -143,6 +143,7 @@ contains
     type            (treeNode                       )               , pointer :: hostNode
     class           (nodeComponentSatellite         )               , pointer :: satelliteComponent
     class           (satelliteMergingTimescalesClass)               , pointer :: satelliteMergingTimescalesDefault
+    class           (virialOrbitClass               )               , pointer :: virialOrbit_
     logical                                                                   :: isNewSatellite
     double precision                                                          :: mergeTime
     type            (keplerOrbit           )                                  :: thisOrbit
@@ -167,8 +168,9 @@ contains
        ! Ensure the module has been initialized.
        call Node_Component_Satellite_Very_Simple_Initialize()
        ! Get an orbit for this satellite.
-       hostNode => thisNode%parent
-       thisOrbit=Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits)
+       hostNode     => thisNode%parent
+       virialOrbit_ => virialOrbit()
+       thisOrbit=virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
        ! Compute and store a time until merging.
        satelliteMergingTimescalesDefault => satelliteMergingTimescales()
        mergeTime=satelliteMergingTimescalesDefault%timeUntilMerging(thisNode,thisOrbit)

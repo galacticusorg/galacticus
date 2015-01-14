@@ -7,7 +7,7 @@
 
   <baseDirectory>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/</baseDirectory>
 
-  <bieFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/covarianceMatrix.bie</bieFile>
+   <mcmcConfigFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/mcmcConfig.xml</mcmcConfigFile>
 
   <constraintFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/covarianceMatrix.hdf5</constraintFile>
 
@@ -25,5 +25,15 @@
   <!-- Label for mass type -->
   <massType>stellar</massType>
   <massVariable>M_\star</massVariable>
+
+  <!-- Redshift ranges -->
+  <redshift>
+    <minimum>0.0</minimum>
+    <maximum>0.5</maximum>
+  </redshift>
+
+  <!-- Thread control -->
+  <nodeCount>1</nodeCount>
+  <threadsPerNode>12</threadsPerNode>
 
 </constrain>
