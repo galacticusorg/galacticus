@@ -22,8 +22,8 @@ module Node_Component_Satellite_Very_Simple
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Satellite_Very_Simple_Halo_Formation_Task, Node_Component_Satellite_Very_Simple_Create, &
-       &    Node_Component_Satellite_Very_Simple_Tree_Initialize
+  public :: Node_Component_Satellite_Very_Simple_Halo_Formation_Task, Node_Component_Satellite_Very_Simple_Create      , &
+       &    Node_Component_Satellite_Very_Simple_Tree_Initialize    , Node_Component_Satellite_Very_Simple_Rate_Compute
 
   !# <component>
   !#  <class>satellite</class>
@@ -114,6 +114,27 @@ contains
     end do
     return
   end subroutine Node_Component_Satellite_Very_Simple_Halo_Formation_Task
+
+  !# <rateComputeTask>
+  !#  <unitName>Node_Component_Satellite_Very_Simple_Rate_Compute</unitName>
+  !# </rateComputeTask>
+  subroutine Node_Component_Satellite_Very_Simple_Rate_Compute(thisNode,interrupt,interruptProcedure)
+    !% Compute the time until satellite merging rate of change.
+    implicit none
+    type            (treeNode              ), intent(inout), pointer :: thisNode
+    logical                                 , intent(inout)          :: interrupt
+    procedure       (                      ), intent(inout), pointer :: interruptProcedure
+    class           (nodeComponentSatellite)               , pointer :: satelliteComponent
+
+    ! Get the satellite component.
+    satelliteComponent => thisNode%satellite()
+    ! Ensure that it is of the standard class.
+    select type (satelliteComponent)
+    class is (nodeComponentSatelliteVerySimple)
+       if (thisNode%isSatellite()) call satelliteComponent%mergeTimeRate(-1.0d0)
+    end select
+    return
+  end subroutine Node_Component_Satellite_Very_Simple_Rate_Compute
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Tree_Initialize</unitName>
