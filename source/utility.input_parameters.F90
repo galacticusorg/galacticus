@@ -146,7 +146,7 @@ contains
     if (XML_Path_Exists(parameterDoc,"version")) then
        versionElement => XML_Get_First_Element_By_Tag_Name(parameterDoc,"version")
        versionLabel=getTextContent(versionElement)
-       if (trim(versionLabel) /= "0.9.3") then
+       if (trim(versionLabel) /= "0.9.4") then
           message="HELP: Parameter file appears to be for version "                  // &
                &  trim(versionLabel)                                       //char(10)// &
                &  "      Consider using: scripts/aux/parametersMigrate.pl "          // &
@@ -169,10 +169,10 @@ contains
     ! Open and parse the allowed parameters file if present.
     if (present(allowedParametersFile)) then
        ! Check if the file exists.
-       if (File_Exists(char(Galacticus_Input_Path())//'work/build/'//allowedParametersFile)) then
+       if (File_Exists(char(Galacticus_Input_Path())//BUILDPATH//'/'//allowedParametersFile)) then
           !$omp critical (FoX_DOM_Access)
           ! Parse the file.
-          allowedParameterDoc => parseFile(char(Galacticus_Input_Path())//'work/build/'//allowedParametersFile,iostat=ioErr)
+          allowedParameterDoc => parseFile(char(Galacticus_Input_Path())//BUILDPATH//'/'//allowedParametersFile,iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('Input_Parameters_File_Open','Unable to find or parse allowed parameters file')
           ! Extract the list of parameters.
           allowedParameterList => getElementsByTagname(allowedParameterDoc,"parameter")
