@@ -141,7 +141,7 @@ foreach my $currentFileName ( @filesToScan ) {
 			}
 			# Check for included files.
 			if ( $buildData->{'codeType'} eq "fortran" && $nextLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
-			    $includeFile = $sourceDirectory."/".$ENV{'BUILDPATH'}.."/".$1;
+			    $includeFile = $sourceDirectory."/".$ENV{'BUILDPATH'}."/".$1;
 			    $includeFile =~ s/\.inc$/.Inc/;
 			}
 			# Add the line to our XML.
