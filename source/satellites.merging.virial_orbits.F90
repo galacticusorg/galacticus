@@ -23,6 +23,7 @@ module Virial_Orbits
   use Galacticus_Nodes
   use Virial_Density_Contrast
   use Kepler_Orbits
+  use FGSL
   !# <include directive="virialOrbit" type="functionModules" >
   include 'virialOrbit.functionModules.inc'
   !# </include>
