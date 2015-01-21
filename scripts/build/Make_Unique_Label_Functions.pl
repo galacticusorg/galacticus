@@ -244,7 +244,7 @@ CODE
 		    if ( $directive->{'name'} =~ m/\(\#([a-zA-Z0-9]+)\->([a-z]+)\)/ ) {
 			my $dependentDirectiveName = $1;
 			my $dependentPropertyName  = $2;
-			foreach my $dependentFileName ( @{$codeDirectiveLocations->{$dependentDirectiveName}->{'file'}} ) {
+			foreach my $dependentFileName ( &ExtraUtils::as_array($codeDirectiveLocations->{$dependentDirectiveName}->{'file'}) ) {
 			    foreach my $dependentDirective ( &Directives::Extract_Directives($dependentFileName,$dependentDirectiveName) ) {
 				my $dependentProperty = $dependentDirective->{$dependentPropertyName};
 				(my $parameterName = $directive->{'name'}) =~ s/\(\#[a-zA-Z0-9]+\->[a-z]+\)/$dependentProperty/;
