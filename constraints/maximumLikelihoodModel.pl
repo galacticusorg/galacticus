@@ -19,8 +19,9 @@ die("Usage: maximumLikelihoodModel.pl <configFile> [options...]")
 my $configFile = $ARGV[0];
 # Create a hash of named arguments.
 my %arguments = (
-		 runModel => "yes"
-		 );
+    runModel => "yes",
+    directory => "maximumLikelihoodModel"    
+    );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
 # Parse the constraint config file.
@@ -41,14 +42,14 @@ my $workDirectory  = $config->{'likelihood'}->{'workDirectory'};
 my $mcmcDirectory  = $workDirectory."/mcmc/";
 
 # Determine the maximum likelihood model directory.
-my $maximumLikelihoodDirectory  = $mcmcDirectory."/maximumLikelihoodModel/";
+my $maximumLikelihoodDirectory  = $mcmcDirectory."/".$arguments{'directory'}."/";
 
 # Get a hash of the parameter values.
 (my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Set an output file name.
-system("mkdir -p ".$workDirectory."/maximumLikelihoodModel");
+system("mkdir -p ".$maximumLikelihoodDirectory);
 $parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'} = $maximumLikelihoodDirectory."/galacticus.hdf5";
 
 # Set a random number seed.
@@ -92,6 +93,14 @@ my $newParameters = &Parameters::Convert_Parameters_To_Galacticus($config,@maxim
 $parameters->{'parameter'}->{$_->{'name'}}->{'value'} = $_->{'value'}
     foreach ( @{$newParameters->{'parameter'}} );
 
+# Apply any parameters from command line.
+foreach my $argument ( keys(%arguments) ) {
+    if ( $argument =~ m/^parameter:(.*)/ ) {
+	my $parameter = $1;
+	$parameters->{'parameter'}->{$parameter}->{'value'} = $arguments{$argument};
+    }
+}
+
 # Write the modified parameters to file.
 system("mkdir -p ".$maximumLikelihoodDirectory);
 &Parameters::Output($parameters,$maximumLikelihoodDirectory."/parameters.xml");
@@ -106,7 +115,7 @@ system("make Galacticus.exe")
 die("maximumLikelihoodModel.pl: failed to build Galacticus.exe")
     unless ( $? == 0 );
 my $glcCommand;
-$glcCommand .= "./Galacticus.exe ".$maximumLikelihoodDirectory."/parameters.xml";
+$glcCommand .= "time ./Galacticus.exe ".$maximumLikelihoodDirectory."/parameters.xml";
 my $logFile = $maximumLikelihoodDirectory."/galacticus.log";
 &SystemRedirect::tofile($glcCommand,$logFile);
 die("maximumLikelihoodModel.pl: Galacticus model failed")
