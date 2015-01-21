@@ -1,9 +1,18 @@
 # Contains a Perl module which implements calculation of Lyman continuum luminosity in units of
 # 10⁵⁰ photons/s.
 
+# Contributions to this file from: Andrew Benson; Christoph Behrens.
+
 package IonizingContinuua;
 use strict;
 use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
 use PDL;
 use XML::Simple;
 require Galacticus::HDF5;
@@ -38,7 +47,7 @@ sub Get_Ionizing_Luminosity {
 	my $redshift      = $3;
 	# Read the relevant continuum filter.
 	my $xml       = new XML::Simple;
-	my $continuumFilter = $xml->XMLin("./data/filters/".$filterName{$continuumName}.".xml");
+	my $continuumFilter = $xml->XMLin($galacticusPath."data/filters/".$filterName{$continuumName}.".xml");
 	my $wavelengthMaximum = pdl 0.0;
 	my $wavelengthMinimum = pdl 1.0e30;
 	foreach my $datum ( @{$continuumFilter->{'response'}->{'datum'}} ) {
