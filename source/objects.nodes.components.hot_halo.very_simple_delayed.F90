@@ -24,9 +24,9 @@ module Node_Component_Hot_Halo_VS_Delayed
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Hot_Halo_VS_Delayed_Node_Merger     , Node_Component_Hot_Halo_VS_Delayed_Rate_Compute   , &
-       &    Node_Component_Hot_Halo_VS_Delayed_Scale_Set       , Node_Component_Hot_Halo_VS_Delayed_Tree_Initialize, &
-       &    Node_Component_Hot_Halo_VS_Delayed_Satellite_Merger, Node_Component_Hot_Halo_VS_Delayed_Promote        , &
+  public :: Node_Component_Hot_Halo_VS_Delayed_Node_Merger      , Node_Component_Hot_Halo_VS_Delayed_Rate_Compute   , &
+       &    Node_Component_Hot_Halo_VS_Delayed_Scale_Set        , Node_Component_Hot_Halo_VS_Delayed_Tree_Initialize, &
+       &    Node_Component_Hot_Halo_VS_Delayed_Satellite_Merging, Node_Component_Hot_Halo_VS_Delayed_Promote        , &
        &    Node_Component_Hot_Halo_VS_Delayed_Post_Evolve
 
   !# <component>
@@ -113,6 +113,8 @@ contains
     class           (hotHaloOutflowReincorporationClass)               , pointer :: hotHaloOutflowReincorporation_
     double precision                                                             :: outflowReturnRate
 
+    ! Don't reincorporate gas for satellites - we don't want it to be able to re-infall back onto the satellite.
+    if (node%isSatellite()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     select type (hotHalo)
@@ -179,9 +181,9 @@ contains
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Tree_Initialize
 
   !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Satellite_Merger</unitName>
+  !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Satellite_Merging</unitName>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Hot_Halo_VS_Delayed_Satellite_Merger(node)
+  subroutine Node_Component_Hot_Halo_VS_Delayed_Satellite_Merging(node)
     !% Remove any hot halo associated with {\normalfont \ttfamily node} before it merges with its host halo.
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
@@ -206,7 +208,7 @@ contains
             &                           )
     end select
     return
-  end subroutine Node_Component_Hot_Halo_VS_Delayed_Satellite_Merger
+  end subroutine Node_Component_Hot_Halo_VS_Delayed_Satellite_Merging
 
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Promote</unitName>
