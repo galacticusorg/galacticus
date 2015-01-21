@@ -101,15 +101,11 @@ contains
                    if (.not.accretionHalo_%branchHasBaryons(thisNode)) then
                       didPruning=.true.
                       ! Decouple from other nodes.
-                      if (thisNode%isPrimaryProgenitorOf(previousNode)) then
-                         previousNode%firstChild => thisNode%sibling
-                      else
-                         nextNode => previousNode%firstChild
-                         do while (.not.associated(nextNode%sibling,thisNode))
-                            nextNode => nextNode%sibling
-                         end do
-                         nextNode%sibling => thisNode%sibling
-                      end if
+                      previousBasicComponent => previousNode%basic()
+                      call Merger_Tree_Prune_Unlink_Parent(thisNode,previousNode,.not.accretionHalo_%branchHasBaryons(previousNode))
+                      ! Clean the branch.
+                      call Merger_Tree_Prune_Clean_Branch(thisNode)
+                      ! Destroy the branch.
                       call currentTree%destroyBranch(thisNode)
                       ! Return to parent node.
                       thisNode => previousNode
