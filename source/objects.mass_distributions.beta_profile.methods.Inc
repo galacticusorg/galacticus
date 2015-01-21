@@ -34,6 +34,8 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
 
   ! Store beta parameter.
   self%beta=beta
+  ! Check for special case of beta=2/3.
+  self%betaIsTwoThirds=Values_Agree(self%beta,2.0d0/3.0d0,relTol=1.0d-3)
   ! Determine if profile is dimensionless.
   if (present(isDimensionless)) then
      self%dimensionless=isDimensionless
@@ -67,7 +69,11 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
           &  ) then
         r=outerRadius/coreRadius
         if (outerRadius > 0.0d0) then
-           self%densityNormalization=3.0d0*mass/4.0d0/Pi/outerRadius**3/Hypergeometric_2F1([1.5d0,1.5d0*beta],[2.5d0],-r**2)
+           if (self%betaIsTwoThirds) then
+              self%densityNormalization=      mass/4.0d0/Pi/coreRadius **3/(r-atan(r))
+           else
+              self%densityNormalization=3.0d0*mass/4.0d0/Pi/outerRadius**3/Hypergeometric_2F1([1.5d0,1.5d0*beta],[2.5d0],-r**2)
+           end if
         else
            call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','unphysical outer radius')
         end if
@@ -156,17 +162,31 @@ double precision function Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere(self
   double precision                                                     :: fractionalRadius
 
   fractionalRadius=radius/self%coreRadius
-  Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere=  &
-       &  4.0d0                                       &
-       & /3.0d0                                       &
-       & *Pi                                          &
-       & *self%densityNormalization                   &
-       & *radius**3                                   &
-       & *Hypergeometric_2F1(                         &
-       &                     [1.5d0,1.5d0*self%beta], &
-       &                     [2.5d0                ], &
-       &                     -fractionalRadius**2     &
-       &                    )
+  if (self%betaIsTwoThirds) then
+     ! Solution for special case of beta=2/3.
+     Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere= &
+          & +4.0d0                                      &
+          & *Pi                                         &
+          & *self%densityNormalization                  &
+          & *(                                          &
+          &   +     fractionalRadius                    &
+          &   -atan(fractionalRadius)                   &
+          &  )                                          &
+          & *self%coreRadius**3
+  else
+     ! General solution.
+     Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere=  &
+          & +4.0d0                                       &
+          & /3.0d0                                       &
+          & *Pi                                          &
+          & *self%densityNormalization                   &
+          & *radius**3                                   &
+          & *Hypergeometric_2F1(                         &
+          &                     [1.5d0,1.5d0*self%beta], &
+          &                     [2.5d0                ], &
+          &                     -fractionalRadius**2     &
+          &                    )
+end if
   return
 end function Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere
 

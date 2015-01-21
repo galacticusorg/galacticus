@@ -230,11 +230,11 @@ sub Components_Generate_Output {
     }
 
     # Create a Makefile to specify dependencies on these include files.
-    open(makeFile,">./work/build/Makefile_Component_Includes.tmp");
-    print makeFile "./work/build/objects.nodes.o:".join("",map {" ./work/build/".$_} @includeDependencies)
+    open(makeFile,">".$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp");
+    print makeFile $ENV{'BUILDPATH'}."/objects.nodes.o:".join("",map {" ".$ENV{'BUILDPATH'}."/".$_} @includeDependencies)
 	if ( scalar(@includeDependencies) > 0 );
     close(makeFile);
-    &File_Changes::Update("./work/build/Makefile_Component_Includes" ,"./work/build/Makefile_Component_Includes.tmp" );
+    &File_Changes::Update($ENV{'BUILDPATH'}."/Makefile_Component_Includes" ,$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp" );
 
 }
 
@@ -1093,6 +1093,14 @@ sub Generate_Node_Component_Type{
 	     description => "Generate a binary dump of all properties."                                                            ,
 	     returnType  => "\\void"                                                                                               ,
 	     arguments   => "\\intzero\\ fileHandle\\argin"                   
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "readRaw"                                                                                              ,
+	     function    => "Node_Component_Read_Raw_Null"                                                                         ,
+	     description => "Read a binary dump of all properties."                                                                ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => "\\intzero\\ fileHandle\\arginout"                   
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
@@ -2745,16 +2753,7 @@ sub Generate_Node_Dump_Function {
 	$functionCode .= "      end select\n";
 	$functionCode .= "      write (fileHandle) size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Dump_Raw(component,fileHandle)\n";
-	    }
-	    $functionCode .= "        end select\n";
-	} else {
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dumpRaw(fileHandle)\n";
-	}
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dumpRaw(fileHandle)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2817,16 +2816,7 @@ sub Generate_Node_Dump_Function {
 	$functionCode .= "        end do\n";
 	$functionCode .= "      end select\n";
 	$functionCode .= "      do i=1,componentCount\n";
-	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Read_Raw(component,fileHandle)\n";
-	    }
-	    $functionCode .= "        end select\n";
-	} else {
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%readRaw(fileHandle)\n";
-	}
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%readRaw(fileHandle)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    else\n";
 	$functionCode .= "       if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) deallocate(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
@@ -3064,16 +3054,7 @@ sub Generate_Node_Property_Name_From_Index_Function {
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Name_From_Index(component,count,name)\n";
-	    }
-	    $functionCode .= "        end select\n";
-	} else {
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%nameFromIndex(count,name)\n";
-	}
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%nameFromIndex(count,name)\n";
 	$functionCode .= "        if (count <= 0) return\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
@@ -3121,18 +3102,7 @@ sub Generate_Node_Serialization_Functions {
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		$functionCode .= "      write (0,*) 'DEBUG -> SerializeToArrayCount -> nodeComponent".ucfirst($_).ucfirst($implementationName)."',i,Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n"
-		    if ( $debugging == 1 );
-		$functionCode .= "        count=count+Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n";
-	    }
-	    $functionCode .= "        end select\n";
-	} else {
-	    $functionCode .= "        count=count+self%component".padComponentClass(ucfirst($_),[0,0])."%serializeCount()\n";
-	}
+	$functionCode .= "        count=count+self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -3180,23 +3150,8 @@ sub Generate_Node_Serialization_Functions {
 	foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	    $functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
 	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-		$functionCode .= "        count=0\n";
-		$functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-		foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		    $functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		    $functionCode .= "        count=Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n";
-		    $functionCode .= "        write (0,*) 'DEBUG -> SerializeToArray".ucfirst($content)."s -> nodeComponent".ucfirst($_).ucfirst($implementationName)."',i,count,offset,size(array)\n"
-			if ( $debugging == 1 );
-		    $functionCode .= "        if (count > 0) call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Serialize_".pad(ucfirst($content)."s",5)."(component,array(offset:))\n";
-		    $functionCode .= "        if (count > 0 .and. any(array(offset:offset+count-1) <= 0.0d0)) write (0,*) 'DEBUG -> SerializeToArray".ucfirst($content)."s: non-positive scale found for ".$_." ".$implementationName."'\n"
-			if ( $content eq "scale" && $debugging == 1 );
-		}
-		$functionCode .= "        end select\n";
-	    } else {
-		$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
-		$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serialize".pad(ucfirst($content)."s",5)."(array(offset:))\n";
-	    }
+	    $functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
+	    $functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serialize".pad(ucfirst($content)."s",5)."(array(offset:))\n";
 	    $functionCode .= "        offset=offset+count\n";
 	    $functionCode .= "      end do\n";
 	    $functionCode .= "    end if\n";
@@ -3242,19 +3197,8 @@ sub Generate_Node_Serialization_Functions {
 	foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	    $functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
 	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-		$functionCode .= "        count=0\n";
-		$functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-		foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		    $functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		    $functionCode .= "        count=Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n";
-		    $functionCode .= "        if (count > 0) call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Deserialize_".pad(ucfirst($content)."s",5)."(component,array(offset:))\n";
-		}
-		$functionCode .= "        end select\n";
-	    } else {		
-		$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
-		$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%deserialize".pad(ucfirst($content)."s",5)."(array(offset:))\n";
-	    }
+	    $functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
+	    $functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%deserialize".pad(ucfirst($content)."s",5)."(array(offset:))\n";
 	    $functionCode .= "        offset=offset+count\n";
 	    $functionCode .= "      end do\n";
 	    $functionCode .= "    end if\n";
@@ -3300,16 +3244,7 @@ sub Generate_Node_ODE_Initialization_Functions {
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_ODE_Step_Rates_Init(component)\n";
-	    }
-	    $functionCode .= "    end select\n";
-	} else {
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%odeStepRatesInitialize()\n";
-	}
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%odeStepRatesInitialize()\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";	
     }
@@ -3334,16 +3269,7 @@ sub Generate_Node_ODE_Initialization_Functions {
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_odeStepScalesInit(component)\n";
-	    }
-	    $functionCode .= "    end select\n";
-	} else {
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%odeStepScalesInitialize()\n";
-	}
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%odeStepScalesInitialize()\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
