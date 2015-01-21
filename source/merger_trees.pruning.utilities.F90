@@ -1,0 +1,94 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which provides utility functions for pruning branches from merger trees.
+
+module Merger_Trees_Pruning_Utilities
+  implicit none
+  private
+  public :: Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Unlink_Parent
+
+contains
+
+  subroutine Merger_Tree_Prune_Clean_Branch(node)
+    !% Cleans pointers in a branch about to be pruned to avoid dangling pointer problems during tree evolution.
+    use Galacticus_Nodes
+    implicit none
+    type(treeNode), pointer, intent(inout) :: node
+    type(treeNode), pointer                :: workNode, mergeeNode
+
+    ! Walk the branch to be pruned.
+    workNode => node
+    do while (associated(workNode))
+       ! Remove the current node from any merge target it may have.
+       call workNode%removeFromMergee()
+       ! If the current node has any mergees, unlink them from it.
+       if (associated(workNode%firstMergee)) then
+          mergeeNode => workNode%firstMergee
+          do while (associated(mergeeNode))
+             call mergeeNode%removeFromMergee()
+             nullify(mergeeNode%mergeTarget)
+             mergeeNode => mergeeNode%siblingMergee
+          end do
+       end if
+       call workNode%walkBranchWithSatellites(node,workNode)
+    end do
+    return
+  end subroutine Merger_Tree_Prune_Clean_Branch
+
+  subroutine Merger_Tree_Prune_Unlink_Parent(node,parentNode,parentWillBePruned)
+    !% Unlink a parent node from a tree branch which is about to be pruned.
+    use Galacticus_Nodes
+    implicit none
+    type   (treeNode          ), pointer, intent(inout) :: node              , parentNode
+    logical                             , intent(in   ) :: parentWillBePruned
+    type   (treeNode          ), pointer                :: newNode           , workNode
+    class  (nodeComponentBasic), pointer                :: newBasic
+
+    ! Check primary progenitor status.
+    if (node%isPrimaryProgenitorOf(parentNode)) then
+       ! Node is primary progenitor - we must check if the parent will be pruned also.
+       if (parentWillBePruned) then
+          ! Parent will eventually be pruned - simply replace the current first child (about to pruned) with its sibling.
+          parentNode%firstChild => node%sibling
+       else
+          ! Parent will not be pruned. Insert a clone of the parent as its own first progenitor to prevent any siblings of the
+          ! to-be-pruned branch being misidentified as the primary progenitor.
+          allocate(newNode)
+          call parentNode%copyNodeTo(newNode)
+          newNode%sibling        => node%sibling
+          newNode%parent         => parentNode
+          parentNode%firstChild  => newNode
+          newNode%firstChild     => null()
+          newNode%event          => null()
+          newNode%firstSatellite => null()
+          newNode%firstMergee    => null()
+          newBasic               => newNode%basic()
+          call newBasic%timeSet(newBasic%time()*(1.0d0-1.0d-6))
+       end if
+    else
+       ! Node to be pruned is not the primary progenitor - simply unlink it from its siblings.
+       workNode => parentNode%firstChild
+       do while (.not.associated(workNode%sibling,node))
+          workNode => workNode%sibling
+       end do
+       workNode%sibling => node%sibling
+    end if
+    return
+  end subroutine Merger_Tree_Prune_Unlink_Parent
+  
+end module Merger_Trees_Pruning_Utilities

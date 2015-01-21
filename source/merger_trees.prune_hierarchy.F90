@@ -37,6 +37,7 @@ contains
   subroutine Merger_Tree_Prune_Hierarchy(thisTree)
     !% Prune hierarchy from {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
+    use Merger_Trees_Pruning_Utilities
     use Input_Parameters
     implicit none
     type   (mergerTree), intent(in   ), target :: thisTree
@@ -81,7 +82,6 @@ contains
              do while (associated(thisNode))
                 ! Record the parent node to which we will return.
                 previousNode => thisNode%parent
-
                 ! Find the depth in the hierarchy.
                 hierarchyDepth=0
                 workNode => thisNode
@@ -90,10 +90,10 @@ contains
                    if (.not.workNode%isPrimaryProgenitor().and.associated(workNode%parent)) hierarchyDepth=hierarchyDepth+1
                    workNode => workNode%parent
                 end do
-
                 ! Prune if this node is sufficiently deep in the hierarchy.
                 if (hierarchyDepth >= mergerTreePruneHierarchyAtDepth) then
                    didPruning=.true.
+                   
                    ! Decouple from other nodes.
                    if (thisNode%isPrimaryProgenitorOf(previousNode)) then
                       previousNode%firstChild => thisNode%sibling
@@ -104,6 +104,18 @@ contains
                       end do
                       nextNode%sibling => thisNode%sibling
                    end if
+                   ! Decouple from other nodes.
+                   hierarchyDepth=0
+                   workNode => previousNode
+                   do while (associated(workNode))
+                      ! Increment hierarchy depth if this node is not the main progenitor.
+                      if (.not.workNode%isPrimaryProgenitor().and.associated(workNode%parent)) hierarchyDepth=hierarchyDepth+1
+                      workNode => workNode%parent
+                   end do
+                   call Merger_Tree_Prune_Unlink_Parent(thisNode,previousNode,hierarchyDepth >= mergerTreePruneHierarchyAtDepth)
+                   ! Clean the branch.
+                   call Merger_Tree_Prune_Clean_Branch(thisNode)
+                   ! Destroy the branch.
                    call currentTree%destroyBranch(thisNode)
                    ! Return to parent node.
                    thisNode => previousNode
