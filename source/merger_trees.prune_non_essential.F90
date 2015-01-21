@@ -45,6 +45,7 @@ contains
     !% Prune branches from {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
     use Input_Parameters
+    use Merger_Trees_Pruning_Utilities
     implicit none
     type (mergerTree        ), intent(in   ), target :: thisTree
     type (treeNode          ), pointer               :: essentialNode, nextNode, previousNode, thisNode
@@ -94,7 +95,6 @@ contains
        end if
        !$omp end critical (Merger_Tree_Non_Essential_Branches_Initialize)
     end if
-
     ! Prune tree if necessary.
     if (mergerTreePruneNonEssential) then
        ! Iterate over trees.
@@ -108,7 +108,6 @@ contains
              essentialNode => essentialNode%parent
              thisBasic => essentialNode%basic()
           end do
-
           ! Get root node of the tree.
           thisNode => currentTree%baseNode
           ! Walk the tree, pruning branches.
@@ -123,16 +122,20 @@ contains
                   &     essentialNode%isProgenitorOf(     thisNode) &
                   &   )                                             &
                   & ) then
-                ! Decouple from other nodes.
-                if (thisNode%isPrimaryProgenitorOf(previousNode)) then
-                   previousNode%firstChild => thisNode%sibling
-                else
-                   nextNode => previousNode%firstChild
-                   do while (.not.associated(nextNode%sibling,thisNode))
-                      nextNode => nextNode%sibling
-                   end do
-                   nextNode%sibling => thisNode%sibling
-                end if
+                ! Decouple from other nodes.                
+                call Merger_Tree_Prune_Unlink_Parent(                                                    &
+                     &                               thisNode                                          , &
+                     &                               previousNode                                      , &
+                     &                               .not.                                               &
+                     &                                    (                                              &
+                     &                                      previousNode %isProgenitorOf(essentialNode)  &
+                     &                                     .or.                                          &
+                     &                                      essentialNode%isProgenitorOf( previousNode)  &
+                     &                                    )                                              &
+                     &                               )
+                ! Clean the branch.
+                call Merger_Tree_Prune_Clean_Branch(thisNode)
+                ! Destroy the branch.
                 call currentTree%destroyBranch(thisNode)
                 ! Return to parent node.
                 thisNode => previousNode

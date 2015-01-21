@@ -26,11 +26,12 @@ module Merger_Tree_Read
   use Merger_Tree_Read_Importers
   implicit none
   private
-  public :: Merger_Tree_Read_Initialize
+  public :: Merger_Tree_Read_Initialize, Merger_Tree_Read_Close
 
   ! The name of the file from which to read merger trees and its internal object.
   type            (varying_string                )                                                :: mergerTreeReadFileName                                                                       
   class           (mergerTreeImporterClass       )                                      , pointer :: defaultImporter                                                                              
+  logical                                                                                         :: importerOpen                             =.false.
   
   ! Index of the next merger tree to read.
   integer                                                                                         :: nextTreeToRead                           =0                                                  
@@ -502,6 +503,7 @@ contains
        ! Open the file.
        defaultImporter => mergerTreeImporter()
        call defaultImporter%open(mergerTreeReadFileName)
+       importerOpen=.true.
 
        ! Validate input parameters.
        if (mergerTreeReadPresetMergerNodes.and..not.mergerTreeReadPresetMergerTimes) then
@@ -640,6 +642,21 @@ contains
     return
   end subroutine Merger_Tree_Read_Initialize
 
+  !# <hdfPreCloseTask>
+  !# <unitName>Merger_Tree_Read_Close</unitName>
+  !# </hdfPreCloseTask>
+  subroutine Merger_Tree_Read_Close()
+    !% Close the importer object.
+    implicit none
+
+    ! Close the importer.
+    if (importerOpen) then
+       call defaultImporter%close()
+       importerOpen=.false.
+    end if
+    return
+  end subroutine Merger_Tree_Read_Close
+  
   subroutine Merger_Tree_Read_Do(thisTree,skipTree)
     !% Read a merger tree from file.
     use Galacticus_State
@@ -693,8 +710,6 @@ contains
     mergerTreeReadBeginAt=-1
 
     if (nextTreeToRead > defaultImporter%treeCount())  then
-       ! All trees have been read.
-       call defaultImporter%close()
        ! Flag that we do not have a tree.
        haveTree=.false.
     else

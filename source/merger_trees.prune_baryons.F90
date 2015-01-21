@@ -15,50 +15,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which prunes branches below a given mass threshold from merger trees.
+!% Contains a module which prunes branches which can contain no baryons from merger trees.
 
-module Merger_Trees_Prune_Branches
-  !% Prunes branches below a given mass threshold from merger trees.
+module Merger_Trees_Prune_Baryons
+  !% Prunes branches which can contain no baryons from merger trees.
   implicit none
   private
-  public :: Merger_Tree_Prune_Branches
+  public :: Merger_Tree_Prune_Baryons
 
   ! Flag indicating if module is initialized.
-  logical          :: pruneBranchesModuleInitialized=.false.
+  logical :: pruneBaryonsModuleInitialized=.false.
 
   ! Flag indicating if pruning is required.
-  logical          :: mergerTreePruneBranches
-
-  ! Mass below which branches should be pruned.
-  double precision :: mergerTreePruningMassThreshold
+  logical :: mergerTreePruneBaryons
 
 contains
 
   !# <mergerTreePreEvolveTask>
-  !#   <unitName>Merger_Tree_Prune_Branches</unitName>
+  !#   <unitName>Merger_Tree_Prune_Baryons</unitName>
   !# </mergerTreePreEvolveTask>
-  subroutine Merger_Tree_Prune_Branches(thisTree)
+  subroutine Merger_Tree_Prune_Baryons(thisTree)
     !% Prune branches from {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
-    use Merger_Trees_Pruning_Utilities
     use Input_Parameters
+    use Accretion_Halos
     implicit none
     type   (mergerTree        ), intent(in   ), target :: thisTree
-    type   (treeNode          ), pointer               :: nextNode              , previousNode     , &
-         &                                                thisNode              , mergeeNode       , &
-         &                                                newNode
-    class  (nodeComponentBasic), pointer               :: thisBasicComponent    , newBasicComponent, &
-         &                                                previousBasicComponent
+    type   (treeNode          ), pointer               :: nextNode          , previousNode, thisNode
+    class  (nodeComponentBasic), pointer               :: thisBasicComponent
     type   (mergerTree        ), pointer               :: currentTree
+    class  (accretionHaloClass), pointer               :: accretionHalo_
     logical                                            :: didPruning
 
     ! Check if module is initialized.
-    if (.not.pruneBranchesModuleInitialized) then
-       !$omp critical (Merger_Tree_Prune_Branches_Initialize)
-       if (.not.pruneBranchesModuleInitialized) then
+    if (.not.pruneBaryonsModuleInitialized) then
+       !$omp critical (Merger_Tree_Prune_Baryons_Initialize)
+       if (.not.pruneBaryonsModuleInitialized) then
           ! Get parameter specifying if pruning is required.
           !@ <inputParameter>
-          !@   <name>mergerTreePruneBranches</name>
+          !@   <name>mergerTreePruneBaryons</name>
           !@   <defaultValue>false</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
@@ -67,26 +62,17 @@ contains
           !@   <type>boolean</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreePruneBranches',mergerTreePruneBranches,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>mergerTreePruningMassThreshold</name>
-          !@   <defaultValue>0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Threshold mass below which merger tree branches should be pruned.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreePruningMassThreshold',mergerTreePruningMassThreshold,defaultValue=0.0d0)
+          call Get_Input_Parameter('mergerTreePruneBaryons',mergerTreePruneBaryons,defaultValue=.false.)
           ! Flag that module is initialized.
-          pruneBranchesModuleInitialized=.true.
+          pruneBaryonsModuleInitialized=.true.
        end if
-       !$omp end critical (Merger_Tree_Prune_Branches_Initialize)
+       !$omp end critical (Merger_Tree_Prune_Baryons_Initialize)
     end if
 
     ! Prune tree if necessary.
-    if (mergerTreePruneBranches) then
+    if (mergerTreePruneBaryons) then
+       ! Get required objects.
+       accretionHalo_ => accretionHalo()
        ! Iterate over trees.
        currentTree => thisTree
        do while (associated(currentTree))
@@ -96,8 +82,9 @@ contains
              ! Get root node of the tree.
              thisNode           => currentTree%baseNode
              thisBasicComponent => thisNode%basic()
-             if (thisBasicComponent%mass() < mergerTreePruningMassThreshold) then
-                ! Entire tree is below threshold. Destroy all but this base node. (Leaving just
+             ! Check if the tree has any baryons.
+             if (.not.accretionHalo_%branchHasBaryons(thisNode)) then
+                ! Entire tree can be pruned. Destroy all but this base node. (Leaving just
                 ! the base node makes the tree inert - i.e. it can not do anything.)
                 thisNode => thisNode%firstChild
                 do while (associated(thisNode))
@@ -111,14 +98,18 @@ contains
                    thisBasicComponent => thisNode%basic()
                    ! Record the parent node to which we will return.
                    previousNode => thisNode%parent
-                   if (thisBasicComponent%mass() < mergerTreePruningMassThreshold) then
+                   if (.not.accretionHalo_%branchHasBaryons(thisNode)) then
                       didPruning=.true.
                       ! Decouple from other nodes.
-                      previousBasicComponent => previousNode%basic()
-                      call Merger_Tree_Prune_Unlink_Parent(thisNode,previousNode,previousBasicComponent%mass() < mergerTreePruningMassThreshold)
-                      ! Clean the branch.
-                      call Merger_Tree_Prune_Clean_Branch(thisNode)
-                      ! Destroy the branch.
+                      if (thisNode%isPrimaryProgenitorOf(previousNode)) then
+                         previousNode%firstChild => thisNode%sibling
+                      else
+                         nextNode => previousNode%firstChild
+                         do while (.not.associated(nextNode%sibling,thisNode))
+                            nextNode => nextNode%sibling
+                         end do
+                         nextNode%sibling => thisNode%sibling
+                      end if
                       call currentTree%destroyBranch(thisNode)
                       ! Return to parent node.
                       thisNode => previousNode
@@ -133,6 +124,6 @@ contains
     end if
 
     return
-  end subroutine Merger_Tree_Prune_Branches
+  end subroutine Merger_Tree_Prune_Baryons
 
-end module Merger_Trees_Prune_Branches
+end module Merger_Trees_Prune_Baryons
