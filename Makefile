@@ -281,23 +281,23 @@ tidy:
 all: deps $(all_exes)
 
 # Rules for building dependency Makefiles.
-$(BUILDPATH)/Makefile_Module_Deps: ./scripts/build/Find_Module_Dependencies.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Module_Deps: ./scripts/build/Find_Module_Dependencies.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/Find_Module_Dependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Use_Deps: ./scripts/build/Find_Use_Dependencies.pl $(BUILDPATH)/Code_Directive_Locations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Deps source/*.[fF]90 source/*.h source/*.c source/*.cpp $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Use_Deps: ./scripts/build/Find_Use_Dependencies.pl $(BUILDPATH)/Code_Directive_Locations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Deps source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/Find_Use_Dependencies.pl `pwd` $(MAKE)
 
-$(BUILDPATH)/Makefile_Directives: ./scripts/build/Code_Directive_Parser.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
+$(BUILDPATH)/Makefile_Directives: ./scripts/build/Code_Directive_Parser.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/Code_Directive_Parser.pl `pwd`
 
-$(BUILDPATH)/Makefile_Include_Deps: ./scripts/build/Find_Include_Dependencies.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
+$(BUILDPATH)/Makefile_Include_Deps: ./scripts/build/Find_Include_Dependencies.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/Find_Include_Dependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/Find_Programs.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
+$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/Find_Programs.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/Find_Programs.pl `pwd`
 
