@@ -284,14 +284,8 @@ contains
     logical                                       , intent(inout)          :: interrupt
     procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedureReturn
     procedure       (Interrupt_Procedure_Template)               , pointer :: interruptProcedure
-    class           (darkMatterHaloScaleClass    )              , pointer :: darkMatterHaloScale_
-    type            (abundances                  ), save                   :: fuelAbundancesRates     , stellarAbundancesRates
-    !$omp threadprivate(stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                       :: diskDynamicalTime       , fuelMassRate          , &
-         &                                                                    energyInputRate         , fuelMass              , &
-         &                                                                    massOutflowRate         , starFormationRate     , &
-         &                                                                    stellarMassRate
-    type            (stellarLuminosities         )                         :: luminositiesStellarRates
+    double precision                                                       :: stellarMassRate         , fuelMassRate          , &
+         &                                                                    massOutflowRate
     type            (history                     )                         :: stellarHistoryRate
     
     ! Get a local copy of the interrupt procedure.
@@ -330,8 +324,8 @@ contains
   !#  <unitName>Node_Component_Disk_Very_Simple_Analytic_Solver</unitName>
   !# </analyticSolverTask>
   subroutine Node_Component_Disk_Very_Simple_Analytic_Solver(node,timeStart,timeEnd,solved)
-     use Histories
-   implicit none
+    use Histories
+    implicit none
     type            (treeNode              ), intent(inout), pointer   :: node
     double precision                        , intent(in   )            :: timeStart           , timeEnd
     logical                                 , intent(inout)            :: solved
@@ -353,6 +347,7 @@ contains
        disk => node%disk()
        if (node%isSatellite().and.disk%isInitialized()) then
           ! Calculate analytic solution.
+          timeStep          =timeEnd-timeStart
           massGasInitial    =disk%massGas    ()
           massStellarInitial=disk%massStellar()
           if (massGasInitial > massTolerance) then
@@ -361,7 +356,6 @@ contains
              timescaleFuel    =massGasInitial/(+rateOutflow-rateFuel          )
              timescaleStellar =massGasInitial/(                     +rateStars)
              timescaleOutflow =massGasInitial/(+rateOutflow                   )
-             timeStep         =timeEnd-timeStart
              exponentialFactor=exp(-timeStep/timescaleFuel)
              massGasFinal     =                   +massGasInitial                                 *       exponentialFactor
              massStellarFinal =+massStellarInitial+massGasInitial*(timescaleFuel/timescaleStellar)*(1.0d0-exponentialFactor)
