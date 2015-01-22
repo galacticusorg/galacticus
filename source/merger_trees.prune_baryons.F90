@@ -37,6 +37,7 @@ contains
   subroutine Merger_Tree_Prune_Baryons(thisTree)
     !% Prune branches from {\normalfont \ttfamily thisTree}.
     use Galacticus_Nodes
+    use Merger_Trees_Pruning_Utilities
     use Input_Parameters
     use Accretion_Halos
     implicit none
@@ -98,10 +99,9 @@ contains
                    thisBasicComponent => thisNode%basic()
                    ! Record the parent node to which we will return.
                    previousNode => thisNode%parent
-                   if (.not.accretionHalo_%branchHasBaryons(thisNode)) then
+                   if (.not.accretionHalo_%branchHasBaryons(thisNode).and.thisNode%uniqueID() /= previousNode%uniqueID()) then
                       didPruning=.true.
                       ! Decouple from other nodes.
-                      previousBasicComponent => previousNode%basic()
                       call Merger_Tree_Prune_Unlink_Parent(thisNode,previousNode,.not.accretionHalo_%branchHasBaryons(previousNode))
                       ! Clean the branch.
                       call Merger_Tree_Prune_Clean_Branch(thisNode)
@@ -117,8 +117,9 @@ contains
           ! Move to the next tree.
           currentTree => currentTree%nextTree
        end do
+       ! Uniqueify nodes.
+       call Merger_Tree_Prune_Uniqueify_IDs(thisTree)
     end if
-
     return
   end subroutine Merger_Tree_Prune_Baryons
 
