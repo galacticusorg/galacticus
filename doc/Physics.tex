@@ -1,5 +1,21 @@
 \chapter{Physical Implementations}
 
+\section{Analytic Solvers}
+
+\glc\ typically solves the system of \glsp{ode} which describe the evolution of a galaxy using a numerical solver. However, in some situations analytic solutions may be available. \glc\ allows for the use of analytic solvers in such cases. Currently available analytic solvers are described below.
+
+\subsection{Simple Disk Satellites}
+
+This solver, which can be activated by setting {\normalfont \ttfamily [diskVerySimpleUseAnalyticSolver]}$=${\normalfont \ttfamily true} is applicable to satellite systems in the very simple disk component. In particular, the following conditions must be met for it to be valid:
+\begin{itemize}
+\item The hot halo component must be of type {\normalfont \ttfamily verySimple} or {\normalfont \ttfamily verySimpleDelayed};
+\item The satellite component must be of type {\normalfont \ttfamily verySimple};
+\item The disk component must be of type {\normalfont \ttfamily verySimple};
+\item Properties of all other components must not change for satellite galaxies (with the exception of the {\normalfont \ttfamily time} property of the basic component), or else the component must be {\normalfont \ttfamily null};
+  \item Disk star formation and outflow rates must scale as $M_{\rm gas}/\tau$ where $M_{\rm gas}$ is the instantaneous mass of gas in the galaxy disk, and $\tau$ is a fixed timescale for any given satellite galaxy.
+\end{itemize}
+Under these conditions, the flow of mass between gas, stellar, and outflowed phases is analytically solvable.
+
 \section{Accretion of Gas into Halos}\label{sec:AccretionBaryonic}\index{accretion!baryonic}
 
 The accretion rate of gas from the \gls{igm} into a dark matter halo is expected to depend on (at least) the rate at which that halo mass is growing, the depth of its potential well and the thermodynamical properties of the accreting gas. \glc\ implements the following calculations of gas accretion from the \gls{igm}, which can be selected via the {\normalfont \ttfamily accretionHaloMethod} input parameter.
