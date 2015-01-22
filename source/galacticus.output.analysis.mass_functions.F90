@@ -100,12 +100,11 @@ module Galacticus_Output_Analyses_Mass_Functions
 
   ! Type for descriptors of mass functions.
   type :: massFunctionDescriptor
-     double precision                                                       :: systematicLogM0
-     double precision                                                       :: randomError
+     double precision                                                       :: errorModelLogM0
      procedure       (Mass_Error                     ), pointer    , nopass :: randomErrorFunction
      double precision                                                       :: massLogarithmicMinimum
      double precision                                                       :: surfaceBrightnessLimit    , surfaceBrightnessZeroPoint
-     integer                                                                :: systematicCoefficientCount
+     integer                                                                :: systematicCoefficientCount, randomCoefficientCount
      integer                                                                :: massType
      character       (len= 35                        )                      :: label
      character       (len=128                        )                      :: comment
@@ -120,11 +119,11 @@ module Galacticus_Output_Analyses_Mass_Functions
                                 ! SDSS survey, Li & White measurement.
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.070d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'sdssStellarMassFunctionZ0.07'               ,        &
@@ -136,11 +135,11 @@ module Galacticus_Output_Analyses_Mass_Functions
                                 ! SDSS survey, Bernardi et al. measurement.
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.070d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'bernardiSdssStellarMassFunctionZ0.07'       ,        &
@@ -152,11 +151,11 @@ module Galacticus_Output_Analyses_Mass_Functions
                                 ! GAMA survey, Baldry measurement.
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.070d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   4.500d0                                      ,        &
        &                                                  23.500d0                                      ,        &
        &                                                   1.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'gamaStellarMassFunctionZ0.03'               ,        &
@@ -168,12 +167,12 @@ module Galacticus_Output_Analyses_Mass_Functions
                                 ! ALFALFA survey. Note that HI/total gas mass fraction must be taken into account by the systematic errors model.
        &                           massFunctionDescriptor(                                                       &
        &                                                   9.000d0                                      ,        &
-       &                                                   0.000d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   4.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   1                                            ,        &
+       &                                                   0                                            ,        &
        &                                                   massTypeGaseous                              ,        &
        &                                                   'alfalfaHiMassFunctionZ0.00'                 ,        &
        &                                                   'ALFALFA HI mass function at z=0.00'         ,        &
@@ -184,11 +183,11 @@ module Galacticus_Output_Analyses_Mass_Functions
                                 ! PRIMUS survey.
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.000d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'primusStellarMassFunctionZ0.250'            ,        &
@@ -199,11 +198,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.000d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'primusStellarMassFunctionZ0.350'            ,        &
@@ -214,11 +213,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.000d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'primusStellarMassFunctionZ0.450'            ,        &
@@ -229,11 +228,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.000d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'primusStellarMassFunctionZ0.575'            ,        &
@@ -244,11 +243,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.000d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'primusStellarMassFunctionZ0.725'            ,        &
@@ -259,11 +258,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.30d0                                       ,        &
-       &                                                   0.00d0                                       ,        &
        &                                                   null()                                       ,        &
        &                                                   6.50d0                                       ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'primusStellarMassFunctionZ0.900'            ,        &
@@ -275,11 +274,11 @@ module Galacticus_Output_Analyses_Mass_Functions
                                 ! VIPERS survey measured by Davidzon et al. (2014).
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.173d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'vipersStellarMassFunctionZ0.55'             ,        &
@@ -290,11 +289,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.173d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'vipersStellarMassFunctionZ0.70'             ,        &
@@ -305,11 +304,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.173d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'vipersStellarMassFunctionZ0.90'             ,        &
@@ -318,14 +317,14 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   null()                                       ,        &
        &                                                   null()                                                &
        &                                                 )                                                     , &
-                                ! UKIDSS UDS survey. Random error is estimated by constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massErrors.pl
+                                ! UKIDSS UDS survey.
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.173d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'ukidssUdsStellarMassFunctionZ3.250'         ,        &
@@ -336,11 +335,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.173d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'ukidssUdsStellarMassFunctionZ3.875'         ,        &
@@ -351,11 +350,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.173d0                                      ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'ukidssUdsStellarMassFunctionZ4.625'         ,        &
@@ -367,11 +366,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        ! ZFOURGE survey.
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'zfourgeStellarMassFunctionZ0.350'           ,        &
@@ -382,11 +381,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'zfourgeStellarMassFunctionZ0.625'           ,        &
@@ -397,11 +396,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   7.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'zfourgeStellarMassFunctionZ0.875'           ,        &
@@ -412,11 +411,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   7.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'zfourgeStellarMassFunctionZ1.125'           ,        &
@@ -427,11 +426,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   7.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'zfourgeStellarMassFunctionZ1.375'           ,        &
@@ -442,11 +441,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   7.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'zfourgeStellarMassFunctionZ1.750'           ,        &
@@ -457,11 +456,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   7.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'zfourgeStellarMassFunctionZ2.250'           ,        &
@@ -472,11 +471,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   8.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'zfourgeStellarMassFunctionZ2.750'           ,        &
@@ -488,11 +487,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        ! ULTRAVISTA survey.
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   6.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'ultravistaStellarMassFunctionZ0.35'         ,        &
@@ -503,11 +502,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   7.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'ultravistaStellarMassFunctionZ0.75'         ,        &
@@ -518,11 +517,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   7.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'ultravistaStellarMassFunctionZ1.25'         ,        &
@@ -533,11 +532,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   8.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'ultravistaStellarMassFunctionZ1.75'         ,        &
@@ -548,11 +547,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   8.500d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'ultravistaStellarMassFunctionZ2.25'         ,        &
@@ -563,11 +562,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   9.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'ultravistaStellarMassFunctionZ2.75'         ,        &
@@ -578,11 +577,11 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                 )                                                     , &
        &                           massFunctionDescriptor(                                                       &
        &                                                  11.300d0                                      ,        &
-       &                                                   0.2d0                                        ,        &
        &                                                   null()                                       ,        &
        &                                                   9.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
        &                                                   0.000d0                                      ,        &
+       &                                                   2                                            ,        &
        &                                                   2                                            ,        &
        &                                                   massTypeStellar                              ,        &
        &                                                   'ultravistaStellarMassFunctionZ3.50'         ,        &
@@ -599,6 +598,8 @@ module Galacticus_Output_Analyses_Mass_Functions
      type            (massFunctionDescriptor), pointer                       :: descriptor
      ! Parameters for the systematic error model.
      double precision                        , allocatable, dimension(:    ) :: systematicCoefficients
+     ! Parameters for the random error model.
+     double precision                        , allocatable, dimension(:    ) :: randomCoefficients
      ! The number of mass bins.
      integer                                                                 :: massesCount
      ! Arrays for the masses and mass function.
@@ -696,6 +697,7 @@ contains
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     class           (gravitationalLensingClass     )               , pointer        :: gravitationalLensing_
     double precision                                , parameter                     :: massBufferFactor              =100.0d+0 ! Multiplicative buffer size in mass to add below/above observed masses.
+    double precision                                , parameter                     :: randomErrorMinimum            =1.0d-3
     type            (hdf5Object                    )                                :: dataFile,massDataset,parameters
     integer         (c_size_t                      )                                :: k,jOutput
     integer                                                                         :: i,j,currentAnalysis,activeAnalysisCount,haloMassBin,iError
@@ -1064,12 +1066,31 @@ contains
                             !@   <defaultValue>0</defaultValue>
                             !@   <attachedTo>module</attachedTo>
                             !@   <description>
-                            !@     Mass function systematic parameters.
+                            !@     Mass function systematic error model parameters.
                             !@   </description>
                             !@   <type>real</type>
                             !@   <cardinality>1</cardinality>
                             !@ </inputParameter>
                             call Get_Input_Parameter(char(parameterName),massFunctions(currentAnalysis)%systematicCoefficients(k),defaultValue=0.0d0)
+                         end do
+                      end if
+                      ! Read parameters of the random error model.
+                      if (massFunctionDescriptors(j)%randomCoefficientCount > 0) then
+                         allocate(massFunctions(currentAnalysis)%randomCoefficients(massFunctionDescriptors(j)%randomCoefficientCount))
+                         do k=1,massFunctionDescriptors(j)%randomCoefficientCount
+                            parameterName=trim(massFunctionLabels(j))//'MassRandom'
+                            parameterName=parameterName//(k-1)
+                            !@ <inputParameter>
+                            !@   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction|zfourgeStellarMassFunction|ultravistaStellarMassFunction)Z[0-9\.]+MassRandom[0-9]+</regEx>
+                            !@   <defaultValue>0.1</defaultValue>
+                            !@   <attachedTo>module</attachedTo>
+                            !@   <description>
+                            !@     Mass function random error model parameters.
+                            !@   </description>
+                            !@   <type>real</type>
+                            !@   <cardinality>1</cardinality>
+                            !@ </inputParameter>
+                            call Get_Input_Parameter(char(parameterName),massFunctions(currentAnalysis)%randomCoefficients(k),defaultValue=0.0d0)
                          end do
                       end if
                       ! Read the appropriate observational data definition.
@@ -1359,15 +1380,24 @@ contains
        mass=mass*massFunctions(i)%cosmologyConversionMass(iOutput) ! Convert for cosmology.
        massLogarithmic=log10(mass)
        do j=1,massFunctions(i)%descriptor%systematicCoefficientCount
-          massLogarithmic=massLogarithmic+massFunctions(i)%systematicCoefficients(j)*(log10(mass)-massFunctions(i)%descriptor%systematicLogM0)**(j-1)
+          massLogarithmic=massLogarithmic+massFunctions(i)%systematicCoefficients(j)*(log10(mass)-massFunctions(i)%descriptor%errorModelLogM0)**(j-1)
        end do
        if (massLogarithmic <  massFunctions(i)%descriptor%massLogarithmicMinimum) cycle
        ! Compute contributions to each bin.
        if (associated(massFunctions(i)%descriptor%randomErrorFunction)) then
           call massFunctions(i)%descriptor%randomErrorFunction(mass,thisNode,randomError,randomErrorWeight)
        else
-          randomError      =[massFunctions(i)%descriptor%randomError]
-          randomErrorWeight=[                                  1.0d0]
+          randomError(1)=0.0d0
+          do j=1,massFunctions(i)%descriptor%randomCoefficientCount
+             randomError(1)=+randomError(1)                                &
+             &              +massFunctions(i)%randomCoefficients(j)        &
+             &              *(                                             &
+             &                +log10(mass)                                 &
+             &                -massFunctions(i)%descriptor%errorModelLogM0 &
+             &               )**(j-1)
+          end do
+          randomError(1)=max(randomError(1),randomErrorMinimum)
+          randomErrorWeight(1)=1.0d0
        end if
        thisGalaxy(i)%massFunction=0.0d0
        do iError=1,size(randomError)
@@ -1572,10 +1602,10 @@ contains
     double precision          , intent(in   )          :: mass
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision                                   :: massLogarithmic
-    logical                   , save                   :: sdssStellarMassFunctionHighMassInitialized    =.false.
-    double precision          , save                   :: sdssStellarMassFunctionHighMassTransitionLogMass      , &
-         &                                                sdssStellarMassFunctionHighMassTransitionWidth        , &
-         &                                                sdssStellarMassFunctionHighMassSystematic0            , &
+    logical                   , save                   :: sdssStellarMassFunctionHighMassInitialized      =.false.
+    double precision          , save                   :: sdssStellarMassFunctionHighMassTransitionLogMass        , &
+         &                                                sdssStellarMassFunctionHighMassTransitionWidth          , &
+         &                                                sdssStellarMassFunctionHighMassSystematic0              , &
          &                                                sdssStellarMassFunctionHighMassSystematic1
     
     if (.not.sdssStellarMassFunctionHighMassInitialized) then
