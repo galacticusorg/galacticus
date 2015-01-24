@@ -1524,11 +1524,13 @@ contains
           ! Check if halo is to be processed.
           if (processHalo) then 
               ! Update forest ID.
-             jCount=jCount+1
-             do while (jCount > forestSnapshotHaloCounts(jForest,i))
-                jForest=jForest+1
-                jCount =        1
-             end do
+             if (mergerTreeImportSussingUseForestFile) then
+                jCount=jCount+1
+                do while (jCount > forestSnapshotHaloCounts(jForest,i))
+                   jForest=jForest+1
+                   jCount =        1
+                end do
+             end if
              ! Locate this node in the list of nodes in our subvolume.
              iNode=Search_Array(nodesInSubvolume(1:nodeCountSubvolume),ID)
              if (iNode > 0 .and. iNode <= nodeCountSubvolume .and. nodesInSubvolume(iNode) == ID) then
@@ -1549,7 +1551,7 @@ contains
                    end if
                 end if
                 ! Store properties to node array.
-                nodeTreeIndices(l)=forestID(jForest)
+                if (mergerTreeImportSussingUseForestFile) nodeTreeIndices(l)=forestID(jForest)
                 if (hostHalo <= 0) then
                    self%nodes(l)%hostIndex         =ID
                 else
