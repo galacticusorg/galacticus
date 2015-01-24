@@ -212,7 +212,7 @@ contains
                    radii(i)%weightBy      =weightByLuminosity
                    radii(i)%weightByIndex=unitStellarLuminosities%index(fractionDefinition(3))
                 case default
-                   call Galacticus_Error_Report('Galacticus_Output_Tree_Rotation_Curve_Initialize','unrecognized radius specifier')
+                   call Galacticus_Error_Report('Galacticus_Output_Tree_Rotation_Curve_Initialize','unrecognized radius specifier "'//char(radiusDefinition(1))//'"')
                 end select
                 radii(i)%component=Galactic_Structure_Component_Type_Decode(char(radiusDefinition(2)))
                 radii(i)%mass     =Galactic_Structure_Mass_Type_Decode     (char(radiusDefinition(3)))
