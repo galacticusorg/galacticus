@@ -213,8 +213,6 @@ contains
 
        ! Generate a randomly sampled set of halo masses.
        treeCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
-       call Alloc_Array(treeHaloMass,[treeCount])
-       call Alloc_Array(treeWeight  ,[treeCount])
 
        ! Determine how to compute the tree root masses.
        computeTreeWeights=.true.
