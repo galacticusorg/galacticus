@@ -25,13 +25,13 @@ $make = $ARGV[1]
     if ( scalar(@ARGV) == 2 );
 
 # Specify work directory.
-my $workDir = "/work/build/";
+my $workDir = $ENV{'BUILDPATH'}."/";
 
 # Load the file of directive locations.
 my $locations;
-if ( -e "./work/build/Code_Directive_Locations.xml" ) {
+if ( -e $workDir."Code_Directive_Locations.xml" ) {
     my $xml    = new XML::Simple;
-    $locations = $xml->XMLin("./work/build/Code_Directive_Locations.xml");
+    $locations = $xml->XMLin($workDir."Code_Directive_Locations.xml");
 }
 
 # List of modules to ignore (as they're external to the source code).
@@ -46,21 +46,30 @@ my %ignoreList = (
     "fox_dom" => 1,
     "fox_wxml" => 1,
     "fox_utils" => 1,
-    "fgsl" => 1
+    "fgsl" => 1,
+    "mpi" => 1,
+    "yeplibrary" => 1,
+    "yepcore" => 1,
+    "yepmath" => 1
     );
 
 # Modules that require a library to be linked.
 my %moduleLibararies = (
-    fftw3      => "fftw3",
-    fgsl       => "fgsl_gfortran",
-    fox_common => "FoX_common",
-    fox_dom    => "FoX_dom",
-    fox_wxml   => "FoX_wxml",
-    fox_utils  => "FoX_utils",
-    hdf5       => "hdf5_fortran"
+    nearest_neighbors => "ANN",
+    fftw3             => "fftw3",
+    fgsl              => "fgsl_gfortran",
+    fox_common        => "FoX_common",
+    fox_dom           => "FoX_dom",
+    fox_wxml          => "FoX_wxml",
+    fox_utils         => "FoX_utils",
+    hdf5              => "hdf5_fortran",
+    vectors           => "blas",
+    yeplibrary        => "yeppp",
+    yepcore           => "yeppp",
+    yepmath           => "yeppp"
     );
 my %includeLibararies = (
-    crypt      => "crypt"
+    crypt             => "crypt"
     );
 
 # Open the compiler options file and find preprocessor flags.
@@ -87,7 +96,7 @@ if ( defined($environmentOptions) ) {
 }
 
 # Open an output file
-open(my $outfile,">$sourcedir/work/build/Makefile_Use_Deps");
+open(my $outfile,">".$workDir."Makefile_Use_Deps");
 
 #
 # Build a list of source directories.
@@ -236,8 +245,8 @@ foreach my $srcdir ( @sourcedirs ) {
 			    (my $Ifile = $ifile) =~ s/\.inc$/.Inc/;
 			    if ( -e $sourcedir."/source/".$Ifile ) {
 				push(@scanfiles,$sourcedir."/source/".$Ifile);
-			    } elsif ( -e $sourcedir."/work/build/".$ifile ) {
-				push(@scanfiles,$sourcedir."/work/build/".$ifile);
+			    } elsif ( -e $workDir.$ifile ) {
+				push(@scanfiles,$workDir.$ifile);
 			    } elsif ( $ifile =~ m/(.*)\.type\.inc/ ) {
 				&ExtraUtils::smart_push(\@scanfiles,$locations->{$1}->{'file'});
 			    }
@@ -250,15 +259,15 @@ foreach my $srcdir ( @sourcedirs ) {
 	    unless ( $oname =~ m/\.Inc$/ ) {
 		my $lname = $oname;
 		$lname =~ s/.o$/.fl/;
-		print $outfile ".".$workDir.$base.$lname,":\n";
+		print $outfile $workDir.$base.$lname,":\n";
 		if ( scalar(keys(%libraryDependencies)) > 0 ) {
 		    my $direct = ">";
 		    foreach my $library ( keys(%libraryDependencies) ) {
-			print $outfile "\t\@echo ".$library." ".$direct." .$workDir$base$lname\n";
+			print $outfile "\t\@echo ".$library." ".$direct." $workDir$base$lname\n";
 			$direct = ">>";
 		    }
 		} else {
-		    print $outfile "\t\@touch .$workDir$base$lname\n";
+		    print $outfile "\t\@touch $workDir$base$lname\n";
 		}
 	    }
 	    
@@ -285,8 +294,8 @@ foreach my $srcdir ( @sourcedirs ) {
 
                 # Output the dependencies
 		if (scalar(@sortedinc) > 0 || scalar(@extra_includes) > 0) {
-		    print $outfile ".".$workDir.$base.$oname,": ";
-		    if ( scalar(@sortedinc) > 0 ) {print $outfile ".",join(".",@sortedinc)};
+		    print $outfile $workDir.$base.$oname,": ";
+		    if ( scalar(@sortedinc) > 0 ) {print $outfile join(" ",@sortedinc)};
 		    print $outfile " Makefile";
 		    foreach my $extra_include ( @extra_includes ) {
 			print $outfile " $extra_include";
@@ -298,27 +307,27 @@ foreach my $srcdir ( @sourcedirs ) {
 		    my $dname = $oname;
 		    $dname =~ s/.o$/.d/;
 		    $dname =~ s/.Inc$/.d/;
-		    print $outfile ".".$workDir.$base.$dname,": ";
-		    if ( scalar(@sortedinc) > 0 ) {print $outfile ".",join(".",@sortedinc)};
+		    print $outfile $workDir.$base.$dname,": ";
+		    if ( scalar(@sortedinc) > 0 ) {print $outfile join(" ",@sortedinc)};
 		    foreach my $extra_include ( @extra_includes ) {
 			(my $dFile = $extra_include) =~ s/\.o$/.d/;
 			print $outfile " ".$dFile;
 		    }
 		    print $outfile "\n";
-		    print $outfile "\t\@echo .$workDir$base$oname > .$workDir$base$dname\n";
+		    print $outfile "\t\@echo $workDir$base$oname > $workDir$base$dname\n";
 		    foreach my $extra_include ( @extra_includes ) {
 			(my $dFile = $extra_include) =~ s/\.o$/.d/;
 			if ( $extra_include =~ m/\// ) {
-			    print $outfile "\t\@cat $dFile >> .$workDir$base$dname\n";
+			    print $outfile "\t\@cat $dFile >> $workDir$base$dname\n";
 			} else {
-			    print $outfile "\t\@cat .$workDir$dFile >> .$workDir$base$dname\n";
+			    print $outfile "\t\@cat $workDir$dFile >> $workDir$base$dname\n";
 			}
 		    }
 		    foreach my $item (@sortedinc) {
 			$item =~ s/\s+$//;
-			print $outfile "\t\@cat .$item >> .$workDir$base$dname\n";
+			print $outfile "\t\@cat $item >> $workDir$base$dname\n";
 		    }
-		    print $outfile "\t\@sort -u .$workDir$base$dname -o .$workDir$base$dname\n\n";
+		    print $outfile "\t\@sort -u $workDir$base$dname -o $workDir$base$dname\n\n";
 
 		    # Create rules for making dependency trees with GraphViz.
 		    for (my $i = 0; $i < scalar(@sortedinc); $i += 1) {
@@ -327,24 +336,24 @@ foreach my $srcdir ( @sourcedirs ) {
 		    my $gvname = $pname.".gv";
 		    $dname = $oname;
 		    $dname =~ s/.o$/.d/;
-		    print $outfile ".".$workDir.$base.$gvname,": .".$workDir.$base.$dname." ";
-		    if ( scalar(@sortedinc) > 0 ) {print $outfile ".",join(".",@sortedinc)};
+		    print $outfile $workDir.$base.$gvname,": ".$workDir.$base.$dname." ";
+		    if ( scalar(@sortedinc) > 0 ) {print $outfile join(" ",@sortedinc)};
 		    print $outfile "\n";
-		    print $outfile "\t\@echo \\\"$base$pname\\\" > .$workDir$base$gvname\n";
+		    print $outfile "\t\@echo \\\"$base$pname\\\" > $workDir$base$gvname\n";
 		    foreach my $extra_include ( @extra_includes ) {
 			(my $dFile = $extra_include) =~ s/\.o$/.d/;
 			if ( $extra_include =~ m/\// ) {
-			    print $outfile "\t\@awk '{print \"\\\"".$base.$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' $dFile >> .$workDir$base$gvname\n";
+			    print $outfile "\t\@awk '{print \"\\\"".$base.$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' $dFile >> $workDir$base$gvname\n";
 			} else {
-			    print $outfile "\t\@awk '{print \"\\\"".$base.$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' .$workDir$dFile >> .$workDir$base$gvname\n";
+			    print $outfile "\t\@awk '{print \"\\\"".$base.$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' $workDir$dFile >> $workDir$base$gvname\n";
 			}
 		    }
 		    foreach my $item (@sortedinc) {
 			$item =~ s/\s+$//;
-			print $outfile "\t\@awk '{print \"\\\"".$base.$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' .$item >> .$workDir$base$gvname\n";
-			print $outfile "\t\@cat `awk '{print \".".$workDir."\"\$\$1\".gv\"}' .$item` >> .$workDir$base$gvname\n";
+			print $outfile "\t\@awk '{print \"\\\"".$base.$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' $item >> $workDir$base$gvname\n";
+			print $outfile "\t\@cat `awk '{print \"".$workDir."\"\$\$1\".gv\"}' $item` >> $workDir$base$gvname\n";
 		    }
-		    print $outfile "\t\@sort -u .$workDir$base$gvname -o .$workDir$base$gvname\n\n";
+		    print $outfile "\t\@sort -u $workDir$base$gvname -o $workDir$base$gvname\n\n";
 		}
 	    }
 	}

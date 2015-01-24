@@ -25,13 +25,20 @@ module Node_Component_Disk_Very_Simple
   private
   public :: Node_Component_Disk_Very_Simple_Post_Evolve  , Node_Component_Disk_Very_Simple_Rate_Compute         , &
        &    Node_Component_Disk_Very_Simple_Scale_Set    , Node_Component_Disk_Very_Simple_Satellite_Merging    , &
-       &    Node_Component_Disk_Very_Simple_Initialize
+       &    Node_Component_Disk_Very_Simple_Initialize   , Node_Component_Disk_Very_Simple_Pre_Evolve           , &
+       &    Node_Component_Disk_Very_Simple_Rates        , Node_Component_Disk_Very_Simple_Analytic_Solver
 
   !# <component>
   !#  <class>disk</class>
   !#  <name>verySimple</name>
   !#  <isDefault>no</isDefault>
   !#  <properties>
+  !#   <property>
+  !#     <name>isInitialized</name>
+  !#     <type>logical</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#   </property>
   !#   <property>
   !#     <name>massStellar</name>
   !#     <type>real</type>
@@ -46,6 +53,12 @@ module Node_Component_Disk_Very_Simple
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the very simple disk."/>
   !#   </property>
+  !#   <property>
+  !#     <name>stellarPropertiesHistory</name>
+  !#     <type>history</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#   </property>
   !#  </properties>
   !#  <bindings>
   !#   <binding method="attachPipe"   function="Node_Component_Disk_Very_Simple_Attach_Pipe" description="Attach pipes to the very simple disk component." bindsTo="component" returnType="\void" arguments="" />
@@ -57,8 +70,12 @@ module Node_Component_Disk_Very_Simple
   ! Record of whether this module has been initialized.
   logical          :: moduleInitialized          =.false.
 
+  ! Record of whether to use the simple disk analytic solver.
+  logical          :: diskVerySimpleUseAnalyticSolver
+  
   ! Parameters controlling the physical implementation.
-  double precision :: diskOutflowTimescaleMinimum        , diskStarFormationTimescaleMinimum
+  double precision :: diskOutflowTimescaleMinimum        , diskStarFormationTimescaleMinimum, &
+       &              diskVerySimpleMassScaleAbsolute
 
 contains
 
@@ -75,6 +92,17 @@ contains
     !$omp critical (Node_Component_Disk_Very_Simple_Initialize)
     if (defaultDiskComponent%verySimpleIsActive().and..not.moduleInitialized) then
        ! Read parameters controlling the physical implementation.
+       !@ <inputParameter>
+       !@   <name>diskVerySimpleMassScaleAbsolute</name>
+       !@   <defaultValue>$100 M_\odot$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The absolute mass scale below which calculations in the very simple disk component are allowed to become inaccurate.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskVerySimpleMassScaleAbsolute',diskVerySimpleMassScaleAbsolute,defaultValue=100.0d0)
        !@ <inputParameter>
        !@   <name>diskOutflowTimescaleMinimum</name>
        !@   <defaultValue>$10^{-3}$</defaultValue>
@@ -97,6 +125,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskStarFormationTimescaleMinimum',diskStarFormationTimescaleMinimum,defaultValue=1.0d-3)
+       !@ <inputParameter>
+       !@   <name>diskVerySimpleUseAnalyticSolver</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    If true, employ an analytic ODE solver when evolving satellites.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskVerySimpleUseAnalyticSolver',diskVerySimpleUseAnalyticSolver,defaultValue=.false.)
        ! Attach the cooling mass pipe from the hot halo component.
        call diskVerySimpleComponent%attachPipe()
        ! Record that the module is now initialized.
@@ -106,6 +145,26 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Initialize
 
+  !# <preEvolveTask>
+  !# <unitName>Node_Component_Disk_Very_Simple_Pre_Evolve</unitName>
+  !# </preEvolveTask>
+  subroutine Node_Component_Disk_Very_Simple_Pre_Evolve(thisNode)
+    !% Ensure the disk has been initialized.
+    implicit none
+    type (treeNode         ), intent(inout), pointer :: thisNode
+    class(nodeComponentDisk)               , pointer :: thisDiskComponent
+
+    ! Get the disk component.
+    thisDiskComponent => thisNode%disk()
+    ! Check if an exponential disk component exists.
+    select type (thisDiskComponent)
+       class is (nodeComponentDiskVerySimple)
+          ! Initialize the disk
+       call Node_Component_Disk_Very_Simple_Create(thisNode)
+    end select
+    return
+  end subroutine Node_Component_Disk_Very_Simple_Pre_Evolve
+
   !# <postEvolveTask>
   !# <unitName>Node_Component_Disk_Very_Simple_Post_Evolve</unitName>
   !# </postEvolveTask>
@@ -113,19 +172,27 @@ contains
     !% Catch rounding errors in the very simple disk gas evolution.
     use Galacticus_Display
     use String_Handling
+    use Histories
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk )               , pointer :: thisDiskComponent
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
     double precision                    , save                   :: fractionalErrorMaximum=0.0d0
     double precision                                             :: diskMass                    , fractionalError
     character       (len=20            )                         :: valueString
     type            (varying_string    )                         :: message
+    type            (history           )                         :: stellarPropertiesHistory
 
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Check if a very simple disk component exists.
     select type (thisDiskComponent)
     class is (nodeComponentDiskVerySimple)
+       ! Trim the stellar populations properties future history.
+       thisBasicComponent => thisNode%basic()
+       stellarPropertiesHistory=thisDiskComponent%stellarPropertiesHistory()
+       call stellarPropertiesHistory%trim(thisBasicComponent%time())
+       call thisDiskComponent%stellarPropertiesHistorySet(stellarPropertiesHistory)
        ! Trap negative gas masses.
        if (thisDiskComponent%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -157,7 +224,7 @@ contains
              fractionalErrorMaximum=fractionalError
           end if
           !$omp end critical (Very_Simple_Disk_Post_Evolve_Check)
-          ! Get the specific angular momentum of the disk material
+          ! Get the total mass of the disk material
           diskMass= thisDiskComponent%massGas    () &
                &   +thisDiskComponent%massStellar()
           if (diskMass == 0.0d0) call thisDiskComponent%massStellarSet(0.0d0)
@@ -168,55 +235,84 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Post_Evolve
 
+  subroutine Node_Component_Disk_Very_Simple_Create(thisNode)
+    !% Create properties in a very simple disk component.
+    use Histories
+    use Stellar_Population_Properties
+    implicit none
+    type   (treeNode         ), intent(inout), pointer :: thisNode
+    class  (nodeComponentDisk)               , pointer :: thisDiskComponent
+    type   (history          )                         :: stellarPropertiesHistory
+    logical                                            :: createStellarPropertiesHistory
+
+    ! Get the disk component.
+    thisDiskComponent => thisNode%disk()
+    ! Exit if already initialized.
+    if (thisDiskComponent%isInitialized()) return
+    ! Determine which histories must be created.
+    stellarPropertiesHistory      =thisDiskComponent%stellarPropertiesHistory        ()
+    createStellarPropertiesHistory=.not.             stellarPropertiesHistory%exists ()
+    call                                             stellarPropertiesHistory%destroy()
+    ! Create the stellar properties history.
+    if (createStellarPropertiesHistory) then
+       ! Create the stellar properties history.
+       call Stellar_Population_Properties_History_Create (thisNode,stellarPropertiesHistory)
+       call thisDiskComponent%stellarPropertiesHistorySet(         stellarPropertiesHistory)
+    end if
+    ! Record that the disk has been initialized.
+    call thisDiskComponent%isInitializedSet(.true.)
+    return
+  end subroutine Node_Component_Disk_Very_Simple_Create
+
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Disk_Very_Simple_Rate_Compute(thisNode,interrupt,interruptProcedureReturn)
+  subroutine Node_Component_Disk_Very_Simple_Rate_Compute(node,interrupt,interruptProcedureReturn)
     !% Compute the very simple disk node mass rate of change.
     use Star_Formation_Feedback_Disks
     use Stellar_Feedback
+    use Stellar_Population_Properties
     use Dark_Matter_Halo_Scales
+    use Abundances_Structure
+    use Galactic_Structure_Options
+    use Histories
+    use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk    )               , pointer :: thisDiskComponent
-    class           (nodeComponentHotHalo )               , pointer :: thisHotHaloComponent
-    logical                                , intent(inout)          :: interrupt
-    procedure       (                     ), intent(inout), pointer :: interruptProcedureReturn
-    procedure       (                     )               , pointer :: interruptProcedure
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                :: diskDynamicalTime       , diskMass         , &
-         &                                                             energyInputRate         , fuelMass         , &
-         &                                                             massOutflowRate         , starFormationRate
-
+    type            (treeNode                    ), intent(inout), pointer :: node
+    class           (nodeComponentDisk           )               , pointer :: disk
+    class           (nodeComponentHotHalo        )               , pointer :: hotHalo
+    logical                                       , intent(inout)          :: interrupt
+    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedureReturn
+    procedure       (Interrupt_Procedure_Template)               , pointer :: interruptProcedure
+    double precision                                                       :: stellarMassRate         , fuelMassRate          , &
+         &                                                                    massOutflowRate
+    type            (history                     )                         :: stellarHistoryRate
+    
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
     ! Get the disk and check that it is of our class.
-    thisDiskComponent => thisNode%disk()
-    select type (thisDiskComponent)
+    disk => node%disk()
+    select type (disk)
     class is (nodeComponentDiskVerySimple)
        ! Check for a realistic disk, return immediately if disk is unphysical.
-       if (thisDiskComponent%massGas() < 0.0d0) return
-       ! Compute the star formation rate.
-       starFormationRate=Node_Component_Disk_Very_Simple_SFR(thisNode)
-       ! Get the available fuel mass.
-       fuelMass         =thisDiskComponent%massGas()
+       if (disk%massGas() < 0.0d0) return
+       ! Interrupt if the disk is not initialized.
+       if (.not.disk%isInitialized()) then
+          interrupt=.true.
+          interruptProcedureReturn => Node_Component_Disk_Very_Simple_Create
+          return
+       end if
+       ! Get rates.
+       call Node_Component_Disk_Very_Simple_Rates(node,fuelMassRate,stellarMassRate,massOutflowRate,stellarHistoryRate)
        ! Adjust rates.
-       call thisDiskComponent%massStellarRate(+starFormationRate)
-       call thisDiskComponent%    massGasRate(-starFormationRate)
-       ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
-       energyInputRate=feedbackEnergyInputAtInfinityCanonical*starFormationRate
-       massOutflowRate=Star_Formation_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
+       call                                  disk%massStellarRate             (   stellarMassRate)
+       call                                  disk%    massGasRate             (      fuelMassRate)
+       if (stellarHistoryRate%exists()) call disk%stellarPropertiesHistoryRate(stellarHistoryRate)
        if (massOutflowRate > 0.0d0) then
-          ! Get the masses of the disk.
-          diskMass=fuelMass+thisDiskComponent%massStellar()
-          ! Limit the outflow rate timescale to a multiple of the dynamical time.
-          darkMatterHaloScale_ => darkMatterHaloScale()
-          diskDynamicalTime=darkMatterHaloScale_%dynamicalTimescale(thisNode)
-          massOutflowRate=min(massOutflowRate,fuelMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
           ! Push to the hot halo.
-          thisHotHaloComponent => thisNode%hotHalo()
-          call thisHotHaloComponent%outflowingMassRate(+massOutflowRate)
-          call thisDiskComponent   %massGasRate       (-massOutflowRate)
+          hotHalo => node%hotHalo()
+          call hotHalo%outflowingMassRate(+massOutflowRate)
+          call disk   %massGasRate       (-massOutflowRate)
        end if
     end select
     ! Return the procedure pointer.
@@ -224,16 +320,123 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Rate_Compute
 
+  !# <analyticSolverTask>
+  !#  <unitName>Node_Component_Disk_Very_Simple_Analytic_Solver</unitName>
+  !# </analyticSolverTask>
+  subroutine Node_Component_Disk_Very_Simple_Analytic_Solver(node,timeStart,timeEnd,solved)
+    use Histories
+    implicit none
+    type            (treeNode              ), intent(inout), pointer   :: node
+    double precision                        , intent(in   )            :: timeStart           , timeEnd
+    logical                                 , intent(inout)            :: solved
+    class           (nodeComponentBasic    )               , pointer   :: basic
+    class           (nodeComponentDisk     )               , pointer   :: disk
+    class           (nodeComponentHotHalo  )               , pointer   :: hotHalo
+    class           (nodeComponentSatellite)               , pointer   :: satellite
+    double precision                                       , parameter :: massTolerance=1.0d-6
+    double precision                                                   :: massGasInitial      , massStellarInitial, &
+         &                                                                timescaleFuel       , timescaleOutflow  , &
+         &                                                                timescaleStellar    , massGasFinal      , &
+         &                                                                massStellarFinal    , massOutflowed     , &
+         &                                                                rateFuel            , rateStars         , &
+         &                                                                rateOutflow         , timeStep          , &
+         &                                                                exponentialFactor
+    type            (history               )                           :: stellarHistoryRate
+ 
+    if (diskVerySimpleUseAnalyticSolver) then
+       disk => node%disk()
+       if (node%isSatellite().and.disk%isInitialized()) then
+          ! Calculate analytic solution.
+          timeStep          =timeEnd-timeStart
+          massGasInitial    =disk%massGas    ()
+          massStellarInitial=disk%massStellar()
+          if (massGasInitial > massTolerance) then
+             hotHalo => node%hotHalo()
+             call Node_Component_Disk_Very_Simple_Rates(node,rateFuel,rateStars,rateOutflow,stellarHistoryRate)
+             timescaleFuel    =massGasInitial/(+rateOutflow-rateFuel          )
+             timescaleStellar =massGasInitial/(                     +rateStars)
+             timescaleOutflow =massGasInitial/(+rateOutflow                   )
+             exponentialFactor=exp(-timeStep/timescaleFuel)
+             massGasFinal     =                   +massGasInitial                                 *       exponentialFactor
+             massStellarFinal =+massStellarInitial+massGasInitial*(timescaleFuel/timescaleStellar)*(1.0d0-exponentialFactor)
+             massOutflowed    =                   +massGasInitial*(timescaleFuel/timescaleOutflow)*(1.0d0-exponentialFactor)
+             call hotHalo%outflowedMassSet(massOutflowed   )
+             call disk   %massGasSet      (massGasFinal    )
+             call disk   %massStellarSet  (massStellarFinal)
+          end if
+          basic     => node%basic    ()
+          satellite => node%satellite()
+          call basic    %     timeSet(                      timeEnd )
+          call satellite%mergeTimeSet(satellite%mergeTime()-timeStep)
+          ! Record that we solved this system analytically.
+          solved=.true.
+       end if
+    end if
+    return
+  end subroutine Node_Component_Disk_Very_Simple_Analytic_Solver
+  
+  subroutine Node_Component_Disk_Very_Simple_Rates(node,fuelMassRate,stellarMassRate,massOutflowRate,stellarHistoryRate)
+    !% Compute rates.
+    use Star_Formation_Feedback_Disks
+    use Stellar_Feedback
+    use Stellar_Population_Properties
+    use Dark_Matter_Halo_Scales
+    use Abundances_Structure
+    use Galactic_Structure_Options
+    use Histories
+    use Stellar_Luminosities_Structure
+    implicit none
+    type            (treeNode                    ), intent(inout), pointer :: node
+    type            (history                     ), intent(inout)          :: stellarHistoryRate
+    double precision                              , intent(  out)          :: fuelMassRate            ,stellarMassRate        , &
+         &                                                                    massOutflowRate
+    class           (nodeComponentDisk           )               , pointer :: disk
+    class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
+    type            (abundances                  ), save                   :: fuelAbundancesRates     , stellarAbundancesRates
+    !$omp threadprivate(stellarAbundancesRates,fuelAbundancesRates)
+    double precision                                                       :: diskDynamicalTime       , fuelMass              , &
+         &                                                                    energyInputRate         , starFormationRate
+    type            (stellarLuminosities         )                         :: luminositiesStellarRates
+    
+    ! Get the disk and check that it is of our class.
+    disk => node%disk()
+    ! Initialize to zero rates.
+    fuelMassRate   =0.0d0
+    stellarMassRate=0.0d0
+    massOutflowRate=0.0d0
+    ! Check for a realistic disk, return immediately if disk is unphysical.
+    if (disk%massGas() < 0.0d0) return
+    ! Compute the star formation rate.
+    starFormationRate=Node_Component_Disk_Very_Simple_SFR(node)
+    ! Find rates of change of stellar mass, and gas mass.
+    stellarHistoryRate=disk%stellarPropertiesHistory()
+    call Stellar_Population_Properties_Rates(starFormationRate,zeroAbundances,componentTypeDisk,node,stellarHistoryRate &
+         &,stellarMassRate,stellarAbundancesRates,luminositiesStellarRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
+    ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
+    massOutflowRate=Star_Formation_Feedback_Disk_Outflow_Rate(node,starFormationRate,energyInputRate)
+    if (massOutflowRate > 0.0d0) then
+       ! Limit the outflow rate timescale to a multiple of the dynamical time.
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       fuelMass             =  disk                %massGas           (    )
+       diskDynamicalTime    =  darkMatterHaloScale_%dynamicalTimescale(node)
+       massOutflowRate      =  min(massOutflowRate,fuelMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
+    end if
+    return
+  end subroutine Node_Component_Disk_Very_Simple_Rates
+  
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Disk_Very_Simple_Scale_Set(thisNode)
     !% Set scales for properties of {\normalfont \ttfamily thisNode}.
+    use Abundances_Structure
+    use Histories
+    use Stellar_Population_Properties
     implicit none
     type            (treeNode         ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk)               , pointer :: thisDiskComponent
-    double precision                   , parameter              :: massMinimum      =100.0d0
     double precision                                            :: mass
+    type            (history          )                         :: stellarPopulationHistoryScales
 
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
@@ -242,8 +445,13 @@ contains
     class is (nodeComponentDiskVerySimple)
        ! Set scale for gas and stellar mass.
        mass=thisDiskComponent%massGas()+thisDiskComponent%massStellar()
-       call thisDiskComponent%massGasScale    (max(mass,massMinimum))
-       call thisDiskComponent%massStellarScale(max(mass,massMinimum))
+       call thisDiskComponent%massGasScale    (max(mass,diskVerySimpleMassScaleAbsolute))
+       call thisDiskComponent%massStellarScale(max(mass,diskVerySimpleMassScaleAbsolute))
+       ! Set scales for stellar population properties and star formation histories.
+       stellarPopulationHistoryScales=thisDiskComponent%stellarPropertiesHistory()
+       call Stellar_Population_Properties_Scales           (stellarPopulationHistoryScales,thisDiskComponent%massStellar(),zeroAbundances)
+       call thisDiskComponent%stellarPropertiesHistoryScale(stellarPopulationHistoryScales                                               )
+       call stellarPopulationHistoryScales%destroy()
     end select
     return
   end subroutine Node_Component_Disk_Very_Simple_Scale_Set
