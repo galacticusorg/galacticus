@@ -28,6 +28,7 @@ sub AdaptiveBinnedMean {
 	unless ( nelem($x) % $countPerBin == 0 );
     my $xMean       = pdl zeroes($binCount);
     my $yMean       = pdl zeroes($binCount);
+    my $yScatter    = pdl zeroes($binCount);
 
     # Order the x values.
     my $xIndex      = $x->qsorti();
@@ -40,12 +41,14 @@ sub AdaptiveBinnedMean {
 	$jMaximum    = nelem($x)-1
 	    if ( $jMaximum > nelem($x)-1 );
 	# Compute the means.
-	$xMean->(($i)) .= $x->($xIndex)->($jMinimum:$jMaximum)->average();
-	$yMean->(($i)) .= $y->($xIndex)->($jMinimum:$jMaximum)->average();
+	$xMean   ->(($i)) .= $x->($xIndex)->($jMinimum:$jMaximum)->average();
+	$yMean   ->(($i)) .= $y->($xIndex)->($jMinimum:$jMaximum)->average();
+	# Compute the root-variance.
+	$yScatter->(($i)) .= sqrt(average(($y->($xIndex)->($jMinimum:$jMaximum)-$yMean->(($i)))**2));
     }
 
     # Return the results.
-    return ($xMean, $yMean);
+    return ($xMean, $yMean, $yScatter);
 }
 
 sub BinnedMean {
