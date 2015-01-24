@@ -96,7 +96,6 @@ contains
        doublePropertyNames   (doubleProperty)='halfMassRadius'
        doublePropertyComments(doubleProperty)='Radius enclosing half the galaxy stellar mass [Mpc]'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
-       doubleProperty=doubleProperty+1
     end if
     return
   end subroutine Galacticus_Output_Tree_Half_Mass_Names
