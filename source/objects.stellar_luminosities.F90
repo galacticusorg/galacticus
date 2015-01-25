@@ -921,7 +921,7 @@ contains
 
     ! Get the luminosities for each requested band.
     self%luminosityValue=mass*Stellar_Population_Luminosity(luminosityIndex,luminosityFilterIndex&
-         &,luminosityPostprocessingChainIndex,imfSelected,abundancesStellar,ages,luminosityRedshift)
+         &,luminosityPostprocessingChainIndex,imfSelected,abundancesStellar,ages,luminosityBandRedshift)
     return
   end subroutine Stellar_Luminosities_Set
 
