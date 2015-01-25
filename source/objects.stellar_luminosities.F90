@@ -456,10 +456,11 @@ contains
              ! Sort the luminosities such that the latest luminosities are stored first.
              luminosityTimeIndex=Array_Reverse(Sort_Index_Do(luminosityCosmicTime))
              call Sort_By_Index(luminosityFilterIndex             ,luminosityTimeIndex)
-             call Sort_By_Index(luminosityIndex                   ,luminosityTimeIndex)
              call Sort_By_Index(luminosityPostprocessingChainIndex,luminosityTimeIndex)
              call Sort_By_Index(luminosityCosmicTime              ,luminosityTimeIndex)
              call Sort_By_Index(luminosityName                    ,luminosityTimeIndex)
+             call Sort_By_Index(luminosityRedshift                ,luminosityTimeIndex)
+             call Sort_By_Index(luminosityBandRedshift            ,luminosityTimeIndex)
              ! Allocate unit and zero stellar abundance objects.
              call Alloc_Array(unitStellarLuminosities%luminosityValue,[luminosityCount])
              call Alloc_Array(zeroStellarLuminosities%luminosityValue,[luminosityCount])
@@ -1014,7 +1015,7 @@ contains
          &                                         imfSelected                       , &
          &                                         abundancesStellar                 , &
          &                                         ages                              , &
-         &                                         luminosityRedshift                  &
+         &                                         luminosityBandRedshift              &
          &                                        )
     call Stellar_Luminosities_Create(self)
     self%luminosityValue=mass*massToLightRatio(1:size(self%luminosityValue))

@@ -45,7 +45,24 @@
       <value>true</value>
     </parameter>
   </parameters>
-
+  
+  <!-- Half mass radii -->
+  <parameters>
+    <parameter>
+      <name>outputHalfMassData</name>
+      <value>true
+      <parameter>
+	<name>outputVirialData</name>
+	<value>false</value>
+	<!-- Include an additional output which occurs after half-mass output to catch -->
+	<!-- regressions of a bug in which the half-mass output module erroneously     -->
+	<!-- incremented the property counter -->
+	<value>true</value>
+      </parameter>
+      </value>
+    </parameter>
+  </parameters>
+      
   <!-- Rotation curves -->
   <parameters>
     <parameter>
