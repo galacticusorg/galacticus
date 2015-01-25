@@ -52,6 +52,7 @@ module Stellar_Population_Luminosities
 
   ! Tolerance used in integrations.
   double precision                                             :: stellarPopulationLuminosityIntegrationToleranceRelative
+  logical                                                      :: stellarPopulationLuminosityIntegrationToleranceDegrade
 
   ! Option controlling writing of luminosities to file.
   logical                                                      :: stellarPopulationLuminosityStoreToFile
@@ -92,15 +93,17 @@ contains
     integer         (c_size_t                  )                                                               :: iAge                            , iLuminosity                , &
          &                                                                                                        iMetallicity
     integer                                                                                                    :: loopCountMaximum                , jAge                       , &
-         &                                                                                                        jMetallicity                    , loopCount
+         &                                                                                                        jMetallicity                    , loopCount                  , &
+         &                                                                                                        errorStatus
     logical                                                                                                    :: computeTable                    , calculateLuminosity
     double precision                                                                                           :: ageLast                         , metallicity                , &
-         &                                                                                                        normalization
+         &                                                                                                        normalization                   , toleranceRelative
     type            (c_ptr                     )                                                               :: parameterPointer
     type            (fgsl_function             )                                                               :: integrandFunction
     type            (fgsl_integration_workspace)                                                               :: integrationWorkspace
     type            (varying_string            )                                                               :: message                         , luminositiesFileName
-    character       (len=16                    )                                                               :: datasetName                     , redshiftLabel
+    character       (len=16                    )                                                               :: datasetName                     , redshiftLabel              , &
+         &                                                                                                        label
     type            (hdf5Object                )                                                               :: luminositiesFile
 
     ! Determine if we have created space for this IMF yet.
@@ -118,6 +121,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceRelative',stellarPopulationLuminosityIntegrationToleranceRelative,defaultValue=1.0d-3)
+       !@ <inputParameter>
+       !@   <name>stellarPopulationLuminosityIntegrationToleranceDegrade</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    If {\normalfont \ttfamily true}, automatically degrade the relative tolerance used when integrating the flux of stellar populations through filters to ensure convergence.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceDegrade',stellarPopulationLuminosityIntegrationToleranceDegrade,defaultValue=.false.)
        ! Read the parameter controlling storing luminosities to file.
        !@ <inputParameter>
        !@   <name>stellarPopulationLuminosityStoreToFile</name>
@@ -237,7 +251,7 @@ contains
 
           ! Compute the luminosity if necessary.
           if (calculateLuminosity) then
-          ! Display a message and counter.
+             ! Display a message and counter.
              message='Tabulating stellar luminosities for '//char(IMF_Name(imfIndex))//' IMF, luminosity '
              message=message//iLuminosity//' of '//size(luminosityIndex)
              call Galacticus_Display_Indent (message,verbosityWorking)
@@ -251,7 +265,7 @@ contains
              imfIndexTabulate                =imfIndex
              loopCountMaximum                =luminosityTables(imfIndex)%metallicitiesCount*luminosityTables(imfIndex)%agesCount
              loopCount                       =0
-             !$omp parallel do private(iAge,iMetallicity,integrandFunction,integrationWorkspace) copyin(filterIndexTabulate,postprocessingChainIndexTabulate,redshiftTabulate,imfIndexTabulate)
+             !$omp parallel do private(iAge,iMetallicity,integrandFunction,integrationWorkspace,toleranceRelative,errorStatus) copyin(filterIndexTabulate,postprocessingChainIndexTabulate,redshiftTabulate,imfIndexTabulate)
              do iAge=1,luminosityTables(imfIndex)%agesCount
                 ageTabulate=luminosityTables(imfIndex)%age(iAge)
                 do iMetallicity=1,luminosityTables(imfIndex)%metallicitiesCount
@@ -261,12 +275,48 @@ contains
                    call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountMaximum)),.false.,verbosityWorking)
                    call abundancesTabulate%metallicitySet(luminosityTables(imfIndex)%metallicity(iMetallicity) &
                         &,metallicityType=logarithmicByMassSolar)
-                   luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),iAge,iMetallicity) &
-                        &=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand,parameterPointer &
-                        &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative&
-                        &=stellarPopulationLuminosityIntegrationToleranceRelative,integrationRule =FGSL_Integ_Gauss15,maxIntervals&
-                        &=10000)
-                   call Integrate_Done(integrandFunction,integrationWorkspace)
+                   toleranceRelative=stellarPopulationLuminosityIntegrationToleranceRelative
+                   errorStatus      =errorStatusFail
+                   do while (errorStatus /= errorStatusSuccess)
+                      luminosityTables(imfIndex)%luminosity(                              &
+                           &                                luminosityIndex(iLuminosity), &
+                           &                                iAge                        , &
+                           &                                iMetallicity                  &
+                           &                               )                              &
+                           & =Integrate(                                                  &
+                           &            wavelengthRange(1)                              , &
+                           &            wavelengthRange(2)                              , &
+                           &            Filter_Luminosity_Integrand                     , &
+                           &            parameterPointer                                , &
+                           &            integrandFunction                               , &
+                           &            integrationWorkspace                            , &
+                           &            toleranceAbsolute          =0.0d0               , &
+                           &            toleranceRelative          =toleranceRelative   , &
+                           &            integrationRule            =FGSL_Integ_Gauss15  , &
+                           &            maxIntervals               =10000               , &
+                           &            errorStatus                =errorStatus           &
+                           &           )
+                      call Integrate_Done(integrandFunction,integrationWorkspace)
+                      if (errorStatus /= errorStatusSuccess) then
+                         if (stellarPopulationLuminosityIntegrationToleranceDegrade.and.toleranceRelative < 1.0d0) then
+                            toleranceRelative=2.0d0*toleranceRelative
+                            write (label,'(e9.3)') 2.0d0*stellarPopulationLuminosityIntegrationToleranceRelative
+                            message=         "WARNING: increasing relative tolerance for stellar population luminosities to"          //char(10)
+                            message=message//trim(adjustl(label))//" and retrying integral"
+                            call Galacticus_Display_Message(message,verbosityWarn)
+                         else if (stellarPopulationLuminosityIntegrationToleranceDegrade) then
+                            message="integration of stellar populations failed"
+                            call Galacticus_Error_Report('Stellar_Population_Luminosity',message)
+                         else
+                            write (label,'(e9.3)') 2.0d0*stellarPopulationLuminosityIntegrationToleranceRelative
+                            message=         "integration of stellar populations failed"                                              //char(10)
+                            message=message//"HELP: consider increasing the [stellarPopulationLuminosityIntegrationToleranceRelative]"//char(10)
+                            message=message//"      parameter to "//trim(adjustl(label))//" to reduce the integration tolerance"      //char(10)
+                            message=message//"      required if your can accept this lower accuracy."
+                            call Galacticus_Error_Report('Stellar_Population_Luminosity',message)
+                         end if
+                      end if
+                   end do
                 end do
              end do
              !$omp end parallel do
