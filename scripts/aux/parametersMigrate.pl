@@ -25,8 +25,8 @@ my $inputFileName  = $ARGV[0];
 my $outputFileName = $ARGV[1];
 my %options =
     (
-     inputVersion  => "0.9.2",
-     outputVersion => "0.9.3"
+     inputVersion  => "0.9.3",
+     outputVersion => "0.9.4"
     );
 
 # Define translations.
@@ -178,19 +178,20 @@ my @translations =
 	 outputVersion => "0.9.3",
 	 names         =>
 	 {
-	     accretionHalosMethod                        => "accretionHaloMethod"                 ,
-	     cosmologyMethod                             => "cosmologyFunctionsMethod"            ,
-	     darkMatterConcentrationMethod               => "darkMatterProfileConcentrationMethod",
-	     hotHaloCoredIsothermalCoreRadiiMethod       => "hotHaloColdModeCoredIsothermalCoreRadiiMethod",
-	     hotHaloDensityMethod                        => "hotHaloMassDistributionMethod"       ,
-	     ionizationStateFile                         => "chemicalStateFile",
-	     isothermalCoreRadiusOverScaleRadius         => "hotHaloCoreRadiusOverScaleRadius",
-	     isothermalCoreRadiusOverVirialRadius        => "hotHaloCoreRadiusOverVirialRadius"   ,
-	     isothermalCoreRadiusOverVirialRadiusMaximum => "hotHaloCoreRadiusOverVirialRadiusMaximum",
-	     mergerTreeBuildCole2000MassResolution       => "mergerTreeHaloMassResolution",
-	     nfw96ConcentrationC                         => "nfw1996ConcentrationC",
-	     satelliteMergingMethod                      => "satelliteMergingTimescalesMethod"    ,
+	     accretionHalosMethod                        => "accretionHaloMethod"                             ,
+	     cosmologyMethod                             => "cosmologyFunctionsMethod"                        ,
+	     darkMatterConcentrationMethod               => "darkMatterProfileConcentrationMethod"            ,
+	     hotHaloCoredIsothermalCoreRadiiMethod       => "hotHaloColdModeCoredIsothermalCoreRadiiMethod"   ,
+	     hotHaloDensityMethod                        => "hotHaloMassDistributionMethod"                   ,
+	     ionizationStateFile                         => "chemicalStateFile"                               ,
+	     isothermalCoreRadiusOverScaleRadius         => "hotHaloCoreRadiusOverScaleRadius"                ,
+	     isothermalCoreRadiusOverVirialRadius        => "hotHaloCoreRadiusOverVirialRadius"               ,
+	     isothermalCoreRadiusOverVirialRadiusMaximum => "hotHaloCoreRadiusOverVirialRadiusMaximum"        ,
+	     mergerTreeBuildCole2000MassResolution       => "mergerTreeHaloMassResolution"                    ,
+	     nfw96ConcentrationC                         => "nfw1996ConcentrationC"                           ,
+	     satelliteMergingMethod                      => "satelliteMergingTimescalesMethod"                ,
 	     treeNodeMethodFormationTimes                => "treeNodeMethodFormationTime"
+	     luminosityFilterAbsoluteMagnitudeThresholds => "luminosityFilterAbsoluteMagnitudeThresholdMaxima"
 	 },
 	 values        =>
          {
