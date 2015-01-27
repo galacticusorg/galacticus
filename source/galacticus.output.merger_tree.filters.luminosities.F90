@@ -53,15 +53,23 @@ contains
        ! If this filter is active, read the minimum stellar mass.
        if (luminosityFilterActive) then
           ! Check that the list of thresholds has the correct size.
-          if     (                                                                                                                                 &
-               &   Get_Input_Parameter_Array_Size('luminosityFilterAbsoluteMagnitudeThresholdMinima') /= unitStellarLuminosities%luminosityCount() &
-               &  .or.                                                                                                                             &
-               &   Get_Input_Parameter_Array_Size('luminosityFilterAbsoluteMagnitudeThresholdMaxima') /= unitStellarLuminosities%luminosityCount() &
-               & )                                                                                                                                 &
-               & call  Galacticus_Error_Report(                                                                                                    &
-               &                                 'Galacticus_Merger_Tree_Output_Filter_Luminosity_Initialize'              ,                       &
-               &                                 'luminosityFilterAbsoluteMagnitudeThreshold(Minima|Maxima) input arrays '                         &
-               &                               //'must have same dimension as other luminosity arrays'                                             &
+          if     (                                                                                                                                   &
+               &   (                                                                                                                                 &
+               &     Input_Parameter_Is_Present    ('luminosityFilterAbsoluteMagnitudeThresholdMinima')                                              &
+               &    .and.                                                                                                                            &
+               &     Get_Input_Parameter_Array_Size('luminosityFilterAbsoluteMagnitudeThresholdMinima') /= unitStellarLuminosities%luminosityCount() &
+               &   )                                                                                                                                 &
+               &  .or.                                                                                                                               &
+               &   (                                                                                                                                 &
+               &     Input_Parameter_Is_Present    ('luminosityFilterAbsoluteMagnitudeThresholdMaxima')                                              &
+               &    .and.                                                                                                                            &
+               &     Get_Input_Parameter_Array_Size('luminosityFilterAbsoluteMagnitudeThresholdMaxima') /= unitStellarLuminosities%luminosityCount() &
+               &   )                                                                                                                                 &
+               & )                                                                                                                                   &
+               & call  Galacticus_Error_Report(                                                                                                      &
+               &                                 'Galacticus_Merger_Tree_Output_Filter_Luminosity_Initialize'             ,                          &
+               &                                 'luminosityFilterAbsoluteMagnitudeThreshold(Minima|Maxima) input arrays '                           &
+               &                               //'must have same dimension as other luminosity arrays'                                               &
                &                              )
           call Alloc_Array(luminosityFilterAbsoluteMagnitudeThresholdMinima,[unitStellarLuminosities%luminosityCount()])
           call Alloc_Array(luminosityFilterAbsoluteMagnitudeThresholdMaxima,[unitStellarLuminosities%luminosityCount()])
@@ -73,22 +81,24 @@ contains
           !@   <description>
           !@    The minimum absolute magnitudes (in the AB system) of a galaxy to pass the {\tt luminosity} output filter.
           !@   </description>
+          !@   <defaultValue>$-\infty$</defaultValue>
           !@   <type>real</type>
           !@   <cardinality>0..*</cardinality>
           !@   <group>output</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('luminosityFilterAbsoluteMagnitudeThresholdMinima',luminosityFilterAbsoluteMagnitudeThresholdMinima)
+          call Get_Input_Parameter('luminosityFilterAbsoluteMagnitudeThresholdMinima',luminosityFilterAbsoluteMagnitudeThresholdMinima,defaultValue=spread(-HUGE(0.0d0),1,unitStellarLuminosities%luminosityCount()))
           !@ <inputParameter>
           !@   <name>luminosityFilterAbsoluteMagnitudeThresholdMaxima</name>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@    The maximum absolute magnitudes (in the AB system) of a galaxy to pass the {\normalfont \ttfamily luminosity} output filter.
           !@   </description>
+          !@   <defaultValue>$+\infty$</defaultValue>
           !@   <type>real</type>
           !@   <cardinality>0..*</cardinality>
           !@   <group>output</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('luminosityFilterAbsoluteMagnitudeThresholdMaxima',luminosityFilterAbsoluteMagnitudeThresholdMaxima)
+          call Get_Input_Parameter('luminosityFilterAbsoluteMagnitudeThresholdMaxima',luminosityFilterAbsoluteMagnitudeThresholdMaxima,defaultValue=spread(+HUGE(0.0d0),1,unitStellarLuminosities%luminosityCount()))
        end if
        ! Flag that this filter is now initialized.
        luminosityFilterInitialized=.true.
