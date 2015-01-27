@@ -644,6 +644,20 @@ contains
     return
   end function Stellar_Luminosities_Luminosity
 
+  integer function stellarLuminositiesCountMaximum(luminosities1,luminosities2)
+    implicit none
+    type   (stellarLuminosities), intent(in   ) :: luminosities1, luminosities2
+
+    if (allocated(luminosities1%luminosityValue).or.allocated(luminosities2%luminosityValue)) then
+       stellarLuminositiesCountMaximum=0
+       if (allocated(luminosities1%luminosityValue)) stellarLuminositiesCountMaximum=max(stellarLuminositiesCountMaximum,size(luminosities1%luminosityValue))
+       if (allocated(luminosities2%luminosityValue)) stellarLuminositiesCountMaximum=max(stellarLuminositiesCountMaximum,size(luminosities2%luminosityValue))
+    else
+       stellarLuminositiesCountMaximum=luminosityCount
+    end if
+    return
+  end function stellarLuminositiesCountMaximum
+  
   function stellarLuminositiesMax(luminosities1,luminosities2)
     !% Return an element-by-element {\normalfont \ttfamily max()} on two stellar luminosity objects.
     implicit none
@@ -652,36 +666,48 @@ contains
     integer                                     :: luminosityCountActual
 
     if (luminosityCount > 0) then
-       luminosityCountActual=luminosityCount
-       if (allocated(luminosities1%luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(luminosities1%luminosityValue))
-       if (allocated(luminosities2%luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(luminosities2%luminosityValue))
-       stellarLuminositiesMax%luminosityValue=max(                                                        &
-            &                                     luminosities1%luminosityValue(1:luminosityCountActual), &
-            &                                     luminosities2%luminosityValue(1:luminosityCountActual)  &
-            &                                    )
+       luminosityCountActual=stellarLuminositiesCountMaximum(luminosities1,luminosities2)
+       stellarLuminositiesMax%luminosityValue=spread(-HUGE(0.0d0),1,luminosityCountActual)
+       if (allocated(luminosities1%luminosityValue))                                              &
+            & stellarLuminositiesMax     %luminosityValue(1:size(luminosities1%luminosityValue))= &
+            &  max(                                                                               &
+            &      stellarLuminositiesMax%luminosityValue(1:size(luminosities1%luminosityValue)), &
+            &      luminosities1         %luminosityValue(1:size(luminosities1%luminosityValue))  &
+            &     )
+       if (allocated(luminosities2%luminosityValue))                                              &
+            & stellarLuminositiesMax     %luminosityValue(1:size(luminosities2%luminosityValue))= &
+            &  max(                                                                               &
+            &      stellarLuminositiesMax%luminosityValue(1:size(luminosities2%luminosityValue)), &
+            &      luminosities2         %luminosityValue(1:size(luminosities2%luminosityValue))  &
+            &     )
     end if
     return
   end function stellarLuminositiesMax
 
-  function Stellar_Luminosities_Add(stellarLuminosities1,stellarLuminosities2)
+  function Stellar_Luminosities_Add(luminosities1,luminosities2)
     !% Add two stellar luminosities objects.
     implicit none
     type   (stellarLuminosities)                          :: Stellar_Luminosities_Add
-    class  (stellarLuminosities), intent(in   )           :: stellarLuminosities1
-    class  (stellarLuminosities), intent(in   ), optional :: stellarLuminosities2
+    class  (stellarLuminosities), intent(in   )           :: luminosities1
+    class  (stellarLuminosities), intent(in   ), optional :: luminosities2
     integer                                               :: luminosityCountActual
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     if (luminosityCount > 0) then
-       if (present(stellarLuminosities2)) then
-          luminosityCountActual=luminosityCount
-          if (allocated(stellarLuminosities1%luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(stellarLuminosities1%luminosityValue))
-          if (allocated(stellarLuminosities2%luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(stellarLuminosities2%luminosityValue))
-          Stellar_Luminosities_Add%luminosityValue=+stellarLuminosities1%luminosityValue(1:luminosityCountActual) &
-               &                                   +stellarLuminosities2%luminosityValue(1:luminosityCountActual)
+       if (present(luminosities2)) then
+          luminosityCountActual=stellarLuminositiesCountMaximum(luminosities1,luminosities2)
+          Stellar_Luminosities_Add%luminosityValue=spread(0.0d0,1,luminosityCountActual)
+          if (allocated(luminosities1%luminosityValue))                                                 &
+               & Stellar_Luminosities_Add      %luminosityValue(1:size(luminosities1%luminosityValue))= &
+               &      +Stellar_Luminosities_Add%luminosityValue(1:size(luminosities1%luminosityValue))  &
+               &      +luminosities1           %luminosityValue(1:size(luminosities1%luminosityValue))
+          if (allocated(luminosities2%luminosityValue))                                                 &
+               & Stellar_Luminosities_Add      %luminosityValue(1:size(luminosities2%luminosityValue))= &
+               &      +Stellar_Luminosities_Add%luminosityValue(1:size(luminosities2%luminosityValue))  &
+               &      +luminosities2           %luminosityValue(1:size(luminosities2%luminosityValue))
        else
-          Stellar_Luminosities_Add%luminosityValue=stellarLuminosities1%luminosityValue
+          Stellar_Luminosities_Add%luminosityValue=+luminosities1%luminosityValue
        end if
     end if
     return
@@ -707,25 +733,30 @@ contains
     return
   end subroutine Stellar_Luminosities_Increment
 
-  function Stellar_Luminosities_Subtract(stellarLuminosities1,stellarLuminosities2)
+  function Stellar_Luminosities_Subtract(luminosities1,luminosities2)
     !% Subtract two stellar luminosities objects.
     implicit none
     type   (stellarLuminosities)                          :: Stellar_Luminosities_Subtract
-    class  (stellarLuminosities), intent(in   )           :: stellarLuminosities1
-    class  (stellarLuminosities), intent(in   ), optional :: stellarLuminosities2
+    class  (stellarLuminosities), intent(in   )           :: luminosities1
+    class  (stellarLuminosities), intent(in   ), optional :: luminosities2
     integer                                               :: luminosityCountActual
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
     if (luminosityCount > 0) then
-       if (present(stellarLuminosities2)) then
-          luminosityCountActual=luminosityCount
-          if (allocated(stellarLuminosities1%luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(stellarLuminosities1%luminosityValue))
-          if (allocated(stellarLuminosities2%luminosityValue)) luminosityCountActual=min(luminosityCountActual,size(stellarLuminosities2%luminosityValue))
-          Stellar_Luminosities_Subtract%luminosityValue=+stellarLuminosities1%luminosityValue(1:luminosityCountActual) &
-               &                                        -stellarLuminosities2%luminosityValue(1:luminosityCountActual)
+       if (present(luminosities2)) then
+          luminosityCountActual=stellarLuminositiesCountMaximum(luminosities1,luminosities2)
+          Stellar_Luminosities_Subtract%luminosityValue=spread(0.0d0,1,luminosityCountActual)
+          if (allocated(luminosities1%luminosityValue))                                                      &
+               & Stellar_Luminosities_Subtract      %luminosityValue(1:size(luminosities1%luminosityValue))= &
+               &      +Stellar_Luminosities_Subtract%luminosityValue(1:size(luminosities1%luminosityValue))  &
+               &      +luminosities1                %luminosityValue(1:size(luminosities1%luminosityValue))
+          if (allocated(luminosities2%luminosityValue))                                                      &
+               & Stellar_Luminosities_Subtract      %luminosityValue(1:size(luminosities2%luminosityValue))= &
+               &      +Stellar_Luminosities_Subtract%luminosityValue(1:size(luminosities2%luminosityValue))  &
+               &      -luminosities2                %luminosityValue(1:size(luminosities2%luminosityValue))
        else
-          Stellar_Luminosities_Subtract%luminosityValue=-stellarLuminosities1%luminosityValue
+          Stellar_Luminosities_Subtract%luminosityValue=-luminosities1%luminosityValue
        end if
     end if
     return
