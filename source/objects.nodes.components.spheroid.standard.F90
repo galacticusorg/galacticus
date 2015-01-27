@@ -722,6 +722,7 @@ contains
     double precision                       , parameter              :: luminosityMinimum             =1.0d0
     double precision                                                :: angularMomentum                     , mass
     type            (history              )                         :: stellarPopulationHistoryScales
+    type            (stellarLuminosities  )                         :: stellarLuminositiesScale
 
     ! Get the spheroid component.
     thisSpheroidComponent => thisNode%spheroid()
@@ -766,15 +767,15 @@ contains
                &                                           )
        end if
 
-       ! Set scales for stellar luminosities if necessary.
-       call thisSpheroidComponent%luminositiesStellarScale(                                                   &
-            &                                               max(                                              &
-            &                                                        thisDiskComponent%luminositiesStellar()  &
-            &                                                   +thisSpheroidComponent%luminositiesStellar(), &
-            &                                                    unitStellarLuminosities                      &
-            &                                                   *luminosityMinimum                            &
-            &                                                  )                                              &
-            &                                              )
+       ! Set scales for stellar luminosities.
+       stellarLuminositiesScale=max(                                              &
+            &                        thisDiskComponent    %luminositiesStellar()  &
+            &                       +thisSpheroidComponent%luminositiesStellar(), &
+            &                        unitStellarLuminosities                      &
+            &                       *luminosityMinimum                            &
+            &                      )
+       call stellarLuminositiesScale%truncate                (thisSpheroidComponent   %luminositiesStellar())
+       call thisSpheroidComponent   %luminositiesStellarScale(stellarLuminositiesScale                      )
 
        ! Set scales for stellar population properties history.
        stellarPopulationHistoryScales=thisSpheroidComponent%stellarPropertiesHistory()
