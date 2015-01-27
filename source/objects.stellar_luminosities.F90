@@ -197,6 +197,12 @@ module Stellar_Luminosities_Structure
      !@     <arguments>\intzero\ index\argin</arguments>
      !@     <description>Return the name of a luminosity specified by index.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>truncate</method>
+     !@     <type>\void}</type>
+     !@     <arguments>\textcolor{red}{\textless type(stellarLuminosities)\textgreater} templateLuminosities\argin</arguments>
+     !@     <description>Truncate the number of stellar luminosities stored to match that in the given {\normalfont \ttfamily templateLuminosities}.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final             ::                          Stellar_Luminosities_Destructor
      procedure         :: add                   => Stellar_Luminosities_Add
@@ -229,6 +235,7 @@ module Stellar_Luminosities_Structure
      procedure, nopass :: isOutput              => Stellar_Luminosities_Is_Output
      procedure, nopass :: index                 => Stellar_Luminosities_Index
      procedure, nopass :: name                  => Stellar_Luminosities_Name
+     procedure         :: truncate              => Stellar_Luminosities_Truncate
   end type stellarLuminosities
 
   ! Flag specifying if module has been initialized.
@@ -1273,5 +1280,40 @@ contains
     luminosityPostprocessSet   (expandFrom            :expandFrom     +expandCount-1)=luminosityPostprocessSetTmp(expandFrom                  )
     return
   end subroutine Stellar_Luminosities_Expand_Filter_Set
+
+  subroutine Stellar_Luminosities_Truncate(self,templateLuminosities)
+    !% Truncate (or pad) the stellar luminosities to match the number in the given {\normalfont \ttfamily templateLuminosities}.
+    implicit none
+    class           (stellarLuminosities), intent(inout)               :: self
+    type            (stellarLuminosities), intent(in   )               :: templateLuminosities
+    double precision                     , allocatable  , dimension(:) :: luminositiesTmp
+    integer                                                            :: templateCount       , selfCount, &
+         &                                                                minCount
+    
+    if (allocated(templateLuminosities%luminosityValue)) then
+       templateCount=size(templateLuminosities%luminosityValue)
+       if (allocated(self%luminosityValue)) then
+          ! Our luminosities are allocated. Check size.
+          selfCount=size(self%luminosityValue)
+          if (selfCount /= templateCount) then
+             ! Size does not match template. Reallocate and pad as necessary.
+             minCount=min(templateCount,selfCount)
+             call Move_Alloc(self%luminosityValue,luminositiesTmp)
+             allocate(self%luminosityValue(templateCount))
+             self%luminosityValue(1:minCount)=luminositiesTmp(1:minCount)
+             if (templateCount > selfCount) self%luminosityValue(selfCount+1:templateCount)=0.0d0
+             deallocate(luminositiesTmp)
+          end if
+       else
+          ! Our luminosities are not allocated. Allocate and set to zero.
+          allocate(self%luminosityValue(templateCount))
+          self%luminosityValue=0.0d0
+       end if
+    else if (allocated(self%luminosityValue)) then
+       ! Template luminosities are not allocated, simply deallocate our luminosities to match.
+       deallocate(self%luminosityValue)
+    end if
+    return
+  end subroutine Stellar_Luminosities_Truncate
 
 end module Stellar_Luminosities_Structure

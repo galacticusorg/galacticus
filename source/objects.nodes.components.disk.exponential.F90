@@ -744,7 +744,8 @@ contains
     double precision                       , parameter              :: luminosityMinimum             =1.0d0
     double precision                                                :: angularMomentum                      , mass
     type            (history              )                         :: stellarPopulationHistoryScales
-
+    type            (stellarLuminosities  )                         :: stellarLuminositiesScale
+     
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Check if an exponential disk component exists.
@@ -786,14 +787,14 @@ contains
        end if
 
        ! Set scale for stellar luminosities.
-       call thisDiskComponent%luminositiesStellarScale(                                                  &
-            &                                          max(                                              &
-            &                                               thisDiskComponent    %luminositiesStellar()  &
-            &                                              +thisSpheroidComponent%luminositiesStellar(), &
-            &                                               unitStellarLuminosities                      &
-            &                                              *luminosityMinimum                            &
-            &                                             )                                              &
-            &                                         )
+       stellarLuminositiesScale=max(                                              &
+            &                        thisDiskComponent    %luminositiesStellar()  &
+            &                       +thisSpheroidComponent%luminositiesStellar(), &
+            &                        unitStellarLuminosities                      &
+            &                       *luminosityMinimum                            &
+            &                      )
+       call stellarLuminositiesScale%truncate                (thisDiskComponent       %luminositiesStellar())
+       call thisDiskComponent       %luminositiesStellarScale(stellarLuminositiesScale                      )
 
        ! Set scales for stellar population properties and star formation histories.
        stellarPopulationHistoryScales=thisDiskComponent%stellarPropertiesHistory()
