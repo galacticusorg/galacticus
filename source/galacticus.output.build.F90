@@ -18,7 +18,7 @@
 !% Contains a module which implements writing of \glc\ build information to the \glc\ output file.
 
 ! Specify an explicit dependence on the gsl_Version.o object file.
-!: ./work/build/gsl_Version.o
+!: $(BUILDPATH)/gsl_Version.o
 
 module Galacticus_Build
   !% Implements writing of \glc\ build information to the \glc\ output file.
@@ -183,13 +183,13 @@ contains
     call buildGroup%writeAttribute(CPPCOMPILER_VERSION,'make_CPPCOMPILER_VERSION')
 
     ! Add Mercurial changeset information.
-    if (File_Exists(Galacticus_Input_Path()//"work/build/galacticus.hg.patch")) then
-       call changeSet(1)%loadFromFile(char(Galacticus_Input_Path()//'work/build/galacticus.hg.patch'))
+    if (File_Exists(Galacticus_Input_Path()//BUILDPATH//"/galacticus.hg.patch")) then
+       call changeSet(1)%loadFromFile(char(Galacticus_Input_Path()//BUILDPATH//'/galacticus.hg.patch'))
        if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetDiff','Output of "hg diff" - gives the uncommitted source changeset')
        call changeSet(1)%destroy()
     end if
-    if (File_Exists(Galacticus_Input_Path()//"work/build/galacticus.hg.bundle")) then
-       call changeSet(1)%loadFromFile(char(Galacticus_Input_Path()//'work/build/galacticus.hg.bundle'))
+    if (File_Exists(Galacticus_Input_Path()//BUILDPATH//"/galacticus.hg.bundle")) then
+       call changeSet(1)%loadFromFile(char(Galacticus_Input_Path()//BUILDPATH//'/galacticus.hg.bundle'))
        if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetBundle','Output of "hg bundle -t none" - gives the committed source changeset')
        call changeSet(1)%destroy()
     end if
