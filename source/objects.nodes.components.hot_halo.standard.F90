@@ -26,7 +26,7 @@ module Node_Component_Hot_Halo_Standard
   public :: Node_Component_Hot_Halo_Standard_Initialize  , Node_Component_Hot_Halo_Standard_Thread_Initialize, &
        &    Node_Component_Hot_Halo_Standard_Post_Evolve , Node_Component_Hot_Halo_Standard_Reset            , &
        &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize  , &
-       &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Satellite_Merger , &
+       &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Satellite_Merging, &
        &    Node_Component_Hot_Halo_Standard_Promote     , Node_Component_Hot_Halo_Standard_Formation        , &
        &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Pre_Evolve
 
@@ -1444,9 +1444,9 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Node_Merger
 
   !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Hot_Halo_Standard_Satellite_Merger</unitName>
+  !#  <unitName>Node_Component_Hot_Halo_Standard_Satellite_Merging</unitName>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Hot_Halo_Standard_Satellite_Merger(thisNode)
+  subroutine Node_Component_Hot_Halo_Standard_Satellite_Merging(thisNode)
     !% Remove any hot halo associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
     use Abundances_Structure
     use Chemical_Abundances_Structure
@@ -1536,7 +1536,7 @@ contains
             &                                               )
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Standard_Satellite_Merger
+  end subroutine Node_Component_Hot_Halo_Standard_Satellite_Merging
 
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Promote</unitName>

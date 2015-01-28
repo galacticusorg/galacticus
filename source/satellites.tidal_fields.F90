@@ -24,14 +24,14 @@ module Satellites_Tidal_Fields
   private
   public :: Satellite_Tidal_Field
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                   :: satellitesTidalFieldInitialized=.false.
+  ! Flag to indicate if this module has been initialized.  
+  logical              :: satellitesTidalFieldInitialized=.false.
 
   ! Name of ram pressure field method used.
-  type     (varying_string       )          :: satellitesTidalFieldMethod
+  type(varying_string) :: satellitesTidalFieldMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Satellite_Tidal_Field), pointer :: Satellites_Tidal_Field_Get     =>null()
+  procedure(Satellite_Tidal_Field), pointer :: Satellites_Tidal_Field_Get => null()
 
 contains
 
@@ -48,7 +48,7 @@ contains
 
     ! Initialize if necessary.
     if (.not.satellitesTidalFieldInitialized) then
-       !$omp critical(Satellites_Tidal_Field_Initialization)
+       !$omp critical(Satellites_Tidal_Field_Initialization) 
        if (.not.satellitesTidalFieldInitialized) then
           ! Get the cooling rate method parameter.
           !@ <inputParameter>
@@ -71,7 +71,7 @@ contains
                &//char(satellitesTidalFieldMethod)//' is unrecognized')
           satellitesTidalFieldInitialized=.true.
        end if
-       !$omp end critical(Satellites_Tidal_Field_Initialization)
+       !$omp end critical(Satellites_Tidal_Field_Initialization) 
     end if
 
     ! Get the cooling rate using the selected method.
