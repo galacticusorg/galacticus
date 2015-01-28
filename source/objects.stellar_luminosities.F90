@@ -451,7 +451,7 @@ contains
                 ! it is set to zero to indicate a rest-frame filter.
                 select case(char(luminosityType(iLuminosity)))
                 case ("rest")
-                   luminosityRedshift(iLuminosity)=0.0d0
+                   luminosityBandRedshift(iLuminosity)=0.0d0
                 case ("observed")
                    ! Do nothing, we already have the correct redshift.
                 case default
@@ -467,7 +467,7 @@ contains
              call Sort_By_Index(luminosityCosmicTime              ,luminosityTimeIndex)
              call Sort_By_Index(luminosityName                    ,luminosityTimeIndex)
              call Sort_By_Index(luminosityRedshift                ,luminosityTimeIndex)
-             call Sort_By_Index(luminosityBandRedshift            ,luminosityTimeIndex)
+             call Sort_By_Index(luminosityBandRedshift            ,luminosityTimeIndex)             
              ! Allocate unit and zero stellar abundance objects.
              call Alloc_Array(unitStellarLuminosities%luminosityValue,[luminosityCount])
              call Alloc_Array(zeroStellarLuminosities%luminosityValue,[luminosityCount])
