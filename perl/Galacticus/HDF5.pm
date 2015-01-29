@@ -49,10 +49,14 @@ sub Get_Times {
     my @outputs = sort $dataBlock->{'hdf5File'}->group("Outputs")->groups;
     foreach my $output ( @outputs ) {
 	if ( $output =~ m/Output(\d+)/ ) {
-	    my $outputNumber = $1;
-	    $outputNumbers   = $outputNumbers  ->append($outputNumber);
-	    $times           = $times          ->append($dataBlock->{'hdf5File'}->group("Outputs/".$output)->attrGet("outputTime")           );
-	    $expansionFactor = $expansionFactor->append($dataBlock->{'hdf5File'}->group("Outputs/".$output)->attrGet("outputExpansionFactor"));
+	    my $outputGroup = $dataBlock->{'hdf5File'}->group("Outputs/".$output);
+	    my @attrs = $outputGroup->attrs();
+	    if ( grep {$_ eq "outputTime"} @attrs ) {	    
+		my $outputNumber = $1;
+		$outputNumbers   = $outputNumbers  ->append($outputNumber);
+		$times           = $times          ->append($dataBlock->{'hdf5File'}->group("Outputs/".$output)->attrGet("outputTime")           );
+		$expansionFactor = $expansionFactor->append($dataBlock->{'hdf5File'}->group("Outputs/".$output)->attrGet("outputExpansionFactor"));
+	    }
 	}
     }
     $dataBlock->{'outputs'}->{'outputNumber'}    = $outputNumbers;
