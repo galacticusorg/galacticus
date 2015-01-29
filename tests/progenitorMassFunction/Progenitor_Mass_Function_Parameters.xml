@@ -12,7 +12,11 @@
     <value>2.0d15</value>
   </parameter>  
   <parameter>
-    <name>mergerTreeBuildCole2000MassResolution</name>
+    <name>mergerTreesBuildMassResolutionMethod</name>
+    <value>fixed</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildMassResolutionFixed</name>
     <value>2.3561d10</value>
   </parameter>
   <parameter>

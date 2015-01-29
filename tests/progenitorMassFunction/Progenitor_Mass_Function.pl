@@ -69,22 +69,24 @@ unless ( -e $galacticusOutput ) {
 }
 
 # Create data structure to read the results.
-my $dataSet;
-$dataSet->{'file'} = $galacticusOutput;
+  
+# Loop over outputs.
+my %logRootNodeMass;
+my %rootNodeMass;
+for (my $iOutput=$outputCount;$iOutput>0;--$iOutput) {
+    my $dataSet;
+    $dataSet->{'file'} = $galacticusOutput;
+    $dataSet->{'output'} = $iOutput;
 
-# Get a count of the number of trees present.
-&HDF5::Count_Trees($dataSet);
-my $treesCount = scalar(@{$dataSet->{'mergerTreesAvailable'}});
-print "  -> Found ".$treesCount." trees: processing.......\n";
+    # Get a count of the number of trees present.
+    &HDF5::Count_Trees($dataSet);
+    my $treesCount = scalar(@{$dataSet->{'mergerTreesAvailable'}});
+    print "  -> Found ".$treesCount." trees: processing.......\n";
 
-# Loop through trees.
-for (my $iTree=1;$iTree<=$treesCount;$iTree+=1) {
-    $dataSet->{'tree'} = $iTree;
-    my $logRootNodeMass;
-    my $rootNodeMass;
-    # Loop over outputs.
-    for (my $iOutput=$outputCount;$iOutput>0;--$iOutput) {
-	$dataSet->{'output'} = $iOutput;
+    # Loop through trees.
+    for (my $iTree=1;$iTree<=$treesCount;$iTree+=1) {
+	$dataSet->{'tree'} = $dataSet->{'mergerTreesAvailable'}->[$iTree-1];
+	
 	# Read the node masses and which nodes are isolated.
 	&HDF5::Get_Dataset($dataSet,['basicMass','nodeIsIsolated','mergerTreeWeight']);
 	my $dataSets = $dataSet->{'dataSets'};
@@ -99,17 +101,17 @@ for (my $iTree=1;$iTree<=$treesCount;$iTree+=1) {
 	delete($dataSets->{'basicMass'});
 	# Compute fractional node masses and take the log.
 	if ( $iOutput == $outputCount ) {
-	    $logRootNodeMass = $isolatedNodeMass->index(0);
-	    $rootNodeMass    = $weight          ->index(0);
+	    $logRootNodeMass{$dataSet->{'tree'}} = $isolatedNodeMass->index(0);
+	    $rootNodeMass   {$dataSet->{'tree'}} = $weight          ->index(0);
 	}
-	$isolatedNodeMass = $isolatedNodeMass-$logRootNodeMass;
-	$weight           = $weight/$rootNodeMass;
+	$isolatedNodeMass = $isolatedNodeMass-$logRootNodeMass{$dataSet->{'tree'}};
+	$weight           = $weight/$rootNodeMass{$dataSet->{'tree'}};
 
 	if ( $iOutput < $outputCount ) {
 	    # Determine in which tree bin this should lie.
 	    my $rootBin = -1;
 	    for(my $iRootBin=0;$iRootBin<$rootBinCount;++$iRootBin) {
-		if ( $logRootNodeMass-$rootBins[$iRootBin] > -0.5*$rootBinStep && $logRootNodeMass-$rootBins[$iRootBin] <= 0.5*$rootBinStep ) {$rootBin=$iRootBin};
+		if ( $logRootNodeMass{$dataSet->{'tree'}}-$rootBins[$iRootBin] > -0.5*$rootBinStep && $logRootNodeMass{$dataSet->{'tree'}}-$rootBins[$iRootBin] <= 0.5*$rootBinStep ) {$rootBin=$iRootBin};
 	    }
 	    if ( $rootBin >= 0 && $rootBin < $rootBinCount) {
 		# Build a histogram.
