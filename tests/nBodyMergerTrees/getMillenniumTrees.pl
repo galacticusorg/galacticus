@@ -12,6 +12,7 @@ unshift(@INC,$galacticusPath."perl");
 use XML::Simple;
 use File::Find;
 use Term::ReadKey;
+use Data::Dumper;
 use Net::DBus;
 use Switch;
 
@@ -31,7 +32,10 @@ if ( exists($config->{'millenniumDB'}->{'host'}->{$ENV{'HOST'}}) ) {
 } else {
     print "Please enter your Millennium database username:\n";
     while (1) {
-	my $c = ReadKey(-1);
+	ReadMode "raw";
+	my $c = ReadKey(0);
+	ReadMode "normal";
+	print $c;
 	last if $c eq "\n";
 	$dbConfig->{'user'} .= $c;
     }
@@ -76,8 +80,7 @@ sub getPassword {
     ReadMode('raw');
     my $password = '';
     while (1) {
-	my $c;
-	1 until defined($c = ReadKey(-1));
+	my $c = ReadKey(0);
 	last if $c eq "\n";
 	print "*";
 	$password .= $c;
