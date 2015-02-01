@@ -1200,7 +1200,7 @@ The scale radius and shape parameter of each node grow linearly with time to int
 
 This \gls{component} records statistics associated with galaxy merging.
 
-\subsection{``Standard Implementation}
+\subsection{``Standard'' Implementation}
 
 \subsubsection{Properties}
 
@@ -1252,6 +1252,31 @@ The number of recent mergers do not evolve.
 \noindent\emph{Satellite merging:} N/A.\\
 
 \noindent\emph{Node promotion:} N/A.\\
+
+\subsection{``Major'' Implementation}
+
+\subsubsection{Properties}
+
+The major merging statistics implementation defines the following properties:
+\begin{description}
+ \item [{\normalfont \ttfamily majorMergerTime}] The time(s) of galaxy major mergers experience by this node. If non-empty, the merger times are output to a dataset {\normalfont \ttfamily majorMergers/Output\textless O\textgreater/mergerTree\textless T\textgreater/node\textless N\textgreater} (where {\normalfont \ttfamily \textless O\textgreater} is the output number, {\normalfont \ttfamily \textless T\textgreater} is the tree index, and {\normalfont \ttfamily \textless N\textgreater} is the node index) in the \glc\ output file.
+\end{description}
+
+\subsubsection{Initialization}
+
+The times are initialized to an empty list.
+
+\subsubsection{Differential Evolution}
+
+N/A.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} N/A.\\
+
+\noindent\emph{Satellite merging:} If the merger is major, the time of the merger is appended to the list of merging times for the host node.\\
+
+\noindent\emph{Node promotion:} Times recorded from the parent node are appended to those of the child node prior to promotion.\\
 
 \section{Age Statistics}
 
