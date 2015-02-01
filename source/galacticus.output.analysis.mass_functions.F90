@@ -29,6 +29,7 @@ module Galacticus_Output_Analyses_Mass_Functions
   use Galactic_Structure_Options
   use Geometry_Surveys
   use Mass_Function_Incompletenesses
+  use Gravitational_Lensing
   implicit none
   private
   public :: Galacticus_Output_Analysis_Mass_Functions, Galacticus_Output_Analysis_Mass_Functions_Output
@@ -660,6 +661,13 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                         alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2      , alfalfaHiMassFunctionZ0_00MolecularFractionBeta, &
        &                         alfalfaHiMassFunctionZ0_00MolecularFractionScatter
 
+  ! Variables used in lensing calculations which must have module scope.
+  integer         (c_size_t                 )          :: k
+  integer                                              :: i                    , j
+  double precision                                     :: redshift
+  class           (gravitationalLensingClass), pointer :: gravitationalLensing_
+  !$omp threadprivate(i,j,k,redshift,gravitationalLensing_)
+
 contains
 
   !# <mergerTreeAnalysisTask>
@@ -684,7 +692,6 @@ contains
     use Numerical_Comparison
     use String_Handling
     use Galacticus_Output_Analyses_Cosmology_Scalings
-    use Gravitational_Lensing
     use Galacticus_Output_Merger_Tree_Data
     implicit none
     type            (mergerTree                    ), intent(in   )                 :: thisTree
@@ -695,14 +702,13 @@ contains
     class           (nodeComponentBasic            )               , pointer        :: thisBasic
     double precision                                , allocatable  , dimension(:  ) :: randomError, randomErrorWeight
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
-    class           (gravitationalLensingClass     )               , pointer        :: gravitationalLensing_
     double precision                                , parameter                     :: massBufferFactor              =100.0d+0 ! Multiplicative buffer size in mass to add below/above observed masses.
     double precision                                , parameter                     :: randomErrorMinimum            =1.0d-3
     type            (hdf5Object                    )                                :: dataFile,massDataset,parameters
-    integer         (c_size_t                      )                                :: k,jOutput
-    integer                                                                         :: i,j,currentAnalysis,activeAnalysisCount,haloMassBin,iError
+    integer         (c_size_t                      )                                :: jOutput
+    integer                                                                         :: currentAnalysis,activeAnalysisCount,haloMassBin,iError
     double precision                                                                :: dataHubbleParameter,mass,massLogarithmic,dataOmegaMatter,dataOmegaDarkEnergy,distanceMinimum,distanceMaximum,timeMinimum, &
-         &                                                                             timeMaximum,galaxySize,redshift,surfaceBrightnessModelSlope,surfaceBrightnessModelOffset,surfaceBrightnessModelScatter
+         &                                                                             timeMaximum,galaxySize,surfaceBrightnessModelSlope,surfaceBrightnessModelOffset,surfaceBrightnessModelScatter
     type            (varying_string                )                                :: parameterName,analysisMassFunctionCovarianceModelText,cosmologyScalingMass,cosmologyScalingMassFunction,message
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
@@ -1304,11 +1310,12 @@ contains
                         & =+massFunctions(i)%massesLogarithmicMinimum        (j-massFunctions(i)%massesBufferCount)
                    massFunctions         (i)%massesLogarithmicMaximumBuffered(j                                   ) &
                         & =+massFunctions(i)%massesLogarithmicMaximum        (j-massFunctions(i)%massesBufferCount)
-                end do                
+                end do
              end do
              if (analysisMassFunctionsApplyGravitationalLensing) then
-                gravitationalLensing_ => gravitationalLensing()
+                !$omp parallel do private(integrationReset,integrandFunction,integrationWorkspace)
                 do jOutput=1,Galacticus_Output_Time_Count()
+                   gravitationalLensing_ => gravitationalLensing()
                    redshift=                                                                                      &
                         &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
                         &    cosmologyFunctionsModel%expansionFactor             (                                &
@@ -1322,7 +1329,7 @@ contains
                                ! Transfer matrix elements are identical along diagonals of the matrix.
                                massFunctions(i)%lensingTransfer(j,k,jOutput)=massFunctions(i)%lensingTransfer(j-1,k-1,jOutput)
                             else
-                               integrationReset=.true.
+                               integrationReset=.true.                               
                                massFunctions(i)%lensingTransfer(j,k,jOutput)                           &
                                     & =Integrate(                                                      &
                                     &            massFunctions(i)%massesLogarithmicMinimumBuffered(j), &
@@ -1344,6 +1351,7 @@ contains
                       end do
                    end do
                 end do
+                !$omp end parallel do
              end if
           end if
           ! Record that module is initialized.
@@ -1387,6 +1395,8 @@ contains
        if (associated(massFunctions(i)%descriptor%randomErrorFunction)) then
           call massFunctions(i)%descriptor%randomErrorFunction(mass,thisNode,randomError,randomErrorWeight)
        else
+          allocate(randomError      (1))
+          allocate(randomErrorWeight(1))
           randomError(1)=0.0d0
           do j=1,massFunctions(i)%descriptor%randomCoefficientCount
              randomError(1)=+randomError(1)                                &
