@@ -74,6 +74,7 @@ contains
     use Input_Parameters
     use Galacticus_Input_Paths
     use Galacticus_Display
+    use Galacticus_Error
     use Instruments_Filters
     use Numerical_Integration
     use Memory_Management
