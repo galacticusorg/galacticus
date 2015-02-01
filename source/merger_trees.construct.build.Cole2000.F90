@@ -20,22 +20,29 @@
 module Merger_Tree_Build_Cole2000
   !% Implements building of merger trees using the algorithm of \cite{cole_hierarchical_2000}.
   use FGSL
+  use Statistics_Distributions
   implicit none
   private
   public :: Merger_Tree_Build_Cole2000_Initialize, Merger_Tree_Build_Cole2000_Snapshot, Merger_Tree_Build_Cole2000_State_Store,&
        & Merger_Tree_Build_Cole2000_State_Retrieve
 
   ! Variables controlling merger tree accuracy.
-  double precision           :: mergerTreeBuildCole2000AccretionLimit         , mergerTreeBuildCole2000EarliestTime    , &
-       &                        mergerTreeBuildCole2000HighestRedshift        , mergerTreeBuildCole2000MergeProbability
+  double precision                                  :: mergerTreeBuildCole2000AccretionLimit           , mergerTreeBuildCole2000EarliestTime           , &
+       &                                               mergerTreeBuildCole2000HighestRedshift          , mergerTreeBuildCole2000MergeProbability
   ! Option controlling random number sequences.
-  logical          :: mergerTreeBuildCole2000FixedRandomSeeds
-
+  logical                                           :: mergerTreeBuildCole2000FixedRandomSeeds
+  ! Option controlling branch interval stepping.
+  logical                                           :: mergerTreeBuildCole2000BranchIntervalStep
+  
   ! Random number sequence variables
-  type            (fgsl_rng) :: clonedPseudoSequenceObject                    , pseudoSequenceObject
-  logical          :: reset=.true.,ompThreadOffset=.true.,resetSnapshot
-  integer          :: incrementSeed=0
+  type            (fgsl_rng                       ) :: clonedPseudoSequenceObject                      , pseudoSequenceObject
+  logical                                           :: reset                                   =.true. , ompThreadOffset                        =.true., &
+       &                                               resetSnapshot
+  integer                                           :: incrementSeed                           =0
   !$omp threadprivate(pseudoSequenceObject,reset,clonedPseudoSequenceObject,resetSnapshot,incrementSeed)
+  logical                                           :: branchingIntervalDistributionInitialized=.false.
+  type            (distributionNegativeExponential) :: branchingIntervalDistribution
+  !$omp threadprivate(branchingIntervalDistribution,branchingIntervalDistributionInitialized)
 
 contains
 
@@ -106,7 +113,19 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildCole2000FixedRandomSeeds',mergerTreeBuildCole2000FixedRandomSeeds,defaultValue&
             &=.false.)
-       mergerTreeBuildCole2000EarliestTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeBuildCole2000HighestRedshift))
+       !@ <inputParameter>
+       !@   <name>mergerTreeBuildCole2000BranchIntervalStep</name>
+       !@   <defaultValue>{\normalfont \ttfamily false}</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     If {\normalfont \ttfamily false} use the original \cite{cole_hierarchical_2000} method to determine whether branching occurs in a timestep. If {\normalfont \ttfamily true} draw branching intervals from a negative exponential distribution.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeBuildCole2000BranchIntervalStep',mergerTreeBuildCole2000BranchIntervalStep,defaultValue&
+            &=.true.)
+        mergerTreeBuildCole2000EarliestTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeBuildCole2000HighestRedshift))
     end if
     return
   end subroutine Merger_Tree_Build_Cole2000_Initialize
@@ -123,28 +142,36 @@ contains
     use Merger_Trees_Build_Mass_Resolution
     implicit none
     type            (mergerTree        ), intent(inout), target :: thisTree
-    type            (treeNode          ), pointer               :: newNode1            , newNode2          , thisNode
-    class           (nodeComponentBasic), pointer               :: newBasicComponent1  , newBasicComponent2, thisBasicComponent  , &
+    type            (treeNode          ), pointer               :: newNode1                  , newNode2                   , thisNode
+    class           (nodeComponentBasic), pointer               :: newBasicComponent1        , newBasicComponent2         , thisBasicComponent        , &
          &                                                         parentBasicComponent
     integer         (kind=kind_int8    )                        :: nodeIndex
-    double precision                                            :: accretionFraction   , baseNodeTime      , branchingProbability, &
-         &                                                         collapseTime        , deltaCritical     , deltaCritical1      , &
-         &                                                         deltaCritical2      , deltaW            , nodeMass1           , &
-         &                                                         nodeMass2           , time              , uniformRandom       , &
-         &                                                         massResolution            , accretionFractionCumulative, branchMassCurrent   , &
-         &                                                         branchDeltaCriticalCurrent
+    double precision                                            :: accretionFraction         , baseNodeTime               , branchingProbability      , &
+         &                                                         collapseTime              , deltaCritical              , deltaCritical1            , &
+         &                                                         deltaCritical2            , deltaW                     , nodeMass1                 , &
+         &                                                         nodeMass2                 , time                       , uniformRandom             , &
+         &                                                         massResolution            , accretionFractionCumulative, branchMassCurrent         , &
+         &                                                         branchDeltaCriticalCurrent, branchingInterval          , branchingIntervalScaleFree, &
+         &                                                         branchingProbabilityRate
     logical                                                     :: doBranch                  , branchIsDone
-
+    
+    ! Begin construction.
     nodeIndex          =  1                 ! Initialize the node index counter to unity.
     thisNode           => thisTree%baseNode ! Point to the base node.
     thisBasicComponent => thisNode%basic()  ! Get the basic component of the node.
-
-    ! Restart the random number sequence.
+    ! Initialize the negative exponential distribution object if necessary.
+    if (.not.branchingIntervalDistributionInitialized.and.mergerTreeBuildCole2000BranchIntervalStep) then
+       ! Note that we use a unit rate - we will scale the results to the actual rate required.
+       branchingIntervalDistribution           =distributionNegativeExponential(1.0d0)
+       branchingIntervalDistributionInitialized=.true.
+    end if
+        ! Restart the random number sequence.
     if (mergerTreeBuildCole2000FixedRandomSeeds) then
        if (.not.reset) call Pseudo_Random_Free(pseudoSequenceObject)
        reset          =.true.
        incrementSeed  =int(thisTree%index)
        ompThreadOffset=.false.
+       if (mergerTreeBuildCole2000BranchIntervalStep) call branchingIntervalDistribution%samplerReset()
     end if
     ! Get the mass resolution for this tree.
     massResolution=Merger_Tree_Build_Mass_Resolution(thisTree)
@@ -169,10 +196,10 @@ contains
             &   .and.                                                                                                                          &
             &    .not.branchIsDone                                                                                                             &
             &  )
-          ! Find branching probability.
-          branchingProbability=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundUpper)
+          ! Find branching probability rate per unit deltaW.
+          branchingProbabilityRate=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundUpper)
           ! Find accretion rate.
-          accretionFraction   =Tree_Subresolution_Fraction     (branchMassCurrent,branchDeltaCriticalCurrent,massResolution           )
+          accretionFraction       =Tree_Subresolution_Fraction     (branchMassCurrent,branchDeltaCriticalCurrent,massResolution           )
           ! A negative accretion fraction indicates that the node is so close to the resolution limit that
           ! an accretion rate cannot be determined (given available numerical accuracy). In such cases we
           ! consider the node to have reached the end of its resolved evolution and so walk to the next node.
@@ -194,35 +221,74 @@ contains
              newNode1%parent     => thisNode
              branchIsDone        =  .true.
           else
-             ! Finding maximum allowed step in w.
+             ! Finding maximum allowed step in w. Limit based on branching rate only if we are using the original Cole et
+             ! al. (2000) algorithm.
              deltaW=Tree_Maximum_Step(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)
-             if (accretionFraction    > 0.0d0) deltaW=min(deltaW,(mergerTreeBuildCole2000AccretionLimit  -accretionFractionCumulative)/accretionFraction   )
-             if (branchingProbability > 0.0d0) deltaW=min(deltaW, mergerTreeBuildCole2000MergeProbability                             /branchingProbability)
+             if     (                                                                                                                   &
+                  &   accretionFraction        > 0.0d0                                                                                  &
+                  & ) deltaW=min(deltaW,(mergerTreeBuildCole2000AccretionLimit  -accretionFractionCumulative)/accretionFraction       )
+             if     (                                                                                                                   &
+                  &   branchingProbabilityRate > 0.0d0                                                                                  &
+                  &  .and.                                                                                                              &
+                  &   .not.mergerTreeBuildCole2000BranchIntervalStep                                                                    &
+                  & ) deltaW=min(deltaW, mergerTreeBuildCole2000MergeProbability                             /branchingProbabilityRate)
              ! Scale values to the determined timestep.
-             branchingProbability=branchingProbability*deltaW
-             accretionFraction   =accretionFraction   *deltaW
+             if (.not.mergerTreeBuildCole2000BranchIntervalStep)         &
+                  & branchingProbability=branchingProbabilityRate*deltaW
+             accretionFraction          =accretionFraction       *deltaW
              ! Accretion fraction must be less than unity. Reduce timestep (and branching probability and accretion fraction) by
              ! factors of two until this condition is satisfied.
              do while (accretionFraction >= 1.0d0)
-                deltaW              =deltaW              *0.5d0
-                branchingProbability=branchingProbability*0.5d0
-                accretionFraction   =accretionFraction   *0.5d0
-             end do             
+                if (.not.mergerTreeBuildCole2000BranchIntervalStep)    &
+                     & branchingProbability=branchingProbability*0.5d0
+                accretionFraction          =accretionFraction   *0.5d0
+                deltaW                     =deltaW              *0.5d0
+             end do
              ! Decide if a branching occurs.
-             if (branchingProbability > 0.0d0) then
-                uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset=reset,ompThreadOffset=ompThreadOffset,incrementSeed=incrementSeed)
-                doBranch=(uniformRandom <= branchingProbability)
-                if (doBranch) then
-                   branchingProbability=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundLower)*deltaW
-                   if (uniformRandom <= branchingProbability) then
-                      doBranch=.true.
+             if (mergerTreeBuildCole2000BranchIntervalStep) then
+                ! In this case we draw intervals between branching events from a negative exponential distribution.
+                if (branchingProbabilityRate > 0.0d0) then
+                   branchingIntervalScaleFree=branchingIntervalDistribution%sample()
+                   branchingInterval         =branchingIntervalScaleFree/branchingProbabilityRate
+                   ! Based on the upper bound on the rate, check if branching occurs before the maximum allowed timestep.
+                   if (branchingInterval < deltaW) then
+                      ! It does, so recheck using the actual branching rate.
+                      branchingProbabilityRate=Tree_Branching_Probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)
+                      branchingInterval       =branchingIntervalScaleFree/branchingProbabilityRate
+                      doBranch                =(branchingInterval <= deltaW)
+                      if (doBranch) then
+                         ! Branching occured, adjust the accretion fraction, and timestep to their values at the branching event.
+                         accretionFraction   =accretionFraction*branchingInterval/deltaW
+                         deltaW              =branchingInterval
+                         ! Draw a random deviate and scale by the branching rate - this will be used to choose the branch mass.
+                         uniformRandom       =Pseudo_Random_Get(pseudoSequenceObject,reset=reset,ompThreadOffset=ompThreadOffset,incrementSeed=incrementSeed)
+                         branchingProbability=uniformRandom*branchingProbabilityRate
+                      end if
                    else
-                      branchingProbability=Tree_Branching_Probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)*deltaW
-                      doBranch=(uniformRandom <= branchingProbability)
+                      doBranch=.false.
                    end if
+                else
+                   doBranch=.false.
                 end if
-             else
-                doBranch=.false.
+            else
+               ! In this case we're using the original Cole et al. (2000) algorithm.
+               if (branchingProbability > 0.0d0) then
+                   uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset=reset,ompThreadOffset=ompThreadOffset,incrementSeed=incrementSeed)
+                   doBranch=(uniformRandom <= branchingProbability)
+                   if (doBranch) then
+                      branchingProbability=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundLower)*deltaW
+                      if (uniformRandom <= branchingProbability) then
+                         doBranch=.true.
+                      else
+                         branchingProbability=Tree_Branching_Probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)*deltaW
+                         doBranch=(uniformRandom <= branchingProbability)
+                      end if
+                      ! First convert the realized probability back to a rate.               
+                      if (doBranch) branchingProbability=uniformRandom/deltaW
+                   end if
+                else
+                   doBranch=.false.
+                end if
              end if
              ! Determine the critical overdensity for collapse for the new halo(s).
              deltaCritical              =branchDeltaCriticalCurrent +deltaW
@@ -234,8 +300,7 @@ contains
                 nodeIndex          =  nodeIndex+1
                 newNode1           => treeNode(nodeIndex,thisTree)
                 newBasicComponent1 => newNode1%basic(autoCreate=.true.)
-                ! Compute mass of one of the new nodes. First convert the realized probability back to a rate.
-                branchingProbability=uniformRandom/deltaW
+                ! Compute mass of one of the new nodes.
                 nodeMass1=Tree_Branch_Mass(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,branchingProbability)
                 ! Compute the time corresponding to this branching event.
                 time=Time_of_Collapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)

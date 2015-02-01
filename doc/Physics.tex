@@ -1873,6 +1873,7 @@ Selected with {\normalfont \ttfamily mergerTreeBuildMethod}$=${\normalfont \ttfa
  \item [{\normalfont \ttfamily mergerTreeBuildCole2000AccretionLimit}] The maximum fractional change in mass due to sub-esolution accretion allowed in any given timestep when building the tree.
  \item [{\normalfont \ttfamily mergerTreeBuildCole2000HighestRedshift}] The highest redshift to which the tree should be built. Any branch reaching this redshift will be terminated. Typically this should be set to a high value such that branches terminate when the resolution limit it reached, but specifying a maximum redshift can be useful in some situations.
  \item [{\normalfont \ttfamily modifiedPressSchechterUseCDMAssumptions}] Stronger bounds on the branching probability can be found if certain assumptions\footnote{Specifically, $\alpha(=-{\mathrm d}\log \sigma/{\mathrm d}\log M)>0$ and ${\mathrm d}\alpha/{\mathrm d}M>0$ \protect\citep{parkinson_generating_2008}.}, which are valid for \gls{cdm} but not necessarily for other models, are made. Setting this option to {\normalfont \ttfamily true} allows these assumptions to be used (and will speed up the algorithm).
+ \item [{\normalfont \ttfamily mmergerTreeBuildCole2000BranchIntervalStep}] If {\normalfont \ttfamily true}, instead of limiting each time step such that the probability of branching is less than {\normalfont \ttfamily mergerTreeBuildCole2000MergeProbability}, the interval to the next branching event will be drawn from a negative exponential with the appropriate rate. If this exceeds the maximum allowed timestep based on other considerations (e.g. the accretion limit), no branching occurs, and the timestep proceeds\footnote{Note that we do not have to concern ourselves in the subsequent timestep with the fact that no branching occurred in the previous timestep because of the memorylessness nature of the negative exponential distribution. That is, the distribution of branching intervals conditioned on the fact that no branching occurred in the previous timestep, is just the same negative exponential distribution.}. If the interval is less than the maximum allowed timestep, branching occurs at that point. In the regime of high branching rates (which occur when the branch being grown is far above the mass resolution), this approach allows for larger timesteps to be taken.
 \end{description}
 The minimum halo mass that the algorithm will follow is determined by the selection merger tree building mass resolution method (see \S\ref{sec:MergerTreeBuildingMassResolution}). Mass accretion below this scale is treated as smooth accretion and branches are truncated once they fall below this mass.
 
@@ -2060,7 +2061,11 @@ Selected by default with {\normalfont \ttfamily satelliteTidalStrippingMethod}$=
 \begin{equation}
 \dot{M}_{\mathrm sat}=-\alpha \frac{M_{\mathrm sat}(>r_{\mathrm tidal})}{T_{\mathrm orb}},
 \end{equation}
-where $\alpha=${\normalfont \ttfamily [satelliteTidalStrippingZentnerRate]}, $T_{\mathrm orb}$ is the orbital period of the satellite, and $r_{\mathrm tidal}$ is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
+where $\alpha=${\normalfont \ttfamily [satelliteTidalStrippingZentnerRate]},
+\begin{equation}
+T_{\mathrm orb} = {1 \over \hbox{max}(\omega/2\pi,v_{\rm r}/r)},
+\end{equation}
+where $\omega$ is the angular velocity of the satellite, $v_{\rm r}$ is the radial velocity, $r$ is the orbital radius, and $r_{\mathrm tidal}$ is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
 \begin{equation}
 r_{\mathrm tidal}=\left(\frac{GM_{\mathrm sat}}{\omega^2-d^2\Phi/dr^2}\right)^{1/3},
 \end{equation}
