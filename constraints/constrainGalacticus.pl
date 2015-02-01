@@ -82,16 +82,16 @@ while ( $failCount > 0 ) {
 	    die ("constrainGalacticusWrapper.pl: cannot specify a prior for a defined parameter")
 		if ( exists($parameters[$i]->{'prior'}) );
 	    # Attempt to replace named parameters in the definition with their values.
-	    while ( $parameters[$i]->{'define'} =~ m/\%([a-zA-Z0-9_]+)/ ) {
+	    while ( $parameters[$i]->{'define'} =~ m/\%\[([a-zA-Z0-9_]+)\]/ ) {
 		my $parameterName = $1;
 		if ( exists($parameterValues{$parameterName}) ) {
-		    $parameters[$i]->{'define'} =~ s/\%$parameterName/$parameterValues{$parameterName}/g;
+		    $parameters[$i]->{'define'} =~ s/\%\[$parameterName\]/$parameterValues{$parameterName}/g;
 		} else {
 		    ++$failCount;
 		    last;
 		}
 		$parameterValues{$parameters[$i]->{'name'}} = eval($parameters[$i]->{'define'})
-		    unless ( $parameters[$i]->{'define'} =~ m/\%([a-zA-Z0-9_]+)/ );
+		    unless ( $parameters[$i]->{'define'} =~ m/\%\[([a-zA-Z0-9_]+)\]/ );
 	    }
 	}
     }
