@@ -140,8 +140,8 @@ double precision function Node_Component_Disk_Exponential_Density(self,positionS
   if (Node_Component_Disk_Exponential_Density > 0.0d0 .and. self%radius() > 0.0d0) then
      ! Compute the actual density.
      positionCylindrical=Coordinates_Spherical_To_Cylindrical(positionSpherical)
-     fractionalRadius=positionCylindrical(1)/                         self%radius()
-     fractionalHeight=positionCylindrical(3)/(diskHeightToRadiusRatio*self%radius())
+     fractionalRadius=    positionCylindrical(1) /                         self%radius()
+     fractionalHeight=abs(positionCylindrical(3))/(diskHeightToRadiusRatio*self%radius())
      if (fractionalHeight > coshArgumentMaximum) then
         coshTerm=(2.0d0*exp(-0.5d0*fractionalHeight)/(1.0d0+exp(-fractionalHeight)))**2
      else
