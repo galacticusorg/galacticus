@@ -107,10 +107,12 @@ contains
          &                                                           likelihoodModelSurfaceBrightnessDefinition     , likelihoodSurfaceBrightnessLimitDefinition              , &
          &                                                           likelihoodChainBaseNameDefinition              , likelihoodToleranceDefinition                           , &
          &                                                           likelihoodNeighborCountDefinition              , likelihoodProjectedCorrelationFunctionFileNameDefinition, &
-         &                                                           likelihoodLineOfSightDepthDefinition           , likelihoodHalfIntegralDefinition
+         &                                                           likelihoodLineOfSightDepthDefinition           , likelihoodHalfIntegralDefinition                        , &
+         &                                                           likelihoodExclusionsDefinition
     type            (nodeList      ), pointer                     :: covarianceRows
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
+    integer                         , allocatable, dimension(:  ) :: likelihoodExclusions
     integer                                                       :: i                                              , dimensionCount                            , &
          &                                                           likelihoodRealizationCount                     , likelihoodRealizationCountMinimum         , &
          &                                                           likelihoodEmulatorRebuildCount                 , likelihoodPolynomialOrder                 , &
@@ -210,6 +212,10 @@ contains
           likelihoodChainBaseNameDefinition => XML_Get_First_Element_By_Tag_Name(definition,"chainBaseName"    )
           likelihoodNeighborCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"neighborCount"    )
           likelihoodToleranceDefinition     => XML_Get_First_Element_By_Tag_Name(definition,"tolerance"        )
+          likelihoodExclusionsDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"exclusions"       )
+          dimensionCount=String_Count_Words(getTextContent(likelihoodExclusionsDefinition))
+          allocate(likelihoodExclusions(dimensionCount))
+          call extractDataContent(likelihoodExclusionsDefinition   ,likelihoodExclusions   )
           call extractDataContent(likelihoodNeighborCountDefinition,likelihoodNeighborCount)
           call extractDataContent(likelihoodToleranceDefinition    ,likelihoodTolerance    )
           newLikelihood=likelihoodPosteriorPrior(                                                   &
@@ -217,7 +223,8 @@ contains
                &                                 getTextContent(likelihoodChainBaseNameDefinition), &
                &                                 likelihoodNeighborCount                          , &
                &                                 likelihoodTolerance                              , &
-               &                                 configFileName                                     &
+               &                                 configFileName                                   , &
+               &                                 likelihoodExclusions                               &
                &                                )
        end select
     case ("massFunction")

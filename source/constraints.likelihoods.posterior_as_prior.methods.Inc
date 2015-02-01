@@ -17,7 +17,7 @@
 
 !% Defines methods for a ``posterior as prior'' likelihood function.
 
-function likelihoodPosteriorPriorConstructor(wrappedLikelihoodDefinition,chainBaseName,neighborCount,tolerance,configFileName)
+function likelihoodPosteriorPriorConstructor(wrappedLikelihoodDefinition,chainBaseName,neighborCount,tolerance,configFileName,exclusions)
   !% Constructor for ``posterior as prior'' regression likelihood class.
   use FoX_DOM
   use String_Handling
@@ -25,28 +25,35 @@ function likelihoodPosteriorPriorConstructor(wrappedLikelihoodDefinition,chainBa
   use ISO_Varying_String
   use Memory_Management
   implicit none
-  type            (likelihoodPosteriorPrior)                              :: likelihoodPosteriorPriorConstructor
-  type            (node                    ), intent(in   ), pointer      :: wrappedLikelihoodDefinition
-  character       (len=*                   ), intent(in   )               :: chainBaseName
-  integer                                   , intent(in   )               :: neighborCount
-  double precision                          , intent(in   )               :: tolerance
-  double precision                          , allocatable  , dimension(:) :: state
-  type            (varying_string          ), intent(in   ), optional     :: configFileName
-  character       (len=1024                )                              :: line
-  integer                                                                 :: chainCount                , iChain               , &
-       &                                                                     chainUnit                 , ioStatus             , &
-       &                                                                     i                         , j 
-  type            (varying_string          )                              :: chainFileName
-  character       (len=4                   )                              :: label
-  logical                                                                 :: converged
-  double precision                                                        :: time                      , likelihood           , &
-       &                                                                     logPriorNormalization
+  type            (likelihoodPosteriorPrior)                                        :: likelihoodPosteriorPriorConstructor
+  type            (node                    ), intent(in   ), pointer                :: wrappedLikelihoodDefinition
+  character       (len=*                   ), intent(in   )                         :: chainBaseName
+  integer                                   , intent(in   )                         :: neighborCount
+  integer                                   , intent(in   ), optional, dimension(:) :: exclusions
+  double precision                          , intent(in   )                         :: tolerance
+  double precision                          , allocatable            , dimension(:) :: state
+  type            (varying_string          ), intent(in   ), optional               :: configFileName
+  character       (len=1024                )                                        :: line
+  integer                                                                           :: chainCount                , iChain               , &
+       &                                                                               chainUnit                 , ioStatus             , &
+       &                                                                               i                         , j 
+  type            (varying_string          )                                        :: chainFileName
+  character       (len=4                   )                                        :: label
+  logical                                                                           :: converged
+  double precision                                                                  :: time                      , likelihood           , &
+       &                                                                               logPriorNormalization
 
   ! Store wrapped likelihood, neighbor count, tolerance, and allocate workspace.
   likelihoodPosteriorPriorConstructor%wrappedLikelihoodFunction => likelihoodNew(wrappedLikelihoodDefinition,configFileName)
   likelihoodPosteriorPriorConstructor%tolerance                 =  tolerance
   likelihoodPosteriorPriorConstructor%neighborCount             =  neighborCount
   likelihoodPosteriorPriorConstructor%initialized               =  .false.
+  if (present(exclusions)) then
+     call Alloc_Array(likelihoodPosteriorPriorConstructor%exclusions,shape(exclusions))    
+     likelihoodPosteriorPriorConstructor%exclusions=exclusions
+  else
+     call Alloc_Array(likelihoodPosteriorPriorConstructor%exclusions,[0])
+  end if
   call Alloc_Array(likelihoodPosteriorPriorConstructor%neighborIndices  ,[neighborCount])
   call Alloc_Array(likelihoodPosteriorPriorConstructor%neighborDistances,[neighborCount])
   ! Read MCMC chains.
@@ -63,10 +70,17 @@ function likelihoodPosteriorPriorConstructor(wrappedLikelihoodDefinition,chainBa
         open(newUnit=chainUnit,file=char(chainFileName),status='old',form='formatted',iostat=ioStatus)
         read (chainUnit,'(a)') line
         likelihoodPosteriorPriorConstructor%dimCount=String_Count_Words(line)-5
+        call Alloc_Array(likelihoodPosteriorPriorConstructor%included,[likelihoodPosteriorPriorConstructor%dimCount])
+        likelihoodPosteriorPriorConstructor%dimCount=likelihoodPosteriorPriorConstructor%dimCount-size(likelihoodPosteriorPriorConstructor%exclusions)
         close(chainUnit)
-    end if
-  end do  
-  chainCount=iChain+1
+     end if
+  end do
+  ! Construct inclusion mask.
+  likelihoodPosteriorPriorConstructor%included=.true.
+  do i=1,size(likelihoodPosteriorPriorConstructor%exclusions)
+     likelihoodPosteriorPriorConstructor%included(likelihoodPosteriorPriorConstructor%exclusions(i))=.false.
+  end do
+   chainCount=iChain+1
   i         = 0
   do iChain=0,chainCount-1
      write (label,'(i4.4)') iChain
@@ -83,8 +97,8 @@ function likelihoodPosteriorPriorConstructor(wrappedLikelihoodDefinition,chainBa
         close(chainUnit)
         ! Allocate storage for all converged points.
         likelihoodPosteriorPriorConstructor%convergedStateCount=likelihoodPosteriorPriorConstructor%convergedStateCount*chainCount
-        call Alloc_Array(likelihoodPosteriorPriorConstructor%states,[likelihoodPosteriorPriorConstructor%convergedStateCount,likelihoodPosteriorPriorConstructor%dimCount])
-        call Alloc_Array(                                    state ,[                                                        likelihoodPosteriorPriorConstructor%dimCount])
+        call Alloc_Array(likelihoodPosteriorPriorConstructor%states,     [likelihoodPosteriorPriorConstructor%convergedStateCount,likelihoodPosteriorPriorConstructor%dimCount])
+        call Alloc_Array(                                    state ,shape(                                                        likelihoodPosteriorPriorConstructor%included))
      end if
      open(newUnit=chainUnit,file=char(chainFileName),status='old',form='formatted',iostat=ioStatus)
      do while (ioStatus == 0)
@@ -92,7 +106,7 @@ function likelihoodPosteriorPriorConstructor(wrappedLikelihoodDefinition,chainBa
         if (ioStatus /= 0) cycle
         if (converged) then
            i=i+1
-           likelihoodPosteriorPriorConstructor%states(i,:)=state
+           likelihoodPosteriorPriorConstructor%states(i,:)=pack(state,likelihoodPosteriorPriorConstructor%included)
         end if
      end do
      close(chainUnit)
@@ -107,15 +121,19 @@ subroutine likelihoodPosteriorPriorInitialize(self,parameterMappings)
   class           (likelihoodPosteriorPrior), intent(inout)               :: self
   type            (mappingList             ), intent(in   ), dimension(:) :: parameterMappings
   double precision                          , allocatable  , dimension(:) :: mean, meanSquared
-  integer                                                                 :: i   , j
+  integer                                                                 :: i   , j          , k
 
   ! Set initialization state.
   if (self%initialized) return
   self%initialized=.true.
   ! Map states.
   do i=1,self%convergedStateCount
-     do j=1,self%dimCount
-        self%states(i,j)=parameterMappings(j)%thisMapping%map(self%states(i,j))
+     k=0
+     do j=1,size(self%included)
+        if (self%included(j)) then
+           k=k+1
+           self%states(i,k)=parameterMappings(j)%thisMapping%map(self%states(i,k))
+        end if
      end do
   end do
   ! Estimate variance in each dimension.
@@ -173,7 +191,7 @@ double precision function likelihoodPosteriorPriorEvaluate(self,simulationState,
   ! Scale the state vector.
   stateVector=stateVector/self%rootVariance
   ! Search for nearest neighbors.
-  call self%searcher%search(stateVector,self%neighborCount,self%tolerance,self%neighborIndices,self%neighborDistances)
+  call self%searcher%search(pack(stateVector,self%included),self%neighborCount,self%tolerance,self%neighborIndices,self%neighborDistances)
   ! Evaluate kernel density estimate of log-prior.
   kernelScale=self%neighborDistances(self%neighborCount)
   weight=0.0d0
