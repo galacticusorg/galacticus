@@ -180,7 +180,7 @@ contains
     double precision                                                              :: radius,halfMassRadiusSatellite
     double precision                                                              :: halfMassRadiusCentral,orbitalRadiusTest
     double precision                                                              :: radiusVirial
-    double precision                                                              :: orbitalPeriod
+    double precision                                                              :: orbitalPeriod, radialTimescale
     double precision                                                              :: angularVelocity,parentDensity
     double precision                                                              :: parentEnclosedMass,satelliteMass,basicMass
     double precision                                                              :: tidalHeatingNormalized
@@ -199,17 +199,18 @@ contains
           velocity                 =  satelliteComponent%velocity                 ()
           tidalTensorPathIntegrated=  satelliteComponent%tidalTensorPathIntegrated()
           tidalHeatingNormalized   =  satelliteComponent%tidalHeatingNormalized   ()
-          positionTensor           =  Vector_Outer_Product            (         position                          )
-          radius                   =  Vector_Magnitude                (         position                          )
-          parentDensity            =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian)
-          parentEnclosedMass       =  Galactic_Structure_Enclosed_Mass(hostNode,radius                            )
+          positionTensor           =  Vector_Outer_Product            (         position                          ,symmetrize=.true.)
+          radius                   =  Vector_Magnitude                (         position                                            )
+          parentDensity            =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian                  )
+          parentEnclosedMass       =  Galactic_Structure_Enclosed_Mass(hostNode,radius                                              )
           ! Calcluate tidal tensor and rate of change of integrated tidal tensor.
           tidalTensor              =                                                                            &
                & -(gravitationalConstantGalacticus*parentEnclosedMass         /radius**3)*tensorIdentityR2D3Sym &
                & +(gravitationalConstantGalacticus*parentEnclosedMass*3.0d0   /radius**5)*positionTensor        &
                & -(gravitationalConstantGalacticus*parentDensity     *4.0d0*Pi/radius**2)*positionTensor
           angularVelocity=Vector_Magnitude(Vector_Product(position,velocity))/radius**2*kilo*gigaYear/megaParsec
-          orbitalPeriod  =2.0d0*Pi/angularVelocity
+          radialTimescale=abs             (Dot_Product   (position,velocity))/radius**2*kilo*gigaYear/megaParsec
+          orbitalPeriod  =1.0d0/(max(angularVelocity/2.0d0/Pi,radialTimescale))
           ! Calculate position, velocity, mass loss, integrated tidal tensor, and heating rates.
           call satelliteComponent%positionRate                 (                                                            &
                &                                                +(kilo*gigaYear/megaParsec)                                 &
@@ -235,8 +236,16 @@ contains
                &                                                +Satellite_Tidal_Heating_Rate(thisNode                    ) &
                &                                               )         
           ! Get half-mass radii of central and satellite galaxies.
-          halfMassRadiusCentral  =Galactic_Structure_Radius_Enclosing_Mass(hostNode,fractionalMass=0.5d0,massType=massTypeGalactic)
-          halfMassRadiusSatellite=Galactic_Structure_Radius_Enclosing_Mass(thisNode,fractionalMass=0.5d0,massType=massTypeGalactic)
+          if (Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic,radius=0.0d0) > 0.0d0) then
+             halfMassRadiusCentral  =Galactic_Structure_Radius_Enclosing_Mass(hostNode,fractionalMass=0.5d0,massType=massTypeGalactic)
+          else
+             halfMassRadiusCentral  =0.0d0
+          end if
+          if (Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic,radius=0.0d0) > 0.0d0) then
+             halfMassRadiusSatellite=Galactic_Structure_Radius_Enclosing_Mass(thisNode,fractionalMass=0.5d0,massType=massTypeGalactic)
+          else
+             halfMassRadiusSatellite=0.0d0
+          end if
           ! Convert from initial to final radius resulting from expansion due to tidal heating.
           halfMassRadiusSatellite =                                                &
                &                    halfMassRadiusSatellite                        &
