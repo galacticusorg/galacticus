@@ -297,11 +297,13 @@ contains
     endif
 
     ! Call routines to perform any post-evolution tasks.
-    !# <include directive="postEvolveTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode</functionArgs>
-    include 'objects.tree_node.post_evolve.inc'
-    !# </include>
-
+    if (associated(thisNode)) then
+       !# <include directive="postEvolveTask" type="functionCall" functionType="void">
+       !#  <functionArgs>thisNode</functionArgs>
+       include 'objects.tree_node.post_evolve.inc'
+       !# </include>
+    end if
+ 
     return
   end subroutine Tree_Node_Evolve
 

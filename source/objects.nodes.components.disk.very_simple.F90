@@ -68,15 +68,17 @@ module Node_Component_Disk_Very_Simple
   !# </component>
 
   ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized          =.false.
+  logical          :: moduleInitialized                         =.false.
 
   ! Record of whether to use the simple disk analytic solver.
   logical          :: diskVerySimpleUseAnalyticSolver
-  
+  double precision :: diskVerySimpleAnalyticSolverPruneMassStars        , diskVerySimpleAnalyticSolverPruneMassGas, &
+       &              timePresentDay
+ 
   ! Parameters controlling the physical implementation.
-  double precision :: diskOutflowTimescaleMinimum        , diskStarFormationTimescaleMinimum, &
+  double precision :: diskOutflowTimescaleMinimum                       , diskStarFormationTimescaleMinimum       , &
        &              diskVerySimpleMassScaleAbsolute
-
+  
 contains
 
   !# <nodeComponentInitializationTask>
@@ -85,8 +87,10 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Initialize()
     !% Initializes the tree node very simple disk component module.
     use Input_Parameters
+    use Cosmology_Functions
     implicit none
-    type(nodeComponentDiskVerySimple) :: diskVerySimpleComponent
+    type (nodeComponentDiskVerySimple)          :: diskVerySimpleComponent
+    class(cosmologyFunctionsClass    ), pointer :: cosmologyFunctions_
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Disk_Very_Simple_Initialize)
@@ -136,6 +140,33 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskVerySimpleUseAnalyticSolver',diskVerySimpleUseAnalyticSolver,defaultValue=.false.)
+       !@ <inputParameter>
+       !@   <name>diskVerySimpleAnalyticSolverPruneMassGas</name>
+       !@   <defaultValue>0</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Gas mass below which the analytic solver will prune a galaxy.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskVerySimpleAnalyticSolverPruneMassGas',diskVerySimpleAnalyticSolverPruneMassGas,defaultValue=0.0d0)
+       !@ <inputParameter>
+       !@   <name>diskVerySimpleAnalyticSolverPruneMassStars</name>
+       !@   <defaultValue>0</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Stellar mass below which the analytic solver will prune a galaxy.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskVerySimpleAnalyticSolverPruneMassStars',diskVerySimpleAnalyticSolverPruneMassStars,defaultValue=0.0d0)
+       ! If using the analytic solver, find the time at the present day.
+       if (diskVerySimpleUseAnalyticSolver) then
+          cosmologyFunctions_ => cosmologyFunctions            (     )
+          timePresentDay      =  cosmologyFunctions_%cosmicTime(1.0d0)
+       end if
        ! Attach the cooling mass pipe from the hot halo component.
        call diskVerySimpleComponent%attachPipe()
        ! Record that the module is now initialized.
@@ -329,20 +360,22 @@ contains
     type            (treeNode              ), intent(inout), pointer   :: node
     double precision                        , intent(in   )            :: timeStart           , timeEnd
     logical                                 , intent(inout)            :: solved
-    class           (nodeComponentBasic    )               , pointer   :: basic
+    type            (treeNode              ),                pointer   :: hostNode
+    class           (nodeComponentBasic    )               , pointer   :: basic               , hostBasic           , &
+         &                                                                hostParentBasic
     class           (nodeComponentDisk     )               , pointer   :: disk
-    class           (nodeComponentHotHalo  )               , pointer   :: hotHalo
+    class           (nodeComponentHotHalo  )               , pointer   :: hotHalo             , hostHotHalo
     class           (nodeComponentSatellite)               , pointer   :: satellite
     double precision                                       , parameter :: massTolerance=1.0d-6
-    double precision                                                   :: massGasInitial      , massStellarInitial, &
-         &                                                                timescaleFuel       , timescaleOutflow  , &
-         &                                                                timescaleStellar    , massGasFinal      , &
-         &                                                                massStellarFinal    , massOutflowed     , &
-         &                                                                rateFuel            , rateStars         , &
-         &                                                                rateOutflow         , timeStep          , &
-         &                                                                exponentialFactor
+    double precision                                                   :: massGasInitial      , massStellarInitial   , &
+         &                                                                timescaleFuel       , timescaleOutflow     , &
+         &                                                                timescaleStellar    , massGasFinal         , &
+         &                                                                massStellarFinal    , massOutflowed        , &
+         &                                                                rateFuel            , rateStars            , &
+         &                                                                rateOutflow         , timeStep             , &
+         &                                                                exponentialFactor   , massStellarAsymptotic
     type            (history               )                           :: stellarHistoryRate
- 
+    
     if (diskVerySimpleUseAnalyticSolver) then
        disk => node%disk()
        if (node%isSatellite().and.disk%isInitialized()) then
@@ -351,23 +384,66 @@ contains
           massGasInitial    =disk%massGas    ()
           massStellarInitial=disk%massStellar()
           if (massGasInitial > massTolerance) then
-             hotHalo => node%hotHalo()
+             hotHalo   => node%hotHalo  ()
+             satellite => node%satellite()
              call Node_Component_Disk_Very_Simple_Rates(node,rateFuel,rateStars,rateOutflow,stellarHistoryRate)
              timescaleFuel    =massGasInitial/(+rateOutflow-rateFuel          )
              timescaleStellar =massGasInitial/(                     +rateStars)
              timescaleOutflow =massGasInitial/(+rateOutflow                   )
-             exponentialFactor=exp(-timeStep/timescaleFuel)
-             massGasFinal     =                   +massGasInitial                                 *       exponentialFactor
-             massStellarFinal =+massStellarInitial+massGasInitial*(timescaleFuel/timescaleStellar)*(1.0d0-exponentialFactor)
-             massOutflowed    =                   +massGasInitial*(timescaleFuel/timescaleOutflow)*(1.0d0-exponentialFactor)
-             call hotHalo%outflowedMassSet(massOutflowed   )
-             call disk   %massGasSet      (massGasFinal    )
-             call disk   %massStellarSet  (massStellarFinal)
+             ! Estimate asymptotic final stellar mass
+             massStellarAsymptotic=massStellarInitial+massGasInitial*(timescaleFuel/timescaleStellar)
+             ! Check if this galaxy can be removed because it will never be of sufficient mass to be interesting.
+             if     (                                                                        &
+                  &   massStellarAsymptotic     < diskVerySimpleAnalyticSolverPruneMassStars &
+                  &  .and.                                                                   &
+                  &   massGasInitial            < diskVerySimpleAnalyticSolverPruneMassGas   &
+                  &  .and.                                                                   &
+                  &   satellite%timeOfMerging() > timePresentDay                             &
+                  & ) then
+                ! Galaxy is too small to care about. Add gas which will outflow from this satellite to its future host halos.
+                hostNode => node%parent
+                do while (associated(hostNode%parent))
+                   hostBasic       => hostNode%basic       ()
+                   hostHotHalo     => hostNode%hotHalo     ()
+                   hostParentBasic => hostNode%parent%basic()
+                   massOutflowed   =  +massGasInitial                                           &
+                   &                  *(                                                        &
+                   &                    +timescaleFuel                                          &
+                   &                    /timescaleOutflow                                       &
+                   &                  )                                                         &
+                   &                  *(                                                        &
+                   &                    +exp(-(hostBasic      %time()-timeStart)/timescaleFuel) &
+                   &                    -exp(-(hostParentBasic%time()-timeStart)/timescaleFuel) &
+                   &                  )                   
+                   call hostHotHalo%outflowedMassSet(                             &
+                        &                            +hostHotHalo%outflowedMass() &
+                        &                            +            massOutflowed   &
+                        &                           )                   
+                   hostNode => hostNode%parent
+                end do
+                ! Remove the node from the host and destroy it.
+                call node%removeFromHost()
+                call node%destroy       ()
+                deallocate(node)
+                nullify   (node)                
+             else
+                ! Galaxy is sufficiently large (or will merge), so simply process it to the end time.
+                exponentialFactor=exp(-timeStep/timescaleFuel)
+                massGasFinal     =                   +massGasInitial                                 *       exponentialFactor
+                massStellarFinal =+massStellarInitial+massGasInitial*(timescaleFuel/timescaleStellar)*(1.0d0-exponentialFactor)
+                massOutflowed    =                   +massGasInitial*(timescaleFuel/timescaleOutflow)*(1.0d0-exponentialFactor)
+                call hotHalo%outflowedMassSet(massOutflowed   )
+                call disk   %massGasSet      (massGasFinal    )
+                call disk   %massStellarSet  (massStellarFinal)
+             end if
           end if
-          basic     => node%basic    ()
-          satellite => node%satellite()
-          call basic    %     timeSet(                      timeEnd )
-          call satellite%mergeTimeSet(satellite%mergeTime()-timeStep)
+          ! Update time and merging times.
+          if (associated(node)) then
+             basic     => node%basic    ()
+             satellite => node%satellite()
+             call basic    %     timeSet(                      timeEnd )
+             call satellite%mergeTimeSet(satellite%mergeTime()-timeStep)
+          end if
           ! Record that we solved this system analytically.
           solved=.true.
        end if
