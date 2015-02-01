@@ -216,17 +216,17 @@ contains
        Modified_Press_Schechter_Branch_Mass_Root=probabilityMaximum+probabilityGradientMaximum*(logMassMaximum-probabilityMaximumMassLog)
     else
        massMaximum=+exp(logMassMaximum)
-       integral   =+branchingProbabilityPreFactor                                                            &
-            &      *Integrate(                                                                               &
-            &                 probabilityMinimumMass                                                       , &
-            &                 massMaximum                                                                  , &
-            &                 Branching_Probability_Integrand                                              , &
-            &                 parameterPointer                                                             , &
-            &                 integrandFunction                                                            , &
-            &                 integrationWorkspace                                                         , &
-            &                 toleranceAbsolute              =0.0d0                                        , &
-            &                 toleranceRelative              =branchingProbabilityIntegrandToleraceRelative, &
-            &                 integrationRule                =FGSL_Integ_Gauss15                             &
+       integral   =+branchingProbabilityPreFactor                                                                        &
+            &      *Integrate(                                                                                           &
+            &                 probabilityMinimumMassLog                                                                , &
+            &                 logMassMaximum                                                                           , &
+            &                 Branching_Probability_Integrand_Logarithmic                                              , &
+            &                 parameterPointer                                                                         , &
+            &                 integrandFunction                                                                        , &
+            &                 integrationWorkspace                                                                     , &
+            &                 toleranceAbsolute                          =0.0d0                                        , &
+            &                 toleranceRelative                          =branchingProbabilityIntegrandToleraceRelative, &
+            &                 integrationRule                            =FGSL_Integ_Gauss15                             &
             &                )
        call Integrate_Done(integrandFunction,integrationWorkspace)
        Modified_Press_Schechter_Branch_Mass_Root=probabilitySeek-integral
@@ -249,16 +249,15 @@ contains
        Modified_Press_Schechter_Branch_Mass_Root_Derivative=probabilityGradientMaximum
     else
        massMaximum=+exp(logMassMaximum)
-       integral   =+branchingProbabilityPreFactor                               &
-            &      *Branching_Probability_Integrand(                            &
-            &                                       max(                        &
-            &                                           massMaximum           , &
-            &                                           probabilityMinimumMass  &
-            &                                          )                      , &
-            &                                       parameterPointer            &
-            &                                      )
-       Modified_Press_Schechter_Branch_Mass_Root_Derivative=-integral           &
-            &                                               *massMaximum
+       integral   =+branchingProbabilityPreFactor                                              &
+            &      *Branching_Probability_Integrand_Logarithmic(                               &
+            &                                                   max(                           &
+            &                                                       log(massMaximum)         , &
+            &                                                       probabilityMinimumMassLog  &
+            &                                                      )                         , &
+            &                                                   parameterPointer               &
+            &                                                  )
+       Modified_Press_Schechter_Branch_Mass_Root_Derivative=-integral
     end if
     return
   end function Modified_Press_Schechter_Branch_Mass_Root_Derivative
@@ -323,12 +322,21 @@ contains
           parentHaloMass=haloMass
           parentSigma=Cosmological_Mass_Root_Variance(haloMass)
           parentDelta=deltaCritical
-          call Compute_Common_Factors
-          massMinimum=massResolution
+          call Compute_Common_Factors()
+          massMinimum=      massResolution
           massMaximum=0.5d0*parentHaloMass
-          probabilityPrevious=branchingProbabilityPreFactor*Integrate(massMinimum,massMaximum,Branching_Probability_Integrand &
-               &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative&
-               &=branchingProbabilityIntegrandToleraceRelative ,integrationRule=FGSL_Integ_Gauss15)
+          probabilityPrevious=+branchingProbabilityPreFactor                                                                        &
+               &              *Integrate(                                                                                           &
+               &                         log(massMinimum)                                                                         , &
+               &                         log(massMaximum)                                                                         , &
+               &                         Branching_Probability_Integrand_Logarithmic                                              , &
+               &                         parameterPointer                                                                         , &
+               &                         integrandFunction                                                                        , &
+               &                         integrationWorkspace                                                                     , &
+               &                         toleranceAbsolute                          =0.0d0                                        , &
+               &                         toleranceRelative                          =branchingProbabilityIntegrandToleraceRelative, &
+               &                         integrationRule                            =FGSL_Integ_Gauss15                             &
+               &                        )
           call Integrate_Done(integrandFunction,integrationWorkspace)
        else
           probabilityPrevious=0.0d0
@@ -354,6 +362,7 @@ contains
          &                                       resolutionAlpha
     !$omp threadprivate(resolutionSigma,resolutionAlpha,massResolutionPrevious)
     double precision          , parameter     :: alphaMinimum             =5.0d-3
+    double precision          , parameter     :: hypergeoTolerance        =1.0d-6
     double precision                          :: probabilityIntegrandLower       , probabilityIntegrandUpper, &
          &                                       halfParentSigma                 , halfParentAlpha          , &
          &                                       gammaEffective
@@ -405,13 +414,15 @@ contains
                   &                                       [1.5d0,0.5d0-0.5d0*gammaEffective]     , &
                   &                                       [      1.5d0-0.5d0*gammaEffective]     , &
                   &                                       1.0d0/resolutionSigmaOverParentSigma**2, &
-                  &                                       status=statusLower                       &
+                  &                                       toleranceRelative=hypergeoTolerance    , &
+                  &                                       status           =statusLower            &
                   &                                      )
              hyperGeometricFactorUpper=Hypergeometric_2F1(                                         &
                   &                                       [1.5d0,0.5d0-0.5d0*gammaEffective]     , &
                   &                                       [      1.5d0-0.5d0*gammaEffective]     , &
                   &                                       parentSigma**2/halfParentSigma**2      , &
-                  &                                       status=statusUpper                       &
+                  &                                       toleranceRelative=hypergeoTolerance    , &
+                  &                                       status           =statusUpper            &
                   &                                      )
              if (statusUpper /= FGSL_Success .or. statusLower /= FGSL_Success) then
                 if (usingCDMAssumptions) then
@@ -500,11 +511,12 @@ contains
     !% terms of the $_2F_1$ hypergeometric function.
     use Hypergeometric_Functions
     implicit none
-    double precision, intent(in   ) :: deltaCritical                , haloMass                      , &
+    double precision, intent(in   ) :: deltaCritical                 , haloMass                      , &
          &                             massResolution
-    double precision, save          :: massResolutionPrevious=-1.0d0, resolutionSigma
+    double precision, parameter     :: hypergeoTolerance     = 1.0d-6
+    double precision, save          :: massResolutionPrevious=-1.0d+0, resolutionSigma
     !$omp threadprivate(resolutionSigma,massResolutionPrevious)
-    double precision                :: hyperGeometricFactor         , resolutionSigmaOverParentSigma
+    double precision                :: hyperGeometricFactor          , resolutionSigmaOverParentSigma
 
     ! Get sigma and delta_critical for the parent halo.
     parentHaloMass=haloMass
@@ -518,7 +530,7 @@ contains
     resolutionSigmaOverParentSigma=resolutionSigma/parentSigma
     if (resolutionSigmaOverParentSigma > 1.0d0) then
        hyperGeometricFactor=Hypergeometric_2F1([1.5d0,0.5d0-0.5d0*modifiedPressSchechterGamma1],[1.5d0-0.5d0&
-            &*modifiedPressSchechterGamma1],1.0d0/resolutionSigmaOverParentSigma**2)
+            &*modifiedPressSchechterGamma1],1.0d0/resolutionSigmaOverParentSigma**2,toleranceRelative=hypergeoTolerance)
        Modified_Press_Schechter_Subresolution_Fraction=sqrtTwoOverPi*(modificationG0Gamma2Factor/parentSigma) &
             &*(resolutionSigmaOverParentSigma**(modifiedPressSchechterGamma1-1.0d0))/(1.0d0-modifiedPressSchechterGamma1)&
             &*hyperGeometricFactor
@@ -528,19 +540,20 @@ contains
     return
   end function Modified_Press_Schechter_Subresolution_Fraction
 
-  function Branching_Probability_Integrand(childHaloMass,parameterPointer) bind(c)
+  function Branching_Probability_Integrand_Logarithmic(logChildHaloMass,parameterPointer) bind(c)
     !% Integrand for the branching probability.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(kind=c_double)        :: Branching_Probability_Integrand
-    real(kind=c_double), value :: childHaloMass
+    real(kind=c_double)        :: Branching_Probability_Integrand_Logarithmic
+    real(kind=c_double), value :: logChildHaloMass
     type(c_ptr        ), value :: parameterPointer
-    real(kind=c_double)        :: childAlpha                     , childSigma
+    real(kind=c_double)        :: childAlpha                     , childSigma, childHaloMass
 
+    childHaloMass=exp(logChildHaloMass)
     call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
-    Branching_Probability_Integrand=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
+    Branching_Probability_Integrand_Logarithmic=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)*childHaloMass
     return
-  end function Branching_Probability_Integrand
+  end function Branching_Probability_Integrand_Logarithmic
 
   double precision function Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
     !% Progenitor mass function from Press-Schechter. The constant factor of the parent halo
