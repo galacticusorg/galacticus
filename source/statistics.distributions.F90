@@ -56,11 +56,18 @@ module Statistics_Distributions
      !@     <arguments></arguments>
      !@     <description>Return a random deviate from the distribution.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>samplerReset</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Reset the sampler for the distribution.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure(distribution1DDensity   ), deferred :: density
      procedure(distribution1DCumulative), deferred :: cumulative
-     procedure                                     :: inverse    => distribution1DInverse
-     procedure                                     :: sample     => distribution1DSample
+     procedure                                     :: inverse      => distribution1DInverse
+     procedure                                     :: sample       => distribution1DSample
+     procedure                                     :: samplerReset => distribution1DSamplerReset
   end type distribution1D
   
   abstract interface
@@ -92,6 +99,7 @@ module Statistics_Distributions
   include 'statistics.distributions.Student-t.type.inc'
   include 'statistics.distributions.Gamma.type.inc'
   include 'statistics.distributions.Voight.type.inc'
+  include 'statistics.distributions.negative_exponential.type.inc'
 
 contains
 
@@ -225,6 +233,13 @@ contains
           call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"variance"),distributionVariance)
           newDistribution=distributionVoight(distributionScale,distributionMedian,sqrt(distributionVariance))
        end select
+    case ("negativeExponential")
+       allocate(distributionNegativeExponential :: newDistribution)
+       select type (newDistribution)
+       type is (distributionNegativeExponential)
+          call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"rate"),distributionRate)
+          newDistribution=distributionNegativeExponential(distributionRate)
+       end select
     case default
        call Galacticus_Error_Report('distributionNew','distribution type is unrecognized')
     end select
@@ -236,18 +251,29 @@ contains
     return
   end function distributionNew
 
-  double precision function distribution1DSample(self)
-    !% Sample from a 1D distribution.
+  subroutine distribution1DSamplerReset(self)
+    !% Reset the sampler for a 1D distribution.
     implicit none
     class(distribution1D), intent(inout) :: self
  
+    call self%randomNumberGenerator%initialize()
+    return
+  end subroutine distribution1DSamplerReset
+  
+  double precision function distribution1DSample(self,incrementSeed)
+    !% Sample from a 1D distribution.
+    implicit none
+    class  (distribution1D), intent(inout)           :: self
+    integer                , intent(in   ), optional :: incrementSeed
+ 
     ! Draw a random number uniformly from 0 to 1 and use the inverse of our self to get the
     ! corresponding random variate.
-    distribution1DSample=self%inverse(                                                          &
-         &                            self%randomNumberGenerator%sample(                        &
-         &                                                              ompThreadOffset=.true., &
-         &                                                              mpiRankOffset  =.true.  &
-         &                                                             )                        &
+    distribution1DSample=self%inverse(                                                                 &
+         &                            self%randomNumberGenerator%sample(                               &
+         &                                                              ompThreadOffset=.true.       , &
+         &                                                              mpiRankOffset  =.true.       , &
+         &                                                              incrementSeed  =incrementSeed  &
+         &                                                             )                               &
          &                           )
     return
   end function distribution1DSample
@@ -272,5 +298,6 @@ contains
   include 'statistics.distributions.Student-t.methods.inc'
   include 'statistics.distributions.Gamma.methods.inc'
   include 'statistics.distributions.Voight.methods.inc'
+  include 'statistics.distributions.negative_exponential.methods.inc'
 
 end module Statistics_Distributions
