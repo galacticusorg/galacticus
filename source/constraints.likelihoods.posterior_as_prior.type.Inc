@@ -20,7 +20,8 @@
   type, public, extends(likelihood) :: likelihoodPosteriorPrior
      private
      class           (likelihood      ), pointer                     :: wrappedLikelihoodFunction
-     integer                           , allocatable, dimension(:  ) :: neighborIndices
+     integer                           , allocatable, dimension(:  ) :: neighborIndices          , exclusions
+     logical                           , allocatable, dimension(:  ) :: included
      double precision                  , allocatable, dimension(:  ) :: neighborDistances        , rootVariance
      double precision                  , allocatable, dimension(:,:) :: states
      class           (nearestNeighbors), allocatable                 :: searcher
