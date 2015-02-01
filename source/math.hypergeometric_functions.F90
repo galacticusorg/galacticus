@@ -16,11 +16,13 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !: $(BUILDPATH)/pFq/pfq.new.o
+!: $(BUILDPATH)/gslSpecFuncApprox/hyperg_2F1.o
 
 !% Contains a module which implements hypergeometric functions.
 
 module Hypergeometric_Functions
   !% Implements hypergeometric functions.
+  use, intrinsic :: ISO_C_Binding
   use FGSL
   implicit none
   private
@@ -30,6 +32,15 @@ module Hypergeometric_Functions
      module procedure :: Hypergeometric_pFq_Real
      module procedure :: Hypergeometric_pFq_Complex
   end interface Hypergeometric_pFq
+
+  interface
+   integer(c_int) function gsl_sf_hyperg_2F1_approx_e(a,b,c,x,tol,result) bind(c,name='gsl_sf_hyperg_2F1_approx_e')
+       !% Template for a C function that calls {\normalfont \ttfamily flock()} to lock a file.
+     import
+     real(c_double     ), value :: a,b,c,x,tol
+     type(gsl_sf_result)        :: result
+     end function gsl_sf_hyperg_2F1_approx_e
+  end interface
 
   ! Error status.
   integer(fgsl_int) :: statusActual
@@ -46,14 +57,17 @@ contains
     return
   end function Hypergeometric_1F1
 
-  double precision function Hypergeometric_2F1(a,b,x,status,error)
+  double precision function Hypergeometric_2F1(a,b,x,status,error,toleranceRelative)
     !% Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
     use Galacticus_Error
     implicit none
-    double precision                , intent(in   )           :: a(2), b(1), x
+    double precision                , intent(in   )           :: a(2)             , b(1), &
+         &                                                       x
     integer         (fgsl_int      ), intent(  out), optional :: status
     double precision                , intent(  out), optional :: error
-    type            (fgsl_sf_result)                          :: gslResult
+    double precision                , intent(in   ), optional :: toleranceRelative
+    type            (fgsl_sf_result)                          :: fgslResult
+    type            ( gsl_sf_result)                          ::  gslResult
 
     ! Use our own error handler.
     if (present(status)) then
@@ -63,14 +77,26 @@ contains
     ! GSL only evaluates this function for |x|<1.
     if (abs(x) <= 1.0d0) then
        ! |x|<1 so simply call the GSL function to compute the function.
-       statusActual=FGSL_SF_Hyperg_2F1_E(a(1),a(2),b(1),x,gslResult)
-       Hypergeometric_2F1=gslResult%val
-       if (present(error)) error=gslResult%err
+       if (.not.present(toleranceRelative)) then
+          statusActual=FGSL_SF_Hyperg_2F1_E(a(1),a(2),b(1),x,fgslResult)
+          Hypergeometric_2F1=fgslResult%val
+          if (present(error)) error=fgslResult%err
+       else
+          statusActual=GSL_SF_Hyperg_2F1_Approx_E(a(1),a(2),b(1),x,toleranceRelative,gslResult)
+          Hypergeometric_2F1=gslResult%val
+          if (present(error)) error=gslResult%err
+       end if
     else if (x < -1.0d0) then
        ! x<-1 so use a Pfaff transformation to evaluate in terms of a hypergeometric function with |x|<1.
-       statusActual=FGSL_SF_Hyperg_2F1_E(a(2),b(1)-a(1),b(1),x/(x-1.0d0),gslResult)
-       Hypergeometric_2F1=gslResult%val/(1.0d0-x)**a(2)
-       if (present(error)) error=gslResult%err/(1.0d0-x)**a(2)
+       if (.not.present(toleranceRelative)) then
+          statusActual=FGSL_SF_Hyperg_2F1_E(a(2),b(1)-a(1),b(1),x/(x-1.0d0),fgslResult)
+          Hypergeometric_2F1=fgslResult%val/(1.0d0-x)**a(2)
+          if (present(error)) error=fgslResult%err/(1.0d0-x)**a(2)
+       else
+          statusActual=GSL_SF_Hyperg_2F1_Approx_E(a(2),b(1)-a(1),b(1),x/(x-1.0d0),toleranceRelative,gslResult)
+          Hypergeometric_2F1=gslResult%val/(1.0d0-x)**a(2)
+          if (present(error)) error=gslResult%err/(1.0d0-x)**a(2)
+       end if
     else
        call Galacticus_Error_Report('Hypergeometric_2F1','function cannot be evaluated for x>1')
     end if
