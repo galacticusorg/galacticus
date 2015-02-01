@@ -32,24 +32,32 @@ contains
     implicit none
     integer         , intent(in   )               :: k
     double precision, intent(in   ), dimension(:) :: p
-    double complex                                :: Cl, product, probability
-    integer                                       :: l , m
+    double precision, allocatable  , dimension(:) :: pActive
+    double complex                                :: Cl     , product, probability
+    integer                                       :: l      , m      , oneCount
 
+    ! If k if less than the number of unit event probabilities, or more than the number of non-zero event probabilities, then net
+    ! probability must be zero,
     Poisson_Binomial_Distribution=0.0d0
-    if (k < 0 .or. k > size(p)) return
+    if (k < count(p == 1.0d0) .or. k > size(p)-count(p == 0.0d0)) return
+    ! Find active event probabilities (i.e. those which are neither zero nor one), and count the number of unit event
+    ! probabilities.
+    pActive =pack (p,p > 0.0d0 .and. p <  1.0d0)
+    oneCount=count(                  p >= 1.0d0)
+    ! Compute the probability.
     probability=dcmplx(0.0d0,0.0d0)
     do l=0,size(p)
-       product=dcmplx(1.0d0,0.0d0)
-       Cl     =exp(dble(l)*2.0d0*Pi*dcmplx(0.0d0,1.0d0)/dble(1+size(p)))
-       do m=1,size(p)
-          product=product*(1.0d0+(Cl-1.0d0)*p(m))
+       Cl     =exp(dble(l)*2.0d0*Pi*dcmplx(0.0d0,1.0d0)/dble(1+size(p)))       
+       product=dcmplx(1.0d0,0.0d0)*(Cl**oneCount) ! Account for unit probability events contributions here.
+       do m=1,size(pActive)
+          product=product*(1.0d0+(Cl-1.0d0)*pActive(m))
        end do
        probability=probability+product*exp(-dble(l*k)*2.0d0*Pi*dcmplx(0.0d0,1.0d0)/dble(1+size(p)))
     end do
     Poisson_Binomial_Distribution=max(dreal(probability)/dble(1+size(p)),0.0d0)
     return
   end function Poisson_Binomial_Distribution
-
+  
   function Poisson_Binomial_Distribution_Jacobian(k,p)
     !% Computes the Jacobian of the Poisson binomial distribution with event probabilities {\normalfont \ttfamily p} at argument
     !% {\normalfont \ttfamily k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
@@ -57,19 +65,25 @@ contains
     implicit none
     integer         , intent(in   )                     :: k
     double precision, intent(in   ), dimension(     : ) :: p
+    double precision, allocatable  , dimension(     : ) :: pActive
     double precision               , dimension(size(p)) :: Poisson_Binomial_Distribution_Jacobian
     double complex                 , dimension(size(p)) :: probability
-    double complex                                      :: Cl, product
-    integer                                             :: l , m
+    double complex                                      :: Cl         , product
+    integer                                             :: l          , m      , oneCount
 
     Poisson_Binomial_Distribution_Jacobian=0.0d0
     if (k < 0 .or. k > size(p)) return
+    ! Find active event probabilities (i.e. those which are neither zero nor one), and count the number of unit event
+    ! probabilities.
+    pActive =pack (p,p > 0.0d0 .and. p <  1.0d0)
+    oneCount=count(                  p >= 1.0d0)
+    ! Compute Jacobian.
     probability=dcmplx(0.0d0,0.0d0)
     do l=0,size(p)
-       product=dcmplx(1.0d0,0.0d0)
        Cl     =exp(dble(l)*2.0d0*Pi*dcmplx(0.0d0,1.0d0)/dble(1+size(p)))
-       do m=1,size(p)
-          product=product*(1.0d0+(Cl-1.0d0)*p(m))
+       product=dcmplx(1.0d0,0.0d0)*(Cl**oneCount) ! Account for unit probability events contributions here.
+       do m=1,size(pActive)
+          product=product*(1.0d0+(Cl-1.0d0)*pActive(m))
        end do
        probability=probability+product*exp(-dble(l*k)*2.0d0*Pi*dcmplx(0.0d0,1.0d0)/dble(1+size(p)))*(Cl-1.0d0)/(1.0d0+(Cl-1.0d0)*p)
     end do
