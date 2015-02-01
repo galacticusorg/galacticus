@@ -191,6 +191,7 @@ contains
     ! Solve for the radius.
     activeNode           => thisNode
     darkMatterHaloScale_ => darkMatterHaloScale()
+    massRoot             =  0.0d0
     Galactic_Structure_Radius_Enclosing_Density=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(thisNode))
     return
   end function Galactic_Structure_Radius_Enclosing_Density
