@@ -109,8 +109,13 @@ contains
   subroutine Galacticus_Signal_Handler_SIGINT()
     !% Handle {\normalfont \ttfamily SIGINT} signals, by flushing all data and then aborting.
     !$ use OMP_Lib
+#ifdef USEMPI
+    use MPI
+#endif
     implicit none
-    integer :: error
+    integer            :: error   , mpiRank
+    character(len=128) :: hostName
+    logical            :: flag
 
     write (0,*) 'Galacticus was interrupted - will try to flush data before exiting.'
     !$ if (omp_in_parallel()) then
@@ -119,6 +124,17 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
     call Flush(0)
+#ifdef USEMPI
+    call MPI_Initialized(flag,error)
+    if (flag) then
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
+       write (0,*) " => Sleeping for 360s to allow for attachment of debugger"
+       call Flush(0)
+       call Sleep(360)
+    end if
+#endif
     call H5Close_F(error)
     call H5Close_C()
     call Semaphore_Post_On_Error()
@@ -129,9 +145,14 @@ contains
   subroutine Galacticus_Signal_Handler_SIGSEGV()
     !% Handle {\normalfont \ttfamily SIGSEGV} signals, by flushing all data and then aborting.
     !$ use OMP_Lib
+#ifdef USEMPI
+    use MPI
+#endif
     implicit none
-    integer :: error
-
+    integer            :: error   , mpiRank
+    character(len=128) :: hostName
+    logical            :: flag
+    
     write (0,*) 'Galacticus experienced a segfault - will try to flush data before exiting.'
     !$ if (omp_in_parallel()) then
     !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
@@ -139,6 +160,17 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
     call Flush(0)
+#ifdef USEMPI
+    call MPI_Initialized(flag,error)
+    if (flag) then
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
+       write (0,*) " => Sleeping for 360s to allow for attachment of debugger"
+       call Flush(0)
+       call Sleep(360)
+    end if
+#endif
     call H5Close_F(error)
     call H5Close_C()
     call Semaphore_Post_On_Error()
@@ -149,8 +181,13 @@ contains
   subroutine Galacticus_Signal_Handler_SIGFPE()
     !% Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
     !$ use OMP_Lib
+#ifdef USEMPI
+    use MPI
+#endif
     implicit none
-    integer :: error
+    integer            :: error   , mpiRank
+    character(len=128) :: hostName
+    logical            :: flag
 
     write (0,*) 'Galacticus experienced a floating point exception - will try to flush data before exiting.'
     !$ if (omp_in_parallel()) then
@@ -159,6 +196,17 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
     call Flush(0)
+#ifdef USEMPI
+    call MPI_Initialized(flag,error)
+    if (flag) then
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
+       write (0,*) " => Sleeping for 360s to allow for attachment of debugger"
+       call Flush(0)
+       call Sleep(360)
+    end if
+#endif
     call H5Close_F(error)
     call H5Close_C()
     call Semaphore_Post_On_Error()
@@ -168,7 +216,6 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGXCPU()
     !% Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
-    !$ use OMP_Lib
     implicit none
     integer :: error
 
@@ -184,11 +231,16 @@ contains
   subroutine Galacticus_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
     !% Handle errors from the GSL library, by flushing all data and then aborting.
     !$ use OMP_Lib
+#ifdef USEMPI
+    use MPI
+#endif
     use FGSL
     type     (c_ptr                         ), value :: file       , reason
     integer  (kind=c_int                    ), value :: errorNumber, line
     character(kind=FGSL_Char,len=FGSL_StrMax)        :: message
-    integer                                          :: error
+    integer                                          :: error     , mpiRank
+    character(len=128                       )        :: hostName
+    logical                                          :: flag
 
     if (abortOnErrorGSL) then
        message=FGSL_StrError(errorNumber)
@@ -201,7 +253,18 @@ contains
        !$    write (0,*) " => Error occurred in master thread"
        !$ end if
        call Flush(0)
-       call H5Close_F(error)
+#ifdef USEMPI
+       call MPI_Initialized(flag,error)
+       if (flag) then
+          call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+          call hostnm(hostName)
+          write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
+          write (0,*) " => Sleeping for 360s to allow for attachment of debugger"
+          call Flush(0)
+          call Sleep(360)
+       end if
+#endif
+      call H5Close_F(error)
        call H5Close_C()
        call Semaphore_Post_On_Error()
        call Abort()
