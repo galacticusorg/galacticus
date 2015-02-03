@@ -100,19 +100,27 @@ contains
     return
   end function Poisson_Binomial_Distribution_Mean
 
+  double precision function Poisson_Binomial_Distribution_Variance(p)
+    !% Computes the mean of a Poisson binomial distribution.
+    implicit none
+    double precision, intent(in   ), dimension(:) :: p
+
+    Poisson_Binomial_Distribution_Variance=sum(p*(1.0d0-p))
+    return
+  end function Poisson_Binomial_Distribution_Variance
+
   double precision function Poisson_Binomial_Distribution_Mean_Pairs(p)
     !% Computes the mean number of pairs expected from a Poisson binomial distribution with
     !% event probabilities {\normalfont \ttfamily p}. Assumes that pair order is significant, i.e. both $AB$ and
     !% $BA$ are counted.
     implicit none
     double precision, intent(in   ), dimension(:) :: p
-    integer                                       :: k
+    double precision                              :: mean, variance
 
-    Poisson_Binomial_Distribution_Mean_Pairs=0.0d0
-    if (size(p) < 2) return
-    do k=2,size(p)
-       Poisson_Binomial_Distribution_Mean_Pairs=Poisson_Binomial_Distribution_Mean_Pairs+dble(k*(k-1))*Poisson_Binomial_Distribution(k,p)
-    end do
+    ! Mean number of pairs can be found from the mean (mu) and variance (sigma^2): <k(k-1)> = sigma^2 + mu^2 - mu.
+    mean    =Poisson_Binomial_Distribution_Mean    (p)
+    variance=Poisson_Binomial_Distribution_Variance(p)
+    Poisson_Binomial_Distribution_Mean_Pairs=variance+mean**2-mean    
     return
   end function Poisson_Binomial_Distribution_Mean_Pairs
 
@@ -123,14 +131,8 @@ contains
     implicit none
     double precision, intent(in   ), dimension(     : ) :: p
     double precision               , dimension(size(p)) :: Poisson_Binomial_Distribution_Mean_Pairs_Jacobian
-    integer                                             :: k
 
-    Poisson_Binomial_Distribution_Mean_Pairs_Jacobian=0.0d0
-    if (size(p) < 2) return
-    do k=2,size(p)
-       Poisson_Binomial_Distribution_Mean_Pairs_Jacobian=+              Poisson_Binomial_Distribution_Mean_Pairs_Jacobian      &
-            &                                            +dble(k*(k-1))*Poisson_Binomial_Distribution_Jacobian           (k,p)
-    end do
+    Poisson_Binomial_Distribution_Mean_Pairs_Jacobian=2.0d0*(Poisson_Binomial_Distribution_Mean(p)-p)
     return
   end function Poisson_Binomial_Distribution_Mean_Pairs_Jacobian
 
