@@ -56,6 +56,7 @@ module Galacticus_Output_Analyses_LG_Satellite_Mass_Functions
   integer                   , allocatable, dimension(:,:               ) :: massFunctionCumulative               , massFunctionCumulativeHalo, &
        &                                                                    massFunctionSquaredCumulative
   integer                                , dimension(centralGalaxyCount) :: massFunctionHaloCount
+  double precision                       , dimension(centralGalaxyCount) :: massFunctionHaloRadius
   logical                                                                :: workArraysInitialized        =.false.
   logical                                , dimension(centralGalaxyCount) :: treeActive
   !$omp threadprivate(massFunctionCumulativeHalo,workArraysInitialized,treeActive)
@@ -104,7 +105,7 @@ contains
     integer                                                                   :: j                               , i
     character       (len=64                  )                                :: parameterName
     type            (rootFinder              )                                :: finder
-  
+
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
        !$omp critical(Galacticus_Output_Analysis_LG_Satellite_MF_Initialize)
@@ -189,6 +190,7 @@ contains
              call Alloc_Array(massFunctionSquaredCumulative,[massBinsCount,centralGalaxyCount])
              massBins=Make_Range(massMinimum,massMaximum,massBinsCount,rangeTypeLogarithmic)
              massFunctionHaloCount        =0
+             massFunctionHaloRadius       =0.0d0
              massFunctionCumulative       =0
              massFunctionSquaredCumulative=0
              ! Record that module is initialized.
@@ -228,7 +230,13 @@ contains
           ! Check if host halo mass agrees with Milky Way halo mass.
           if (Values_Differ(hostBasic%mass(),analysisLGSatelliteHaloMass(i),relTol=1.0d-3)) cycle
           ! Proceed for satellite galaxies.
-          treeActive(i)=.true.
+          if (.not.treeActive(i)) then
+             darkMatterHaloScale_      => darkMatterHaloScale                (    )
+             !$omp atomic
+             massFunctionHaloRadius(i) =  massFunctionHaloRadius             (   i) &
+                  &                      +darkMatterHaloScale_  %virialRadius(host)
+             treeActive            (i) =  .true.
+          end if
           if (thisNode%isSatellite()) then
              ! Get the galactic mass.
              mass=                                                                                                                       &
@@ -246,33 +254,33 @@ contains
     return
 
   contains
-    
-  double precision function MW_Satellite_Mass_Function_Enclosed_Mass(haloMass)
-    !% Root finding function used to set the host halo mass for Local Group satellite mass function calculations.
-    use Galacticus_Calculations_Resets
-    implicit none
-    double precision, intent(in   ) :: haloMass
 
-    call basic%massSet(haloMass)
-    call Galacticus_Calculations_Reset(node)
-    MW_Satellite_Mass_Function_Enclosed_Mass=                                                             &
-         & +Galactic_Structure_Enclosed_Mass(node,analysisLGSatelliteHaloRadius(i),massType=massTypeDark) &
-         & *  cosmologyParametersModel%OmegaMatter()                                                      &
-         & /(                                                                                             &
-         &   +cosmologyParametersModel%OmegaMatter()                                                      &
-         &   -cosmologyParametersModel%OmegaBaryon()                                                      &
-         &  )                                                                                             &
-         & -analysisLGSatelliteHaloMass(i)
-    return
-  end function MW_Satellite_Mass_Function_Enclosed_Mass
+    double precision function MW_Satellite_Mass_Function_Enclosed_Mass(haloMass)
+      !% Root finding function used to set the host halo mass for Local Group satellite mass function calculations.
+      use Galacticus_Calculations_Resets
+      implicit none
+      double precision, intent(in   ) :: haloMass
 
-end subroutine Galacticus_Output_Analysis_LG_Satellite_Mass_Functions
+      call basic%massSet(haloMass)
+      call Galacticus_Calculations_Reset(node)
+      MW_Satellite_Mass_Function_Enclosed_Mass=                                                             &
+           & +Galactic_Structure_Enclosed_Mass(node,analysisLGSatelliteHaloRadius(i),massType=massTypeDark) &
+           & *  cosmologyParametersModel%OmegaMatter()                                                      &
+           & /(                                                                                             &
+           &   +cosmologyParametersModel%OmegaMatter()                                                      &
+           &   -cosmologyParametersModel%OmegaBaryon()                                                      &
+           &  )                                                                                             &
+           & -analysisLGSatelliteHaloMass(i)
+      return
+    end function MW_Satellite_Mass_Function_Enclosed_Mass
+
+  end subroutine Galacticus_Output_Analysis_LG_Satellite_Mass_Functions
 
   subroutine MW_Satellite_Mass_Function_Accumulate_Halo(localGroupCentral,massFunctionCumulativeHalo)
     !% Accumulate the cumulative mass function for a single halo to the global arrays.
     implicit none
-    integer, intent(in   )                 :: localGroupCentral
-    integer, intent(inout), dimension(:,:) :: massFunctionCumulativeHalo
+    integer         , intent(in   )                 :: localGroupCentral
+    integer         , intent(inout), dimension(:,:) :: massFunctionCumulativeHalo
 
     !$omp critical(MW_Satellite_Mass_Function_Accumulate)
     massFunctionCumulative       (:,localGroupCentral)=massFunctionCumulative       (:,localGroupCentral)+massFunctionCumulativeHalo(:,localGroupCentral)
@@ -304,20 +312,24 @@ end subroutine Galacticus_Output_Analysis_LG_Satellite_Mass_Functions
        if (.not.analysisActive(i)) cycle   
        ! Compute the mean mass function and its variance.
        if (massFunctionHaloCount(i) > 0) then
-          massFunctionCumulativeMean        =  dble(massFunctionCumulative       (:,i))/dble(massFunctionHaloCount(i))
-          massFunctionCumulativeMeanVariance=( dble(massFunctionSquaredCumulative(:,i))/dble(massFunctionHaloCount(i)) &
-               &                              -massFunctionCumulativeMean**2                                           &
-               &                             )                                                                         &
-               &                             *dble(massFunctionHaloCount(i)  )                                         &
-               &                             /dble(massFunctionHaloCount(i)-1)
+          massFunctionCumulativeMean           =  dble(massFunctionCumulative       (:,i))/dble(massFunctionHaloCount(i))
+          massFunctionCumulativeMeanVariance   =( dble(massFunctionSquaredCumulative(:,i))/dble(massFunctionHaloCount(i)) &
+               &                                 -massFunctionCumulativeMean**2                                           &
+               &                                )                                                                         &
+               &                                *dble(massFunctionHaloCount (i)  )                                        &
+               &                                /dble(massFunctionHaloCount (i)-1)
+          massFunctionHaloRadius            (i)=+     massFunctionHaloRadius(i)                                           &
+               &                                /dble(massFunctionHaloCount (i)  )
        else
-          massFunctionCumulativeMean        =0.0d0
-          massFunctionCumulativeMeanVariance=0.0d0
+          massFunctionCumulativeMean           =0.0d0
+          massFunctionCumulativeMeanVariance   =0.0d0
+          massFunctionHaloRadius            (i)=0.0d0
        end if
        ! Output the mass function.
        !$omp critical(HDF5_Access)
        analysisGroup    =galacticusOutputFile%openGroup('analysis'                                                              ,'Model analysis'                     )
        massFunctionGroup=analysisGroup       %openGroup(trim(String_Lower_Case_First(localGroupCentralLabel(i)))//'MassFunction','Stellar mass function of satellites')
+       call massFunctionGroup%writeAttribute(massFunctionHaloRadius(i),'haloRadius')
        call massFunctionGroup%writeDataset  (massFunctionCumulativeMean        ,'massFunctionCumulative'        ,'Cumulative mass function'                                     )
        call massFunctionGroup%writeDataset  (massFunctionCumulativeMeanVariance,'massFunctionCumulativeVariance','Cumulative mass function variance'                            )
        call massFunctionGroup%writeDataset  (massBins                          ,'massStellar'                   ,'Stellar mass'                     ,datasetReturned=thisDataset)
