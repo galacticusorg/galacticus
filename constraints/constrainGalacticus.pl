@@ -258,7 +258,10 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 		    my $treeCommand;
 		    $treeCommand .= "ulimit -t ".$cpuLimit."; "
 			if ( defined($cpuLimit) );
-		    $treeCommand .= "ulimit -c unlimited; export GFORTRAN_ERROR_DUMPCORE=YES; ulimit -a; date; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
+		    my $coredump = "YES";
+		    $coredump = $config->{'likelihood'}->{'coredump'}
+		       if ( exists($config->{'likelihood'}->{'coredump'}) );
+		    $treeCommand .= "ulimit -c unlimited; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
 		    my $treeLog = $config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".log";
 		    SystemRedirect::tofile($treeCommand,$treeLog);
 		    unless ( $? == 0 ) {
