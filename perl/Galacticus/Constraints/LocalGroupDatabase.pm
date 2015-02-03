@@ -21,9 +21,9 @@ sub Select {
 	unless ( exists($options{'excludeCentral'}) );
     # Encode memberships.
     $options{'membership'} = "G"
-	if ( $options{'membership'} eq "Milky Way" || $options{'membership'} eq "MilkyWay" );
+	if ( exists($options{'membership'}) && ( $options{'membership'} eq "Milky Way" || $options{'membership'} eq "MilkyWay" ) );
     $options{'membership'} = "A"
-	if ( $options{'membership'} eq "M31"       );
+	if ( exists($options{'membership'}) &&   $options{'membership'} eq "M31"                                                 );
     # Parse the database.
     my $xml        = new XML::Simple();
     my $localGroup = $xml->XMLin("data/observations/localGroup/localGroupSatellites.xml", KeyAttr => []);
