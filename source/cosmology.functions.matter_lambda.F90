@@ -511,7 +511,7 @@ contains
        if (present(expansionFactor)) then
           call Galacticus_Error_Report('matterLambdaHubbleParameterEpochal','only one of time or expansion factor can be specified')
        else
-          expansionFactorActual=matterLambdaSelfGlobal%expansionFactor(time)
+          expansionFactorActual=self%expansionFactor(time)
        end if
     else
        if (present(expansionFactor)) then
