@@ -359,6 +359,8 @@ foreach my $constraint ( @constraints ) {
 	$analysisCommand .= " --resultFile ".$resultFile;
 	push(@temporaryFiles,$resultFile);
     }
+    $analysisCommand .= " ".$constraintDefinition->{'analysisArguments'}
+        if ( exists($constraintDefinition->{'analysisArguments'}) );
     system($analysisCommand);
     unless ( $? == 0 ) {
 	# Issue a failure.
