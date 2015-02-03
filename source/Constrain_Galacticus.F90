@@ -34,6 +34,8 @@ program Galacticus_Constrain
 
   ! Initialize MPI.
   call mpiInitialize()
+  ! Establish error handlers.
+  call Galacticus_Error_Handler_Register() 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Constrain_Galacticus.size')
   ! Get the name of the parameter file from the first command line argument.
@@ -64,4 +66,5 @@ program Galacticus_Constrain
   call Input_Parameters_File_Close()
   ! Finalize MPI.
   call mpiFinalize()
+
 end program Galacticus_Constrain
