@@ -180,7 +180,7 @@ double precision function likelihoodPosteriorPriorEvaluate(self,simulationState,
   class           (convergence             ), intent(inout)               :: simulationConvergence
   double precision                          , intent(in   )               :: temperature          , logLikelihoodCurrent, &
        &                                                                     logPriorCurrent      , logPriorProposed
-  double precision                          , allocatable  , dimension(:) :: stateVector
+  double precision                          , allocatable  , dimension(:) :: stateVector          , stateVectorPacked
   double precision                                                        :: kernelScale          , weight
   integer                                                                 :: i
   
@@ -189,9 +189,9 @@ double precision function likelihoodPosteriorPriorEvaluate(self,simulationState,
   ! Get the simulation state.
   stateVector=simulationState%get()
   ! Scale the state vector.
-  stateVector=stateVector/self%rootVariance
+  stateVectorPacked=pack(stateVector,self%included)/self%rootVariance
   ! Search for nearest neighbors.
-  call self%searcher%search(pack(stateVector,self%included),self%neighborCount,self%tolerance,self%neighborIndices,self%neighborDistances)
+  call self%searcher%search(stateVectorPacked,self%neighborCount,self%tolerance,self%neighborIndices,self%neighborDistances)
   ! Evaluate kernel density estimate of log-prior.
   kernelScale=self%neighborDistances(self%neighborCount)
   weight=0.0d0
