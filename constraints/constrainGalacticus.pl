@@ -42,6 +42,17 @@ if ( UNIVERSAL::isa($config->{'parameters'}->{'parameter'},"ARRAY") ) {
     push(@parameters,$config->{'parameters'}->{'parameter'});
 }
 
+# Obtain a lock if we are to run models sequentially.
+my $runSequential = "no";
+$runSequential = $config->{'likelihood'}->{'sequentialModels'}
+    if ( exists($config->{'likelihood'}->{'sequentialModels'}) );
+my $modelLockFile = "/dev/shm/glcLock";
+my $modelLock = new File::NFSLock {
+    file               => $modelLockFile,
+    lock_type          => LOCK_EX
+}
+if ( $runSequential eq "yes" );
+
 # Count active parameters.
 my $parameterCount = 0;
 for(my $i=0;$i<scalar(@parameters);++$i) {
@@ -159,10 +170,6 @@ my $compilationFile  = $config->{'likelihood'}->{'compilation'  };
 my $projectDirectory = $config->{'likelihood'}->{'workDirectory'};
 my $galacticusFile   = "constrainGalacticus_".$mpiRank.".hdf5";
 
-# Remove any old semaphore file.
-unlink("/dev/shm/sem.galacticus")
-    if ( -e "/dev/shm/sem.galacticus" );
-
 # Bad log likelihood (highly improbable) which we will return in failure conditions.
 my $badLogLikelihood = -1.0e30;
 
@@ -172,6 +179,13 @@ my @temporaryFiles;
 # Get a hash of the parameter values.
 (my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$baseParameters);
 my @constraints = @{$constraintsRef};
+
+# Remove any old semaphore file.
+my $semaphoreName = "galacticus";
+$semaphoreName = $parameters->{'parameter'}->{'treeEvolveThreadLockName'}->{'value'}
+    if ( exists($parameters->{'parameter'}->{'treeEvolveThreadLockName'}) );
+unlink("/dev/shm/sem.".$semaphoreName)
+    if ( -e "/dev/shm/sem.".$semaphoreName );
 
 # Set an output file name.
 $parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'} = $scratchDirectory."/".$galacticusFile;
@@ -260,8 +274,11 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 			if ( defined($cpuLimit) );
 		    my $coredump = "YES";
 		    $coredump = $config->{'likelihood'}->{'coredump'}
-		       if ( exists($config->{'likelihood'}->{'coredump'}) );
-		    $treeCommand .= "ulimit -c unlimited; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
+		        if ( exists($config->{'likelihood'}->{'coredump'}) );
+		    my $coreDumpSize = "unlimited";
+		    $coreDumpSize = $config->{'likelihood'}->{'coredumpsize'}
+		        if ( exists($config->{'likelihood'}->{'coredumpsize'}) );
+		    $treeCommand .= "ulimit -c ".$coreDumpSize."; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
 		    my $treeLog = $config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".log";
 		    SystemRedirect::tofile($treeCommand,$treeLog);
 		    unless ( $? == 0 ) {
@@ -310,7 +327,13 @@ $glcCommand .= "export OMP_NUM_THREADS=".$config->{'likelihood'}->{'threads'}.";
     if ( exists($config->{'likelihood'}->{'threads'}) );
 $glcCommand .= "export ".$_."; "
     foreach ( &ExtraUtils::as_array($config->{'likelihood'}->{'environment'}) );
-$glcCommand .= "ulimit -c unlimited; export GFORTRAN_ERROR_DUMPCORE=YES; ulimit -a; date; ./Galacticus.exe ".$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml";
+my $coredump = "YES";
+$coredump = $config->{'likelihood'}->{'coredump'}
+    if ( exists($config->{'likelihood'}->{'coredump'}) );
+my $coreDumpSize = "unlimited";
+$coreDumpSize = $config->{'likelihood'}->{'coredumpsize'}
+    if ( exists($config->{'likelihood'}->{'coredumpsize'}) );
+$glcCommand .= "ulimit -c ".$coreDumpSize."; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date; ./Galacticus.exe ".$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml";
 my $logFile = $scratchDirectory."/constrainGalacticusParameters".$mpiRank.".log";
 push(@temporaryFiles,$logFile);
 # my $timeGalacticusStart = [gettimeofday];
@@ -336,6 +359,10 @@ unless ( $? == 0 ) {
 }
 # my $timeGalacticusElapsed = tv_interval($timeGalacticusStart,[gettimeofday]);
 # print "%% timing : Galacticus : ".$timeGalacticusElapsed."\n";
+
+# Free model lock if necessary.
+$modelLock->unlock()
+    if ( $runSequential eq "yes" );
 
 # Perform processing of the model, accumulating likelihood as we go.
 my $logLikelihood = 0.0;

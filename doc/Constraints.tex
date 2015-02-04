@@ -776,10 +776,12 @@ The configuration file specifies the details of the constraint simulation to be 
     <threads>4</threads>
     <saveState>no</saveState>
     <cpulimit>1200</cpulimit>
+    <coredump>NO</coredump>
+    <coredumpsize>0</coredumpsize>
+    <sequentialModels>no</sequentialModels>
     <memoryLimit>2gb</memoryLimit>
     <environment>LD_LIBRARY_PATH=/opt/gcc-trunk/lib:/opt/gcc-trunk/lib64:/usr/local/upstream/lib:$LD_LIBRARY_PATH</environment>
     <environment>PATH=/opt/gcc-trunk/bin:$PATH</environment>
-    <environment>GFORTRAN_ERROR_DUMPCORE=NO</environment>
   </likelihood>
 
   <convergence>
@@ -932,10 +934,12 @@ The entries have the following meanings:
 \item[{\normalfont \ttfamily memoryLimit}] A memory limit to be passed to PBS.
 \item[{\normalfont \ttfamily randomize}] If {\normalfont \ttfamily yes} then each model evaluation will be performed with a different random number seed. Otherwise, the same seed is used in all cases. Experiment shows that changing the random number seed between evaluations can seriously limit the ability of \gls{mcmc} algorithms to converge.
 \item[{\normalfont \ttfamily threads}] The number of parallel OpenMP threads to use for each \glc\ model. It is recommended that this be set to the number of available cores on each node, and semaphoring (see \S{sec:Semaphores}) be used. In this way, each copy of \glc\ on a node will share resources, but as one instance finishes, the others will be able to make use of the freed resources.
+\item[{\normalfont \ttfamily coredump}] If present, this value will be assigned to the environment variable {\normalfont \ttfamily GFORTAN\_ERROR\_DUMPCORE} to allow core dumps on error conditions to be switched on or off.
+\item[{\normalfont \ttfamily coredumpsize}] If present, limit the size of core dumps to this value (a value of {\normalfont \ttfamily unlimited} allows for unlimited size core dumps.
+\item[{\normalfont \ttfamily sequentialModels}] If set to {\normalfont \ttfamily yes} the \glc\ models are run sequentially on each node, rather than all at once.  
 \item[{\normalfont \ttfamily saveState}] If {\normalfont \ttfamily yes} then \glc\ will save its internal state prior to beginning evolution of each merger tree. This is intended for debugging purposes and so should normally be set to {\normalfont \ttfamily no}.
 \item[{\normalfont \ttfamily threads}] The total number of threads (i.e. parallel chains) to use.
 \item[{\normalfont \ttfamily environment}] One of more such element can appear. Each specifies the value of an environment variable to be set prior to launching the \glc\ model.
-\item[{\normalfont \ttfamily checkpoint}] If present, \gls{bie} will be instructed to checkpoint its calculations. The interval (in number of steps) between checkpoints is specified by the {\normalfont \ttfamily interval} sub-element. If the {\normalfont \ttfamily autoRestart} sub-element is set to {\normalfont \ttfamily true} then a second PBS script will be submitted which will restart the calculation once the original job finishes. This second script will submit a further script to take over once it finishes and so on. This can be useful if your PBS queue has a time limit and you want to keep restarting the calculation until it is done. Use with caution however, some systems forbid automated restarts.
 \item[{\normalfont \ttfamily useFixedTrees}] If set to {\normalfont \ttfamily yes}, then a fixed set of merger trees are used for all model evaluations. This fixed set is generated automatically as needed\footnote{If the temperature is being varied the number of trees per decade of halo mass changes throughout the simulation. In this case, a new set of trees is generated for each distinct value of the numbers of trees per decade.}, using the base parameters.
 \item[{\normalfont \ttfamily fixedTreesInScratch}] If set to {\normalfont \ttfamily yes}, any fixed set of merger trees generated will be stored in the scratch directory, otherwise they will be stored in the work directory. (Storing in scratch can often be faster, particularly if {\normalfont \ttfamily /dev/shm} is used as scratch, but for large sets of trees the available scratch storage space may be insufficient.)
 \end{description}
