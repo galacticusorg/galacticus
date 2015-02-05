@@ -105,11 +105,11 @@ contains
     position                  =  thisSatellite%position                 ()
     velocity                  =  thisSatellite%velocity                 ()
     tidalTensorPathIntegrated =  thisSatellite%tidalTensorPathIntegrated()
-    radius                    =  Vector_Magnitude                (         position                          )
-    speed                     =  Vector_Magnitude                (         velocity                          )
-    parentDensity             =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian)
-    parentEnclosedMass        =  Galactic_Structure_Enclosed_Mass(hostNode,radius                            )
-    positionTensor            =  Vector_Self_Outer_Product       (         position                          )
+    radius                    =  Vector_Magnitude                (         position                                            )
+    speed                     =  Vector_Magnitude                (         velocity                                            )
+    parentDensity             =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian                  )
+    parentEnclosedMass        =  Galactic_Structure_Enclosed_Mass(hostNode,radius                                              )
+    positionTensor            =  Vector_Outer_Product            (         position                          ,symmetrize=.true.)
     ! Find the gravitational tidal tensor.
     tidalTensor=                                                                                          &
          & -(gravitationalConstantGalacticus*parentEnclosedMass         /radius**3)*tensorIdentityR2D3Sym &
