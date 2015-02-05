@@ -381,7 +381,7 @@ contains
              call thisDiskComponent%  abundancesStellarSet(         zeroAbundances)
              call thisDiskComponent%luminositiesStellarSet(zeroStellarLuminosities)
           else
-             specificAngularMomentum=thisDiskComponent%angularMomentum()/diskMass
+             specificAngularMomentum=max(0.0d0,thisDiskComponent%angularMomentum()/diskMass)
           end if
 
           ! Reset the gas, abundances and angular momentum of the disk.
@@ -402,20 +402,20 @@ contains
                &  ) then
              call thisDiskComponent%angularMomentumSet(0.0d0)
           else if (.not.diskNegativeAngularMomentumAllowed) then
-             if  (                                             &
-               &    abs(thisDiskComponent%angularMomentum())   &
-               &   /(                                          &
-               &        thisDiskComponent%massStellar    ()    &
-               &     +  thisDiskComponent%massGas        ()    &
-               &    )                                          &
-               &  <                                            &
-               &    angularMomentumTolerance                   &
-               &   *darkMatterHaloScale_%virialRadius  (thisnode) &
-               &   *darkMatterHaloScale_%virialVelocity(thisnode) &
-               &   *thisSpin%spin()                            &
-               & ) then
+             if  (                                                   &
+                  &    abs(thisDiskComponent%angularMomentum())      &
+                  &   /(                                             &
+                  &        thisDiskComponent%massStellar    ()       &
+                  &     +  thisDiskComponent%massGas        ()       &
+                  &    )                                             &
+                  &  <                                               &
+                  &    angularMomentumTolerance                      &
+                  &   *darkMatterHaloScale_%virialRadius  (thisNode) &
+                  &   *darkMatterHaloScale_%virialVelocity(thisNode) &
+                  &   *thisSpin            %spin          (        ) &
+                  & ) then
                 call thisDiskComponent%angularMomentumSet(0.0d0)
-           else
+             else
                 message='negative angular momentum in disk with positive mass'
                 write (valueString,'(e12.6)') thisDiskComponent%angularMomentum()
                 message=message//char(10)//' -> angular momentum       = '//trim(valueString)
