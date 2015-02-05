@@ -43,7 +43,7 @@ my $outputDir;
 my $outputFile;
 if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo;
-    $outputDir = ".";
+    ($outputDir = $outputTo) =~ s/\/[^\/]*$//;
 } else {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/Disk_Scalelengths.pdf";
