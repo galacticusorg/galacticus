@@ -25,7 +25,8 @@ module Node_Component_Black_Hole_Standard
   public :: Node_Component_Black_Hole_Standard_Rate_Compute     , Node_Component_Black_Hole_Standard_Scale_Set        , &
        &    Node_Component_Black_Hole_Standard_Satellite_Merging, Node_Component_Black_Hole_Standard_Output_Properties, &
        &    Node_Component_Black_Hole_Standard_Output_Names     , Node_Component_Black_Hole_Standard_Output_Count     , &
-       &    Node_Component_Black_Hole_Standard_Output           , Node_Component_Black_Hole_Standard_Initialize
+       &    Node_Component_Black_Hole_Standard_Output           , Node_Component_Black_Hole_Standard_Initialize       , &
+       &    Node_Component_Black_Hole_Standard_Post_Evolve
 
   !# <component>
   !#  <class>blackHole</class>
@@ -400,7 +401,7 @@ contains
           call thisSpheroidComponent %massGasSinkRate(-accretionRateSpheroid                             )
           ! Remove the accreted mass from the hot halo component.
           call thisHotHaloComponent  %   massSinkRate(-accretionRateHotHalo ,interrupt,interruptProcedure)
-          ! Set spin-up rate due to accretion.
+          ! Set spin-up rate due to accretion.         
           if (restMassAccretionRate > 0.0d0) call thisBlackHoleComponent%spinRate(Black_Hole_Spin_Up_Rate(thisBlackHoleComponent,restMassAccretionRate))
           ! Add heating to the hot halo component.
           if (blackHoleHeatsHotHalo) then
@@ -1339,4 +1340,33 @@ contains
     return
   end function Node_Component_Black_Hole_Standard_Radiative_Efficiency
 
+  !# <postEvolveTask>
+  !# <unitName>Node_Component_Black_Hole_Standard_Post_Evolve</unitName>
+  !# </postEvolveTask>
+  subroutine Node_Component_Black_Hole_Standard_Post_Evolve(node)
+    !% Keep black hole spin in physical range.
+    implicit none
+    type            (treeNode              ), intent(inout), pointer :: node
+    class           (nodeComponentBlackHole)               , pointer :: blackHole
+    double precision                        , parameter              :: spinMaximum=0.9999d0
+    integer                                                          :: i                   , instanceCount
+    double precision                                                 :: spin
+    
+    ! Check if the standard component is active.
+    if (defaultBlackHoleComponent%standardIsActive()) then
+       ! Get a count of the number of black holes associated with this node.
+       instanceCount=node%blackHoleCount()
+       if (instanceCount > 0) then
+          ! Iterate over instances.
+          do i=1,instanceCount
+             ! Get the black hole component.
+             blackHole => node%blackHole(instance=i)
+             spin      =  max(min(blackHole%spin(),spinMaximum),0.0d0)
+             call blackHole%spinSet(spin)
+          end do
+       end if
+    end if
+    return
+  end subroutine Node_Component_Black_Hole_Standard_Post_Evolve
+    
 end module Node_Component_Black_Hole_Standard
