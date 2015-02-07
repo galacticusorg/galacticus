@@ -79,7 +79,7 @@ module Constraints_State
      !@   <objectMethod>
      !@     <method>restore</method>
      !@     <type>\void</type>
-     !@     <arguments>stateFile</arguments>
+     !@     <arguments>\doubleone\ stateVector\argin, \logicalzero\ first\argin</arguments>
      !@     <description>Restore the state object from a chain file.</description>
      !@   </objectMethod>
      !@ </objectMethods>
@@ -137,10 +137,11 @@ module Constraints_State
   end interface
 
   abstract interface
-     subroutine stateRestore(self,stateFileRoot)
+     subroutine stateRestore(self,stateVector,first)
        import :: state
-       class    (state), intent(inout) :: self
-       character(len=*), intent(in   ) :: stateFileRoot
+       class           (state), intent(inout)               :: self
+       double precision       , intent(in   ), dimension(:) :: stateVector
+       logical                , intent(in   )               :: first
      end subroutine stateRestore
   end interface
 
