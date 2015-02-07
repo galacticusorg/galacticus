@@ -120,47 +120,29 @@ subroutine stateSimpleReset(self)
   return
 end subroutine stateSimpleReset
 
-subroutine stateSimpleRestore(self,stateFileRoot)
-  !% Restore the state object from file.
+subroutine stateSimpleRestore(self,stateVector,first)
+  !% Restore the state object.
   use MPI_Utilities
   use ISO_Varying_String
+  use Galacticus_Error
   implicit none
-  class           (stateSimple   ), intent(inout)               :: self
-  character       (len=*         ), intent(in   )               :: stateFileRoot
-  double precision                , allocatable  , dimension(:) :: stateVector  , stateVectorPrevious
-  integer                                                       :: mpiRank      , stateCount         , &
-       &                                                           logFileUnit  , ioStatus
-  double precision                                              :: time         , logPosterior
-  logical                                                       :: first
-  type            (varying_string)                              :: logFileName
+  class           (stateSimple), intent(inout)               :: self
+  double precision             , intent(in   ), dimension(:) :: stateVector
+  logical                      , intent(in   )               :: first
+  integer                                                    :: i
 
-  ! Reset.
-  call self%reset()
-  ! Allocate the state vector.
-  allocate(stateVector        (self%parameterCount))
-  allocate(stateVectorPrevious(self%parameterCount))
-  ! Read state from the log file.
-  logFileName=stateFileRoot//'_'//mpiSelf%rankLabel()//'.log'
-  open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
-  ioStatus=0
-  first=.true.
-  do while (ioStatus == 0)
-     stateVectorPrevious=stateVector
-     read (logFileUnit,*,iostat=ioStatus) stateCount  , &
-          &               mpiRank     , &
-          &               time        , &
-          &               logPosterior, &
-          &               stateVector
-     ! Increment state count.
-     self%stepCount=self%stepCount+1
-     ! Increment the accepted count.
-     if (.not.first.and.any(stateVector /= stateVectorPrevious)) self%accepted=self%accepted+1
-     ! Record that we've read the first record.
-     first=.false.
-  end do
-  close(logFileUnit)
-  ! Deallocate the state vector.
-  deallocate(stateVector        )
-  deallocate(stateVectorPrevious)
+  ! On first restore state, reset.
+  if (first) call self%reset()
+  ! Increment state count.
+  self%stepCount=self%stepCount+1
+  ! Increment the accepted count.
+  if (first.or.any(stateVector /= self%current)) then
+     i=mod(self%stepCount,size(self%accepted))+1
+     self%accepted(i)=1
+  else
+     self%accepted(i)=0
+  end if
+  ! Update the state.
+  self%current=stateVector
   return
 end subroutine stateSimpleRestore

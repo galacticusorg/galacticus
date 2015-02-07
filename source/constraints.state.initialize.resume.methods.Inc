@@ -43,27 +43,33 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
        &                                                                   logFileUnit    , ioStatus    , &
        &                                                                   i
   double precision                                                      :: time           , logPosterior
+  logical                                                               :: converged      , first
 
-  ! Restore the state object.
-  call simulationState%restore(char(self%logFileRoot))
   ! Allocate the state vector.
   allocate(stateVector(simulationState%dimension()))
   ! Read state from the log file.
   logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
   open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
   ioStatus=0
+  first   =.true.
   do while (ioStatus == 0)
      read (logFileUnit,*,iostat=ioStatus) stateCount  , &
           &               mpiRank     , &
           &               time        , &
+          &               converged   , &
           &               logPosterior, &
           &               stateVector     
+     if (ioStatus == 0) then
+        ! Map the state.
+        do i=1,size(stateVector)
+           stateVector(i)=parameterMappings(i)%thisMapping%map(stateVector(i))
+        end do
+        ! Restore the state object.
+        call simulationState%restore(stateVector,first)
+        first=.false.
+     end if
   end do
   close(logFileUnit)
-  ! Map the state.
-  do i=1,size(stateVector)
-     stateVector(i)=parameterMappings(i)%thisMapping%map(stateVector(i))
-  end do
   ! Set the simulation state.
   call simulationState%update(stateVector,.false.,.false.)
   ! Deallocate the state vector.
