@@ -25,19 +25,25 @@ module Merger_Trees_Evolve_Node
   use FODEIV2
   private
   public :: Tree_Node_Evolve, Tree_Node_Promote, Events_Node_Merger, Tree_Node_Is_Accurate
-
+  
+  ! Variables used in the ODE solver.
+  type            (fodeiv2_driver)                            :: ode2Driver
+  type            (fodeiv2_system)                            :: ode2System
+  logical                                                     :: odeReset
+  !$omp threadprivate(ode2System,ode2Driver,odeReset)
+  
   ! Flag to indicate if the node evolver method has been initialized.
-  logical                                     :: evolverInitialized       =.false.
+  logical                                                     :: evolverInitialized       =.false.
 
   ! Parameters controlling the accuracy of ODE solving.
-  double precision                            :: odeToleranceAbsolute             , odeToleranceRelative
+  double precision                                            :: odeToleranceAbsolute             , odeToleranceRelative
 
   ! Arrays that point to node properties and their derivatives.
-  integer                                     :: nProperties                      , nPropertiesMax      =0
-  double precision, allocatable, dimension(:) :: propertyScales                   , propertyValues
+  integer                                                     :: nProperties                      , nPropertiesMax      =0
+  double precision                , allocatable, dimension(:) :: propertyScales                   , propertyValues
   !$omp threadprivate(nPropertiesMax,nProperties,propertyValues,propertyScales)
 #ifdef PROFILE
-  logical :: profileOdeEvolver
+  logical                                                     :: profileOdeEvolver
 #endif
 
   ! Module global pointer to the node being processed.
@@ -170,6 +176,9 @@ contains
     !# <include directive="scaleSetTask" type="moduleUse">
     include 'objects.tree_node.set_scale.modules.inc'
     !# </include>
+    !# <include directive="analyticSolverTask" type="moduleUse">
+    include 'objects.tree_node.analytic_solver_task.modules.inc'
+    !# </include>
     implicit none
     class           (mergerTree                  )      , intent(inout)          :: thisTree
     type            (treeNode                    )      , intent(inout), pointer :: thisNode
@@ -179,12 +188,8 @@ contains
     class           (nodeComponentBasic          )                     , pointer :: basicComponent
     integer                                       , save                         :: nPropertiesPrevious=-1
     !$omp threadprivate(nPropertiesPrevious)
+    logical                                                                      :: solvedAnalytically
     double precision                                                             :: startTimeThisNode
-    ! Variables used in the ODE solver.
-    type            (fodeiv2_system              ), save                         :: ode2System
-    type            (fodeiv2_driver              ), save                         :: ode2Driver
-    logical                                       , save                         :: odeReset
-    !$omp threadprivate(ode2System,ode2Driver,odeReset)
     type            (c_ptr                       )                               :: parameterPointer
 #ifdef PROFILE
     type(c_funptr) :: Error_Analyzer
@@ -204,98 +209,105 @@ contains
     basicComponent => thisNode%basic()
     startTimeThisNode=basicComponent%time()
 
-    ! Find number of variables to evolve for this node.
-    nProperties=thisNode%serializeCount()
-
-    ! Allocate pointer arrays if necessary.
-    if (nProperties > nPropertiesMax) then
-       if (allocated(propertyValues)) then
-          call Memory_Usage_Record(sizeof(propertyValues),addRemove=-1)
-          deallocate(propertyValues)
-          call Memory_Usage_Record(sizeof(propertyScales),addRemove=-1)
-          deallocate(propertyScales)
+    ! Ensure calculations are reset for this new step.
+    call Galacticus_Calculations_Reset(thisNode)
+    
+    ! Attempt to find analytic solutions.
+    solvedAnalytically=.false.     
+    !# <include directive="analyticSolverTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,startTimeThisNode,endTime,solvedAnalytically</functionArgs>
+    include 'objects.tree_node.analytic_solver_task.inc'
+    !# </include>
+    ! Check if an analytic solution was available - use numerical solution if not.
+    if (solvedAnalytically) then
+       ! An analytic solution was available. Record that no interrupt therefore occurred.
+       interrupted=.false.
+    else       
+       ! Find number of variables to evolve for this node.
+       nProperties=thisNode%serializeCount()
+       ! Allocate pointer arrays if necessary.
+       if (nProperties > nPropertiesMax) then
+          if (allocated(propertyValues)) then
+             call Memory_Usage_Record(sizeof(propertyValues),addRemove=-1)
+             deallocate(propertyValues)
+             call Memory_Usage_Record(sizeof(propertyScales),addRemove=-1)
+             deallocate(propertyScales)
+          end if
+          allocate(propertyValues(nProperties))
+          call Memory_Usage_Record(sizeof(propertyValues))
+          allocate(propertyScales(nProperties))
+          call Memory_Usage_Record(sizeof(propertyScales))
+          nPropertiesMax=nProperties
        end if
-       allocate(propertyValues(nProperties))
-       call Memory_Usage_Record(sizeof(propertyValues))
-       allocate(propertyScales(nProperties))
-       call Memory_Usage_Record(sizeof(propertyScales))
-       nPropertiesMax=nProperties
-    end if
-
     ! Serialize property values to array.
-    call thisNode%serializeValues(propertyValues)
-
+       call thisNode%serializeValues(propertyValues)
     ! Compute offsets into serialization arrays for rates and scales.
     call thisNode%serializationOffsets()
     
-    ! Compute scales for all properties and extract from the node.
-    call Galacticus_Calculations_Reset(thisNode)
-    call thisNode%odeStepScalesInitialize()
-    !# <include directive="scaleSetTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode</functionArgs>
-    include 'objects.tree_node.set_scale.inc'
-    !# </include>
-    call thisNode%serializeScales(propertyScales)
-
-    ! Assign module global pointer to this node.
-    activeTreeIndex=  thisTree%index
-    activeNode     => thisNode
-
-    ! Reset interrupt variables.
-    firstInterruptFound     =  .false.
-    firstInterruptTime      =  0.0d0
-    firstInterruptProcedure => null()
-
-    ! Call ODE solver routines.
-    startTimeThisNode=basicComponent%time()
+       ! Compute scales for all properties and extract from the node.
+       call thisNode%odeStepScalesInitialize()
+       !# <include directive="scaleSetTask" type="functionCall" functionType="void">
+       !#  <functionArgs>thisNode</functionArgs>
+       include 'objects.tree_node.set_scale.inc'
+       !# </include>
+       call thisNode%serializeScales(propertyScales)
+       ! Assign module global pointer to this node.
+       activeTreeIndex=  thisTree%index
+       activeNode     => thisNode
+       ! Reset interrupt variables.
+       firstInterruptFound     =  .false.
+       firstInterruptTime      =  0.0d0
+       firstInterruptProcedure => null()
+       ! Call ODE solver routines.
 #ifdef PROFILE
-    if (profileOdeEvolver) then
-       Error_Analyzer=c_funloc(Tree_Node_Evolve_Error_Analyzer)
-    else
-       Error_Analyzer=C_NULL_FUNPTR
-    end if
+       if (profileOdeEvolver) then
+          Error_Analyzer=c_funloc(Tree_Node_Evolve_Error_Analyzer)
+       else
+          Error_Analyzer=C_NULL_FUNPTR
+       end if
 #endif
-    if (nPropertiesPrevious > 0 .and. .not.odeReset) call ODEIV2_Solver_Free(ode2Driver,ode2System)
-    odeReset=.true.
-    nPropertiesPrevious=nProperties
-    if (startTimeThisNode /= endTime)                                   &
-         & call ODEIV2_Solve(                                           &
-         &                   ode2Driver,ode2System                    , &
-         &                   startTimeThisNode,endTime                , &
-         &                   nProperties                              , &
-         &                   propertyValues                           , &
-         &                   Tree_Node_ODEs                           , &
-         &                   parameterPointer                         , &
-         &                   odeToleranceAbsolute,odeToleranceRelative, &
+       if (nPropertiesPrevious > 0 .and. .not.odeReset) call ODEIV2_Solver_Free(ode2Driver,ode2System)
+       odeReset=.true.
+       nPropertiesPrevious=nProperties
+       if (startTimeThisNode /= endTime)                                   &
+            & call ODEIV2_Solve(                                           &
+            &                   ode2Driver,ode2System                    , &
+            &                   startTimeThisNode,endTime                , &
+            &                   nProperties                              , &
+            &                   propertyValues                           , &
+            &                   Tree_Node_ODEs                           , &
+            &                   parameterPointer                         , &
+            &                   odeToleranceAbsolute,odeToleranceRelative, &
 #ifdef PROFILE
-         &                   Error_Analyzer                           , &
+            &                   Error_Analyzer                           , &
 #endif
-         &                   propertyScales                           , &
-         &                   reset=odeReset                           , &
-         &                   errorHandler=Galacticus_ODE_Error_Handler, &
-         &                   algorithm   =Galacticus_ODE_Algorithm      &
-         &                  )
-
-    ! Extract values.
-    call thisNode%deserializeValues(propertyValues)
+            &                   propertyScales                           , &
+            &                   reset=odeReset                           , &
+            &                   errorHandler=Galacticus_ODE_Error_Handler, &
+            &                   algorithm   =Galacticus_ODE_Algorithm      &
+            &                  )       
+       ! Extract values.
+       call thisNode%deserializeValues(propertyValues)
     
-    ! Ensure that the maximum time has not been exceed (can happen due to rounding errors).
-    if (basicComponent%time() > endTime) call basicComponent%timeSet(endTime)
-
-    ! Flag interruption if one occurred.
-    if (firstInterruptTime /= 0.0d0) then
-       interrupted=.true.
-       interruptProcedure => firstInterruptProcedure
-    else
-       interrupted=.false.
-    end if
+       ! Ensure that the maximum time has not been exceed (can happen due to rounding errors).
+       if (basicComponent%time() > endTime) call basicComponent%timeSet(endTime)
+       ! Flag interruption if one occurred.
+       if (firstInterruptTime /= 0.0d0) then
+          interrupted=.true.
+          interruptProcedure => firstInterruptProcedure
+       else
+          interrupted=.false.
+       end if
+    endif
 
     ! Call routines to perform any post-evolution tasks.
-    !# <include directive="postEvolveTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode</functionArgs>
-    include 'objects.tree_node.post_evolve.inc'
-    !# </include>
-
+    if (associated(thisNode)) then
+       !# <include directive="postEvolveTask" type="functionCall" functionType="void">
+       !#  <functionArgs>thisNode</functionArgs>
+       include 'objects.tree_node.post_evolve.inc'
+       !# </include>
+    end if
+ 
     return
   end subroutine Tree_Node_Evolve
 
@@ -325,7 +337,7 @@ contains
     type     (c_ptr                       )               , value :: parameterPointer
     logical                                                       :: interrupt
     procedure(Interrupt_Procedure_Template), pointer              :: interruptProcedure
-
+    
     ! Extract values.
     call activeNode%deserializeValues(y)
 
@@ -338,7 +350,6 @@ contains
     else
        ! Compute derivatives.
        call Tree_Node_Compute_Derivatives(activeNode,interrupt,interruptProcedure)
-
        ! Check whether an interrupt has been requested.
        select case (interrupt)
        case (.false.)
@@ -406,24 +417,52 @@ contains
 
   subroutine Tree_Node_ODEs_Error_Handler()
     !% Handles errors in the ODE solver when evolving \glc\ nodes. Dumps the content of the node.
+    use, intrinsic :: ISO_C_Binding
     use String_Handling
     use Galacticus_Display
     implicit none
-    type(varying_string) :: message
+    real     (kind=c_double     ), dimension(nProperties) :: y               , dydt
+    class    (nodeComponentBasic), pointer                :: basic
+    type     (varying_string    )                         :: message
+    type     (c_ptr             )                         :: parameterPointer
+    integer                                               :: i               , lengthMaximum
+    character(len =12           )                         :: label
+    integer  (kind=c_int        )                         :: odeStatus
 
     message="ODE solver failed in tree #"
     message=message//activeTreeIndex
     call Galacticus_Display_Message(message)
+    ! Dump all node properties.
     call activeNode%dump()
+    ! Evaluate derivatives.
+    basic => activeNode%basic()
+    odeStatus=Tree_Node_ODEs(basic%time(),y,dydt,parameterPointer)
+    call Galacticus_Display_Indent('ODE system parameters')
+    lengthMaximum=0    
+    do i=1,nProperties
+       lengthMaximum=max(lengthMaximum,len(activeNode%nameFromIndex(i)))
+    end do
+    do i=1,nProperties
+       message=activeNode%nameFromIndex(i)
+       message=repeat(" ",lengthMaximum-len(message))//message
+       write (label,'(e12.6)') y             (i)
+       message=message//" : "//label
+       write (label,'(e12.6)') dydt          (i)
+       message=message//" : "//label
+       write (label,'(e12.6)') propertyScales(i)
+       message=message//" : "//label
+       call Galacticus_Display_Message(message)
+    end do
+    call Galacticus_Display_Unindent('done')
     return
   end subroutine Tree_Node_ODEs_Error_Handler
 
 #ifdef PROFILE
   subroutine Tree_Node_Evolve_Error_Analyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
-    !# <include directive="decodePropertyIdentifiersTask" type="moduleUse">
-    include 'objects.merger_trees.decode_property_identifiers.modules.inc'
-    !# </include>
+    use, intrinsic :: ISO_C_Binding
+    use FGSL
+    use Galacticus_Meta_Evolver_Profiler
     implicit none
     real            (kind=c_double ), dimension(nProperties), intent(in   )        :: currentPropertyValue
     real            (kind=c_double ), dimension(nProperties), intent(in   )        :: currentPropertyError
@@ -446,10 +485,13 @@ contains
           limitingProperty=iProperty
        end if
     end do
-    ! Decode the step limiting property.
-    propertyName=activeNode%nameFromIndex(limitingProperty)
-    ! Record this information.
-    call Galacticus_Meta_Evolver_Profile(timeStep,propertyName)
+    ! Check that we found a limiting property.
+    if (scaledErrorMaximum > 0.0d0) then
+       ! Decode the step limiting property.
+       propertyName=activeNode%nameFromIndex(limitingProperty)
+       ! Record this information.
+       call Galacticus_Meta_Evolver_Profile(timeStep,propertyName)
+    end if
     return
   end subroutine Tree_Node_Evolve_Error_Analyzer
 #endif

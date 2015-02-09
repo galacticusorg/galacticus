@@ -126,6 +126,38 @@ program Test_Tables
   deallocate(myTable)
 
   ! Allocate a table object.
+  allocate(table1DLogarithmicLinear :: myTable)
+  select type (myTable)
+  type is (table1DLogarithmicLinear)
+     ! Create a table.
+     call myTable%create  (1.0d1,1.0d6,11                                                        )
+     call myTable%populate([2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0,11.0d0,12.0d0])
+     ! Reverse the table.
+     call myTable%reverse(myReversedTable,precise=.true.)
+     call Assert(                                                            &
+          &      'reversed log-linear table consistent with original table', &
+          &      [                                                           &
+          &       myReversedTable%interpolate(+ 3.00d0)                    , &
+          &       myReversedTable%interpolate(+ 4.80d0)                    , &
+          &       myReversedTable%interpolate(+ 8.20d0)                    , &
+          &       myReversedTable%interpolate(+11.40d0)                      &
+          &      ],                                                          &
+          &      [                                                           &
+          &       10.0d0**1.5d0                                            , &
+          &       10.0d0**2.4d0                                            , &
+          &       10.0d0**4.1d0                                            , &
+          &       10.0d0**5.7d0                                              &
+          &      ],                                                          &
+          &      absTol=1.0d-6                                               &
+          &     )
+     ! Destroy the table.
+     call myTable        %destroy()
+     call myReversedTable%destroy()
+  end select
+  deallocate(myTable        )
+  deallocate(myReversedTable)
+
+  ! Allocate a table object.
   allocate(table1DLinearLinear :: myTable)
   select type (myTable)
   type is (table1DLinearLinear)
@@ -215,6 +247,52 @@ program Test_Tables
           &        66.8232266d0                                 , &
           &         6.6091756d0                                 , &
           &       -11.5777394d0                                   &
+          &      ]                                              , &
+          &      absTol=1.0d-6                                    &
+          &     )
+  end select
+  deallocate(myTable)
+
+  ! Allocate a table object.
+  allocate(table1DNonUniformLinearLogarithmic :: myTable)
+  select type (myTable)
+  type is (table1DNonUniformLinearLogarithmic)
+     ! Create a table.
+     call myTable%create  ([1.0d0,1.5d0, 2.0d0,2.5d0,3.0d0,3.5d0,4.0d0,4.5d0,5.0d0,5.5d0,6.0d0])
+     call myTable%populate([2.0d0,3.0d0,23.0d0,4.0d0,6.0d0,1.0d0,5.0d0,0.1d0,5.0d0,9.0d0,3.0d0])
+     ! Test interpolation in 1-D table.
+     call Assert(                                                 &
+          &      'logarithmic interpolation in 1D linear table' , &
+          &      [                                                &
+          &       myTable%interpolate(1.5d0)                    , &
+          &       myTable%interpolate(2.4d0)                    , &
+          &       myTable%interpolate(4.1d0)                    , &
+          &       myTable%interpolate(5.7d0)                      &
+          &      ]                                              , &
+          &      [                                                &
+          &       +3.000000000d0                                , &
+          &       +5.675361899d0                                , &
+          &       +2.286525260d0                                , &
+          &       +5.799546135d0                                  &
+          &      ]                                              , &
+          &      absTol=1.0d-6                                    &
+          &     )
+
+
+     ! Test gradient interpolation in 1-D table.
+     call Assert(                                                 &
+          &      'logarithmic gradient in 1D linear table'      , &
+          &      [                                                &
+          &       myTable%interpolateGradient(1.5d0)            , &
+          &       myTable%interpolateGradient(2.4d0)            , &
+          &       myTable%interpolateGradient(4.1d0)            , &
+          &       myTable%interpolateGradient(5.7d0)              &
+          &      ]                                              , &
+          &      [                                                &
+          &       +12.22129156d0                                , &
+          &       -19.85468441d0                                , &
+          &       -17.88987883d0                                , &
+          &       -12.74290530d0                                  &
           &      ]                                              , &
           &      absTol=1.0d-6                                    &
           &     )

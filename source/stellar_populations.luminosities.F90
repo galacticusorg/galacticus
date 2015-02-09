@@ -24,7 +24,7 @@ module Stellar_Population_Luminosities
   use Abundances_Structure
   implicit none
   private
-  public :: Stellar_Population_Luminosity
+  public :: Stellar_Population_Luminosity, Stellar_Population_Luminosity_Track
 
   type luminosityTable
      !% Structure for holding tables of simple stellar population luminosities.
@@ -57,39 +57,38 @@ module Stellar_Population_Luminosities
   ! Option controlling writing of luminosities to file.
   logical                                                      :: stellarPopulationLuminosityStoreToFile
 
+  ! Option controlling behavior when maximum age of stellar populations is exceeded.
+  logical                                                      :: stellarPopulationLuminosityMaximumAgeExceededIsFatal
+
 contains
 
-  function Stellar_Population_Luminosity(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,abundancesStellar,age,redshift)
-    !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\normalfont \ttfamily abundances} and {\normalfont \ttfamily age} drawn from IMF
-    !% specified by {\normalfont \ttfamily imfIndex} and observed through the filter specified by {\normalfont \ttfamily filterIndex}.
+  subroutine Stellar_Population_Luminosity_Tabulate(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,redshift)
+    !% Tabulate stellar population luminosity in the given filters.
+    use, intrinsic :: ISO_C_Binding
+    use Numerical_Constants_Astronomical
+    use File_Utilities
+    use IO_HDF5
+    use ISO_Varying_String
+    use String_Handling
+    use Star_Formation_IMF
+    use Input_Parameters
+    use Galacticus_Input_Paths
+    use Galacticus_Display
+    use Galacticus_Error
+    use Instruments_Filters
+    use Numerical_Integration
     use Memory_Management
     use Stellar_Population_Spectra
     use Stellar_Population_Spectra_Postprocess
-    use Instruments_Filters
-    use Numerical_Integration
-    use Numerical_Interpolation
-    use Numerical_Constants_Astronomical
-    use Galacticus_Error
-    use Galacticus_Display
-    use Galacticus_Input_Paths
-    use Input_Parameters
-    use Star_Formation_IMF
-    use ISO_Varying_String
-    use String_Handling
-    use IO_HDF5
-    use File_Utilities
     implicit none
     integer                                                                                    , intent(in   ) :: filterIndex                  (:), imfIndex                   , &
          &                                                                                                        luminosityIndex              (:), postprocessingChainIndex(:)
-    double precision                                                                           , intent(in   ) :: age                          (:), redshift                (:)
-    type            (abundances                )                                               , intent(in   ) :: abundancesStellar
-    double precision                                         , dimension(size(luminosityIndex))                :: Stellar_Population_Luminosity
+    double precision                                                                           , intent(in   ) :: redshift                (:)
     type            (luminosityTable           ), allocatable, dimension(:)                                    :: luminosityTablesTemporary
     double precision                            , allocatable, dimension(:,:,:)                                :: luminosityTemporary
     logical                                     , allocatable, dimension(:)                                    :: isTabulatedTemporary
     double precision                                         , dimension(2)                                    :: wavelengthRange
-    double precision                                         , dimension(0:1)                                  :: hAge                            , hMetallicity
-    integer         (c_int                     )                                                               :: lockFileDescriptor
+    type            (lockDescriptor            )                                                               :: lockFileDescriptor
     integer         (c_size_t                  )                                                               :: iAge                            , iLuminosity                , &
          &                                                                                                        iMetallicity
     integer                                                                                                    :: loopCountMaximum                , jAge                       , &
@@ -105,7 +104,7 @@ contains
     character       (len=16                    )                                                               :: datasetName                     , redshiftLabel              , &
          &                                                                                                        label
     type            (hdf5Object                )                                                               :: luminositiesFile
-
+    
     ! Determine if we have created space for this IMF yet.
     !$omp critical (Luminosity_Tables_Initialize)
     if (.not.moduleInitialized) then
@@ -144,6 +143,18 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarPopulationLuminosityStoreToFile',stellarPopulationLuminosityStoreToFile,defaultValue=.true.)
+       ! Read the parameter controlling behavior if maximum age of stellar populations are exceeded.
+       !@ <inputParameter>
+       !@   <name>stellarPopulationLuminosityMaximumAgeExceededIsFatal</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether or not exceeding the maximum available age of the stellar population is fatal.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('stellarPopulationLuminosityMaximumAgeExceededIsFatal',stellarPopulationLuminosityMaximumAgeExceededIsFatal,defaultValue=.true.)
        ! Flag that this module is now initialized.
        moduleInitialized=.true.
     end if
@@ -231,11 +242,11 @@ contains
                   &               ".hdf5"
              if (File_Exists(luminositiesFileName)) then
                 ! Construct the dataset name.
-                write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
+                write (redshiftLabel,'(f6.3)') redshift(iLuminosity)
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
                 ! Open the file and check for the required dataset.
                 !$omp critical (HDF5_Access)
-                lockFileDescriptor=File_Lock(char(luminositiesFileName)//".lock")
+                call File_Lock(char(luminositiesFileName),lockFileDescriptor)
                 call luminositiesFile%openFile(char(luminositiesFileName),readOnly=.true.)
                 if (luminositiesFile%hasDataset(trim(datasetName))) then
                    ! Read the dataset.
@@ -253,7 +264,17 @@ contains
           if (calculateLuminosity) then
              ! Display a message and counter.
              message='Tabulating stellar luminosities for '//char(IMF_Name(imfIndex))//' IMF, luminosity '
-             message=message//iLuminosity//' of '//size(luminosityIndex)
+             write (redshiftLabel,'(f6.3)') redshift(iLuminosity)
+             message=message                                                                                     // &
+                  &  Filter_Name                                          (filterIndex             (iLuminosity))// &
+                  &  ":"                                                                                         // &
+                  &  Stellar_Population_Spectrum_Postprocess_Chain_Methods(postprocessingChainIndex(iLuminosity))// &
+                  &  ":z"                                                                                        // &
+                  &  trim(adjustl(redshiftLabel))                                                                // &
+                  &  " "                                                                                         // &
+                  &                                                                                 iLuminosity  // &
+                  &  " of "                                                                                      // &
+                  &  size(luminosityIndex)
              call Galacticus_Display_Indent (message,verbosityWorking)
              call Galacticus_Display_Counter(0,.true.,verbosityWorking)             
              ! Get wavelength extent of the filter.
@@ -334,11 +355,11 @@ contains
              ! Store the luminosities to file.
              if (stellarPopulationLuminosityStoreToFile) then
                 ! Construct the dataset name.
-                write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
+                write (redshiftLabel,'(f6.3)') redshift(iLuminosity)
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
                 ! Open the file.
                 !$omp critical (HDF5_Access)
-                lockFileDescriptor=File_Lock(char(luminositiesFileName)//".lock")
+                call File_Lock(char(luminositiesFileName),lockFileDescriptor)
                 call luminositiesFile%openFile(char(luminositiesFileName))
                 ! Write the dataset.
                 if (.not.luminositiesFile%hasDataset(trim(datasetName))) &
@@ -353,7 +374,30 @@ contains
           luminosityTables(imfIndex)%isTabulated(luminosityIndex(iLuminosity))=.true.
        end if
     end do
+    !$omp end critical (Luminosity_Tables_Initialize)
+    return
+  end subroutine Stellar_Population_Luminosity_Tabulate
 
+  function Stellar_Population_Luminosity(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,abundancesStellar,age,redshift)
+    !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\normalfont \ttfamily abundances} and {\normalfont \ttfamily age} drawn from IMF
+    !% specified by {\normalfont \ttfamily imfIndex} and observed through the filter specified by {\normalfont \ttfamily filterIndex}.
+    use, intrinsic :: ISO_C_Binding
+    use Galacticus_Error
+    use Numerical_Interpolation
+    implicit none
+    integer                                                                                    , intent(in   ) :: filterIndex                  (:), imfIndex                   , &
+         &                                                                                                        luminosityIndex              (:), postprocessingChainIndex(:)
+    double precision                                                                           , intent(in   ) :: age                          (:), redshift                (:)
+    type            (abundances                )                                               , intent(in   ) :: abundancesStellar
+    double precision                                         , dimension(size(luminosityIndex))                :: Stellar_Population_Luminosity
+    double precision                                         , dimension(0:1)                                  :: hAge                            , hMetallicity
+    integer         (c_size_t                  )                                                               :: iAge                            , iLuminosity                , &
+         &                                                                                                        iMetallicity                    , jAge                       , &
+         &                                                                                                        jMetallicity
+    double precision                                                                                           :: ageLast                         , metallicity
+
+    ! Tabulate the luminosities.
+    call Stellar_Population_Luminosity_Tabulate(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,redshift)
     ! Get interpolation in metallicity.
     metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=logarithmicByMassSolar)
     if (metallicity == logMetallicityZero .or. metallicity < luminosityTables(imfIndex)%metallicity(1)) then
@@ -372,6 +416,7 @@ contains
     ! Do the interpolation.
     Stellar_Population_Luminosity(:)= 0.0d0
     ageLast                         =-1.0d0
+    !$omp critical (Luminosity_Tables_Initialize)
     do iLuminosity=1,size(luminosityIndex)
        ! Only compute luminosities for entries with positive age (negative age implies that the luminosity required is for a
        ! population observed prior to the formation of this population).
@@ -379,12 +424,19 @@ contains
           ! Get interpolation in age if the age for this luminosity differs from the previous one.
           if (iLuminosity == 1 .or. age(iLuminosity) /= ageLast) then
              ! Check for out of range age.
-             if (age(iLuminosity) > luminosityTables(imfIndex)%age(luminosityTables(imfIndex)%agesCount)) call&
-                  & Galacticus_Error_Report('Stellar_Population_Luminosity','age exceeds the maximum tabulated')
+             if (age(iLuminosity) > luminosityTables(imfIndex)%age(luminosityTables(imfIndex)%agesCount)) then
+                if (stellarPopulationLuminosityMaximumAgeExceededIsFatal) then
+                   call Galacticus_Error_Report('Stellar_Population_Luminosity','age exceeds the maximum tabulated')
+                else
+                   iAge=luminosityTables(imfIndex)%agesCount-1
+                   hAge=[0.0d0,1.0d0]
+                end if
+             else
                 iAge=Interpolate_Locate(luminosityTables(imfIndex)%age &
                      &,luminosityTables(imfIndex)%interpolationAcceleratorAge,age(iLuminosity),luminosityTables(imfIndex)%resetAge)
                 hAge=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%age,iAge&
                      &,age(iLuminosity))
+             end if
              ageLast=age(iLuminosity)
           end if
           do jAge=0,1
@@ -397,12 +449,68 @@ contains
        end if
     end do
     !$omp end critical (Luminosity_Tables_Initialize)
-
     ! Prevent interpolation from returning negative fluxes.
     Stellar_Population_Luminosity=max(Stellar_Population_Luminosity,0.0d0)
-
     return
   end function Stellar_Population_Luminosity
+
+  subroutine Stellar_Population_Luminosity_Track(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,abundancesStellar,redshift,ages,luminosities)
+    !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\normalfont \ttfamily abundances} drawn from IMF
+    !% specified by {\normalfont \ttfamily imfIndex} and observed through the filter specified by {\normalfont \ttfamily filterIndex}, for all available ages.
+    use, intrinsic :: ISO_C_Binding
+    use Galacticus_Error
+    use Memory_Management
+    use Numerical_Interpolation
+    implicit none
+    integer                                                                                        , intent(in   ) :: filterIndex                  (:), imfIndex                   , &
+         &                                                                                                            luminosityIndex              (:), postprocessingChainIndex(:)
+    double precision                                                                               , intent(in   ) :: redshift                     (:)
+    type            (abundances                )                                                   , intent(in   ) :: abundancesStellar
+    double precision                            , allocatable, dimension(:                        ), intent(  out) :: ages
+    double precision                            , allocatable, dimension(:  ,:                    ), intent(  out) :: luminosities
+    double precision                                         , dimension(    size(luminosityIndex))                :: Stellar_Population_Luminosity
+    double precision                                         , dimension(0:1                      )                :: hMetallicity
+    integer         (c_size_t                  )                                                                   :: iLuminosity                     , iMetallicity               , &
+         &                                                                                                            jMetallicity
+    double precision                                                                                               :: metallicity
+
+    ! Tabulate the luminosities.
+    call Stellar_Population_Luminosity_Tabulate(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,redshift)
+    ! Get interpolation in metallicity.
+    metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=logarithmicByMassSolar)
+    if (metallicity == logMetallicityZero .or. metallicity < luminosityTables(imfIndex)%metallicity(1)) then
+       iMetallicity=1
+       hMetallicity=[1.0d0,0.0d0]
+    else if (metallicity > luminosityTables(imfIndex)%metallicity(luminosityTables(imfIndex)%metallicitiesCount)) then
+       iMetallicity=luminosityTables(imfIndex)%metallicitiesCount-1
+       hMetallicity=[0.0d0,1.0d0]
+    else
+       iMetallicity=Interpolate_Locate(luminosityTables(imfIndex)%metallicity &
+            &,luminosityTables(imfIndex)%interpolationAcceleratorMetallicity,metallicity &
+            &,luminosityTables(imfIndex)%resetMetallicity)
+       hMetallicity=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%metallicity ,iMetallicity,metallicity)
+    end if
+    ! Allocate arrays for ages and luminosities.
+    call Alloc_Array(ages        ,[luminosityTables(imfIndex)%agesCount                      ])
+    call Alloc_Array(luminosities,[luminosityTables(imfIndex)%agesCount,size(luminosityIndex)])
+    ! Assign ages.
+    ages=luminosityTables(imfIndex)%age
+    ! Do the interpolation.
+    luminosities(:,:)=0.0d0
+    !$omp critical (Luminosity_Tables_Initialize)
+    do iLuminosity=1,size(luminosityIndex)
+       do jMetallicity=0,1
+          luminosities                                 (:,                iLuminosity                             )= &
+               & +luminosities                         (:,                iLuminosity                             )  &
+               & +luminosityTables(imfIndex)%luminosity(  luminosityIndex(iLuminosity),:,iMetallicity+jMetallicity)  &
+               & *hMetallicity                         (                                              jMetallicity)
+       end do
+    end do
+    !$omp end critical (Luminosity_Tables_Initialize)
+    ! Prevent interpolation from returning negative fluxes.
+    luminosities=max(luminosities,0.0d0)
+    return
+  end subroutine Stellar_Population_Luminosity_Track
 
   function Filter_Luminosity_Integrand(wavelength,parameterPointer) bind(c)
     !% Integrand for the luminosity through a given filter.

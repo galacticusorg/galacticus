@@ -398,91 +398,9 @@ Currently defined accretion disk methods are:
  \item [{\normalfont \ttfamily eddingtonLimited}] Assumes no specific disk structure, instead setting the radiative efficiency to a fixed number and the jet power to a fixed fraction of the Eddington luminosity.
 \end{description}
 
-\subsubsection{Accretion Onto Halos}
-
-Additional methods for accretion of baryons onto halos can be added using the {\normalfont \ttfamily accretionHalosMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily simple} method is described by a directive:
-\begin{verbatim}
- !# <accretionHalosMethod>
- !#  <unitName>Accretion_Halos_Simple_Initialize</unitName>
- !# </accretionHalosMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Accretion\_Halos\_Simple\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(accretionHalosMethod,Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get &
-   & ,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get &
-   & ,Halo_Baryonic_Accretion_Rate_Abundances_Get,Halo_Baryonic_Accreted_Abundances_Get, &
-   & ,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: accretionHalosMethod
-    procedure(),          pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get,Halo_Baryonic_Failed_Accretion_Rate_Get &
-   & ,Halo_Baryonic_Failed_Accreted_Mass_Get,Halo_Baryonic_Accretion_Rate_Abundances_Get &
-   & ,Halo_Baryonic_Accreted_Abundances_Get,Halo_Baryonic_Accretion_Rate_Chemicals_Get &
-   & ,Halo_Baryonic_Accreted_Chemicals_Get
-    
-    if (accretionHalosMethod == 'myMethod') then
-       Halo_Baryonic_Accretion_Rate_Get            => My_Accretion_Rate_Get
-       Halo_Baryonic_Accreted_Mass_Get             => My_Accreted_Mass_Get
-       Halo_Baryonic_Failed_Accretion_Rate_Get     => My_Failed_Accretion_Rat_Get
-       Halo_Baryonic_Failed_Accreted_Mass_Get      => My_Failed_Accreted_Mass_Get
-       Halo_Baryonic_Accretion_Rate_Abundances_Get => My_Accretion_Rate_Abundances_Get
-       Halo_Baryonic_Accreted_Abundances_Get       => My_Accreted_Abundances_Get
-       Halo_Baryonic_Accretion_Rate_Chemicals_Get  => My_Accretion_Rate_Chemicals_Get
-       Halo_Baryonic_Accreted_Chemicals_Get        => My_Accreted_Chemicals_Get
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily accretionHalosMethod} input parameter. The procedure pointers {\normalfont \ttfamily Halo\_Baryonic\_Accretion\_Rate\_Get}, {\normalfont \ttfamily Halo\_Baryonic\_Accreted\_Mass\_Get}, {\normalfont \ttfamily Halo\_Baryonic\_Failed\_Accretion\_Rate\_Get} and {\normalfont \ttfamily Halo\_Baryonic\_Failed\_Accreted\_Mass\_Get} must be set to point to functions which return accretion rate, total accreted mass (assuming no progenitors), failed accretion rate and total failed accreted mass (assuming no progenitors) respectively as described below. The procedure pointers {\normalfont \ttfamily Halo\_Baryonic\_Accretion\_Rate\_Abundances\_Get}, {\normalfont \ttfamily Halo\_Baryonic\_Accreted\_Abundances\_Get}, {\normalfont \ttfamily Halo\_Baryonic\_Accretion\_Rate\_Chemicals\_Get}, {\normalfont \ttfamily Halo\_Baryonic\_Accreted\_Chemicals\_Get} must be set to point to functions which return the accretion rates nad masses (assuming no progenitors) of heavy element abundances and chemicals respectively. The initialization subroutine should perform any other tasks required to 
-initialize the module (such as reading parameters etc.).
-
-The mass functions must have the form:
-\begin{verbatim}
- double precision function My_Accretion_Get(thisNode)
-    implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    .
-    .
-    .
-    return
- end function My_Accretion_Get
-\end{verbatim}
-In the case of the accretion rate functions, the function must return the accretion rate of baryons from the \gls{igm} onto {\normalfont \ttfamily thisNode} in $M_\odot$ Gyr$^{-1}$. For total accreted mass functions, the total mass of baryons (in $M_\odot$) accreted onto {\normalfont \ttfamily thisNode} should be returned under the assumption that {\normalfont \ttfamily thisNode} formed instataneously with no progenitors. The ``failed'' accretion refers to mass which would have been accreted onto the halo if it simply traced the growth of overall mass. That is:
-\begin{equation}
- \dot{M}_{\mathrm failed} = {\Omega_{\mathrm b} \over \Omega_{\mathrm M}} \dot{M} - \dot{M}_{\mathrm accreted},
-\end{equation}
-where $\dot{M}$ is the growth rate of total halo mass and $\dot{M}_{\mathrm accreted}$ is the accretion rate of baryons onto the halo. If desired, this failed mass can be transferred back into the accreted component once the halo is deemed able to accrete, by simply adjusting the accretion rates returned appropriately.
-
-For abundances and chemicals, the subroutines should have the form:
-\begin{verbatim}
- subroutine My_Abundances_Get(thisNode,accretionAbundances)
-    implicit none
-    type(treeNode),            intent(inout), pointer :: thisNode
-    type(abundancesStructure), intent(inout)          :: accretionAbundances
-
-    return
-  end subroutine My_Abundances_Get
-\end{verbatim}
-and
-\begin{verbatim}
- subroutine My_Chemicals_Get(thisNode,accretionChemicals)
-    implicit none
-    type(treeNode),                    intent(inout), pointer :: thisNode
-    type(chemicalAbundancesStructure), intent(inout)          :: accretionChemicals
-
-    return
-  end subroutine My_Chemicals_Get
-\end{verbatim}
-respectively.
-
-Currently defined accretion disk methods are:
-\begin{description}
- \item [{\normalfont \ttfamily simple}] Assumes that halos accrete all available baryons if they have virial velocities above {\normalfont \ttfamily reionizationSuppressionVelocity} or exist prior to redshift {\normalfont \ttfamily reionizationSuppressionRedshift}. This is a simple model of the effects of reionization on gas accretion. In halos which cannot accrete, accretion is placed into the failed mode. In halos which can accrete, any gas in the failed reservoir is returned to the accreted channel on a timescale of $\dot{M}/M$. Abundances are computed assuming a pristine \gls{igm} (i.e. abundances are always zero) and chemicals are computed using the chemical state functions (see \S\ref{sec:ChemicalStateMethods}).
- \item [{\normalfont \ttfamily null}] Assumes no accretion onto halos.
-\end{description}
-
 \subsubsection{Analysis}
 
-Additional methods foron-the-fly analysis of merger trees can be added using the {\normalfont \ttfamily mergerTreeAnalysisTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the mass distributions method is described by a directive:
+Additional methods for on-the-fly analysis of merger trees can be added using the {\normalfont \ttfamily mergerTreeAnalysisTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the mass distributions method is described by a directive:
 \begin{verbatim}
  !# <mergerTreeAnalysisTask>
  !#  <unitName>Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins</unitName>
@@ -504,7 +422,7 @@ Here, {\normalfont \ttfamily Galacticus\_Output\_Analysis\_Mass\_Dpndnt\_Sz\_Dst
 \end{verbatim}
 This function will be called once for each node in each tree being output. The function is passed the merger tree object as {\normalfont \ttfamily thisTree}, along with a pointer to the node to be analyzed as {\normalfont \ttfamily thisNode}. Additionally, the current output number is passed as {\normalfont \ttfamily iOutput}. Finally, a list of analyses that were requested (by user input) to be performed is given in the {\normalfont \ttfamily mergerTreeAnalyses} array. The function should check if one or more of the entries in {\normalfont \ttfamily mergerTreeanalyses} correspond to analyses that it performs. (Note that this need only be done on the first call to this function---the values of {\normalfont \ttfamily mergerTreeAnalyses} will not change between calls.) If an analysis is matched in this way it should be performed. Typically, an analysis function might accumulate the results of analysis and then finalize and output them prior to completion of the \glc\ model through the use of a {\normalfont \ttfamily hdfPreCloseTask} (see \S\ref{sec:HDFFileClose}).
 
-Currently defined merger tree analysis methods are:
+Currently defined merger tree analysis methods are (see \S\ref{sec:OnTheFlyAnalysis}):
 \begin{description}
  \item [mass functions] Constructs mass functions for a variety of different surveys. Currently supported analysis names are: {\normalfont \ttfamily sdssStellarMassFunctionZ0.07}, {\normalfont \ttfamily alfalfaHiMassFunctionZ0.00}, {\normalfont \ttfamily primusStellarMassFunctionZ0.100}, {\normalfont \ttfamily primusStellarMassFunctionZ0.250}, {\normalfont \ttfamily primusStellarMassFunctionZ0.350}, {\normalfont \ttfamily primusStellarMassFunctionZ0.450}, {\normalfont \ttfamily primusStellarMassFunctionZ0.575}, {\normalfont \ttfamily primusStellarMassFunctionZ0.725}, and {\normalfont \ttfamily primusStellarMassFunctionZ0.900}. Each such analysis is defined internally to this module through the appropriate redshift, binning, random and systematic errors, and arbitrary mapping of component masses into observed masses. The covariance matrix of the mass function is also computed (see \S\ref{sec:AnalysisALFALFAHIMassFunction} for details).
  \item [mass-dependent size distributions] Constructs a two-dimensional histogram of galaxy sizes in bins of stellar mass. Currently supported analyses are {\normalfont \ttfamily sdssSizeFunctionZ0.07}. Each such analysis is defined internally to this module through the appropriate redshift, binning, random and systematic errors, and arbitrary mapping of component masses/radii into observed masses/radii. The covariance matrix of the size function is also computed (see \S\ref{sec:SDSSLateTypeGalaxySizeDistribution} for details).
@@ -1591,6 +1509,7 @@ Currently defined critical overdensity methods are:
 \begin{description}
  \item [{\normalfont \ttfamily sphericalTopHat}] The critical overdensity is computed for a Universe containing collisionless matter and a cosmological constant following the spherical top hat collapse model (see, for example, \citealt{percival_cosmological_2005}).
  \item [{\normalfont \ttfamily Kitayama-Suto1996}] The critical overdensity is computed using the fitting formula of \cite{kitayama_semianalytic_1996}, and is therefore valid only for flat cosmological models.
+ \item [{\normalfont \ttfamily fixed}] The critical overdensity is set to a fixed number divided by the linear growth factor.
 \end{description}
 
 \subsubsection{Critical Overdensity for Halo Collapse: Mass Scaling}
@@ -2832,15 +2751,16 @@ Additional methods for merger tree branching can be added using the {\normalfont
 \end{verbatim}
 Here, {\normalfont \ttfamily Modified\_Press\_Schechter\_Branching\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
- subroutine Method_Initialize(treeBranchingMethod,Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass,Tree_Maximum_Step)
+ subroutine Method_Initialize(treeBranchingMethod,Tree_Branching_Probability_Bound,Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass,Tree_Maximum_Step)
     type(varying_string),          intent(in)    :: treeBranchingMethod
-    procedure(),          pointer, intent(inout) :: Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass,Tree_Maximum_Step
+    procedure(),          pointer, intent(inout) :: Tree_Branching_Probability_Bound,Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass,Tree_Maximum_Step
     
     if (treeBranchingMethod == 'myMethod') then
-       Tree_Branching_Probability  => My_Branching_Probability
-       Tree_Subresolution_Fraction => My_Subresolution_Fraction
-       Tree_Maximum_Step           => My_Maximum_Step
-       Tree_Branch_Mass            => My_Branch_Mass
+       Tree_Branching_Probability_Bound => My_Branching_Probability_Bound
+       Tree_Branching_Probability       => My_Branching_Probability
+       Tree_Subresolution_Fraction      => My_Subresolution_Fraction
+       Tree_Maximum_Step                => My_Maximum_Step
+       Tree_Branch_Mass                 => My_Branch_Mass
        .
        .
        .
@@ -2876,6 +2796,15 @@ The procedure pointers must point to functions with the following templates:
     return
  end function My_Branching_Probability
 
+  double precision function My_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound)
+    double precision, intent(in) :: haloMass,deltaCritical,massResolution
+    integer         , intent(in) :: bound
+    .
+    .
+    .
+    return
+ end function My_Branching_Probability_Bound
+
   double precision function My_Subresolution_Fraction(haloMass,deltaCritical,massResolution)
     double precision, intent(in) :: haloMass,deltaCritical,massResolution
     .
@@ -2884,7 +2813,7 @@ The procedure pointers must point to functions with the following templates:
     return
  end function My_Subresolution_Fraction
 \end{verbatim}
-{\normalfont \ttfamily Tree\_Branching\_Probability} must point to a function which returns the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}. {\normalfont \ttfamily Tree\_Subresolution\_Fraction} must point to a function which returns the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in $\delta_{\mathrm crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}, or a negative value if the halo is so close to the resolution limit that this number cannot be determined accurately. {\normalfont \ttfamily Tree\_Maximum\_Step} must point to a function which returns the maximum allowed step in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical} should be allowed to take. {\normalfont \ttfamily Tree\_Branch\_Mass} must point to a function which returns the mass of one of the halos to which the given halo branches, given the branching 
+{\normalfont \ttfamily Tree\_Branching\_Probability} must point to a function which returns the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}. {\normalfont \ttfamily Tree\_Branching\_Probability\_Bound} must point to a function which returns either an upper or lower bound (as requested by the {\normalfont \ttfamily bound} arugment, which must be either {\normalfont \ttfamily boundLower} or {\normalfont \ttfamily boundUpper} as defined in the {\normalfont \ttfamily Merger\_Tree\_Branching\_Options} module) on the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}. This is intended for cases where useful bounds can be computed rapidly (more rapidly than the full calculation performed by {\normalfont \ttfamily Tree\_Branching\_Probability}). It is acceptable to simply return the value given by {\normalfont \ttfamily Tree\_Branching\_Probability} is no bounds are available (in which case an implementation may want to intelligently store previously computed values and re-use them if possible). {\normalfont \ttfamily Tree\_Subresolution\_Fraction} must point to a function which returns the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in $\delta_{\mathrm crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}, or a negative value if the halo is so close to the resolution limit that this number cannot be determined accurately. {\normalfont \ttfamily Tree\_Maximum\_Step} must point to a function which returns the maximum allowed step in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical} should be allowed to take. {\normalfont \ttfamily Tree\_Branch\_Mass} must point to a function which returns the mass of one of the halos to which the given halo branches, given the branching 
 probability, {\normalfont \ttfamily probability}.
 
 Currently defined merger tree branching methods are:
@@ -3722,49 +3651,6 @@ Currently defined satellite tidal field methods are:
  \item [\hyperlink{satellites.tidal_fields.spherical_symmetry.F90:satellites_tidal_fields_spherical_symmetry}{{\normalfont \ttfamily sphericalSymmetry}}] Computes the tidal field assuming a spherically-symmetric host halo.
 \end{description}
 
-\subsubsection{Satellite Virial Orbits}\label{sec:SatelliteVirialOrbits}
-
-Additional methods for the satellite virial orbits (i.e. orbital parameters at virial radius crossing) can be added using the {\normalfont \ttfamily virialOrbitsMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Benson2005} method is described by a directive:
-\begin{verbatim}
-  !# <virialOrbitsMethod>
-  !#  <unitName>Virial_Orbital_Parameters_Benson2005_Initialize</unitName>
-  !# </virialOrbitsMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Virial\_Orbital\_Parameters\_Benson2005\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(virialOrbitsMethod,Virial_Orbital_Parameters_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: virialOrbitsMethod
-    procedure(),          pointer, intent(inout) :: Virial_Orbital_Parameters_Get
-    
-    if (virialOrbitsMethod.eq.'myMethod') Virial_Orbital_Parameters_Get => My_Method_Procedure
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily virialOrbitsMethod} input parameter. The procedure pointer {\normalfont \ttfamily Virial\_Orbital\_Parameters\_Get} must be set to point to a subroutine which returns orbital parameters as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The orbital parameter subroutine must have the form:
-\begin{verbatim}
-  function Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
-    implicit none
-    type(keplerOrbit)                         :: thisOrbit
-    type(treeNode),   intent(inout), pointer  :: thisNode,hostNode
-    logical,          intent(in)              :: acceptUnboundOrbits
-    .
-    .
-    .
-    return
-  end subroutine Virial_Orbital_Parameters
-\end{verbatim}
-The subroutine must return a fully-defined Kepler orbit object (i.e. the orbit must have at least three parameters defined in addition to the node masses) initialized to the orbital parameters for {\normalfont \ttfamily thisNode} orbitting in {\normalfont \ttfamily hostNode} at the point of virial radius crossing. If {\normalfont \ttfamily acceptUnboundOrbits} is true, then unbound orbits may be returned, otherwise, the routine must ensure that the returned orbit is bound. Velocities should be returned in units of km/s, lengthscales in units of Mpc and masses in $M_\odot$. Note that the usual conventions of the {\normalfont \ttfamily keplerOrbit} object should be followed, namely the that orbitting bodies are treated as point masses, with the host being stationary and the usual reduced mass used.
-
-Currently defined satellite virial orbit methods are:
-\begin{description}
- \item [\hyperlink{satellites.merging.virial_orbits.Benson2005.F90:virial_orbits_benson2005:virial_orbital_parameters_benson2005}{{\normalfont \ttfamily Benson2005}}] The orbital parameters are select from the distribution found by \cite{benson_orbital_2005}.
- \item [\hyperlink{satellites.merging.virial_orbits.Wetzel2010.F90:virial_orbits_wetzel2010:virial_orbital_parameters_wetzel2010}{{\normalfont \ttfamily Wetzel2010}}] The orbital parameters are select from the distribution found by \cite{wetzel_orbits_2010}.
- \item [\hyperlink{satellites.merging.virial_orbits.fixed.F90:virial_orbits_fixed:virial_orbital_parameters_fixed}{{\normalfont \ttfamily fixed}}] The orbital parameters are set to fixed values, with $v_{\mathrm r}=${\normalfont \ttfamily [virialOrbitsFixedRadialVelocity]}$V_{\mathrm virial}$ and  $v_\phi=${\normalfont \ttfamily [virialOrbitsFixedTangentialVelocity]}$V_{\mathrm virial}$.
-\end{description}
-
 \subsubsection{Star Formation Feedback in Disks/Spheroids}
 
 Additional methods for computing feedback from star formation in disks/spheroids can be added using the {\normalfont \ttfamily starFormationFeedback[Disks|Spheroids]Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily powerLaw} method is described by a directive:
@@ -4430,99 +4316,6 @@ Currently defined ram pressure mass loss rate methods are:
 \begin{description}
  \item [\hyperlink{tidal_stripping.mass_loss_rate.disks.simple.F90:tidal_stripping_mass_loss_rate_disks_simple:tidal_stripping_mass_loss_rate_disk_simple}{{\normalfont \ttfamily simple}}] The mass loss rate scales in proportion to the ratio of tidal and gravitational restoring forces;
  \item [\hyperlink{tidal_stripping.mass_loss_rate.disks.null.F90:tidal_stripping_mass_loss_rate_disks_null:tidal_stripping_mass_loss_rate_disk_null}{{\normalfont \ttfamily null}}] The mass loss rate is assumed to be always zero.
-\end{description}
-
-
-\subsubsection{Survey Geometry}
-
-Additional methods for survey geometries can be added using the {\normalfont \ttfamily surveyGeometryMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Martin-2010-ALFALFA} method is described by a directive:
-\begin{verbatim}
-  !# <surveyGeometryMethod>
-  !#  <unitName>Geometry_Surveys_MARTIN_2010_ALFALFA_Initialize</unitName>
-  !# </surveyGeometryMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Geometry\_Surveys\_MARTIN\_2010\_ALFALFA\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(surveyGeometryMethod,,Geometry_Survey_Distance_Maximum_Get&
-       &,Geometry_Survey_Solid_Angle_Get ,Geometry_Survey_Volume_Maximum_Get,Geometry_Survey_Window_Functions_Get)
-    implicit none
-    type     (varying_string  ),          intent(in   ) :: surveyGeometryMethod
-    procedure(double precision), pointer, intent(inout) :: Geometry_Survey_Distance_Maximum_Get,Geometry_Survey_Solid_Angle_Get &
-         &,Geometry_Survey_Volume_Maximum_Get
-    procedure(                ), pointer, intent(inout) :: Geometry_Survey_Window_Functions_Get
-
-    if (surveyGeometryMethod == 'myMethod') then
-       Geometry_Survey_Distance_Maximum_Get => My_Geometry_Survey_Distance_Maximum
-       Geometry_Survey_Solid_Angle_Get      => My_Geometry_Survey_Solid_Angle
-       Geometry_Survey_Volume_Maximum_Get   => My_Geometry_Survey_Volume_Maximum
-       Geometry_Survey_Window_Functions_Get => My_Geometry_Survey_Window_Functions
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily surveyGeometryMethod} input parameter. The procedure pointers  must be set to point to functions which return properties of the survey as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The maximum distance function must have the form:
-\begin{verbatim}
-   double precision function Geometry_Survey_Distance_Maximum(mass)
-    implicit none
-    double precision, intent(in  ) :: mass
-    .
-    .
-    .
-    return
-   end function Geometry_Survey_Distance_Maximum 
-\end{verbatim}
-and must return the maximum distance (in Mpc) at which a galaxy of the given {\normalfont \ttfamily mass} would be included in the survey.
-
-The solid angle function must have the form:
-\begin{verbatim}
-   double precision function Geometry_Survey_Solid_Angle()
-    implicit none
-    .
-    .
-    .
-    return
-   end function Geometry_Survey_Solid_Angle_
-\end{verbatim}
-and should return the solid angle (in steradians) of the survey angular mask.
-
-The maximum volume function must have the form:
-\begin{verbatim}
-   double precision function Geometry_Survey_Volume_Maximum(mass)
-    implicit none
-    double precision, intent(in) :: mass
-    .
-    .
-    .
-    return
-   end function Geometry_Survey_Volume_Maximum 
-\end{verbatim}
-and should return the maximum volume (in Mpc$^3$) within which a galaxy of the given {\normalfont \ttfamily mass} could be found in the survey.
-
-The window function function must have the form:
-\begin{verbatim}
-   double precision function Geometry_Survey_Window_Functions(mass1,mass2,boxLength,gridCount,windowFunction1,windowFunction2)
-    implicit none
-    double precision         , intent(in   )                                           :: mass1,mass2
-    integer                  , intent(in   )                                           :: gridCount
-    double precision         , intent(  out)                                           :: boxLength
-    complex(c_double_complex), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
-    .
-    .
-    .
-    return
-   end function Geometry_Survey_Window_Functions 
-\end{verbatim}
-and should compute the Fourier space window functions corresponding to the survey volume within which galaxies of masses {\normalfont \ttfamily mass1} and {\normalfont \ttfamily mass2} could be found. The window functions should be computed on a Cartesian grid, containing {\normalfont \ttfamily gridCount} elements in each dimension. The chosen length of the box within which the survey geometry was embedded should be returned in the {\normalfont \ttfamily boxLength} variable.
-
-Currently defined type Ia supernovae methods are:
-\begin{description}
- \item [{\normalfont \ttfamily Martin-2010-ALFALFA}] Computes the survey geometry of the survey of \cite{martin_arecibo_2010}.
- \item [{\normalfont \ttfamily Li-White-2009-SDSS}] Computes the survey geometry of the survey of \cite{li_distribution_2009}.
 \end{description}
 
 \subsubsection{Tree Timing}
@@ -5586,6 +5379,7 @@ DATASET "metallicities" {
    DATASPACE  SIMPLE { ( [starFormationHistoryMetallicityCount] ) / ( [starFormationHistoryMetallicityCount] ) }
 }
 \end{verbatim}
+ \item [\hyperlink{galacticus.output.merger_tree.star_formation.in_situ.F90:star_formation_histories_in_situ}{{\normalfont \ttfamily inSitu}}] The star formation history is tabulated on a grid of time and is split between in-situ and accreted star formation. The time grid is the same as (and controlled by the same parameters) are for the {\normalfont \ttfamily metallicitySplit} method. Output follows the conventional format, with 2D star formation history datasets to represent the history as a function of time and origin. The first element in the origin dimension records in-situ star formation, while the second element records total star formation.
 \end{description}
 
 \section{Subsystems}
