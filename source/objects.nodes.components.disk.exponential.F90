@@ -517,7 +517,8 @@ contains
          &                                                                     outflowToHotHaloFraction    , starFormationRate         , &
          &                                                                     stellarMassRate             , transferRate
     type            (history                      )                         :: historyTransferRate         , stellarHistoryRate
-    type            (stellarLuminosities          )                         :: luminositiesStellarRates    , luminositiesTransferRate
+    type            (stellarLuminosities          ), save                   :: luminositiesStellarRates    , luminositiesTransferRate
+    !$omp threadprivate(luminositiesStellarRates,luminositiesTransferRate)
 
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
@@ -1056,7 +1057,7 @@ contains
   !# <radiusSolverTask>
   !#  <unitName>Node_Component_Disk_Exponential_Radius_Solver</unitName>
   !# </radiusSolverTask>
-  subroutine Node_Component_Disk_Exponential_Radius_Solver(thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
+  subroutine Node_Component_Disk_Exponential_Radius_Solver(thisNode,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
     use Tables
@@ -1065,6 +1066,7 @@ contains
     implicit none
     type            (treeNode                                                         ), intent(inout), pointer :: thisNode
     logical                                                                            , intent(  out)          :: componentActive
+    logical                                                                            , intent(in   )          :: specificAngularMomentumRequired
     double precision                                                                   , intent(  out)          :: specificAngularMomentum
     procedure       (Node_Component_Disk_Exponential_Radius_Solve                     ), intent(  out), pointer :: Radius_Get                 , Velocity_Get
     procedure       (Node_Component_Disk_Exponential_Radius_Solve_Set                 ), intent(  out), pointer :: Radius_Set                 , Velocity_Set
@@ -1079,6 +1081,7 @@ contains
        class is (nodeComponentDiskExponential)
        componentActive=.true.
        ! Get the angular momentum.
+       if (specificAngularMomentumRequired) then
           angularMomentum=thisDiskComponent%angularMomentum()
           if (angularMomentum >= 0.0d0) then
              ! Compute the specific angular momentum at the scale radius, assuming a flat rotation curve.
@@ -1105,7 +1108,7 @@ contains
                   &                                   *Node_Component_Disk_Exponential_Radius_Solve(thisNode) &
                   &                                  )                                                        &
                   )
-
+          end if
           ! Associate the pointers with the appropriate property routines.
           Radius_Get   => Node_Component_Disk_Exponential_Radius_Solve
           Radius_Set   => Node_Component_Disk_Exponential_Radius_Solve_Set

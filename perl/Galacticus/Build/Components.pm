@@ -234,11 +234,11 @@ sub Components_Generate_Output {
     }
 
     # Create a Makefile to specify dependencies on these include files.
-    open(makeFile,">./work/build/Makefile_Component_Includes.tmp");
-    print makeFile "./work/build/objects.nodes.o:".join("",map {" ./work/build/".$_} @includeDependencies)
+    open(makeFile,">".$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp");
+    print makeFile $ENV{'BUILDPATH'}."/objects.nodes.o:".join("",map {" ".$ENV{'BUILDPATH'}."/".$_} @includeDependencies)
 	if ( scalar(@includeDependencies) > 0 );
     close(makeFile);
-    &File_Changes::Update("./work/build/Makefile_Component_Includes" ,"./work/build/Makefile_Component_Includes.tmp" );
+    &File_Changes::Update($ENV{'BUILDPATH'}."/Makefile_Component_Includes" ,$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp" );
 
 }
 
@@ -1081,6 +1081,14 @@ sub Generate_Node_Component_Type{
 	     description => "Generate a binary dump of all properties."                                                            ,
 	     returnType  => "\\void"                                                                                               ,
 	     arguments   => "\\intzero\\ fileHandle\\argin"                   
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "readRaw"                                                                                              ,
+	     function    => "Node_Component_Read_Raw_Null"                                                                         ,
+	     description => "Read a binary dump of all properties."                                                                ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => "\\intzero\\ fileHandle\\arginout"                   
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
