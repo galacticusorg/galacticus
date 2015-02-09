@@ -222,9 +222,12 @@ contains
        nPropertiesMax=nProperties
     end if
 
-    ! Assign pointers to node variables.
+    ! Serialize property values to array.
     call thisNode%serializeValues(propertyValues)
 
+    ! Compute offsets into serialization arrays for rates and scales.
+    call thisNode%serializationOffsets()
+    
     ! Compute scales for all properties and extract from the node.
     call Galacticus_Calculations_Reset(thisNode)
     call thisNode%odeStepScalesInitialize()
@@ -275,7 +278,7 @@ contains
 
     ! Extract values.
     call thisNode%deserializeValues(propertyValues)
-
+    
     ! Ensure that the maximum time has not been exceed (can happen due to rounding errors).
     if (basicComponent%time() > endTime) call basicComponent%timeSet(endTime)
 

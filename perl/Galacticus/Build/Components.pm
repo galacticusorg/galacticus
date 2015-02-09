@@ -127,10 +127,10 @@ sub Components_Generate_Output {
 	    \&Generate_Node_Output_Functions                         ,
 	    # Generate functions to serialize/deserialize nodes to/from arrays.
 	    \&Generate_Node_Serialization_Functions                  ,
+	    # Generate functions compute offsets into serialization arrays.
+	    \&Generate_Node_Offset_Functions                         ,
 	    # Generate functions to get property names from a supplied index.
 	    \&Generate_Node_Property_Name_From_Index_Function        ,
-	    # Generate functions to serialize/deserialize nodes to/from arrays.
-	    \&Generate_Node_ODE_Initialization_Functions             ,
 	    # Generate function to copy one node to another.
 	    \&Generate_Node_Copy_Function                            ,
 	    # Generate function to move one node to another.
@@ -164,7 +164,7 @@ sub Components_Generate_Output {
 	    # Generate component implementation destruction functions.
 	    \&Generate_Component_Implementation_Destruction_Functions,
 	    # Generate ODE solver initialization functions.
-	    \&Generate_ODE_Initialization_Functions                  ,
+	    \&Generate_Node_ODE_Initialization_Functions             ,
 	    # Generate dump functions for each implementation.
 	    \&Generate_Implementation_Dump_Functions                 ,
 	    # Generate initializor functions for each implementation.
@@ -177,6 +177,8 @@ sub Components_Generate_Output {
 	    \&Generate_Implementation_Name_From_Index_Functions      ,
 	    # Generate serialization/deserialization functions for each implementation.
 	    \&Generate_Implementation_Serialization_Functions        ,
+	    # Generate serialization offset functions for each implementation.
+	    \&Generate_Implementation_Offset_Functions               ,
 	    # Generate component count methods.
 	    \&Generate_Component_Count_Functions                     ,
 	    # Generate component get methods.
@@ -201,6 +203,8 @@ sub Components_Generate_Output {
 	    \&Generate_Default_Component_Sources                     ,
 	    # Generate records of which component implementations are selected.
 	    \&Generate_Active_Implementation_Records                 ,
+	    # Generate variables that record offsets for serialization.
+	    \&Generate_Serialization_Offset_Variables                ,
 	    # Generate deferred procedure pointers.
 	    \&Generate_Deferred_Procedure_Pointers                   ,
 	    # Generate deferred binding procedure pointers.
@@ -1008,6 +1012,14 @@ sub Generate_Node_Component_Type{
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
+	     name        => "serializationOffsets"                                                                                 ,
+	     function    => "Node_Component_Serialization_Offsets"                                                                 ,
+	     description => "Set offsets into serialization arrays."                                                               ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => ""
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
 	     name        => "serializeValues"                                                                                      ,
 	     function    => "Node_Component_Serialize_Null"                                                                        ,
 	     description => "Serialize the evolvable quantities to an array."                                                      ,
@@ -1016,41 +1028,17 @@ sub Generate_Node_Component_Type{
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
-	     name        => "serializeRates"                                                                                       ,
-	     function    => "Node_Component_Serialize_Null"                                                                        ,
-	     description => "Serialize the evolvable rates to an array."                                                           ,
+	     name        => "readRaw"                                                                                              ,
+	     function    => "Node_Component_Read_Raw_Null"                                                                         ,
+	     description => "Read properties from raw file."                                                                       ,
 	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\doubleone\\ array\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "serializeScales"                                                                                      ,
-	     function    => "Node_Component_Serialize_Null"                                                                        ,
-	     description => "Serialize the evolvable scales to an array."                                                          ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\doubleone\\ array\\argin"
-	 },
+	     arguments   => "\\intzero\\ fileHandle\\argin"
+	 },	 
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "deserializeValues"                                                                                    ,
 	     function    => "Node_Component_Deserialize_Null"                                                                      ,
 	     description => "Deserialize the evolvable quantities from an array."                                                  ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\doubleone\\ array\\argout"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "deserializeRates"                                                                                     ,
-	     function    => "Node_Component_Deserialize_Null"                                                                      ,
-	     description => "Deserialize the evolvable rates from an array."                                                       ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\doubleone\\ array\\argout"          
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "deserializeScales"                                                                                    ,
-	     function    => "Node_Component_Deserialize_Null"                                                                      ,
-	     description => "Deserialize the evolvable scales from an array."                                                      ,
 	     returnType  => "\\void"                                                                                               ,
 	     arguments   => "\\doubleone\\ array\\argout"
 	 },
@@ -1412,13 +1400,12 @@ sub Generate_Implementations {
 	my @dataContent;
     	foreach ( keys(%{$component->{'content'}->{'data'}}) ) {
     	    my $type = &dataObjectName($component->{'content'}->{'data'}->{$_});
+
+	    (my $typeDefinition, my $typeLabel) = &Data_Object_Definition($component->{'content'}->{'data'}->{$_});
+	    $typeDefinition->{'variables'} = [ $_ ];
 	    push(
 		@dataContent,
-		{
-		    intrinsic  => "type",
-		    type       => $type,
-		    variables  => [ $_ ]
-		}
+		$typeDefinition
 		);
     	}
 	# Create a list for type-bound functions.
@@ -2745,16 +2732,7 @@ sub Generate_Node_Dump_Function {
 	$functionCode .= "      end select\n";
 	$functionCode .= "      write (fileHandle) size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Dump_Raw(component,fileHandle)\n";
-	    }
-	    $functionCode .= "        end select\n";
-	} else {
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dumpRaw(fileHandle)\n";
-	}
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%dumpRaw(fileHandle)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -2817,16 +2795,7 @@ sub Generate_Node_Dump_Function {
 	$functionCode .= "        end do\n";
 	$functionCode .= "      end select\n";
 	$functionCode .= "      do i=1,componentCount\n";
-	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Read_Raw(component,fileHandle)\n";
-	    }
-	    $functionCode .= "        end select\n";
-	} else {
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%readRaw(fileHandle)\n";
-	}
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%readRaw(fileHandle)\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    else\n";
 	$functionCode .= "       if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) deallocate(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
@@ -3064,16 +3033,7 @@ sub Generate_Node_Property_Name_From_Index_Function {
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Name_From_Index(component,count,name)\n";
-	    }
-	    $functionCode .= "        end select\n";
-	} else {
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%nameFromIndex(count,name)\n";
-	}
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%nameFromIndex(count,name)\n";
 	$functionCode .= "        if (count <= 0) return\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
@@ -3121,18 +3081,7 @@ sub Generate_Node_Serialization_Functions {
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		$functionCode .= "      write (0,*) 'DEBUG -> SerializeToArrayCount -> nodeComponent".ucfirst($_).ucfirst($implementationName)."',i,Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n"
-		    if ( $debugging == 1 );
-		$functionCode .= "        count=count+Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n";
-	    }
-	    $functionCode .= "        end select\n";
-	} else {
-	    $functionCode .= "        count=count+self%component".padComponentClass(ucfirst($_),[0,0])."%serializeCount()\n";
-	}
+	$functionCode .= "        count=count+self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
@@ -3148,9 +3097,102 @@ sub Generate_Node_Serialization_Functions {
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "serializeCount", function => "serializeToArrayCount", description => "Return a count of the number of evolvable properties of the serialized object.", returnType => "\\intzero", arguments => ""}
 	);
-
-    # Iterate over all property-associated data for which we need serialization/deserialization functions.
-    foreach my $content ( "value", "scale", "rate" ) {
+    # Create the serialization function.
+    @dataContent =
+	(
+	 {
+	     intrinsic  => "class",
+	     type       => "treeNode",
+	     attributes => [ "intent(in   )" ],
+	     variables  => [ "self" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "count", "offset", "i" ],
+	 },
+	 {
+	     intrinsic  => "double precision",
+	     attributes => [ "dimension(:)", "intent(  out)" ],
+	     variables  => [ "array" ]
+	 }
+	);
+    $functionCode  = "  subroutine SerializeToArrayValues(self,array)\n";
+    $functionCode .= "    !% Serialize values to array.\n";
+    $functionCode .= "    use Memory_Management\n";
+    $functionCode .= "    implicit none\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= "    offset=1\n";
+    # Loop over all component classes
+    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
+	$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeValues(array(offset:))\n";
+	$functionCode .= "        offset=offset+count\n";
+	$functionCode .= "      end do\n";
+	$functionCode .= "    end if\n";
+    }
+    $functionCode .= "    return\n";
+    $functionCode .= "  end subroutine SerializeToArrayValues\n\n";
+    # Insert into the function list.
+    push(
+	@{$buildData->{'code'}->{'functions'}},
+	$functionCode
+	);
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{type => "procedure", name => "serializeValues", function => "serializeToArrayValues", description => "Serialize values to {\\normalfont \\ttfamily array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argout"}
+	);
+    # Create the deserialization function.
+    @dataContent =
+	(
+	 {
+	     intrinsic  => "class",
+	     type       => "treeNode",
+	     attributes => [ "intent(inout)" ],
+	     variables  => [ "self" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "count", "offset", "i" ],
+	 },
+	 {
+	     intrinsic  => "double precision",
+	     attributes => [ "dimension(:)", "intent(in   )" ],
+	     variables  => [ "array" ]
+	 }
+	);
+    $functionCode  = "  subroutine DeserializeFromArrayValues(self,array)\n";
+    $functionCode .= "    !% Deserialize values from {\\normalfont \\ttfamily array}.\n";
+    $functionCode .= "    use Memory_Management\n";
+    $functionCode .= "    implicit none\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= "    offset=1\n";
+    # Loop over all component classes
+    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
+	$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%deserializeValues(array(offset:))\n";
+	$functionCode .= "        offset=offset+count\n";
+	$functionCode .= "      end do\n";
+	$functionCode .= "    end if\n";
+    }
+    $functionCode .= "    return\n";
+    $functionCode .= "  end subroutine DeserializeFromArrayValues\n\n";
+    # Insert into the function list.
+    push(
+	@{$buildData->{'code'}->{'functions'}},
+	$functionCode
+	);
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{type => "procedure", name => "deserializeValues", function => "deserializeFromArrayValues", description => "Deserialize values from {\\normalfont \\ttfamily array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argin"}
+	);
+    # Generate serialization functions for scales and rates.
+    foreach my $content ( "scale", "rate" ) {
 	# Create the serialization function.
 	@dataContent =
 	    (
@@ -3161,10 +3203,6 @@ sub Generate_Node_Serialization_Functions {
 		 variables  => [ "self" ]
 	     },
 	     {
-		 intrinsic  => "integer",
-		 variables  => [ "count", "offset", "i" ],
-	     },
-	     {
 		 intrinsic  => "double precision",
 		 attributes => [ "dimension(:)", "intent(  out)" ],
 		 variables  => [ "array" ]
@@ -3172,35 +3210,9 @@ sub Generate_Node_Serialization_Functions {
 	    );
 	$functionCode  = "  subroutine SerializeToArray".pad(ucfirst($content)."s",5)."(self,array)\n";
 	$functionCode .= "    !% Serialize ".$content."s to array.\n";
-	$functionCode .= "    use Memory_Management\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    offset=1\n";
-	# Loop over all component classes
-	foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	    $functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-		$functionCode .= "        count=0\n";
-		$functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-		foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		    $functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		    $functionCode .= "        count=Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n";
-		    $functionCode .= "        write (0,*) 'DEBUG -> SerializeToArray".ucfirst($content)."s -> nodeComponent".ucfirst($_).ucfirst($implementationName)."',i,count,offset,size(array)\n"
-			if ( $debugging == 1 );
-		    $functionCode .= "        if (count > 0) call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Serialize_".pad(ucfirst($content)."s",5)."(component,array(offset:))\n";
-		    $functionCode .= "        if (count > 0 .and. any(array(offset:offset+count-1) <= 0.0d0)) write (0,*) 'DEBUG -> SerializeToArray".ucfirst($content)."s: non-positive scale found for ".$_." ".$implementationName."'\n"
-			if ( $content eq "scale" && $debugging == 1 );
-		}
-		$functionCode .= "        end select\n";
-	    } else {
-		$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
-		$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serialize".pad(ucfirst($content)."s",5)."(array(offset:))\n";
-	    }
-	    $functionCode .= "        offset=offset+count\n";
-	    $functionCode .= "      end do\n";
-	    $functionCode .= "    end if\n";
-	}
+	$functionCode .= "    array(1:nodeSerializationCount)=node".ucfirst($content)."s(1:nodeSerializationCount)\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine SerializeToArray".ucfirst($content)."s\n\n";
 	# Insert into the function list.
@@ -3212,64 +3224,6 @@ sub Generate_Node_Serialization_Functions {
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	    {type => "procedure", name => "serialize".ucfirst($content)."s", function => "serializeToArray".ucfirst($content)."s", description => "Serialize ".$content."s to {\\normalfont \\ttfamily array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argout"}
-	    );
-	# Create the deserialization function.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "treeNode",
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "count", "offset", "i" ],
-	     },
-	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "dimension(:)", "intent(in   )" ],
-		 variables  => [ "array" ]
-	     }
-	    );
-	$functionCode  = "  subroutine DeserializeFromArray".pad(ucfirst($content)."s",5)."(self,array)\n";
-	$functionCode .= "    !% Deserialize ".$content."s from {\\normalfont \\ttfamily array}.\n";
-	$functionCode .= "    use Memory_Management\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    offset=1\n";
-	# Loop over all component classes
-	foreach ( @{$buildData->{'componentClassList'}} ) {	    
-	    $functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	    $functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	    if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-		$functionCode .= "        count=0\n";
-		$functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-		foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		    $functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		    $functionCode .= "        count=Node_Component_".ucfirst($_).ucfirst($implementationName)."_Count(component)\n";
-		    $functionCode .= "        if (count > 0) call Node_Component_".ucfirst($_).ucfirst($implementationName)."_Deserialize_".pad(ucfirst($content)."s",5)."(component,array(offset:))\n";
-		}
-		$functionCode .= "        end select\n";
-	    } else {		
-		$functionCode .= "        count=self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializeCount()\n";
-		$functionCode .= "        if (count > 0) call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%deserialize".pad(ucfirst($content)."s",5)."(array(offset:))\n";
-	    }
-	    $functionCode .= "        offset=offset+count\n";
-	    $functionCode .= "      end do\n";
-	    $functionCode .= "    end if\n";
-	}
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine DeserializeFromArray".ucfirst($content)."s\n\n";
-	# Insert into the function list.
-	push(
-	    @{$buildData->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Insert a type-binding for this function into the treeNode type.
-	push(
-	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => "deserialize".ucfirst($content)."s", function => "deserializeFromArray".ucfirst($content)."s", description => "Deserialize ".$content."s from {\\normalfont \\ttfamily array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argin"}
 	    );
     }
 }
@@ -3296,23 +3250,7 @@ sub Generate_Node_ODE_Initialization_Functions {
     $functionCode .= "    !% Initialize the rates in components of tree node {\\normalfont \\ttfamily self} in preparation for an ODE solver step.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    # Loop over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_ODE_Step_Rates_Init(component)\n";
-	    }
-	    $functionCode .= "    end select\n";
-	} else {
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%odeStepRatesInitialize()\n";
-	}
-	$functionCode .= "      end do\n";
-	$functionCode .= "    end if\n";	
-    }
+    $functionCode .= "    nodeRates=0.0d0\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine Tree_Node_ODE_Step_Rates_Initialize\n\n";
     # Insert into the function list.
@@ -3330,23 +3268,7 @@ sub Generate_Node_ODE_Initialization_Functions {
     $functionCode .= "    !% Initialize the scales in components of tree node {\\normalfont \\ttfamily self} in preparation for an ODE solver step.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    # Loop over all component classes
-    foreach ( @{$buildData->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-	if ( $workaround == 1 ) { # Workaround for http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53876
-	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
-	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
-		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_odeStepScalesInit(component)\n";
-	    }
-	    $functionCode .= "    end select\n";
-	} else {
-	    $functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%odeStepScalesInitialize()\n";
-	}
-	$functionCode .= "      end do\n";
-	$functionCode .= "    end if\n";
-    }
+    $functionCode .= "    nodeScales=1.0d0\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine Tree_Node_ODE_Step_Scales_Initialize\n\n";
     # Insert into the function list.
@@ -3451,14 +3373,14 @@ sub Generate_Implementation_Dump_Functions {
 			    ||
 			    $linkedData->{'type'} eq "logical"
 			    ) {
-			    $functionCode .= "    write (label,".$formatLabel{$linkedData->{'type'}}.") self%".padLinkedData($linkedDataName,[0,0])."%value\n";
+			    $functionCode .= "    write (label,".$formatLabel{$linkedData->{'type'}}.") self%".padLinkedData($linkedDataName,[0,0])."\n";
 			    $functionCode .= "    message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))."'//label\n";
 			    $functionCode .= "    call Galacticus_Display_Message(message)\n";
 			}
 			else {
 			    $functionCode .= "    message='".$propertyName.":'\n";
 			    $functionCode .= "    call Galacticus_Display_Indent(message)\n";
-			    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%dump()\n";
+			    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%dump()\n";
 			    $functionCode .= "    call Galacticus_Display_Unindent('end')\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
@@ -3471,20 +3393,20 @@ sub Generate_Implementation_Dump_Functions {
 			    ||
 			    $linkedData->{'type'} eq "logical"
 			    ) {
-			    $functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
+			    $functionCode .= "    do i=1,size(self%".$linkedDataName.")\n";
 			    $functionCode .= "       write (label,'(i3)') i\n";
 			    $functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
-			    $functionCode .= "       write (label,".$formatLabel{$linkedData->{'type'}}.") self%".$linkedDataName."%value(i)\n";
+			    $functionCode .= "       write (label,".$formatLabel{$linkedData->{'type'}}.") self%".$linkedDataName."(i)\n";
 			    $functionCode .= "       message=message//': '//label\n";
 			    $functionCode .= "       call Galacticus_Display_Message(message)\n";
 			    $functionCode .= "    end do\n";
 			}
 			else {
-			    $functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
+			    $functionCode .= "    do i=1,size(self%".$linkedDataName.")\n";
 			    $functionCode .= "       write (label,'(i3)') i\n";
 			    $functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
 			    $functionCode .= "       call Galacticus_Display_Indent(message)\n";
-			    $functionCode .= "       call self%".$linkedDataName."%value(i)%dump()\n";
+			    $functionCode .= "       call self%".$linkedDataName."(i)%dump()\n";
 			    $functionCode .= "       call Galacticus_Display_Unindent('end')\n";
 			    $functionCode .= "    end do\n";
 			}
@@ -3555,7 +3477,7 @@ sub Generate_Implementation_Dump_Functions {
 			    $linkedData->{'type'} eq "logical"  
 			    ) {
 				(my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
-				$functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".padLinkedData($linkedDataName,[0,0])."%value,'</".$propertyName.">'\n";
+				$functionCode .= "    write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".padLinkedData($linkedDataName,[0,0]).",'</".$propertyName.">'\n";
 			}
 			else {
 			    $functionCode .= "    write (fileHandle,'(a)') '   <".$propertyName.">'\n";
@@ -3572,12 +3494,12 @@ sub Generate_Implementation_Dump_Functions {
 			    $linkedData->{'type'} eq "logical" 
 			    ) {
 			    (my $typeFormat = $formatLabel{$linkedData->{'type'}}) =~ s/^\'\((.*)\)\'$/$1/g;
-			    $functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
-			    $functionCode .= "       write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".$linkedDataName."%value(i),'</".$propertyName.">'\n";
+			    $functionCode .= "    do i=1,size(self%".$linkedDataName.")\n";
+			    $functionCode .= "       write (fileHandle,'(a,".$typeFormat.",a)') '   <".$propertyName.">',self%".$linkedDataName."(i),'</".$propertyName.">'\n";
 			    $functionCode .= "    end do\n";
 			}
 			else {
-			    $functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
+			    $functionCode .= "    do i=1,size(self%".$linkedDataName.")\n";
 			    $functionCode .= "       write (fileHandle,'(a)') '   <".$propertyName.">'\n";
 			    $functionCode .= "       write (fileHandle,'(a)') '   </".$propertyName.">'\n";
 			    $functionCode .= "    end do\n";
@@ -3685,15 +3607,15 @@ sub Generate_Implementation_Dump_Functions {
 			    ||
 			    $linkedData->{'type'} eq "logical"
 			    ) {
-			    $functionCode .= "    write (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."%value\n";
+			    $functionCode .= "    write (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."\n";
 			}
 			else {
-			    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%dumpRaw(fileHandle)\n";
+			    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%dumpRaw(fileHandle)\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
-			$functionCode .= "    write (fileHandle) allocated(self%".$linkedDataName."%value)\n";
-			$functionCode .= "    if (allocated(self%".$linkedDataName."%value)) then\n";
-			$functionCode .= "       write (fileHandle) size(self%".$linkedDataName."%value)\n";
+			$functionCode .= "    write (fileHandle) allocated(self%".$linkedDataName.")\n";
+			$functionCode .= "    if (allocated(self%".$linkedDataName.")) then\n";
+			$functionCode .= "       write (fileHandle) size(self%".$linkedDataName.")\n";
 			if (
 			    $linkedData->{'type'} eq "real"
 			    ||
@@ -3703,11 +3625,11 @@ sub Generate_Implementation_Dump_Functions {
 			    ||
 			    $linkedData->{'type'} eq "logical"
 			    ) {
-			    $functionCode .= "      write (fileHandle) self%".$linkedDataName."%value\n";
+			    $functionCode .= "      write (fileHandle) self%".$linkedDataName."\n";
 			}
 			else {
-			    $functionCode .= "       do i=1,size(self%".$linkedDataName."%value)\n";
-			    $functionCode .= "          call self%".$linkedDataName."%value(i)%dumpRaw(fileHandle)\n";
+			    $functionCode .= "       do i=1,size(self%".$linkedDataName.")\n";
+			    $functionCode .= "          call self%".$linkedDataName."(i)%dumpRaw(fileHandle)\n";
 			    $functionCode .= "       end do\n";
 			}
 			$functionCode .= "    end if\n";
@@ -3817,18 +3739,15 @@ sub Generate_Implementation_Dump_Functions {
 			    ||
 			    $linkedData->{'type'} eq "logical"
 			    ) {
-			    $functionCode .= "    read (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."%value\n";
+			    $functionCode .= "    read (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."\n";
 			}
 			else {
-			    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%readRaw(fileHandle)\n";
+			    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%readRaw(fileHandle)\n";
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			$functionCode .= "    read (fileHandle) isAllocated\n";
 			$functionCode .= "    if (isAllocated) then\n";
 			$functionCode .= "       read (fileHandle) arraySize\n";
-			my @toAllocate = ( "value" );
-			push(@toAllocate,"rate ", "scale" )
-			    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
 			if (
 			    $linkedData->{'type'} eq "real"
 			    ||
@@ -3838,15 +3757,13 @@ sub Generate_Implementation_Dump_Functions {
 			    ||
 			    $linkedData->{'type'} eq "logical"
 			    ) {
-			    $functionCode .= "      call Alloc_Array(self%".$linkedDataName."%".$_.",[arraySize])\n"
-				foreach ( @toAllocate );
-			    $functionCode .= "      read (fileHandle) self%".$linkedDataName."%value\n";
+			    $functionCode .= "      call Alloc_Array(self%".$linkedDataName.",[arraySize])\n";
+			    $functionCode .= "      read (fileHandle) self%".$linkedDataName."\n";
 			}
 			else {
-			    $functionCode .= "       allocate(self%".$linkedDataName."%".$_."(arraySize))\n"
-				foreach ( @toAllocate );
+			    $functionCode .= "       allocate(self%".$linkedDataName."(arraySize))\n";
 			    $functionCode .= "       do i=1,arraySize)\n";
-			    $functionCode .= "          call self%".$linkedDataName."%value(i)%readRaw(fileHandle)\n";
+			    $functionCode .= "          call self%".$linkedDataName."(i)%readRaw(fileHandle)\n";
 			    $functionCode .= "       end do\n";
 			}
 			$functionCode .= "    end if\n";
@@ -3905,39 +3822,29 @@ sub Generate_Implementation_Initializor_Functions {
 		    }
 		    $default = $property->{'classDefault'}->{'code'};
 		    if ( exists($property->{'classDefault'}->{'count'}) ) {
-			my @gsr = ( "value" );
-			push
-			    (
-			     @gsr,
-			     "rate",
-			     "scale"
-			    )
-			    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
-			foreach ( @gsr ) {
-			    $initializeCode .= "           call Alloc_Array(self%".padLinkedData($linkedDataName,[0,0])."%".$_.",[".$property->{'classDefault'}->{'count'}."])\n";
-			}
+			$initializeCode .= "           call Alloc_Array(self%".padLinkedData($linkedDataName,[0,0]).",[".$property->{'classDefault'}->{'count'}."])\n";
 		    }
-		    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=".$default."\n";
+		    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."=".$default."\n";
 		} else {
 		    # Set to null.
 		    if    ( $linkedData->{'type'} eq"real"        ) {
 			if ( $linkedData->{'rank'} == 0 ) {
-			    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0.0d0\n";
+			    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."=0.0d0\n";
 			} else {
-			    $initializeCode .= "            call Alloc_Array(self%".padLinkedData($linkedDataName,[0,0])."%value,[".join(",","0" x $linkedData->{'rank'})."])\n";
+			    $initializeCode .= "            call Alloc_Array(self%".padLinkedData($linkedDataName,[0,0]).",[".join(",","0" x $linkedData->{'rank'})."])\n";
 			}
 		    }
 		    elsif ( $linkedData->{'type'} eq"integer"     ) {
-			$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0\n";
+			$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."=0\n";
 		    }
 		    elsif ( $linkedData->{'type'} eq"longInteger" ) {
-			$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0_kind_int8\n";
+			$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."=0_kind_int8\n";
 		    }
 		    elsif ( $linkedData->{'type'} eq"logical"     ) {
-			$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=.false.\n";
+			$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."=.false.\n";
 		    }
 		    else {
-			$initializeCode .= "       call self%".padLinkedData($linkedDataName,[0,0])."%value%reset()\n";			    
+			$initializeCode .= "       call self%".padLinkedData($linkedDataName,[0,0])."%reset()\n";			    
 		    }
 		}
 	    }
@@ -4089,23 +3996,15 @@ sub Generate_Implementation_Builder_Functions {
 			    ||
 			    $linkedData->{'type'} eq "logical"
 			    ) {
-			    $functionCode .= "      call extractDataContent(property,self%".padLinkedData($linkedDataName,[0,0])."%value)\n";
+			    $functionCode .= "      call extractDataContent(property,self%".padLinkedData($linkedDataName,[0,0]).")\n";
 			} elsif ( $linkedData->{'type'} eq "longInteger" ) {
 			    $functionCode .= "      call Galacticus_Error_Report('Node_Component_".ucfirst($componentID)."_Builder','building of long integer properties currently not supported')\n";
 			}
 			else {
-			    $functionCode .= "      call self%".padLinkedData($linkedDataName,[0,0])."%value%builder(property)\n";
+			    $functionCode .= "      call self%".padLinkedData($linkedDataName,[0,0])."%builder(property)\n";
 			}
 			$functionCode .= "    end if\n";
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
-			my @gsr = ( "value" );
-			push
-			    (
-			     @gsr,
-			     "rate",
-			     "scale"
-			    )
-			    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
 			$functionCode .= "    if (getLength(propertyList) >= 1) then\n";
 			if (
 			    $linkedData->{'type'} eq "real"
@@ -4116,19 +4015,17 @@ sub Generate_Implementation_Builder_Functions {
 			    ||
 			    $linkedData->{'type'} eq "logical"
 			    ) {
-			    $functionCode .= "      call Alloc_Array(self%".$linkedDataName."%".$_.",[getLength(propertyList)])\n"
-				foreach ( @gsr );
+			    $functionCode .= "      call Alloc_Array(self%".$linkedDataName.",[getLength(propertyList)])\n";
 			    $functionCode .= "      do i=1,getLength(propertyList)\n";
 			    $functionCode .= "        property => item(propertyList,i-1)\n";
-			    $functionCode .= "        call extractDataContent(property,self%".$linkedDataName."%value(i))\n";
+			    $functionCode .= "        call extractDataContent(property,self%".$linkedDataName."(i))\n";
 			    $functionCode .= "      end do\n";
 			}
 			else {
-			    $functionCode .= "      allocate(self%".$linkedDataName."%".$_."(getLength(propertyList)))\n"
-				foreach ( @gsr );
+			    $functionCode .= "      allocate(self%".$linkedDataName."(getLength(propertyList)))\n";
 			    $functionCode .= "      do i=1,getLength(propertyList)\n";
 			    $functionCode .= "        property => item(propertyList,i-1)\n";
-			    $functionCode .= "        call self%".$linkedDataName."%value(i)%builder(property)\n";
+			    $functionCode .= "        call self%".$linkedDataName."(i)%builder(property)\n";
 			    $functionCode .= "      end do\n";
 			}
 			$functionCode .= "    end if\n";
@@ -4693,10 +4590,10 @@ sub Generate_Implementation_Name_From_Index_Functions {
 			    $functionCode .= "    count=count-1\n";
 			}
 			else {
-			    $functionCode .= "    count=count-self%".padLinkedData($linkedDataName,[0,0])."%value%serializeCount()\n";
+			    $functionCode .= "    count=count-self%".padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
 			}
 		    } else {
-			$functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0])."%value)) count=count-size(self%".padLinkedData($linkedDataName,[0,0])."%value)\n";
+			$functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0]).")) count=count-size(self%".padLinkedData($linkedDataName,[0,0]).")\n";
 		    }
 		    $functionCode .= "    if (count <= 0) then\n";
 		    $functionCode .= "      name='".$component->{'class'}.":".$component->{'name'}.":".$propertyName."'\n";
@@ -4809,10 +4706,10 @@ sub Generate_Implementation_Serialization_Functions {
 			    ++$scalarPropertyCount;
 			}
 			else {
-			    $functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+self%".padLinkedData($linkedDataName,[0,0])."%value%serializeCount()\n";
+			    $functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+self%".padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
 			}
 		    } else {
-			$functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0])."%value)) Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+size(self%".padLinkedData($linkedDataName,[0,0])."%value)\n";
+			$functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0]).")) Node_Component_".ucfirst($componentID)."_Count=Node_Component_".ucfirst($componentID)."_Count+size(self%".padLinkedData($linkedDataName,[0,0]).")\n";
 		    }
 		}
 	    }
@@ -4832,198 +4729,384 @@ sub Generate_Implementation_Serialization_Functions {
 	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "serializeCount", function => "Node_Component_".ucfirst($componentID)."_Count"}
 	    );
-	# Iterate over content types.
-	foreach my $content ( "value", "scale", "rate" ) {
-	    # Specify data content for serialization functions.
-	    @dataContent =
-	    	(
-	    	 {
-	    	     intrinsic  => "class",
-	    	     type       => "nodeComponent".ucfirst($componentID),
-	    	     attributes => [ "intent(in   )" ],
-	    	     variables  => [ "self" ]
-	    	 },
-	    	 {
-	    	     intrinsic  => "double precision",
-	    	     attributes => [ "intent(  out)", "dimension(:)" ],
-	    	     variables  => [ "array" ]
-	    	 }
-	    	);
-	    # Generate serialization function.
-	    $functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s(self,array)\n";
-	    $functionCode .= "    !% Serialize ".$content."s of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
-	    $functionCode .= "    implicit none\n";
-	    my $serializationCode;
-	    my $needCount = 0;
-	    # If this component is an extension, call serialization on the extended type.
-	    if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
-		my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
-		$serializationCode .= " count=self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
-		$serializationCode .= " if (count > 0) then\n";
-		$serializationCode .= "  call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serialize".ucfirst($content)."s(array)\n";
-		$serializationCode .= "  offset=offset+count\n";
-		$serializationCode .= " end if\n";
-		$needCount = 1;
-	    }
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    	# Check if this property has any linked data in this component.
-	    	if ( exists($property->{'linkedData'}) ) {
-	    	    my $linkedDataName = $property->{'linkedData'};
-	    	    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-	    	    if ( $linkedData->{'isEvolvable'} eq "true" ) {
-	    		if ( $linkedData->{'rank'} == 0 ) {
-	    		    if ( $linkedData->{'type'} eq "real" ) {
-				$serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s -> ".$linkedDataName."',offset,size(array)\n"
-				    if ( $debugging == 1 );
-				$serializationCode .= "    array(offset)=self%".padLinkedData($linkedDataName,[0,0])."%".$content."\n";
-				$serializationCode .= "    if (array(offset) <= 0.0d0) write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s: non-positive scale found for ".$linkedDataName."'\n"
-				    if ( $content eq "scale" && $debugging == 1 );
-				$serializationCode .= "    offset=offset+1\n";
-			    }
-			    else {
-				$serializationCode .= "    count=self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."%serializeCount(                            )\n";
-				$serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s -> ".$linkedDataName."',offset,count,size(array)\n"
-				    if ( $debugging == 1 );
-				$serializationCode .= "    if (count > 0) call  self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."%serialize     (array(offset:offset+count-1))\n";
-				$serializationCode .= "    if (count > 0 .and. any(array(offset:offset+count-1) <= 0.0d0)) write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s: non-positive scale found for ".$linkedDataName."'\n"
-				    if ( $content eq "scale" && $debugging == 1 );
-				$serializationCode .= "    offset=offset+count\n";
-				$needCount = 1;
-			    }
-	    		} else {
-	    		    $serializationCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5).")) then\n";
-	    		    $serializationCode .= "       count=size(self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5).")\n";
-			    $serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s -> ".$linkedDataName."',offset,count,size(array)\n"
-				if ( $debugging == 1 );
-	    		    $serializationCode .= "       array(offset:offset+count-1)=reshape(self%".padLinkedData($linkedDataName,[0,0])."%".$content.",[count])\n";
-			    $serializationCode .= "       if (any(array(offset:offset+count-1) <= 0.0d0)) write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s: non-positive scale found for ".$linkedDataName."'\n"
-				if ( $content eq "scale" && $debugging == 1 );
-	    		    $serializationCode .= "       offset=offset+count\n";
-	    		    $serializationCode .= "    end if\n";
-			    $needCount = 1;
-	    		}
-	    	    }
-	    	}
-	    }
-	    if ( defined($serializationCode) ) {
-		my @variables = ( "offset" );
-		push(@variables,"count") 
-		    if ( $needCount == 1 );
-		push(
-		    @dataContent,
-		    {
-			intrinsic  => "integer",
-			variables  => \@variables
-		    }    
-		    );
-		$serializationCode = "    offset=1\n".$serializationCode;
-	    }
-	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	    $functionCode .= $serializationCode
-		if ( defined($serializationCode) );
-	    $functionCode .= "    return\n";
-	    $functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s\n\n";
-	    # Insert into the function list.
-	    push(
-	    	@{$buildData->{'code'}->{'functions'}},
-	    	$functionCode
-	    	);
-	    # Insert a type-binding for this function into the implementation type.
-	    push(
-		@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-		{type => "procedure", name => "serialize".ucfirst($content)."s", function => "Node_Component_".ucfirst($componentID)."_Serialize_"  .ucfirst($content)."s"},
-		);
-	    # Specify data content for deserialization functions.
-	    @dataContent =
-	    	(
-	    	 {
-	    	     intrinsic  => "class",
-	    	     type       => "nodeComponent".ucfirst($componentID),
-	    	     attributes => [ "intent(inout)" ],
-	    	     variables  => [ "self" ]
-	    	 },
-	    	 {
-	    	     intrinsic  => "double precision",
-	    	     attributes => [ "intent(in   )", "dimension(:)" ],
-	    	     variables  => [ "array" ]
-	    	 }
-	    	);
-	    # Generate deserialization function.
-	    $functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Deserialize_".ucfirst($content)."s(self,array)\n";
-	    $functionCode .= "    !% Serialize ".$content."s of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
-	    $functionCode .= "    implicit none\n";
-	    my $deserializationCode;
-	    $needCount = 0;
-	    # If this component is an extension, call deserialization on the extended type.
-	    if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
-		my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
-		$deserializationCode .= " count=self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
-		$deserializationCode .= " if (count > 0) then\n";
-		$deserializationCode .= "  call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%deserialize".ucfirst($content)."s(array)\n";
-		$deserializationCode .= "  offset=offset+count\n";
-		$deserializationCode .= " end if\n";
-		$needCount = 1;
-	    }
-	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-	    	my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    	# Check if this property has any linked data in this component.
-	    	if ( exists($property->{'linkedData'}) ) {
-	    	    # For each linked datum count if necessary.
-	    	    my $linkedDataName = $property->{'linkedData'};
-	    	    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-	    	    if ( $linkedData->{'isEvolvable'} eq "true" ) {
-	    		if ( $linkedData->{'rank'} == 0 ) {
-			    if ( $linkedData->{'type'} eq  "real" ) {
-				$deserializationCode .= "    self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."=array(offset)\n";
-				$deserializationCode .= "    offset=offset+1\n";
-			    }
-			    else {
-				$deserializationCode .= "    count=self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."%serializeCount(                            )\n";
-				$deserializationCode .= "    call  self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."%deserialize   (array(offset:offset+count-1))\n";
-				$deserializationCode .= "    offset=offset+count\n";
-				$needCount = 1;
-	    		    }
-	    		} else {
-	    		    $deserializationCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5).")) then\n";
-	    		    $deserializationCode .= "       count=size(self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5).")\n";
-	    		    $deserializationCode .= "       self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."=reshape(array(offset:offset+count-1),shape(self%".padLinkedData($linkedDataName,[0,0])."%".pad($content,5)."))\n";
-	    		    $deserializationCode .= "       offset=offset+count\n";
-	    		    $deserializationCode .= "    end if\n";
-			    $needCount = 1;
-	    		}
-	    	    }
-	    	}
-	    }
-	    if ( defined($deserializationCode) ) {
-		my @variables = ( "offset" );
-		push(@variables,"count") 
-		    if ( $needCount == 1 );
-		push(
-		    @dataContent,
-		    {
-			intrinsic  => "integer",
-			variables  => \@variables
-		    }    
-		    );
-		$deserializationCode = "    offset=1\n".$deserializationCode;
-	    }
-	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	    $functionCode .= $deserializationCode
-		if ( defined($deserializationCode) );
-	    $functionCode .= "    return\n";
-	    $functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Deserialize_".ucfirst($content)."s\n\n";
-	    # Insert into the function list.
-	    push(
-	    	@{$buildData->{'code'}->{'functions'}},
-	    	$functionCode
-	    	);
-	    # Insert a type-binding for this function into the implementation type.
-	    push(
-		@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-		{type => "procedure", name => "deserialize".ucfirst($content)."s", function => "Node_Component_".ucfirst($componentID)."_Deserialize_"  .ucfirst($content)."s"},
-		);
+	# Specify data content for serialization functions.
+	@dataContent =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentID),
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "double precision",
+		 attributes => [ "intent(  out)", "dimension(:)" ],
+		 variables  => [ "array" ]
+	     }
+	    );
+	# Generate serialization function.
+	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Serialize_Values(self,array)\n";
+	$functionCode .= "    !% Serialize values of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
+	$functionCode .= "    implicit none\n";
+	my $serializationCode;
+	my $needCount = 0;
+	# If this component is an extension, call serialization on the extended type.
+	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	    $serializationCode .= " count=self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
+	    $serializationCode .= " if (count > 0) then\n";
+	    $serializationCode .= "  call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeValues(array)\n";
+	    $serializationCode .= "  offset=offset+count\n";
+	    $serializationCode .= " end if\n";
+	    $needCount = 1;
 	}
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+	    # Check if this property has any linked data in this component.
+	    if ( exists($property->{'linkedData'}) ) {
+		my $linkedDataName = $property->{'linkedData'};
+		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		if ( $linkedData->{'isEvolvable'} eq "true" ) {
+		    if ( $linkedData->{'rank'} == 0 ) {
+			if ( $linkedData->{'type'} eq "real" ) {
+			    $serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_Values -> ".$linkedDataName."',offset,size(array)\n"
+				if ( $debugging == 1 );
+			    $serializationCode .= "    array(offset)=self%".padLinkedData($linkedDataName,[0,0])."\n";
+			    $serializationCode .= "    offset=offset+1\n";
+			}
+			else {
+			    $serializationCode .= "    count=self%".padLinkedData($linkedDataName,[0,0])."%serializeCount(                            )\n";
+			    $serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_Values -> ".$linkedDataName."',offset,count,size(array)\n"
+				if ( $debugging == 1 );
+			    $serializationCode .= "    if (count > 0) call  self%".padLinkedData($linkedDataName,[0,0])."%serialize     (array(offset:offset+count-1))\n";
+			    $serializationCode .= "    offset=offset+count\n";
+			    $needCount = 1;
+			}
+		    } else {
+			$serializationCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0]).")) then\n";
+			$serializationCode .= "       count=size(self%".padLinkedData($linkedDataName,[0,0]).")\n";
+			$serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_Values -> ".$linkedDataName."',offset,count,size(array)\n"
+			    if ( $debugging == 1 );
+			$serializationCode .= "       array(offset:offset+count-1)=reshape(self%".padLinkedData($linkedDataName,[0,0]).",[count])\n";
+			$serializationCode .= "       offset=offset+count\n";
+			$serializationCode .= "    end if\n";
+			$needCount = 1;
+		    }
+		}
+	    }
+	}
+	if ( defined($serializationCode) ) {
+	    my @variables = ( "offset" );
+	    push(@variables,"count") 
+		if ( $needCount == 1 );
+	    push(
+		@dataContent,
+		{
+		    intrinsic  => "integer",
+		    variables  => \@variables
+		}    
+		);
+	    $serializationCode = "    offset=1\n".$serializationCode;
+	}
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= $serializationCode
+	    if ( defined($serializationCode) );
+	$functionCode .= "    return\n";
+	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Serialize_Values\n\n";
+	# Insert into the function list.
+	push(
+	    	@{$buildData->{'code'}->{'functions'}},
+	    $functionCode
+	    );
+	# Insert a type-binding for this function into the implementation type.
+	push(
+	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    {type => "procedure", name => "serializeValues", function => "Node_Component_".ucfirst($componentID)."_Serialize_Values"},
+	    );
+	# Specify data content for deserialization functions.
+	@dataContent =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentID),
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "double precision",
+		 attributes => [ "intent(in   )", "dimension(:)" ],
+		 variables  => [ "array" ]
+	     }
+	    );
+	# Generate deserialization function.
+	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Deserialize_Values(self,array)\n";
+	$functionCode .= "    !% Serialize values of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
+	$functionCode .= "    implicit none\n";
+	my $deserializationCode;
+	$needCount = 0;
+	# If this component is an extension, call deserialization on the extended type.
+	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	    $deserializationCode .= " count=self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
+	    $deserializationCode .= " if (count > 0) then\n";
+	    $deserializationCode .= "  call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%deserializeValues(array)\n";
+	    $deserializationCode .= "  offset=offset+count\n";
+	    $deserializationCode .= " end if\n";
+	    $needCount = 1;
+	}
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+	    # Check if this property has any linked data in this component.
+	    if ( exists($property->{'linkedData'}) ) {
+		# For each linked datum count if necessary.
+		my $linkedDataName = $property->{'linkedData'};
+		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		if ( $linkedData->{'isEvolvable'} eq "true" ) {
+		    if ( $linkedData->{'rank'} == 0 ) {
+			if ( $linkedData->{'type'} eq  "real" ) {
+			    $deserializationCode .= "    self%".padLinkedData($linkedDataName,[0,0])."=array(offset)\n";
+			    $deserializationCode .= "    offset=offset+1\n";
+			}
+			else {
+			    $deserializationCode .= "    count=self%".padLinkedData($linkedDataName,[0,0])."%serializeCount(                            )\n";
+			    $deserializationCode .= "    call  self%".padLinkedData($linkedDataName,[0,0])."%deserialize   (array(offset:offset+count-1))\n";
+			    $deserializationCode .= "    offset=offset+count\n";
+			    $needCount = 1;
+			}
+		    } else {
+			$deserializationCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0]).")) then\n";
+			$deserializationCode .= "       count=size(self%".padLinkedData($linkedDataName,[0,0]).")\n";
+			$deserializationCode .= "       self%".padLinkedData($linkedDataName,[0,0])."=reshape(array(offset:offset+count-1),shape(self%".padLinkedData($linkedDataName,[0,0])."))\n";
+			$deserializationCode .= "       offset=offset+count\n";
+			$deserializationCode .= "    end if\n";
+			$needCount = 1;
+		    }
+		}
+	    }
+	}
+	if ( defined($deserializationCode) ) {
+	    my @variables = ( "offset" );
+	    push(@variables,"count") 
+		if ( $needCount == 1 );
+	    push(
+		@dataContent,
+		{
+		    intrinsic  => "integer",
+		    variables  => \@variables
+		}    
+		);
+	    $deserializationCode = "    offset=1\n".$deserializationCode;
+	}
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= $deserializationCode
+	    if ( defined($deserializationCode) );
+	$functionCode .= "    return\n";
+	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Deserialize_Values\n\n";
+	# Insert into the function list.
+	push(
+	    @{$buildData->{'code'}->{'functions'}},
+	    $functionCode
+	    );
+	# Insert a type-binding for this function into the implementation type.
+	push(
+	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    {type => "procedure", name => "deserializeValues", function => "Node_Component_".ucfirst($componentID)."_Deserialize_Values"},
+	    );
+    }
+}
+
+sub Generate_Serialization_Offset_Variables {
+    # Generate variables which store offsets into arrays for serialization.
+    my $buildData = shift;
+    # Create a table.
+    my $offsetTable = Text::Table->new(
+	{
+	    is_sep => 1,
+	    body   => "  integer :: "
+	},
+	{
+	    align  => "left"
+	}
+	);
+    my $privateTable = Text::Table->new(
+	{
+	    is_sep => 1,
+	    body   => "  !\$omp threadprivate("
+	},
+	{
+	    align  => "left"
+	},
+	{
+	    is_sep  => 1,
+	    body    => ")"
+	}
+	);
+    # Iterate over component implementations.
+    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+	# Get the component.
+	my $component = $buildData->{'components'}->{$componentID};
+	# Iterate over properties.
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+   	    # Check if this property has any linked data in this component.
+	    if ( exists($property->{'linkedData'}) ) {
+		# For each linked datum count if necessary.
+		my $linkedDataName = $property->{'linkedData'};
+		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		if ( $linkedData->{'isEvolvable'} eq "true" ) {
+		    my $offsetName = &offsetName($componentID,$propertyName);
+		    $offsetTable ->add($offsetName);
+		    $privateTable->add($offsetName);
+		}
+	    }
+	}
+    }
+    # Insert into the document.
+    $buildData->{'content'} .= "  ! Offsets into serialization arrays.\n";
+    $buildData->{'content'} .= $offsetTable ->table()."\n";
+    $buildData->{'content'} .= $privateTable->table()."\n";
+    $buildData->{'content'} .= " integer                                     :: nodeSerializationCount\n";
+    $buildData->{'content'} .= " double precision, allocatable, dimension(:) :: nodeScales, nodeRates, nodeRatesIncrement\n";
+    $buildData->{'content'} .= " !\$omp threadprivate(nodeScales,nodeRates,nodeRatesIncrement,nodeSerializationCount)\n";
+}
+
+sub offsetName {
+    my $componentName = shift();
+    my $propertyName  = shift();
+    return "offset".ucfirst($componentName).ucfirst($propertyName);
+}
+
+sub Generate_Node_Offset_Functions {
+    # Generate functions to compute offsets into serialization arrays.
+    my $buildData = shift;
+
+    # Function computing a count of the serialization length.
+    my @dataContent =
+	(
+	 {
+	     intrinsic  => "class",
+	     type       => "treeNode",
+	     attributes => [ "intent(in   )" ],
+	     variables  => [ "self" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "i", "count" ]
+	 }
+	);
+    my $functionCode;
+    $functionCode .= "  subroutine SerializationOffsets(self)\n";
+    $functionCode .= "    !% Compute offsets into serialization arrays for {\\normalfont \\ttfamily treeNode} object.\n";
+    $functionCode .= "    implicit none\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= "    count=0\n";
+    # Loop over all component classes
+    foreach ( @{$buildData->{'componentClassList'}} ) {	    
+     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+	$functionCode .= "        call self%component".padComponentClass(ucfirst($_),[0,0])."(i)%serializationOffsets(count)\n";
+	$functionCode .= "      end do\n";
+	$functionCode .= "    end if\n";
+    }
+    $functionCode .= "    if (.not.allocated(nodeScales)) then\n";
+    $functionCode .= "       allocate  (nodeScales        (count))\n";
+    $functionCode .= "       allocate  (nodeRates         (count))\n";
+    $functionCode .= "       allocate  (nodeRatesIncrement(count))\n";
+    $functionCode .= "    else if (size(nodeScales) < count) then\n";
+    $functionCode .= "       deallocate(nodeScales               )\n";
+    $functionCode .= "       deallocate(nodeRates                )\n";
+    $functionCode .= "       deallocate(nodeRatesIncrement       )\n";
+    $functionCode .= "       allocate  (nodeScales        (count))\n";
+    $functionCode .= "       allocate  (nodeRates         (count))\n";
+    $functionCode .= "       allocate  (nodeRatesIncrement(count))\n";
+    $functionCode .= "    end if\n";
+    $functionCode .= "    nodeSerializationCount=count\n";
+    $functionCode .= "    return\n";
+    $functionCode .= "  end subroutine SerializationOffsets\n\n";
+    # Insert into the function list.
+    push(
+	@{$buildData->{'code'}->{'functions'}},
+	$functionCode
+	);
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{type => "procedure", name => "serializationOffsets", function => "SerializationOffsets", description => "Compute offsets into serialization arrays for all properties", returnType => "\\void", arguments => ""}
+	);
+}
+
+sub Generate_Implementation_Offset_Functions {
+    # Generate serialization offset functions for each component implementation.
+    my $buildData = shift;
+    # Initialize function code.
+    my $functionCode;
+    # Initialize data content.
+    my @dataContent;
+    # Iterate over component implementations.
+    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+	# Get the component.
+	my $component = $buildData->{'components'}->{$componentID};
+	# Generate data content.
+	@dataContent =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentID),
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "count" ]
+	     }
+	    );
+	# Generate a count function.
+  	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Offsets(self,count)\n";
+	$functionCode .= "    !% Return a count of the serialization of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
+	$functionCode .= "    implicit none\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	# If this component is an extension, compute offsets of the extended type.
+	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	    $functionCode .= "call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializationOffsets(count)\n";
+	}
+	# Iterate over properties.
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+   	    # Check if this property has any linked data in this component.
+	    if ( exists($property->{'linkedData'}) ) {
+		# For each linked datum count if necessary.
+		my $linkedDataName = $property->{'linkedData'};
+		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		if ( $linkedData->{'isEvolvable'} eq "true" ) {
+		    my $offsetName = &offsetName($componentID,$propertyName);
+		    $functionCode .= "    ".$offsetName."=count+1\n";
+		    if ( $linkedData->{'rank'} == 0 ) {
+			if ( $linkedData->{'type'} eq "real" ) {
+			    $functionCode .= "    count=count+1\n";
+			}
+			else {
+			    $functionCode .= "    count=count+self%".padLinkedData($linkedDataName,[0,0])."%serializeCount()\n";
+			}
+		    } else {
+			$functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0]).")) count=count+size(self%".padLinkedData($linkedDataName,[0,0]).")\n";
+		    }
+		}
+	    }
+	}
+	$functionCode .= "    return\n";
+	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Offsets\n\n";
+	# Insert into the function list.
+	push(
+	    @{$buildData->{'code'}->{'functions'}},
+	    $functionCode
+	    );
+	# Insert a type-binding for this function into the treeNode type.
+	push(
+	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    {type => "procedure", name => "serializationOffsets", function => "Node_Component_".ucfirst($componentID)."_Offsets"}
+	    );
     }
 }
 
@@ -5845,7 +5928,7 @@ sub Generate_GSR_Functions {
 			$functionCode .= "    !% Return the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
 			$functionCode .= "    implicit none\n";
 			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-			$functionCode .= "    ".$componentID.$propertyName."Get".$suffix."=self%".$linkedDataName."%value\n";
+			$functionCode .= "    ".$componentID.$propertyName."Get".$suffix."=self%".$linkedDataName."\n";
 			$functionCode .= "    return\n";
 			$functionCode .= "  end function ".$componentID.ucfirst($propertyName)."Get".$suffix."\n\n";
 			# Insert into the function list.
@@ -5888,26 +5971,19 @@ sub Generate_GSR_Functions {
 			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			# For non-real properties we also set the rate and scale content. This ensures that they get reallocated to
 			# the correct size.
-			my @setContent = ( "value" );
-			push(@setContent,"rate","scale")
-			    if ( $property->{'attributes' }->{'isEvolvable'} eq "true" );
 			if ( $linkedData->{'rank'} == 0 ) {
-			    $functionCode .= "    self%".$linkedDataName."%".pad($_,5)."=setValue\n"
-				foreach ( @setContent );
+			    $functionCode .= "    self%".$linkedDataName."=setValue\n";
 			}
 			elsif ( $linkedData->{'rank'} == 1 ) {
-			    foreach ( @setContent ) {
-				$functionCode .= "    if (.not.allocated(self%".$linkedDataName."%".pad($_,5).")) then\n";
-				$functionCode .= "       call    Alloc_Array  (self%".$linkedDataName."%".pad($_,5).",shape(setValue))\n";
-				$functionCode .= "    else\n";
-				$functionCode .= "       if (size(self%".$linkedDataName."%".pad($_,5).") /= size(setValue)) then\n";
-				$functionCode .= "          call Dealloc_Array(self%".$linkedDataName."%".pad($_,5)."                )\n";
-				$functionCode .= "          call Alloc_Array  (self%".$linkedDataName."%".pad($_,5).",shape(setValue))\n";
-				$functionCode .= "       end if\n";
-				$functionCode .= "    end if\n";
-			    }
-			    $functionCode .= "    self%".$linkedDataName."%".pad($_,5)."=setValue\n"
-				foreach ( @setContent );
+			    $functionCode .= "    if (.not.allocated(self%".$linkedDataName.")) then\n";
+			    $functionCode .= "       call    Alloc_Array  (self%".$linkedDataName.",shape(setValue))\n";
+			    $functionCode .= "    else\n";
+			    $functionCode .= "       if (size(self%".$linkedDataName.") /= size(setValue)) then\n";
+			    $functionCode .= "          call Dealloc_Array(self%".$linkedDataName."                )\n";
+			    $functionCode .= "          call Alloc_Array  (self%".$linkedDataName.",shape(setValue))\n";
+			    $functionCode .= "       end if\n";
+			    $functionCode .= "    end if\n";
+			    $functionCode .= "    self%".$linkedDataName."=setValue\n";
 			}
 			$functionCode .= "    return\n";
 			$functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Set".$suffix."\n\n";
@@ -5943,8 +6019,8 @@ sub Generate_GSR_Functions {
 			$functionCode .= "    ".$componentID.$propertyName."Count=1\n";
 		    }
 		    elsif ( $linkedData->{'rank'} == 1 ) {
-			$functionCode .= "    if (allocated(self%".$linkedDataName."%value)) then\n";
-			$functionCode .= "    ".$componentID.$propertyName."Count=size(self%".$linkedDataName."%value)\n";
+			$functionCode .= "    if (allocated(self%".$linkedDataName.")) then\n";
+			$functionCode .= "    ".$componentID.$propertyName."Count=size(self%".$linkedDataName.")\n";
 			$functionCode .= "    else\n";
 			$functionCode .= "    ".$componentID.$propertyName."Count=0\n";
 			$functionCode .= "    end if\n";
@@ -5965,6 +6041,8 @@ sub Generate_GSR_Functions {
 		    (my $dataDefinition,my $label) = &Data_Object_Definition($linkedData,matchOnly => 1);
 		    push(@{$dataDefinition->{'variables' }},"setValue"     );
 		    push(@{$dataDefinition->{'attributes'}},"intent(in   )");
+		    (my $currentDefinition,my $currentLabel) = &Data_Object_Definition($linkedData,matchOnly => 1);
+		    push(@{$currentDefinition->{'variables' }},"current"     );
 		    # Skip rate function creation if the rate function is deferred.
 		    unless ( $property->{'attributes'}->{'isDeferred'} =~ m/rate/ ) {
 			# Specify the "rate" function data content.
@@ -5986,17 +6064,34 @@ sub Generate_GSR_Functions {
 				type       => "Interrupt_Procedure_Template",
 				attributes => [ "optional", "intent(inout)", "pointer" ],
 				variables  => [ "interruptProcedure" ]
+			    },
+			    {
+				intrinsic  => "integer",
+				variables  => [ "count" ]
 			    }
 			    );
+			push(@dataContent,$currentDefinition)
+			    unless ( $linkedData->{'type'} eq "real" );
 			# Generate the rate function code.
 			$functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
 			$functionCode .= "    !% Accumulate to the {\\normalfont \\ttfamily ".$propertyName."} property rate of change of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
 			$functionCode .= "    implicit none\n";
 			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			if ( $linkedData->{'type'} eq "real" ) {
-			    $functionCode .= "    self%".$linkedDataName."%rate=self%".$linkedDataName."%rate+setValue\n";
+			    if ( $linkedData->{'rank'} == 0 ) {
+				$functionCode .= "    nodeRates(".&offsetName($componentID,$propertyName).")=nodeRates(".&offsetName($componentID,$propertyName).")+setValue\n";
+			    } else {
+				$functionCode .= "    count=size(setValue)\n";
+				$functionCode .= "    nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1)=nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1)+setValue\n";
+			    }
 			} else {
-			    $functionCode .= "    call self%".$linkedDataName."%rate%increment(setValue)\n";
+			    $functionCode .= "    count=self%".$propertyName."Data%serializeCount()\n";
+			    $functionCode .= "    if (count > 0) then\n";
+			    $functionCode .= "       current=self%".$propertyName."Data\n";
+			    $functionCode .= "       call current%deserialize(nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
+			    $functionCode .= "       call current%increment(setValue)\n";
+			    $functionCode .= "       call current%serialize(nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
+			    $functionCode .= "    end if\n";
 			}
 			$functionCode .= "    return\n";
 			$functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Rate\n\n";
@@ -6194,6 +6289,10 @@ sub Generate_GSR_Functions {
 			    type       => "nodeComponent".ucfirst($componentID),
 			    attributes => [ "intent(inout)" ],
 			    variables  => [ "self" ]
+			},
+			{
+			    intrinsic  => "integer",
+			    variables  => [ "count" ]
 			}
 			);
 		    # Generate a function to set the "scale".
@@ -6201,7 +6300,16 @@ sub Generate_GSR_Functions {
 		    $functionCode .= "    !% Set the {\\normalfont \\ttfamily ".$propertyName."} property scale of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
- 		    $functionCode .= "    self%".$linkedDataName."%scale=setValue\n";
+		    if ( $linkedData->{'type'} eq "real" ) {
+			if ( $linkedData->{'rank'} == 0 ) {
+			    $functionCode .= "    nodeScales(".&offsetName($componentID,$propertyName).")=setValue\n";
+			} else {
+			    $functionCode .= "    nodeScales(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+size(setValue))=setValue\n";
+			}
+		    } else {
+			$functionCode .= "    count=setValue%serializeCount()\n";
+			$functionCode .= "    if (count > 0) call setValue%serialize(nodeScales(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
+		    }
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Scale\n\n";
 		    # Insert into the function list.
@@ -6649,15 +6757,10 @@ sub Generate_Component_Assignment_Function {
 	    if ( exists($property->{'linkedData'}) ) {
 		my $linkedDataName = $property->{'linkedData'};		
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		my @contents = ( "value" );
-		push(@contents,"rate ","scale")
-		    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
 		if ( $linkedData->{'type'} eq"real"        ) {
 		    # Deallocate if necessary.
-		    foreach ( @contents ) {
-			$functionCode .= "   if (allocated(to%".padLinkedData($linkedDataName,[0,0])."%".$_.")) call Dealloc_Array(to%".padLinkedData($linkedDataName,[0,0])."%".$_.") \n"
-			    if ( $linkedData->{'rank'} > 0 );
-		    }
+		    $functionCode .= "   if (allocated(to%".padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(to%".padLinkedData($linkedDataName,[0,0]).") \n"
+			if ( $linkedData->{'rank'} > 0 );
 		}
 		elsif ( $linkedData->{'type'} eq"integer"     ) {
 		    # Nothing to do in this case.
@@ -6669,9 +6772,9 @@ sub Generate_Component_Assignment_Function {
 		    # Nothing to do in this case.
 		}
 		else {
-		    $functionCode .= "    call to%".padLinkedData($linkedDataName,[0,0])."%value%destroy()\n";
+		    $functionCode .= "    call to%".padLinkedData($linkedDataName,[0,0])."%destroy()\n";
 		}
-		$functionCode .= "          to%".padLinkedData($linkedDataName,[0,0])."%value=from%".padLinkedData($linkedDataName,[0,0])."%value\n";
+		$functionCode .= "          to%".padLinkedData($linkedDataName,[0,0])."=from%".padLinkedData($linkedDataName,[0,0])."\n";
 	    }
 	}
 	$functionCode .= "       end select\n";
@@ -7492,18 +7595,10 @@ sub Generate_Component_Implementation_Destruction_Functions {
 		    # Nothing to do in this case.
 		}
 		else {
-		    my @contents = ( "value" );
-		    push(@contents,"rate ","scale")
-			if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
-		    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%".$_."%destroy()\n"
-			foreach ( @contents );
+		    $functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%destroy()\n";
 		}
 		if ( $linkedData->{'rank'} > 0 ) {
-		    my @contents = ( "value" );
-		    push(@contents,"rate ","scale")
-			if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
-		    $functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0])."%".$_.")) call Dealloc_Array(self%".padLinkedData($linkedDataName,[0,0])."%".$_.")\n"
-			foreach ( @contents );
+		    $functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(self%".padLinkedData($linkedDataName,[0,0]).")\n";
 		}
 	    }
 	}
@@ -7518,128 +7613,6 @@ sub Generate_Component_Implementation_Destruction_Functions {
 	push(
 	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "destroy", function => "Node_Component_".ucfirst($componentID)."_Destroy"}
-	    );    
-    }
-}
-
-sub Generate_ODE_Initialization_Functions {
-    # Generate ODE solver initialization functions.
-    my $buildData = shift;
-    # Initialize function code.
-    my $functionCode;
-    # Initialize data content.
-    my @dataContent;
-    # Iterate over component implementations.
-    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
-	my $component = $buildData->{'components'}->{$componentID};
-	# Specify data content.
-	@dataContent =
-	    (
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($componentID),
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     }
-	    );
-	# Generate rate initialization function code.
-  	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_ODE_Step_Rates_Init(self)\n";
-	$functionCode .= "    !% Initialize rates in a ".$component->{'name'}." implementation of the ".$component->{'class'}." component for an ODE solver step.\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	# If this component is an extension, first call on the extended type.
-	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
-	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
-	    $functionCode .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%odeStepRatesInitialize()\n";
-	}
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};	    
-	    if ( exists($property->{'linkedData'}) ) {
-		my $linkedDataName = $property->{'linkedData'};
-		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $component->{'content'}->{'data'}->{$linkedDataName}->{'isEvolvable'} eq "true" ) {
-		    if    ( $linkedData->{'type'} eq"real"    ) {
-			if ( $linkedData->{'rank'} == 0 ) {
-			    $functionCode .= "         self%".$linkedDataName."%rate =0.0d0\n";
-			} else {
-			    $functionCode .= "         if (allocated(self%".$linkedDataName."%rate)) self%".$linkedDataName."%rate =0.0d0\n";
-			}
-		    }
-		    elsif ( $linkedData->{'type'} eq"integer" ) {
-			die "Build_Include_File.pl: integer data type should not be evolvable";
-		    }
-		    elsif ( $linkedData->{'type'} eq"longInteger" ) {
-			die "Build_Include_File.pl: longInteger data type should not be evolvable";
-		    }
-		    elsif ( $linkedData->{'type'} eq"logical" ) {
-			die "Build_Include_File.pl: logical data type should not be evolvable";
-		    }
-		    else {
-			$functionCode .= "    call self%".$linkedDataName."%rate %reset()\n";
-		    }
-		}
-	    }
-	}
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_ODE_Step_Rates_Init\n\n";
-	# Insert into the function list.
-	push(
-	    @{$buildData->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Bind this function to the implementation type.
-	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-	    {type => "procedure", name => "odeStepRatesInitialize" , function => "Node_Component_".ucfirst($componentID)."_ODE_Step_Rates_Init"}
-	    );    
-	# Generate scale initialization code.
-  	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_odeStepScalesInit(self)\n";
-	$functionCode .= "    !% Initialize scales in a ".$component->{'name'}." implementation of the ".$component->{'class'}." component for an ODE solver step.\n";
-	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	# If this component is an extension, first call on the extended type.
-	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
-	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
-	    $functionCode .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%odeStepScalesInitialize()\n";
-	}
-	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    if ( exists($property->{'linkedData'}) ) {
-		my $linkedDataName = $property->{'linkedData'};
-		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $component->{'content'}->{'data'}->{$linkedDataName}->{'isEvolvable'} eq "true" ) {
-		    if    ( $linkedData->{'type'} eq"real"    ) {
-			if ( $linkedData->{'rank'} == 0 ) {
-			    $functionCode .= "         self%".$linkedDataName."%scale=1.0d0\n";
-			} else {
-			    $functionCode .= "         if (allocated(self%".$linkedDataName."%scale)) self%".$linkedDataName."%scale=1.0d0\n";
-			}
-		    }
-		    elsif ( $linkedData->{'type'} eq"integer" ) {
-			die "Integer data type should not be evolvable";
-		    }
-		    elsif ( $linkedData->{'type'} eq"longInteger" ) {
-			die "longInteger data type should not be evolvable";
-		    }
-		    elsif ( $linkedData->{'type'} eq"logical" ) {
-			die "Logical data type should not be evolvable";
-		    }
-		    else {
-			$functionCode .= "    call self%".$linkedDataName."%scale%setToUnity()\n";
-		    }
-		}
-	    }
-	}
-	$functionCode .= "    end subroutine Node_Component_".ucfirst($componentID)."_odeStepScalesInit\n\n";
-	# Insert into the function list.
-	push(
-	    @{$buildData->{'code'}->{'functions'}},
-	    $functionCode
-	    );
-	# Bind this function to the implementation type.
-	push(
-	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-	    {type => "procedure", name => "odeStepScalesInitialize", function => "Node_Component_".ucfirst($componentID)."_odeStepScalesInit"}
 	    );    
     }
 }

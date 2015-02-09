@@ -37,86 +37,6 @@ module Galacticus_Nodes
   public :: assignment(=)
   !# </workaround>
 
-  type, private :: nodeDataLogicalScalar
-     !% Type describing a non-evolvable scalar logical property of a node component.
-     logical :: value
-  end type nodeDataLogicalScalar
-
-  type, private :: nodeDataIntegerScalar
-     !% Type describing a non-evolvable scalar integer property of a node component.
-     integer :: value
-  end type nodeDataIntegerScalar
-
-  type, private :: nodeDataInteger1d
-     !% Type describing a non-evolvable 1-D integer property of a node component.
-     integer, allocatable, dimension(:) :: value
-  end type nodeDataInteger1d
-
-  type, private :: nodeDataLongIntegerScalar
-     !% Type describing a non-evolvable scalar long integer property of a node component.
-     integer(kind=kind_int8) :: value
-  end type nodeDataLongIntegerScalar
-
-  type, private :: nodeDataDoubleScalarEvolvable
-     !% Type describing an evolvable scalar double property of a node component.
-     double precision :: rate, scale, value
-  end type nodeDataDoubleScalarEvolvable
-
-  type, private :: nodeDataDoubleScalar
-     !% Type describing a non-evolvable scalar double property of a node component.
-     double precision :: value
-  end type nodeDataDoubleScalar
-
-  type, private :: nodeDataDouble1dEvolvable
-     !% Type describing an evolvable 1-D double property of a node component.
-     double precision, allocatable, dimension(:) :: rate, scale, value
-  end type nodeDataDouble1dEvolvable
-
-  type, private :: nodeDataDouble1d
-     !% Type describing a non-evolvable 1-D double property of a node component.
-     double precision, allocatable, dimension(:) :: value
-  end type nodeDataDouble1d
-
-  type, private :: nodeDataAbundancesScalarEvolvable
-     !% Type describing an evolvable scalar {\\normalfont \ttfamily abundances} property of a node component.
-     type(abundances         ) :: rate, scale, value
-  end type nodeDataAbundancesScalarEvolvable
-
-  type, private :: nodeDataChemicalAbundancesScalarEvolvable
-     !% Type describing an evolvable scalar {\\normalfont \ttfamily chemicalAbundances} property of a node component.
-     type(chemicalAbundances ) :: rate, scale, value
-  end type nodeDataChemicalAbundancesScalarEvolvable
-
-  type, private :: nodeDataHistoryScalarEvolvable
-     !% Type describing an evolvable scalar {\\normalfont \ttfamily history} property of a node component.
-     type(history            ) :: rate, scale, value
-  end type nodeDataHistoryScalarEvolvable
-
-  type, private :: nodeDataHistoryScalar
-     !% Type describing an non-evolvable scalar {\\normalfont \ttfamily history} property of a node component.
-     type(history            ) :: value
-  end type nodeDataHistoryScalar
-
-  type, private :: nodeDataLongIntegerHistoryScalar
-     !% Type describing an non-evolvable scalar {\\normalfont \ttfamily longIntegerHistory} property of a node component.
-     type(longIntegerHistory ) :: value
-  end type nodeDataLongIntegerHistoryScalar
-
-  type, private :: nodeDataKeplerOrbitScalar
-     !% Type describing a non-evolvable scalar {\\normalfont \ttfamily keplerOrbit} property of a node component.
-     type(keplerOrbit        ) :: value
-  end type nodeDataKeplerOrbitScalar
-
-  type, private :: nodeDataTensorRank2Dimension3SymmetricScalarEvolvable
-     !% Type describing an evolvable scalar {\\normalfont \ttfamily tensorRank2Dimension3Symmetric} property of a node component.
-     type(tensorRank2Dimension3Symmetric   )                    :: value,rate,scale
-  end type nodeDataTensorRank2Dimension3SymmetricScalarEvolvable
-  
-  type, private :: nodeDataStellarLuminositiesScalarEvolvable
-     !% Type describing an evolvable scalar {\\normalfont \ttfamily stellarLuminosities} property of a node component.
-     type(stellarLuminosities) :: rate, scale, value
-  end type nodeDataStellarLuminositiesScalarEvolvable
-
   type, public :: treeNodeList
      !% Type to give a list of treeNodes.
      type(treeNode), pointer :: node
@@ -947,6 +867,15 @@ module Galacticus_Nodes
     return
   end function Node_Component_Serialize_Count_Zero
 
+  subroutine Node_Component_Serialization_Offsets(self,count)
+    !% Return the serialization count of a generic tree node component.
+    implicit none
+    class  (nodeComponent), intent(in   ) :: self
+    integer               , intent(inout) :: count
+
+    return
+  end subroutine Node_Component_Serialization_Offsets
+
   subroutine Node_Component_Serialize_Null(self,array)
     !% Serialize a generic tree node component.
     implicit none
@@ -955,6 +884,15 @@ module Galacticus_Nodes
 
     return
   end subroutine Node_Component_Serialize_Null
+
+  subroutine Node_Component_Read_Raw_Null(self,fileHandle)
+    !% Read a generic tree node component from raw file.
+    implicit none
+    class  (nodeComponent), intent(inout) :: self
+    integer               , intent(in   ) :: fileHandle
+    
+    return
+  end subroutine Node_Component_Read_Raw_Null
 
   subroutine Node_Component_Deserialize_Null(self,array)
     !% Deserialize a generic tree node component.

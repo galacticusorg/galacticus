@@ -27,7 +27,7 @@ double precision function Node_Component_Satellite_Preset_Merge_Time(self)
   selfNode => self%host()
   if (selfNode%isSatellite()) then
      selfBasicComponent => selfNode%basic()
-     Node_Component_Satellite_Preset_Merge_Time=max(self%timeOfMergingData%value-selfBasicComponent%time(),0.0d0)
+     Node_Component_Satellite_Preset_Merge_Time=max(self%timeOfMergingData-selfBasicComponent%time(),0.0d0)
   else
      Node_Component_Satellite_Preset_Merge_Time=-1.0d0
   end if
@@ -44,7 +44,7 @@ subroutine Node_Component_Satellite_Preset_Merge_Time_Set(self,setValue)
 
   selfNode           => self    %host ()
   selfBasicComponent => selfNode%basic()
-  self%timeOfMergingData%value=setValue+selfBasicComponent%time()
+  self%timeOfMergingData=setValue+selfBasicComponent%time()
   return
 end subroutine Node_Component_Satellite_Preset_Merge_Time_Set
 

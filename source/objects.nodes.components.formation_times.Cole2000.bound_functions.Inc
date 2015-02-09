@@ -33,7 +33,7 @@ double precision function FormationTimeCole2000FormationTime(self)
   formationTimeComponent            => formationNode         %formationTime()
   select type (formationTimeComponent)
   class is (nodeComponentFormationTimeCole2000)
-     FormationTimeCole2000FormationTime=  formationTimeComponent%formationTimeData%value
+     FormationTimeCole2000FormationTime=  formationTimeComponent%formationTimeData
   end select
   return
 end function FormationTimeCole2000FormationTime

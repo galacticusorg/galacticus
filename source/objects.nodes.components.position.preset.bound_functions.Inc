@@ -48,7 +48,7 @@ function PositionPresetPosition(self)
         usingHistory=.true.
      end if
   end if
-  if (.not.usingHistory) PositionPresetPosition=self%positionData%value
+  if (.not.usingHistory) PositionPresetPosition=self%positionData
   return
 end function PositionPresetPosition
 
@@ -83,6 +83,6 @@ function PositionPresetVelocity(self)
         usingHistory=.true.
      end if
   end if
-  if (.not.usingHistory) PositionPresetVelocity=self%velocityData%value
+  if (.not.usingHistory) PositionPresetVelocity=self%velocityData
   return
 end function PositionPresetVelocity
