@@ -108,7 +108,7 @@
     <value>true</value>
   </parameter>
   <parameter>
-    <name>hotHaloOutflowAngularMomentumAlwaysGrows</name>
+    <name>hotHaloAngularMomentumAlwaysGrows</name>
     <value>true</value>
   </parameter>
   <parameter>
