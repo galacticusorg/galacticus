@@ -25,7 +25,7 @@ double precision function Node_Component_Satellite_Very_Simple_Merge_Time(self)
 
   selfNode => self%host()
   if (selfNode%isSatellite()) then
-     Node_Component_Satellite_Very_Simple_Merge_Time=self%mergeTimeData%value
+     Node_Component_Satellite_Very_Simple_Merge_Time=self%mergeTimeData
   else
      Node_Component_Satellite_Very_Simple_Merge_Time=-1.0d0
   end if
@@ -43,7 +43,7 @@ double precision function Node_Component_Satellite_Very_Simple_Time_Of_Merging(s
   selfNode => self%host()
   if (selfNode%isSatellite()) then
      selfBasicComponent => selfNode%basic()
-     Node_Component_Satellite_Very_Simple_Time_Of_Merging=self%mergeTimeData%value+selfBasicComponent%time()
+     Node_Component_Satellite_Very_Simple_Time_Of_Merging=self%mergeTimeData+selfBasicComponent%time()
   else
      Node_Component_Satellite_Very_Simple_Time_Of_Merging=-1.0d0
   end if

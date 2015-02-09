@@ -68,7 +68,7 @@ double precision function Node_Component_Black_Hole_Standard_Spin(self)
   double precision                                , parameter     :: blackHoleSpinMaximum=0.9999d0 !  Maximum allowed spin (useful to avoid infinities).
 
   ! Keep the spin in range.
-  Node_Component_Black_Hole_Standard_Spin=min(max(self%spinData%value,0.0d0),blackHoleSpinMaximum)
+  Node_Component_Black_Hole_Standard_Spin=min(max(self%spinData,0.0d0),blackHoleSpinMaximum)
   return
 end function Node_Component_Black_Hole_Standard_Spin
 

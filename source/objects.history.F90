@@ -754,12 +754,17 @@ contains
 
   subroutine History_Deserialize(self,historyArray)
     !% Pack history from an array into a history structure.
+    use Galacticus_Error
     implicit none
     class           (history)              , intent(inout) :: self
     double precision         , dimension(:), intent(in   ) :: historyArray
 
     ! Extract data from array.
-    if (allocated(self%data)) self%data=reshape(historyArray,shape(self%data))
+    if (allocated(self%data)) then
+       self%data=reshape(historyArray,shape(self%data))
+    else if (size(historyArray) > 0) then
+       call Galacticus_Error_Report('History_Deserialize','attempt to deserialize into non-existant history')
+    end if
     return
   end subroutine History_Deserialize
 

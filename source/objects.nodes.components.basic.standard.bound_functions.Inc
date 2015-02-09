@@ -25,9 +25,9 @@ double precision function BasicStandardTimeLastIsolated(self)
 
   selfNode => self%host()
   if (selfNode%isSatellite()) then
-     BasicStandardTimeLastIsolated=self%timeLastIsolatedData%value
+     BasicStandardTimeLastIsolated=self%timeLastIsolatedData
   else
-     BasicStandardTimeLastIsolated=self%timeData            %value
+     BasicStandardTimeLastIsolated=self%timeData            
   end if
   return
 end function BasicStandardTimeLastIsolated

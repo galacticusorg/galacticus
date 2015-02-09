@@ -25,9 +25,9 @@ double precision function BasicNonEvolvingTimeLastIsolated(self)
 
   selfNode => self%host()
   if (selfNode%isSatellite()) then
-     BasicNonEvolvingTimeLastIsolated=self%timeLastIsolatedData%value
+     BasicNonEvolvingTimeLastIsolated=self%timeLastIsolatedData
   else
-     BasicNonEvolvingTimeLastIsolated=self%timeData            %value
+     BasicNonEvolvingTimeLastIsolated=self%timeData            
   end if
   return
 end function BasicNonEvolvingTimeLastIsolated

@@ -28,37 +28,37 @@ subroutine Node_Component_Dynamics_Statistics_Bars_Record(self,time,barInstabili
   integer                                                                            :: entryIndex
 
   ! Expand the arrays as necessary.
-  if (allocated(self%barInstabilityTimescaleData%value)) then
-     call Move_Alloc (self%barInstabilityTimescaleData%value,        arrayTemporary  )
-     call Alloc_Array(self%barInstabilityTimescaleData%value,[1+size(arrayTemporary)])
-     self%barInstabilityTimescaleData%value(1:size(arrayTemporary))=arrayTemporary
+  if (allocated(self%barInstabilityTimescaleData)) then
+     call Move_Alloc (self%barInstabilityTimescaleData,        arrayTemporary  )
+     call Alloc_Array(self%barInstabilityTimescaleData,[1+size(arrayTemporary)])
+     self%barInstabilityTimescaleData(1:size(arrayTemporary))=arrayTemporary
      call Dealloc_Array(arrayTemporary)
   else
-     call Alloc_Array(self%barInstabilityTimescaleData%value,[1])
+     call Alloc_Array(self%barInstabilityTimescaleData,[1])
   end if
-  if (allocated(self%adiabaticRatioData         %value)) then
-     call Move_Alloc (self%adiabaticRatioData         %value,        arrayTemporary  )
-     call Alloc_Array(self%adiabaticRatioData         %value,[1+size(arrayTemporary)])
-     self%adiabaticRatioData         %value(1:size(arrayTemporary))=arrayTemporary
+  if (allocated(self%adiabaticRatioData         )) then
+     call Move_Alloc (self%adiabaticRatioData         ,        arrayTemporary  )
+     call Alloc_Array(self%adiabaticRatioData         ,[1+size(arrayTemporary)])
+     self%adiabaticRatioData         (1:size(arrayTemporary))=arrayTemporary
      call Dealloc_Array(arrayTemporary)
   else
-     call Alloc_Array(self%barInstabilityTimescaleData%value,[1])
+     call Alloc_Array(self%barInstabilityTimescaleData,[1])
   end if
-  if (allocated(self%timeData                   %value)) then
-     call Move_Alloc (self%timeData                   %value,        arrayTemporary  )
-     call Alloc_Array(self%timeData                   %value,[1+size(arrayTemporary)])
-     self%timeData                   %value(1:size(arrayTemporary))=arrayTemporary
+  if (allocated(self%timeData                   )) then
+     call Move_Alloc (self%timeData                   ,        arrayTemporary  )
+     call Alloc_Array(self%timeData                   ,[1+size(arrayTemporary)])
+     self%timeData                   (1:size(arrayTemporary))=arrayTemporary
      call Dealloc_Array(arrayTemporary)
   else
-     call Alloc_Array(self%timeData                   %value,[1])
+     call Alloc_Array(self%timeData                   ,[1])
   end if
   ! Find the current extent of the arrays.
-  entryIndex=size(self%timeData%value)
+  entryIndex=size(self%timeData)
   ! Record the current time.
-  self%timeData                   %value(entryIndex)=time
+  self%timeData                   (entryIndex)=time
   ! Record the bar instability timescale
-  self%barInstabilityTimescaleData%value(entryIndex)=barInstabilityTimescale
+  self%barInstabilityTimescaleData(entryIndex)=barInstabilityTimescale
   ! Record the adiabatic ratio
-  self%adiabaticRatioData         %value(entryIndex)=adiabaticRatio
+  self%adiabaticRatioData         (entryIndex)=adiabaticRatio
   return
 end subroutine Node_Component_Dynamics_Statistics_Bars_Record
