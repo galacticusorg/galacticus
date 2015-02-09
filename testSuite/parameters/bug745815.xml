@@ -24,7 +24,7 @@
     <value>ADAF</value>
   </parameter>
   <parameter>
-    <name>accretionHalosMethod</name>
+    <name>accretionHaloMethod</name>
     <value>simple</value>
   </parameter>
   <parameter>
@@ -216,7 +216,7 @@
     <value>0.1</value>
   </parameter>
   <parameter>
-    <name>mergerTreeBuildCole2000MassResolution</name>
+    <name>mergerTreeBuildMassResolutionFixed</name>
     <value>5000000000</value>
   </parameter>
   <parameter>

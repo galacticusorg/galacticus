@@ -64,7 +64,7 @@
     <value>1.0e-6</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionBehrooziGamma</name>
+    <name>conditionalMassFunctionBehrooziGamma</name>
     <value>1.16052646522</value>
   </parameter>
   <parameter>
@@ -96,7 +96,7 @@
     <value>-3.0</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionBehrooziBSatellite</name>
+    <name>conditionalMassFunctionBehrooziBSatellite</name>
     <value>19.5579686429</value>
   </parameter>
   <parameter>
@@ -172,7 +172,7 @@
     <value>0.01</value>
   </parameter>
   <parameter>
-    <name>intergalaticMediumStateMethod</name>
+    <name>intergalacticMediumStateMethod</name>
     <value>file</value>
   </parameter>
   <parameter>
@@ -188,7 +188,7 @@
     <value>jiang2008</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionBehrooziBeta</name>
+    <name>conditionalMassFunctionBehrooziBeta</name>
     <value>0.403618413165</value>
   </parameter>
   <parameter>
@@ -204,7 +204,7 @@
     <value>Cole2000</value>
   </parameter>
   <parameter>
-    <name>mergerTreeBuildCole2000MassResolution</name>
+    <name>mergerTreeBuildMassResolutionFixed</name>
     <value>5.0e9</value>
   </parameter>
   <parameter>
@@ -216,7 +216,7 @@
     <value>1</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionBehrooziBetaSatellite</name>
+    <name>conditionalMassFunctionBehrooziBetaSatellite</name>
     <value>1.46136840213</value>
   </parameter>
   <parameter>
@@ -272,7 +272,7 @@
     <value>singleLevelHierarchy</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionBehrooziDelta</name>
+    <name>conditionalMassFunctionBehrooziDelta</name>
     <value>0.493563322826</value>
   </parameter>
   <parameter>
@@ -336,11 +336,11 @@
     <value>false</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionBehrooziSigmaLogMstar</name>
+    <name>conditionalMassFunctionBehrooziSigmaLogMstar</name>
     <value>0.158558523426</value>
   </parameter>
   <parameter>
-    <name>coolingRateSimpleScalingTransitionMass</name>
+    <name>coolingRateSimpleScalingCutOffMass</name>
     <value>5.0e12</value>
   </parameter>
   <parameter>
@@ -376,7 +376,7 @@
     <value>0.0883790456</value>
   </parameter>
   <parameter>
-    <name>accretionHalosMethod</name>
+    <name>accretionHaloMethod</name>
     <value>simple</value>
   </parameter>
   <parameter>
@@ -384,11 +384,11 @@
     <value>-1</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionBehrooziAlphaSatellite</name>
+    <name>conditionalMassFunctionBehrooziAlphaSatellite</name>
     <value>0.981019943414</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionBehrooziLog10M1</name>
+    <name>conditionalMassFunctionBehrooziLog10M1</name>
     <value>12.1440055417</value>
   </parameter>
   <parameter>
@@ -432,7 +432,7 @@
     <value>verySimple</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionBehrooziBetaCut</name>
+    <name>conditionalMassFunctionBehrooziBetaCut</name>
     <value>-1.76747815862</value>
   </parameter>
   <parameter>
@@ -448,7 +448,7 @@
     <value>828</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionBehrooziBCut</name>
+    <name>conditionalMassFunctionBehrooziBCut</name>
     <value>87.509076382</value>
   </parameter>
   <parameter>
@@ -488,7 +488,7 @@
     <value>0.25</value>
   </parameter>
   <parameter>
-    <name>conditionalStellarMassFunctionBehrooziLog10Mstar0</name>
+    <name>conditionalMassFunctionBehrooziLog10Mstar0</name>
     <value>10.5980300058</value>
   </parameter>
   <parameter>

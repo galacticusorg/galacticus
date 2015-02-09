@@ -200,7 +200,7 @@
     <value>-1.5</value>
   </parameter>
   <parameter>
-    <name>mergerTreeBuildCole2000MassResolution</name>
+    <name>mergerTreeBuildMassResolutionFixed</name>
     <value>5.0e10</value>
   </parameter>
   <parameter>
@@ -368,7 +368,7 @@
     <value>modifiedPress-Schechter</value>
   </parameter>
   <parameter>
-    <name>accretionHalosMethod</name>
+    <name>accretionHaloMethod</name>
     <value>simple</value>
   </parameter>
   <parameter>
