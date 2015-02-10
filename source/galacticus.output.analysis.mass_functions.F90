@@ -1313,7 +1313,11 @@ contains
                 end do
              end do
              if (analysisMassFunctionsApplyGravitationalLensing) then
-                !$omp parallel do private(integrationReset,integrandFunction,integrationWorkspace)
+                ! Initialize lensing transfer matrices to zero.
+                do i=1,size(massFunctions)
+                   massFunctions(i)%lensingTransfer=0.0d0
+                end do                
+                !$omp parallel do private(integrationReset,integrandFunction,integrationWorkspace) schedule (dynamic)
                 do jOutput=1,Galacticus_Output_Time_Count()
                    gravitationalLensing_ => gravitationalLensing()
                    redshift=                                                                                      &
@@ -1323,6 +1327,9 @@ contains
                         &                                                        )                                &
                         &                                                       )
                    do i=1,size(massFunctions)
+                      ! If this redshift makes no contribution to this mass function, there's no need to compute lensing transfer
+                      ! matrices for it, so simply skip to the next mass function.
+                      if (all(massFunctions(i)%outputWeight(:,jOutput) == 0.0d0)) cycle
                       do j=1,size(massFunctions(i)%massesLogarithmicMaximumBuffered)
                          do k=1,size(massFunctions(i)%massesLogarithmicMaximumBuffered)
                             if (j > 1 .and. k > 1) then
@@ -1434,7 +1441,7 @@ contains
        ! Apply output weights.
        thisGalaxy           (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount        ) &
             & =thisGalaxy   (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount        ) &
-            & *massFunctions(i)%outputWeight(                                    :                                                               ,iOutput)
+            & *massFunctions(i)%outputWeight(                                    :                                                               ,iOutput)     
        ! Accumulate mass function.
        !$omp critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
        massFunctions(i)%massFunction                                                                                                                       &
@@ -1919,30 +1926,34 @@ contains
     massStellar =  thisDisk%massStellar()
     diskRadius  =  thisDisk%radius     ()
     ! Get the molecular to atomic mass ratio (H2/HI).
-    molecularRatioCentral                                         &
-         & =(                                                     &
-         &   massSolar  **2                                       &
-         &   /megaParsec**4                                       &
-         &   *alfalfaHiMassFunctionZ0_00MolecularFractionK        &
-         &   *mass                                                &
-         &   *(                                                   &
-         &     +mass                                              &
-         &     +alfalfaHiMassFunctionZ0_00MolecularFractionfSigma &
-         &     *massStellar                                       &
-         &    )                                                   &
-         &   /diskRadius**4                                       &
-         &  )**alfalfaHiMassFunctionZ0_00MolecularFractionBeta
-    if (molecularRatioCentral > 0.0d0) then
-       Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00                                      &
-            & = 1.0d0                                                                      &
-            &  /(                                                                          &
-            &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA1     &
-            &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1 &
-            &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA2     &
+    if (diskRadius <= 0.0d0) then
+       Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00=1.0d0
+    else
+       molecularRatioCentral                                         &
+            & =(                                                     &
+            &   massSolar  **2                                       &
+            &   /megaParsec**4                                       &
+            &   *alfalfaHiMassFunctionZ0_00MolecularFractionK        &
+            &   *mass                                                &
+            &   *(                                                   &
+            &     +mass                                              &
+            &     +alfalfaHiMassFunctionZ0_00MolecularFractionfSigma &
+            &     *massStellar                                       &
+            &    )                                                   &
+            &   /diskRadius**4                                       &
+            &  )**alfalfaHiMassFunctionZ0_00MolecularFractionBeta
+       if (molecularRatioCentral > 0.0d0) then
+          Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00                                      &
+               & = 1.0d0                                                                      &
+               &  /(                                                                          &
+               &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA1     &
+               &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1 &
+               &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA2     &
             &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2 &
             &   )
-    else
-       Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00=0.0d0
+       else
+          Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00=0.0d0
+       end if
     end if
     return
   end function Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00
