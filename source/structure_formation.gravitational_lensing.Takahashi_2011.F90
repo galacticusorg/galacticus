@@ -343,7 +343,6 @@ contains
        ! Determine the paramters, A_kappa and omega_kappa, of the convergence distribution (eq. 8
        ! of Takahashi et al.). To do this, we use a look-up table of precomputed values.
        ! Check if a precomputed file exists.
-       !$omp critical(takahashi2011Tabulate)
        if (File_Exists(Galacticus_Input_Path()//"data/largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5")) then
           ! Read the results from file.
           !$omp critical(HDF5_Access)
@@ -448,7 +447,6 @@ contains
           call parametersFile%close()
           !$omp end critical(HDF5_Access)
        end if
-       !$omp end critical(takahashi2011Tabulate)
        ! Create a table.
        call self%convergencePDF%create  (tableConvergenceVariance,tableCount=3)
        call self%convergencePDF%populate(tableNKappa             ,           1)
@@ -636,10 +634,10 @@ contains
       real            (c_double                  )            :: convergenceVarianceIntegrand
       real            (c_double                  ), value     :: redshiftLens
       type            (c_ptr                     ), value     :: parameterPointer
-      double precision                            , parameter :: wavenumberMinimum            =0.0d0
+      double precision                            , parameter :: wavenumberDynamicRange      =1.0d-6
       logical                                                 :: integrationReset
-      double precision                                        :: distanceComovingLens               , wavenumberMaximum, &
-           &                                                     lensingPower
+      double precision                                        :: distanceComovingLens               , logWavenumberMaximum, &
+           &                                                     lensingPower                       , logWavenumberMinimum
       type            (fgsl_function             )            :: integrandFunction
       type            (fgsl_integration_workspace)            :: integrationWorkspace
       
@@ -654,11 +652,12 @@ contains
            &                                                                 timeLens     &
            &                                                               )
       ! Integrate over the power spectrum.
-      wavenumberMaximum   =1.0d0/scaleSource
+      logWavenumberMaximum=                    -log(scaleSource           )
+      logWavenumberMinimum=logWavenumberMaximum+log(wavenumberDynamicRange)
       integrationReset    =.true.
       lensingPower        =Integrate(                                           &
-           &                         wavenumberMinimum                        , &
-           &                         wavenumberMaximum                        , &
+           &                         logWavenumberMinimum                     , &
+           &                         logWavenumberMaximum                     , &
            &                         convergenceVariancePowerSpectrumIntegrand, &
            &                         parameterPointer                         , &
            &                         integrandFunction                        , &
@@ -693,16 +692,18 @@ contains
       return
     end function convergenceVarianceIntegrand
     
-    function convergenceVariancePowerSpectrumIntegrand(wavenumber,parameterPointer) bind(c)
+    function convergenceVariancePowerSpectrumIntegrand(logWavenumber,parameterPointer) bind(c)
       !% Integral over power spectrum used in computing the variance in the gravitational lensing convergence.
       use, intrinsic :: ISO_C_Binding
       use Power_Spectra_Nonlinear
       implicit none
-      real            (c_double)        :: convergenceVariancePowerSpectrumIntegrand
-      real            (c_double), value :: wavenumber
-      type            (c_ptr   ), value :: parameterPointer
-
-      convergenceVariancePowerSpectrumIntegrand=wavenumber*Power_Spectrum_Nonlinear(wavenumber,timeLens)
+      real(c_double)        :: convergenceVariancePowerSpectrumIntegrand
+      real(c_double), value :: logWavenumber
+      type(c_ptr   ), value :: parameterPointer
+      real(c_double)        :: wavenumber
+      
+      wavenumber=exp(logWavenumber)
+      convergenceVariancePowerSpectrumIntegrand=wavenumber**2*Power_Spectrum_Nonlinear(wavenumber,timeLens)
       return
     end function convergenceVariancePowerSpectrumIntegrand
 
