@@ -340,7 +340,7 @@ push(@temporaryFiles,$logFile);
 SystemRedirect::tofile($glcCommand,$logFile);
 unless ( $? == 0 ) {
     # Since a failure occurred, post to the semaphore to avoid blocking other jobs.
-    &semaphorePost($config->{'likelihood'}->{'threads'});
+    &semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
     # Issue a failure.
     print "ERROR: Galacticus model failed to complete - retrying\n";
     &reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot);
@@ -348,7 +348,7 @@ unless ( $? == 0 ) {
     SystemRedirect::tofile($glcCommand,$logFile);
     unless ( $? == 0 ) {
 	# Since a failure occurred, post to the semaphore to avoid blocking other jobs.
-	&semaphorePost($config->{'likelihood'}->{'threads'});
+	&semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
 	# Display the final likelihood.
 	&outputLikelihood($config,$badLogLikelihood);
 	print "constrainGalacticus.pl: Galacticus model failed to complete - second attempt";
@@ -521,10 +521,11 @@ sub reportFailure {
 sub semaphorePost {
     # When a model fails, it may not be able to release semaphores that it was holding. Therefore, we post to the semaphore to
     # free it.
-    my $threadCount = shift();
+    my $threadCount   = shift();
+    my $semaphoreName = shift();
 
     # Open the semaphore.
-    my $galacticusSemaphore = POSIX::RT::Semaphore->open("/galacticus", O_CREAT, 0660, $threadCount);
+    my $galacticusSemaphore = POSIX::RT::Semaphore->open("/".$semaphoreName, O_CREAT, 0660, $threadCount);
     # Repeatedly post.
     print "Posting to semaphore....\n";
     for(my $i=0;$i<$threadCount;++$i) {
