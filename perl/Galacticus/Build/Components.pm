@@ -1084,14 +1084,6 @@ sub Generate_Node_Component_Type{
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
-	     name        => "readRaw"                                                                                              ,
-	     function    => "Node_Component_Read_Raw_Null"                                                                         ,
-	     description => "Read a binary dump of all properties."                                                                ,
-	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\intzero\\ fileHandle\\arginout"                   
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
 	     name        => "outputCount"                                                                                          ,
 	     function    => "Node_Component_Output_Count_Null"                                                                     ,
 	     description => "Compute a count of outputtable properties."                                                           ,
