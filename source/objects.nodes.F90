@@ -894,15 +894,6 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Serialize_Null
 
-  subroutine Node_Component_Read_Raw_Null(self,fileHandle)
-    !% Read a generic tree node component from raw file.
-    implicit none
-    class  (nodeComponent), intent(inout) :: self
-    integer               , intent(in   ) :: fileHandle
-    
-    return
-  end subroutine Node_Component_Read_Raw_Null
-
   subroutine Node_Component_Deserialize_Null(self,array)
     !% Deserialize a generic tree node component.
     implicit none
