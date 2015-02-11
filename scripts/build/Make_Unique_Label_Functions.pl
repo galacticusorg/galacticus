@@ -94,7 +94,7 @@ foreach my $fileName ( @{$codeDirectiveLocations->{'uniqueLabel'}->{'file'}} ) {
     # Get the equivalent object file.
     (my $objectFile = $fileName) =~ s/\.F90$/.o/;
     # Get the name of the dependencies for this file.
-    (my $depFile = $objectFile) =~ s/source\/(.*)\.o$/work\/build\/$1.d/;
+    (my $depFile = $objectFile) =~ s/source\/(.*)\.o$/$ENV{'BUILDPATH'}\/$1.d/;
     # Extract the function name and any parameters to ignore.
     my ($labelFunction, %ignoreParameters, @ignorePatterns, @hashFiles);
     foreach my $uniqueLabel ( &Directives::Extract_Directives($fileName,"uniqueLabel") ) {
@@ -118,11 +118,11 @@ CODE
     # Scan dependencies for default parameter values, while also accumulating a full list of dependecy files.
     my @directives;
     my @dependencyFileList;
-    my @dependencyFileStack = map {s/\.\/work\/build\/(.*)\.o$/$1/; $_;} split("\n",read_file($depFile));
+    my @dependencyFileStack = map {s/\.\/$ENV{'BUILDPATH'}\/(.*)\.o$/$1/; $_;} split("\n",read_file($depFile));
     while ( scalar(@dependencyFileStack) > 0 ) {
 	my $depName = pop(@dependencyFileStack);
 	push(@dependencyFileList,$depName);
-	$depName =~ s/\.\/work\/build\/(.*)\.o$/$1/;       
+	$depName =~ s/\.\/$ENV{'BUILDPATH'}\/(.*)\.o$/$1/;       
 	# Scan the file for default parameter values.
 	my $sourceFile = $sourceDirectory."/".$depName.".F90";
 	unless ( $depName eq "utility.input_parameters" ) {
