@@ -151,7 +151,7 @@
   integer, parameter   :: nfwInverseTablePointsPerDecade =100
   integer, parameter   :: nfwFreefallTablePointsPerDecade=100
   ! Indices for tabulated quantities.
-  integer, parameter   :: nfwConcentrationEnergyIndex    =  1, nfwConcetrationRotationNormalizationIndex=2
+  integer, parameter   :: nfwConcentrationEnergyIndex    =  1, nfwConcentrationRotationNormalizationIndex=2
 
 contains
 
@@ -263,7 +263,7 @@ contains
        do iConcentration=1,self%nfwTableNumberPoints
           tableConcentration=self%nfwConcentrationTable%x(iConcentration)
           call self%nfwConcentrationTable%populate(                   self%profileEnergy           (tableConcentration),iConcentration,table=nfwConcentrationEnergyIndex              )
-          call self%nfwConcentrationTable%populate(tableConcentration/self%angularMomentumScaleFree(tableConcentration),iConcentration,table=nfwConcetrationRotationNormalizationIndex)
+          call self%nfwConcentrationTable%populate(tableConcentration/self%angularMomentumScaleFree(tableConcentration),iConcentration,table=nfwConcentrationRotationNormalizationIndex)
        end do
        ! Specify that tabulation has been made.
        self%nfwTableInitialized=.true.
@@ -499,9 +499,9 @@ contains
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
 
-    ! Find the energy by interpolation.
+    ! Find the rotation normalization by interpolation.
     nfwRotationNormalization=self%nfwConcentrationTable%interpolate(concentration,table&
-         &=nfwConcentrationEnergyIndex)/self%scale%virialRadius(node)
+         &=nfwConcentrationRotationNormalizationIndex)/self%scale%virialRadius(node)
     return
   end function nfwRotationNormalization
 
