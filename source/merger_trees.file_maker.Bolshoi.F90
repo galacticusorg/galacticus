@@ -66,6 +66,9 @@ contains
     ! Specify dummyHostId for self-hosting halos. As default Galacticus assumes hostIndex == nodeIndex in case of self-hosting halos.
     call mergerTrees%setDummyHostId          (-1)
 
+    ! Specify properties that need conversion due to inconsistent units.
+    call mergerTrees%setConversionFactor     (propertyTypeScaleRadius, 1.0d-3)
+
     ! Specify that we do not want to create individual merger tree reference datasets.
     call mergerTrees%makeReferences          (.false.)
 
