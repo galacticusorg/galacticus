@@ -157,6 +157,14 @@ sub Functions_Generate_Output {
 		modules     => "FGSL",
 		argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
 		code        => ""
+	    },
+	    {
+		name        => "stateSnapshot",
+		description => "Snapshot the state of the object.",
+		type        => "void",
+		pass        => "yes",
+		argument    => [ ],
+		code        => ""
 	    }
 	    )
     }
@@ -215,7 +223,7 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "   public :: ".$directive.",".$directive."Class";
     $buildData->{'content'} .= ", ".$_->{'name'}
 	foreach ( @nonAbstractClasses );
-    $buildData->{'content'} .= ", ".$directive."DoStateStore, ".$directive."DoStateRetrieve"
+    $buildData->{'content'} .= ", ".$directive."DoStateStore, ".$directive."DoStateRetrieve, ".$directive."DoStateSnapshot"
 	if ( exists($buildData->{'stateful'}) && $buildData->{'stateful'} eq "yes" );
    $buildData->{'content'} .= ", ".$directive."DoCalculationReset"
 	if ( exists($buildData->{'calculationReset'}) && $buildData->{'calculationReset'} eq "yes" );
@@ -552,6 +560,17 @@ sub Functions_Generate_Output {
 	$buildData->{'content'} .= "    call default%stateRestore(stateFile,fgslStateFile)\n";
 	$buildData->{'content'} .= "    return\n";
 	$buildData->{'content'} .= "  end subroutine ".$directive."DoStateRetrieve\n\n";
+	$buildData->{'content'} .= "  !# <galacticusStateSnapshotTask>\n";
+	$buildData->{'content'} .= "  !#  <unitName>".$directive."DoStateSnapshot</unitName>\n";
+	$buildData->{'content'} .= "  !# </galacticusStateSnapshotTask>\n";
+	$buildData->{'content'} .= "  subroutine ".$directive."DoStateSnapshot()\n";
+	$buildData->{'content'} .= "    !% Snapshot the object.\n";
+	$buildData->{'content'} .= "    implicit none\n";
+	$buildData->{'content'} .= "    class  (".$directive."Class), pointer :: default\n\n";
+	$buildData->{'content'} .= "    default => ".$directive."()\n";
+	$buildData->{'content'} .= "    call default%stateSnapshot()\n";
+	$buildData->{'content'} .= "    return\n";
+	$buildData->{'content'} .= "  end subroutine ".$directive."DoStateSnapshot\n\n";
     }
 
     # Create global calculation reset function.
