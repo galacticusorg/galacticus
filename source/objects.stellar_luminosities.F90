@@ -199,7 +199,7 @@ module Stellar_Luminosities_Structure
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>truncate</method>
-     !@     <type>\void}</type>
+     !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless type(stellarLuminosities)\textgreater} templateLuminosities\argin</arguments>
      !@     <description>Truncate the number of stellar luminosities stored to match that in the given {\normalfont \ttfamily templateLuminosities}.</description>
      !@   </objectMethod>
