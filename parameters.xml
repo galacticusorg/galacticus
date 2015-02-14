@@ -126,8 +126,8 @@
     <value>build</value>
   </parameter>
   <parameter>
-    <name>mergerTreeBuildMethod</name>
-    <value>Cole2000</value>
+    <name>mergerTreeBuilderMethod</name>
+    <value>cole2000</value>
   </parameter>
   <parameter>
     <name>mergerTreeBuildCole2000AccretionLimit</name>

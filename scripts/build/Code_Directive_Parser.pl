@@ -118,8 +118,10 @@ foreach my $srcdir ( @sourcedirs ) {
 				if ( exists($data->{'stateful'        }) && $data->{'stateful'        } eq "yes" ) {
 				    $otherDirectives->{"galacticusStateRetrieveTask"}->{'files'     }->{$srcdir."/".$fname} = 1;
 				    $otherDirectives->{"galacticusStateStoreTask"   }->{'files'     }->{$srcdir."/".$fname} = 1;
+				    $otherDirectives->{"galacticusStateSnapshotTask"}->{'files'     }->{$srcdir."/".$fname} = 1;
 				    $otherDirectives->{"galacticusStateRetrieveTask"}->{'dependency'}->{$fileName         } = 1;
 				    $otherDirectives->{"galacticusStateStoreTask"   }->{'dependency'}->{$fileName         } = 1;
+				    $otherDirectives->{"galacticusStateSnapshotTask"}->{'dependency'}->{$fileName         } = 1;
 				}
 				if ( exists($data->{'calculationReset'}) && $data->{'calculationReset'} eq "yes" ) {
 				    $otherDirectives->{"calculationResetTask"       }->{'files'     }->{$srcdir."/".$fname} = 1;

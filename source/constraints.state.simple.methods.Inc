@@ -19,6 +19,7 @@
 
 function stateSimpleConstructor(parameterCount,acceptedStateCount)
   !% Constructor for ``simple'' state class.
+  use MPI_Utilities
   implicit none
   type   (stateSimple)                :: stateSimpleConstructor
   integer             , intent(in   ) :: parameterCount        , acceptedStateCount
@@ -28,6 +29,7 @@ function stateSimpleConstructor(parameterCount,acceptedStateCount)
   stateSimpleConstructor%parameterCount    =parameterCount
   stateSimpleConstructor%stepCount         =0
   stateSimpleConstructor%accepted          =0
+  stateSimpleConstructor%chainIndexValue   =mpiSelf%rank()
   return
 end function stateSimpleConstructor
 

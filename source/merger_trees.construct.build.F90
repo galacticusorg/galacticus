@@ -39,17 +39,6 @@ module Merger_Tree_Build
   integer                                                                   :: nextTreeIndex                                , treeCount
   double precision                              , allocatable, dimension(:) :: treeHaloMass                                 , treeWeight
 
-  ! Name of merger tree builder method.
-  type            (varying_string              )                            :: mergerTreeBuildMethod
-  ! Pointer to the subroutine that builds the merger tree.
-  procedure       (Merger_Tree_Builder_Template), pointer                   :: Merger_Tree_Builder                  =>null()
-  abstract interface
-     subroutine Merger_Tree_Builder_Template(thisTree)
-       import mergerTree
-       type(mergerTree), intent(inout), target :: thisTree
-     end subroutine Merger_Tree_Builder_Template
-  end interface
-
 contains
 
   !# <mergerTreeConstructMethod>
@@ -399,25 +388,6 @@ contains
           if (mergerTreeBuildTreesBeginAtTree == 0) mergerTreeBuildTreesBeginAtTree=1
           nextTreeIndex=            mergerTreeBuildTreesBeginAtTree
        end if
-       ! Determine which tree builder to use.
-       !@ <inputParameter>
-       !@   <name>mergerTreeBuildMethod</name>
-       !@   <defaultValue>Cole2000</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used to build merger trees.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildMethod',mergerTreeBuildMethod,defaultValue='Cole2000')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="mergerTreeBuildMethod" type="functionCall" functionType="void">
-       !#  <functionArgs>mergerTreeBuildMethod,Merger_Tree_Builder</functionArgs>
-       include 'merger_trees.build.inc'
-       !# </include>
-       if (.not.associated(Merger_Tree_Builder)) call Galacticus_Error_Report('Merger_Tree_Build','method '&
-            &//char(mergerTreeBuildMethod)//' is unrecognized')
     end if
     return
   end subroutine Merger_Tree_Build_Initialize
@@ -440,13 +410,15 @@ contains
     use Galacticus_State
     use Kind_Numbers
     use String_Handling
+    use Merger_Trees_Builders
     implicit none
-    type   (mergerTree        ), intent(inout), target :: thisTree
-    logical                    , intent(in   )         :: skipTree
-    class  (nodeComponentBasic), pointer               :: baseNodeBasicComponent
-    integer(kind=kind_int8    ), parameter             :: baseNodeIndex         =1
-    integer(kind=kind_int8    )                        :: thisTreeIndex
-    type   (varying_string    )                        :: message
+    type   (mergerTree            ), intent(inout), target :: thisTree
+    logical                        , intent(in   )         :: skipTree
+    class  (nodeComponentBasic    ), pointer               :: baseNodeBasicComponent
+    class  (mergerTreeBuilderClass), pointer               :: mergerTreeBuilder_
+    integer(kind=kind_int8        ), parameter             :: baseNodeIndex         =1
+    integer(kind=kind_int8        )                        :: thisTreeIndex
+    type   (varying_string        )                        :: message
 
     ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
     ! tree.
@@ -487,7 +459,8 @@ contains
     ! If we got a tree, we can now process it (in parallel if running under OpenMP).
     if (associated(thisTree%baseNode).and..not.skipTree) then
        ! Call routine to actually build the tree.
-       call Merger_Tree_Builder(thisTree)
+       mergerTreeBuilder_ => mergerTreeBuilder()
+       call mergerTreeBuilder_%build(thisTree)
     end if
     return
   end subroutine Merger_Tree_Build_Do

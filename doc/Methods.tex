@@ -2873,47 +2873,6 @@ Currently defined merger tree branching probability modifier methods are:
  \item [{\normalfont \ttfamily Parkinson-Cole-Helly2008}] Modifies branching rates according to the algorithm of \cite{parkinson_generating_2008}.
 \end{description}
 
-\subsubsection{Merger Tree Building}\label{sec:MergerTreeBuildMethod}
-
-Additional methods for merger tree building can be added using the {\normalfont \ttfamily mergerTreeBuildMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Cole2000} method is described by a directive:
-\begin{verbatim}
- !# <mergerTreeBuildMethod>
- !#  <unitName>Merger_Tree_Build_Cole2000_Initialize</unitName>
- !# </mergerTreeBuildMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Merger\_Tree\_Build\_Cole2000\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
- subroutine Method_Initialize(mergerTreeBuildMethod,Merger_Tree_Build)
-    type(varying_string),          intent(in)    :: mergerTreeBuildMethod
-    procedure(),          pointer, intent(inout) :: Merger_Tree_Build
-    
-    if (mergerTreeBuildMethod == 'myMethod') then
-       Merger_Tree_Build => My_Do_Tabulate
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily mergerTreeBuildMethod} input parameter. The procedure pointer {\normalfont \ttfamily Merger\_Tree\_Build} must build and return a merger tree given the a base node as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-\begin{verbatim}
-  subroutine Merger_Tree_Build_Do(thisTree)
-    type(mergerTree), intent(inout) :: thisTree
-    .
-    .
-    .
-    return
-  end subroutine Merger_Tree_Build_Do
-\end{verbatim}
-and should return a full merger tree in {\normalfont \ttfamily thisTree} built from the base node which will already be set in {\normalfont \ttfamily thisTree}. The tree must have at least masses, times and parent/child/sibling links created. Other properties (e.g. spins) can be optionally included also.
-
-Currently defined merger tree building methods are:
-\begin{description}
- \item [{\normalfont \ttfamily Cole2000}] Uses the \cite{cole_hierarchical_2000} merger tree building algorithm.
-\end{description}
-
 \subsubsection{Merger Tree Building Mass Resolution}\label{sec:MergerTreeBuildMethodMassResolution}
 
 Additional methods for the mass resolution to use when building merger trees can be added using the {\normalfont \ttfamily mergerTreesBuildMassResolution} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily fixed} method is described by a directive:
