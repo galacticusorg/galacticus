@@ -363,8 +363,8 @@ contains
     logical                                 , save                        :: resetSequence            =.true.
     !$omp threadprivate(pseudoSequenceObject,resetSequence)
     double precision                                                      :: orbitalRadius                   , orbitalVelocityRadial    , &
-         &                                                                   orbitalVelocityTangential       , orbitalVelocityPhi       , &
-         &                                                                   orbitalVelocityTheta            , velocityPhi
+         &                                                                   orbitalVelocityTangential       , orbitalPositionPhi       , &
+         &                                                                   orbitalPositionTheta            , velocityPhi
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%orbitingIsActive()) return
@@ -391,15 +391,15 @@ contains
        orbitalRadius            =thisOrbit%radius()
        orbitalVelocityRadial    =thisOrbit%velocityRadial()
        orbitalVelocityTangential=thisOrbit%velocityTangential()
-       orbitalVelocityPhi       =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi
-       orbitalVelocityTheta     =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*      Pi
+       orbitalPositionPhi       =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi
+       orbitalPositionTheta     =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*      Pi
        radialVector             =[                                                   &
-            &                     sin(orbitalVelocityTheta)*cos(orbitalVelocityPhi), &
-            &                     sin(orbitalVelocityTheta)*sin(orbitalVelocityPhi), &
-            &                     cos(orbitalVelocityTheta)                          &
+            &                     sin(orbitalPositionTheta)*cos(orbitalPositionPhi), &
+            &                     sin(orbitalPositionTheta)*sin(orbitalPositionPhi), &
+            &                     cos(orbitalPositionTheta)                          &
             &                    ]
        call satelliteComponent%positionSet(orbitalRadius*radialVector)
-       velocityRadialVector     =-orbitalVelocityRadial*radialVector
+       velocityRadialVector     =orbitalVelocityRadial*radialVector
        velocityTangentialVector1=Vector_Product(radialVector,[1.0d0,0.0d0,0.0d0]      )
        velocityTangentialVector2=Vector_Product(radialVector,velocityTangentialVector1)
        velocityPhi              =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi

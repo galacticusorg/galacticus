@@ -24,7 +24,7 @@ module Constraints_State
 
   ! Define the basic state class.
   type, abstract, public :: state
-     integer :: parameterCount, stepCount
+     integer :: parameterCount, stepCount, chainIndexValue
    contains
      !@ <objectMethods>
      !@   <object>state</object>
@@ -33,6 +33,18 @@ module Constraints_State
      !@     <type>\intzero</type>
      !@     <arguments></arguments>
      !@     <description>Return a count of the number of logged state steps.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>chainIndex</method>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the chain index for this state.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>chainIndexSet</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ chainIndex\argin</arguments>
+     !@     <description>Set the chain index for this state.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>dimension</method>
@@ -83,6 +95,8 @@ module Constraints_State
      !@     <description>Restore the state object from a chain file.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     procedure                                :: chainIndex     => stateChainIndex
+     procedure                                :: chainIndexSet  => stateChainIndexSet
      procedure                                :: count          => stateCount
      procedure                                :: dimension      => stateDimension
      procedure                                :: reset          => stateReset
@@ -204,6 +218,25 @@ contains
     stateCount=self%stepCount
     return
   end function stateCount
+
+  integer function stateChainIndex(self)
+    !% Returns the chain index in the current state.
+    implicit none
+    class(state), intent(in   ) :: self
+
+    stateChainIndex=self%chainIndexValue
+    return
+  end function stateChainIndex
+
+  subroutine stateChainIndexSet(self,chainIndex)
+    !% Sets the chain index in the current state.
+    implicit none
+    class  (state), intent(inout) :: self
+    integer       , intent(in   ) :: chainIndex
+    
+    self%chainIndexValue=chainIndex
+    return
+  end subroutine stateChainIndexSet
 
   integer function stateDimension(self)
     !% Returns the dimension of the state.

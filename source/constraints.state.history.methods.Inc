@@ -19,6 +19,7 @@
 
 function stateHistoryConstructor(parameterCount,acceptedStateCount)
   !% Constructor for ``history'' state class.
+  use MPI_Utilities
   implicit none
   type   (stateHistory)               :: stateHistoryConstructor
   integer             , intent(in   ) :: parameterCount         , acceptedStateCount
@@ -32,6 +33,7 @@ function stateHistoryConstructor(parameterCount,acceptedStateCount)
   stateHistoryConstructor%stateSum       =0.0d0
   stateHistoryConstructor%stateSquaredSum=0.0d0
   stateHistoryConstructor%accepted       =0
+  stateHistoryConstructor%chainIndexValue=mpiSelf%rank()
   return
 end function stateHistoryConstructor
 

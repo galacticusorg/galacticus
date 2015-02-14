@@ -141,13 +141,6 @@ sub Functions_Generate_Output {
 	push(
 	    @methods,
 	    {
-		name        => "stateSnapshot",
-		description => "Snapshot the state of the object.",
-		type        => "void",
-		pass        => "yes",
-		code        => ""
-	    },
-	    {
 		name        => "stateStore",
 		description => "Store the state of the object to file.",
 		type        => "void",
@@ -163,6 +156,14 @@ sub Functions_Generate_Output {
 		pass        => "yes",
 		modules     => "FGSL",
 		argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
+		code        => ""
+	    },
+	    {
+		name        => "stateSnapshot",
+		description => "Snapshot the state of the object.",
+		type        => "void",
+		pass        => "yes",
+		argument    => [ ],
 		code        => ""
 	    }
 	    )

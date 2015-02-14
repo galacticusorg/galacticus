@@ -190,7 +190,7 @@ my @translations =
 	     mergerTreeBuildCole2000MassResolution       => "mergerTreeHaloMassResolution"                    ,
 	     nfw96ConcentrationC                         => "nfw1996ConcentrationC"                           ,
 	     satelliteMergingMethod                      => "satelliteMergingTimescalesMethod"                ,
-	     treeNodeMethodFormationTimes                => "treeNodeMethodFormationTime"
+	     treeNodeMethodFormationTimes                => "treeNodeMethodFormationTime"                     ,
 	     luminosityFilterAbsoluteMagnitudeThresholds => "luminosityFilterAbsoluteMagnitudeThresholdMaxima"
 	 },
 	 values        =>
@@ -233,7 +233,22 @@ my @translations =
  
 	     },
 	 }
-     }
+     },
+     {
+	 inputVersion  => "0.9.3",
+	 outputVersion => "0.9.4",
+	 names         =>
+	 {
+	     mergerTreeBuildMethod   => "mergerTreeBuilderMethod",
+	 },
+ 	 values        =>
+         {
+	     mergerTreeBuilderMethod =>
+	     {
+		 "Cole2000" => "cole2000"
+	     }
+	 }
+    }
     );
 
 # Validate the paramter file.
