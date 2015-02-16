@@ -22,6 +22,7 @@ module MPI_Utilities
 #ifdef USEMPI
   use MPI
 #endif
+  use ISO_Varying_String
   use Galacticus_Error
   private
   public :: mpiInitialize, mpiFinalize, mpiBarrier, mpiSelf
@@ -29,8 +30,9 @@ module MPI_Utilities
   ! Define a type for interacting with MPI.
   type :: mpiObject
      private
-     integer                            :: rankValue, countValue
-     integer, allocatable, dimension(:) :: allRanks
+     integer                                            :: rankValue, countValue    , nodeCountValue
+     type   (varying_string)                            :: hostName
+     integer                , allocatable, dimension(:) :: allRanks , nodeAffinities
    contains
      !@ <objectMethods>
      !@   <object>mpiObject</object>
@@ -130,6 +132,8 @@ module MPI_Utilities
      procedure :: rank           => mpiGetRank
      procedure :: rankLabel      => mpiGetRankLabel
      procedure :: count          => mpiGetCount
+     procedure :: nodeCount      => mpiGetNodeCount
+     procedure :: nodeAffinity   => mpiGetNodeAffinity
      procedure ::                   mpiRequestData1D   , mpiRequestData2D, &
           &                         mpiRequestDataInt1D
      generic   :: requestData    => mpiRequestData1D   , mpiRequestData2D, &
@@ -172,8 +176,12 @@ contains
 #ifdef USEMPI
     use Memory_Management
     use Galacticus_Error
+    use Hashes
     implicit none
-    integer :: i, iError, MPI_Threading_Provided
+    integer                                                          :: i, iError, MPI_Threading_Provided, processorNameLength, iProcess
+    character(len=MPI_MAX_PROCESSOR_NAME), dimension(1)              :: processorName
+    character(len=MPI_MAX_PROCESSOR_NAME), dimension(:), allocatable :: processorNames
+    type     (integerScalarHash         )                            :: processCount
     
     call MPI_Init_Thread(MPI_THREAD_FUNNELED,MPI_Threading_Provided,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','failed to initialize MPI'     )
@@ -181,11 +189,36 @@ contains
     if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','failed to determine MPI count')
     call MPI_Comm_Rank(MPI_Comm_World,mpiSelf% rankValue,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','failed to determine MPI rank' )
+    call MPI_Get_Processor_Name(processorName(1),processorNameLength,iError)
+    if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','failed to get MPI processor name' )
+    mpiSelf%hostName=processorName(1)
+    call mpiBarrier()
     ! Construct an array containing all ranks.
     call Alloc_Array(mpiSelf%allRanks,[mpiSelf%countValue],[0])
     forall(i=0:mpiSelf%countValue-1)
        mpiSelf%allRanks(i)=i
     end forall
+    ! Get processor names from all processes.
+    allocate(processorNames(0:mpiSelf%countValue-1))
+    call MPI_AllGather(processorName,MPI_MAX_PROCESSOR_NAME,MPI_Character,processorNames,MPI_MAX_PROCESSOR_NAME,MPI_Character,MPI_Comm_World,iError)
+    ! Count processes per node.
+    call processCount%initialize()
+    do iProcess=0,mpiSelf%countValue-1
+       if (processCount%exists(trim(processorNames(iProcess)))) then
+          call processCount%set(trim(processorNames(iProcess)),processCount%value(trim(processorNames(iProcess)))+1)
+       else
+          call processCount%set(trim(processorNames(iProcess)),1)
+       end if
+    end do
+    mpiself%nodeCountValue=processCount%size()
+    allocate(mpiSelf%nodeAffinities(0:mpiSelf%countValue-1))
+    mpiSelf%nodeAffinities=-1
+    do i=1,mpiSelf%nodeCountValue
+       do iProcess=0,mpiSelf%countValue-1
+          if (trim(processorNames(iProcess)) == processCount%key(i)) mpiSelf%nodeAffinities(iProcess)=i
+       end do
+    end do
+    deallocate(processorNames)    
     ! Record that MPI is active.
     mpiIsActiveValue=.true.
 #endif
@@ -287,6 +320,36 @@ contains
 #endif
     return
   end function mpiGetCount
+  
+  integer function mpiGetNodeCount(self)
+    !% Return count of nodes used by MPI.
+    implicit none
+    class(mpiObject), intent(in   ) :: self
+    
+#ifdef USEMPI
+    mpiGetNodeCount=self%nodeCountValue
+#else
+    call Galacticus_Error_Report('mpiGetNodeCount','code was not compiled for MPI')
+#endif
+    return
+  end function mpiGetNodeCount
+  
+  integer function mpiGetNodeAffinity(self,rank)
+    !% Return node affinity of given MPI process.
+    implicit none
+    class  (mpiObject), intent(in   )           :: self
+    integer           , intent(in   ), optional :: rank
+    integer                                     :: rankActual
+    
+#ifdef USEMPI
+    rankActual=self%rank()
+    if (present(rank)) rankActual=rank
+    mpiGetNodeAffinity=self%nodeAffinities(rankActual)
+#else
+    call Galacticus_Error_Report('mpiGetNodeCount','code was not compiled for MPI')
+#endif
+    return
+  end function mpiGetNodeAffinity
   
   logical function mpiMessageWaiting(self,from,tag)
     !% Return true if an MPI message (matching the optional {\normalfont \ttfamily from} and {\normalfont \ttfamily tag} if given) is waiting for receipt.
@@ -421,7 +484,7 @@ contains
        ! Receive the request.
        call MPI_Recv(requestedBy,1,MPI_Integer,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
        ! Check for a non-null request.
-       if (requester(1) /= nullRequester) then
+       if (requestedBy(1) /= nullRequester) then
           ! Expand the requestID buffer as required.
           iRequest=iRequest+1
           if (iRequest > size(requestID)) then
@@ -497,7 +560,7 @@ contains
        ! Receive the request.
        call MPI_Recv(requestedBy,1,MPI_Integer,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
        ! Check for a non-null request.
-       if (requester(1) /= nullRequester) then
+       if (requestedBy(1) /= nullRequester) then
           ! Expand the requestID buffer as required.
           iRequest=iRequest+1
           if (iRequest > size(requestID)) then
