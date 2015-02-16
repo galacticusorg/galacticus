@@ -110,7 +110,7 @@ function likelihoodMassFunctionConstructor(haloMassMinimum,haloMassMaximum,redsh
   return
 end function likelihoodMassFunctionConstructor
 
-double precision function likelihoodMassFunctionEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+double precision function likelihoodMassFunctionEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
   !% Return the log-likelihood for the mass function likelihood function.
   use, intrinsic :: ISO_C_Binding
   use Constraints_State
@@ -122,10 +122,6 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   use Numerical_Integration
   use Galacticus_Error
   use Mass_Function_Incompletenesses
-
-
-use mpi_utilities
-
   implicit none
   class           (likelihoodMassFunction                     ), intent(inout)               :: self
   class           (state                                      ), intent(in   )               :: simulationState
@@ -133,6 +129,7 @@ use mpi_utilities
   class           (convergence                                ), intent(inout)               :: simulationConvergence
   double precision                                             , intent(in   )               :: temperature                    , logLikelihoodCurrent              , &
        &                                                                                        logPriorCurrent                , logPriorProposed
+  real                                                         , intent(inout)               :: timeEvaluate
   double precision                                             , allocatable  , dimension(:) :: stateVector
   class           (cosmologyFunctionsClass                    ), pointer                     :: cosmologyFunctions_
   class           (surveyGeometryClass                        ), pointer                     :: surveyGeometry_

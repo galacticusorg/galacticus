@@ -29,7 +29,7 @@ function likelihoodGalacticusConstructor(configFileName)
   return
 end function likelihoodGalacticusConstructor
 
-double precision function likelihoodGalacticusEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+double precision function likelihoodGalacticusEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
   !% Return the log-likelihood for the \glc\ likelihood function. This function runs an external script that drives \glc\ and
   !% writes the resulting likelihood to file. This function then reads that likelihood from file. We make use of {\normalfont \ttfamily tmpfs} for
   !% this likelihood file so that no disk I/O is required.
@@ -43,24 +43,32 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   class           (state               ), intent(in   )               :: simulationState
   type            (mappingList         ), intent(in   ), dimension(:) :: parameterMappings
   class           (convergence         ), intent(inout)               :: simulationConvergence
-  double precision                      , intent(in   )               :: temperature    , logLikelihoodCurrent, &
-       &                                                                 logPriorCurrent, logPriorProposed
+  double precision                      , intent(in   )               :: temperature          , logLikelihoodCurrent, &
+       &                                                                 logPriorCurrent      , logPriorProposed
+  real                                  , intent(inout)               :: timeEvaluate
   double precision                      , allocatable  , dimension(:) :: stateVector
-  type            (varying_string      )                              :: wrapperCommand , likelihoodFileName
+  type            (varying_string      )                              :: wrapperCommand       , likelihoodFileName  , &
+       &                                                                 timingFileName
   character       (len=23              )                              :: label
-  integer                                                             :: i              , likelihoodFileUnit
+  integer                                                             :: i                    , likelihoodFileUnit  , &
+       &                                                                 timingFileUnit
   logical                                                             :: storeModel
+  real                                                                :: timeSystem           , timeUser
 
-  ! Generate the file name for the likelihood file.
+  ! Generate the file name for the likelihood and timing files.
   likelihoodFileName='/dev/shm/galacticusLikelihood_'//mpiSelf%rankLabel()//'.dat'
+  timingFileName    ='/dev/shm/glcTiming_'           //mpiSelf%rankLabel()//'.txt'
   ! Generate temperature label.
   write (label,'(e12.6)') temperature 
   ! Generate the command to run the Galacticus model.
-  wrapperCommand=&
-       & './constraints/constrainGalacticus.pl '     // &
-       & trim(self%configFileName)              //' '// &
-       & mpiSelf%rankLabel()                    //' '// &
-       & likelihoodFileName                     //' '// &
+  wrapperCommand=                                                      &
+       & '/usr/bin/time'                                   //    ' '// &
+       & '--format "%S %U"'                                //    ' '// &
+       & '--output '//timingFileName                       //    ' '// &
+       & './constraints/constrainGalacticus.pl '                    // &
+       & trim(self%configFileName)                         //    ' '// &
+       & mpiSelf%rankLabel()                               //    ' '// &
+       & likelihoodFileName                                //    ' '// &
        & trim(label              )
   ! Determine whether to store this model.
   select type (simulationState)
@@ -68,7 +76,7 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
      storeModel=                                                                                &
           &       simulationConvergence%isConverged              (                            ) &
           & .and.                                                                               &
-          &  .not.simulationConvergence%chainIsOutlier           (mpiSelf%rank              ()) &
+          &  .not.simulationConvergence%chainIsOutlier           (simulationState%chainIndex()) &
           & .and.                                                                               &
           &       simulationState%count                          (                            ) &
           &      >=                                                                             &
@@ -98,6 +106,11 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   open(newUnit=likelihoodFileUnit,file=char(likelihoodFileName),status='old',form='formatted')
   read (likelihoodFileUnit,*) likelihoodGalacticusEvaluate
   close(likelihoodFileUnit,status='delete')
+  ! Read the timing data back from file.
+  open(newUnit=timingFileUnit,file=char(timingFileName),status='old',form='formatted')
+  read (timingFileUnit,*) timeSystem,timeUser
+  close(timingFileUnit,status='delete')
+  timeEvaluate=timeSystem+timeUser
   return
 end function likelihoodGalacticusEvaluate
 

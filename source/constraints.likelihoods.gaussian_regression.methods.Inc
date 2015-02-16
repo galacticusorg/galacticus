@@ -60,7 +60,7 @@ subroutine likelihoodGaussianRegressionDestructor(self)
   return
 end subroutine likelihoodGaussianRegressionDestructor
 
-double precision function likelihoodGaussianRegressionEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+double precision function likelihoodGaussianRegressionEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
   !% Return the log-likelihood for a Gaussian regression likelihood function.
   use, intrinsic :: ISO_C_Binding
   use Constraints_State
@@ -80,17 +80,17 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
   double precision                                , intent(in   )                   :: temperature                      , logLikelihoodCurrent, &
        &                                                                               logPriorCurrent                  ,&
        & logPriorProposed
+  real                                            , intent(inout)                   :: timeEvaluate
   double precision                                , allocatable  , dimension(:,:,:) :: states
   double precision                                , allocatable  , dimension(  :,:) :: likelihoods
   double precision                                , allocatable  , dimension(    :) :: likelihoodsCombined              , workspace            , &
-       &                                                                               likelihoodsFitted                , stateCurrent         , &
-       &                                                                               separations                      , semiVariances
+       &                                                                               likelihoodsFitted                , separations          , &
+       &                                                                               semiVariances
   integer                                         , allocatable  , dimension(    :) :: stateCount
   double precision                                , parameter                       :: emulatorFailureSignificance=3.0d0
   type            (polynomialIterator            )                                  :: iterator1                        , iterator2
   type            (vector                        )                                  :: likelihoodSums                   , coefficients
   type            (matrix                        )                                  :: stateSums
-  type            (fgsl_vector                   )                                  :: stateOffsetVector                , weightVector
   integer         (kind=FGSL_Int                 )                                  :: decompositionSign                , status
   integer                                                                           :: accumulatedStateCount            , i                    , &
        &                                                                               j                                , k                    , &
@@ -99,7 +99,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
        &                                                                               determinantSign                  , checksTotal          , &
        &                                                                               failuresTotal
   double precision                                                                  :: separation                       , likelihoodError      , & 
-       &                                                                               likelihoodFit                    , likelihoodEmulated
+       &                                                                               likelihoodEmulated
   logical                                                                           :: likelihoodIsSimulated
   character       (len=8                         )                                  :: label
   type            (varying_string                )                                  :: message
@@ -298,37 +298,13 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
   end if
   likelihoodIsSimulated=.false.
   if (self%initialized.and..not.self%regressionMatrixIsSingular) then
-     ! Compute vector D.
-     stateCurrent=simulationState%get()
-     do i=1,self%emulatorRebuildCount
-        separation         =likelihoodGaussianRegressionSeparation(self,stateCurrent,self%statesCombined(:,i))
-        self%stateOffset(i)=likelihoodGaussianRegressionCorrelation(self,separation)
-     end do
-     self%stateOffset(self%emulatorRebuildCount+1)=1.0d0
-     ! Solve the linear system.
-     stateOffsetVector=FGSL_Vector_Init(type=1.0_FGSL_Double)
-     weightVector     =FGSL_Vector_Init(type=1.0_FGSL_Double)
-     status           =FGSL_Vector_Align(self%stateOffset,self%regressionMatrixSize,stateOffsetVector,self%regressionMatrixSize,0_FGSL_Size_T,1_FGSL_Size_T)
-     status           =FGSL_Vector_Align(self%weight     ,self%regressionMatrixSize,weightVector     ,self%regressionMatrixSize,0_FGSL_Size_T,1_FGSL_Size_T)
-     status           =FGSL_LinAlg_LU_Solve(self%regressionMatrixLU,self%permutations,stateOffsetVector,weightVector)
-     call FGSL_Vector_Free(weightVector     )
-     call FGSL_Vector_Free(stateOffsetVector)
-     ! Compute the likelihood and variance.
-     likelihoodGaussianRegressionEvaluate=sum(self%likelihoodResiduals*self%weight(1:self%emulatorRebuildCount))
-     likelihoodError                     =sqrt(likelihoodGaussianRegressionCorrelation(self,0.0d0)-sum(self%weight*self%stateOffset))
-     iterator1=polynomialIterator(self%polynomialOrder,simulationState%dimension())
-     do while (iterator1%iterate())
-        likelihoodFit=self%coefficients(iterator1%counter())
-        do j=1,iterator1%currentOrder()
-           likelihoodFit=likelihoodFit*stateCurrent(iterator1%index(j))
-        end do
-        likelihoodGaussianRegressionEvaluate=likelihoodGaussianRegressionEvaluate+likelihoodFit        
-     end do
+     ! Perform the emulation.
+     call likelihoodGaussianRegressionEmulate(self,simulationState,likelihoodGaussianRegressionEvaluate,likelihoodError)
      ! Test likelihood emulation.
      if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
         ! Every so many steps we evaluate the simulated likelihood and check that our emulator is reliable.
         likelihoodEmulated                  =likelihoodGaussianRegressionEvaluate
-        likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+        likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
         likelihoodIsSimulated               =.true.
         ! Count number of emulator checks and the failure rate.
         self%emulatorCheckCount=self%emulatorCheckCount+1
@@ -347,32 +323,26 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
            call Galacticus_Display_Message(message)
         end if
      else
-        ! If simulation is converged, this is an outlier chain, and we're told to emulate such outliers, then return.
-        if (simulationConvergence%isConverged().and.simulationConvergence%chainIsOutlier(mpiSelf%rank()).and.self%emulateOutliers) return
-        ! If likelihood is well below current likelihood (and this should be sufficient that changes in priors won't affect the
-        ! conclusion), then use the emulated likelihood. We scale the likelihood buffer by the current temperature to reflect the
-        ! fact that transitions between states are easier when the temperature is high.
+        if (simulationConvergence%isConverged().and.simulationConvergence%chainIsOutlier(simulationState%chainIndex()).and.self%emulateOutliers) return
         if (likelihoodGaussianRegressionEvaluate+logPriorProposed+self%sigmaBuffer*likelihoodError < logLikelihoodCurrent+logPriorCurrent-self%logLikelihoodBuffer        *temperature) return
-        ! Return if the error is below the tolerance. We increase the tolerance value in proportion to temperature since the
-        ! likelihoods will be divided by this amount when evaluating transition probabilties.
         if (                                                                       likelihoodError <                                      self%logLikelihoodErrorTolerance*temperature) return
      end if
   end if
   ! Evaluate the likelihood using the simulator, unless we have already done so.
   self%simulationCount=self%simulationCount+1
-  if (.not.likelihoodIsSimulated) then
+  if (.not.likelihoodIsSimulated) then     
      ! If prior probability is impossible, then don't even try to simulate.
      if (logPriorProposed <= logImpossible) then
         likelihoodGaussianRegressionEvaluate=logImpossible
      else
-        likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+        likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
         ! Store the likelihood and state.
         self%accumulatedStateCount                            =self%accumulatedStateCount+1
         self%simulatorLikelihood(  self%accumulatedStateCount)=likelihoodGaussianRegressionEvaluate
         self%simulationState    (:,self%accumulatedStateCount)=simulationState%get()
      end if
   end if
- return
+  return
 end function likelihoodGaussianRegressionEvaluate
 
 elemental double precision function likelihoodGaussianRegressionEvaluateVariogram(self,h)
@@ -514,8 +484,7 @@ subroutine likelihoodGaussianRegressionVariogramModelD(x, parameters, df) bind(c
   type(c_ptr), value :: x, parameters, df
   type(FGSL_vector) :: vec, grad
   real(c_double), pointer, dimension(:) :: xx,ddf
-  integer(FGSL_int) :: status
-  
+  integer(FGSL_int) :: status  
   
    call FGSL_obj_c_ptr(vec, x)
    call FGSL_obj_c_ptr(grad, df)
@@ -675,3 +644,94 @@ subroutine likelihoodGaussianRegressionFunctionChanged(self)
   call self%simulatorLikelihoodFunction%functionChanged()
   return
 end subroutine likelihoodGaussianRegressionFunctionChanged
+
+
+logical function likelihoodGaussianRegressionWillEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+  !% Return true if the log-likelihood will be evaluated.
+  use, intrinsic :: ISO_C_Binding
+  use Constraints_State
+  use Constraints_Convergence
+  use Constraints_Constants
+  use Galacticus_Display
+  implicit none
+  class           (likelihoodGaussianRegression  ), intent(inout)               :: self
+  class           (state                         ), intent(in   )               :: simulationState
+  type            (mappingList                   ), intent(in   ), dimension(:) :: parameterMappings
+  class           (convergence                   ), intent(inout)               :: simulationConvergence
+  double precision                                , intent(in   )               :: temperature                      , logLikelihoodCurrent, &
+       &                                                                           logPriorCurrent                  , logPriorProposed
+  double precision                                                              :: likelihoodEmulated               , likelihoodEmulatedError
+
+  likelihoodGaussianRegressionWillEvaluate=.true.
+  if (self%initialized.and..not.self%regressionMatrixIsSingular) then
+     if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+        ! Emulation will be tested, so the simulator is always run.
+        likelihoodGaussianRegressionWillEvaluate=.true.
+        return
+     else
+        ! Evaluate the emulator.
+        call likelihoodGaussianRegressionEmulate(self,simulationState,likelihoodEmulated,likelihoodEmulatedError)
+        ! If simulation is converged, this is an outlier chain, and we're told to emulate such outliers, then return.
+        if (simulationConvergence%isConverged().and.simulationConvergence%chainIsOutlier(simulationState%chainIndex()).and.self%emulateOutliers) likelihoodGaussianRegressionWillEvaluate=.false.
+        ! If likelihood is well below current likelihood (and this should be sufficient that changes in priors won't affect the
+        ! conclusion), then use the emulated likelihood. We scale the likelihood buffer by the current temperature to reflect the
+        ! fact that transitions between states are easier when the temperature is high.
+        if (likelihoodEmulated+logPriorProposed+self%sigmaBuffer*likelihoodEmulatedError < logLikelihoodCurrent+logPriorCurrent-self%logLikelihoodBuffer        *temperature) likelihoodGaussianRegressionWillEvaluate=.false.
+        ! Return if the error is below the tolerance. We increase the tolerance value in proportion to temperature since the
+        ! likelihoods will be divided by this amount when evaluating transition probabilties.
+        if (likelihoodEmulatedError                                                      <                                      self%logLikelihoodErrorTolerance*temperature) likelihoodGaussianRegressionWillEvaluate=.false.
+     end if
+     return
+  else
+     if (logPriorProposed <= logImpossible) then
+        ! Prior is impossible, no need to evaluate.
+        likelihoodGaussianRegressionWillEvaluate=.false.
+     else
+        ! Evaluate the simulator.
+        likelihoodGaussianRegressionWillEvaluate=.true.
+     end if
+  end if
+  return
+end function likelihoodGaussianRegressionWillEvaluate
+
+subroutine likelihoodGaussianRegressionEmulate(self,simulationState,likelihoodEmulated,likelihoodEmulatedError)
+  !% Evaluate the model emulator.
+  implicit none
+  class           (likelihoodGaussianRegression  ), intent(inout)               :: self
+  class           (state                         ), intent(in   )               :: simulationState
+  double precision                                , intent(  out)               :: likelihoodEmulated, likelihoodEmulatedError
+  double precision                                , allocatable  , dimension(:) :: stateCurrent
+  integer                                                                       :: i                 , j
+  double precision                                                              :: separation        , likelihoodFit
+  type            (fgsl_vector                   )                              :: stateOffsetVector , weightVector
+  integer         (kind=FGSL_Int                 )                              :: status
+  type            (polynomialIterator            )                              :: iterator1
+  
+  ! Compute vector D.
+  stateCurrent=simulationState%get()
+  do i=1,self%emulatorRebuildCount
+     separation         =likelihoodGaussianRegressionSeparation (self,stateCurrent,self%statesCombined(:,i))
+     self%stateOffset(i)=likelihoodGaussianRegressionCorrelation(self,separation                           )
+  end do
+  self%stateOffset(self%emulatorRebuildCount+1)=1.0d0
+  ! Solve the linear system.
+  stateOffsetVector=FGSL_Vector_Init(type=1.0_FGSL_Double)
+  weightVector     =FGSL_Vector_Init(type=1.0_FGSL_Double)
+  status           =FGSL_Vector_Align(self%stateOffset,self%regressionMatrixSize,stateOffsetVector,self%regressionMatrixSize,0_FGSL_Size_T,1_FGSL_Size_T)
+  status           =FGSL_Vector_Align(self%weight     ,self%regressionMatrixSize,weightVector     ,self%regressionMatrixSize,0_FGSL_Size_T,1_FGSL_Size_T)
+  status           =FGSL_LinAlg_LU_Solve(self%regressionMatrixLU,self%permutations,stateOffsetVector,weightVector)
+  call FGSL_Vector_Free(weightVector     )
+  call FGSL_Vector_Free(stateOffsetVector)
+  ! Compute the likelihood and variance.
+  likelihoodEmulated     =sum(self%likelihoodResiduals*self%weight(1:self%emulatorRebuildCount))
+  likelihoodEmulatedError=sqrt(likelihoodGaussianRegressionCorrelation(self,0.0d0)-sum(self%weight*self%stateOffset))
+  iterator1=polynomialIterator(self%polynomialOrder,simulationState%dimension())
+  do while (iterator1%iterate())
+     likelihoodFit=self%coefficients(iterator1%counter())
+     do j=1,iterator1%currentOrder()
+        likelihoodFit=likelihoodFit*stateCurrent(iterator1%index(j))
+     end do
+     likelihoodEmulated=likelihoodEmulated+likelihoodFit        
+  end do
+  return
+end subroutine likelihoodGaussianRegressionEmulate
