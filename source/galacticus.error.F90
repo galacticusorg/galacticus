@@ -48,6 +48,7 @@ module Galacticus_Error
   integer, parameter, public :: errorStatusFail       =FGSL_Failure ! Generic failure.
   integer, parameter, public :: errorStatusInputDomain=FGSL_eDom    ! Input domain error.
   integer, parameter, public :: errorStatusOutOfRange =FGSL_eRange  ! Output range error.
+  integer, parameter, public :: errorStatusXCPU       =1025         ! CPU time limit exceeded.
 
   ! GSL error status.
   logical             :: abortOnErrorGSL=.true.
@@ -224,7 +225,7 @@ contains
     call Flush(0)
     call H5Close_F(error)
     call H5Close_C()
-    call Abort()
+    call Exit(errorStatusXCPU)
     return
   end subroutine Galacticus_Signal_Handler_SIGXCPU
 
