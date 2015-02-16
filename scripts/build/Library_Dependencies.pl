@@ -105,6 +105,22 @@ print join(" ",map {"-l".$_} @sortedLibraries).$staticOptions;
 print " -fexternal-blas"
     if ( grep{$_ eq "blas"} @sortedLibraries );
 
+# Check glibc version.
+my $glibcVersionMajor;
+my $glibcVersionMinor;
+open(my $pipe,"ldd --version|");
+while ( my $line = <$pipe> ) {
+    if ( $line =~ m/^ldd \(GNU libc\) (\d+)\.(\d+)/ ) {
+	$glibcVersionMajor = $1;
+	$glibcVersionMinor = $2;
+    }
+}
+close($pipe);
+
+# Determine if we need to link the realtime library.
+print " -lrt"
+    if ( $glibcVersionMajor < 2 || $glibcVersionMajor == 2 && $glibcVersionMinor <= 16 );
+
 # Write newline.
 print "\n";
 
