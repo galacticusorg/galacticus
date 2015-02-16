@@ -109,7 +109,7 @@ function likelihoodSEDFitConstructor(definition)
   return
 end function likelihoodSEDFitConstructor
 
-double precision function likelihoodSEDFitEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+double precision function likelihoodSEDFitEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
   !% Return the log-likelihood for the SED fitting likelihood function.
   use, intrinsic :: ISO_C_Binding
   use FGSL
@@ -130,6 +130,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   class           (convergence                       ), intent(inout)                 :: simulationConvergence
   double precision                                    , intent(in   )                 :: temperature                         , logLikelihoodCurrent   , &
        &                                                                                 logPriorCurrent                     , logPriorProposed
+  real                                                , intent(inout)                 :: timeEvaluate
   double precision                                    , allocatable  , dimension(:  ) :: stateVector                         , ages                   , &
        &                                                                                 weights
   double precision                                    , allocatable  , dimension(:,:) :: massToLightRatios

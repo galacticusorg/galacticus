@@ -42,6 +42,7 @@
    contains
      final     ::                    likelihoodGaussianRegressionDestructor
      procedure :: evaluate        => likelihoodGaussianRegressionEvaluate
+     procedure :: willEvaluate    => likelihoodGaussianRegressionWillEvaluate
      procedure :: functionChanged => likelihoodGaussianRegressionFunctionChanged
   end type likelihoodGaussianRegression
   

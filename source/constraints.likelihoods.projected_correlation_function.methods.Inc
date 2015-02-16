@@ -67,7 +67,7 @@ function likelihoodProjectedCorrelationFunctionConstructor(haloMassMinimum,haloM
   return
 end function likelihoodProjectedCorrelationFunctionConstructor
 
-double precision function likelihoodProjectedCorrelationFunctionEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+double precision function likelihoodProjectedCorrelationFunctionEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
   !% Return the log-likelihood for the projected correlation function likelihood function.
   use Constraints_State
   use Constraints_Convergence
@@ -83,6 +83,7 @@ double precision function likelihoodProjectedCorrelationFunctionEvaluate(self,si
   class           (convergence                           ), intent(inout)               :: simulationConvergence
   double precision                                        , intent(in   )               :: temperature                , logLikelihoodCurrent, &
        &                                                                                   logPriorCurrent            , logPriorProposed
+  real                                                    , intent(inout)               :: timeEvaluate
   double precision                                        , allocatable  , dimension(:) :: stateVector
   class           (cosmologyFunctionsClass               ), pointer                     :: cosmologyFunctions_
   type            (conditionalMassFunctionBehroozi2010   )                              :: thisConditionalMassFunction

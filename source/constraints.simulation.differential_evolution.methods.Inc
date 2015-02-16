@@ -64,6 +64,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   use Galacticus_Display
   use String_Handling
   use Constraints_Constants
+  use Kind_Numbers
   implicit none
   class           (simulatorDifferentialEvolution), intent(inout)                    :: self
   integer                                         , dimension(                    2) :: chainPair
@@ -71,7 +72,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   double precision                                , dimension(self%parameterCount  ) :: stateVector          , stateVectorProposed
   class           (state                         ), allocatable                      :: stateProposed
   real                                                                               :: timePreEvaluate      , timePostEvaluate     , &
-       &                                                                                timeEvaluate
+       &                                                                                timeEvaluate         , timeEvaluatePrevious
   double precision                                                                   :: logLikelihoodProposed, logPosteriorProposed , &
                                                                                         logLikelihood
   type            (pseudoRandom                  )                                   :: randomNumberGenerator
@@ -91,8 +92,14 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   do while (self%logPosterior <= logImpossible)
      ! Initialize chain to some state vector.
      call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parametermappings)
-     ! Evaluate the posterior in the initial state.     
-     call self%posterior(self%simulationState,logImpossible,logImpossible,self%logPosterior,logLikelihood)
+     ! Evaluate the posterior in the initial state.
+     timeEvaluate        =-1.0
+     timeEvaluatePrevious=-1.0
+     call CPU_Time(timePreEvaluate )
+     call self%posterior(self%simulationState,logImpossible,logImpossible,self%logPosterior,logLikelihood,timeEvaluate,timeEvaluatePrevious)
+     call CPU_Time(timePostEvaluate)
+     if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
+     timeEvaluatePrevious=timeEvaluate
   end do
   ! Begin stepping.
   logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
@@ -121,10 +128,12 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      ! Store the proposed state vector.
      call stateProposed%update(stateVectorProposed,.false.,.false.)
      ! Evaluate likelihood.
+     timeEvaluatePrevious=timeEvaluate
+     timeEvaluate        =-1.0
      call CPU_Time(timePreEvaluate )
-     call self%posterior(stateProposed,logLikelihood,self%logPosterior-logLikelihood,logPosteriorProposed,logLikelihoodProposed)
+     call self%posterior(stateProposed,logLikelihood,self%logPosterior-logLikelihood,logPosteriorProposed,logLikelihoodProposed,timeEvaluate,timeEvaluatePrevious)
      call CPU_Time(timePostEvaluate)
-     timeEvaluate=timePostEvaluate-timePreEvaluate
+     if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
      ! Decide whether to take step.
      if (self%acceptProposal(self%logPosterior,logPosteriorProposed,randomNumberGenerator)) then
         self%logPosterior =logPosteriorProposed
@@ -227,18 +236,134 @@ logical function simulatorDifferentialEvolutionLogging(self)
   return
 end function simulatorDifferentialEvolutionLogging
 
-subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikelihoodCurrent,logPriorCurrent,logPosterior,logLikelihood)
+subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikelihoodCurrent,logPriorCurrent,logPosterior,logLikelihood,timeEvaluate,timeEvaluatePrevious)
   !% Return the log of the posterior for the current state.
+  use MPI_Utilities
+  use Sort
+  use Galacticus_Error
+  use Galacticus_Display
   implicit none
-  class           (simulatorDifferentialEvolution), intent(inout) :: self
-  class           (state                         ), intent(in   ) :: simulationState
-  double precision                                , intent(in   ) :: logLikelihoodCurrent, logPriorCurrent
-  double precision                                , intent(  out) :: logLikelihood       , logPosterior
-  double precision                                                :: logPrior
-
-  logPrior     =priorsEvaluateLog            (self%parameterPriors,simulationState                                                                 )
-  logLikelihood=self%modelLikelihood%evaluate(                     simulationState,self%parameterMappings,self%simulationConvergence,self%temperature(),logLikelihoodCurrent,logPriorCurrent,logPrior)
-  logPosterior =logPrior+logLikelihood
+  class           (simulatorDifferentialEvolution), intent(inout)               :: self
+  class           (state                         ), intent(inout)               :: simulationState
+  double precision                                , intent(in   )               :: logLikelihoodCurrent, logPriorCurrent
+  double precision                                , intent(  out)               :: logLikelihood       , logPosterior
+  real                                            , intent(inout)               :: timeEvaluate
+  real                                            , intent(in   )               :: timeEvaluatePrevious
+  double precision                                , dimension(:  ), allocatable :: timesEvaluate       , nodeWork             , &
+       &                                                                           stateVectorSelf
+  double precision                                , dimension(:,:), allocatable :: stateVectorWork
+  integer                                         , dimension(:  ), allocatable :: processToProcess    , processFromProcess   , &
+       &                                                                           timesEvaluateOrder  , nodeWorkOrder
+  integer                                         , dimension(1  )              :: chainIndexSelf
+  integer                                         , dimension(1,1)              :: chainIndexWork
+  double precision                                , dimension(1,1)              :: logLikelihoodSelf
+  double precision                                , dimension(1  )              :: logLikelihoodWork
+  double precision                                                              :: logPrior            , timeEvaluateEffective
+  integer                                                                       :: i                   , processTrial         , &
+       &                                                                           nodeTrial
+  type            (varying_string                )                              :: message
+  character       (len=10                        )                              :: label
+  
+  ! Evaluate the proposed prior.
+  logPrior=priorsEvaluateLog(self%parameterPriors,simulationState)
+  ! Gather timing data from all chains.
+  allocate(timesEvaluate     (0:mpiSelf%count()-1))
+  allocate(processToProcess  (0:mpiSelf%count()-1))
+  allocate(processFromProcess(0:mpiSelf%count()-1))
+  allocate(timesEvaluateOrder(0:mpiSelf%count()-1))
+  timeEvaluateEffective=timeEvaluatePrevious
+  if     (                                                                     &
+       &  .not.self%modelLikelihood%willEvaluate(                              &
+       &                                         simulationState             , &
+       &                                         self%parameterMappings      , &
+       &                                         self%simulationConvergence  , &
+       &                                         self%temperature          (), &
+       &                                         logLikelihoodCurrent        , &
+       &                                         logPriorCurrent             , &
+       &                                         logPrior                      &
+       &                                        )                              &
+       & )                                                                     &
+       & timeEvaluateEffective=0.0d0
+  timesEvaluate=mpiSelf%gather(dble(timeEvaluateEffective))
+  ! If previous time estimate is negative, don't do load balancing.
+  if (mpiSelf%isMaster()) call Galacticus_Display_Indent('Load balancing report')
+  if (any(timesEvaluate < 0.0d0)) then
+     forall(i=0:mpiSelf%count()-1)
+        processToProcess  (i)=i
+        processFromProcess(i)=i
+     end forall
+     if (mpiSelf%isMaster()) call Galacticus_Display_Message('Not performing load balancing - missing work cost data')
+  else
+     ! Distribute tasks across nodes.
+     timesEvaluateOrder=Sort_Index_Do(timesEvaluate)-1
+     processToProcess=-1
+     allocate(nodeWork     (mpiSelf%nodeCount()))
+     allocate(nodeWorkOrder(mpiSelf%nodeCount()))
+     nodeWork=0.0d0
+     do i=mpiSelf%count()-1,0,-1
+        nodeWorkOrder=Sort_Index_Do(nodeWork)
+        do nodeTrial=1,mpiSelf%nodeCount()
+           do processTrial=0,mpiSelf%count()-1
+              if (mpiSelf%nodeAffinity(processTrial) == nodeWorkOrder(nodeTrial) .and. .not.any(processToProcess == processTrial)) then
+                 processToProcess  (timesEvaluateOrder(i))=processTrial
+                 processFromProcess(processTrial)=timesEvaluateOrder(i)
+                 nodeWork(nodeWorkOrder(nodeTrial))=nodeWork(nodeWorkOrder(nodeTrial))+timesEvaluate(timesEvaluateOrder(i))
+                 exit
+              end if
+           end do
+           if (processToProcess(timesevaluateorder(i)) >= 0) exit
+        end do
+        if (processToProcess(timesevaluateorder(i)) < 0) call Galacticus_Error_Report('simulatorDifferentialEvolutionPosterior','failed to assign task to process')
+     end do
+     ! Report.
+     if (mpiSelf%isMaster()) then
+        call Galacticus_Display_Indent('Chain redistribution:')
+        do i=0,mpiSelf%count()-1
+           write (label,'(i4.4)') i
+           message='Chain '//trim(label)//' -> process/node '
+           write (label,'(i4.4)') processToProcess(i)
+           message=message//trim(label)//'/'
+           write (label,'(i4.4)') mpiSelf%nodeAffinity(processToProcess(i))
+           message=message//trim(label)//' (work = '
+           write (label,'(f9.2)') timesEvaluate(i)
+           message=message//trim(label)//')'
+           call Galacticus_Display_Message(message)
+        end do
+        call Galacticus_Display_Unindent('done')
+        call Galacticus_Display_Indent('Node work loads:')
+        do i=1,size(nodeWork)
+           write (label,'(i4.4)') i
+           message='Node '//trim(label)//': work = '
+           write (label,'(f9.2)') nodeWork(i)
+           message=message//trim(label)
+           call Galacticus_Display_Message(message)
+        end do
+        call Galacticus_Display_Unindent('done')
+     end if
+  end if
+  if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done')
+  ! Get state vector and chain index.
+  allocate(stateVectorSelf(self%parameterCount  ))
+  allocate(stateVectorWork(self%parameterCount,1))
+  stateVectorSelf=simulationState%get       ()
+  chainIndexSelf =simulationState%chainIndex()
+  stateVectorWork=mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),stateVectorSelf)
+  chainIndexWork =mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),chainIndexSelf )
+  ! Set state and chain index.
+  call simulationState%update       (stateVectorWork(:,1),logState=.false.,isConverged=.false.)
+  call simulationState%chainIndexSet( chainIndexWork(1,1)                                     )
+  ! Evaluate the likelihood.
+  logLikelihood=self%modelLikelihood%evaluate(simulationState,self%parameterMappings,self%simulationConvergence,self%temperature(),logLikelihoodCurrent,logPriorCurrent,logPrior,timeEvaluate)
+  call mpiBarrier()
+  ! Distribute likelihoods back to origins.
+  logLikelihoodWork=                                                                    logLikelihood
+  logLikelihoodSelf=mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),logLikelihoodWork     )
+  logLikelihood    =                                                                    logLikelihoodSelf(1,1)
+  ! Restore state and chain index.
+  call simulationState%update       (stateVectorSelf   ,logState=.false.,isConverged=.false.)
+  call simulationState%chainIndexSet( chainIndexSelf(1)                                     )
+  ! Compute the log posterior.
+  logPosterior=logPrior+logLikelihood
   return
 end subroutine simulatorDifferentialEvolutionPosterior
 

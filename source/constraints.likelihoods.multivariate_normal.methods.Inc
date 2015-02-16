@@ -32,7 +32,7 @@ function likelihoodMultivariateNormalConstructor(means,covariance)
   return
 end function likelihoodMultivariateNormalConstructor
 
-double precision function likelihoodMultivariateNormalEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+double precision function likelihoodMultivariateNormalEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
   !% Return the log-likelihood for a multivariate-normal likelihood function.
   use Constraints_State
   use Constraints_Convergence
@@ -43,6 +43,7 @@ double precision function likelihoodMultivariateNormalEvaluate(self,simulationSt
   class           (convergence                 ), intent(inout)               :: simulationConvergence
   double precision                              , intent(in   )               :: temperature    , logLikelihoodCurrent, &
        &                                                                         logPriorCurrent, logPriorProposed
+  real                                          , intent(inout)               :: timeEvaluate
   double precision                              , allocatable  , dimension(:) :: stateArray
   integer                                                                     :: i
   type            (vector                      )                              :: stateVector    , difference

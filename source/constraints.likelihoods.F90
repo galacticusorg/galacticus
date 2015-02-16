@@ -37,9 +37,15 @@ module Constraints_Likelihoods
      !@   <object>likelihood</object>
      !@   <objectMethod>
      !@     <method>evaluate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin, \doublezero\ temperature\argin, \doublezero\ logLikelihoodCurrent\argin</arguments>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin, \doublezero\ temperature\argin, \doublezero\ logLikelihoodCurrent\argin, \doublezero\ logLikelihoodCurrent\argin, \doublezero\ logPriorProposed\argin, \doublezero\ timeEvaluate\arginout</arguments>
      !@     <description>Evaluate the model likelihood at the given {\normalfont \ttfamily simulationState} and return the log-likelihood.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>willEvaluate</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin, \doublezero\ temperature\argin, \doublezero\ logLikelihoodCurrent\argin, \doublezero\ logLikelihoodCurrent\argin, \doublezero\ logPriorProposed\argin</arguments>
+     !@     <description>Return true if the likelihood will evaluate the model likelihood at the given {\normalfont \ttfamily simulationState}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>functionChanged</method>
@@ -49,12 +55,13 @@ module Constraints_Likelihoods
      !@   </objectMethod>
      !@ </objectMethods>
      procedure(likelihoodEvaluate       ), deferred :: evaluate
+     procedure                                      :: willEvaluate    => likelihoodWillEvaluate
      procedure(likelihoodFunctionChanged), deferred :: functionChanged
   end type likelihood
 
   ! Interface for deferred functions.
   abstract interface
-     double precision function likelihoodEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+     double precision function likelihoodEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
        import :: likelihood, state, convergence, mappingList
        class           (likelihood ), intent(inout)               :: self
        class           (state      ), intent(in   )               :: simulationState
@@ -62,6 +69,7 @@ module Constraints_Likelihoods
        class           (convergence), intent(inout)               :: simulationConvergence
        double precision             , intent(in   )               :: temperature          , logLikelihoodCurrent, &
             &                                                        logPriorCurrent      , logPriorProposed
+       real                         , intent(inout)               :: timeEvaluate
      end function likelihoodEvaluate
   end interface
   abstract interface
@@ -294,7 +302,20 @@ contains
     end select
     return
   end function likelihoodNew
+  
+  logical function likelihoodWillEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+    !% Return true if the likelihood will be evaluated
+    class           (likelihood ), intent(inout)               :: self
+    class           (state      ), intent(in   )               :: simulationState
+    type            (mappingList), intent(in   ), dimension(:) :: parameterMappings
+    class           (convergence), intent(inout)               :: simulationConvergence
+    double precision             , intent(in   )               :: temperature          , logLikelihoodCurrent, &
+         &                                                        logPriorCurrent      , logPriorProposed
 
+    likelihoodWillEvaluate=.true.
+    return
+  end function likelihoodWillEvaluate
+  
   ! Include all likelihood methods.
   include 'constraints.likelihoods.multivariate_normal.methods.inc'
   include 'constraints.likelihoods.multivariate_normal.stochastic.methods.inc'
