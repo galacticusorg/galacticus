@@ -19,6 +19,7 @@
 
 function stateCorrelationConstructor(parameterCount,acceptedStateCount)
   !% Constructor for ``correlation'' state class.
+  use MPI_Utilities
   implicit none
   type   (stateCorrelation)                :: stateCorrelationConstructor
   integer                  , intent(in   ) :: parameterCount                 , acceptedStateCount
@@ -39,6 +40,7 @@ function stateCorrelationConstructor(parameterCount,acceptedStateCount)
   stateCorrelationConstructor%stepComputePrevious            = 0
   stateCorrelationConstructor%correlationLengths             =-1
   stateCorrelationConstructor%convergedCorrelationLengthCount= 0
+  stateCorrelationConstructor%chainIndexValue                 =mpiSelf%rank()
   return
 end function stateCorrelationConstructor
 
@@ -72,6 +74,14 @@ subroutine stateCorrelationUpdate(self,stateNew,logState,isConverged,outlierMask
   type            (varying_string  )                                                     :: message
 
   call self%stateHistory%update(stateNew,logState,isConverged,outlierMask)
+  ! Return if not logging states.
+  if (.not.logState) return
+  ! Determine if we should compute the correlation length.
+  if (any(self%correlationLengths == -1)) then
+     stepComputeInterval=storedStateCountMaximum
+  else
+     stepComputeInterval=maxval(self%correlationLengths)
+  end if
   ! Store full state.
   self%storedStateCount=self%storedStateCount+1
   storedStateCountMaximum=size(self%states,dim=2)
@@ -80,12 +90,6 @@ subroutine stateCorrelationUpdate(self,stateNew,logState,isConverged,outlierMask
      self%states(:,1:storedStateCountMaximum-1)=self%states(:,2:storedStateCountMaximum)
   end if
   self%states(:,self%storedStateCount)=stateNew
-  ! Determine if we should compute the correlation length.
-  if (any(self%correlationLengths == -1)) then
-     stepComputeInterval=storedStateCountMaximum
-  else
-     stepComputeInterval=maxval(self%correlationLengths)
-  end if
   if (self%stepCount >= self%stepComputePrevious+stepComputeInterval) then
      ! Update count of number of correlation lengths accrued post-convergence.
      if (isConverged.and..not.any(self%correlationLengths == -1)) &
