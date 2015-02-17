@@ -230,6 +230,8 @@ contains
             &    branchMassCurrent                                                                       > massResolution    &
             &   .and.                                                                                                        &
             &    Time_of_Collapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent) > self%earliestTime &
+            &  .and.                                                                                                         &
+            &   self%shouldFollowBranch(tree,thisNode)                                                                       &
             &   .and.                                                                                                        &
             &    .not.branchIsDone                                                                                           &
             &  )
@@ -270,7 +272,7 @@ contains
                   &   .not.self%branchIntervalStep                                                                    &
                   & ) deltaW=min(deltaW, self%mergeProbability                             /branchingProbabilityRate)
              ! Scale values to the determined timestep.
-             if (.not.self%branchIntervalStep)         &
+             if (.not.self%branchIntervalStep)                           &
                   & branchingProbability=branchingProbabilityRate*deltaW
              accretionFraction          =accretionFraction       *deltaW
              ! Accretion fraction must be less than unity. Reduce timestep (and branching probability and accretion fraction) by
@@ -307,7 +309,7 @@ contains
                 else
                    doBranch=.false.
                 end if
-            else
+             else
                ! In this case we're using the original Cole et al. (2000) algorithm.
                if (branchingProbability > 0.0d0) then
                    uniformRandom=Pseudo_Random_Get(self%pseudoSequence,reset=self%reset,ompThreadOffset=self%ompThreadOffset,incrementSeed=self%incrementSeed)
@@ -347,7 +349,7 @@ contains
                 call newBasic1%timeSet(deltaCritical1)
                 ! Create second progenitor.
                 nodeIndex=nodeIndex+1
-                newNode2 => treeNode(nodeIndex,tree)
+                newNode2  => treeNode(nodeIndex,tree)
                 newBasic2 => newNode2%basic(autoCreate=.true.)
                 ! Compute mass of second new node.
                 nodeMass2=thisBasic%mass()*(1.0d0-accretionFractionCumulative)-nodeMass1
@@ -384,16 +386,21 @@ contains
                    thisNode%firstChild => newNode1
                    newNode1%parent     => thisNode
                    branchIsDone=.true.
-               else
+                else
                   branchMassCurrent         =thisBasic%mass()*(1.0d0-accretionFractionCumulative)
                   branchDeltaCriticalCurrent=deltaCritical
                end if
              end select
           end if
        end do
-       ! Walk to the next node.
-       ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
-       call thisNode%walkTreeUnderConstruction(thisNode)
+       ! Check if tree should be aborted.
+       if (self%shouldAbort(tree)) then
+          thisNode => null()
+       else
+          ! Walk to the next node.
+          ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
+          call thisNode%walkTreeUnderConstruction(thisNode)
+       end if
     end do
     ! Walk the tree and convert w to time.
     thisNode => tree%baseNode
@@ -411,10 +418,10 @@ contains
     ! Check for well-ordering in time.
     thisNode => tree%baseNode
     do while (associated(thisNode))       
-       if (associated(thisnode%parent)) then
+       if (associated(thisNode%parent)) then
           thisBasic   => thisNode       %basic()
           parentBasic => thisNode%parent%basic()
-          if (parentBasic%time() <= thisBasic%time()) call Galacticus_Error_Report('Merger_Tree_Build_Do_Cole2000','branch is not well-ordered in time')
+          if (parentBasic%time() <= thisBasic%time()) call Galacticus_Error_Report('cole2000Build','branch is not well-ordered in time')
        end if
        call thisNode%walkTree(thisNode)
     end do
