@@ -42,6 +42,9 @@ if ( UNIVERSAL::isa($config->{'parameters'}->{'parameter'},"ARRAY") ) {
     push(@parameters,$config->{'parameters'}->{'parameter'});
 }
 
+# Error codes.
+my $errorStatusXCPU = 1025; # CPU time limit exceeded.
+
 # Obtain a lock if we are to run models sequentially.
 my $runSequential = "no";
 $runSequential = $config->{'likelihood'}->{'sequentialModels'}
@@ -276,6 +279,8 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 		    $coredump = $config->{'likelihood'}->{'coredump'}
 		        if ( exists($config->{'likelihood'}->{'coredump'}) );
 		    my $coreDumpSize = "unlimited";
+		    $coreDumpSize = 0
+			if ( $coredump eq "NO" );
 		    $coreDumpSize = $config->{'likelihood'}->{'coredumpsize'}
 		        if ( exists($config->{'likelihood'}->{'coredumpsize'}) );
 		    $treeCommand .= "ulimit -c ".$coreDumpSize."; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
@@ -331,6 +336,8 @@ my $coredump = "YES";
 $coredump = $config->{'likelihood'}->{'coredump'}
     if ( exists($config->{'likelihood'}->{'coredump'}) );
 my $coreDumpSize = "unlimited";
+$coreDumpSize = 0
+    if ( $coredump eq "NO" );
 $coreDumpSize = $config->{'likelihood'}->{'coredumpsize'}
     if ( exists($config->{'likelihood'}->{'coredumpsize'}) );
 $glcCommand .= "ulimit -c ".$coreDumpSize."; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date; ./Galacticus.exe ".$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml";
@@ -341,20 +348,41 @@ SystemRedirect::tofile($glcCommand,$logFile);
 unless ( $? == 0 ) {
     # Since a failure occurred, post to the semaphore to avoid blocking other jobs.
     &semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
-    # Issue a failure.
-    print "ERROR: Galacticus model failed to complete - retrying\n";
-    &reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot);
-    # Try running the model again - in case this was a random error.
-    SystemRedirect::tofile($glcCommand,$logFile);
-    unless ( $? == 0 ) {
-	# Since a failure occurred, post to the semaphore to avoid blocking other jobs.
-	&semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
+    # Check for CPU time being exceeded.
+    my $cpuTimeExceeded = 0;
+    open(my $log,$logFile);
+    while ( my $line = <$log> ) {
+	$cpuTimeExceeded = 1
+	    if ( $line =~ m/Galacticus exceeded available CPU time/ || $line =~ m/Killed/ );
+    }
+    close($log);    
+    # Check for CPU time limit exceeded.
+    if ( $cpuTimeExceeded == 1 ) {
+	# Job died due to CPU time being exceeded. No reason to try running it again.
+	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,$cpuTimeExceeded);
 	# Display the final likelihood.
 	&outputLikelihood($config,$badLogLikelihood);
 	print "constrainGalacticus.pl: Galacticus model failed to complete - second attempt";
 	unlink(@temporaryFiles)
 	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 	exit;
+    } else {
+	# Job died for some other reason, try it again.
+	# Issue a failure.
+	print "ERROR: Galacticus model failed to complete - retrying\n";
+	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,$cpuTimeExceeded);
+	# Try running the model again - in case this was a random error.
+	SystemRedirect::tofile($glcCommand,$logFile);
+	unless ( $? == 0 ) {
+	    # Since a failure occurred, post to the semaphore to avoid blocking other jobs.
+	    &semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
+	    # Display the final likelihood.
+	    &outputLikelihood($config,$badLogLikelihood);
+	    print "constrainGalacticus.pl: Galacticus model failed to complete - second attempt";
+	    unlink(@temporaryFiles)
+		if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
+	    exit;
+	}
     }
 }
 # my $timeGalacticusElapsed = tv_interval($timeGalacticusStart,[gettimeofday]);
@@ -459,9 +487,12 @@ sub reportFailure {
     my $scratchDirectory = shift;
     my $logFile          = shift;
     my $stateFileRoot    = shift;
+    my $cpuTimeExceeded  = shift;
     if ( exists($config->{'likelihood'}->{'failDirectory'}) ) {
 	system("mkdir -p ".$config->{'likelihood'}->{'failDirectory'});
 	my $failArchiveName = $config->{'likelihood'}->{'failDirectory'}."/archive.tar.bz2";
+	$failArchiveName = $config->{'likelihood'}->{'failDirectory'}."/archiveXCPU.tar.bz2"
+	    if ( $cpuTimeExceeded == 1 );
 	if ( ! -e $failArchiveName && -e "galacticusConfig.xml" ) {
 	    # Send an email if possible.
 	    my $xml     = new XML::Simple;
@@ -501,8 +532,11 @@ sub reportFailure {
     if ( exists($config->{'likelihood'}->{'failDirectory'}) ) {
 	system("mkdir -p ".$config->{'likelihood'}->{'failDirectory'});
 	my $count = 0;
-	if ( -e $config->{'likelihood'}->{'failDirectory'}."/failCount.txt" ) {
-	    open(iHndl,$config->{'likelihood'}->{'failDirectory'}."/failCount.txt");
+	my $failCountFileName = $config->{'likelihood'}->{'failDirectory'}."/failCount.txt";
+	$failCountFileName    = $config->{'likelihood'}->{'failDirectory'}."/failCountXCPU.txt"
+	    if ( $cpuTimeExceeded == 1 );
+	if ( -e $failCountFileName ) {
+	    open(iHndl,$failCountFileName);
 	    $count = <iHndl>;
 	    close(iHndl);
 	    if (defined($count) ) {
@@ -512,7 +546,7 @@ sub reportFailure {
 	    }
 	}
 	++$count;
-	open(oHndl,">".$config->{'likelihood'}->{'failDirectory'}."/failCount.txt");
+	open(oHndl,">".$failCountFileName);
 	print oHndl $count."\n";
 	close(oHndl);
     }
