@@ -190,7 +190,6 @@ contains
     use Galacticus_Error
     use Cosmology_Functions
     use Numerical_Comparison
-    use Dark_Matter_Halo_Scales
     use String_Handling
     use IO_HDF5
     use Vectors
@@ -205,7 +204,6 @@ contains
     class           (nodeComponentBasic            )               , pointer        :: thisBasic
     class           (nodeComponentDisk             )               , pointer        :: thisDisk
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
-    class           (darkMatterHaloScaleClass      )               , pointer        :: darkMatterHaloScale_
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
     integer         (c_size_t                      )                                :: k,jOutput
