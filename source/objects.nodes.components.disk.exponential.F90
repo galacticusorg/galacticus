@@ -973,7 +973,9 @@ contains
      thisDiskComponent => thisNode%disk()
      select type (thisDiskComponent)
      class is (nodeComponentDiskExponential)
-        if      (thisDiskComponent%massStellar()+thisDiskComponent%massGas() < -diskMassToleranceAbsolute) then
+        if      (thisDiskComponent%angularMomentum()                             <=                      0.0d0) &
+             & galaxyIsPhysicallyPlausible=.false.
+        if      (thisDiskComponent%massStellar    ()+thisDiskComponent%massGas() <  -diskMassToleranceAbsolute) then
            galaxyIsPhysicallyPlausible=.false.
         else if (thisDiskComponent%massStellar()+thisDiskComponent%massGas() >=                     0.0d0) then
            if      (                                                                                                     &
