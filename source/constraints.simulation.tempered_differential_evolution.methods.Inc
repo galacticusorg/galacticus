@@ -20,7 +20,7 @@
 function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion &
           &,simulationState,simulationStateInitializor,proposalSize,proposalSizeTemperatureExponent,randomJump,stepsMaximum&
           &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum ,untemperedStepCount,temperingLevelCount&
-          &,stepsPerLevel,sampleOutliers,logFlushCount)
+          &,stepsPerLevel,sampleOutliers,logFlushCount,reportCount)
   !% Constructor for ``temperedDifferentialEvolution'' simulator class.
   implicit none
   type            (simulatorTemperedDifferentialEvolution)                                      :: simulatorTemperedDifferentialEvolutionConstructor
@@ -38,7 +38,8 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   double precision                                        , intent(in   )                       :: temperatureMaximum
   integer                                                 , intent(in   )                       :: stepsMaximum                   , stateSwapCount          , &
        &                                                                                           acceptanceAverageCount         , untemperedStepCount     , &
-       &                                                                                           temperingLevelCount            , stepsPerLevel         ,logFlushCount                                                                                 
+       &                                                                                           temperingLevelCount            , stepsPerLevel           , &
+       &                                                                                           logFlushCount                  , reportCount
   character       (len=*                                 ), intent(in   )                       :: logFileRoot
   logical                                                 , intent(in   )                       :: sampleOutliers
   integer                                                                                       :: i

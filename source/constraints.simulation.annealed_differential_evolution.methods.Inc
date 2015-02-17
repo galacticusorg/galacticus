@@ -19,7 +19,7 @@
 
 function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion &
           &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum&
-          &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum,temperatureLevelCount,sampleOutliers,logFlushCount)
+          &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum,temperatureLevelCount,sampleOutliers,logFlushCount,reportCount)
   !% Constructor for ``annealedDifferentialEvolution'' simulator class.
   implicit none
   type            (simulatorAnnealedDifferentialEvolution)                                      :: simulatorAnnealedDifferentialEvolutionConstructor
@@ -35,7 +35,8 @@ function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,rando
   class           (deRandomJump                          ), intent(in   ), target               :: randomJump
   double precision                                        , intent(in   )                       :: temperatureMaximum
   integer                                                 , intent(in   )                       :: stepsMaximum                   , temperatureLevelCount, &
-       &                                                                                           acceptanceAverageCount         , stateSwapCount       ,logFlushCount                                                                                   
+       &                                                                                           acceptanceAverageCount         , stateSwapCount       , &
+       &                                                                                           logFlushCount                  , reportCount
   character       (len=*                                 ), intent(in   )                       :: logFileRoot
   logical                                                 , intent(in   )                       :: sampleOutliers
   integer                                                                                       :: i

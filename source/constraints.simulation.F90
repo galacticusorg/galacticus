@@ -89,11 +89,12 @@ contains
          &                                                                                simulatorAcceptanceAverageCountDefinition, simulatorLogFileDefinition             , &
          &                                                                                simulatorTemperatureMaximumDefinition    , simulatorUntemperedStepCountDefinition , &
          &                                                                                simulatorTemperingLevelCountDefinition   , simulatorStepsPerLevelDefinition       , &
-         &                                                                                simulatorStateSwapCountDefinition        , simulatorLogFlushCountDefinition
+         &                                                                                simulatorStateSwapCountDefinition        , simulatorLogFlushCountDefinition       , &
+         &                                                                                simulatorReportCountDefinition
     integer                                                                            :: simulatorStepsMaximum                    , simulatorStateSwapCount                , &
          &                                                                                simulatorAcceptanceAverageCount          , simulatorUntemperedStepCount           , &
          &                                                                                simulatorTemperingLevelCount             , simulatorStepsPerLevel                 , &
-         &                                                                                simulatorLogFlushCount
+         &                                                                                simulatorLogFlushCount                   , simulatorReportCount
     double precision                                                                   :: simulatorTemperatureMaximum
     type            (varying_string  )                                                 :: simulatorLogFile
     logical                                                                            :: simulatorSampleOutliers
@@ -109,11 +110,13 @@ contains
           simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"           )
           simulatorSampleOutliersDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"sampleOutliers"        )
           simulatorLogFlushCountDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"logFlushCount"         )
+          simulatorReportCountDefinition            => XML_Get_First_Element_By_Tag_Name(definition,"reportCount"           )
           call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
           call extractDataContent(simulatorAcceptanceAverageCountDefinition,simulatorAcceptanceAverageCount)
           call extractDataContent(simulatorStateSwapCountDefinition        ,simulatorStateSwapCount        )
           call extractDataContent(simulatorSampleOutliersDefinition        ,simulatorSampleOutliers        )
           call extractDataContent(simulatorLogFlushCountDefinition         ,simulatorLogFlushCount         )
+          call extractDataContent(simulatorReportCountDefinition           ,simulatorReportCount           )
           simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
           newSimulator=simulatorDifferentialEvolution(                                 &
                &                                      parameterPriors                , &
@@ -131,23 +134,25 @@ contains
                &                                      simulatorStateSwapCount        , &
                &                                      char(simulatorLogFile)         , &
                &                                      simulatorSampleOutliers        , &
-               &                                      simulatorLogFlushCount           &
+               &                                      simulatorLogFlushCount         , &
+               &                                      simulatorReportCount             &
                &                                     )
        end select
     case ("temperedDifferentialEvolution")
        allocate(simulatorTemperedDifferentialEvolution :: newSimulator)
        select type (newSimulator)
        type is (simulatorTemperedDifferentialEvolution)
-          simulatorStepsMaximumDefinition           => XML_Get_First_Element_By_Tag_Name(definition,"stepsMaximum"            )
-          simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount"  )
+          simulatorStepsMaximumDefinition           => XML_Get_First_Element_By_Tag_Name(definition,"stepsMaximum"          )
+          simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount")
           simulatorStateSwapCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"stateSwapCount"        )
-          simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"             )
-          simulatorTemperatureMaximumDefinition     => XML_Get_First_Element_By_Tag_Name(definition,"temperatureMaximum"      )
-          simulatorUntemperedStepCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"untemperedStepCount"     )
-          simulatorTemperingLevelCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"temperedLevels"          )
-          simulatorStepsPerLevelDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"stepsPerLevel"           )
-          simulatorSampleOutliersDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"sampleOutliers"          )
-          simulatorLogFlushCountDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"logFlushCount"           )
+          simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"           )
+          simulatorTemperatureMaximumDefinition     => XML_Get_First_Element_By_Tag_Name(definition,"temperatureMaximum"    )
+          simulatorUntemperedStepCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"untemperedStepCount"   )
+          simulatorTemperingLevelCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"temperedLevels"        )
+          simulatorStepsPerLevelDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"stepsPerLevel"         )
+          simulatorSampleOutliersDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"sampleOutliers"        )
+          simulatorLogFlushCountDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"logFlushCount"         )
+          simulatorReportCountDefinition            => XML_Get_First_Element_By_Tag_Name(definition,"reportCount"           )
           call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
           call extractDataContent(simulatorAcceptanceAverageCountDefinition,simulatorAcceptanceAverageCount)
           call extractDataContent(simulatorStateSwapCountDefinition        ,simulatorStateSwapCount        )
@@ -157,6 +162,7 @@ contains
           call extractDataContent(simulatorStepsPerLevelDefinition         ,simulatorStepsPerLevel         )
           call extractDataContent(simulatorSampleOutliersDefinition        ,simulatorSampleOutliers        )
           call extractDataContent(simulatorLogFlushCountDefinition         ,simulatorLogFlushCount         )
+          call extractDataContent(simulatorReportCountDefinition           ,simulatorReportCount           )
           simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
           newSimulator=simulatorTemperedDifferentialEvolution(                                 &
                &                                              parameterPriors                , &
@@ -179,7 +185,8 @@ contains
                &                                              simulatorTemperingLevelCount   , &
                &                                              simulatorStepsPerLevel         , &
                &                                              simulatorSampleOutliers        , &
-               &                                              simulatorLogFlushCount           &
+               &                                              simulatorLogFlushCount         , &
+               &                                              simulatorReportCount             &
                &                                             )
        end select
    case ("annealedDifferentialEvolution")
@@ -194,6 +201,7 @@ contains
           simulatorTemperingLevelCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"temperatureLevels"     )
           simulatorSampleOutliersDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"sampleOutliers"        )
           simulatorLogFlushCountDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"logFlushCount"         )
+          simulatorReportCountDefinition            => XML_Get_First_Element_By_Tag_Name(definition,"reportCount"           )
           call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
           call extractDataContent(simulatorAcceptanceAverageCountDefinition,simulatorAcceptanceAverageCount)
           call extractDataContent(simulatorStateSwapCountDefinition        ,simulatorStateSwapCount        )
@@ -201,6 +209,7 @@ contains
           call extractDataContent(simulatorTemperingLevelCountDefinition   ,simulatorTemperingLevelCount   )
           call extractDataContent(simulatorSampleOutliersDefinition        ,simulatorSampleOutliers        )
           call extractDataContent(simulatorLogFlushCountDefinition         ,simulatorLogFlushCount         )
+          call extractDataContent(simulatorReportCountDefinition           ,simulatorReportCount           )
           simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
           newSimulator=simulatorAnnealedDifferentialEvolution(                                 &
                &                                              parameterPriors                , &
@@ -220,7 +229,8 @@ contains
                &                                              simulatorTemperatureMaximum    , &
                &                                              simulatorTemperingLevelCount   , &
                &                                              simulatorSampleOutliers        , &
-               &                                              simulatorLogFlushCount           &
+               &                                              simulatorLogFlushCount         , &
+               &                                              simulatorReportCount             &
                &                                             )
        end select
     case default
