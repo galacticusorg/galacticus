@@ -20,7 +20,7 @@
      private
      integer                                                    :: parameterCount       , stepsMaximum          , &
           &                                                        stateSwapCount       , acceptanceAverageCount, & 
-          &                                                        logFlushCount
+          &                                                        logFlushCount        , reportCount
      double precision                                           :: logPosterior
      logical                                                    :: isConverged          , sampleOutliers
      type            (prior            ), pointer, dimension(:) :: parameterPriors
