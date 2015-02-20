@@ -67,6 +67,7 @@ module Merger_Tree_Data_Structure
   !@  <entry label="propertyTypeVelocityMaximum"         />
   !@  <entry label="propertyTypeVelocityDispersion"      />
   !@ </enumeration>
+  integer, parameter         :: propertyTypeCount                   =35
   integer, parameter         :: propertyTypeNull                    = 1
   integer, parameter, public :: propertyTypeTreeIndex               = 2
   integer, parameter, public :: propertyTypeNodeIndex               = 3
@@ -171,7 +172,7 @@ module Merger_Tree_Data_Structure
      double precision                 :: unitsInSI
      integer                          :: hubbleExponent, scaleFactorExponent
 !     type            (varying_string) :: name
-character(len=100) :: name
+     character(len=100)               :: name
   end type unitsMetaData
 
   ! Metadata labels.
@@ -244,6 +245,7 @@ character(len=100) :: textAttribute
           &                                                                     particleVelocity                   , position                         , &
           &                                                                     spin                               , velocity                         , &
           &                                                                     specificAngularMomentum
+     double precision                , dimension(propertyTypeCount)          :: convertProperty            =1.0d0
      logical                                                                 :: hasAngularMomentumMagnitude        , hasAngularMomentumX              , &
           &                                                                     hasAngularMomentumY                , hasAngularMomentumZ              , &
           &                                                                     hasSpecificAngularMomentumMagnitude, hasSpecificAngularMomentumX      , &
@@ -272,6 +274,7 @@ character(len=100) :: textAttribute
           &                                                                     includesHubbleFlow         =.false., includesSubhaloMasses    =.false., &
           &                                                                     isPeriodic                 =.false.
      type            (unitsMetaData )             , dimension(unitTypeCount) :: units
+!     type            (propertyMetaData )      , dimension(propertyTapeCount) :: propertyType
      logical                                      , dimension(unitTypeCount) :: unitsSet                   =.false.
      integer                                                                 :: metaDataCount              =0
      !# <workaround type="gfortran" PR="59765" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59765">
@@ -372,6 +375,12 @@ character(len=100) :: textAttribute
      !@     <arguments>\intzero\ dummyHostId\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>setConversionFactor</method>
+     !@     <description>Set property type and conversion factor to adjust inconsistent units.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\enumPropertyType\ propertyType\argin, \doublezero\ conversionFactor\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>setUnits</method>
      !@     <description>Set the units used.</description>
      !@     <type>\void</type>
@@ -414,6 +423,7 @@ character(len=100) :: textAttribute
      procedure :: setPositionsArePeriodic                        =>Merger_Tree_Data_Structure_Set_Is_Periodic
      procedure :: setIncludesSubhaloMasses                       =>Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses
      procedure :: setDummyHostId                                 =>Merger_Tree_Data_Structure_Set_Self_Hosting_Halo_Id
+     procedure :: setConversionFactor                            =>Merger_Tree_Data_Structure_Set_Conversion_Factor
      procedure :: setUnits                                       =>Merger_Tree_Data_Structure_Set_Units
      procedure :: Merger_Tree_Data_Structure_Add_Metadata_Double
      procedure :: Merger_Tree_Data_Structure_Add_Metadata_Integer
@@ -712,6 +722,22 @@ contains
     mergerTrees%hasDummyHostId=.true.
     return
   end subroutine Merger_Tree_Data_Structure_Set_Self_Hosting_Halo_Id
+
+  subroutine Merger_Tree_Data_Structure_Set_Conversion_Factor(mergerTrees,propertyType,conversionFactor)
+    !% Set Conversion factor for property type with inconsistent unit.
+    use Galacticus_Error
+    implicit none
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    integer                , intent(in   ) :: propertyType
+    double precision       , intent(in   ) :: conversionFactor
+
+    ! Ensure the property type is valid.
+    if (propertyType < 1 .or. propertyType > propertyTypeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Conversion_Factor','invalid property type')
+
+    ! Store conversion factor into array.
+    mergerTrees%convertProperty(propertyType)=conversionFactor
+    return
+  end subroutine Merger_Tree_Data_Structure_Set_Conversion_Factor
 
   subroutine Merger_Tree_Data_Structure_Set_Units(mergerTrees,unitType,unitsInSI,hubbleExponent,scaleFactorExponent,name)
     !% Set the units system.
@@ -1097,14 +1123,14 @@ contains
     if (mergerTrees%hasVelocityX               ) call Alloc_Array(mergerTrees%velocity                ,[3,mergerTrees%nodeCount])
     if (mergerTrees%hasSpinX                   ) call Alloc_Array(mergerTrees%spin                    ,[3,mergerTrees%nodeCount])
     if (mergerTrees%hasAngularMomentumX        ) call Alloc_Array(mergerTrees%angularMomentum         ,[3,mergerTrees%nodeCount])
-    if (mergerTrees%hasSpecificAngularMomentumX        ) call Alloc_Array(mergerTrees%specificAngularMomentum         ,[3,mergerTrees%nodeCount])
+    if (mergerTrees%hasSpecificAngularMomentumX) call Alloc_Array(mergerTrees%specificAngularMomentum ,[3,mergerTrees%nodeCount])
     if (mergerTrees%hasSpinMagnitude           ) call Alloc_Array(mergerTrees%spinMagnitude           ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasAngularMomentumMagnitude        ) call Alloc_Array(mergerTrees%angularMomentumMagnitude        ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasAngularMomentumMagnitude) call Alloc_Array(mergerTrees%angularMomentumMagnitude,[  mergerTrees%nodeCount])
     if (mergerTrees%hasSpecificAngularMomentumMagnitude) call Alloc_Array(mergerTrees%specificAngularMomentumMagnitude,[  mergerTrees%nodeCount])
     if (mergerTrees%hasHalfMassRadius          ) call Alloc_Array(mergerTrees%halfMassRadius          ,[  mergerTrees%nodeCount])
     if (mergerTrees%hasScaleRadius             ) call Alloc_Array(mergerTrees%scaleRadius             ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasVelocityMaximum                 ) call Alloc_Array(mergerTrees%velocityMaximum                 ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasVelocityDispersion              ) call Alloc_Array(mergerTrees%velocityDispersion              ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasVelocityMaximum         ) call Alloc_Array(mergerTrees%velocityMaximum         ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasVelocityDispersion      ) call Alloc_Array(mergerTrees%velocityDispersion      ,[  mergerTrees%nodeCount])
 
     ! Open the file and read lines.
     open(newunit=fileUnit,file=inputFile,status='old',form='formatted')
@@ -1228,7 +1254,7 @@ contains
                 ! Column is scale radius.
                 read (inputColumns(iColumn),*) mergerTrees%scaleRadius             (  iNode)
              case (propertyTypeMostBoundParticleIndex  )
-                ! Column is a node index.
+                ! Column is a most bound particle index.
                 read (inputColumns(iColumn),*) mergerTrees%mostBoundParticleIndex  (  iNode)
              case (propertyTypeSnapshot              )
                 ! Column is a snapshot index.
@@ -1300,18 +1326,76 @@ contains
               mergerTrees%redshift(iNode)=min((1.0d0/mergerTrees%scaleFactor(iNode))-1.0d0,maximumRedshiftActual)
            else
               mergerTrees%redshift(iNode)=                                                 maximumRedshiftActual
-            end if
+           end if
         end do
         call Dealloc_Array(mergerTrees%scaleFactor)
         mergerTrees%hasScaleFactor=.false.
         mergerTrees%hasRedshift   =.true.
     end if
 
+    ! Convert properties with inconsistent units.
+    do i=1,propertyTypeCount
+       if (mergerTrees%convertProperty(i) /= 1.0d0) then
+           call Merger_Tree_Data_Structure_Convert_Property_Units(mergerTrees,i,mergerTrees%convertProperty(i))
+       end if
+    end do
+
     ! Set tree indices.
     call Merger_Tree_Data_Structure_Set_Tree_Indices(mergerTrees)
     return
   end subroutine Merger_Tree_Data_Structure_Read_ASCII
 
+  subroutine Merger_Tree_Data_Structure_Convert_Property_Units(mergerTrees, propertyType, conversionFactor)
+    !% Convert the property with inconsistent units.
+    use Galacticus_Error
+    implicit none
+    class(mergerTreeData), intent(inout) :: mergerTrees
+    integer              , intent(in   ) :: propertyType
+    double precision     , intent(in   ) :: conversionFactor
+    integer                              :: j
+
+    select case (propertyType)
+    case (propertyTypeNodeMass          )
+       ! Property is mass.
+       mergerTrees%nodeMass                     =mergerTrees%nodeMass                     *conversionFactor
+    case (propertyTypePositionX         )
+       ! Property is position.
+       forall(j=1:3)
+          mergerTrees%position            (j,:)=mergerTrees%position                (j,:)*conversionFactor
+       end forall
+    case (propertyTypeVelocityX         )
+       ! Property is velocity.
+       forall(j=1:3)
+          mergerTrees%velocity            (j,:)=mergerTrees%velocity                (j,:)*conversionFactor
+       end forall
+    case (propertyTypeAngularMomentumX  )
+       ! Property is angular momentum vector.
+       forall(j=1:3)
+          mergerTrees%angularMomentum     (j,:)=mergerTrees%angularMomentum         (j,:)*conversionFactor
+       end forall
+    case (propertyTypeAngularMomentum   )
+       ! Property is scalar angular momentum.
+       mergerTrees%angularMomentumMagnitude     =mergerTrees%angularMomentumMagnitude     *conversionFactor
+    case (propertyTypeHalfMassRadius    )
+       ! Property is half mass radius.
+       mergerTrees%halfMassRadius               =mergerTrees%halfMassRadius               *conversionFactor
+    case (propertyTypeScaleRadius       )
+       ! Property is scale radius.
+       mergerTrees%scaleRadius                  =mergerTrees%scaleRadius                  *conversionFactor
+    case (propertyTypeVelocityMaximum   )
+       ! Property is maximum velocity.
+       mergerTrees%velocityMaximum              =mergerTrees%velocityMaximum              *conversionFactor
+    case (propertyTypeVelocityDispersion)
+       ! Property is velocity dispersion.
+       mergerTrees%velocityDispersion           =mergerTrees%velocityDispersion           *conversionFactor
+    case default
+       ! Property has no units.
+       call Galacticus_Error_Report('Merger_Tree_Data_Structure_Read_ASCII','property has no units to convert.')
+    end select
+    return 
+  end subroutine Merger_Tree_Data_Structure_Convert_Property_Units
+  
+  
   subroutine Merger_Tree_Data_Structure_Set_Tree_Indices(mergerTrees)
     !% Set the merger tree index arrays.
     use Memory_Management

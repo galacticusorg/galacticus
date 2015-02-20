@@ -278,8 +278,8 @@ sub Prepare_Dataset {
     my %pointType;
     $pointType{'lower'} = "";
     $pointType{'upper'} = "";
-    $pointType{'lower'} = " pt \"".${$options{'symbol'}}[0]."\"" if ( exists($options{'symbol'}) );
-    $pointType{'upper'} = " pt \"".${$options{'symbol'}}[1]."\"" if ( exists($options{'symbol'}) );
+    $pointType{'lower'} = " pt ".${$options{'symbol'}}[0] if ( exists($options{'symbol'}) );
+    $pointType{'upper'} = " pt ".${$options{'symbol'}}[1] if ( exists($options{'symbol'}) );
 
     # Create attribute for point size, assuming no specification if pointSize option is not present.
     my %pointSize;

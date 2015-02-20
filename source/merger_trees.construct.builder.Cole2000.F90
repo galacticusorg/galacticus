@@ -41,13 +41,13 @@
      !@   <objectMethod>
      !@     <method>shouldAbort</method>
      !@     <type>\logicalzero</type>
-     !@     <arguments>\textless type(mergerTree)\textgreater} tree\argin</arguments>
+     !@     <arguments>\textless type(mergerTree)\textgreater\ tree\argin</arguments>
      !@     <description>Return true if construction of the merger tree should be aborted.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>shouldFollowBranch</method>
      !@     <type>\logicalzero</type>
-     !@     <arguments>\textless type(mergerTree)\textgreater} tree\argin, \textless type(treeNode)\textgreater} node\argin</arguments>
+     !@     <arguments>\textless type(mergerTree)\textgreater\ tree\argin, \textless type(treeNode)\textgreater\ node\argin</arguments>
      !@     <description>Return true if the branch should be followed.</description>
      !@   </objectMethod>
      !@ </objectMethods>
