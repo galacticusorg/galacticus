@@ -250,9 +250,22 @@ sub Prepare_Dataset {
     my %lineWeight;
     $lineWeight{'lower'} = "";
     $lineWeight{'upper'} = "";
-    $lineWeight{'lower'} = " lw ".${$options{'weight'}}[0] if ( exists($options{'weight'}) );	
-    $lineWeight{'upper'} = " lw ".${$options{'weight'}}[1] if ( exists($options{'weight'}) );	
-
+    if ( exists($options{'weight'}) ) {
+	if ( $versionMajor >= 5 ) {
+	    my $weightOuter = ${$options{'weight'}}[0]-2;
+	    my $weightInner = ${$options{'weight'}}[1]-1;
+	    $weightInner = 1
+		if ( $weightInner < 1 );
+	    $weightOuter = $weightInner+1
+		if ( $weightOuter < $weightInner+1 );
+	    $lineWeight{'lower'} = " lw ".$weightOuter;
+	    $lineWeight{'upper'} = " lw ".$weightInner;
+	} else {
+	    $lineWeight{'lower'} = " lw ".${$options{'weight'}}[0];
+	    $lineWeight{'upper'} = " lw ".${$options{'weight'}}[1];
+	}
+    }
+    
     # Create attribute for line color, assuming no specification if color option is not present.
     my %lineColor;
     $lineColor{'lower'} = "";
