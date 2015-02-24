@@ -76,6 +76,7 @@ contains
   subroutine Galacticus_Merger_Tree_Output(thisTree,iOutput,time,isLastOutput)
     !% Write properties of nodes in {\normalfont \ttfamily thisTree} to the \glc\ output file.
     use, intrinsic :: ISO_C_Binding
+    use Galacticus_Calculations_Resets
     use Galacticus_Nodes
     use Galacticus_Output_Open
     use Galacticus_Merger_Tree_Output_Filters
@@ -193,6 +194,9 @@ contains
              ! Get the basic component.
              thisBasicComponent => thisNode%basic()
              if (thisBasicComponent%time() == time) then
+                ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
+                ! calculations would not be automatically reset because the node unique ID will not have changed).
+                call Galacticus_Calculations_Reset (thisNode)
                 ! Ensure that galactic structure is up to date.
                 call Galactic_Structure_Radii_Solve(thisNode)
                 ! Test whether this node passes all output filters.
