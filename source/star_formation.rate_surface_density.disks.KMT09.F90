@@ -175,26 +175,31 @@ contains
        ! Get gas surface density.
        surfaceDensityGas=Galactic_Structure_Surface_Density(thisNode,[radius,0.0d0,0.0d0],coordinateSystem&
             &=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
-       ! Compute the molecular fraction.
-       if (metallicityRelativeToSolar > 0.0d0) then
-          sigmaMolecularComplex=sigmaMolecularComplexNormalization*surfaceDensityGas
-          s                    =sNormalization/sigmaMolecularComplex
-          molecularFraction    =KMT09_Molecular_Fraction(s)
+       ! Check for non-positive gas mass.
+       if (surfaceDensityGas <= 0.0d0) then
+          Star_Formation_Rate_Surface_Density_Disk_KMT09=0.0d0
        else
-          molecularFraction    =molecularFractionMinimum
+          ! Compute the molecular fraction.
+          if (metallicityRelativeToSolar > 0.0d0) then
+             sigmaMolecularComplex=sigmaMolecularComplexNormalization*surfaceDensityGas
+             s                    =sNormalization/sigmaMolecularComplex
+             molecularFraction    =KMT09_Molecular_Fraction(s)
+          else
+             molecularFraction    =molecularFractionMinimum
+          end if
+          ! Compute the cloud density factor.
+          surfaceDensityGasDimensionless=hydrogenMassFraction*surfaceDensityGas/surfaceDensityTransition
+          if (surfaceDensityGasDimensionless < 1.0d0) then
+             surfaceDensityFactor=surfaceDensityGas**(+0.67d0)*(hydrogenMassFraction/surfaceDensityTransition)**(-0.33d0)
+          else
+             surfaceDensityFactor=surfaceDensityGas*surfaceDensityGasDimensionless**(+0.33d0)
+          end if
+          ! Compute the star formation rate surface density.
+          Star_Formation_Rate_Surface_Density_Disk_KMT09=                             &
+               &                                          starFormationFrequencyKMT09 &
+               &                                         *surfaceDensityFactor        &
+               &                                         *molecularFraction
        end if
-       ! Compute the cloud density factor.
-       surfaceDensityGasDimensionless=hydrogenMassFraction*surfaceDensityGas/surfaceDensityTransition
-       if (surfaceDensityGasDimensionless < 1.0d0) then
-          surfaceDensityFactor=surfaceDensityGas**(+0.67d0)*(hydrogenMassFraction/surfaceDensityTransition)**(-0.33d0)
-       else
-          surfaceDensityFactor=surfaceDensityGas*surfaceDensityGasDimensionless**(+0.33d0)
-       end if
-       ! Compute the star formation rate surface density.
-       Star_Formation_Rate_Surface_Density_Disk_KMT09=                             &
-            &                                          starFormationFrequencyKMT09 &
-            &                                         *surfaceDensityFactor        &
-            &                                         *molecularFraction
     end if
     return
   end function Star_Formation_Rate_Surface_Density_Disk_KMT09
