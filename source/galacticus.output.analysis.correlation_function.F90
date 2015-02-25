@@ -250,12 +250,6 @@ contains
           haloMassIntervalLogarithmicInverse=dble(analysisProjectedCorrelationFunctionsHaloMassBinsCount)/log10(analysisProjectedCorrelationFunctionsHaloMassMaximum/analysisProjectedCorrelationFunctionsHaloMassMinimum)
           ! Establish mapping functions for correlation function descriptors.
           correlationFunctionDescriptors(1)%mapMass => null()
-          ! Establish survey geometries.
-          allocate(surveyGeometryHearin2014SDSS :: correlationFunctionDescriptors(1)%geometry)
-          select type (g => correlationFunctionDescriptors(1)%geometry)
-          type is (surveyGeometryHearin2014SDSS)
-             g=surveyGeometryHearin2014SDSS()
-          end select
           ! Determine how many supported mass functions are requested.
           activeAnalysisCount=0
           do i=1,correlationFunctionsSupportedCount
@@ -266,6 +260,13 @@ contains
              analysisActive=.false.
           else
              analysisActive=.true.
+             ! Establish survey geometries.
+             allocate(surveyGeometryHearin2014SDSS :: correlationFunctionDescriptors(1)%geometry)
+             select type (g => correlationFunctionDescriptors(1)%geometry)
+             type is (surveyGeometryHearin2014SDSS)
+                g=surveyGeometryHearin2014SDSS()
+             end select
+             ! Initialize correlation functions.
              currentAnalysis=0
              allocate(correlationFunctions(activeAnalysisCount))
              cosmologyFunctionsModel => cosmologyFunctions()
