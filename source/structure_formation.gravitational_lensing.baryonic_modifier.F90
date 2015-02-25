@@ -93,7 +93,7 @@ contains
           !@   <defaultValue>$0$</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     Parameter $\beta in the modified gravitational lensing \gls{pdf}, $P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]$.
+          !@     Parameter $\beta$ in the modified gravitational lensing \gls{pdf}, $P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]$.
           !@   </description>
           !@   <type>real</type>
           !@   <cardinality>1</cardinality>

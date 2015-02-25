@@ -278,7 +278,8 @@ contains
   end subroutine behroozi2010Destructor
 
   double precision function behroozi2010MassFunction(self,massHalo,mass,galaxyType)
-    !% halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
+    !% Compute the cumulative conditional mass function, $\langle N(M_\star|M_{\mathrm halo}) \rangle \equiv
+    !% \phi(M_\star|M_{\mathrm halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
     implicit none
     class           (conditionalMassFunctionBehroozi2010), intent(inout)           :: self
     double precision                                     , intent(in   )           :: massHalo        , mass

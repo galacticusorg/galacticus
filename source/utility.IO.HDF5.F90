@@ -239,7 +239,7 @@ module IO_HDF5
      !@     <method>copy</method>
      !@     <description>Copy an HDF5 object.</description>
      !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} objectName\argin, \textcolor{red}{\textless type(hdf5Object}} target\arginout</arguments>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} objectName\argin, \textcolor{red}{\textless type(hdf5Object)} target\arginout</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: destroy                                 =>IO_HDF5_Destroy
