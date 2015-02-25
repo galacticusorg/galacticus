@@ -157,7 +157,7 @@ double precision function Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere(self
   use Numerical_Constants_Math
   use Hypergeometric_Functions
   implicit none
-  class           (massDistributionBetaProfile), intent(in   ), target :: self
+  class           (massDistributionBetaProfile), intent(inout), target :: self
   double precision                             , intent(in   )         :: radius
   double precision                                                     :: fractionalRadius
 
@@ -200,7 +200,7 @@ double precision function Mass_Distribution_Beta_Profile_Potential(self,coordina
   use Coordinates
   use Numerical_Comparison
   implicit none
-  class           (massDistributionBetaProfile), intent(in   ) :: self
+  class           (massDistributionBetaProfile), intent(inout) :: self
   class           (coordinate                 ), intent(in   ) :: coordinates
   type            (coordinateSpherical        )                :: position
   double precision                             , parameter     :: fractionalRadiusMinimum=1.0d-3
