@@ -36,13 +36,13 @@ module Linear_Algebra
      !@   <object>vector</object>
      !@   <objectMethod>
      !@     <method>subtract</method>
-     !@     <type>\textcolor{red}{\textless type(vector)</type>
+     !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
      !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
      !@     <description>Compute {\normalfont \ttfamily vector1}-{\normalfont \ttfamily vector2}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>add</method>
-     !@     <type>\textcolor{red}{\textless type(vector)</type>
+     !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
      !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
      !@     <description>Compute {\normalfont \ttfamily vector1}+{\normalfont \ttfamily vector2}.</description>
      !@   </objectMethod>
@@ -83,19 +83,19 @@ module Linear_Algebra
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>linearSystemSolve</method>
-     !@     <type>\textcolor{red}{\textless type(vector)</type>
+     !@     <type>\textcolor{red}{\textless type(vector)\textgreater}</type>
      !@     <arguments>\textcolor{red}{\textless type(vector) y\argin \textgreater}</arguments>
      !@     <description>Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>transpose</method>
-     !@     <type>\textcolor{red}{\textless type(matrix)</type>
+     !@     <type>\textcolor{red}{\textless type(matrix)\textgreater}</type>
      !@     <arguments></arguments>
      !@     <description>Return the transpose of a matrix.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>makeSemiPositiveDefinite</method>
-     !@     <type>\textcolor{red}{\textless type(matrix)</type>
+     !@     <type>\textcolor{red}{\textless type(matrix)\textgreater}</type>
      !@     <arguments></arguments>
      !@     <description>Make a matrix semi-positive definite by setting any negative eigenvalues to zero.</description>
      !@   </objectMethod>

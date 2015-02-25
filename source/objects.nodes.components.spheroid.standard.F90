@@ -200,7 +200,7 @@ contains
        !@   <description>
        !@    The type of mass distribution to use for the standard spheroid component.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>string</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidMassDistribution',spheroidMassDistributionName,defaultValue="hernquist")

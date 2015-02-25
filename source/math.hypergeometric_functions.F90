@@ -34,11 +34,12 @@ module Hypergeometric_Functions
   end interface Hypergeometric_pFq
 
   interface
-   integer(c_int) function gsl_sf_hyperg_2F1_approx_e(a,b,c,x,tol,result) bind(c,name='gsl_sf_hyperg_2F1_approx_e')
-       !% Template for a C function that calls {\normalfont \ttfamily flock()} to lock a file.
-     import
-     real(c_double     ), value :: a,b,c,x,tol
-     type(gsl_sf_result)        :: result
+     function gsl_sf_hyperg_2F1_approx_e(a,b,c,x,tol,result) bind(c,name='gsl_sf_hyperg_2F1_approx_e')
+       !% Template for the GSL hypergeometric 2F1 C function.
+       import
+       integer(c_int        )        :: gsl_sf_hyperg_2F1_approx_e
+       real   (c_double     ), value :: a,b,c,x,tol
+       type   (gsl_sf_result)        :: result
      end function gsl_sf_hyperg_2F1_approx_e
   end interface
 
