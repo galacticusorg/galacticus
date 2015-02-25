@@ -200,6 +200,16 @@ foreach my $directive ( keys(%includeDirectives) ) {
 	system("mv ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml");
     }
 }
+
+# Include explicit dependencies for Makefile_Use_Deps to ensure that module dependencies get rebuilt
+# after these directive include files are constructed.
+print makefileHndl $ENV{'BUILDPATH'}."/Makefile_Use_Deps:";
+foreach my $directive ( keys(%includeDirectives) ) {
+    (my $fileName = ${$includeDirectives{$directive}}{'fileName'}) =~ s/\.inc$/\.Inc/;
+    print makefileHndl " ".$fileName;
+}
+print makefileHndl "\n\n";
+
 # Include a rule for including Makefile_Component_Includes. This has to go here since Makefile_Component_Includes depends on
 # objects.nodes.components.Inc for which Makefile_Directive contains the build rule.
 print makefileHndl "-include ".$ENV{'BUILDPATH'}."/Makefile_Component_Includes\n";

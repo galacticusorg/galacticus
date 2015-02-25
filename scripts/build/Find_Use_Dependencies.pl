@@ -74,10 +74,28 @@ my %includeLibararies = (
 
 # Open the compiler options file and find preprocessor flags.
 my @preprocs;
+my @condStack;
 foreach my $makefile ( "Makefile" ) {
     open(my $ophndl,$makefile);
     while ( my $line = <$ophndl> ) {
-        if ( $line =~ m/^\s*FCFLAGS\s*\+??=/ ) {
+	if ( $line =~ m/^ifdef ([A-Z]+)/ ) {
+	    if ( exists($ENV{$1}) ) {
+		push(@condStack,1);
+	    } else {
+		push(@condStack,0);
+	    }
+	}
+	if ( $line =~ m/^ifeq / ) {
+	    push(@condStack,1);
+	}
+	pop(@condStack)
+	    if ( $line =~ m/^endif/ );
+	my $processLine = 1;
+	foreach ( @condStack ) {
+	    $processLine = 0
+		if ( $_ == 0 );
+	}
+        if ( $processLine == 1 && $line =~ m/^\s*FCFLAGS\s*\+??=/ ) {
             while ( $line =~ s/\s\-D([0-9A-Z]+)\s// ) {
                 push(@preprocs,$1);
             }

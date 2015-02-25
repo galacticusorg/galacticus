@@ -218,11 +218,12 @@ $(BUILDPATH)/%.m : ./source/%.F90
 # Include module dependencies.
 -include $(BUILDPATH)/Makefile_Module_Deps
 
-# Include module use dependencies.
--include $(BUILDPATH)/Makefile_Use_Deps
-
 # Include rules to build include files generated from directives.
 -include $(BUILDPATH)/Makefile_Directives
+
+# Include module use dependencies. Include this after Makefile_Directives, as Makefile_Directives will
+# specify dependencies for Makefile_Use_Deps
+-include $(BUILDPATH)/Makefile_Use_Deps
 
 # Rules for memory management routines.
 $(BUILDPATH)/Allocatable_Arrays.xml: ./scripts/build/Find_Allocatable_Arrays.pl source/*.[fF]90 $(wildcard source/*.Inc)
