@@ -15,22 +15,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the exponential disk node component.
+!% Contains a module which implements the standard disk node component.
 
-module Node_Component_Disk_Exponential
-  !% Implements the exponential disk node component.
+module Node_Component_Disk_Standard
+  !% Implements the standard disk node component.
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Disk_Exponential_Scale_Set                    , Node_Component_Disk_Exponential_Pre_Evolve       , &
-       &    Node_Component_Disk_Exponential_Radius_Solver_Plausibility   , Node_Component_Disk_Exponential_Radius_Solver    , &
-       &    Node_Component_Disk_Exponential_Star_Formation_History_Output, Node_Component_Disk_Exponential_Rate_Compute     , &
-       &    Node_Component_Disk_Exponential_Initialize                   , Node_Component_Disk_Exponential_Post_Evolve      , &
-       &    Node_Component_Disk_Exponential_Satellite_Merging            , Node_Component_Disk_Exponential_Calculation_Reset
+  public :: Node_Component_Disk_Standard_Scale_Set                    , Node_Component_Disk_Standard_Pre_Evolve       , &
+       &    Node_Component_Disk_Standard_Radius_Solver_Plausibility   , Node_Component_Disk_Standard_Radius_Solver    , &
+       &    Node_Component_Disk_Standard_Star_Formation_History_Output, Node_Component_Disk_Standard_Rate_Compute     , &
+       &    Node_Component_Disk_Standard_Initialize                   , Node_Component_Disk_Standard_Post_Evolve      , &
+       &    Node_Component_Disk_Standard_Satellite_Merging            , Node_Component_Disk_Standard_Calculation_Reset, &
+       &    Node_Component_Disk_Standard_State_Store                  , Node_Component_Disk_Standard_State_Retrieve
 
   !# <component>
   !#  <class>disk</class>
-  !#  <name>exponential</name>
+  !#  <name>standard</name>
   !#  <isDefault>yes</isDefault>
   !#  <properties>
   !#   <property>
@@ -44,42 +45,42 @@ module Node_Component_Disk_Exponential
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of stars in the exponential disk."/>
+  !#     <output unitsInSI="massSolar" comment="Mass of stars in the standard disk."/>
   !#   </property>
   !#   <property>
   !#     <name>abundancesStellar</name>
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the exponential disk."/>
+  !#     <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the standard disk."/>
   !#   </property>
   !#   <property>
   !#     <name>massGas</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of gas in the exponential disk."/>
+  !#     <output unitsInSI="massSolar" comment="Mass of gas in the standard disk."/>
   !#   </property>
   !#   <property>
   !#     <name>abundancesGas</name>
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the exponential disk."/>
+  !#     <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard disk."/>
   !#   </property>
   !#   <property>
   !#     <name>angularMomentum</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
-  !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the exponential disk."/>
+  !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard disk."/>
   !#   </property>
   !#   <property>
   !#     <name>radius</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <output unitsInSI="megaparsec" comment="Radial scale length in the exponential disk."/>
+  !#     <output unitsInSI="megaparsec" comment="Radial scale length in the standard disk."/>
   !#   </property>
   !#   <property>
   !#     <name>halfMassRadius</name>
@@ -87,14 +88,14 @@ module Node_Component_Disk_Exponential
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
-  !#     <getFunction>Node_Component_Disk_Exponential_Half_Mass_Radius</getFunction>
+  !#     <getFunction>Node_Component_Disk_Standard_Half_Mass_Radius</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>velocity</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <output unitsInSI="kilo" comment="Circular velocity of the exponential disk at scale length."/>
+  !#     <output unitsInSI="kilo" comment="Circular velocity of the standard disk at scale length."/>
   !#   </property>
   !#   <property>
   !#     <name>starFormationRate</name>
@@ -125,24 +126,24 @@ module Node_Component_Disk_Exponential
   !#   </property>
   !#  </properties>
   !#  <bindings>
-  !#   <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" description="Attach pipes to the exponential disk component." returnType="\void" arguments="" bindsTo="component" />
-  !#   <binding method="enclosedMass"          function="Node_Component_Disk_Exponential_Enclosed_Mass"           bindsTo="component" />
-  !#   <binding method="density"               function="Node_Component_Disk_Exponential_Density"                 bindsTo="component" />
-  !#   <binding method="potential"             function="Node_Component_Disk_Exponential_Potential"               bindsTo="component" />
-  !#   <binding method="rotationCurve"         function="Node_Component_Disk_Exponential_Rotation_Curve"          bindsTo="component" />
-  !#   <binding method="rotationCurveGradient" function="Node_Component_Disk_Exponential_Rotation_Curve_Gradient" bindsTo="component" />
-  !#   <binding method="surfaceDensity"        function="Node_Component_Disk_Exponential_Surface_Density"         bindsTo="component" />
+  !#   <binding method="attachPipes" function="Node_Component_Disk_Standard_Attach_Pipes" description="Attach pipes to the standard disk component." returnType="\void" arguments="" bindsTo="component" />
+  !#   <binding method="enclosedMass"          function="Node_Component_Disk_Standard_Enclosed_Mass"           bindsTo="component" />
+  !#   <binding method="density"               function="Node_Component_Disk_Standard_Density"                 bindsTo="component" />
+  !#   <binding method="potential"             function="Node_Component_Disk_Standard_Potential"               bindsTo="component" />
+  !#   <binding method="rotationCurve"         function="Node_Component_Disk_Standard_Rotation_Curve"          bindsTo="component" />
+  !#   <binding method="rotationCurveGradient" function="Node_Component_Disk_Standard_Rotation_Curve_Gradient" bindsTo="component" />
+  !#   <binding method="surfaceDensity"        function="Node_Component_Disk_Standard_Surface_Density"         bindsTo="component" />
   !#  </bindings>
-  !#  <functions>objects.nodes.components.disk.exponential.bound_functions.inc</functions>
+  !#  <functions>objects.nodes.components.disk.standard.bound_functions.inc</functions>
   !# </component>
 
   ! Internal count of abundances.
   integer                                     :: abundancesCount
 
   ! Parameters controlling the physical implementation.
-  double precision                            :: diskMassToleranceAbsolute                    , diskOutflowTimescaleMinimum   , &
+  double precision                            :: diskMassToleranceAbsolute                   , diskOutflowTimescaleMinimum          , &
        &                                         diskStructureSolverRadius
-  logical                                     :: diskNegativeAngularMomentumAllowed           , diskRadiusSolverCole2000Method
+  logical                                     :: diskNegativeAngularMomentumAllowed          , diskRadiusSolverCole2000Method
 
   ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
   integer                                     :: radiusSolverIteration
@@ -152,37 +153,45 @@ module Node_Component_Disk_Exponential
   double precision, parameter                 :: angularMomentumMaximum               =1.0d1
   double precision, parameter                 :: angularMomentumMinimum               =1.0d-6
 
+  ! Disk structural parameters.
+  double precision                            :: diskStructureSolverSpecificAngularMomentum  , diskRadiusSolverFlatVsSphericalFactor
+  
   ! Record of whether this module has been initialized.
   logical                                     :: moduleInitialized                    =.false.
 
 contains
 
   !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Disk_Exponential_Initialize</unitName>
+  !#  <unitName>Node_Component_Disk_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Disk_Exponential_Initialize()
-    !% Initializes the tree node exponential disk methods module.
+  subroutine Node_Component_Disk_Standard_Initialize()
+    !% Initializes the tree node standard disk methods module.
     use Input_Parameters
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     use Memory_Management
     use Tables
-    use Node_Component_Disk_Exponential_Data
+    use Node_Component_Disk_Standard_Data
+    use ISO_Varying_String
+    use Galacticus_Error
     implicit none
-    type(nodeComponentDiskExponential) :: diskExponentialComponent
+    type            (nodeComponentDiskStandard) :: diskStandardComponent
+    type            (varying_string           ) :: diskMassDistributionName
+    double precision                            :: diskMassDistributionDensityMoment1, diskMassDistributionDensityMoment2
+    logical                                     :: surfaceDensityMoment1IsInfinite   , surfaceDensityMoment2IsInfinite
 
     ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Disk_Exponential_Initialize)
-    if (defaultDiskComponent%exponentialIsActive().and..not.moduleInitialized) then
+    !$omp critical (Node_Component_Disk_Standard_Initialize)
+    if (defaultDiskComponent%standardIsActive().and..not.moduleInitialized) then
 
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
 
        ! Attach the cooling mass/angular momentum pipes from the hot halo component.
-       call diskExponentialComponent%attachPipes()
+       call diskStandardComponent%attachPipes()
 
        ! Bind the star formation rate function.
-       call diskExponentialComponent%starFormationRateFunction(Node_Component_Disk_Exponential_Star_Formation_Rate)
+       call diskStandardComponent%starFormationRateFunction(Node_Component_Disk_Standard_Star_Formation_Rate)
 
        ! Read parameters controlling the physical implementation.
        !@ <inputParameter>
@@ -212,7 +221,7 @@ contains
        !@   <defaultValue>1</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    The radius (in units of the exponential scale length) to use in solving for the size of the disk.
+       !@    The radius (in units of the standard scale length) to use in solving for the size of the disk.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -234,7 +243,7 @@ contains
        !@   <defaultValue>0.137 \citep{kregel_flattening_2002}</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The ratio of scale height to scale radius for exponential disks.
+       !@     The ratio of scale height to scale radius for standard disks.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -251,41 +260,83 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskNegativeAngularMomentumAllowed',diskNegativeAngularMomentumAllowed,defaultValue=.true.)
-
+       ! Create the disk mass distribution.
+       !@ <inputParameter>
+       !@   <name>diskMassDistribution</name>
+       !@   <defaultValue>exponentialDisk</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The type of mass distribution to use for the standard disk component.
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskMassDistribution',diskMassDistributionName,defaultValue="exponentialDisk")
+       diskMassDistribution => Mass_Distribution_Create(char(diskMassDistributionName))
+       select type (diskMassDistribution)
+       type is (massDistributionExponentialDisk)
+          call diskMassDistribution%initialize(scaleHeight=heightToRadialScaleDisk,isDimensionless=.true.)
+       class default
+          call Galacticus_Error_Report('Node_Component_Disk_Standard_Initialize','unsupported mass distribution')
+       end select
        ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
        ! momentum of the disk assuming a flat rotation curve.
-       diskStructureSolverSpecificAngularMomentum=diskStructureSolverRadius/2.0d0
-
+       select type (diskMassDistribution)
+       class is (massDistributionCylindrical)
+          ! Determine the specific angular momentum at the size solver radius in units of the mean specific angular
+          ! momentum of the disk. This is equal to the ratio of the 1st to 2nd radial moments of the surface density
+          ! distribution (assuming a flat rotation curve).
+          diskMassDistributionDensityMoment1=diskMassDistribution%surfaceDensityRadialMoment(1.0d0,isInfinite=surfaceDensityMoment1IsInfinite)
+          diskMassDistributionDensityMoment2=diskMassDistribution%surfaceDensityRadialMoment(2.0d0,isInfinite=surfaceDensityMoment2IsInfinite)
+          if (surfaceDensityMoment1IsInfinite.or.surfaceDensityMoment2IsInfinite) then
+             ! One or both of the moments are infinite. Simply assume a value of 0.5 as a default.
+             diskStructureSolverSpecificAngularMomentum=0.5d0
+          else
+             diskStructureSolverSpecificAngularMomentum=  &
+                  & +diskStructureSolverRadius            &
+                  & /(                                    &
+                  &   +diskMassDistributionDensityMoment2 &
+                  &   /diskMassDistributionDensityMoment1 & 
+                  &  )
+          end if
+       class default
+          call Galacticus_Error_Report('Node_Component_Disk_Standard_Initialize','only cylcindrically symmetric mass distributions are allowed')
+       end select
        ! If necessary, compute the specific angular momentum correction factor to account for the difference between rotation
        ! curves for thin disk and a spherical mass distribution.
-       if (diskRadiusSolverCole2000Method) diskRadiusSolverFlatVsSphericalFactor=2.0d0*diskStructureSolverRadius&
-            &*Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors(0.5d0*diskStructureSolverRadius)&
-            &-Node_Component_Disk_Exponential_Enclosed_Mass_Dimensionless  (      diskStructureSolverRadius)
-
+       if (diskRadiusSolverCole2000Method) then
+          select type (diskMassDistribution)
+          class is (massDistributionCylindrical)
+             diskRadiusSolverFlatVsSphericalFactor=                                          &
+                  & +diskMassDistribution%rotationCurve       (diskStructureSolverRadius)**2 &
+                  & *                                          diskStructureSolverRadius     &
+                  & -diskMassDistribution%massEnclosedBySphere(diskStructureSolverRadius)
+          end select
+       end if
        ! Record that the module is now initialized.
        moduleInitialized=.true.
     end if
-    !$omp end critical (Node_Component_Disk_Exponential_Initialize)
+    !$omp end critical (Node_Component_Disk_Standard_Initialize)
     return
-  end subroutine Node_Component_Disk_Exponential_Initialize
+  end subroutine Node_Component_Disk_Standard_Initialize
 
   !# <calculationResetTask>
-  !#   <unitName>Node_Component_Disk_Exponential_Calculation_Reset</unitName>
+  !#   <unitName>Node_Component_Disk_Standard_Calculation_Reset</unitName>
   !# </calculationResetTask>
-  subroutine Node_Component_Disk_Exponential_Calculation_Reset(thisNode)
-    !% Reset exponential disk structure calculations.
-    use Node_Component_Disk_Exponential_Data
+  subroutine Node_Component_Disk_Standard_Calculation_Reset(thisNode)
+    !% Reset standard disk structure calculations.
+    use Node_Component_Disk_Standard_Data
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
-    call Node_Component_Disk_Exponential_Reset(thisNode%uniqueID())
+    call Node_Component_Disk_Standard_Reset(thisNode%uniqueID())
     return
-  end subroutine Node_Component_Disk_Exponential_Calculation_Reset
+  end subroutine Node_Component_Disk_Standard_Calculation_Reset
 
   !# <preEvolveTask>
-  !# <unitName>Node_Component_Disk_Exponential_Pre_Evolve</unitName>
+  !# <unitName>Node_Component_Disk_Standard_Pre_Evolve</unitName>
   !# </preEvolveTask>
-  subroutine Node_Component_Disk_Exponential_Pre_Evolve(thisNode)
+  subroutine Node_Component_Disk_Standard_Pre_Evolve(thisNode)
     !% Ensure the disk has been initialized.
     implicit none
     type (treeNode         ), intent(inout), pointer :: thisNode
@@ -293,19 +344,19 @@ contains
 
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
-    ! Check if an exponential disk component exists.
+    ! Check if an standard disk component exists.
     select type (thisDiskComponent)
-       class is (nodeComponentDiskExponential)
+       class is (nodeComponentDiskStandard)
           ! Initialize the disk
-       call Node_Component_Disk_Exponential_Create(thisNode)
+       call Node_Component_Disk_Standard_Create(thisNode)
     end select
     return
-  end subroutine Node_Component_Disk_Exponential_Pre_Evolve
+  end subroutine Node_Component_Disk_Standard_Pre_Evolve
 
   !# <postEvolveTask>
-  !# <unitName>Node_Component_Disk_Exponential_Post_Evolve</unitName>
+  !# <unitName>Node_Component_Disk_Standard_Post_Evolve</unitName>
   !# </postEvolveTask>
-  subroutine Node_Component_Disk_Exponential_Post_Evolve(thisNode)
+  subroutine Node_Component_Disk_Standard_Post_Evolve(thisNode)
     !% Trim histories attached to the disk.
     use Galacticus_Display
     use String_Handling
@@ -316,24 +367,24 @@ contains
     use Dark_Matter_Halo_Scales
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk )               , pointer :: thisDiskComponent
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    class           (nodeComponentSpin )               , pointer :: thisSpin
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk       )               , pointer :: thisDiskComponent
+    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
+    class           (nodeComponentSpin       )               , pointer :: thisSpin
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                    , parameter              :: angularMomentumTolerance=1.0d-2
-    double precision                    , save                   :: fractionalErrorMaximum  =0.0d0
-    double precision                                             :: diskMass                       , fractionalError, &
-         &                                                          specificAngularMomentum
-    character       (len=20            )                         :: valueString
-    type            (varying_string    )                         :: message
-    type            (history           )                         :: stellarPropertiesHistory
+    double precision                          , parameter              :: angularMomentumTolerance=1.0d-2
+    double precision                          , save                   :: fractionalErrorMaximum  =0.0d0
+    double precision                                                   :: diskMass                       , fractionalError, &
+         &                                                                specificAngularMomentum
+    character       (len=20                  )                         :: valueString
+    type            (varying_string          )                         :: message
+    type            (history                 )                         :: stellarPropertiesHistory
 
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
-    ! Check if an exponential disk component exists.
+    ! Check if an standard disk component exists.
     select type (thisDiskComponent)
-       class is (nodeComponentDiskExponential)
+       class is (nodeComponentDiskStandard)
           ! Trim the stellar populations properties future history.
        thisBasicComponent => thisNode%basic()
        stellarPropertiesHistory=thisDiskComponent%stellarPropertiesHistory()
@@ -348,7 +399,7 @@ contains
                &             abs(thisDiskComponent%massGas    ()) &
                &            +abs(thisDiskComponent%massStellar()) &
                &           )
-          !$omp critical (Exponential_Disk_Post_Evolve_Check)
+          !$omp critical (Standard_Disk_Post_Evolve_Check)
           if (fractionalError > fractionalErrorMaximum) then
              ! Report a warning.
              message='Warning: disk has negative gas mass (fractional error exceeds any previously reported):'//char(10)
@@ -370,7 +421,7 @@ contains
              ! Store the new maximum fractional error.
              fractionalErrorMaximum=fractionalError
           end if
-          !$omp end critical (Exponential_Disk_Post_Evolve_Check)
+          !$omp end critical (Standard_Disk_Post_Evolve_Check)
 
           ! Get the specific angular momentum of the disk material
           diskMass= thisDiskComponent%massGas    () &
@@ -428,7 +479,7 @@ contains
                      &                  *thisSpin%spin()
                 message=message//char(10)//' -> angular momentum scale = '//trim(valueString)
                 call Galacticus_Error_Report(                                               &
-                     &                       'Node_Component_Disk_Exponential_Post_Evolve', &
+                     &                       'Node_Component_Disk_Standard_Post_Evolve', &
                      &                       message                                        &
                      &                      )
              end if
@@ -436,10 +487,10 @@ contains
        end if
     end select
     return
-  end subroutine Node_Component_Disk_Exponential_Post_Evolve
+  end subroutine Node_Component_Disk_Standard_Post_Evolve
 
-  subroutine Node_Component_Disk_Exponential_Create(thisNode)
-    !% Create properties in an exponential disk component.
+  subroutine Node_Component_Disk_Standard_Create(thisNode)
+    !% Create properties in an standard disk component.
     use Histories
     use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
@@ -474,13 +525,13 @@ contains
     ! Record that the disk has been initialized.
     call thisDiskComponent%isInitializedSet(.true.)
     return
-  end subroutine Node_Component_Disk_Exponential_Create
+  end subroutine Node_Component_Disk_Standard_Create
 
   !# <rateComputeTask>
-  !#  <unitName>Node_Component_Disk_Exponential_Rate_Compute</unitName>
+  !#  <unitName>Node_Component_Disk_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Disk_Exponential_Rate_Compute(thisNode,interrupt,interruptProcedureReturn)
-    !% Compute the exponential disk node mass rate of change.
+  subroutine Node_Component_Disk_Standard_Rate_Compute(thisNode,interrupt,interruptProcedureReturn)
+    !% Compute the standard disk node mass rate of change.
     use Abundances_Structure
     use Histories
     use Star_Formation_Feedback_Disks
@@ -526,7 +577,7 @@ contains
     ! Get the disk and check that it is of our class.
     thisDisk => thisNode%disk()
     select type (thisDisk)
-       class is (nodeComponentDiskExponential)
+       class is (nodeComponentDiskStandard)
 
           ! Check for a realistic disk, return immediately if disk is unphysical.
        if     (     thisDisk%angularMomentum() < 0.0d0 &
@@ -537,7 +588,7 @@ contains
        ! Interrupt if the disk is not initialized.
        if (.not.thisDisk%isInitialized()) then
           interrupt=.true.
-          interruptProcedureReturn => Node_Component_Disk_Exponential_Create
+          interruptProcedureReturn => Node_Component_Disk_Standard_Create
           return
        end if
 
@@ -723,12 +774,12 @@ contains
     interruptProcedureReturn => interruptProcedure
 
     return
-  end subroutine Node_Component_Disk_Exponential_Rate_Compute
+  end subroutine Node_Component_Disk_Standard_Rate_Compute
 
   !# <scaleSetTask>
-  !#  <unitName>Node_Component_Disk_Exponential_Scale_Set</unitName>
+  !#  <unitName>Node_Component_Disk_Standard_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Disk_Exponential_Scale_Set(thisNode)
+  subroutine Node_Component_Disk_Standard_Scale_Set(thisNode)
     !% Set scales for properties of {\normalfont \ttfamily thisNode}.
     use Histories
     use Stellar_Population_Properties
@@ -748,9 +799,9 @@ contains
      
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
-    ! Check if an exponential disk component exists.
+    ! Check if an standard disk component exists.
     select type (thisDiskComponent)
-       class is (nodeComponentDiskExponential)
+       class is (nodeComponentDiskStandard)
 
           ! Get disk components.
        thisSpheroidComponent => thisNode%spheroid()
@@ -808,15 +859,15 @@ contains
 
     end select
     return
-  end subroutine Node_Component_Disk_Exponential_Scale_Set
+  end subroutine Node_Component_Disk_Standard_Scale_Set
 
   !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Disk_Exponential_Satellite_Merging</unitName>
+  !#  <unitName>Node_Component_Disk_Standard_Satellite_Merging</unitName>
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Disk_Exponential_Satellite_Merging(thisNode)
-    !% Transfer any exponential disk associated with {\normalfont \ttfamily thisNode} to its host halo.
+  subroutine Node_Component_Disk_Standard_Satellite_Merging(thisNode)
+    !% Transfer any standard disk associated with {\normalfont \ttfamily thisNode} to its host halo.
     use Histories
     use Abundances_Structure
     use Satellite_Merging_Mass_Movements_Descriptors
@@ -830,10 +881,10 @@ contains
     type            (history              )                         :: hostHistory            , thisHistory
     double precision                                                :: specificAngularMomentum
 
-    ! Check that the disk is of the exponential class.
+    ! Check that the disk is of the standard class.
     thisDiskComponent => thisNode%disk()
     select type (thisDiskComponent)
-       class is (nodeComponentDiskExponential)
+       class is (nodeComponentDiskStandard)
        thisSpheroidComponent => thisNode%spheroid()
 
        ! Find the node to merge with.
@@ -848,7 +899,7 @@ contains
           specificAngularMomentum=0.0d0
        end if
 
-       ! Move the gas component of the exponential disk to the host.
+       ! Move the gas component of the standard disk to the host.
        select case (thisMergerGasMovesTo)
        case (movesToDisk)
           call hostDiskComponent    %massGasSet            (                                                                     &
@@ -873,12 +924,12 @@ contains
                &                                            +thisDiskComponent    %abundancesGas      ()                         &
                &                                           )
        case default
-          call Galacticus_Error_Report('Node_Component_Disk_Exponential_Satellite_Merging','unrecognized movesTo descriptor')
+          call Galacticus_Error_Report('Node_Component_Disk_Standard_Satellite_Merging','unrecognized movesTo descriptor')
        end select
        call thisDiskComponent%      massGasSet(         0.0d0)
        call thisDiskComponent%abundancesGasSet(zeroAbundances)
 
-       ! Move the stellar component of the exponential disk to the host.
+       ! Move the stellar component of the standard disk to the host.
        select case (thisMergerStarsMoveTo)
        case (movesToDisk)
           call hostDiskComponent    %massStellarSet        (                                                                     &
@@ -943,7 +994,7 @@ contains
           call thisHistory%destroy(recordMemory=.false.)
           call hostHistory%destroy(recordMemory=.false.)
        case default
-          call Galacticus_Error_Report('Node_Component_Disk_Exponential_Satellite_Merging','unrecognized movesTo descriptor')
+          call Galacticus_Error_Report('Node_Component_Disk_Standard_Satellite_Merging','unrecognized movesTo descriptor')
        end select
        call thisDiskComponent%        massStellarSet(                  0.0d0)
        call thisDiskComponent%  abundancesStellarSet(         zeroAbundances)
@@ -951,35 +1002,35 @@ contains
        call thisDiskComponent%    angularMomentumSet(                  0.0d0)
     end select
     return
-  end subroutine Node_Component_Disk_Exponential_Satellite_Merging
+  end subroutine Node_Component_Disk_Standard_Satellite_Merging
 
   !# <radiusSolverPlausibility>
-  !#  <unitName>Node_Component_Disk_Exponential_Radius_Solver_Plausibility</unitName>
+  !#  <unitName>Node_Component_Disk_Standard_Radius_Solver_Plausibility</unitName>
   !# </radiusSolverPlausibility>
-  subroutine Node_Component_Disk_Exponential_Radius_Solver_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
+  subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    logical                            , intent(inout)          :: galaxyIsPhysicallyPlausible
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    logical                                   , intent(inout)          :: galaxyIsPhysicallyPlausible
+    class           (nodeComponentDisk       )               , pointer :: thisDiskComponent
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                            :: angularMomentumScale
+    double precision                                                   :: angularMomentumScale
 
     ! Return immediately if our method is not selected.
-    if (.not.defaultDiskComponent%exponentialIsActive()) return
+    if (.not.defaultDiskComponent%standardIsActive()) return
 
      ! Determine the plausibility of the current disk.
      thisDiskComponent => thisNode%disk()
      select type (thisDiskComponent)
-     class is (nodeComponentDiskExponential)
-        if      (thisDiskComponent%angularMomentum()                             <=                      0.0d0) &
+     class is (nodeComponentDiskStandard)
+        if      (thisDiskComponent%angularMomentum()                             <                       0.0d0) &
              & galaxyIsPhysicallyPlausible=.false.
         if      (thisDiskComponent%massStellar    ()+thisDiskComponent%massGas() <  -diskMassToleranceAbsolute) then
            galaxyIsPhysicallyPlausible=.false.
-        else if (thisDiskComponent%massStellar()+thisDiskComponent%massGas() >=                     0.0d0) then
-           if      (                                                                                                     &
-                &   thisDiskComponent%angularMomentum() <  0.0d0                                                         &
+        else if (thisDiskComponent%massStellar    ()+thisDiskComponent%massGas() >=                      0.0d0) then
+           if      (                                                                                            &
+                &   thisDiskComponent%angularMomentum() < 0.0d0                                                 &
                 &  ) then
               galaxyIsPhysicallyPlausible=.false.
            else
@@ -998,7 +1049,7 @@ contains
                  ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
                  ! virial radius of their halo.
                  galaxyIsPhysicallyPlausible=.false.
-              end if
+             end if
            end if
         end if
      end select
@@ -1008,21 +1059,21 @@ contains
     radiusHistory        =-1.0d0
     radiusSolverIteration= 0
     return
-  end subroutine Node_Component_Disk_Exponential_Radius_Solver_Plausibility
+  end subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility
 
-  double precision function Node_Component_Disk_Exponential_Radius_Solve(thisNode)
-    !% Return the radius of the exponential disk used in structure solvers.
+  double precision function Node_Component_Disk_Standard_Radius_Solve(thisNode)
+    !% Return the radius of the standard disk used in structure solvers.
     implicit none
     type (treeNode         ), intent(inout), pointer :: thisNode
     class(nodeComponentDisk)               , pointer :: thisDiskComponent
 
     thisDiskComponent => thisNode%disk()
-    Node_Component_Disk_Exponential_Radius_Solve=thisDiskComponent%radius()*diskStructureSolverRadius
+    Node_Component_Disk_Standard_Radius_Solve=thisDiskComponent%radius()*diskStructureSolverRadius
     return
-  end function Node_Component_Disk_Exponential_Radius_Solve
+  end function Node_Component_Disk_Standard_Radius_Solve
 
-  subroutine Node_Component_Disk_Exponential_Radius_Solve_Set(thisNode,radius)
-    !% Set the radius of the exponential disk used in structure solvers.
+  subroutine Node_Component_Disk_Standard_Radius_Solve_Set(thisNode,radius)
+    !% Set the radius of the standard disk used in structure solvers.
     implicit none
     type            (treeNode         ), intent(inout), pointer :: thisNode
     double precision                   , intent(in   )          :: radius
@@ -1031,21 +1082,21 @@ contains
     thisDiskComponent => thisNode%disk()
     call thisDiskComponent%radiusSet(max(radius,0.0d0)/diskStructureSolverRadius)
     return
-  end subroutine Node_Component_Disk_Exponential_Radius_Solve_Set
+  end subroutine Node_Component_Disk_Standard_Radius_Solve_Set
 
-  double precision function Node_Component_Disk_Exponential_Velocity(thisNode)
-    !% Return the circular velocity of the exponential disk.
+  double precision function Node_Component_Disk_Standard_Velocity(thisNode)
+    !% Return the circular velocity of the standard disk.
     implicit none
     type (treeNode         ), intent(inout), pointer :: thisNode
     class(nodeComponentDisk)               , pointer :: thisDiskComponent
 
     thisDiskComponent => thisNode%disk()
-    Node_Component_Disk_Exponential_Velocity=thisDiskComponent%velocity()
+    Node_Component_Disk_Standard_Velocity=thisDiskComponent%velocity()
     return
-  end function Node_Component_Disk_Exponential_Velocity
+  end function Node_Component_Disk_Standard_Velocity
 
-  subroutine Node_Component_Disk_Exponential_Velocity_Set(thisNode,velocity)
-    !% Set the circular velocity of the exponential disk.
+  subroutine Node_Component_Disk_Standard_Velocity_Set(thisNode,velocity)
+    !% Set the circular velocity of the standard disk.
     implicit none
     type            (treeNode         ), intent(inout), pointer :: thisNode
     double precision                   , intent(in   )          :: velocity
@@ -1054,33 +1105,34 @@ contains
     thisDiskComponent => thisNode%disk()
     call thisDiskComponent%velocitySet(velocity)
     return
-  end subroutine Node_Component_Disk_Exponential_Velocity_Set
+  end subroutine Node_Component_Disk_Standard_Velocity_Set
 
   !# <radiusSolverTask>
-  !#  <unitName>Node_Component_Disk_Exponential_Radius_Solver</unitName>
+  !#  <unitName>Node_Component_Disk_Standard_Radius_Solver</unitName>
   !# </radiusSolverTask>
-  subroutine Node_Component_Disk_Exponential_Radius_Solver(thisNode,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
+  subroutine Node_Component_Disk_Standard_Radius_Solver(thisNode,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
     use Tables
-    use Node_Component_Disk_Exponential_Data
+    use Node_Component_Disk_Standard_Data
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode                                                         ), intent(inout), pointer :: thisNode
-    logical                                                                            , intent(  out)          :: componentActive
-    logical                                                                            , intent(in   )          :: specificAngularMomentumRequired
-    double precision                                                                   , intent(  out)          :: specificAngularMomentum
-    procedure       (Node_Component_Disk_Exponential_Radius_Solve                     ), intent(  out), pointer :: Radius_Get                 , Velocity_Get
-    procedure       (Node_Component_Disk_Exponential_Radius_Solve_Set                 ), intent(  out), pointer :: Radius_Set                 , Velocity_Set
-    class           (nodeComponentDisk                                                )               , pointer :: thisDiskComponent
-    double precision                                                                                            :: angularMomentum            , diskMass    , &
-         &                                                                                                         specificAngularMomentumMean
+    type            (treeNode                                     ), intent(inout), pointer :: thisNode
+    logical                                                        , intent(  out)          :: componentActive
+    logical                                                        , intent(in   )          :: specificAngularMomentumRequired
+    double precision                                               , intent(  out)          :: specificAngularMomentum
+    procedure       (Node_Component_Disk_Standard_Radius_Solve    ), intent(  out), pointer :: Radius_Get                     , Velocity_Get
+    procedure       (Node_Component_Disk_Standard_Radius_Solve_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
+    class           (nodeComponentDisk                            )               , pointer :: thisDiskComponent
+    double precision                                                                        :: angularMomentum                , diskMass    , &
+         &                                                                                     specificAngularMomentumMean
 
     ! Determine if thisNode has an active disk component supported by this module.
-    componentActive=.false.
-    thisDiskComponent => thisNode%disk()
+    componentActive        =  .false.
+    specificAngularMomentum=  0.0d0
+    thisDiskComponent      => thisNode%disk()
     select type (thisDiskComponent)
-       class is (nodeComponentDiskExponential)
+       class is (nodeComponentDiskStandard)
        componentActive=.true.
        ! Get the angular momentum.
        if (specificAngularMomentumRequired) then
@@ -1107,29 +1159,29 @@ contains
                   &                                   -diskRadiusSolverFlatVsSphericalFactor                  &
                   &                                   *gravitationalConstantGalacticus                        &
                   &                                   *diskMass                                               &
-                  &                                   *Node_Component_Disk_Exponential_Radius_Solve(thisNode) &
+                  &                                   *Node_Component_Disk_Standard_Radius_Solve(thisNode) &
                   &                                  )                                                        &
                   )
           end if
           ! Associate the pointers with the appropriate property routines.
-          Radius_Get   => Node_Component_Disk_Exponential_Radius_Solve
-          Radius_Set   => Node_Component_Disk_Exponential_Radius_Solve_Set
-          Velocity_Get => Node_Component_Disk_Exponential_Velocity
-          Velocity_Set => Node_Component_Disk_Exponential_Velocity_Set
+          Radius_Get   => Node_Component_Disk_Standard_Radius_Solve
+          Radius_Set   => Node_Component_Disk_Standard_Radius_Solve_Set
+          Velocity_Get => Node_Component_Disk_Standard_Velocity
+          Velocity_Set => Node_Component_Disk_Standard_Velocity_Set
        else
-          call Node_Component_Disk_Exponential_Radius_Solve_Set(thisNode,0.0d0)
-          call Node_Component_Disk_Exponential_Velocity_Set    (thisNode,0.0d0)
+          call Node_Component_Disk_Standard_Radius_Solve_Set(thisNode,0.0d0)
+          call Node_Component_Disk_Standard_Velocity_Set    (thisNode,0.0d0)
           componentActive=.false.
        end if
     end select
     return
-  end subroutine Node_Component_Disk_Exponential_Radius_Solver
+  end subroutine Node_Component_Disk_Standard_Radius_Solver
 
-  double precision function Node_Component_Disk_Exponential_Star_Formation_Rate(self)
-    !% Return the star formation rate of the exponential disk.
+  double precision function Node_Component_Disk_Standard_Star_Formation_Rate(self)
+    !% Return the star formation rate of the standard disk.
     use Star_Formation_Timescales_Disks
     implicit none
-    class           (nodeComponentDiskExponential), intent(inout) :: self
+    class           (nodeComponentDiskStandard), intent(inout) :: self
     type            (treeNode                    ), pointer       :: thisNode
     double precision                                              :: gasMass , starFormationTimescale
 
@@ -1144,17 +1196,17 @@ contains
 
     ! If timescale is finite and gas mass is positive, then compute star formation rate.
     if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0) then
-       Node_Component_Disk_Exponential_Star_Formation_Rate=gasMass/starFormationTimescale
+       Node_Component_Disk_Standard_Star_Formation_Rate=gasMass/starFormationTimescale
     else
-       Node_Component_Disk_Exponential_Star_Formation_Rate=0.0d0
+       Node_Component_Disk_Standard_Star_Formation_Rate=0.0d0
     end if
     return
-  end function Node_Component_Disk_Exponential_Star_Formation_Rate
+  end function Node_Component_Disk_Standard_Star_Formation_Rate
 
   !# <mergerTreeExtraOutputTask>
-  !#  <unitName>Node_Component_Disk_Exponential_Star_Formation_History_Output</unitName>
+  !#  <unitName>Node_Component_Disk_Standard_Star_Formation_History_Output</unitName>
   !# </mergerTreeExtraOutputTask>
-  subroutine Node_Component_Disk_Exponential_Star_Formation_History_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Disk_Standard_Star_Formation_History_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
     use, intrinsic :: ISO_C_Binding
     use Kind_Numbers
@@ -1171,12 +1223,42 @@ contains
     ! Output the star formation history if a disk exists for this component.
     thisDiskComponent => thisNode%disk()
     select type (thisDiskComponent)
-       class is (nodeComponentDiskExponential)
+       class is (nodeComponentDiskStandard)
        starFormationHistory=thisDiskComponent%starFormationHistory()
        call Star_Formation_History_Output(thisNode,nodePassesFilter,starFormationHistory,iOutput,treeIndex,'disk')
        call thisDiskComponent%starFormationHistorySet(starFormationHistory)
     end select
     return
-  end subroutine Node_Component_Disk_Exponential_Star_Formation_History_Output
+  end subroutine Node_Component_Disk_Standard_Star_Formation_History_Output
 
-end module Node_Component_Disk_Exponential
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Node_Component_Disk_Standard_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Node_Component_Disk_Standard_State_Store(stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
+    use Node_Component_Disk_Standard_Data
+    use FGSL
+    implicit none
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
+    call diskMassDistribution%stateStore(stateFile,fgslStateFile)
+    return
+  end subroutine Node_Component_Disk_Standard_State_Store
+
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Node_Component_Disk_Standard_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Node_Component_Disk_Standard_State_Retrieve(stateFile,fgslStateFile)
+    !% Retrieve the tabulation state from the file.
+    use Node_Component_Disk_Standard_Data
+    use FGSL
+    implicit none
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
+    call diskMassDistribution%stateRestore(stateFile,fgslStateFile)
+    return
+  end subroutine Node_Component_Disk_Standard_State_Retrieve
+
+end module Node_Component_Disk_Standard
