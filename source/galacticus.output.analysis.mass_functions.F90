@@ -827,163 +827,7 @@ contains
           massFunctionDescriptors( 8)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
           massFunctionDescriptors( 9)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
           massFunctionDescriptors(10)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
-          ! Establish survey geometries.
-          allocate(surveyGeometryLiWhite2009SDSS      :: massFunctionDescriptors( 1)%geometry)
-          allocate(surveyGeometryBernardi2013SDSS     :: massFunctionDescriptors( 2)%geometry)
-          allocate(surveyGeometryBaldry2012GAMA       :: massFunctionDescriptors( 3)%geometry)
-          allocate(surveyGeometryMartin2010ALFALFA    :: massFunctionDescriptors( 4)%geometry)
-          allocate(surveyGeometryMoustakas2013PRIMUS  :: massFunctionDescriptors( 5)%geometry)
-          allocate(surveyGeometryMoustakas2013PRIMUS  :: massFunctionDescriptors( 6)%geometry)
-          allocate(surveyGeometryMoustakas2013PRIMUS  :: massFunctionDescriptors( 7)%geometry)
-          allocate(surveyGeometryMoustakas2013PRIMUS  :: massFunctionDescriptors( 8)%geometry)
-          allocate(surveyGeometryMoustakas2013PRIMUS  :: massFunctionDescriptors( 9)%geometry)
-          allocate(surveyGeometryMoustakas2013PRIMUS  :: massFunctionDescriptors(10)%geometry)
-          allocate(surveyGeometryDavidzon2013VIPERS   :: massFunctionDescriptors(11)%geometry)
-          allocate(surveyGeometryDavidzon2013VIPERS   :: massFunctionDescriptors(12)%geometry)
-          allocate(surveyGeometryDavidzon2013VIPERS   :: massFunctionDescriptors(13)%geometry)
-          allocate(surveyGeometryCaputi2011UKIDSSUDS  :: massFunctionDescriptors(14)%geometry)
-          allocate(surveyGeometryCaputi2011UKIDSSUDS  :: massFunctionDescriptors(15)%geometry)
-          allocate(surveyGeometryCaputi2011UKIDSSUDS  :: massFunctionDescriptors(16)%geometry)
-          allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(17)%geometry)
-          allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(18)%geometry)
-          allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(19)%geometry)
-          allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(20)%geometry)
-          allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(21)%geometry)
-          allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(22)%geometry)
-          allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(23)%geometry)
-          allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(24)%geometry)
-          allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(25)%geometry)
-          allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(26)%geometry)
-          allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(27)%geometry)
-          allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(28)%geometry)
-          allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(29)%geometry)
-          allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(30)%geometry)
-          allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(31)%geometry)
-          select type (g => massFunctionDescriptors( 1)%geometry)
-          type is (surveyGeometryLiWhite2009SDSS    )
-             g=surveyGeometryLiWhite2009SDSS    ( )
-          end select
-          select type (g => massFunctionDescriptors( 2)%geometry)
-          type is (surveyGeometryBernardi2013SDSS   )
-             g=surveyGeometryBernardi2013SDSS   ( )
-          end select
-          select type (g => massFunctionDescriptors( 3)%geometry)
-          type is (surveyGeometryBaldry2012GAMA     )
-             g=surveyGeometryBaldry2012GAMA     ( )
-          end select
-          select type (g => massFunctionDescriptors( 4)%geometry)
-          type is (surveyGeometryMartin2010ALFALFA  )
-             g=surveyGeometryMartin2010ALFALFA  ( )
-          end select
-          select type (g => massFunctionDescriptors( 5)%geometry)
-          type is (surveyGeometryMoustakas2013PRIMUS)
-             g=surveyGeometryMoustakas2013PRIMUS(0)
-          end select
-          select type (g => massFunctionDescriptors( 6)%geometry)
-          type is (surveyGeometryMoustakas2013PRIMUS)
-             g=surveyGeometryMoustakas2013PRIMUS(1)
-          end select
-          select type (g => massFunctionDescriptors( 7)%geometry)
-          type is (surveyGeometryMoustakas2013PRIMUS)
-             g=surveyGeometryMoustakas2013PRIMUS(2)
-          end select
-          select type (g => massFunctionDescriptors( 8)%geometry)
-          type is (surveyGeometryMoustakas2013PRIMUS)
-             g=surveyGeometryMoustakas2013PRIMUS(3)
-          end select
-          select type (g => massFunctionDescriptors( 9)%geometry)
-          type is (surveyGeometryMoustakas2013PRIMUS)
-             g=surveyGeometryMoustakas2013PRIMUS(4)
-          end select
-          select type (g => massFunctionDescriptors(10)%geometry)
-          type is (surveyGeometryMoustakas2013PRIMUS)
-             g=surveyGeometryMoustakas2013PRIMUS(5)
-          end select
-          select type (g => massFunctionDescriptors(11)%geometry)
-          type is (surveyGeometryDavidzon2013VIPERS )
-             g=surveyGeometryDavidzon2013VIPERS (0)
-          end select
-          select type (g => massFunctionDescriptors(12)%geometry)
-          type is (surveyGeometryDavidzon2013VIPERS )
-             g=surveyGeometryDavidzon2013VIPERS (1)
-          end select
-          select type (g => massFunctionDescriptors(13)%geometry)
-          type is (surveyGeometryDavidzon2013VIPERS )
-             g=surveyGeometryDavidzon2013VIPERS (2)
-          end select
-          select type (g => massFunctionDescriptors(14)%geometry)
-          type is (surveyGeometryCaputi2011UKIDSSUDS)
-             g=surveyGeometryCaputi2011UKIDSSUDS(0)
-          end select
-          select type (g => massFunctionDescriptors(15)%geometry)
-          type is (surveyGeometryCaputi2011UKIDSSUDS)
-             g=surveyGeometryCaputi2011UKIDSSUDS(1)
-          end select
-          select type (g => massFunctionDescriptors(16)%geometry)
-          type is (surveyGeometryCaputi2011UKIDSSUDS)
-             g=surveyGeometryCaputi2011UKIDSSUDS(2)
-          end select
-          select type (g => massFunctionDescriptors(17)%geometry)
-          type is (surveyGeometryTomczak2014ZFOURGE)
-             g=surveyGeometryTomczak2014ZFOURGE(0)
-          end select
-          select type (g => massFunctionDescriptors(18)%geometry)
-          type is (surveyGeometryTomczak2014ZFOURGE)
-             g=surveyGeometryTomczak2014ZFOURGE(1)
-          end select
-          select type (g => massFunctionDescriptors(19)%geometry)
-          type is (surveyGeometryTomczak2014ZFOURGE)
-             g=surveyGeometryTomczak2014ZFOURGE(2)
-          end select
-          select type (g => massFunctionDescriptors(20)%geometry)
-          type is (surveyGeometryTomczak2014ZFOURGE)
-             g=surveyGeometryTomczak2014ZFOURGE(3)
-          end select
-          select type (g => massFunctionDescriptors(21)%geometry)
-          type is (surveyGeometryTomczak2014ZFOURGE)
-             g=surveyGeometryTomczak2014ZFOURGE(4)
-          end select
-          select type (g => massFunctionDescriptors(22)%geometry)
-          type is (surveyGeometryTomczak2014ZFOURGE)
-             g=surveyGeometryTomczak2014ZFOURGE(5)
-          end select
-          select type (g => massFunctionDescriptors(23)%geometry)
-          type is (surveyGeometryTomczak2014ZFOURGE)
-             g=surveyGeometryTomczak2014ZFOURGE(6)
-          end select
-          select type (g => massFunctionDescriptors(24)%geometry)
-          type is (surveyGeometryTomczak2014ZFOURGE)
-             g=surveyGeometryTomczak2014ZFOURGE(7)
-          end select
-          select type (g => massFunctionDescriptors(25)%geometry)
-          type is (surveyGeometryMuzzin2013ULTRAVISTA)
-             g=surveyGeometryMuzzin2013ULTRAVISTA(0)
-          end select
-          select type (g => massFunctionDescriptors(26)%geometry)
-          type is (surveyGeometryMuzzin2013ULTRAVISTA)
-             g=surveyGeometryMuzzin2013ULTRAVISTA(1)
-          end select
-          select type (g => massFunctionDescriptors(27)%geometry)
-          type is (surveyGeometryMuzzin2013ULTRAVISTA)
-             g=surveyGeometryMuzzin2013ULTRAVISTA(2)
-          end select
-          select type (g => massFunctionDescriptors(28)%geometry)
-          type is (surveyGeometryMuzzin2013ULTRAVISTA)
-             g=surveyGeometryMuzzin2013ULTRAVISTA(3)
-          end select
-          select type (g => massFunctionDescriptors(29)%geometry)
-          type is (surveyGeometryMuzzin2013ULTRAVISTA)
-             g=surveyGeometryMuzzin2013ULTRAVISTA(4)
-          end select
-          select type (g => massFunctionDescriptors(30)%geometry)
-          type is (surveyGeometryMuzzin2013ULTRAVISTA)
-             g=surveyGeometryMuzzin2013ULTRAVISTA(5)
-          end select
-          select type (g => massFunctionDescriptors(31)%geometry)
-          type is (surveyGeometryMuzzin2013ULTRAVISTA)
-             g=surveyGeometryMuzzin2013ULTRAVISTA(6)
-          end select
-          ! Establish survey incompletenesses.
+         ! Establish survey incompletenesses.
           do i=1,massFunctionsSupportedCount
              select case (i)
              case (gamaStellarMassFunction)
@@ -1052,6 +896,163 @@ contains
              analysisActive=.false.
           else
              analysisActive=.true.
+             ! Establish survey geometries.
+             allocate(surveyGeometryLiWhite2009SDSS      :: massFunctionDescriptors( 1)%geometry)
+             allocate(surveyGeometryBernardi2013SDSS     :: massFunctionDescriptors( 2)%geometry)
+             allocate(surveyGeometryBaldry2012GAMA       :: massFunctionDescriptors( 3)%geometry)
+             allocate(surveyGeometryMartin2010ALFALFA    :: massFunctionDescriptors( 4)%geometry)
+             allocate(surveyGeometryMoustakas2013PRIMUS  :: massFunctionDescriptors( 5)%geometry)
+             allocate(surveyGeometryMoustakas2013PRIMUS  :: massFunctionDescriptors( 6)%geometry)
+             allocate(surveyGeometryMoustakas2013PRIMUS  :: massFunctionDescriptors( 7)%geometry)
+             allocate(surveyGeometryMoustakas2013PRIMUS  :: massFunctionDescriptors( 8)%geometry)
+             allocate(surveyGeometryMoustakas2013PRIMUS  :: massFunctionDescriptors( 9)%geometry)
+             allocate(surveyGeometryMoustakas2013PRIMUS  :: massFunctionDescriptors(10)%geometry)
+             allocate(surveyGeometryDavidzon2013VIPERS   :: massFunctionDescriptors(11)%geometry)
+             allocate(surveyGeometryDavidzon2013VIPERS   :: massFunctionDescriptors(12)%geometry)
+             allocate(surveyGeometryDavidzon2013VIPERS   :: massFunctionDescriptors(13)%geometry)
+             allocate(surveyGeometryCaputi2011UKIDSSUDS  :: massFunctionDescriptors(14)%geometry)
+             allocate(surveyGeometryCaputi2011UKIDSSUDS  :: massFunctionDescriptors(15)%geometry)
+             allocate(surveyGeometryCaputi2011UKIDSSUDS  :: massFunctionDescriptors(16)%geometry)
+             allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(17)%geometry)
+             allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(18)%geometry)
+             allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(19)%geometry)
+             allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(20)%geometry)
+             allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(21)%geometry)
+             allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(22)%geometry)
+             allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(23)%geometry)
+             allocate(surveyGeometryTomczak2014ZFOURGE   :: massFunctionDescriptors(24)%geometry)
+             allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(25)%geometry)
+             allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(26)%geometry)
+             allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(27)%geometry)
+             allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(28)%geometry)
+             allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(29)%geometry)
+             allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(30)%geometry)
+             allocate(surveyGeometryMuzzin2013ULTRAVISTA :: massFunctionDescriptors(31)%geometry)
+             select type (g => massFunctionDescriptors( 1)%geometry)
+             type is (surveyGeometryLiWhite2009SDSS    )
+                g=surveyGeometryLiWhite2009SDSS    ( )
+             end select
+             select type (g => massFunctionDescriptors( 2)%geometry)
+             type is (surveyGeometryBernardi2013SDSS   )
+                g=surveyGeometryBernardi2013SDSS   ( )
+             end select
+             select type (g => massFunctionDescriptors( 3)%geometry)
+             type is (surveyGeometryBaldry2012GAMA     )
+                g=surveyGeometryBaldry2012GAMA     ( )
+             end select
+             select type (g => massFunctionDescriptors( 4)%geometry)
+             type is (surveyGeometryMartin2010ALFALFA  )
+                g=surveyGeometryMartin2010ALFALFA  ( )
+             end select
+             select type (g => massFunctionDescriptors( 5)%geometry)
+             type is (surveyGeometryMoustakas2013PRIMUS)
+                g=surveyGeometryMoustakas2013PRIMUS(0)
+             end select
+             select type (g => massFunctionDescriptors( 6)%geometry)
+             type is (surveyGeometryMoustakas2013PRIMUS)
+                g=surveyGeometryMoustakas2013PRIMUS(1)
+             end select
+             select type (g => massFunctionDescriptors( 7)%geometry)
+             type is (surveyGeometryMoustakas2013PRIMUS)
+                g=surveyGeometryMoustakas2013PRIMUS(2)
+             end select
+             select type (g => massFunctionDescriptors( 8)%geometry)
+             type is (surveyGeometryMoustakas2013PRIMUS)
+                g=surveyGeometryMoustakas2013PRIMUS(3)
+             end select
+             select type (g => massFunctionDescriptors( 9)%geometry)
+             type is (surveyGeometryMoustakas2013PRIMUS)
+                g=surveyGeometryMoustakas2013PRIMUS(4)
+             end select
+             select type (g => massFunctionDescriptors(10)%geometry)
+             type is (surveyGeometryMoustakas2013PRIMUS)
+                g=surveyGeometryMoustakas2013PRIMUS(5)
+             end select
+             select type (g => massFunctionDescriptors(11)%geometry)
+             type is (surveyGeometryDavidzon2013VIPERS )
+                g=surveyGeometryDavidzon2013VIPERS (0)
+             end select
+             select type (g => massFunctionDescriptors(12)%geometry)
+             type is (surveyGeometryDavidzon2013VIPERS )
+                g=surveyGeometryDavidzon2013VIPERS (1)
+             end select
+             select type (g => massFunctionDescriptors(13)%geometry)
+             type is (surveyGeometryDavidzon2013VIPERS )
+                g=surveyGeometryDavidzon2013VIPERS (2)
+             end select
+             select type (g => massFunctionDescriptors(14)%geometry)
+             type is (surveyGeometryCaputi2011UKIDSSUDS)
+                g=surveyGeometryCaputi2011UKIDSSUDS(0)
+             end select
+             select type (g => massFunctionDescriptors(15)%geometry)
+             type is (surveyGeometryCaputi2011UKIDSSUDS)
+                g=surveyGeometryCaputi2011UKIDSSUDS(1)
+             end select
+             select type (g => massFunctionDescriptors(16)%geometry)
+             type is (surveyGeometryCaputi2011UKIDSSUDS)
+                g=surveyGeometryCaputi2011UKIDSSUDS(2)
+             end select
+             select type (g => massFunctionDescriptors(17)%geometry)
+             type is (surveyGeometryTomczak2014ZFOURGE)
+                g=surveyGeometryTomczak2014ZFOURGE(0)
+             end select
+             select type (g => massFunctionDescriptors(18)%geometry)
+             type is (surveyGeometryTomczak2014ZFOURGE)
+                g=surveyGeometryTomczak2014ZFOURGE(1)
+             end select
+             select type (g => massFunctionDescriptors(19)%geometry)
+             type is (surveyGeometryTomczak2014ZFOURGE)
+                g=surveyGeometryTomczak2014ZFOURGE(2)
+             end select
+             select type (g => massFunctionDescriptors(20)%geometry)
+             type is (surveyGeometryTomczak2014ZFOURGE)
+                g=surveyGeometryTomczak2014ZFOURGE(3)
+             end select
+             select type (g => massFunctionDescriptors(21)%geometry)
+             type is (surveyGeometryTomczak2014ZFOURGE)
+                g=surveyGeometryTomczak2014ZFOURGE(4)
+             end select
+             select type (g => massFunctionDescriptors(22)%geometry)
+             type is (surveyGeometryTomczak2014ZFOURGE)
+                g=surveyGeometryTomczak2014ZFOURGE(5)
+             end select
+             select type (g => massFunctionDescriptors(23)%geometry)
+             type is (surveyGeometryTomczak2014ZFOURGE)
+                g=surveyGeometryTomczak2014ZFOURGE(6)
+             end select
+             select type (g => massFunctionDescriptors(24)%geometry)
+             type is (surveyGeometryTomczak2014ZFOURGE)
+                g=surveyGeometryTomczak2014ZFOURGE(7)
+             end select
+             select type (g => massFunctionDescriptors(25)%geometry)
+             type is (surveyGeometryMuzzin2013ULTRAVISTA)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(0)
+             end select
+             select type (g => massFunctionDescriptors(26)%geometry)
+             type is (surveyGeometryMuzzin2013ULTRAVISTA)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(1)
+             end select
+             select type (g => massFunctionDescriptors(27)%geometry)
+             type is (surveyGeometryMuzzin2013ULTRAVISTA)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(2)
+             end select
+             select type (g => massFunctionDescriptors(28)%geometry)
+             type is (surveyGeometryMuzzin2013ULTRAVISTA)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(3)
+             end select
+             select type (g => massFunctionDescriptors(29)%geometry)
+             type is (surveyGeometryMuzzin2013ULTRAVISTA)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(4)
+             end select
+             select type (g => massFunctionDescriptors(30)%geometry)
+             type is (surveyGeometryMuzzin2013ULTRAVISTA)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(5)
+             end select
+             select type (g => massFunctionDescriptors(31)%geometry)
+             type is (surveyGeometryMuzzin2013ULTRAVISTA)
+                g=surveyGeometryMuzzin2013ULTRAVISTA(6)
+             end select
+             ! Initialize analyses.
              currentAnalysis=0
              allocate(massFunctions(activeAnalysisCount))
              cosmologyFunctionsModel => cosmologyFunctions()

@@ -292,12 +292,6 @@ contains
                &                                                        )
           ! Establish mapping functions for size function descriptors.
           sizeFunctionDescriptors(1)%mapRadius => Map_Radius_SDSS_Size_Function_Z0_07
-          ! Establish survey geometries.
-          allocate(surveyGeometryLiWhite2009SDSS :: sizeFunctionDescriptors(1)%geometry)
-          select type (g => sizeFunctionDescriptors(1)%geometry)
-          type is (surveyGeometryLiWhite2009SDSS)
-             g=surveyGeometryLiWhite2009SDSS()
-          end select
           ! Determine how many supported mass functions are requested.
           activeAnalysisCount=0
           do i=1,sizeFunctionsSupportedCount
@@ -308,6 +302,13 @@ contains
              analysisActive=.false.
           else
              analysisActive=.true.
+             ! Establish survey geometries.
+             allocate(surveyGeometryLiWhite2009SDSS :: sizeFunctionDescriptors(1)%geometry)
+             select type (g => sizeFunctionDescriptors(1)%geometry)
+             type is (surveyGeometryLiWhite2009SDSS)
+                g=surveyGeometryLiWhite2009SDSS()
+             end select
+             ! Initialize analyses.
              currentAnalysis=0
              allocate(sizeFunctions(activeAnalysisCount))
              cosmologyFunctionsModel => cosmologyFunctions()
