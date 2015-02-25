@@ -23,10 +23,15 @@ module Test_Integration2_Functions
   use ISO_Varying_String
   implicit none
   private
-  public :: testIntegrator , testFunctionsInitialize,                               &
-       &    function1Scalar, function1Vector        , function1YEPPP, function1GSL, &
-       &    function2Scalar, function2Vector        , function2YEPPP, function2GSL, &
-       &    function3Scalar, function3Vector        , function3YEPPP, function3GSL
+  public :: testIntegrator , testFunctionsInitialize,               &
+       &    function1Scalar, function1Vector        , function1GSL, &
+       &    function2Scalar, function2Vector        , function2GSL, &
+       &    function3Scalar, function3Vector        , function3GSL
+#ifdef YEPPP
+  public :: function1YEPPP, &
+       &    function2YEPPP, &
+       &    function3YEPPP 
+#endif
 
   type :: testIntegrator
      !% Type used for testing numerical integrators.
@@ -42,7 +47,9 @@ module Test_Integration2_Functions
      double precision                                   :: rangeLow   , rangeHigh, solution
      procedure       (function1Scalar), pointer, nopass :: scalar
      procedure       (function1Vector), pointer, nopass :: vector
+#ifdef YEPPP
      procedure       (function1YEPPP ), pointer, nopass :: yeppp
+#endif
      procedure       (function1GSL   ), pointer, nopass :: gsl
   end type testFunction
 
@@ -54,11 +61,19 @@ contains
   subroutine testFunctionsInitialize()
     !% Initalize an array of test functions for integration tests.
     implicit none
+#ifdef YEPPP
     testFunctions=[                                                                                                                                   &
          &         testFunction('log(x) sin(x)   ',1.0d0,10.0d0, 1.549173238901735869d0,function1Scalar,function1Vector,function1YEPPP,function1GSL), &
          &         testFunction('1/sqrt(x)       ',1.0d0,10.0d0, 4.324555320336759000d0,function2Scalar,function2Vector,function2YEPPP,function2GSL), &
          &         testFunction('1/(10⁻³+[x-3]²) ',1.0d0,10.0d0,98.703068147327100000d0,function3Scalar,function3Vector,function3YEPPP,function3GSL)  &
          &        ]
+#else
+    testFunctions=[                                                                                                                                   &
+         &         testFunction('log(x) sin(x)   ',1.0d0,10.0d0, 1.549173238901735869d0,function1Scalar,function1Vector,function1GSL), &
+         &         testFunction('1/sqrt(x)       ',1.0d0,10.0d0, 4.324555320336759000d0,function2Scalar,function2Vector,function2GSL), &
+         &         testFunction('1/(10⁻³+[x-3]²) ',1.0d0,10.0d0,98.703068147327100000d0,function3Scalar,function3Vector,function3GSL)  &
+         &        ]
+#endif
     return
   end subroutine testFunctionsInitialize
 
@@ -80,6 +95,7 @@ contains
     return
   end function function1Vector
 
+#ifdef YEPPP
  function function1YEPPP(x)
     !% Test function number 1 for numerical integration tests: YEPPP! vector version.
     use, intrinsic :: ISO_C_Binding
@@ -98,6 +114,7 @@ contains
     s=yepCore_Multiply_V64fV64f_V64f(y,z,function1YEPPP,n)
     return
   end function function1YEPPP
+#endif
 
   function function1GSL(x,parameterPointer) bind(c)
     !% Test function number 1 for numerical integration tests: \gls{gsl} version.
@@ -129,6 +146,7 @@ contains
     return
   end function function2Vector
 
+#ifdef YEPPP
  function function2YEPPP(x)
     !% Test function number 2 for numerical integration tests: YEPPP! vector version.
     use, intrinsic :: ISO_C_Binding
@@ -147,7 +165,8 @@ contains
     s=yepMath_Exp_V64f_V64f         (z       ,function2YEPPP,n)
     return
   end function function2YEPPP
-
+#endif
+  
   function function2GSL(x,parameterPointer) bind(c)
     !% Test function number 2 for numerical integration tests: \gls{gsl} version.
     use, intrinsic :: ISO_C_Binding
@@ -178,6 +197,7 @@ contains
     return
   end function function3Vector
 
+#ifdef YEPPP
  function function3YEPPP(x)
     !% Test function number 3 for numerical integration tests: YEPPP! vector version.
     use, intrinsic :: ISO_C_Binding
@@ -197,6 +217,7 @@ contains
     function3YEPPP=1.0d0/w3
     return
   end function function3YEPPP
+#endif
 
   function function3GSL(x,parameterPointer) bind(c)
     !% Test function number 3 for numerical integration tests: \gls{gsl} version.
@@ -209,6 +230,5 @@ contains
     function3GSL=1.0d0/(1.0d-3+(x-3.0d0)**2)
     return
   end function function3GSL
-
 
 end module Test_Integration2_Functions
