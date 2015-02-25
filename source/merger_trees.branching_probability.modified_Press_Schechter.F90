@@ -238,6 +238,7 @@ contains
     !% Used to find the mass of a merger tree branching event.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
+    use Galacticus_Error
     implicit none
     double precision       , intent(in   ) :: logMassMaximum
     double precision                       :: integral        , massMaximum
@@ -548,7 +549,7 @@ contains
     real(kind=c_double), value :: logChildHaloMass
     type(c_ptr        ), value :: parameterPointer
     real(kind=c_double)        :: childAlpha                     , childSigma, childHaloMass
-
+    
     childHaloMass=exp(logChildHaloMass)
     call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
     Branching_Probability_Integrand_Logarithmic=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)*childHaloMass
