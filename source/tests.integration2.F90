@@ -28,7 +28,9 @@ program Test_Integration2
   use Galacticus_Error
   use Galacticus_Display
   use ISO_Varying_String
+#ifdef YEPPP
   use yepLibrary
+#endif
   implicit none
   double precision                                                         :: timeMean                       , error
   integer         (kind=kind_int8            )                             :: countStart                     , countEnd                , &
@@ -54,7 +56,9 @@ program Test_Integration2
   integer                                     , parameter                  :: trialCount              =10
   
   ! Initialize the YEPPP library.
+#ifdef YEPPP
   yepppStatus=yepLibrary_Init()
+#endif
   ! Determine units of system clock.
   call System_Clock(countStart,countRate)
   select case (countRate)
@@ -77,16 +81,16 @@ program Test_Integration2
      call Galacticus_Display_Indent(message)
      ! Allocate integrators.
      allocate(integratorCompositeTrapezoidal1D            :: integrators( 1)%integrator_)
-     integrators(1)%description="Scalar composite trapezdoial"
+     integrators(1)%description="Scalar composite trapezoidal"
      integrators(1)%useYEPPP=.false.
      allocate(integratorAdaptiveCompositeTrapezoidal1D    :: integrators( 2)%integrator_)
-     integrators(2)%description="Scalar adaptive composite trapezdoial"
+     integrators(2)%description="Scalar adaptive composite trapezoidal"
      integrators(2)%useYEPPP=.false.
      allocate(integratorVectorizedCompositeTrapezoidal1D  :: integrators( 3)%integrator_)
-     integrators(3)%description="Vector adaptive composite trapezdoial"
+     integrators(3)%description="Vector adaptive composite trapezoidal"
      integrators(3)%useYEPPP=.false.
      allocate(integratorVectorizedCompositeTrapezoidal1D  :: integrators( 4)%integrator_)
-     integrators(4)%description="Vector YEPPP! adaptive composite trapezdoial"
+     integrators(4)%description="Vector YEPPP! adaptive composite trapezoidal"
      integrators(4)%useYEPPP=.true.
      allocate(integratorCompositeGaussKronrod1D           :: integrators( 5)%integrator_)
      integrators(5)%description="Scalar adaptive composite Gauss-Kronrod 15-point"
@@ -120,7 +124,7 @@ program Test_Integration2
      write (formatter,'(a,i3.3,a)') '(a',descriptionLengthMaximum,',": ⏲=",f14.3,1x,a,1x,"∫=",f14.10,1x,"ℯ=",e14.8," [",a,"]")'
      ! Initialize integrators.
      do i=1,integratorCount
-     select type (integrator_ => integrators(i)%integrator_)
+        select type (integrator_ => integrators(i)%integrator_)
         class is (integratorCompositeTrapezoidal1D           )
            call integrator_%initialize  (24                                    )
            call integrator_%toleranceSet(toleranceAbsolute,toleranceRelative   )
@@ -146,11 +150,15 @@ program Test_Integration2
         class is (integrator1D)
            call    integrator_%integrandSet(testFunctions(iFunction)%scalar)
         class is (integratorVectorized1D)
+#ifdef YEPPP
            if (integrators(i)%useYEPPP) then
               call integrator_%integrandSet(testFunctions(iFunction)%yeppp )
            else
+#endif
               call integrator_%integrandSet(testFunctions(iFunction)%vector)
+#ifdef YEPPP
            end if
+#endif
         class default
            call Galacticus_Error_Report('Test_Integration2','unknown integrator class [2]')
         end select
@@ -162,7 +170,7 @@ program Test_Integration2
      do trial=1,trialCount
         ! Evaluate internal integrators.
         do i=1,integratorCount
-           select type (integrator_ => integrators(i)%integrator_)
+          select type (integrator_ => integrators(i)%integrator_)
            class is (integrator1D)
               call System_Clock(countStart,countRate)
               integral(i)=integrator_%evaluate(testFunctions(iFunction)%rangeLow,testFunctions(iFunction)%rangeHigh)
@@ -176,7 +184,7 @@ program Test_Integration2
            class default
               call Galacticus_Error_Report('Test_Integration2','unknown integrator class [3]')
           end select
-        end do        
+        end do
         ! Evaluate GSL integrators.
         do i=1,2
            select case (i)
@@ -250,5 +258,7 @@ program Test_Integration2
      call Galacticus_Display_Unindent("done")
   end do
   ! Release the YEPPP! library.
+#ifdef YEPPP
   yepppStatus=yepLibrary_Release()
+#endif
 end program Test_Integration2

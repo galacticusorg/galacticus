@@ -1063,8 +1063,8 @@ contains
     !% Evaluate a one-dimension integral using a numerical vectorized composite trapezoidal rule.
     use Numerical_Comparison
     use Galacticus_Error
-#ifdef YEPPP
     use, intrinsic :: ISO_C_Binding
+#ifdef YEPPP
     use yepCore
     use yepMath
 #endif
