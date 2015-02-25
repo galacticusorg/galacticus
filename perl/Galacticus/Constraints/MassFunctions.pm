@@ -124,16 +124,16 @@ sub Construct {
 	my $cosmologyModel    = Astro::Cosmology->new(omega_matter => $galacticus->{'parameters'}->{'Omega_Matter'}, omega_lambda => $galacticus->{'parameters'}->{'Omega_DE'}, h0 => $galacticus->{'parameters'}->{'H_0'});
 	my $cosmologyScalingMass         = 1.0;
 	my $cosmologyScalingMassFunction = 1.0;
-	if ( $config->{'cosmologyScalingMass'}->atstr(0) eq 'none' || $config->{'redshift'} <= 0.0 ) {
+	if ( $config->{'cosmologyScalingMass'} eq 'none' || $config->{'redshift'} <= 0.0 ) {
 	    # Nothing to do.
-	} elsif ( $config->{'cosmologyScalingMass'}->atstr(0) eq 'luminosity' ) {
+	} elsif ( $config->{'cosmologyScalingMass'} eq 'luminosity' ) {
 	    $cosmologyScalingMass = ($cosmologyObserved->luminosity_distance($config->{'redshift'})/$cosmologyModel->luminosity_distance($config->{'redshift'}))**2;
 	} else {
 	    die('MassFunctions::Construct: unrecognized cosmology scaling');
 	}
-	if ( $config->{'cosmologyScalingMassFunction'}->atstr(0) eq 'none' || $config->{'redshift'} <= 0.0 ) {
+	if ( $config->{'cosmologyScalingMassFunction'} eq 'none' || $config->{'redshift'} <= 0.0 ) {
 	    # Nothing to do.
-	} elsif ( $config->{'cosmologyScalingMassFunction'}->atstr(0) eq 'inverseComovingVolume' ) {
+	} elsif ( $config->{'cosmologyScalingMassFunction'} eq 'inverseComovingVolume' ) {
 	    $cosmologyScalingMassFunction =
 		($cosmologyModel->comoving_distance($config->{'redshift'})/$cosmologyObserved->comoving_distance($config->{'redshift'}))**2
 		/($cosmologyModel->h0($config->{'redshift'})/$cosmologyObserved->h0($config->{'redshift'}))**2;
