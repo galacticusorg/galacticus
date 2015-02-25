@@ -967,13 +967,14 @@ module Galacticus_Nodes
     return
   end function Node_Component_Surface_Density_Null
 
-  double precision function Node_Component_Potential_Null(self,radius,componentType,massType,haloLoaded)
+  double precision function Node_Component_Potential_Null(self,radius,componentType,massType,haloLoaded,status)
     !% A null implementation of the gravitational potential in a component. Always returns zero.
     implicit none
     class           (nodeComponent), intent(inout)           :: self
     integer                        , intent(in   )           :: componentType, massType
     double precision               , intent(in   )           :: radius
     logical                        , intent(in   ), optional :: haloLoaded
+    integer                        , intent(inout), optional :: status
 
     Node_Component_Potential_Null=0.0d0
     return
