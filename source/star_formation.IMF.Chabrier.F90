@@ -27,20 +27,18 @@ module Star_Formation_IMF_Chabrier
        &, Star_Formation_IMF_Phi_Chabrier
 
   ! Index assigned to this IMF.
-  integer                     :: imfIndex                        =-1
+  integer           :: imfIndex                        =-1
 
   ! Flag indicating if the module has been initialized.
-  logical                     :: imfChabrierInitialized          =.false.
+  logical          :: imfChabrierInitialized          =.false.
 
   ! Parameters of the IMF.
-  double precision            :: imfChabrierRecycledInstantaneous               , imfChabrierYieldInstantaneous
-
-  ! Fixed parameters of the IMF.
-  double precision, parameter :: chabrierMassLower               =0.1d0         , chabrierMassTransition       =1.0d0          , &
-       &                         chabrierMassUpper               =125.0d0
-  double precision, parameter :: chabrierExponent                =-2.3d0        , chabrierMass                 =0.08d0         , &
-       &                         chabrierSigma                   =0.69d0
-  double precision, parameter :: normalizationExponential        =0.2353362401d0, normalizationLogNormal       =0.8326617874d0
+  double precision :: imfChabrierRecycledInstantaneous        , imfChabrierYieldInstantaneous
+  double precision :: imfChabrierMassLower                    , imfChabrierMassTransition    , &
+       &              imfChabrierMassUpper               
+  double precision :: imfChabrierExponent                     , imfChabrierMass              , &
+       &              imfChabrierSigma                   
+  double precision :: normalizationExponential                , normalizationLogNormal       
 
 contains
 
@@ -65,17 +63,34 @@ contains
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfDescriptors(:), imfNames(:)
-
+    type     (varying_string), intent(inout) :: imfDescriptors(:), imfNames(:)
+    character(len=7         )                :: label
+    
+    call Star_Formation_IMF_Initialize_Chabrier()
     imfNames      (imfIndex)="Chabrier"
     imfDescriptors(imfIndex)="Chabrier"
+    write (label,'(f7.3)') imfChabrierMassLower
+    imfDescriptors(imfIndex)=imfDescriptors(imfIndex)//":mLow"  //trim(adjustl(label))
+    write (label,'(f7.3)') imfChabrierMassUpper
+    imfDescriptors(imfIndex)=imfDescriptors(imfIndex)//":mUp"   //trim(adjustl(label))
+    write (label,'(f7.3)') imfChabrierMassTransition
+    imfDescriptors(imfIndex)=imfDescriptors(imfIndex)//":mTrans"//trim(adjustl(label))
+    write (label,'(f7.3)') imfChabrierMass
+    imfDescriptors(imfIndex)=imfDescriptors(imfIndex)//":m"     //trim(adjustl(label))
+    write (label,'(f7.3)') imfChabrierSigma
+    imfDescriptors(imfIndex)=imfDescriptors(imfIndex)//":sigma" //trim(adjustl(label))
+    write (label,'(f7.3)') imfChabrierExponent
+    imfDescriptors(imfIndex)=imfDescriptors(imfIndex)//":alpha" //trim(adjustl(label))
     return
   end subroutine Star_Formation_IMF_Register_Name_Chabrier
 
   subroutine Star_Formation_IMF_Initialize_Chabrier
     !% Initialize the Chabrier IMF module.
     use Input_Parameters
+    use Error_Functions
+    use Numerical_Constants_Math
     implicit none
+    double precision :: normalization
 
     if (.not.imfChabrierInitialized) then
        !$omp critical (IMF_Chabrier_Initialize)
@@ -104,6 +119,142 @@ contains
           !@   <group>initialMassFunction</group>
           !@ </inputParameter>
           call Get_Input_Parameter('imfChabrierYieldInstantaneous'   ,imfChabrierYieldInstantaneous   ,defaultValue=0.035d0)
+          !@ <inputParameter>
+          !@   <name>imfChabrierMassUpper</name>
+          !@   <defaultValue>125</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The upper mass limit for the Chabrier \gls{imf}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfChabrierMassUpper'            ,imfChabrierMassUpper            ,defaultValue=125.0d0)
+          !@ <inputParameter>
+          !@   <name>imfChabrierMassLower</name>
+          !@   <defaultValue>0.1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The lower mass limit for the Chabrier \gls{imf}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfChabrierMassLower'            ,imfChabrierMassLower            ,defaultValue=  0.1d0)
+          !@ <inputParameter>
+          !@   <name>imfChabrierMassTransition</name>
+          !@   <defaultValue>0.1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The transition limit for the Chabrier \gls{imf}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfChabrierMassTransition'       ,imfChabrierMassTransition       ,defaultValue=  1.0d0)
+          !@ <inputParameter>
+          !@   <name>imfChabrierSigma</name>
+          !@   <defaultValue>0.1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The width of the lognormal part of the Chabrier \gls{imf}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfChabrierSigma'                ,imfChabrierSigma                ,defaultValue=  0.69d0)
+          !@ <inputParameter>
+          !@   <name>imfChabrierExponent</name>
+          !@   <defaultValue>0.1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The exponent of the power law part of the Chabrier \gls{imf}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfChabrierExponent'            ,imfChabrierExponent              ,defaultValue=  -2.3d0)
+          !@ <inputParameter>
+          !@   <name>imfChabrierMass</name>
+          !@   <defaultValue>0.08</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Characteristic mass of the lognormal part of the Chabrier \gls{imf}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfChabrierMass'                ,imfChabrierMass                  ,defaultValue= 0.08d0)
+          ! Compute normalizations.
+          normalizationLogNormal  =+sqrt(Pi/2.0d0)                                     &
+                &                  *imfChabrierSigma                                   &
+                &                  *imfChabrierMass                                    &
+                &                  *log(10.0d0)                                        &
+                &                  *exp(                                               &
+                &                       +0.5d0                                         &
+                &                       *imfChabrierSigma**2                           &
+                &                       *log(10.0d0)     **2                           &
+                &                      )                                               &
+                &                  *(                                                  &
+                &                    -Error_Function(                                  &
+                &                                    +imfChabrierSigma                 &
+                &                                    *log (10.0d0)                     &
+                &                                    /sqrt( 2.0d0)                     &
+                &                                    -log10(                           &
+                &                                           +imfChabrierMassTransition &
+                &                                           /imfChabrierMass           &
+                &                                          )                           &
+                &                                    /sqrt( 2.0d0)                     &
+                &                                    /imfChabrierSigma                 &
+                &                                   )                                  &
+                &                    +Error_Function(                                  &
+                &                                    +imfChabrierSigma                 &
+                &                                    *log (10.0d0)                     &
+                &                                    /sqrt( 2.0d0)                     &
+                &                                    -log10(                           &
+                &                                           +imfChabrierMassLower      &
+                &                                           /imfChabrierMass           &
+                &                                          )                           &
+                &                                    /sqrt( 2.0d0)                     &
+                &                                    /imfChabrierSigma                 &
+                &                                   )                                  &
+                &                   )
+          normalizationExponential=+exp(                                                       &
+               &                        -0.50d0                                                &
+               &                        *log10(                                                &
+               &                               +imfChabrierMassTransition                      &
+               &                               /imfChabrierMass                                &
+               &                              )                          **2                   &
+               &                        /imfChabrierSigma                **2                   &
+               &                       )                                                       &
+               &                   *imfChabrierMassTransition                                  &
+               &                   /                               (2.0d0+imfChabrierExponent) &
+               &                   *(                                                          &
+               &                     +(                                                        &
+               &                       +imfChabrierMassUpper                                   &
+               &                       /imfChabrierMassTransition                              &
+               &                      )                          **(2.0d0+imfChabrierExponent) &
+               &                     -1.0d0                                                    &
+               &                    )
+          normalization           =normalizationLogNormal+normalizationExponential
+          normalizationLogNormal  =1.0d0/normalization
+          normalizationExponential=+exp(                                     &
+               &                        -0.50d0                              &
+               &                        *log10(                              &
+               &                               +imfChabrierMassTransition    &
+               &                               /imfChabrierMass              &
+               &                              )                          **2 &
+               &                        /imfChabrierSigma                **2 &
+               &                       )                                     &
+               &                   /imfChabrierMassTransition                &
+               &                   /normalization
+          ! Record that initialization is done.
           imfChabrierInitialized=.true.
        end if
        !$omp end critical (IMF_Chabrier_Initialize)
@@ -123,7 +274,7 @@ contains
 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Chabrier
-       minimumMass=chabrierMassLower
+       minimumMass=imfChabrierMassLower
        imfMatched=.true.
     end if
     return
@@ -141,7 +292,7 @@ contains
 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Chabrier
-       maximumMass=chabrierMassUpper
+       maximumMass=imfChabrierMassUpper
        imfMatched=.true.
     end if
     return
@@ -219,10 +370,10 @@ contains
        allocate(table1DLogarithmicLinear :: imf)
        select type (imf)
        type is (table1DLogarithmicLinear)
-          call imf%create  (                   &
-               &            chabrierMassLower, &
-               &            chabrierMassUpper, &
-               &            nPoints            &
+          call imf%create  (                      &
+               &            imfChabrierMassLower, &
+               &            imfChabrierMassUpper, &
+               &            nPoints               &
                &           )
           call imf%populate(Chabrier_Phi(imf%xs()))
           imfMatched=.true.
@@ -236,10 +387,10 @@ contains
     implicit none
     double precision, intent(in   ) :: mass
 
-    if (mass >= chabrierMassLower .and. mass < chabrierMassTransition) then
-       Chabrier_Phi=normalizationLogNormal*exp(-0.5d0*(log10(mass/chabrierMass)/chabrierSigma)**2)/mass
-    else if (mass >= chabrierMassTransition .and. mass < chabrierMassUpper) then
-       Chabrier_Phi=normalizationExponential*(mass**chabrierExponent)
+    if (mass >= imfChabrierMassLower .and. mass < imfChabrierMassTransition) then
+       Chabrier_Phi=normalizationLogNormal*exp(-0.5d0*(log10(mass/imfChabrierMass)/imfChabrierSigma)**2)/mass
+    else if (mass >= imfChabrierMassTransition .and. mass < imfChabrierMassUpper) then
+       Chabrier_Phi=normalizationExponential*(mass**imfChabrierExponent)
     else
        Chabrier_Phi=0.0d0
     end if
