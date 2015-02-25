@@ -2,7 +2,7 @@
 
 \section{Analytic Solvers}
 
-\glc\ typically solves the system of \glsp{ode} which describe the evolution of a galaxy using a numerical solver. However, in some situations analytic solutions may be available. \glc\ allows for the use of analytic solvers in such cases. Currently available analytic solvers are described below.
+\glc\ typically solves the system of \glspl{ode} which describe the evolution of a galaxy using a numerical solver. However, in some situations analytic solutions may be available. \glc\ allows for the use of analytic solvers in such cases. Currently available analytic solvers are described below.
 
 \subsection{Simple Disk Satellites}
 
@@ -686,6 +686,27 @@ Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \tt
   \rho_{\mathrm dark matter}(r) = \rho_{-2} \exp \left( - {2 \over \alpha} \left[ \left( {r \over r_{-2}} \right)^\alpha - 1 \right] \right),
 \end{equation}
 normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the characteristic length $r_{-2} = r_{\mathrm virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}). The shape parameter, $\alpha$, is set using the density profile shape method (see \S\ref{sec:DarkMatterProfileShape}).
+
+\subsubsection{Burkert}\index{Burkert profile}\index{density profile!Burkert}
+
+Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily Burkert}, under this method the \gls{nfw} density profile \citep{burkert_structure_1995} is used
+\begin{equation}
+  \rho_{\rm dark matter}(r) \propto \left(1+{r\over r_{\mathrm s}}\right)^{-1} \left(1+[{r\over r_{\mathrm s}}]^2\right)^{-1},
+\end{equation}
+normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length $r_{\mathrm s} = r_{\mathrm virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}). The mass enclosed within radius $r$ is given by
+\begin{equation}
+M(<r) = M_{\rm virial} {2 \log(1 + R) + \log(1 + R^2) -2 \tan^{-1}(R) \over 2 \log(1 + c) + \log(1 + c^2) -2 \tan^{-1}(c)},
+\end{equation}
+where $R=r/r_{\rm s}$. The associated gravitational potential is
+\begin{equation}
+\Phi(r) = -{\rm G} \left(1+{1 \over R}\right) { 2 \tan^{-1}(R) - 2 \log(1 + R) + \log(1 + R^2) \over -2 \tan^{-1}(c) + 2 \log(1 + c) + \log(1 + c^2) }.
+\end{equation}
+The peak of the rotation curve occurs at $R=3.2446257246042642$ (found by numerical solution), and the Fourier transform of the profile, $F(k) = \int_0^c 4 \pi r^2 \exp(-i k r) \rho(r) {\rm d} r / k r$ (needed in calculations of clustering using the halo model) is given by
+\begin{eqnarray}
+  F(k) &=& \left\{2 \exp(-i k) {\rm C}_{\rm i}(k) - 2 \exp(-i k) {\rm C}_{\rm i}(k[1 + c]) + (1 + i) \left[-i \exp(k) \pi - \exp(k) {\rm E}_{\rm i}(-k) \right. \right. \nonumber \\
+    & & +i \exp(-k) {\rm E}_{\rm i}(k) + \exp(k) {\rm E}_{\rm i}(i [i + c] k) - i \exp(-k) {\rm E}_{\rm i}(k [1 + i c ]) + (1 + i) \exp(-i k) {\rm S}_{\rm i}(k) \nonumber \\
+    & & \left. \left. - (1 + i) \exp(-i k) {\rm S}_{\rm i}(k[1 + c])\right]\right\}/\left[k \left\{-2 \tan^{-1}(c) + 2 \log(1 + c) + \log(1 + c^2)\right\}\right].
+\end{eqnarray}
 
 \subsection{Dark Matter Halo Profile Concentration}\label{sec:DarkMatterProfileConcentration}\index{dark matter profile!concentration}
 
@@ -2439,7 +2460,7 @@ Selected with {\normalfont \ttfamily virialOrbitMethod}$=${\normalfont \ttfamily
 
 \subsubsection{Jiang et al. (2014)}\label{phys:virialOrbit:virialOrbitJiang2014}
 
-Selected with {\normalfont \ttfamily virialOrbitMethod}$=${\normalfont \ttfamily jiang2014}, this method selects orbital parameters randomly from the distribution given by \cite{jiang_orbital_2014}, including the mass and mass-ratio dependence of the distributions. If the virial density contrast definition differs from that used by \cite{jiang_orbital_2014_} then the orbit is assigned based on \cite{jiang_orbital_2014}'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
+Selected with {\normalfont \ttfamily virialOrbitMethod}$=${\normalfont \ttfamily jiang2014}, this method selects orbital parameters randomly from the distribution given by \cite{jiang_orbital_2014}, including the mass and mass-ratio dependence of the distributions. If the virial density contrast definition differs from that used by \cite{jiang_orbital_2014} then the orbit is assigned based on \cite{jiang_orbital_2014}'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
 
 \subsection{Node Merging}
 
