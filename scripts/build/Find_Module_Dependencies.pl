@@ -11,10 +11,10 @@ my $sourcedir = $ARGV[0];
 
 #
 # Open an output file
-open(my $outfile,">$sourcedir/work/build/Makefile_Module_Deps");
+open(my $outfile,">".$sourcedir."/".$ENV{'BUILDPATH'}."/Makefile_Module_Deps");
 
 # Specify a work directory.
-my $workDir = "/work/build/";
+my $workDir = $ENV{'BUILDPATH'}."/";
 
 #
 # Build a list of source directories,
@@ -28,7 +28,7 @@ if ( -e $sourcedirs[0] ) {
 	    unless ( $line =~ m/^\.+$/ ) {
 		push(@sourcedirs,$sourcedirs[0]."/".$line    );
 		push(@bases     ,                   $line."/");
-		system("mkdir -p ./work/build/$line");
+		system("mkdir -p ".$ENV{'BUILDPATH'}."/".$line);
 	    }
 	}
     }
@@ -44,7 +44,7 @@ foreach my $srcdir ( @sourcedirs ) {
     my $base = $bases[$ibase];
     opendir(my $indir,$srcdir) or die "Can't open the source directory:";
     while (my $fname = readdir $indir) {
-	if ( ( ( ( lc($fname) =~ m/\.f(90)??$/ ) && ! -e $srcdir."/".$fname."t" ) || ( lc($fname) =~ m/\.f90t$/ ) ) && lc($fname) !~ m/^\.\#/ && ( ! -e "./Extensions/Sources/".$fname || $srcdir =~ m/\/Extensions\/Sources/ ) ) {
+	if ( ( ( ( lc($fname) =~ m/\.f(90)??$/ ) && ! -e $srcdir."/".$fname."t" ) || ( lc($fname) =~ m/\.f90t$/ ) ) && lc($fname) !~ m/^\.\#/ ) {
 	    my $pname = $fname;
 	    my $fullname = "$srcdir/$fname";
 	    my $doesio = 0;
@@ -95,24 +95,24 @@ foreach my $srcdir ( @sourcedirs ) {
 			    my $incfile = substr($tline,$startpos,$sublen).".mod";
 			    $incfile =~ s/\r//g;
 			    push(@allmods,$incfile);
-			    print $outfile ".".$workDir.lc($incfile),": .",$workDir,$base,$oname,"\n";
-			    print $outfile "\t\@if [ ! -f .",$workDir.lc($incfile)," ]; then \\\n";
-			    print $outfile "\t  rm .$workDir$base$oname ; \\\n";
-			    print $outfile "\t  \$(MAKE) .$workDir$base$oname ; \\\n";
+			    print $outfile $workDir.lc($incfile),": ",$workDir,$base,$oname,"\n";
+			    print $outfile "\t\@if [ ! -f ",$workDir.lc($incfile)," ]; then \\\n";
+			    print $outfile "\t  rm $workDir$base$oname ; \\\n";
+			    print $outfile "\t  \$(MAKE) $workDir$base$oname ; \\\n";
 			    print $outfile "\tfi\n\n";
 			    my $dname = $oname;
 			    $dname =~ s/.o$/.d/;
-			    print $outfile ".".$workDir,lc($incfile),".d: .",$workDir,$base,$dname,"\n";
-			    print $outfile "\t\@echo .",$workDir.$base,$oname," > .",$workDir,lc($incfile),".d\n";
-			    print $outfile "\t\@cat .",$workDir.$base,$dname," >> .",$workDir,lc($incfile),".d\n";
+			    print $outfile $workDir,lc($incfile),".d: ",$workDir,$base,$dname,"\n";
+			    print $outfile "\t\@echo ",$workDir.$base,$oname," > ",$workDir,lc($incfile),".d\n";
+			    print $outfile "\t\@cat ",$workDir.$base,$dname," >> ",$workDir,lc($incfile),".d\n";
 			    
 			    # Create rule for making a *.mod.gv file which is used in building GraphViz descriptions of source
 			    # file dependencies.
 			    my $gvname = $pname.".gv";
 			    my $modname = $incfile;
 			    $modname =~ s/.mod$//;
-			    print $outfile ".".$workDir,lc($incfile),".gv: .",$workDir,$base,$dname," .",$workDir,$base,$gvname."\n";
-			    print $outfile "\t\@echo ",$base,$pname." > .",$workDir,lc($incfile).".gv\n";
+			    print $outfile $workDir,lc($incfile),".gv: ",$workDir,$base,$dname," ",$workDir,$base,$gvname."\n";
+			    print $outfile "\t\@echo ",$base,$pname." > ",$workDir,lc($incfile).".gv\n";
 
 			}
 		    }
@@ -124,14 +124,14 @@ foreach my $srcdir ( @sourcedirs ) {
 		if ( @allmods ) {
 		    my $mname = $fname;
 		    $mname =~ s/\.[fFt90]+$/\.m/;
-		    print $outfile ".$workDir$base$mname:\n";
+		    print $outfile "$workDir$base$mname:\n";
 		    my $first = 1;
 		    foreach my $mod ( @allmods ) {
 			if ( $first == 1 ) {
 			    $first = 0;
-			    print $outfile "\t\@echo .$workDir$mod > .$workDir$base$mname\n";
+			    print $outfile "\t\@echo $workDir$mod > $workDir$base$mname\n";
 			} else {
-			    print $outfile "\t\@echo .$workDir$mod >> .$workDir$base$mname\n";
+			    print $outfile "\t\@echo $workDir$mod >> $workDir$base$mname\n";
 			}
 		    }
 		    print $outfile "\n";
