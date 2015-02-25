@@ -80,6 +80,7 @@ contains
 
   function cole2000DefaultConstructor()
     !% Default constructor for the \cite{cole_hierarchical_2000} merger tree building class.
+    use, intrinsic :: ISO_C_Binding
     use Input_Parameters
     use ISO_Varying_String
     use Cosmology_Functions
@@ -164,6 +165,10 @@ contains
     cole2000DefaultConstructor%ompThreadOffset                         =.true.
     cole2000DefaultConstructor%incrementSeed                           =0
     cole2000DefaultConstructor%branchingIntervalDistributionInitialized=.false.
+    if (FGSL_Well_Defined(cole2000DefaultConstructor%      pseudoSequence)) &
+         & call FGSL_Obj_C_Ptr(cole2000DefaultConstructor%      pseudoSequence,C_Null_Ptr)
+    if (FGSL_Well_Defined(cole2000DefaultConstructor%clonedPseudoSequence)) &
+         & call FGSL_Obj_C_Ptr(cole2000DefaultConstructor%clonedPseudoSequence,C_Null_Ptr)
     return
   end function cole2000DefaultConstructor
 
@@ -277,7 +282,7 @@ contains
              accretionFraction          =accretionFraction       *deltaW
              ! Accretion fraction must be less than unity. Reduce timestep (and branching probability and accretion fraction) by
              ! factors of two until this condition is satisfied.
-             do while (accretionFraction >= 1.0d0)
+             do while (accretionFraction+accretionFractionCumulative >= 1.0d0)
                 if (.not.self%branchIntervalStep)                      &
                      & branchingProbability=branchingProbability*0.5d0
                 accretionFraction          =accretionFraction   *0.5d0
@@ -331,7 +336,7 @@ contains
              end if
              ! Determine the critical overdensity for collapse for the new halo(s).
              deltaCritical              =branchDeltaCriticalCurrent +deltaW
-             accretionFractionCumulative=accretionFractionCumulative+accretionFraction
+             accretionFractionCumulative=accretionFractionCumulative+accretionFraction             
              ! Create new nodes.
              select case (doBranch)
              case (.true.)
