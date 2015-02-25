@@ -484,13 +484,16 @@ with $\tau_{\mathrm disk, star~formation}$ being the greater of the star formati
 
 \noindent\emph{Node promotion:} None\\
 
-\subsection{``Exponential'' Implementation}\label{sec:DiskExponential}
+\subsection{``Standard Implementation}\label{sec:DiskStandard}
 
-This implementation assumes a disk with an exponential surface density profile in which stars trace gas.
+This implementation assumes a disk with a cylindrical symmetry and a flattened profile in which stars trace gas. Currently, one option for the density profile is allowed\footnote{The disk density distribution is handled internally using a {\normalfont \ttfamily massDistribution} object (see \S\ref{sec:MassDistributions}). As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard disk component.}:
+\begin{description}
+\item [{\normalfont \ttfamily exponentialDisk}] Assumes an exponential profile, $\rho(R,z) = \rho_0 \exp(-r/r_{\rm s}) \hbox{sech}^2(z/z_{\rm s})$, for the disk \gls{component} of a galaxy. The thickness, $z_{\rm s}/r_{\rm s}$ is set by the parameter {\normalfont \ttfamily [heightToRadialScaleDisk]}.
+\end{description}
 
 \subsubsection{Properties}
 
-The exponential galactic disk implementation defines the following properties:
+The standard galactic disk implementation defines the following properties:
 \begin{description}
  \item [{\normalfont \ttfamily massGas}] The mass of gas in the disk: $M_{\mathrm disk, gas}$ [{\normalfont \ttfamily diskMassGas}].
  \item [{\normalfont \ttfamily abundancesGas}] The mass of elements in the gaseous disk: $M_{Z, {\mathrm disk, gas}}$ [{\normalfont \ttfamily diskAbundancesGas\{abundanceName\}}].
@@ -508,7 +511,7 @@ No initialization is performed---disks are created as needed.
 
 \subsubsection{Differential Evolution}
 
-In the exponential galactic disk implementation the gas mass evolves as:
+In the standard galactic disk implementation the gas mass evolves as:
 \begin{equation}
  \dot{M}_{\mathrm disk, gas} = \dot{M}_{\mathrm cooling} - \dot{M}_{\mathrm outflow, disk} - \dot{M}_{\mathrm stars, disk} - {M_{\mathrm disk, gas}\over \tau_{\mathrm bar}} - \dot{M}_{\mathrm ram pressure} - {M_{\mathrm disk, gas} \over M_{\mathrm disk, gas} + M_{\mathrm disk, stars}} \dot{M}_{\mathrm tidal},
 \end{equation}
@@ -550,15 +553,14 @@ If the {\normalfont \ttfamily [diskOutputStarFormationRate]}\index{disk!star for
 \subsubsection{Structure}
 
 The radial size of the disk is found solving for equilibrium (i.e. the radius is such that the angular momentum of material at that radius is sufficient to provide rotational support) at the specified {\normalfont \ttfamily [diskStructureSolverRadius]} which is given in units of the disk scale length. In converting from the mean specific angular momentum of the disk to the angular momentum at that radius, a flat rotation curve is assumed, i.e.:
-\begin{eqnarray}
- j(r)/\langle j \rangle &=& r V \left/ {\int_0^\infty 2 \pi r^\prime \Sigma(r^\prime) r^\prime V {\mathrm d} r^\prime \over \int_0^\infty 2 \pi r^\prime \Sigma(r^\prime) {\mathrm d} r^\prime} \right. \nonumber \\
- j(r))/\langle j \rangle &=& r / 2 r_{\mathrm disk}.
-\end{eqnarray}
+\begin{equation}
+ j(r)/\langle j \rangle = r V \left/ {\int_0^\infty 2 \pi r^\prime \Sigma(r^\prime) r^\prime V {\mathrm d} r^\prime \over \int_0^\infty 2 \pi r^\prime \Sigma(r^\prime) {\mathrm d} r^\prime} \right. .
+\end{equation}
 The option {\normalfont \ttfamily [diskRadiusSolverCole2000Method]}, if set to {\normalfont \ttfamily true}, alters this behavior to match that of the structure solver used by \cite{cole_hierarchical_2000}, in which adiabatic contraction of the dark matter halo is solved for assuming that the disk has a spherical mass dsitribution. The specific angular momentum passed to the structure solver will be modified as follows in this case:
 \begin{equation}
  j(r) \rightarrow \left[ j^2(r) - \left( V_{\mathrm disk}^2(r) r^2 - {\mathrm G} M_{\mathrm disk}(<r) r \right) \right]^{1/2},
 \end{equation}
-where $V_{\mathrm disk}$ is the rotation curve in the plane of an infinitely thin exponential disk. This adjustment accounts for the difference between a thin disk and spherical mass distribution. Note that in this case (as in \citealt{cole_hierarchical_2000}) the resulting disk will not precisely satisfy $j(r) = r V_{\mathrm c}(r)$ where $V_{\mathrm c}(r)$ is the net rotation curve.
+where $V_{\mathrm disk}$ is the rotation curve in the plane of the disk. This adjustment accounts for the difference between a thin disk and spherical mass distribution. Note that in this case (as in \citealt{cole_hierarchical_2000}) the resulting disk will not precisely satisfy $j(r) = r V_{\mathrm c}(r)$ where $V_{\mathrm c}(r)$ is the net rotation curve.
 
 \section{Galactic Spheroid}\label{sec:ComponentSpheroid}
 
@@ -603,7 +605,7 @@ No initialization is performed---spheroids are created as needed.
 
 \subsubsection{Differential Evolution}
 
-In the standard galactic spheroid implementation the gas mass evolves as\footnote{There may be an additional contribution to the mass and angular momentum rates of change in the spheroid due to material transferred from the disk \gls{component} via the bar instability mechanism (see \S\protect\ref{sec:DiskExponential}). This is not included here as it is not intrinsic to this specific spheroid implementation---it is handled explicitly by the disk \gls{component} and so applies equally to any spheroid \gls{component} implementation.}:
+In the standard galactic spheroid implementation the gas mass evolves as\footnote{There may be an additional contribution to the mass and angular momentum rates of change in the spheroid due to material transferred from the disk \gls{component} via the bar instability mechanism (see \S\protect\ref{sec:DiskStandard}). This is not included here as it is not intrinsic to this specific spheroid implementation---it is handled explicitly by the disk \gls{component} and so applies equally to any spheroid \gls{component} implementation.}:
 \begin{equation}
  \dot{M}_{\mathrm spheroid, gas} = - \dot{M}_{\mathrm outflow, spheroid} - \dot{M}_{\mathrm stars, spheroid} - \dot{M}_{\mathrm ram pressure} - {M_{\mathrm spheroid, gas} \over M_{\mathrm spheroid, gas} + M_{\mathrm spheroid, stars}} \dot{M}_{\mathrm tidal},
 \end{equation}

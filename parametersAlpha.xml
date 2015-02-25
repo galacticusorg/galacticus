@@ -2,6 +2,7 @@
 <!-- Parameters of Galacticus model Alpha -->
 <!-- 17-March-2014                        -->
 <parameters>
+  <version>0.9.3</version>
 
   <!-- Component selection -->
   <parameter>
@@ -129,8 +130,8 @@
     <value>build</value>
   </parameter>
   <parameter>
-    <name>mergerTreeBuildMethod</name>
-    <value>Cole2000</value>
+    <name>mergerTreeBuilderMethod</name>
+    <value>cole2000</value>
   </parameter>
   <parameter>
     <name>mergerTreeBuildCole2000AccretionLimit</name>
