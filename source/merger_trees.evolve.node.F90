@@ -192,9 +192,9 @@ contains
     double precision                                                             :: startTimeThisNode
     type            (c_ptr                       )                               :: parameterPointer
 #ifdef PROFILE
-    type(c_funptr) :: Error_Analyzer
+    type            (c_funptr                    )                               :: Error_Analyzer
 #endif
-
+    
     ! Initialize.
     call Tree_Node_Evolve_Initialize()
 
@@ -239,11 +239,11 @@ contains
           call Memory_Usage_Record(sizeof(propertyScales))
           nPropertiesMax=nProperties
        end if
-    ! Serialize property values to array.
+       ! Serialize property values to array.
        call thisNode%serializeValues(propertyValues)
-    ! Compute offsets into serialization arrays for rates and scales.
-    call thisNode%serializationOffsets()
-    
+       ! Compute offsets into serialization arrays for rates and scales.
+       call thisNode%serializationOffsets()
+       
        ! Compute scales for all properties and extract from the node.
        call thisNode%odeStepScalesInitialize()
        !# <include directive="scaleSetTask" type="functionCall" functionType="void">
@@ -288,7 +288,7 @@ contains
             &                  )       
        ! Extract values.
        call thisNode%deserializeValues(propertyValues)
-    
+
        ! Ensure that the maximum time has not been exceed (can happen due to rounding errors).
        if (basicComponent%time() > endTime) call basicComponent%timeSet(endTime)
        ! Flag interruption if one occurred.
