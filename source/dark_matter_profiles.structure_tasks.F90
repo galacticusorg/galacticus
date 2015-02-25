@@ -200,7 +200,7 @@ contains
   !# <potentialTask>
   !#  <unitName>Dark_Matter_Profile_Potential_Task</unitName>
   !# </potentialTask>
-  double precision function Dark_Matter_Profile_Potential_Task(thisNode,radius,componentType,massType,haloLoaded)
+  double precision function Dark_Matter_Profile_Potential_Task(thisNode,radius,componentType,massType,haloLoaded,status)
     !% Return the potential due to dark matter.
     use Galactic_Structure_Options
     use Galacticus_Error
@@ -209,7 +209,9 @@ contains
     integer                                 , intent(in   )           :: componentType, massType
     double precision                        , intent(in   )           :: radius
     logical                                 , intent(in   ), optional :: haloLoaded
+    integer                                 , intent(inout), optional :: status
     class           (darkMatterProfileClass)               , pointer  :: darkMatterProfile_
+    integer                                                           :: statusLocal
 
     Dark_Matter_Profile_Potential_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
@@ -220,7 +222,8 @@ contains
     end if
 
     darkMatterProfile_ => darkMatterProfile()
-    Dark_Matter_Profile_Potential_Task=darkMatterProfile_%potential(thisNode,radius)
+    Dark_Matter_Profile_Potential_Task=darkMatterProfile_%potential(thisNode,radius,statusLocal)
+    if (present(status).and.statusLocal /= structureErrorCodeSuccess) status=structureErrorCodeSuccess
     return
   end function Dark_Matter_Profile_Potential_Task
 

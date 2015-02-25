@@ -303,7 +303,7 @@ contains
     end if
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%nfwInverseTableNumberPoints=int(log10(self%radiusMaximum/self%radiusMinimum)*dble(nfwInverseTablePointsPerDecade))+1
+       self%nfwInverseTableNumberPoints=int(log10(self%radiusMaximum/self%radiusMinimum)*dble(nfwInverseTablePointsPerDecade))+1       
        ! Create a range of radii.
        call self%nfwSpecificAngularMomentum%destroy(                                                       )
        call self%nfwSpecificAngularMomentum%create (self%radiusMinimum,self%radiusMaximum,self%nfwInverseTableNumberPoints)
@@ -370,8 +370,8 @@ contains
   double precision function nfwPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
+    use Galactic_Structure_Options
     use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles_Error_Codes
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout), pointer  :: node
@@ -382,9 +382,9 @@ contains
     double precision                                                          :: radiusOverScaleRadius                 , radiusTerm, &
          &                                                                       virialRadiusOverScaleRadius
 
-    if (present(status)) status=darkMatterProfileSuccess
+    if (present(status)) status=structureErrorCodeSuccess
     thisDarkMatterProfileComponent   => node%darkMatterProfile(autoCreate=.true.)
-    radiusOverScaleRadius            =radius                           /thisDarkMatterProfileComponent%scale()
+    radiusOverScaleRadius            =radius                       /thisDarkMatterProfileComponent%scale()
     virialRadiusOverScaleRadius      =self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
     if (radiusOverScaleRadius < radiusSmall) then
        ! Use a series solution for very small radii.
@@ -393,9 +393,14 @@ contains
        ! Use the full expression for larger radii.
        radiusTerm=log(1.0d0+radiusOverScaleRadius)/radiusOverScaleRadius
     end if
-    nfwPotential=(-1.0d0-virialRadiusOverScaleRadius*(radiusTerm-log(1.0d0+virialRadiusOverScaleRadius)&
-         &/virialRadiusOverScaleRadius)/(log(1.0d0 +virialRadiusOverScaleRadius)-virialRadiusOverScaleRadius/(1.0d0&
-         &+virialRadiusOverScaleRadius)))*self%scale%virialVelocity(node)**2
+    nfwPotential=-virialRadiusOverScaleRadius              &
+         &       *radiusTerm                               &
+         &       /(                                        &
+         &         +log(1.0d0+virialRadiusOverScaleRadius) &
+         &         -           virialRadiusOverScaleRadius &
+         &         /   (1.0d0+virialRadiusOverScaleRadius) &
+         &        )                                        &
+         &       *self%scale%virialVelocity(node)**2
     return
   end function nfwPotential
 
@@ -478,7 +483,6 @@ contains
     ! Compute the specific angular momentum in scale free units (using the scale length for distances the sqrt(G M(r_scale) /
     ! r_scale) for velocities).
     specificAngularMomentumScaleFree=specificAngularMomentum/self%specificAngularMomentumScale
-
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%inverseAngularMomentum(specificAngularMomentumScaleFree)
 
