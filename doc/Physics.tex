@@ -1406,11 +1406,11 @@ The {\normalfont \ttfamily Baugh2005TopHeavy} \gls{imf} is defined by \citep{bau
 The {\normalfont \ttfamily Chabrier} \gls{imf} is defined by \citep{chabrier_galactic_2001}:
 \begin{equation}
  \phi(M) \propto \left\{ \begin{array}{ll}
- M^{-1} \exp(-[\log_{10}(M/M_{\mathrm c})/\sigma_{\mathrm c}]^2/2) & \hbox{ for } 0.1M_\odot < M < 1M_\odot \\
- M^{-2.3} & \hbox{ for } 1M_\odot < M < 125M_\odot \\
+ M^{-1} \exp(-[\log_{10}(M/M_{\mathrm c})/\sigma_{\mathrm c}]^2/2) & \hbox{ for } M_{\rm l} < M < M_{\rm t}  \\
+ M^\alpha & \hbox{ for } M_{\rm t} < M < M_{\rm u} \\
  0 & \hbox {otherwise,} \end{array} \right.
 \end{equation}
-where $\sigma_{\mathrm c}=0.69$ and $M_{\mathrm c}=0.08M_\odot$.
+where $\sigma_{\mathrm c}=${\normalfont \ttfamily [imfChabrierSigma]}, $M_{\mathrm c}=${\normalfont \ttfamily [imfChabrierMass]}$M_\odot$, $\alpha=${\normalfont \ttfamily [imfChabrierExponent]}, $M_{\rm t}=${\normalfont \ttfamily [imfChabrierMassTransition]}$M_\odot$, $M_{\rm l}=${\normalfont \ttfamily [imfChabrierMassLower]}$M_\odot$, and $M_{\rm u}=${\normalfont \ttfamily [imfChabrierMassUpper]}$M_\odot$.
 
 \subsubsection{Kennicutt}
 
