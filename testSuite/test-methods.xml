@@ -344,9 +344,9 @@
   </parameters>
   <parameters>
     <parameter>
-      <name>virialOrbitsMethod</name>
-      <value>Wetzel2010</value>
-      <value>Benson2005</value>
+      <name>virialOrbitMethod</name>
+      <value>wetzel2010</value>
+      <value>benson2005</value>
     </parameter>
   </parameters>
   <parameters>
@@ -952,11 +952,29 @@
     <parameter>
       <name>treeNodeMethodHotHalo</name>
       <value>standard</value>
-      <value>verySimple</value>
-      <value>verySimpleDelayed</value>
+      <value>verySimple
+      <parameter>
+	<name>coolingRateMethod</name>
+	<value>simple</value>
+      </parameter>
+      <parameter>
+	<name>treeNodeMethodBlackHole</name>
+	<value>null</value>
+      </parameter>
+      </value>
+      <value>verySimpleDelayed
+      <parameter>
+	<name>coolingRateMethod</name>
+	<value>simple</value>
+      </parameter>
+      <parameter>
+	<name>treeNodeMethodBlackHole</name>
+	<value>null</value>
+      </parameter>
+      </value>
     </parameter>
   </parameters>
-
+  
   <!-- Internal IGM evolution -->
   <parameters>
     <!-- IGM evolver -->
