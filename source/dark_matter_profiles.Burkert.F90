@@ -384,18 +384,33 @@ contains
     thisDarkMatterProfileComponent   => node%darkMatterProfile(autoCreate=.true.)
     radiusOverScaleRadius            =radius                       /thisDarkMatterProfileComponent%scale()
     virialRadiusOverScaleRadius      =self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
-    burkertPotential=                                                                                    &
-         & -(                                                                                            &
-         &   -2.0d0*(1.0d0+1.0d0/      radiusOverScaleRadius)*atan(            radiusOverScaleRadius   ) &
-         &   +2.0d0*(1.0d0+1.0d0/      radiusOverScaleRadius)*log (1.0d0+      radiusOverScaleRadius   ) &
-         &   -      (1.0d0-1.0d0/      radiusOverScaleRadius)*log (1.0d0+      radiusOverScaleRadius**2) &
-         &  )                                                                                            &
-         & /(                                                                                            &
-         &   +2.0d0                                          *atan(      virialRadiusOverScaleRadius   ) &
-         &   -2.0d0                                          *log (1.0d0+virialRadiusOverScaleRadius   ) &
-         &   -                                                log (1.0d0+virialRadiusOverScaleRadius**2) &
-         &  )                                                                                            &
-         & *self%scale%virialVelocity(node)**2
+    if (radiusOverScaleRadius < radiusSmall) then
+       burkertPotential=                                                                                    &
+            & +2.0d0                                                                                        &
+            & /3.0d0                                                                                        &
+            & *radiusOverScaleRadius**2                                                                     &
+            & /(                                                                                            &
+            &   +2.0d0                                          *atan(      virialRadiusOverScaleRadius   ) &
+            &   -2.0d0                                          *log (1.0d0+virialRadiusOverScaleRadius   ) &
+            &   -                                                log (1.0d0+virialRadiusOverScaleRadius**2) &
+            &  )                                                                                            &
+            & *virialRadiusOverScaleRadius                                                                  &
+            & *self%scale%virialVelocity(node)**2
+    else
+       burkertPotential=                                                                                    &
+            & -(                                                                                            &
+            &   -2.0d0*(1.0d0+1.0d0/      radiusOverScaleRadius)*atan(            radiusOverScaleRadius   ) &
+            &   +2.0d0*(1.0d0+1.0d0/      radiusOverScaleRadius)*log (1.0d0+      radiusOverScaleRadius   ) &
+            &   -      (1.0d0-1.0d0/      radiusOverScaleRadius)*log (1.0d0+      radiusOverScaleRadius**2) &
+            &  )                                                                                            &
+            & /(                                                                                            &
+            &   +2.0d0                                          *atan(      virialRadiusOverScaleRadius   ) &
+            &   -2.0d0                                          *log (1.0d0+virialRadiusOverScaleRadius   ) &
+            &   -                                                log (1.0d0+virialRadiusOverScaleRadius**2) &
+            &  )                                                                                            &
+            & *virialRadiusOverScaleRadius                                                                  &
+            & *self%scale%virialVelocity(node)**2
+    end if
     return
   end function burkertPotential
 
