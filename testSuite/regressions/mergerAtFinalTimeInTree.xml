@@ -1,7 +1,9 @@
+<?xml version="1.0"?>
 <!-- Contains a tree in which a merger occurs at the final time in a tree (before the -->
 <!-- output time). This must be detected and used to mark the tree as not deadlocked  -->
 <!-- to avoid a spurious deadlock condition.                                          -->
 <parameters>
+  <version>0.9.4</version>
   <parameter>
     <name>verbosityLevel</name>
     <value>1</value>
@@ -203,8 +205,8 @@
     <value>verySimple</value>
   </parameter>
   <parameter>
-    <name>mergerTreeBuildMethod</name>
-    <value>Cole2000</value>
+    <name>mergerTreeBuilderMethod</name>
+    <value>cole2000</value>
   </parameter>
   <parameter>
     <name>mergerTreeBuildMassResolutionFixed</name>
@@ -259,7 +261,7 @@
     <value>false</value>
   </parameter>
   <parameter>
-    <name>virialOrbitsMethod</name>
+    <name>virialOrbitMethod</name>
     <value>fixed</value>
   </parameter>
   <parameter>

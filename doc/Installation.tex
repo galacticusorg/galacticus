@@ -311,6 +311,10 @@ perl -MCPAN -e 'install GraphViz'
 
 \end{description}
 
+\subsection{Optional Requirements}
+
+\glc\ can make use of the \gls{yeppp} library for for optimized vector math operations\footnote{At present, usage of \protect\gls{yeppp} is limited to numerical integration routines, but these are as yet not utilized within the code.}. To link \glc\ with \gls{yeppp} simply install \gls{yeppp} following their instructions, and ensure that the \gls{yeppp} environment variables are set. \glc\ will detect the \gls{yeppp} installation via this environment variables and will adjust its build appropriately.
+
 \section{Compiling Galacticus}
 
 To build \glc\ (after installing all required libraries) ensure that you are in the {\normalfont \ttfamily Galacticus/v0.0.1} directory and then simply type:
@@ -349,6 +353,14 @@ export KMP_STACKSIZE=16777216
 in {\normalfont \ttfamily bash} and variants. If you get stack overflows while running \glc\ in parallel, try increasing this value further.
 
 \glc\ currently implements parallel calculations at the tree level---that is, each parallel thread works on a separate merger tree. This means that you need sufficient memory to hold multiple merger trees at once. The advantage of this approach is that it is highly scalable (assuming no need for communication between trees), and \glc\ can achieve close to optimal speed-up in many cases. The limit to the speed-up is usually determined by the workload balance between the trees. If one tree requires significantly more time to run that all other trees combined then one thread will be left working on that tree while all others have finished. To limit this problem, it is recommended that parallel runs which use {\normalfont \ttfamily mergerTreeConstructMethod}$=${\normalfont \ttfamily build} (see \S{sec:MergerTreeConstruction}) be conducted with the {\normalfont \ttfamily [mergerTreeBuildTreesProcessDescending]}$=${\normalfont \ttfamily true} parameter set to true. This will cause the most massive merger trees (i.e. those which take longest to process) to be processed first.
+
+\subsection{Compiling with MPI Parallelism}\index{MPI}\index{parallel}
+
+While \glc\ currently does not support \gls{mpi} parallelism, certain other codes included with \glc\ do. To compile such a code use
+\begin{verbatim}
+make GALACTICUS_BUILD_OPTION=MPI Constrain_Galacticus.exe
+\end{verbatim}
+for example. The {\tt GALACTICUS\_BUILD\_OPTION=MPI} option instructs the build system to compile all codes into the {\tt work/buildMPI} directory, and define a {\tt USEMPI} preprocessor macro to allow the compiled code to be modified appropriately for \gls{mpi}. Note that you must have a working \gls{mpi} installed of course.
 
 \section{Installing Without Root Access}
 
