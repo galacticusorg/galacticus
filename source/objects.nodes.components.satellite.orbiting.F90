@@ -327,7 +327,7 @@ contains
             &                                                 *                boundMassScaleFractional &
             &                                                )
        call satelliteComponent%tidalTensorPathIntegratedScale(                                          &
-            &                                                  tensorIdentityR2D3Sym                    &
+            &                                                  tensorUnitR2D3Sym                        &
             &                                                 *virialIntegratedTidalTensor              &
             &                                                 *tidalTensorPathIntegratedScaleFractional &
             &                                                )
