@@ -10,7 +10,7 @@ use PDL::NiceSlice;
 require Galacticus::HDF5;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^(disk|spheroid)(StellarLuminosity|CentralOpticalDepthISM|CentralOpticalDepthClouds):.*:dustCharlotFall2000\$" => \&DustCharlotFall2000::Get_Dust_Charlot_Fall_2000_Luminosity
+    "^(disk|spheroid)(LuminositiesStellar|CentralOpticalDepthISM|CentralOpticalDepthClouds):.*:dustCharlotFall2000\$" => \&DustCharlotFall2000::Get_Dust_Charlot_Fall_2000_Luminosity
     );
 
 sub Get_Dust_Charlot_Fall_2000_Luminosity {
@@ -56,7 +56,7 @@ sub Get_Dust_Charlot_Fall_2000_Luminosity {
     my $filter;
     my $redshift;
     my $opticalDepthOrLuminosity;
-    if ( $dataSetName =~ m/^(.*?)(StellarLuminosity|CentralOpticalDepthISM|CentralOpticalDepthClouds):([^:]+):([^:]+):z([\d\.]+)/ ) {
+    if ( $dataSetName =~ m/^(.*?)(LuminositiesStellar|CentralOpticalDepthISM|CentralOpticalDepthClouds):([^:]+):([^:]+):z([\d\.]+)/ ) {
 	# Extract the dataset name information.
 	$component                = $1;
 	$opticalDepthOrLuminosity = $2;
@@ -68,7 +68,7 @@ sub Get_Dust_Charlot_Fall_2000_Luminosity {
     }
 
     # List of properties to read.
-    my @propertyList = ($component."GasMetals",$component."GasMass",$component."ScaleLength");
+    my @propertyList = ($component."AbundancesGasMetals",$component."MassGas",$component."Radius");
     push(@propertyList,$luminosityDataSet,$recentLuminosityDataSet)
 	unless ( $dataSetName =~ m/CentralOpticalDepth/ );
 
@@ -109,11 +109,11 @@ sub Get_Dust_Charlot_Fall_2000_Luminosity {
     my $opticalDepthNormalization = (1.0/$opticalDepthToMagnitudes)*($AV_to_EBV/$NH_to_EBV)*($hydrogenMassFractionSolar/$atomicMass)*($solarMass/($parsec*$hecto)**2)/$localISMMetallicity;
 
     # Central surface density in M_Solar/pc^2.
-    my $gasMetalMass                   = pdl $dataSets->{$component."GasMetals"};
-    my $scaleLength                    = pdl $dataSets->{$component."ScaleLength"};
+    my $gasMetalMass                   = pdl $dataSets->{$component."AbundancesGasMetals"};
+    my $scaleLength                    = pdl $dataSets->{$component."Radius"};
     my $noGasMetals                    = which($gasMetalMass <= 0.0);
     my $notPresent                     = which($scaleLength  <= 0.0);
-    my $gasMetallicity                 = pdl $dataSets->{$component."GasMetals"}/$dataSets->{$component."GasMass"};
+    my $gasMetallicity                 = pdl $dataSets->{$component."AbundancesGasMetals"}/$dataSets->{$component."MassGas"};
     $gasMetallicity->index($noGasMetals) .= 0.0;            
     my $gasMetalsSurfaceDensityCentral = $gasMetalMass/(2.0*$Pi*($mega*$scaleLength)**2);
     $gasMetalsSurfaceDensityCentral->index($notPresent) .= 0.0;
@@ -134,7 +134,7 @@ sub Get_Dust_Charlot_Fall_2000_Luminosity {
 	                                                         *$attenuationsClouds
 	                        )
 	                        *$attenuationsISM
-				if (  $opticalDepthOrLuminosity eq "StellarLuminosity" );
+				if (  $opticalDepthOrLuminosity eq "LuminositiesStellar" );
 
     # For optical depths, return the appropriate dataset.
     $dataSets->{$dataSetName} = $opticalDepthISM
