@@ -1775,7 +1775,7 @@ contains
     class           (darkMatterProfileClass), pointer                              :: darkMatterProfile_
     integer                                                                        :: iNode              
     integer         (c_size_t              )                                       :: iIsolatedNode      
-    double precision                                                               :: spin              , spinNormalization        
+    double precision                                                               :: spin
     double precision                                 , dimension(3)                :: spin3D               
     
     ! Get required objects.
@@ -1792,11 +1792,7 @@ contains
                 ! If spins are available directly, use them.
                 call thisSpinComponent%spinSet(nodes(iNode)%spin)
              else if (defaultImporter%angularMomentaAvailable()) then
-                ! Compute the spin parameter normalization to convert from angular momentum.
-                spinNormalization= sqrt(abs(darkMatterProfile_%energy(nodeList(iIsolatedNode)%node))) &
-                     &            /gravitationalConstantGalacticus                                     &
-                     &            /thisBasicComponent%mass()**2.5d0
-                spin  = spinNormalization              &
+                spin  = spinNormalization()          &
                      & *nodes(iNode)%angularMomentum
                 call thisSpinComponent%spinSet(spin)
              else
@@ -1810,8 +1806,7 @@ contains
                 ! If spins are available directly, use them.
                 call thisSpinComponent%spinVectorSet(nodes(iNode)%spin3D)
              else if (defaultImporter%angularMomenta3DAvailable()) then
-                ! Compute the spin parameter normalization to convert from angular momentum.
-                spin3D= spinNormalization              &
+                spin3D= spinNormalization()            &
                      & *nodes(iNode)%angularMomentum3D
                 call thisSpinComponent%spinVectorSet(spin3D)
              else
@@ -1821,8 +1816,20 @@ contains
        end if
     end do
     return
+    
+  contains
+    
+    double precision function spinNormalization()
+      !% Normalization for conversion of angular momentum to spin.
+      implicit none
+      spinNormalization= sqrt(abs(darkMatterProfile_%energy(nodeList(iIsolatedNode)%node))) &
+           &            /gravitationalConstantGalacticus                                    &
+           &            /thisBasicComponent%mass()**2.5d0
+      return
+    end function spinNormalization
+    
   end subroutine Assign_Spin_Parameters
-
+  
   subroutine Assign_Particle_Counts(nodes,nodeList)
     !% Assign particle counts to nodes.
     implicit none
