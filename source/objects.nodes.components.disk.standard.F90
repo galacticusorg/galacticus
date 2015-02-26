@@ -276,6 +276,8 @@ contains
        select type (diskMassDistribution)
        type is (massDistributionExponentialDisk)
           call diskMassDistribution%initialize(scaleHeight=heightToRadialScaleDisk,isDimensionless=.true.)
+       type is (massDistributionMiyamotoNagai  )
+          call diskMassDistribution%initialize(b          =heightToRadialScaleDisk,isDimensionless=.true.)
        class default
           call Galacticus_Error_Report('Node_Component_Disk_Standard_Initialize','unsupported mass distribution')
        end select
