@@ -22,6 +22,7 @@ module Stellar_Population_Luminosities
   use FGSL
   use, intrinsic :: ISO_C_Binding
   use Abundances_Structure
+  use ISO_Varying_String
   implicit none
   private
   public :: Stellar_Population_Luminosity
@@ -56,6 +57,7 @@ module Stellar_Population_Luminosities
 
   ! Option controlling writing of luminosities to file.
   logical                                                      :: stellarPopulationLuminosityStoreToFile
+  type            (varying_string )                            :: stellarPopulationLuminosityStoreDirectory
 
 contains
 
@@ -74,7 +76,6 @@ contains
     use Galacticus_Input_Paths
     use Input_Parameters
     use Star_Formation_IMF
-    use ISO_Varying_String
     use String_Handling
     use IO_HDF5
     use File_Utilities
@@ -132,7 +133,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceDegrade',stellarPopulationLuminosityIntegrationToleranceDegrade,defaultValue=.false.)
-       ! Read the parameter controlling storing luminosities to file.
+       ! Read parameters controlling storing luminosities to file.
        !@ <inputParameter>
        !@   <name>stellarPopulationLuminosityStoreToFile</name>
        !@   <defaultValue>true</defaultValue>
@@ -144,6 +145,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarPopulationLuminosityStoreToFile',stellarPopulationLuminosityStoreToFile,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>stellarPopulationLuminosityStoreDirectory</name>
+       !@   <defaultValue>{\normalfont \ttfamily \$GALACTICUS\_ROOT\_V094/data/stellarPopulations}</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies the directory to which stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('stellarPopulationLuminosityStoreDirectory',stellarPopulationLuminosityStoreDirectory,defaultValue=char(Galacticus_Input_Path()//"data/stellarPopulations"))
        ! Flag that this module is now initialized.
        moduleInitialized=.true.
     end if
@@ -219,8 +231,8 @@ contains
              !#  <ignore>initialMassForSupernovaeTypeII</ignore>
              !#  <ignore>elementsToTrack</ignore>
              !# </uniqueLabel>
-             luminositiesFileName=Galacticus_Input_Path()                                                                                   // &
-                  &               "data/stellarPopulations/stellarLuminosities::IMF:"                                                       // &
+             luminositiesFileName=stellarPopulationLuminosityStoreDirectory                                                                 // &
+                  &               "/stellarLuminosities::IMF:"                                                                              // &
                   &               IMF_Name                                             (imfIndex                                           )// &
                   &               "::filter:"                                                                                               // &
                   &               Filter_Name                                          (filterIndex             (iLuminosity)              )// &
