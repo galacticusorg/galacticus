@@ -1545,6 +1545,8 @@ contains
     !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\tt
     !% thisNode} to account for any hot halo already in the parent.
     use Dark_Matter_Halo_Scales
+    use Abundances_Structure
+    use Chemical_Abundances_Structure
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     type (treeNode            )               , pointer :: parentNode
@@ -1563,6 +1565,18 @@ contains
        ! promotion.
        select type (parentHotHaloComponent)
        class is (nodeComponentHotHaloStandard)
+          ! If (outflowed) mass is non-positive, set mass and all related quantities to zero.
+          if (thisHotHaloComponent%         mass() <= 0.0d0) then
+             call thisHotHaloComponent%massSet           (         0.0d0)
+             call thisHotHaloComponent%angularMomentumSet(         0.0d0)
+             call thisHotHaloComponent%abundancesSet     (zeroAbundances)
+             call thisHotHaloComponent%chemicalsSet      (zeroChemicals )
+          end if
+          if (thisHotHaloComponent%outflowedMass() <= 0.0d0) then
+             call thisHotHaloComponent%outflowedMassSet           (         0.0d0)
+             call thisHotHaloComponent%outflowedAngularMomentumSet(         0.0d0)
+             call thisHotHaloComponent%outflowedAbundancesSet     (zeroAbundances)
+          end if
           call thisHotHaloComponent%                    massSet(                                                   &
                &                                                   thisHotHaloComponent%mass                    () &
                &                                                +parentHotHaloComponent%mass                    () &
