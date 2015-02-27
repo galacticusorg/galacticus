@@ -118,13 +118,13 @@ CODE
     # Scan dependencies for default parameter values, while also accumulating a full list of dependecy files.
     my @directives;
     my @dependencyFileList;
-    my @dependencyFileStack = map {s/\.\/$ENV{'BUILDPATH'}\/(.*)\.o$/$1/; $_;} split("\n",read_file($depFile));
+    my @dependencyFileStack = map {s/$ENV{'BUILDPATH'}\/(.*)\.o$/$1/; $_;} split("\n",read_file($depFile));
     while ( scalar(@dependencyFileStack) > 0 ) {
 	my $depName = pop(@dependencyFileStack);
 	push(@dependencyFileList,$depName);
-	$depName =~ s/\.\/$ENV{'BUILDPATH'}\/(.*)\.o$/$1/;       
+	$depName =~ s/$ENV{'BUILDPATH'}\/(.*)\.o$/$1/;       
 	# Scan the file for default parameter values.
-	my $sourceFile = $sourceDirectory."/".$depName.".F90";
+	my $sourceFile = $sourceDirectory."/".$depName.".F90";	
 	unless ( $depName eq "utility.input_parameters" ) {
 	    # Extract default values for all parameters defined in this file.
 	    map {
@@ -155,7 +155,7 @@ CODE
     foreach my $directive ( @directives ) {
 	$methodStructure->{$directive}->{$directive."Class"}->{'extends'} = undef();
 	foreach my $sourceFile ( &ExtraUtils::as_array($codeDirectiveLocations->{$directive}->{'file'}) ) {
-	    foreach my $classDeclaration ( &Fortran_Utils::Get_Matching_Lines($sourceFile,$Fortran_Utils::classDeclarationRegEx) ) {
+    	    foreach my $classDeclaration ( &Fortran_Utils::Get_Matching_Lines($sourceFile,$Fortran_Utils::classDeclarationRegEx) ) {
 		my $type      = $classDeclaration->{'submatches'}->[3];
 		my $extends   = $classDeclaration->{'submatches'}->[1];
 		(my $leafName = $sourceFile) =~ s/.*source\///;
