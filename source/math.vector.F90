@@ -21,7 +21,12 @@ module Vectors
   !% Implements calculations of vectors.
   implicit none
   private
-  public :: Vector_Magnitude, Vector_Product, Vector_Self_Outer_Product, Vector_Outer_Product
+  public :: Vector_Magnitude, Vector_Product, Vector_Outer_Product, Matrix_Copy_Upper_To_Lower_Triangle
+
+  interface Vector_Outer_Product
+     module procedure Vector_Outer_Product_Distinct
+     module procedure Vector_Outer_Product_Self
+  end interface Vector_Outer_Product
 
 contains
 
@@ -46,33 +51,48 @@ contains
     return
   end function Vector_Product
 
-  pure function Vector_Outer_Product(vector1,vector2)
+ function Vector_Outer_Product_Distinct(vector1,vector2)
     !% Returns the outer product of two vectors.
     implicit none
     double precision, dimension(:                          ), intent(in   ) :: vector1, vector2
-    double precision, dimension(size(vector1),size(vector2))                :: Vector_Outer_Product
-    integer                                                                 :: i
+    double precision, dimension(size(vector1),size(vector2))                :: Vector_Outer_Product_Distinct
 
-    forall(i=1:size(vector1)) Vector_Outer_Product(i,:)=vector1(i)*vector2(:)
+    Vector_Outer_Product_Distinct=0.0d0
+    ! Call the appropriate BLAS routine.
+    call dger(size(vector1),size(vector2),1.0d0,vector1,1,vector2,1,Vector_Outer_Product_Distinct,size(vector1))
     return
-  end function Vector_Outer_Product
-  
-  function Vector_Self_Outer_Product(vector)
-    !% Find the outer product of a vector with itself, returning the result as a rank 2, 3D, symmetric tensor.
-    use Tensors
+  end function Vector_Outer_Product_Distinct
+
+ function Vector_Outer_Product_Self(vector1,symmetrize)
+    !% Returns the outer product of a vector with itself.
     implicit none
-    type            (tensorRank2Dimension3Symmetric)                :: Vector_Self_Outer_Product
-    double precision                                , intent(in   ) :: vector(3)
-    double precision                                                :: matrix(3,3)
-    integer                                                         :: i,j
+    double precision, dimension(:                          ), intent(in   ) :: vector1
+    double precision, dimension(size(vector1),size(vector1))                :: Vector_Outer_Product_Self
+    logical         , optional                              , intent(in   ) :: symmetrize
 
-    forall(i=1:3) 
-       forall(j=1:3)
-          matrix(i,j)=vector(i)*vector(j)
-       end forall
-    end forall
-    call Vector_Self_Outer_Product%fromMatrix(matrix)
+    Vector_Outer_Product_Self=0.0d0
+    ! Call the appropriate BLAS routine.
+    call dsyr("u",size(vector1),1.0d0,vector1,1,Vector_Outer_Product_Self,size(vector1))
+    if (present(symmetrize).and.symmetrize) Vector_Outer_Product_Self=Matrix_Copy_Upper_To_Lower_Triangle(Vector_Outer_Product_Self)
     return
-  end function Vector_Self_Outer_Product
+  end function Vector_Outer_Product_Self
+
+  function Matrix_Copy_Upper_To_Lower_Triangle(matrix)
+    !% Copies the upper triangle of a square matrix to the lower triangle.
+    use Galacticus_Error
+    implicit none
+    double precision, dimension(:                 ,:                 ), intent(in   ) :: matrix
+    double precision, dimension(size(matrix,dim=1),size(matrix,dim=2))                :: Matrix_Copy_Upper_To_Lower_Triangle
+    integer                                                                           :: i                                  , j
+
+    if (size(matrix,dim=1) /= size(matrix,dim=2)) call Galacticus_Error_Report('Matrix_Copy_Upper_To_Lower_Triangle','matrix must be square')
+    do i=1,size(matrix,dim=1)
+       do j=i,size(matrix,dim=2)
+          Matrix_Copy_Upper_To_Lower_Triangle(i,j)=matrix(i,j)
+          Matrix_Copy_Upper_To_Lower_Triangle(j,i)=matrix(i,j)
+       end do
+    end do
+    return
+  end function Matrix_Copy_Upper_To_Lower_Triangle
 
 end module Vectors
