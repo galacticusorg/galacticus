@@ -479,24 +479,4 @@
     <name>mergerTreeBuildCole2000AccretionLimit</name>
     <value>0.1</value>
   </parameter>
-  <parameter>
-    <name>treeBranchingMethod</name>
-    <value>modified Press-Schechter</value>
-  </parameter>
-  <parameter>
-    <name>modifiedPressSchechterGamma2</name>
-    <value>-0.01</value>
-  </parameter>
-  <parameter>
-    <name>modifiedPressSchechterFirstOrderAccuracy</name>
-    <value>0.1</value>
-  </parameter>
-  <parameter>
-    <name>modifiedPressSchechterG0</name>
-    <value>0.57</value>
-  </parameter>
-  <parameter>
-    <name>modifiedPressSchechterGamma1</name>
-    <value>0.38</value>
-  </parameter>
 </parameters>

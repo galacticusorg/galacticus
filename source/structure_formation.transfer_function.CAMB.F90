@@ -69,6 +69,7 @@ contains
     integer                                                        , intent(  out) :: transferFunctionNumberPoints
     logical                                                                        :: makeFile
     character       (len=32            )                                           :: parameterLabel              , wavenumberLabel
+    character       (len=255                 )                                           :: hostName
     type            (varying_string    )                                           :: command                     , parameterFile
     type            (xmlf_t            )                                           :: parameterDoc
     type            (inputParameterList)                                           :: dependentParameters
@@ -79,7 +80,9 @@ contains
     !#  <ignore>transferFunctionFile</ignore>
     !# </uniqueLabel>
     transferFunctionFile=char(Galacticus_Input_Path())//'data/largeScaleStructure/transfer_function_CAMB_'//Transfer_Function_CAMB_Label(includeSourceDigest=.true.,asHash=.true.,parameters=dependentParameters)//".xml"
-    parameterFile=char(Galacticus_Input_Path())//'data/transfer_function_parameters.xml'
+    parameterFile=char(Galacticus_Input_Path())//'data/transfer_function_parameters'
+    call Get_Environment_Variable('HOSTNAME',hostName)
+    parameterFile=parameterFile//'_'//trim(hostName)//'_'//GetPID()//'.xml'
     call xml_OpenFile(char(parameterFile),parameterDoc)
     call xml_NewElement(parameterDoc,"parameters")
     call xml_NewElement(parameterDoc,"uniqueLabel")

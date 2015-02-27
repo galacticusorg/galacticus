@@ -72,3 +72,23 @@ const gsl_odeiv2_step_type *gsl_odeiv2_aux_odeiv_step_alloc(int i) {
     }
     return res;
 }
+
+void gsl_odeiv2_driver_errors (gsl_odeiv2_driver * d, double yerr[])
+{
+  /* Return an array of the current errors in the ODE variables */
+  int i;
+  for (i = 0; i < d->sys->dimension; i++) {
+    yerr[i]=d->e->yerr[i];
+  }
+  return;
+}
+
+void gsl_odeiv2_driver_init_errors (gsl_odeiv2_driver * d)
+{
+  /* Initialize errors */
+  int i;
+  for (i = 0; i < d->sys->dimension; i++) {
+    d->e->yerr[i] = -1.0;
+  }
+  return;
+}
