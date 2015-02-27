@@ -200,7 +200,7 @@ contains
        !@   <description>
        !@    The type of mass distribution to use for the standard spheroid component.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>string</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidMassDistribution',spheroidMassDistributionName,defaultValue="hernquist")
@@ -525,7 +525,8 @@ contains
          &                                                             starFormationRate         , stellarMassRate         , &
          &                                                             tidalField                , tidalTorque
     type            (history              )                         :: historyTransferRate       , stellarHistoryRate
-    type            (stellarLuminosities  )                         :: luminositiesStellarRates
+    type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
+    !$omp threadprivate(luminositiesStellarRates)
 
     ! Get the disk and check that it is of our class.
     thisSpheroid => thisNode%spheroid()
@@ -1199,12 +1200,13 @@ contains
   !# <radiusSolverTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Radius_Solver</unitName>
   !# </radiusSolverTask>
-  subroutine Node_Component_Spheroid_Standard_Radius_Solver(thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
+  subroutine Node_Component_Spheroid_Standard_Radius_Solver(thisNode,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
     implicit none
     type            (treeNode                                                              ), intent(inout), pointer :: thisNode
     logical                                                                                 , intent(  out)          :: componentActive
+    logical                                                                                 , intent(in   )          :: specificAngularMomentumRequired
     double precision                                                                        , intent(  out)          :: specificAngularMomentum
     procedure       (Node_Component_Spheroid_Standard_Radius_Solve_Set                     ), intent(  out), pointer :: Radius_Set             , Velocity_Set
     procedure       (Node_Component_Spheroid_Standard_Radius_Solve                         ), intent(  out), pointer :: Radius_Get             , Velocity_Get
@@ -1219,6 +1221,7 @@ contains
        class is (nodeComponentSpheroidStandard)
        componentActive=.true.
        ! Get the angular momentum.
+       if (specificAngularMomentumRequired) then
           angularMomentum=thisSpheroidComponent%angularMomentum()
           if (angularMomentum >= 0.0d0) then
              ! Compute the specific angular momentum at the scale radius, assuming a flat rotation curve.
@@ -1229,7 +1232,7 @@ contains
                 specificAngularMomentumMean=0.0d0
              end if
              specificAngularMomentum=spheroidAngularMomentumAtScaleRadius*specificAngularMomentumMean
-
+          end if
           ! Associate the pointers with the appropriate property routines.
           Radius_Get   => Node_Component_Spheroid_Standard_Radius_Solve
           Radius_Set   => Node_Component_Spheroid_Standard_Radius_Solve_Set
