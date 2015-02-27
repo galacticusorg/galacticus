@@ -1,0 +1,61 @@
+<filter>
+  <description>DES_Y</description>
+  <name>DES_Y</name>
+  <origin>SNANA Specs</origin>
+  <url>http://das.sdss2.org/ge/sample/sdsssn/SNANA-PUBLIC/downloads.php</url>
+  <response>
+    <datum>   9700.0   0.0</datum>
+    <datum>   9710.0   0.0462833</datum>
+    <datum>   9720.0   0.0919833</datum>
+    <datum>   9730.0   0.137087</datum>
+    <datum>   9740.0   0.181582</datum>
+    <datum>   9750.0   0.225455</datum>
+    <datum>   9760.0   0.268693</datum>
+    <datum>   9770.0   0.311282</datum>
+    <datum>   9780.0   0.353209</datum>
+    <datum>   9790.0   0.39446</datum>
+    <datum>   9800.0   0.435021</datum>
+    <datum>   9810.0   0.474878</datum>
+    <datum>   9820.0   0.514017</datum>
+    <datum>   9830.0   0.552423</datum>
+    <datum>   9840.0   0.590083</datum>
+    <datum>   9850.0   0.626981</datum>
+    <datum>   9860.0   0.621658</datum>
+    <datum>   9870.0   0.616263</datum>
+    <datum>   9880.0   0.610796</datum>
+    <datum>   9890.0   0.605254</datum>
+    <datum>   9900.0   0.599639</datum>
+    <datum>   9910.0   0.593949</datum>
+    <datum>   9920.0   0.588183</datum>
+    <datum>   9930.0   0.582341</datum>
+    <datum>   9940.0   0.576423</datum>
+    <datum>   9950.0   0.570427</datum>
+    <datum>   9960.0   0.564353</datum>
+    <datum>   9970.0   0.5582</datum>
+    <datum>   9980.0   0.551968</datum>
+    <datum>   9990.0   0.545656</datum>
+    <datum>   10000.0   0.539263</datum>
+    <datum>   10010.0   0.532789</datum>
+    <datum>   10020.0   0.526233</datum>
+    <datum>   10030.0   0.519594</datum>
+    <datum>   10040.0   0.512872</datum>
+    <datum>   10050.0   0.506066</datum>
+    <datum>   10060.0   0.465896</datum>
+    <datum>   10070.0   0.426572</datum>
+    <datum>   10080.0   0.388108</datum>
+    <datum>   10090.0   0.350523</datum>
+    <datum>   10100.0   0.313833</datum>
+    <datum>   10110.0   0.278054</datum>
+    <datum>   10120.0   0.243205</datum>
+    <datum>   10130.0   0.209302</datum>
+    <datum>   10140.0   0.176364</datum>
+    <datum>   10150.0   0.144408</datum>
+    <datum>   10160.0   0.113453</datum>
+    <datum>   10170.0   0.0835156</datum>
+    <datum>   10180.0   0.0546153</datum>
+    <datum>   10190.0   0.0267705</datum>
+    <datum>   10200.0   0.0</datum>
+  </response>
+  <effectiveWavelength>9937.06833399461</effectiveWavelength>
+  <vegaOffset>-0.590000983425822</vegaOffset>
+</filter>

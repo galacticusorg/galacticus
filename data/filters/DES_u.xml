@@ -1,0 +1,21 @@
+<filter>
+  <description>DES_u</description>
+  <name>DES_u</name>
+  <origin>SNANA Specs</origin>
+  <url>http://das.sdss2.org/ge/sample/sdsssn/SNANA-PUBLIC/downloads.php</url>
+  <response>
+    <datum>   3100.0   0.0</datum>
+    <datum>   3200.0   0.001</datum>
+    <datum>   3300.0   0.011</datum>
+    <datum>   3400.0   0.032</datum>
+    <datum>   3500.0   0.06</datum>
+    <datum>   3600.0   0.116</datum>
+    <datum>   3700.0   0.184</datum>
+    <datum>   3800.0   0.259</datum>
+    <datum>   3900.0   0.336</datum>
+    <datum>   4000.0   0.193</datum>
+    <datum>   4100.0   0.0</datum>
+  </response>
+  <effectiveWavelength>3794.71476510067</effectiveWavelength>
+  <vegaOffset>-0.3528090109485</vegaOffset>
+</filter>
