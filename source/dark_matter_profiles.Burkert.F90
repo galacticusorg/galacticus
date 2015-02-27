@@ -370,6 +370,7 @@ contains
     !% units of Mpc).
     use Galactic_Structure_Options
     use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout), pointer  :: node
@@ -385,30 +386,38 @@ contains
     radiusOverScaleRadius            =radius                       /thisDarkMatterProfileComponent%scale()
     virialRadiusOverScaleRadius      =self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
     if (radiusOverScaleRadius < radiusSmall) then
-       burkertPotential=                                                                                    &
-            & +2.0d0                                                                                        &
-            & /3.0d0                                                                                        &
-            & *radiusOverScaleRadius**2                                                                     &
-            & /(                                                                                            &
-            &   +2.0d0                                          *atan(      virialRadiusOverScaleRadius   ) &
-            &   -2.0d0                                          *log (1.0d0+virialRadiusOverScaleRadius   ) &
-            &   -                                                log (1.0d0+virialRadiusOverScaleRadius**2) &
-            &  )                                                                                            &
-            & *virialRadiusOverScaleRadius                                                                  &
+       burkertPotential=                                                                          &
+            & +(                                                                                  &
+            &   -Pi                                                                               &
+            &   +2.0d0                                                                            &
+            &   /3.0d0                                                                            &
+            &   *radiusOverScaleRadius**2                                                         &
+            &  )                                                                                  &
+            & /(                                                                                  &
+            &     -2.0d0                              *atan(      virialRadiusOverScaleRadius   ) &
+            &     +2.0d0                              *log (1.0d0+virialRadiusOverScaleRadius   ) &
+            &     +                                    log (1.0d0+virialRadiusOverScaleRadius**2) &
+            &  )                                                                                  &
+            & *virialRadiusOverScaleRadius                                                        &
             & *self%scale%virialVelocity(node)**2
     else
-       burkertPotential=                                                                                    &
-            & -(                                                                                            &
-            &   -2.0d0*(1.0d0+1.0d0/      radiusOverScaleRadius)*atan(            radiusOverScaleRadius   ) &
-            &   +2.0d0*(1.0d0+1.0d0/      radiusOverScaleRadius)*log (1.0d0+      radiusOverScaleRadius   ) &
-            &   -      (1.0d0-1.0d0/      radiusOverScaleRadius)*log (1.0d0+      radiusOverScaleRadius**2) &
-            &  )                                                                                            &
-            & /(                                                                                            &
-            &   +2.0d0                                          *atan(      virialRadiusOverScaleRadius   ) &
-            &   -2.0d0                                          *log (1.0d0+virialRadiusOverScaleRadius   ) &
-            &   -                                                log (1.0d0+virialRadiusOverScaleRadius**2) &
-            &  )                                                                                            &
-            & *virialRadiusOverScaleRadius                                                                  &
+       burkertPotential=                                                                          &
+            & +(                                                                                  &
+            &   -Pi                                                                               &
+            &   *radiusOverScaleRadius                                                            &
+            &   +(                                                                                &
+            &     +2.0d0*(1.0d0+radiusOverScaleRadius)*atan(      radiusOverScaleRadius         ) &
+            &     -2.0d0*(1.0d0+radiusOverScaleRadius)*log (1.0d0+radiusOverScaleRadius         ) &
+            &     -      (1.0d0-radiusOverScaleRadius)*log (1.0d0+radiusOverScaleRadius      **2) &
+            &    )                                                                                &
+            &  )                                                                                  &
+            & /radiusOverScaleRadius                                                              &
+            & /(                                                                                  &
+            &     -2.0d0                              *atan(      virialRadiusOverScaleRadius   ) &
+            &     +2.0d0                              *log (1.0d0+virialRadiusOverScaleRadius   ) &
+            &     +                                    log (1.0d0+virialRadiusOverScaleRadius**2) &
+            &  )                                                                                  &
+            & *virialRadiusOverScaleRadius                                                        &
             & *self%scale%virialVelocity(node)**2
     end if
     return
@@ -632,15 +641,21 @@ contains
     implicit none
     class           (darkMatterProfileBurkert), intent(inout) :: self
     double precision                      , intent(in   ) :: concentration                                                   , radius
-    double precision                      , parameter     :: minimumRadiusForExactSolution          =1.0d-7
+    double precision                      , parameter     :: minimumRadiusForExactSolution          =1.0d-4
     ! Precomputed Burkert normalization factor for unit concentration.
     double precision                      , parameter     :: burkertNormalizationFactorUnitConcentration=1.0d0/(3.0d0*log(2.0d0)-2.0d0*atan(1.0d0))
 
-    burkertEnclosedMassScaleFree=(                             &
-         &                        +2.0d0*log (1.0d0+radius   ) &
-         &                        +      log (1.0d0+radius**2) &
-         &                        -2.0d0*atan(      radius   ) &
-         &                       )
+    if (radius < minimumRadiusForExactSolution) then
+       ! Use a series solution for small radii.
+       burkertEnclosedMassScaleFree=(4.0d0/3.0d0)*radius**3*(1.0d0-radius)
+    else
+       ! Use the exact solution.
+       burkertEnclosedMassScaleFree=(                             &
+            &                        +2.0d0*log (1.0d0+radius   ) &
+            &                        +      log (1.0d0+radius**2) &
+            &                        -2.0d0*atan(      radius   ) &
+            &                       )
+    end if
     ! Check if we were called with a different concentration compared to the previous call.
     if (concentration /= self%concentrationPrevious) then
        ! We were, so recompute the normalization factor.
