@@ -1310,6 +1310,7 @@ contains
     end do
     ! Read snapshot halo catalogs.
     call Galacticus_Display_Indent('Parsing AHF format snapshot halo catalogs',verbosityWorking)
+    call Alloc_Array(nodeTreeIndices,[nodeCountTrees])
     j=0
     do i=1,size(self%snapshotFileName)
        call Galacticus_Display_Message(self%snapshotFileName(i),verbosityWorking)
@@ -1676,7 +1677,6 @@ contains
     call Galacticus_Display_Unindent('done',verbosityWorking)
     ! Assign tree indices.
     call Galacticus_Display_Message('Assigning tree indices',verbosityWorking)
-    call Alloc_Array(nodeTreeIndices,[nodeCountTrees])
     if (mergerTreeImportSussingUseForestFile) then
        ! We've already done tree index assignment in this case.
        call Dealloc_Array(forestSnapshotHaloCounts)
