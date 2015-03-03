@@ -25,13 +25,7 @@ module Hot_Halo_Ram_Pressure_Force_Font2008
   implicit none
   private
   public :: Hot_Halo_Ram_Pressure_Force_Font2008_Initialize
-
-  ! Pointers to the host and satellite nodes.
-  type            (treeNode), pointer :: hostNode        , satelliteNode
-  !$omp threadprivate(hostNode,satelliteNode)
-  ! The ram pressure force (per unit area) used in root finding.
-  double precision                    :: ramPressureForce
-  !$omp threadprivate(ramPressureForce)
+  
 contains
 
   !# <hotHaloRamPressureForceMethod>
@@ -57,27 +51,27 @@ contains
     use Hot_Halo_Mass_Distributions
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: thisNode
-    class           (nodeComponentSatellite      )               , pointer :: thisSatelliteComponent
-    type            (keplerOrbit                 )                         :: thisOrbit
-    class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
-    double precision                                                       :: densityHotHaloHost            , orbitalRadius, orbitalVelocity
+    class           (nodeComponentSatellite      )               , pointer :: thisSatellite
 
+    type            (treeNode                    )               , pointer :: hostNode
+    type            (keplerOrbit                 )                         :: thisOrbit
+    class           (hotHaloMassDistributionClass)               , pointer :: hotHaloMassDistribution_
+    double precision                                                       :: densityHotHaloHost      , orbitalRadius, orbitalVelocity
+    
     ! Find the host node.
     hostNode      => thisNode%parent
-    ! Set a pointer to the satellite node.
-    satelliteNode => thisNode
     ! Get the satellite component.
-    thisSatelliteComponent => thisNode%satellite()
+    thisSatellite => thisNode%satellite()
     ! Get the orbit for this node.
-    thisOrbit=thisSatelliteComponent%virialOrbit()
+    thisOrbit=thisSatellite%virialOrbit()
     ! Get the orbital radius and velocity at pericenter.
     call Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,thisOrbit,extremumPericenter,orbitalRadius,orbitalVelocity)
     ! Get the hot halo mass distribution.
-    defaultHotHaloMassDistribution => hotHaloMassDistribution()
+    hotHaloMassDistribution_ => hotHaloMassDistribution()
     ! Find the density of the host node hot halo at the pericentric radius.
-    densityHotHaloHost=defaultHotHaloMassDistribution%density(hostNode,orbitalRadius)
+    densityHotHaloHost=hotHaloMassDistribution_%density(hostNode,orbitalRadius)
     ! Find the ram pressure force at pericenter.
-    ramPressureForce=densityHotHaloHost*orbitalVelocity**2
+    Hot_Halo_Ram_Pressure_Force_Font2008_Get=densityHotHaloHost*orbitalVelocity**2
     return
   end function Hot_Halo_Ram_Pressure_Force_Font2008_Get
 
