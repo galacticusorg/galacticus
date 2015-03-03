@@ -44,11 +44,6 @@ module Node_Component_Disk_Standard_Data
 
   ! The mass distribution object.
   class           (massDistribution), pointer :: diskMassDistribution
-
-!! AJB HACK
-type           (massDistributionMiyamotoNagai) :: mnMassDistribution
-
-
   
 contains
 
