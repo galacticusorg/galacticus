@@ -71,7 +71,7 @@ contains
        !@   <defaultValue>65536</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    The compression level used for outputting HDF5 datasets.
+       !@    The size of the sieve buffer used by the HDF5 library to speed reading/writing of partial datasets.
        !@   </description>
        !@   <type>integer</type>
        !@   <cardinality>1</cardinality>
