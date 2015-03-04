@@ -34,10 +34,11 @@ module fodeiv2
        fodeiv2_driver_free, fodeiv2_driver_alloc_standard_new, &
        fodeiv2_driver_alloc_y_new, fodeiv2_driver_alloc_yp_new, &
        fodeiv2_driver_alloc_scaled_new, fodeiv2_driver_set_hmin, &
-       fodeiv2_driver_set_hmax, fodeiv2_driver_set_nmax, fodeiv2_driver_status
+       fodeiv2_driver_set_hmax, fodeiv2_driver_set_nmax, fodeiv2_driver_status, &
+       fodeiv2_driver_errors
 
   ! Specify an explicit dependence on the bivar.o object file.
-  !: ./work/build/numerical.ODE_solver.ODEIV2.utils.o
+  !: $(BUILDPATH)/numerical.ODE_solver.ODEIV2.utils.o
 
 !
 ! Types: Ordinary Differential Equations
@@ -81,6 +82,15 @@ module fodeiv2
 !
 !  Interfaces: Ordinary differential equations
 !
+     subroutine gsl_odeiv2_driver_errors(d,yerr) bind(c)
+       import
+       type   (c_ptr        ), value                       :: d
+       real   (kind=c_double), dimension(*), intent(inout) :: yerr
+     end subroutine gsl_odeiv2_driver_errors
+     subroutine gsl_odeiv2_driver_init_errors(d) bind(c)
+       import
+       type   (c_ptr        ), value         :: d
+     end subroutine gsl_odeiv2_driver_init_errors
      function gsl_odeiv2_step_alloc(t, dim) bind(c)
        import
        type   (c_ptr        ), value :: t
@@ -325,6 +335,11 @@ contains
     type(fodeiv2_system), intent(inout) :: system
     call fodeiv2_system_cfree(system%odeiv2_system)
   end subroutine fodeiv2_system_free
+  subroutine fodeiv2_driver_errors(d,yerr)
+    type   (fodeiv2_driver), intent(inout) :: d
+    real(kind=c_double), intent(inout) :: yerr(:)
+    call gsl_odeiv2_driver_errors(d%odeiv2_driver,yerr)
+  end subroutine fodeiv2_driver_errors
   function fodeiv2_step_alloc(t, dim)
     type   (fodeiv2_step_type), intent(in   ) :: t
     integer(kind=fgsl_size_t ), intent(in   ) :: dim
@@ -560,6 +575,7 @@ contains
     step_type = gsl_odeiv2_aux_odeiv_step_alloc(t%which)
     fodeiv2_driver_alloc_scaled_new%odeiv2_driver = &
          gsl_odeiv2_driver_alloc_scaled_new(system%odeiv2_system, step_type, hstart, eps_abs, eps_rel, a_y, a_dydt, scale_abs)
+    call gsl_odeiv2_driver_init_errors(fodeiv2_driver_alloc_scaled_new%odeiv2_driver)
   end function fodeiv2_driver_alloc_scaled_new
   function fodeiv2_driver_set_hmin(d, hmin)
     real   (kind=fgsl_double), intent(in   ) :: hmin
