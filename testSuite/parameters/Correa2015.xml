@@ -1,0 +1,39 @@
+<!-- Parameter file used for testing Correa et al. 2015 algorithms. -->
+<parameters>
+  <parameter>
+    <name>cosmologyFunctionsMethod</name>
+    <value>matterLambda</value>
+  </parameter>
+  <parameter>
+    <name>Omega_Matter</name>
+    <value>0.2815</value>
+  </parameter>
+  <parameter>
+    <name>Omega_DE</name>
+    <value>0.7185</value>
+  </parameter>
+  <parameter>
+    <name>Omega_b</name>
+    <value>0.0465</value>
+  </parameter>
+  <parameter>
+    <name>H_0</name>
+    <value>69.3</value>
+  </parameter>
+  <parameter>
+    <name>sigma_8</name>
+    <value>0.82</value>
+  </parameter>
+  <parameter>
+    <name>transferFunctionMethod</name>
+    <value>Eisenstein-Hu1999</value>
+  </parameter>
+  <parameter>
+    <name>powerSpectrumIndex</name>
+    <value>0.971</value>
+  </parameter>
+  <parameter>
+    <name>darkMatterHaloMassAccretionHistoryMethod</name>
+    <value>correa2015</value>
+  </parameter>
+</parameters>
