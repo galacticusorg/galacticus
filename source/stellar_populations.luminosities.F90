@@ -58,7 +58,7 @@ module Stellar_Population_Luminosities
   ! Option controlling writing of luminosities to file.
   logical                                                      :: stellarPopulationLuminosityStoreToFile
   type            (varying_string )                            :: stellarPopulationLuminosityStoreDirectory
-
+  
   ! Option controlling behavior when maximum age of stellar populations is exceeded.
   logical                                                      :: stellarPopulationLuminosityMaximumAgeExceededIsFatal
 
@@ -82,28 +82,29 @@ contains
     use Stellar_Population_Spectra
     use Stellar_Population_Spectra_Postprocess
     implicit none
-    integer                                                                                    , intent(in   ) :: filterIndex                  (:), imfIndex                   , &
-         &                                                                                                        luminosityIndex              (:), postprocessingChainIndex(:)
-    double precision                                                                           , intent(in   ) :: redshift                (:)
+    integer                                                                                    , intent(in   ) :: filterIndex                              (:), imfIndex                   , &
+         &                                                                                                        luminosityIndex                          (:), postprocessingChainIndex(:)
+    double precision                                                                           , intent(in   ) :: redshift                                 (:)
     type            (luminosityTable           ), allocatable, dimension(:)                                    :: luminosityTablesTemporary
     double precision                            , allocatable, dimension(:,:,:)                                :: luminosityTemporary
     logical                                     , allocatable, dimension(:)                                    :: isTabulatedTemporary
     double precision                                         , dimension(2)                                    :: wavelengthRange
     type            (lockDescriptor            )                                                               :: lockFileDescriptor
-    integer         (c_size_t                  )                                                               :: iAge                            , iLuminosity                , &
+    integer         (c_size_t                  )                                                               :: iAge                                        , iLuminosity                , &
          &                                                                                                        iMetallicity
-    integer                                                                                                    :: loopCountMaximum                , jAge                       , &
-         &                                                                                                        jMetallicity                    , loopCount                  , &
+    integer                                                                                                    :: loopCountMaximum                            , jAge                       , &
+         &                                                                                                        jMetallicity                                , loopCount                  , &
          &                                                                                                        errorStatus
-    logical                                                                                                    :: computeTable                    , calculateLuminosity
-    double precision                                                                                           :: ageLast                         , metallicity                , &
-         &                                                                                                        normalization                   , toleranceRelative
+    logical                                                                                                    :: computeTable                                , calculateLuminosity        , &
+         &                                                                                                        stellarLuminositiesUniqueLabelConstructed
+    double precision                                                                                           :: ageLast                                     , metallicity                , &
+         &                                                                                                        normalization                               , toleranceRelative
     type            (c_ptr                     )                                                               :: parameterPointer
     type            (fgsl_function             )                                                               :: integrandFunction
     type            (fgsl_integration_workspace)                                                               :: integrationWorkspace
-    type            (varying_string            )                                                               :: message                         , luminositiesFileName       , &
+    type            (varying_string            )                                                               :: message                                     , luminositiesFileName       , &
          &                                                                                                        stellarLuminositiesUniqueLabel
-    character       (len=16                    )                                                               :: datasetName                     , redshiftLabel              , &
+    character       (len=16                    )                                                               :: datasetName                                 , redshiftLabel              , &
          &                                                                                                        label
     type            (hdf5Object                )                                                               :: luminositiesFile
     
@@ -185,9 +186,8 @@ contains
        call Memory_Usage_Record(sizeof(luminosityTables))
     end if
 
-    ! Get the unique label for stellar population luminosities.
-    stellarLuminositiesUniqueLabel=Stellar_Population_Luminosities_Label(includeSourceDigest=.true.,asHash=.true.)   
     ! Determine if we have tabulated luminosities for this luminosityIndex in this IMF yet.
+    stellarLuminositiesUniqueLabelConstructed=.false.
     do iLuminosity=1,size(luminosityIndex)
        if (allocated(luminosityTables(imfIndex)%isTabulated)) then
           if (size(luminosityTables(imfIndex)%isTabulated) >= luminosityIndex(iLuminosity)) then
@@ -245,6 +245,10 @@ contains
              !#  <ignore>initialMassForSupernovaeTypeII</ignore>
              !#  <ignore>elementsToTrack</ignore>
              !# </uniqueLabel>
+             if (.not.stellarLuminositiesUniqueLabelConstructed) then
+                stellarLuminositiesUniqueLabel=Stellar_Population_Luminosities_Label(includeSourceDigest=.true.,asHash=.true.)
+                stellarLuminositiesUniqueLabelConstructed=.true.
+             end if
              luminositiesFileName=stellarPopulationLuminosityStoreDirectory                                                   // &
                   &               "/stellarLuminosities::IMF:"                                                                // &
                   &               IMF_Name                                             (imfIndex                             )// &
