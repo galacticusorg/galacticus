@@ -244,6 +244,10 @@ my @executablesToRun = (
  	valgrind => 0
     },
     {
+	name     => "tests.mass_accretion_history.Correa2015.exe",                        # Tests of mass accretion histories.
+	valgrind => 0
+    },
+    {
 	name     => "tests.Zhao2009_algorithms.dark_energy.exe",                          # Tests of Zhao et al. (2009) algorithms.
 	valgrind => 0
     },
