@@ -817,6 +817,15 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Dump_Raw_Null
 
+  subroutine Node_Component_Read_Raw_Null(self,fileHandle)
+    !% Read a generic tree node component in binary.
+    implicit none
+    class  (nodeComponent), intent(inout) :: self
+    integer               , intent(in   ) :: fileHandle
+
+    return
+  end subroutine Node_Component_Read_Raw_Null
+
   subroutine Node_Component_Output_Count_Null(self,integerPropertyCount,doublePropertyCount,time,instance)
     !% Dump a generic tree node component.
     implicit none
@@ -884,15 +893,6 @@ module Galacticus_Nodes
 
     return
   end subroutine Node_Component_Serialize_Null
-
-  subroutine Node_Component_Read_Raw_Null(self,fileHandle)
-    !% Read a generic tree node component from raw file.
-    implicit none
-    class  (nodeComponent), intent(inout) :: self
-    integer               , intent(in   ) :: fileHandle
-    
-    return
-  end subroutine Node_Component_Read_Raw_Null
 
   subroutine Node_Component_Deserialize_Null(self,array)
     !% Deserialize a generic tree node component.
@@ -967,13 +967,14 @@ module Galacticus_Nodes
     return
   end function Node_Component_Surface_Density_Null
 
-  double precision function Node_Component_Potential_Null(self,radius,componentType,massType,haloLoaded)
+  double precision function Node_Component_Potential_Null(self,radius,componentType,massType,haloLoaded,status)
     !% A null implementation of the gravitational potential in a component. Always returns zero.
     implicit none
     class           (nodeComponent), intent(inout)           :: self
     integer                        , intent(in   )           :: componentType, massType
     double precision               , intent(in   )           :: radius
     logical                        , intent(in   ), optional :: haloLoaded
+    integer                        , intent(inout), optional :: status
 
     Node_Component_Potential_Null=0.0d0
     return

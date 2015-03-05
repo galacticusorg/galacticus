@@ -5,6 +5,7 @@
 <!-- will deadlock the tree as it cannot evolve in a host that has no descendent.  -->
 <!-- 7-December-2012                                                               -->
 <parameters>
+  <version>0.9.4</version>
 
   <!-- Component selection -->
   <parameter>
@@ -21,7 +22,11 @@
   </parameter>
   <parameter>
     <name>treeNodeMethodDisk</name>
-    <value>exponential</value>
+    <value>standard</value>
+  </parameter>
+  <parameter>
+    <name>diskMassDistribution</name>
+    <value>exponentialDisk</value>
   </parameter>
   <parameter>
     <name>treeNodeMethodHotHalo</name>
@@ -176,8 +181,8 @@
     <value>false</value>
   </parameter>
   <parameter>
-    <name>mergerTreeBuildMethod</name>
-    <value>Cole2000</value>
+    <name>mergerTreeBuilderMethod</name>
+    <value>cole2000</value>
   </parameter>
   <parameter>
     <name>mergerTreeBuildCole2000AccretionLimit</name>
@@ -538,8 +543,8 @@
 
   <!-- Galaxy merger options -->
   <parameter>
-    <name>virialOrbitsMethod</name>
-    <value>Benson2005</value>
+    <name>virialOrbitMethod</name>
+    <value>benson2005</value>
   </parameter>
   <parameter>
     <name>satelliteMergingTimescalesMethod</name>
