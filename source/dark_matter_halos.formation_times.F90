@@ -31,11 +31,12 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Mass_Accretion_Histories
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    double precision                    , intent(in   )          :: formationMassFraction
-    type            (treeNode          )               , pointer :: formationNode        , workNode
-    class           (nodeComponentBasic)               , pointer :: parentBasicComponent , thisBasicComponent, workBasicComponent
-    double precision                                             :: massNode             , timeNode
+    type            (treeNode                               ), intent(inout), pointer :: thisNode
+    double precision                                         , intent(in   )          :: formationMassFraction
+    type            (treeNode                               )               , pointer :: formationNode                      , workNode
+    class           (nodeComponentBasic                     )               , pointer :: parentBasicComponent               , thisBasicComponent, workBasicComponent
+    class           (darkMatterHaloMassAccretionHistoryClass),                pointer :: darkMatterHaloMassAccretionHistory_
+    double precision                                                                  :: massNode                           , timeNode
 
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
@@ -51,7 +52,8 @@ contains
     end do
     if (.not.associated(workNode)) then
        ! Find the formation time based on the mass accretion history.
-       Dark_Matter_Halo_Formation_Time=Dark_Matter_Halo_Mass_Accretion_Time(formationNode,formationMassFraction*massNode)
+       darkMatterHaloMassAccretionHistory_ => darkMatterHaloMassAccretionHistory()
+       Dark_Matter_Halo_Formation_Time=darkMatterHaloMassAccretionHistory_%time(formationNode,formationMassFraction*massNode)
     else
        ! Interpolate to get the exact time of formation.
        parentBasicComponent => workNode%parent%basic()

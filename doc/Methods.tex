@@ -1761,52 +1761,6 @@ Currently defined dark matter density profile methods are:
  \item [{\normalfont \ttfamily Einasto}] The Einasto density profile, described, for example, by \cite{cardone_spherical_2005}\index{Einasto profile}\index{density profile!Einasto}.
 \end{description}
 
-\subsubsection{Dark Matter Halo Mass Accretion History}\index{dark matter halo!mass accretion history}\index{mass accretion history!dark matter halo}\label{sec:HaloMassAccretionHistory}
-
-Additional methods for dark matter halo mass accretion histories can be added using the {\normalfont \ttfamily darkMatterAccretionHistoryMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Zhao2009} method is described by a directive:
-\begin{verbatim}
- !# <darkMatterAccretionHistoryMethod>
- !#  <unitName>Dark_Matter_Mass_Accretion_Zhao2009_Initialize</unitName>
- !# </darkMatterAccretionHistoryMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Dark\_Matter\_Mass\_Accretion\_Zhao2009\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(darkMatterAccretionHistoryMethod,Dark_Matter_Halo_Mass_Accretion_Time_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: darkMatterAccretionHistoryMethod
-    procedure(),          pointer, intent(inout) :: Dark_Matter_Halo_Mass_Accretion_Time_Get
-    
-    if (darkMatterAccretionHistoryMethod == 'myMethod') then
-       Dark_Matter_Halo_Mass_Accretion_Time_Get => My_Time_Get
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily darkMatterAccretionHistoryMethod} input parameter. The procedure pointer {\normalfont \ttfamily Dark\_Matter\_Halo\_Mass\_Accretion\_Time\_Get} must be set to point to a function which returns the time at which a given mass is reached in the mass accretion history. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The time function must have the form:
-\begin{verbatim}
-  double precision function My_Dark_Matter_Halo_Mass_Accretion_Time(baseNode,nodeMass)
-    implicit none
-    type(treeNode),   intent(inout), pointer :: baseNode
-    double precision, intent(in)             :: nodeMass
-    .
-    .
-    .
-    return
-  end function My_Dark_Matter_Halo_Mass_Accretion_Time
-\end{verbatim}
-The function should compute and return the time at which the mass accretion history of {\normalfont \ttfamily baseNode} reaches the specified {\normalfont \ttfamily nodeMass}.
-
-Currently defined mass accretion history methods are:
-\begin{description}
- \item [{\normalfont \ttfamily Wechsler2002}] Uses the fitting function from \cite{wechsler_concentrations_2002} to compute the mass accretion history. If {\normalfont \ttfamily [accretionHistoryWechslerFormationRedshiftCompute]} is set to true then the formation redshift for each history is set sing the method of \cite{bullock_profiles_2001}, otherwise it can be set directly via the {\normalfont \ttfamily [accretionHistoryWechslerFormationRedshift]} parameter;
- \item [{\normalfont \ttfamily Zhao2009}] Uses the algorithm of \cite{zhao_accurate_2009} to compute the mass accretion history.
-\end{description}
-
 \subsubsection{Dark Matter Density Profile Shape}\label{sec:darkMatterProfileShape}
 
 Additional methods for the dark matter density profile shape paramter can be added using the {\normalfont \ttfamily darkMatterShapeMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Gao2008} method is described by a directive:

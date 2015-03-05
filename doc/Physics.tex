@@ -596,11 +596,11 @@ Several algorithms are used to implement dark matter halos.
 
 \subsection{Mass Accretion History}\index{mass accretion history!dark matter halo}\index{dark matter halo!mass accretion history}
 
-The method used to compute mass accretion histories of dark matter halos is selected via the {\normalfont \ttfamily darkMatterAccretionHistoryMethod} parameter.
+The method used to compute mass accretion histories of dark matter halos is selected via the {\normalfont \ttfamily darkMatterHaloMassAccretionHistoryMethod} parameter.
 
 \subsubsection{Wechsler et al. (2002)}
 
-Selected with {\normalfont \ttfamily darkMatterAccretionHistoryMethod}$=${\normalfont \ttfamily Wechsler2002}, under this method the mass accretion history is given by \citep{wechsler_concentrations_2002}:
+Selected with {\normalfont \ttfamily darkMatterHaloMassAccretionHistoryMethod}$=${\normalfont \ttfamily wechsler2002}, under this method the mass accretion history is given by \citep{wechsler_concentrations_2002}:
 \begin{equation}
 M(t) = M(t_0) \exp \left( - 2 a_{\mathrm c} \left[ {a(t_0)\over a(t)}-1 \right] \right),
 \end{equation}
@@ -608,7 +608,7 @@ where $t_0$ is some reference time and $a_{\mathrm c}$ is a characteristic expan
 
 \subsubsection{Zhao et al. (2009)}
 
-Selected with {\normalfont \ttfamily darkMatterAccretionHistoryMethod}$=${\normalfont \ttfamily Zhao2009}, under this method the algorithm given by \cite{zhao_accurate_2009} to compute mass accretion histories. In particular, \cite{zhao_accurate_2009} give a fitting function for the quantity ${\mathrm d} \ln \sigma(M)/{\mathrm d} \ln  \delta_{\mathrm c}(t)$ for the dimensionless growth rate in a mass accretion history at time $t$ and halo mass $M$. This is converted to a dimensionful growth rate using
+Selected with {\normalfont \ttfamily darkMatterHaloMassAccretionHistoryMethod}$=${\normalfont \ttfamily zhao2009}, under this method the algorithm given by \cite{zhao_accurate_2009} to compute mass accretion histories. In particular, \cite{zhao_accurate_2009} give a fitting function for the quantity ${\mathrm d} \ln \sigma(M)/{\mathrm d} \ln  \delta_{\mathrm c}(t)$ for the dimensionless growth rate in a mass accretion history at time $t$ and halo mass $M$. This is converted to a dimensionful growth rate using
 \begin{equation}
  {{\mathrm d} M \over {\mathrm d} t} = \left({{\mathrm d} \ln \sigma(M) \over {\mathrm d} \ln M}\right)^{-1} \left({{\mathrm d} \delta_c(t) \over {\mathrm d} t}\right) \left( {M \over \delta_{\mathrm c}(t)} \right) \left({{\mathrm d} \ln \sigma(M) \over {\mathrm d} \ln \delta_{\mathrm c}(t)}\right).
 \end{equation}
