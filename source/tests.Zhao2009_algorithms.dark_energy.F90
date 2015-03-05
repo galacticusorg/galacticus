@@ -35,21 +35,22 @@ program Test_Zhao2009_Dark_Energy
   use Galacticus_Input_Paths
   use File_Utilities
   implicit none
-  type            (treeNode                           )                         , pointer :: thisNode
-  class           (nodeComponentBasic                 )                         , pointer :: thisBasicComponent
-  integer                                              , dimension(2), parameter          :: logarithmicHaloMasses           =[12,15]
-  double precision                                     , dimension(2), parameter          :: concentrationDifferenceTolerance=[3.1d-2,5.5d-4], timeDifferenceTolerance=[2.5d-2,2.0d-2]
-  class           (cosmologyFunctionsClass            )                         , pointer :: cosmologyFunctionsDefault
-  class           (darkMatterProfileConcentrationClass)                         , pointer :: darkMatterProfileConcentration_
-  type            (varying_string                     )                                   :: fileName                                        , message                                , &
-       &                                                                                     parameterFile
-  integer                                                                                 :: dataLinesInFile                                 , fUnit                                  , &
-       &                                                                                     iLine                                           , iMass                                  , &
-       &                                                                                     totalLinesInFile
-  double precision                                                                        :: concentrationDifferenceMaximum                  , haloMass                               , &
-       &                                                                                     ourConcentration                                , ourTime                                , &
-       &                                                                                     redshift                                        , theirConcentration                     , &
-       &                                                                                     theirTime                                       , timeDifferenceMaximum
+  type            (treeNode                               )                         , pointer :: thisNode
+  class           (nodeComponentBasic                     )                         , pointer :: thisBasicComponent
+  integer                                                  , dimension(2), parameter          :: logarithmicHaloMasses           =[12,15]
+  double precision                                         , dimension(2), parameter          :: concentrationDifferenceTolerance=[3.1d-2,5.5d-4], timeDifferenceTolerance=[2.5d-2,2.0d-2]
+  class           (cosmologyFunctionsClass                )                         , pointer :: cosmologyFunctionsDefault
+  class           (darkMatterProfileConcentrationClass    )                         , pointer :: darkMatterProfileConcentration_
+  class           (darkMatterHaloMassAccretionHistoryClass)                         , pointer :: darkMatterHaloMassAccretionHistory_
+  type            (varying_string                         )                                   :: fileName                                        , message                                , &
+       &                                                                                         parameterFile
+  integer                                                                                     :: dataLinesInFile                                 , fUnit                                  , &
+       &                                                                                         iLine                                           , iMass                                  , &
+       &                                                                                         totalLinesInFile
+  double precision                                                                            :: concentrationDifferenceMaximum                  , haloMass                               , &
+       &                                                                                         ourConcentration                                , ourTime                                , &
+       &                                                                                         redshift                                        , theirConcentration                     , &
+       &                                                                                         theirTime                                       , timeDifferenceMaximum
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.Zhao2009_algorithms.dark_energy.size')
@@ -68,9 +69,11 @@ program Test_Zhao2009_Dark_Energy
   ! Get the basic component.
   thisBasicComponent => thisNode%basic(autoCreate=.true.)
   ! Get the default cosmology functions object.
-  cosmologyFunctionsDefault       => cosmologyFunctions            ()
+  cosmologyFunctionsDefault           => cosmologyFunctions                ()
   ! Get the default concentrations object.
-  darkMatterProfileConcentration_ => darkMatterProfileConcentration()
+  darkMatterProfileConcentration_     => darkMatterProfileConcentration    ()
+  ! Get the default mass accretion history object.
+  darkMatterHaloMassAccretionHistory_ => darkMatterHaloMassAccretionHistory()
 
   ! Loop over halo masses to test.
   do iMass=1,size(logarithmicHaloMasses)
@@ -103,7 +106,7 @@ program Test_Zhao2009_Dark_Energy
         call thisBasicComponent%timeSet(cosmologyFunctionsDefault%cosmicTime                (1.0d0))
 
         ! Get the time corresponding to the current halo mass.
-        ourTime=Dark_Matter_Halo_Mass_Accretion_Time(thisNode,haloMass)
+        ourTime=darkMatterHaloMassAccretionHistory_%time(thisNode,haloMass)
 
         ! Set the node mass and time to the current values.
         call thisBasicComponent%massSet(haloMass )

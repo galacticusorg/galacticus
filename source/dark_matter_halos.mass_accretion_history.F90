@@ -21,80 +21,25 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
   !% Implements calculations of dark matter halo mass accretion histories.
   use ISO_Varying_String
   use Galacticus_Nodes
-  implicit none
+   !# <include directive="darkMatterHaloMassAccretionHistory" type="functionModules" >
+  include 'darkMatterHaloMassAccretionHistory.functionModules.inc'
+  !# </include>
   private
-  public :: Dark_Matter_Halo_Mass_Accretion_Time
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                            :: darkMatterAccretionHistoryInitialized   =.false.
-
-  ! Name of cooling rate available method used.
-  type     (varying_string                )          :: darkMatterAccretionHistoryMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Dark_Matter_Accretion_Template), pointer :: Dark_Matter_Halo_Mass_Accretion_Time_Get=>null()
-  abstract interface
-     double precision function Dark_Matter_Accretion_Template(baseNode,nodeMass)
-       import treeNode
-       type            (treeNode), intent(inout), pointer :: baseNode
-       double precision          , intent(in   )          :: nodeMass
-     end function Dark_Matter_Accretion_Template
-  end interface
-
-contains
-
-  subroutine Dark_Matter_Mass_Accretion_Initialize
-    !% Initialize the dark matter mass accretion history module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="darkMatterAccretionHistoryMethod" type="moduleUse">
-    include 'dark_matter_halos.mass_accretion_history.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.darkMatterAccretionHistoryInitialized) then
-       !$omp critical(Dark_Matter_Mass_Accretion_Initialization)
-       if (.not.darkMatterAccretionHistoryInitialized) then
-          ! Get the mass accretion history method parameter.
-          !@ <inputParameter>
-          !@   <name>darkMatterAccretionHistoryMethod</name>
-          !@   <defaultValue>Wechsler2002</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for calculations of dark matter halo mass accretion histories.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkMatterAccretionHistoryMethod',darkMatterAccretionHistoryMethod,defaultValue='Wechsler2002')
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="darkMatterAccretionHistoryMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>darkMatterAccretionHistoryMethod,Dark_Matter_Halo_Mass_Accretion_Time_Get</functionArgs>
-          include 'dark_matter_halos.mass_accretion_history.inc'
-          !# </include>
-          if (.not.associated(Dark_Matter_Halo_Mass_Accretion_Time_Get)) &
-               & call Galacticus_Error_Report('Dark_Matter_Mass_Accretion_Initialize','method ' //char(darkMatterAccretionHistoryMethod)//' is unrecognized')
-          darkMatterAccretionHistoryInitialized=.true.
-       end if
-       !$omp end critical(Dark_Matter_Mass_Accretion_Initialization)
-    end if
-    return
-  end subroutine Dark_Matter_Mass_Accretion_Initialize
-
-  double precision function Dark_Matter_Halo_Mass_Accretion_Time(baseNode,nodeMass)
-    !% Returns the time for {\normalfont \ttfamily thisNode} in {\normalfont \ttfamily thisTree} according to the mass accretion history.
-    implicit none
-    type            (treeNode), intent(inout), pointer :: baseNode
-    double precision          , intent(in   )          :: nodeMass
-
-    ! Initialize the module.
-    call Dark_Matter_Mass_Accretion_Initialize
-
-    ! Get the time for the node.
-    Dark_Matter_Halo_Mass_Accretion_Time=Dark_Matter_Halo_Mass_Accretion_Time_Get(baseNode,nodeMass)
-
-    return
-  end function Dark_Matter_Halo_Mass_Accretion_Time
-
+  !# <include directive="darkMatterHaloMassAccretionHistory" type="function" >
+  !#  <descriptiveName>Dark Matter Halo Mass Accretion Histories</descriptiveName>
+  !#  <description>Object providing dark matter halo mass accretion histories.</description>
+  !#  <default>wechsler2002</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <stateful>no</stateful>
+  !#  <method name="time" >
+  !#   <description>Returns the time at which the given halo mass was reached.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>double precision          , intent(in   )          :: mass</argument>
+  !#  </method>
+  include 'darkMatterHaloMassAccretionHistory.type.inc'
+  !# </include>
+  
 end module Dark_Matter_Halo_Mass_Accretion_Histories

@@ -15,132 +15,149 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{wechsler_concentrations_2002} halo mass accretion algorithm.
+  !% An implementation of dark matter halo mass accretion histories using the \cite{wechsler_concentrations_2002} algorithm.
 
-module Dark_Matter_Halo_Mass_Accretion_Histories_Wechsler2002
-  !% Implements the \cite{wechsler_concentrations_2002} halo mass accretion algorithm.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Dark_Matter_Mass_Accretion_Wechsler2002_Initialize
+  !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryWechsler2002">
+  !#  <description>Dark matter halo mass accretion histories using the \cite{wechsler_concentrations_2002} algorithm.</description>
+  !# </darkMatterHaloMassAccretionHistory>
 
-  ! Parameters controlling the calculation of formation histories.
+  type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryWechsler2002
+     !% A dark matter halo mass accretion historiy class using the \cite{wechsler_concentrations_2002} algorithm.
+     private
+     logical          :: formationRedshiftCompute
+     double precision :: formationRedshift
+   contains
+     procedure :: time => wechsler2002Time
+  end type darkMatterHaloMassAccretionHistoryWechsler2002
+  
+  interface darkMatterHaloMassAccretionHistoryWechsler2002
+     !% Constructors for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+     module procedure wechsler2002DefaultConstructor
+     module procedure wechsler2002Constructor
+  end interface darkMatterHaloMassAccretionHistoryWechsler2002
+
+  ! Default parameters.
   logical          :: accretionHistoryWechslerFormationRedshiftCompute
   double precision :: accretionHistoryWechslerFormationRedshift
-
+  
+  ! Initialization status.
+  logical          :: wechsler2002Initialized                          =.false.
+  
 contains
 
-  !# <darkMatterAccretionHistoryMethod>
-  !#  <unitName>Dark_Matter_Mass_Accretion_Wechsler2002_Initialize</unitName>
-  !# </darkMatterAccretionHistoryMethod>
-  subroutine Dark_Matter_Mass_Accretion_Wechsler2002_Initialize(darkMatterAccretionHistoryMethod,Dark_Matter_Halo_Mass_Accretion_Time_Get)
-    !% Initializes the ``Wechsler2002'' mass accretion history module.
-    use ISO_Varying_String
+  function wechsler2002DefaultConstructor()
+    !% Default constructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
     use Input_Parameters
     implicit none
-    type     (varying_string                                   ), intent(in   )          :: darkMatterAccretionHistoryMethod
-    procedure(Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002), intent(inout), pointer :: Dark_Matter_Halo_Mass_Accretion_Time_Get
-
-    if (darkMatterAccretionHistoryMethod == 'Wechsler2002') then
-       ! Set procedure pointers.
-       Dark_Matter_Halo_Mass_Accretion_Time_Get => Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002
-
-       !@ <inputParameter>
-       !@   <name>accretionHistoryWechslerFormationRedshiftCompute</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Compute formation redshift automatically for \cite{wechsler_concentrations_2002} halo mass accretion histories?
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('accretionHistoryWechslerFormationRedshiftCompute',accretionHistoryWechslerFormationRedshiftCompute,defaultValue=.true.)
-       if (.not.accretionHistoryWechslerFormationRedshiftCompute) then
-          ! In this case, read the formation redshift.
+    type(darkMatterHaloMassAccretionHistoryWechsler2002), target  :: wechsler2002DefaultConstructor
+    
+    if (.not.wechsler2002Initialized) then
+       !$omp critical(wechsler2002Initialize)
+       if (.not.wechsler2002Initialized) then       
           !@ <inputParameter>
-          !@   <name>accretionHistoryWechslerFormationRedshift</name>
-          !@   <defaultValue>0.4</defaultValue>
+          !@   <name>accretionHistoryWechslerFormationRedshiftCompute</name>
+          !@   <defaultValue>true</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     The formation redshift to use in \cite{wechsler_concentrations_2002} halo mass accretion histories.
+          !@     Compute formation redshift automatically for \cite{wechsler_concentrations_2002} halo mass accretion histories?
           !@   </description>
-          !@   <type>real</type>
+          !@   <type>boolean</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter('accretionHistoryWechslerFormationRedshift',accretionHistoryWechslerFormationRedshift,defaultValue=0.4d0)
-        end if
-
+          call Get_Input_Parameter('accretionHistoryWechslerFormationRedshiftCompute',accretionHistoryWechslerFormationRedshiftCompute,defaultValue=.true.)
+          if (.not.accretionHistoryWechslerFormationRedshiftCompute) then
+             ! In this case, read the formation redshift.
+             !@ <inputParameter>
+             !@   <name>accretionHistoryWechslerFormationRedshift</name>
+             !@   <defaultValue>0.4</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The formation redshift to use in \cite{wechsler_concentrations_2002} halo mass accretion histories.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('accretionHistoryWechslerFormationRedshift',accretionHistoryWechslerFormationRedshift,defaultValue=0.4d0)             
+          end if
+       end if
+       !$omp end critical(wechsler2002Initialize)
     end if
-
+    wechsler2002DefaultConstructor=wechsler2002Constructor(accretionHistoryWechslerFormationRedshiftCompute,accretionHistoryWechslerFormationRedshift)
     return
-  end subroutine Dark_Matter_Mass_Accretion_Wechsler2002_Initialize
+  end function wechsler2002DefaultConstructor
 
-  double precision function Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002(baseNode,nodeMass)
-    !% Compute the time corresponding to {\normalfont \ttfamily nodeMass} in the mass accretion history of {\normalfont \ttfamily thisNode} using the algorithm of
+  function wechsler2002Constructor(formationRedshiftCompute,formationRedshift)
+    !% Generic constructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+    use Galacticus_Error
+    implicit none
+    type            (darkMatterHaloMassAccretionHistoryWechsler2002), target                  :: wechsler2002Constructor
+    logical                                                         , intent(in   )           :: formationRedshiftCompute
+    double precision                                                , intent(in   ), optional :: formationRedshift
+
+    wechsler2002Constructor%formationRedshiftCompute=formationRedshiftCompute
+    if (.not.formationRedshiftCompute) then
+       if (present(formationRedshift)) then
+          wechsler2002Constructor%formationRedshift=formationRedshift
+       else
+          call Galacticus_Error_Report('wechsler2002Constructor','formation redshift must be provided')
+       end if
+    end if
+    return
+  end function wechsler2002Constructor
+    
+  double precision function wechsler2002Time(self,node,mass)
+    !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily thisNode} using the algorithm of
     !% \cite{wechsler_concentrations_2002}.
     use Cosmology_Functions
     implicit none
-    type            (treeNode               ), intent(inout), pointer :: baseNode
-    double precision                         , intent(in   )          :: nodeMass
-    class           (nodeComponentBasic     )               , pointer :: baseBasicComponent
-    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
-    double precision                                                  :: expansionFactor                   , expansionFactorBase, &
-         &                                                               mergerTreeFormationExpansionFactor
+    class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout)          :: self
+    type            (treeNode                                      ), intent(inout), pointer :: node
+    double precision                                                , intent(in   )          :: mass
+    class           (nodeComponentBasic                            )               , pointer :: baseBasic
+    class           (cosmologyFunctionsClass                       )               , pointer :: cosmologyFunctions_
+    double precision                                                                         :: expansionFactor                   , expansionFactorBase, &
+         &                                                                                      mergerTreeFormationExpansionFactor
 
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
-    baseBasicComponent => baseNode%basic()
-    select case (accretionHistoryWechslerFormationRedshiftCompute)
+    cosmologyFunctions_ => cosmologyFunctions      ()
+    baseBasic           => node              %basic()
+    select case (self%formationRedshiftCompute)
     case (.true.)
        ! Compute the expansion factor at formation.
-       mergerTreeFormationExpansionFactor=Expansion_Factor_At_Formation (baseBasicComponent%mass()                )
+       mergerTreeFormationExpansionFactor=expansionFactorAtFormation(baseBasic%mass())
     case (.false.)
        ! Use the specified formation redshift.
-       mergerTreeFormationExpansionFactor=cosmologyFunctionsDefault%expansionFactorFromRedshift(accretionHistoryWechslerFormationRedshift)
+       mergerTreeFormationExpansionFactor=cosmologyFunctions_%expansionFactorFromRedshift(self%formationRedshift)
     end select
-
     ! Get the expansion factor at the tree base.
-    expansionFactorBase=cosmologyFunctionsDefault%expansionFactor(baseBasicComponent%time())
-
+    expansionFactorBase=cosmologyFunctions_%expansionFactor(baseBasic%time())
     ! Compute the expansion factor for the current node.
-    expansionFactor    =expansionFactorBase/(1.0d0-0.5d0*log(nodeMass/baseBasicComponent%mass())&
-         &/mergerTreeFormationExpansionFactor)
-
+    expansionFactor=expansionFactorBase/(1.0d0-0.5d0*log(mass/baseBasic%mass())/mergerTreeFormationExpansionFactor)
     ! Find the time corresponding to this expansion factor.
-    Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002=cosmologyFunctionsDefault%cosmicTime(expansionFactor)
-
-   return
-  end function Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002
-
-  double precision function Expansion_Factor_At_Formation(haloMass)
-    !% Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
-    use Cosmology_Functions
-    use Power_Spectra
-    use Critical_Overdensity
-    implicit none
-    double precision                         , intent(in   ) :: haloMass
-    double precision                         , parameter     :: haloMassFraction         =0.015d0                         !    Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).
-    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctionsDefault
-    double precision                                         :: formationTime                    , haloMassCharacteristic                                                                , &
-         &                                                      sigmaCharacteristic
-
-    ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
-
-    ! Compute the characteristic mass at formation time.
-    haloMassCharacteristic=haloMassFraction*haloMass
-
-    ! Compute the corresponding rms fluctuation in the density field (i.e. sigma(M)).
-    sigmaCharacteristic=Cosmological_Mass_Root_Variance(haloMassCharacteristic)
-
-    ! Get the time at which this equals the critical overdensity for collapse.
-    formationTime=Time_of_Collapse(criticalOverdensity=sigmaCharacteristic,mass=haloMass)
-
-    ! Get the corresponding expansion factor.
-    Expansion_Factor_At_Formation=cosmologyFunctionsDefault%expansionFactor(formationTime)
-
+    wechsler2002Time=cosmologyFunctions_%cosmicTime(expansionFactor)
     return
-  end function Expansion_Factor_At_Formation
 
-end module Dark_Matter_Halo_Mass_Accretion_Histories_Wechsler2002
+  contains
+    
+    double precision function expansionFactorAtFormation(haloMass)
+      !% Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
+      use Power_Spectra
+      use Critical_Overdensity
+      implicit none
+      double precision, intent(in   ) :: haloMass
+      double precision, parameter     :: haloMassFraction   =0.015d0                            ! Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).
+      double precision                :: formationTime              , haloMassCharacteristic, &
+           &                             sigmaCharacteristic
+     
+      ! Compute the characteristic mass at formation time.
+      haloMassCharacteristic=haloMassFraction*haloMass
+      ! Compute the corresponding rms fluctuation in the density field (i.e. sigma(M)).
+      sigmaCharacteristic=Cosmological_Mass_Root_Variance(haloMassCharacteristic)
+      ! Get the time at which this equals the critical overdensity for collapse.
+      formationTime=Time_of_Collapse(criticalOverdensity=sigmaCharacteristic,mass=haloMass)
+      ! Get the corresponding expansion factor.
+      expansionFactorAtFormation=cosmologyFunctions_%expansionFactor(formationTime)
+      return
+    end function expansionFactorAtFormation
+
+  end function wechsler2002Time
