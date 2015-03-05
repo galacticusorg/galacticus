@@ -77,7 +77,8 @@ contains
     double precision                                      :: lengthUnitsInSI                , lightconeMaximumDistanceTemp, &
          &                                                   lightconeMinimumDistanceTemp   , lightconeTimeTemp           , &
          &                                                   unitConversionLength           , tanHalfAngle                , &
-         &                                                   solidAngle
+         &                                                   solidAngle                     , redshiftMinimum             , &
+         &                                                   redshiftMaximum
     type            (varying_string          )            :: filterLightconeGeometryFileName
     logical                                               :: filterLightconeFixedTime
     character       (len=11                  )            :: tagName
@@ -180,19 +181,66 @@ contains
           ! Get lightcone radial intervals.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"outputs")
           call XML_Array_Read(thisItem,"redshift"       ,lightconeTime           )
-          call XML_Array_Read(thisItem,"minimumDistance",lightconeMinimumDistance)
-          call XML_Array_Read(thisItem,"maximumDistance",lightconeMaximumDistance)
-          call destroy(doc)
+          ! Check if minimum and maximum distances are provided.
+          if      (                                             &
+               &    XML_Path_Exists(thisItem,"minimumDistance") &
+               &   .and.                                        &
+               &    XML_Path_Exists(thisItem,"maximumDistance") &
+               &  ) then
+             ! They are, so read them.
+             call XML_Array_Read(thisItem,"minimumDistance",lightconeMinimumDistance)
+             call XML_Array_Read(thisItem,"maximumDistance",lightconeMaximumDistance)
+             lightconeMinimumDistance=lightconeMinimumDistance*unitConversionLength
+             lightconeMaximumDistance=lightconeMaximumDistance*unitConversionLength
+          else if (                                             &
+               &    XML_Path_Exists(thisItem,"minimumDistance") &
+               &   .and.                                        &
+               &    XML_Path_Exists(thisItem,"maximumDistance") &
+               &  ) then
+             ! Only one exists - abort.
+             call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone','either neither or both of "minimumDistance" and "maximumDistance" must be specified in the lightcone geometry file')
+          else
+             ! Neither is given, compute intervals instead.
+             call Alloc_Array(lightconeMinimumDistance,shape(lightconeTime))
+             call Alloc_Array(lightconeMaximumDistance,shape(lightconeTime))
+             do iOutput=1,size(lightconeTime)
+                if (iOutput == 1                  ) then
+                   redshiftMinimum=0.0d0
+                else
+                   redshiftMinimum=0.5d0*(lightconeTime(iOutput-1)+lightconeTime(iOutput))
+                end if
+                if (iOutput == size(lightconeTime)) then
+                   redshiftMaximum=                                lightconeTime(iOutput)
+                else
+                   redshiftMaximum=0.5d0*(lightconeTime(iOutput+1)+lightconeTime(iOutput))
+                end if
+                lightconeMinimumDistance(iOutput)=                                               &
+                     & cosmologyFunctionsDefault  %distanceComoving           (                  &
+                     &  cosmologyFunctionsDefault %cosmicTime                  (                 &
+                     &   cosmologyFunctionsDefault%expansionFactorFromRedshift  (                &
+                     &                                                           redshiftMinimum &
+                     &                                                          )                &
+                     &                                                         )                 &
+                     &                                                        )
+                lightconeMaximumDistance(iOutput)=                                               &
+                     & cosmologyFunctionsDefault  %distanceComoving           (                  &
+                     &  cosmologyFunctionsDefault %cosmicTime                  (                 &
+                     &   cosmologyFunctionsDefault%expansionFactorFromRedshift  (                &
+                     &                                                           redshiftMaximum &
+                     &                                                          )                &
+                     &                                                         )                 &
+                     &                                                        )
+             end do
+          end if
           if     (                                                       &
                &   size(lightconeMinimumDistance) /= size(lightconeTime) &
                &  .or.                                                   &
                &   size(lightconeMaximumDistance) /= size(lightconeTime) &
                & ) call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone','size mismatch in outputs arrays')
+          call destroy(doc)
           do iOutput=1,size(lightconeTime)
              lightconeTime(iOutput)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(lightconeTime(iOutput)))
           end do
-          lightconeMinimumDistance=lightconeMinimumDistance*unitConversionLength
-          lightconeMaximumDistance=lightconeMaximumDistance*unitConversionLength
           ! If requested, reduce the list of lightcone output times to the final time, and have
           ! it incorporate the full radial length of the lightcone. This allows the construction
           ! of lightcones with no evolution along the cone.
