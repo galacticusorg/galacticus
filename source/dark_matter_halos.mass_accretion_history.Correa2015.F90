@@ -47,27 +47,22 @@ contains
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
     !% thisNode} using the algorithm of \cite{correa_accretion_2015}.
     use Root_Finder
-    use Power_Spectra
-    use Linear_Growth
-    use Numerical_Constants_Math
     use Cosmology_Functions
+    use Dark_Matter_Halos_Correa2015
     implicit none
     class           (darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout)          :: self
     type            (treeNode                                    ), intent(inout), pointer :: node
     double precision                                              , intent(in   )          :: mass
     class           (nodeComponentBasic                          )               , pointer :: baseBasicComponent
     class           (cosmologyFunctionsClass                     )               , pointer :: cosmologyFunctions_
-    double precision                                              , parameter              :: deltaCritical      =1.686d0
     double precision                                              , parameter              :: toleranceRelative  =1.0d-6
     double precision                                              , parameter              :: toleranceAbsolute  =0.0d0
     type            (rootFinder                                  ), save                   :: finder
     !$omp threadprivate(finder)
-    double precision                                                                       :: baseRedshift               , aTilde  , &
-         &                                                                                    bTilde                     , q       , &
-         &                                                                                    redshiftFormation          , sigma   , &
-         &                                                                                    sigmaQ                     , baseMass, &
-         &                                                                                    baseTime                   , f       , &
-         &                                                                                    baseExpansionFactor        , redshift
+    double precision                                                                       :: baseRedshift               , baseTime, &
+         &                                                                                    baseExpansionFactor        , baseMass, &
+         &                                                                                    redshift                   , aTilde  , &
+         &                                                                                    bTilde
 
     ! Get properties of the base node.
     baseBasicComponent => node%basic()
@@ -79,23 +74,7 @@ contains
     baseExpansionFactor=cosmologyFunctions_%expansionFactor            (baseTime           )
     baseRedshift       =cosmologyFunctions_%redshiftFromExpansionFactor(baseExpansionFactor)
     ! Find the a~ and b~ parameters.
-    redshiftFormation=+1.8837d0                    & ! Correa et al. eqn. 6
-         &            +0.0237d0*log10(baseMass)    &
-         &            -0.0064d0*log10(baseMass)**2
-    q     =4.137d0/redshiftFormation**0.9476d0 ! Correa et al. eqn. 5.
-    sigma =Cosmological_Mass_Root_Variance(baseMass  )
-    sigmaQ=Cosmological_Mass_Root_Variance(baseMass/q)    
-    f     =1.0d0/sqrt(sigmaQ**2-sigma**2)
-    aTilde=+f                                                                             & ! Correa et al. eqn. 2.
-         & *(                                                                             &
-         &   +1.0d0                                                                       &
-         &   -sqrt(2.0d0/Pi)                                                              &
-         &   *deltaCritical                                                               &
-         &   *                                                       baseExpansionFactor  &
-         &   *Linear_Growth_Factor_Logarithmic_Derivative(aExpansion=baseExpansionFactor) &
-         &   /Linear_Growth_Factor                       (aExpansion=baseExpansionFactor) &
-         &  )
-    bTilde=-f ! Correa et al. eqn. 3.
+    call Dark_Matter_Halo_Correa2015_Fit_Parameters(baseMass,baseExpansionFactor,aTilde,bTilde)
     ! Solve for the redshift corresponding to this mass.
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(redshiftMassSolver                  )
