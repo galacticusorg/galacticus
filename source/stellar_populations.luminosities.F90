@@ -102,7 +102,8 @@ contains
     type            (c_ptr                     )                                                               :: parameterPointer
     type            (fgsl_function             )                                                               :: integrandFunction
     type            (fgsl_integration_workspace)                                                               :: integrationWorkspace
-    type            (varying_string            )                                                               :: message                         , luminositiesFileName
+    type            (varying_string            )                                                               :: message                         , luminositiesFileName       , &
+         &                                                                                                        stellarLuminositiesUniqueLabel
     character       (len=16                    )                                                               :: datasetName                     , redshiftLabel              , &
          &                                                                                                        label
     type            (hdf5Object                )                                                               :: luminositiesFile
@@ -173,6 +174,8 @@ contains
        call Memory_Usage_Record(sizeof(luminosityTables))
     end if
 
+    ! Get the unique label for stellar population luminosities.
+    stellarLuminositiesUniqueLabel=Stellar_Population_Luminosities_Label(includeSourceDigest=.true.,asHash=.true.)   
     ! Determine if we have tabulated luminosities for this luminosityIndex in this IMF yet.
     do iLuminosity=1,size(luminosityIndex)
        if (allocated(luminosityTables(imfIndex)%isTabulated)) then
@@ -231,15 +234,15 @@ contains
              !#  <ignore>initialMassForSupernovaeTypeII</ignore>
              !#  <ignore>elementsToTrack</ignore>
              !# </uniqueLabel>
-             luminositiesFileName=stellarPopulationLuminosityStoreDirectory                                                                 // &
-                  &               "/stellarLuminosities::IMF:"                                                                              // &
-                  &               IMF_Name                                             (imfIndex                                           )// &
-                  &               "::filter:"                                                                                               // &
-                  &               Filter_Name                                          (filterIndex             (iLuminosity)              )// &
-                  &               "::postprocessing:"                                                                                       // &
-                  &               Stellar_Population_Spectrum_Postprocess_Chain_Methods(postprocessingChainIndex(iLuminosity)              )// &
-                  &               "::dependencies:"                                                                                         // &
-                  &               Stellar_Population_Luminosities_Label                (includeSourceDigest=.true.           ,asHash=.true.)// &
+             luminositiesFileName=stellarPopulationLuminosityStoreDirectory                                                   // &
+                  &               "/stellarLuminosities::IMF:"                                                                // &
+                  &               IMF_Name                                             (imfIndex                             )// &
+                  &               "::filter:"                                                                                 // &
+                  &               Filter_Name                                          (filterIndex             (iLuminosity))// &
+                  &               "::postprocessing:"                                                                         // &
+                  &               Stellar_Population_Spectrum_Postprocess_Chain_Methods(postprocessingChainIndex(iLuminosity))// &
+                  &               "::dependencies:"                                                                           // &
+                  &               stellarLuminositiesUniqueLabel                                                              // &
                   &               ".hdf5"
              if (File_Exists(luminositiesFileName)) then
                 ! Construct the dataset name.
