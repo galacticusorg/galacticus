@@ -745,7 +745,7 @@ Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\n
 \begin{equation}
  c = 4 \left(1 + \left[ {t  \over 3.75 t_{\mathrm form}}\right]^{8.4}\right)^{1/8},
 \end{equation}
-where $t$ is the time for the halo and $t_{\mathrm form}$ is a formation time defined by \cite{zhao_accurate_2009} as the time at which the main branch progenitor of the halo had a mass equal to $0.04$ of the current halo mass. This formation time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch progenitor to earlier times using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}).
+where $t$ is the time for the halo and $t_{\mathrm form}$ is a formation time defined by \cite{zhao_accurate_2009} as the time at which the main branch progenitor of the halo had a mass equal to $0.04$ of the current halo mass. This formation time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch progenitor to earlier times using the selected mass accretion history method (see \S\ref{sec:methodsDarkMatterHaloMassAccretionHistory}).
 
 \subsubsection{Mu\~noz-Cuartas (2011)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationMunozCuartas2011}
 
@@ -1799,7 +1799,7 @@ For composite properties (e.g. abundances), the specification element should con
 
 \subsection{Smooth Accretion}\label{sec:SmoothAccretion}
 
-Selected with {\normalfont \ttfamily mergerTreeConstructMethod}$=${\normalfont \ttfamily smoothAccretion}, this method builds a branchless merger tree with a smooth accretion history using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}). The tree has a final mass of {\normalfont \ttfamily mergerTreeHaloMass} (in units of $M_\odot$) at redshift {\normalfont \ttfamily mergerTreeBaseRedshift} and is continued back in time by decreasing the halo mass by a factor {\normalfont \ttfamily mergerTreeHaloMassDeclineFactor} at each new \gls{node} until a specified {\normalfont \ttfamily mergerTreeHaloMassResolution} (in units of $M_\odot$) is reached.
+Selected with {\normalfont \ttfamily mergerTreeConstructMethod}$=${\normalfont \ttfamily smoothAccretion}, this method builds a branchless merger tree with a smooth accretion history using the selected mass accretion history method (see \S\ref{sec:methodsDarkMatterHaloMassAccretionHistory}). The tree has a final mass of {\normalfont \ttfamily mergerTreeHaloMass} (in units of $M_\odot$) at redshift {\normalfont \ttfamily mergerTreeBaseRedshift} and is continued back in time by decreasing the halo mass by a factor {\normalfont \ttfamily mergerTreeHaloMassDeclineFactor} at each new \gls{node} until a specified {\normalfont \ttfamily mergerTreeHaloMassResolution} (in units of $M_\odot$) is reached.
 
 \subsection{State Restore}\label{sec:TreeConstructStateRestore}\index{debugging!restoring merger tree internal state}
 
