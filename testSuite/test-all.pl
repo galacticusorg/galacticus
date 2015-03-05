@@ -268,6 +268,10 @@ my @executablesToRun = (
 	valgrind => 0
     },
     {
+	name     => "tests.concentration.Correa2015.exe",                                # Tests of Correa et al. (2015) halo concentration algorithm.
+	valgrind => 0
+    },
+    {
 	name     => "tests.kepler_orbits.exe",                                            # Keplerian orbital parameter conversions.
 	valgrind => 0
     },

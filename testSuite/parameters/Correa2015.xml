@@ -36,4 +36,12 @@
     <name>darkMatterHaloMassAccretionHistoryMethod</name>
     <value>correa2015</value>
   </parameter>
+  <parameter>
+    <name>darkMatterProfileConcentrationMethod</name>
+    <value>correa2015</value>
+  </parameter>
+  <parameter>
+    <name>darkMatterHaloConcentrationCorrea2015AScaling</name>
+    <value>950.0</value>
+  </parameter>
 </parameters>
