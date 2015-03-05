@@ -145,7 +145,7 @@ if ( exists($arguments{'plotFile'}) ) {
     print $gnuPlot "set format x '\$10^{\%L}\$'\n";
     print $gnuPlot "set mytics 10\n";
     print $gnuPlot "set format y '\$10^{\%L}\$'\n";
-    print $gnuPlot "set xrange [1.0e9:1.0e16]\n";
+    print $gnuPlot "set xrange [1.0e6:1.0e16]\n";
     print $gnuPlot "set yrange [1.0e-1:1.0e5]\n";
     print $gnuPlot "set title 'Tree processing times'\n";
     print $gnuPlot "set xlabel 'Tree mass \$[M_\\odot]\$'\n";
