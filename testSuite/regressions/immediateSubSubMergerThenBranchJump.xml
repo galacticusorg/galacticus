@@ -1,8 +1,10 @@
+<?xml version="1.0"?>
 <!-- Contains a tree in which a node undergoes an immediate subhalo-subhalo merger, and -->
 <!-- later the node into which it merges has to jump branches. To handle this case      -->
 <!-- correctly, the immediate subhalo-subhalo merger must be detected and the branch    -->
 <!-- not processed for branch jumps.                                                    -->
 <parameters>
+  <version>0.9.4</version>
   <parameter>
     <name>verbosityLevel</name>
     <value>1</value>
@@ -204,8 +206,8 @@
     <value>verySimple</value>
   </parameter>
   <parameter>
-    <name>mergerTreeBuildMethod</name>
-    <value>Cole2000</value>
+    <name>mergerTreeBuilderMethod</name>
+    <value>cole2000</value>
   </parameter>
   <parameter>
     <name>mergerTreeBuildMassResolutionFixed</name>
@@ -260,7 +262,7 @@
     <value>false</value>
   </parameter>
   <parameter>
-    <name>virialOrbitsMethod</name>
+    <name>virialOrbitMethod</name>
     <value>fixed</value>
   </parameter>
   <parameter>
