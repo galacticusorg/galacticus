@@ -7,8 +7,8 @@ package IonizingContinuua;
 use strict;
 use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
