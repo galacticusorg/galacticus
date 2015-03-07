@@ -233,6 +233,7 @@ contains
              !#  <ignore>supernovaEnergy</ignore>
              !#  <ignore>initialMassForSupernovaeTypeII</ignore>
              !#  <ignore>elementsToTrack</ignore>
+             !#  <ignore>stellarPopulationLuminosityStoreDirectory</ignore>
              !# </uniqueLabel>
              if (.not.stellarLuminositiesUniqueLabelConstructed) then
                 stellarLuminositiesUniqueLabel=Stellar_Population_Luminosities_Label(includeSourceDigest=.true.,asHash=.true.)
