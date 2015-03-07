@@ -25,10 +25,10 @@ my $executable      = $ARGV[1];
 
 # Build a hash of dependencies.
 my $dependencies;
-(my $dependencyFile = "work/build/".$executable) =~ s/\.exe/\.d/;
+(my $dependencyFile = $ENV{'BUILDPATH'}."/".$executable) =~ s/\.exe/\.d/;
 open(iHndl,$dependencyFile);
 while ( my $line = <iHndl> ) {
-    if ( $line =~ m/\.\/work\/build\/(.+\.o)$/ ) {
+    if ( $line =~ m/$ENV{'BUILDPATH'}\/(.+\.o)$/ ) {
 	my $sourceFile = $1;
 	push(@{$dependencies->{'objectFiles'}},$sourceFile);
     }
@@ -52,7 +52,7 @@ while ( my $fileName = readdir(sDir) ) {
 		if ( $line =~ m/^\s*include\s*[\'\"](.*)[\'\"]/ ) {
 		    if ( exists {map { $_ => 1 } @{$dependencies->{'objectFiles'}}}->{$objectFile} ) {
 			my $fileName = $1;
-			push(@fileStack,"work/build/".$1)
+			push(@fileStack,$ENV{'BUILDPATH'}."/".$1)
 			    unless ( $fileName eq "fftw3.f03" );
 		    }
 		}
@@ -82,7 +82,7 @@ while ( my $fileName = readdir(sDir) ) {
 close(sDir);
 
 # Check for any extra parameters that are not discoverable from the source files.
-(my $extraFile = "./work/build/".$executable) =~ s/\.exe/.parameters.extra.xml/;
+(my $extraFile = $ENV{'BUILDPATH'}."/".$executable) =~ s/\.exe/.parameters.extra.xml/;
 if ( -e $extraFile ) {
     my $xml = new XML::Simple;
     my $extraParameters = $xml->XMLin($extraFile);
@@ -98,7 +98,7 @@ my $output = $xmlOutput->XMLout($outputList);
 # Escape square brackets in the output to that they get correctly parsed by FoX.
 $output =~ s/\[/&#x005B;/g;
 $output =~ s/\]/&#x005D;/g;
-open(oHndl,">./work/build/".$outputFile);
+open(oHndl,">".$ENV{'BUILDPATH'}."/".$outputFile);
 print oHndl $output;
 close(oHndl);
 
