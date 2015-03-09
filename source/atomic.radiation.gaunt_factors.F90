@@ -15,82 +15,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of Gaunt factors for Bremsstrahlung emission from ions.
+!% Contains a module which provides a class implenting Gaunt factors.
 
 module Atomic_Radiation_Gaunt_Factors
-  !% Implements calculations of Gaunt factors for Bremsstrahlung emission from ions.
-  use ISO_Varying_String
-  implicit none
+  !% Provides a class implenting Gaunt factors.
+  use, intrinsic :: ISO_C_Binding
+  use               ISO_Varying_String
+  !# <include directive="gauntFactor" type="functionModules" >
+  include 'gauntFactor.functionModules.inc'
+  !# </include>
   private
-  public :: Gaunt_Factor
 
-  ! Flag to indicate if this module has been initialized.
-  logical                 :: gauntFactorInitialized=.false.
-
-  ! Name of method used.
-  type   (varying_string) :: gauntFactorMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Gaunt_Factor_Template), pointer :: Gaunt_Factor_Get => null()
-  abstract interface
-     double precision function Gaunt_Factor_Template(atomicNumber,electronNumber,temperature)
-       double precision, intent(in  ) :: temperature                     
-       integer         , intent(in  ) :: atomicNumber, electronNumber
-     end function Gaunt_Factor_Template
-  end interface
-
-contains
-
-  subroutine Gaunt_Factor_Initialize()
-    !% Initialize the Gaunt factor module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="gauntFactorMethod" type="moduleUse">
-    include 'gaunt_factor.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.gauntFactorInitialized) then
-       !$omp critical(gauntFactorInitialization)
-       if (.not.gauntFactorInitialized) then
-          ! Get the method parameter.
-          !@ <inputParameter>
-          !@   <name>gauntFactorMethod</name>
-          !@   <defaultValue>sutherland1998</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing Gaunt factors.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('gauntFactorMethod',gauntFactorMethod,defaultValue='sutherland1998')
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="gauntFactorMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>gauntFactorMethod,Gaunt_Factor_Get</functionArgs>
-          include 'gaunt_factor.inc'
-          !# </include>
-          if (.not.associated(Gaunt_Factor_Get)) call&
-               & Galacticus_Error_Report('Gaunt_Factor_Initialize','method '//char(gauntFactorMethod)//' is unrecognized')
-          gauntFactorInitialized = .true.
-       end if
-       !$omp end critical(gauntFactorInitialization)
-    end if
-    return
-  end subroutine Gaunt_Factor_Initialize
-
-  double precision function Gaunt_Factor(atomicNumber,electronNumber,temperature)
-    !% Return the Gaunt factor for the given ion and temperature.
-    implicit none
-    double precision, intent(in   ) :: temperature                     
-    integer         , intent(in   ) :: atomicNumber, electronNumber
-    
-    ! Initialize the module.
-    call Gaunt_Factor_Initialize()
-    ! Call the routine to do the calculation.
-    Gaunt_Factor=Gaunt_Factor_Get(atomicNumber,electronNumber,temperature)
-    return
-  end function Gaunt_Factor
-
+  !# <include directive="gauntFactor" type="function" >
+  !#  <descriptiveName>Gaunt Factors</descriptiveName>
+  !#  <description>Class providing Gaunt factors.</description>
+  !#  <default>sutherland1998</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <stateful>no</stateful>
+  !#  <method name="total" >
+  !#   <description>Returns the thermally averaged, total Gaunt factor.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer         , intent(in   ) :: atomicNumber, electronNumber</argument>
+  !#   <argument>double precision, intent(in   ) :: temperature</argument>                     
+  !#  </method>
+  include 'gauntFactor.type.inc'
+  !# </include>
+  
 end module Atomic_Radiation_Gaunt_Factors

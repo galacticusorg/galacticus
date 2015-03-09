@@ -239,11 +239,12 @@ my @translations =
 	 outputVersion => "0.9.4",
 	 names         =>
 	 {
-	     mergerTreeBuildMethod   => "mergerTreeBuilderMethod",
+	     mergerTreeBuildMethod   => "mergerTreeBuilderMethod"     ,
+	     darkMatterShapeMethod   => "darkMatterProfileShapeMethod"
 	 },
  	 values        =>
          {
-	     mergerTreeBuilderMethod =>
+	     mergerTreeBuilderMethod      =>
 	     {
 		 "Cole2000" => "cole2000"
 	     },
@@ -259,6 +260,10 @@ my @translations =
 			                          ]
 		                        }
 	     },
+	     darkMatterProfileShapeMethod =>
+	     {
+		 "Gao2008"  => "gao2008"
+             }
 	 }
     }
     );

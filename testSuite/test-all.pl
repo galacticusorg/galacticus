@@ -308,6 +308,10 @@ my @executablesToRun = (
 	name     => "tests.tree_branch_destroy.exe",                                      # Tests of merger tree walking.
 	valgrind => 1,
 	valgrindOptions => "--undef-value-errors=no"
+    },
+    {
+	name     => "tests.gaunt_factors.exe",                                            # Tests of Gaunt factors.
+	valgrind => 0
     }
     );
 
