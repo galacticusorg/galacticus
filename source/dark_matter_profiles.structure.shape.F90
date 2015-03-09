@@ -15,84 +15,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of dark matter halo density profile shapes.
+!% Contains a module which provides an object that implements concentrations of dark matter halo profiles.
 
-module Dark_Matter_Profiles_Shapes
-  !% Implements calculations of dark matter halo density profile shapes.
-  use ISO_Varying_String
-  use Galacticus_Nodes
-  implicit none
+module Dark_Matter_Profiles_Shape
+  !% Provides an object that implements shape parameters of dark matter halo profiles.
+  use, intrinsic :: ISO_C_Binding
+  use               ISO_Varying_String
+  use               Galacticus_Nodes
+  !# <include directive="darkMatterProfileShape" type="functionModules" >
+  include 'darkMatterProfileShape.functionModules.inc'
+  !# </include>
   private
-  public :: Dark_Matter_Profile_Shape
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                          :: darkMatterShapeInitialized   =.false.
-
-  ! Name of dark matter profile shape method used.
-  type     (varying_string              )          :: darkMatterShapeMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Shape_Get=>null()
-  abstract interface
-     double precision function Dark_Matter_Profile_Template(thisNode)
-       import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
-     end function Dark_Matter_Profile_Template
-  end interface
-
-contains
-
-  subroutine Dark_Matter_Shapes_Initialize
-    !% Initialize the dark matter profile module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="darkMatterShapeMethod" type="moduleUse">
-    include 'dark_matter_profiles.structure.shape.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.darkMatterShapeInitialized) then
-       !$omp critical(Dark_Matter_Shapes_Initialization)
-       if (.not.darkMatterShapeInitialized) then
-          ! Get the halo spin distribution method parameter.
-          !@ <inputParameter>
-          !@   <name>darkMatterShapeMethod</name>
-          !@   <defaultValue>Gao2008</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for calculations of dark matter halo density profile shapes.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkMatterShapeMethod',darkMatterShapeMethod,defaultValue='Gao2008')
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="darkMatterShapeMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>darkMatterShapeMethod,Dark_Matter_Profile_Shape_Get</functionArgs>
-          include 'dark_matter_profiles.structure.shape.inc'
-          !# </include>
-          if (.not.associated(Dark_Matter_Profile_Shape_Get)) &
-               & call Galacticus_Error_Report('Dark_Matter_Shapes_Initialize','method ' //char(darkMatterShapeMethod)//' is unrecognized')
-          darkMatterShapeInitialized=.true.
-       end if
-       !$omp end critical(Dark_Matter_Shapes_Initialization)
-    end if
-    return
-  end subroutine Dark_Matter_Shapes_Initialize
-
-  double precision function Dark_Matter_Profile_Shape(thisNode)
-    !% Returns the shape of the dark matter profile of {\normalfont \ttfamily thisNode}.
-    implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
-    ! Initialize the module.
-    call Dark_Matter_Shapes_Initialize
-
-    ! Get the shape using the selected method.
-    Dark_Matter_Profile_Shape=Dark_Matter_Profile_Shape_Get(thisNode)
-
-    return
-  end function Dark_Matter_Profile_Shape
-
-end module Dark_Matter_Profiles_Shapes
+  !# <include directive="darkMatterProfileShape" type="function" >
+  !#  <descriptiveName>Dark Matter Profile Shapes</descriptiveName>
+  !#  <description>Object providing dark matter profile shape parameters.</description>
+  !#  <default>gao2008</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <stateful>no</stateful>
+  !#  <method name="shape" >
+  !#   <description>Returns the shape parameter for the given {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#  </method>
+  include 'darkMatterProfileShape.type.inc'
+  !# </include>
+  
+end module Dark_Matter_Profiles_Shape

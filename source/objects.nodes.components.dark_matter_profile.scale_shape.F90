@@ -109,17 +109,20 @@ contains
 
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize_Shape(thisNode)
     !% Initialize the shape parameter of {\normalfont \ttfamily thisNode}.
-    use Dark_Matter_Profiles_Shapes
+    use Dark_Matter_Profiles_Shape
     implicit none
     type (treeNode                      ), intent(inout), pointer :: thisNode
     class(nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-
+    class(darkMatterProfileShapeClass   )               , pointer :: darkMatterProfileShape_
+    
     ! Ensure that the module is initialized.
     call Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize()
     ! Get the dark matter profile component.
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
+    ! Get the shape object.
+    darkMatterProfileShape_        => darkMatterProfileShape    (                 )
     ! Set the shape parameter of the halo.
-    call thisDarkMatterProfileComponent%shapeSet(Dark_Matter_Profile_Shape(thisNode))
+    call thisDarkMatterProfileComponent%shapeSet(darkMatterProfileShape_%shape(thisNode))
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize_Shape
 
