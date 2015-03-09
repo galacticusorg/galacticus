@@ -15,34 +15,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{gao_redshift_2008} Einasto halo shape algorithm.
+  !% An implementation of dark matter halo profile shapes  using the \cite{gao_redshift_2008} algorithm.
 
-module Dark_Matter_Profiles_Shapes_Gao2008
-  !% Implements the \cite{gao_redshift_2008} Einasto halo shape algorithm.
-  implicit none
-  private
-  public :: Dark_Matter_Shapes_Gao2008_Initialize
+  !# <darkMatterProfileShape name="darkMatterProfileShapeGao2008">
+  !#  <description>Dark matter halo shape parameters are computed using the algorithm of \cite{gao_redshift_2008}.</description>
+  !# </darkMatterProfileShape>
+
+  type, extends(darkMatterProfileShapeClass) :: darkMatterProfileShapeGao2008
+     !% A dark matter halo profile shape parameter class implementing the algorithm of \cite{gao_redshift_2008}.
+     private
+   contains
+     procedure :: shape => gao2008Shape
+  end type darkMatterProfileShapeGao2008
+
+  interface darkMatterProfileShapeGao2008
+     !% Constructors for the {\normalfont \ttfamily gao2008} dark matter halo profile shape parameter class.
+     module procedure gao2008DefaultConstructor
+  end interface darkMatterProfileShapeGao2008
 
 contains
 
-  !# <darkMatterShapeMethod>
-  !#  <unitName>Dark_Matter_Shapes_Gao2008_Initialize</unitName>
-  !# </darkMatterShapeMethod>
-  subroutine Dark_Matter_Shapes_Gao2008_Initialize(darkMatterShapeMethod,Dark_Matter_Profile_Shape_Get)
-    !% Initializes the ``Gao2008'' halo shape module.
-    use ISO_Varying_String
+  function gao2008DefaultConstructor()
+    !% Default constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile shape parameter class.
+    use Input_Parameters
     implicit none
-    type     (varying_string                   ), intent(in   )          :: darkMatterShapeMethod
-    procedure(Dark_Matter_Profile_Shape_Gao2008), intent(inout), pointer :: Dark_Matter_Profile_Shape_Get
-
-    if (darkMatterShapeMethod == 'Gao2008') Dark_Matter_Profile_Shape_Get => Dark_Matter_Profile_Shape_Gao2008
+    type(darkMatterProfileShapeGao2008), target :: gao2008DefaultConstructor
 
     return
-  end subroutine Dark_Matter_Shapes_Gao2008_Initialize
-
-  double precision function Dark_Matter_Profile_Shape_Gao2008(thisNode)
-    !% Returns the Einasto shape parameter, $alpha$, of the dark matter profile of {\normalfont \ttfamily thisNode} using the method of
-    !% \cite{gao_redshift_2008}. More specifically, the parameter is given by:
+  end function gao2008DefaultConstructor
+  
+  double precision function gao2008Shape(self,node)
+    !% Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    !% \cite{gao_redshift_2008} algorithm. More specifically, the parameter is given by:
     !% \begin{equation}
     !% \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 & \hbox{ if } \nu < 3.907 \\ 0.3 & \hbox{ if } \nu \ge 3.907, \end{array} \right.
     !% \end{equation}
@@ -51,21 +55,21 @@ contains
     use Power_Spectra
     use Critical_Overdensity
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    double precision                    , parameter              :: nuMaximum         =3.907d0
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    double precision                                             :: nu
-
+    class           (darkMatterProfileShapeGao2008), intent(inout)          :: self
+    type            (treeNode                     ), intent(inout), pointer :: node
+    double precision                               , parameter              :: nuMaximum=3.907d0
+    class           (nodeComponentBasic           )               , pointer :: basic
+    double precision                                                        :: nu
+    
     ! Get the basic component.
-    thisBasicComponent => thisNode%basic()
+    basic => node%basic()
     ! Compute the shape parameter.
-    nu=Critical_Overdensity_for_Collapse(time=thisBasicComponent%time(),mass=thisBasicComponent%mass())/Cosmological_Mass_Root_Variance(thisBasicComponent%mass())
+    nu     =+Critical_Overdensity_for_Collapse(time=basic%time(),mass=basic%mass()) &
+         &  /Cosmological_Mass_Root_Variance  (                       basic%mass())
     if (nu < nuMaximum) then
-       Dark_Matter_Profile_Shape_Gao2008=0.155d0+0.0095d0*nu**2
+       gao2008Shape=0.155d0+0.0095d0*nu**2
     else
-       Dark_Matter_Profile_Shape_Gao2008=0.3d0
-    end if
+       gao2008Shape=0.300d0
+    end if    
     return
-  end function Dark_Matter_Profile_Shape_Gao2008
-
-end module Dark_Matter_Profiles_Shapes_Gao2008
+  end function gao2008Shape

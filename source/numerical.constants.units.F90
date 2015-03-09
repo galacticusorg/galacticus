@@ -19,6 +19,7 @@
 
 module Numerical_Constants_Units
   !% Contains various useful unit conversions.
+  use FGSL
   use Numerical_Constants_Prefixes
   use Numerical_Constants_Math
   implicit none
@@ -26,6 +27,9 @@ module Numerical_Constants_Units
 
   ! Ergs in Joules.
   double precision, parameter :: ergs              =1.0d-7
+
+  ! Rydberg in Joules.
+  double precision, parameter :: rydbergs          =FGSL_CONST_MKSA_RYDBERG
 
   ! Angstroms in microns.
   double precision, parameter :: angstromsPerMicron=1.0d4

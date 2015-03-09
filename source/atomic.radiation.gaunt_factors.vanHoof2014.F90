@@ -1,0 +1,137 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !% An implementation of Gaunt factors using the \cite{van_hoof_accurate_2014} fitting function.
+
+  !# <gauntFactor name="gauntFactorVanHoof2014">
+  !#  <description>Gaunt factors are computed using the fitting function of \cite{van_hoof_accurate_2014}.</description>
+  !# </gauntFactor>
+
+  type, extends(gauntFactorClass) :: gauntFactorVanHoof2014
+     !% A gaunt factor class implementing the fitting function of \cite{van_hoof_accurate_2014}.
+     private
+   contains
+     procedure :: total => vanHoof2014Total
+  end type gauntFactorVanHoof2014
+
+  interface gauntFactorVanHoof2014
+     !% Constructors for the {\normalfont \ttfamily vanHoof2014} dark matter halo profile concentration class.
+     module procedure vanHoof2014DefaultConstructor
+  end interface gauntFactorVanHoof2014
+  
+  ! Arrays to hold coefficients of the fitting function.
+  double precision, dimension(0:4,2) :: vanHoof2014FitA=reshape(                       &
+       &                                                        [                      &
+       &                                                         +1.43251926625281d+0, &
+       &                                                         +3.50626935257777d-1, &
+       &                                                         +4.36183448595035d-1, &
+       &                                                         +6.03536387105599d-2, &
+       &                                                         +3.66626405363100d-2, &
+       &                                                         +1.45481634667278d+0, &
+       &                                                         -9.55399384620923d-2, &
+       &                                                         +1.46327814151538d-1, &
+       &                                                         -1.41489406498468d-2, &
+       &                                                         +2.76891413242655d-3  &
+       &                                                        ]                    , &
+       &                                                        [5,2]                  &
+       &                                                       )
+  double precision, dimension(0:4,2) :: vanHoof2014FitB=reshape(                       &
+       &                                                        [                      &
+       &                                                         +1.00000000000000d+0, &
+       &                                                         +2.92525161994346d-1, &
+       &                                                         +4.05566949766954d-1, &
+       &                                                         +5.62573012783879d-2, &
+       &                                                         +3.33019373823972d-2, &
+       &                                                         +1.00000000000000d+0, &
+       &                                                         +3.31149751183539d-2, &
+       &                                                         +1.31127367293310d-1, &
+       &                                                         -1.32658217746618d-2, &
+       &                                                         +2.74809263365693d-3  &
+       &                                                        ]                    , &
+       &                                                        [5,2]                  &
+       &                                                       )
+
+contains
+
+  function vanHoof2014DefaultConstructor()
+    !% Default constructor for the {\normalfont \ttfamily vanHoof2014} dark matter halo profile concentration class.
+    use Input_Parameters
+    implicit none
+    type(gauntFactorVanHoof2014), target :: vanHoof2014DefaultConstructor
+
+    return
+  end function vanHoof2014DefaultConstructor
+  
+  double precision function vanHoof2014Total(self,atomicNumber,electronNumber,temperature)
+    !% Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
+    !% \cite{van_hoof_accurate_2014}. 
+    use, intrinsic :: ISO_C_Binding
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Units
+    use Arrays_Search
+    use Atomic_Ionization_Potentials
+    use Galacticus_Error
+    implicit none
+    class           (gauntFactorVanHoof2014), intent(inout) :: self
+    integer                                 , intent(in   ) :: atomicNumber, electronNumber
+    double precision                        , intent(in   ) :: temperature                     
+    double precision                                        :: gammaSquared, g
+    integer                                                 :: i
+  
+    ! Return zero for unphysical temperatures
+    if (temperature <= 0.0d0) then
+       vanHoof2014Total=0.0d0
+       return
+    end if
+    ! Validate input.
+    if (electronNumber > atomicNumber) call Galacticus_Error_Report('vanHoof2014Total','number of electrons exceeds atomic number')
+    ! Return zero if ioniziation potential is not available for this ion.
+    if (Atomic_Ionization_Potential(atomicNumber,electronNumber) == 0.0d0) then
+       vanHoof2014Total=0.0d0
+    else
+       ! Evaluate the gamma parameter.
+       gammaSquared=+dble(                &
+            &             +atomicNumber   &
+            &             -electronNumber &
+            &            )**2             &
+            &       *rydbergs             &
+            &       /boltzmannsConstant   &
+            &       /temperature
+       g           =log10(gammaSquared)
+       ! Evaluate the Gaunt factor.
+       if (g <= 0.8d0) then
+          i=1
+       else
+          i=2
+       end if
+       vanHoof2014Total=+(                           &
+            &             +vanHoof2014FitA(0,i)      &
+            &             +vanHoof2014FitA(1,i)*g    &
+            &             +vanHoof2014FitA(2,i)*g**2 &
+            &             +vanHoof2014FitA(3,i)*g**3 &
+            &             +vanHoof2014FitA(4,i)*g**4 &
+            &            )                           &
+            &            /(                          &
+            &             +vanHoof2014FitB(0,i)      &
+            &             +vanHoof2014FitB(1,i)*g    &
+            &             +vanHoof2014FitB(2,i)*g**2 &
+            &             +vanHoof2014FitB(3,i)*g**3 &
+            &             +vanHoof2014FitB(4,i)*g**4 &
+            &            )
+    end if
+    return
+  end function vanHoof2014Total

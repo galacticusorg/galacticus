@@ -25,6 +25,7 @@ module Dark_Matter_Profiles_Concentration
   use               Virial_Density_Contrast
   use               Dark_Matter_Profiles
   use               FGSL
+  use               Tables
   !# <include directive="darkMatterProfileConcentration" type="functionModules" >
   include 'darkMatterProfileConcentration.functionModules.inc'
   !# </include>

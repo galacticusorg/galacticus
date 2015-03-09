@@ -536,7 +536,7 @@
      use               Atomic_Rates_Ionization_Collisional
      use               Atomic_Rates_Recombination_Radiative
      use               Atomic_Rates_Recombination_Dielectronic
-     use               atomic_radiation_gaunt_factors
+     use               Atomic_Radiation_Gaunt_Factors
      use               Atomic_Rates_Excitation_Collisional
      use               Atomic_Rates_Recombination_Radiative_Data
      use               Radiation_Structure
@@ -551,6 +551,7 @@
      real            (kind=c_double             ), intent(in   ), dimension(10) :: properties
      real            (kind=c_double             ), intent(  out), dimension(10) :: propertiesRateOfChange
      type            (c_ptr                     ), value                        :: parameterPointer
+     class           (gauntFactorClass          ), pointer                      :: gauntFactor_
      double precision                            , parameter                    :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
      double precision                            , parameter                    :: massFilteringMinimum                      =1.0d2
      double precision                                           , dimension( 2) :: densityHydrogen_                                  , massFilteringComposite_            , &
@@ -848,37 +849,38 @@
            end if
            ! Compute heating rate due to Bremsstrahlung.
            if (ionizationState > 1) then
-              heatingRate=+heatingRate                    &
-                   &      -16.0d0                         &
-                   &      / 3.0d0                         &
-                   &      *sqrt(                          &
-                   &            +2.0d0                    &
-                   &            *Pi                       &
-                   &            /3.0d0                    &
-                   &           )                          &
-                   &      *dble(ionizationState-1) **2    &
-                   &      *densityThisIon                 &
-                   &      *densityElectron                &
-                   &      *electronRadius          **3    &
-                   &      *speedLight                     &
-                   &      /electronRadius                 &
-                   &      *sqrt(                          &
-                   &            +electronMass             &
-                   &            *speedLight        **2    &
-                   &            *boltzmannsConstant       &
-                   &            *temperature              &
-                   &           )                          &
-                   &      *fineStructure                  &
-                   &      *Gaunt_Factor(                  &
-                   &                    atomicNumber    , &
-                   &                    electronNumber+1, &
-                   &                    temperature       &
-                   &                   )                  &
-                   &      *gigaYear                       &
+              gauntFactor_ => gauntFactor()
+              heatingRate=+heatingRate                          &
+                   &      -16.0d0                               &
+                   &      / 3.0d0                               &
+                   &      *sqrt(                                &
+                   &            +2.0d0                          &
+                   &            *Pi                             &
+                   &            /3.0d0                          &
+                   &           )                                &
+                   &      *dble(ionizationState-1) **2          &
+                   &      *densityThisIon                       &
+                   &      *densityElectron                      &
+                   &      *electronRadius          **3          &
+                   &      *speedLight                           &
+                   &      /electronRadius                       &
+                   &      *sqrt(                                &
+                   &            +electronMass                   &
+                   &            *speedLight        **2          &
+                   &            *boltzmannsConstant             &
+                   &            *temperature                    &
+                   &           )                                &
+                   &      *fineStructure                        &
+                   &      *gauntFactor_%total(                  &
+                   &                          atomicNumber    , &
+                   &                          electronNumber+1, &
+                   &                          temperature       &
+                   &                         )                  &
+                   &      *gigaYear                             &
                    &      *clumpingFactor
            end if
            ! Add collisional excitation cooling rate.
-           heatingRate=+heatingRate&
+           heatingRate=+heatingRate                                         &
                 &      -Collisional_Excitation_Cooling_Rate(                &
                 &                                           atomicNumber  , &
                 &                                           electronNumber, &
