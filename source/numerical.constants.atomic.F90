@@ -36,7 +36,6 @@ module Numerical_Constants_Atomic
   double precision, parameter :: massHydrogenAtom                  =atomicMassHydrogen*atomicMassUnit
   double precision, parameter :: massHeliumAtom                    =atomicMassHelium  *atomicMassUnit
 
-  ! Ionization energies/wavelengths (in eV/Angstroms).
   ! Hydrogen Lyman series limit wavelength including correction for finite mass of the atom.
   double precision, parameter :: lymanSeriesLimitWavelengthHydrogen=                          &
        &                                                              plancksConstant         &
