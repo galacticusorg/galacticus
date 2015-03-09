@@ -24,6 +24,7 @@ module Dark_Matter_Profiles_Concentration
   use               Galacticus_Nodes
   use               Virial_Density_Contrast
   use               Dark_Matter_Profiles
+  use               Tables
   !# <include directive="darkMatterProfileConcentration" type="functionModules" >
   include 'darkMatterProfileConcentration.functionModules.inc'
   !# </include>
