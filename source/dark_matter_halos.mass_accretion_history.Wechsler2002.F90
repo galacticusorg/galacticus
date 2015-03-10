@@ -79,6 +79,8 @@ contains
              !@ </inputParameter>
              call Get_Input_Parameter('accretionHistoryWechslerFormationRedshift',accretionHistoryWechslerFormationRedshift,defaultValue=0.4d0)             
           end if
+          ! Record that module is now initialized.
+          wechsler2002Initialized=.true.
        end if
        !$omp end critical(wechsler2002Initialize)
     end if
