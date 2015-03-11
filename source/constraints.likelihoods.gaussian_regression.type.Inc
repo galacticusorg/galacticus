@@ -24,7 +24,7 @@
           &                                                             polynomialOrder            , polynomialCoefficientCount , &
           &                                                             reportCount                , simulationCount            , &
           &                                                             evaluationCount            , emulatorCheckCount         , &
-          &                                                             emulatorFailCount
+          &                                                             emulatorFailCount          , dumpEmulatorCount
      integer         (kind=FGSL_Size_T)                              :: regressionMatrixSize
      double precision                  , allocatable, dimension(:  ) :: simulatorLikelihood        , polynomialCoefficient      , &
           &                                                             likelihoodSums             , coefficients               , &
@@ -32,13 +32,15 @@
           &                                                             likelihoodResiduals        , stateScales
      double precision                  , allocatable, dimension(:,:) :: simulationState            , stateSums                  , &
           &                                                             regressionMatrix           , statesCombined
-     logical                                                         :: initialized                , regressionMatrixIsSingular
+     logical                                                         :: initialized                , regressionMatrixIsSingular , &
+          &                                                             isGood
      type            (fgsl_matrix      )                             :: regressionMatrixLU
      type            (fgsl_permutation )                             :: permutations
      double precision                                                :: C0                         , C1                         , &
           &                                                             CR                         , sigmaBuffer                , &
           &                                                             logLikelihoodBuffer        , logLikelihoodErrorTolerance
-     logical                                                         :: emulateOutliers
+     logical                                                         :: emulateOutliers            , dumpEmulator
+     type            (varying_string   )                             :: dumpEmulatorFileRoot
    contains
      final     ::                    likelihoodGaussianRegressionDestructor
      procedure :: evaluate        => likelihoodGaussianRegressionEvaluate

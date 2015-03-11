@@ -17,7 +17,7 @@
 
 !% Defines methods for a Gaussian regression likelihood function.
 
-function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,configFileName)
+function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,dumpEmulator,configFileName)
   !% Constructor for Gaussian regression likelihood class.
   use FoX_DOM
   implicit none
@@ -28,6 +28,7 @@ function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,e
   double precision                              , intent(in   )           :: sigmaBuffer                            , logLikelihoodBuffer, &
        &                                                                     logLikelihoodErrorTolerance
   logical                                       , intent(in   )           :: emulateOutliers
+  character       (len=*                       ), intent(in   )           :: dumpEmulator
   type            (varying_string              ), intent(in   ), optional :: configFileName
   
   ! Set emulator properties.
@@ -39,8 +40,12 @@ function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,e
   likelihoodGaussianRegressionConstructor%logLikelihoodErrorTolerance =  logLikelihoodErrorTolerance
   likelihoodGaussianRegressionConstructor%reportCount                 =  reportCount
   likelihoodGaussianRegressionConstructor%emulateOutliers             =  emulateOutliers
+  likelihoodGaussianRegressionConstructor%dumpEmulatorFileRoot        =  trim(dumpEmulator)
+  likelihoodGaussianRegressionConstructor%dumpEmulatorCount           =  0
+  likelihoodGaussianRegressionConstructor%dumpEmulator                =  (likelihoodGaussianRegressionConstructor%dumpEmulatorFileRoot /= "")
   ! Initialize state and counters.
   likelihoodGaussianRegressionConstructor%initialized                 =  .false.
+  likelihoodGaussianRegressionConstructor%isGood                      =  .true.
   likelihoodGaussianRegressionConstructor%accumulatedStateCount       =  0
   likelihoodGaussianRegressionConstructor%simulationCount             =  0
   likelihoodGaussianRegressionConstructor%evaluationCount             =  0
@@ -88,6 +93,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
        &                                                                               semiVariances
   integer                                         , allocatable  , dimension(    :) :: stateCount
   double precision                                , parameter                       :: emulatorFailureSignificance=3.0d0
+  double precision                                , parameter                       :: emulatorFailureLimit       =5.0d0
   type            (polynomialIterator            )                                  :: iterator1                        , iterator2
   type            (vector                        )                                  :: likelihoodSums                   , coefficients
   type            (matrix                        )                                  :: stateSums
@@ -97,12 +103,12 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
        &                                                                               evaluationsTotal                 , simulationsTotal     , &
        &                                                                               stateCountAccept                 , stateCountAcceptChain, &
        &                                                                               determinantSign                  , checksTotal          , &
-       &                                                                               failuresTotal
+       &                                                                               failuresTotal                    , fileUnit
   double precision                                                                  :: separation                       , likelihoodError      , & 
-       &                                                                               likelihoodEmulated
+       &                                                                               likelihoodEmulated               , failureRateExpected
   logical                                                                           :: likelihoodIsSimulated
   character       (len=8                         )                                  :: label
-  type            (varying_string                )                                  :: message
+  type            (varying_string                )                                  :: message                          , fileName
 
   ! Report on emulation efficiency.
   if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
@@ -254,12 +260,23 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting variogram')
      call likelihoodGaussianRegressionFitVariogram(self,separations,semiVariances)
      ! Compute regression matrix.
+     k=0
+     if (self%dumpEmulator) then
+        self%dumpEmulatorCount=self%dumpEmulatorCount+1
+        fileName=self%dumpEmulatorFileRoot//self%dumpEmulatorCount//".log"
+        open(newUnit=fileUnit,file=char(fileName),form='formatted',status='unknown')
+     end if
      do i=1,self%emulatorRebuildCount
         do j=1,self%emulatorRebuildCount
            separation                =likelihoodGaussianRegressionSeparation(self,self%statesCombined(:,i),self%statesCombined(:,j))
            self%regressionMatrix(i,j)=likelihoodGaussianRegressionCorrelation(self,separation)
+           if (self%dumpEmulator) then
+              k=k+1
+              write (fileUnit,*) i,j,separation,semiVariances(k),self%regressionMatrix(i,j)
+           end if
        end do
      end do
+     if (self%dumpEmulator) close(fileUnit)
      ! Find the LU decomposition of the regression matrix for later use.
      if (mpiSelf%isMaster()) call Galacticus_Display_Message('computing regression matrix')
      self%regressionMatrix(1:self%emulatorRebuildCount  ,  self%emulatorRebuildCount+1)=1.0d0
@@ -297,11 +314,11 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      call Alloc_Array(self%simulationState    ,[simulationState%dimension(),self%emulatorRebuildCount])
   end if
   likelihoodIsSimulated=.false.
-  if (self%initialized.and..not.self%regressionMatrixIsSingular) then
+  if (self%initialized.and..not.self%regressionMatrixIsSingular.and.self%isGood) then
      ! Perform the emulation.
      call likelihoodGaussianRegressionEmulate(self,simulationState,likelihoodGaussianRegressionEvaluate,likelihoodError)
      ! Test likelihood emulation.
-     if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+     if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0) then
         ! Every so many steps we evaluate the simulated likelihood and check that our emulator is reliable.
         likelihoodEmulated                  =likelihoodGaussianRegressionEvaluate
         likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
@@ -311,16 +328,21 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
         if (abs(likelihoodEmulated-likelihoodGaussianRegressionEvaluate) > emulatorFailureSignificance*likelihoodError) self%emulatorFailCount=self%emulatorFailCount+1
         checksTotal  =mpiSelf%sum(self%emulatorCheckCount)
         failuresTotal=mpiSelf%sum(self%emulatorFailCount )
-        if (mpiSelf%isMaster()) then
+        ! Determine if the emulator is sufficiently good to use or not.
+        failureRateExpected=1.0d0-Error_Function(emulatorFailureSignificance/sqrt(2.0d0))
+        self%isGood=(dble(failuresTotal) < emulatorFailureLimit*failureRateExpected*dble(checksTotal))
+        ! Report on emulator failure rate.
+        if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
            write (label,'(i8)') failuresTotal
            message='Emulator failed '//trim(adjustl(label))//' times out of '
            write (label,'(i8)') checksTotal
            message=message//trim(adjustl(label))//' checks ('
            write (label,'(f6.2)') 100.0d0*dble(failuresTotal)/dble(checksTotal)
            message=message//trim(adjustl(label))//'% - expect '
-           write (label,'(f6.2)') 100.0d0*(1.0d0-Error_Function(emulatorFailureSignificance/sqrt(2.0d0)))
+           write (label,'(f6.2)') 100.0d0*failureRateExpected
            message=message//trim(adjustl(label))//'% for perfect emulator)'
            call Galacticus_Display_Message(message)
+           if (.not.self%isGood) call Galacticus_Display_Message('WARNING: emulator failure rate is too high - emulator will not be used')
         end if
      else
         if (simulationConvergence%isConverged().and.simulationConvergence%chainIsOutlier(simulationState%chainIndex()).and.self%emulateOutliers) return
