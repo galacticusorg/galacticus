@@ -37,7 +37,7 @@ sub Select {
     foreach my $property ( @properties ) {
 	my $result;
 	$result->{'property'} = $property;
-	if ( $property ne "name" ) {
+	if ( $property ne "name" && $property ne "publication" ) {
 	    $result->{$_} = pdl []
 		foreach ( @attributes );
 	}
@@ -65,7 +65,9 @@ sub Select {
 	    }
 	    # Handle name as a special case.
 	    if ( $property eq "name" ) {
-		push(@{$result->{'value'}},$galaxy->{'name'});
+		push(@{$result->{'value'}},$galaxy->{'name'}       );
+	    } elsif ( $property eq "publication" ) {
+		push(@{$result->{'value'}},$galaxy->{'publication'});
 	    } else {
 		# Extract property for this galaxy.
 		my $galaxyData;
@@ -99,7 +101,7 @@ sub Select {
     # Exclude galaxies.
     my $includeWhich = which($include == 1);
     foreach my $result ( @results ) {
-	if ( $result->{'property'} eq "name" ) {
+	if ( $result->{'property'} eq "name" || $result->{'property'} eq "publication" ) {
 	    my @includedNames;
 	    for(my $i=0;$i<nelem($includeWhich);++$i) {
 		push(@includedNames,$result->{'value'}->[$includeWhich->(($i))]);		
