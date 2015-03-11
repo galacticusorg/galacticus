@@ -116,7 +116,7 @@ contains
          &                                                           likelihoodChainBaseNameDefinition              , likelihoodToleranceDefinition                           , &
          &                                                           likelihoodNeighborCountDefinition              , likelihoodProjectedCorrelationFunctionFileNameDefinition, &
          &                                                           likelihoodLineOfSightDepthDefinition           , likelihoodHalfIntegralDefinition                        , &
-         &                                                           likelihoodExclusionsDefinition
+         &                                                           likelihoodExclusionsDefinition                 , likelihoodDumpEmulatorDefinition
     type            (nodeList      ), pointer                     :: covarianceRows
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
@@ -200,16 +200,17 @@ contains
           call extractDataContent(likelihoodLogLikelihoodErrorToleranceDefinition,likelihoodLogLikelihoodErrorTolerance)
           call extractDataContent(likelihoodReportCountDefinition                ,likelihoodReportCount                )
           call extractDataContent(likelihoodEmulateOutliersDefinition            ,likelihoodEmulateOutliers            )
-          newLikelihood=likelihoodGaussianRegression(                                       &
-               &                                     likelihoodDefinition                 , &
-               &                                     likelihoodEmulatorRebuildCount       , &
-               &                                     likelihoodPolynomialOrder            , &
-               &                                     likelihoodSigmaBuffer                , &
-               &                                     likelihoodLogLikelihoodBuffer        , &
-               &                                     likelihoodLogLikelihoodErrorTolerance, &
-               &                                     likelihoodReportCount                , &
-               &                                     likelihoodEmulateOutliers            , &
-               &                                     configFileName                         &
+          newLikelihood=likelihoodGaussianRegression(                                                  &
+               &                                     likelihoodDefinition                            , &
+               &                                     likelihoodEmulatorRebuildCount                  , &
+               &                                     likelihoodPolynomialOrder                       , &
+               &                                     likelihoodSigmaBuffer                           , &
+               &                                     likelihoodLogLikelihoodBuffer                   , &
+               &                                     likelihoodLogLikelihoodErrorTolerance           , &
+               &                                     likelihoodReportCount                           , &
+               &                                     likelihoodEmulateOutliers                       , &
+               &                                     getTextContent(likelihoodDumpEmulatorDefinition), &
+               &                                     configFileName                                    &
                &                                    )
        end select
     case ("posteriorPrior")
