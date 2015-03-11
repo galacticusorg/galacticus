@@ -12,10 +12,8 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
  $galacticusPath = "./";
 }
 unshift(@INC,$galacticusPath."perl"); 
+use XML::LibXML;
 use XML::Simple;
-use XML::SAX;
-use XML::SAX::Writer;
-use XML::Filter::XInclude;
 use XML::Twig;
 use PDL;
 use PDL::NiceSlice;
@@ -39,15 +37,11 @@ sub Parse_Config {
     } else {
 	# Parse the content.
 	my $xml    = new XML::Simple;
-	my $content;
-	my $parser = XML::SAX::ParserFactory->parser(
-	    Handler => XML::Filter::XInclude->new(
-		Handler => XML::SAX::Writer->new(Output => \$content)
-	    )
-	    );
-	$parser->parse_uri($configFile);
+	my $parser = XML::LibXML->new();
+	my $dom    = $parser->load_xml(location => $configFile);
+	$parser->process_xincludes($dom);
 	my $twig = XML::Twig->new (comments => 'drop', pretty_print => 'indented');
-	$twig->parse($content);
+	$twig->parse($dom->serialize());
 	my $contentCommentless = $twig->sprint();
 	$config = $xml->XMLin($contentCommentless, KeyAttr => 0);
 	if ( UNIVERSAL::isa($config->{'parameters'},"ARRAY") ) {
