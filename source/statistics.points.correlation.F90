@@ -68,10 +68,6 @@ contains
     ! Determine if we are to compute regular or projected correlation function.
     projectedActual=.false.
     if (present(projected)) projectedActual=projected
-    if (projectedActual) then
-       if (.not.present(radialSeparationMaximum)) call Galacticus_Error_Report('Statistics_Points_Correlation','maximum radial separation required for projected correlation functions')
-       separationLimit=sqrt(separationLimit**2+radialSeparationMaximum**2)
-    end if
     ! Number of radial separation bins.
     if (projectedActual) then
        radialMinimum               =radialMinimumRatio*separationMinimum
@@ -108,6 +104,10 @@ contains
     end do
     ! Find the minimum and maximum separations, and the logarithmic step size.
     separationLimit                 =separationMaximum*sqrt(separation(2)/separation(1))
+    if (projectedActual) then
+       if (.not.present(radialSeparationMaximum)) call Galacticus_Error_Report('Statistics_Points_Correlation','maximum radial separation required for projected correlation functions')
+       separationLimit=sqrt(separationLimit**2+radialSeparationMaximum**2)
+    end if
     separationLogarithmicStepInverse=1.0d0/log(separation(2)/separation(1))
     separationLogarithmicMinimum    =log(separationMinimum)-0.5d0/separationLogarithmicStepInverse
     ! Iterate over points, counting neighbors.
