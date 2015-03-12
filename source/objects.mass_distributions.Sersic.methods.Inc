@@ -147,7 +147,7 @@ double precision function Mass_Distribution_Sersic_Mass_Enc_By_Sphere(self,radiu
   use Numerical_Constants_Math
   use Numerical_Interpolation
   implicit none
-  class           (massDistributionSersic), intent(in   ), target :: self
+  class           (massDistributionSersic), intent(inout), target :: self
   double precision                        , intent(in   )         :: radius
   double precision                                                :: fractionalRadius
 
@@ -175,7 +175,7 @@ double precision function Mass_Distribution_Sersic_Potential(self,coordinates)
   use Coordinates
   use Numerical_Interpolation
   implicit none
-  class           (massDistributionSersic), intent(in   ) :: self
+  class           (massDistributionSersic), intent(inout) :: self
   class           (coordinate            ), intent(in   ) :: coordinates
   type            (coordinateSpherical   )                :: position
   double precision                                        :: r
@@ -202,7 +202,7 @@ end function Mass_Distribution_Sersic_Potential
 double precision function Mass_Distribution_Sersic_Half_Mass_Radius(self)
   !% Return the half-mass radius of a S\'ersic mass distribution.
   implicit none
-  class(massDistributionSersic), intent(in   ) :: self
+  class(massDistributionSersic), intent(inout) :: self
 
   !$omp critical (Sersic_Profile_Tabulation)
   Mass_Distribution_Sersic_Half_Mass_Radius=self%radiusHalfMass
@@ -391,7 +391,7 @@ function Sersic_Abel_Integrand(radius,parameterPointer) bind(c)
   if (radius > sersicRadiusStart) then
      Sersic_Abel_Integrand= (1.0d0/Pi)                                                                &
           &                *      sersicCoefficient*(radius**(1.0d0/dble(sersicProfileIndex) -1.0d0)) &
-          &                *exp(-sersicCoefficient*(radius**(1.0d0/dble(sersicProfileIndex))-1.0d0)) &
+          &                * exp(-sersicCoefficient*(radius**(1.0d0/dble(sersicProfileIndex))-1.0d0)) &
           &                /dble(sersicProfileIndex)                                                  &
           &                /sqrt(radius**2-sersicRadiusStart**2)
   else

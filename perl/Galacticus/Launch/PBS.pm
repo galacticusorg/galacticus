@@ -9,6 +9,7 @@ use File::Which;
 require Galacticus::Options;
 require Galacticus::Launch::Hooks;
 require Galacticus::Launch::PostProcess;
+require Galacticus::Options;
 require System::Redirect;
 require List::ExtraUtils;
 

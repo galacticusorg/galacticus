@@ -1,7 +1,9 @@
+<?xml version="1.0"?>
 <!-- Test case for crash caused by the accretion fraction (in the Cole et al. (2000) merger tree building -->
 <!-- module) exceeding unity, which caused negative halo masses.                                          -->
 <!-- Andrew Benson (16-January-2013)                                                                      -->
 <parameters>
+  <version>0.9.4</version>
   <parameter>
     <name>treeNodeMethodDarkMatterProfile</name>
     <value>scale</value>
@@ -232,7 +234,11 @@
   </parameter>
   <parameter>
     <name>treeNodeMethodDisk</name>
-    <value>exponential</value>
+    <value>standard</value>
+  </parameter>
+  <parameter>
+    <name>diskMassDistribution</name>
+    <value>exponentialDisk</value>
   </parameter>
   <parameter>
     <name>linearGrowthMethod</name>
@@ -247,8 +253,8 @@
     <value>5.0e9</value>
   </parameter>
   <parameter>
-    <name>mergerTreeBuildMethod</name>
-    <value>Cole2000</value>
+    <name>mergerTreeBuilderMethod</name>
+    <value>cole2000</value>
   </parameter>
   <parameter>
     <name>mergerTreeBuildHaloMassMinimum</name>
@@ -307,8 +313,8 @@
     <value>0.04326</value>
   </parameter>
   <parameter>
-    <name>virialOrbitsMethod</name>
-    <value>Benson2005</value>
+    <name>virialOrbitMethod</name>
+    <value>benson2005</value>
   </parameter>
   <parameter>
     <name>virialDensityContrastMethod</name>

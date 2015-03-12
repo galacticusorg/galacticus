@@ -1,6 +1,8 @@
+<?xml version="1.0"?>
 <!-- Test case for tree with the final node existing prior to the requested output time -->
 <!-- Should not result in a deadlock.                                                   -->
 <parameters>
+  <version>0.9.4</version>
   <parameter>
     <name>haloMassFunctionSamplingStellarMassFunctionErrorMassMinimum</name>
     <value>1.2589254e8</value>
@@ -398,8 +400,8 @@
     <value>2.0e-4</value>
   </parameter>
   <parameter>
-    <name>mergerTreeBuildMethod</name>
-    <value>Cole2000</value>
+    <name>mergerTreeBuilderMethod</name>
+    <value>cole2000</value>
   </parameter>
   <parameter>
     <name>mergerTreeBuildMassResolutionFixed</name>
@@ -490,7 +492,7 @@
     <value>0.90</value>
   </parameter>
   <parameter>
-    <name>virialOrbitsMethod</name>
+    <name>virialOrbitMethod</name>
     <value>fixed</value>
   </parameter>
   <parameter>
