@@ -149,6 +149,8 @@
      procedure :: stateStore                                 => einastoStateStore
      procedure :: stateRestore                               => einastoStateRestore
      procedure :: density                                    => einastoDensity
+     procedure :: densityLogSlope                            => einastoDensityLogSlope
+     procedure :: radialMoment                               => einastoRadialMoment
      procedure :: enclosedMass                               => einastoEnclosedMass
      procedure :: potential                                  => einastoPotential
      procedure :: circularVelocity                           => einastoCircularVelocity
@@ -351,6 +353,95 @@ contains
     return
   end function einastoDensity
 
+  double precision function einastoDensityLogSlope(self,node,radius)
+    !% Returns the logarithmic slope of the density} in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class           (darkMatterProfileEinasto      ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), pointer :: node
+    double precision                                , intent(in   )          :: radius
+    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    double precision                                                         :: alpha                         , radiusOverScaleRadius      , &
+         &                                                                      scaleRadius
+
+    ! Get components.
+    thisBasicComponent             => node%basic            (                 )
+    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                    =  thisDarkMatterProfileComponent%scale()
+    alpha                          =  thisDarkMatterProfileComponent%shape()
+    radiusOverScaleRadius          =  radius/scaleRadius
+    einastoDensityLogSlope         = -2.0d0                        &
+         &                           *radiusOverScaleRadius**alpha
+    return
+  end function einastoDensityLogSlope
+  
+  double precision function einastoRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
+    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
+    !% in units of Mpc).
+    use Galacticus_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Math
+    use Numerical_Comparison
+    use Gamma_Functions
+    implicit none
+    class           (darkMatterProfileEinasto     ), intent(inout)           :: self
+    type            (treeNode                     ), intent(inout), pointer  :: node
+    double precision                               , intent(in   )           :: moment
+    double precision                               , intent(in   ), optional :: radiusMinimum                 , radiusMaximum
+    class           (nodeComponentBasic            )              , pointer  :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile)              , pointer  :: thisDarkMatterProfileComponent
+    double precision                                                         :: scaleRadius                   , virialRadiusOverScaleRadius, &
+         &                                                                      radiusMinimumActual           , radiusMaximumActual        , &
+         &                                                                      alpha                         , densityNormalization
+
+    radiusMinimumActual=0.0d0
+    radiusMaximumActual=self%scale%virialRadius(node)
+    if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
+    if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
+    ! Get components.
+    thisBasicComponent             => node%basic            (                 )
+    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                =thisDarkMatterProfileComponent%scale()
+    alpha                      =thisDarkMatterProfileComponent%shape()
+    virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
+    densityNormalization= (alpha/4.0d0/Pi)                                                                      &
+         &               *   ((2.0d0/alpha)                    **(3.0d0/alpha)                                ) &
+         &               *exp(-2.0d0/alpha                                                                    ) &
+         &               /Gamma_Function                         (3.0d0/alpha                                 ) &
+         &               /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha)
+    einastoRadialMoment=+densityNormalization                                            &
+         &              *thisBasicComponent%mass()                                       &
+         &              *scaleRadius**(moment-3.0d0)                                     &
+         &              *(                                                               &
+         &                +einastoRadialMomentScaleFree(radiusMaximumActual/scaleRadius) &
+         &                -einastoRadialMomentScaleFree(radiusMinimumActual/scaleRadius) &
+         &               )
+    return
+
+  contains
+
+    double precision function einastoRadialMomentScaleFree(radius)
+      !% Provides the scale-free part of the radial moment of the Einasto density profile.
+      implicit none
+      double precision, intent(in   ) :: radius
+      
+      einastoRadialMomentScaleFree=-exp(2.0d0/alpha)                                                          &
+           &                       *0.5d0   **((1.0d0+moment)/alpha)                                          &
+           &                       *radius  ** (1.0d0+moment)                                                 &
+           &                       /(                                                                         &
+           &                         +radius**                alpha                                           &
+           &                         /alpha                                                                   &
+           &                        )       **((1.0d0+moment)/alpha)                                          &
+           &                       *Gamma_Function           ((1.0d0+moment)/alpha                          ) &
+           &                       *Gamma_Function_Incomplete((1.0d0+moment)/alpha,2.0d0*radius**alpha/alpha) &
+           &                       /alpha
+      return
+    end function einastoRadialMomentScaleFree
+    
+  end function einastoRadialMoment
+  
   double precision function einastoEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).

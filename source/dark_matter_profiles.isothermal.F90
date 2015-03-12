@@ -31,6 +31,8 @@
      final                                             isothermalDestructor
      procedure :: calculationReset                  => isothermalCalculationReset
      procedure :: density                           => isothermalDensity
+     procedure :: densityLogSlope                   => isothermalDensityLogSlope
+     procedure :: radialMoment                      => isothermalRadialMoment
      procedure :: enclosedMass                      => isothermalEnclosedMass
      procedure :: potential                         => isothermalPotential
      procedure :: circularVelocity                  => isothermalCircularVelocity
@@ -108,6 +110,62 @@ contains
     isothermalDensity=thisBasicComponent%mass()/4.0d0/Pi/self%scale%virialRadius(node)/radius**2
     return
   end function isothermalDensity
+
+  double precision function isothermalDensityLogSlope(self,node,radius)
+    !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    use Galacticus_Nodes
+    implicit none
+    class           (darkMatterProfileIsothermal), intent(inout)          :: self
+    type            (treeNode                   ), intent(inout), pointer :: node
+    double precision                             , intent(in   )          :: radius
+
+    isothermalDensityLogSlope=-2.0d0
+    return
+  end function isothermalDensityLogSlope
+
+  double precision function isothermalRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
+    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
+    !% in units of Mpc).
+    use Galacticus_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Math
+    use Numerical_Comparison
+    implicit none
+    class           (darkMatterProfileIsothermal), intent(inout)           :: self
+    type            (treeNode                   ), intent(inout), pointer  :: node
+    double precision                             , intent(in   )           :: moment
+    double precision                             , intent(in   ), optional :: radiusMinimum      , radiusMaximum
+    class           (nodeComponentBasic         )               , pointer  :: thisBasicComponent
+    double precision                                                       :: radiusMinimumActual, radiusMaximumActual
+    
+    radiusMinimumActual=0.0d0
+    radiusMaximumActual=self%scale%virialRadius(node)
+    if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
+    if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
+    thisBasicComponent   => node%basic         ()
+    if (Values_Agree(moment,1.0d0,absTol=1.0d-6)) then
+       isothermalRadialMoment=+thisBasicComponent%mass()             &
+            &                 /4.0d0                                 &
+            &                 /Pi                                    &
+            &                 /self%scale%virialRadius(node)         &
+            &                 /                       (moment-1.0d0) &
+            &                 *(                                     &
+            &                   +radiusMaximumActual**(moment-1.0d0) &
+            &                   -radiusMinimumActual**(moment-1.0d0) &
+            &                  )
+    else
+       isothermalRadialMoment=+thisBasicComponent%mass()             &
+            &                 /4.0d0                                 &
+            &                 /Pi                                    &
+            &                 /self%scale%virialRadius(node)         &
+            &                 *log(                                  &
+            &                      +radiusMaximumActual              &
+            &                      /radiusMinimumActual              &
+            &                     )
+    end if
+    return
+  end function isothermalRadialMoment
 
   double precision function isothermalEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in

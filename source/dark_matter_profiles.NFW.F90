@@ -118,6 +118,8 @@
      procedure :: stateStore                        => nfwStateStore
      procedure :: stateRestore                      => nfwStateRestore
      procedure :: density                           => nfwDensity
+     procedure :: densityLogSlope                   => nfwDensityLogSlope
+     procedure :: densityRadialMoment               => nfwRadialMoment
      procedure :: enclosedMass                      => nfwEnclosedMass
      procedure :: potential                         => nfwPotential
      procedure :: circularVelocity                  => nfwCircularVelocity
@@ -340,6 +342,100 @@ contains
          &*thisBasicComponent%mass()/scaleRadius**3
     return
   end function nfwDensity
+
+  double precision function nfwDensityLogSlope(self,node,radius)
+    !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), pointer :: node
+    double precision                                , intent(in   )          :: radius
+    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    double precision                                                         :: radiusOverScaleRadius         , scaleRadius
+
+    thisBasicComponent             => node%basic            (                 )
+    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                    =  thisDarkMatterProfileComponent%scale()
+    radiusOverScaleRadius          =  radius/scaleRadius
+    nfwDensityLogSlope             = -(1.0d0+3.0d0*radiusOverScaleRadius) &
+         &                           /(1.0d0+      radiusOverScaleRadius)
+    return
+  end function nfwDensityLogSlope
+
+  double precision function nfwRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
+    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
+    !% in units of Mpc).
+    use Galacticus_Nodes
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Math
+    use Numerical_Comparison
+    implicit none
+    class           (darkMatterProfileNFW         ), intent(inout)           :: self
+    type            (treeNode                     ), intent(inout), pointer  :: node
+    double precision                               , intent(in   )           :: moment
+    double precision                               , intent(in   ), optional :: radiusMinimum                 , radiusMaximum
+    class           (nodeComponentBasic            )              , pointer  :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile)              , pointer  :: thisDarkMatterProfileComponent
+    double precision                                                         :: scaleRadius                   , virialRadiusOverScaleRadius, &
+         &                                                                      radiusMinimumActual           , radiusMaximumActual
+
+    radiusMinimumActual=0.0d0
+    radiusMaximumActual=self%scale%virialRadius(node)
+    if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
+    if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
+    thisBasicComponent             => node%basic            (                 )
+    thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                    =thisDarkMatterProfileComponent%scale()
+    virialRadiusOverScaleRadius    =self%scale%virialRadius(node)/scaleRadius
+    nfwRadialMoment                =+thisBasicComponent%mass()                                   &
+         &                          *scaleRadius**(moment-3.0d0)                                 &
+         &                          /(                                                           &
+         &                            +log(1.0d0+virialRadiusOverScaleRadius)                    &
+         &                            -          virialRadiusOverScaleRadius                     &
+         &                            /   (1.0d0+virialRadiusOverScaleRadius)                    &
+         &                          )                                                            &
+         &                          /4.0d0                                                       &
+         &                          /Pi                                                          &
+         &                          *(                                                           &
+         &                            +nfwRadialMomentScaleFree(radiusMaximumActual/scaleRadius) &
+         &                            -nfwRadialMomentScaleFree(radiusMinimumActual/scaleRadius) &
+         &                           )
+    return
+    
+  contains
+
+    double precision function nfwRadialMomentScaleFree(radius)
+      !% Provides the scale-free part of the radial moment of the NFW density profile.
+      use Hypergeometric_Functions
+      implicit none
+      double precision, intent(in   ) :: radius
+
+      if (Values_Agree(moment,0.0d0,absTol=1.0d-6)) then
+         nfwRadialMomentScaleFree=+1.0d0/     (1.0d0+      radius) &
+              &                   -2.0d0*atanh(1.0d0+2.0d0*radius)
+      else if (Values_Agree(moment,1.0d0,absTol=1.0d-6)) then
+         nfwRadialMomentScaleFree=-1.0d0/     (1.0d0      +radius)
+      else
+         nfwRadialMomentScaleFree=+(1.0d0+radius)**(moment-1.0d0)                                                     &
+              &                   /moment                                                                             &
+              &                   /                (moment-1.0d0)                                                     &
+              &                   *(                                                                                  &
+              &                     - moment                                                                          &
+              &                     *  Hypergeometric_2F1([1.0d0-moment,-moment],[2.0d0-moment],1.0d0/(1.0d0+radius)) &
+              &                     +(1.0d0+radius)                                                                   &
+              &                     *(moment-1.0d0)                                                                   &
+              &                     *(                                                                                &
+              &                       +(radius/(1.0d0+radius))**moment                                                &
+              &                       -Hypergeometric_2F1([     -moment,-moment],[1.0d0-moment],1.0d0/(1.0d0+radius)) &
+              &                     )                                                                                 &
+              &                    )
+      end if
+      return
+    end function nfwRadialMomentScaleFree
+
+  end function nfwRadialMoment
 
   double precision function nfwEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in

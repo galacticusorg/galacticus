@@ -36,11 +36,26 @@ module Dark_Matter_Profiles
   !#  <stateful>yes</stateful>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="density" >
-  !#   <description> Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
+  !#   <description>Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
   !#   <argument>double precision          , intent(in   )          :: radius</argument>
+  !#  </method>
+  !#  <method name="densityLogSlope" >
+  !#   <description>Returns the logarithmic slope of the density profile in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>double precision          , intent(in   )          :: radius</argument>
+  !#  </method>
+  !#  <method name="radialMoment" >
+  !#   <description>Returns the {\normalfont \ttfamily m}$^{\mathrm th}$ radial moment of the dark matter profile of {\normalfont \ttfamily node} optionally between the given {\normalfont \ttfamily radiusMinimum} and {\normalfont \ttfamily radiusMaximum} (given in units of Mpc).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout), pointer  :: node</argument>
+  !#   <argument>double precision          , intent(in   )           :: moment</argument>
+  !#   <argument>double precision          , intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
   !#  </method>
   !#  <method name="energy" >
   !#   <description>Return the total energy for the given {\normalfont \ttfamily node} in units of $M_\odot$ km$^2$ s$^{-1}$.</description>
