@@ -540,6 +540,8 @@ The following are standard datasets in the {\normalfont \ttfamily haloTrees} gro
  \item [{\normalfont \ttfamily particleCount}] If the {\normalfont \ttfamily particles} group is included, this dataset should give the number of entries in particle datasets that correspond to the particle associated with this node;
 \end{description}
 
+Note that, internally, \glc\ uses a different naming convention for the links between nodes. Specifically, an isolated node's descendent is known as its parent, while a satellite node's host is also referred to as the parent. By default, \glc\ will output a {\normalfont \ttfamily parentIndex} dataset, which therefore specifies either the descendent or host, depending on whether the node in question is isolated or not. To additionally output information which matches the use of ``descendent'' and ``host'' in these merger tree files, set both of the input parameters {\normalfont \ttfamily [outputDescendentIndices]} and {\normalfont \ttfamily [outputHostIndices]} to {\normalfont \ttfamily true}. This will result in the output of two additional datasets, {\normalfont \ttfamily descendentIndex} and {\normalfont \ttfamily hostIndex} which correspond to the definitions used in the merger tree file.
+
 \section{Tree Index Group}
 
 The {\normalfont \ttfamily treeIndex} group contains indexing information which describes which sections of the datasets in the {\normalfont \ttfamily haloTrees} group belong to each tree. An example of this group is given below.
