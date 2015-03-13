@@ -94,14 +94,14 @@ contains
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
     !@ <outputProperty>
-    !@   <name>satelliteNode</name>
+    !@   <name>satelliteIndex</name>
     !@   <datatype>integer</datatype>
     !@   <cardinality>0..1</cardinality>
     !@   <description>ID of first satellite node.</description>
     !@   <label>???</label>
     !@   <outputType>nodeData</outputType>
     !@ </outputProperty>
-    integerPropertyNames   (integerProperty)='satelliteNode'
+    integerPropertyNames   (integerProperty)='satelliteIndex'
     integerPropertyComments(integerProperty)='ID of first satellite node.'
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
