@@ -52,7 +52,7 @@ SWITCH: foreach my $arg ( @ARGV )
     my $treeCount  = 0;
     my $forestCount= 0;
 
-    if ( -f $workDir/$ignoreFile )
+    if ( -f $workDir."/".$ignoreFile )
     {
 	# Make hash of forests to ignore.
 	open( IFORESTS, "<", "$workDir/$ignoreFile" ) or die "Could not open $workDir/$ignoreFile: $!\n";
@@ -221,7 +221,7 @@ LOCATION: while ( $locationLine = <LOCATIONS> )
 		{ 
 		    print MYTREES "#Tree_id: ID of the merger tree, the halo belongs to. Trees of the same forest have identical tree IDs.\n";
 		}
-		if ( $counter == 45) { print MYTREES "####################\n"; last;}
+		if ( $counter == 45) { print MYTREES "#Number of Trees:", $treeCount , "\n"; last; }
 		print MYTREES $headerLine;
 	    }
 	    $header = 1;
