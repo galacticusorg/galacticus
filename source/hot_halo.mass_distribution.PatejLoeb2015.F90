@@ -68,7 +68,7 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter("patejLoebHotHaloMassDistributionGamma",patejLoebHotHaloMassDistributionGamma,defaultValue=1.15d0)
           !@ <inputParameter>
-          !@   <name>patejLoebHotHaloMassDistributionShoclRadius</name>
+          !@   <name>patejLoebHotHaloMassDistributionShockRadius</name>
           !@   <defaultValue>1</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
