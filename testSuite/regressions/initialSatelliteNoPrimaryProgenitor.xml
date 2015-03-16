@@ -1,9 +1,11 @@
+<?xml version="1.0"?>
 <!-- Contains a tree with an initial satellite in a progenitor-less host. In -->
 <!-- such cases, when the host is cloned to provide its own primry           -->
 <!-- progenitor, we must remove any satellites from the original host (since -->
 <!-- they are now attached to the cloned host). Failure to do so can lead to -->
 <!-- an infinite loop when trying to walk the tree (with satellites).        -->
 <parameters>
+  <version>0.9.4</version>
   <parameter>
     <name>verbosityLevel</name>
     <value>1</value>
@@ -205,8 +207,8 @@
     <value>verySimple</value>
   </parameter>
   <parameter>
-    <name>mergerTreeBuildMethod</name>
-    <value>Cole2000</value>
+    <name>mergerTreeBuilderMethod</name>
+    <value>cole2000</value>
   </parameter>
   <parameter>
     <name>mergerTreeBuildMassResolutionFixed</name>
@@ -261,7 +263,7 @@
     <value>false</value>
   </parameter>
   <parameter>
-    <name>virialOrbitsMethod</name>
+    <name>virialOrbitMethod</name>
     <value>fixed</value>
   </parameter>
   <parameter>
