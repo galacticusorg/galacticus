@@ -119,7 +119,7 @@
      procedure :: stateRestore                      => nfwStateRestore
      procedure :: density                           => nfwDensity
      procedure :: densityLogSlope                   => nfwDensityLogSlope
-     procedure :: densityRadialMoment               => nfwRadialMoment
+     procedure :: radialMoment                      => nfwRadialMoment
      procedure :: enclosedMass                      => nfwEnclosedMass
      procedure :: potential                         => nfwPotential
      procedure :: circularVelocity                  => nfwCircularVelocity
