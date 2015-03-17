@@ -9,25 +9,21 @@ if ( exists($ENV{'GALACTICUS_ROOT_V094'}) ) {
     $galacticusPath = "./";
 }
 unshift(@INC,$galacticusPath."perl");
+$ENV{TZ} = 'Europe/London';
 
 use 5.010;  # so filetest ops can stack
 use Tie::File;
 use Fcntl qw( SEEK_SET );
-
-# Script to extract forests of merger trees from the Bolshoi simulation as input to Galacticus.
-# Stephanie Dörschner (05-December-2014)
+use POSIX::strftime::GNU;
 
 # Get arguments.
- die "Usage: Bolshoi_Trees_Grab.pl <workingDirectory> <outputFile> [forestFile=<forestFile>] [locationFile=<locationFile>] [ignoreFile=<ignoreFile>] [treeCountMaximum=<treeCountMaximum>] [startLine=<startLine>] \n"
-     unless( scalar( @ARGV ) >= 2 && scalar( @ARGV ) <= 7 );
-     my $workDir        = shift @ARGV	 ;
-     my $outFile	= shift @ARGV	 ;
-     my $forestFile	= "forests.list" ;
-     my $locationFile	= "locations.dat";
-     my $ignoreFile     = "ignore.dat"   ;
-     my $append		= 0		 ;
-     my $treeCountMaximum = 10000	 ;
-     my $startLine	= 1		 ;
+ die "Usage: Bolshoi_Trees_Grab.pl <workingDirectory> <outputFile> [ignoreFile=<ignoreFile>] [treeCountMaximum=<treeCountMaximum>] [appendToIgnoreFile=<append>]\n"
+     unless( scalar( @ARGV ) >= 2 && scalar( @ARGV ) <= 5 );
+     my $workDir        = shift @ARGV	 ;	# Directory where all files are saved.
+     my $outFile	= shift @ARGV	 ;	# Name of ouput file.
+     my $ignoreFile     = "ignore.dat"   ;	# Name of file that contains the IDs of forests which should not be extracted.
+     my $append		= 0		 ;	# Whether to append IDs of extracted forests to the ignore file.
+     my $treeCountMaximum = 10000	 ;	# Approximate number of trees that are to be extracted. When the number is reached the current forest will completed.
 
  my $lastChar = substr( $workDir,length($workDir)-1, 1 );
  if ( $lastChar eq '/' )
@@ -38,47 +34,79 @@ use Fcntl qw( SEEK_SET );
 SWITCH: foreach my $arg ( @ARGV )
  {
     my @opt = split( "=", $arg );
-    if( $opt[0] eq "forestFile"		) { $forestFile   = $opt[1]; 		  next SWITCH; }
-    if( $opt[0] eq "locationFile"	) { $locationFile = $opt[1]; 		  next SWITCH; }
-    if( $opt[0] eq "ignoreFile"   	) { $ignoreFile   = $opt[1]; $append = 1; next SWITCH; }
-    if( $opt[0] eq "treeCountMaximum" 	) { $treeCountMaximum = $opt[1]; 	  next SWITCH; }
-    if( $opt[0] eq "startLine"    	) { $startLine    = $opt[1]; 		  next SWITCH; }
+    if( $opt[0] eq "ignoreFile"   	) { $ignoreFile   	= $opt[1]; 		next SWITCH; }
+    if( $opt[0] eq "treeCountMaximum" 	) { $treeCountMaximum 	= $opt[1]; 	  	next SWITCH; }
+    if( $opt[0] eq "startLine"    	) { $startLine    	= $opt[1]; 		next SWITCH; }
+    if( $opt[0] eq "appendToIgnoreFile"	) { if ( $opt[1] eq "append" ) { $append = 1; };next SWITCH; }
  }
 
-# Find forests to copy.
- 
+
+
+
+########################## Determine forests to copy. ##########################################
+
+
+    my $forestFile     = "forests.list" ;
+    my $locationFile   = "locations.dat";
+    my $startLine      = 1              ;
     my %forestHash;
     my %ignoreHash;
     my $treeCount  = 0;
     my $forestCount= 0;
+    my $timestamp;
+    my @timestamp;
+    my $urlHeader;
+    my $url;
+    my $getFile;
+    my $fileGZ;
+    my $file;
 
-    if ( -f $workDir."/".$ignoreFile )
+    # Make hash of forests to ignore.
+    $file = $ignoreFile; 
+    if ( -f "$workDir/$file" )
     {
-	# Make hash of forests to ignore.
-	open( IFORESTS, "<", "$workDir/$ignoreFile" ) or die "Could not open $workDir/$ignoreFile: $!\n";
+	open( IFORESTS, "<", "$workDir/$file" ) or die ("Could not open $workDir/$file : $!\n");
 	while( my $ignoreLine = <IFORESTS> )
 	{
-	    $ignoreHash{ 'ignoreLine' } = 1;
+	    $ignoreHash{ $ignoreLine } = 1;
 	}
-	close( IFORESTS ) or die "Could not close $workDir/$ignoreFile: $!\n";
+	close( IFORESTS ) or die "Could not close $workDir/$file: $!\n";
     }
 
-
-    # If needed download forests.list and locations.dat.
-    if ( not  -f -s $workDir/$forestFile ) 
-    {
-	my $url = "http://www.slac.stanford.edu/~behroozi/Bolshoi_Trees/forests.list.gz";
-	system( "wget", "-e robots=off", "--quiet", "--directory-prefix=$workDir", "$url" ) == 0 or die "Could not download forests.list.gz from $url: $!\n";
-	system( "gunzip", "$workDir/forests.list.gz") == 0  or die "Could not unzip forests.list.gz: $!\n";
-	$forestFile = "forests.list";
+    # If necessary download 'forests.list'.
+    $file = $forestFile;
+    $fileGZ = "$file.gz";
+    $url = "http://www.slac.stanford.edu/~behroozi/Bolshoi_Trees/$fileGZ";
+    if ( -f -s "$workDir/$file" ) {
+	@timestamp = localtime((stat "$workDir/$file")[9]);
+    } else {
+	@timestamp = localtime(0);
     }
-    if ( not  -f -s $workDir/$locationFile )
-    {
-	
-        my $url = "http://www.slac.stanford.edu/~behroozi/Bolshoi_Trees/locations.dat.gz";
-        system( "wget", "-e robots=off", "--quiet", "--directory-prefix=$workDir", "$url" ) == 0 or die "Could not download locations.dat.gz from $url: $!\n";
-	system( "gunzip", "$workDir/locations.dat.gz") == 0  or die "Could not unzip locations.dat.gz: $!\n";
-	$locationFile = "locations.dat";
+    $timestamp = POSIX::strftime("%a, %d %b %Y %H:%M:%S %Z", @timestamp);
+    $urlHeader = "If-Modified-Since: $timestamp";
+    $getFile = system( "wget", "-e robots=off", "--quiet",  "--header=$urlHeader", "--output-document=$workDir/$fileGZ", "$url" );
+    if ( $getFile == 0 ) { 
+	system( "gunzip", "--force", "$workDir/$fileGZ") == 0  or die "Could not unzip $workDir/$fileGZ: $!\n"; 
+    } else {
+	system( "rm", "--force", "$workDir/$fileGZ" );
+    }
+
+    # If necessary download locations.dat.
+    $file = $locationFile;
+    $fileGZ = "$file.gz";
+    $url = "http://www.slac.stanford.edu/~behroozi/Bolshoi_Trees/$fileGZ";
+    if ( -f -s "$workDir/$file" ) {
+        @timestamp = localtime((stat "$workDir/$file")[9]);
+    } else {
+        @timestamp = localtime(0);
+    }
+    $timestamp = POSIX::strftime("%a, %d %b %Y %H:%M:%S %Z", @timestamp);
+    $urlHeader = "If-Modified-Since: $timestamp";
+    $getFile = system( "wget", "-e robots=off", "--quiet", "--header=$urlHeader", "--output-document=$workDir/$fileGZ", "$url" );
+    if ( $getFile == 0 ) { 
+        system( "gunzip", "--force", "$workDir/$fileGZ") == 0  or die "Could not unzip $workDir/$fileGZ: $!\n"; 
+    } else {
+        system( "rm", "--force", "$workDir/$fileGZ" );
     }
 
     # Collect forests.
@@ -157,7 +185,7 @@ LOCATION: while ( $locationLine = <LOCATIONS> )
     # Append found forests to $ignoreFile.
     if ( $append == 1 )
     {
-	open( IFORESTS, ">>", "$workDir/$ignoreFile" ) or die "Appending forests to ignoreFile: Could not open $workDir/$ignoreFile: $!\n";
+	open( IFOREST, ">>", "$workDir/$ignoreFile" ) or die "Appending forests to ignoreFile: Could not open $workDir/$ignoreFile: $!\n";
 	foreach my $forestID ( keys %forestHash )
 	{
 	    print IFOREST "$forestID\n";
@@ -167,7 +195,8 @@ LOCATION: while ( $locationLine = <LOCATIONS> )
 
 
 
-########## Copy all found trees to output file in ascending order. ##########
+
+########## Copy all found forests to output file in ascending order. ##########
 
 
  open( MYTREES, ">", "$workDir/$outFile" ) or die "Could not open $workDir/$outFile: $!\n";
@@ -180,34 +209,28 @@ LOCATION: while ( $locationLine = <LOCATIONS> )
     foreach my $treeID ( keys %{ $forestHash{ $forestID } } )
     {
 	my $offset   = $forestHash{ $forestID }{ $treeID }[0];
-	my $fileName = $forestHash{ $forestID }{ $treeID }[1];
+	   $file     = $forestHash{ $forestID }{ $treeID }[1];
 
 	# Download and unzip treefile if necessary.
-	if ( not ( -f -s  "$workDir/$fileName" ) )
-	{
-	    my $fileGZ = "$fileName.gz";
-	    if ( -f -s "$workDir/$fileGZ" )
-	    {
-		system( "gunzip", "$workDir/$fileGZ" );
-		if ( $? != 0 )
-		{
-		    print STDOUT "Warning: Could not unzip $fileGZ: $!. Downloading $fileGZ.\n";
-		    system( "rm", "$workDir/$fileGZ" );
-		    my $url = "http://www.slac.stanford.edu/~behroozi/Bolshoi_Trees/$fileGZ";
-		    system( "wget", "-e robots=off", "--quiet", "--directory-prefix=$workDir", "$url" ) == 0 or die "Could not download $fileGZ from $url: $!\n";
-		    system( "gunzip", "$workDir/$fileGZ" ) 						== 0 or die "Could not unzip $fileGZ: $!\n";
-		}
-	    }
-	    else
-	    {
-		my $url = "http://www.slac.stanford.edu/~behroozi/Bolshoi_Trees/$fileGZ";
-		system( "wget", "-e robots=off", "--quiet", "--directory-prefix=$workDir", "$url" ) 	== 0 or die "Could not download $fileGZ from $url: $!\n";
-                system( "gunzip", "$workDir/$fileGZ" ) 							== 0 or die "Could not unzip $fileGZ: $!\n";
-	    }
+	$fileGZ = "$file.gz";
+	$url = "http://www.slac.stanford.edu/~behroozi/Bolshoi_Trees/$fileGZ";
+	if ( -f -s "$workDir/$file" ) {
+		@timestamp = localtime((stat "$workDir/$file")[9]);
+	} else {
+		@timestamp = localtime(0);
 	}
+	$timestamp = POSIX::strftime("%a, %d %b %Y %H:%M:%S %Z", @timestamp);
+	$urlHeader = "If-Modified-Since: $timestamp";
+	$getFile = system( "wget", "-e robots=off", "--quiet", "--header=$urlHeader", "--output-document=$workDir/$fileGZ", "$url" );
+	if ( $getFile == 0 ) {
+		system( "gunzip", "--force", "$workDir/$fileGZ") == 0  or die "Could not unzip $workDir/$fileGZ: $!\n";
+	} else {
+		system( "rm", "--force", "$workDir/$fileGZ" );
+		die "Could not download $file from $url. Programm aborted.\n" unless ( -f -s "$workDir/$file" )
+        }
 
 	# Copy tree to file.
-	open( NEWTREES, "<", "$workDir/$fileName" ) or die "Could not open $workDir/$fileName: $!\n";
+	open( NEWTREES, "<", "$workDir/$file" ) or die "Could not open $workDir/$file: $!\n";
 
 	 # Copy header if necessary.
 	 if ( $header == 0 )
@@ -237,7 +260,7 @@ TREE:	 while( my $output = <NEWTREES> )
 	    if ( $output =~ m/#tree/	     ){ last TREE; }
 	    print MYTREES "$forestID $output";
 	 }
-	close( NEWTREES ) or die "Could not close $workDir/$fileName: $!\n";
+	close( NEWTREES ) or die "Could not close $workDir/$file: $!\n";
     }
  }
 
