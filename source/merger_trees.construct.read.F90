@@ -1703,7 +1703,7 @@ contains
                      &                      rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                      , &
                      &                      rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                      , &
                      &                      rangeExpandType              =rangeExpandMultiplicative                            &
-                     &                     )
+                     &                     )                
                 radiusScale=finder%find(rootGuess=halfMassRadius,status=status)
                 if (status == errorStatusSuccess) then
                    call thisDarkMatterProfileComponent%scaleSet(radiusScale)
@@ -1743,7 +1743,13 @@ contains
           if (useFallbackScaleMethod) then
              ! The node mass is below the reliability threshold, or no scale information is available. Set the scale radius using
              ! the fallback concentration method.
-             radiusScale=Dark_Matter_Profile_Scale(nodeList(iIsolatedNode)%node,fallbackConcentration)
+             radiusScale=max(                                                                                                      &
+                  &          min(                                                                                                  &
+                  &              Dark_Matter_Profile_Scale(nodeList(iIsolatedNode)%node,fallbackConcentration)                   , &
+                  &              darkMatterHaloScale_%virialRadius(activeNode)/mergerTreeReadPresetScaleRadiiConcentrationMinimum  &
+                  &             )                                                                                                , &
+                  &              darkMatterHaloScale_%virialRadius(activeNode)/mergerTreeReadPresetScaleRadiiConcentrationMaximum  &
+                  &         )
              call thisDarkMatterProfileComponent%scaleSet(radiusScale)
           end if
        end if
