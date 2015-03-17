@@ -551,8 +551,8 @@ contains
   double precision function einastoPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
+    use Galactic_Structure_Options
     use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles_Error_Codes
     use Numerical_Constants_Physical
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout)           :: self
@@ -565,7 +565,7 @@ contains
          &                                                                       scaleRadius                   , virialRadiusOverScaleRadius
 
     ! Assume success.
-    if (present(status)) status=darkMatterProfileSuccess
+    if (present(status)) status=structureErrorCodeSuccess
     ! Get components.
     thisBasicComponent             => node%basic            (                 )
     thisDarkMatterProfileComponent => node%darkMatterProfile(autoCreate=.true.)
@@ -573,12 +573,10 @@ contains
     alpha                      =thisDarkMatterProfileComponent%shape()
     radiusOverScaleRadius      =radius                       /scaleRadius
     virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
-    einastoPotential=                                                                                   &
-         & ( self%potentialScaleFree(radiusOverScaleRadius      ,virialRadiusOverScaleRadius,alpha)     &
-         &  -self%potentialScaleFree(virialRadiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)     &
-         &  -1.0d0/                                              virialRadiusOverScaleRadius            &
-         & )                                                                                            &
-         & *gravitationalConstantGalacticus*thisBasicComponent%mass()/scaleRadius
+    einastoPotential=+self%potentialScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha) &
+         &           *gravitationalConstantGalacticus                                                  &
+         &           *thisBasicComponent%mass()                                                        &
+         &           /scaleRadius
     return
   end function einastoPotential
 
