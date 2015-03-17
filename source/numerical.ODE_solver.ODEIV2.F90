@@ -110,7 +110,7 @@ contains
           ! Successful completion of the step - do nothing except resetting failure count.
        case (FGSL_Failure)
           ! Generic failure - most likely a stepsize underflow.
-          if (present(errorHandler)) call errorHandler()
+          if (present(errorHandler)) call errorHandler(x,y)
           ! If ODE status was requested, then return it instead of aborting.
           if (present(odeStatus)) then
              x0=x

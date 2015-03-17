@@ -404,17 +404,46 @@ contains
     return
   end subroutine Tree_Node_Compute_Derivatives
 
-  subroutine Tree_Node_ODEs_Error_Handler()
+  subroutine Tree_Node_ODEs_Error_Handler(time,y)
     !% Handles errors in the ODE solver when evolving \glc\ nodes. Dumps the content of the node.
+    use, intrinsic :: ISO_C_Binding
     use String_Handling
     use Galacticus_Display
     implicit none
-    type(varying_string) :: message
+    real     (kind=c_double     ), intent(in)                  :: time
+    real     (kind=c_double     ), intent(in), dimension(nProperties) :: y
+    real (kind=c_double), dimension(nProperties) :: dydt
+    class    (nodeComponentBasic), pointer                :: basic
+    type     (varying_string    )                         :: message
+    type     (c_ptr             )                         :: parameterPointer
+    integer                                               :: i               , lengthMaximum
+    character(len =12           )                         :: label
+    integer  (kind=c_int        )                         :: odeStatus
 
     message="ODE solver failed in tree #"
     message=message//activeTreeIndex
     call Galacticus_Display_Message(message)
+    ! Dump all node properties.
     call activeNode%dump()
+    ! Evaluate derivatives.
+    odeStatus=Tree_Node_ODEs(time,y,dydt,parameterPointer)
+    call Galacticus_Display_Indent('ODE system parameters')
+    lengthMaximum=0    
+    do i=1,nProperties
+       lengthMaximum=max(lengthMaximum,len(activeNode%nameFromIndex(i)))
+    end do
+    do i=1,nProperties
+       message=activeNode%nameFromIndex(i)
+       message=repeat(" ",lengthMaximum-len(message))//message
+       write (label,'(e12.6)') y             (i)
+       message=message//" : "//label
+       write (label,'(e12.6)') dydt          (i)
+       message=message//" : "//label
+       write (label,'(e12.6)') propertyScales(i)
+       message=message//" : "//label
+       call Galacticus_Display_Message(message)
+    end do
+    call Galacticus_Display_Unindent('done')
     return
   end subroutine Tree_Node_ODEs_Error_Handler
 
