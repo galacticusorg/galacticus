@@ -21,10 +21,11 @@ module Modified_Press_Schechter_Branching
   !% Implements calculations of branching probabilties in modified Press-Schechter theory.
   use Power_Spectra
   use Numerical_Constants_Math
+  use Tables
   implicit none
   private
   public :: Modified_Press_Schechter_Branching_Initialize
-
+  
   ! Parent halo shared variables.
   double precision            :: branchingProbabilityPreFactor                               , modificationG0Gamma2Factor  , &
        &                         parentDelta                                                 , parentHaloMass              , &
@@ -36,6 +37,7 @@ module Modified_Press_Schechter_Branching
   !$omp threadprivate(parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass)
   !$omp threadprivate(modificationG0Gamma2Factor,branchingProbabilityPreFactor,probabilityMaximumMassLog,probabilityMinimumMassLog)
   !$omp threadprivate(probabilityMaximum,probabilityGradientMinimum,probabilityGradientMaximum)
+
   ! Parameters of the merger rate modification function.
   double precision            :: modifiedPressSchechterG0                                    , modifiedPressSchechterGamma1, &
        &                         modifiedPressSchechterGamma2
@@ -43,6 +45,12 @@ module Modified_Press_Schechter_Branching
   ! Accuracy parameter to ensure that merger rate function (which is correct to 1st order) is sufficiently accurate.
   double precision            :: modifiedPressSchechterFirstOrderAccuracy
 
+  ! Tolerance parameter for hypergeometric evaluation.
+  double precision            :: modifiedPressSchechterHypergeometricPrecision
+
+  ! Tabulate hypergeometric factors?
+  logical                     :: modifiedPressSchechterTabulateHypergeometricFactors
+  
   ! Precomputed numerical factors.
   double precision, parameter :: sqrtTwoOverPi                                =sqrt(2.0d0/Pi)
 
@@ -54,6 +62,11 @@ module Modified_Press_Schechter_Branching
 
   ! Warning records.
   logical                     :: hypergeometricFailureWarned=.false.
+
+  ! Tables of hypergeometric factors.
+  type   (table1DLogarithmicLinear) :: subresolutionHypergeometric                   , upperBoundHypergeometric
+  logical                           :: subresolutionHypergeometricInitialized=.false., upperBoundHypergeometricInitialized=.false.
+  !$omp threadprivate(subresolutionHypergeometric,upperBoundHypergeometric,subresolutionHypergeometricInitialized,upperBoundHypergeometricInitialized)
 
 contains
 
@@ -130,6 +143,29 @@ contains
        call Get_Input_Parameter('modifiedPressSchechterFirstOrderAccuracy',modifiedPressSchechterFirstOrderAccuracy,defaultValue &
             &=0.1d0)
        !@ <inputParameter>
+       !@   <name>modifiedPressSchechterHypergeometricPrecision</name>
+       !@   <defaultValue>$10^{-6}$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The fractional precision required in evaluates of hypergeometric functions in the modified Press-Schechter tree branching calculations.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('modifiedPressSchechterHypergeometricPrecision',modifiedPressSchechterHypergeometricPrecision,defaultValue &
+            &=1.0d-6)
+       !@ <inputParameter>
+       !@   <name>modifiedPressSchechterTabulateHypergeometricFactors</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether hypergeometric factors should be precomputed and tabulated in modified Press-Schechter tree branching functions.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('modifiedPressSchechterTabulateHypergeometricFactors',modifiedPressSchechterTabulateHypergeometricFactors,defaultValue=.true.)
+       !@ <inputParameter>
        !@   <name>modifiedPressSchechterUseCDMAssumptions</name>
        !@   <defaultValue>false</defaultValue>
        !@   <attachedTo>module</attachedTo>
@@ -159,13 +195,13 @@ contains
     double precision                            :: logMassMinimum         , logMassMaximum
     
     ! Initialize global variables.
-    parentHaloMass        =haloMass
-    parentSigma           =Cosmological_Mass_Root_Variance(haloMass)
-    parentDelta           =deltaCritical
-        probabilityMinimumMass=massResolution
+    parentHaloMass           =haloMass
+    parentSigma              =Cosmological_Mass_Root_Variance(haloMass)
+    parentDelta              =deltaCritical
+    probabilityMinimumMass   =massResolution
     probabilityMinimumMassLog=log(massResolution)
     probabilityMaximumMassLog=log(0.5d0*haloMass)
-    probabilitySeek       =probability
+    probabilitySeek          =probability
     call Compute_Common_Factors
     ! Check the sign of the root function at half the halo mass.
     if (Modified_Press_Schechter_Branch_Mass_Root(probabilityMaximumMassLog) >= 0.0d0) then
@@ -355,6 +391,7 @@ contains
     use Galacticus_Display
     use Hypergeometric_Functions
     use FGSL
+    use Numerical_Comparison
     implicit none
     double precision          , intent(in   ) :: deltaCritical                   , haloMass                 , &
          &                                       massResolution
@@ -363,7 +400,6 @@ contains
          &                                       resolutionAlpha
     !$omp threadprivate(resolutionSigma,resolutionAlpha,massResolutionPrevious)
     double precision          , parameter     :: alphaMinimum             =5.0d-3
-    double precision          , parameter     :: hypergeoTolerance        =1.0d-6
     double precision                          :: probabilityIntegrandLower       , probabilityIntegrandUpper, &
          &                                       halfParentSigma                 , halfParentAlpha          , &
          &                                       gammaEffective
@@ -372,19 +408,22 @@ contains
     integer         (fgsl_int)                :: statusLower                     , statusUpper
     logical                                   :: usingCDMAssumptions
     integer                                   :: iBound
-
+    
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
        parentHaloMass=haloMass
        parentSigma=Cosmological_Mass_Root_Variance(haloMass)
        parentDelta=deltaCritical
        call Compute_Common_Factors()
-       ! Estimate probability.
        if (massResolution /= massResolutionPrevious) then
+          ! Resolution changed - recompute sigma and alpha at resolution limit. Also reset the hypergeometric factor tables since
+          ! these depend on resolution.
           call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(massResolution,resolutionSigma,resolutionAlpha)
-          massResolutionPrevious=massResolution
+          massResolutionPrevious             =massResolution
+          upperBoundHypergeometricInitialized=.false.
        end if
        resolutionSigmaOverParentSigma=resolutionSigma/parentSigma
+       ! Estimate probability.
        if (resolutionSigmaOverParentSigma > 1.0d0) then
           ! Compute relevant sigmas and alphas.
           call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(0.5d0*parentHaloMass,halfParentSigma,halfParentAlpha)
@@ -410,47 +449,99 @@ contains
                    gammaEffective=gammaEffective-1.0d0/halfParentAlpha
                 end select
              end if
-             ! Compute probability factors.
-             hyperGeometricFactorLower=Hypergeometric_2F1(                                         &
-                  &                                       [1.5d0,0.5d0-0.5d0*gammaEffective]     , &
-                  &                                       [      1.5d0-0.5d0*gammaEffective]     , &
-                  &                                       1.0d0/resolutionSigmaOverParentSigma**2, &
-                  &                                       toleranceRelative=hypergeoTolerance    , &
-                  &                                       status           =statusLower            &
-                  &                                      )
-             hyperGeometricFactorUpper=Hypergeometric_2F1(                                         &
-                  &                                       [1.5d0,0.5d0-0.5d0*gammaEffective]     , &
-                  &                                       [      1.5d0-0.5d0*gammaEffective]     , &
-                  &                                       parentSigma**2/halfParentSigma**2      , &
-                  &                                       toleranceRelative=hypergeoTolerance    , &
-                  &                                       status           =statusUpper            &
-                  &                                      )
-             if (statusUpper /= FGSL_Success .or. statusLower /= FGSL_Success) then
-                if (usingCDMAssumptions) then
-                   if (.not.hypergeometricFailureWarned) then
-                      hypergeometricFailureWarned=.true.
-                      call Galacticus_Display_Message(                                                                                &
-                           &                          'WARNING: hypergeometric function evaluation failed when computing'//char(10)// &
-                           &                          'merger tree branching probability bounds - will revert to more'   //char(10)// &
-                           &                          'robust (but less stringent) bound in this and future cases'                 ,  &
-                           &                          verbosityWarn                                                                   &
-                           &                         )
-                   end if
-                   cycle
+             ! Compute probability factors. The logic here becomes complicated, as we use various optimizations and tabulations to
+             ! speed up calculation.
+             !
+             ! Tabulations will only be used if modifiedPressSchechterTabulateHypergeometricFactors is true.
+             !
+             ! Set status to success by default.
+             statusLower=FGSL_Success
+             statusUpper=FGSL_Success
+             ! First, check if CDM assumptions are not being used and we're allowed to tabulate hypergeometric factors, 
+             if (.not.usingCDMAssumptions.and.modifiedPressSchechterTabulateHypergeometricFactors) then
+                ! CDM assumptions are not being used. In this case we can use the same table of hypergeometric factors as the
+                ! subresolution merger fraction.
+                call Subresolution_Hypergeometric_Tabulate(resolutionSigmaOverParentSigma)
+                call Subresolution_Hypergeometric_Tabulate(halfParentSigma   /parentSigma)
+                probabilityIntegrandLower=+subresolutionHypergeometric%interpolate(+resolutionSigmaOverParentSigma-1.0d0)/parentSigma
+                probabilityIntegrandUpper=+subresolutionHypergeometric%interpolate(+halfParentSigma   /parentSigma-1.0d0)/parentSigma
+             else
+                ! Next, check if CDM assumptions are being used, we're allowed to tabulate hypergeometric factors, and the bound
+                ! requested is the upper bound.
+                if     ( usingCDMAssumptions                                 &
+                     &  .and.                                                &
+                     &   modifiedPressSchechterTabulateHypergeometricFactors &
+                     &  .and.                                                &
+                     &   bound == boundUpper                                 &
+                     & ) then
+                   ! Use a tabulation of the hypergeometric functions for the upper bound, made using CDM assumptions. Since the
+                   ! tables already include the difference between the upper and lower integrand, we simply set the lower
+                   ! integrand to zero here.
+                   call Upper_Bound_Hypergeometric_Tabulate(parentHaloMass,massResolution)
+                   probabilityIntegrandUpper=upperBoundHypergeometric%interpolate(parentHaloMass)
+                   probabilityIntegrandLower=0.0d0
                 else
-                   call Galacticus_Error_Report('Modified_Press_Schechter_Branching_Probability_Bound','hypergeometric function evaluation failed')
+                   ! Use a direct calculation of the hypergeometric factors in this case.
+                   hyperGeometricFactorLower=Hypergeometric_2F1(                                                                 &
+                        &                                       [1.5d0,0.5d0-0.5d0*gammaEffective]                             , &
+                        &                                       [      1.5d0-0.5d0*gammaEffective]                             , &
+                        &                                       1.0d0/resolutionSigmaOverParentSigma**2                        , &
+                        &                                       toleranceRelative=modifiedPressSchechterHypergeometricPrecision, &
+                        &                                       status           =statusLower                                    &
+                        &                                      )
+                   if (statusLower /= FGSL_Success) then
+                      if (usingCDMAssumptions) then
+                         if (.not.hypergeometricFailureWarned) then
+                            hypergeometricFailureWarned=.true.
+                            call Galacticus_Display_Message(                                                                                &
+                                 &                          'WARNING: hypergeometric function evaluation failed when computing'//char(10)// &
+                                 &                          'merger tree branching probability bounds - will revert to more'   //char(10)// &
+                                 &                          'robust (but less stringent) bound in this and future cases'                 ,  &
+                                 &                          verbosityWarn                                                                   &
+                                 &                         )
+                         end if
+                         cycle
+                      else
+                         call Galacticus_Error_Report('Modified_Press_Schechter_Branching_Probability_Bound','hypergeometric function evaluation failed')
+                      end if
+                   end if
+                   probabilityIntegrandLower=+sqrtTwoOverPi                                              &
+                        &                    *(modificationG0Gamma2Factor/parentSigma)                   &
+                        &                    *(resolutionSigmaOverParentSigma**(gammaEffective-1.0d0))   &
+                        &                    /(1.0d0-gammaEffective)                                     &
+                        &                    *hyperGeometricFactorLower         
+                   ! Check if we can use a table to compute the upper factor.
+                   hyperGeometricFactorUpper=Hypergeometric_2F1(                                                                 &
+                        &                                       [1.5d0,0.5d0-0.5d0*gammaEffective]                             , &
+                        &                                       [      1.5d0-0.5d0*gammaEffective]                             , &
+                        &                                       parentSigma**2/halfParentSigma**2                              , &
+                        &                                       toleranceRelative=modifiedPressSchechterHypergeometricPrecision, &
+                        &                                       status           =statusUpper                                    &
+                        &                                      )
+                   if (statusUpper /= FGSL_Success) then
+                      if (usingCDMAssumptions) then
+                         if (.not.hypergeometricFailureWarned) then
+                            hypergeometricFailureWarned=.true.
+                            call Galacticus_Display_Message(                                                                                &
+                                 &                          'WARNING: hypergeometric function evaluation failed when computing'//char(10)// &
+                                 &                          'merger tree branching probability bounds - will revert to more'   //char(10)// &
+                                 &                          'robust (but less stringent) bound in this and future cases'                 ,  &
+                                 &                          verbosityWarn                                                                   &
+                                 &                         )
+                         end if
+                         cycle
+                      else
+                         call Galacticus_Error_Report('Modified_Press_Schechter_Branching_Probability_Bound','hypergeometric function evaluation failed')
+                      end if
+                   end if
+                   probabilityIntegrandUpper=+sqrtTwoOverPi                                           &
+                        &                    *(modificationG0Gamma2Factor/parentSigma)                &
+                        &                    *((halfParentSigma/parentSigma)**(gammaEffective-1.0d0)) &
+                        &                    /(1.0d0-gammaEffective)                                  &
+                        &                    *hyperGeometricFactorUpper   
                 end if
              end if
-             probabilityIntegrandLower=+sqrtTwoOverPi                                              &
-                  &                    *(modificationG0Gamma2Factor/parentSigma)                   &
-                  &                    *(resolutionSigmaOverParentSigma**(gammaEffective-1.0d0))   &
-                  &                    /(1.0d0-gammaEffective)                                     &
-                  &                    *hyperGeometricFactorLower         
-             probabilityIntegrandUpper=+sqrtTwoOverPi                                              &
-                  &                    *(modificationG0Gamma2Factor/parentSigma)                   &
-                  &                    *((halfParentSigma/parentSigma) **(gammaEffective-1.0d0))   &
-                  &                    /(1.0d0-gammaEffective)                                     &
-                  &                    *hyperGeometricFactorUpper
+             ! Compute the bound.
              select case (bound)
              case (boundLower)
                 if (usingCDMAssumptions) then
@@ -514,7 +605,6 @@ contains
     implicit none
     double precision, intent(in   ) :: deltaCritical                 , haloMass                      , &
          &                             massResolution
-    double precision, parameter     :: hypergeoTolerance     = 1.0d-6
     double precision, save          :: massResolutionPrevious=-1.0d+0, resolutionSigma
     !$omp threadprivate(resolutionSigma,massResolutionPrevious)
     double precision                :: hyperGeometricFactor          , resolutionSigmaOverParentSigma
@@ -526,15 +616,33 @@ contains
     call Compute_Common_Factors
     if (massResolution /= massResolutionPrevious) then
        resolutionSigma       =Cosmological_Mass_Root_Variance(massResolution)
-       massResolutionPrevious=massResolution
+       massResolutionPrevious=                                massResolution
     end if
     resolutionSigmaOverParentSigma=resolutionSigma/parentSigma
     if (resolutionSigmaOverParentSigma > 1.0d0) then
-       hyperGeometricFactor=Hypergeometric_2F1([1.5d0,0.5d0-0.5d0*modifiedPressSchechterGamma1],[1.5d0-0.5d0&
-            &*modifiedPressSchechterGamma1],1.0d0/resolutionSigmaOverParentSigma**2,toleranceRelative=hypergeoTolerance)
-       Modified_Press_Schechter_Subresolution_Fraction=sqrtTwoOverPi*(modificationG0Gamma2Factor/parentSigma) &
-            &*(resolutionSigmaOverParentSigma**(modifiedPressSchechterGamma1-1.0d0))/(1.0d0-modifiedPressSchechterGamma1)&
-            &*hyperGeometricFactor
+       if (modifiedPressSchechterTabulateHypergeometricFactors) then
+          ! Use tabulation of hypergeometric factors.
+          call Subresolution_Hypergeometric_Tabulate(resolutionSigmaOverParentSigma)
+          Modified_Press_Schechter_Subresolution_Fraction=+subresolutionHypergeometric%interpolate(                                &
+               &                                                                                   +resolutionSigmaOverParentSigma &
+               &                                                                                   -1.0d0                          &
+               &                                                                                  )                                &
+               &                                          /parentSigma
+       else
+          ! Compute hypergeometric factors directly.
+          hyperGeometricFactor=Hypergeometric_2F1(                                                                 &
+               &                                  [1.5d0,0.5d0-0.5d0*modifiedPressSchechterGamma1]               , &
+               &                                  [      1.5d0-0.5d0*modifiedPressSchechterGamma1]               , &
+               &                                  1.0d0/resolutionSigmaOverParentSigma**2                        , &
+               &                                  toleranceRelative=modifiedPressSchechterHypergeometricPrecision  &
+               &)
+          Modified_Press_Schechter_Subresolution_Fraction=+sqrtTwoOverPi                                                         &
+               &                                          *modificationG0Gamma2Factor                                            &
+               &                                          /parentSigma                                                           &
+               &                                          *resolutionSigmaOverParentSigma**(+modifiedPressSchechterGamma1-1.0d0) &
+               &                                          /                                (-modifiedPressSchechterGamma1+1.0d0) &
+               &                                          *hyperGeometricFactor
+       end if
     else
        Modified_Press_Schechter_Subresolution_Fraction=-1.0d0
     end if
@@ -607,4 +715,126 @@ contains
     return
   end subroutine Compute_Common_Factors
 
+  subroutine Subresolution_Hypergeometric_Tabulate(x)
+    !% Tabulate the hypergeometric term appearing in the subresolution merger fraction expression.
+    use Hypergeometric_Functions
+    use Galacticus_Error
+    implicit none
+    double precision, intent(in   ) :: x
+    integer         , parameter     :: xCountPerDecade  =10
+    double precision                :: xMinimum                , xMaximum
+    integer                         :: xCount                  , i
+    logical                         :: tabulate
+    
+    tabulate=.false.
+    if (.not.subresolutionHypergeometricInitialized) then
+       tabulate=.true.
+       xMinimum=min( 1.0d-9 ,     (x-1.0d0))
+       xMaximum=max(12.5d+0,2.0d0*(x-1.0d0))
+    else
+       if     (                                               &
+            &   (x-1.0d0) < subresolutionHypergeometric%x(+1) &
+            &  .or.                                           &
+            &   (x-1.0d0) > subresolutionHypergeometric%x(-1) &
+            & ) then
+          tabulate=.true.
+          xMinimum=min(subresolutionHypergeometric%x(+1),      (x-1.0d0))
+          xMaximum=max(subresolutionHypergeometric%x(-1),2.0d0*(x-1.0d0))
+       end if
+    end if
+    if (tabulate) then
+       xCount=int(log10(xMaximum/xMinimum)*dble(xCountPerDecade))+1
+       if (.not.subresolutionHypergeometricInitialized) call subresolutionHypergeometric%destroy()
+       call subresolutionHypergeometric%create(xMinimum,xMaximum,xCount,1,extrapolationType=extrapolationTypeAbort)
+       do i=1,xCount
+          call subresolutionHypergeometric%populate(                                                                                    &
+               &                                    +sqrtTwoOverPi                                                                      &
+               &                                    *modificationG0Gamma2Factor                                                         &
+               &                                    *(subresolutionHypergeometric%x(i)+1.0d0)**(+modifiedPressSchechterGamma1-1.0d0)    &
+               &                                    /                                          (-modifiedPressSchechterGamma1+1.0d0)    &
+               &                                    *Hypergeometric_2F1(                                                                &
+               &                                                       [1.5d0,0.5d0-0.5d0*modifiedPressSchechterGamma1]               , &
+               &                                                       [      1.5d0-0.5d0*modifiedPressSchechterGamma1]               , &
+               &                                                       1.0d0/(subresolutionHypergeometric%x(i)+1.0d0)**2              , &
+               &                                                       toleranceRelative=modifiedPressSchechterHypergeometricPrecision  &
+               &                                                      )                                                               , &
+               &                                    i                                                                                   &
+               &                                   )
+       end do
+       subresolutionHypergeometricInitialized=.true.
+    end if
+    return
+  end subroutine Subresolution_Hypergeometric_Tabulate
+  
+  subroutine Upper_Bound_Hypergeometric_Tabulate(mass,massResolution)
+    !% Tabulate the hypergeometric term appearing in the upper bound branching probability rate expression.
+    use Hypergeometric_Functions
+    use Galacticus_Error
+    implicit none
+    double precision, intent(in   ) :: mass                 , massResolution
+    integer         , parameter     :: massCountPerDecade=30
+    double precision                :: massMinimum          , massMaximum
+    integer                         :: massCount            , i
+    logical                         :: tabulate
+    double precision                :: massSigma            , gammaEffective     , &
+         &                             halfMassSigma        , halfMassAlpha      , &
+         &                             resolutionMassSigma  , resolutionMassAlpha
+
+    tabulate=.false.
+    if (.not.upperBoundHypergeometricInitialized) then
+       tabulate=.true.
+       massMinimum=           2.0d0*massResolution
+       massMaximum=max(1.0d16,2.0d0*mass          )
+    else
+       if     (                                       &
+            &   mass < upperBoundHypergeometric%x(+1) &
+            &  .or.                                   &
+            &   mass > upperBoundHypergeometric%x(-1) &
+            & ) then
+          tabulate=.true.
+          massMinimum=                                   2.0d0*massResolution
+          massMaximum=max(upperBoundHypergeometric%x(-1),2.0d0*mass          )
+       end if
+    end if
+    if (tabulate) then
+       massCount=int(log10(massMaximum/massMinimum)*dble(massCountPerDecade))+1
+       if (.not.upperBoundHypergeometricInitialized) call upperBoundHypergeometric%destroy()
+       call upperBoundHypergeometric%create(massMinimum,massMaximum,massCount,1,extrapolationType=extrapolationTypeAbort)
+       ! Evaluate sigma and alpha at the mass resolution.
+       call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(massResolution,resolutionMassSigma,resolutionMassAlpha)
+       do i=1,massCount
+          ! Evaluate sigmas and alpha.
+          call           Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(0.5d0*upperBoundHypergeometric%x(i),halfMassSigma,halfMassAlpha)
+          massSigma     =Cosmological_Mass_Root_Variance                            (      upperBoundHypergeometric%x(i)                            )
+          gammaEffective=modifiedPressSchechterGamma1-1.0d0/halfMassAlpha
+          call upperBoundHypergeometric%populate(                                                                                         &
+               &                                    +sqrtTwoOverPi                                                                        &
+               &                                    *modificationG0Gamma2Factor                                                           &
+               &                                    /massSigma                                                                            & 
+               &                                    *(                                                                                    &
+               &                                      +(halfMassSigma/massSigma)**(+gammaEffective-1.0d0)                                 &
+               &                                      /                           (-gammaEffective+1.0d0)                                 &
+               &                                      *Hypergeometric_2F1(                                                                &
+               &                                                         [1.5d0,0.5d0-0.5d0*gammaEffective]                             , &
+               &                                                         [      1.5d0-0.5d0*gammaEffective]                             , &
+               &                                                         (massSigma/halfMassSigma)**2                                   , &
+               &                                                         toleranceRelative=modifiedPressSchechterHypergeometricPrecision  &
+               &                                                        )                                                                 &
+               &                                      -(resolutionMassSigma/massSigma)**(+gammaEffective-1.0d0)                           &
+               &                                      /                                 (-gammaEffective+1.0d0)                           &
+               &                                      *Hypergeometric_2F1(                                                                &
+               &                                                         [1.5d0,0.5d0-0.5d0*gammaEffective]                             , &
+               &                                                         [      1.5d0-0.5d0*gammaEffective]                             , &
+               &                                                         (massSigma/resolutionMassSigma)**2                             , &
+               &                                                         toleranceRelative=modifiedPressSchechterHypergeometricPrecision  &
+               &                                                        )                                                                 &
+               &                                     )                                                                                  , &
+               &                                    i                                                                                     &
+               &                                   )
+       end do
+       upperBoundHypergeometricInitialized=.true.
+    end if
+    return
+  end subroutine Upper_Bound_Hypergeometric_Tabulate
+  
 end module Modified_Press_Schechter_Branching

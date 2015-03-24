@@ -1849,6 +1849,8 @@ Selected with {\normalfont \ttfamily treeBranchingMethod}$=${\normalfont \ttfami
 \end{equation}
 By holding the $M^\prime$ in the denominator of the first term in the integrand fixed, we obtain an analytic solution to the integral in terms of hypergeometric functions. If we fix this $M^\prime$ at $M_{\mathrm min}$ we obtain an upper limit on the branching probability, while if we fix it to $M/2$ a lower limit is obtained.
 
+Calculation of branching probabilities involves computation of several hypergeometric functions which are numerically slow. Two parameters control the accuracy and application of these functions. First, {\normalfont \ttfamily [modifiedPressSchechterHypergeometricPrecision]}($=10^{-6}$) specifies the fractional tolerance to which these functions should be computed. Second, if {\normalfont \ttfamily [modifiedPressSchechterTabulateHypergeometricFactors]}$=${\normalfont \ttfamily true} then these functions will be tabulated for rapid lookup (at some loss of precision).
+
 \subsection{Generalized Press-Schechter}
 
 Selected with {\normalfont \ttfamily treeBranchingMethod}$=${\normalfont \ttfamily generalizedPress-Schechter}, this method computes branching probabilities from solutions to the excursion set barrier first crossing rate problem (using the selected {\normalfont \ttfamily excursionSetFirstCrossingMethod}; see \S\ref{sec:excursionSetFirstCrossingMethod}). Specifically, the branching probability per unit time is:
