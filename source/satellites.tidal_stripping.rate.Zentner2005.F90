@@ -166,7 +166,10 @@ contains
        else
           tidalRadius=finder%find(rootGuess=tidalRadius)
        end if
-       outerSatelliteMass=Galactic_Structure_Enclosed_Mass(thisNode)-Galactic_Structure_Enclosed_Mass(thisNode,tidalRadius)
+       outerSatelliteMass=max(                                                                                                   &
+            &                 Galactic_Structure_Enclosed_Mass(thisNode)-Galactic_Structure_Enclosed_Mass(thisNode,tidalRadius), &
+            &                 0.0d0                                                                                              &
+            &                )
     else
        outerSatelliteMass=0.0d0
     end if
