@@ -607,25 +607,22 @@ contains
     use Star_Formation_Timescales_Disks
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk )               , pointer :: thisDiskComponent
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk       )               , pointer :: thisDiskComponent
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                             :: diskDynamicalTime, gasMass, starFormationTimescale
+    double precision                                                   :: diskDynamicalTime     , gasMass, &
+         &                                                                starFormationTimescale
 
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
-
+    ! Get the gas mass.
+    gasMass=thisDiskComponent%massGas()    
     ! Get the star formation timescale.
     starFormationTimescale=Star_Formation_Timescale_Disk(thisNode)
-
     ! Limit the star formation timescale to a multiple of the dynamical time.
     darkMatterHaloScale_   => darkMatterHaloScale()
     diskDynamicalTime      =darkMatterHaloScale_%dynamicalTimescale(thisNode)
     starFormationTimescale =max(starFormationTimescale,diskStarFormationTimescaleMinimum*diskDynamicalTime)
-
-    ! Get the gas mass.
-    gasMass=thisDiskComponent%massGas()
-
     ! If timescale is finite and gas mass is positive, then compute star formation rate.
     if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0) then
        Node_Component_Disk_Very_Simple_SFR=gasMass/starFormationTimescale
