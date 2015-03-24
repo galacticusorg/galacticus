@@ -26,9 +26,10 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
   implicit none
   class           (massDistributionBetaProfile), intent(  out)           :: self
   double precision                             , intent(in   )           :: beta
-  double precision                             , intent(in   ), optional :: densityNormalization, mass      , &
-       &                                                                    outerRadius         , coreRadius
+  double precision                             , intent(in   ), optional :: densityNormalization       , mass      , &
+       &                                                                    outerRadius                , coreRadius
   logical                                      , intent(in   ), optional :: isDimensionless
+  double precision                             , parameter               :: radiusTiny          =1.0d-6
   double precision                                                       :: r
   character       (len=64                     )                          :: message
 
@@ -70,9 +71,15 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
         r=outerRadius/coreRadius
         if (outerRadius > 0.0d0) then
            if (self%betaIsTwoThirds) then
-              self%densityNormalization=      mass/4.0d0/Pi/coreRadius **3/(r-atan(r))
+              if (r < radiusTiny) then
+                 ! Use a series solution.
+                 self%densityNormalization=      mass/4.0d0/Pi/coreRadius **3*(3.0d0/r**3+9.0d0/5.0d0/r-36.0d0*r/175.0d0)
+              else
+                 ! Use the full solution.
+                 self%densityNormalization=      mass/4.0d0/Pi/coreRadius **3/(r-atan(r))
+              end if
            else
-              self%densityNormalization=3.0d0*mass/4.0d0/Pi/outerRadius**3/Hypergeometric_2F1([1.5d0,1.5d0*beta],[2.5d0],-r**2)
+              self   %densityNormalization=3.0d0*mass/4.0d0/Pi/outerRadius**3/Hypergeometric_2F1([1.5d0,1.5d0*beta],[2.5d0],-r**2)
            end if
         else
            call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','unphysical outer radius')
@@ -159,20 +166,37 @@ double precision function Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere(self
   implicit none
   class           (massDistributionBetaProfile), intent(inout), target :: self
   double precision                             , intent(in   )         :: radius
+  double precision                             , parameter             :: radiusTiny      =1.0d-6
   double precision                                                     :: fractionalRadius
 
   fractionalRadius=radius/self%coreRadius
   if (self%betaIsTwoThirds) then
      ! Solution for special case of beta=2/3.
-     Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere= &
-          & +4.0d0                                      &
-          & *Pi                                         &
-          & *self%densityNormalization                  &
-          & *(                                          &
-          &   +     fractionalRadius                    &
-          &   -atan(fractionalRadius)                   &
-          &  )                                          &
-          & *self%coreRadius**3
+     if (fractionalRadius < radiusTiny) then
+        ! Use a series solution.
+        Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere= &
+             & +4.0d0                                      &
+             & *Pi                                         &
+             & *self%densityNormalization                  &
+             & *self%coreRadius                 **3        &
+             & *                fractionalRadius**3        &
+             & *(  +1.0d0/3.0d0+fractionalRadius**2        &
+             & * ( -1.0d0/5.0d0+fractionalRadius**2        &
+             & *  (+1.0d0/7.0d0                            &
+             &    )                                        &
+             &   )                                         &
+             &  )
+     else
+        Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere= &
+             & +4.0d0                                      &
+             & *Pi                                         &
+             & *self%densityNormalization                  &
+             & *(                                          &
+             &   +     fractionalRadius                    &
+             &   -atan(fractionalRadius)                   &
+             &  )                                          &
+             & *self%coreRadius**3
+     end if
   else
      ! General solution.
      Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere=  &
