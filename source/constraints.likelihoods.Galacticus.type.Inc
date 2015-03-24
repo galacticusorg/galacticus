@@ -19,7 +19,7 @@
 
   type, public, extends(likelihood) :: likelihoodGalacticus
      private
-     type   (varying_string) :: configFileName
+     type   (varying_string) :: configFileName    , timeCommand
      integer                 :: storeCountPrevious
    contains
      procedure :: evaluate        => likelihoodGalacticusEvaluate

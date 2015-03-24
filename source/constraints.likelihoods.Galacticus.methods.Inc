@@ -19,6 +19,8 @@
 
 function likelihoodGalacticusConstructor(configFileName)
   !% Constructor for the \glc\ likelihood class.
+  use File_Utilities
+  use Galacticus_Error
   implicit none
   type(likelihoodGalacticus)                :: likelihoodGalacticusConstructor
   type(varying_string      ), intent(in   ) :: configFileName
@@ -26,6 +28,9 @@ function likelihoodGalacticusConstructor(configFileName)
   ! Store the config file name
   likelihoodGalacticusConstructor%configFileName    =configFileName
   likelihoodGalacticusConstructor%storeCountPrevious=0
+  ! Find the time command.
+  likelihoodGalacticusConstructor%timeCommand       =Executable_Find('time')
+  if (likelihoodGalacticusConstructor%timeCommand == "") call Galacticus_Error_Report('likelihoodGalacticusConstructor','a working GNU time command is required')
   return
 end function likelihoodGalacticusConstructor
 
@@ -62,7 +67,7 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   write (label,'(e12.6)') temperature 
   ! Generate the command to run the Galacticus model.
   wrapperCommand=                                                      &
-       & '/usr/bin/time'                                   //    ' '// &
+       & self%timeCommand                                  //    ' '// &
        & '--format "%S %U"'                                //    ' '// &
        & '--output '//timingFileName                       //    ' '// &
        & './constraints/constrainGalacticus.pl '                    // &
