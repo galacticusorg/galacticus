@@ -693,6 +693,7 @@ contains
     use String_Handling
     use Galacticus_Output_Analyses_Cosmology_Scalings
     use Galacticus_Output_Merger_Tree_Data
+    use Vectors
     implicit none
     type            (mergerTree                    ), intent(in   )                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
@@ -1262,7 +1263,7 @@ contains
                         & +1
                    call Alloc_Array(massFunctions(i)%lensingTransfer                 ,[                                                                                      &
                         &                                                              int(massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount,kind=c_size_t), &
-                        &                                                              int(massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount,kind=c_size_t), &
+                        &                                                              int(massFunctions(i)%massesCount                                     ,kind=c_size_t), &
                         &                                                              Galacticus_Output_Time_Count()                                                        &
                         &                                                             ]                                                                                      &
                         &          )
@@ -1332,26 +1333,27 @@ contains
                       ! matrices for it, so simply skip to the next mass function.
                       if (all(massFunctions(i)%outputWeight(:,jOutput) == 0.0d0)) cycle
                       do j=1,size(massFunctions(i)%massesLogarithmicMaximumBuffered)
-                         do k=1,size(massFunctions(i)%massesLogarithmicMaximumBuffered)
-                            if (j > 1 .and. k > 1) then
+                         do k=massFunctions(i)%massesBufferCount+1,massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount
+                            if (j > 1 .and. k > massFunctions(i)%massesBufferCount+1) then
                                ! Transfer matrix elements are identical along diagonals of the matrix.
-                               massFunctions(i)%lensingTransfer(j,k,jOutput)=massFunctions(i)%lensingTransfer(j-1,k-1,jOutput)
+                               massFunctions       (i)%lensingTransfer(j  ,k-massFunctions(i)%massesBufferCount  ,jOutput)= &
+                                    & massFunctions(i)%lensingTransfer(j-1,k-massFunctions(i)%massesBufferCount-1,jOutput)
                             else
                                integrationReset=.true.                               
-                               massFunctions(i)%lensingTransfer(j,k,jOutput)                           &
-                                    & =Integrate(                                                      &
-                                    &            massFunctions(i)%massesLogarithmicMinimumBuffered(j), &
-                                    &            massFunctions(i)%massesLogarithmicMaximumBuffered(j), &
-                                    &            magnificationCDFIntegrand                           , &
-                                    &            parameterPointer                                    , &
-                                    &            integrandFunction                                   , &
-                                    &            integrationWorkspace                                , &
-                                    &            toleranceRelative=1.0d-3                            , &
-                                    &            reset=integrationReset                                &
-                                    &           )                                                      &
-                                    & /(                                                               &
-                                    &   +massFunctions(i)%massesLogarithmicMaximumBuffered(j)          &
-                                    &   -massFunctions(i)%massesLogarithmicMinimumBuffered(j)          &
+                               massFunctions       (i)%lensingTransfer(j  ,k-massFunctions(i)%massesBufferCount  ,jOutput)  &
+                                    & =Integrate(                                                                           &
+                                    &            massFunctions(i)%massesLogarithmicMinimumBuffered(j)                     , &
+                                    &            massFunctions(i)%massesLogarithmicMaximumBuffered(j)                     , &
+                                    &            magnificationCDFIntegrand                                                , &
+                                    &            parameterPointer                                                         , &
+                                    &            integrandFunction                                                        , &
+                                    &            integrationWorkspace                                                     , &
+                                    &            toleranceRelative=1.0d-3                                                 , &
+                                    &            reset=integrationReset                                                     &
+                                    &           )                                                                           &
+                                    & /(                                                                                    &
+                                    &   +massFunctions(i)%massesLogarithmicMaximumBuffered(j)                               &
+                                    &   -massFunctions(i)%massesLogarithmicMinimumBuffered(j)                               &
                                     &  )
                                call Integrate_Done(integrandFunction,integrationWorkspace)
                            end if
@@ -1414,7 +1416,7 @@ contains
              &                -massFunctions(i)%descriptor%errorModelLogM0 &
              &               )**(j-1)
           end do
-          randomError(1)=max(randomError(1),randomErrorMinimum)
+          randomError      (1)=max(randomError(1),randomErrorMinimum)
           randomErrorWeight(1)=1.0d0
        end if
        thisGalaxy(i)%massFunction=0.0d0
@@ -1427,18 +1429,22 @@ contains
                &   -erf((massFunctions(i)%massesLogarithmicMinimumBuffered-massLogarithmic)/randomError(iError)/sqrt(2.0d0)) &
                &  )
        end do
+       deallocate(randomError      )
+       deallocate(randomErrorWeight)
+       ! Check for empty mass function.
+       if (all(thisGalaxy(i)%massFunction == 0.0d0)) cycle
+       ! Perform cosmology conversion and incompleteness correction.
        thisGalaxy        (i)%massFunction=                                          &
             & +thisGalaxy(i)%massFunction                                           &
             & /2.0d0                                                                &
             & *thisTree%volumeWeight                                                &
             & *massFunctions(i)           %cosmologyConversionMassFunction(iOutput) &
             & *massFunctions(i)%descriptor%incompleteness%completeness    (mass   )
-       deallocate(randomError      )
-       deallocate(randomErrorWeight)
        ! Convolve the galaxy's contribution to the mass function with the gravitational lensing
        ! transfer matrix.
-       if (analysisMassFunctionsApplyGravitationalLensing) &
-            & thisGalaxy(i)%massFunction=matmul(thisGalaxy(i)%massFunction,massFunctions(i)%lensingTransfer(:,:,iOutput))
+       if (analysisMassFunctionsApplyGravitationalLensing)                                                                                     &
+            & thisGalaxy(i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount) &
+            &  =matmul(thisGalaxy(i)%massFunction,massFunctions(i)%lensingTransfer(:,:,iOutput))
        ! Apply output weights.
        thisGalaxy           (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount        ) &
             & =thisGalaxy   (i)%massFunction(massFunctions(i)%massesBufferCount+1:massFunctions(i)%massesBufferCount+massFunctions(i)%massesCount        ) &
