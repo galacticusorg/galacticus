@@ -871,25 +871,25 @@ contains
     use Black_Hole_Fundamentals
     use Numerical_Constants_Astronomical
     use Accretion_Disks
-    use Hot_Halo_Temperature_Profile
+    use Hot_Halo_Temperature_Profiles
     use Black_Hole_Binary_Separations
     implicit none
-    class           (nodeComponentBlackHole), intent(inout)          :: thisBlackHoleComponent
-    double precision                        , intent(  out)          :: accretionRateHotHalo        , accretionRateSpheroid
-    type            (treeNode              )               , pointer :: thisNode
-    class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
-    class           (nodeComponentHotHalo  )               , pointer :: thisHotHaloComponent
-    double precision                        , parameter              :: gasDensityMinimum     =1.0d0                        !    Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
-    double precision                                                 :: accretionRadius             , accretionRateMaximum                                                                                                                   , &
-         &                                                              blackHoleMass               , gasDensity                                                                                                                             , &
-         &                                                              hotHaloTemperature          , hotModeFraction                                                                                                                        , &
-         &                                                              jeansLength                 , position             (                                                                                                               3), &
-         &                                                              radiativeEfficiency         , relativeVelocity                                                                                                                      , &
-         &                                                              coldModeFraction
+    class           (nodeComponentBlackHole        ), intent(inout)          :: thisBlackHoleComponent
+    double precision                                , intent(  out)          :: accretionRateHotHalo        , accretionRateSpheroid
+    type            (treeNode                      )               , pointer :: thisNode
+    class           (nodeComponentSpheroid         )               , pointer :: thisSpheroidComponent
+    class           (nodeComponentHotHalo          )               , pointer :: thisHotHaloComponent
+    class           (hotHaloTemperatureProfileClass)               , pointer :: hotHaloTemperatureProfile_
+    double precision                                , parameter              :: gasDensityMinimum     =1.0d0                        !    Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
+    double precision                                                         :: accretionRadius             , accretionRateMaximum                                                                                                                   , &
+         &                                                                      blackHoleMass               , gasDensity                                                                                                                             , &
+         &                                                                      hotHaloTemperature          , hotModeFraction                                                                                                                        , &
+         &                                                                      jeansLength                 , position             (                                                                                                               3), &
+         &                                                                      radiativeEfficiency         , relativeVelocity                                                                                                                      , &
+         &                                                                      coldModeFraction
 
     ! Get the host node.
     thisNode => thisBlackHoleComponent%host()
-
     ! Get black hole mass.
     blackHoleMass=thisBlackHoleComponent%mass()
     ! Check black hole mass is positive.
@@ -941,8 +941,10 @@ contains
        ! Contribution from hot halo:
        ! Get the hot halo component.
        thisHotHaloComponent => thisNode%hotHalo()
+       ! Get the hot halo temperature profile.
+       hotHaloTemperatureProfile_ => hotHaloTemperatureProfile()
        ! Get halo gas temperature.
-       hotHaloTemperature=Hot_Halo_Temperature(thisNode,radius=0.0d0)
+       hotHaloTemperature=hotHaloTemperatureProfile_%temperature(thisNode,radius=0.0d0)
        ! Get the accretion radius.
        accretionRadius=Bondi_Hoyle_Lyttleton_Accretion_Radius(blackHoleMass,hotHaloTemperature)
        accretionRadius=min(accretionRadius,thisHotHaloComponent%outerRadius())
