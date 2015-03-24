@@ -4299,6 +4299,7 @@ The subroutine should modify the {\normalfont \ttfamily coolingRate} as necessar
 Currently defined cooling rate modifier tasks are:
 \begin{description}
 \item [\hyperlink{cooling.cooling_rate.modifier.cut_off.F90:cooling_rates_modifier_cut_off:cooling_rate_modifier_cut_off}{``cut-off''}] The cooling rate is set to zero in halos with virial velocities below {\normalfont \ttfamily [coolingCutOffVelocity]} at redshifts below/above {\normalfont \ttfamily [coolingCutOffRedshift]} for {\normalfont \ttfamily [coolingCutOffWhen]}$=${\normalfont \ttfamily after/before}. In other halos the cooling rate is not modified.
+\item [\hyperlink{cooling.cooling_rate.modifier.no_cooling_satellites.F90:cooling_rates_modifier_satellite:cooling_rate_modifier_satellite}{``satellite}] The cooling rate is set to zero in satellite halos. In other halos the cooling rate is not modified.
 \end{description}
 
 \subsubsection{Decode Property Identifier Tasks}\label{sec:DecodePropertyIndentifierTask}
