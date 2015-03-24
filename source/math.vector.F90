@@ -21,7 +21,7 @@ module Vectors
   !% Implements calculations of vectors.
   implicit none
   private
-  public :: Vector_Magnitude, Vector_Product, Vector_Outer_Product, Matrix_Copy_Upper_To_Lower_Triangle
+  public :: Vector_Magnitude, Vector_Product, Vector_Outer_Product, Matrix_Copy_Upper_To_Lower_Triangle, Vector_Matrix_Multiply
 
   interface Vector_Outer_Product
      module procedure Vector_Outer_Product_Distinct
@@ -94,5 +94,17 @@ contains
     end do
     return
   end function Matrix_Copy_Upper_To_Lower_Triangle
+
+ function Vector_Matrix_Multiply(vector,matrix)
+    !% Returns the product of a vector with a matrix.
+    implicit none
+    double precision, dimension(:                   ), intent(in   ) :: vector
+    double precision, dimension(:,:                 ), intent(in   ) :: matrix
+    double precision, dimension(  size(matrix,dim=2))                :: Vector_Matrix_Multiply
+
+    ! Call the appropriate BLAS routine.
+    call dgemv("t",size(matrix,dim=1),size(matrix,dim=2),1.0d0,matrix,size(matrix,dim=1),vector,1,0.0d0,Vector_Matrix_Multiply,1)
+    return
+  end function Vector_Matrix_Multiply
 
 end module Vectors
