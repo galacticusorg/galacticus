@@ -523,7 +523,7 @@ with
 \begin{equation}
  \Psi = {M_{\mathrm disk, gas} \over \tau_{\mathrm disk, star~formation}}
 \end{equation}
-with $\tau_{\mathrm disk, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars and $\tau_{\mathrm bar}$ is a bar instability timescale (see \S\ref{sec:DiskStability}). The mass removed from the disk by the bar instability mechanism is added to the active spheroid component.
+with $\tau_{\mathrm disk, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars and $\tau_{\mathrm bar}$ is a bar instability timescale (see \S\ref{sec:DiskStability}). If {\normalfont \ttfamily [diskStarFormationInSatellites]}$=${\normalfont \ttfamily true} then the star formation rate is forced to zero in satellite galaxies. The mass removed from the disk by the bar instability mechanism is added to the active spheroid component.
 Element abundances (including total metals) evolve according to:
 \begin{equation}
   \dot{M}_{Z, {\mathrm disk, gas}} = \dot{M}_{Z {\mathrm cooling}} - \dot{M}_{Z, {\mathrm outflow, disk}} - \dot{M}_{Z, {\mathrm stars, disk}} + \dot{y} - {M_{Z, {\mathrm disk, gas}} \over M_{\mathrm disk, gas}} \dot{M}_{\mathrm ram pressure} - {M_{Z, {\mathrm disk, gas}} \over M_{\mathrm disk, gas} + M_{\mathrm disk, stars}} \dot{M}_{\mathrm tidal},
@@ -617,8 +617,7 @@ with
 \begin{equation}
  \Psi = {M_{\mathrm spheroid, gas} \over \tau_{\mathrm spheroid, star~formation}}
 \end{equation}
-with $\tau_{\mathrm spheroid, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars.
-Element abundances (including total metals) evolve according to:
+with $\tau_{\mathrm spheroid, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars. If {\normalfont \ttfamily [spheroidStarFormationInSatellites]}$=${\normalfont \ttfamily true} then the star formation rate is forced to zero in satellite galaxies. Element abundances (including total metals) evolve according to:
 \begin{eqnarray}
   \dot{M}_{Z, {\mathrm spheroid, gas}} &=& - \dot{M}_{Z, {\mathrm outflow, spheroid}} - \dot{M}_{Z, {\mathrm stars, spheroid}} + \dot{y} - {M_{Z, {\mathrm spheroid, gas}} \over M_{\mathrm spheroid, gas}} \dot{M}_{\mathrm ram pressure} \nonumber \\ 
  & & - {M_{Z, {\mathrm spheroid, gas}} \over M_{\mathrm spheroid, gas} + M_{\mathrm spheroid, stars}} \dot{M}_{\mathrm tidal},

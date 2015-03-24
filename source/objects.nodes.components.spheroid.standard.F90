@@ -161,7 +161,8 @@ module Node_Component_Spheroid_Standard
   ! Parameters controlling the physical implementation.
   double precision                            :: spheroidEnergeticOutflowMassRate            , spheroidOutflowTimescaleMinimum
   double precision                            :: spheroidAngularMomentumAtScaleRadius        , spheroidMassToleranceAbsolute
-
+  logical                                     :: spheroidStarFormationInSatellites
+  
   ! Record of whether this module has been initialized.
   logical                                     :: moduleInitialized                   =.false.
 
@@ -291,6 +292,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidOutflowTimescaleMinimum',spheroidOutflowTimescaleMinimum,defaultValue=1.0d-3)
+       !@ <inputParameter>
+       !@   <name>spheroidStarFormationInSatellites</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether or not star formation occurs in spheroids in satellites.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('spheroidStarFormationInSatellites',spheroidStarFormationInSatellites,defaultValue=.true.)
 
        ! Record that the module is now initialized.
        moduleInitialized=.true.
@@ -1300,7 +1312,7 @@ contains
     gasMass=self%massGas()
 
     ! If timescale is finite and gas mass is positive, then compute star formation rate.
-    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0) then
+    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (spheroidStarFormationInSatellites .or. .not.thisNode%isSatellite())) then
        Node_Component_Spheroid_Standard_Star_Formation_Rate=gasMass/starFormationTimescale
     else
        Node_Component_Spheroid_Standard_Star_Formation_Rate=0.0d0
