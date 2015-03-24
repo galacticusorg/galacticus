@@ -2083,49 +2083,6 @@ Currently defined hot halo ram pressure stripping timescale methods are:
  \item [\hyperlink{hot_halo.ram_pressure_stripping.timescale.ram_pressure_acceleration.F90:hot_halo_ram_pressure_timescales_ram_pressure_accel:hot_halo_ram_pressure_timescale_ram_pressure_accel}{{\normalfont \ttfamily ramPressureAcceleration}}] Computes the timescale from the ram pressure acceleration following \cite{roediger_ram_2007}.
 \end{description}
 
-\subsubsection{Hot Halo Temperature Profile}
-
-Additional methods for the hot halo temperature profile can be added using the {\normalfont \ttfamily hotHaloTemperatureMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily virial} method is described by a directive:
-\begin{verbatim}
- !# <hotHaloTemperatureMethod>
- !#  <unitName>Hot_Halo_Temperature_Virial</unitName>
- !# </hotHaloTemperatureMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Hot\_Halo\_Temperature\_Virial} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(hotHaloTemperatureMethod,Hot_Halo_Temperature_Get,Hot_Halo_Temperature_Logarithmic_Slope_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: hotHaloTemperatureMethod
-    procedure(),          pointer, intent(inout) :: Hot_Halo_Temperature_Get,Hot_Halo_Temperature_Logarithmic_Slope_Get
-    
-    if (hotHaloTemperatureMethod == 'myMethod') then
-       Hot_Halo_Temperature_Get => My_Method_Get
-       Hot_Halo_Temperature_Logarithmic_Slope_Get => My_Method_Logarithmic_Slope_Get
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily hotHaloTemperatureMethod} input parameter. The procedure pointer {\normalfont \ttfamily Hot\_Halo\_Temperature\_Get} must be set to point to a function which returns the hot halo density as described below while {\normalfont \ttfamily Hot\_Halo\_Temperature\_Logarithmic\_Slope\_Get} must point to a function which returns the logarithmic slope of the temperature profile. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The temperature function must have the form:
-\begin{verbatim}
- double precision function Hot_Halo_Temperature_Get(thisNode,radius)
-    implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: radius
-    .
-    .
-    .
-    return
- end function Hot_Halo_Temperature_Get
-\end{verbatim}
-The function must return the temperature (in Kelvin) of the hot halo at the specified radius (given in Mpc) for {\normalfont \ttfamily thisNode}. The logarithmic slope function should have the same template, but return $\d\ln T / \d \ln r$.
-
-Currently defined hot halo density profile methods are:
-\begin{description}
- \item [\hyperlink{hot_halo.temperature_profile.virial.F90:hot_halo_temperature_profile_virial:hot_halo_temperature_virial_get}{{\normalfont \ttfamily virial}}] Implements an isothermal profile with temperature equal to the virial temperature.
-\end{description}
-
 \subsubsection{Halo Bias}
 
 Additional methods for the halo bias (i.e. the linear theory bias) can be added using the {\normalfont \ttfamily darkMatterHaloBiasMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Press-Schechter} method is described by a directive:
