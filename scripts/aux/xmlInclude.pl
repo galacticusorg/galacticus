@@ -11,9 +11,7 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
 }
 unshift(@INC,$galacticusPath."perl"); 
 use XML::Simple;
-use XML::SAX;
-use XML::SAX::Writer;
-use XML::Filter::XInclude;
+use XML::LibXML;
 use XML::Twig;
 
 # Parse an XML file, include any files via XInclude elements, and write out the results.
@@ -24,19 +22,13 @@ die("Usage: xmlInclude.pl <inFile> <outFile>")
 my $inFile  = $ARGV[0];
 my $outFile = $ARGV[1];
 
-# Define output buffer.
-my $content;
-# Construct an XML writer.
-my $writer = XML::SAX::Writer->new(Output => \$content);
-# Construct an XInclude filter.
-my $filter = XML::Filter::XInclude->new(Handler => $writer);
-# Construct an XML parser.
-my $parser = XML::SAX::ParserFactory->parser(Handler => $filter);
-# Parse the file.
-$parser->parse_uri($inFile);
-# Strip comments.
+# Parse the content.
+my $parser = XML::LibXML->new();
+my $dom    = $parser->load_xml(location => $inFile);
+$parser->process_xincludes($dom);
 my $twig = XML::Twig->new (comments => 'drop', pretty_print => 'indented');
-$twig->parse($content);
+$twig->parse($dom->serialize());
+
 # Dump the output to file.
 open(my $outHndl,">".$outFile);
 print $outHndl $twig->sprint();
