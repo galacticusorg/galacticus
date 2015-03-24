@@ -619,7 +619,7 @@ contains
           radiusLogarithmic=radiusLogarithmic+sizeFunctions(i)%radiusSystematicCoefficients(j)*(log10(radius)-sizeFunctions(i)%descriptor%radiusSystematicLogR0)**(j-1)
        end do
         ! Compute contributions to each bin.
-       massRandomError=sizeFunctions(i)%descriptor%massRandomError
+       massRandomError=sizeFunctions(i)%descriptor%  massRandomError
        sizeRandomError=sizeFunctions(i)%descriptor%radiusRandomError
        if (associated(sizeFunctions(i)%descriptor%  massRandomErrorFunction)) massRandomError=sizeFunctions(i)%descriptor%massRandomErrorFunction  (mass  ,thisNode)
        if (associated(sizeFunctions(i)%descriptor%radiusRandomErrorFunction)) sizeRandomError=sizeFunctions(i)%descriptor%radiusRandomErrorFunction(radius,thisNode)
@@ -635,7 +635,7 @@ contains
             &                            /2.0d0                                                                                          &
             &                            *thisTree%volumeWeight                                                                          &
             &                            *sizeFunctions(i)%cosmologyConversionSizeFunction(iOutput)
-      do j=1,sizeFunctions(i)%massesCount
+       do j=1,sizeFunctions(i)%massesCount
           thisGalaxy(i)%sizeFunction(:,j)=thisGalaxy(i)%sizeFunction(:,j)*thisGalaxy(i)%sizeFunctionWeights(j)
        end do       
        ! Apply output weights.
@@ -646,33 +646,35 @@ contains
        end do
        thisGalaxy(i)%sizeFunctionWeights=thisGalaxy(i)%sizeFunctionWeights*sizeFunctions(i)%outputWeight(:,iOutput)
        ! Accumulate size function.
-       !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
-       sizeFunctions(i)%sizeFunction       =sizeFunctions(i)%sizeFunction       +thisGalaxy(i)%sizeFunction
-       sizeFunctions(i)%sizeFunctionWeights=sizeFunctions(i)%sizeFunctionWeights+thisGalaxy(i)%sizeFunctionWeights
-       !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
-       ! Treat main branch and other galaxies differently.
-       if (thisNode%isOnMainBranch().and.analysisSizeFunctionCovarianceModel == analysisSizeFunctionCovarianceModelBinomial) then
-          ! Find the bin to which this halo mass belongs.
-          thisBasic => thisNode%basic()
-          haloMassBin=floor((log10(thisBasic%mass())-analysisSizeFunctionsHaloMassMinimumLogarithmic)*analysisSizeFunctionsHaloMassIntervalLogarithmicInverse)+1
-          ! Accumulate weights to halo mass arrays.
-          if (haloMassBin >= 1 .and. haloMassBin <= analysisSizeFunctionsHaloMassBinsCount) then
-            !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
-             sizeFunctions        (i)%mainBranchGalaxyWeights       (:,:,haloMassBin)= &
-                  &  sizeFunctions(i)%mainBranchGalaxyWeights       (:,:,haloMassBin)  &
-                  &  +thisGalaxy  (i)%sizeFunction
-             sizeFunctions        (i)%mainBranchGalaxyWeightsSquared(:,:,haloMassBin)= &
-                  &  sizeFunctions(i)%mainBranchGalaxyWeightsSquared(:,:,haloMassBin)  &
-                  &  +thisGalaxy  (i)%sizeFunction**2
+       if (any(thisGalaxy(i)%sizeFunction /= 0.0d0)) then
+          !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
+          sizeFunctions(i)%sizeFunction       =sizeFunctions(i)%sizeFunction       +thisGalaxy(i)%sizeFunction
+          sizeFunctions(i)%sizeFunctionWeights=sizeFunctions(i)%sizeFunctionWeights+thisGalaxy(i)%sizeFunctionWeights
+          !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
+          ! Treat main branch and other galaxies differently.
+          if (thisNode%isOnMainBranch().and.analysisSizeFunctionCovarianceModel == analysisSizeFunctionCovarianceModelBinomial) then
+             ! Find the bin to which this halo mass belongs.
+             thisBasic => thisNode%basic()
+             haloMassBin=floor((log10(thisBasic%mass())-analysisSizeFunctionsHaloMassMinimumLogarithmic)*analysisSizeFunctionsHaloMassIntervalLogarithmicInverse)+1
+             ! Accumulate weights to halo mass arrays.
+             if (haloMassBin >= 1 .and. haloMassBin <= analysisSizeFunctionsHaloMassBinsCount) then
+                !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
+                sizeFunctions        (i)%mainBranchGalaxyWeights       (:,:,haloMassBin)= &
+                     &  sizeFunctions(i)%mainBranchGalaxyWeights       (:,:,haloMassBin)  &
+                     &  +thisGalaxy  (i)%sizeFunction
+                sizeFunctions        (i)%mainBranchGalaxyWeightsSquared(:,:,haloMassBin)= &
+                     &  sizeFunctions(i)%mainBranchGalaxyWeightsSquared(:,:,haloMassBin)  &
+                     &  +thisGalaxy  (i)%sizeFunction**2
+                !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
+             end if
+          else
+             thisGalaxy(i)%covariance=                                                                                                   &
+                  & Vector_Outer_Product(reshape(thisGalaxy(i)%sizeFunction,[sizeFunctions(i)%massesCount*sizeFunctions(i)%radiiCount]))
+             ! Accumulate covariance.
+             !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
+             sizeFunctions(i)%sizeFunctionCovariance=sizeFunctions(i)%sizeFunctionCovariance+thisGalaxy(i)%covariance
              !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
           end if
-       else
-          thisGalaxy(i)%covariance=                                                                                                   &
-               & Vector_Outer_Product(reshape(thisGalaxy(i)%sizeFunction,[sizeFunctions(i)%massesCount*sizeFunctions(i)%radiiCount]))
-          ! Accumulate covariance.
-          !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
-          sizeFunctions(i)%sizeFunctionCovariance=sizeFunctions(i)%sizeFunctionCovariance+thisGalaxy(i)%covariance
-          !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
        end if
     end do
     return
