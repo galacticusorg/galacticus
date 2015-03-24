@@ -193,6 +193,7 @@ contains
           likelihoodLogLikelihoodErrorToleranceDefinition => XML_Get_First_Element_By_Tag_Name(definition,"logLikelihoodErrorTolerance")
           likelihoodReportCountDefinition                 => XML_Get_First_Element_By_Tag_Name(definition,"reportCount"                )
           likelihoodEmulateOutliersDefinition             => XML_Get_First_Element_By_Tag_Name(definition,"emulateOutliers"            )
+          likelihoodDumpEmulatorDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"dumpEmulator"               )
           call extractDataContent(likelihoodEmulatorRebuildCountDefinition       ,likelihoodEmulatorRebuildCount       )
           call extractDataContent(likelihoodPolynomialOrderDefinition            ,likelihoodPolynomialOrder            )
           call extractDataContent(likelihoodSigmaBufferDefinition                ,likelihoodSigmaBuffer                )
