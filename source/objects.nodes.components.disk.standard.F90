@@ -143,7 +143,8 @@ module Node_Component_Disk_Standard
   ! Parameters controlling the physical implementation.
   double precision                            :: diskMassToleranceAbsolute                   , diskOutflowTimescaleMinimum          , &
        &                                         diskStructureSolverRadius
-  logical                                     :: diskNegativeAngularMomentumAllowed          , diskRadiusSolverCole2000Method
+  logical                                     :: diskNegativeAngularMomentumAllowed          , diskRadiusSolverCole2000Method       , &
+       &                                         diskStarFormationInSatellites
 
   ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
   integer                                     :: radiusSolverIteration
@@ -260,6 +261,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskNegativeAngularMomentumAllowed',diskNegativeAngularMomentumAllowed,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>diskStarFormationInSatellites</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether or not star formation occurs in disks in satellites.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskStarFormationInSatellites',diskStarFormationInSatellites,defaultValue=.true.)
        ! Create the disk mass distribution.
        !@ <inputParameter>
        !@   <name>diskMassDistribution</name>
@@ -572,7 +584,7 @@ contains
     type            (history                      )                         :: historyTransferRate         , stellarHistoryRate
     type            (stellarLuminosities          ), save                   :: luminositiesStellarRates    , luminositiesTransferRate
     !$omp threadprivate(luminositiesStellarRates,luminositiesTransferRate)
-
+    
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
 
@@ -1184,8 +1196,8 @@ contains
     use Star_Formation_Timescales_Disks
     implicit none
     class           (nodeComponentDiskStandard), intent(inout) :: self
-    type            (treeNode                    ), pointer       :: thisNode
-    double precision                                              :: gasMass , starFormationTimescale
+    type            (treeNode                 ), pointer       :: thisNode
+    double precision                                           :: gasMass , starFormationTimescale
 
     ! Get the associated node.
     thisNode => self%host()
@@ -1197,7 +1209,7 @@ contains
     gasMass=self%massGas()
 
     ! If timescale is finite and gas mass is positive, then compute star formation rate.
-    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0) then
+    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (diskStarFormationInSatellites .or. .not.thisNode%isSatellite())) then
        Node_Component_Disk_Standard_Star_Formation_Rate=gasMass/starFormationTimescale
     else
        Node_Component_Disk_Standard_Star_Formation_Rate=0.0d0
