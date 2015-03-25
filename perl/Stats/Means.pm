@@ -57,6 +57,18 @@ sub BinnedMean {
     my $yValues     = shift;
     my $weights     = shift;
 
+    # Validate input.
+    die("Stats::Means::BinnedMean: xValues must be a 1D array")
+	unless ( $xValues->ndims() == 1 );
+    die("Stats::Means::BinnedMean: yValues must be a 1D array")
+	unless ( $yValues->ndims() == 1 );
+    die("Stats::Means::BinnedMean: weights must be a 1D array")
+	unless ( $weights->ndims() == 1 );
+    die("Stats::Means::BinnedMean: yValues must have same number of elements as xValues")
+	unless ( $yValues->dim(0) == $xValues->dim(0) );
+    die("Stats::Means::BinnedMean: weights must have same number of elements as xValues")
+	unless ( $weights->dim(0) == $xValues->dim(0) );
+    
     # Compute bin size.
     my $binWidth = ($binCenters->index(nelem($binCenters)-1)-$binCenters->index(0))/(nelem($binCenters)-1);
 
