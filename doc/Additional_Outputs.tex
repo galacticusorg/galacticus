@@ -215,6 +215,21 @@ The structure of each merger tree can optionally be dumped to a file suitable fo
 
 Setting {\normalfont \ttfamily [outputMostMassiveProgenitor]}$=${\normalfont \ttfamily true} causes the property {\normalfont \ttfamily isMostMassiveProgenitor} to be output. This property will be $1$ for the most massive progenitor node in a tree at each output time and $0$ for all other nodes.
 
+\section{Projected Density}\index{projected density!outputting}\index{outputs!projected density}
+
+Setting {\normalfont \ttfamily [outputProjectedDensityData]}$=${\normalfont \ttfamily true} causes the projected density of the node to be output at specified radii. The radii and types of projected density to output is specified by the {\normalfont \ttfamily outputProjectedDensityRadii} parameter. This parameter's value can contain multiple entries. Each entry is of the form:
+\begin{verbatim}
+  radiusType:componentType:massType:loading?:radius
+\end{verbatim}
+The elements of this colon-separated specifier determine the radius at which the projected density is computed, which components/mass types should be counted, and whether baryonic loading of the halo should be accounted for. The elements have the following meaning:
+\begin{description}
+ \item [{\normalfont \ttfamily radius}] the numerical value of the radius at which to compute the projected density (with units specified by the {\normalfont \ttfamily radiusType} element);
+ \item [{\normalfont \ttfamily radiusType}] specifies the units of the {\normalfont \ttfamily radius} element---valid options are {\normalfont \ttfamily diskRadius}, {\normalfont \ttfamily diskHalfMassRadius}, {\normalfont \ttfamily spheroidRadius}, {\normalfont \ttfamily spheroidHalfMassRadius}, {\normalfont \ttfamily darkMatterScaleRadius}, {\normalfont \ttfamily virialRadius}, just {\normalfont \ttfamily radius} (which implies radii are given in units of Mpc), {\normalfont \ttfamily galacticMassFraction\{\textless fraction\textgreater\}}, or \newline {\normalfont \ttfamily galacticLightFraction\{\textless fraction\textgreater\}\{\textless luminosity\textgreater\}}, where the final two form specify a radius containing a fixed {\normalfont \ttfamily \textless fraction\textgreater} of the galactic mass or light respectively (for the case of galactic light, {\normalfont \ttfamily \textless luminosity\textgreater} specifies the band, e.g. {\normalfont \ttfamily SDSS\_r:rest:z0.0000});
+ \item [{\normalfont \ttfamily componentType}] specifies which components of the node should be counted---allowed values are {\normalfont \ttfamily all}, {\normalfont \ttfamily disk}, {\normalfont \ttfamily spheroid}, {\normalfont \ttfamily hotHalo}, {\normalfont \ttfamily darkHalo}, and {\normalfont \ttfamily blackHole};
+ \item [{\normalfont \ttfamily massType}] specifies which types of mass should be counted---allowed values are {\normalfont \ttfamily all}, {\normalfont \ttfamily dark}, {\normalfont \ttfamily baryonic}, {\normalfont \ttfamily galactic}, {\normalfont \ttfamily gaseous}, {\normalfont \ttfamily stellar}, and {\normalfont \ttfamily blackHole};
+ \item [{\normalfont \ttfamily loading?}] option should be either {\normalfont \ttfamily loaded} or {\normalfont \ttfamily unloaded}, and specifies whether the effect of baryonic loading (i.e. adiabatic contraction) should be included in the calculation of the projected density.
+\end{description}
+
 \section{Rotation Curve}\index{rotation curve!outputting}\index{outputs!rotation curve}
 
 Setting {\normalfont \ttfamily [outputRotationCurveData]}$=${\normalfont \ttfamily true} causes the rotation curve of the node to be output at specified radii. The radii and types of rotation curve to output is specified by the {\normalfont \ttfamily outputRotationCurveRadii} parameter. This parameter's value can contain multiple entries. Each entry is of the form:
