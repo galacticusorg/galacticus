@@ -182,6 +182,25 @@ module Galacticus_Nodes
     return
   end subroutine Tree_Node_Unique_ID_Set
 
+  double precision function Tree_Node_Time_Step(self)
+    !% Returns the time-step last used by a {\normalfont \ttfamily treeNode}.
+    implicit none
+    class(treeNode), intent(in   ) :: self
+
+    Tree_Node_Time_Step=self%timeStepValue
+    return
+  end function Tree_Node_Time_Step
+
+  subroutine Tree_Node_Time_Step_Set(self,timeStep)
+    !% Sets the time-step used by a {\normalfont \ttfamily treeNode}.
+    implicit none
+    class           (treeNode      ), intent(inout) :: self
+    double precision                , intent(in   ) :: timeStep
+
+    self%timeStepValue=timeStep
+    return
+  end subroutine Tree_Node_Time_Step_Set
+  
   function Tree_Node_Create_Event(self) result (newEvent)
     !% Create a new event in a tree node.
     implicit none
