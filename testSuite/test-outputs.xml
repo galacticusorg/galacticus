@@ -314,6 +314,21 @@
     </parameter>
   </parameters>
 
+  <!-- Projected densities -->
+  <parameters>
+    <parameter>
+      <name>outputProjectedDensityData</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>outputProjectedDensityRadii</name>
+      <value>
+	virialRadius:all:dark:loaded:1.0
+	darkMatterScaleRadius:all:dark:loaded:1.0
+      </value>
+    </parameter>
+  </parameters>
+
   <!-- Satellite orbits -->
   <parameters>
     <parameter>
