@@ -73,6 +73,13 @@ const gsl_odeiv2_step_type *gsl_odeiv2_aux_odeiv_step_alloc(int i) {
     return res;
 }
 
+double gsl_odeiv2_driver_h (gsl_odeiv2_driver * d)
+{
+  /* Return the current step size */
+
+  return d->h;
+}
+
 void gsl_odeiv2_driver_errors (gsl_odeiv2_driver * d, double yerr[])
 {
   /* Return an array of the current errors in the ODE variables */

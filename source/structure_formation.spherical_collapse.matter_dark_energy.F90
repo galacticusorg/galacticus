@@ -370,13 +370,13 @@ contains
     implicit none
     integer         (kind=c_int   )                       :: perturbationODEs
     real            (kind=c_double)               , value :: time
-    real            (kind=c_double), intent(in   )        :: y               (2)
-    real            (kind=c_double), intent(  out)        :: dydt            (2)
+    real            (kind=c_double), intent(in   )        :: y               (*)
+    real            (kind=c_double)                       :: dydt            (*)
     type            (c_ptr        )               , value :: parameterPointer
     double precision                                      :: expansionFactor
 
     if (y(1) <= 0.0d0) then
-       dydt=0.0d0
+       dydt(1:2)=0.0d0
     else
        expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)/cosmologyFunctionsDefault%expansionFactor(tNow)
        dydt(1)=y(2)

@@ -30,12 +30,12 @@ module fodeiv2
        fodeiv2_control_free, fodeiv2_control_hadjust, &
        fodeiv2_control_name, fodeiv2_evolve_alloc, fodeiv2_evolve_apply, &
        fodeiv2_evolve_reset, fodeiv2_evolve_free, &
-       fodeiv2_driver_apply, fodeiv2_driver_reset, &
+       fodeiv2_driver_apply, fodeiv2_driver_apply_fixed_step, fodeiv2_driver_reset, &
        fodeiv2_driver_free, fodeiv2_driver_alloc_standard_new, &
        fodeiv2_driver_alloc_y_new, fodeiv2_driver_alloc_yp_new, &
        fodeiv2_driver_alloc_scaled_new, fodeiv2_driver_set_hmin, &
        fodeiv2_driver_set_hmax, fodeiv2_driver_set_nmax, fodeiv2_driver_status, &
-       fodeiv2_driver_errors
+       fodeiv2_driver_errors, fodeiv2_driver_h
 
   ! Specify an explicit dependence on the bivar.o object file.
   !: $(BUILDPATH)/numerical.ODE_solver.ODEIV2.utils.o
@@ -82,6 +82,10 @@ module fodeiv2
 !
 !  Interfaces: Ordinary differential equations
 !
+     real(kind=c_double) function gsl_odeiv2_driver_h(d) bind(c)
+       import
+       type   (c_ptr        ), value                       :: d
+     end function gsl_odeiv2_driver_h
      subroutine gsl_odeiv2_driver_errors(d,yerr) bind(c)
        import
        type   (c_ptr        ), value                       :: d
@@ -230,6 +234,15 @@ module fodeiv2
 #endif
        integer(kind=c_int) :: gsl_odeiv2_driver_apply
      end function gsl_odeiv2_driver_apply
+     function gsl_odeiv2_driver_apply_fixed_step(d, t, h, n, y) bind(c)
+       import
+       type   (c_ptr        ), value                       :: d
+       real   (kind=c_double)                              :: t
+       real   (kind=c_double), value                       :: h
+       integer(kind=c_long  ), value                       :: n
+       real   (kind=c_double), dimension(*), intent(inout) :: y
+       integer(kind=c_int   )                              :: gsl_odeiv2_driver_apply_fixed_step
+     end function gsl_odeiv2_driver_apply_fixed_step
      function gsl_odeiv2_driver_reset(d) bind(c)
        import
        type   (c_ptr     ), value :: d
@@ -310,11 +323,12 @@ contains
          use, intrinsic :: iso_c_binding
          real   (kind=c_double)              , value         :: t
          real   (kind=c_double), dimension(*), intent(in   ) :: y
-         real   (kind=c_double), dimension(*)                :: dfdy
+         real   (kind=c_double), dimension(*)                :: dfdy        
          real   (kind=c_double), dimension(*)                :: dfdt
          type   (c_ptr        )              , value         :: params
          integer(kind=c_int   )                              :: jacobian
        end function jacobian
+      
     end interface
     integer(kind=fgsl_size_t)                          :: dimension
     type   (c_ptr           ), intent(in   ), optional :: params
@@ -335,6 +349,11 @@ contains
     type(fodeiv2_system), intent(inout) :: system
     call fodeiv2_system_cfree(system%odeiv2_system)
   end subroutine fodeiv2_system_free
+  function fodeiv2_driver_h(d)
+    type   (fodeiv2_driver), intent(in   ) :: d
+    real(kind=c_double) :: fodeiv2_driver_h
+    fodeiv2_driver_h=gsl_odeiv2_driver_h(d%odeiv2_driver)
+  end function fodeiv2_driver_h
   subroutine fodeiv2_driver_errors(d,yerr)
     type   (fodeiv2_driver), intent(inout) :: d
     real(kind=c_double), intent(inout) :: yerr(:)
@@ -520,6 +539,16 @@ contains
 #endif
          & )
   end function fodeiv2_driver_apply
+  function fodeiv2_driver_apply_fixed_step(d, t, h, n, y)
+    type   (fodeiv2_driver  ), intent(in   ) :: d
+    real   (kind=fgsl_double), intent(inout) :: t
+    real   (kind=fgsl_double), intent(in   ) :: h
+    integer(kind=fgsl_long  ), intent(in   ) :: n
+    real   (kind=fgsl_double), intent(inout) :: y (:)
+    integer(kind=fgsl_int   )                :: fodeiv2_driver_apply_fixed_step
+
+    fodeiv2_driver_apply_fixed_step=gsl_odeiv2_driver_apply_fixed_step(d%odeiv2_driver, t, h, n, y)
+  end function fodeiv2_driver_apply_fixed_step
   function fodeiv2_driver_reset(d)
     type   (fodeiv2_driver), intent(inout) :: d
     integer(kind=fgsl_int )                :: fodeiv2_driver_reset

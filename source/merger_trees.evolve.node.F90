@@ -76,6 +76,12 @@ module Merger_Trees_Evolve_Node
   ! Pointer to an error handler for failures in the ODE solver.
   procedure(), pointer :: Galacticus_ODE_Error_Handler=>Tree_Node_ODEs_Error_Handler
 
+  ! Previous state of ODE system - used to restore this state if the ODE evaluation
+  ! functions are called in succession without change.
+  double precision                            :: timePrevious          =-1.0d0
+  double precision, allocatable, dimension(:) :: propertyValuesPrevious       , propertyRatesPrevious
+  !$omp threadprivate(timePrevious,propertyValuesPrevious,propertyRatesPrevious)
+  
 contains
 
   subroutine Tree_Node_Evolve_Initialize
@@ -228,15 +234,23 @@ contains
        ! Allocate pointer arrays if necessary.
        if (nProperties > nPropertiesMax) then
           if (allocated(propertyValues)) then
-             call Memory_Usage_Record(sizeof(propertyValues),addRemove=-1)
-             deallocate(propertyValues)
-             call Memory_Usage_Record(sizeof(propertyScales),addRemove=-1)
-             deallocate(propertyScales)
+             call Memory_Usage_Record(sizeof(propertyValues        ),addRemove=-1)
+             deallocate(propertyValues        )
+             call Memory_Usage_Record(sizeof(propertyScales        ),addRemove=-1)
+             deallocate(propertyScales        )
+             call Memory_Usage_Record(sizeof(propertyValuesPrevious),addRemove=-1)
+             deallocate(propertyValuesPrevious)
+             call Memory_Usage_Record(sizeof(propertyRatesPrevious ),addRemove=-1)
+             deallocate(propertyRatesPrevious )
           end if
-          allocate(propertyValues(nProperties))
-          call Memory_Usage_Record(sizeof(propertyValues))
-          allocate(propertyScales(nProperties))
-          call Memory_Usage_Record(sizeof(propertyScales))
+          allocate(propertyValues        (nProperties))
+          call Memory_Usage_Record(sizeof(propertyValues        ))
+          allocate(propertyScales        (nProperties))
+          call Memory_Usage_Record(sizeof(propertyScales        ))
+          allocate(propertyValuesPrevious(nProperties))
+          call Memory_Usage_Record(sizeof(propertyValuesPrevious))
+          allocate(propertyRatesPrevious (nProperties))
+          call Memory_Usage_Record(sizeof(propertyRatesPrevious ))
           nPropertiesMax=nProperties
        end if
        ! Serialize property values to array.
@@ -267,8 +281,9 @@ contains
        end if
 #endif
        if (nPropertiesPrevious > 0 .and. .not.odeReset) call ODEIV2_Solver_Free(ode2Driver,ode2System)
-       odeReset=.true.
+       odeReset           =.true.
        nPropertiesPrevious=nProperties
+       timePrevious       =-1.0d0
        if (startTimeThisNode /= endTime)                                   &
             & call ODEIV2_Solve(                                           &
             &                   ode2Driver,ode2System                    , &
@@ -288,7 +303,6 @@ contains
             &                  )       
        ! Extract values.
        call thisNode%deserializeValues(propertyValues)
-
        ! Ensure that the maximum time has not been exceed (can happen due to rounding errors).
        if (basicComponent%time() > endTime) call basicComponent%timeSet(endTime)
        ! Flag interruption if one occurred.
@@ -332,21 +346,37 @@ contains
     implicit none
     integer  (kind=c_int                  )                       :: Tree_Node_ODEs
     real     (kind=c_double               )               , value :: time
-    real     (kind=c_double               ), intent(in   )        :: y                 (nProperties)
-    real     (kind=c_double               ), intent(  out)        :: dydt              (nProperties)
+    real     (kind=c_double               ), intent(in   )        :: y                 (*)
+    real     (kind=c_double               )                       :: dydt              (*)
     type     (c_ptr                       )               , value :: parameterPointer
     logical                                                       :: interrupt
     procedure(Interrupt_Procedure_Template), pointer              :: interruptProcedure
-    
+
+    ! Return success by default.
+    Tree_Node_ODEs=FGSL_Success
+    ! Check if we can reuse the previous derivatives.
+    if   (                                                                 &
+       &   time                  == timePrevious                           &
+       &  .and.                                                            &
+       &   all(y(1:nProperties)  == propertyValuesPrevious(1:nProperties)) &
+       & ) then
+       dydt                  (1:nProperties)=propertyRatesPrevious(1:nProperties)
+       return
+    else
+       timePrevious                         =time
+       propertyValuesPrevious(1:nProperties)=y                    (1:nProperties)
+    end if
+
     ! Extract values.
-    call activeNode%deserializeValues(y)
+    call activeNode%deserializeValues(y(1:nProperties))
 
     ! Set derivatives to zero initially.
     call activeNode%odeStepRatesInitialize()
 
     if (firstInterruptFound .and. time >= firstInterruptTime) then
        ! Already beyond the location of the first interrupt, simply return zero derivatives.
-       dydt=0.0d0
+       dydt                 (1:nProperties)=0.0d0
+       propertyRatesPrevious(1:nProperties)=0.0d0
     else
        ! Compute derivatives.
        call Tree_Node_Compute_Derivatives(activeNode,interrupt,interruptProcedure)
@@ -354,10 +384,12 @@ contains
        select case (interrupt)
        case (.false.)
           ! No interrupt - place derivatives into ODE arrays.
-          call activeNode%serializeRates(dydt)
+          call activeNode%serializeRates(dydt(1:nProperties))
+          propertyRatesPrevious(1:nProperties)=dydt(1:nProperties)
        case (.true.)
           ! Interrupt requested - freeze evolution and store the interrupt if it is the earliest one to occur.
-          dydt=0.0d0
+          dydt                 (1:nProperties)=0.0d0
+          propertyRatesPrevious(1:nProperties)=0.0d0
           if (time < firstInterruptTime .or. .not.firstInterruptFound) then
              firstInterruptFound     =  .true.
              firstInterruptTime      =  time
@@ -369,9 +401,6 @@ contains
           end if
        end select
     end if
-
-    ! Return success.
-    Tree_Node_ODEs=FGSL_Success
     return
   end function Tree_Node_ODEs
 
@@ -430,7 +459,7 @@ contains
     integer                                                           :: i               , lengthMaximum
     character(len =12           )                                     :: label
     integer  (kind=c_int        )                                     :: odeStatus
-
+ 
     message="ODE solver failed in tree #"
     message=message//activeTreeIndex
     call Galacticus_Display_Message(message)
@@ -454,7 +483,6 @@ contains
        message=message//" : "//label
        call Galacticus_Display_Message(message)
     end do
-    call Galacticus_Display_Unindent('done')
     call Galacticus_Display_Unindent('done')
     return
   end subroutine Tree_Node_ODEs_Error_Handler
