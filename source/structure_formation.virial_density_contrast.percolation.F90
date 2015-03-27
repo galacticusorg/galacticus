@@ -175,7 +175,7 @@ contains
        if (makeTable) then
           ! Check if we can use the global tabulation.
           !$omp critical(virialDensityContrastPercolationGlobal)
-          globalIsSufficient=percolation_%densityContrastTable%isInitialized()
+          globalIsSufficient=self%isDefault().and.percolation_%densityContrastTable%isInitialized()
           if (globalIsSufficient)                                                                       &
                & globalIsSufficient=                                                                    &
                &   self%densityContrastTableTimeMinimum >= percolation_%densityContrastTableTimeMinimum &
@@ -199,7 +199,7 @@ contains
              self%densityContrastTableInitialized=.true.             
           else
              ! Ensure we span at least the range of the global table.
-             if (percolation_%densityContrastTable%isInitialized()) then
+             if (self%isDefault().and.percolation_%densityContrastTable%isInitialized()) then
                 self%densityContrastTableMassMinimum=min(self%densityContrastTableMassMinimum,percolation_%densityContrastTableMassMinimum)
                 self%densityContrastTableMassMaximum=max(self%densityContrastTableMassMaximum,percolation_%densityContrastTableMassMaximum)
                 self%densityContrastTableTimeMinimum=min(self%densityContrastTableTimeMinimum,percolation_%densityContrastTableTimeMinimum)
@@ -245,6 +245,8 @@ contains
           ! Check if we should copy our table to the global table.
           !$omp critical(virialDensityContrastPercolationGlobal)
           globalIsSufficient=                                                                                 &
+               &  self                             %isDefault    ()                                           &
+               & .and.                                                                                        &
                &  percolation_%densityContrastTable%isInitialized()                                           &
                & .and.                                                                                        &
                &  .not.(                                                                                      &
