@@ -24,9 +24,11 @@ program Test_Tables
   use Memory_Management
   use Array_Utilities
   implicit none
-  class(table  ), allocatable :: myTable
-  class(table1D), allocatable :: myReversedTable
-
+  class  (table           ), allocatable :: myTable
+  class  (table1D         ), allocatable :: myReversedTable
+  type   (table2DLogLogLin)              :: myTable2D
+  integer                                :: i              , j
+  
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.tables.size')
 
@@ -299,6 +301,50 @@ program Test_Tables
   end select
   deallocate(myTable)
 
+  ! Create a 2D log-log-linear table.
+  call myTable2D%create  (1.0d0,1.0d5,11,1.0d0,1.0d5,11,1)
+  do i=1,11
+     do j=1,11
+        call myTable2D%populate(dble(i+j),i,j)
+     end do
+  end do
+  ! Test interpolation in 2D table.
+  call Assert(                                                     &
+       &      'linear interpolation in 2D log-log table'         , &
+       &      [                                                    &
+       &       myTable2D%interpolate(10.0d0**1.5d0,10.0d0**2.4d0), &
+       &       myTable2D%interpolate(10.0d0**2.4d0,10.0d0**3.1d0), &
+       &       myTable2D%interpolate(10.0d0**3.1d0,10.0d0**4.7d0), &
+       &       myTable2D%interpolate(10.0d0**4.7d0,10.0d0**4.9d0)  &
+       &      ]                                                  , &
+       &      [                                                    &
+       &        9.8d0                                            , &
+       &       13.0d0                                            , &
+       &       17.6d0                                            , &
+       &       21.2d0                                              &
+       &      ]                                                  , &
+       &      absTol=1.0d-6                                        &
+       &     )
+  ! Test gradient interpolation in 2D table.
+  call Assert(                                                               &
+       &      'linear gradient interpolation in 2D log-log table'          , &
+       &      [                                                              &
+       &       myTable2D%interpolateGradient(10.0d0**1.5d0,10.0d0**2.4d0,1), &
+       &       myTable2D%interpolateGradient(10.0d0**2.4d0,10.0d0**3.1d0,1), &
+       &       myTable2D%interpolateGradient(10.0d0**3.1d0,10.0d0**4.7d0,2), &
+       &       myTable2D%interpolateGradient(10.0d0**4.7d0,10.0d0**4.9d0,2)  &
+       &      ]                                                            , &
+       &      [                                                              &
+       &       2.0d0*0.1d0**1.5d0/log(10.0d0)                              , &
+       &       2.0d0*0.1d0**2.4d0/log(10.0d0)                              , &
+       &       2.0d0*0.1d0**4.7d0/log(10.0d0)                              , &
+       &       2.0d0*0.1d0**4.9d0/log(10.0d0)                                &
+       &      ]                                                            , &
+       &      absTol=1.0d-6                                                  &
+       &     )
+  ! Destroy the table.
+  call myTable2D%destroy()
+  
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

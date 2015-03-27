@@ -21,7 +21,9 @@ module Tables
   !% Defines a {\normalfont \ttfamily table} class with optimized interpolation operators.
   use FGSL
   private
-  public :: table,table1D,table1DGeneric,table1DLinearLinear,table1DLogarithmicLinear,table1DNonUniformLinearLogarithmic,table1DLinearCSpline,table1DLogarithmicCSpline
+  public :: table               , table1D                  , table1DGeneric                    , &
+       &    table1DLinearLinear , table1DLogarithmicLinear , table1DNonUniformLinearLogarithmic, &
+       &    table1DLinearCSpline, table1DLogarithmicCSpline, table2DLogLogLin
 
   !@ <enumeration>
   !@  <name>extrapolationType</name>
@@ -298,6 +300,109 @@ module Tables
      end function integrandTemplate
   end interface
 
+  type, extends(table) :: table2DLogLogLin
+     !% Two-dimensional table type with logarithmic spacing in x and y dimensions, and linear interpolation in z.
+     integer                                         :: extrapolationTypeX  , extrapolationTypeY  , &
+          &                                             xCount              , yCount              , &
+          &                                             i                   , j                   , &
+          &                                             tablePrevious       , dimPrevious
+     double precision                                :: xLinearPrevious     , yLinearPrevious     , &
+          &                                             xLogarithmicPrevious, yLogarithmicPrevious, &
+          &                                             hx                  , hy                  , &
+          &                                             inverseDeltaX       , inverseDeltaY       , &
+          &                                             zPrevious           , dzPrevious
+     logical                                         :: xPreviousSet        , yPreviousSet
+     double precision, allocatable, dimension(:    ) :: xv                  , yv
+     double precision, allocatable, dimension(:,:,:) :: zv
+   contains
+     !@ <objectMethods>
+     !@   <object>table2DLogLogLin</object>
+     !@   <objectMethod>
+     !@     <method>interpolationFactors</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ x, \doublezero\ y</arguments>
+     !@     <description>Compute and store interpolation factors to {\normalfont \ttfamily (x,y)}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>interpolate</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
+     !@     <description>Interpolate to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^{\mathrm th}$ table.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>interpolateGradient</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
+     !@     <description>Interpolate the gradient to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^{\mathrm th}$ table.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>size</method>
+     !@     <type>\intzero</type>
+     !@     <arguments>\intzero\ dim</arguments>
+     !@     <description>Return the size (i.e. number of $x$ or $y$-values) in the table of the given dimension.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>x</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\intzero\ i</arguments>
+     !@     <description>Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $x$-value.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>y</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\intzero\ i,\intzero\ [table]</arguments>
+     !@     <description>Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $y$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>z</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\intzero\ i,\intzero\ j,\intzero\ [table]</arguments>
+     !@     <description>Return the {\normalfont \ttfamily (i,j)}$^{\mathrm th}$ $z$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $z$-values, otherwise the first table is used.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>xs</method>
+     !@     <type>\doubleone</type>
+     !@     <arguments></arguments>
+     !@     <description>Return an array of all $x$-values.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>ys</method>
+     !@     <type>\doubleone</type>
+     !@     <arguments></arguments>
+     !@     <description>Return an array of all $y$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>zs</method>
+     !@     <type>\doubletwo</type>
+     !@     <arguments>\intzero\ [table]</arguments>
+     !@     <description>Return an array of all $z$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $z$-values, otherwise the first table is used.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>isInitialized</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return true if the table is initialized (this means the table is created, it may not yet have been populated).</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: create                            => Table_2DLogLogLin_Create
+     procedure :: Table_2DLogLogLin_Populate
+     procedure :: Table_2DLogLogLin_Populate_Single
+     generic   :: populate                          => Table_2DLogLogLin_Populate             , &
+          &                                            Table_2DLogLogLin_Populate_Single
+     procedure :: interpolationFactors              => Table_2DLogLogLin_Interpolation_Factors
+     procedure :: interpolate                       => Table_2DLogLogLin_Interpolate
+     procedure :: interpolateGradient               => Table_2DLogLogLin_Interpolate_Gradient
+     procedure :: destroy                           => Table_2DLogLogLin_Destroy
+     procedure :: size                              => Table_2DLogLogLin_Size
+     procedure :: x                                 => Table_2DLogLogLin_X
+     procedure :: y                                 => Table_2DLogLogLin_Y
+     procedure :: z                                 => Table_2DLogLogLin_z
+     procedure :: xs                                => Table_2DLogLogLin_Xs
+     procedure :: ys                                => Table_2DLogLogLin_Ys
+     procedure :: zs                                => Table_2DLogLogLin_Zs
+     procedure :: isInitialized                     => Table_2DLogLogLin_Is_Initialized
+  end type table2DLogLogLin
+  
 contains
 
   subroutine Table_1D_Destroy(self)
@@ -1368,5 +1473,326 @@ contains
     Table_NonUniform_Linear_Logarithmic_1D_Ys=exp(self%yv)
     return
   end function Table_NonUniform_Linear_Logarithmic_1D_Ys
+  
+  subroutine Table_2DLogLogLin_Create(self,xMinimum,xMaximum,xCount,yMinimum,yMaximum,yCount,tableCount,extrapolationTypeX,extrapolationTypeY)
+    !% Create a 2-D log-log-linear table.
+    use Memory_Management
+    use Numerical_Ranges
+    implicit none
+    class           (table2DLogLogLin), intent(inout)           :: self
+    double precision                  , intent(in   )           :: xMaximum          , xMinimum          , &
+         &                                                         yMaximum          , yMinimum
+    integer                           , intent(in   )           :: xCount            , yCount
+    integer                           , intent(in   ), optional :: extrapolationTypeX, extrapolationTypeY, &
+         &                                                         tableCount
+    integer                                                     :: tableCountActual
+    
+    ! Initialize state.
+    self%xPreviousSet        =.false.
+    self%yPreviousSet        =.false.
+    self%xLinearPrevious     =-1.0d0
+    self%yLinearPrevious     =-1.0d0
+    self%xLogarithmicPrevious=-1.0d0
+    self%yLogarithmicPrevious=-1.0d0
+    ! Determine number of tables.
+    tableCountActual=1
+    if (present(tableCount)) tableCountActual=tableCount
+    ! Allocate arrays and construct the ranges.
+    self%xCount=xCount
+    self%yCount=yCount
+    call Alloc_Array(self%xv,[xCount                        ])
+    call Alloc_Array(self%yv,[       yCount                 ])
+    call Alloc_Array(self%zv,[xCount,yCount,tableCountActual])
+    self%xv                  =Make_Range(log(xMinimum),log(xMaximum),xCount,rangeType=rangeTypeLinear)
+    self%yv                  =Make_Range(log(yMinimum),log(yMaximum),yCount,rangeType=rangeTypeLinear)
+    self%inverseDeltaX       =1.0d0/(self%xv(2)-self%xv(1))
+    self%inverseDeltaY       =1.0d0/(self%yv(2)-self%yv(1))
+    self%tablePrevious       =-1
+    self%hx                  =-1.0d0
+    self%xLinearPrevious     =-1.0d0
+    self%xLogarithmicPrevious=-1.0d0
+    self%hy                  =-1.0d0
+    self%yLinearPrevious     =-1.0d0
+    self%yLogarithmicPrevious=-1.0d0
+    ! Set extrapolation type.
+    if (present(extrapolationTypeX)) then
+       self%extrapolationTypeX=extrapolationTypeX
+    else
+       self%extrapolationTypeX=extrapolationTypeExtrapolate
+    end if
+    if (present(extrapolationTypeY)) then
+       self%extrapolationTypeY=extrapolationTypeY
+    else
+       self%extrapolationTypeY=extrapolationTypeExtrapolate
+    end if
+    return
+  end subroutine Table_2DLogLogLin_Create
+
+  double precision function Table_2DLogLogLin_X(self,i)
+    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $x$-value for a 2D log-log table.
+    implicit none
+    class  (table2DLogLogLin), intent(inout) :: self
+    integer                  , intent(in   ) :: i
+
+    Table_2DLogLogLin_X=exp(self%xv(i))
+    return
+  end function Table_2DLogLogLin_X
+
+  double precision function Table_2DLogLogLin_Y(self,i)
+    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $y$-value for a 2D log-log table.
+    implicit none
+    class  (table2DLogLogLin), intent(inout) :: self
+    integer                  , intent(in   ) :: i
+
+    Table_2DLogLogLin_Y=exp(self%yv(i))
+    return
+  end function Table_2DLogLogLin_Y
+
+  double precision function Table_2DLogLogLin_Z(self,i,j,table)
+    !% Return the {\normalfont \ttfamily (i,j)}$^{\mathrm th}$ $x$-value for a 2D log-log table.
+    implicit none
+    class  (table2DLogLogLin), intent(inout)           :: self
+    integer                  , intent(in   )           :: i          , j
+    integer                  , intent(in   ), optional :: table
+    integer                                            :: tableActual
+
+    tableActual=1
+    if (present(table)) tableActual=table
+    Table_2DLogLogLin_Z=self%zv(i,j,tableActual)
+    return
+  end function Table_2DLogLogLin_Z
+
+  function Table_2DLogLogLin_Xs(self)
+    !% Return the $x$-values for a 2D log-log table.
+    implicit none
+    class(table2DLogLogLin), intent(in   )             :: self
+    double precision       , dimension(size(self%xv))  :: Table_2DLogLogLin_Xs
+
+    Table_2DLogLogLin_Xs=exp(self%xv)
+    return
+  end function Table_2DLogLogLin_Xs
+
+  function Table_2DLogLogLin_Ys(self)
+    !% Return the $y$-values for a 2D log-log table.
+    implicit none
+    class(table2DLogLogLin), intent(in   )             :: self
+    double precision       , dimension(size(self%xv))  :: Table_2DLogLogLin_Ys
+
+    Table_2DLogLogLin_Ys=exp(self%yv)
+    return
+  end function Table_2DLogLogLin_Ys
+
+  function Table_2DLogLogLin_Zs(self,table)
+    !% Return the $y$-values for a 2D log-log table.
+    implicit none
+    class           (table2DLogLogLin), intent(in   )                                    :: self
+    double precision                  , dimension(size(self%xv),size(self%yv))           :: Table_2DLogLogLin_Zs
+    integer                           , intent(in   )                         , optional :: table
+    integer                                                                              :: tableActual
+
+    tableActual=1
+    if (present(table)) tableActual=table
+    Table_2DLogLogLin_Zs=self%zv(:,:,tableActual)
+    return
+  end function Table_2DLogLogLin_Zs
+
+  subroutine Table_2DLogLogLin_Populate(self,z,table)
+    !% Populate a 2-D log-log-linear table.
+    use Galacticus_Error
+    implicit none
+    class           (table2DLogLogLin)                , intent(inout)           :: self
+    double precision                  , dimension(:,:), intent(in   )           :: z
+    integer                                           , intent(in   ), optional :: table
+    integer                                                                     :: tableActual
+
+    ! Validate the input.
+    if (.not.allocated(self%zv)) call Galacticus_Error_Report("Table_2DLogLogLin_Populate","create the table before populating it")
+    if     (                                                                                                &
+         &   size(self%zv,dim=1) /= size(z,dim=1)                                                           &
+         &  .or.                                                                                            &
+         &   size(self%zv,dim=2) /= size(z,dim=2)                                                           &
+         & ) call Galacticus_Error_Report("Table_2DLogLogLin_Populate","provided z array is of wrong size")
+    ! Determine which table to use.
+    tableActual=1
+    if (present(table)) tableActual=table
+    ! Reset all previously stored values.
+    self%tablePrevious=-1
+    ! Store the z values.
+    self%zv(:,:,tableActual)=z
+    return
+  end subroutine Table_2DLogLogLin_Populate
+
+  subroutine Table_2DLogLogLin_Populate_Single(self,z,i,j,table)
+    !% Populate a single element of a 2-D log-log-linear table.
+    use Galacticus_Error
+    implicit none
+    class           (table2DLogLogLin), intent(inout)           :: self
+    double precision                  , intent(in   )           :: z
+    integer                           , intent(in   )           :: i          , j
+    integer                           , intent(in   ), optional :: table
+    integer                                                     :: tableActual
+
+    ! Validate the input.
+    if (.not.allocated(self%zv)           ) call Galacticus_Error_Report("Table_2DLogLogLin_Populate_Single","create the table before populating it")
+    if (i < 1 .or. i > size(self%zv,dim=1)) call Galacticus_Error_Report("Table_2DLogLogLin_Populate_Single","provided i value is out of bounds"    )
+    if (j < 1 .or. j > size(self%zv,dim=2)) call Galacticus_Error_Report("Table_2DLogLogLin_Populate_Single","provided j value is out of bounds"    )
+    ! Determine which table to use.
+    tableActual=1
+    if (present(table)) tableActual=table
+    ! Reset all previously stored values.
+    self%tablePrevious=-1
+    ! Store the z value.
+    self%zv(i,j,tableActual)=z
+    return
+  end subroutine Table_2DLogLogLin_Populate_Single
+
+  integer function Table_2DLogLogLin_Size(self,dim)
+    !% Return the size of a 2D log-log-linear table.
+    use Galacticus_Error
+    implicit none
+    class  (table2DLogLogLin), intent(in   ) :: self
+    integer                  , intent(in   ) :: dim
+
+    select case (dim)
+    case (1)
+       Table_2DLogLogLin_Size=self%xCount
+    case (2)
+       Table_2DLogLogLin_Size=self%yCount
+    case default
+       call Galacticus_Error_Report('Table_2DLogLogLin_Size','1 ≤ dim ≤ 2 is required')
+    end select
+    return
+  end function Table_2DLogLogLin_Size
+
+  double precision function Table_2DLogLogLin_Interpolate(self,x,y,table)
+    !% Perform linear interpolation in a logarithmic 1D table.
+    implicit none
+    class           (table2DLogLogLin), intent(inout)           :: self
+    double precision                  , intent(in   )           :: x          , y
+    integer                           , intent(in   ), optional :: table
+    integer                                                     :: tableActual
+    
+    ! Determine which table to use.
+    tableActual=1
+    if (present(table)) tableActual=table
+    ! Test for being recalled with same values.
+    if (.not.(self%xPreviousSet .and. self%yPreviousSet .and. x == self%xLinearPrevious .and. y == self%yLinearPrevious .and. tableActual == self%tablePrevious)) then
+       ! Update interpolation factors.
+       call self%interpolationFactors(x,y)
+       ! Perform the interpolation.
+       self%zPrevious=                                                                                                               &
+            & +(self%zv(self%i,self%j  ,tableActual)*(1.0d0-self%hx)+self%zv(self%i+1,self%j  ,tableActual)*self%hx)*(1.0d0-self%hy) &
+            & +(self%zv(self%i,self%j+1,tableActual)*(1.0d0-self%hx)+self%zv(self%i+1,self%j+1,tableActual)*self%hx)*       self%hy
+    end if
+    ! Return the stored value.
+    Table_2DLogLogLin_Interpolate=self%zPrevious
+    return
+  end function Table_2DLogLogLin_Interpolate
+
+  double precision function Table_2DLogLogLin_Interpolate_Gradient(self,x,y,dim,table)
+    !% Perform linear interpolation in a logarithmic 1D table.
+    use Galacticus_Error
+    implicit none
+    class           (table2DLogLogLin), intent(inout)           :: self
+    double precision                  , intent(in   )           :: x          , y
+    integer                           , intent(in   )           :: dim
+    integer                           , intent(in   ), optional :: table
+    integer                                                     :: tableActual
+    
+    ! Determine which table to use.
+    tableActual=1
+    if (present(table)) tableActual=table
+    ! Test for being recalled with same values.
+    if (.not.(self%xPreviousSet .and. self%yPreviousSet .and. x == self%xLinearPrevious .and. y == self%yLinearPrevious .and. tableActual == self%tablePrevious .and. dim == self%dimPrevious)) then
+       ! Update interpolation factors.
+       call self%interpolationFactors(x,y)
+       ! Perform the interpolation.
+       select case (dim)
+       case (1)
+          self%dzPrevious=                                                                                         &
+               & +(                                                                                                &
+               &   +(-self%zv(self%i,self%j  ,tableActual)+self%zv(self%i+1,self%j  ,tableActual))*(1.0d0-self%hy) &
+               &   +(-self%zv(self%i,self%j+1,tableActual)+self%zv(self%i+1,self%j+1,tableActual))*       self%hy  &
+               &  )                                                                                                &
+               & *self%inverseDeltaX                                                                               &
+               & /self%xLinearPrevious
+       case (2)
+          self%dzPrevious=                                                                                         &
+               & +(                                                                                                &
+               &   +(-self%zv(self%i  ,self%j,tableActual)+self%zv(self%i  ,self%j+1,tableActual))*(1.0d0-self%hx) &
+               &   +(-self%zv(self%i+1,self%j,tableActual)+self%zv(self%i+1,self%j+1,tableActual))*       self%hx  &
+               &  )                                                                                                &
+               & *self%inverseDeltaY                                                                               &
+               & /self%yLinearPrevious
+       case default
+          call Galacticus_Error_Report('Table_2DLogLogLin_Interpolate_Gradient','1 ≤ dim ≤ 2 is required')
+       end select
+    end if
+    ! Return the stored value.
+    Table_2DLogLogLin_Interpolate_Gradient=self%dzPrevious
+    return
+  end function Table_2DLogLogLin_Interpolate_Gradient
+
+  subroutine Table_2DLogLogLin_Interpolation_Factors(self,x,y)
+    ! Update interpolation factors for x if necessary.
+    implicit none
+    class           (table2DLogLogLin), intent(inout)           :: self
+    double precision                  , intent(in   )           :: x    , y
+    
+    ! Update interpolation factors for x if necessary.
+    if (.not.self%xPreviousSet .or. x /= self%xLinearPrevious) then
+       self%xPreviousSet        =.true.
+       self%xLinearPrevious     =    x
+       self%xLogarithmicPrevious=log(x)
+       ! Determine the location in the table.
+       if      (self%xLogarithmicPrevious <  self%xv(          1)) then
+          self%i=1
+       else if (self%xLogarithmicPrevious >= self%xv(self%xCount)) then
+          self%i=self%xCount-1
+       else
+          self%i=int((self%xLogarithmicPrevious-self%xv(1))*self%inverseDeltaX)+1
+       end if
+       ! Compute interpolation factor.
+       self%hx=(self%xLogarithmicPrevious-self%xv(self%i))*self%inverseDeltaX
+    end if
+    ! Update interpolation factors for y if necessary.
+    if (.not.self%yPreviousSet .or. y /= self%yLinearPrevious) then
+       self%yPreviousSet        =.true.
+       self%yLinearPrevious     =    y
+       self%yLogarithmicPrevious=log(y)
+       ! Determine the location in the table.
+       if      (self%yLogarithmicPrevious <  self%yv(          1)) then
+          self%j=1
+       else if (self%yLogarithmicPrevious >= self%yv(self%yCount)) then
+          self%j=self%yCount-1
+       else
+          self%j=int((self%yLogarithmicPrevious-self%yv(1))*self%inverseDeltaY)+1
+       end if
+       ! Compute interpolation factor.
+       self%hy=(self%yLogarithmicPrevious-self%yv(self%j))*self%inverseDeltaY
+    end if
+    return
+  end subroutine Table_2DLogLogLin_Interpolation_Factors
+     
+  subroutine Table_2DLogLogLin_Destroy(self)
+    !% Destroy a 2D log-log-linear table.
+    use Memory_Management
+    implicit none
+    class(table2DLogLogLin), intent(inout) :: self
+
+    if (allocated(self%xv)) call Dealloc_Array(self%xv)
+    if (allocated(self%yv)) call Dealloc_Array(self%yv)
+    if (allocated(self%zv)) call Dealloc_Array(self%zv)
+    return
+  end subroutine Table_2DLogLogLin_Destroy
+
+  logical function Table_2DLogLogLin_Is_Initialized(self)
+    !% Return true if a 2D log-log-linear table has been created.
+    implicit none
+    class(table2DLogLogLin), intent(in   ) :: self
+
+    Table_2DLogLogLin_Is_Initialized=allocated(self%zv)
+    return
+  end function Table_2DLogLogLin_Is_Initialized
 
 end module Tables
