@@ -203,6 +203,18 @@ sub Functions_Generate_Output {
 	}
 	);
 
+    # Add "isDefault" method.
+    push(
+	@methods,
+	{
+	    name        => "isDefault",
+	    description => "Return true if this object is the default for its class.",
+	    type        => "logical",
+	    pass        => "yes",
+	    code        => $directive."isDefault=self%isDefaultValue\n"
+	}
+	);
+
 
     # Determine if any methods request that C-bindings be produced.
     my @methodsCBound;
@@ -243,6 +255,7 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "   type :: ".$directive."Class\n";
     $buildData->{'content'} .= "    private\n";
     $buildData->{'content'} .= "    logical :: isIndestructible=.false.\n";
+    $buildData->{'content'} .= "    logical :: isDefaultValue  =.false.\n";
     foreach ( &ExtraUtils::as_array($buildData->{'data'}) ) {
 	if ( reftype($_) ) {
 	    $_->{'scope'} = "self"
@@ -548,6 +561,7 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "         call Galacticus_Error_Report('".$directive."Initialize',message)\n";
     $buildData->{'content'} .= "      end select\n";
     $buildData->{'content'} .= "      ".$directive."Default%isIndestructible=.true.\n";
+    $buildData->{'content'} .= "      ".$directive."Default%isDefaultValue  =.true.\n";
     $buildData->{'content'} .= "      return\n";
     $buildData->{'content'} .= "   end subroutine ".$directive."Initialize\n\n";
 
