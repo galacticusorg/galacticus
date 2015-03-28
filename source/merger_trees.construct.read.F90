@@ -1743,6 +1743,7 @@ contains
           if (useFallbackScaleMethod) then
              ! The node mass is below the reliability threshold, or no scale information is available. Set the scale radius using
              ! the fallback concentration method.
+             activeNode => nodeList(iIsolatedNode)%node
              radiusScale=max(                                                                                                      &
                   &          min(                                                                                                  &
                   &              Dark_Matter_Profile_Scale(nodeList(iIsolatedNode)%node,fallbackConcentration)                   , &
