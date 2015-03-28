@@ -111,7 +111,7 @@ contains
     logMassLow =log(massLow )
     logMassHigh=log(massHigh)
     Halo_Mass_Function_Integrated=Integrate(logMassLow,logMassHigh,Halo_Mass_Function_Integrand,parameterPointer &
-         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-5,integrationRule&
+         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-4,integrationRule&
          &=FGSL_Integ_Gauss15)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     return
@@ -153,7 +153,7 @@ contains
     logMassLow =log(massLow )
     logMassHigh=log(massHigh)
     Halo_Mass_Fraction_Integrated=Integrate(logMassLow,logMassHigh,Halo_Mass_Fraction_Integrand,parameterPointer &
-         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-5,integrationRule&
+         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-4,integrationRule&
          &=FGSL_Integ_Gauss15)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Get the default cosmology.
