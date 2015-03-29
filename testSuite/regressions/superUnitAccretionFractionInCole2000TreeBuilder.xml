@@ -247,7 +247,7 @@
     <value>5.0e9</value>
   </parameter>
   <parameter>
-    <name>mergerTreeBuildMethod</name>
+    <name>mergerTreeBuilderMethod</name>
     <value>Cole2000</value>
   </parameter>
   <parameter>
