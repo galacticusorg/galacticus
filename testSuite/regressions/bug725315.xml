@@ -1,8 +1,10 @@
+<?xml version="1.0"?>
 <!-- Regression test case for Bug #725315 - "Segfault when using star -->
 <!-- formation histories (metallicity split)" -->
 <!-- Andrew Benson -->
 <!-- 25-February-2011 -->
 <parameters>
+  <version>0.9.4</version>
   <parameter>
     <name>Omega_Matter</name>
     <value>0.2725</value>
@@ -189,7 +191,11 @@
   </parameter>
   <parameter>
     <name>treeNodeMethodDisk</name>
-    <value>exponential</value>
+    <value>standard</value>
+  </parameter>
+  <parameter>
+    <name>diskMassDistribution</name>
+    <value>exponentialDisk</value>
   </parameter>
   <parameter>
     <name>linearGrowthMethod</name>
@@ -205,7 +211,7 @@
   </parameter>
   <parameter>
     <name>mergerTreeBuilderMethod</name>
-    <value>Cole2000</value>
+    <value>cole2000</value>
   </parameter>
   <parameter>
     <name>mergerTreeBuildTreesBeginAtTree</name>
@@ -272,8 +278,8 @@
     <value>0.02</value>
   </parameter>
   <parameter>
-    <name>virialOrbitsMethod</name>
-    <value>Benson2005</value>
+    <name>virialOrbitMethod</name>
+    <value>benson2005</value>
   </parameter>
   <parameter>
     <name>virialDensityContrastMethod</name>
