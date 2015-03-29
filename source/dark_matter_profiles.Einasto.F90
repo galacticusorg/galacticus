@@ -354,7 +354,7 @@ contains
   end function einastoDensity
 
   double precision function einastoDensityLogSlope(self,node,radius)
-    !% Returns the logarithmic slope of the density} in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use Dark_Matter_Halo_Scales
     implicit none
