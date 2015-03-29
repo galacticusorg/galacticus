@@ -1,4 +1,6 @@
+<?xml version="1.0"?>
 <parameters>
+  <version>0.9.4</version>
   <parameter>
     <name>mergerTreeReadBeginAt</name>
     <value>244004942000000</value>
@@ -205,7 +207,7 @@
   </parameter>
   <parameter>
     <name>mergerTreeBuilderMethod</name>
-    <value>Cole2000</value>
+    <value>cole2000</value>
   </parameter>
   <parameter>
     <name>mergerTreeBuildMassResolutionFixed</name>
@@ -260,7 +262,7 @@
     <value>false</value>
   </parameter>
   <parameter>
-    <name>virialOrbitsMethod</name>
+    <name>virialOrbitMethod</name>
     <value>fixed</value>
   </parameter>
   <parameter>

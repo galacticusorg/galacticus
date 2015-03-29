@@ -30,12 +30,13 @@ module Spherical_Collapse_Matter_Lambda
   ! Variables to hold the tabulated critical overdensity data.
   double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum =1.0d0
   integer         , parameter :: deltaTableNPointsPerDecade=1000
-
+  !$omp threadprivate(deltaTableTimeMaximum,deltaTableTimeMinimum)
   ! Variables used in root finding.
   double precision            :: OmegaDE                          , OmegaM                      , &
        &                         epsilonPerturbationShared        , hubbleParameterInvGyr       , &
        &                         tNow
-
+  !$omp threadprivate(OmegaDE,OmegaM,epsilonPerturbationShared,hubbleParameterInvGyr,tNow)
+  
   ! Calculation types.
   integer         , parameter :: calculationDeltaCrit      =0     , calculationDeltaVirial=1
 
@@ -62,10 +63,7 @@ contains
     double precision                      , intent(in   ) :: time
     class           (table1D), allocatable, intent(inout) :: deltaCritTable
 
-    !$omp critical(Spherical_Collapse_Make_Table)
     call Make_Table(time,deltaCritTable,calculationDeltaCrit)
-    !$omp end critical(Spherical_Collapse_Make_Table)
-
     return
   end subroutine Spherical_Collapse_Critical_Overdensity
 
@@ -76,9 +74,7 @@ contains
     double precision                      , intent(in   ) :: time
     class           (table1D), allocatable, intent(inout) :: deltaVirialTable
 
-    !$omp critical(Spherical_Collapse_Make_Table)
     call Make_Table(time,deltaVirialTable,calculationDeltaVirial)
-    !$omp end critical(Spherical_Collapse_Make_Table)
     return
   end subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate
 
@@ -262,6 +258,7 @@ contains
     type   (fgsl_function             )               , save :: integrandFunction
     type   (fgsl_integration_workspace)               , save :: integrationWorkspace
     logical                                           , save :: integrationReset     =.true.
+    !$omp threadprivate(integrandFunction,integrationWorkspace,integrationReset)
     real   (kind=c_double             ), parameter           :: aMinimum             =0.0d0
     real   (kind=c_double             ), parameter           :: numericalLimitEpsilon=1.0d-4
     type   (c_ptr                     )                      :: parameterPointer
