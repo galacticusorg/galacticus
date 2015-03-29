@@ -125,7 +125,7 @@
     <value>build</value>
   </parameter>
   <parameter>
-    <name>mergerTreeBuildMethod</name>
+    <name>mergerTreeBuilderMethod</name>
     <value>Cole2000</value>
   </parameter>
   <parameter>
