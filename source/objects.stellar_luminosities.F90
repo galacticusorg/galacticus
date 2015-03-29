@@ -22,8 +22,13 @@ module Stellar_Luminosities_Structure
   use ISO_Varying_String
   implicit none
   private
-  public :: stellarLuminosities, max, operator(*)
+  public :: stellarLuminosities, max, operator(*), Stellar_Luminosities_Parameter_Map
 
+  ! Interface to parameter mapping functions.
+  interface Stellar_Luminosities_Parameter_Map
+     module procedure Stellar_Luminosities_Parameter_Map_Double
+  end interface Stellar_Luminosities_Parameter_Map
+  
   ! Interface to max() function for stellar luminosities objects.
   interface max
      module procedure stellarLuminositiesMax
@@ -170,8 +175,8 @@ module Stellar_Luminosities_Structure
      !@   <objectMethod>
      !@     <method>luminosityCount</method>
      !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the total number of luminosities tracked.</description>
+     !@     <arguments>\logicalzero\ [unmapped]</arguments>
+     !@     <description>Return the total number of luminosities tracked. If {\normalfont \ttfamily unmapped} is true, then the number of luminosities prior to mapping is returned.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>setLuminosities</method>
@@ -242,9 +247,9 @@ module Stellar_Luminosities_Structure
   logical                                                          :: luminositiesInitialized           =.false.
 
   ! Arrays which hold the luminosity specifications.
-  integer                                                          :: luminosityCount
+  integer                                                          :: luminosityCount                           , luminosityCountUnmapped
   integer                              , allocatable, dimension(:) :: luminosityFilterIndex                     , luminosityIndex               , &
-       &                                                              luminosityPostprocessingChainIndex
+       &                                                              luminosityPostprocessingChainIndex        , luminosityMap
   double precision                     , allocatable, dimension(:) :: luminosityBandRedshift                    , luminosityCosmicTime          , &
        &                                                              luminosityRedshift
   type            (varying_string     ), allocatable, dimension(:) :: luminosityFilter                          , luminosityName                , &
@@ -262,7 +267,7 @@ module Stellar_Luminosities_Structure
 contains
 
   subroutine Stellar_Luminosities_Initialize
-    !% Initialize the {\normalfont \ttfamily stellarLuminositiestructure} object module. Determines which stellar luminosities are to be tracked.
+    !% Initialize the {\normalfont \ttfamily stellarLuminositiesStructure} object module. Determines which stellar luminosities are to be tracked.
     use, intrinsic :: ISO_C_Binding
     use Input_Parameters
     use Galacticus_Error
@@ -314,7 +319,8 @@ contains
           end select
 
           ! Read in the parameters which specify the luminosities to be computed.
-          luminosityCount=Get_Input_Parameter_Array_Size('luminosityRedshift')
+          luminosityCount        =Get_Input_Parameter_Array_Size('luminosityRedshift')
+          luminosityCountUnmapped=luminosityCount
           if (Get_Input_Parameter_Array_Size('luminosityFilter') /= luminosityCount) call&
                & Galacticus_Error_Report('Stellar_Luminosities_Initialize','luminosityFilter and luminosityRedshift&
                & input arrays must have same dimension')
@@ -328,6 +334,7 @@ contains
           end if
 
           if (luminosityCount > 0) then
+             call Alloc_Array(luminosityMap                     ,[luminosityCount])
              call Alloc_Array(luminosityRedshift                ,[luminosityCount])
              call Alloc_Array(luminosityBandRedshift            ,[luminosityCount])
              allocate(luminosityFilter        (luminosityCount))
@@ -352,6 +359,8 @@ contains
                 else
                    luminosityRedshift(iLuminosity)=-2.0d0
                 end if
+                ! Assign a mapping from initial to final array of luminosities (this is initially an identity mapping).
+                luminosityMap(iLuminosity)=iLuminosity
              end do
              if (Input_Parameter_Is_Present('luminosityBandRedshift')) then
                 !@ <inputParameter>
@@ -413,7 +422,7 @@ contains
                 luminosityPostprocessSet="default"
              end if
              ! Handle luminosity definition special cases.
-             call Stellar_Luminosities_Special_Cases(luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet)
+             call Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet)
              luminosityCount=size(luminosityRedshift)
              ! Allocate remaining required arrays.
              allocate(luminosityName(luminosityCount))
@@ -808,13 +817,19 @@ contains
     return
   end function Stellar_Luminosities_Divide
 
-  integer function Stellar_Luminosities_Property_Count()
+  integer function Stellar_Luminosities_Property_Count(unmapped)
     !% Return the number of properties required to track stellar luminosities.
     implicit none
+    logical, intent(in   ), optional :: unmapped
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
-    Stellar_Luminosities_Property_Count=luminosityCount
+    ! Return the relevant count.
+    if (present(unmapped).and.unmapped) then
+       Stellar_Luminosities_Property_Count=luminosityCountUnmapped
+    else
+       Stellar_Luminosities_Property_Count=luminosityCount
+    end if
     return
   end function Stellar_Luminosities_Property_Count
 
@@ -1077,7 +1092,7 @@ contains
     return
   end function Stellar_Luminosities_Index
 
-  subroutine Stellar_Luminosities_Special_Cases(luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet)
+  subroutine Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet)
     !% Modify the input list of luminosities for special cases.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Output_Times
@@ -1085,11 +1100,13 @@ contains
     use Memory_Management
     use String_Handling
     implicit none
+    integer                                  , intent(inout), allocatable, dimension(:) :: luminosityMap
     type            (varying_string         ), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
          &                                                                                 luminosityType           , luminosityPostprocessSet
     double precision                         , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
     integer         (c_size_t               )                                           :: j                        , outputCount                , &
          &                                                                                 i                        , newFilterCount
+    integer                                                 , allocatable, dimension(:) :: luminosityMapTmp
     type            (varying_string         )               , allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
          &                                                                                 luminosityTypeTmp        , luminosityPostprocessSetTmp
     type            (varying_string         )                            , dimension(4) :: specialFilterWords
@@ -1114,12 +1131,14 @@ contains
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
                & outputCount                ,          &
+               & luminosityMap              ,          &
                & luminosityRedshiftText     ,          &
                & luminosityFilter           ,          &
                & luminosityType             ,          &
                & luminosityPostprocessSet   ,          &
                & luminosityRedshift         ,          &
                & luminosityBandRedshift     ,          &
+               & luminosityMapTmp           ,          &
                & luminosityRedshiftTextTmp  ,          &
                & luminosityFilterTmp        ,          &
                & luminosityTypeTmp          ,          &
@@ -1143,6 +1162,7 @@ contains
           deallocate        (luminosityFilterTmp        )
           deallocate        (luminosityTypeTmp          )
           deallocate        (luminosityPostprocessSetTmp)     
+          call Dealloc_Array(luminosityMapTmp           )
           call Dealloc_Array(luminosityRedshiftTmp      )
           call Dealloc_Array(luminosityBandRedshiftTmp  )
        end if
@@ -1169,12 +1189,14 @@ contains
           call Stellar_Luminosities_Expand_Filter_Set( &
                & i                          ,          &
                & newFilterCount             ,          &
+               & luminosityMap              ,          &
                & luminosityRedshiftText     ,          &
                & luminosityFilter           ,          &
                & luminosityType             ,          &
                & luminosityPostprocessSet   ,          &
                & luminosityRedshift         ,          &
                & luminosityBandRedshift     ,          &
+               & luminosityMapTmp           ,          &
                & luminosityRedshiftTextTmp  ,          &
                & luminosityFilterTmp        ,          &
                & luminosityTypeTmp          ,          &
@@ -1205,6 +1227,7 @@ contains
           deallocate        (luminosityFilterTmp        )
           deallocate        (luminosityTypeTmp          )
           deallocate        (luminosityPostprocessSetTmp)     
+          call Dealloc_Array(luminosityMapTmp           )
           call Dealloc_Array(luminosityRedshiftTmp      )
           call Dealloc_Array(luminosityBandRedshiftTmp  )
        end if
@@ -1217,12 +1240,14 @@ contains
   subroutine Stellar_Luminosities_Expand_Filter_Set( &
        & expandFrom                 ,                &
        & expandCount                ,                &
+       & luminosityMap              ,                &
        & luminosityRedshiftText     ,                &
        & luminosityFilter           ,                &
        & luminosityType             ,                &
        & luminosityPostprocessSet   ,                &
        & luminosityRedshift         ,                &
        & luminosityBandRedshift     ,                &
+       & luminosityMapTmp           ,                &
        & luminosityRedshiftTextTmp  ,                &
        & luminosityFilterTmp        ,                &
        & luminosityTypeTmp          ,                &
@@ -1235,15 +1260,18 @@ contains
     use Memory_Management
     implicit none
     integer         (c_size_t      ), intent(in   )                            :: expandFrom               , expandCount
+    integer                         , intent(inout), allocatable, dimension(:) :: luminosityMap
     type            (varying_string), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
          &                                                                        luminosityType           , luminosityPostprocessSet
     double precision                , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
+    integer                         , intent(inout), allocatable, dimension(:) :: luminosityMapTmp
     type            (varying_string), intent(inout), allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
          &                                                                        luminosityTypeTmp        , luminosityPostprocessSetTmp
     double precision                , intent(inout), allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
     integer                                                                    :: luminosityCount
 
-    luminosityCount=size(luminosityRedshiftText)
+    luminosityCount=size(luminosityMap)
+    call Move_Alloc (luminosityMap           ,luminosityMapTmp           )
     call Move_Alloc (luminosityRedshiftText  ,luminosityRedshiftTextTmp  )
     call Move_Alloc (luminosityRedshift      ,luminosityRedshiftTmp      )
     call Move_Alloc (luminosityBandRedshift  ,luminosityBandRedshiftTmp  )
@@ -1254,9 +1282,11 @@ contains
     allocate        (luminosityFilter         (size(luminosityFilterTmp        )+expandCount-1))
     allocate        (luminosityType           (size(luminosityTypeTmp          )+expandCount-1))
     allocate        (luminosityPostprocessSet (size(luminosityPostprocessSetTmp)+expandCount-1))
+    call Alloc_Array(luminosityMap           ,[size(luminosityRedshiftTmp      )+expandCount-1])
     call Alloc_Array(luminosityRedshift      ,[size(luminosityRedshiftTmp      )+expandCount-1])
     call Alloc_Array(luminosityBandRedshift  ,[size(luminosityBandRedshiftTmp  )+expandCount-1])
     if (expandFrom > 1              ) then
+       luminosityMap           (1            :expandFrom                          -1)=luminosityMapTmp           (1  :expandFrom-1            )
        luminosityRedshiftText  (1            :expandFrom                          -1)=luminosityRedshiftTextTmp  (1  :expandFrom-1            )
        luminosityRedshift      (1            :expandFrom                          -1)=luminosityRedshiftTmp      (1  :expandFrom-1            )
        luminosityBandRedshift  (1            :expandFrom                          -1)=luminosityBandRedshiftTmp  (1  :expandFrom-1            )
@@ -1265,6 +1295,7 @@ contains
        luminosityPostprocessSet(1            :expandFrom                          -1)=luminosityPostprocessSetTmp(1  :expandFrom-1            )
     end if
     if (expandFrom < luminosityCount) then
+       luminosityMap           (expandFrom+expandCount:luminosityCount+expandCount-1)=luminosityMapTmp           (expandFrom+1:luminosityCount)
        luminosityRedshiftText  (expandFrom+expandCount:luminosityCount+expandCount-1)=luminosityRedshiftTextTmp  (expandFrom+1:luminosityCount)
        luminosityRedshift      (expandFrom+expandCount:luminosityCount+expandCount-1)=luminosityRedshiftTmp      (expandFrom+1:luminosityCount)
        luminosityBandRedshift  (expandFrom+expandCount:luminosityCount+expandCount-1)=luminosityBandRedshiftTmp  (expandFrom+1:luminosityCount)
@@ -1272,6 +1303,7 @@ contains
        luminosityType          (expandFrom+expandCount:luminosityCount+expandCount-1)=luminosityTypeTmp          (expandFrom+1:luminosityCount)
        luminosityPostprocessSet(expandFrom+expandCount:luminosityCount+expandCount-1)=luminosityPostprocessSetTmp(expandFrom+1:luminosityCount)
     end if
+    luminosityMap              (expandFrom            :expandFrom     +expandCount-1)=luminosityMapTmp           (expandFrom                  )
     luminosityRedshiftText     (expandFrom            :expandFrom     +expandCount-1)=luminosityRedshiftTextTmp  (expandFrom                  )
     luminosityRedshift         (expandFrom            :expandFrom     +expandCount-1)=luminosityRedshiftTmp      (expandFrom                  )
     luminosityBandRedshift     (expandFrom            :expandFrom     +expandCount-1)=luminosityBandRedshiftTmp  (expandFrom                  )
@@ -1316,4 +1348,26 @@ contains
     return
   end subroutine Stellar_Luminosities_Truncate
 
+  subroutine Stellar_Luminosities_Parameter_Map_Double(parameters)
+    !% Map an array of luminosity-related input parameters into a new array accounting for special case processing.
+    use Memory_Management
+    implicit none
+    double precision, intent(inout), allocatable, dimension(:) :: parameters
+    double precision               , allocatable, dimension(:) :: parametersMapped
+    integer                                                    :: i
+    
+    ! Ensure module is initialized.
+    call Stellar_Luminosities_Initialize()
+    ! Allocate new array.
+    call Alloc_Array(parametersMapped,[luminosityCount])
+    ! Map from the old array.
+    do i=1,luminosityCount
+       parametersMapped(i)=parameters(luminosityMap(i))
+    end do
+    ! Copy the new array.
+    call Dealloc_Array(parameters)
+    call Move_Alloc(parametersMapped,parameters)
+    return
+  end subroutine Stellar_Luminosities_Parameter_Map_Double
+  
 end module Stellar_Luminosities_Structure
