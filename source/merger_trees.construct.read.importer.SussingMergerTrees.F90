@@ -424,6 +424,7 @@ contains
     ! Read the snapshots times file.
     call Alloc_Array(self%snapshotTimes,[snapshotFileCount])
     open(newUnit=fileUnit,file=char(snapshotTimesFile),status='old',form='formatted',ioStat=ioStat)
+    if (ioStat /= 0) call Galacticus_Error_Report('sussingOpen','can not open file "'//char(snapshotTimesFile)//'"')
     read (fileUnit,*)
     do i=1,snapshotFileCount
        read (fileUnit,*) snapshotNumber,expansionFactor,redshift,timeNormalized,time
@@ -773,7 +774,11 @@ contains
        end if
     end if
     ! Validate file format version.
-    if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('sussingTreeIndicesRead','incorrect file format version')
+    if (fileFormatVersion /= fileFormatVersionCurrent) then
+       message='incorrect file format version [found '
+       message=message//fileFormatVersion//'; expected '//fileFormatVersionCurrent//';]'
+       call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+    end if
     ! Allocate storage for list of nodes in subvolume.
     nodeCountSubVolume=int(dble(nodeCount)/dble(self%subvolumeCount)**3,kind=c_size_t)+1
     call Alloc_Array(nodesInSubvolume,[nodeCountSubVolume])
@@ -877,7 +882,7 @@ contains
                         &   Phi0          ,                           &
                         &   cNFW
                 else
-                   read          (snapshotUnit     ,ioStat=ioStat) &
+                   read          (snapshotUnit     ,ioStat=ioStat)    &
                         &   ID            ,                           &
                         &   hostHalo      ,                           &
                         &   numSubStruct  ,                           &
@@ -2497,7 +2502,7 @@ contains
                &   Xgroup        ,                        &
                &   Ygroup        ,                        &
                &   Zgroup
-    else
+       else
           call Galacticus_Error_Report('sussingReadHaloASCII','unknown halo file format')
        end if
     end if
