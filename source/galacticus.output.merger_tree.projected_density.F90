@@ -400,24 +400,28 @@ contains
       real(kind=c_double)        :: Galacticus_Output_Tree_Projected_Density_Integrand
       real(kind=c_double), value :: radius
       type(c_ptr        ), value :: parameterPointer
-      
-      Galacticus_Output_Tree_Projected_Density_Integrand=+2.0d0                                                        &
-           &                                             *radius                                                       &
-           &                                             /sqrt(                                                        &
-           &                                                   +radius         **2                                     &
-           &                                                   -radiusProjected**2                                     &
-           &                                             )                                                             &
-           &                                             *Galactic_Structure_Density(                                  &
-           &                                                                         node                            , &
-           &                                                                         [                                 &
-           &                                                                          radius                         , &
-           &                                                                          0.0d0                          , &
-           &                                                                          0.0d0                            &
-           &                                                                         ]                               , &
-           &                                                                         componentType=radii(i)%component, &
-           &                                                                         massType     =radii(i)%mass     , &
-           &                                                                         haloLoaded   =radii(i)%loaded     &
-           &                                                                        )
+
+      if (radius <= radiusProjected) then
+         Galacticus_Output_Tree_Projected_Density_Integrand=+0.0d0
+      else
+         Galacticus_Output_Tree_Projected_Density_Integrand=+2.0d0                                                        &
+              &                                             *radius                                                       &
+              &                                             /sqrt(                                                        &
+              &                                                   +radius         **2                                     &
+              &                                                   -radiusProjected**2                                     &
+              &                                             )                                                             &
+              &                                             *Galactic_Structure_Density(                                  &
+              &                                                                         node                            , &
+              &                                                                         [                                 &
+              &                                                                          radius                         , &
+              &                                                                          0.0d0                          , &
+              &                                                                          0.0d0                            &
+              &                                                                         ]                               , &
+              &                                                                         componentType=radii(i)%component, &
+              &                                                                         massType     =radii(i)%mass     , &
+              &                                                                         haloLoaded   =radii(i)%loaded     &
+              &                                                                        )
+      end if
       return
     end function Galacticus_Output_Tree_Projected_Density_Integrand
     
