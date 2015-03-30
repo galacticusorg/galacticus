@@ -117,7 +117,7 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceRelative',stellarPopulationLuminosityIntegrationToleranceRelative,defaultValue=1.0d-3)
+       call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceRelative',stellarPopulationLuminosityIntegrationToleranceRelative,defaultValue=2.0d-3)
        ! Read the parameter controlling storing luminosities to file.
        !@ <inputParameter>
        !@   <name>stellarPopulationLuminosityStoreToFile</name>
