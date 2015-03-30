@@ -261,8 +261,8 @@ The very simple hot halo implementation defines the following properties:
 \end{description}
 and the following pipes:
 \begin{description}
- \item [{\normalfont \ttfamily Hot\_Halo\_Cooling\_Mass\_To}] The net cooling rate of gas mass is sent through this pipe. Any \gls{component} may claim this pipe and connect to it, allowing it to receive the cooling gas.
- \item [{\normalfont \ttfamily Hot\_Halo\_Outflow\_Mass\_To}] Galactic components that wish to expel gas due to an outflow can send that mass  through this pipe, where it will be received into the hot halo component. 
+ \item [{\normalfont \ttfamily hotHaloCoolingMass}] The net cooling rate of gas mass is sent through this pipe. Any \gls{component} may claim this pipe and connect to it, allowing it to receive the cooling gas.
+ \item [{\normalfont \ttfamily outflowingMass}] Galactic components that wish to expel gas due to an outflow can send that mass  through this pipe, where it will be received into the hot halo component. 
 \end{description}
 
 \subsubsection{Initialization}
@@ -285,6 +285,38 @@ In the above $\dot{M}_{\mathrm outflow}$ is the net rate of outflow from any com
 \noindent\emph{Satellite merging:} Any hot halo of the satellite \gls{node} is added to that of the host \gls{node} and the hot halo \gls{component} removed from the satellite node.\\
 
 \noindent\emph{Node promotion:} Any hot halo of the parent \gls{node} is added to that of the \gls{node} prior to promotion.\\
+
+\noindent\emph{Halo formation:} None.\\
+
+\subsection{``Very Simple Delayed'' Implementation}
+
+\subsubsection{Properties}
+
+The delayed very simple hot halo implementation extends the ``very simple'' implementation by adding a reservoir for outflowed gas from which the hot halo is gradually replenished. It defines the following properties:
+\begin{description}
+ \item [{\normalfont \ttfamily outflowedMass}] The mass of gas in the outflowed reservoir of the hot halo: $M_{\mathrm outflowed}$ {\normalfont \ttfamily [hotHaloOutflowedMass]}.
+\end{description}
+
+\subsubsection{Initialization}
+
+At initialization, nodes are assigned zero outflowed mass.
+
+\subsubsection{Differential Evolution}
+
+This implementation steals the {\normalfont \ttfamily outflowingMass} pipe from the very simple component and redirects it to the outflowed mass reservoir. The resulting rates of change of hot and outflowed masses are then:
+\begin{eqnarray}
+ \dot{M}_{\mathrm hot}      &=& - \dot{M}_{\mathrm cooling} + \dot{M}_{\mathrm reincorporation}, \nonumber \\
+ \dot{M}_{\mathrm outflowed} &=& + \dot{M}_{\mathrm outflow} - \dot{M}_{\mathrm reincorporation}, \nonumber \\
+\end{eqnarray}
+where $\dot{M}_{\mathrm reincorporation}$ is the reincorporation rate of outflowed gas (see \S\ref{phys:hotHaloOutflowReincorporation}).
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} Any outflowed gas from the merging halo is transferred to its host halo.\\
+
+\noindent\emph{Satellite merging:} Any outflowed halo of the satellite \gls{node} is added to that of the host \gls{node} and the outflowed mass \gls{component} removed from the satellite node.\\
+
+\noindent\emph{Node promotion:} Any outflowed gas of the parent \gls{node} is added to that of the \gls{node} prior to promotion.\\
 
 \noindent\emph{Halo formation:} None.\\
 
@@ -371,7 +403,7 @@ A fraction $1-${\normalfont \ttfamily [hotHaloAngularMomentumLossFraction]} of t
 
 \subsubsection{Event Evolution}
 
-\noindent\emph{Node mergers:} If the {\normalfont \ttfamily starveSatellites} parameter is true, then any hot halo properties of the minor \gls{node} are added to those of the major \gls{node} and the hot halo \gls{component} removed from the minor node. Additionally in this case, any material outflowed or stripped from the the satellite galaxy to its hot halo is transferred to the hot halo of the host dark matter halo after each timestep. If stripped mass is being tracked (i.e. if {\normalfont \ttfamily [hotHaloTrackStrippedGas]}$=${\normalfont \ttfamily true}) then any stripped mass is transferred from the satellite galaxy to the hot halo of the host dark matter halo after each timestep. If {\normalfont \ttfamily [hotHaloNodeMergerLimitBaryonFraction]}$=${\normalfont \ttfamily true} then the hot gas content of the merged node is limited such that the total baryon content of the node (including satellites) does not exceed the universal baryon fraction, if possible. Any gas removed to enforce this limit is placed into the unaccreted gas reservoir, from which is may eventually be reaccreted.\\
+\noindent\emph{Node mergers:} If the {\normalfont \ttfamily starveSatellites} parameter is true, then any hot halo properties of the minor \gls{node} are added to those of the major \gls{node} and the hot halo \gls{component} removed from the minor node. Additionally in this case, any material outflowed or stripped from the the satellite galaxy to its hot halo is transferred to the hot halo of the host dark matter halo after each timestep. (Alternatively, if {\normalfont \ttfamily starveSatellitesOutflowed}$=${\normalfont \ttfamily true} then only the outflowed and stripped gas is transferred to the host halo---the main hot gas reservoir is left in place.) If stripped mass is being tracked (i.e. if {\normalfont \ttfamily [hotHaloTrackStrippedGas]}$=${\normalfont \ttfamily true}) then any stripped mass is transferred from the satellite galaxy to the hot halo of the host dark matter halo after each timestep. If {\normalfont \ttfamily [hotHaloNodeMergerLimitBaryonFraction]}$=${\normalfont \ttfamily true} then the hot gas content of the merged node is limited such that the total baryon content of the node (including satellites) does not exceed the universal baryon fraction, if possible. Any gas removed to enforce this limit is placed into the unaccreted gas reservoir, from which is may eventually be reaccreted.\\
 
 \noindent\emph{Satellite merging:} If the {\normalfont \ttfamily starveSatellites} parameter is false, then any hot halo properties of the satellite \gls{node} are added to those of the host \gls{node} and the hot halo \gls{component} removed from the satellite node.\\
 
@@ -436,9 +468,9 @@ In the very simple galactic disk implementation the gas mass evolves as:
 \end{equation}
 where the rate of change of stellar mass is
 \begin{equation}
- \dot{M}_{\mathrm stars, disk} = \Psi,
+ \dot{M}_{\mathrm stars, disk} = \Psi - \dot{R},
 \end{equation}
-with
+where $\dot{R}$ is the rate of mass recycling from stars, and
 \begin{equation}
  \Psi = {M_{\mathrm disk, gas} \over \tau_{\mathrm disk, star~formation}}
 \end{equation}
@@ -452,13 +484,16 @@ with $\tau_{\mathrm disk, star~formation}$ being the greater of the star formati
 
 \noindent\emph{Node promotion:} None\\
 
-\subsection{``Exponential'' Implementation}\label{sec:DiskExponential}
+\subsection{``Standard Implementation}\label{sec:DiskStandard}
 
-This implementation assumes a disk with an exponential surface density profile in which stars trace gas.
+This implementation assumes a disk with a cylindrical symmetry and a flattened profile in which stars trace gas. Currently, one option for the density profile is allowed\footnote{The disk density distribution is handled internally using a {\normalfont \ttfamily massDistribution} object (see \S\ref{sec:MassDistributions}). As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard disk component.}:
+\begin{description}
+\item [{\normalfont \ttfamily exponentialDisk}] Assumes an exponential profile, $\rho(R,z) = \rho_0 \exp(-r/r_{\rm s}) \hbox{sech}^2(z/z_{\rm s})$, for the disk \gls{component} of a galaxy. The thickness, $z_{\rm s}/r_{\rm s}$ is set by the parameter {\normalfont \ttfamily [heightToRadialScaleDisk]}.
+\end{description}
 
 \subsubsection{Properties}
 
-The exponential galactic disk implementation defines the following properties:
+The standard galactic disk implementation defines the following properties:
 \begin{description}
  \item [{\normalfont \ttfamily massGas}] The mass of gas in the disk: $M_{\mathrm disk, gas}$ [{\normalfont \ttfamily diskMassGas}].
  \item [{\normalfont \ttfamily abundancesGas}] The mass of elements in the gaseous disk: $M_{Z, {\mathrm disk, gas}}$ [{\normalfont \ttfamily diskAbundancesGas\{abundanceName\}}].
@@ -476,7 +511,7 @@ No initialization is performed---disks are created as needed.
 
 \subsubsection{Differential Evolution}
 
-In the exponential galactic disk implementation the gas mass evolves as:
+In the standard galactic disk implementation the gas mass evolves as:
 \begin{equation}
  \dot{M}_{\mathrm disk, gas} = \dot{M}_{\mathrm cooling} - \dot{M}_{\mathrm outflow, disk} - \dot{M}_{\mathrm stars, disk} - {M_{\mathrm disk, gas}\over \tau_{\mathrm bar}} - \dot{M}_{\mathrm ram pressure} - {M_{\mathrm disk, gas} \over M_{\mathrm disk, gas} + M_{\mathrm disk, stars}} \dot{M}_{\mathrm tidal},
 \end{equation}
@@ -488,7 +523,7 @@ with
 \begin{equation}
  \Psi = {M_{\mathrm disk, gas} \over \tau_{\mathrm disk, star~formation}}
 \end{equation}
-with $\tau_{\mathrm disk, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars and $\tau_{\mathrm bar}$ is a bar instability timescale (see \S\ref{sec:DiskStability}). The mass removed from the disk by the bar instability mechanism is added to the active spheroid component.
+with $\tau_{\mathrm disk, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars and $\tau_{\mathrm bar}$ is a bar instability timescale (see \S\ref{sec:DiskStability}). If {\normalfont \ttfamily [diskStarFormationInSatellites]}$=${\normalfont \ttfamily true} then the star formation rate is forced to zero in satellite galaxies. The mass removed from the disk by the bar instability mechanism is added to the active spheroid component.
 Element abundances (including total metals) evolve according to:
 \begin{equation}
   \dot{M}_{Z, {\mathrm disk, gas}} = \dot{M}_{Z {\mathrm cooling}} - \dot{M}_{Z, {\mathrm outflow, disk}} - \dot{M}_{Z, {\mathrm stars, disk}} + \dot{y} - {M_{Z, {\mathrm disk, gas}} \over M_{\mathrm disk, gas}} \dot{M}_{\mathrm ram pressure} - {M_{Z, {\mathrm disk, gas}} \over M_{\mathrm disk, gas} + M_{\mathrm disk, stars}} \dot{M}_{\mathrm tidal},
@@ -518,15 +553,14 @@ If the {\normalfont \ttfamily [diskOutputStarFormationRate]}\index{disk!star for
 \subsubsection{Structure}
 
 The radial size of the disk is found solving for equilibrium (i.e. the radius is such that the angular momentum of material at that radius is sufficient to provide rotational support) at the specified {\normalfont \ttfamily [diskStructureSolverRadius]} which is given in units of the disk scale length. In converting from the mean specific angular momentum of the disk to the angular momentum at that radius, a flat rotation curve is assumed, i.e.:
-\begin{eqnarray}
- j(r)/\langle j \rangle &=& r V \left/ {\int_0^\infty 2 \pi r^\prime \Sigma(r^\prime) r^\prime V {\mathrm d} r^\prime \over \int_0^\infty 2 \pi r^\prime \Sigma(r^\prime) {\mathrm d} r^\prime} \right. \nonumber \\
- j(r))/\langle j \rangle &=& r / 2 r_{\mathrm disk}.
-\end{eqnarray}
+\begin{equation}
+ j(r)/\langle j \rangle = r V \left/ {\int_0^\infty 2 \pi r^\prime \Sigma(r^\prime) r^\prime V {\mathrm d} r^\prime \over \int_0^\infty 2 \pi r^\prime \Sigma(r^\prime) {\mathrm d} r^\prime} \right. .
+\end{equation}
 The option {\normalfont \ttfamily [diskRadiusSolverCole2000Method]}, if set to {\normalfont \ttfamily true}, alters this behavior to match that of the structure solver used by \cite{cole_hierarchical_2000}, in which adiabatic contraction of the dark matter halo is solved for assuming that the disk has a spherical mass dsitribution. The specific angular momentum passed to the structure solver will be modified as follows in this case:
 \begin{equation}
  j(r) \rightarrow \left[ j^2(r) - \left( V_{\mathrm disk}^2(r) r^2 - {\mathrm G} M_{\mathrm disk}(<r) r \right) \right]^{1/2},
 \end{equation}
-where $V_{\mathrm disk}$ is the rotation curve in the plane of an infinitely thin exponential disk. This adjustment accounts for the difference between a thin disk and spherical mass distribution. Note that in this case (as in \citealt{cole_hierarchical_2000}) the resulting disk will not precisely satisfy $j(r) = r V_{\mathrm c}(r)$ where $V_{\mathrm c}(r)$ is the net rotation curve.
+where $V_{\mathrm disk}$ is the rotation curve in the plane of the disk. This adjustment accounts for the difference between a thin disk and spherical mass distribution. Note that in this case (as in \citealt{cole_hierarchical_2000}) the resulting disk will not precisely satisfy $j(r) = r V_{\mathrm c}(r)$ where $V_{\mathrm c}(r)$ is the net rotation curve.
 
 \section{Galactic Spheroid}\label{sec:ComponentSpheroid}
 
@@ -571,7 +605,7 @@ No initialization is performed---spheroids are created as needed.
 
 \subsubsection{Differential Evolution}
 
-In the standard galactic spheroid implementation the gas mass evolves as\footnote{There may be an additional contribution to the mass and angular momentum rates of change in the spheroid due to material transferred from the disk \gls{component} via the bar instability mechanism (see \S\protect\ref{sec:DiskExponential}). This is not included here as it is not intrinsic to this specific spheroid implementation---it is handled explicitly by the disk \gls{component} and so applies equally to any spheroid \gls{component} implementation.}:
+In the standard galactic spheroid implementation the gas mass evolves as\footnote{There may be an additional contribution to the mass and angular momentum rates of change in the spheroid due to material transferred from the disk \gls{component} via the bar instability mechanism (see \S\protect\ref{sec:DiskStandard}). This is not included here as it is not intrinsic to this specific spheroid implementation---it is handled explicitly by the disk \gls{component} and so applies equally to any spheroid \gls{component} implementation.}:
 \begin{equation}
  \dot{M}_{\mathrm spheroid, gas} = - \dot{M}_{\mathrm outflow, spheroid} - \dot{M}_{\mathrm stars, spheroid} - \dot{M}_{\mathrm ram pressure} - {M_{\mathrm spheroid, gas} \over M_{\mathrm spheroid, gas} + M_{\mathrm spheroid, stars}} \dot{M}_{\mathrm tidal},
 \end{equation}
@@ -583,8 +617,7 @@ with
 \begin{equation}
  \Psi = {M_{\mathrm spheroid, gas} \over \tau_{\mathrm spheroid, star~formation}}
 \end{equation}
-with $\tau_{\mathrm spheroid, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars.
-Element abundances (including total metals) evolve according to:
+with $\tau_{\mathrm spheroid, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars. If {\normalfont \ttfamily [spheroidStarFormationInSatellites]}$=${\normalfont \ttfamily true} then the star formation rate is forced to zero in satellite galaxies. Element abundances (including total metals) evolve according to:
 \begin{eqnarray}
   \dot{M}_{Z, {\mathrm spheroid, gas}} &=& - \dot{M}_{Z, {\mathrm outflow, spheroid}} - \dot{M}_{Z, {\mathrm stars, spheroid}} + \dot{y} - {M_{Z, {\mathrm spheroid, gas}} \over M_{\mathrm spheroid, gas}} \dot{M}_{\mathrm ram pressure} \nonumber \\ 
  & & - {M_{Z, {\mathrm spheroid, gas}} \over M_{\mathrm spheroid, gas} + M_{\mathrm spheroid, stars}} \dot{M}_{\mathrm tidal},
@@ -772,6 +805,33 @@ None.
 \noindent\emph{Satellite merging:} None.\\
 
 \noindent\emph{Node promotion:} $M_{\mathrm node, maximum}$ is updated to the \gls{node} maximum mass of the parent prior to promotion.\\
+
+\subsection{``Standard-Extended Implemenation}
+
+\subsubsection{Properties}
+
+The standard-extended basic properties implementation extends the standard implementation and defines the following additional properties:
+\begin{description}
+ \item [{\normalfont \ttfamily massBertschinger}] The ``Bertschinger'' mass of the node, defined as the mass enclosing a density contrast equal to that for the spherical collapse model: $M_{\mathrm node, Bertschinger}$ [{\normalfont \ttfamily basicMassBertschinger}].
+ \item [{\normalfont \ttfamily accretionRateBertschinger}] The accretion rate of ``Bertschinger'' mass onto the node: $\dot{M}_{\mathrm node, Bertschinger}$ [{\normalfont \ttfamily basicAccretionRateBertschinger}].
+ \item [{\normalfont \ttfamily radiusTurnaround}] The turnaround radius corresponding to the current ``Bertshcinger''mass: $R_{\mathrm ta}$ [{\normalfont \ttfamily basicRadiusTurnaround}]
+\end{description}
+
+\subsubsection{Initialization}
+
+The Bertschinger mass and accretion rate for each node are computed from $M_{\mathrm basic}$ and the dark matter density profile. The turnaround radius is computed from the virial radius (under the appropriate definition for the Bertschinger mass) and the ratio of turnaround to virial radius from spherical collapse models. The specific spherical collapse model to use is determined by the {\normalfont \ttfamily [nodeComponentBasicExtendedSphericalCollapseType]} parameter---a value of ``{\normalfont \ttfamily matterLambda}'' causes the solution for matter+cosmological constant universes to be used, while a value of ``{\normalfont \ttfamily matterDarkEnergy}'' causes the solution for matter+dark energy universes to be used.
+
+\subsubsection{Differential Evolution}
+
+None.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} The accretion rate of Bertschinger mass is set to zero.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} $\dot{M}_{\mathrm node, Bertschinger}$ is updated to the \gls{node} Bertschinger accretion rate of the parent prior to promotion.\\
 
 \section{Position}\label{sec:ComponentPosition}
 
@@ -1141,7 +1201,7 @@ The scale radius and shape parameter of each node grow linearly with time to int
 
 This \gls{component} records statistics associated with galaxy merging.
 
-\subsection{``Standard Implementation}
+\subsection{``Standard'' Implementation}
 
 \subsubsection{Properties}
 
@@ -1193,6 +1253,31 @@ The number of recent mergers do not evolve.
 \noindent\emph{Satellite merging:} N/A.\\
 
 \noindent\emph{Node promotion:} N/A.\\
+
+\subsection{``Major'' Implementation}
+
+\subsubsection{Properties}
+
+The major merging statistics implementation defines the following properties:
+\begin{description}
+ \item [{\normalfont \ttfamily majorMergerTime}] The time(s) of galaxy major mergers experience by this node. If non-empty, the merger times are output to a dataset {\normalfont \ttfamily majorMergers/Output\textless O\textgreater/mergerTree\textless T\textgreater/node\textless N\textgreater} (where {\normalfont \ttfamily \textless O\textgreater} is the output number, {\normalfont \ttfamily \textless T\textgreater} is the tree index, and {\normalfont \ttfamily \textless N\textgreater} is the node index) in the \glc\ output file.
+\end{description}
+
+\subsubsection{Initialization}
+
+The times are initialized to an empty list.
+
+\subsubsection{Differential Evolution}
+
+N/A.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} N/A.\\
+
+\noindent\emph{Satellite merging:} If the merger is major, the time of the merger is appended to the list of merging times for the host node.\\
+
+\noindent\emph{Node promotion:} Times recorded from the parent node are appended to those of the child node prior to promotion.\\
 
 \section{Age Statistics}
 

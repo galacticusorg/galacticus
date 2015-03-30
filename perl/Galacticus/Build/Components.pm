@@ -234,11 +234,11 @@ sub Components_Generate_Output {
     }
 
     # Create a Makefile to specify dependencies on these include files.
-    open(makeFile,">./work/build/Makefile_Component_Includes.tmp");
-    print makeFile "./work/build/objects.nodes.o:".join("",map {" ./work/build/".$_} @includeDependencies)
+    open(makeFile,">".$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp");
+    print makeFile $ENV{'BUILDPATH'}."/objects.nodes.o:".join("",map {" ".$ENV{'BUILDPATH'}."/".$_} @includeDependencies)
 	if ( scalar(@includeDependencies) > 0 );
     close(makeFile);
-    &File_Changes::Update("./work/build/Makefile_Component_Includes" ,"./work/build/Makefile_Component_Includes.tmp" );
+    &File_Changes::Update($ENV{'BUILDPATH'}."/Makefile_Component_Includes" ,$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp" );
 
 }
 
@@ -1998,6 +1998,22 @@ sub Generate_Tree_Node_Object {
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
+	     name        => "timeStep"                                                                                                        ,
+	     function    => "Tree_Node_Time_Step"                                                                                             ,
+	     description => "Return the time-step last used by this node."                                                                    ,
+	     returnType  => "\\doublezero"                                                                                                    ,
+	     arguments   => ""
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "timeStepSet"                                                                                                     ,
+	     function    => "Tree_Node_Time_Step_Set"                                                                                         ,
+	     description => "Set the time-step used by this node."                                                                            ,
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => "\\doublezero\ index\\argin"
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
 	     name        => "uniqueID"                                                                                                        ,
 	     function    => "Tree_Node_Unique_ID"                                                                                             ,
 	     description => "Return the unique identifier for this node."                                                                     ,
@@ -2196,6 +2212,10 @@ sub Generate_Tree_Node_Object {
 	     intrinsic  => "integer",
 	     type       => "kind=kind_int8",
 	     variables  => [ "indexValue", "uniqueIdValue" ]
+	 },
+	 {
+	     intrinsic  => "double precision",
+	     variables  => [ "timeStepValue" ]
 	 },
 	 {
 	     intrinsic  => "type",
@@ -5479,7 +5499,7 @@ sub Generate_Node_Copy_Function {
     $functionCode .= "    skipFormationNodeActual=.false.\n";
     $functionCode .= "    if (present(skipFormationNode)) skipFormationNodeActual=skipFormationNode\n";
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." =  self%".$_."\n"
-	foreach ( "uniqueIdValue", "indexValue" );
+	foreach ( "uniqueIdValue", "indexValue", "timeStepValue" );
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." => self%".$_."\n"
 	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event", "hostTree" );
     $functionCode .= "    if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode\n";
@@ -6382,6 +6402,8 @@ sub Generate_Tree_Node_Creation_Function {
     $functionCode .= "    if (uniqueIDCount <= 0) call Galacticus_Error_Report('treeNodeInitialize','ran out of unique ID numbers')\n";
     $functionCode .= "    self%uniqueIdValue=uniqueIDCount\n";
     $functionCode .= "    !\$omp end critical(UniqueID_Assign)\n";
+    $functionCode .= "    ! Assign a timestep.\n";
+    $functionCode .= "    self%timeStepValue=-1.0d0\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine treeNodeInitialize\n";	
     # Insert into the function list.

@@ -94,9 +94,10 @@ contains
 
   double precision function Equivalent_Circular_Orbit_Solver(radius)
     !% Root function used in finding equivalent circular orbits.
-    use Dark_Matter_Profiles
-    use Dark_Matter_Profiles_Error_Codes
+    use Galactic_Structure_Options
+    use Galactic_Structure_Potentials
     use Galacticus_Error
+    use Dark_Matter_Profiles
     implicit none
     double precision                        , intent(in   ) :: radius
     double precision                        , parameter     :: potentialInfinite=1.0d30
@@ -104,13 +105,13 @@ contains
     double precision                                        :: potential
     integer                                                 :: status
 
-    ! Get required objects.
-    darkMatterProfile_ => darkMatterProfile()
-    potential=darkMatterProfile_%potential(activeNode,radius,status)
+    ! Get potential.
+    potential=Galactic_Structure_Potential(activeNode,radius,status=status)
     select case (status)
-    case (darkMatterProfileSuccess)
+    case (structureErrorCodeSuccess )
+       darkMatterProfile_ => darkMatterProfile()
        Equivalent_Circular_Orbit_Solver=potential+0.5d0*darkMatterProfile_%circularVelocity(activeNode,radius)**2-orbitalEnergyInternal
-    case (darkMatterProfileErrorInfinite)
+    case (structureErrorCodeInfinite)
        ! The gravitational potential is negative infinity at this radius (most likely zero radius). Since all we care about in
        ! this root-finding function is the sign of the function, return a large negative value.
        Equivalent_Circular_Orbit_Solver=-potentialInfinite
@@ -124,26 +125,23 @@ contains
     !% Solves for the pericentric radius and velocity of {\normalfont \ttfamily thisOrbit} in {\normalfont \ttfamily hostNode}.
     use Root_Finder
     use Kepler_Orbits
-    use Dark_Matter_Profiles
-    use Dark_Matter_Profiles_Error_Codes
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
     use Galacticus_Error
+    use Galactic_Structure_Options
+    use Galactic_Structure_Potentials
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: hostNode
-    type            (keplerOrbit           ), intent(inout)          :: thisOrbit
-    integer                                 , intent(in   )          :: extremumType
-    double precision                        , intent(  out)          :: radius                 , velocity
-    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
-    double precision                        , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder            ), save                   :: finder
+    type            (treeNode   ), intent(inout), pointer :: hostNode
+    type            (keplerOrbit), intent(inout)          :: thisOrbit
+    integer                      , intent(in   )          :: extremumType
+    double precision             , intent(  out)          :: radius                 , velocity
+    double precision             , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder ), save                   :: finder
     !$omp threadprivate(finder)
-    type            (keplerOrbit           )                         :: currentOrbit
-    integer                                                          :: status
-    double precision                                                 :: potential
+    type            (keplerOrbit)                         :: currentOrbit
+    integer                                               :: status
+    double precision                                      :: potential
 
-    ! Get required objects.
-    darkMatterProfile_ => darkMatterProfile()
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     currentOrbit=Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,hostNode)
     ! Extract the orbital energy and angular momentum.
@@ -204,11 +202,11 @@ contains
        velocity=orbitalAngularMomentumInternal/radius
     else
        ! Orbit is radial - use energy to find velocity.
-       potential=darkMatterProfile_%potential(activeNode,radius,status)
+       potential=Galactic_Structure_Potential(activeNode,radius,status=status)    
        select case (status)
-       case (darkMatterProfileSuccess)
+       case (structureErrorCodeSuccess )
           velocity=sqrt(2.0d0*(orbitalEnergyInternal-potential))
-       case (darkMatterProfileErrorInfinite)
+       case (structureErrorCodeInfinite)
           ! The gravitational potential is negative infinity at this radius (most likely zero radius). Velocity is formally
           ! infinite. Return speed of light as a suitably fast value.
           velocity=speedLight/kilo
@@ -221,13 +219,13 @@ contains
 
   double precision function Extremum_Solver(radius)
     !% Root function used in finding orbital extremum radius.
-    use Dark_Matter_Profiles
+    use Galactic_Structure_Potentials
     implicit none
-    double precision                        , intent(in   ) :: radius
-    class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
-
-    darkMatterProfile_ => darkMatterProfile()
-    Extremum_Solver=darkMatterProfile_%potential(activeNode,radius)+0.5d0*(orbitalAngularMomentumInternal/radius)**2-orbitalEnergyInternal
+    double precision, intent(in   ) :: radius
+    double precision                :: potential
+    
+    potential=Galactic_Structure_Potential(activeNode,radius)
+    Extremum_Solver=potential+0.5d0*(orbitalAngularMomentumInternal/radius)**2-orbitalEnergyInternal
     return
   end function Extremum_Solver
 
@@ -255,7 +253,7 @@ contains
     velocityVirialOriginal=                                                     thisOrbit%velocityScale()
     potentialHost         =Galactic_Structure_Potential(currentHost,radiusVirialOriginal)
     ! Create a new orbit with an adjusted energy.
-    Satellite_Orbit_Convert_To_Current_Potential=thisOrbit
+    Satellite_Orbit_Convert_To_Current_Potential=thisOrbit    
     call Satellite_Orbit_Convert_To_Current_Potential%energySet(thisOrbit%energy()+velocityVirialOriginal**2+potentialHost)
     return
   end function Satellite_Orbit_Convert_To_Current_Potential

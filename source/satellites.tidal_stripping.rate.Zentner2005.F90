@@ -85,14 +85,16 @@ contains
     type            (treeNode              ), pointer     , intent(inout) :: thisNode
     type            (treeNode              ), pointer                     :: hostNode
     double precision                        , dimension(3)                :: position,velocity
-    double precision                        , parameter                   :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    double precision                        , parameter                   :: toleranceAbsolute      =0.0d0 , toleranceRelative=1.0d-3
+    double precision                        , parameter                   :: radiusZero             =0.0d0
+    double precision                        , parameter                   :: tidalRadiusTinyFraction=1.0d-6
     type            (rootFinder            ), save                        :: finder
     !$omp threadprivate(finder)
     double precision                                                      :: satelliteMass          , parentDensity           , &
          &                                                                   parentEnclosedMass     , angularVelocity         , &
          &                                                                   orbitalPeriod          , radius                  , &
          &                                                                   tidalTensor            , tidalRadius             , &
-         &                                                                   outerSatelliteMass
+         &                                                                   outerSatelliteMass     , radialTimeScale
 
     ! Get required quantities from satellite and host nodes.
     hostNode          => thisNode     %mergesWith()
@@ -109,7 +111,12 @@ contains
          &              *kilo                                                &
          &              *gigaYear                                            &
          &              /megaParsec
-    orbitalPeriod     =  2.0d0*Pi/angularVelocity
+    radialTimescale   =  abs             (   Dot_Product(position,velocity)) &
+         &              /radius**2                                           &
+         &              *kilo                                                &
+         &              *gigaYear                                            &
+         &              /megaParsec
+    orbitalPeriod     =  1.0d0/max(angularVelocity/2.0d0/Pi,radialTimescale)
     ! Find the tidal tensor.
     tidalTensor       = -gravitationalConstantGalacticus &
          &              *(                               &
@@ -122,7 +129,13 @@ contains
          &               )                               &
          &              *(kilo*gigaYear/megaParsec)**2
     ! If the tidal force is stretching (not compressing), compute the tidal radius.
-    if (angularVelocity**2 > tidalTensor .and. satelliteMass > 0.d0) then
+    if     (                                                                     &
+         &   angularVelocity**2                                    > tidalTensor &
+         &  .and.                                                                &
+         &   satelliteMass                                         >  0.0d0      &
+         &  .and.                                                                &
+         &   Galactic_Structure_Enclosed_Mass(thisNode,radiusZero) >= 0.0d0      &
+         & ) then
        tidalRadius=                                  &
             &      (                                 &
             &        gravitationalConstantGalacticus &
@@ -133,7 +146,6 @@ contains
             &        )                               &
             &       *(kilo*gigaYear/megaParsec)**2   &
             &      )**(1.0d0/3.0d0)
-
        ! Find the tidal radius in the heated dark matter profile.
        if (.not.finder%isInitialized()) then
           call finder%rootFunction(Tidal_Radius_Heated_Halo_Solver)
@@ -148,10 +160,18 @@ contains
        end if
        tidalPullGlobal   =  angularVelocity**2-tidalTensor
        activeNode        => thisNode
-       tidalRadius       =  finder%find(rootGuess=tidalRadius)
-       outerSatelliteMass=  Galactic_Structure_Enclosed_Mass(thisNode)-Galactic_Structure_Enclosed_Mass(thisNode,tidalRadius)
+       ! Check for complete stripping.
+       if (Tidal_Radius_Heated_Halo_Solver(tidalRadiusTinyFraction*tidalRadius) > 0.0d0) then
+          tidalRadius=0.0d0
+       else
+          tidalRadius=finder%find(rootGuess=tidalRadius)
+       end if
+       outerSatelliteMass=max(                                                                                                   &
+            &                 Galactic_Structure_Enclosed_Mass(thisNode)-Galactic_Structure_Enclosed_Mass(thisNode,tidalRadius), &
+            &                 0.0d0                                                                                              &
+            &                )
     else
-       outerSatelliteMass=  0.0d0
+       outerSatelliteMass=0.0d0
     end if
     ! Compute the rate of mass loss.
     Satellite_Tidal_Stripping_Rate_Zentner2005=-satelliteTidalStrippingZentner2005Rate*outerSatelliteMass/orbitalPeriod
@@ -164,27 +184,29 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     use Galactic_Structure_Enclosed_Masses
+    use Galactic_Structure_Options
     implicit none
     double precision                        , intent(in   ) :: radius
     class           (nodeComponentSatellite), pointer       :: satelliteComponent
-    double precision                                        :: tidalHeatingNormalized
+    double precision                                        :: tidalHeatingNormalized, enclosedMass
 
     ! Get the satellite component.
-    satelliteComponent       =>     activeNode        %satellite             ()
+    satelliteComponent       =>    activeNode        %satellite             ()
     tidalHeatingNormalized   = max(satelliteComponent%tidalHeatingNormalized(),0.0d0)
-    Tidal_Radius_Heated_Halo_Solver=                                                  &
-         &                      radius                                                &
-         &                     *(                                                     &
-         &                        tidalPullGlobal                                     &
-         &                       /gravitationalConstantGalacticus                     &
-         &                       /Galactic_Structure_Enclosed_Mass(activeNode,radius) &
-         &                       *(megaParsec/(kilo*gigaYear))**2                     &
-         &                      )**(1.0d0/3.0d0)                                      &
-         &                     +2.0d0                                                 &
-         &                     *radius**3                                             &
-         &                     *tidalHeatingNormalized                                &
-         &                     /gravitationalConstantGalacticus                       &
-         &                     /Galactic_Structure_Enclosed_Mass(activeNode,radius)   &
+    enclosedMass             = Galactic_Structure_Enclosed_Mass(activeNode,radius)
+    Tidal_Radius_Heated_Halo_Solver=                              &
+         &                      radius                            &
+         &                     *(                                 &
+         &                        tidalPullGlobal                 &
+         &                       /gravitationalConstantGalacticus &
+         &                       /enclosedMass                    &
+         &                       *(megaParsec/(kilo*gigaYear))**2 &
+         &                      )**(1.0d0/3.0d0)                  &
+         &                     +2.0d0                             &
+         &                     *radius**3                         &
+         &                     *tidalHeatingNormalized            &
+         &                     /gravitationalConstantGalacticus   &
+         &                     /enclosedMass                      &
          &                     -1.0d0
     return
   end function Tidal_Radius_Heated_Halo_Solver
