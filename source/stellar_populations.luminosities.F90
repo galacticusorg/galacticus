@@ -115,7 +115,7 @@ contains
        ! Read the parameter controlling integration tolerance.
        !@ <inputParameter>
        !@   <name>stellarPopulationLuminosityIntegrationToleranceRelative</name>
-       !@   <defaultValue>$10^{-3}$</defaultValue>
+       !@   <defaultValue>$2 \times 10^{-3}$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    The relative tolerance used when integrating the flux of stellar populations through filters.
@@ -123,7 +123,7 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceRelative',stellarPopulationLuminosityIntegrationToleranceRelative,defaultValue=1.0d-3)
+       call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceRelative',stellarPopulationLuminosityIntegrationToleranceRelative,defaultValue=2.0d-3)
        !@ <inputParameter>
        !@   <name>stellarPopulationLuminosityIntegrationToleranceDegrade</name>
        !@   <defaultValue>false</defaultValue>
