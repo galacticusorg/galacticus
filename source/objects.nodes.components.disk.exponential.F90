@@ -444,11 +444,15 @@ contains
     use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type   (treeNode         ), intent(inout), pointer :: thisNode
-    class  (nodeComponentDisk)               , pointer :: thisDiskComponent
-    type   (history          )                         :: starFormationHistory      , stellarPropertiesHistory
-    logical                                            :: createStarFormationHistory, createStellarPropertiesHistory
-
+    type   (treeNode             ), intent(inout), pointer :: thisNode
+    class  (nodeComponentDisk    )               , pointer :: thisDiskComponent
+    class  (nodeComponentSpheroid)               , pointer :: spheroid
+    class  (nodeComponentBasic   )               , pointer :: basic
+    type   (history              )                         :: starFormationHistory        , stellarPropertiesHistory      , &
+         &                                                    spheroidStarFormationHistory
+    logical                                                :: createStarFormationHistory  , createStellarPropertiesHistory
+    double precision                                       :: timeBegin
+    
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Exit if already initialized.
@@ -468,8 +472,16 @@ contains
     end if
     ! Create the star formation history.
     if (createStarFormationHistory    ) then
-       call Star_Formation_History_Create                (thisNode,    starFormationHistory)
-       call thisDiskComponent%    starFormationHistorySet(             starFormationHistory)
+       spheroid => thisNode%spheroid()
+       spheroidStarFormationHistory=spheroid%starFormationHistory()
+       if (spheroidStarFormationHistory%exists()) then
+          timeBegin=  spheroidStarFormationHistory%time(1)
+       else
+          basic    => thisNode%basic()
+          timeBegin=  basic   %time ()
+       end if
+       call Star_Formation_History_Create                (thisNode,    starFormationHistory,timeBegin)
+       call thisDiskComponent%    starFormationHistorySet(             starFormationHistory          )
     end if
     ! Record that the disk has been initialized.
     call thisDiskComponent%isInitializedSet(.true.)
@@ -518,7 +530,7 @@ contains
          &                                                                     stellarMassRate             , transferRate
     type            (history                      )                         :: historyTransferRate         , stellarHistoryRate
     type            (stellarLuminosities          )                         :: luminositiesStellarRates    , luminositiesTransferRate
-
+    
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
 
