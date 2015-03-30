@@ -1263,11 +1263,15 @@ contains
     !% Initializes a standard spheroid component.
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type   (nodeComponentSpheroidStandard )          :: self
-    type   (treeNode                      ), pointer :: selfNode
-    type   (history                       )          :: starFormationHistory      , stellarPropertiesHistory
-    logical                                          :: createStarFormationHistory, createStellarPropertiesHistory
-
+    type            (nodeComponentSpheroidStandard )          :: self
+    type            (treeNode                      ), pointer :: selfNode
+    class           (nodeComponentDisk             ), pointer :: disk
+    class           (nodeComponentBasic            ), pointer :: basic
+    type            (history                       )          :: starFormationHistory      , stellarPropertiesHistory      , &
+         &                                                       diskStarFormationHistory
+    logical                                                   :: createStarFormationHistory, createStellarPropertiesHistory
+    double precision                                          :: timeBegin
+    
     ! Return if already initialized.
     if (self%isInitialized()) return
     ! Get the associated node.
@@ -1286,8 +1290,16 @@ contains
     end if
     ! Create the star formation history.
     if (createStarFormationHistory    ) then
-       call Star_Formation_History_Create               (selfNode,    starFormationHistory)
-       call self%    starFormationHistorySet(                         starFormationHistory)
+       disk => selfNode%disk()
+       diskStarFormationHistory=disk%starFormationHistory()
+       if (diskStarFormationHistory%exists()) then
+          timeBegin=  diskStarFormationHistory%time(1)
+       else
+          basic    => selfNode%basic()
+          timeBegin=  basic   %time ()
+       end if
+       call Star_Formation_History_Create               (selfNode,    starFormationHistory,timeBegin)
+       call self%    starFormationHistorySet(                         starFormationHistory          )
     end if
     ! Record that the spheroid has been initialized.
     call self%isInitializedSet(.true.)

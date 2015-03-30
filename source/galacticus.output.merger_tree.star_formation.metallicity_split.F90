@@ -107,62 +107,80 @@ contains
        !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoryFineTime'          ,starFormationHistoryFineTime          ,defaultValue=0.1d0 )
-       !@ <inputParameter>
-       !@   <name>starFormationHistoryMetallicityCount</name>
-       !@   <defaultValue>10</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The number of bins in metallicity to use when tabulating star formation histories.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationHistoryMetallicityCount'  ,starFormationHistoryMetallicityCount  ,defaultValue=10    )
-       !@ <inputParameter>
-       !@   <name>starFormationHistoryMetallicityMinimum</name>
-       !@   <defaultValue>$10^{-4}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The upper limit to the metallicity in the lowest metallicity bin when tabulating star formation histories [Solar units].
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationHistoryMetallicityMinimum',starFormationHistoryMetallicityMinimum,defaultValue=1.0d-4)
-       !@ <inputParameter>
-       !@   <name>starFormationHistoryMetallicityMaximum</name>
-       !@   <defaultValue>$10^{1}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The upper limit to the metallicity in the highest metallicity bin when tabulating star formation histories [Solar units].
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationHistoryMetallicityMaximum',starFormationHistoryMetallicityMaximum,defaultValue=1.0d+1)
-
-       ! Construct a table of metallicities at which to tabulate. Add an extra bin since we want to catch all metallicities,
-       ! including those below and above the maximum. A single bin is not allowed, but zero bins implies that no metallicity
-       ! resolution is required.
-       select case (starFormationHistoryMetallicityCount)
-       case (:-1,1)
-          call Galacticus_Error_Report('Star_Formation_Histories_Metallicity_Split_Initialize','number of bins must be 0, or greater than 1')
-       case default
+       ! Check if specific metallicities were given.
+       if (Input_Parameter_Is_Present('starFormationHistoryMetallicityBoundaries')) then
+          starFormationHistoryMetallicityCount=Get_Input_Parameter_Array_Size('starFormationHistoryMetallicityBoundaries')
           call Alloc_Array(metallicityTable,[starFormationHistoryMetallicityCount+1])
-          if (starFormationHistoryMetallicityCount > 1) then
-             metallicityTable(1:starFormationHistoryMetallicityCount)=Make_Range(starFormationHistoryMetallicityMinimum&
-                  &,starFormationHistoryMetallicityMaximum ,starFormationHistoryMetallicityCount,rangeType=rangeTypeLogarithmic)
-          end if
-          metallicityTable(starFormationHistoryMetallicityCount+1)=metallicityInfinite
-       end select
+          !@ <inputParameter>
+          !@   <name>starFormationHistoryMetallicityBoundaries</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The metallicities corresponding to boundaries between metallicity bins to use when tabulating star formation histories.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1..</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationHistoryMetallicityBoundaries',metallicityTable(1:size(metallicityTable)-1))
+          metallicityTable(size(metallicityTable))=metallicityInfinite
+       else
+          !@ <inputParameter>
+          !@   <name>starFormationHistoryMetallicityCount</name>
+          !@   <defaultValue>10</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The number of bins in metallicity to use when tabulating star formation histories.
+          !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationHistoryMetallicityCount'  ,starFormationHistoryMetallicityCount  ,defaultValue=10    )
+          !@ <inputParameter>
+          !@   <name>starFormationHistoryMetallicityMinimum</name>
+          !@   <defaultValue>$10^{-4}$</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The upper limit to the metallicity in the lowest metallicity bin when tabulating star formation histories [Solar units].
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationHistoryMetallicityMinimum',starFormationHistoryMetallicityMinimum,defaultValue=1.0d-4)
+          !@ <inputParameter>
+          !@   <name>starFormationHistoryMetallicityMaximum</name>
+          !@   <defaultValue>$10^{1}$</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The upper limit to the metallicity in the highest metallicity bin when tabulating star formation histories [Solar units].
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationHistoryMetallicityMaximum',starFormationHistoryMetallicityMaximum,defaultValue=1.0d+1)
+
+          ! Construct a table of metallicities at which to tabulate. Add an extra bin since we want to catch all metallicities,
+          ! including those below and above the maximum. A single bin is not allowed, but zero bins implies that no metallicity
+          ! resolution is required.
+          select case (starFormationHistoryMetallicityCount)
+          case (:-1,1)
+             call Galacticus_Error_Report('Star_Formation_Histories_Metallicity_Split_Initialize','number of bins must be 0, or greater than 1')
+          case default
+             call Alloc_Array(metallicityTable,[starFormationHistoryMetallicityCount+1])
+             if (starFormationHistoryMetallicityCount > 1) then
+                metallicityTable(1:starFormationHistoryMetallicityCount)=Make_Range(starFormationHistoryMetallicityMinimum&
+                     &,starFormationHistoryMetallicityMaximum ,starFormationHistoryMetallicityCount,rangeType=rangeTypeLogarithmic)
+             end if
+             metallicityTable(starFormationHistoryMetallicityCount+1)=metallicityInfinite
+          end select
+       end if
     end if
     return
   end subroutine Star_Formation_Histories_Metallicity_Split_Initialize
 
-  subroutine Star_Formation_History_Create_Metallicity_Split(thisNode,thisHistory)
+  subroutine Star_Formation_History_Create_Metallicity_Split(thisNode,thisHistory,timeBegin)
     !% Create the history required for storing star formation history.
     use Histories
     use Galacticus_Nodes
@@ -170,14 +188,15 @@ contains
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     type            (history           ), intent(inout)          :: thisHistory
+    double precision                    , intent(in   )          :: timeBegin
     class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    double precision                                             :: timeBegin         , timeEnd
+    double precision                                             :: timeBeginActual   , timeEnd
 
     ! Find the start and end times for this history.
-    thisBasicComponent => thisNode%basic()
-    timeBegin=thisBasicComponent%time()
-    timeEnd  =Galacticus_Next_Output_Time(timeBegin)
-    call Star_Formation_History_Metallicity_Split_Make_History(thisHistory,timeBegin,timeEnd)
+    thisBasicComponent =>               thisNode          %basic()
+    timeBeginActual    =  min(timeBegin,thisBasicComponent%time ())
+    timeEnd            =  Galacticus_Next_Output_Time(timeBeginActual)
+    call Star_Formation_History_Metallicity_Split_Make_History(thisHistory,timeBeginActual,timeEnd)
     return
   end subroutine Star_Formation_History_Create_Metallicity_Split
 

@@ -39,10 +39,11 @@ module Galacticus_Output_Star_Formation_Histories
   ! Pointer to the subroutine that creates any history required for star formation histories.
   procedure(Star_Formation_History_Create_Template), pointer :: Star_Formation_History_Create_Do =>null()
   abstract interface
-     subroutine Star_Formation_History_Create_Template(thisNode,thisHistory)
+     subroutine Star_Formation_History_Create_Template(thisNode,thisHistory,timeBegin)
        import treeNode, history
-       type(treeNode), intent(inout), pointer :: thisNode
-       type(history ), intent(inout)          :: thisHistory
+       type            (treeNode), intent(inout), pointer :: thisNode
+       type            (history ), intent(inout)          :: thisHistory
+       double precision          , intent(in   )          :: timeBegin
      end subroutine Star_Formation_History_Create_Template
   end interface
 
@@ -126,17 +127,18 @@ contains
     return
   end subroutine Galacticus_Output_Star_Formation_Histories_Initialize
 
-  subroutine Star_Formation_History_Create(thisNode,thisHistory)
+  subroutine Star_Formation_History_Create(thisNode,thisHistory,timeBegin)
     !% Create any history required for storing the star formation history.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    type(history ), intent(inout)          :: thisHistory
+    type            (treeNode), intent(inout), pointer :: thisNode
+    type            (history ), intent(inout)          :: thisHistory
+    double precision          , intent(in   )          :: timeBegin
 
     ! Ensure module is initialized.
     call Galacticus_Output_Star_Formation_Histories_Initialize
 
     ! Simply call the function which does the actual work.
-    call Star_Formation_History_Create_Do(thisNode,thisHistory)
+    call Star_Formation_History_Create_Do(thisNode,thisHistory,timeBegin)
 
     return
   end subroutine Star_Formation_History_Create
