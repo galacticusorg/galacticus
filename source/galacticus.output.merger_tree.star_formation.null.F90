@@ -49,13 +49,14 @@ contains
     return
   end subroutine Star_Formation_Histories_Null_Initialize
 
-  subroutine Star_Formation_History_Create_Null(thisNode,thisHistory)
+  subroutine Star_Formation_History_Create_Null(thisNode,thisHistory,timeBegin)
     !% Create the history required for storing star formation history.
     use Histories
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    type(history ), intent(inout)          :: thisHistory
+    type            (treeNode), intent(inout), pointer :: thisNode
+    type            (history ), intent(inout)          :: thisHistory
+    double precision          , intent(in   )          :: timeBegin
 
     ! Do nothing.
     return
