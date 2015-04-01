@@ -179,21 +179,21 @@ contains
        if (.not.finder%isInitialized()) then
           call finder%rootFunction(Extremum_Solver                    )
           call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-          select case (extremumType)
-          case (extremumPericenter)
-             call finder%rangeExpand (                                                             &
-                  &                   rangeExpandDownward          =0.5d0                        , &
-                  &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-                  &                   rangeExpandType              =rangeExpandMultiplicative      &
-                  &                  )
-          case (extremumApocenter )
-             call finder%rangeExpand (                                                             &
-                  &                   rangeExpandUpward            =2.0d0                        , &
-                  &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-                  &                   rangeExpandType              =rangeExpandMultiplicative      &
-                  &                  )
-          end select
        end if
+       select case (extremumType)
+       case (extremumPericenter)
+          call finder%rangeExpand (                                                             &
+               &                   rangeExpandDownward          =0.5d0                        , &
+               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+               &                   rangeExpandType              =rangeExpandMultiplicative      &
+               &                  )
+       case (extremumApocenter )
+          call finder%rangeExpand (                                                             &
+               &                   rangeExpandUpward            =2.0d0                        , &
+               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+               &                   rangeExpandType              =rangeExpandMultiplicative      &
+               &                  )
+       end select
        radius=finder%find(rootGuess=currentOrbit%radius())
     end if
     ! Get the orbital velocity at this radius.
