@@ -1399,6 +1399,14 @@ $c$ is the concentration parameter of the dark matter halo, and $\Gamma$ is the 
 
 Selected with {\normalfont \ttfamily hotHaloMassDistributionMethod}$=${\normalfont \ttfamily null} this method assumes no hot halo mass distribution. It is useful, for example, when performing dark matter-only calculations.
 
+\subsection{Enzo ``hydrostatic''}\label{phys:hotHaloMassDistribution:hotHaloMassDistributionEnzoHydrostatic}
+
+Selected with {\normalfont \ttfamily hotHaloMassDistributionMethod}$=${\normalfont \ttfamily enzoHydrostatic} this method adopts a spherically symmetric density profile for the hot halo motivated by the ``hydrostatic'' profile available in the \gls{enzo} code. Specifically,
+\begin{equation}
+ \rho_{\mathrm hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} & \hbox{ if } r > r_{\mathrm core} \\ T^{-1} r_{\mathrm core}^{-1} & \hbox{ if } r \le r_{\mathrm core}, \end{array} \right. 
+\end{equation}
+where the core radius, $r_{\mathrm core}$, is set using the selected cored profile core radius method (see \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}). The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, $r_{\mathrm hot, outer}$. Note that the \gls{enzo} hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small radii.
+
 \section{Hot Halo Mass Distribution Profile: Cored Profile Core Radius}\label{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}\index{hot halo!density profile!core radius}\index{density profile!hot halo!core radius}
 
 The algorithm to be used when determining the core radius of cored isothermal hot halo density profiles is selected via the {\normalfont \ttfamily hotHaloMassDistributionCoreRadiusMethod} parameter.
@@ -1482,9 +1490,17 @@ where $\tau_{\mathrm reincorporation}=${\normalfont \ttfamily [hotHaloOutflowRei
 
 The algorithm to be used when determining the hot halo temperature profile is selected via the {\normalfont \ttfamily hotHaloTemperatureMethod} parameter.
 
-\subsection{Virial Temperature}
+\subsection{Virial Temperature}\label{phys:hotHaloTemperatureProfile:hotHaloTemperatureProfileVirial}
 
 Selected with {\normalfont \ttfamily hotHaloTemperatureMethod}$=${\normalfont \ttfamily virial} this method assumes an isothermal halo with a temperature equal to the virial temperature of the halo.
+
+\subsection{Enzo ``Hydrostatic''}\label{phys:hotHaloTemperatureProfile:hotHaloTemperatureProfileEnzoHydrostatic}
+
+Selected with {\normalfont \ttfamily hotHaloTemperatureMethod}$=${\normalfont \ttfamily enzoHydrostatic} this method assumes the ``hydrostatic'' temperature profile available in the \gls{enzo} code. Specifically,
+\begin{equation}
+  T(r) = \hbox{max}\left( {{\mathrm G} M(<r) \mu m_{\mathrm H} \over 3 {\mathrm k_B} r} , T_{\mathrm min} \right),
+\end{equation}
+where $M(<r)$ is the total mass enclosed within radius $r$, $\mu$ is the primordial mean atomic mass, and $T_{\mathrm min}=${\normalfont \ttfamily [enzoHydrostaticTemperatureMinimum]} is a temperature floor introduced so as to avoid the temperature reaching abitrarily low masses. 
 
 \section{Initial Mass Functions}\index{initial mass function}
 
