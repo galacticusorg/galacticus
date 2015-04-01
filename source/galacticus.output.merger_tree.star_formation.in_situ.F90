@@ -107,7 +107,7 @@ contains
     return
   end subroutine Star_Formation_Histories_In_Situ_Initialize
 
-  subroutine Star_Formation_History_Create_In_Situ(thisNode,thisHistory)
+  subroutine Star_Formation_History_Create_In_Situ(thisNode,thisHistory,timeBegin)
     !% Create the history required for storing star formation history.
     use Histories
     use Galacticus_Nodes
@@ -116,13 +116,14 @@ contains
     type            (treeNode          ), intent(inout), pointer :: thisNode
     type            (history           ), intent(inout)          :: thisHistory
     class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    double precision                                             :: timeBegin         , timeEnd
+    double precision                    , intent(in   )          :: timeBegin
+    double precision                                             :: timeBeginActual   , timeEnd
 
     ! Find the start and end times for this history.
     thisBasicComponent => thisNode%basic()
-    timeBegin=thisBasicComponent%time()
+    timeBeginActual=min(timeBegin,thisBasicComponent%time())
     timeEnd  =Galacticus_Next_Output_Time(timeBegin)
-    call Star_Formation_History_In_Situ_Make_History(thisHistory,timeBegin,timeEnd)
+    call Star_Formation_History_In_Situ_Make_History(thisHistory,timeBeginActual,timeEnd)
     return
   end subroutine Star_Formation_History_Create_In_Situ
 
