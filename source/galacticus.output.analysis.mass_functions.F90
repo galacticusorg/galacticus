@@ -828,7 +828,7 @@ contains
           massFunctionDescriptors( 8)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
           massFunctionDescriptors( 9)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
           massFunctionDescriptors(10)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
-         ! Establish survey incompletenesses.
+          ! Establish survey incompletenesses.
           do i=1,massFunctionsSupportedCount
              select case (i)
              case (gamaStellarMassFunction)
@@ -2068,11 +2068,14 @@ contains
     type            (massFunction                  ), intent(inout)               :: thisMassFunction
     type            (cosmologyFunctionsMatterLambda), intent(inout)               :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     ), intent(inout)               :: cosmologyParametersObserved
-    type            (varying_string                ), intent(  out)               :: cosmologyScalingMass       , cosmologyScalingMassFunction
+    type            (varying_string                ), intent(  out)               :: cosmologyScalingMass              , cosmologyScalingMassFunction
     double precision                                , allocatable  , dimension(:) :: massBinWidths
-    type            (hdf5Object                    )                              :: dataFile                   , massDataset                 , &
+    double precision                                , save                        :: dataOmegaMatterPrevious    =-1.0d0, dataOmegaDarkEnergyPrevious=-1.0d0, &
+         &                                                                           dataHubbleParameterPrevious=-1.0d0
+    !$omp threadprivate(dataOmegaMatterPrevious,dataOmegaDarkEnergyPrevious,dataHubbleParameterPrevious)
+    type            (hdf5Object                    )                              :: dataFile                          , massDataset                       , &
          &                                                                           parameters
-    double precision                                                              :: dataHubbleParameter        , dataOmegaMatter             , &
+    double precision                                                              :: dataHubbleParameter               , dataOmegaMatter                   , &
          &                                                                           dataOmegaDarkEnergy
     integer                                                                       :: k
     logical                                                                       :: massBinWidthsAvailable
@@ -2096,16 +2099,29 @@ contains
     call dataFile   %close()
     !$omp end critical(HDF5_Access)
     ! Create the observed cosmology.
-    cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
-         &                                                     OmegaMatter    =dataOmegaMatter    , &
-         &                                                     OmegaDarkEnergy=dataOmegaDarkEnergy, &
-         &                                                     HubbleConstant =dataHubbleParameter, &
-         &                                                     temperatureCMB =0.0d0              , &
-         &                                                     OmegaBaryon    =0.0d0                &
-         &                                                    )
-    cosmologyFunctionsObserved =cosmologyFunctionsMatterLambda(                                     &
-         &                                                     cosmologyParametersObserved          &
-         &                                                    )
+    if     (                                                          &
+         &  .not.(                                                    &
+         &         dataHubbleParameter == dataHubbleParameterPrevious &
+         &        .and.                                               &
+         &         dataOmegaMatter     == dataOmegaMatterPrevious     &
+         &        .and.                                               &
+         &         dataOmegaDarkEnergy == dataOmegaDarkEnergyPrevious &
+         &       )                                                    &
+         & ) then
+       cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
+            &                                                     OmegaMatter    =dataOmegaMatter    , &
+            &                                                     OmegaDarkEnergy=dataOmegaDarkEnergy, &
+            &                                                     HubbleConstant =dataHubbleParameter, &
+            &                                                     temperatureCMB =0.0d0              , &
+            &                                                     OmegaBaryon    =0.0d0                &
+            &                                                    )
+       cosmologyFunctionsObserved =cosmologyFunctionsMatterLambda(                                     &
+            &                                                     cosmologyParametersObserved          &
+            &                                                    )
+       dataHubbleParameterPrevious=dataHubbleParameter
+       dataOmegaMatterPrevious    =dataOmegaMatter
+       dataOmegaDarkEnergyPrevious=dataOmegaDarkEnergy
+    end if
     ! Construct mass function array.
     thisMassFunction%massesCount=size(thisMassFunction%masses)
     call Alloc_Array(thisMassFunction%massesLogarithmic             ,[thisMassFunction%massesCount                                       ])
