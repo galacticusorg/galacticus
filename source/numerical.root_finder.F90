@@ -24,7 +24,7 @@ module Root_Finder
   implicit none
   private
   public :: rootFinder
-
+  
   ! Enumeration of range expansion types.
   !@ <enumeration>
   !@  <name>rangeExpand</name>
@@ -503,11 +503,11 @@ contains
     end if
     select case (self%rangeExpandType)
     case (rangeExpandAdditive      )
-       if (.not.present(rangeExpandUpward  )) self%rangeExpandUpward=0.0d0
-       if (.not.present(rangeExpandDownward)) self%rangeExpandUpward=0.0d0
+       if (.not.present(rangeExpandUpward  )) self%rangeExpandUpward  =0.0d0
+       if (.not.present(rangeExpandDownward)) self%rangeExpandDownward=0.0d0
     case (rangeExpandMultiplicative)
-       if (.not.present(rangeExpandUpward  )) self%rangeExpandUpward=1.0d0
-       if (.not.present(rangeExpandDownward)) self%rangeExpandUpward=1.0d0
+       if (.not.present(rangeExpandUpward  )) self%rangeExpandUpward  =1.0d0
+       if (.not.present(rangeExpandDownward)) self%rangeExpandDownward=1.0d0
     end select
     if (present(rangeUpwardLimit             )) then
        self%rangeUpwardLimit             =rangeUpwardLimit
@@ -532,7 +532,7 @@ contains
        self%rangeExpandUpwardSignExpect  =rangeExpandUpwardSignExpect
     else
        self%rangeExpandUpwardSignExpect  =rangeExpandSignExpectNone
-    end if
+    end if    
     return
   end subroutine Root_Finder_Range_Expand
 

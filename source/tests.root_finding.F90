@@ -23,8 +23,8 @@ program Test_Root_Finding
   use Root_Finder
   use Test_Root_Finding_Functions
   implicit none
-  type            (rootFinder)               :: finder
-  double precision                           :: xGuess, xRoot
+  type            (rootFinder)               :: finder1, finder2
+  double precision                           :: xGuess , xRoot
   double precision            , dimension(2) :: xRange
 
   ! Begin unit tests.
@@ -32,50 +32,58 @@ program Test_Root_Finding
 
   ! Test root finding.
   xRange=[-1.0d0,+1.0d0]
-  call finder%tolerance(1.0d-6,1.0d-6)
-  call finder%rootFunction(Root_Function_1)
-  xRoot=finder%find(rootRange=xRange)
+  call finder1%tolerance(1.0d-6,1.0d-6)
+  call finder1%rootFunction(Root_Function_1)
+  xRoot=finder1%find(rootRange=xRange)
   call Assert('root of f(x)=x',xRoot,0.0d0,absTol=1.0d-6,relTol=1.0d-6)
 
   xRange=[-1.0d0,+1.0d0]
-  call finder%tolerance(1.0d-6,1.0d-6)
-  call finder%rootFunction(Root_Function_2)
-  xRoot=finder%find(rootRange=xRange)
+  call finder1%tolerance(1.0d-6,1.0d-6)
+  call finder1%rootFunction(Root_Function_2)
+  xRoot=finder1%find(rootRange=xRange)
   call Assert('root of f(x)=x² - 5x + 1 in range -1 < x <  1',xRoot,0.5d0*(5.0d0-sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
 
   xRange=[-1.0d0,+1.0d0]
-  call finder%tolerance(1.0d-6,1.0d-6)
-  call finder%rootFunctionDerivative(Root_Function_2,Root_Function_2_Derivative,Root_Function_2_Both)
-  xRoot=finder%find(rootRange=xRange)
+  call finder1%tolerance(1.0d-6,1.0d-6)
+  call finder1%rootFunctionDerivative(Root_Function_2,Root_Function_2_Derivative,Root_Function_2_Both)
+  xRoot=finder1%find(rootRange=xRange)
   call Assert('root of f(x)=x² - 5x + 1 in range -1 < x <  1 [using derivative]',xRoot,0.5d0*(5.0d0-sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
 
   xRange=[2.0d0,10.0d0]
-  call finder%tolerance(1.0d-6,1.0d-6)
-  call finder%rootFunction(Root_Function_2)
-  xRoot=finder%find(rootRange=xRange)
+  call finder1%tolerance(1.0d-6,1.0d-6)
+  call finder1%rootFunction(Root_Function_2)
+  xRoot=finder1%find(rootRange=xRange)
   call Assert('root of f(x)=x² - 5x + 1 in range  2 < x < 10',xRoot,0.5d0*(5.0d0+sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
 
   xRange=[-1.0d0,+1.0d0]
-  call finder%tolerance(1.0d-6,1.0d-6)
-  call finder%rootFunction(Root_Function_3)
-  xRoot=finder%find(rootRange=xRange)
+  call finder1%tolerance(1.0d-6,1.0d-6)
+  call finder1%rootFunction(Root_Function_3)
+  xRoot=finder1%find(rootRange=xRange)
   call Assert('root of f(x)=x × exp(-x) + 1',xRoot,-0.567143d0,absTol=1.0d-6,relTol=1.0d-6)
 
   ! Test with root bracketing.
   xGuess=0.0d0
-  call finder%tolerance(1.0d-6,1.0d-6)
-  call finder%rangeExpand(rangeExpandUpward=0.1d0,rangeExpandDownward=-0.1d0,rangeExpandType=rangeExpandAdditive)
-  call finder%rootFunction(Root_Function_3)
-  xRoot=finder%find(rootGuess=xGuess)
+  call finder1%tolerance(1.0d-6,1.0d-6)
+  call finder1%rangeExpand(rangeExpandUpward=0.1d0,rangeExpandDownward=-0.1d0,rangeExpandType=rangeExpandAdditive)
+  call finder1%rootFunction(Root_Function_3)
+  xRoot=finder1%find(rootGuess=xGuess)
   call Assert('root of f(x)=x × exp(-x) + 1; with bracketing',xRoot,-0.567143d0,absTol=1.0d-6,relTol=1.0d-6)
 
   ! Test with root bracketing and limit.
   xGuess=0.0d0
-  call finder%tolerance(1.0d-6,1.0d-6)
-  call finder%rangeExpand(rangeExpandUpward=0.1d0,rangeExpandDownward=-0.1d0,rangeExpandType=rangeExpandAdditive,rangeUpwardLimit=1.0d0,rangeDownwardLimit=-5.0d0)
-  call finder%rootFunction(Root_Function_3)
-  xRoot=finder%find(rootGuess=xGuess)
+  call finder1%tolerance(1.0d-6,1.0d-6)
+  call finder1%rangeExpand(rangeExpandUpward=0.1d0,rangeExpandDownward=-0.1d0,rangeExpandType=rangeExpandAdditive,rangeUpwardLimit=1.0d0,rangeDownwardLimit=-5.0d0)
+  call finder1%rootFunction(Root_Function_3)
+  xRoot=finder1%find(rootGuess=xGuess)
   call Assert('root of f(x)=x × exp(-x) + 1; with bracketing + limit',xRoot,-0.567143d0,absTol=1.0d-6,relTol=1.0d-6)
+
+  ! Test regressions.
+  xRange=[+2.0d0,+4.0d0]
+  call finder2%tolerance(1.0d-6,1.0d-6)
+  call finder2%rootFunction(Root_Function_2)
+  call finder2%rangeExpand(rangeExpandUpward=2.0d0,rangeExpandUpwardSignExpect=rangeExpandSignExpectPositive,rangeExpandType=rangeExpandMultiplicative)
+  xRoot=finder2%find(rootRange=xRange)
+  call Assert('root of f(x)=x² - 5x + 1 in range  2 < x < 10 expand range upward only',xRoot,0.5d0*(5.0d0+sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
 
   ! End unit tests.
   call Unit_Tests_End_Group()
