@@ -1198,6 +1198,10 @@
     </parameter>
     <parameter>
       <name>darkMatterProfileMethod</name>
+      <value>tidallyHeated</value>
+    </parameter>
+    <parameter>
+      <name>darkMatterProfileTidallyHeatedUnheatedProfile</name>
       <value>NFW</value>
     </parameter>
     <parameter>
