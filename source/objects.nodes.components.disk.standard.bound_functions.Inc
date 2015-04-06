@@ -164,7 +164,7 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
   logical                                    , intent(in   ), optional :: haloLoaded
   integer                                    , intent(inout), optional :: status
   double precision                                                     :: componentMass
-  type            (coordinateSpherical      )                          :: position
+  type            (coordinateCylindrical    )                          :: position
 
   ! Return immediately if disk component is not requested.
   Node_Component_Disk_Standard_Potential=0.0d0
@@ -182,7 +182,7 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
           &                                 /radius  
   else
      ! Compute the potential.
-     position=[radius/self%radius(),Pi/2.0d0,0.0d0]
+     position=[radius/self%radius(),0.0d0,0.0d0]
      Node_Component_Disk_Standard_Potential=+gravitationalConstantGalacticus          &
           &                                 *componentMass                            &
           &                                 /self%radius()                            &
