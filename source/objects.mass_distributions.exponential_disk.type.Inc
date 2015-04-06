@@ -52,4 +52,12 @@ end type massDistributionExponentialDisk
 
 ! The radius (in units of the disk scale length) beyond which the disk is treated as a point mass for the purposes of computing
 ! rotation curves.
-double precision, parameter :: radiusMaximum=30.0d0
+double precision, parameter :: radiusMaximum                        =30.0d0
+
+! Potential tabulation.
+integer                                   , parameter :: exponentialDiskPotentialPointsPerDecade=10
+double precision                          , parameter :: exponentialDiskPotentialRadiusMinimum  =1.0d-3
+double precision                          , parameter :: exponentialDiskPotentialRadiusMaximum  =5.0d+2
+logical                                               :: exponentialDiskPotentialInitialized    =.false.
+type            (table1DLogarithmicLinear)            :: exponentialDiskPotentialTable
+!$omp threadprivate(exponentialDiskPotentialInitialized,exponentialDiskPotentialTable)
