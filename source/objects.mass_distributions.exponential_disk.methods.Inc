@@ -72,6 +72,39 @@ subroutine Mass_Distribution_Exponential_Disk_Initialize(self,scaleRadius,scaleH
   return
 end subroutine Mass_Distribution_Exponential_Disk_Initialize
 
+subroutine Mass_Distribution_Exponential_Disk_Build_Tables(self)
+  !% Build tables used for exponential disk mass distributions.
+  use Bessel_Functions
+  implicit none
+  class           (massDistributionExponentialDisk), intent(inout) :: self
+  integer                                                          :: i   , potentialPointsCount
+  double precision                                                 :: x
+
+  ! Build table if necessary.
+  if (.not.exponentialDiskPotentialInitialized) then
+     ! Determine how many points to tabulate.
+     potentialPointsCount=int(log10(exponentialDiskPotentialRadiusMaximum/exponentialDiskPotentialRadiusMinimum)*dble(exponentialDiskPotentialPointsPerDecade))+1
+     ! Create the table.
+     call exponentialDiskPotentialTable%destroy()
+     call exponentialDiskPotentialTable%create(exponentialDiskPotentialRadiusMinimum,exponentialDiskPotentialRadiusMaximum,potentialPointsCount,extrapolationType=extrapolationTypeAbort)
+     ! Compute Bessel factors.
+     do i=1,potentialPointsCount
+        x=exponentialDiskPotentialTable%x(i)
+        call exponentialDiskPotentialTable%populate(                                               &
+             &                                      +x                                             &
+             &                                      *(                                             &
+             &                                        +Bessel_Function_I0(x)*Bessel_Function_K1(x) &
+             &                                        -Bessel_Function_I1(x)*Bessel_Function_K0(x) &
+             &                                       ),                                            &
+             &                                      i                                              &
+             &                                     )
+     end do
+     ! Record that table is initialized.
+     exponentialDiskPotentialInitialized=.true.
+  end if
+  return
+end subroutine Mass_Distribution_Exponential_Disk_Build_Tables
+
 double precision function Mass_Distribution_Exponential_Disk_Half_Mass_Radius(self)
   !% Return the half-mass radius in an exponential disk mass distribution.
   implicit none
@@ -234,9 +267,8 @@ double precision function Mass_Distribution_Exponential_Disk_Potential(self,coor
   implicit none
   class           (massDistributionExponentialDisk), intent(inout) :: self
   class           (coordinate                     ), intent(in   ) :: coordinates
-  double precision                                 , parameter     :: radiusLimitPointMass =500.0d0
   type            (coordinateCylindrical          )                :: position
-  double precision                                                 :: correctionSmallRadius        , halfRadius, &
+  double precision                                                 :: correctionSmallRadius, halfRadius, &
        &                                                              radius
   
   ! Get position in cylindrical coordinate system.
@@ -244,11 +276,12 @@ double precision function Mass_Distribution_Exponential_Disk_Potential(self,coor
   ! Compute density.
   radius=position%r()
   ! If the radius is sufficiently large, treat the disk as a point mass.
-  if (radius > radiusLimitPointMass*self%scaleRadius) then
+  if (radius > exponentialDiskPotentialRadiusMaximum*self%scaleRadius) then
      Mass_Distribution_Exponential_Disk_Potential=-self%mass/radius
   else
      ! Radius is sufficiently small to use the full calculation.
-     ! Compute the potential. If the radius is lower than the height then approximate the disk mass as being spherically distributed.
+     ! Compute the potential. If the radius is lower than the height then approximate the disk
+     ! mass as being spherically distributed.
      if (radius > self%scaleHeight) then
         halfRadius           =radius/2.0d0/self%scaleRadius
         correctionSmallRadius=0.0d0
@@ -260,17 +293,11 @@ double precision function Mass_Distribution_Exponential_Disk_Potential(self,coor
              &                                    -self%massEnclosedBySphere(radius) &
              &                                    /radius
      end if
-     ! Compute the potential including the correction to small radii.
-     Mass_Distribution_Exponential_Disk_Potential=         &
-          &             -0.5d0                             &
-          &             *self%mass                         &
-          &             /self%scaleRadius                  &
-          &             *(                                 &
-          &                Bessel_Function_I0(halfRadius)  &
-          &               *Bessel_Function_K1(halfRadius)  &
-          &               -Bessel_Function_I1(halfRadius)  &
-          &               *Bessel_Function_K0(halfRadius)  &
-          &              )                                 &
+     ! Compute the potential including the correction to small radii. 
+     Mass_Distribution_Exponential_Disk_Potential=                                                    &
+          &             -self%mass                                                                    &
+          &             /self%scaleRadius                                                             &
+          &             *Mass_Distribution_Exponential_Disk_Potential_Bessel_Factors(self,halfRadius) &
           &             +correctionSmallRadius     
   end if
   ! Make dimensionful if necessary.
@@ -279,6 +306,27 @@ double precision function Mass_Distribution_Exponential_Disk_Potential(self,coor
        &  *Mass_Distribution_Exponential_Disk_Potential
   return
 end function Mass_Distribution_Exponential_Disk_Potential
+
+double precision function Mass_Distribution_Exponential_Disk_Potential_Bessel_Factors(self,halfR)
+  !% Compute Bessel function factors appearing in the expression for an razor-thin exponential
+  !% disk gravitational potential.
+  use Numerical_Constants_Math
+  use Bessel_Functions
+  implicit none
+  class           (massDistributionExponentialDisk), intent(inout) :: self
+  double precision                                 , intent(in   ) :: halfR
+
+  ! For small half-radii, use a series expansion for a more accurate result.
+  if      (halfR <=                                0.0d0) then
+     Mass_Distribution_Exponential_Disk_Potential_Bessel_Factors=1.0d0
+  else if (halfR < exponentialDiskPotentialRadiusMinimum) then
+     Mass_Distribution_Exponential_Disk_Potential_Bessel_Factors=1.0d0+(eulersConstant-ln2+log(halfR))*halfR**2
+  else
+     call Mass_Distribution_Exponential_Disk_Build_Tables(self)
+     Mass_Distribution_Exponential_Disk_Potential_Bessel_Factors=exponentialDiskPotentialTable%interpolate(halfR)
+  end if
+  return
+end function Mass_Distribution_Exponential_Disk_Potential_Bessel_Factors
 
 double precision function Mass_Distribution_Exponential_Disk_Bessel_Factors(self,halfR)
   !% Compute Bessel function factors appearing in the expression for an razor-thin exponential disk rotation curve.
