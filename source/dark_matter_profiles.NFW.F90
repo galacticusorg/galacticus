@@ -543,9 +543,7 @@ contains
 
   double precision function nfwRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
-    !% in units of km s$^{-1}$ Mpc). For an NFW halo, the circular velocity is constant (and therefore equal to the virial
-    !% velocity). Therefore, $r = j/V_{\mathrm virial}$ where $j$(={\normalfont \ttfamily specificAngularMomentum}) is the specific angular momentum and
-    !% $r$ the required radius.
+    !% in units of km s$^{-1}$ Mpc).
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
