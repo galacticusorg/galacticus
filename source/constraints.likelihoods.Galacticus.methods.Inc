@@ -38,6 +38,7 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   !% Return the log-likelihood for the \glc\ likelihood function. This function runs an external script that drives \glc\ and
   !% writes the resulting likelihood to file. This function then reads that likelihood from file. We make use of {\normalfont \ttfamily tmpfs} for
   !% this likelihood file so that no disk I/O is required.
+  use Constraints_Constants
   use Constraints_State
   use Constraints_Convergence
   use System_Command
@@ -60,6 +61,11 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   logical                                                             :: storeModel
   real                                                                :: timeSystem           , timeUser
 
+  ! If prior probability is impossible, then no need to waste time evaluating the likelihood.
+  if (logPriorProposed <= logImpossible) then
+     likelihoodGalacticusEvaluate=logImpossible
+     return
+  end if
   ! Generate the file name for the likelihood and timing files.
   likelihoodFileName='/dev/shm/galacticusLikelihood_'//mpiSelf%rankLabel()//'.dat'
   timingFileName    ='/dev/shm/glcTiming_'           //mpiSelf%rankLabel()//'.txt'
