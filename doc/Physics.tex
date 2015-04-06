@@ -663,7 +663,7 @@ This differential equation is then solved numerically to find the mass accretion
 
 The method uses to compute density profiles of dark matter halos is selected via the {\normalfont \ttfamily darkMatterProfileMethod} parameter.
 
-\subsubsection{Isothermal}
+\subsubsection{Isothermal}\label{phys:darkMatterProfile:darkMatterProfileIsothermal}
 
 Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily isothermal}, under this method the density profile is given by:
 \begin{equation}
@@ -671,7 +671,7 @@ Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \tt
 \end{equation}
 normalized such that the total mass of the \gls{node} is enclosed with the virial radius.
 
-\subsubsection{NFW}\index{Navarro-Frenk-White profile}\index{density profile!Navarro-Frenk-White}
+\subsubsection{NFW}\index{Navarro-Frenk-White profile}\index{density profile!Navarro-Frenk-White}\label{phys:darkMatterProfile:darkMatterProfileNFW}
 
 Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily NFW}, under this method the \gls{nfw} density profile \citep{navarro_universal_1997} is used
 \begin{equation}
@@ -679,7 +679,7 @@ Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \tt
 \end{equation}
 normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length $r_{\mathrm s} = r_{\mathrm virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}).
 
-\subsubsection{Einasto}\index{Einasto profile}\index{density profile!Einasto}
+\subsubsection{Einasto}\index{Einasto profile}\index{density profile!Einasto}\label{phys:darkMatterProfile:darkMatterProfileEinasto}
 
 Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily Einasto}, under this method the Einasto density profile (e.g. \citealt{cardone_spherical_2005}) is used
 \begin{equation}
@@ -687,7 +687,7 @@ Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \tt
 \end{equation}
 normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the characteristic length $r_{-2} = r_{\mathrm virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}). The shape parameter, $\alpha$, is set using the density profile shape method (see \S\ref{sec:DarkMatterProfileShape}).
 
-\subsubsection{Burkert}\index{Burkert profile}\index{density profile!Burkert}
+\subsubsection{Burkert}\index{Burkert profile}\index{density profile!Burkert}\label{phys:darkMatterProfile:darkMatterProfileBurkert}
 
 Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily Burkert}, under this method the \gls{nfw} density profile \citep{burkert_structure_1995} is used
 \begin{equation}
@@ -707,6 +707,16 @@ The peak of the rotation curve occurs at $R=3.2446257246042642$ (found by numeri
     & & +i \exp(-k) {\rm E}_{\rm i}(k) + \exp(k) {\rm E}_{\rm i}(i [i + c] k) - i \exp(-k) {\rm E}_{\rm i}(k [1 + i c ]) + (1 + i) \exp(-i k) {\rm S}_{\rm i}(k) \nonumber \\
     & & \left. \left. - (1 + i) \exp(-i k) {\rm S}_{\rm i}(k[1 + c])\right]\right\}/\left[k \left\{-2 \tan^{-1}(c) + 2 \log(1 + c) + \log(1 + c^2)\right\}\right].
 \end{eqnarray}
+
+\subsubsection{Tidally-heated}\index{tidally-heated dark matter density profile}\index{dark matter density profile!tidally-heated}\label{phys:darkMatterProfile:darkMatterProfileTidallyHeated}
+
+Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily tidallyHeated}, this method assumes that dark matter halos start out with a density profile defined by another {\normalfont \ttfamily darkMatterProfileMethod} (specified via {\normalfont \ttfamily [darkMatterProfileTidallyHeatedUnheatedProfile]}). For subhalos, this profile is modified by tidal heating, under the assumption that the energy of a shell of mass before and after heating are related by
+\begin{equation}
+{ {\mathrm G} M^\prime(r^\prime) \over r^\prime } = { {\mathrm G} M(r) \over r } + Q r^2,
+\end{equation}
+where $M(r)$ is the mass enclosed within a radius $r$, and $Q$ represents a normalized tidal heating (see \S\ref{sec:ComponentSatelliteOrbiting} for example). Primes indicate values after heating, while unprimed variables indicate quantities prior to heating. With the assumption of no shell crossing, $M^\prime(r^\prime)=M(r)$ and this equation can be solved for $r$ given $r^\prime$.
+
+Not all methods are implemented for this profile. If {\normalfont \ttfamily [darkMatterProfileTidallyHeatedUnimplementedIsFatal]}$=${\normalfont \ttfamily true} then attempts to call these methods in heated profiles aborts, otherwise, a warning is issued and the result for the unheated profile is used instead.
 
 \subsection{Dark Matter Halo Profile Concentration}\label{sec:DarkMatterProfileConcentration}\index{dark matter profile!concentration}
 
