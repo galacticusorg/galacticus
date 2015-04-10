@@ -6043,69 +6043,71 @@ sub Generate_GSR_Functions {
 		    push(@{$dataDefinition->{'attributes'}},"intent(in   )");
 		    (my $currentDefinition,my $currentLabel) = &Data_Object_Definition($linkedData,matchOnly => 1);
 		    push(@{$currentDefinition->{'variables' }},"current"     );
-		    # Skip rate function creation if the rate function is deferred.
-		    unless ( $property->{'attributes'}->{'isDeferred'} =~ m/rate/ ) {
-			# Specify the "rate" function data content.
-			@dataContent = (
-			    $dataDefinition,
-			    {
-				intrinsic  => "class",
-				type       => "nodeComponent".ucfirst($componentID),
-				attributes => [ "intent(inout)" ],
-				variables  => [ "self" ]
-			    },
-			    {
-				intrinsic  => "logical",
-				attributes => [ "optional", "intent(inout)" ],
-				variables  => [ "interrupt" ]
-			    },
-			    {
-				intrinsic  => "procedure",
-				type       => "Interrupt_Procedure_Template",
-				attributes => [ "optional", "intent(inout)", "pointer" ],
-				variables  => [ "interruptProcedure" ]
-			    },
-			    {
-				intrinsic  => "integer",
-				variables  => [ "count" ]
-			    }
-			    );
-			push(@dataContent,$currentDefinition)
-			    unless ( $linkedData->{'type'} eq "real" );
-			# Generate the rate function code.
-			$functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
-			$functionCode .= "    !% Accumulate to the {\\normalfont \\ttfamily ".$propertyName."} property rate of change of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
-			$functionCode .= "    implicit none\n";
-			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-			if ( $linkedData->{'type'} eq "real" ) {
-			    if ( $linkedData->{'rank'} == 0 ) {
-				$functionCode .= "    nodeRates(".&offsetName($componentID,$propertyName).")=nodeRates(".&offsetName($componentID,$propertyName).")+setValue\n";
-			    } else {
-				$functionCode .= "    count=size(setValue)\n";
-				$functionCode .= "    nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1)=nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1)+setValue\n";
-			    }
-			} else {
-			    $functionCode .= "    count=self%".$propertyName."Data%serializeCount()\n";
-			    $functionCode .= "    if (count > 0) then\n";
-			    $functionCode .= "       current=self%".$propertyName."Data\n";
-			    $functionCode .= "       call current%deserialize(nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
-			    $functionCode .= "       call current%increment(setValue)\n";
-			    $functionCode .= "       call current%serialize(nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
-			    $functionCode .= "    end if\n";
+
+		    # If rate function is deferred, then create an intrinsic version.
+		    my $rateSuffix = "";
+		    $rateSuffix = "intrinsic"
+			if ( $property->{'attributes'}->{'isDeferred'} =~ m/rate/ );
+		    # Specify the "rate" function data content.
+		    @dataContent = (
+			$dataDefinition,
+			{
+			    intrinsic  => "class",
+			    type       => "nodeComponent".ucfirst($componentID),
+			    attributes => [ "intent(inout)" ],
+			    variables  => [ "self" ]
+			},
+			{
+			    intrinsic  => "logical",
+			    attributes => [ "optional", "intent(inout)" ],
+			    variables  => [ "interrupt" ]
+			},
+			{
+			    intrinsic  => "procedure",
+			    type       => "Interrupt_Procedure_Template",
+			    attributes => [ "optional", "intent(inout)", "pointer" ],
+			    variables  => [ "interruptProcedure" ]
+			},
+			{
+			    intrinsic  => "integer",
+			    variables  => [ "count" ]
 			}
-			$functionCode .= "    return\n";
-			$functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Rate\n\n";
-			# Insert into the function list.
-			push(
-			    @{$buildData->{'code'}->{'functions'}},
-			    $functionCode
-			    );
-			# Insert a type-binding for this function into the implementation type.
-			push(
-			    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName."Rate", function => $componentID.ucfirst($propertyName)."Rate"}
-			    );
+			);
+		    push(@dataContent,$currentDefinition)
+			unless ( $linkedData->{'type'} eq "real" );
+		    # Generate the rate function code.
+		    $functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Rate".ucfirst($rateSuffix)."(self,setValue,interrupt,interruptProcedure)\n";
+		    $functionCode .= "    !% Accumulate to the {\\normalfont \\ttfamily ".$propertyName."} property rate of change of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
+		    $functionCode .= "    implicit none\n";
+		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+		    if ( $linkedData->{'type'} eq "real" ) {
+			if ( $linkedData->{'rank'} == 0 ) {
+			    $functionCode .= "    nodeRates(".&offsetName($componentID,$propertyName).")=nodeRates(".&offsetName($componentID,$propertyName).")+setValue\n";
+			} else {
+			    $functionCode .= "    count=size(setValue)\n";
+			    $functionCode .= "    nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1)=nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1)+setValue\n";
+			}
+		    } else {
+			$functionCode .= "    count=self%".$propertyName."Data%serializeCount()\n";
+			$functionCode .= "    if (count > 0) then\n";
+			$functionCode .= "       current=self%".$propertyName."Data\n";
+			$functionCode .= "       call current%deserialize(nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
+			$functionCode .= "       call current%increment(setValue)\n";
+			$functionCode .= "       call current%serialize(nodeRates(".&offsetName($componentID,$propertyName).":".&offsetName($componentID,$propertyName)."+count-1))\n";
+			$functionCode .= "    end if\n";
 		    }
+		    $functionCode .= "    return\n";
+		    $functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Rate".$rateSuffix."\n\n";
+		    # Insert into the function list.
+		    push(
+			@{$buildData->{'code'}->{'functions'}},
+			$functionCode
+			);
+		    # Insert a type-binding for this function into the implementation type.
+		    push(
+			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+			{type => "procedure", name => $propertyName."Rate".ucfirst($rateSuffix), function => $componentID.ucfirst($propertyName)."Rate".ucfirst($rateSuffix)}
+			);
 		    if ( $property->{'attributes' }->{'makeGeneric'} eq "true" ) {
 			# Create a version of this rate function which binds to the top-level class, and so is suitable for
 			# attaching to inter-component pipes.
