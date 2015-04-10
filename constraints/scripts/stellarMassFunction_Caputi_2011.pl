@@ -91,9 +91,9 @@ foreach my $dataset ( @{$data->{'dataset'}} ) {
 
     # Read galaxy data and construct mass function.
     $galacticus->{'tree'} = "all";
-    &HDF5::Get_Dataset($galacticus,['volumeWeight','stellarMass']);
+    &HDF5::Get_Dataset($galacticus,['volumeWeight','massStellar']);
     my $dataSets               = $galacticus->{'dataSets'};
-    my $logarithmicStellarMass = log10($dataSets->{'stellarMass' });
+    my $logarithmicStellarMass = log10($dataSets->{'massStellar' });
     my $weight                 =       $dataSets->{'volumeWeight'};
     delete($galacticus->{'dataSets'});
 
