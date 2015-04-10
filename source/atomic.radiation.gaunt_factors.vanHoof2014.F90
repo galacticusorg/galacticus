@@ -107,6 +107,7 @@ contains
        gammaSquared=+dble(                &
             &             +atomicNumber   &
             &             -electronNumber &
+            &             +1              &
             &            )**2             &
             &       *rydbergs             &
             &       /boltzmannsConstant   &
