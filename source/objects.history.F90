@@ -544,7 +544,7 @@ contains
     class    (longIntegerHistory), intent(in   ) :: self
     integer                                      :: i      , j
     type     (varying_string    )                :: message
-    character(len=12            )                :: label
+    character(len=16            )                :: label
 
     if (allocated(self%time)) then
        do i=1,size(self%time)
