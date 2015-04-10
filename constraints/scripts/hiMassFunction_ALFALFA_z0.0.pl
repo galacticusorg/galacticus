@@ -94,7 +94,7 @@ sub ALFALFA_Mass_Map {
     my $hydrogenFractionByMassPrimordial        = pdl 0.778;
     my $megaParsec = pdl 3.086e22;
     my $massSolar = pdl 1.99e30;
-    &HDF5::Get_Dataset($galacticus,['diskRadius','stellarMass','nodeIndex']);
+    &HDF5::Get_Dataset($galacticus,['diskRadius','massStellar','nodeIndex']);
     # Compute central molecular ratio.
     my $molecularRatioCentral = 
 	(
@@ -105,7 +105,7 @@ sub ALFALFA_Mass_Map {
 	 *(
 	     +$galacticus->{'dataSets'  }->{$config->{'massType'}                              }
 	     +$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionfSigma'}
-	     *$galacticus->{'dataSets'  }->{'stellarMass'                                      }
+	     *$galacticus->{'dataSets'  }->{'massStellar'                                      }
 	 )
 	 /$galacticus->{'dataSets'}->{'diskRadius'}**4
 	)**$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionBeta'};
