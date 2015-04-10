@@ -168,6 +168,11 @@ if ( exists($config->{'likelihood'}->{'cpulimit'}) ) {
     }
 }
 
+# Find the memory limit.
+my $memoryLimit;
+$memoryLimit = $config->{'likelihood'}->{'memoryLimit'}
+   if ( exists($config->{'likelihood'}->{'memoryLimit'}) );
+
 # Extract compilation file and project directories.
 my $compilationFile  = $config->{'likelihood'}->{'compilation'  };
 my $projectDirectory = $config->{'likelihood'}->{'workDirectory'};
@@ -275,6 +280,8 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 		    my $treeCommand;
 		    $treeCommand .= "ulimit -t ".$cpuLimit."; "
 			if ( defined($cpuLimit) );
+		    $treeCommand .= "ulimit -v ".$memoryLimit."; "
+			if ( defined($memoryLimit) );
 		    my $coredump = "YES";
 		    $coredump = $config->{'likelihood'}->{'coredump'}
 		        if ( exists($config->{'likelihood'}->{'coredump'}) );
@@ -328,6 +335,8 @@ push(@temporaryFiles,$scratchDirectory."/constrainGalacticusParameters".$mpiRank
 my $glcCommand;
 $glcCommand .= "ulimit -t ".$cpuLimit."; "
     if ( defined($cpuLimit) );
+$glcCommand .= "ulimit -v ".$memoryLimit."; "
+    if ( defined($memoryLimit) );
 $glcCommand .= "export OMP_NUM_THREADS=".$config->{'likelihood'}->{'threads'}."; "
     if ( exists($config->{'likelihood'}->{'threads'}) );
 $glcCommand .= "export ".$_."; "
