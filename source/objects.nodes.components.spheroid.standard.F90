@@ -125,7 +125,7 @@ module Node_Component_Spheroid_Standard
   !#     <name>starFormationHistory</name>
   !#     <type>history</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="rate" createIfNeeded="true" makeGeneric="true" />
   !#   </property>
   !#   <property>
   !#     <name>massGasSink</name>
@@ -226,10 +226,11 @@ contains
        end select
 
        ! Bind deferred functions.
-       call spheroidStandardComponent% starFormationRateFunction(Node_Component_Spheroid_Standard_Star_Formation_Rate  )
-       call spheroidStandardComponent%energyGasInputRateFunction(Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate)
-       call spheroidStandardComponent%   massGasSinkRateFunction(Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate   )
-       call spheroidStandardComponent%         createFunctionSet(Node_Component_Spheroid_Standard_Initializor          )
+       call spheroidStandardComponent%       starFormationRateFunction(Node_Component_Spheroid_Standard_Star_Formation_Rate        )
+       call spheroidStandardComponent%      energyGasInputRateFunction(Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate      )
+       call spheroidStandardComponent%         massGasSinkRateFunction(Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate         )
+       call spheroidStandardComponent%starFormationHistoryRateFunction(Node_Component_Spheroid_Standard_Star_Formation_History_Rate)
+       call spheroidStandardComponent%               createFunctionSet(Node_Component_Spheroid_Standard_Initializor                )
 
        ! Determine the specific angular momentum at the scale radius in units of the mean specific angular
        ! momentum of the spheroid. This is equal to the ratio of the 2nd to 3rd radial moments of the density
@@ -669,7 +670,7 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    class    (nodeComponentSpheroidStandard), intent(inout)                    :: self
+    class    (nodeComponentSpheroid        ), intent(inout)                    :: self
     type     (history                      ), intent(in   )                    :: rate
     logical                                 , intent(inout), optional          :: interrupt
     procedure(Interrupt_Procedure_Template ), intent(inout), optional, pointer :: interruptProcedure
@@ -678,10 +679,10 @@ contains
     ! Get the star formation history in the spheroid.
     starFormationHistory=self%starFormationHistory()
     ! Ensure that the history already exists.
-    if (.not.starFormationHistory%exists())                                                                &
-         & call Galacticus_Error_Report(                                                                   &
+    if (.not.starFormationHistory%exists())                                                               &
+         & call Galacticus_Error_Report(                                                                  &
          &                              'Tree_Node_Spheroid_Star_Formation_History_Rate_Adjust_Standard', &
-         &                              'no star formation history has been created in spheroid'           &
+         &                              'no star formation history has been created in spheroid'          &
          &                             )
     ! Check if the star formation history in the spheroid spans a sufficient range to accept the input rates.
     if     (                                                                                             &
@@ -697,8 +698,10 @@ contains
        return
     end if
     ! Adjust the rate.
-    starFormationHistory=starFormationHistory+rate
-    call self%starFormationHistorySet(starFormationHistory)
+    select type (self)
+    class is (nodeComponentSpheroidStandard)
+       call self%starFormationHistoryRateIntrinsic(rate)
+    end select
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Rate
 
