@@ -12,29 +12,49 @@
   <parameter>
     <name>haloMassFunctionSystematic1</name>
     <prior>
-      <distribution>normal</distribution>
-      <mean>0</mean>
-      <variance>1</variance>
-      <lowerLimit>-5</lowerLimit>
-      <upperLimit>+5</upperLimit>
+      <distribution>
+	<type>normal</type>
+	<mean>0</mean>
+	<variance>1</variance>
+	<minimum>-5</minimum>
+	<maximum>+5</maximum>
+      </distribution>
     </prior>
+    <mapping>
+      <type>linear</type>
+    </mapping>
+    <random>
+      <type>Cauchy</type>
+      <median>0.0</median>
+      <scale>1.0e-3</scale>
+    </random>
   </parameter>
   <parameter>
     <name>haloMassFunctionSystematic2</name>
     <prior>
-      <distribution>normal</distribution>
-      <mean>0</mean>
-      <variance>1</variance>
-      <lowerLimit>-5</lowerLimit>
-      <upperLimit>+5</upperLimit>
+      <distribution>
+	<type>normal</type>
+	<mean>0</mean>
+	<variance>1</variance>
+	<minimum>-5</minimum>
+	<maximum>+5</maximum>
+      </distribution>
     </prior>
+    <mapping>
+      <type>linear</type>
+    </mapping>
+    <random>
+      <type>Cauchy</type>
+      <median>0.0</median>
+      <scale>1.0e-3</scale>
+    </random>
   </parameter>
   <parameter>
     <name>haloMassFunctionSimpleSystematicAlpha</name>
-    <define>-0.0197873321812387+0.0955749996544321*%haloMassFunctionSystematic1</define>
+    <define>-0.0197873321812387+0.0955749996544321*%[haloMassFunctionSystematic1]</define>
   </parameter>
   <parameter>
     <name>haloMassFunctionSimpleSystematicBeta</name>
-    <define>0.00986021548527724-0.0496307985720269*%haloMassFunctionSystematic1+0.0272354978362647*%haloMassFunctionSystematic2</define>
+    <define>0.00986021548527724-0.0496307985720269*%[haloMassFunctionSystematic1]+0.0272354978362647*%[haloMassFunctionSystematic2]</define>
   </parameter>
 </parameters>

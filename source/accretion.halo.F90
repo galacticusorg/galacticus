@@ -43,6 +43,12 @@ module Accretion_Halos
   !#  <default>simple</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <stateful>no</stateful>
+  !#  <method name="branchHasBaryons" >
+  !#   <description>Returns {\tt true} if this tree branch may accrete baryons, and {\tt false} otherwise.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#  </method>
   !#  <method name="accretionRate" >
   !#   <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of accretion of mass from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}.</description>
   !#   <type>double precision</type>
