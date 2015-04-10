@@ -29,7 +29,7 @@ program Test_Gaunt_Factors
   ! Target Gaunt factors computed using http://data.nublado.org/gauntff/interpolate2.f
   double precision                        , dimension(5), parameter :: temperatures           =[1.0000000000000000d4,1.0000000000000000d5,1.0000000000000000d6,1.0000000000000000d7,1.0000000000000000d8]
   double precision                        , dimension(5), parameter :: gauntFactorsTarget     =[1.2651040532869235d0,1.4144240304642641d0,1.4005277750508995d0,1.2421867138942060d0,1.1500622299841357d0]
-  integer :: i
+  integer                                                           :: i
   
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.gaunt_factors.size')
@@ -37,7 +37,7 @@ program Test_Gaunt_Factors
   call Unit_Tests_Begin_Group("van Hoof et al. (2014) fitting function:")  
   gauntFactorVanHoof2014_=gauntFactorvanHoof2014()
   do i=1,size(temperatures)
-     gauntFactors(i)=gauntFactorVanHoof2014_%total(1,0,temperatures(i))
+     gauntFactors(i)=gauntFactorVanHoof2014_%total(1,1,temperatures(i))
   end do
   call Assert('total',gauntFactors,gauntFactorsTarget,relTol=1.0d-6)
   ! End unit tests.
