@@ -21,6 +21,7 @@ module Node_Component_Hot_Halo_Standard
   !% Implements the standard hot halo node component.
   use Galacticus_Nodes
   use Radiation_Structure
+  use Kind_Numbers
   implicit none
   private
   public :: Node_Component_Hot_Halo_Standard_Initialize  , Node_Component_Hot_Halo_Standard_Thread_Initialize, &
@@ -203,10 +204,12 @@ module Node_Component_Hot_Halo_Standard
   double precision                                          :: hotHaloExpulsionRateMaximum                     , hotHaloOutflowStrippingEfficiency
 
   ! Quantities stored to avoid repeated computation.
-  logical                                                   :: gotAngularMomentumCoolingRate           =.false., gotCoolingRate                      =.false.
+  integer         (kind=kind_int8              )            :: uniqueIDPrevious
+  logical                                                   :: gotAngularMomentumCoolingRate           =.false., gotCoolingRate                      =.false., &
+       &                                                       gotOuterRadiusGrowthRate                =.false.
   double precision                                          :: angularMomentumHeatingRateRemaining             , coolingRate                                 , &
-       &                                                       massHeatingRateRemaining
-  !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining)
+       &                                                       massHeatingRateRemaining                        , outerRadiusGrowthRateStored
+  !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,gotOuterRadiusGrowthRate,coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining,outerRadiusGrowthRateStored,uniqueIDPrevious)
   ! Radiation structure.
   type            (radiationStructure          )            :: radiation
   !$omp threadprivate(radiation)
@@ -216,6 +219,10 @@ module Node_Component_Hot_Halo_Standard
   ! Tracked properties control.
   logical                                                   :: hotHaloTrackStrippedGas
 
+  ! Parameters controlling absolute tolerance scales.
+  double precision                              , parameter :: scaleMassRelative                       =1.0d-3
+  double precision                              , parameter :: scaleRadiusRelative                     =1.0d-1
+  
 contains
 
   !# <nodeComponentInitializationTask>
@@ -460,8 +467,10 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
+    uniqueIDPrevious             =thisNode%uniqueID()
     gotCoolingRate               =.false.
     gotAngularMomentumCoolingRate=.false.
+    gotOuterRadiusGrowthRate     =.false.
     return
   end subroutine Node_Component_Hot_Halo_Standard_Reset
 
@@ -469,13 +478,21 @@ contains
     !% Return the outer radius in the standard hot halo.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(nodeComponentHotHaloStandard), intent(inout) :: self
-    type (treeNode                    ), pointer       :: selfHost
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-
-    selfHost             => self%host          ()
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    Node_Component_Hot_Halo_Standard_Outer_Radius=max(min(self%outerRadiusValue(),darkMatterHaloScale_%virialRadius(selfHost)),0.0d0)
+    class           (nodeComponentHotHaloStandard), intent(inout) :: self
+    type            (treeNode                    ), pointer       :: selfHost
+    class           (darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
+    double precision                                              :: radiusVirial
+    
+    selfHost             => self%host                        (        )
+    darkMatterHaloScale_ => darkMatterHaloScale              (        )
+    radiusVirial         =  darkMatterHaloScale_%virialRadius(selfHost)
+    Node_Component_Hot_Halo_Standard_Outer_Radius=max(                                      &
+         &                                            min(                                  &
+         &                                                self%outerRadiusValue()         , &
+         &                                                                    radiusVirial  &
+         &                                               )                                , &
+         &                                                scaleRadiusRelative*radiusVirial  &
+         &                                            )
     return
   end function Node_Component_Hot_Halo_Standard_Outer_Radius
 
@@ -944,6 +961,8 @@ contains
          &                                                                               outerRadius                              , outerRadiusGrowthRate  , &
          &                                                                               massAccretionRate
 
+    ! Reset calculations if necessary.
+    if (thisNode%uniqueID() /= uniqueIDPrevious) call Node_Component_Hot_Halo_Standard_Reset(thisNode)
     ! Get required objects.
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Get the hot halo component.
@@ -1053,22 +1072,29 @@ contains
     type            (treeNode                    ), pointer       :: selfNode
     double precision                                              :: ramPressureRadius, outerRadius
 
-    selfNode          => self%hostNode
-    ramPressureRadius =  Hot_Halo_Ram_Pressure_Stripping_Radius(selfNode)
-    outerRadius       =  self%outerRadius()
-    ! Test whether the ram pressure radius is smaller than the current outer radius of the hot gas profile.
-    if     (                                           &
-         &  ramPressureRadius      < outerRadius .and. &
-         &  self%angularMomentum() >       0.0d0       &
-         & ) then
-       ! The ram pressure stripping radius is within the outer radius. Cause the outer radius to shrink to the ram pressure
-       ! stripping radius on the halo dynamical timescale.
-       Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate=  &
-            &  (ramPressureRadius-outerRadius)                     &
-            & /Hot_Halo_Ram_Pressure_Stripping_Timescale(selfNode)
-    else
-       Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate=0.0d0
+    ! Compute the outer radius growth rate if necessary.
+    if (.not.gotOuterRadiusGrowthRate) then
+       selfNode          => self%hostNode
+       ramPressureRadius =  Hot_Halo_Ram_Pressure_Stripping_Radius(selfNode)
+       outerRadius       =  self%outerRadius()
+       ! Test whether the ram pressure radius is smaller than the current outer radius of the hot gas profile.
+       if     (                                           &
+            &  ramPressureRadius      < outerRadius .and. &
+            &  self%angularMomentum() >       0.0d0       &
+            & ) then
+          ! The ram pressure stripping radius is within the outer radius. Cause the outer radius to shrink to the ram pressure
+          ! stripping radius on the halo dynamical timescale.
+          outerRadiusGrowthRateStored=                                &
+               &  (ramPressureRadius-outerRadius)                     &
+               & /Hot_Halo_Ram_Pressure_Stripping_Timescale(selfNode)
+       else
+          outerRadiusGrowthRateStored=0.0d0
+       end if
+       ! Record that outer radius growth rate is now computed.
+       gotOuterRadiusGrowthRate=.true.
     end if
+    ! Return the pre-computed value.
+    Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate=outerRadiusGrowthRateStored
     return
   end function Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate
 
@@ -1239,8 +1265,6 @@ contains
     class           (nodeComponentHotHalo    )               , pointer :: thisHotHaloComponent
     class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                         , parameter               :: scaleMassRelative   =1.0d-3
-    double precision                         , parameter               :: scaleRadiusRelative =1.0d-1
     double precision                                                   :: massVirial                 , radiusVirial, &
          &                                                                velocityVirial
 
