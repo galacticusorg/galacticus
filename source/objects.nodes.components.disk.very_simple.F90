@@ -54,6 +54,14 @@ module Node_Component_Disk_Very_Simple
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the very simple disk."/>
   !#   </property>
   !#   <property>
+  !#     <name>starFormationRate</name>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#     <type>real</type>
+  !#     <rank>0</rank>
+  !#     <isVirtual>true</isVirtual>
+  !#     <output condition="[[diskOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Disk star formation rate."/>
+  !#   </property>
+  !#   <property>
   !#     <name>stellarPropertiesHistory</name>
   !#     <type>history</type>
   !#     <rank>0</rank>
@@ -169,6 +177,8 @@ contains
        end if
        ! Attach the cooling mass pipe from the hot halo component.
        call diskVerySimpleComponent%attachPipe()
+       ! Bind the star formation rate function.
+       call diskVerySimpleComponent%starFormationRateFunction(Node_Component_Disk_Very_Simple_SFR)
        ! Record that the module is now initialized.
        moduleInitialized=.true.
     end if
@@ -474,7 +484,7 @@ contains
          &                                                                    energyInputRate         , starFormationRate
     type            (stellarLuminosities         )                         :: luminositiesStellarRates
     
-    ! Get the disk and check that it is of our class.
+    ! Get the disk.
     disk => node%disk()
     ! Initialize to zero rates.
     fuelMassRate   =0.0d0
@@ -483,7 +493,10 @@ contains
     ! Check for a realistic disk, return immediately if disk is unphysical.
     if (disk%massGas() < 0.0d0) return
     ! Compute the star formation rate.
-    starFormationRate=Node_Component_Disk_Very_Simple_SFR(node)
+    select type (disk)
+    class is (nodeComponentDiskVerySimple)
+       starFormationRate=Node_Component_Disk_Very_Simple_SFR(disk)
+    end select
     ! Find rates of change of stellar mass, and gas mass.
     stellarHistoryRate=disk%stellarPropertiesHistory()
     call Stellar_Population_Properties_Rates(starFormationRate,zeroAbundances,componentTypeDisk,node,stellarHistoryRate &
@@ -602,26 +615,23 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Satellite_Merging
 
-  double precision function Node_Component_Disk_Very_Simple_SFR(thisNode)
+  double precision function Node_Component_Disk_Very_Simple_SFR(self)
     !% Return the star formation rate of the very simple disk.
     use Star_Formation_Timescales_Disks
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk       )               , pointer :: thisDiskComponent
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                   :: diskDynamicalTime     , gasMass, &
-         &                                                                starFormationTimescale
+    class           (nodeComponentDiskVerySimple), intent(inout) :: self
+    class           (darkMatterHaloScaleClass   ), pointer       :: darkMatterHaloScale_
+    double precision                                             :: diskDynamicalTime     , gasMass, &
+         &                                                          starFormationTimescale
 
-    ! Get the disk component.
-    thisDiskComponent => thisNode%disk()
     ! Get the gas mass.
-    gasMass=thisDiskComponent%massGas()    
+    gasMass=self%massGas()    
     ! Get the star formation timescale.
-    starFormationTimescale=Star_Formation_Timescale_Disk(thisNode)
+    starFormationTimescale=Star_Formation_Timescale_Disk(self%hostNode)
     ! Limit the star formation timescale to a multiple of the dynamical time.
     darkMatterHaloScale_   => darkMatterHaloScale()
-    diskDynamicalTime      =darkMatterHaloScale_%dynamicalTimescale(thisNode)
+    diskDynamicalTime      =darkMatterHaloScale_%dynamicalTimescale(self%hostNode)
     starFormationTimescale =max(starFormationTimescale,diskStarFormationTimescaleMinimum*diskDynamicalTime)
     ! If timescale is finite and gas mass is positive, then compute star formation rate.
     if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0) then
