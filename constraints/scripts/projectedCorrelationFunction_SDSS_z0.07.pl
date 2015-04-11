@@ -2,8 +2,8 @@
 use strict;
 use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V093"};
+if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
+ $galacticusPath  = $ENV{"GALACTICUS_ROOT_V094"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath  = "./";
@@ -86,7 +86,7 @@ if ( exists($arguments{'plotFile'}) ) {
 	print $gnuPlot "set mytics 10\n";
 	print $gnuPlot "set format x '\$10^{\%L}\$'\n";
 	print $gnuPlot "set format y '\$10^{\%L}\$'\n";
-	print $gnuPlot "set xrange [0.1:20.0]\n";
+	print $gnuPlot "set xrange [0.15:25.0]\n";
 	print $gnuPlot "set yrange [1.0:1000.0]\n";
 	print $gnuPlot "set title 'Projected correlation function at \$z\\approx 0.07\$ for \$\\log_{10}(M_\\star/M_\\odot) > ".$data->{'observed'}->{$entry}->{'massMinimum'}."\$'\n";
 	print $gnuPlot "set xlabel 'Separation; \$r_{\\rm p}\$ [Mpc]'\n";

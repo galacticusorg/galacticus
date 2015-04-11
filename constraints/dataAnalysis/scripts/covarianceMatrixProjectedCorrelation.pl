@@ -2,8 +2,8 @@
 use strict;
 use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
+if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -69,8 +69,11 @@ my $mcmcConfigFile = $config->{'mcmcConfigFile'};
 (my $mcmcConfigFilePath = $mcmcConfigFile) =~ s/^(.*\/).*$/$1/;
 
 # Ensure that the projected correlation function, and constraint codes are built.
-system("make Projected_Correlation_Function.exe Constrain_Galacticus.exe Halo_Model_Mock.exe Mocks_Correlation_Functions.exe");
+system("make GALACTICUS_BUILD_OPTION=default Projected_Correlation_Function.exe Halo_Model_Mock.exe Mocks_Correlation_Functions.exe");
 die("covarainceMatrixProjectedCorrelation: unable to build executables")
+    unless ( $? == 0 );
+system("make GALACTICUS_BUILD_OPTION=MPI Constrain_Galacticus.exe");
+die("covarainceMatrixProjectedCorrelation: unable to build MPI executables")
     unless ( $? == 0 );
 
 # List that will be used to store the best fit values from one stage to the next.
@@ -110,23 +113,23 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	print oHndl $xmlOutput->XMLout($parameters);
 	close(oHndl);
 	# Generate the covariance matrix.
-	system($galacticusPath."constraints/dataAnalysis/scripts/generateCovarianceMatrixProjectedCorrelation.pl ".$stageDirectory."/".$parameterFileLeaf." ".$configFile." ".$stage);
+	system($galacticusPath."constraints/dataAnalysis/scripts/generateCovarianceMatrixProjectedCorrelation.pl ".$stageDirectory."/".$parameterFileLeaf." ".$configFile." ".$mcmcConfigFile." ".$stage);
 	# Estimate the intergal constraint.
+	my $covarianceFile = new PDL::IO::HDF5(">".$parameters->{'parameter'}->{'projectedCorrelationFunctionCovarianceOutputFileName'}->{'value'});
+	my $mockCorrelation    = $covarianceFile->dataset('projectedCorrelationFunction')->get();
+	my $massMinimum        = $covarianceFile->dataset('massMinimum'                 )->get();
+	my $integralConstraint = pdl ones($mockCorrelation->dim(0),$mockCorrelation->dim(1));
 	if ( $stage > 0 ) {
-	    my $covarianceFile = new PDL::IO::HDF5(">".$parameters->{'parameter'}->{'projectedCorrelationFunctionCovarianceOutputFileName'}->{'value'});
-	    my $mockCorrelation    = $covarianceFile->dataset('projectedCorrelationFunction')->get();
-	    my $massMinimum        = $covarianceFile->dataset('massMinimum'                 )->get();
-	    my $integralConstraint = pdl zeroes(nelem($massMinimum));
 	    for(my $i=0;$i<nelem($massMinimum);++$i) {
-		my $stagePrevious            = $stage-1;
-		my $stageDirectoryPrevious   = $baseDirectory."stage".$stagePrevious."/";
-		my $haloModelFileName        = $stageDirectoryPrevious."projectedCorrelationFunctionBestFit".$i.".hdf5";
-		my $haloModelFile            = new PDL::IO::HDF5($haloModelFileName);
-		my $haloModelCorrelation     = $haloModelFile->dataset('projectedCorrelation')->get();		
-		$integralConstraint->(($i)) .= average((1.0+$haloModelCorrelation)/(1.0+$mockCorrelation(:,($i))));
+		my $stagePrevious              = $stage-1;
+		my $stageDirectoryPrevious     = $baseDirectory."stage".$stagePrevious."/";
+		my $haloModelFileName          = $stageDirectoryPrevious."projectedCorrelationFunctionBestFit".$i.".hdf5";
+		my $haloModelFile              = new PDL::IO::HDF5($haloModelFileName);
+		my $haloModelCorrelation       = $haloModelFile->dataset('projectedCorrelation')->get();		
+		$integralConstraint->(:,($i)) .= (1.0+$haloModelCorrelation)/(1.0+$mockCorrelation(:,($i)));
 	    }
-	    $covarianceFile->dataset('integralConstraint')->set($integralConstraint);
 	}
+	$covarianceFile->dataset('integralConstraint')->set($integralConstraint);
 	# Since we have a new covariance matrix file, remove the MCMC chains to force it to be regenerated.
 	unlink($stageDirectory."/chains_*.log");
 	# Also remove any plot of the correlation matrix.
@@ -145,7 +148,6 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    $new->attrSet(covarianceErrorMaximum => $errorMaximum);
 	}
     }
-
     # Generate a plot of the correlation matrix.
     unless ( -e $stageDirectory."/correlationMatrix.pdf" ) {
     	# Read the covariance matrix.
@@ -219,7 +221,6 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
     	    batchFile  => $stageDirectory."/constrainCMF.pbs",
     	    queue      => "batch",
     	    nodes      => "nodes=".$config->{'nodeCount'}.":ppn=".$config->{'threadsPerNode'},
-    	    wallTime   => "300:00:00",
     	    outputFile => $stageDirectory."/constrainCMF.log",
     	    name       => $pbsLabel."Stage".$stage."CMF",
     	    commands   => "mpirun -np ".$threadCount." -hostfile \$PBS_NODEFILE Constrain_Galacticus.exe ".$stageDirectory."/".$parameterFileLeaf." ".$stageDirectory."/mcmcConfig.xml"
@@ -285,7 +286,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
     	my $maximumLikelihood = -1.0e30;
     	opendir(my $stageHndl,$stageDirectory);
     	while ( my $file = readdir($stageHndl) ) {
-    	    if( $file =~ m/chains_\d+\.log/ ) {
+    	    if( $file =~ m/chains_\d+\.log$/ ) {
     		open(iHndl,$stageDirectory."/".$file);
     		while ( my $line = <iHndl> ) {
     		    $line =~ s/^\s*//;
@@ -363,6 +364,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	my $separationObserved                   = $observed->dataset('separation'                          )->get();
 	my $projectedCorrelationFunctionObserved = $observed->dataset('projectedCorrelationFunctionObserved')->get();
     	my $covariance                           = $observed->dataset('covariance'                          )->get();
+    	my $integralConstraint                   = $observed->dataset('integralConstraint'                  )->get();
     	my $errorObserved                        = sqrt($covariance->diagonal(0,1));
 	# Iterate over masses.
 	for(my $i=0;$i<nelem($massMinimum);++$i) {
@@ -382,6 +384,8 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    my $bestFit                      = new PDL::IO::HDF5($stageDirectory."/projectedCorrelationFunctionBestFit".$i.".hdf5");
 	    my $separation                   = $bestFit->dataset('separation'          )->get();
 	    my $projectedCorrelationFunction = $bestFit->dataset('projectedCorrelation')->get();
+	    # Correct for the integral constraint.
+	    $projectedCorrelationFunction /= $integralConstraint->(:,($i));
 	    # Create a plot of this.
 	    my $plot;
 	    my $gnuPlot;
@@ -445,14 +449,7 @@ for(my $stage=0;$stage<=$stageCount;++$stage) {
 	    close($gnuPlot);
 	    &LaTeX::GnuPlot2PDF($plotFileEPS);
 	}
-    }
-
-
-
-## AJB HACK
-exit;
-
-
+    }    
 }
 
 exit;

@@ -30,7 +30,7 @@
       <separation>
 	<description>Projected separation</description>
 	<units>Mpc</units>
-	<hubble>70.0</hubble>
+	<hubble>100.0</hubble>
 	<hubbleExponent>-1</hubbleExponent>
 	<scaling>log10</scaling>
 	<cosmologyScaling>angular</cosmologyScaling>
@@ -52,7 +52,9 @@
       </separation>
       <correlationFunction>
 	<description>Projected correlation function</description>
-	<units></units>
+	<units>Mpc</units>
+	<hubble>100.0</hubble>
+	<hubbleExponent>-1</hubbleExponent>
 	<scaling>linear</scaling>
 	<datum>403.78</datum>
 	<datum>320.76</datum>
@@ -72,7 +74,9 @@
       </correlationFunction>
       <lowerError>
 	<description>Lower error on projected galaxy correlation function</description>
-	<units></units>
+	<units>Mpc</units>
+	<hubble>100.0</hubble>
+	<hubbleExponent>-1</hubbleExponent>
 	<scaling>linear</scaling>
 	<datum>18.80</datum>
 	<datum>15.07</datum>
@@ -92,7 +96,9 @@
       </lowerError>
       <upperError>
 	<description>Upper error on projected galaxy correlation function</description>
-	<units></units>
+	<units>Mpc</units>
+	<hubble>100.0</hubble>
+	<hubbleExponent>-1</hubbleExponent>
 	<scaling>linear</scaling>
 	<datum>18.80</datum>
 	<datum>15.07</datum>
@@ -123,7 +129,7 @@
       <separation>
 	<description>Projected separation</description>
 	<units>Mpc</units>
-	<hubble>70.0</hubble>
+	<hubble>100.0</hubble>
 	<hubbleExponent>-1</hubbleExponent>
 	<scaling>log10</scaling>
 	<cosmologyScaling>angular</cosmologyScaling>
@@ -145,7 +151,9 @@
       </separation>
       <correlationFunction>
 	<description>Projected correlation function</description>
-	<units></units>
+	<units>Mpc</units>
+	<hubble>100.0</hubble>
+	<hubbleExponent>-1</hubbleExponent>
 	<scaling>linear</scaling>
 	<datum>521.56</datum>
 	<datum>405.55</datum>
@@ -165,7 +173,9 @@
       </correlationFunction>
       <lowerError>
 	<description>Lower error on projected galaxy correlation function</description>
-	<units></units>
+	<units>Mpc</units>
+	<hubble>100.0</hubble>
+	<hubbleExponent>-1</hubbleExponent>
 	<scaling>linear</scaling>
 	<datum>25.91</datum>
 	<datum>19.47</datum>
@@ -185,7 +195,9 @@
       </lowerError>
       <upperError>
 	<description>Upper error on projected galaxy correlation function</description>
-	<units></units>
+	<units>Mpc</units>
+	<hubble>100.0</hubble>
+	<hubbleExponent>-1</hubbleExponent>
 	<scaling>linear</scaling>
 	<datum>25.91</datum>
 	<datum>19.47</datum>
@@ -216,7 +228,7 @@
       <separation>
 	<description>Projected separation</description>
 	<units>Mpc</units>
-	<hubble>70.0</hubble>
+	<hubble>100.0</hubble>
 	<hubbleExponent>-1</hubbleExponent>
 	<scaling>log10</scaling>
  	<cosmologyScaling>angular</cosmologyScaling>
@@ -238,7 +250,9 @@
       </separation>
       <correlationFunction>
 	<description>Projected correlation function</description>
-	<units></units>
+	<units>Mpc</units>
+	<hubble>100.0</hubble>
+	<hubbleExponent>-1</hubbleExponent>
 	<scaling>linear</scaling>
 	<datum>646.61</datum>
 	<datum>454.60</datum>
@@ -258,7 +272,9 @@
       </correlationFunction>
       <lowerError>
 	<description>Lower error on projected galaxy correlation function</description>
-	<units></units>
+	<units>Mpc</units>
+	<hubble>100.0</hubble>
+	<hubbleExponent>-1</hubbleExponent>
 	<scaling>linear</scaling>
 	<datum>32.25</datum>
 	<datum>24.62</datum>
@@ -278,7 +294,9 @@
       </lowerError>
       <upperError>
 	<description>Upper error on projected galaxy correlation function</description>
-	<units></units>
+	<units>Mpc</units>
+	<hubble>100.0</hubble>
+	<hubbleExponent>-1</hubbleExponent>
 	<scaling>linear</scaling>
 	<datum>32.25</datum>
 	<datum>24.62</datum>

@@ -17,7 +17,7 @@
   <pbsLabel>wSDSS</pbsLabel>
 
   <!-- Number of stages (iterations) to carry out -->
-  <stageCount>4</stageCount>
+  <stageCount>1</stageCount>
 
   <!-- Source for mass function -->
   <sourceLabel>Hearin et al. (2014)</sourceLabel>
