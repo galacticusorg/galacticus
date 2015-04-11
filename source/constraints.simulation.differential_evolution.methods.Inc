@@ -137,9 +137,12 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
      ! Decide whether to take step.
      if (self%acceptProposal(self%logPosterior,logPosteriorProposed,randomNumberGenerator)) then
-        self%logPosterior =logPosteriorProposed
-        logLikelihood     =logLikelihoodProposed
-        stateVector       =stateVectorProposed
+        self%logPosterior=logPosteriorProposed
+        logLikelihood    =logLikelihoodProposed
+        stateVector      =stateVectorProposed
+     else
+        ! Step not accepted - retain the old estimate of work time.
+        timeEvaluate     =timeEvaluatePrevious
      end if
      call self%update(stateVector)
      ! Unmap parameters and write to log file.
@@ -251,16 +254,18 @@ subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikel
   real                                            , intent(inout)               :: timeEvaluate
   real                                            , intent(in   )               :: timeEvaluatePrevious
   double precision                                , dimension(:  ), allocatable :: timesEvaluate       , nodeWork                , &
-       &                                                                           stateVectorSelf
+       &                                                                           stateVectorSelf     , timesEvaluateActual
   double precision                                , dimension(:,:), allocatable :: stateVectorWork
   integer                                         , dimension(:  ), allocatable :: processToProcess    , processFromProcess      , &
        &                                                                           timesEvaluateOrder  , nodeWorkOrder
   integer                                         , dimension(1  )              :: chainIndexSelf
   integer                                         , dimension(1,1)              :: chainIndexWork
   double precision                                , dimension(1,1)              :: logLikelihoodSelf   , logLikelihoodCurrentWork, &
-       &                                                                           logPriorCurrentWork , logPriorWork
+       &                                                                           logPriorCurrentWork , logPriorWork            , &
+       &                                                                           timeEvaluateSelf
   double precision                                , dimension(1  )              :: logLikelihoodWork   , logLikelihoodCurrentSelf, &
-       &                                                                           logPriorCurrentSelf , logPriorSelf
+       &                                                                           logPriorCurrentSelf , logPriorSelf            , &
+       &                                                                           timeEvaluateWork
   double precision                                                              :: logPrior            , timeEvaluateEffective
   integer                                                                       :: i                   , processTrial            , &
        &                                                                           nodeTrial
@@ -270,10 +275,11 @@ subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikel
   ! Evaluate the proposed prior.
   logPrior=priorsEvaluateLog(self%parameterPriors,simulationState)
   ! Gather timing data from all chains.
-  allocate(timesEvaluate     (0:mpiSelf%count()-1))
-  allocate(processToProcess  (0:mpiSelf%count()-1))
-  allocate(processFromProcess(0:mpiSelf%count()-1))
-  allocate(timesEvaluateOrder(0:mpiSelf%count()-1))
+  allocate(timesEvaluate      (0:mpiSelf%count()-1))
+  allocate(timesEvaluateActual(0:mpiSelf%count()-1))
+  allocate(processToProcess   (0:mpiSelf%count()-1))
+  allocate(processFromProcess (0:mpiSelf%count()-1))
+  allocate(timesEvaluateOrder (0:mpiSelf%count()-1))
   timeEvaluateEffective=timeEvaluatePrevious
   if     (                                                                     &
        &  .not.self%modelLikelihood%willEvaluate(                              &
@@ -365,14 +371,33 @@ subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikel
   logLikelihood=self%modelLikelihood%evaluate(simulationState,self%parameterMappings,self%simulationConvergence,self%temperature(),logLikelihoodCurrentWork(1,1),logPriorCurrentWork(1,1),logPriorWork(1,1),timeEvaluate)
   call mpiBarrier()
   ! Distribute likelihoods back to origins.
-  logLikelihoodWork=                                                                    logLikelihood
-  logLikelihoodSelf=mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),logLikelihoodWork     )
-  logLikelihood    =                                                                    logLikelihoodSelf(1,1)
+  logLikelihoodWork=                                                                         logLikelihood
+  logLikelihoodSelf=mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     logLikelihoodWork      )
+  logLikelihood    =                                                                         logLikelihoodSelf(1,1)
+  ! Distribute evaluation times back to origins.
+  timeEvaluateWork =                                                                    dble(timeEvaluate          )
+  timeEvaluateSelf =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     timeEvaluateWork       )
+  timeEvaluate     =                                                                    real(timeEvaluateSelf (1,1))
   ! Restore state and chain index.
   call simulationState%update       (stateVectorSelf   ,logState=.false.,isConverged=.false.)
   call simulationState%chainIndexSet( chainIndexSelf(1)                                     )
   ! Compute the log posterior.
   logPosterior=logPrior+logLikelihood
+  ! Gather actual evaluation times and report.
+  timesEvaluateActual=mpiSelf%gather(dble(timeEvaluate))
+  if (mpiSelf%isMaster() .and. mod(simulationState%count(),self%reportCount) == 0) then
+     call Galacticus_Display_Indent('Node work done vs. expected:')
+     do i=0,mpiSelf%count()-1
+        write (label,'(i4.4)') i
+        message='Node '//trim(label)//': work (actual/estimated) = '
+        write (label,'(f9.2)') timesEvaluateActual(i)
+        message=message//trim(label)//" / "
+        write (label,'(f9.2)') timesEvaluate      (i)
+        message=message//trim(label)
+        call Galacticus_Display_Message(message)
+     end do
+     call Galacticus_Display_Unindent('done')
+  end if
   return
 end subroutine simulatorDifferentialEvolutionPosterior
 
