@@ -650,6 +650,9 @@ module Galacticus_Output_Analyses_Mass_Functions
   logical                     :: analysisMassFunctionsApplyGravitationalLensing
   double precision            :: analysisMassFunctionsGravitationalLensingSize
 
+  ! Options controlling individual surveys.
+  logical                     :: analysisMassFunctionsPRIMUSInternalErrors
+  
   ! Initializations for individual mass functions.
   logical                     :: alfalfaHiMassFunctionZ0_00Initialized=.false.
 
@@ -817,17 +820,31 @@ contains
           !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('analysisMassFunctionsGravitationalLensingSize',analysisMassFunctionsGravitationalLensingSize,defaultValue=1.0d-3)
+          !@ <inputParameter>
+          !@   <name>analysisMassFunctionsPRIMUSInternalErrors</name>
+          !@   <defaultValue>true</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The source size to assume for gravitational lensing calculations.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('analysisMassFunctionsPRIMUSInternalErrors',analysisMassFunctionsPRIMUSInternalErrors,defaultValue=.true.)
           ! Establish mass mapping functions for mass function descriptors.
-          massFunctionDescriptors( 1)%mapMass             => Map_Mass_SDSS_Stellar_Mass_Function_Z0_07
-          massFunctionDescriptors( 4)%mapMass             => Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
+          massFunctionDescriptors   ( 1)%mapMass             => Map_Mass_SDSS_Stellar_Mass_Function_Z0_07
+          massFunctionDescriptors   ( 4)%mapMass             => Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
           ! Establish mass error functions for mass function descriptors.
-          massFunctionDescriptors( 4)%randomErrorFunction => Mass_Error_ALFALFA_HI_Mass_Function_Z0_00
-          massFunctionDescriptors( 5)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
-          massFunctionDescriptors( 6)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
-          massFunctionDescriptors( 7)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
-          massFunctionDescriptors( 8)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
-          massFunctionDescriptors( 9)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
-          massFunctionDescriptors(10)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
+          massFunctionDescriptors   ( 4)%randomErrorFunction => Mass_Error_ALFALFA_HI_Mass_Function_Z0_00
+          if (analysisMassFunctionsPRIMUSInternalErrors) then
+             massFunctionDescriptors( 5)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
+             massFunctionDescriptors( 6)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
+             massFunctionDescriptors( 7)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
+             massFunctionDescriptors( 8)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
+             massFunctionDescriptors( 9)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
+             massFunctionDescriptors(10)%randomErrorFunction => Mass_Error_PRIMUS_Stellar_Mass_Function
+          end if
           ! Establish survey incompletenesses.
           do i=1,massFunctionsSupportedCount
              select case (i)
