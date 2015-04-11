@@ -6,5 +6,5 @@
   <haloMassResolution>1.0e8</haloMassResolution>
   <haloMassMinimum>2.0e08</haloMassMinimum>
   <haloMassMaximum>1.0e15</haloMassMaximum>
-  <analysis>constraints/scripts/projectedCorrelationFunctions_SDSS_z0.07.pl</analysis>
+  <analysis>constraints/scripts/projectedCorrelationFunction_SDSS_z0.07.pl</analysis>
 </constraint>

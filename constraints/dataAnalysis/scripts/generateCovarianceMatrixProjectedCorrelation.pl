@@ -3,8 +3,8 @@ use strict;
 use warnings;
 use Cwd;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
+if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
+    $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
     $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
     $galacticusPath = cwd()."/";
@@ -19,6 +19,7 @@ use PDL::IO::Misc;
 use Data::Dumper;
 use DateTime;
 use LaTeX::Encode;
+use Scalar::Util qw(looks_like_number);
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
 require List::ExtraUtils;
@@ -36,11 +37,12 @@ our $observedProjectedCorrelationFunction;
 my $Pi = 3.1415927;
 
 # Get the parameter file controlling this calculation.
-die("Usage: generateCovarianceMatrixProjectedCorrelation.pl <parameterFile> <configFile> <stage>")
-    unless ( scalar(@ARGV) == 3 );
-my $parameterFile = $ARGV[0];
-my $configFile    = $ARGV[1];
-my $stage         = $ARGV[2];
+die("Usage: generateCovarianceMatrixProjectedCorrelation.pl <parameterFile> <configFile> <mcmcConfigFile> <stage>")
+    unless ( scalar(@ARGV) == 4 );
+my $parameterFile  = $ARGV[0];
+my $configFile     = $ARGV[1];
+my $mcmcConfigFile = $ARGV[2];
+my $stage          = $ARGV[3];
 
 # Parse the config file.
 my $xml        = new XML::Simple;
@@ -68,8 +70,47 @@ my $workDirectoryName = `dirname $parameterFile`;
 chomp($workDirectoryName);
 $workDirectoryName .= "/";
 
+# For stage 0, if we are using a posterior prior, use the maximum likelihood values from the
+# prior to generate our initial covariance matrix.
+my $xmlMCMC    = new XML::Simple(KeyAttr => []);
+my $mcmcConfig = $xmlMCMC->XMLin($mcmcConfigFile);
+my $computeCovariance = 0;
+$computeCovariance = 1
+    unless ( $stage == 0 );
+if ( $stage == 0 && $mcmcConfig->{'likelihood'}->{'type'} eq "posteriorPrior" ) {
+    # Get root of posterior chains.
+    my $chainRoot = $mcmcConfig->{'likelihood'}->{'chainBaseName'};
+    # Get list of parameter names.
+    my @parameterNames = map {$_->{'name'}} @{$mcmcConfig->{'parameters'}->{'parameter'}};
+    # Find best fit parameters.
+    my $maximumLikelihood = -1.0e30;
+    my @bestFit;
+    my $chainIndex = 0;
+    while ( -e $chainRoot."_".sprintf("%4.4i",$chainIndex).".log" ) {
+	open(my $chain,$chainRoot."_".sprintf("%4.4i",$chainIndex).".log");
+	while ( my $line = <$chain> ) {
+	    $line =~ s/^\s*//;
+	    $line =~ s/\s*$//;
+	    my @columns = split(/\s+/,$line);
+	    if ( $columns[4] > $maximumLikelihood ) {
+		$maximumLikelihood = $columns[4];
+		@bestFit = @columns[5..$#columns];
+	    }
+	}
+	close($chain);
+	++$chainIndex;
+    }
+    # Assign bext fit parameters.
+    for(my $i=0;$i<scalar(@parameterNames);++$i) {
+	my $parameterName = "conditionalMassFunctionBehroozi".ucfirst($parameterNames[$i]);
+	$parameters->{'parameter'}->{$parameterName }->{'value'} = $bestFit[$i];
+    }
+    # Record that we can compute the covariance.
+    $computeCovariance = 1;
+}
+
 # Compute the covariance matrix.
-unless ( $stage == 0 ) {
+unless ( $computeCovariance == 0 ) {
     # Generate a Pinocchio halo catalog.
     my @pinocchioJobs;
     my @pinocchioHaloCatalogFileNames;
@@ -83,7 +124,7 @@ unless ( $stage == 0 ) {
     		batchFile  => $workDirectoryName."/pinocchio/generatePinocchio".$iPinocchio.".pbs",
     		queue      => "batch",
     		nodes      => "nodes=16:ppn=12",
-    		wallTime   => "2:00:00",
+    		wallTime   => "20:00:00",
     		outputFile => $workDirectoryName."/pinocchio/generatePinocchio".$iPinocchio.".log",
     		name       => $pbsLabel."Stage".$stage."GeneratePinocchio".$iPinocchio,
     		commands   => $command
@@ -95,46 +136,48 @@ unless ( $stage == 0 ) {
     # Compute correlations from Pinocchio mocks.
     my @pinocchioMockJobs;
     for(my $iPinocchio=0;$iPinocchio<$config->{'pinocchio'}->{'realizationCount'};++$iPinocchio) {
-	# Skip missing realizations.
-	if ( -e $pinocchioHaloCatalogFileNames[$iPinocchio] ) {
-	    # Select random origin and rotation for the mock.
-	    $parameters->{'parameter'}->{'mockCorrelationFunctionOrigin'        }->{'value'} =          rand()     ." ".        rand()." ".rand();
-	    $parameters->{'parameter'}->{'mockCorrelationFunctionRotationVector'}->{'value'} = acos(2.0*rand()-1.0)." ".2.0*$Pi*rand()           ;
-	    $parameters->{'parameter'}->{'mockCorrelationFunctionRotationAngle' }->{'value'} =                          2.0*$Pi*rand()           ;
-	    # Construct the command to compute correlations from the mock catalog.
-	    my $command;
-	    $command .= "mpirun -np 1 -hostfile \$PBS_NODEFILE Halo_Model_Mock.exe ".$parameterFile." ".$pinocchioHaloCatalogFileNames[$iPinocchio]." ".$workDirectoryName."pinocchioGalaxies".$iPinocchio.".hdf5\n"
-		unless ( -e $workDirectoryName."pinocchioGalaxies".$iPinocchio.".hdf5" );
-	    # Generate mass-specific parameter files.
-	    for(my $i=0;$i<nelem($massMinimum);++$i) {
-		$parameters->{'parameter'}->{'randomSeed'                        }->{'value'} = int(1000000*rand());
-		$parameters->{'parameter'}->{'gaussianRandomSeed'                }->{'value'} = int(1000000*rand());
-		$parameters->{'parameter'}->{'poissonRandomSeed'                 }->{'value'} = int(1000000*rand());
-		$parameters->{'parameter'}->{'mockCorrelationFunctionMassMinimum'}->{'value'} = $massMinimum->(($i))->sclr();
-		$parameters->{'parameter'}->{'mockCorrelationFunctionMassMaximum'}->{'value'} = $massMaximum->(($i))->sclr();
-		(my $massSpecificParameterFileName = $parameterFile) =~ s/\.xml/$iPinocchio\_$i.xml/;
-		unless ( -e $massSpecificParameterFileName ) {
-		    my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
-		    open(oHndl,">".$massSpecificParameterFileName);
-		    print oHndl $xmlOutput->XMLout($parameters);
-		    close(oHndl);
-		}
-		# Compute the mock correlation function.
-		$command .= "mpirun -np 1 -hostfile \$PBS_NODEFILE Mocks_Correlation_Functions.exe ".$massSpecificParameterFileName." ".$workDirectoryName."pinocchioGalaxies".$iPinocchio.".hdf5 ".$workDirectoryName."pinocchioMock".$iPinocchio."_".$i.".hdf5\n"
-		    unless ( -e $workDirectoryName."pinocchioMock".$iPinocchio."_".$i.".hdf5" );
-	    }
-	    my $pinocchioMockJob = 
-	    {
-		batchFile  => $workDirectoryName."/pinocchioMockCovariance".$iPinocchio.".pbs",
-		queue      => "batch",
-		nodes      => "nodes=1:ppn=12",
-		wallTime   => "20:00:00",
-		outputFile => $workDirectoryName."/pinocchioMockCovariance".$iPinocchio.".log",
-		name       => $pbsLabel."Stage".$stage."PinocchioMockCovariance".$iPinocchio,
-		commands   => $command
-	    };
-	    push(@pinocchioMockJobs,$pinocchioMockJob);
-	}
+    	# Skip missing realizations.
+    	if ( -e $pinocchioHaloCatalogFileNames[$iPinocchio] ) {
+    	    # Select random origin and rotation for the mock.
+    	    $parameters->{'parameter'}->{'mockCorrelationFunctionOrigin'        }->{'value'} =          rand()     ." ".        rand()." ".rand();
+    	    $parameters->{'parameter'}->{'mockCorrelationFunctionRotationVector'}->{'value'} = acos(2.0*rand()-1.0)." ".2.0*$Pi*rand()           ;
+    	    $parameters->{'parameter'}->{'mockCorrelationFunctionRotationAngle' }->{'value'} =                          2.0*$Pi*rand()           ;
+    	    # Construct the command to compute correlations from the mock catalog.
+    	    my $command;
+    	    $command .= "mpirun -np 1 -hostfile \$PBS_NODEFILE Halo_Model_Mock.exe ".$parameterFile." ".$pinocchioHaloCatalogFileNames[$iPinocchio]." ".$workDirectoryName."pinocchioGalaxies".$iPinocchio.".hdf5\n"
+    		unless ( -e $workDirectoryName."pinocchioGalaxies".$iPinocchio.".hdf5" );
+    	    # Generate mass-specific parameter files.
+    	    for(my $i=0;$i<nelem($massMinimum);++$i) {
+    		$parameters->{'parameter'}->{'randomSeed'                        }->{'value'} = int(1000000*rand());
+    		$parameters->{'parameter'}->{'gaussianRandomSeed'                }->{'value'} = int(1000000*rand());
+    		$parameters->{'parameter'}->{'poissonRandomSeed'                 }->{'value'} = int(1000000*rand());
+    		$parameters->{'parameter'}->{'mockCorrelationFunctionMassMinimum'}->{'value'} = $massMinimum->(($i))->sclr();
+    		$parameters->{'parameter'}->{'mockCorrelationFunctionMassMaximum'}->{'value'} = $massMaximum->(($i))->sclr();
+    		(my $massSpecificParameterFileName = $parameterFile) =~ s/\.xml/$iPinocchio\_$i.xml/;
+    		unless ( -e $massSpecificParameterFileName ) {
+    		    my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
+    		    open(oHndl,">".$massSpecificParameterFileName);
+    		    print oHndl $xmlOutput->XMLout($parameters);
+    		    close(oHndl);
+    		}
+    		# Compute the mock correlation function.
+    		$command .= "mpirun -np 1 -hostfile \$PBS_NODEFILE Mocks_Correlation_Functions.exe ".$massSpecificParameterFileName." ".$workDirectoryName."pinocchioGalaxies".$iPinocchio.".hdf5 ".$workDirectoryName."pinocchioMock".$iPinocchio."_".$i.".hdf5\n"
+    		    unless ( -e $workDirectoryName."pinocchioMock".$iPinocchio."_".$i.".hdf5" );
+    	    }
+    	    if ( defined($command) ) {
+    		my $pinocchioMockJob = 
+    		{
+    		    batchFile  => $workDirectoryName."/pinocchioMockCovariance".$iPinocchio.".pbs",
+    		    queue      => "batch",
+    		    nodes      => "nodes=1:ppn=12",
+    		    wallTime   => "200:00:00",
+    		    outputFile => $workDirectoryName."/pinocchioMockCovariance".$iPinocchio.".log",
+    		name       => $pbsLabel."Stage".$stage."PinocchioMockCovariance".$iPinocchio,
+    		    commands   => $command
+    		};
+    		push(@pinocchioMockJobs,$pinocchioMockJob);
+    	    }
+    	}
     }
     &Submit_To_PBS(\@pinocchioMockJobs,20);
     # Read Pinocchio correlations.
@@ -210,54 +253,56 @@ unless ( $stage == 0 ) {
     my @nBodyJobs;
     # Generate galaxy mock catalog.
     for(my $iNBody=0;$iNBody<$config->{'nBody'}->{'realizationCount'};++$iNBody) {
-	# Set random seeds for this realization.
-	$parameters->{'parameter'}->{'randomSeed'                           }->{'value'} = int(1000000*rand());
-	$parameters->{'parameter'}->{'gaussianRandomSeed'                   }->{'value'} = int(1000000*rand());
-	$parameters->{'parameter'}->{'poissonRandomSeed'                    }->{'value'} = int(1000000*rand());
-	# Select random origin and rotation for the mock.
-	$parameters->{'parameter'}->{'mockCorrelationFunctionOrigin'        }->{'value'} =          rand()     ." ".        rand()." ".rand();
-	$parameters->{'parameter'}->{'mockCorrelationFunctionRotationVector'}->{'value'} = acos(2.0*rand()-1.0)." ".2.0*$Pi*rand()           ;
-	$parameters->{'parameter'}->{'mockCorrelationFunctionRotationAngle' }->{'value'} =                          2.0*$Pi*rand()           ;
-	# Output parameter file.
-	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
-	my $cosmologySpecificParameterFileName = $workDirectoryName."nBodyMock".$iNBody.".xml";
-	open(oHndl,">".$cosmologySpecificParameterFileName);
-	print oHndl $xmlOutput->XMLout($parameters);
-	close(oHndl);
-	# Construct the command to compute correlations from the mock catalog.
-	my $command;
-	$command .= "mpirun -np 1 -hostfile \$PBS_NODEFILE Halo_Model_Mock.exe ".$cosmologySpecificParameterFileName." ".$haloCatalogFileName." ".$workDirectoryName."nBodyGalaxies".$iNBody.".hdf5\n"
-	    unless ( -e $workDirectoryName."nBodyGalaxies".$iNBody.".hdf5" );
-	for(my $i=0;$i<nelem($massMinimum);++$i) {
-	    # Generate a mass-specific parameter file.
-	    $parameters->{'parameter'}->{'randomSeed'                        }->{'value'} = int(1000000*rand());
-	    $parameters->{'parameter'}->{'gaussianRandomSeed'                }->{'value'} = int(1000000*rand());
-	    $parameters->{'parameter'}->{'poissonRandomSeed'                 }->{'value'} = int(1000000*rand());
-	    $parameters->{'parameter'}->{'mockCorrelationFunctionMassMinimum'}->{'value'} = $massMinimum->(($i))->sclr();
-	    $parameters->{'parameter'}->{'mockCorrelationFunctionMassMaximum'}->{'value'} = $massMaximum->(($i))->sclr();
-	    my $massSpecificParameterFileName = $workDirectoryName."nBodyGalaxies".$iNBody."_".$i.".xml";
-	    unless ( -e $massSpecificParameterFileName ) {
-		my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
-		open(oHndl,">".$massSpecificParameterFileName);
-		print oHndl $xmlOutput->XMLout($parameters);
-		close(oHndl);
-	    }
-	    # Compute the mock correlation function.
-	    $command .= "mpirun -np 1 -hostfile \$PBS_NODEFILE Mocks_Correlation_Functions.exe ".$massSpecificParameterFileName." ".$workDirectoryName."nBodyGalaxies".$iNBody.".hdf5 ".$workDirectoryName."nBodyMock".$iNBody."_".$i.".hdf5\n"
-		unless ( -e $workDirectoryName."nBodyMock".$iNBody."_".$i.".hdf5" );
-	}
-	# Construct the job.
-	my $generateJob = 
-	{
-	    batchFile  => $workDirectoryName."/nBodyCovariance".$iNBody.".pbs",
-	    queue      => "batch",
-	    nodes      => "nodes=1:ppn=12",
-	    wallTime   => "20:00:00",
-	    outputFile => $workDirectoryName."/nBodyCovariance".$iNBody.".log",
-	    name       => $pbsLabel."Stage".$stage."NBodyCovariance".$iNBody,
-	    commands   => $command
-	};
-	push(@nBodyJobs,$generateJob);
+    	# Set random seeds for this realization.
+    	$parameters->{'parameter'}->{'randomSeed'                           }->{'value'} = int(1000000*rand());
+    	$parameters->{'parameter'}->{'gaussianRandomSeed'                   }->{'value'} = int(1000000*rand());
+    	$parameters->{'parameter'}->{'poissonRandomSeed'                    }->{'value'} = int(1000000*rand());
+    	# Select random origin and rotation for the mock.
+    	$parameters->{'parameter'}->{'mockCorrelationFunctionOrigin'        }->{'value'} =          rand()     ." ".        rand()." ".rand();
+    	$parameters->{'parameter'}->{'mockCorrelationFunctionRotationVector'}->{'value'} = acos(2.0*rand()-1.0)." ".2.0*$Pi*rand()           ;
+    	$parameters->{'parameter'}->{'mockCorrelationFunctionRotationAngle' }->{'value'} =                          2.0*$Pi*rand()           ;
+    	# Output parameter file.
+    	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
+    	my $cosmologySpecificParameterFileName = $workDirectoryName."nBodyMock".$iNBody.".xml";
+    	open(oHndl,">".$cosmologySpecificParameterFileName);
+    	print oHndl $xmlOutput->XMLout($parameters);
+    	close(oHndl);
+    	# Construct the command to compute correlations from the mock catalog.
+    	my $command;
+    	$command .= "mpirun -np 1 -hostfile \$PBS_NODEFILE Halo_Model_Mock.exe ".$cosmologySpecificParameterFileName." ".$haloCatalogFileName." ".$workDirectoryName."nBodyGalaxies".$iNBody.".hdf5\n"
+    	    unless ( -e $workDirectoryName."nBodyGalaxies".$iNBody.".hdf5" );
+    	for(my $i=0;$i<nelem($massMinimum);++$i) {
+    	    # Generate a mass-specific parameter file.
+    	    $parameters->{'parameter'}->{'randomSeed'                        }->{'value'} = int(1000000*rand());
+    	    $parameters->{'parameter'}->{'gaussianRandomSeed'                }->{'value'} = int(1000000*rand());
+    	    $parameters->{'parameter'}->{'poissonRandomSeed'                 }->{'value'} = int(1000000*rand());
+    	    $parameters->{'parameter'}->{'mockCorrelationFunctionMassMinimum'}->{'value'} = $massMinimum->(($i))->sclr();
+    	    $parameters->{'parameter'}->{'mockCorrelationFunctionMassMaximum'}->{'value'} = $massMaximum->(($i))->sclr();
+    	    my $massSpecificParameterFileName = $workDirectoryName."nBodyGalaxies".$iNBody."_".$i.".xml";
+    	    unless ( -e $massSpecificParameterFileName ) {
+    		my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
+    		open(oHndl,">".$massSpecificParameterFileName);
+    		print oHndl $xmlOutput->XMLout($parameters);
+    		close(oHndl);
+    	    }
+    	    # Compute the mock correlation function.
+    	    $command .= "mpirun -np 1 -hostfile \$PBS_NODEFILE Mocks_Correlation_Functions.exe ".$massSpecificParameterFileName." ".$workDirectoryName."nBodyGalaxies".$iNBody.".hdf5 ".$workDirectoryName."nBodyMock".$iNBody."_".$i.".hdf5\n"
+    		unless ( -e $workDirectoryName."nBodyMock".$iNBody."_".$i.".hdf5" );
+    	}
+    	# Construct the job.
+    	if ( defined($command) ) {
+    	    my $generateJob = 
+    	    {
+    		batchFile  => $workDirectoryName."/nBodyCovariance".$iNBody.".pbs",
+    		queue      => "batch",
+    		nodes      => "nodes=1:ppn=12",
+    		wallTime   => "200:00:00",
+    		outputFile => $workDirectoryName."/nBodyCovariance".$iNBody.".log",
+    		name       => $pbsLabel."Stage".$stage."NBodyCovariance".$iNBody,
+    		commands   => $command
+    	    };
+    	    push(@nBodyJobs,$generateJob);
+    	}
     }
     &Submit_To_PBS(\@nBodyJobs,20);
     # Read NBody correlations.
@@ -313,7 +358,7 @@ unless ( $stage == 0 ) {
 	$nbodyData->{$correlationType}->{'covariance'} = $correlationCovariance;
     }
     # Open the covariance HDF5 file.
-    my $hdfFile = new PDL::IO::HDF5(">".$parameters->{'parameter'}->{'projectedCorrelationFunctionCovarianceOutputFileName'}->{'value'}); 
+    my $hdfFile = new PDL::IO::HDF5(">".$parameters->{'parameter'}->{'projectedCorrelationFunctionCovarianceOutputFileName'}->{'value'});
     # Get the observed correlation.
     my $correlationSurveyObserved = $hdfFile->dataset('projectedCorrelationFunctionObserved')->get();
     # Apply the "shrinkage" technique of Pope & Szapudi (2008; http://adsabs.harvard.edu/abs/2008MNRAS.389..766P).
@@ -334,6 +379,10 @@ unless ( $stage == 0 ) {
 	$covarianceEmpirical *= $realizationCount/($realizationCount-1)**3;
 	# Compute the optimal shrinkage intensity.
 	my $intensity = sum($covarianceEmpirical)/sum(($pinocchioData->{$correlationType}->{'covariance'}-$nbodyData->{$correlationType}->{'covariance'})**2);
+	$intensity = 1.0
+	    if ( $intensity > 1.0 );
+	$intensity = 0.0
+	    if ( $intensity < 0.0 );
 	# Construct optimal covariance estimator.
 	$covariance->{$correlationType} =
 	    +     $intensity *$pinocchioData->{$correlationType}->{'covariance'}
@@ -352,10 +401,17 @@ unless ( $stage == 0 ) {
 		);
     }
     # Store covariances to file.
-    $hdfFile->dataset('covariance'                  )->set(    $covariance       ->{'correlationSurvey'}                                                               );
-    $hdfFile->dataset('correlation'                 )->set(    $correlation      ->{'correlationSurvey'}                                                               );
-    $hdfFile->dataset('separation'                  )->set(    $pinocchioData                           ->{'separation'}                                               );
-    $hdfFile->dataset('projectedCorrelationFunction')->set(    $pinocchioData    ->{'correlationSurvey'}->{'mean'      }->reshape($separationCount,nelem($massMinimum)));  
+    $hdfFile->dataset('covariance'                  )->set(    $covariance   ->{'correlationSurvey'}                                                               );
+    $hdfFile->dataset('correlation'                 )->set(    $correlation  ->{'correlationSurvey'}                                                               );
+
+    $hdfFile->dataset('separation'                  )->set(    $pinocchioData                       ->{'separation'}                                               );
+    $hdfFile->dataset('projectedCorrelationFunction')->set(    $nbodyData    ->{'correlationSurvey'}->{'mean'      }->reshape($separationCount,nelem($massMinimum))); 
+    # Store projection integral definition attribute.
+    if ( $parameters->{'parameter'}->{'projectedCorrelationFunctionHalfIntegral'}->{'value'} eq "true" ) {
+	$hdfFile->attrSet(projectedCorrelationFunctionHalfIntegral => pdl long(1));
+    } else {
+	$hdfFile->attrSet(projectedCorrelationFunctionHalfIntegral => pdl long(0));
+    }
 }
 
 # Open the covariance HDF5 file.
@@ -389,9 +445,9 @@ if ( all($covarianceZeroDiagonal == 0.0) ) {
 } else {
     # Invert the matrix using Cholesky decomposition. Work with a scaled matrix to avoid underflow problems.
     my $scaledCovariance       = $covariance/$covariance->((0),(0));
-    $inverseCovariance         = mposinv($scaledCovariance);
+    ($inverseCovariance, $logDeterminantCovariance) = &Covariances::SVDInvert($scaledCovariance);
     $inverseCovariance        /= $covariance->((0),(0));
-    $logDeterminantCovariance  = log(mposdet($scaledCovariance))+nelem($separation)*log($covariance->((0),(0)));
+    $logDeterminantCovariance += $separation->getdim(0)*log($covariance->((0),(0)));
 }
 $hdfFile->dataset("inverseCovariance"       )->set($inverseCovariance       );
 $hdfFile->dataset("logDeterminantCovariance")->set($logDeterminantCovariance);
@@ -454,9 +510,16 @@ sub observedCorrelationFunction {
 	    $massMaximum = pdl zeroes(scalar(@columns));
 	}
 	# Get correlation function.
-	$observedProjectedCorrelationFunction->(:,($i)) .= pdl @{$column->{'correlationFunction'}->{'datum'}};
-	my $errorUp   = pdl @{$column->{'upperError'}->{'datum'}};
-	my $errorDown = pdl @{$column->{'lowerError'}->{'datum'}};
+	my $correlationValue = pdl @{$column->{'correlationFunction'}->{'datum'}};
+	my $errorUp          = pdl @{$column->{'upperError'         }->{'datum'}};
+	my $errorDown        = pdl @{$column->{'lowerError'         }->{'datum'}};
+	# Convert to "h-free" units.
+	my $H_0            = pdl $parameters->{'parameter'}->{'H_0'}->{'value'};
+	$correlationValue *= ($H_0/$column->{'correlationFunction'}->{'hubble'})**$column->{'correlationFunction'}->{'hubbleExponent'};
+	$errorUp          *= ($H_0/$column->{'errorUp'            }->{'hubble'})**$column->{'errorUp'            }->{'hubbleExponent'};
+	$errorDown        *= ($H_0/$column->{'errorDown'          }->{'hubble'})**$column->{'errorDown'          }->{'hubbleExponent'};
+	# Store correlation function.
+	$observedProjectedCorrelationFunction->(:,($i)) .= $correlationValue;
 	$covariance ->diagonal(0,1)->($i*nelem($observedSeparation):($i+1)*nelem($observedSeparation)-1) .= 0.5*($errorUp+$errorDown)
 	    if ( $stage == 0 );
 	$correlation->diagonal(0,1)->($i*nelem($observedSeparation):($i+1)*nelem($observedSeparation)-1) .= 1.0
@@ -486,7 +549,6 @@ sub observedCorrelationFunction {
 	    die('observedProjectedCorrelationFunction(): unrecognized scaling for mass');
 	}
 	# Convert to "h-free" units.
-	my $H_0              = pdl $parameters->{'parameter'}->{'H_0'}->{'value'};
 	$massMinimum->(($i)) *= ($H_0/$column->{'mass'}->{'hubble'})**$column->{'mass'}->{'hubbleExponent'};
 	$massMaximum->(($i)) *= ($H_0/$column->{'mass'}->{'hubble'})**$column->{'mass'}->{'hubbleExponent'};
     }
@@ -517,6 +579,14 @@ sub observedCorrelationFunction {
     open(oHndl,">".$parameterFile);
     print oHndl $xmlOutput->XMLout($parameters);
     close(oHndl);
+    # Store all parameters to the covariance matrix file.
+    my $parameterGroup = $hdfFile->group("Parameters");
+    foreach my $parameterName ( keys(%{$parameters->{'parameter'}}) ) {
+	my $parameterValue = $parameters->{'parameter'}->{$parameterName}->{'value'};
+	$parameterValue = pdl $parameterValue
+	    if ( looks_like_number($parameterValue) ); 
+	$parameterGroup->attrSet($parameterName => $parameterValue);
+    }
     # Return masses used.
     return ($massMinimum, $massMaximum);
 }
@@ -732,7 +802,8 @@ sub Submit_To_PBS {
 	    print oHndl "export PYTHONPATH=\"\$HOME/Galacticus/Tools/lib/python:\$HOME/Galacticus/Tools/lib/python2.7:/share/apps/atipa/acms/lib\"\n";
 	    print oHndl "ulimit -t unlimited\n";
 	    print oHndl "ulimit -c unlimited\n";
-	    print oHndl $jobDescriptor->{'commands'};
+	    print oHndl $jobDescriptor->{'commands'}
+	    if ( exists($jobDescriptor->{'commands'}) );
 	    close(oHndl);
 	    open(pHndl,"qsub ".$jobDescriptor->{'batchFile'}." |");
 	    my $jobID = "";

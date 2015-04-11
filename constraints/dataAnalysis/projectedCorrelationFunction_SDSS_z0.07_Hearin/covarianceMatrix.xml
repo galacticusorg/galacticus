@@ -11,8 +11,20 @@
     <value>1.0e15</value>
   </parameter>
   <parameter>
+    <name>projectedCorrelationFunctionHaloMassMinimum</name>
+    <value>1.0e6</value>
+  </parameter>
+  <parameter>
+    <name>projectedCorrelationFunctionHaloMassMaximum</name>
+    <value>1.0e15</value>
+  </parameter>
+  <parameter>
     <name>projectedCorrelationFunctionLineOfSightDepth</name>
-    <value>40.0</value>
+    <value>57.142857</value>
+  </parameter>
+  <parameter>
+    <name>projectedCorrelationFunctionHalfIntegral</name>
+    <value>false</value>
   </parameter>
 
   <!-- Options controlling Pinocchio mocks -->
@@ -58,7 +70,11 @@
   </parameter>
   <parameter>
     <name>mockCorrelationFunctionRadialSeparationMaximum</name>
-    <value>40.0</value>
+    <value>57.142857</value>
+  </parameter>
+  <parameter>
+    <name>mockCorrelationFunctionHalfIntegral</name>
+    <value>false</value>
   </parameter>
 
   <!-- Cosmological parameters and options -->

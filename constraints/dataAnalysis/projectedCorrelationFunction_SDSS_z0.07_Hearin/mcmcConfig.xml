@@ -6,6 +6,7 @@
     <chainBaseName>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/stage4/chains</chainBaseName>
     <neighborCount>32</neighborCount>
     <tolerance>1.0e-3</tolerance>
+    <exclusions>1</exclusions>
     <wrappedLikelihood>
       <type>gaussianRegression</type>
       <emulatorRebuildCount>1000</emulatorRebuildCount>
@@ -19,7 +20,8 @@
 	<type>projectedCorrelationFunction</type>
 	<haloMassMinimum>1.0e6</haloMassMinimum>
 	<haloMassMaximum>1.0e15</haloMassMaximum>
-	<lineOfSightDepth>40.0</lineOfSightDepth>
+	<lineOfSightDepth>57.142857</lineOfSightDepth>
+	<halfIntegral>false</halfIntegral>
 	<massFunctionFileName>covarianceMatrix.hdf5</massFunctionFileName>
       </simulatorLikelihood>
     </wrappedLikelihood>
@@ -87,6 +89,7 @@
     <stateSwapCount>10</stateSwapCount>
     <logFileRoot>./chains</logFileRoot>
     <sampleOutliers>false</sampleOutliers>
+    <logFlushCount>100</logFlushCount>
   </simulation>
 
   <parameters>
@@ -94,9 +97,12 @@
       <name>alphaSatellite</name>
       <prior> <!-- Prior from Kravtsov et al. (2004) -->
 	<distribution>
-	  <type>normal</type>
-	  <mean>0.98</mean>
-	  <variance>0.000755</variance>
+	  <!-- <type>normal</type> -->
+	  <!-- <mean>0.98</mean> -->
+	  <!-- <variance>0.000755</variance> -->
+	  <type>uniform</type>
+	  <minimum>0.5</minimum>
+	  <maximum>2.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -113,8 +119,10 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>9.0</minimum>
-	  <maximum>15.0</maximum>
+	  <!-- <minimum>9.0</minimum> -->
+	  <!-- <maximum>15.0</maximum> -->
+	  <minimum>11.0</minimum>
+	  <maximum>13.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -131,8 +139,10 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>9.0</minimum>
-	  <maximum>14.0</maximum>
+	  <!-- <minimum>9.0</minimum> -->
+	  <!-- <maximum>14.0</maximum> -->
+	  <minimum>9.5</minimum>
+	  <maximum>12.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -149,8 +159,10 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
+	  <!-- <minimum>0.00</minimum> -->
+	  <!-- <maximum>3.00</maximum> -->
 	  <minimum>0.00</minimum>
-	  <maximum>3.00</maximum>
+	  <maximum>1.00</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -167,8 +179,10 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
+	  <!-- <minimum>0.0</minimum> -->
+	  <!-- <maximum>8.0</maximum> -->
 	  <minimum>0.0</minimum>
-	  <maximum>8.0</maximum>
+	  <maximum>2.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -185,8 +199,10 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
+	  <!-- <minimum>0.0</minimum> -->
+	  <!-- <maximum>4.0</maximum> -->
 	  <minimum>0.0</minimum>
-	  <maximum>4.0</maximum>
+	  <maximum>3.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -221,8 +237,10 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>1.0</minimum>
-	  <maximum>128.0</maximum>
+	  <!-- <minimum>1.0</minimum> -->
+	  <!-- <maximum>128.0</maximum> -->
+	  <minimum>90.0</minimum>
+	  <maximum>130.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -239,8 +257,10 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>0.0</minimum>
-	  <maximum>120.0</maximum>
+	  <!-- <minimum>0.0</minimum> -->
+	  <!-- <maximum>120.0</maximum> -->
+	  <minimum>5.0</minimum>
+	  <maximum>30.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -257,8 +277,10 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>-6.0</minimum>
-	  <maximum>+0.0</maximum>
+	  <!-- <minimum>-6.0</minimum> -->
+	  <!-- <maximum>+0.0</maximum> -->
+	  <minimum>-3.0</minimum>
+	  <maximum>-1.0</maximum>
 	</distribution>
       </prior>
       <mapping>
@@ -275,8 +297,10 @@
       <prior>
 	<distribution>
 	  <type>uniform</type>
-	  <minimum>-2.0</minimum>
-	  <maximum>4.0</maximum>
+	  <!-- <minimum>-2.0</minimum> -->
+	  <!-- <maximum>4.0</maximum> -->
+	  <minimum>1.0</minimum>
+	  <maximum>2.0</maximum>
 	</distribution>
       </prior>
       <mapping>
