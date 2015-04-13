@@ -18,12 +18,7 @@
 !% Contains a module which performs analysis to compute a variety of mass functions.
 
 module Galacticus_Output_Analyses_Mass_Functions
-  !% Performs analysis to compute a variety of mass functions. Currently supported mass functions include:
-  !% \begin{itemize}
-  !% \item The $z\approx 0.07$ stellar mass function in the SDSS measured by \cite{li_distribution_2009}. Assumes $0.07$
-  !% dex random errors on stellar masses. This is approximate, but motivated by the discussion of
-  !% \cite{behroozi_comprehensive_2010}.
-  !% \end{itemize}
+  !% Performs analysis to compute a variety of mass functions.
   use, intrinsic :: ISO_C_Binding
   use Galacticus_Nodes
   use Galactic_Structure_Options
@@ -650,6 +645,9 @@ module Galacticus_Output_Analyses_Mass_Functions
   logical                     :: analysisMassFunctionsApplyGravitationalLensing
   double precision            :: analysisMassFunctionsGravitationalLensingSize
 
+  ! Options controlling cosmology correction.
+  logical                     :: analysisMassFunctionsApplyCosmologyConversion
+  
   ! Options controlling individual surveys.
   logical                     :: analysisMassFunctionsPRIMUSInternalErrors
   
@@ -796,6 +794,18 @@ contains
           !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('analysisMassFunctionsCorrelationTruncateLevel',analysisMassFunctionsCorrelationTruncateLevel,defaultValue=0.0d0)
+          !@ <inputParameter>
+          !@   <name>analysisMassFunctionsApplyCosmologyConversion</name>
+          !@   <defaultValue>true</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    If true, apply correction factors from the model to the data cosmological model.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('analysisMassFunctionsApplyCosmologyConversion',analysisMassFunctionsApplyCosmologyConversion,defaultValue=.true.)
           !@ <inputParameter>
           !@   <name>analysisMassFunctionsApplyGravitationalLensing</name>
           !@   <defaultValue>true</defaultValue>
@@ -1202,19 +1212,26 @@ contains
                               &                                                         Galacticus_Output_Time(jOutput) &
                               &                                                        )                                &
                               &                                                       )
-                        call Cosmology_Conversion_Factors(                                                                                                          &
-                              &                            redshift                                                                                               , &
-                              &                            cosmologyFunctionsModel                                                                                , &
-                              &                            cosmologyFunctionsObserved                                                                             , &
-                              &                            cosmologyScalingMass           =cosmologyScalingMass                                                   , &
-                              &                            cosmologyScalingMassFunction   =cosmologyScalingMassFunction                                           , &
-                              &                            cosmologyConversionMass        =massFunctions(currentAnalysis)%cosmologyConversionMass        (jOutput), &
-                              &                            cosmologyConversionMassFunction=massFunctions(currentAnalysis)%cosmologyConversionMassFunction(jOutput)  &
-                              &                           )
-                     end do
-                     nullify(cosmologyParametersObserved) 
-                     exit
-                  end if
+                         if (analysisMassFunctionsApplyCosmologyConversion) then
+                            ! Cosmology conversion is requested, compute the necessary factors.
+                            call Cosmology_Conversion_Factors(                                                                                                          &
+                                 &                            redshift                                                                                               , &
+                                 &                            cosmologyFunctionsModel                                                                                , &
+                                 &                            cosmologyFunctionsObserved                                                                             , &
+                                 &                            cosmologyScalingMass           =cosmologyScalingMass                                                   , &
+                                 &                            cosmologyScalingMassFunction   =cosmologyScalingMassFunction                                           , &
+                                 &                            cosmologyConversionMass        =massFunctions(currentAnalysis)%cosmologyConversionMass        (jOutput), &
+                                 &                            cosmologyConversionMassFunction=massFunctions(currentAnalysis)%cosmologyConversionMassFunction(jOutput)  &
+                                 &                           )
+                         else
+                            ! Cosmology conversion is not requested, set conversion factors to unity.
+                            massFunctions(currentAnalysis)%cosmologyConversionMass        (jOutput)=1.0d0
+                            massFunctions(currentAnalysis)%cosmologyConversionMassFunction(jOutput)=1.0d0
+                         end if
+                      end do
+                      nullify(cosmologyParametersObserved) 
+                      exit
+                   end if
                 end do
                 ! Compute output weights for mass function.
                 call Alloc_Array(massFunctions(currentAnalysis)%outputWeight,[int(massFunctions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
