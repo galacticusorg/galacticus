@@ -212,18 +212,6 @@ sub GnuPlot2PDF {
     &SystemRedirect::tofile("epstopdf ".$gnuplotRoot.".eps","/dev/null")
 	if ( -e $gnuplotRoot.".eps" );
 
-    # Get the dimensions of the plot body.
-    my $width;
-    my $height;
-    open(pHndl,"pdfinfo ".$gnuplotPdfFile."|");
-    while ( my $line = <pHndl> ) {
-	if ( $line =~ m/Page size:\s*(\d+)\s*x\s*(\d+)/ ) {
-	    $width  = $1+100;
-	    $height = $2+100;
-	}
-    }
-    close(pHndl);
-
     # Do we need to create a wrapper?
     my $needWrapper = 0;
     $needWrapper = 1
@@ -232,9 +220,20 @@ sub GnuPlot2PDF {
     # Create a wrapper file for the LaTeX.
     my $fileToLaTeX = $gnuplotRoot;
     if ( $needWrapper == 1 ) {
+	# Get the dimensions of the plot body.
+	my $width;
+	my $height;
+	open(pHndl,"pdfinfo ".$gnuplotPdfFile."|");
+	while ( my $line = <pHndl> ) {
+	    if ( $line =~ m/Page size:\s*(\d+)\s*x\s*(\d+)/ ) {
+		$width  = $1+100;
+		$height = $2+100;
+	    }
+	}
+	close(pHndl);
 	my $fontSize = "10";
 	$fontSize = $options{'fontSize'}
-        if ( exists($options{'fontSize'}) );
+           if ( exists($options{'fontSize'}) );
 	my $wrapper = "gnuplotWrapper".$$;
 	open(wHndl,">".$folderName.$wrapper.".tex");
 	print wHndl "\\documentclass[".$fontSize."pt]{article}\n";
@@ -245,6 +244,22 @@ sub GnuPlot2PDF {
 	print wHndl "\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotBase."}\n\\end{document}\n";
 	close(wHndl);
 	$fileToLaTeX = $wrapper;
+    } else {
+	if ( $fileToLaTeX =~ m/^(.*)\/(.*)$/ ) {
+	    my $dirName  = $1;
+	    my $fileName = $2;
+	    system("mv ".$fileToLaTeX.".tex ".$fileToLaTeX.".tmp");
+	    open(my $inTeX,     $fileToLaTeX.".tmp");
+	    open(my $outTeX,">".$fileToLaTeX.".tex");
+	    while ( my $line = <$inTeX> ) {
+		$line =~ s/$dirName//g;
+		print $outTeX $line;
+	    }
+	    close($inTeX );
+	    close($outTeX);
+	    unlink($fileToLaTeX.".tmp");
+	    $fileToLaTeX = $fileName;
+	}
     }
     my $command = "cd ".$folderName."; pdflatex -interaction=nonstopmode ".$fileToLaTeX."; pdfcrop ".$fileToLaTeX.".pdf";
     $command .= " --margins ".$options{'margin'}
