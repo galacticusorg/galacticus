@@ -75,7 +75,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   real                                                                               :: timePreEvaluate      , timePostEvaluate     , &
        &                                                                                timeEvaluate         , timeEvaluatePrevious
   double precision                                                                   :: logLikelihoodProposed, logPosteriorProposed , &
-                                                                                        logLikelihood
+                                                                                        logLikelihood        , timeEvaluateInitial
   type            (pseudoRandom                  )                                   :: randomNumberGenerator
   type            (varying_string                )                                   :: logFileName          , message
   integer                                                                            :: logFileUnit          , convergedAtStep      , &
@@ -92,10 +92,10 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   self%logPosterior=logImpossible
   do while (self%logPosterior <= logImpossible)
      ! Initialize chain to some state vector.
-     call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parametermappings)
+     call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parametermappings,timeEvaluateInitial)
      ! Evaluate the posterior in the initial state.
      timeEvaluate        =-1.0
-     timeEvaluatePrevious=-1.0
+     timeEvaluatePrevious=real(timeEvaluateInitial)
      call CPU_Time(timePreEvaluate )
      call self%posterior(self%simulationState,logImpossible,logImpossible,self%logPosterior,logLikelihood,timeEvaluate,timeEvaluatePrevious)
      call CPU_Time(timePostEvaluate)
