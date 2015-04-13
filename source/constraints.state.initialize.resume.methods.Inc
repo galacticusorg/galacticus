@@ -27,7 +27,7 @@ function stateInitializorResumeConstructor(logFileRoot)
   return
 end function stateInitializorResumeConstructor
 
-subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors,parameterMappings)
+subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors,parameterMappings,timeEvaluatePrevious)
   !% Initialize simulation state by resuming from a previous simulation.
   use Constraints_Priors
   use Constraints_State
@@ -37,12 +37,13 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
   class           (state                 ), intent(inout)               :: simulationState
   type            (prior                 ), intent(inout), dimension(:) :: parameterPriors
   type            (mappingList           ), intent(in   ), dimension(:) :: parameterMappings
+  double precision                        , intent(  out)               :: timeEvaluatePrevious
   double precision                        , allocatable  , dimension(:) :: stateVector
   type            (varying_string        )                              :: logFileName
   integer                                                               :: stateCount     , mpiRank     , &
        &                                                                   logFileUnit    , ioStatus    , &
        &                                                                   i
-  double precision                                                      :: time           , logPosterior
+  double precision                                                      :: logPosterior
   logical                                                               :: converged      , first
 
   ! Allocate the state vector.
@@ -53,12 +54,12 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
   ioStatus=0
   first   =.true.
   do while (ioStatus == 0)
-     read (logFileUnit,*,iostat=ioStatus) stateCount  , &
-          &               mpiRank     , &
-          &               time        , &
-          &               converged   , &
-          &               logPosterior, &
-          &               stateVector     
+     read (logFileUnit,*,iostat=ioStatus) stateCount          , &
+          &                               mpiRank             , &
+          &                               timeEvaluatePrevious, &
+          &                               converged           , &
+          &                               logPosterior        , &
+          &                               stateVector     
      if (ioStatus == 0) then
         ! Map the state.
         do i=1,size(stateVector)

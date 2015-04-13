@@ -27,7 +27,7 @@ function stateInitializorLatinHypercubeConstructor(maximinTrialCount)
   return
 end function stateInitializorLatinHypercubeConstructor
 
-subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,parameterPriors,parameterMappings)
+subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,parameterPriors,parameterMappings,timeEvaluatePrevious)
   !% Initialize simulation state by drawing at random from the parameter priors.
   use MPI_Utilities
   use Pseudo_Random
@@ -39,6 +39,7 @@ subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,paramet
   type            (prior                         ), intent(inout), dimension(:  ) :: parameterPriors
   type            (mappingList                   ), intent(in   ), dimension(:  ) :: parameterMappings
   integer         (kind=c_size_t                 ), allocatable  , dimension(:  ) :: order
+  double precision                                , intent(  out)                 :: timeEvaluatePrevious
   double precision                                , allocatable  , dimension(:  ) :: x                    , y
   double precision                                , allocatable  , dimension(:,:) :: stateGrid            , stateGridBest
   type            (pseudoRandom)                                                  :: randomNumberGenerator
@@ -47,6 +48,8 @@ subroutine stateInitializorLatinHypercubeInitialize(self,simulationState,paramet
        &                                                                             k
   double precision                                                                :: separationMinimum    , separationMinimumMaximum
 
+  ! No knowledge of evaluation time.
+  timeEvaluatePrevious=-1.0d0
   ! Generate random sequence.
   allocate(        x    (0:mpiSelf%count()-1                            ))
   allocate(        y    (0:mpiSelf%count()-1                            ))
