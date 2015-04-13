@@ -359,9 +359,11 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      else
         likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
         ! Store the likelihood and state.
-        self%accumulatedStateCount                            =self%accumulatedStateCount+1
-        self%simulatorLikelihood(  self%accumulatedStateCount)=likelihoodGaussianRegressionEvaluate
-        self%simulationState    (:,self%accumulatedStateCount)=simulationState%get()
+        if (likelihoodGaussianRegressionEvaluate > logImpossible) then
+           self%accumulatedStateCount                            =self%accumulatedStateCount+1
+           self%simulatorLikelihood(  self%accumulatedStateCount)=likelihoodGaussianRegressionEvaluate
+           self%simulationState    (:,self%accumulatedStateCount)=simulationState%get()
+        end if
      end if
   end if
   return
