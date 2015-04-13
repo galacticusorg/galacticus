@@ -219,18 +219,25 @@ contains
     return
   end subroutine XML_List_Character_Array_Read_Static_One_Column
 
-  function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName)
+  function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName,directChildrenOnly)
     !% Return a pointer to the first node in an XML node that matches the given {\normalfont \ttfamily tagName}.
     use FoX_dom
     use Galacticus_Error
     implicit none
-    type     (node            )               , pointer :: XML_Get_First_Element_By_Tag_Name
-    type     (node            ), intent(in   ), pointer :: xmlElement
-    character(len=*           ), intent(in   )          :: tagName
-    type     (nodeList        )               , pointer :: elementList
-    character(len=len(tagName))                         :: currentTagName                   , path
-    integer                                             :: pathPosition
-
+    type     (node            )               , pointer  :: XML_Get_First_Element_By_Tag_Name
+    type     (node            ), intent(in   ), pointer  :: xmlElement
+    character(len=*           ), intent(in   )           :: tagName
+    logical                    , intent(in   ), optional :: directChildrenOnly
+    type     (nodeList        )               , pointer  :: elementList
+    type     (node            )               , pointer  :: parent
+    character(len=len(tagName))                          :: currentTagName                   , path
+    integer                                              :: pathPosition                     , i
+    logical                                              :: directChildrenOnlyActual
+    
+    ! Set default options.
+    directChildrenOnlyActual=.false.
+    if (present(directChildrenOnly)) directChildrenOnlyActual=directChildrenOnly
+    ! Find element.
     XML_Get_First_Element_By_Tag_Name => xmlElement
     path=tagName
     do while (path /= "")
@@ -246,7 +253,17 @@ contains
        if (getLength(elementList) < 1) then
           call Galacticus_Error_Report('XML_Get_First_Element_By_Tag_Name','no elements match tag name "'//trim(currentTagName)//'"')
        else
-          XML_Get_First_Element_By_Tag_Name => item(elementList,0)
+          if (directChildrenOnlyActual) then
+             do i=0,getLength(elementList)-1
+                parent => getParentNode(item(elementList,i))
+                if (associated(parent,xmlElement)) then
+                   XML_Get_First_Element_By_Tag_Name => item(elementList,i)
+                   exit
+                end if
+             end do
+          else
+             XML_Get_First_Element_By_Tag_Name => item(elementList,0)
+          end if
        end if
     end do
     return
