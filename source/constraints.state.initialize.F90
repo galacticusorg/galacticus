@@ -44,12 +44,13 @@ module Constraints_State_Initialize
 
   ! Interface for deferred functions.
   abstract interface
-     subroutine stateInitializorInitialize(self,simulationState,parameterPriors,parameterMappings)
+     subroutine stateInitializorInitialize(self,simulationState,parameterPriors,parameterMappings,timeEvaluatePrevious)
        import :: stateInitializor, state, prior, mappingList
-       class(stateInitializor), intent(inout)               :: self
-       class(state           ), intent(inout)               :: simulationState
-       type (prior           ), intent(inout), dimension(:) :: parameterPriors
-       type (mappingList     ), intent(in   ), dimension(:) :: parameterMappings
+       class           (stateInitializor), intent(inout)               :: self
+       class           (state           ), intent(inout)               :: simulationState
+       type            (prior           ), intent(inout), dimension(:) :: parameterPriors
+       type            (mappingList     ), intent(in   ), dimension(:) :: parameterMappings
+       double precision                  , intent(  out)              :: timeEvaluatePrevious 
      end subroutine stateInitializorInitialize
   end interface
 
