@@ -117,7 +117,7 @@ contains
          &                                                           likelihoodNeighborCountDefinition              , likelihoodProjectedCorrelationFunctionFileNameDefinition, &
          &                                                           likelihoodLineOfSightDepthDefinition           , likelihoodHalfIntegralDefinition                        , &
          &                                                           likelihoodExclusionsDefinition                 , likelihoodDumpEmulatorDefinition
-    type            (nodeList      ), pointer                     :: covarianceRows
+    type            (nodeList      ), pointer                     :: covarianceRows                                 , typeNodes
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
     integer                         , allocatable, dimension(:  ) :: likelihoodExclusions
@@ -133,7 +133,8 @@ contains
     logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits                 , &
          &                                                           likelihoodModelSurfaceBrightness               , likelihoodHalfIntegral
 
-    select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
+
+    select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type",directChildrenOnly=.true.))))
     case ("multivariateNormal")
        allocate(likelihoodMultivariateNormal :: newLikelihood)
        select type (newLikelihood)
