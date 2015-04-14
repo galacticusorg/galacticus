@@ -1,8 +1,15 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use lib "./perl";
-use System::Redirect;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+ $ENV{"GALACTICUS_ROOT_V093"} = "/";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use Date::Format;
 use XML::Simple;
 use MIME::Lite;
@@ -12,6 +19,7 @@ use File::Slurp qw( slurp );
 use File::Find;
 use Switch;
 use Term::ReadKey;
+require System::Redirect;
 
 # Run a suite of tests on the Galacticus code.
 # Andrew Benson (19-Aug-2010).
