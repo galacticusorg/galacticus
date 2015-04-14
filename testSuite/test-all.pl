@@ -10,7 +10,6 @@ if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
  $ENV{"GALACTICUS_ROOT_V092"} = "/";
 }
 unshift(@INC,$galacticusPath."perl"); 
-use System::Redirect;
 use Date::Format;
 use XML::Simple;
 use MIME::Lite;
@@ -20,6 +19,7 @@ use File::Slurp qw( slurp );
 use File::Find;
 use Switch;
 use Term::ReadKey;
+require System::Redirect;
 
 # Run a suite of tests on the Galacticus code.
 # Andrew Benson (19-Aug-2010).
