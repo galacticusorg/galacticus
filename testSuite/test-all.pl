@@ -1,7 +1,15 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+ $ENV{"GALACTICUS_ROOT_V092"} = "/";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use System::Redirect;
 use Date::Format;
 use XML::Simple;
