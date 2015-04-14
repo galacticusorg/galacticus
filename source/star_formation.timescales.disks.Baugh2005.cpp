@@ -25,13 +25,13 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
 #include <math.h>
 #include <stdio.h>
   
-//: ./work/build/objects.nodes.bindings.C.o
+//: $(BUILDPATH)/objects.nodes.bindings.C.o
 #include <objects.nodes.bindings.C.h>
   
-//: ./work/build/cosmology.functions.o
+//: $(BUILDPATH)/cosmology.functions.o
 #include <cosmologyFunctions.h>
   
-//: ./work/build/utility.input_parameters.o
+//: $(BUILDPATH)/utility.input_parameters.o
 #include <utility.input_parameters.h>
   
   // Define a type for our function.
