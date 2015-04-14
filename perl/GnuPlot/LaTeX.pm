@@ -279,9 +279,9 @@ sub GnuPlot2PDF {
 		$gnuplotAuxFile
 		);
 	    if ( $needWrapper == 1 ) {
-		unlink($fileToLaTeX.    ".pdf");
+		unlink($folderName.$fileToLaTeX.    ".pdf");
 	    } else {
-		unlink($gnuplotRoot."-inc.pdf");
+		unlink(            $gnuplotRoot."-inc.pdf");
 	    }
 	}
     } else {
