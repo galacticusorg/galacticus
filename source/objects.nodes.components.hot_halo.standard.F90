@@ -21,12 +21,13 @@ module Node_Component_Hot_Halo_Standard
   !% Implements the standard hot halo node component.
   use Galacticus_Nodes
   use Radiation_Structure
+  use Kind_Numbers
   implicit none
   private
   public :: Node_Component_Hot_Halo_Standard_Initialize  , Node_Component_Hot_Halo_Standard_Thread_Initialize, &
        &    Node_Component_Hot_Halo_Standard_Post_Evolve , Node_Component_Hot_Halo_Standard_Reset            , &
        &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize  , &
-       &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Satellite_Merger , &
+       &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Satellite_Merging, &
        &    Node_Component_Hot_Halo_Standard_Promote     , Node_Component_Hot_Halo_Standard_Formation        , &
        &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Pre_Evolve
 
@@ -203,10 +204,12 @@ module Node_Component_Hot_Halo_Standard
   double precision                                          :: hotHaloExpulsionRateMaximum                     , hotHaloOutflowStrippingEfficiency
 
   ! Quantities stored to avoid repeated computation.
-  logical                                                   :: gotAngularMomentumCoolingRate           =.false., gotCoolingRate                      =.false.
+  integer         (kind=kind_int8              )            :: uniqueIDPrevious
+  logical                                                   :: gotAngularMomentumCoolingRate           =.false., gotCoolingRate                      =.false., &
+       &                                                       gotOuterRadiusGrowthRate                =.false.
   double precision                                          :: angularMomentumHeatingRateRemaining             , coolingRate                                 , &
-       &                                                       massHeatingRateRemaining
-  !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining)
+       &                                                       massHeatingRateRemaining                        , outerRadiusGrowthRateStored
+  !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,gotOuterRadiusGrowthRate,coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining,outerRadiusGrowthRateStored,uniqueIDPrevious)
   ! Radiation structure.
   type            (radiationStructure          )            :: radiation
   !$omp threadprivate(radiation)
@@ -216,6 +219,10 @@ module Node_Component_Hot_Halo_Standard
   ! Tracked properties control.
   logical                                                   :: hotHaloTrackStrippedGas
 
+  ! Parameters controlling absolute tolerance scales.
+  double precision                              , parameter :: scaleMassRelative                       =1.0d-3
+  double precision                              , parameter :: scaleRadiusRelative                     =1.0d-1
+  
 contains
 
   !# <nodeComponentInitializationTask>
@@ -253,6 +260,18 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('starveSatellites',starveSatellites,defaultValue=.false.)
+
+       !@ <inputParameter>
+       !@   <name>starveSatellitesOutflowed</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether or not the outflowed hot halo should be removed (``starved'') when a node becomes a satellite.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('starveSatellitesOutflowed',starveSatellitesOutflowed,defaultValue=.false.)
 
        ! Determine whether stripped material should be tracked.
        !@ <inputParameter>
@@ -448,8 +467,10 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
+    uniqueIDPrevious             =thisNode%uniqueID()
     gotCoolingRate               =.false.
     gotAngularMomentumCoolingRate=.false.
+    gotOuterRadiusGrowthRate     =.false.
     return
   end subroutine Node_Component_Hot_Halo_Standard_Reset
 
@@ -457,13 +478,21 @@ contains
     !% Return the outer radius in the standard hot halo.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(nodeComponentHotHaloStandard), intent(inout) :: self
-    type (treeNode                    ), pointer       :: selfHost
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-
-    selfHost             => self%host          ()
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    Node_Component_Hot_Halo_Standard_Outer_Radius=max(min(self%outerRadiusValue(),darkMatterHaloScale_%virialRadius(selfHost)),0.0d0)
+    class           (nodeComponentHotHaloStandard), intent(inout) :: self
+    type            (treeNode                    ), pointer       :: selfHost
+    class           (darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
+    double precision                                              :: radiusVirial
+    
+    selfHost             => self%host                        (        )
+    darkMatterHaloScale_ => darkMatterHaloScale              (        )
+    radiusVirial         =  darkMatterHaloScale_%virialRadius(selfHost)
+    Node_Component_Hot_Halo_Standard_Outer_Radius=max(                                      &
+         &                                            min(                                  &
+         &                                                self%outerRadiusValue()         , &
+         &                                                                    radiusVirial  &
+         &                                               )                                , &
+         &                                                scaleRadiusRelative*radiusVirial  &
+         &                                            )
     return
   end function Node_Component_Hot_Halo_Standard_Outer_Radius
 
@@ -490,7 +519,7 @@ contains
     end select
     ! Process hot gas for satellites.
     if (thisNode%isSatellite()) then
-       if (starveSatellites) then
+       if (starveSatellites.or.starveSatellitesOutflowed) then
           thisHotHaloComponent => thisNode%hotHalo()
           select type (thisHotHaloComponent)
           class is (nodeComponentHotHaloStandard)
@@ -669,7 +698,7 @@ contains
     type            (abundances                  ), save                             :: abundancesCoolingRate
     !$omp threadprivate(abundancesCoolingRate)
     double precision                                                                 :: angularMomentumCoolingRate , infallRadius
-
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     select type (thisHotHaloComponent)
@@ -740,12 +769,12 @@ contains
     class           (nodeComponentHotHaloStandard), intent(inout) :: thisHotHaloComponent
     double precision                              , intent(in   ) :: massRate 
     type            (treeNode                    ), pointer       :: thisNode
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
     type            (abundances                  ), save          :: abundancesRates
     type            (chemicalAbundances          ), save          :: chemicalsRates
     !$omp threadprivate(abundancesRates,chemicalsRates)
     double precision                                              :: angularMomentumRate , massRateLimited
-
+    
     ! Ignore zero rates.
     if (massRate /= 0.0d0 .and. thisHotHaloComponent%mass() > 0.0d0) then
        ! Limit the mass expulsion rate to a fraction of the halo dynamical timescale.
@@ -806,7 +835,7 @@ contains
     procedure       (Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                                                )                         , pointer :: selfNode
     double precision                                                                                             :: strippedOutflowFraction
-
+    
     select type (self)
     class is (nodeComponentHotHaloStandard)
        ! Get the host node.
@@ -932,6 +961,8 @@ contains
          &                                                                               outerRadius                              , outerRadiusGrowthRate  , &
          &                                                                               massAccretionRate
 
+    ! Reset calculations if necessary.
+    if (thisNode%uniqueID() /= uniqueIDPrevious) call Node_Component_Hot_Halo_Standard_Reset(thisNode)
     ! Get required objects.
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Get the hot halo component.
@@ -957,7 +988,7 @@ contains
        ! Get the rate at which abundances are accreted onto this halo.
        call thisHotHaloComponent%abundancesRate(accretionHalo_%accretionRateMetals(thisNode,accretionModeHot),interrupt,interruptProcedure)
        ! Next block of tasks occur only if the accretion rate is non-zero.
-          if (thisBasicComponent%accretionRate() /= 0.0d0) then
+       if (thisBasicComponent%accretionRate() /= 0.0d0) then
           ! Compute the rate of accretion of angular momentum.
           angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(thisNode)*(massAccretionRate &
                &/thisBasicComponent%accretionRate())
@@ -1041,22 +1072,29 @@ contains
     type            (treeNode                    ), pointer       :: selfNode
     double precision                                              :: ramPressureRadius, outerRadius
 
-    selfNode          => self%hostNode
-    ramPressureRadius =  Hot_Halo_Ram_Pressure_Stripping_Radius(selfNode)
-    outerRadius       =  self%outerRadius()
-    ! Test whether the ram pressure radius is smaller than the current outer radius of the hot gas profile.
-    if     (                                           &
-         &  ramPressureRadius      < outerRadius .and. &
-         &  self%angularMomentum() >       0.0d0       &
-         & ) then
-       ! The ram pressure stripping radius is within the outer radius. Cause the outer radius to shrink to the ram pressure
-       ! stripping radius on the halo dynamical timescale.
-       Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate=  &
-            &  (ramPressureRadius-outerRadius)                     &
-            & /Hot_Halo_Ram_Pressure_Stripping_Timescale(selfNode)
-    else
-       Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate=0.0d0
+    ! Compute the outer radius growth rate if necessary.
+    if (.not.gotOuterRadiusGrowthRate) then
+       selfNode          => self%hostNode
+       ramPressureRadius =  Hot_Halo_Ram_Pressure_Stripping_Radius(selfNode)
+       outerRadius       =  self%outerRadius()
+       ! Test whether the ram pressure radius is smaller than the current outer radius of the hot gas profile.
+       if     (                                           &
+            &  ramPressureRadius      < outerRadius .and. &
+            &  self%angularMomentum() >       0.0d0       &
+            & ) then
+          ! The ram pressure stripping radius is within the outer radius. Cause the outer radius to shrink to the ram pressure
+          ! stripping radius on the halo dynamical timescale.
+          outerRadiusGrowthRateStored=                                &
+               &  (ramPressureRadius-outerRadius)                     &
+               & /Hot_Halo_Ram_Pressure_Stripping_Timescale(selfNode)
+       else
+          outerRadiusGrowthRateStored=0.0d0
+       end if
+       ! Record that outer radius growth rate is now computed.
+       gotOuterRadiusGrowthRate=.true.
     end if
+    ! Return the pre-computed value.
+    Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate=outerRadiusGrowthRateStored
     return
   end function Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate
 
@@ -1092,13 +1130,13 @@ contains
     type            (chemicalAbundances          ), save                   :: chemicalDensities        , chemicalMasses           , &
          &                                                                    chemicalMassesRates
     !$omp threadprivate(chemicalDensities,chemicalMassesRates,chemicalMasses)
-
+    
     ! Get required objects.
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Get the hosting node.
     selfNode => self%hostNode
     ! Next tasks occur only for systems in which outflowed gas is being recycled.
-    if (.not.starveSatellites.or..not.selfNode%isSatellite()) then
+    if (.not.(starveSatellites.or.starveSatellitesOutflowed).or..not.selfNode%isSatellite()) then
        darkMatterHaloScale_     => darkMatterHaloScale()
        outflowedMass            =self%outflowedMass()
        massReturnRate           =hotHaloOutflowReturnRate*outflowedMass                  /darkMatterHaloScale_%dynamicalTimescale(selfNode)
@@ -1223,14 +1261,12 @@ contains
     use Chemical_Abundances_Structure
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
-    class           (nodeComponentBasic  )               , pointer :: thisBasicComponent
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    class           (nodeComponentHotHalo    )               , pointer :: thisHotHaloComponent
+    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                      , parameter              :: scaleMassRelative   =1.0d-3
-    double precision                      , parameter              :: scaleRadiusRelative =1.0d-1
-    double precision                                               :: massVirial                 , radiusVirial, &
-         &                                                            velocityVirial
+    double precision                                                   :: massVirial                 , radiusVirial, &
+         &                                                                velocityVirial
 
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
@@ -1358,21 +1394,23 @@ contains
             &                                       )
 
        ! Determine if starvation is to be applied.
-       if (starveSatellites) then
+       if (starveSatellites.or.starveSatellitesOutflowed) then
           ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate to
           ! this hot halo (and will be moved to the parent at the end of the evolution timestep).
           darkMatterHaloScale_ => darkMatterHaloScale()
-          call parentHotHaloComponent%                    massSet(                                                   &
-               &                                                   parentHotHaloComponent%mass                    () &
-               &                                                  +  thisHotHaloComponent%mass                    () &
-               &                                                 )
-          call parentHotHaloComponent%         angularMomentumSet(                                                   &
-               &                                                   parentHotHaloComponent%angularMomentum         () &
-               &                                                  +  thisHotHaloComponent%mass                    () &
-               &                                                  *   parentSpinComponent%spin                    () &
-               &                                                  *darkMatterHaloScale_%virialRadius  (parentNode)   &
-               &                                                  *darkMatterHaloScale_%virialVelocity(parentNode)   &
-               &                                                 )
+          if (starveSatellites) then
+             call parentHotHaloComponent%                    massSet(                                                   &
+                  &                                                   parentHotHaloComponent%mass                    () &
+                  &                                                  +  thisHotHaloComponent%mass                    () &
+                  &                                                 )
+             call parentHotHaloComponent%         angularMomentumSet(                                                   &
+                  &                                                   parentHotHaloComponent%angularMomentum         () &
+                  &                                                  +  thisHotHaloComponent%mass                    () &
+                  &                                                  *   parentSpinComponent%spin                    () &
+                  &                                                  *darkMatterHaloScale_%virialRadius  (parentNode)   &
+                  &                                                  *darkMatterHaloScale_%virialVelocity(parentNode)   &
+                  &                                                 )
+          end if
           call parentHotHaloComponent%           outflowedMassSet(                                                   &
                &                                                   parentHotHaloComponent%outflowedMass           () &
                &                                                  +  thisHotHaloComponent%outflowedMass           () &
@@ -1384,25 +1422,29 @@ contains
                &                                                  *darkMatterHaloScale_%virialRadius  (parentNode)   &
                &                                                  *darkMatterHaloScale_%virialVelocity(parentNode)   &
                &                                                 )
-          call   thisHotHaloComponent%                    massSet(                                                   &
-               &                                                   0.0d0                                             &
-               &                                                 )
-          call   thisHotHaloComponent%         angularMomentumSet(                                                   &
-               &                                                   0.0d0                                             &
-               &                                                 )
+          if (starveSatellites) then
+             call   thisHotHaloComponent%                    massSet(                                                   &
+                  &                                                   0.0d0                                             &
+                  &                                                 )
+             call   thisHotHaloComponent%         angularMomentumSet(                                                   &
+                  &                                                   0.0d0                                             &
+                  &                                                 )
+          end if
           call   thisHotHaloComponent%           outflowedMassSet(                                                   &
                &                                                   0.0d0                                             &
                &                                                 )
           call   thisHotHaloComponent%outflowedAngularMomentumSet(                                                   &
                &                                                   0.0d0                                             &
                &                                                 )
-          call parentHotHaloComponent%              abundancesSet(                                                   &
-               &                                                   parentHotHaloComponent%abundances              () &
-               &                                                  +  thisHotHaloComponent%abundances              () &
-               &                                                 )
-          call   thisHotHaloComponent%              abundancesSet(                                                   &
-               &                                                   zeroAbundances                                    &
-               &                                                 )
+          if (starveSatellites) then
+             call parentHotHaloComponent%              abundancesSet(                                                   &
+                  &                                                   parentHotHaloComponent%abundances              () &
+                  &                                                  +  thisHotHaloComponent%abundances              () &
+                  &                                                 )
+             call   thisHotHaloComponent%              abundancesSet(                                                   &
+                  &                                                   zeroAbundances                                    &
+                  &                                                 )
+          end if
           call parentHotHaloComponent%     outflowedAbundancesSet(                                                   &
                &                                                   parentHotHaloComponent%outflowedAbundances     () &
                &                                                  +  thisHotHaloComponent%outflowedAbundances     () &
@@ -1410,13 +1452,15 @@ contains
           call   thisHotHaloComponent%     outflowedAbundancesSet(                                                   &
                &                                                   zeroAbundances                                    &
                &                                                 )
-          call parentHotHaloComponent%               chemicalsSet(                                                   &
-               &                                                   parentHotHaloComponent%chemicals               () &
-               &                                                  +  thisHotHaloComponent%chemicals               () &
-               &                                                 )
-          call   thisHotHaloComponent%               chemicalsSet(                                                   &
-               &                                                   zeroChemicals                                     &
-               &                                                 )
+          if (starveSatellites) then
+             call parentHotHaloComponent%               chemicalsSet(                                                   &
+                  &                                                   parentHotHaloComponent%chemicals               () &
+                  &                                                  +  thisHotHaloComponent%chemicals               () &
+                  &                                                 )
+             call   thisHotHaloComponent%               chemicalsSet(                                                   &
+                  &                                                   zeroChemicals                                     &
+                  &                                                 )
+          end if
           ! Check if the baryon fraction in the parent hot halo exceeds the universal value. If it does, mitigate this by moving
           ! some of the mass to the failed accretion reservoir.
           if (hotHaloNodeMergerLimitBaryonFraction) then
@@ -1444,9 +1488,9 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Node_Merger
 
   !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Hot_Halo_Standard_Satellite_Merger</unitName>
+  !#  <unitName>Node_Component_Hot_Halo_Standard_Satellite_Merging</unitName>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Hot_Halo_Standard_Satellite_Merger(thisNode)
+  subroutine Node_Component_Hot_Halo_Standard_Satellite_Merging(thisNode)
     !% Remove any hot halo associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
     use Abundances_Structure
     use Chemical_Abundances_Structure
@@ -1536,7 +1580,7 @@ contains
             &                                               )
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Standard_Satellite_Merger
+  end subroutine Node_Component_Hot_Halo_Standard_Satellite_Merging
 
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Promote</unitName>
