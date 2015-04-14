@@ -45,7 +45,7 @@ function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,e
   likelihoodGaussianRegressionConstructor%dumpEmulator                =  (likelihoodGaussianRegressionConstructor%dumpEmulatorFileRoot /= "")
   ! Initialize state and counters.
   likelihoodGaussianRegressionConstructor%initialized                 =  .false.
-  likelihoodGaussianRegressionConstructor%isGood                      =  .true.
+  likelihoodGaussianRegressionConstructor%isGood                      =  .false.
   likelihoodGaussianRegressionConstructor%accumulatedStateCount       =  0
   likelihoodGaussianRegressionConstructor%simulationCount             =  0
   likelihoodGaussianRegressionConstructor%evaluationCount             =  0
@@ -92,23 +92,24 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
        &                                                                               likelihoodsFitted                , separations          , &
        &                                                                               semiVariances
   integer                                         , allocatable  , dimension(    :) :: stateCount
-  double precision                                , parameter                       :: emulatorFailureSignificance=3.0d0
-  double precision                                , parameter                       :: emulatorFailureLimit       =5.0d0
-  type            (polynomialIterator            )                                  :: iterator1                        , iterator2
-  type            (vector                        )                                  :: likelihoodSums                   , coefficients
+  double precision                                , parameter                       :: emulatorFailureSignificance=  3.0d0
+  double precision                                , parameter                       :: emulatorFailureLimit       =  5.0d0
+  integer                                         , parameter                       :: checksTotalMinimum         =100
+  type            (polynomialIterator            )                                  :: iterator1                          , iterator2
+  type            (vector                        )                                  :: likelihoodSums                     , coefficients
   type            (matrix                        )                                  :: stateSums
-  integer         (kind=FGSL_Int                 )                                  :: decompositionSign                , status
-  integer                                                                           :: accumulatedStateCount            , i                    , &
-       &                                                                               j                                , k                    , &
-       &                                                                               evaluationsTotal                 , simulationsTotal     , &
-       &                                                                               stateCountAccept                 , stateCountAcceptChain, &
-       &                                                                               determinantSign                  , checksTotal          , &
-       &                                                                               failuresTotal                    , fileUnit
-  double precision                                                                  :: separation                       , likelihoodError      , & 
-       &                                                                               likelihoodEmulated               , failureRateExpected
+  integer         (kind=FGSL_Int                 )                                  :: decompositionSign                  , status
+  integer                                                                           :: accumulatedStateCount              , i                    , &
+       &                                                                               j                                  , k                    , &
+       &                                                                               evaluationsTotal                   , simulationsTotal     , &
+       &                                                                               stateCountAccept                   , stateCountAcceptChain, &
+       &                                                                               determinantSign                    , checksTotal          , &
+       &                                                                               failuresTotal                      , fileUnit
+  double precision                                                                  :: separation                         , likelihoodError      , & 
+       &                                                                               likelihoodEmulated                 , failureRateExpected
   logical                                                                           :: likelihoodIsSimulated
   character       (len=8                         )                                  :: label
-  type            (varying_string                )                                  :: message                          , fileName
+  type            (varying_string                )                                  :: message                            , fileName
 
   ! Report on emulation efficiency.
   if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
@@ -314,11 +315,13 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      call Alloc_Array(self%simulationState    ,[simulationState%dimension(),self%emulatorRebuildCount])
   end if
   likelihoodIsSimulated=.false.
-  if (self%initialized.and..not.self%regressionMatrixIsSingular.and.self%isGood) then
+  if (self%initialized.and..not.self%regressionMatrixIsSingular) then
      ! Perform the emulation.
      call likelihoodGaussianRegressionEmulate(self,simulationState,likelihoodGaussianRegressionEvaluate,likelihoodError)
-     ! Test likelihood emulation.
-     if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0) then
+     ! Test likelihood emulation. We do this whenever the emulator is currently rated "not good", and periodically otherwise to
+     ! monitor emulator behavior. When first initialized, the emulator is rated "not good" such that it has to prove that it is
+     ! valid before we actually begin using it.
+     if (.not.self%isGood .or. (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0)) then
         ! Every so many steps we evaluate the simulated likelihood and check that our emulator is reliable.
         likelihoodEmulated                  =likelihoodGaussianRegressionEvaluate
         likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
@@ -330,9 +333,11 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
         failuresTotal=mpiSelf%sum(self%emulatorFailCount )
         ! Determine if the emulator is sufficiently good to use or not.
         failureRateExpected=1.0d0-Error_Function(emulatorFailureSignificance/sqrt(2.0d0))
-        self%isGood=(dble(failuresTotal) < emulatorFailureLimit*failureRateExpected*dble(checksTotal))
+        self%isGood= checksTotal         > checksTotalMinimum                                         &
+             &      .and.                                                                             &
+             &       dble(failuresTotal) < emulatorFailureLimit*failureRateExpected*dble(checksTotal)
         ! Report on emulator failure rate.
-        if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+        if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo .and. mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0) then
            write (label,'(i8)') failuresTotal
            message='Emulator failed '//trim(adjustl(label))//' times out of '
            write (label,'(i8)') checksTotal
