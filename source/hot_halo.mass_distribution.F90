@@ -22,6 +22,7 @@ module Hot_Halo_Mass_Distributions
   use ISO_Varying_String
   use Mass_Distributions
   use Galacticus_Nodes
+  use Hot_Halo_Temperature_Profiles
   private
   public :: Hot_Halo_Mass_Distribution_Density_Task      , Hot_Halo_Mass_Distribution_Rotation_Curve_Task         , &
        &    Hot_Halo_Mass_Distribution_Enclosed_Mass_Task, Hot_Halo_Mass_Distribution_Rotation_Curve_Gradient_Task
