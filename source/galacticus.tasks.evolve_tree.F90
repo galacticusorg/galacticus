@@ -276,6 +276,14 @@ contains
              ! Iterate evolving the tree until we can evolve no more.
              treeTimeEarliest=thisTree%earliestTime()
              outputTimeNext=Galacticus_Next_Output_Time(treeTimeEarliest,outputIndex=iOutput)
+             ! For new trees, if the earliest time in the tree exactly coincides with an output
+             ! time, then process the tree to that output. This ensures that we include all
+             ! halos from this time in the output, even though they will be devoid of any
+             ! galaxies.
+             if (treeIsNew .and. iOutput > 1) then
+                if (treeTimeEarliest == Galacticus_Output_Time(iOutput-1)) iOutput=iOutput-1
+             end if
+             ! Catch cases where there is no next output time.
              if (outputTimeNext > 0.0d0) then
                 treeIsFinished=.false.
              else
