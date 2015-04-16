@@ -1,0 +1,12 @@
+<!-- Defines a constraint to match to the ZFOURGE z~2.750 stellar mass functions. -->
+<constraint>
+  <name>ZFOURGE z~2.750 stellar mass functions</name>
+  <label>zfourgeStellarMassFunctionZ2.750</label>
+  <outputRedshift>2.50</outputRedshift>
+  <outputRedshift>2.75</outputRedshift>
+  <outputRedshift>3.00</outputRedshift>
+  <haloMassResolution>5.0e9</haloMassResolution>
+  <haloMassMinimum>2.0e10</haloMassMinimum>
+  <haloMassMaximum>2.0e14</haloMassMaximum>
+  <analysis>constraints/scripts/stellarMassFunction_ZFOURGE_z2.750.pl</analysis>
+</constraint>
