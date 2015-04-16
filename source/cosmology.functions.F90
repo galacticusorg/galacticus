@@ -25,24 +25,23 @@ module Cosmology_Functions
   include 'cosmologyFunctions.functionModules.inc'
   !# </include>
   private
-
+  
   !# <include directive="cosmologyFunctions" type="function" >
   !#  <descriptiveName>Cosmology Functions</descriptiveName>
   !#  <description>Object providing various cosmological functions.</description>
   !#  <default>matterLambda</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <stateful>yes</stateful>
-  !#  <method name="expansionFactorIsValid" >
-  !#   <description>Returns true if the given expansion factor is valid one for this cosmology.</description>
-  !#   <type>logical</type>
+  !#  <method name="epochValidate" >
+  !#   <description>Check the given cosmic epoch is valid (aborting otherwise) and, optionally, return time or expansion factor associated with the epoch.</description>
+  !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: expansionFactor</argument>
-  !#  </method>
-  !#  <method name="cosmicTimeIsValid" >
-  !#   <description>Returns true if the given cosmic time is valid one for this cosmology.</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: time</argument>
+  !#   <argument>double precision, intent(in   ), optional :: timeIn            </argument>
+  !#   <argument>double precision, intent(in   ), optional :: expansionFactorIn </argument>
+  !#   <argument>logical         , intent(in   ), optional :: collapsingIn      </argument>
+  !#   <argument>double precision, intent(  out), optional :: timeOut           </argument>
+  !#   <argument>double precision, intent(  out), optional :: expansionFactorOut</argument>
+  !#   <argument>logical         , intent(  out), optional :: collapsingOut     </argument>
   !#  </method>
   !#  <method name="cosmicTime" >
   !#   <description>Return the cosmological age at the given expansion factor.</description>

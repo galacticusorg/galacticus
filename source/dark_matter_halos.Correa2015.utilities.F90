@@ -45,14 +45,14 @@ contains
     sigma =Cosmological_Mass_Root_Variance(mass  )
     sigmaQ=Cosmological_Mass_Root_Variance(mass/q)    
     f     =1.0d0/sqrt(sigmaQ**2-sigma**2)
-    aTilde=+f                                                                         & ! Correa et al. eqn. 2.
-         & *(                                                                         &
-         &   +1.0d0                                                                   &
-         &   -sqrt(2.0d0/Pi)                                                          &
-         &   *deltaCritical                                                           &
-         &   *                                                       expansionFactor  &
-         &   *Linear_Growth_Factor_Logarithmic_Derivative(aExpansion=expansionFactor) &
-         &   /Linear_Growth_Factor                       (aExpansion=expansionFactor) &
+    aTilde=+f                                                                              & ! Correa et al. eqn. 2.
+         & *(                                                                              &
+         &   +1.0d0                                                                        &
+         &   -sqrt(2.0d0/Pi)                                                               &
+         &   *deltaCritical                                                                &
+         &   *                                                            expansionFactor  &
+         &   *Linear_Growth_Factor_Logarithmic_Derivative(expansionFactor=expansionFactor) &
+         &   /Linear_Growth_Factor                       (expansionFactor=expansionFactor) &
          &  )
     bTilde=-f ! Correa et al. eqn. 3.
     return

@@ -173,14 +173,11 @@ contains
     logical                                                                       :: collapsingPhaseActual
 
     ! Validate the input.
-    if (.not.self%expansionFactorIsValid(expansionFactor)) &
-         & call Galacticus_Error_Report('matterDarkEnergyCosmicTime','expansion factor is invalid')
-    ! Determine if we are in the expanding or collapsing phase for this universe.
-    if (present(collapsingPhase)) then
-       collapsingPhaseActual=collapsingPhase
-    else
-       collapsingPhaseActual=.false. ! Assume expanding phase by default.
-    end if
+    call self%epochValidate(                                         &
+         &                  expansionFactorIn=expansionFactor      , &
+         &                  collapsingIn     =collapsingPhase      , &
+         &                  collapsingOut    =collapsingPhaseActual  &
+         &                 )
     ! Ensure tabulation is initialized.
     if (.not.self%ageTableInitialized) call self%expansionFactorTabulate(self%ageTableTimeMinimum)
     ! Ensure that the tabulation spans a sufficient range of expansion factors.
@@ -234,10 +231,10 @@ contains
           call Galacticus_Error_Report('matterDarkEnergyOmegaDarkEnergyEpochal','either a time or expansion factor must be specified')
        end if
     end if
-    matterDarkEnergyOmegaDarkEnergyEpochal                                                                       &
-         & =                        self%cosmology%OmegaDarkEnergy       (                                     ) &
+    matterDarkEnergyOmegaDarkEnergyEpochal                                                                           &
+         & =                        self%cosmology%OmegaDarkEnergy       (                                         ) &
          &  *expansionFactorActual**self          %exponentDarkEnergy    (expansionFactor=expansionFactorActual) &
-         &  *(                                                                                                   &
+         &  *(                                                                                                       &
          &                          self%cosmology%HubbleConstant        (unitsStandard                        ) &
          &    /                     self%          HubbleParameterEpochal(expansionFactor=expansionFactorActual) &
          &   )**2
@@ -586,14 +583,14 @@ contains
     end if
     ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the
     ! Universe and use the appropriate analytic solution.
-    if (self%ageTableExpansionFactor(1) < 0.0d0)       &
-         &    self%ageTableExpansionFactor(         1) &
-         & =(                                          &
-         &   -0.5d0                                    &
-         &   *densityPower                             &
-         &   *self%ageTableTime            (        1) &
+    if (self%ageTableExpansionFactor(1) < 0.0d0)             &
+         &    self%ageTableExpansionFactor(               1) &
+         & =(                                                &
+         &   -0.5d0                                          &
+         &   *densityPower                                   &
+         &   *self%ageTableTime            (              1) &
          &   *self%cosmology%HubbleConstant(unitsTime) &
-         &   *sqrt(OmegaDominant)                      &
+         &   *sqrt(OmegaDominant)                            &
          &  )**(-2.0d0/densityPower)
     ! Solve ODE to get corresponding expansion factors.
     self%iTableTurnaround  =  self%ageTableNumberPoints
