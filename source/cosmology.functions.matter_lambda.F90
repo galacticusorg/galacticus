@@ -79,8 +79,7 @@
      final     ::                                  matterLambdaDestructor
      procedure :: stateStore                    => matterLambdaStateStore
      procedure :: stateRestore                  => matterLambdaStateRestore
-     procedure :: expansionFactorIsValid        => matterLambdaExpansionFactorIsValid
-     procedure :: cosmicTimeIsValid             => matterLambdaCosmicTimeIsValid
+     procedure :: epochValidate                 => matterLambdaEpochValidate
      procedure :: cosmicTime                    => matterLambdaCosmicTime
      procedure :: expansionFactor               => matterLambdaExpansionFactor
      procedure :: expansionRate                 => matterLambdaExpansionRate
@@ -294,6 +293,60 @@ contains
     return
   end subroutine matterLambdaDestructor
 
+  subroutine matterLambdaEpochValidate(self,timeIn,expansionFactorIn,collapsingIn,timeOut,expansionFactorOut,collapsingOut)
+    !% Validate a cosmic epoch, specified either by time or expansion factor, and optionally return time, expansion factor, and
+    !% collapsing status.
+    use Galacticus_Error
+    implicit none
+    class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
+    double precision                                , intent(in   ), optional :: expansionFactorIn , timeIn
+    logical                                         , intent(in   ), optional :: collapsingIn
+    double precision                                , intent(  out), optional :: expansionFactorOut, timeOut
+    logical                                         , intent(  out), optional :: collapsingOut
+    logical                                                                   :: collapsingActual
+
+    ! Check that we have a uniquely specified epoch.
+    if (      present(timeIn).and.present(expansionFactorIn) ) &
+         & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','either "time" or "expansionFactor" should be specified, not both')
+    if (.not.(present(timeIn).or. present(expansionFactorIn))) &
+         & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','one of "time" or "expansionFactor" should be specified')
+    if (      present(timeIn).and.present(collapsingIn     ) ) &
+         & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','collapsing status of universe cannot be specified when epoch is defined by time')
+    ! If we have a time, check that it is a valid, and compute outputs as required.
+    if (present(timeIn)) then
+       ! Validate.
+       if (                              timeIn < 0.0d0           )                                                        &
+            & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','time preceeds the Big Bang' )
+       if (self%collapsingUniverse .and. timeIn > self%timeMaximum)                                                        &
+            & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','time exceeds the Big Crunch')
+       ! Set outputs.
+       if (present(timeOut           )) timeOut           =                           timeIn
+       if (present(expansionFactorOut)) expansionFactorOut= self%expansionFactor     (timeIn)
+       if (present(collapsingOut     )) collapsingOut     = self%collapsingUniverse           &
+            &                                              .and.                              &
+            &                                               self%timeTurnaround     < timeIn
+    end if
+    ! If we have an expansion factor, check that it is valid, and compute outputs as required.
+    if (present(expansionFactorIn)) then
+       ! Validate.
+       if (                              expansionFactorIn <                       0.0d0) &
+            & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','expansion factor preceeds the Big Bang'    )
+       if (self%collapsingUniverse .and. expansionFactorIn > self%expansionFactorMaximum) &
+            & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','expansion factor exceeds maximum expansion')
+       ! Determine collapse status.
+       collapsingActual=.false.
+       if (present(collapsingIn)) collapsingActual=collapsingIn
+       ! Validate collapse status.
+       if (collapsingActual .and. .not.self%collapsingUniverse) &
+            & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','epoch during collapsing phase specified, but universe does not collapse')
+       ! Set outputs.
+       if (present(timeOut           )) timeOut           =self%cosmicTime(expansionFactorIn,collapsingActual)
+       if (present(expansionFactorOut)) expansionFactorOut=expansionFactorIn
+       if (present(collapsingOut     )) collapsingOut     =collapsingActual
+    end if
+    return
+  end subroutine matterLambdaEpochValidate
+  
   double precision function matterLambdaCosmicTime(self,expansionFactor,collapsingPhase)
     !% Return the cosmological matter density in units of the critical density at the present day.
     use Galacticus_Error
@@ -305,14 +358,11 @@ contains
     logical                                                                   :: collapsingPhaseActual
 
     ! Validate the input.
-    if (.not.self%expansionFactorIsValid(expansionFactor)) &
-         & call Galacticus_Error_Report('matterLambdaCosmicTime','expansion factor is invalid')
-    ! Determine if we are in the expanding or collapsing phase for this universe.
-    if (present(collapsingPhase)) then
-       collapsingPhaseActual=collapsingPhase
-    else
-       collapsingPhaseActual=.false. ! Assume expanding phase by default.
-    end if
+    call self%epochValidate(                                         &
+         &                  expansionFactorIn=expansionFactor      , &
+         &                  collapsingIn     =collapsingPhase      , &
+         &                  collapsingOut    =collapsingPhaseActual  &
+         &                 )
     ! Ensure tabulation is initialized.
     if (.not.self%ageTableInitialized) call self%expansionFactorTabulate(self%ageTableTimeMinimum)
     ! Ensure that the tabulation spans a sufficient range of expansion factors.
@@ -361,26 +411,6 @@ contains
     matterLambdaCollapseODEs=FGSL_Success
     return
   end function matterLambdaCollapseODEs
-
-  logical function matterLambdaExpansionFactorIsValid(self,expansionFactor)
-    !% Checks that the expansion factor falls within allowed ranges.
-    implicit none
-    class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
-    double precision                                , intent(in   ) :: expansionFactor
-
-    matterLambdaExpansionFactorIsValid=expansionFactor > 0.0d0 .and. (expansionFactor < self%expansionFactorMaximum .or. .not.self%collapsingUniverse)
-    return
-  end function matterLambdaExpansionFactorIsValid
-
-  logical function matterLambdaCosmicTimeIsValid(self,time)
-    !% Checks that the time falls within allowed ranges.
-    implicit none
-    class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
-    double precision                                , intent(in   ) :: time
-
-    matterLambdaCosmicTimeIsValid=time > 0.0d0 .and. (time < self%timeMaximum .or. .not.self%collapsingUniverse)
-    return
-  end function matterLambdaCosmicTimeIsValid
 
   double precision function matterLambdaExpansionFactor(self,time)
     !% Returns the expansion factor at cosmological time {\normalfont \ttfamily time}.
@@ -440,7 +470,7 @@ contains
     double precision                                , intent(in   ) :: expansionFactor
 
     ! Required value is simply the Hubble parameter but expressed in units of inverse Gyr.
-    matterLambdaExpansionRate                                                       &
+    matterLambdaExpansionRate                                                           &
          & = self          %hubbleParameterEpochal(expansionFactor=expansionFactor) &
          &  *self%cosmology%HubbleConstant        (unitsTime                      ) &
          &  /self%cosmology%HubbleConstant        (unitsStandard                  )
@@ -457,20 +487,13 @@ contains
     logical                                         , intent(in   ), optional :: collapsingPhase
     double precision                                                          :: expansionFactorActual, sqrtArgument
 
-    ! Determine the actual expansion factor to use.
-    if (present(time)) then
-       if (present(expansionFactor)) then
-          call Galacticus_Error_Report('matterLambdaHubbleParameterEpochal','only one of time or expansion factor can be specified')
-       else
-          expansionFactorActual=self%expansionFactor(time)
-       end if
-    else
-       if (present(expansionFactor)) then
-          expansionFactorActual=expansionFactor
-       else
-          call Galacticus_Error_Report('matterLambdaHubbleParameterEpochal','either a time or expansion factor must be specified')
-       end if
-    end if
+    ! Validate the epoch.
+    call self%epochValidate(                                          &
+         &                  timeIn            =time                 , &
+         &                  expansionFactorIn =expansionFactor      , &
+         &                  collapsingIn      =collapsingPhase      , &
+         &                  expansionFactorOut=expansionFactorActual  &
+         &                 )
     ! Compute the Hubble parameter at the specified expansion factor.
     sqrtArgument                      =max(                                   &
          &                                  self%cosmology%OmegaMatter    ()  &
@@ -505,20 +528,13 @@ contains
     logical                                         , intent(in   ), optional :: collapsingPhase
     double precision                                                          :: expansionFactorActual
 
-    ! Determine the actual expansion factor to use.
-    if (present(time)) then
-       if (present(expansionFactor)) then
-          call Galacticus_Error_Report('matterLambdaHubbleParameterEpochal','only one of time or expansion factor can be specified')
-       else
-          expansionFactorActual=matterLambdaSelfGlobal%expansionFactor(time)
-       end if
-    else
-       if (present(expansionFactor)) then
-          expansionFactorActual=expansionFactor
-       else
-          call Galacticus_Error_Report('matterLambdaHubbleParameterEpochal','either a time or expansion factor must be specified')
-       end if
-    end if
+    ! Validate the epoch.
+    call self%epochValidate(                                          &
+         &                  timeIn            =time                 , &
+         &                  expansionFactorIn =expansionFactor      , &
+         &                  collapsingIn      =collapsingPhase      , &
+         &                  expansionFactorOut=expansionFactorActual  &
+         &                 )
     matterLambdaHubbleParameterRateOfChange                                                                            &
          & = +0.5d0                                                                                                    &
          & *        self%hubbleParameterEpochal(expansionFactor=expansionFactorActual,collapsingPhase=collapsingPhase) &
@@ -544,29 +560,20 @@ contains
     logical                                         , intent(in   ), optional :: collapsingPhase
     double precision                                                          :: expansionFactorActual
 
-    ! Determine the actual expansion factor to use.
-    if (present(time)) then
-       if (present(expansionFactor)) then
-          call Galacticus_Error_Report('matterLambdaOmegaMatterEpochal','only one of time or expansion factor can be specified')
-       else
-          expansionFactorActual=self%expansionFactor(time)
-       end if
-    else
-       if (present(expansionFactor)) then
-          expansionFactorActual=expansionFactor
-       else
-          call Galacticus_Error_Report('matterLambdaOmegaMatterEpochal','either a time or expansion factor must be specified')
-       end if
-    end if
-    matterLambdaOmegaMatterEpochal                                                          &
-         & =   self%cosmology%OmegaMatter           (                                     ) &
-         &  *(                                                                              &
+    ! Validate the epoch.
+    call self%epochValidate(                                          &
+         &                  timeIn            =time                 , &
+         &                  expansionFactorIn =expansionFactor      , &
+         &                  collapsingIn      =collapsingPhase      , &
+         &                  expansionFactorOut=expansionFactorActual  &
+         &                 )
+    matterLambdaOmegaMatterEpochal                                                              &
+         & =   self%cosmology%OmegaMatter           (                                         ) &
+         &  *(                                                                                  &
          &     self%cosmology%HubbleConstant        (unitsStandard                        ) &
          &    /self          %HubbleParameterEpochal(expansionFactor=expansionFactorActual) &
-         &   )**2                                                                           &
+         &   )**2                                                                               &
          &  /expansionFactorActual**3
-
-
     return
   end function matterLambdaOmegaMatterEpochal
 
@@ -579,14 +586,14 @@ contains
     logical                                         , intent(in   ), optional :: collapsingPhase
     double precision                                                          :: expansionFactorActual
 
-    if (present(expansionFactor)) then
-       expansionFactorActual=expansionFactor
-    else if (present(time)) then
-       expansionFactorActual=self%expansionFactor(time)
-    else
-       call Galacticus_Error_Report('matterLambdaOmegaMatterRateOfChange','either expansionFactor or time must be specified')
-    end if
-    matterLambdaOmegaMatterRateOfChange&
+    ! Validate the epoch.
+    call self%epochValidate(                                          &
+         &                  timeIn            =time                 , &
+         &                  expansionFactorIn =expansionFactor      , &
+         &                  collapsingIn      =collapsingPhase      , &
+         &                  expansionFactorOut=expansionFactorActual  &
+         &                 )
+    matterLambdaOmegaMatterRateOfChange                                                          &
          & =self%omegaMatterEpochal(time,expansionFactor,collapsingPhase)                        &
          & *(                                                                                    &
          &   -3.0d0*self%expansionRate              (     expansionFactorActual                ) &
@@ -604,24 +611,17 @@ contains
     double precision                                , intent(in   ), optional :: expansionFactor      , time
     logical                                         , intent(in   ), optional :: collapsingPhase
     double precision                                                          :: expansionFactorActual
-
-    ! Determine the actual expansion factor to use.
-    if (present(time)) then
-       if (present(expansionFactor)) then
-          call Galacticus_Error_Report('matterLambdaOmegaDarkEnergyEpochal','only one of time or expansion factor can be specified')
-       else
-          expansionFactorActual=self%expansionFactor(time)
-       end if
-    else
-       if (present(expansionFactor)) then
-          expansionFactorActual=expansionFactor
-       else
-          call Galacticus_Error_Report('matterLambdaOmegaDarkEnergyEpochal','either a time or expansion factor must be specified')
-       end if
-    end if
-    matterLambdaOmegaDarkEnergyEpochal                                                      &
-         & =   self%cosmology%OmegaDarkEnergy       (                                     ) &
-         &  *(                                                                              &
+    
+    ! Validate the epoch.
+    call self%epochValidate(                                          &
+         &                  timeIn            =time                 , &
+         &                  expansionFactorIn =expansionFactor      , &
+         &                  collapsingIn      =collapsingPhase      , &
+         &                  expansionFactorOut=expansionFactorActual  &
+         &                 )
+    matterLambdaOmegaDarkEnergyEpochal                                                          &
+         & =   self%cosmology%OmegaDarkEnergy       (                                         ) &
+         &  *(                                                                                  &
          &     self%cosmology%HubbleConstant        (unitsStandard                        ) &
          &    /self%          HubbleParameterEpochal(expansionFactor=expansionFactorActual) &
          &   )**2
@@ -637,20 +637,13 @@ contains
     logical                                         , intent(in   ), optional :: collapsingPhase
     double precision                                                          :: expansionFactorActual
 
-    ! Determine the actual expansion factor to use.
-    if (present(time)) then
-       if (present(expansionFactor)) then
-          call Galacticus_Error_Report('matterLambdaTemperatureCMBEpochal','only one of time or expansion factor can be specified')
-       else
-          expansionFactorActual=self%expansionFactor(time)
-       end if
-    else
-       if (present(expansionFactor)) then
-          expansionFactorActual=expansionFactor
-       else
-          call Galacticus_Error_Report('matterLambdaTemperatureCMBEpochal','either a time or expansion factor must be specified')
-       end if
-    end if
+    ! Validate the epoch.
+    call self%epochValidate(                                          &
+         &                  timeIn            =time                 , &
+         &                  expansionFactorIn =expansionFactor      , &
+         &                  collapsingIn      =collapsingPhase      , &
+         &                  expansionFactorOut=expansionFactorActual  &
+         &                 )
     matterLambdaTemperatureCMBEpochal=self%cosmology%temperatureCMB()/expansionFactorActual
     return
   end function matterLambdaTemperatureCMBEpochal
@@ -834,14 +827,14 @@ contains
     end if
     ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the
     ! Universe and use the appropriate analytic solution.
-    if (self%ageTableExpansionFactor(1) < 0.0d0)       &
-         &    self%ageTableExpansionFactor(         1) &
-         & =(                                          &
-         &   -0.5d0                                    &
-         &   *densityPower                             &
-         &   *self%ageTableTime            (        1) &
+    if (self%ageTableExpansionFactor(1) < 0.0d0)             &
+         &    self%ageTableExpansionFactor(               1) &
+         & =(                                                &
+         &   -0.5d0                                          &
+         &   *densityPower                                   &
+         &   *self%ageTableTime            (              1) &
          &   *self%cosmology%HubbleConstant(unitsTime) &
-         &   *sqrt(OmegaDominant)                      &
+         &   *sqrt(OmegaDominant)                            &
          &  )**(-2.0d0/densityPower)
     ! Solve ODE to get corresponding expansion factors.
     self%iTableTurnaround  =  self%ageTableNumberPoints
@@ -948,7 +941,7 @@ contains
     logical                                                         :: remakeTable
 
     ! Quit on invalid input.
-    if (time <                 0.0d0 ) call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time must be positive'   )
+    call self%epochValidate(timeIn=time)
     if (time > self%cosmicTime(1.0d0)) call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time must be in the past')
     ! Check if we need to recompute our table.
     if (self%distanceTableInitialized) then

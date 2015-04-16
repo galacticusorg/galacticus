@@ -103,52 +103,29 @@ contains
     return
   end subroutine Linear_Growth_Initialize
 
-  double precision function Linear_Growth_Factor(time,aExpansion,collapsing,normalize,component,wavenumber)
+  double precision function Linear_Growth_Factor(time,expansionFactor,collapsing,normalize,component,wavenumber)
     !% Return the linear growth factor.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     use Cosmology_Functions
-    use Galacticus_Error
     implicit none
-    double precision                                                  , intent(in   ), optional :: aExpansion               , time
+    double precision                                                  , intent(in   ), optional :: expansionFactor        , time
     logical                                                           , intent(in   ), optional :: collapsing
-    integer                                                           , intent(in   ), optional :: component                , normalize
+    integer                                                           , intent(in   ), optional :: component              , normalize
     double precision                                                  , intent(in   ), optional :: wavenumber
     double precision                         , dimension(:)  , pointer                          :: thisLinearGrowthFactor
     integer         (c_size_t               ), dimension(0:1)                                   :: iWavenumber
     double precision                         , dimension(0:1)                                   :: hWavenumber
-    class           (cosmologyFunctionsClass)                , pointer                          :: cosmologyFunctionsDefault
-    integer                                                                                     :: componentActual          , jWavenumber, &
+    class           (cosmologyFunctionsClass)                , pointer                          :: cosmologyFunctions_
+    integer                                                                                     :: componentActual        , jWavenumber, &
          &                                                                                         normalizeActual
-    logical                                                                                     :: collapsingActual         , remakeTable
+    logical                                                                                     :: collapsingActual       , remakeTable
     double precision                                                                            :: timeActual
 
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
-
-    ! Determine which type of input we have.
-    if (present(time)) then
-       if (present(aExpansion)) then
-          call Galacticus_Error_Report('Linear_Growth_Factor','only one argument can be specified')
-       else
-          timeActual=time
-       end if
-    else
-       if (present(aExpansion)) then
-          if (present(collapsing)) then
-             collapsingActual=collapsing
-          else
-             collapsingActual=.false.
-          end if
-           timeActual=cosmologyFunctionsDefault%cosmicTime(aExpansion,collapsingActual)
-       else
-          call Galacticus_Error_Report('Linear_Growth_Factor','at least one argument must be given')
-       end if
-    end if
-
+    cosmologyFunctions_ => cosmologyFunctions()
     ! Validate the input.
-    if (.not.cosmologyFunctionsDefault%cosmicTimeIsValid(timeActual)) call Galacticus_Error_Report('Linear_Growth_Factor','cosmic time is&
-         & invalid')
+    call cosmologyFunctions_%epochValidate(timeIn=timeActual,expansionFactorIn=expansionFactor,collapsingIn=collapsing,timeOut=timeActual)
 
     ! Determine normalization method.
     if (present(normalize)) then
@@ -214,52 +191,29 @@ contains
     return
   end function Linear_Growth_Factor
 
-  double precision function Linear_Growth_Factor_Logarithmic_Derivative(time,aExpansion,collapsing,component,wavenumber)
+  double precision function Linear_Growth_Factor_Logarithmic_Derivative(time,expansionFactor,collapsing,component,wavenumber)
     !% Return the logarithmic derivative of the linear growth factor with respect to expansion factor., $\d \ln D / \d \ln a$.
     use Numerical_Interpolation
     use Cosmology_Functions
-    use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     implicit none
-    double precision                                                  , intent(in   ), optional :: aExpansion                      , time
+    double precision                                                  , intent(in   ), optional :: expansionFactor                 , time
     logical                                                           , intent(in   ), optional :: collapsing
     integer                                                           , intent(in   ), optional :: component
     double precision                                                  , intent(in   ), optional :: wavenumber
     double precision                         , dimension(:)  , pointer                          :: thisLinearGrowthFactor
     integer         (c_size_t               ), dimension(0:1)                                   :: iWavenumber
     double precision                         , dimension(0:1)                                   :: hWavenumber
-    class           (cosmologyFunctionsClass)                , pointer                          :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass)                , pointer                          :: cosmologyFunctions_
     integer                                                                                     :: componentActual                 , jWavenumber
     logical                                                                                     :: collapsingActual
-    double precision                                                                            :: expansionFactor                 , linearGrowthFactor, &
+    double precision                                                                            :: expansionFactorActual           , linearGrowthFactor, &
          &                                                                                         linearGrowthFactorTimeDerivative, timeActual
 
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
-
-    ! Determine which type of input we have.
-    if (present(time)) then
-       if (present(aExpansion)) then
-          call Galacticus_Error_Report('Linear_Growth_Factor_Logarithmic_Derivative','only one argument can be specified')
-       else
-          timeActual=time
-       end if
-    else
-       if (present(aExpansion)) then
-          if (present(collapsing)) then
-             collapsingActual=collapsing
-          else
-             collapsingActual=.false.
-          end if
-          timeActual=cosmologyFunctionsDefault%cosmicTime(aExpansion,collapsingActual)
-       else
-          call Galacticus_Error_Report('Linear_Growth_Factor_Logarithmic_Derivative','at least one argument must be given')
-       end if
-    end if
-
+    cosmologyFunctions_ => cosmologyFunctions()
     ! Validate the input.
-    if (.not.cosmologyFunctionsDefault%cosmicTimeIsValid(timeActual)) call Galacticus_Error_Report('Linear_Growth_Factor_Logarithmic_Derivative','cosmic time is&
-         & invalid')
+    call cosmologyFunctions_%epochValidate(timeIn=timeActual,expansionFactorIn=expansionFactor,collapsingIn=collapsing,timeOut=timeActual,expansionFactorOut=expansionFactorActual)
 
     ! Determine the component type to use.
     if (present(component)) then
@@ -289,14 +243,9 @@ contains
             &=resetInterpolation)*hWavenumber(jWavenumber)
     end do
     !$omp end critical(Linear_Growth_Initialize)
-
-    ! Get the expansion factor.
-    expansionFactor=cosmologyFunctionsDefault%expansionFactor(timeActual)
-
     ! Construct the logarithmic derivative with respect to expansion factor.
     Linear_Growth_Factor_Logarithmic_Derivative=linearGrowthFactorTimeDerivative/linearGrowthFactor&
-         &/cosmologyFunctionsDefault%expansionRate(expansionFactor)
-
+         &/cosmologyFunctions_%expansionRate(expansionFactorActual)
     return
   end function Linear_Growth_Factor_Logarithmic_Derivative
 
