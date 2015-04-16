@@ -42,7 +42,7 @@ module Merger_Trees_Regrid_Times
   integer                         , parameter                 :: mergerTreeRegridSpacingLogarithmic           =1
   integer                         , parameter                 :: mergerTreeRegridSpacingLogCriticalOverdensity=2
   integer                         , parameter                 :: mergerTreeRegridSpacingMillennium            =3
-  integer,              parameter                 :: mergerTreeRegridSpacingRead                  =4
+  integer                         , parameter                 :: mergerTreeRegridSpacingRead                  =4
 
 contains
 
@@ -161,7 +161,7 @@ contains
                 mergerTreeRegridSpacing=mergerTreeRegridSpacingLinear
              case ("logarithmic")
                 mergerTreeRegridSpacing=mergerTreeRegridSpacingLogarithmic
-             case ("log critical density")
+             case ("logCriticalDensity")
                 mergerTreeRegridSpacing=mergerTreeRegridSpacingLogCriticalOverdensity
              case ("millennium")
                 mergerTreeRegridSpacing=mergerTreeRegridSpacingMillennium
