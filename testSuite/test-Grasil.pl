@@ -53,6 +53,11 @@ foreach my $output ( @outputs ) {
 		# Ensure that each output star formation history extends to the output time.
 		if ( $times((-1)) < $outputTime && $failuresFound == 0 ) {
 		    print "FAIL: star formation history time series does not extend to output time\n";
+		    print "  final time in time series = ".$times->((-1))."\n";
+		    print "                output time = ".$outputTime."\n";
+		    print "               output index = ".$output."\n";
+		    print "                 tree index = ".$mergerTree."\n";
+		    print "                    dataset = ".$dataset."\n";
 		    $failuresFound = 1;
 		}
 	    }
