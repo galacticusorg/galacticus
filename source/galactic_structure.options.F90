@@ -22,21 +22,20 @@ module Galactic_Structure_Options
   implicit none
   public
 
-  !# <include type="enumeration">
-  !#  <name>massType</name>
-  !#  <description>Used to specify the mass type(s) to be queried in galactic structure functions.</description>
-  !#  <functions>yes</functions>
-  !#  <entry label="unknown"   />
-  !#  <entry label="all"       />
-  !#  <entry label="dark"      />
-  !#  <entry label="baryonic"  />
-  !#  <entry label="galactic"  />
-  !#  <entry label="gaseous"   />
-  !#  <entry label="stellar"   />
-  !#  <entry label="blackHole" />
-  include 'enumeration.massType.inc'
-  !# </include>
-
+  ! Values used to represent different mass types.
+  !@ <include type="enumeration">
+  !@  <name>massType</name>
+  !@  <description>Used to specify the mass type(s) to be queried in galactic structure functions.</description>
+  !@  <functions>yes</functions>
+  !@  <entry label="massTypeUnknown"   />
+  !@  <entry label="massTypeAll"       />
+  !@  <entry label="massTypeDark"      />
+  !@  <entry label="massTypeBaryonic"  />
+  !@  <entry label="massTypeGalactic"  />
+  !@  <entry label="massTypeGaseous"   />
+  !@  <entry label="massTypeStellar"   />
+  !@  <entry label="massTypeBlackHole" />
+  !@ </include>
   integer, parameter :: massTypeCount    =7
   integer, parameter :: massTypeUnknown  =-1
   integer, parameter :: massTypeAll      =0
