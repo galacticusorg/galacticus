@@ -273,7 +273,7 @@ module Merger_Tree_Read_Importers
 
     if (.not.units%status) call Galacticus_Error_Report('importerUnitConvertScalar','units are not defined')
     cosmologyParametersDefault => cosmologyParameters()
-    importerUnitConvertScalar=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
+    importerUnitConvertScalar=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
        cosmologyFunctionsDefault => cosmologyFunctions()
        importerUnitConvertScalar=importerUnitConvertScalar*cosmologyFunctionsDefault%expansionFactor(times)**units%scaleFactorExponent
@@ -297,7 +297,7 @@ module Merger_Tree_Read_Importers
 
     if (.not.units%status) call Galacticus_Error_Report('importerUnitConvert1D','units are not defined')
     cosmologyParametersDefault => cosmologyParameters()
-    importerUnitConvert1D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
+    importerUnitConvert1D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
        cosmologyFunctionsDefault => cosmologyFunctions()
        do i=1,size(values)
@@ -324,7 +324,7 @@ module Merger_Tree_Read_Importers
 
     if (.not.units%status) call Galacticus_Error_Report('importerUnitConvert2D','units are not defined')
     cosmologyParametersDefault => cosmologyParameters()
-    importerUnitConvert2D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
+    importerUnitConvert2D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
        cosmologyFunctionsDefault => cosmologyFunctions()
        do i=1,size(values,dim=2)

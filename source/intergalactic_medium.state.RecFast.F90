@@ -79,7 +79,7 @@ contains
     write (parameterLabel,'(f6.4)') thisCosmologyParameters%OmegaBaryon()
     recFastConstructor%fileName=recFastConstructor%fileName//'_Omegab'//trim(parameterLabel)
     call Write_Parameter_XML(parameterDoc,"Omega_b",parameterLabel)
-    write (parameterLabel,'(f4.1)') thisCosmologyParameters%HubbleConstant(unitsStandard)
+    write (parameterLabel,'(f4.1)') thisCosmologyParameters%HubbleConstant(hubbleUnitsStandard)
     recFastConstructor%fileName=recFastConstructor%fileName//'_H0'//trim(parameterLabel)
     call Write_Parameter_XML(parameterDoc,"H_0",parameterLabel)
     write (parameterLabel,'(f5.3)') thisCosmologyParameters%temperatureCMB()

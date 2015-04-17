@@ -99,10 +99,10 @@ contains
     ! Get the default cosmology.
     thisCosmologyParameters => cosmologyParameters()
     ! Create transfer function.
-    Gamma=thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%HubbleConstant(unitsLittleH)*exp(-thisCosmologyParameters%OmegaBaryon()*(1.0d0+sqrt(2.0d0*thisCosmologyParameters%hubbleConstant(unitsLittleH))/thisCosmologyParameters%OmegaMatter()))/((thisCosmologyParameters%temperatureCMB()/2.7d0)**2)
+    Gamma=thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)*exp(-thisCosmologyParameters%OmegaBaryon()*(1.0d0+sqrt(2.0d0*thisCosmologyParameters%hubbleConstant(hubbleUnitsLittleH))/thisCosmologyParameters%OmegaMatter()))/((thisCosmologyParameters%temperatureCMB()/2.7d0)**2)
     do iWavenumber=1,transferFunctionNumberPoints
        wavenumber         =exp(transferFunctionLogWavenumber(iWavenumber))
-       wavenumberHUnits   =wavenumber/thisCosmologyParameters%HubbleConstant(unitsLittleH)
+       wavenumberHUnits   =wavenumber/thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)
        wavenumberScaleFree=wavenumber*transferFunctionWDMFreeStreamingLength
        q                  =wavenumberHUnits/Gamma
        transferFunctionLogT(iWavenumber)=log((log(1.0+2.34d0*q)/2.34d0/q)/(1.0d0+3.89d0*q+(16.1d0*q)**2+(5.46d0*q)**3+(6.71d0&

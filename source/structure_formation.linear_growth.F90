@@ -125,7 +125,7 @@ contains
     ! Get the default cosmology functions object.
     cosmologyFunctions_ => cosmologyFunctions()
     ! Validate the input.
-    call cosmologyFunctions_%epochValidate(timeIn=timeActual,expansionFactorIn=expansionFactor,collapsingIn=collapsing,timeOut=timeActual)
+    call cosmologyFunctions_%epochValidate(timeIn=time,expansionFactorIn=expansionFactor,collapsingIn=collapsing,timeOut=timeActual)
 
     ! Determine normalization method.
     if (present(normalize)) then
@@ -213,7 +213,7 @@ contains
     ! Get the default cosmology functions object.
     cosmologyFunctions_ => cosmologyFunctions()
     ! Validate the input.
-    call cosmologyFunctions_%epochValidate(timeIn=timeActual,expansionFactorIn=expansionFactor,collapsingIn=collapsing,timeOut=timeActual,expansionFactorOut=expansionFactorActual)
+    call cosmologyFunctions_%epochValidate(timeIn=time,expansionFactorIn=expansionFactor,collapsingIn=collapsing,timeOut=timeActual,expansionFactorOut=expansionFactorActual)
 
     ! Determine the component type to use.
     if (present(component)) then
