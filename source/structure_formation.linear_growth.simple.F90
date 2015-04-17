@@ -152,7 +152,7 @@ contains
     ! Get the default cosmology.
     thisCosmologyParameters => cosmologyParameters()
     ! Compute relative normalization factor such that growth factor behaves as expansion factor at early times.
-    normalizationMatterDominated(:)=((9.0d0*thisCosmologyParameters%OmegaMatter()/4.0d0)**(1.0d0/3.0d0))*((thisCosmologyParameters%HubbleConstant(unitsTime)*growthTableTime(1))**(2.0d0/3.0d0)) &
+    normalizationMatterDominated(:)=((9.0d0*thisCosmologyParameters%OmegaMatter()/4.0d0)**(1.0d0/3.0d0))*((thisCosmologyParameters%HubbleConstant(hubbleUnitsTime)*growthTableTime(1))**(2.0d0/3.0d0)) &
          &/growthTableGrowthFactor(1,1,:)
     return
   end subroutine Linear_Growth_Factor_Simple_Tabulate

@@ -82,7 +82,7 @@ contains
     call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaMatter'               ,thisCosmologyParameters%OmegaMatter    (           ))
     call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaBaryon'               ,thisCosmologyParameters%OmegaBaryon    (           ))
     call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaLambda'               ,thisCosmologyParameters%OmegaDarkEnergy(           ))
-    call    mergerTrees%addMetadata(metaDataCosmology  ,'HubbleParam'               ,thisCosmologyParameters%HubbleConstant (unitsLittleH))
+    call    mergerTrees%addMetadata(metaDataCosmology  ,'HubbleParam'               ,thisCosmologyParameters%HubbleConstant (hubbleUnitsLittleH))
     if (Input_Parameter_Is_Present("sigma_8"           )) then
        !@ <inputParameter>
        !@   <name>sigma_8</name>

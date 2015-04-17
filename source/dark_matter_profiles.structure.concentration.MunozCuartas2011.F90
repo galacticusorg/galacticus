@@ -72,7 +72,7 @@ contains
     redshift                     =cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(basic%time()))
     a                            =w*redshift-m
     b                            =alpha/(redshift+gamma)+beta/(redshift+gamma)**2
-    haloMassLogarithmic          =log10(basic%mass()*cosmologyParameters_%HubbleConstant(unitsLittleH))
+    haloMassLogarithmic          =log10(basic%mass()*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH))
     concentrationLogarithmic     =a*haloMassLogarithmic+b
     munozCuartas2011Concentration=10.0d0**concentrationLogarithmic
     return
