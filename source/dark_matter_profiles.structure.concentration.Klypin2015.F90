@@ -660,7 +660,7 @@ contains
     ! Get the basic component, and find the halo mass in "little-h" units.
     basic       =>  node                %basic         (                  )
     massLittleH =  +basic               %mass          (                  ) &
-         &         *cosmologyParameters_%HubbleConstant(units=unitsLittleH)
+         &         *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
     ! Find redshift.
     redshift=cosmologyFunctions_ %redshiftFromExpansionFactor(    &
          &    cosmologyFunctions_%expansionFactor             (   &

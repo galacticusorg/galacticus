@@ -132,7 +132,7 @@ contains
           call extractDataContent(thisItem,lengthUnitsInSI          )
           thisItem => XML_Get_First_Element_By_Tag_Name(doc     ,"units/length/hubbleExponent")
           call extractDataContent(thisItem,lengthUnitsHubbleExponent)
-          unitConversionLength=lengthUnitsInSI*(thisCosmologyParameters%HubbleConstant(unitsLittleH)**lengthUnitsHubbleExponent)/megaParsec
+          unitConversionLength=lengthUnitsInSI*(thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)**lengthUnitsHubbleExponent)/megaParsec
           ! Get the origin of the lightcone.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"origin")
           lightconeOrigin=Filter_Lightcone_Get_Coordinates(thisItem)*unitConversionLength

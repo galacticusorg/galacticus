@@ -136,11 +136,11 @@ contains
        thisCosmologyParameters => cosmologyParameters()
        ! Get values of cosmological parameters in advance (avoids trying to retrieve them while in an OpenMP "FoX_DOM_Access"
        ! critical section which can lead to deadlocks).
-       omegaBaryonValue    =thisCosmologyParameters%OmegaBaryon    (             )
-       omegaMatterValue    =thisCosmologyParameters%OmegaMatter    (             )
-       omegaDarkEnergyValue=thisCosmologyParameters%OmegaDarkEnergy(             )
-       hubbleParameterValue=thisCosmologyParameters%HubbleConstant (unitsStandard)
-       cmbTemperatureValue =thisCosmologyParameters%temperatureCMB (             )
+       omegaBaryonValue    =thisCosmologyParameters%OmegaBaryon    (                   )
+       omegaMatterValue    =thisCosmologyParameters%OmegaMatter    (                   )
+       omegaDarkEnergyValue=thisCosmologyParameters%OmegaDarkEnergy(                   )
+       hubbleParameterValue=thisCosmologyParameters%HubbleConstant (hubbleUnitsStandard)
+       cmbTemperatureValue =thisCosmologyParameters%temperatureCMB (                   )
        ! Open and parse the data file.
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(transferFunctionFile),iostat=ioErr)

@@ -246,7 +246,7 @@ contains
           ! Get the default cosmology.
           thisCosmologyParameters => cosmologyParameters()
           ! Compute the mass at which the mass variance is normalized.
-          massNormalization=(4.0d0*Pi/3.0d0)*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()*(radiusNormalization/thisCosmologyParameters%HubbleConstant(unitsLittleH))**3
+          massNormalization=(4.0d0*Pi/3.0d0)*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()*(radiusNormalization/thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH))**3
           ! Flag that this module is now initialized.
           sigmaInitialized=.true.
        end if

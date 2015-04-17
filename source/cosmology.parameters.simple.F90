@@ -204,6 +204,7 @@ contains
 
   double precision function HubbleConstantSimple(self,units)
     !% Return the present day value of the Hubble constant.
+    use Galacticus_Error
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
@@ -212,15 +213,17 @@ contains
     integer                                                              :: unitsActual
     double precision                           , parameter               :: HubbleConstantNormalization=100.0d0
 
-    unitsActual=unitsStandard
+    unitsActual=hubbleUnitsStandard
     if (present(units)) unitsActual=units
     select case (unitsActual)
-    case (unitsStandard)
+    case (hubbleUnitsStandard)
        HubbleConstantSimple=self%HubbleConstantValue
-    case (unitsTime    )
+    case (hubbleUnitsTime    )
        HubbleConstantSimple=self%HubbleConstantValue*gigaYear*kilo/megaParsec
-    case (unitsLittleH )
+    case (hubbleUnitsLittleH )
        HubbleConstantSimple=self%HubbleConstantValue/HubbleConstantNormalization
+    case default
+       call Galacticus_Error_Report('cosmologyParametersSimple:HubbleConstantSimple','unknown units for Hubble parameter')
     end select
     return
   end function HubbleConstantSimple

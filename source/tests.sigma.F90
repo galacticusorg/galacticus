@@ -60,7 +60,7 @@ program Tests_Sigma
   thisCosmologyParameters => cosmologyParameters()
 
   ! Compute the mass corresponding to 8Mpc/h.
-  radius8=8.0d0/thisCosmologyParameters%HubbleConstant(unitsLittleH)
+  radius8=8.0d0/thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)
   mass8=4.0d0*Pi*thisCosmologyParameters%densityCritical()*thisCosmologyParameters%OmegaMatter()*radius8**3/3.0d0
   sigma8=Cosmological_Mass_Root_Variance(mass8)
   call Assert('σ₈ equals specified value',sigma8,sigma_8(),relTol=2.5d-6)

@@ -414,7 +414,7 @@ contains
     cosmologyParameters_ => cosmologyParameters()
     cosmologyFunctions_  => cosmologyFunctions ()
     ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
-    localLittleH0   =cosmologyParameters_%HubbleConstant (unitsLittleH)
+    localLittleH0   =cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH)
     localOmegaMatter=cosmologyParameters_%OmegaMatter    (            )
     localOmegaDE    =cosmologyParameters_%OmegaDarkEnergy(            )
     ! Determine the base location for files.

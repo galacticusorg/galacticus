@@ -71,7 +71,7 @@ program Test_NFW96_Concentration_Dark_Energy
   do iMass=1,size(chardenLogHaloMass)
 
      ! Set the mass of the original node.
-     call thisBasicComponent%massSet((10.0d0**chardenLogHaloMass(iMass))/thisCosmologyParameters%HubbleConstant(unitsLittleH))
+     call thisBasicComponent%massSet((10.0d0**chardenLogHaloMass(iMass))/thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH))
 
      ! Compute and compare concentration at z=0.
      call thisBasicComponent%timeSet(cosmologyFunctionsDefault%cosmicTime(1.00d0))

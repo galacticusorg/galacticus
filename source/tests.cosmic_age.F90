@@ -67,7 +67,7 @@ program Tests_Cosmic_Age
   cosmologyFunctionsDarkEnergyOmegaMinusOneThird  =cosmologyFunctionsMatterDarkEnergy(cosmologyParametersCosmologicalConstant,-1.0d0/3.0d0,0.0d0)
   ! Compute the time of maximum expansion for the Universe. In this simple, OmegaM=10, OmegaDE=0 Universe this is analytically
   ! calculable and equals:
-  timeTurnaround=(5.0d0/27.0d0)*Pi/cosmologyParametersClosed%HubbleConstant(unitsTime)
+  timeTurnaround=(5.0d0/27.0d0)*Pi/cosmologyParametersClosed%HubbleConstant(hubbleUnitsTime)
   ! Evaluate ages for matter + cosmological constant universes.
   call Unit_Tests_Begin_Group("Matter + Cosmological Constant")
   do iExpansion=1,size(redshift)
