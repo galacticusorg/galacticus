@@ -90,7 +90,7 @@ contains
        imfName=IMF_Descriptor(imfIndex)
 
        ! Name of the parameter to be used for this IMF.
-       stellarPopulationSpectraFileName=char(Galacticus_Input_Path())//'data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.4_imf'//imfName//'.hdf5'
+       stellarPopulationSpectraFileName=char(Galacticus_Input_Path())//'data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.5_imf'//imfName//'.hdf5'
 
        ! Check if the file exists and has the correct version.
        remakeFile=.false.
