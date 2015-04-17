@@ -109,6 +109,7 @@ foreach my $srcdir ( @sourcedirs ) {
 			    my $directive = ${$data}{'directive'};
 			    $directive = ${$data}{'name'}
 			    if ( exists(${$data}{'name'}) );
+			    ${$data}{'source'} = $fileNames[0];
 			    $directive .= ".".${$data}{'type'};
 			    ${$includeDirectives{$directive}}{'source'  } = $fileNames[0];
 			    ${$includeDirectives{$directive}}{'fileName'} = $fileName;
