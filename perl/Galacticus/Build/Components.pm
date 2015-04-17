@@ -6043,7 +6043,6 @@ sub Generate_GSR_Functions {
 		    push(@{$dataDefinition->{'attributes'}},"intent(in   )");
 		    (my $currentDefinition,my $currentLabel) = &Data_Object_Definition($linkedData,matchOnly => 1);
 		    push(@{$currentDefinition->{'variables' }},"current"     );
-
 		    # If rate function is deferred, then create an intrinsic version.
 		    my $rateSuffix = "";
 		    $rateSuffix = "intrinsic"
@@ -6104,9 +6103,19 @@ sub Generate_GSR_Functions {
 			$functionCode
 			);
 		    # Insert a type-binding for this function into the implementation type.
+		    my %typeDefinition = (
+			type     => "procedure",
+			name     => $propertyName."Rate".ucfirst($rateSuffix),
+			function => $componentID.ucfirst($propertyName)."Rate".ucfirst($rateSuffix)
+			);
+		    if ( $rateSuffix eq "intrinsic" ) {
+			$typeDefinition{'description'} = "Cumulate directly (i.e. circumventing any deferred function binding) to the rate of the {\\normalfont \\ttfamily ".$propertyName."} property of the {\\normalfont \\ttfamily ".$componentID."} component.";
+			$typeDefinition{'returnType' } = "\\void";
+			$typeDefinition{'arguments'  } = &dataObjectDocName($property)."\\ value";
+		    }
 		    push(
 			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			{type => "procedure", name => $propertyName."Rate".ucfirst($rateSuffix), function => $componentID.ucfirst($propertyName)."Rate".ucfirst($rateSuffix)}
+			\%typeDefinition
 			);
 		    if ( $property->{'attributes' }->{'makeGeneric'} eq "true" ) {
 			# Create a version of this rate function which binds to the top-level class, and so is suitable for
