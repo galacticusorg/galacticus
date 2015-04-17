@@ -46,7 +46,7 @@ program Tests_Linear_Growth_Cosmological_Constant
   cosmologyFunctionsDefault => cosmologyFunctions()
   do iExpansion=1,size(redshift)
      expansionFactor=cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift(iExpansion))
-     linearGrowth=Linear_Growth_Factor(aExpansion=expansionFactor,component=linearGrowthComponentDarkMatter,normalize=normalizeMatterDominated)/expansionFactor
+     linearGrowth=Linear_Growth_Factor(expansionFactor=expansionFactor,component=linearGrowthComponentDarkMatter,normalize=normalizeMatterDominated)/expansionFactor
      write (message,'(a,f6.1,a)') "dark matter linear growth factor [z=",redshift(iExpansion),"]"
      call Assert(trim(message),linearGrowth,growthFactorDarkEnergy(iExpansion),relTol=1.0d-3)
   end do
