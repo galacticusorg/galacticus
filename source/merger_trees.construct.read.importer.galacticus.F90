@@ -171,7 +171,7 @@ contains
     ! Get the default cosmology.
     thisCosmologyParameters => cosmologyParameters()
     ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
-    localLittleH0   =thisCosmologyParameters%HubbleConstant (unitsLittleH)
+    localLittleH0   =thisCosmologyParameters%HubbleConstant (hubbleUnitsLittleH)
     localOmegaMatter=thisCosmologyParameters%OmegaMatter    (            )
     localOmegaDE    =thisCosmologyParameters%OmegaDarkEnergy(            )
     localOmegaBaryon=thisCosmologyParameters%OmegaBaryon    (            )

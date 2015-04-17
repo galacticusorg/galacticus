@@ -71,7 +71,7 @@ program Test_Prada2011_Concentration
   do iMass=1,massCount
 
      ! Set the mass of the original node.
-     call thisBasicComponent%massSet(10.0d0**logMass(iMass)/thisCosmologyParameters%HubbleConstant(unitsLittleH))
+     call thisBasicComponent%massSet(10.0d0**logMass(iMass)/thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH))
 
      ! Compute and compare concentration at z=0.
      ourLogConcentration(iMass)=log10(darkMatterProfileConcentration_%concentration(thisNode))

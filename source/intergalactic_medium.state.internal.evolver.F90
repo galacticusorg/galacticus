@@ -409,7 +409,7 @@
              &                )**(2.0d0/3.0d0)                           &
              &               *Pi**2
         propertyScales( 8  )=+propertyScales(7)&
-             &               *cosmologyParameters_%HubbleConstant(unitstime)
+             &               *cosmologyParameters_%HubbleConstant(hubbleUnitsTime)
         propertyScales( 9  )=opticalDepth (iNow-1)
         propertyScales(10  )=massFiltering(iNow-1)
         ! Display message

@@ -146,7 +146,7 @@ contains
           if (powerSpectrumLine(1:1) == "#") then
              if (powerSpectrumLine(1:33) == "# dimensionless Hubble parameter") then
                 read (powerSpectrumLine(index(powerSpectrumLine,":")+1:),*) littleHubbleCMB
-                if (Values_Differ(littleHubbleCMB,thisCosmologyParameters%HubbleConstant(unitsLittleH),relTol=1.0d-2)) &
+                if (Values_Differ(littleHubbleCMB,thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH),relTol=1.0d-2)) &
                      call Galacticus_Error_Report(                                                                         &
                      &                            'Power_Spectrum_Nonlinear_CosmicEmu'                                   , &
                      &                            'values of H_0 in Galacticus and CosmicEmu are significantly different'  &

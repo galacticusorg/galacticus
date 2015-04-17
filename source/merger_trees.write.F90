@@ -163,7 +163,7 @@ contains
           call mergerTrees%addMetadata(metaDataCosmology ,'OmegaMatter'       ,thisCosmologyParameters%OmegaMatter    (            ))
           call mergerTrees%addMetadata(metaDataCosmology ,'OmegaBaryon'       ,thisCosmologyParameters%OmegaBaryon    (            ))
           call mergerTrees%addMetadata(metaDataCosmology ,'OmegaLambda'       ,thisCosmologyParameters%OmegaDarkEnergy(            ))
-          call mergerTrees%addMetadata(metaDataCosmology ,'HubbleParam'       ,thisCosmologyParameters%HubbleConstant (unitsLittleH))
+          call mergerTrees%addMetadata(metaDataCosmology ,'HubbleParam'       ,thisCosmologyParameters%HubbleConstant (hubbleUnitsLittleH))
           call mergerTrees%addMetadata(metaDataCosmology ,'sigma_8'           ,sigma_8                            (            ))
           call mergerTrees%addMetadata(metaDataCosmology ,'powerSpectrumIndex',"not specified"                                  )
 

@@ -22,16 +22,16 @@ module Cosmology_Parameters
   use ISO_Varying_String
 
   ! Enumeration for Hubble constant units.
-  !@ <enumeration>
-  !@  <name>units</name>
-  !@  <description>Used to specify the units for the Hubble constant.</description>
-  !@  <entry label="unitsStandard" />
-  !@  <entry label="unitsTime"     />
-  !@  <entry label="unitsLittleH"  />
-  !@ </enumeration>
-  integer, parameter, public :: unitsStandard=0
-  integer, parameter, public :: unitsTime    =1
-  integer, parameter, public :: unitsLittleH =2
+  !@ <include type="enumeration">
+  !@  <name>hubbleUnits</name>
+  !@  <description>Specifies the units for the Hubble constant.</description>
+  !@  <entry label="hubbleUnitsStandard" />
+  !@  <entry label="hubbleUnitsTime"     />
+  !@  <entry label="hubbleUnitsLittleH"  />
+  !@ </include>
+  integer, parameter, public :: hubbleUnitsStandard=0
+  integer, parameter, public :: hubbleUnitsTime    =1
+  integer, parameter, public :: hubbleUnitsLittleH =2
 
   !# <include directive="cosmologyParameters" type="function" >
   !#  <descriptiveName>Cosmological Parameters</descriptiveName>
@@ -63,7 +63,7 @@ module Cosmology_Parameters
   !#   <pass>yes</pass>
   !#  </method>
   !#  <method name="HubbleConstant" >
-  !#   <description>Return the Hubble constant at the present day. The optional {\normalfont \ttfamily units} argument specifies if the return value should be in units of km/s/Mpc (unitsStandard), Gyr$^{-1}$ (unitsTime), or 100 km/s/Mpc (unitsLittleH).</description>
+  !#   <description>Return the Hubble constant at the present day. The optional {\normalfont \ttfamily units} argument specifies if the return value should be in units of km/s/Mpc (hubbleUnitsStandard), Gyr$^{-1}$ (hubbleUnitsTime), or 100 km/s/Mpc (hubbleUnitsLittleH).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>integer, intent(in   ), optional :: units</argument>
