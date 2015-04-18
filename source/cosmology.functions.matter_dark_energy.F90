@@ -233,10 +233,10 @@ contains
     end if
     matterDarkEnergyOmegaDarkEnergyEpochal                                                                           &
          & =                        self%cosmology%OmegaDarkEnergy       (                                         ) &
-         &  *expansionFactorActual**self          %exponentDarkEnergy    (expansionFactor=expansionFactorActual) &
+         &  *expansionFactorActual**self          %exponentDarkEnergy    (expansionFactor    =expansionFactorActual) &
          &  *(                                                                                                       &
-         &                          self%cosmology%HubbleConstant        (unitsStandard                        ) &
-         &    /                     self%          HubbleParameterEpochal(expansionFactor=expansionFactorActual) &
+         &                          self%cosmology%HubbleConstant        (hubbleUnitsStandard                      ) &
+         &    /                     self%          HubbleParameterEpochal(expansionFactor    =expansionFactorActual) &
          &   )**2
     return
   end function matterDarkEnergyOmegaDarkEnergyEpochal
@@ -347,7 +347,7 @@ contains
          &           /expansionFactorActual**2                                                             , &
          &           0.0d0                                                                                   &
          &          )
-    matterDarkEnergyHubbleParameterEpochal=self%cosmology%HubbleConstant(unitsStandard)*sqrt(sqrtArgument)
+    matterDarkEnergyHubbleParameterEpochal=self%cosmology%HubbleConstant(hubbleUnitsStandard)*sqrt(sqrtArgument)
     ! Make the Hubble parameter negative if we are in the collapsing phase of the Universe.
     if (self%collapsingUniverse) then
        if    (present(time           )) then
@@ -527,7 +527,7 @@ contains
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call self%densityScalingEarlyTime(matterDarkEnergyDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
     ! Find the corresponding time.
-    timeDominant=-2.0d0/densityPower/self%cosmology%HubbleConstant(unitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
+    timeDominant=-2.0d0/densityPower/self%cosmology%HubbleConstant(hubbleUnitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
     ! Find minimum and maximum times to tabulate.
     if (present(time)) then
        timeActual=time
@@ -589,7 +589,7 @@ contains
          &   -0.5d0                                          &
          &   *densityPower                                   &
          &   *self%ageTableTime            (              1) &
-         &   *self%cosmology%HubbleConstant(unitsTime) &
+         &   *self%cosmology%HubbleConstant(hubbleUnitsTime) &
          &   *sqrt(OmegaDominant)                            &
          &  )**(-2.0d0/densityPower)
     ! Solve ODE to get corresponding expansion factors.
