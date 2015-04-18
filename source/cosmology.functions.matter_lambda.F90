@@ -244,7 +244,7 @@ contains
        ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
        call matterLambdaConstructor%densityScalingEarlyTime(matterLambdaDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
        ! Find the corresponding time.
-       timeMaximumimum(1)=1.0d0/matterLambdaConstructor%cosmology%HubbleConstant(unitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
+       timeMaximumimum(1)=1.0d0/matterLambdaConstructor%cosmology%HubbleConstant(hubbleUnitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
        ! Solve Friedmann equation to get time at turnaround.
        matterLambdaSelfGlobal => matterLambdaConstructor
        odeReset=.true.
@@ -472,9 +472,9 @@ contains
 
     ! Required value is simply the Hubble parameter but expressed in units of inverse Gyr.
     matterLambdaExpansionRate                                                           &
-         & = self          %hubbleParameterEpochal(expansionFactor=expansionFactor) &
-         &  *self%cosmology%HubbleConstant        (unitsTime                      ) &
-         &  /self%cosmology%HubbleConstant        (unitsStandard                  )
+         & = self          %hubbleParameterEpochal(expansionFactor    =expansionFactor) &
+         &  *self%cosmology%HubbleConstant        (hubbleUnitsTime                    ) &
+         &  /self%cosmology%HubbleConstant        (hubbleUnitsStandard                )
     return
   end function matterLambdaExpansionRate
 
@@ -504,7 +504,7 @@ contains
          &                                 /expansionFactorActual**2        , &
          &                                 0.0d0                              &
          &                                )
-    matterLambdaHubbleParameterEpochal= self%cosmology%HubbleConstant(unitsStandard)&
+    matterLambdaHubbleParameterEpochal= self%cosmology%HubbleConstant(hubbleUnitsStandard)&
          &                             *sqrt(sqrtArgument)
     ! Make the Hubble parameter negative if we are in the collapsing phase of the Universe.
     if (self%collapsingUniverse) then
@@ -571,8 +571,8 @@ contains
     matterLambdaOmegaMatterEpochal                                                              &
          & =   self%cosmology%OmegaMatter           (                                         ) &
          &  *(                                                                                  &
-         &     self%cosmology%HubbleConstant        (unitsStandard                        ) &
-         &    /self          %HubbleParameterEpochal(expansionFactor=expansionFactorActual) &
+         &     self%cosmology%HubbleConstant        (hubbleUnitsStandard                      ) &
+         &    /self          %HubbleParameterEpochal(expansionFactor    =expansionFactorActual) &
          &   )**2                                                                               &
          &  /expansionFactorActual**3
     return
@@ -648,8 +648,8 @@ contains
     matterLambdaOmegaDarkEnergyEpochal                                                          &
          & =   self%cosmology%OmegaDarkEnergy       (                                         ) &
          &  *(                                                                                  &
-         &     self%cosmology%HubbleConstant        (unitsStandard                        ) &
-         &    /self%          HubbleParameterEpochal(expansionFactor=expansionFactorActual) &
+         &     self%cosmology%HubbleConstant        (hubbleUnitsStandard                      ) &
+         &    /self%          HubbleParameterEpochal(expansionFactor    =expansionFactorActual) &
          &   )**2
     return
   end function matterLambdaOmegaDarkEnergyEpochal
@@ -798,7 +798,7 @@ contains
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call self%densityScalingEarlyTime(matterLambdaDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
     ! Find the corresponding time.
-    tDominant=-2.0d0/densityPower/self%cosmology%HubbleConstant(unitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
+    tDominant=-2.0d0/densityPower/self%cosmology%HubbleConstant(hubbleUnitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
     ! Find minimum and maximum times to tabulate.
     if (present(time)) then
        timeActual=time
@@ -859,7 +859,7 @@ contains
          &   -0.5d0                                          &
          &   *densityPower                                   &
          &   *self%ageTableTime            (              1) &
-         &   *self%cosmology%HubbleConstant(unitsTime) &
+         &   *self%cosmology%HubbleConstant(hubbleUnitsTime) &
          &   *sqrt(OmegaDominant)                            &
          &  )**(-2.0d0/densityPower)
     ! Solve ODE to get corresponding expansion factors.
