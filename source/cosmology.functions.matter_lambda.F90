@@ -102,6 +102,7 @@
      procedure :: distanceComovingConvert       => matterLambdaDistanceComovingConvert
      procedure :: expansionFactorTabulate       => matterLambdaMakeExpansionFactorTable
      procedure :: distanceTabulate              => matterLambdaMakeDistanceTable
+     procedure :: matterDensityEpochal          => matterLambdaMatterDensityEpochal
   end type cosmologyFunctionsMatterLambda
 
   ! Module scope pointer to the current object.
@@ -529,12 +530,12 @@ contains
     double precision                                                          :: expansionFactorActual
 
     ! Validate the epoch.
-    call self%epochValidate(                                          &
-         &                  timeIn            =time                 , &
-         &                  expansionFactorIn =expansionFactor      , &
-         &                  collapsingIn      =collapsingPhase      , &
-         &                  expansionFactorOut=expansionFactorActual  &
-         &                 )
+    call matterLambdaGlobal%epochValidate(                                          &
+         &                                timeIn            =time                 , &
+         &                                expansionFactorIn =expansionFactor      , &
+         &                                collapsingIn      =collapsingPhase      , &
+         &                                expansionFactorOut=expansionFactorActual  &
+         &                               )
     matterLambdaHubbleParameterRateOfChange                                                                            &
          & = +0.5d0                                                                                                    &
          & *        self%hubbleParameterEpochal(expansionFactor=expansionFactorActual,collapsingPhase=collapsingPhase) &
@@ -576,6 +577,31 @@ contains
          &  /expansionFactorActual**3
     return
   end function matterLambdaOmegaMatterEpochal
+  double precision function matterLambdaMatterDensityEpochal(self,time,expansionFactor,collapsingPhase)
+    !% Return the matter density at expansion factor {\normalfont \ttfamily expansionFactor}.
+    use Galacticus_Error
+    implicit none
+    class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
+    double precision                                , intent(in   ), optional :: expansionFactor      , time
+    logical                                         , intent(in   ), optional :: collapsingPhase
+    double precision                                                          :: expansionFactorActual
+    ! Determine the actual expansion factor to use.
+    if (present(time)) then
+       if (present(expansionFactor)) then
+          call Galacticus_Error_Report('matterLambdaMatterDensityEpochal','only one of time or expansion factor can be specified')
+       else
+          expansionFactorActual=self%expansionFactor(time)
+       end if
+    else
+       if (present(expansionFactor)) then
+          expansionFactorActual=expansionFactor
+       else
+          call Galacticus_Error_Report('matterLambdaMatterDensityEpochal','either a time or expansion factor must be specified')
+       end if
+    end if
+    matterLambdaMatterDensityEpochal=self%cosmology%omegaMatter()*self%cosmology%densityCritical()/expansionFactorActual**3
+    return
+  end function matterLambdaMatterDensityEpochal
 
   double precision function matterLambdaOmegaMatterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !% Return the rate of change of the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
@@ -938,11 +964,12 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
+    double precision                                , parameter     :: toleranceRelative=1.0d-6
     logical                                                         :: remakeTable
 
     ! Quit on invalid input.
     call self%epochValidate(timeIn=time)
-    if (time > self%cosmicTime(1.0d0)) call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time must be in the past')
+    if (time > self%cosmicTime(1.0d0)*(1.0d0+toleranceRelative)) call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time must be in the past')
     ! Check if we need to recompute our table.
     if (self%distanceTableInitialized) then
        remakeTable=(time < self%distanceTableTime(1).or.time > self%distanceTableTime(self%distanceTableNumberPoints))
@@ -1094,6 +1121,7 @@ contains
             & = self%distanceTableComovingDistance                       (iTime)  &
             &  /self%expansionFactor              (self%distanceTableTime(iTime))
     end do
+    call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Make a negated copy of the distances so that we have an increasing array for use in interpolation routines.
     self%distanceTableComovingDistanceNegated  =-self%distanceTableComovingDistance
     self%distanceTableLuminosityDistanceNegated=-self%distanceTableLuminosityDistanceNegated
