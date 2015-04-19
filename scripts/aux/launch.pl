@@ -162,7 +162,8 @@ sub Construct_Models {
 		    # Transfer parameters for this model from the array of model parameter hashes to the
 		    # active hash.
 		    foreach my $parameter ( keys(%{$parameterData}) ) {
-			$parameters{$parameter} = ${$parameterData}{$parameter};
+			$parameters{$parameter} = ${$parameterData}{$parameter}
+			   unless ( ${$parameterData}{$parameter} =~ m/^\s*\%\%nochange\%\%\s*$/ );
 		    }
 		    # Transfer values from the active hash to an array suitable for XML output.
 		    my $data;
