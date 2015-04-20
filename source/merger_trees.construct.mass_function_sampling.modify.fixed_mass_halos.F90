@@ -39,8 +39,9 @@
   logical          :: fixedMassHalosInitialized=.false.
 
   ! Default settings.
-  double precision, allocatable, dimension(:) :: haloMassSampleModifierFixedMassHalosMass , haloMassSampleModifierFixedMassHalosRadius
+  double precision, allocatable, dimension(:) :: haloMassSampleModifierFixedMassHalosMass     , haloMassSampleModifierFixedMassHalosRadius
   integer         , allocatable, dimension(:) :: haloMassSampleModifierFixedMassHalosCount
+  logical                                     :: haloMassSampleModifierFixedMassHalosOverwrite
 
 contains
 
@@ -135,6 +136,17 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('haloMassSampleModifierFixedMassHalosRadius',haloMassSampleModifierFixedMassHalosRadius,defaultValue=haloMassSampleModifierFixedMassHalosRadius)
+          !@ <inputParameter>
+          !@   <name>haloMassSampleModifierFixedMassHalosOverwrite</name>
+          !@   <defaultValue>true</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     If {\normalfont \ttfamily true} the sample of halo masses will be overwritten instead of being added to.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('haloMassSampleModifierFixedMassHalosOverwrite',haloMassSampleModifierFixedMassHalosOverwrite,defaultValue=.false.)
           ! Record that we are now initialized.
           fixedMassHalosInitialized=.true.
        end if
@@ -200,15 +212,25 @@ contains
     end do
     call node%destroy()
     ! Insert halos into sample.
-    call Move_Alloc (treeHaloMass,      treeHaloMassTmp                     )
-    call Alloc_Array(treeHaloMass,shape(treeHaloMassTmp)+sum(self%haloCount))
-    treeHaloMass(                      1:size(treeHaloMassTmp))=treeHaloMassTmp
-    indexStart=size(treeHaloMassTmp)+1
-    do i=1,size(self%haloCount)
-       treeHaloMass(indexStart:indexStart+self%haloCount(i)-1)=self%haloMass(i)
-       indexStart=indexStart+self%haloCount(i)
-    end do
-    call Dealloc_Array(treeHaloMassTmp)
+    if (haloMassSampleModifierFixedMassHalosOverwrite) then
+       call Dealloc_Array(treeHaloMass                      )
+       call Alloc_Array  (treeHaloMass,[sum(self%haloCount)])
+       indexStart=1
+       do i=1,size(self%haloCount)
+          treeHaloMass(indexStart:indexStart+self%haloCount(i)-1)=self%haloMass(i)
+          indexStart=indexStart+self%haloCount(i)
+       end do       
+    else
+       call Move_Alloc (treeHaloMass,      treeHaloMassTmp                     )
+       call Alloc_Array(treeHaloMass,shape(treeHaloMassTmp)+sum(self%haloCount))
+       treeHaloMass(                      1:size(treeHaloMassTmp))=treeHaloMassTmp
+       indexStart=size(treeHaloMassTmp)+1
+       do i=1,size(self%haloCount)
+          treeHaloMass(indexStart:indexStart+self%haloCount(i)-1)=self%haloMass(i)
+          indexStart=indexStart+self%haloCount(i)
+       end do
+       call Dealloc_Array(treeHaloMassTmp)
+    end if
     return
 
   contains
