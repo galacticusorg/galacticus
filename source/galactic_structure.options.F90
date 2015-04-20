@@ -23,7 +23,7 @@ module Galactic_Structure_Options
   public
 
   ! Values used to represent different mass types.
-  !@ <include type="enumeration">
+  !@ <enumeration>
   !@  <name>massType</name>
   !@  <description>Used to specify the mass type(s) to be queried in galactic structure functions.</description>
   !@  <functions>yes</functions>
@@ -35,7 +35,7 @@ module Galactic_Structure_Options
   !@  <entry label="massTypeGaseous"   />
   !@  <entry label="massTypeStellar"   />
   !@  <entry label="massTypeBlackHole" />
-  !@ </include>
+  !@ </enumeration>
   integer, parameter :: massTypeCount    =7
   integer, parameter :: massTypeUnknown  =-1
   integer, parameter :: massTypeAll      =0
