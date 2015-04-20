@@ -333,7 +333,6 @@ contains
        case default
           call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown halo mass distribution option')
        end select
-
        ! Compute the weight (number of trees per unit volume) for each tree.
        if (computeTreeWeights) then
           iTreeFirst=0
@@ -371,6 +370,8 @@ contains
              ! geometric mean of their range.
              if     (                                                          &
                   &   (iTreeFirst == 1 .or. iTreeLast == treeCount)            &
+                  &  .and..not.                                                &
+                  &   (iTreeFirst == 1 .and. iTreeLast == treeCount)           &
                   &  .and.                                                     &
                   &   char(mergerTreeBuildTreesHaloMassDistribution) /= "read" &
                   & ) treeHaloMass(iTreeFirst:iTreeLast)=sqrt(massMinimum*massMaximum)
