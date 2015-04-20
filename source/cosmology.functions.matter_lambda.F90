@@ -530,12 +530,12 @@ contains
     double precision                                                          :: expansionFactorActual
 
     ! Validate the epoch.
-    call matterLambdaGlobal%epochValidate(                                          &
-         &                                timeIn            =time                 , &
-         &                                expansionFactorIn =expansionFactor      , &
-         &                                collapsingIn      =collapsingPhase      , &
-         &                                expansionFactorOut=expansionFactorActual  &
-         &                               )
+    call self%epochValidate(                                          &
+         &                  timeIn            =time                 , &
+         &                  expansionFactorIn =expansionFactor      , &
+         &                  collapsingIn      =collapsingPhase      , &
+         &                  expansionFactorOut=expansionFactorActual  &
+         &                 )
     matterLambdaHubbleParameterRateOfChange                                                                            &
          & = +0.5d0                                                                                                    &
          & *        self%hubbleParameterEpochal(expansionFactor=expansionFactorActual,collapsingPhase=collapsingPhase) &
