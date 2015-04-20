@@ -87,21 +87,21 @@ contains
        call thisDataset%readDataset(datasetValue=mass   )
        call thisDataset%readAttribute('unitscgs',unitsInCGS)
        call thisDataset%close()
-       mass    =mass    *(unitsInCGS(1)/kilo /massSolar )*cosmologyParameters_%hubbleConstant(unitsLittleH)**unitsInCGS(2)
+       mass    =mass    *(unitsInCGS(1)/kilo /massSolar )*cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
     end if
     if (present(center )) then
        thisDataset=halosGroup%openDataset("Center"  )
        call thisDataset%readDataset(datasetValue=center  )
        call thisDataset%readAttribute('unitscgs',unitsInCGS)
        call thisDataset%close()
-       center  =center  *(unitsInCGS(1)/hecto/megaParsec)*cosmologyParameters_%hubbleConstant(unitsLittleH)**unitsInCGS(2)
+       center  =center  *(unitsInCGS(1)/hecto/megaParsec)*cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
     end if
     if (present(velocity)) then
        thisDataset=halosGroup%openDataset("Velocity")
        call thisDataset%readDataset(datasetValue=velocity)
        call thisDataset%readAttribute('unitscgs',unitsInCGS)
        call thisDataset%close()
-       velocity=velocity*(unitsInCGS(1)/hecto/kilo      )*cosmologyParameters_%hubbleConstant(unitsLittleH)**unitsInCGS(2)
+       velocity=velocity*(unitsInCGS(1)/hecto/kilo      )*cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
     end if
     call halosGroup   %close()
     call snapshotGroup%close()
