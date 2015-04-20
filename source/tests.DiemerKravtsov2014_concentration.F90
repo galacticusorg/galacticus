@@ -86,7 +86,7 @@ program Test_DiemerKravtsov2014_Concentration
      call basic%timeLastIsolatedSet(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)))
      ! Set the mass of the original node (Diemer & Kravtsov masses are in units of M☉/h, so
      ! we convert from that system).
-     call basic%massSet(mass/cosmologyParameters_%HubbleConstant(units=unitsLittleH))
+     call basic%massSet(mass/cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH))
      ! Compute and compare concentration at z=0.
      ourConcentration           =darkMatterProfileConcentration_%concentration(node)
      differenceFractional       =abs(ourConcentration-concentration)/concentration

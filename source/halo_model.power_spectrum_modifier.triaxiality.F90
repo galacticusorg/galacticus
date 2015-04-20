@@ -122,7 +122,7 @@ contains
     select case (term)
     case (termOneHalo)
        tableIndex=1
-       do while (mass*cosmologyParameters_%HubbleConstant(unitsLittleH) < triaxialityMass(tableIndex))
+       do while (mass*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) < triaxialityMass(tableIndex))
           tableIndex=tableIndex+1
        end do
     case (termTwoHalo)
@@ -134,30 +134,30 @@ contains
        select case (term)
        case (termOneHalo)
           do i=1,size(wavenumber)
-             covariance(i)=+covarianceFraction                                                                      &
-                  &        *powerSpectrum(i)                                                                        &
-                  &        *(                                                                                       &
-                  &          +     triaxialityTable%interpolate(                                                    &
-                  &                                             +wavenumber(i)                                      &
-                  &                                             /cosmologyParameters_%HubbleConstant(unitsLittleH), &
-                  &                                             table=tableIndex                                    &
-                  &                                            )                                                    &
-                  &          -1.0d0                                                                                 &
+             covariance(i)=+covarianceFraction                                                                            &
+                  &        *powerSpectrum(i)                                                                              &
+                  &        *(                                                                                             &
+                  &          +     triaxialityTable%interpolate(                                                          &
+                  &                                             +wavenumber(i)                                            &
+                  &                                             /cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH), &
+                  &                                             table=tableIndex                                          &
+                  &                                            )                                                          &
+                  &          -1.0d0                                                                                       &
                   &         )
           end do
        case (termTwoHalo)
           do i=1,size(wavenumber)
-             covariance(i)=+covarianceFraction                                                                      &
-                  &        *powerSpectrum(i)                                                                        &
-                  &        *(                                                                                       &
-                  &          +sqrt(                                                                                 &
-                  &                triaxialityTable%interpolate(                                                    &
-                  &                                             +wavenumber(i)                                      &
-                  &                                             /cosmologyParameters_%HubbleConstant(unitsLittleH), &
-                  &                                             table=tableIndex                                    &
-                  &                                            )                                                    &
-                  &               )                                                                                 &
-                  &          -1.0d0                                                                                 &
+             covariance(i)=+covarianceFraction                                                                            &
+                  &        *powerSpectrum(i)                                                                              &
+                  &        *(                                                                                             &
+                  &          +sqrt(                                                                                       &
+                  &                triaxialityTable%interpolate(                                                          &
+                  &                                             +wavenumber(i)                                            &
+                  &                                             /cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH), &
+                  &                                             table=tableIndex                                          &
+                  &                                            )                                                          &
+                  &               )                                                                                       &
+                  &          -1.0d0                                                                                       &
                   &         )
           end do
        end select
@@ -167,20 +167,20 @@ contains
     do i=1,size(wavenumber)
        select case (term)
        case (termOneHalo)
-          powerSpectrum(i)=+powerSpectrum(i)                                                                      &
-               &           *     triaxialityTable%interpolate(                                                    &
-               &                                              +wavenumber(i)                                      &
-               &                                              /cosmologyParameters_%HubbleConstant(unitsLittleH), &
-               &                                              table=tableIndex                                    &
+          powerSpectrum(i)=+powerSpectrum(i)                                                                            &
+               &           *     triaxialityTable%interpolate(                                                          &
+               &                                              +wavenumber(i)                                            &
+               &                                              /cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH), &
+               &                                              table=tableIndex                                          &
                &                                             )
        case (termTwoHalo)
-          powerSpectrum(i)=+powerSpectrum(i)                                                                      &
-               &           *sqrt(                                                                                 &
-               &                 triaxialityTable%interpolate(                                                    &
-               &                                              +wavenumber(i)                                      &
-               &                                              /cosmologyParameters_%HubbleConstant(unitsLittleH), &
-               &                                              table=tableIndex                                    &
-               &                                             )                                                    &
+          powerSpectrum(i)=+powerSpectrum(i)                                                                            &
+               &           *sqrt(                                                                                       &
+               &                 triaxialityTable%interpolate(                                                          &
+               &                                              +wavenumber(i)                                            &
+               &                                              /cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH), &
+               &                                              table=tableIndex                                          &
+               &                                             )                                                          &
                &                )
        end select
     end do
