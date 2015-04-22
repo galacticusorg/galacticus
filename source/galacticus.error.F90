@@ -131,9 +131,9 @@ contains
        call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
        call hostnm(hostName)
        write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (0,*) " => Sleeping for 360s to allow for attachment of debugger"
+       write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
        call Flush(0)
-       call Sleep(360)
+       call Sleep(86400)
     end if
 #endif
     call H5Close_F(error)
@@ -167,9 +167,9 @@ contains
        call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
        call hostnm(hostName)
        write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (0,*) " => Sleeping for 360s to allow for attachment of debugger"
+       write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
        call Flush(0)
-       call Sleep(360)
+       call Sleep(86400)
     end if
 #endif
     call H5Close_F(error)
@@ -203,9 +203,9 @@ contains
        call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
        call hostnm(hostName)
        write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (0,*) " => Sleeping for 360s to allow for attachment of debugger"
+       write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
        call Flush(0)
-       call Sleep(360)
+       call Sleep(86400)
     end if
 #endif
     call H5Close_F(error)
@@ -260,9 +260,9 @@ contains
           call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
           call hostnm(hostName)
           write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-          write (0,*) " => Sleeping for 360s to allow for attachment of debugger"
+          write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
           call Flush(0)
-          call Sleep(360)
+          call Sleep(86400)
        end if
 #endif
       call H5Close_F(error)
