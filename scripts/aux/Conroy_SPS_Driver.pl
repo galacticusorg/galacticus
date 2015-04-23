@@ -52,7 +52,7 @@ if ( $makeFile == 1 ) {
     # Check out the code.
     unless ( -e $galacticusPath."aux/FSPS_v2.5" ) {
  	print "Conroy_SPS_Driver.pl: downloading source code.\n";
- 	system("git -c http.sslVerify=false clone https://github.com/cconroy20/fsps.git/ ".$galacticusPath."aux/FSPS_v2.5");
+ 	system("git git://github.com/cconroy20/fsps.git/ ".$galacticusPath."aux/FSPS_v2.5");
  	die("Conroy_SPS_Driver.pl: FATAL - failed to clone git repository.") unless ( -e $galacticusPath."aux/FSPS_v2.5" );
     }
     
