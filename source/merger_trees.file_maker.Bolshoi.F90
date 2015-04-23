@@ -111,7 +111,7 @@ contains
     call mergerTrees%setPropertyColumn(propertyTypeNodeIndex         , 3)
     call mergerTrees%setPropertyColumn(propertyTypeDescendentIndex   , 5)
     call mergerTrees%setPropertyColumn(propertyTypeHostIndex         , 8)
-    call mergerTrees%setPropertyColumn(propertyTypeNodeMass          ,11)
+    call mergerTrees%setPropertyColumn(propertyTypeNodeMass          ,12)
     call mergerTrees%setPropertyColumn(propertyTypeScaleRadius       ,14)
     call mergerTrees%setPropertyColumn(propertyTypeVelocityDispersion,15)
     call mergerTrees%setPropertyColumn(propertyTypeVelocityMaximum   ,18)
