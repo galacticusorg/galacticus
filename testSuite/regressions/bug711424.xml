@@ -1,8 +1,10 @@
+<?xml version="1.0"?>
 <!-- Regression test case for Bug #711424 - "Floating exception when -->
 <!-- tracking elements with noninstantaneous recycling" -->
 <!-- Andrew Benson -->
 <!-- 01-February-2011 -->
 <parameters>
+  <version>0.9.4</version>
   <parameter>
     <name>Omega_Matter</name>
     <value>0.2725</value>
@@ -189,7 +191,11 @@
   </parameter>
   <parameter>
     <name>treeNodeMethodDisk</name>
-    <value>exponential</value>
+    <value>standard</value>
+  </parameter>
+  <parameter>
+    <name>diskMassDistribution</name>
+    <value>exponentialDisk</value>
   </parameter>
   <parameter>
     <name>linearGrowthMethod</name>
@@ -268,8 +274,8 @@
     <value>0.02</value>
   </parameter>
   <parameter>
-    <name>virialOrbitsMethod</name>
-    <value>Benson2005</value>
+    <name>virialOrbitMethod</name>
+    <value>benson2005</value>
   </parameter>
   <parameter>
     <name>virialDensityContrastMethod</name>

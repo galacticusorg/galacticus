@@ -2,6 +2,7 @@
 <!-- Default parameters for Galacticus v0.9.2 -->
 <!-- 30-October-2011                          -->
 <parameters>
+  <version>0.9.4</version>
 
   <!-- Component selection -->
   <parameter>
@@ -18,7 +19,11 @@
   </parameter>
   <parameter>
     <name>treeNodeMethodDisk</name>
-    <value>exponential</value>
+    <value>standard</value>
+  </parameter>
+  <parameter>
+    <name>diskMassDistribution</name>
+    <value>exponentialDisk</value>
   </parameter>
   <parameter>
     <name>treeNodeMethodHotHalo</name>
@@ -539,8 +544,8 @@
 
   <!-- Galaxy merger options -->
   <parameter>
-    <name>virialOrbitsMethod</name>
-    <value>Benson2005</value>
+    <name>virialOrbitMethod</name>
+    <value>benson2005</value>
   </parameter>
   <parameter>
     <name>satelliteMergingTimescalesMethod</name>
