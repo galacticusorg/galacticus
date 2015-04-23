@@ -248,17 +248,29 @@ my @translations =
 	     {
 		 "Cole2000" => "cole2000"
 	     },
+	     treeNodeMethodDisk      =>
+	     {
+		 "exponential"       => {
+		                         value => "standard",
+		                         new   => [
+					           {
+			                            name  => "diskMassDistribution",
+			                            value => "exponentialDisk"
+			                           }
+			                          ]
+		                        }
+	     },
 	     darkMatterProfileShapeMethod =>
 	     {
 		 "Gao2008"  => "gao2008"
-	     }
+             }
 	 }
     }
     );
 
 # Validate the paramter file.
 system($galacticusPath."scripts/aux/validateParameters.pl ".$inputFileName);
-die('input file is not a valid Galacticus parameter file')
+die('input file "'.$inputFileName.'" is not a valid Galacticus parameter file')
     unless ( $? == 0 );
 
 # Parse the input file.
