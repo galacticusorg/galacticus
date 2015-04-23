@@ -1,7 +1,7 @@
 module Galacticus_IMF_Module
   USE sps_vars
   private
-  public :: Get_Galacticus_IMF
+  public :: Get_Galacticus_IMF, Set_Galacticus_IMF_Limits
 
   logical :: moduleInitialized=.false.
 
@@ -12,13 +12,11 @@ module Galacticus_IMF_Module
 
 contains
 
-  subroutine Get_Galacticus_IMF(mass,imf)
+  subroutine Read_Galacticus_IMF()
     implicit none
-    real(SP), intent(in), dimension(:) :: mass
-    real(SP), intent(out), dimension(:) :: imf
     integer :: i,ierr,iunit
     real(SP) :: dy
-
+    
     if (.not.moduleInitialized) then
        ! Read the file here.
        iunit=448
@@ -42,7 +40,26 @@ contains
        call gspline(massTable,imfTable,y2)
        moduleInitialized=.true.
     end if
+    return
+  end subroutine Read_Galacticus_IMF
 
+  subroutine Set_Galacticus_IMF_Limits()
+    implicit none
+    
+     call Read_Galacticus_IMF()
+     imf_lower_limit=massLow
+     imf_upper_limit=massHigh
+     return
+  end subroutine Set_Galacticus_IMF_Limits
+  
+  subroutine Get_Galacticus_IMF(mass,imf)
+    implicit none
+    real(SP), intent(in), dimension(:) :: mass
+    real(SP), intent(out), dimension(:) :: imf
+    integer :: i
+
+    call Read_Galacticus_IMF()
+    
     ! Do polynomial interpolation to get the IMF at the requested masses.
     do i=1,size(mass)
        if (mass(i).lt.massLow.or.mass(i).gt.massHigh) then

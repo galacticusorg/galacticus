@@ -1,6 +1,14 @@
---- ssp_gen.f90.orig	2013-11-28 09:01:50.000000000 -0800
-+++ ssp_gen.f90	2013-11-29 10:20:03.000000000 -0800
-@@ -67,7 +67,7 @@
+--- ssp_gen.f90.orig	2015-04-23 09:51:00.000000000 -0700
++++ ssp_gen.f90	2015-04-23 10:41:05.000000000 -0700
+@@ -17,6 +17,7 @@
+ SUBROUTINE SSP_GEN(pset,mass_ssp,lbol_ssp,spec_ssp)
+ 
+   USE sps_vars; USE sps_utils
++  use Galacticus_IMF_Module
+   IMPLICIT NONE
+   
+   INTEGER :: i=1, j=1, stat,ii,klo,khi,tlo,thi
+@@ -66,7 +67,7 @@
    ENDIF
  
    IF (imf_type.NE.0.AND.imf_type.NE.1.AND.imf_type.NE.2.&
@@ -9,3 +17,12 @@
       WRITE(*,*) 'SSP_GEN ERROR: IMF type outside of range',imf_type
       STOP
    ENDIF
+@@ -103,6 +104,8 @@
+      imf_upper_limit = imf_user_alpha(2,n_user_imf)
+   ENDIF
+ 
++  IF (imf_type.EQ.6) call Set_Galacticus_IMF_Limits()
++
+   !transfer isochrones into temporary arrays
+   mini  = mini_isoc(pset%zmet,:,:)  !initial mass
+   mact  = mact_isoc(pset%zmet,:,:)  !actual (present) mass
