@@ -5,6 +5,7 @@
 <!-- growth factor. This casued a bug when trying to normalize the linear growth factor to unity at the -->
 <!-- present day (as the table didn't extend to 22Gyr and so interpolation failed).                     -->
 <parameters>
+  <version>0.9.4</version>
 
   <!-- Specify a small set of trees -->
   <parameter>
@@ -31,7 +32,11 @@
   </parameter>
   <parameter>
     <name>treeNodeMethodDisk</name>
-    <value>exponential</value>
+    <value>standard</value>
+  </parameter>
+  <parameter>
+    <name>diskMassDistribution</name>
+    <value>exponentialDisk</value>
   </parameter>
   <parameter>
     <name>treeNodeMethodHotHalo</name>
@@ -520,8 +525,8 @@
 
   <!-- Galaxy merger options -->
   <parameter>
-    <name>virialOrbitsMethod</name>
-    <value>Benson2005</value>
+    <name>virialOrbitMethod</name>
+    <value>benson2005</value>
   </parameter>
   <parameter>
     <name>satelliteMergingTimescalesMethod</name>
