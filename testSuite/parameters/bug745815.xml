@@ -1,4 +1,6 @@
+<?xml version="1.0"?>
 <parameters>
+  <version>0.9.4</version>
   <parameter>
     <name>H_0</name>
     <value>70.2</value>
@@ -477,7 +479,11 @@
   </parameter>
   <parameter>
     <name>treeNodeMethodDisk</name>
-    <value>exponential</value>
+    <value>standard</value>
+  </parameter>
+  <parameter>
+    <name>diskMassDistribution</name>
+    <value>exponentialDisk</value>
   </parameter>
   <parameter>
     <name>treeNodeMethodHotHalo</name>
@@ -508,8 +514,8 @@
     <value>sphericalCollapseMatterLambda</value>
   </parameter>
   <parameter>
-    <name>virialOrbitsMethod</name>
-    <value>Benson2005</value>
+    <name>virialOrbitMethod</name>
+    <value>benson2005</value>
   </parameter>
   <parameter>
     <name>zeroCoolingRateAboveVelocity</name>
