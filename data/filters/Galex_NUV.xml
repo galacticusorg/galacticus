@@ -1,5 +1,5 @@
 <filter>
-  <description>Galex NUV filter 2500A</description>
+  <description>Galex NUV filter 2500 Angstroms</description>
   <name>Galex NUV</name>
   <origin>Peter Capak</origin>
   <url>http://www.astro.caltech.edu/~capak/cosmos/filters/galex2500.res</url>
