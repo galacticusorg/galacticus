@@ -1,5 +1,5 @@
 <filter>
-  <description>Galex FUV filter 1500A</description>
+  <description>Galex FUV filter 1500 Angstroms</description>
   <name>Galex FUV</name>
   <origin>Peter Capak</origin>
   <url>http://www.astro.caltech.edu/~capak/cosmos/filters/galex1500.res</url>
