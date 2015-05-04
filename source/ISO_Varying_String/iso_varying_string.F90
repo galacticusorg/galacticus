@@ -31,7 +31,7 @@
 !
 ! Author    : Rich Townsend <rhdt@bartol.udel.edu>
 ! Synopsis  : Definition of iso_varying_string module, conformant to the API 
-!             specified in ISO/IEC 1539-2:2000 (varying-length strings for 
+!             specified in ISO/IEC/ 1539-2:2000 (varying-length strings for 
 !             Fortran 95). 
 ! Version   : 1.3-F
 ! Thanks    : Lawrie Schonfelder (bugfixes and design pointers), Walt Brainerd
@@ -90,31 +90,31 @@ module iso_varying_string
      module procedure op_ne_VS_VS
      module procedure op_ne_CH_VS
      module procedure op_ne_VS_CH
-  end interface operator (/=)
+  end interface operator(/=)
   
   interface operator(<)
      module procedure op_lt_VS_VS
      module procedure op_lt_CH_VS
      module procedure op_lt_VS_CH
-  end interface operator (<)
+  end interface operator(<)
   
   interface operator(<=)
      module procedure op_le_VS_VS
      module procedure op_le_CH_VS
      module procedure op_le_VS_CH
-  end interface operator (<=)
+  end interface operator(<=)
   
   interface operator(>=)
      module procedure op_ge_VS_VS
      module procedure op_ge_CH_VS
      module procedure op_ge_VS_CH
-  end interface operator (>=)
+  end interface operator(>=)
 
   interface operator(>)
      module procedure op_gt_VS_VS
      module procedure op_gt_CH_VS
      module procedure op_gt_VS_CH
-  end interface operator (>)
+  end interface operator(>)
   
   interface adjustl
      module procedure adjustl_
@@ -256,7 +256,7 @@ module iso_varying_string
      module procedure replace_CH_VS_CH_target
      module procedure replace_VS_CH_CH_target
      module procedure replace_CH_CH_CH_target
-  end interface
+  end interface replace
 
   interface split
      module procedure split_VS

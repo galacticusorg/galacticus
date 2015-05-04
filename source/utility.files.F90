@@ -33,13 +33,13 @@ module File_Utilities
      !% Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
      module procedure Count_Lines_in_File_Char
      module procedure Count_Lines_in_File_VarStr
-  end interface
+  end interface Count_Lines_in_File
 
   interface File_Exists
      !% Generic interface for functions that check for a files existance.
      module procedure File_Exists_Char
      module procedure File_Exists_VarStr
-  end interface
+  end interface File_Exists
 
   interface
      function flock_C(name) bind(c,name='flock_C')

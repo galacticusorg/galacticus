@@ -33,7 +33,7 @@ module Numerical_Interpolation_2D_Irregular
   interface Interpolate_2D_Irregular
      module procedure Interpolate_2D_Irregular_Array
      module procedure Interpolate_2D_Irregular_Scalar
-  end interface
+  end interface Interpolate_2D_Irregular
 
 contains
 

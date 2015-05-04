@@ -25,26 +25,26 @@ module Array_Utilities
 
   interface operator(.intersection.)
      module procedure Array_Intersection_Varying_String
-  end interface
+  end interface operator(.intersection.)
 
   interface Array_Reverse
      !% Interface to generic routines which reverse the direction of an array.
      module procedure Array_Reverse_Real
      module procedure Array_Reverse_Double
      module procedure Array_Reverse_SizeT
-  end interface
-
+  end interface Array_Reverse
+  
   interface Array_Cumulate
      !% Interface to generic routines which cumulate values in an array.
      module procedure Array_Cumulate_Double
-  end interface
-
+  end interface Array_Cumulate
+  
   interface Array_Is_Monotonic
      !% Interface to generic routines which check if an array is monotonic.
      module procedure Array_Is_Monotonic_Integer8
      module procedure Array_Is_Monotonic_Double
-  end interface
-
+  end interface Array_Is_Monotonic
+  
   interface Array_Index
      !% Interface to generic routines which return a subset of an array given indices into the array.
      module procedure Array_Index_Integer8
@@ -52,7 +52,7 @@ module Array_Utilities
      module procedure Array_Index_Double
      module procedure Array_Index_Double_2D
   end interface Array_Index
-
+  
   ! Types of direction for monotonic arrays.
   integer, parameter, public :: directionDecreasing=-1
   integer, parameter, public :: directionIncreasing=1

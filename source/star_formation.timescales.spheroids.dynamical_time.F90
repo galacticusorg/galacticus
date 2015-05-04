@@ -82,7 +82,7 @@ contains
       call Get_Input_Parameter('starFormationSpheroidMinimumTimescale',starFormationSpheroidMinimumTimescale,defaultValue=1.0d-3)
     end if
     return
-  end subroutine Star_Formation_Timescale_Spheroids_Dynamical_time_Initialize
+  end subroutine Star_Formation_Timescale_Spheroids_Dynamical_Time_Initialize
 
   double precision function Star_Formation_Timescale_Spheroid_Dynamical_Time(thisNode)
     !% Returns the timescale (in Gyr) for star formation in the galactic spheroid of {\normalfont \ttfamily thisNode}. The timescale is given by

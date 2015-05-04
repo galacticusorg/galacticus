@@ -41,7 +41,7 @@ module Cooling_Times_Available
        import treeNode
        type(treeNode), intent(inout), pointer :: thisNode
      end function Cooling_Time_Available_Get_Template
-  end interface
+  end interface Cooling_Time_Available_Get_Template
 
 contains
 

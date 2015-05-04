@@ -77,7 +77,7 @@ contains
     return
   end function Dielectronic_Recombination_Rate_Arnaud1985
 
-  subroutine  Set_coefficients
+  subroutine Set_Coefficients()
     !% Populate the array of fitting function coefficients for the {\normalfont \ttfamily Arnaud1985} dielectronic recombination rates.
     implicit none
 

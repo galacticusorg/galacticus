@@ -29,7 +29,7 @@ module Galacticus_Error
   interface Galacticus_Error_Report
      module procedure Galacticus_Error_Report_Char
      module procedure Galacticus_Error_Report_VarStr
-  end interface
+  end interface Galacticus_Error_Report
 
   ! Specify an explicit dependence on the hdf5_cFuncs.o object file.
   !: ./work/build/hdf5_cFuncs.o

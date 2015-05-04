@@ -39,23 +39,23 @@ module Merger_Tree_Branching
      double precision function Tree_Branching_Probability_Template(haloMass,deltaCritical,massResolution)
        double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
      end function Tree_Branching_Probability_Template
-  end interface
+  end interface Tree_Branching_Probability_Template
   interface Tree_Subresolution_Fraction_Template
      double precision function Tree_Subresolution_Fraction_Template(haloMass,deltaCritical,massResolution)
        double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
      end function Tree_Subresolution_Fraction_Template
-  end interface
+  end interface Tree_Subresolution_Fraction_Template
   interface Tree_Branch_Mass_Template
      double precision function Tree_Branch_Mass_Template(haloMass,deltaCritical,massResolution,probabilityFraction)
        double precision, intent(in   ) :: deltaCritical      , haloMass, massResolution, &
             &                             probabilityFraction
      end function Tree_Branch_Mass_Template
-  end interface
+  end interface Tree_Branch_Mass_Template
   interface Tree_Maximum_Step_Template
      double precision function Tree_Maximum_Step_Template(haloMass,deltaCritical,massResolution)
        double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
      end function Tree_Maximum_Step_Template
-  end interface
+  end interface Tree_Maximum_Step_Template
 
 contains
 

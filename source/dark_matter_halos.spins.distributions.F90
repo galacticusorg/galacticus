@@ -38,7 +38,7 @@ module Halo_Spin_Distributions
        import treeNode
        type(treeNode), intent(inout), pointer :: thisNode
      end function Halo_Spin_Sample_Get_Template
-  end interface
+  end interface Halo_Spin_Sample_Get_Template
 
 contains
 
