@@ -29,7 +29,7 @@ module Sort
      !% Generic interface to index sort routines.
      module procedure Sort_Index_Do_Double
      module procedure Sort_Index_Do_Integer8
-  end interface
+  end interface Sort_Index_Do
 
   interface Sort_Do
      !% Generic interface to in-place sort routines.
@@ -37,7 +37,7 @@ module Sort
      module procedure Sort_Do_Integer
      module procedure Sort_Do_Integer8
      module procedure Sort_Do_Integer8_Both
-  end interface
+  end interface Sort_Do
 
   interface Sort_By_Index
      !% Generic interface to in-place sort routines using a supplied index.

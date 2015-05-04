@@ -27,7 +27,7 @@ module Quasi_Random
   interface Quasi_Random_Get
      module procedure Quasi_Random_Get_Scalar
      module procedure Quasi_Random_Get_Array
-  end interface
+  end interface Quasi_Random_Get
 
 contains
 

@@ -27,7 +27,7 @@ module Star_Formation_IMF_PPL
   interface Piecewise_Power_Law_IMF_Phi
      module procedure Piecewise_Power_Law_IMF_Phi_Scalar
      module procedure Piecewise_Power_Law_IMF_Phi_Array
-  end interface
+  end interface Piecewise_Power_Law_IMF_Phi
 
 contains
 

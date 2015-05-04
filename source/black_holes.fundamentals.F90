@@ -39,36 +39,36 @@ module Black_Hole_Fundamentals
   interface Black_Hole_ISCO_Radius
      module procedure Black_Hole_ISCO_Radius_Node
      module procedure Black_Hole_ISCO_Radius_Spin
-  end interface
-   interface Black_Hole_Rotational_Energy_Spin_Down
+  end interface Black_Hole_ISCO_Radius
+  interface Black_Hole_Rotational_Energy_Spin_Down
      module procedure Black_Hole_Rotational_Energy_Spin_Down_Node
      module procedure Black_Hole_Rotational_Energy_Spin_Down_Spin
-  end interface
+  end interface Black_Hole_Rotational_Energy_Spin_Down
   interface Black_Hole_Metric_A_Factor
      module procedure Black_Hole_Metric_A_Factor_Node
      module procedure Black_Hole_Metric_A_Factor_Spin
-  end interface
+  end interface Black_Hole_Metric_A_Factor
   interface Black_Hole_Metric_D_Factor
      module procedure Black_Hole_Metric_D_Factor_Node
      module procedure Black_Hole_Metric_D_Factor_Spin
-  end interface
+  end interface Black_Hole_Metric_D_Factor
   interface Black_Hole_Frame_Dragging_Frequency
      module procedure Black_Hole_Frame_Dragging_Frequency_Node
      module procedure Black_Hole_Frame_Dragging_Frequency_Spin
-  end interface
+  end interface Black_Hole_Frame_Dragging_Frequency
   interface Black_Hole_Horizon_Radius
      module procedure Black_Hole_Horizon_Radius_Node
      module procedure Black_Hole_Horizon_Radius_Spin
-  end interface
+  end interface Black_Hole_Horizon_Radius
   interface Black_Hole_Static_Radius
      module procedure Black_Hole_Static_Radius_Node
      module procedure Black_Hole_Static_Radius_Spin
-  end interface
+  end interface Black_Hole_Static_Radius
   interface Black_Hole_ISCO_Specific_Energy
      module procedure Black_Hole_ISCO_Specific_Energy_Node
      module procedure Black_Hole_ISCO_Specific_Energy_Spin
   end interface Black_Hole_ISCO_Specific_Energy
-
+  
 contains
 
   double precision function Black_Hole_ISCO_Radius_Spin(blackHoleSpin,orbit)

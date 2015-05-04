@@ -42,7 +42,7 @@ module Hot_Halo_Temperature_Profile
        type            (treeNode), intent(inout), pointer :: thisNode
        double precision          , intent(in   )          :: radius
      end function Hot_Halo_Temperature_Get_Template
-  end interface
+  end interface Hot_Halo_Temperature_Get_Template
 
 contains
 

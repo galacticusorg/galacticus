@@ -44,12 +44,12 @@ module Galacticus_Display
   interface Galacticus_Display_Message
      module procedure Galacticus_Display_Message_Char
      module procedure Galacticus_Display_Message_VarStr
-  end interface
+  end interface Galacticus_Display_Message
 
   interface Galacticus_Display_Indent
      module procedure Galacticus_Display_Indent_Char
      module procedure Galacticus_Display_Indent_VarStr
-  end interface
+  end interface Galacticus_Display_Indent
 
 contains
 

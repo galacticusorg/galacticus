@@ -39,7 +39,7 @@ module Star_Formation_Feedback_Disks
        type            (treeNode), intent(inout), pointer :: thisNode
        double precision          , intent(in   )          :: energyInputRate, starFormationRate
      end function Star_Formation_Feedback_Disk_Outflow_Rate_Template
-  end interface
+  end interface Star_Formation_Feedback_Disk_Outflow_Rate_Template
 
 contains
 

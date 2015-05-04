@@ -31,7 +31,7 @@ module Command_Arguments
      module procedure Get_Argument_Integer
      module procedure Get_Argument_Double
      module procedure Get_Argument_Logical
-  end interface
+  end interface Get_Argument
 
 contains
 

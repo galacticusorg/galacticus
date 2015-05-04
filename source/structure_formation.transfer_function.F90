@@ -41,13 +41,13 @@ module Transfer_Functions
   interface Transfer_Function_Tabulate_Template
      subroutine Transfer_Function_Tabulate_Template(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber &
           &,transferFunctionLogT)
-    double precision                           , intent(in   ) :: logWavenumber
-    double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
-    integer                                    , intent(  out) :: transferFunctionNumberPoints
-  end subroutine Transfer_Function_Tabulate_Template
- end interface
- procedure       (Transfer_Function_Half_Mode_Mass ), pointer                   :: Transfer_Function_Half_Mode_Mass_Get =>null()
-
+       double precision                           , intent(in   ) :: logWavenumber
+       double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
+       integer                                    , intent(  out) :: transferFunctionNumberPoints
+     end subroutine Transfer_Function_Tabulate_Template
+  end interface Transfer_Function_Tabulate_Template
+  procedure       (Transfer_Function_Half_Mode_Mass ), pointer                   :: Transfer_Function_Half_Mode_Mass_Get =>null()
+  
 contains
 
   double precision function Transfer_Function(wavenumber)

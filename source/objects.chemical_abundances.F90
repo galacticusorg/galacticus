@@ -24,7 +24,7 @@ module Chemical_Abundances_Structure
   private
   public :: chemicalAbundances, Chemicals_Names, Chemicals_Index, Chemicals_Property_Count
 
-  type chemicalAbundances
+  type :: chemicalAbundances
      !% The structure used for describing chemical abundances in \glc.
      private
      double precision, allocatable, dimension(:) :: chemicalValue
