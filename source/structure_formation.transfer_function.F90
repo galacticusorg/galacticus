@@ -76,12 +76,11 @@ contains
        call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
        resetInterpolation=.true.
     end if
-    !$omp end critical(Transfer_Function_Initialization)
 
     ! Interpolate in the tabulated function and return a value.
     Transfer_Function=exp(Interpolate(transferFunctionLogWavenumber,transferFunctionLogT &
          &,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation,interpolationType=fgsl_interp_cspline))
-
+    !$omp end critical(Transfer_Function_Initialization)
     return
   end function Transfer_Function
 
@@ -111,13 +110,12 @@ contains
        call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
        resetInterpolation=.true.
     end if
-    !$omp end critical(Transfer_Function_Initialization)
 
     ! Interpolate in the tabulated function and return a value.
     Transfer_Function_Logarithmic_Derivative=Interpolate_Derivative(transferFunctionLogWavenumber&
          &,transferFunctionLogT ,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation&
          &,interpolationType=fgsl_interp_cspline)
-
+    !$omp end critical(Transfer_Function_Initialization)
     return
   end function Transfer_Function_Logarithmic_Derivative
 
@@ -129,10 +127,10 @@ contains
     !$omp critical(Transfer_Function_Initialization)
     ! Initialize if necessary.
     if (.not.transferFunctionInitialized) call Transfer_Function_Initialize(1.0d0)
-    !$omp end critical(Transfer_Function_Initialization)
 
     ! Call the function to get the half-mode mass.
     Transfer_Function_Half_Mode_Mass=Transfer_Function_Half_Mode_Mass_Get()
+    !$omp end critical(Transfer_Function_Initialization)
     return
   end function Transfer_Function_Half_Mode_Mass
 

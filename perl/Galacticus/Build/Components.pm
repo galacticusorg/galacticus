@@ -234,11 +234,11 @@ sub Components_Generate_Output {
     }
 
     # Create a Makefile to specify dependencies on these include files.
-    open(makeFile,">./work/build/Makefile_Component_Includes.tmp");
-    print makeFile "./work/build/objects.nodes.o:".join("",map {" ./work/build/".$_} @includeDependencies)
+    open(makeFile,">".$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp");
+    print makeFile $ENV{'BUILDPATH'}."/objects.nodes.o:".join("",map {" ".$ENV{'BUILDPATH'}."/".$_} @includeDependencies)
 	if ( scalar(@includeDependencies) > 0 );
     close(makeFile);
-    &File_Changes::Update("./work/build/Makefile_Component_Includes" ,"./work/build/Makefile_Component_Includes.tmp" );
+    &File_Changes::Update($ENV{'BUILDPATH'}."/Makefile_Component_Includes" ,$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp" );
 
 }
 
@@ -1111,6 +1111,7 @@ sub Generate_Node_Component_Type{
 	     name        => "enclosedMass"                                                                                         ,
 	     function    => "Node_Component_Enclosed_Mass_Null"                                                                    ,
 	     description => "Compute the mass enclosed within a radius."                                                           ,
+	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
 	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
@@ -1127,6 +1128,7 @@ sub Generate_Node_Component_Type{
 	     name        => "surfaceDensity"                                                                                       ,
 	     function    => "Node_Component_Surface_Density_Null"                                                                  ,
 	     description => "Compute the surface density."                                                                         ,
+	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
 	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionCylindrical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
@@ -1143,6 +1145,7 @@ sub Generate_Node_Component_Type{
 	     name        => "rotationCurve"                                                                                        ,
 	     function    => "Node_Component_Rotation_Curve_Null"                                                                   ,
 	     description => "Compute the rotation curve."                                                                          ,
+	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
 	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
@@ -1998,6 +2001,22 @@ sub Generate_Tree_Node_Object {
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
+	     name        => "timeStep"                                                                                                        ,
+	     function    => "Tree_Node_Time_Step"                                                                                             ,
+	     description => "Return the time-step last used by this node."                                                                    ,
+	     returnType  => "\\doublezero"                                                                                                    ,
+	     arguments   => ""
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "timeStepSet"                                                                                                     ,
+	     function    => "Tree_Node_Time_Step_Set"                                                                                         ,
+	     description => "Set the time-step used by this node."                                                                            ,
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => "\\doublezero\ index\\argin"
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
 	     name        => "uniqueID"                                                                                                        ,
 	     function    => "Tree_Node_Unique_ID"                                                                                             ,
 	     description => "Return the unique identifier for this node."                                                                     ,
@@ -2198,6 +2217,10 @@ sub Generate_Tree_Node_Object {
 	     variables  => [ "indexValue", "uniqueIdValue" ]
 	 },
 	 {
+	     intrinsic  => "double precision",
+	     variables  => [ "timeStepValue" ]
+	 },
+	 {
 	     intrinsic  => "type",
 	     type       => "treeNode",
 	     attributes => [ "pointer", "public" ],
@@ -2328,6 +2351,8 @@ sub Generate_Initialization_Function {
     # Check for already initialized.
     $functionCode .= "   !\$omp critical (Galacticus_Nodes_Initialize)\n";
     $functionCode .= "   if (.not.moduleIsInitialized) then\n";
+    # Record of output conditions seen.
+    my %outputConditions;
     # Iterate over all component classes.
     $buildData->{'content'} .= "  ! Parameters controlling output.\n\n";
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
@@ -2375,21 +2400,24 @@ sub Generate_Initialization_Function {
 		    exists($property->{'output'}               )                       &&
 		    exists($property->{'output'}->{'condition'})                       &&
 		    $property->{'output'}->{'condition'} =~ m/\[\[([^\]]+)\]\]/
-		    ) 
-		{
+		    )
+		{		    
 		    my $parameterName = $1;
-		    $functionCode .= "    !@ <inputParameter>\n";
-		    $functionCode .= "    !@   <name>".$parameterName."</name>\n";
-		    $functionCode .= "    !@   <defaultValue>false</defaultValue>\n";
-		    $functionCode .= "    !@   <attachedTo>module</attachedTo>\n";
-		    $functionCode .= "    !@   <description>\n";
-		    $functionCode .= "    !@    Specifies whether the {\\normalfont \\ttfamily ".$propertyName."} method of the {\\normalfont \\ttfamily ".$implementationName."} implemention of the {\\normalfont \\ttfamily ".$componentClass."} component class should be output.\n";
-		    $functionCode .= "    !@   </description>\n";
-		    $functionCode .= "    !@   <type>string</type>\n";
-		    $functionCode .= "    !@   <cardinality>1</cardinality>\n";
-		    $functionCode .= "    !@ </inputParameter>\n";
-		    $functionCode .= "call Get_Input_Parameter('".$parameterName."',".$parameterName.",defaultValue=.false.)\n";
-		    $buildData->{'content'} .= "  logical :: ".$parameterName."\n";
+		    unless ( exists($outputConditions{$parameterName}) ) {
+			$functionCode .= "    !@ <inputParameter>\n";
+			$functionCode .= "    !@   <name>".$parameterName."</name>\n";
+			$functionCode .= "    !@   <defaultValue>false</defaultValue>\n";
+			$functionCode .= "    !@   <attachedTo>module</attachedTo>\n";
+			$functionCode .= "    !@   <description>\n";
+			$functionCode .= "    !@    Specifies whether the {\\normalfont \\ttfamily ".$propertyName."} method of the {\\normalfont \\ttfamily ".$implementationName."} implemention of the {\\normalfont \\ttfamily ".$componentClass."} component class should be output.\n";
+			$functionCode .= "    !@   </description>\n";
+			$functionCode .= "    !@   <type>string</type>\n";
+			$functionCode .= "    !@   <cardinality>1</cardinality>\n";
+			$functionCode .= "    !@ </inputParameter>\n";
+			$functionCode .= "call Get_Input_Parameter('".$parameterName."',".$parameterName.",defaultValue=.false.)\n";
+			$buildData->{'content'} .= "  logical :: ".$parameterName."\n";
+			$outputConditions{$parameterName} = 1;
+		    }
 		}
 	    }
 
@@ -2525,6 +2553,11 @@ sub Generate_Map_Functions {
 	     variables  => [ "reduction" ]
 	 },
 	 {
+	     intrinsic  => "integer",
+	     attributes => [ "intent(in   )", "optional" ],
+	     variables  => [ "optimizeFor" ]
+	 },
+	 {
 	     intrinsic  => "double precision",
 	     variables  => [ "componentValue" ]
 	 },
@@ -2533,10 +2566,72 @@ sub Generate_Map_Functions {
 	     variables  => [ "i" ]
 	 }
 	);
-    $functionCode  = "  double precision function mapComponentsDouble0(self,mapFunction,reduction)\n";
+    $functionCode  = "  double precision function mapComponentsDouble0(self,mapFunction,reduction,optimizeFor)\n";
     $functionCode .= "    !% Map a scalar double function over components with a specified {\\normalfont \\ttfamily reduction}.\n";
+    $functionCode .= "    use Galacticus_Error\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+    # Scan through available node component methods and find ones which are mappable. Create optimized versions of this function
+    # for them.
+    my $optimizationLabel      = -1;
+    my $optimizationsGenerated = 0;
+    foreach my $boundFunction ( @{$buildData->{'types'}->{'nodeComponent'}->{'boundFunctions'}} ) {
+	if ( exists($boundFunction->{'mappable'}) ) {
+	    my @reductions = split(/:/,$boundFunction->{'mappable'});
+	    foreach my $reduction ( @reductions ) {
+		# Record that optimized versions were generated.
+		$optimizationsGenerated = 1;
+		# Insert test for optimized case.
+		++$optimizationLabel;
+		$buildData->{'content'} .= "   integer, public, parameter :: optimizeFor".ucfirst($boundFunction->{'name'}).ucfirst($reduction)."=".$optimizationLabel."\n";
+		$functionCode .= "   ";
+		$functionCode .= "else"
+		    unless ( $optimizationLabel == 0 );
+		$functionCode .= "if (present(optimizeFor).and.optimizeFor == optimizeFor".ucfirst($boundFunction->{'name'}).ucfirst($reduction).") then\n";
+		# Initialize reduction.
+		if ( $reduction eq "summation" ) {
+		    $functionCode .= "      if (reduction /= reductionSummation) call Galacticus_Error_Report('mapComponentsDouble0','reduction mismatch')\n";
+		    $functionCode .= "      mapComponentsDouble0=0.0d0\n";
+		} elsif ( $reduction eq "product" ) {
+		    $functionCode .= "      if (reduction /= reductionProduct  ) call Galacticus_Error_Report('mapComponentsDouble0','reduction mismatch')\n";
+		    $functionCode .= "      mapComponentsDouble0=1.0d0\n";
+		} else {
+		    die("Generate_Map_Functions(): unrecognized reduction");
+		}
+		# Iterate over available types.
+		foreach my $type ( keys(%{$buildData->{'types'}}) ) {
+		    if ( $type =~ m/^nodeComponent.+/  && grep {$_->{'name'} eq $boundFunction->{'name'}} @{$buildData->{'types'}->{$type}->{'boundFunctions'}} ) {
+			# Determine the class of this component.
+			my $baseClass = $type;
+			while ( exists($buildData->{'types'}->{$baseClass}->{'extends'}) && $buildData->{'types'}->{$baseClass}->{'extends'} ne "nodeComponent" ) {
+			    $baseClass = $buildData->{'types'}->{$baseClass}->{'extends'};
+			}
+			$baseClass =~ s/^nodeComponent//;
+			$baseClass = lc($baseClass);
+			# Construct code for this component.
+			$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($baseClass),[0,0]).")) then\n";
+			$functionCode .= "      select type (c => self%component".padComponentClass(ucfirst($baseClass),[0,0]).")\n";
+			$functionCode .= "      type is (".$type.")\n";
+			$functionCode .= "         do i=1,size(self%component".padComponentClass(ucfirst($baseClass),[0,0]).")\n";
+			$functionCode .= "            mapComponentsDouble0=mapComponentsDouble0";
+			if ( $reduction eq "summation" ) {
+			    $functionCode .= "+";
+			} elsif ( $reduction eq "product" ) {
+			    $functionCode .= "*";
+			}
+			$functionCode .= "mapFunction(self%component".padComponentClass(ucfirst($baseClass),[0,0])."(i))\n";
+			$functionCode .= "         end do\n";
+			$functionCode .= "      end select\n";
+			$functionCode .= "    end if\n";
+		    }
+		}
+	    }
+	}
+    }
+    $buildData->{'content'} .= "\n";
+    # Generate the generic, unoptimized function.
+    $functionCode .= "    else\n"
+	if ( $optimizationsGenerated == 1 );
     $functionCode .= "    select case (reduction)\n";
     $functionCode .= "    case (reductionSummation)\n";
     $functionCode .= "      mapComponentsDouble0=0.0d0\n";
@@ -2556,6 +2651,8 @@ sub Generate_Map_Functions {
 	$functionCode .= "      end do\n";
      	$functionCode .= "    end if\n";
     }
+    $functionCode .= "    end if\n"
+	if ( $optimizationsGenerated == 1 );
     $functionCode .= "    return\n";
     $functionCode .= "  end function mapComponentsDouble0\n\n";
     # Insert into the function list.
@@ -5479,7 +5576,7 @@ sub Generate_Node_Copy_Function {
     $functionCode .= "    skipFormationNodeActual=.false.\n";
     $functionCode .= "    if (present(skipFormationNode)) skipFormationNodeActual=skipFormationNode\n";
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." =  self%".$_."\n"
-	foreach ( "uniqueIdValue", "indexValue" );
+	foreach ( "uniqueIdValue", "indexValue", "timeStepValue" );
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." => self%".$_."\n"
 	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event", "hostTree" );
     $functionCode .= "    if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode\n";
@@ -6393,6 +6490,8 @@ sub Generate_Tree_Node_Creation_Function {
     $functionCode .= "    if (uniqueIDCount <= 0) call Galacticus_Error_Report('treeNodeInitialize','ran out of unique ID numbers')\n";
     $functionCode .= "    self%uniqueIdValue=uniqueIDCount\n";
     $functionCode .= "    !\$omp end critical(UniqueID_Assign)\n";
+    $functionCode .= "    ! Assign a timestep.\n";
+    $functionCode .= "    self%timeStepValue=-1.0d0\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine treeNodeInitialize\n";	
     # Insert into the function list.

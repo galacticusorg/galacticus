@@ -1,0 +1,6 @@
+rectangle
+unit d
+# GAMA Survey: G15 survey limits taken from Table 1 of Driver et al. (2011; MNRAS; 413; 971)
+# RA/Dec in radians
+#  RA_min    RA_max   Dec_min   Dec_max
+   211.5     223.5    -2.0	+2.0
