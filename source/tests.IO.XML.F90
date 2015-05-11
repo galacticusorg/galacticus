@@ -73,8 +73,8 @@ program Tests_IO_XML
   call Assert("Determine array length",XML_Array_Length(xmlElement,"datum"),10)
 
   ! Test path detection.
-  call Assert("Extant path correctly detected"    ,XML_Path_Exists(doc,"level1/level2/level3"),.true. )
-  call Assert("Non-extant path correctly detected",XML_Path_Exists(doc,"level1/level4/level3"),.false.)
+  call Assert("Extant path correctly detected"    ,XML_Path_Exists(doc,"test/level1/level2/level3"),.true. )
+  call Assert("Non-extant path correctly detected",XML_Path_Exists(doc,"test/level1/level4/level3"),.false.)
 
   ! Destroy the XML document.
   call destroy(doc)
