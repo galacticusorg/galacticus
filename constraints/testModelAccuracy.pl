@@ -21,10 +21,12 @@ use PDL::IO::HDF5;
 use PDL::LinearAlgebra;
 use PDL::Matrix;
 use PDL::MatrixOps;
+require Galacticus::Options;
 require Galacticus::Constraints::Parameters;
 require Galacticus::Constraints::Covariances;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
+require List::ExtraUtils;
 
 # Run calculations to test the accuracy a Galacticus model for the given constraints compilation.
 # Andrew Benson (15-November-2012)
@@ -38,13 +40,7 @@ my %arguments =
     (
      make => "yes"
     );
-while ( $iArg < $#ARGV ) {
-    ++$iArg;
-    if ( $ARGV[$iArg] =~ m/^\-\-(.*)/ ) {
-	$arguments{$1} = $ARGV[$iArg+1];
-	++$iArg;
-    }
-}
+&Options::Parse_Options(\@ARGV,\%arguments);
 
 # Parse the constraint config file.
 my $config = &Parameters::Parse_Config($configFile);
@@ -103,22 +99,22 @@ my @samplingMethods =
     ( 
       {
 	  name  => "p1_0.0_p2_0.0"            ,
-	  label => "\$(p_1,p_2)=( 0.0, 0.0)\$",
+	  label => "\$(p_1,p_2)=(+0.0,+0.0)\$",
 	  p1    =>  0.0                       ,
 	  p2    =>  0.0
       },
       {
-	  name  => "p1_m1.0_p2_0.0"           ,
-	  label => "\$(p_1,p_2)=(-1.0, 0.0)\$",
-	  p1    => -1.0                       ,
+	  name  => "p1_m0.5_p2_0.0"           ,
+	  label => "\$(p_1,p_2)=(-0.5,+0.0)\$",
+	  p1    => -0.5                       ,
 	  p2    =>  0.0
       },
       {
-	  name  => "p1_p1.0_p2_0.0"           ,
-	  label => "\$(p_1,p_2)=(+1.0, 0.0)\$",
-	  p1    => +1.0                       ,
-	  p2    =>  0.0
-      }
+       	  name  => "p1_0.5_p2_0.0"            ,
+       	  label => "\$(p_1,p_2)=(+0.5,+0.0)\$",
+       	  p1    =>  0.5                       ,
+       	  p2    =>  0.0
+      },
     );
 
 # Iterate over parameters to run models that will test for accuracy.
@@ -136,7 +132,7 @@ foreach my $accuracy ( @accuracies ) {
 	# Iterate over sampling methods.
 	foreach my $samplingMethod ( @samplingMethods ) {
 	    # Create a directory for output.
-	    my $modelDirectory = $workDirectory."/accuracy/".$accuracy->{'parameter'}."/".$samplingMethod->{'name'}.$i;
+	    my $modelDirectory = $workDirectory."/accuracy/".$accuracy->{'parameter'}."/".$samplingMethod->{'name'}."_n".$i;
 	    system("mkdir -p ".$modelDirectory);
 	    # Specify the sampling method.
 	    $currentParameters->{'parameter'}->{'haloMassFunctionSamplingMethod'          }->{'value'} = "haloMassFunction";
@@ -158,7 +154,7 @@ foreach my $accuracy ( @accuracies ) {
 		my $batchScriptFileName = $modelDirectory."/launch.pbs";
 		open(oHndl,">".$batchScriptFileName);
 		print oHndl "#!/bin/bash\n";
-		print oHndl "#PBS -N accuracy".ucfirst($accuracy->{'parameter'}).$samplingMethod->{'name'}.$i."\n";
+		print oHndl "#PBS -N accuracy".ucfirst($accuracy->{'parameter'}).$samplingMethod->{'name'}."_n".$i."\n";
 		print oHndl "#PBS -l nodes=1:ppn=12\n";
 		print oHndl "#PBS -j oe\n";
 		print oHndl "#PBS -o ".$modelDirectory."/launch.log\n";
@@ -166,7 +162,7 @@ foreach my $accuracy ( @accuracies ) {
 		print oHndl "cd \$PBS_O_WORKDIR\n";
 		print oHndl "export LD_LIBRARY_PATH=/home/abenson/Galacticus/Tools/lib:/home/abenson/Galacticus/Tools/lib64:\$LD_LIBRARY_PATH\n";
 		print oHndl "export PATH=/home/abenson/Galacticus/Tools/bin:\$PATH\n";
-		print oHndl "export GFORTRAN_ERROR_DUMPCORE=YES\n";
+		print oHndl "export GFORTRAN_ERROR_DUMPCORE=NO\n";
 		print oHndl "ulimit -t unlimited\n";
 		print oHndl "ulimit -c unlimited\n";
 		print oHndl "export OMP_NUM_THREADS=12\n";
@@ -256,15 +252,15 @@ foreach my $accuracy ( @accuracies ) {
     print $gnuPlot "set format x '\$10^{\%L}\$'\n";
     print $gnuPlot "set mytics 10\n";
     print $gnuPlot "set format y '\$10^{\%L}\$'\n";
-    print $gnuPlot "set xrange [1.0e2:1.0e8]\n";
+    print $gnuPlot "set xrange [1.0e+2:1.0e5]\n";
     print $gnuPlot "set yrange [1.0e-1:1.0e4]\n";
     print $gnuPlot "set title 'Convergence with tree processing time'\n";
     print $gnuPlot "set xlabel 'Tree processing time [s]'\n";
     print $gnuPlot "set ylabel 'Convergence measured []'\n";
     # Iterate over sampling methods.
-    my $i = -1;
+    my $j = -1;
     foreach my $samplingMethod ( @samplingMethods ) {
-	++$i;
+	++$j;
 	# Initialize array of results.
 	my $parameter       = pdl [];
 	my $timing          = pdl [];
@@ -277,7 +273,7 @@ foreach my $accuracy ( @accuracies ) {
 	    $currentParameters->{'parameter'}->{$accuracy->{'parameter'}}->{'value'} *= $accuracy->{'factor'}
 	        if ( $i > 0 );
 	    # Locate the model directory.
-	    my $modelDirectory = $workDirectory."/accuracy/".$accuracy->{'parameter'}."/".$samplingMethod->{'name'}.$i."/";
+	    my $modelDirectory = $workDirectory."/accuracy/".$accuracy->{'parameter'}."/".$samplingMethod->{'name'}."_n".$i."/";
 	    # Get the model timing.
 	    my $modelTiming;
 	    open(my $logFile,$modelDirectory."launch.log");	    
@@ -292,6 +288,9 @@ foreach my $accuracy ( @accuracies ) {
 		# Parse the definition file.
 		my $xml = new XML::Simple;
 		my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+		# Skip excluded constraints.
+		next
+		    if ( exists($arguments{'exclude'}) && grep {$_ eq $constraintDefinition->{'label'}} &ExtraUtils::as_array($arguments{'exclude'}) );
 		# Check if the accuracy data was reported. If not, assume this model just didn't complete
 		# in the available time.
 		my $resultFileName = $modelDirectory."/".$constraintDefinition->{'label'}.".hdf5";
@@ -305,13 +304,18 @@ foreach my $accuracy ( @accuracies ) {
 		    my $normalization = $covarianceData->((0),(0))->copy();
 		    $covarianceModel /= $normalization;
 		    $covarianceData  /= $normalization;
+		    # Find negligble rows in the data matrix.
+		    my $tiny                       = pdl 1.0e-30;
+		    my $significant                = which($covarianceData->diagonal(0,1) > $tiny);
+		    my $covarianceDataSignificant  = $covarianceData ->dice($significant,$significant);
+		    my $covarianceModelSignificant = $covarianceModel->dice($significant,$significant);
 		    # For any empty rows in the model covariance, set the diagonal to a small value.
 		    my $epsilon                                = pdl 1.0e-3;		    
-		    my $empty                                  = which($covarianceModel->diagonal(0,1) < $epsilon*$covarianceData->diagonal(0,1));
-		    $covarianceModel->diagonal(0,1)->($empty) .= $epsilon*$covarianceData->diagonal(0,1)->($empty);
+		    my $empty                                  = which($covarianceModelSignificant->diagonal(0,1) < $epsilon*$covarianceDataSignificant->diagonal(0,1));
+		    $covarianceModelSignificant->diagonal(0,1)->($empty) .= $epsilon*$covarianceDataSignificant->diagonal(0,1)->($empty);
 		    # Do Cholesky decompositions.
-		    my $choleskyData  = mchol($covarianceData );
-		    my $choleskyModel = eval{mchol($covarianceModel)};
+		    my $choleskyData  = mchol($covarianceDataSignificant );
+		    my $choleskyModel = eval{mchol($covarianceModelSignificant)};
 		    if ( defined($choleskyModel) ) {
 			# Construct P and Q matrices.
 			my $P = minv($choleskyData) x transpose($choleskyModel);
@@ -322,7 +326,7 @@ foreach my $accuracy ( @accuracies ) {
 			my $PTPinv = minv($PTP);
 			my $accuracyMatrix = $Q x $PTPinv x transpose($Q);
 			# Construct accuracy measure.
-			$thisAccuracyMeasure += sum($accuracyMatrix);
+			$thisAccuracyMeasure += sum($accuracyMatrix);			
 		    }
 		}
 	    }
@@ -339,7 +343,7 @@ foreach my $accuracy ( @accuracies ) {
 	    	FormatSigFigs($modelTiming        ,5)
 	    	);
 	}
-	# Add to the plot.
+	# Add to the plot.	
 	&PrettyPlots::Prepare_Dataset
 	    (
 	     \$plot,
@@ -348,8 +352,8 @@ foreach my $accuracy ( @accuracies ) {
 	     style  => "point",
 	     symbol => [6,7],
 	     weight => [5,3],
-	     color  => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$i]},
-	     title  => $samplingMethod->{'name'}
+	     color  => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'sequence1'}}[$j]},
+	     title  => $samplingMethod->{'label'}
 	    );
     }
     # Finalize the plot.
@@ -393,7 +397,7 @@ sub PBS_Submit {
 	    }
 	}
 	# If fewer than ten jobs are in the queue, pop one off the stack.
-	if ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < 20 ) {
+	if ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < 40 ) {
 	    my $batchScript = pop(@pbsStack);
 	    # Submit the PBS job.
 	    open(pHndl,"qsub ".$batchScript."|");
