@@ -7,7 +7,7 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
- $ENV{"GALACTICUS_ROOT_V094"} = "/";
+ $ENV{"GALACTICUS_ROOT_V094"} = "./";
 }
 unshift(@INC,$galacticusPath."perl"); 
 
