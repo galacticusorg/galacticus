@@ -83,7 +83,6 @@ module Node_Component_Satellite_Preset
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <getFunction>SatellitePresetNodeIndex</getFunction>
   !#     <output unitsInSI="0.0d0" comment="Index of the satellite node used in preset satellite evolution."/>
-  !#     <classDefault>self%hostNode%index()</classDefault>
   !#   </property>
   !#  </properties>
   !#  <functions>objects.nodes.components.satellite.preset.bound_functions.inc</functions>
