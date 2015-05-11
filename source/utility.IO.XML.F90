@@ -246,9 +246,10 @@ contains
     type     (node         ), intent(in   ), pointer :: xmlElement
     character(len=*        ), intent(in   )          :: path
     type     (nodeList     )               , pointer :: elementList
-    type     (node         )               , pointer :: element
+    type     (node         )               , pointer :: element     , child         , &
+         &                                              parent
     character(len=len(path))                         :: currentPath , currentTagName
-    integer                                          :: pathPosition
+    integer                                          :: pathPosition, i
 
     XML_Path_Exists =  .true.
     element         => xmlElement
@@ -259,15 +260,25 @@ contains
           currentTagName=currentPath
           currentPath   =""
        else
-          currentTagName=currentPath(             1:          pathPosition-1)
-          currentPath   =currentPath(pathPosition+1:len(path)-pathPosition  )
+          currentTagName=currentPath(             1:pathPosition-1)
+          currentPath   =currentPath(pathPosition+1:len(path)     )
        endif
        elementList => getElementsByTagName(element,currentTagName)
        if (getLength(elementList) < 1) then
           XML_Path_Exists=.false.
           return
        else
-          element => item(elementList,0)
+          XML_Path_Exists=.false.
+          do i=0,getLength(elementList)-1
+             child  => item         (elementList,i)
+             parent => getParentNode(child        )
+             if (getNodeType(child) == ELEMENT_NODE .and. associated(parent,element)) then
+                element => child
+                XML_Path_Exists=.true.
+                exit
+             end if
+          end do
+          if (.not.XML_Path_Exists) return
        end if
     end do
     return
