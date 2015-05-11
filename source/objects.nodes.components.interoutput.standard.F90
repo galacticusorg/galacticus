@@ -22,8 +22,8 @@ module Node_Component_Inter_Output_Standard
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Inter_Output_Standard_Rate_Compute    , Node_Component_Inter_Output_Standard_Reset    , &
-       &    Node_Component_Inter_Output_Standard_Satellite_Merger, Node_Component_Inter_Output_Standard_Scale_Set
+  public :: Node_Component_Inter_Output_Standard_Rate_Compute     , Node_Component_Inter_Output_Standard_Reset    , &
+       &    Node_Component_Inter_Output_Standard_Satellite_Merging, Node_Component_Inter_Output_Standard_Scale_Set
 
   !# <component>
   !#  <class>interOutput</class>
@@ -149,10 +149,10 @@ contains
   end subroutine Node_Component_Inter_Output_Standard_Reset
 
   !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Inter_Output_Standard_Satellite_Merger</unitName>
+  !#  <unitName>Node_Component_Inter_Output_Standard_Satellite_Merging</unitName>
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Inter_Output_Standard_Satellite_Merger(thisNode)
+  subroutine Node_Component_Inter_Output_Standard_Satellite_Merging(thisNode)
     !% Remove any inter-output quantities associated with {\normalfont \ttfamily thisNode} and add them to the merge target.
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
@@ -182,7 +182,7 @@ contains
                &                                           )
        case (movesToSpheroid)
        case default
-          call Galacticus_Error_Report('Node_Component_Inter_Output_Standard_Satellite_Merger','unrecognized movesTo descriptor')
+          call Galacticus_Error_Report('Node_Component_Inter_Output_Standard_Satellite_Merging','unrecognized movesTo descriptor')
        end select
        ! Zero rates in the secondary,
        call thisInterOutput%    diskStarFormationRateSet(                                             &
@@ -212,10 +212,10 @@ contains
        case (doesNotMove)
           ! Do nothing.
        case default
-          call Galacticus_Error_Report('Node_Component_Inter_Output_Standard_Satellite_Merger','unrecognized movesTo descriptor')
+          call Galacticus_Error_Report('Node_Component_Inter_Output_Standard_Satellite_Merging','unrecognized movesTo descriptor')
        end select
     end select
     return
-  end subroutine Node_Component_Inter_Output_Standard_Satellite_Merger
+  end subroutine Node_Component_Inter_Output_Standard_Satellite_Merging
 
 end module Node_Component_Inter_Output_Standard

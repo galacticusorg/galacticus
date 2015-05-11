@@ -624,6 +624,8 @@ sub Extract_Variables {
     while ( $variableList =~ m/[\(\[]/ ) {
 	(my $extracted, my $remainder, my $prefix) = extract_bracketed($variableList,"()[]","[\\sa-zA-Z0-9_,:=>\%\\+\\-\\*\\/\.]+");
 	if ( $options{'keepQualifiers'} == 0 ) {
+	    die('Extract_Variables: failed to find prefix in "'.$variableList.'"')
+		unless ( defined($prefix) );
 	    $variableList = $prefix.$remainder;
 	} else {
 	    $extracted =~ s/\(/\%\%OPEN\%\%/g;
