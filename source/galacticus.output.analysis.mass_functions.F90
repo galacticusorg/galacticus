@@ -1896,7 +1896,8 @@ contains
     double precision          , intent(in   )                            :: mass
     type            (treeNode), intent(inout), pointer                   :: thisNode
     double precision          , intent(inout), allocatable, dimension(:) :: error          , weight
-    double precision                                                     :: logarithmicMass, molecularFraction
+    double precision                                                     :: logarithmicMass, molecularFraction  , &
+         &                                                                  exponentialTerm, exponentialArgument
 
     ! Initialize the mass function.
     call ALFALFA_HI_Mass_Function_Z0_00_Initialize()
@@ -1906,15 +1907,19 @@ contains
     allocate(error (1))
     allocate(weight(1))
     ! Compute the random error on the mass.
-    error  =[                                         &
-         &   +alfalfaHiMassFunctionZ0_00ErrorA        &
-         &   +exp(                                    &
-         &        -(                                  &
-         &          +max(logarithmicMass,6.0d0)       &
-         &          -alfalfaHiMassFunctionZ0_00ErrorB &
-         &      )                                     &
-         &     /alfalfaHiMassFunctionZ0_00ErrorC      &
-         &    )                                       &
+    exponentialArgument=+(                                  &
+         &                +max(logarithmicMass,6.0d0)       &
+         &                -alfalfaHiMassFunctionZ0_00ErrorB &
+         &               )                                  &
+         &              /  alfalfaHiMassFunctionZ0_00ErrorC
+    if (exponentialArgument > 0.0d0) then
+       exponentialTerm=exp(-exponentialArgument)
+    else
+       exponentialTerm=0.0d0
+    end if
+    error  =[                                  &
+         &   +alfalfaHiMassFunctionZ0_00ErrorA &
+         &   +exponentialTerm                  &
          &  ]
     ! Add in quadrature a term accounting for the scatter in the molecular ratio model.
     molecularFraction=Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
