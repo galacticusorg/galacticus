@@ -109,7 +109,7 @@ function likelihoodSEDFitConstructor(definition)
   return
 end function likelihoodSEDFitConstructor
 
-double precision function likelihoodSEDFitEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
+double precision function likelihoodSEDFitEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
   !% Return the log-likelihood for the SED fitting likelihood function.
   use, intrinsic :: ISO_C_Binding
   use FGSL
@@ -131,6 +131,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   double precision                                    , intent(in   )                 :: temperature                         , logLikelihoodCurrent   , &
        &                                                                                 logPriorCurrent                     , logPriorProposed
   real                                                , intent(inout)                 :: timeEvaluate
+  double precision                                    , intent(  out), optional       :: logLikelihoodVariance
   double precision                                    , allocatable  , dimension(:  ) :: stateVector                         , ages                   , &
        &                                                                                 weights
   double precision                                    , allocatable  , dimension(:,:) :: massToLightRatios
@@ -159,6 +160,8 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   type            (c_ptr                     )                                        :: parameterPointer
   logical                                                                             :: integrationReset                    , useRapidEvaluation
 
+  ! There is no variance in our likelihood estimate.
+  if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
   ! Do not evaluate if the proposed prior is impossible.
   if (logPriorProposed <= logImpossible) then
      likelihoodSEDFitEvaluate=0.0d0

@@ -35,7 +35,7 @@ function likelihoodMultivariateNormalStochasticConstructor(means,covariance,real
   return
 end function likelihoodMultivariateNormalStochasticConstructor
 
-double precision function likelihoodMultivariateNormalStochasticEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
+double precision function likelihoodMultivariateNormalStochasticEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
   !% Return the log-likelihood for a multivariate-normal likelihood function.
   use Constraints_State
   use Constraints_Convergence
@@ -48,6 +48,7 @@ double precision function likelihoodMultivariateNormalStochasticEvaluate(self,si
   double precision                                        , intent(in   )               :: temperature          , logLikelihoodCurrent, &
        &                                                                                   logPriorCurrent      , logPriorProposed
   real                                                    , intent(inout)               :: timeEvaluate
+  double precision                                        , intent(  out), optional     :: logLikelihoodVariance
   type            (vector                                )                              :: stateVector          , difference             , &
        &                                                                                   stateStochasticVector
   type            (matrix                                )                              :: covarianceMatrix     , covarianceMatrixInverse
@@ -59,6 +60,10 @@ double precision function likelihoodMultivariateNormalStochasticEvaluate(self,si
   double precision                                                                      :: temperatureEffective , likelihoodEffective    , &
        &                                                                                   logDeterminant
 
+
+  ! Report zero variance, as this class is designed specifically for testing for unaccounted-for randomness in the likelihood
+  ! estimate.
+  if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
   ! Get the current state vector.
   stateVector=simulationState%get()
   ! Make a stochastic realization of the state vector.

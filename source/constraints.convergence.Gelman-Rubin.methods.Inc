@@ -383,3 +383,27 @@ logical function convergenceGelmanRubinChainIsOutlier(self,chainIndex)
   convergenceGelmanRubinChainIsOutlier=.not.self%chainMask(chainIndex+1)
   return
 end function convergenceGelmanRubinChainIsOutlier
+
+double precision function convergenceGelmanRubinConvergenceMeasure(self)
+  !% Return the current maximum $\hat{R}$ convergence measure.
+  implicit none
+  class           (convergenceGelmanRubin), intent(inout) :: self
+  double precision                        , parameter     :: convergenceMeasureLarge=100.0d0
+
+  if (allocated(self%correctedHatR)) then     
+     convergenceGelmanRubinConvergenceMeasure=maxval(self%correctedHatR)
+  else
+     ! Convergence has not yet been computed - return a suitably large value.
+     convergenceGelmanRubinConvergenceMeasure=convergenceMeasureLarge
+  end if
+  return
+end function convergenceGelmanRubinConvergenceMeasure
+
+double precision function convergenceGelmanRubinConvergenceMeasureTarget(self)
+  !% Return the target $\hat{R}$ convergence measure.
+  implicit none
+  class(convergenceGelmanRubin), intent(inout) :: self
+
+  convergenceGelmanRubinConvergenceMeasureTarget=self%thresholdHatR
+  return
+end function convergenceGelmanRubinConvergenceMeasureTarget

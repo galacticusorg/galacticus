@@ -67,7 +67,7 @@ function likelihoodProjectedCorrelationFunctionConstructor(haloMassMinimum,haloM
   return
 end function likelihoodProjectedCorrelationFunctionConstructor
 
-double precision function likelihoodProjectedCorrelationFunctionEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
+double precision function likelihoodProjectedCorrelationFunctionEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
   !% Return the log-likelihood for the projected correlation function likelihood function.
   use Constraints_State
   use Constraints_Convergence
@@ -84,12 +84,15 @@ double precision function likelihoodProjectedCorrelationFunctionEvaluate(self,si
   double precision                                        , intent(in   )               :: temperature                , logLikelihoodCurrent, &
        &                                                                                   logPriorCurrent            , logPriorProposed
   real                                                    , intent(inout)               :: timeEvaluate
+  double precision                                        , intent(  out), optional     :: logLikelihoodVariance
   double precision                                        , allocatable  , dimension(:) :: stateVector
   class           (cosmologyFunctionsClass               ), pointer                     :: cosmologyFunctions_
   type            (conditionalMassFunctionBehroozi2010   )                              :: thisConditionalMassFunction
   type            (vector                                )                              :: difference
   integer                                                                               :: i
 
+  ! There is no variance in our likelihood estimate.
+  if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
   ! Do not evaluate if the proposed prior is impossible.
   if (logPriorProposed <= logImpossible) then
      likelihoodProjectedCorrelationFunctionEvaluate=0.0d0

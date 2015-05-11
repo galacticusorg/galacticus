@@ -32,7 +32,7 @@ function likelihoodMultivariateNormalConstructor(means,covariance)
   return
 end function likelihoodMultivariateNormalConstructor
 
-double precision function likelihoodMultivariateNormalEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
+double precision function likelihoodMultivariateNormalEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
   !% Return the log-likelihood for a multivariate-normal likelihood function.
   use Constraints_State
   use Constraints_Convergence
@@ -44,10 +44,14 @@ double precision function likelihoodMultivariateNormalEvaluate(self,simulationSt
   double precision                              , intent(in   )               :: temperature    , logLikelihoodCurrent, &
        &                                                                         logPriorCurrent, logPriorProposed
   real                                          , intent(inout)               :: timeEvaluate
+  double precision                              , intent(  out), optional     :: logLikelihoodVariance
   double precision                              , allocatable  , dimension(:) :: stateArray
   integer                                                                     :: i
   type            (vector                      )                              :: stateVector    , difference
 
+  ! There is no variance in our likelihood estimate.
+  if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
+  ! Evaluate the likelihood.
   stateArray =simulationState%get()
   do i=1,size(stateArray)
      stateArray(i)=parameterMappings(i)%thisMapping%unmap(stateArray(i))

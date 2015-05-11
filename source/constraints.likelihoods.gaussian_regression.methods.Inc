@@ -65,7 +65,7 @@ subroutine likelihoodGaussianRegressionDestructor(self)
   return
 end subroutine likelihoodGaussianRegressionDestructor
 
-double precision function likelihoodGaussianRegressionEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
+double precision function likelihoodGaussianRegressionEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
   !% Return the log-likelihood for a Gaussian regression likelihood function.
   use, intrinsic :: ISO_C_Binding
   use Constraints_State
@@ -77,6 +77,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
   use Galacticus_Error
   use Error_Functions
   use String_Handling
+  use Dates_and_Times
   implicit none
   class           (likelihoodGaussianRegression  ), intent(inout)                   :: self
   class           (state                         ), intent(in   )                   :: simulationState
@@ -86,8 +87,9 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
        &                                                                               logPriorCurrent                  ,&
        & logPriorProposed
   real                                            , intent(inout)                   :: timeEvaluate
+  double precision                                , intent(  out), optional         :: logLikelihoodVariance
   double precision                                , allocatable  , dimension(:,:,:) :: states
-  double precision                                , allocatable  , dimension(  :,:) :: likelihoods
+  double precision                                , allocatable  , dimension(  :,:) :: likelihoods                      , workspace2D
   double precision                                , allocatable  , dimension(    :) :: likelihoodsCombined              , workspace            , &
        &                                                                               likelihoodsFitted                , separations          , &
        &                                                                               semiVariances
@@ -132,7 +134,10 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
   ! Rebuild emulator if necessary.
   accumulatedStateCount=mpiSelf%sum(self%accumulatedStateCount)
   if (accumulatedStateCount >= self%emulatorRebuildCount) then
-     if (mpiSelf%isMaster()) call Galacticus_Display_Indent('Rebuilding Gaussian process emulator')
+     if (mpiSelf%isMaster()) then
+        call Galacticus_Display_Indent('Rebuilding Gaussian process emulator ['//char(Formatted_Date_and_Time())//']')
+        call flush(0)
+     end if
      ! Initialize Gaussian regression workspace.
      if (.not.self%initialized) then
         ! Determine the size of the regression matrix.
@@ -166,7 +171,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
         self%initialized=.true.
      end if
      ! Gather the simulator state and likelihood from other chains.
-     if (mpiSelf%isMaster()) call Galacticus_Display_Message('gathering states')
+     if (mpiSelf%isMaster()) call Galacticus_Display_Message('gathering states ['//char(Formatted_Date_and_Time())//']')
      allocate(states     (simulationState%dimension(),self%emulatorRebuildCount,0:mpiSelf%count()-1))
      allocate(likelihoods(                            self%emulatorRebuildCount,0:mpiSelf%count()-1))
      allocate(stateCount (                                                      0:mpiSelf%count()-1))
@@ -179,6 +184,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      allocate(likelihoodsCombined( self%emulatorRebuildCount                                 ))
      allocate(likelihoodsFitted  ( self%emulatorRebuildCount                                 ))
      allocate(workspace          ( self%emulatorRebuildCount                                 ))
+     allocate(workspace2D        ( self%emulatorRebuildCount, self%polynomialCoefficientCount))
      allocate(separations        ((self%emulatorRebuildCount*(self%emulatorRebuildCount-1))/2))
      allocate(semiVariances      ((self%emulatorRebuildCount*(self%emulatorRebuildCount-1))/2))
      ! Extract likelihoods and states. We may have more states stored than we actually need. The following algorithm combines
@@ -186,7 +192,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      ! number of states available from all chains and take that number of states from each chain. If more states are needed, we
      ! find the minimum number of remaining states available from all chains and take that number of states from each chain. The
      ! process is repeated until we have accumulated enough states.
-     if (mpiSelf%isMaster()) call Galacticus_Display_Message('extracting states')
+     if (mpiSelf%isMaster()) call Galacticus_Display_Message('extracting states ['//char(Formatted_Date_and_Time())//']')
      j=0
      do while (j < self%emulatorRebuildCount)
         stateCountAccept=minval(stateCount,mask=stateCount > 0)
@@ -203,34 +209,35 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      deallocate(stateCount ) 
      deallocate(states     )
      ! Evaluate sums needed in fitting polynomial trend model.
-     if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting global trends')
+     if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting global trends (step #1) ['//char(Formatted_Date_and_Time())//']')
      iterator1=polynomialIterator(self%polynomialOrder,simulationState%dimension())
      iterator2=polynomialIterator(self%polynomialOrder,simulationState%dimension())
+     ! Pre-compute products over states.
      do while (iterator1%iterate())
-        workspace=likelihoodsCombined
+        workspace2D(:,iterator1%counter())=1.0d0
         do j=1,iterator1%currentOrder()
-           workspace=workspace*self%statesCombined(iterator1%index(j),:)
-        end do
-        self%likelihoodSums(iterator1%counter())=sum(workspace)
-        call iterator2%reset()
-        do while (iterator2%iterate())
-           workspace=1.0d0
-           do j=1,iterator1%currentOrder()
-              workspace=workspace*self%statesCombined(iterator1%index(j),:)
-           end do
-           do j=1,iterator2%currentOrder()
-              workspace=workspace*self%statesCombined(iterator2%index(j),:)
-           end do
-           self%stateSums(iterator1%counter(),iterator2%counter())=sum(workspace)
+           workspace2D(:,iterator1%counter())=workspace2D(:,iterator1%counter())*self%statesCombined(iterator1%index(j),:)
         end do
      end do
-     ! Assign vector and matrix in our linear system.
+     call iterator1%reset()
+     if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting global trends (step #2) ['//char(Formatted_Date_and_Time())//']')
+     ! Compute sums over states.
+     do while (iterator1%iterate())        
+        self%likelihoodSums(iterator1%counter())=sum(workspace2D(:,iterator1%counter())*likelihoodsCombined)
+        call iterator2%reset()
+        do while (iterator2%iterate())
+           self%stateSums(iterator1%counter(),iterator2%counter())=sum(workspace2D(:,iterator1%counter())*workspace2D(:,iterator2%counter()))
+        end do
+     end do
+     if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting global trends (step #3) ['//char(Formatted_Date_and_Time())//']')
+    ! Assign vector and matrix in our linear system.
      likelihoodSums   =self%likelihoodSums
      stateSums        =self%stateSums
      ! Solve for regression coefficients.
      coefficients     =stateSums%linearSystemSolve(likelihoodSums)
      self%coefficients=coefficients
      ! Compute fitted likelihoods.
+     if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting global trends (step #4) ['//char(Formatted_Date_and_Time())//']')
      likelihoodsFitted=0.0d0
      call iterator1%reset()
      do while (iterator1%iterate())    
@@ -244,7 +251,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      ! Determine suitable scales for each dimension.
      self%stateScales=maxval(self%statesCombined,dim=2)-minval(self%statesCombined,dim=2)
      ! Compute the variogram.
-     if (mpiSelf%isMaster()) call Galacticus_Display_Message('computing variogram')
+     if (mpiSelf%isMaster()) call Galacticus_Display_Message('computing variogram ['//char(Formatted_Date_and_Time())//']')
      k=0
      do i=1,self%emulatorRebuildCount-1
         do j=i+1,self%emulatorRebuildCount
@@ -258,7 +265,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
         end do
      end do
      ! Fit the variogram model.
-     if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting variogram')
+     if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting variogram ['//char(Formatted_Date_and_Time())//']')
      call likelihoodGaussianRegressionFitVariogram(self,separations,semiVariances)
      ! Compute regression matrix.
      k=0
@@ -279,7 +286,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      end do
      if (self%dumpEmulator) close(fileUnit)
      ! Find the LU decomposition of the regression matrix for later use.
-     if (mpiSelf%isMaster()) call Galacticus_Display_Message('computing regression matrix')
+     if (mpiSelf%isMaster()) call Galacticus_Display_Message('computing regression matrix ['//char(Formatted_Date_and_Time())//']')
      self%regressionMatrix(1:self%emulatorRebuildCount  ,  self%emulatorRebuildCount+1)=1.0d0
      self%regressionMatrix(  self%emulatorRebuildCount+1,1:self%emulatorRebuildCount  )=1.0d0
      self%regressionMatrix(  self%emulatorRebuildCount+1,  self%emulatorRebuildCount+1)=0.0d0
@@ -302,10 +309,11 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      deallocate(likelihoodsCombined)
      deallocate(likelihoodsFitted  )
      deallocate(workspace          )
+     deallocate(workspace2D        )
      deallocate(semiVariances      )
      deallocate(separations        )
      ! Finished.
-     if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done')
+     if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//char(Formatted_Date_and_Time())//']')
   end if
   ! Count evaluations.
   self%evaluationCount=self%evaluationCount+1
@@ -318,13 +326,14 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
   if (self%initialized.and..not.self%regressionMatrixIsSingular) then
      ! Perform the emulation.
      call likelihoodGaussianRegressionEmulate(self,simulationState,likelihoodGaussianRegressionEvaluate,likelihoodError)
+     if (present(logLikelihoodVariance)) logLikelihoodVariance=likelihoodError**2
      ! Test likelihood emulation. We do this whenever the emulator is currently rated "not good", and periodically otherwise to
      ! monitor emulator behavior. When first initialized, the emulator is rated "not good" such that it has to prove that it is
      ! valid before we actually begin using it.
      if (.not.self%isGood .or. (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0)) then
         ! Every so many steps we evaluate the simulated likelihood and check that our emulator is reliable.
         likelihoodEmulated                  =likelihoodGaussianRegressionEvaluate
-        likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
+        likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
         likelihoodIsSimulated               =.true.
         ! Count number of emulator checks and the failure rate.
         self%emulatorCheckCount=self%emulatorCheckCount+1
@@ -361,8 +370,9 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      ! If prior probability is impossible, then don't even try to simulate.
      if (logPriorProposed <= logImpossible) then
         likelihoodGaussianRegressionEvaluate=logImpossible
+        if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
      else
-        likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
+        likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
         ! Store the likelihood and state.
         if (likelihoodGaussianRegressionEvaluate > logImpossible) then
            self%accumulatedStateCount                            =self%accumulatedStateCount+1
@@ -550,7 +560,11 @@ integer function polynomialCoefficientCount(n,d)
   implicit none
   integer, intent(in   ) :: n,d
 
-  polynomialCoefficientCount=nint(Factorial(d+n-1)/Factorial(n)/Factorial(d-1))
+  if (n == 2) then
+     polynomialCoefficientCount=(d*(1+d))/2
+  else
+     polynomialCoefficientCount=nint(Factorial(d+n-1)/Factorial(n)/Factorial(d-1))
+  end if
   return
 end function polynomialCoefficientCount
 
@@ -673,7 +687,6 @@ subroutine likelihoodGaussianRegressionFunctionChanged(self)
   call self%simulatorLikelihoodFunction%functionChanged()
   return
 end subroutine likelihoodGaussianRegressionFunctionChanged
-
 
 logical function likelihoodGaussianRegressionWillEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
   !% Return true if the log-likelihood will be evaluated.

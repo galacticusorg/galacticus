@@ -1205,6 +1205,18 @@ This option uses the differential evolution algorithm of \cite{terr_braak_markov
 \item[{\normalfont \ttfamily sampleOutliers}] If set to {\normalfont \ttfamily false} then proposals for non-outlier chains post-convergence are constructed only from other non-outlier chains. Otherwise, proposals for non-outleir chains post-convergence are constructed from all other chains.
 \end{description}
 
+\subsubsection{{\normalfont \ttfamily simulatorStochasticDifferentialEvolution}}
+
+This option extends the {\normalfont \ttfamily differentialEvolution} option to run chains at a temperature matched to the uncertainty in the log-likelihood. This is designed to work with stochastic likelihood functions where an estimate of the uncertainty in the log-likelihood is available, and prevents the chains from becoming trapped in local maxima arising purely from random fluctuations.  In addition to the options for the {\normalfont \ttfamily differentialEvolution} algorithm, the details of the algorithm are controlled by the following elements whichy should be embedded within the {\normalfont \ttfamily simulation} element:
+\begin{description}
+\item[{\normalfont \ttfamily temperatureScale}] The temperature scaling factor, $alpha$, described below.
+\end{description}
+In computing the acceptance probability for transitions between states, the chain temperature is set to
+\begin{equation}
+  T = 1 + \alpha C \sqrt{\sigma^2_{\mathrm current}+\sigma^2_{\mathrm proposed}},
+\end{equation}
+where $C = \log(\hat{R}/\hat{R}_{\mathrm t})$, $\hat{R}$ is the current maximum (across all parameters) Gelman-Rubin convergence statistic, $\hat{R}_{\math rm t}$ is the target Gelman-Rubin convergence statistic at which convergence will be declared, and $\sigma^2_{\mathrm current}$ and $\sigma^2_{\mathrm proposed}$ are the variances in the log-likelihood of the current and proposed states respectively. This form ensures that the temperature declines to unity once the chains are converged (such that they will sample from the true posterior distribution), while ensuring that $T$ is of order the size of the expected random fluctuations in the difference in log-likelihoods between states prior to chain convergence.
+
 \subsubsection{{\normalfont \ttfamily temperedDifferentialEvolution}}
 
 This option extends the {\normalfont \ttfamily differentialEvolution} option to include tempering during which the likelihood function is heated up and cooled down to allow chains to more easily walk through the likelihood landscape. In addition to the options for the {\normalfont \ttfamily differentialEvolution} algorithm, the details of the algorithm are controlled by the following elements whichy should be embedded within the {\normalfont \ttfamily simulation} element:

@@ -61,6 +61,7 @@ module Constraints_Simulation
   include 'constraints.simulation.differential_evolution.type.inc'
   include 'constraints.simulation.tempered_differential_evolution.type.inc'
   include 'constraints.simulation.annealed_differential_evolution.type.inc'
+  include 'constraints.simulation.stochastic_differential_evolution.type.inc'
 
 contains
 
@@ -90,12 +91,12 @@ contains
          &                                                                                simulatorTemperatureMaximumDefinition    , simulatorUntemperedStepCountDefinition , &
          &                                                                                simulatorTemperingLevelCountDefinition   , simulatorStepsPerLevelDefinition       , &
          &                                                                                simulatorStateSwapCountDefinition        , simulatorLogFlushCountDefinition       , &
-         &                                                                                simulatorReportCountDefinition
+         &                                                                                simulatorReportCountDefinition           , simulatorTemperatureScaleDefinition
     integer                                                                            :: simulatorStepsMaximum                    , simulatorStateSwapCount                , &
          &                                                                                simulatorAcceptanceAverageCount          , simulatorUntemperedStepCount           , &
          &                                                                                simulatorTemperingLevelCount             , simulatorStepsPerLevel                 , &
          &                                                                                simulatorLogFlushCount                   , simulatorReportCount
-    double precision                                                                   :: simulatorTemperatureMaximum
+    double precision                                                                   :: simulatorTemperatureMaximum              , simulatorTemperatureScale
     type            (varying_string  )                                                 :: simulatorLogFile
     logical                                                                            :: simulatorSampleOutliers
 
@@ -233,7 +234,48 @@ contains
                &                                              simulatorReportCount             &
                &                                             )
        end select
-    case default
+    case ("stochasticDifferentialEvolution")
+       allocate(simulatorStochasticDifferentialEvolution :: newSimulator)
+       select type (newSimulator)
+       type is (simulatorStochasticDifferentialEvolution)
+          simulatorStepsMaximumDefinition           => XML_Get_First_Element_By_Tag_Name(definition,"stepsMaximum"          )
+          simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount")
+          simulatorStateSwapCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"stateSwapCount"        )
+          simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"           )
+          simulatorTemperatureScaleDefinition       => XML_Get_First_Element_By_Tag_Name(definition,"temperatureScale"      )
+          simulatorSampleOutliersDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"sampleOutliers"        )
+          simulatorLogFlushCountDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"logFlushCount"         )
+          simulatorReportCountDefinition            => XML_Get_First_Element_By_Tag_Name(definition,"reportCount"           )
+          call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
+          call extractDataContent(simulatorAcceptanceAverageCountDefinition,simulatorAcceptanceAverageCount)
+          call extractDataContent(simulatorStateSwapCountDefinition        ,simulatorStateSwapCount        )
+          call extractDataContent(simulatorSampleOutliersDefinition        ,simulatorSampleOutliers        )
+          call extractDataContent(simulatorLogFlushCountDefinition         ,simulatorLogFlushCount         )
+          call extractDataContent(simulatorTemperatureScaleDefinition      ,simulatorTemperatureScale      )
+          call extractDataContent(simulatorReportCountDefinition           ,simulatorReportCount           )
+          simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
+          newSimulator=simulatorStochasticDifferentialEvolution(                                 &
+               &                                                parameterPriors                , &
+               &                                                randomDistributions            , &
+               &                                                parameterMappings              , &
+               &                                                modelLikelihood                , &
+               &                                                simulationConvergence          , &
+               &                                                simulationStoppingCriterion    , &
+               &                                                simulationState                , &
+               &                                                simulationStateInitializor     , &
+               &                                                proposalSize                   , &
+               &                                                randomJump                     , &
+               &                                                simulatorStepsMaximum          , &
+               &                                                simulatorAcceptanceAverageCount, &
+               &                                                simulatorStateSwapCount        , &
+               &                                                char(simulatorLogFile)         , &
+               &                                                simulatorSampleOutliers        , &
+               &                                                simulatorLogFlushCount         , &
+               &                                                simulatorReportCount           , &
+               &                                                simulatorTemperatureScale        &
+               &                                               )
+       end select
+   case default
        call Galacticus_Error_Report('simulatorNew','simulator type is unrecognized')
     end select
     return
@@ -243,5 +285,6 @@ contains
   include 'constraints.simulation.differential_evolution.methods.inc'
   include 'constraints.simulation.tempered_differential_evolution.methods.inc'
   include 'constraints.simulation.annealed_differential_evolution.methods.inc'
+  include 'constraints.simulation.stochastic_differential_evolution.methods.inc'
 
 end module Constraints_Simulation

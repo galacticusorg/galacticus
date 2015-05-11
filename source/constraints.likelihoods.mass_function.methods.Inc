@@ -110,7 +110,7 @@ function likelihoodMassFunctionConstructor(haloMassMinimum,haloMassMaximum,redsh
   return
 end function likelihoodMassFunctionConstructor
 
-double precision function likelihoodMassFunctionEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
+double precision function likelihoodMassFunctionEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
   !% Return the log-likelihood for the mass function likelihood function.
   use, intrinsic :: ISO_C_Binding
   use Constraints_State
@@ -130,6 +130,7 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
   double precision                                             , intent(in   )               :: temperature                    , logLikelihoodCurrent              , &
        &                                                                                        logPriorCurrent                , logPriorProposed
   real                                                         , intent(inout)               :: timeEvaluate
+  double precision                                             , intent(  out), optional     :: logLikelihoodVariance
   double precision                                             , allocatable  , dimension(:) :: stateVector
   class           (cosmologyFunctionsClass                    ), pointer                     :: cosmologyFunctions_
   class           (surveyGeometryClass                        ), pointer                     :: surveyGeometry_
@@ -146,6 +147,8 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
        &                                                                                        massFunction                    , normalization
   logical                                                                                    :: integrationReset                , integrationResetNormalization
 
+  ! There is no variance in our likelihood estimate.
+  if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
   ! Do not evaluate if the proposed prior is impossible.
   if (logPriorProposed <= logImpossible) then
      likelihoodMassFunctionEvaluate=0.0d0
