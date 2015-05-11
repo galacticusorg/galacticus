@@ -295,7 +295,7 @@ contains
   !# <hdfPreCloseTask>
   !#  <unitName>Galacticus_Output_Analysis_LG_Satellite_Mass_Functions_Output</unitName>
   !# </hdfPreCloseTask>
-  subroutine Galacticus_Output_Analysis_LG_Satellite_Mass_Functions_Output
+  subroutine Galacticus_Output_Analysis_LG_Satellite_Mass_Functions_Output()
     !% Outputs galaxy mass functions to file.
     use Galacticus_HDF5
     use Numerical_Constants_Astronomical
@@ -313,18 +313,21 @@ contains
        ! Compute the mean mass function and its variance.
        if (massFunctionHaloCount(i) > 0) then
           massFunctionCumulativeMean           =  dble(massFunctionCumulative       (:,i))/dble(massFunctionHaloCount(i))
+          massFunctionHaloRadius            (i)=+     massFunctionHaloRadius(i)                                           &
+               &                                /dble(massFunctionHaloCount (i)  )
+       else
+          massFunctionCumulativeMean           =0.0d0
+          massFunctionHaloRadius            (i)=0.0d0
+       end if
+       if (massFunctionHaloCount(i) > 1) then
           massFunctionCumulativeMeanVariance   =( dble(massFunctionSquaredCumulative(:,i))/dble(massFunctionHaloCount(i)) &
                &                                 -massFunctionCumulativeMean**2                                           &
                &                                )                                                                         &
                &                                *dble(massFunctionHaloCount (i)  )                                        &
                &                                /dble(massFunctionHaloCount (i)-1)
-          massFunctionHaloRadius            (i)=+     massFunctionHaloRadius(i)                                           &
-               &                                /dble(massFunctionHaloCount (i)  )
        else
-          massFunctionCumulativeMean           =0.0d0
           massFunctionCumulativeMeanVariance   =0.0d0
-          massFunctionHaloRadius            (i)=0.0d0
-       end if
+       end if       
        ! Output the mass function.
        !$omp critical(HDF5_Access)
        analysisGroup    =galacticusOutputFile%openGroup('analysis'                                                              ,'Model analysis'                     )
