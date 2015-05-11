@@ -118,6 +118,10 @@ sub ComputeLikelihood {
 	if ( exists($options{'normalized'}) && $options{'normalized'} == 0 );
     ${$options{'determinant'}} = $logDeterminant
 	if ( exists($options{'determinant'}) );
+    ${$options{'inverseCovariance'}} = $CInverse
+	if ( exists($options{'inverseCovariance'}) );
+    ${$options{'offsets'}} = $d
+	if ( exists($options{'offsets'}) );
     return $logLikelihoodLog->sclr();
 }
 
