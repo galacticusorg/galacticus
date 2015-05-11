@@ -307,8 +307,18 @@ if ( exists($arguments{'outputFile'}) ) {
     # Compute the likelihood.
     my $constraint;
     my $logDeterminant;
-    my $logLikelihood = &Covariances::ComputeLikelihood($dataRadiusFunction,$modelRadiusFunction,$fullCovariance, upperLimits => $upperLimits, determinant => \$logDeterminant, quiet => $arguments{'quiet'});
+    my $offsets;
+    my $inverseCovariance;
+    my $logLikelihood = &Covariances::ComputeLikelihood($dataRadiusFunction,$modelRadiusFunction,$fullCovariance, upperLimits => $upperLimits, determinant => \$logDeterminant, inverseCovariance => \$inverseCovariance, offsets => \$offsets, quiet => $arguments{'quiet'});
     $constraint->{'logLikelihood'} = $logLikelihood;
+    # Find the Jacobian of the log-likelihood with respect to the model mass function.
+    my $jacobian = pdl zeroes(1,nelem($modelRadiusFunction));
+    for(my $i=0;$i<nelem($modelRadiusFunction);++$i) {
+	$jacobian->((0),($i)) .= sum($inverseCovariance->(($i),:)*$offsets);
+    }
+    # Compute the variance in the log-likelihood due to errors in the model.
+    my $logLikelihoodVariance = transpose($jacobian) x $model->{'covariance'} x $jacobian;
+    $constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
     # Output the constraint.
     my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
     open(oHndl,">".$arguments{'outputFile'});
@@ -378,8 +388,10 @@ if ( exists($arguments{'plotFile'}) ) {
 	my $errorDown                               = $errorData->copy();
 	$errorUp           ->($upperLimits)        .= 0.0;
 	$errorDown         ->($upperLimits)        .= -0.5;
-	my $shortArrows                             = which($dataRadiusFunction->($upperLimits) < 0.6);
-	$errorDown->($upperLimits)->($shortArrows) .= -$dataRadiusFunction->($upperLimits)->($shortArrows)+0.1;
+	if ( nelem($upperLimits) > 0 ) {
+	    my $shortArrows                             = which($dataRadiusFunction->($upperLimits) < 0.6);
+	    $errorDown->($upperLimits)->($shortArrows) .= -$dataRadiusFunction->($upperLimits)->($shortArrows)+0.1;
+	}
 	&PrettyPlots::Prepare_Dataset(\$plot,
 				      1.0e3*$sizeData->{'radius'}->(:,($i)),$dataRadiusFunction,
 				      errorUp   => $errorUp,

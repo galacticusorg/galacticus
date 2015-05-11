@@ -165,15 +165,27 @@ if ( exists($arguments{'outputFile'}) ) {
     # Compute the likelihood.
     my $constraint;
     my $logDeterminant;
+    my $offsets;
+    my $inverseCovariance;
     my $logLikelihood = 
 	&Covariances::ComputeLikelihood(
 	$data->{'model'   }->{'combined'}->{'correlationFunction'},
 	$data->{'observed'}->{'combined'}->{'correlationFunction'},
-	$fullCovariance,
-	determinant => \$logDeterminant,
-	quiet       => 0
+	$fullCovariance                         ,
+	determinant       => \$logDeterminant   ,
+	inverseCovariance => \$inverseCovariance,
+	offsets           => \$offsets          ,
+	quiet             => 0
 	);
     $constraint->{'logLikelihood'} = $logLikelihood;
+    # Find the Jacobian of the log-likelihood with respect to the model mass function.
+    my $jacobian = pdl zeroes(nelem($data->{'model'}->{'combined'}->{'correlationFunction'}),1);
+    for(my $i=0;$i<nelem($data->{'model'}->{'combined'}->{'correlationFunction'});++$i) {
+	$jacobian->(($i),(0)) .= sum($inverseCovariance->(($i),:)*$offsets);
+    }
+    # Compute the variance in the log-likelihood due to errors in the model.
+    my $logLikelihoodVariance = $jacobian x $data->{'model'}->{'combined'}->{'correlationFunctionCovariance'} x transpose($jacobian);
+    $constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
     # Output the constraint.
     my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
     open(oHndl,">".$arguments{'outputFile'});

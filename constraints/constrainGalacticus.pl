@@ -179,7 +179,8 @@ my $projectDirectory = $config->{'likelihood'}->{'workDirectory'};
 my $galacticusFile   = "constrainGalacticus_".$mpiRank.".hdf5";
 
 # Bad log likelihood (highly improbable) which we will return in failure conditions.
-my $badLogLikelihood = -1.0e30;
+my $badLogLikelihood         = -1.0e30;
+my $badLogLikelihoodVariance =  0.0;
 
 # Initialize a list of temporary files to remove after we're finished.
 my @temporaryFiles;
@@ -370,7 +371,7 @@ unless ( $? == 0 ) {
 	# Job died due to CPU time being exceeded. No reason to try running it again.
 	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,$cpuTimeExceeded);
 	# Display the final likelihood.
-	&outputLikelihood($config,$badLogLikelihood);
+	&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
 	print "constrainGalacticus.pl: Galacticus model failed to complete - second attempt";
 	unlink(@temporaryFiles)
 	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
@@ -386,7 +387,7 @@ unless ( $? == 0 ) {
 	    # Since a failure occurred, post to the semaphore to avoid blocking other jobs.
 	    &semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
 	    # Display the final likelihood.
-	    &outputLikelihood($config,$badLogLikelihood);
+	    &outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
 	    print "constrainGalacticus.pl: Galacticus model failed to complete - second attempt";
 	    unlink(@temporaryFiles)
 		if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
@@ -402,7 +403,8 @@ $modelLock->unlock()
     if ( $runSequential eq "yes" );
 
 # Perform processing of the model, accumulating likelihood as we go.
-my $logLikelihood = 0.0;
+my $logLikelihood         = 0.0;
+my $logLikelihoodVariance = 0.0;
 my $xml           = new XML::Simple;
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
@@ -431,7 +433,7 @@ foreach my $constraint ( @constraints ) {
 	print "ERROR: Analysis script failed to complete [".$constraint->{'definition'}."]\n";
 	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot);
 	# Display the final likelihood.
-	&outputLikelihood($config,$badLogLikelihood);
+	&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
 	print "constrainGalacticus.pl: analysis code failed";
 	unlink(@temporaryFiles)
 	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
@@ -444,18 +446,22 @@ foreach my $constraint ( @constraints ) {
         print "ERROR: Likelihood is NaN\n";
 	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot);
 	# Display the final likelihood.
-	&outputLikelihood($config,$badLogLikelihood);
+	&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
 	print "constrainGalacticus.pl: likelihood calculation failed";
 	system("rm ".join(" ",@temporaryFiles))
 	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 	exit;
     }
-    # Extract the likelihood and weight it.
-    my $thisLogLikelihood = $likelihood->{'logLikelihood'};
-    $thisLogLikelihood *= $constraintDefinition->{'weight'}
-        if ( defined($constraintDefinition->{'weight'}) );
-    # Accumulate the likelihood.
-    $logLikelihood += $thisLogLikelihood;
+    # Extract the likelihood (and variance) and weight it.
+    my $thisLogLikelihood         = $likelihood->{'logLikelihood'        };
+    my $thisLogLikelihoodVariance = $likelihood->{'logLikelihoodVariance'};
+    if ( defined($constraintDefinition->{'weight'}) ) {
+	$thisLogLikelihood         *= $constraintDefinition->{'weight'};
+	$thisLogLikelihoodVariance *= $constraintDefinition->{'weight'};
+    }
+    # Accumulate the likelihood and variance.
+    $logLikelihood         += $thisLogLikelihood;
+    $logLikelihoodVariance += $thisLogLikelihoodVariance;
     # Clean up.
     unlink($scratchDirectory."/likelihood".$mpiRank.".xml")
 	if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" );
@@ -474,7 +480,7 @@ if ( $store eq "none" ) {
 }
 
 # Display the final likelihood.
-&outputLikelihood($config,$logLikelihood);
+&outputLikelihood($config,$logLikelihood,$logLikelihoodVariance);
 
 # Script timing.
 # my $timeElapsed = tv_interval($timeStart,[gettimeofday]);
@@ -483,10 +489,12 @@ exit;
 
 sub outputLikelihood {
     # Output the log likelihood.
-    my $config        = shift;
-    my $logLikelihood = shift;
+    my $config                = shift;
+    my $logLikelihood         = shift;
+    my $logLikelihoodVariance = shift;
     open(oHndl,">".$likelihoodFile);
-    print oHndl $logLikelihood."\n";
+    print oHndl $logLikelihood        ."\n";
+    print oHndl $logLikelihoodVariance."\n";
     close(oHndl);
 }
 
