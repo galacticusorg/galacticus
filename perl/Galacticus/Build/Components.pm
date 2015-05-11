@@ -1570,7 +1570,7 @@ sub Generate_Deferred_Binding_Functions {
     my $buildData = shift;
     # Initialize class functions.
     my %classFunctions;
-    # Initialize interfaces/
+    # Initialize interfaces.
     my %interfaces;
     # Iterate over component implementations.
     foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
@@ -4400,12 +4400,6 @@ sub Generate_Implementation_Output_Functions {
 			die("Generate_Implementation_Output_Functions(): can not output [".$propertyName."]");
 		    }		   
 		    # Increment the counters.
-		    my %simDbTypeMap = 
-			(
-			 real        => "real"   ,
-			 integer     => "integer",
-			 longInteger => "integer"
-			);
 		    if (
 			$type eq "real"
 			||
@@ -4413,20 +4407,6 @@ sub Generate_Implementation_Output_Functions {
 			||
 			$type eq "longInteger"
 			) {
-			# Insert metadata for SimDB.
-			$functionBody .= "       !@ <outputProperty>\n";
-			$functionBody .= "       !@   <name>".$component->{'class'}.ucfirst($propertyName)."</name>\n";
-			$functionBody .= "       !@   <datatype>".$simDbTypeMap{$type}."</datatype>\n";
-			if ( $rank == 0 ) {
-			    $functionBody .= "       !@   <cardinality>0..1</cardinality>\n";
-			} else {
-			    $functionBody .= "       !@   <cardinality>0..*</cardinality>\n";
-			}
-			$functionBody .= "       !@   <description>".$property->{'output'}->{'comment'}."</description>\n";
-			$functionBody .= "       !@   <label>???</label>\n";
-			$functionBody .= "       !@   <outputType>nodeData</outputType>\n";
-			$functionBody .= "       !@   <group>".$component->{'class'}."</group>\n";
-			$functionBody .= "       !@ </outputProperty>\n";
 			if ( $rank == 0 ) {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
 				my $condition = $property->{'output'}->{'condition'};
