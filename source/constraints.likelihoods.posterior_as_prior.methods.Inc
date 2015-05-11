@@ -168,7 +168,7 @@ subroutine likelihoodPosteriorPriorDestructor(self)
   return
 end subroutine likelihoodPosteriorPriorDestructor
 
-double precision function likelihoodPosteriorPriorEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
+double precision function likelihoodPosteriorPriorEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
   !% Return the log-likelihood for a ``posterior as prior'' likelihood function.
   use Constraints_State
   use Constraints_Convergence
@@ -181,6 +181,7 @@ double precision function likelihoodPosteriorPriorEvaluate(self,simulationState,
   double precision                          , intent(in   )               :: temperature          , logLikelihoodCurrent, &
        &                                                                     logPriorCurrent      , logPriorProposed
   real                                      , intent(inout)               :: timeEvaluate
+  double precision                          , intent(  out), optional     :: logLikelihoodVariance
   double precision                          , allocatable  , dimension(:) :: stateVector          , stateVectorPacked
   double precision                                                        :: kernelScale          , weight
   integer                                                                 :: i
@@ -213,7 +214,8 @@ double precision function likelihoodPosteriorPriorEvaluate(self,simulationState,
        &                                          logLikelihoodCurrent , &
        &                                          logPriorCurrent      , &
        &                                          logPriorProposed     , &
-       &                                          timeEvaluate           &
+       &                                          timeEvaluate         , &
+       &                                          logLikelihoodVariance  &
        &                                         )
   return
 end function likelihoodPosteriorPriorEvaluate

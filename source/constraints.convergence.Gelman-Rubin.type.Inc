@@ -30,12 +30,29 @@
      double precision, allocatable, dimension(:) :: correctedHatR
      logical         , allocatable, dimension(:) :: chainMask
    contains
-     final     ::                   convergenceGelmanRubinDestructor
-     procedure :: isConverged     => convergenceGelmanRubinIsConverged
-     procedure :: convergedAtStep => convergenceGelmanRubinConvergedAtStep
-     procedure :: reset           => convergenceGelmanRubinReset
-     procedure :: logReport       => convergenceGelmanRubinLogReport
-     procedure :: chainIsOutlier  => convergenceGelmanRubinChainIsOutlier
+     !@ <objectMethods>
+     !@   <object>convergenceGelmanRubin</object>
+     !@   <objectMethod>
+     !@     <method>convergenceMeasure</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the current convergence measure, $\hat{R}$.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>convergenceMeasureTarget</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the target convergence measure, $\hat{R}$.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                            convergenceGelmanRubinDestructor
+     procedure :: isConverged              => convergenceGelmanRubinIsConverged
+     procedure :: convergedAtStep          => convergenceGelmanRubinConvergedAtStep
+     procedure :: reset                    => convergenceGelmanRubinReset
+     procedure :: logReport                => convergenceGelmanRubinLogReport
+     procedure :: chainIsOutlier           => convergenceGelmanRubinChainIsOutlier
+     procedure :: convergenceMeasure       => convergenceGelmanRubinConvergenceMeasure
+     procedure :: convergenceMeasureTarget => convergenceGelmanRubinConvergenceMeasureTarget
   end type convergenceGelmanRubin
   
   interface convergenceGelmanRubin

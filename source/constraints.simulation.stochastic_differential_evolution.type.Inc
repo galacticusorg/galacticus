@@ -15,19 +15,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Defines a \glc\ likelihood function.
 
-  type, public, extends(likelihood) :: likelihoodGalacticus
+  type, public, extends(simulatorDifferentialEvolution) :: simulatorStochasticDifferentialEvolution
+     !% Defines a simulator class implementing the differential evolution algorithm with a stochastic likelihood function.
      private
-     type   (varying_string) :: configFileName    , timeCommand
-     integer                 :: storeCountPrevious
+     double precision :: temperatureScale
    contains
-     procedure :: evaluate        => likelihoodGalacticusEvaluate
-     procedure :: willEvaluate    => likelihoodGalacticusWillEvaluate
-     procedure :: functionChanged => likelihoodGalacticusFunctionChanged
-  end type likelihoodGalacticus
+     procedure :: acceptProposal => simulatorStochasticDifferentialEvolutionAcceptProposal
+  end type simulatorStochasticDifferentialEvolution
   
-  interface likelihoodGalacticus
-     !% Constructors for the \glc\ likelihood object.
-     module procedure likelihoodGalacticusConstructor
-  end interface likelihoodGalacticus
+  interface simulatorStochasticDifferentialEvolution
+     !% Constructors for the ``stochasticDifferentialEvolution'' simulator class.
+     module procedure simulatorStochasticDifferentialEvolutionConstructor
+  end interface simulatorStochasticDifferentialEvolution

@@ -127,13 +127,14 @@ double precision function simulatorAnnealedDifferentialEvolutionTemperature(self
   return
 end function simulatorAnnealedDifferentialEvolutionTemperature
 
-logical function simulatorAnnealedDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,randomNumberGenerator)
+logical function simulatorAnnealedDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator)
   !% Return whether or not to accept a proposal.
   use Pseudo_Random
   use MPI_Utilities
   implicit none
   class           (simulatorAnnealedDifferentialEvolution), intent(inout) :: self
-  double precision                                        , intent(in   ) :: logPosterior         , logPosteriorProposed
+  double precision                                        , intent(in   ) :: logPosterior         , logPosteriorProposed         , &
+       &                                                                     logLikelihoodVariance, logLikelihoodVarianceProposed
   type            (pseudoRandom                          ), intent(inout) :: randomNumberGenerator
   double precision                                                        :: x
 

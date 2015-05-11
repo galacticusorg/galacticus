@@ -34,10 +34,10 @@ function likelihoodGalacticusConstructor(configFileName)
   return
 end function likelihoodGalacticusConstructor
 
-double precision function likelihoodGalacticusEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
+double precision function likelihoodGalacticusEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
   !% Return the log-likelihood for the \glc\ likelihood function. This function runs an external script that drives \glc\ and
-  !% writes the resulting likelihood to file. This function then reads that likelihood from file. We make use of {\normalfont \ttfamily tmpfs} for
-  !% this likelihood file so that no disk I/O is required.
+  !% writes the resulting likelihood to file. This function then reads that likelihood from file. We make use of {\normalfont
+  !% \ttfamily tmpfs} for this likelihood file so that no disk I/O is required.
   use Constraints_Constants
   use Constraints_State
   use Constraints_Convergence
@@ -52,6 +52,7 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   double precision                      , intent(in   )               :: temperature          , logLikelihoodCurrent, &
        &                                                                 logPriorCurrent      , logPriorProposed
   real                                  , intent(inout)               :: timeEvaluate
+  double precision                      , intent(  out), optional     :: logLikelihoodVariance
   double precision                      , allocatable  , dimension(:) :: stateVector
   type            (varying_string      )                              :: wrapperCommand       , likelihoodFileName  , &
        &                                                                 timingFileName
@@ -64,6 +65,7 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   ! If prior probability is impossible, then no need to waste time evaluating the likelihood.
   if (logPriorProposed <= logImpossible) then
      likelihoodGalacticusEvaluate=logImpossible
+     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
      return
   end if
   ! Generate the file name for the likelihood and timing files.
@@ -115,7 +117,8 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   call System_Command_Do(wrapperCommand)
   ! Read the likelihood back from file.
   open(newUnit=likelihoodFileUnit,file=char(likelihoodFileName),status='old',form='formatted')
-  read (likelihoodFileUnit,*) likelihoodGalacticusEvaluate
+  read                                     (likelihoodFileUnit,*) likelihoodGalacticusEvaluate
+  if (present(logLikelihoodVariance)) read (likelihoodFileUnit,*) logLikelihoodVariance
   close(likelihoodFileUnit,status='delete')
   ! Read the timing data back from file.
   open(newUnit=timingFileUnit,file=char(timingFileName),status='old',form='formatted')
@@ -132,3 +135,21 @@ subroutine likelihoodGalacticusFunctionChanged(self)
   
   return
 end subroutine likelihoodGalacticusFunctionChanged
+
+logical function likelihoodGalacticusWillEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+  !% Return true if the log-likelihood will be evaluated.
+  use Constraints_State
+  use Constraints_Convergence
+  use Constraints_Constants
+  implicit none
+  class           (likelihoodGalacticus), intent(inout)               :: self
+  class           (state               ), intent(in   )               :: simulationState
+  type            (mappingList         ), intent(in   ), dimension(:) :: parameterMappings
+  class           (convergence         ), intent(inout)               :: simulationConvergence
+  double precision                      , intent(in   )               :: temperature                      , logLikelihoodCurrent, &
+       &                                                                 logPriorCurrent                  , logPriorProposed
+
+  ! Likelihood will not be evaluated if the proposed prior is impossible.
+  likelihoodGalacticusWillEvaluate=(logPriorProposed > logImpossible)
+  return
+end function likelihoodGalacticusWillEvaluate

@@ -38,7 +38,7 @@ module Constraints_Likelihoods
      !@   <objectMethod>
      !@     <method>evaluate</method>
      !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin, \doublezero\ temperature\argin, \doublezero\ logLikelihoodCurrent\argin, \doublezero\ logLikelihoodCurrent\argin, \doublezero\ logPriorProposed\argin, \doublezero\ timeEvaluate\arginout</arguments>
+     !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin, \doublezero\ temperature\argin, \doublezero\ logLikelihoodCurrent\argin, \doublezero\ logLikelihoodCurrent\argin, \doublezero\ logPriorProposed\argin, \doublezero\ timeEvaluate\arginout, \doublezero\ [logLikelihoodVariance]\argout</arguments>
      !@     <description>Evaluate the model likelihood at the given {\normalfont \ttfamily simulationState} and return the log-likelihood.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -61,7 +61,7 @@ module Constraints_Likelihoods
 
   ! Interface for deferred functions.
   abstract interface
-     double precision function likelihoodEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate)
+     double precision function likelihoodEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
        import :: likelihood, state, convergence, mappingList
        class           (likelihood ), intent(inout)               :: self
        class           (state      ), intent(in   )               :: simulationState
@@ -70,6 +70,7 @@ module Constraints_Likelihoods
        double precision             , intent(in   )               :: temperature          , logLikelihoodCurrent, &
             &                                                        logPriorCurrent      , logPriorProposed
        real                         , intent(inout)               :: timeEvaluate
+       double precision             , intent(  out), optional     :: logLikelihoodVariance
      end function likelihoodEvaluate
   end interface
   abstract interface
