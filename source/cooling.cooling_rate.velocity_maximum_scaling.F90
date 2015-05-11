@@ -109,7 +109,7 @@ contains
        ! Check that the properties we need are gettable.
        if (.not.defaultHotHaloComponent%massIsGettable())                                                                                 &
             & call Galacticus_Error_Report(                                                                                               &
-            &                              'Cooling_Rate_Velocity_Maximum_Scaling_Initialize'                                                     , &
+            &                              'Cooling_Rate_Velocity_Maximum_Scaling_Initialize'                                           , &
             &                              'Hot halo component must have gettable mass.'//                                                &
             &                              Galacticus_Component_List(                                                                     &
             &                                                        'hotHalo'                                                          , &
@@ -123,7 +123,7 @@ contains
             &         defaultBasicComponent%timeIsGettable()                                                                              &
             &       )                                                                                                                     &
             & ) call Galacticus_Error_Report(                                                                                             &
-            &                                'Cooling_Rate_Velocity_Maximum_Scaling_Initialize'                                                   , &
+            &                                'Cooling_Rate_Velocity_Maximum_Scaling_Initialize'                                         , &
             &                                'Basic component must have gettable mass and time.'//                                        &
             &                                Galacticus_Component_List(                                                                   &
             &                                                          'basic'                                                          , &
@@ -152,14 +152,14 @@ contains
     !$omp threadprivate(expansionFactorPrevious,velocityMaximumPrevious,coolingRate)
     double precision                                                  :: expFactor                        , expansionFactor               , &
          &                                                               expArgument                      , velocityMaximum  
-
+    
     ! Get the default cosmology functions object.
     cosmologyFunctions_  => cosmologyFunctions                         (                         )
     darkMatterProfile_   => darkMatterProfile                          (                         )
     thisBasicComponent   => thisNode%basic                             (                         )
     thisHotHaloComponent => thisNode%hotHalo                           (                         )
     expansionFactor      =  cosmologyFunctions_%expansionFactor        (thisBasicComponent%time())
-    velocityMaximum      =  darkMatterProfile_ %circularVelocityMaximum(thisNode                 ) 
+    velocityMaximum      =  darkMatterProfile_ %circularVelocityMaximum(thisNode                 )
     if (expansionFactor /= expansionFactorPrevious .or. velocityMaximum /= velocityMaximumPrevious) then
        expArgument=log10(                                                  &
             &             velocityMaximum                                  &
@@ -175,7 +175,7 @@ contains
             &      /coolingRateVelocityMaximumScalingTimescale                          &
             &      *expFactor
        expansionFactorPrevious=expansionFactor
-       velocityMaximumPrevious=thisBasicComponent%mass()
+       velocityMaximumPrevious=velocityMaximum
     end if
     Cooling_Rate_Velocity_Maximum_Scaling=thisHotHaloComponent%mass()*coolingRate
     return
