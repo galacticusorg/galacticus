@@ -1,22 +1,22 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Andrew Benson <abenson@obs.carnegiescience.edu>
-!!
-!! This file is part of Galacticus.
-!!
-!!    Galacticus is free software: you can redistribute it and/or modify
-!!    it under the terms of the GNU General Public License as published by
-!!    the Free Software Foundation, either version 3 of the License, or
-!!    (at your option) any later version.
-!!
-!!    Galacticus is distributed in the hope that it will be useful,
-!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!!    GNU General Public License for more details.
-!!
-!!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
-!% A simple implementation of the cosmological parameters class.
-
+  !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Andrew Benson <abenson@obs.carnegiescience.edu>
+  !!
+  !! This file is part of Galacticus.
+  !!
+  !!    Galacticus is free software: you can redistribute it and/or modify
+  !!    it under the terms of the GNU General Public License as published by
+  !!    the Free Software Foundation, either version 3 of the License, or
+  !!    (at your option) any later version.
+  !!
+  !!    Galacticus is distributed in the hope that it will be useful,
+  !!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+  !!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  !!    GNU General Public License for more details.
+  !!
+  !!    You should have received a copy of the GNU General Public License
+  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
+  !% A simple implementation of the cosmological parameters class.
+  
   !# <cosmologyParameters name="cosmologyParametersSimple">
   !#  <description>Provides basic cosmological parameters: $(H_0,\Omega_{\mathrm M},\Omega_\Lambda,\Omega_{\mathrm b},T_{\mathrm CMB})$. Also provides derived quantities $(\Omega_{\mathrm K},\Omega_{\mathrm r},\rho_{\mathrm crit})$.</description>
   !# </cosmologyParameters>
@@ -26,183 +26,184 @@
      double precision :: HubbleConstantValue, OmegaBaryonValue   , OmegaDarkEnergyValue, &
           &              OmegaMatterValue   , temperatureCMBValue
    contains
-     final     :: cosmologyParametersSimpleDestructor
-     procedure :: OmegaMatter    =>OmegaMatterSimple
-     procedure :: OmegaDarkEnergy=>OmegaDarkEnergySimple
-     procedure :: OmegaBaryon    =>OmegaBaryonSimple
-     procedure :: OmegaRadiation =>OmegaRadiationSimple
-     procedure :: OmegaCurvature =>OmegaCurvatureSimple
-     procedure :: HubbleConstant =>HubbleConstantSimple
-     procedure :: temperatureCMB =>temperatureCMBSimple
-     procedure :: densityCritical=>densityCriticalSimple
+     final     ::                    simpleDestructor
+     procedure :: OmegaMatter     => simpleOmegaMatter
+     procedure :: OmegaDarkEnergy => simpleOmegaDarkEnergy
+     procedure :: OmegaBaryon     => simpleOmegaBaryon
+     procedure :: OmegaRadiation  => simpleOmegaRadiation
+     procedure :: OmegaCurvature  => simpleOmegaCurvature
+     procedure :: HubbleConstant  => simpleHubbleConstant
+     procedure :: temperatureCMB  => simpleTemperatureCMB
+     procedure :: densityCritical => simpleDensityCritical
   end type cosmologyParametersSimple
 
   interface cosmologyParametersSimple
      !% Constructors for the simple cosmological parameters class.
-     module procedure cosmologyParametersSimpleDefaultConstructor
-     module procedure cosmologyParametersSimpleConstructor
+     module procedure simpleConstructorParameters
+     module procedure simpleConstructorInternal
   end interface cosmologyParametersSimple
 
 contains
 
-  function cosmologyParametersSimpleDefaultConstructor()
-    !% Default constructor for the simple cosmological parameters class.
+  function simpleConstructorParameters(parameters)
+    !% Constructor for the simple cosmological parameters class which takes a parameter set as input.
     use Galacticus_Display
-    use Input_Parameters
     implicit none
-    type(cosmologyParametersSimple) :: cosmologyParametersSimpleDefaultConstructor
+    type(cosmologyParametersSimple)                :: simpleConstructorParameters
+    type(inputParameters          ), intent(in   ) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
 
-    !@ <inputParameter>
-    !@   <name>Omega_Matter</name>
-    !@   <defaultValue>0.2812 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The density of matter in the Universe in units of the critical density.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@   <group>cosmology</group>
-    !@ </inputParameter>
-    call Get_Input_Parameter('Omega_Matter',cosmologyParametersSimpleDefaultConstructor%OmegaMatterValue,defaultValue=0.2812d0  )
-    !@ <inputParameter>
-    !@   <name>Omega_b</name>
-    !@   <defaultValue>0.04611 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The density of baryons in the Universe in units of the critical density.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@   <group>cosmology</group>
-    !@ </inputParameter>
-    call Get_Input_Parameter('Omega_b',cosmologyParametersSimpleDefaultConstructor%OmegaBaryonValue     ,defaultValue=0.04611d0 )
-    !@ <inputParameter>
-    !@   <name>Omega_DE</name>
-    !@   <defaultValue>0.7188 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The density of dark energy in the Universe in units of the critical density.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@   <group>cosmology</group>
-    !@ </inputParameter>
-    call Get_Input_Parameter('Omega_DE',cosmologyParametersSimpleDefaultConstructor%OmegaDarkEnergyValue,defaultValue=0.7188d0  )
-    !@ <inputParameter>
-    !@   <name>T_CMB</name>
-    !@   <defaultValue>2.72548 \citep{fixsen_temperature_2009}</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The present day temperature of the \gls{cmb} in units of Kelvin.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@   <group>cosmology</group>
-    !@ </inputParameter>
-    call Get_Input_Parameter('T_CMB',cosmologyParametersSimpleDefaultConstructor%temperatureCMBValue     ,defaultValue=2.72548d0)
-    !@ <inputParameter>
-    !@   <name>H_0</name>
-    !@   <defaultValue>69.7 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The present day value of the Hubble parameter in units of km/s/Mpc.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@   <group>cosmology</group>
-    !@ </inputParameter>
-    call Get_Input_Parameter('H_0',cosmologyParametersSimpleDefaultConstructor%HubbleConstantValue      ,defaultValue=69.7d0     )
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>OmegaMatter</name>
+    !#   <source>parameters</source>
+    !#   <variable>simpleConstructorParameters%OmegaMatterValue</variable>
+    !#   <defaultValue>0.2812d0</defaultValue>
+    !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+    !#   <description>The density of matter in the Universe in units of the critical density.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>OmegaBaryon</name>
+    !#   <source>parameters</source>
+    !#   <variable>simpleConstructorParameters%OmegaBaryonValue</variable>
+    !#   <defaultValue>0.04611d0</defaultValue>
+    !#   <description>The density of baryons in the Universe in units of the critical density.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>OmegaDarkEnergy</name>
+    !#   <source>parameters</source>
+    !#   <variable>simpleConstructorParameters%OmegaDarkEnergyValue</variable>
+    !#   <defaultValue>0.7188d0</defaultValue>
+    !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+    !#   <description>The density of dark energy in the Universe in units of the critical density.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>temperatureCMB</name>
+    !#   <source>parameters</source>
+    !#   <variable>simpleConstructorParameters%temperatureCMBValue</variable>
+    !#   <defaultValue>2.72548d0</defaultValue>
+    !#   <defaultSource>\citep{fixsen_temperature_2009}</defaultSource>
+    !#   <description>The present day temperature of the \gls{cmb} in units of Kelvin.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>HubbleConstant</name>
+    !#   <source>parameters</source>
+    !#   <variable>simpleConstructorParameters%HubbleConstantValue</variable>
+    !#   <defaultValue>69.7d0</defaultValue>
+    !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+    !#   <description>The present day value of the Hubble parameter in units of km/s/Mpc.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     ! Validate the input.
-    if (cosmologyParametersSimpleDefaultConstructor%HubbleConstantValue <= 0.0d0) &
-         & call Galacticus_Display_Message("WARNING: H_0<=0 - are you sure this is what you wanted?",verbosityWarn)
+    if (simpleConstructorParameters%HubbleConstantValue <= 0.0d0)                                                                                               &
+         & call Galacticus_Display_Message(                                                                                                                     &
+         &                                 "WARNING [cosmologyParametersSimple::simpleConstructorParameters]: H_0 ≤ 0 - are you sure this is what you wanted?", &
+         &                                 verbosityWarn                                                                                                        &
+         &                                )
     return
-  end function cosmologyParametersSimpleDefaultConstructor
+  end function simpleConstructorParameters
 
-  function cosmologyParametersSimpleConstructor(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
-    !% User-defined constructor for the simple cosmological parameters class.
+  function simpleConstructorInternal(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
+    !% Internal constructor for the simple cosmological parameters class.
     implicit none
-    type            (cosmologyParametersSimple)                :: cosmologyParametersSimpleConstructor
-    double precision                           , intent(in   ) :: HubbleConstant                      , OmegaBaryon, &
-         &                                                        OmegaDarkEnergy                     , OmegaMatter, &
+    type            (cosmologyParametersSimple)                :: simpleConstructorInternal
+    double precision                           , intent(in   ) :: HubbleConstant   , OmegaBaryon, &
+         &                                                        OmegaDarkEnergy  , OmegaMatter, &
          &                                                        temperatureCMB
 
-    cosmologyParametersSimpleConstructor%OmegaMatterValue    =OmegaMatter
-    cosmologyParametersSimpleConstructor%OmegaBaryonValue    =OmegaBaryon
-    cosmologyParametersSimpleConstructor%OmegaDarkEnergyValue=OmegaDarkEnergy
-    cosmologyParametersSimpleConstructor%temperatureCMBValue =temperatureCMB
-    cosmologyParametersSimpleConstructor%HubbleConstantValue =HubbleConstant
+    simpleConstructorInternal%OmegaMatterValue    =OmegaMatter
+    simpleConstructorInternal%OmegaBaryonValue    =OmegaBaryon
+    simpleConstructorInternal%OmegaDarkEnergyValue=OmegaDarkEnergy
+    simpleConstructorInternal%temperatureCMBValue =temperatureCMB
+    simpleConstructorInternal%HubbleConstantValue =HubbleConstant
     return
-  end function cosmologyParametersSimpleConstructor
+  end function simpleConstructorInternal
 
-  elemental subroutine cosmologyParametersSimpleDestructor(self)
+  elemental subroutine simpleDestructor(self)
     !% Default constructor for the simple cosmological parameters class.
     implicit none
     type(cosmologyParametersSimple), intent(inout) :: self
 
     ! Nothing to do.
     return
-  end subroutine cosmologyParametersSimpleDestructor
+  end subroutine simpleDestructor
 
-  double precision function OmegaMatterSimple(self)
+  double precision function simpleOmegaMatter(self)
     !% Return the cosmological matter density in units of the critical density at the present day.
     use Galacticus_Error
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
-    OmegaMatterSimple=self%OmegaMatterValue
+    simpleOmegaMatter=self%OmegaMatterValue
     return
-  end function OmegaMatterSimple
+  end function simpleOmegaMatter
 
-  double precision function OmegaBaryonSimple(self)
+  double precision function simpleOmegaBaryon(self)
     !% Return the cosmological baryon density in units of the critical density at the present day.
     use Galacticus_Error
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
-    OmegaBaryonSimple=self%OmegaBaryonValue
+    simpleOmegaBaryon=self%OmegaBaryonValue
     return
-  end function OmegaBaryonSimple
+  end function simpleOmegaBaryon
 
-  double precision function OmegaDarkEnergySimple(self)
+  double precision function simpleOmegaDarkEnergy(self)
     !% Return the cosmological dark energy density in units of the critical density at the present day.
     use Galacticus_Error
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
-    OmegaDarkEnergySimple=self%OmegaDarkEnergyValue
+    simpleOmegaDarkEnergy=self%OmegaDarkEnergyValue
     return
-  end function OmegaDarkEnergySimple
+  end function simpleOmegaDarkEnergy
 
-  double precision function OmegaRadiationSimple(self)
+  double precision function simpleOmegaRadiation(self)
     !% Return the cosmological radiation density in units of the critical density at the present day.
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
-    OmegaRadiationSimple=radiationConstant*(self%temperatureCMB()**4)*megaParsec**3/massSolar/speedLight**2/self%densityCritical()
+    simpleOmegaRadiation=+radiationConstant         &
+         &               *megaParsec            **3 &
+         &               /massSolar                 &
+         &               /speedLight            **2 &
+         &               *self%temperatureCMB ()**4 &
+         &               /self%densityCritical()
     return
-  end function OmegaRadiationSimple
+  end function simpleOmegaRadiation
 
-  double precision function OmegaCurvatureSimple(self)
+  double precision function simpleOmegaCurvature(self)
     !% Return the cosmological curvature density in units of the critical density at the present day.
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
-    OmegaCurvatureSimple=1.0d0-self%OmegaMatter()-self%OmegaDarkEnergy()
+    simpleOmegaCurvature=+1.0d0                  &
+         &               -self%OmegaMatter    () &
+         &               -self%OmegaDarkEnergy()
     return
-  end function OmegaCurvatureSimple
+  end function simpleOmegaCurvature
 
-  double precision function temperatureCMBSimple(self)
+  double precision function simpleTemperatureCMB(self)
     !% Return the present day temperature of the \gls{cmb}.
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
-    temperatureCMBSimple=self%temperatureCMBValue
+    simpleTemperatureCMB=self%temperatureCMBValue
     return
-  end function TemperatureCMBSimple
+  end function simpleTemperatureCMB
 
-  double precision function HubbleConstantSimple(self,units)
+  double precision function simpleHubbleConstant(self,units)
     !% Return the present day value of the Hubble constant.
     use Galacticus_Error
     use Numerical_Constants_Prefixes
@@ -210,31 +211,37 @@ contains
     implicit none
     class           (cosmologyParametersSimple), intent(inout)           :: self
     integer                                    , intent(in   ), optional :: units
-    integer                                                              :: unitsActual
     double precision                           , parameter               :: HubbleConstantNormalization=100.0d0
 
-    unitsActual=hubbleUnitsStandard
-    if (present(units)) unitsActual=units
-    select case (unitsActual)
+    !# <optionalArgument name="units" defaultsTo="hubbleUnitsStandard" />
+    select case (units_)
     case (hubbleUnitsStandard)
-       HubbleConstantSimple=self%HubbleConstantValue
+       simpleHubbleConstant=+self%HubbleConstantValue
     case (hubbleUnitsTime    )
-       HubbleConstantSimple=self%HubbleConstantValue*gigaYear*kilo/megaParsec
+       simpleHubbleConstant=+self%HubbleConstantValue         &
+            &                    *gigaYear                    &
+            &                    *kilo                        &
+            &                    /megaParsec
     case (hubbleUnitsLittleH )
-       HubbleConstantSimple=self%HubbleConstantValue/HubbleConstantNormalization
+       simpleHubbleConstant=+self%HubbleConstantValue         &
+            &                    /HubbleConstantNormalization
     case default
-       call Galacticus_Error_Report('cosmologyParametersSimple:HubbleConstantSimple','unknown units for Hubble parameter')
+       call Galacticus_Error_Report('cosmologyParametersSimple:simpleHubbleConstant','unknown units for Hubble parameter')
     end select
     return
-  end function HubbleConstantSimple
+  end function simpleHubbleConstant
 
-  double precision function densityCriticalSimple(self)
+  double precision function simpleDensityCritical(self)
     !% Return the present day critical density of the Universe in units of $M_\odot$/Mpc$^3$.
     use Numerical_Constants_Math
     use Numerical_Constants_Physical
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 
-    densityCriticalSimple=3.0d0*(self%HubbleConstant()**2)/8.0d0/Pi/gravitationalConstantGalacticus
+    simpleDensityCritical=+3.0d0                                &
+         &                *self%HubbleConstant            ()**2 &
+         &                /8.0d0                                &
+         &                /Pi                                   &
+         &                /gravitationalConstantGalacticus
     return
-  end function densityCriticalSimple
+  end function simpleDensityCritical
