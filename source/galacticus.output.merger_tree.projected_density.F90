@@ -213,8 +213,8 @@ contains
                 case default
                    call Galacticus_Error_Report('Galacticus_Output_Tree_Projected_Density_Initialize','unrecognized radius specifier "'//char(radiusDefinition(1))//'"')
                 end select
-                radii(i)%component=Galactic_Structure_Component_Type_Decode(char(radiusDefinition(2)))
-                radii(i)%mass     =Galactic_Structure_Mass_Type_Decode     (char(radiusDefinition(3)))
+                radii(i)%component=enumerationComponentTypeEncode(char(radiusDefinition(2)),includesPrefix=.false.)
+                radii(i)%mass     =enumerationMassTypeEncode     (char(radiusDefinition(3)),includesPrefix=.false.)
                 select case (char(radiusDefinition(4)))
                 case ('loaded'  )
                    radii(i)%loaded=.true.
