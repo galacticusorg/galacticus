@@ -81,6 +81,7 @@ contains
     use Memory_Management
     use Stellar_Population_Spectra
     use Stellar_Population_Spectra_Postprocess
+    use Input_Parameters2
     implicit none
     integer                                                                                    , intent(in   ) :: filterIndex                              (:), imfIndex                   , &
          &                                                                                                        luminosityIndex                          (:), postprocessingChainIndex(:)

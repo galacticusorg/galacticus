@@ -22,6 +22,7 @@ module Star_Formation_IMF
   use ISO_Varying_String
   use Abundances_Structure
   use Input_Parameters
+  use Input_Parameters2
   !# <include directive="imfRegister" type="moduleUse">
   include 'star_formation.IMF.register.modules.inc'
   !# </include>
@@ -624,7 +625,7 @@ contains
           call xml_AddCharacters(recycledFractionDoc,char(Formatted_Date_and_Time()))
           call xml_EndElement(recycledFractionDoc,"date")
           call xml_NewElement(recycledFractionDoc,"parameters")
-          call imfUniqueParameters%outputToXML(recycledFractionDoc)
+          call imfUniqueParameters%serializeToXML(recycledFractionDoc)
           call xml_EndElement(recycledFractionDoc,"parameters")
 
           ! Write ages to the XML file.
@@ -1423,7 +1424,7 @@ contains
              call xml_AddCharacters(metalYieldDoc,char(Formatted_Date_and_Time()))
              call xml_EndElement(metalYieldDoc,"date")
              call xml_NewElement(metalYieldDoc,"parameters")
-             call imfUniqueParameters%outputToXML(metalYieldDoc)
+             call imfUniqueParameters%serializeToXML(metalYieldDoc)
              call xml_EndElement(metalYieldDoc,"parameters")
 
              ! Write ages to the XML file.
@@ -1842,7 +1843,7 @@ contains
           call xml_AddCharacters(energyInputDoc,char(Formatted_Date_and_Time()))
           call xml_EndElement(energyInputDoc,"date")
           call xml_NewElement(energyInputDoc,"parameters")
-          call imfUniqueParameters%outputToXML(energyInputDoc)
+          call imfUniqueParameters%serializeToXML(energyInputDoc)
           call xml_EndElement(energyInputDoc,"parameters")
 
           ! Write ages to the XML file.

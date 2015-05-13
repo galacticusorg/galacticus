@@ -8,614 +8,463 @@
   <modelRootDirectory>testSuite/outputs/test-methods</modelRootDirectory>
   <baseParameters>testSuite/test-methods-base.xml</baseParameters>
   <parameters>
-    <parameter>
-      <name>accretionDisksMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <accretionDisksMethod>
       <value>switched</value>
       <value>Shakura-Sunyaev</value>
       <value>ADAF</value>
-    </parameter>
+    </accretionDisksMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>barInstabilityMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <barInstabilityMethod>
       <value>ELN</value>
       <value>null</value>
       <value>ELN+tidal</value>
-    </parameter>
+    </barInstabilityMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>outputHaloModelData</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>darkMatterHaloBiasMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputHaloModelData value="true"/>
+    <darkMatterHaloBiasMethod>
       <value>SMT</value>
       <value>Press-Schechter</value>
       <value>Tinker2010</value>
-    </parameter>
+    </darkMatterHaloBiasMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>darkMatterProfileMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <darkMatterProfileMethod>
       <value>NFW</value>
       <value>isothermal</value>
       <value>einasto
-      <parameter>
-	<name>treeNodeMethodDarkMatterProfile</name>
-	<value>scaleShape</value>
-      </parameter>
+      <treeNodeMethodDarkMatterProfile value="scaleShape"/>
       </value>
-    </parameter>
+    </darkMatterProfileMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>galacticStructureRadiusSolverMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <galacticStructureRadiusSolverMethod>
       <value>adiabatic
-      <parameter>
-	<name>galacticStructureRadiusSolverInitialRadiusMethod</name>
-	<value>adiabatic</value>
-      </parameter>
+      <galacticStructureRadiusSolverInitialRadiusMethod value="adiabatic"/>
       </value>
       <value>simple
-      <parameter>
-	<name>galacticStructureRadiusSolverInitialRadiusMethod</name>
-	<value>static</value>
-      </parameter>
+      <galacticStructureRadiusSolverInitialRadiusMethod value="static"/>
       </value>
       <value>linear
-      <parameter>
-	<name>galacticStructureRadiusSolverInitialRadiusMethod</name>
-	<value>static</value>
-      </parameter>
+      <galacticStructureRadiusSolverInitialRadiusMethod value="static"/>
       </value>
       <value>fixed
-      <parameter>
-	<name>galacticStructureRadiusSolverInitialRadiusMethod</name>
-	<value>static</value>
-      </parameter>
+      <galacticStructureRadiusSolverInitialRadiusMethod value="static"/>
       </value>
-    </parameter>
+    </galacticStructureRadiusSolverMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>haloMassFunctionMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <haloMassFunctionMethod>
       <value>Sheth-Tormen</value>
       <value>Tinker2008</value>
       <value>Press-Schechter</value>
-    </parameter>
+    </haloMassFunctionMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>haloSpinDistributionMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <haloSpinDistributionMethod>
       <value>Bett2007</value>
       <value>lognormal</value>
       <value>deltaFunction</value>
-    </parameter>
+    </haloSpinDistributionMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>chemicalStateFile</name>
-      <value>data/chemicalState/chemical_state_Atomic_CIE_Cloudy.xml</value>
-    </parameter>
-    <parameter>
-      <name>chemicalStateMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <chemicalStateFile value="data/chemicalState/chemical_state_Atomic_CIE_Cloudy.xml"/>
+    <chemicalStateMethod>
       <value>atomicCIECloudy</value>
       <value>cieFromFile</value>
-    </parameter>
+    </chemicalStateMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>mergerTreeReadFileName</name>
-      <value>testSuite/test-MergerTrees.hdf5</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeConstructMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <mergerTreeReadFileName value="testSuite/test-MergerTrees.hdf5"/>
+    <mergerTreeConstructMethod>
       <value>smoothAccretion
-        <parameter>
-	  <name>darkMatterAccretionHistoryMethod</name>
-	  <value>Wechsler2002</value>
-	  <value>Zhao2009</value>
-        </parameter>
+      <darkMatterAccretionHistoryMethod>
+	<value>Wechsler2002</value>
+	<value>Zhao2009</value>
+      </darkMatterAccretionHistoryMethod>
       </value>
       <value>build
-        <parameter>
-	  <name>mergerTreeBuildTreesHaloMassDistribution</name>
-	  <value>uniform</value>
-	  <value>read
-	  <parameter>
-	    <name>mergerTreeBuildTreeMassesFile</name>
-	    <value>testSuite/data/mergerTreeBuilding/treeMasses.xml</value>
-	  </parameter>
-	  </value>
-        </parameter>
+      <mergerTreeBuildTreesHaloMassDistribution>
+	<value>uniform</value>
+	<value>read
+	<mergerTreeBuildTreeMassesFile value="testSuite/data/mergerTreeBuilding/treeMasses.xml"/>
+	</value>
+      </mergerTreeBuildTreesHaloMassDistribution>
       </value>
       <value>read
-      <parameter>
-	<name>hotHaloRamPressureStrippingMethod</name>
-	<value>virialRadius</value>
-      </parameter>
-      <parameter>
-	<name>hotHaloTrackStrippedGas</name>
-	<value>false</value>
-      </parameter>
-      <parameter>
-	<name>satelliteOrbitStoreOrbitalParameters</name>
-	<value>false</value>
-      </parameter>
-      <parameter>
-	<name>mergerTreeReadPresetOrbits</name>
-	<value>true</value>
-      </parameter>
-      <parameter>
-	<name>mergerTreeReadPresetOrbitsBoundOnly</name>
-	<value>true</value>
-      </parameter>
-      <parameter>
-	<name>satelliteOrbitStoreOrbitalParameters</name>
-	<value>true</value>
-      </parameter>
-      <parameter>
-	<name>treeNodeMethodSatellite</name>
+      <hotHaloRamPressureStrippingMethod value="virialRadius"/>
+      <hotHaloTrackStrippedGas value="false"/>
+      <satelliteOrbitStoreOrbitalParameters value="false"/>
+      <mergerTreeReadPresetOrbits value="true"/>
+      <mergerTreeReadPresetOrbitsBoundOnly value="true"/>
+      <satelliteOrbitStoreOrbitalParameters value="true"/>
+      <treeNodeMethodSatellite>
 	<value>standard
-	<parameter>
-	  <name>mergerTreeReadPresetMergerTimes</name>
-	  <value>false</value>
-	</parameter>
-	<parameter>
-	  <name>mergerTreeReadPresetMergerNodes</name>
-	  <value>false</value>
-	</parameter>
+	<mergerTreeReadPresetMergerTimes value="false"/>
+	<mergerTreeReadPresetMergerNodes value="false"/>
 	</value>
 	<value>preset
-	<parameter>
-	  <name>mergerTreeReadPresetMergerTimes</name>
-	  <value>true</value>
-	</parameter>
-	<parameter>
-	  <name>mergerTreeReadPresetMergerNodes</name>
-	  <value>true</value>
-	</parameter>
-	<parameter>
-	  <name>mergerTreeReadSubresolutionMergingMethod</name>
+	<mergerTreeReadPresetMergerTimes value="true"/>
+	<mergerTreeReadPresetMergerNodes value="true"/>
+	<mergerTreeReadSubresolutionMergingMethod>
 	  <value>null</value>
 	  <value>boylanKolchin2008</value>
-	</parameter>
+	</mergerTreeReadSubresolutionMergingMethod>
 	</value>
-      </parameter>
-      <parameter>
-	<name>mergerTreeReadPresetSubhaloMasses</name>
-	<value>false</value>
-      </parameter>
-      <parameter>
-	<name>mergerTreeReadPresetSubhaloIndices</name>
-	<value>false</value>
-      </parameter>
+      </treeNodeMethodSatellite>
+      <mergerTreeReadPresetSubhaloMasses value="false"/>
+      <mergerTreeReadPresetSubhaloIndices value="false"/>
       </value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeReadTreeIndexToRootNodeIndex</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>allTreesExistAtFinalTime</name>
-      <value>false</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeReadPresetSubhaloMasses</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>treeNodeMethodPosition</name>
-      <value>preset</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeReadPresetMergerTimes</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeReadPresetPositions</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeReadPresetSpins</name>
-      <value>false</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeReadPresetScaleRadii</name>
-      <value>false</value>
-    </parameter>
-    <parameter>
-      <name>H_0</name>
-      <value>73.0</value>
-    </parameter>
-    <parameter>
-      <name>Omega_Matter</name>
-      <value>0.25</value>
-    </parameter>
-    <parameter>
-      <name>Omega_DE</name>
-      <value>0.75</value>
-    </parameter>
-    <parameter>
-      <name>Omega_b</name>
-      <value>0.045</value>
-    </parameter>
-    <parameter>
-      <name>T_CMB</name>
-      <value>2.72548</value>
-    </parameter>
-    <parameter>
-      <name>powerSpectrumIndex</name>
-      <value>0.961</value>
-    </parameter>
-    <parameter>
-      <name>sigma_8</name>
-      <value>0.9</value>
-    </parameter>
+    </mergerTreeConstructMethod>
+    <mergerTreeReadTreeIndexToRootNodeIndex value="true"/>
+    <allTreesExistAtFinalTime value="false"/>
+    <mergerTreeReadPresetSubhaloMasses value="true"/>
+    <treeNodeMethodPosition value="preset"/>
+    <mergerTreeReadPresetMergerTimes value="true"/>
+    <mergerTreeReadPresetPositions value="true"/>
+    <mergerTreeReadPresetSpins value="false"/>
+    <mergerTreeReadPresetScaleRadii value="false"/>
+    <cosmologyParametersMethod value="simple">
+      <HubbleConstant value="73.0"/>
+      <OmegaMatter value="0.25"/>
+      <OmegaDarkEnergy value="0.75"/>
+      <OmegaBaryon value="0.045"/>
+      <temperatureCMB value="2.72548"/>
+    </cosmologyParametersMethod>
+    <powerSpectrumIndex value="0.961"/>
+    <sigma_8 value="0.9"/>
   </parameters>
   <parameters>
-    <parameter>
-      <name>satelliteMergingTimescalesMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <satelliteMergingTimescalesMethod>
       <value>boylanKolchin2008</value>
       <value>laceyCole1993</value>
       <value>jiang2008</value>
       <value>laceyCole1993Tormen</value>
       <value>wetzelWhite2010</value>
       <value>villalobos2013
-      <parameter>
-	<name>satelliteMergingTimescaleVillalobos2013BaseMethod</name>
-	<value>boylanKolchin2008</value>
-      </parameter>
+      <satelliteMergingTimescaleVillalobos2013BaseMethod value="boylanKolchin2008"/>
       </value>
-    </parameter>
+    </satelliteMergingTimescalesMethod>
   </parameters>
   <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
     <!-- Use fairly strict limits on the outflow timescales to avoid unstable evolution. -->
-    <parameter>
-      <name>diskOutflowTimescaleMinimum</name>
-      <value>0.1</value>
-    </parameter>
-    <parameter>
-      <name>spheroidOutflowTimescaleMinimum</name>
-      <value>0.1</value>
-    </parameter>
-    <parameter>
-      <name>stellarPopulationPropertiesMethod</name>
+    <diskOutflowTimescaleMinimum value="0.1"/>
+    <spheroidOutflowTimescaleMinimum value="0.1"/>
+    <stellarPopulationPropertiesMethod>
       <value>instantaneous</value>
       <value>noninstantaneous</value>
-    </parameter>
+    </stellarPopulationPropertiesMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>stellarPopulationSpectraFile</name>
-      <value>data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.1_imfSalpeter.hdf5</value>
-    </parameter>
-    <parameter>
-      <name>stellarPopulationSpectraMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <stellarPopulationSpectraFile value="data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.1_imfSalpeter.hdf5"/>
+    <stellarPopulationSpectraMethod>
       <value>Conroy-White-Gunn2009</value>
       <value>file</value>
-    </parameter>
+    </stellarPopulationSpectraMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>luminosityFilter</name>
-      <value>RGO_I SDSS_g SDSS_r SDSS_i</value>
-    </parameter>
-    <parameter>
-      <name>luminosityRedshift</name>
-      <value>0.0 0.1 0.1 0.1</value>
-    </parameter>
-    <parameter>
-      <name>luminosityType</name>
-      <value>rest observed observed observed</value>
-    </parameter>
-    <parameter>
-      <name>stellarPopulationSpectraPostprocessDefaultMethods</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
+    <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
+    <luminosityType value="rest observed observed observed"/>
+    <stellarPopulationSpectraPostprocessDefaultMethods>
       <value>meiksin2006</value>
       <value>madau1995</value>
       <value>inoue2014</value>
       <value>lycSuppress</value>
       <value>recent</value>
       <value>identity</value>
-    </parameter>
+    </stellarPopulationSpectraPostprocessDefaultMethods>
   </parameters>
   <parameters>
-    <parameter>
-      <name>transferFunctionFile</name>
-      <value>data/largeScaleStructure/transferFunctionMillenniumSimulation.xml</value>
-    </parameter>
-    <parameter>
-      <name>transferFunctionMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <transferFunctionFile value="data/largeScaleStructure/transferFunctionMillenniumSimulation.xml"/>
+    <transferFunctionMethod>
       <value>file</value>
       <value>BBKS</value>
       <value>CAMB</value>
       <value>Eisenstein-Hu1999</value>
-    </parameter>
+    </transferFunctionMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>virialDensityContrastMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <virialDensityContrastMethod>
       <value>sphericalCollapseMatterLambda</value>
       <value>bryanNorman1998</value>
       <value>fixed</value>
       <value>friendsOfFriends</value>
-    </parameter>
+    </virialDensityContrastMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>virialOrbitMethod</name>
-      <value>wetzel2010</value>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <virialOrbitMethod>
       <value>benson2005</value>
-    </parameter>
+      <value>wetzel2010</value>
+    </virialOrbitMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>starFormationTimescaleDisksMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <starFormationTimescaleDisksMethod>
       <value>dynamicalTime</value>
       <value>integratedSurfaceDensity
-      <parameter>
-	<name>starFormationRateSurfaceDensityDisksMethod</name>
+      <starFormationRateSurfaceDensityDisksMethod>
 	<value>Kennicutt-Schmidt
-        <parameter>
-	  <name>starFormationKennicuttSchmidtTruncate</name>
+        <starFormationKennicuttSchmidtTruncate>
 	  <value>true</value>
 	  <value>false</value>
-        </parameter>
+	</starFormationKennicuttSchmidtTruncate>
 	</value>
 	<value>Blitz-Rosolowsky2006</value>
 	<value>KMT09
-        <parameter>
-	  <name>molecularFractionFastKMT09</name>
+        <molecularFractionFastKMT09>
 	  <value>false</value>
 	  <value>true</value>
-        </parameter>
+	</molecularFractionFastKMT09>
 	</value>
 	<value>extendedSchmidt</value>
-	</parameter>
+      </starFormationRateSurfaceDensityDisksMethod>
       </value>
       <value>Baugh2005</value>
-    </parameter>
+    </starFormationTimescaleDisksMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>satelliteMergingRemnantSizeMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <satelliteMergingRemnantSizeMethod>
       <value>Cole2000</value>
       <value>Covington2008</value>
-    </parameter>
+    </satelliteMergingRemnantSizeMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>darkMatterProfileConcentrationMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <darkMatterProfileConcentrationMethod>
       <value>gao2008</value>
       <value>zhao2009</value>
       <value>munozCuartas2011</value>
       <value>NFW1996</value>
       <value>prada2011</value>
       <value>duttonMaccio2014</value>
-    </parameter>
+    </darkMatterProfileConcentrationMethod>
   </parameters>
 
   <!-- Molecular hydrogen network and cooling. -->
   <parameters>
-    <parameter>
-      <name>chemicalReactionRateMethods</name>
-      <value>hydrogenNetwork</value>
-    </parameter>
-    <parameter>
-      <name>hydrogenNetworkFast</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>hydrogenNetworkCMBOnly</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>chemicalsToTrack</name>
-      <value>AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron</value>
-    </parameter>
-    <parameter>
-      <name>coolingFunctionMethods</name>
-      <value>atomicCIECloudy CMBCompton molecularHydrogenGalliPalla</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeBuildHaloMassMaximum</name>
-      <value>1.0e11</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <chemicalReactionRateMethods value="hydrogenNetwork"/>
+    <hydrogenNetworkFast value="true"/>
+    <hydrogenNetworkCMBOnly value="true"/>
+    <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/>
+    <coolingFunctionMethods value="atomicCIECloudy CMBCompton molecularHydrogenGalliPalla"/>
+    <mergerTreeBuildHaloMassMaximum value="1.0e11"/>
   </parameters>
   
   <!-- Black hole binary methods. -->
   <parameters>
-    <parameter>
-      <name>blackHoleBinaryInitialRadiiMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <blackHoleBinaryInitialRadiiMethod>
       <value>spheroidRadiusFraction</value>
       <value>tidalRadius
-      <parameter>
-	<name>blackHoleBinaryRecoilVelocityMethod</name>
+      <blackHoleBinaryRecoilVelocityMethod>
 	<value>null</value>
 	<value>Campanelli2007
-	<parameter>
-	  <name>blackHoleBinarySeparationGrowthRateMethod</name>
+	<blackHoleBinarySeparationGrowthRateMethod>
 	  <value>null</value>
 	  <value>standard
-	  <parameter>
-	    <name>tripleBlackHoleInteraction</name>
+	  <tripleBlackHoleInteraction>
 	    <value>false</value>
 	    <value>true
-	    <parameter>
-	      <name>blackHoleOutputMergers</name>
+	    <blackHoleOutputMergers>
 	      <value>false</value>
 	      <value>true</value>
-	    </parameter>
+	    </blackHoleOutputMergers>
 	    </value>
-	  </parameter>
+	  </tripleBlackHoleInteraction>
 	  </value>
-	</parameter>
+	</blackHoleBinarySeparationGrowthRateMethod>
 	</value>
-      </parameter>
+      </blackHoleBinaryRecoilVelocityMethod>
       </value>
       <value>Volonteri2003</value>
-    </parameter>
+    </blackHoleBinaryInitialRadiiMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>blackHoleOutputData</name>
-      <value>true</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <blackHoleOutputData value="true"/>
   </parameters>
 
   <!-- Cooling rate methods. -->
   <parameters>
-    <parameter>
-      <name>coolingRateMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <coolingRateMethod>
       <value>White-Frenk1991</value>
       <value>Cole2000
-      <parameter>
-	<name>coolingTimeAvailableMethod</name>
+      <coolingTimeAvailableMethod>
 	<value>White-Frenk1991</value>
 	<value>haloFormation</value>
-      </parameter>
-      <parameter>
-	<name>treeNodeMethodFormationTime</name>
-	<value>Cole2000</value>
-      </parameter>
-      <parameter>
-	<name>hotHaloCoolingFromNode</name>
-	<value>formationNode</value>
-      </parameter>
-      <parameter>
-	<name>hotHaloOutputCooling</name>
+      </coolingTimeAvailableMethod>
+      <treeNodeMethodFormationTime value="Cole2000"/>
+      <hotHaloCoolingFromNode value="formationNode"/>
+      <hotHaloOutputCooling>
 	<value>false</value>
 	<value>true</value>
-      </parameter>
+      </hotHaloOutputCooling>
       </value>
-    </parameter>
+    </coolingRateMethod>
   </parameters>
   
   <!-- Spheroid comopnents. -->
   <parameters>
-    <parameter>
-      <name>spheroidMassDistribution</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <spheroidMassDistribution>
       <value>hernquist</value>
       <value>sersic</value>
-    </parameter>
+    </spheroidMassDistribution>
   </parameters>
-   
+  
   <!-- Black hole comopnents. -->
   <parameters>
-    <parameter>
-      <name>treeNodeMethodBlackHole</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <treeNodeMethodBlackHole>
       <value>standard</value>
       <value>simple</value>
-    </parameter> 
+    </treeNodeMethodBlackHole> 
   </parameters>
   
   <!-- Infall and freefall radii. -->
   <parameters>
-    <parameter>
-      <name>infallRadiusMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <infallRadiusMethod>
       <value>coolingRadius</value>
       <value>coolingAndFreefall
-      <parameter>
-	<name>freefallRadiusMethod</name>
-	<value>darkMatterHalo</value>
-      </parameter> 
-      <parameter>
-	<name>freefallTimeAvailableMethod</name>
-	<value>haloFormation</value>
-      </parameter> 
-      <parameter>
-	<name>treeNodeMethodFormationTime</name>
-	<value>Cole2000</value>
-      </parameter>
+      <freefallRadiusMethod value="darkMatterHalo"/> 
+      <freefallTimeAvailableMethod value="haloFormation"/> 
+      <treeNodeMethodFormationTime value="Cole2000"/>
       </value>
-    </parameter> 
+    </infallRadiusMethod> 
   </parameters>
   
   <!-- Cooling time available. -->
   <parameters>
-    <parameter>
-      <name>coolingTimeAvailableMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <coolingTimeAvailableMethod>
       <value>White-Frenk1991</value>
       <value>haloFormation
-      <parameter>
-	<name>treeNodeMethodFormationTime</name>
-	<value>Cole2000</value>
-      </parameter>
+      <treeNodeMethodFormationTime value="Cole2000"/>
       </value>
-    </parameter>
+    </coolingTimeAvailableMethod>
   </parameters>
   
   <!-- Cooling specific angular momentum. -->
   <parameters>
-    <parameter>
-      <name>coolingSpecificAngularMomentumMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <coolingSpecificAngularMomentumMethod>
       <value>mean</value>
       <value>constantRotation
-      <parameter>
-	<name>coolingMeanAngularMomentumFrom</name>
+      <coolingMeanAngularMomentumFrom>
 	<value>hotGas
-	<parameter>
-	  <name>coolingAngularMomentumUseInteriorMean</name>
+	<coolingAngularMomentumUseInteriorMean>
 	  <value>true</value>
 	  <value>false</value>
-	</parameter>
+	</coolingAngularMomentumUseInteriorMean>
 	</value>
 	<value>darkMatter</value>
-      </parameter>
+      </coolingMeanAngularMomentumFrom>
       </value>
-    </parameter>
+    </coolingSpecificAngularMomentumMethod>
   </parameters>
   
   <!-- Subhalo mass loss rates. -->
   <parameters>
-    <parameter>
-      <name>darkMatterHaloMassLossRateMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <darkMatterHaloMassLossRateMethod>
       <value>null</value>
       <value>vanDenBosch2005</value>
-    </parameter>
+    </darkMatterHaloMassLossRateMethod>
   </parameters>
   
   <!-- Merger mass movements. -->
   <parameters>
-    <parameter>
-      <name>satelliteMergingMassMovementsMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <satelliteMergingMassMovementsMethod>
       <value>simple</value>
       <value>Baugh2005</value>
-    </parameter>
+    </satelliteMergingMassMovementsMethod>
   </parameters>
   
   <!-- Star formation feedback. -->
   <parameters>
-    <parameter>
-      <name>starFormationFeedbackDisksMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <starFormationFeedbackDisksMethod>
       <value>powerLaw</value>
       <value>Creasey2012</value>
-    </parameter>
+    </starFormationFeedbackDisksMethod>
   </parameters>
 
   <!-- Expulsive feedback. -->
   <parameters>
-    <parameter>
-      <name>starFormationExpulsiveFeedbackDisksMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <starFormationExpulsiveFeedbackDisksMethod>
       <value>null</value>
       <value>superwind
-      <parameter>
-	<name>starFormationExpulsiveFeedbackSpheroidMethod</name>
+      <starFormationExpulsiveFeedbackSpheroidMethod>
 	<value>null</value>
 	<value>superwind</value>
-      </parameter>
+      </starFormationExpulsiveFeedbackSpheroidMethod>
       </value>
-    </parameter>
+    </starFormationExpulsiveFeedbackDisksMethod>
   </parameters>
 
   <!-- Test different IMFs -->
   <parameters>
-    <parameter>
-      <name>imfSelectionMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <imfSelectionMethod>
       <value>fixed
-      <parameter>
-	<name>imfSelectionFixed</name>
+      <imfSelectionFixed>
 	<value>Baugh2005TopHeavy</value>
 	<value>Chabrier</value>
 	<value>Kennicutt</value>
@@ -624,327 +473,231 @@
 	<value>Salpeter</value>
 	<value>Scalo</value>
 	<value>PiecewisePowerLaw
-	<parameter>
-	  <name>imfPiecewisePowerLawMassPoints</name>
-	  <value>0.1 1.0 125.0</value>
-	</parameter>
-	<parameter>
-	  <name>imfPiecewisePowerLawExponents</name>
-	  <value>-1.5 -2.3</value>
-	</parameter>
+	<imfPiecewisePowerLawMassPoints value="0.1 1.0 125.0"/>
+	<imfPiecewisePowerLawExponents value="-1.5 -2.3"/>
 	</value>
-      </parameter>
+      </imfSelectionFixed>
       </value>
       <value>diskSpheroid
-	<parameter>
-	  <name>imfSelectionDisk</name>
-	  <value>Chabrier</value>
-	</parameter>
-	<parameter>
-	  <name>imfSelectionSpheroid</name>
-	  <value>Kennicutt</value>
-	</parameter>
+      <imfSelectionDisk value="Chabrier"/>
+      <imfSelectionSpheroid value="Kennicutt"/>
       </value>
-    </parameter>
+    </imfSelectionMethod>
   </parameters>
 
   <!-- Hot halo density profile -->
   <parameters>
-    <parameter>
-      <name>hotHaloMassDistributionMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <hotHaloMassDistributionMethod>
       <value>ricotti2000</value>
       <value>betaProfile
-      <parameter>
-	<name>hotHaloMassDistributionCoreRadiusMethod</name>
+      <hotHaloMassDistributionCoreRadiusMethod>
 	<value>virialFraction</value>
 	<value>growing</value>
-      </parameter>
+      </hotHaloMassDistributionCoreRadiusMethod>
       </value>
-    </parameter>
+    </hotHaloMassDistributionMethod>
   </parameters>
   
   <!-- Output density contrasts -->
   <parameters>
-    <parameter>
-      <name>outputDensityContrastData</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>outputDensityContrastValues</name>
-      <value>200 500</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputDensityContrastData value="true"/>
+    <outputDensityContrastValues value="200 500"/>
   </parameters>
 
   <!-- Output half-light radii -->
   <parameters>
-    <parameter>
-      <name>outputHalfLightData</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>luminosityFilter</name>
-      <value>RGO_I SDSS_g SDSS_r SDSS_i</value>
-    </parameter> 
-    <parameter>
-      <name>luminosityType</name>
-      <value>rest observed observed observed</value>
-    </parameter> 
-    <parameter>
-      <name>luminosityRedshift</name>
-      <value>0.0 0.1 0.1 0.1</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputHalfLightData value="true"/>
+    <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/> 
+    <luminosityType value="rest observed observed observed"/> 
+    <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
   </parameters>
 
   <!-- Output main branch -->
   <parameters>
-    <parameter>
-      <name>outputMainBranchStatus</name>
-      <value>true</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputMainBranchStatus value="true"/>
   </parameters>
 
   <!-- Output mass profile -->
   <parameters>
-    <parameter>
-      <name>outputMassProfileData</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>outputMassProfileRadii</name>
-      <value>10.0e-3 100.0d-3</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputMassProfileData value="true"/>
+    <outputMassProfileRadii value="10.0e-3 100.0d-3"/>
   </parameters>
 
   <!-- Output star formation rates -->
   <parameters>
-    <parameter>
-      <name>diskOutputStarFormationRate</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>spheroidOutputStarFormationRate</name>
-      <value>true</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <diskOutputStarFormationRate value="true"/>
+    <spheroidOutputStarFormationRate value="true"/>
   </parameters>
 
   <!-- Output star formation histories -->
   <parameters>
-    <parameter>
-      <name>starFormationHistoriesMethod</name>
-      <value>metallicitySplit</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <starFormationHistoriesMethod value="metallicitySplit"/>
   </parameters>
 
   <!-- Output virial quantities -->
   <parameters>
-    <parameter>
-      <name>outputVirialData</name>
-      <value>true</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputVirialData value="true"/>
   </parameters>
   
   <!-- Output descendent indices -->
   <parameters>
-    <parameter>
-      <name>outputDescendentIndices</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>treeNodeMethodSatellite</name>
-      <value>standard</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputDescendentIndices value="true"/>
+    <treeNodeMethodSatellite value="standard"/>
   </parameters>
   
   <!-- Calculation of luminosities -->
   <parameters>
-    <parameter>
-      <name>luminosityFilter</name>
-      <value>RGO_I SDSS_g SDSS_r SDSS_i</value>
-    </parameter> 
-    <parameter>
-      <name>luminosityType</name>
-      <value>rest observed observed observed</value>
-    </parameter> 
-    <parameter>
-      <name>luminosityRedshift</name>
-      <value>0.0 0.1 0.1 0.1</value>
-    </parameter>
-    <parameter>
-      <name>imfSelectionFixed</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/> 
+    <luminosityType value="rest observed observed observed"/> 
+    <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
+    <imfSelectionFixed>
       <value>Chabrier</value>
       <value>Kroupa</value>
       <value>Salpeter</value>
-    </parameter>
+    </imfSelectionFixed>
   </parameters>
 
   <!-- Calculation of luminosities at all output redshifts -->
   <parameters>
-    <parameter>
-      <name>luminosityFilter</name>
-      <value>RGO_I SDSS_g SDSS_r SDSS_i</value>
-    </parameter> 
-    <parameter>
-      <name>luminosityType</name>
-      <value>rest observed observed observed</value>
-    </parameter> 
-    <parameter>
-      <name>luminosityRedshift</name>
-      <value>all all all all</value>
-    </parameter>
-    <parameter>
-      <name>outputRedshifts</name>
-      <value>0.064 0.041 0.020 0.000</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/> 
+    <luminosityType value="rest observed observed observed"/> 
+    <luminosityRedshift value="all all all all"/>
+    <outputRedshifts value="0.064 0.041 0.020 0.000"/>
   </parameters>
 
   <!-- Calculation of luminosities with top-hat filters -->
   <parameters>
-    <parameter>
-      <name>luminosityFilter</name>
-      <value>topHat_2000_10 topHat_4000_5 topHat_6000_3 topHat_7000_2</value>
-    </parameter> 
-    <parameter>
-      <name>luminosityType</name>
-      <value>rest rest rest rest</value>
-    </parameter> 
-    <parameter>
-      <name>luminosityRedshift</name>
-      <value>0.0 0.0 0.0 0.0</value>
-    </parameter>
-    <parameter>
-      <name>outputRedshifts</name>
-      <value>0.0</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <luminosityFilter value="topHat_2000_10 topHat_4000_5 topHat_6000_3 topHat_7000_2"/> 
+    <luminosityType value="rest rest rest rest"/> 
+    <luminosityRedshift value="0.0 0.0 0.0 0.0"/>
+    <outputRedshifts value="0.0"/>
   </parameters>
 
   <!-- Calculation of luminosities with array of top-hat filters -->
   <parameters>
-    <parameter>
-      <name>luminosityFilter</name>
-      <value>topHat_2000_7000_10</value>
-    </parameter> 
-    <parameter>
-      <name>luminosityType</name>
-      <value>rest</value>
-    </parameter> 
-    <parameter>
-      <name>luminosityRedshift</name>
-      <value>0.0</value>
-    </parameter>
-    <parameter>
-      <name>outputRedshifts</name>
-      <value>0.0</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <luminosityFilter value="topHat_2000_7000_10"/> 
+    <luminosityType value="rest"/> 
+    <luminosityRedshift value="0.0"/>
+    <outputRedshifts value="0.0"/>
   </parameters>
 
   <!-- Black hole wind efficiencies -->
   <parameters>
-    <parameter>
-      <name>blackHoleWindEfficiencyScalesWithRadiativeEfficiency</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <blackHoleWindEfficiencyScalesWithRadiativeEfficiency>
       <value>false</value>
       <value>true</value>
-    </parameter> 
+    </blackHoleWindEfficiencyScalesWithRadiativeEfficiency> 
   </parameters>
 
   <!-- Hot halo ram pressure forces -->
   <parameters>
-    <parameter>
-      <name>hotHaloRamPressureForceMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <hotHaloRamPressureForceMethod>
       <value>Font2008</value>
       <value>null</value>
-    </parameter> 
+    </hotHaloRamPressureForceMethod> 
   </parameters>
 
   <!-- Hot halo ram pressure mass loss rates -->
   <parameters>
-    <parameter>
-      <name>hotHaloRamPressureForceMethod</name>
-      <value>Font2008</value>
-    </parameter> 
-    <parameter>
-      <name>hotHaloRamPressureStrippingTimescaleMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <hotHaloRamPressureForceMethod value="Font2008"/> 
+    <hotHaloRamPressureStrippingTimescaleMethod>
       <value>haloDynamicalTime</value>
       <value>ramPressureAcceleration</value>
-    </parameter> 
+    </hotHaloRamPressureStrippingTimescaleMethod> 
   </parameters>
 
   <!-- Disk and spheroid ram pressure mass loss rates -->
   <parameters>
-    <parameter>
-      <name>ramPressureStrippingMassLossRateDisksMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <ramPressureStrippingMassLossRateDisksMethod>
       <value>simple</value>
       <value>null</value>
-    </parameter> 
+    </ramPressureStrippingMassLossRateDisksMethod> 
   </parameters>
   <parameters>
-    <parameter>
-      <name>ramPressureStrippingMassLossRateSpheroidsMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <ramPressureStrippingMassLossRateSpheroidsMethod>
       <value>simple</value>
       <value>null</value>
-    </parameter> 
+    </ramPressureStrippingMassLossRateSpheroidsMethod> 
   </parameters>
 
   <!-- Disk and spheroid tidal mass loss rates -->
   <parameters>
-    <parameter>
-      <name>tidalStrippingMassLossRateDisksMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <tidalStrippingMassLossRateDisksMethod>
       <value>simple</value>
       <value>null</value>
-    </parameter> 
+    </tidalStrippingMassLossRateDisksMethod> 
   </parameters>
   <parameters>
-    <parameter>
-      <name>tidalStrippingMassLossRateSpheroidsMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <tidalStrippingMassLossRateSpheroidsMethod>
       <value>simple</value>
       <value>null</value>
-    </parameter> 
+    </tidalStrippingMassLossRateSpheroidsMethod> 
   </parameters>
   
   <!-- Dark energy cosmology -->
   <parameters>
-    <parameter>
-      <name>cosmologyFunctionsMethod</name>
-      <value>matterDarkEnergy</value>
-    </parameter>
-    <parameter>
-      <name>darkEnergyEquationOfStateW0</name>
-      <value>-0.8</value>
-    </parameter>
-    <parameter>
-      <name>darkEnergyEquationOfStateW1</name>
-      <value>0.0</value>
-    </parameter>
-    <parameter>
-      <name>criticalOverdensityMethod</name>
-      <value>sphericalTopHatDarkEnergy</value>
-    </parameter>
-    <parameter>
-      <name>virialDensityContrastMethod</name>
-      <value>sphericalCollapseMatterDE</value>
-    </parameter>
-    <parameter>
-      <name>virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt</name>
-      <value>turnaround</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <cosmologyFunctionsMethod value="matterDarkEnergy"/>
+    <darkEnergyEquationOfStateW0 value="-0.8"/>
+    <darkEnergyEquationOfStateW1 value="0.0"/>
+    <criticalOverdensityMethod value="sphericalTopHatDarkEnergy"/>
+    <virialDensityContrastMethod value="sphericalCollapseMatterDE"/>
+    <virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt value="turnaround"/>
   </parameters>
 
   <!-- Intergalactic medium state and internal background calculation -->
   <parameters>
-    <parameter>
-      <name>backgroundRadiationCompute</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>intergalacticMediumStateMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <backgroundRadiationCompute value="true"/>
+    <intergalacticMediumStateMethod>
       <value>recFast</value>
       <value>file
-      <parameter>
-	<name>intergalaticMediumStateFileName</name>
-	<value>data/intergalacticMedium/recFast_OmegaM0.281_OmegaDE0.719_Omegab0.0461_H069.7_TCMB2.725_YHe0.22.xml</value>
-      </parameter>
+      <intergalaticMediumStateFileName value="data/intergalacticMedium/recFast_OmegaM0.281_OmegaDE0.719_Omegab0.0461_H069.7_TCMB2.725_YHe0.22.xml"/>
       </value>
       <value>simple</value>
-    </parameter>
+    </intergalacticMediumStateMethod>
   </parameters>
 
   <!-- Hot halo options -->
@@ -977,301 +730,106 @@
   
   <!-- Internal IGM evolution -->
   <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
     <!-- IGM evolver -->
-    <parameter>
-      <name>intergalacticMediumStateMethod</name>
-      <value>internal</value>
-    </parameter>
-    <parameter>
-      <name>igmPropertiesTimeCountPerDecade</name>
-      <value>2</value>
-    </parameter>
-    <parameter>
-      <name>igmPropertiesCompute</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>igmPropertiesRedshiftMaximum</name>
-      <value>150</value>
-    </parameter>
+    <intergalacticMediumStateMethod value="internal"/>
+    <igmPropertiesTimeCountPerDecade value="2"/>
+    <igmPropertiesCompute value="true"/>
+    <igmPropertiesRedshiftMaximum value="150"/>
     <!-- Background radiation -->
-    <parameter>
-      <name>backgroundRadiationCompute</name>
-    <value>true</value>
-    </parameter>
-    <parameter>
-      <name>radiationIntergalacticBackgroundMethod</name>
-      <value>internal</value>
-    </parameter>
-    <parameter>
-      <name>backgroundRadiationWavelengthCountPerDecade</name>
-      <value>5</value>
-    </parameter>
-    <parameter>
-      <name>backgroundRadiationTimeCountPerDecade</name>
-      <value>2</value>
-    </parameter>
+    <backgroundRadiationCompute value="true"/>
+    <radiationIntergalacticBackgroundMethod value="internal"/>
+    <backgroundRadiationWavelengthCountPerDecade value="5"/>
+    <backgroundRadiationTimeCountPerDecade value="2"/>
     <!-- Halo mass ranges -->
-    <parameter>
-      <name>mergerTreeBuildHaloMassMaximum</name>
-      <value>1.0e15</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeBuildHaloMassMinimum</name>
-      <value>1.0e10</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeBuildTreesPerDecade</name>
-      <value>5</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeBuildMassResolutionFixed</name>
-      <value>5.0e9</value>
-    </parameter>
+    <mergerTreeBuildHaloMassMaximum value="1.0e15"/>
+    <mergerTreeBuildHaloMassMinimum value="1.0e10"/>
+    <mergerTreeBuildTreesPerDecade value="5"/>
+    <mergerTreeBuildMassResolutionFixed value="5.0e9"/>
   </parameters>
 
   <!-- Detailed satellite orbits -->
   <parameters>
-    <parameter>
-      <name>mergerTreeBuildTreesPerDecade</name>
-      <value>4</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeBuildHaloMassMinimum</name>
-      <value>1.0e12</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeBuildHaloMassMaximum</name>
-      <value>3.0e12</value>
-    </parameter>
-    <parameter>
-      <name>treeNodeMethodBasic</name>
-      <value>standard</value>
-    </parameter>
-    <parameter>
-      <name>treeNodeMethodBlackHole</name>
-      <value>null</value>
-    </parameter>
-    <parameter>
-      <name>treeNodeMethodDarkMatterProfile</name>
-      <value>scale</value>
-    </parameter>
-    <parameter>
-      <name>treeNodeMethodDisk</name>
-      <value>null</value>
-    </parameter>
-    <parameter>
-      <name>treeNodeMethodHotHalo</name>
-      <value>null</value>
-    </parameter>
-    <parameter>
-      <name>treeNodeMethodSatellite</name>
-      <value>orbiting</value>
-    </parameter>
-    <parameter>
-      <name>treeNodeMethodSpheroid</name>
-      <value>null</value>
-    </parameter>
-    <parameter>
-      <name>spheroidMassDistribution</name>
-      <value>hernquist</value>
-    </parameter>
-    <parameter>
-      <name>treeNodeMethodSpin</name>
-      <value>random</value>
-    </parameter>
-    <parameter>
-      <name>satelliteDynamicalFrictionMethod</name>
-      <value>Chandrasekhar1943</value>
-    </parameter>    
-    <parameter>
-      <name>cosmologyFunctionsMethod</name>
-      <value>matterLambda</value>
-    </parameter>
-    <parameter>
-      <name>H_0</name>
-      <value>70.2</value>
-    </parameter>
-    <parameter>
-      <name>Omega_Matter</name>
-      <value>0.2725</value>
-    </parameter>
-    <parameter>
-      <name>Omega_DE</name>
-      <value>0.7275</value>
-    </parameter>
-    <parameter>
-      <name>Omega_b</name>
-      <value>0.0455</value>
-    </parameter>
-    <parameter>
-      <name>T_CMB</name>
-      <value>2.72548</value>
-    </parameter>
-    <parameter>
-      <name>sigma_8</name>
-      <value>0.807</value>
-    </parameter>
-    <parameter>
-      <name>transferFunctionMethod</name>
-      <value>Eisenstein-Hu1999</value>
-    </parameter>
-    <parameter>
-      <name>powerSpectrumMethod</name>
-      <value>powerLaw</value>
-    </parameter>
-    <parameter>
-      <name>powerSpectrumIndex</name>
-      <value>0.961</value>
-    </parameter>
-    <parameter>
-      <name>powerSpectrumReferenceWavenumber</name>
-      <value>1.0</value>
-    </parameter>
-    <parameter>
-      <name>powerSpectrumRunning</name>
-      <value>0.0</value>
-    </parameter>
-    <parameter>
-      <name>effectiveNumberNeutrinos</name>
-      <value>3.04</value>
-    </parameter>
-    <parameter>
-      <name>summedNeutrinoMasses</name>
-      <value>0.0</value>
-    </parameter>
-    <parameter>
-      <name>linearGrowthMethod</name>
-      <value>simple</value>
-    </parameter>
-    <parameter>
-      <name>haloMassFunctionMethod</name>
-      <value>Tinker2008</value>
-    </parameter>
-    <parameter>
-      <name>criticalOverdensityMethod</name>
-      <value>sphericalTopHat</value>
-    </parameter>
-    <parameter>
-      <name>virialDensityContrastMethod</name>
-      <value>sphericalCollapseMatterLambda</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeConstructMethod</name>
-      <value>build</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeBuilderMethod</name>
-      <value>cole2000</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeBuildCole2000AccretionLimit</name>
-      <value>0.1</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeBuildCole2000MergeProbability</name>
-      <value>0.1</value>
-    </parameter>
-    <parameter>
-      <name>treeBranchingMethod</name>
-      <value>modifiedPress-Schechter</value>
-    </parameter>
-    <parameter>
-      <name>modifiedPressSchechterG0</name>
-      <value>0.57</value>
-    </parameter>
-    <parameter>
-      <name>modifiedPressSchechterGamma1</name>
-      <value>0.38</value>
-    </parameter>
-    <parameter>
-      <name>modifiedPressSchechterGamma2</name>
-      <value>-0.01</value>
-    </parameter>
-    <parameter>
-      <name>modifiedPressSchechterFirstOrderAccuracy</name>
-      <value>0.1</value>
-    </parameter>
-    <parameter>
-      <name>nodeMergersMethod</name>
-      <value>singleLevelHierarchy</value>
-    </parameter>
-    <parameter>
-      <name>darkMatterProfileMethod</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <mergerTreeBuildTreesPerDecade value="4"/>
+    <mergerTreeBuildHaloMassMinimum value="1.0e12"/>
+    <mergerTreeBuildHaloMassMaximum value="3.0e12"/>
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="scale"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodSatellite value="orbiting"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <spheroidMassDistribution value="hernquist"/>
+    <treeNodeMethodSpin value="random"/>
+    <satelliteDynamicalFrictionMethod value="Chandrasekhar1943"/>    
+    <cosmologyFunctionsMethod value="matterLambda"/>
+    <cosmologyParametersMethod value="simple">
+      <HubbleConstant value="70.2"/>
+      <OmegaMatter value="0.2725"/>
+      <OmegaDarkEnergy value="0.7275"/>
+      <OmegaBaryon value="0.0455"/>
+      <temperatureCMB value="2.72548"/>
+    </cosmologyParametersMethod>
+    <sigma_8 value="0.807"/>
+    <transferFunctionMethod value="Eisenstein-Hu1999"/>
+    <powerSpectrumMethod value="powerLaw"/>
+    <powerSpectrumIndex value="0.961"/>
+    <powerSpectrumReferenceWavenumber value="1.0"/>
+    <powerSpectrumRunning value="0.0"/>
+    <effectiveNumberNeutrinos value="3.04"/>
+    <summedNeutrinoMasses value="0.0"/>
+    <linearGrowthMethod value="simple"/>
+    <haloMassFunctionMethod value="Tinker2008"/>
+    <criticalOverdensityMethod value="sphericalTopHat"/>
+    <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
+    <mergerTreeConstructMethod value="build"/>
+    <mergerTreeBuilderMethod value="cole2000"/>
+    <mergerTreeBuildCole2000AccretionLimit value="0.1"/>
+    <mergerTreeBuildCole2000MergeProbability value="0.1"/>
+    <treeBranchingMethod value="modifiedPress-Schechter"/>
+    <modifiedPressSchechterG0 value="0.57"/>
+    <modifiedPressSchechterGamma1 value="0.38"/>
+    <modifiedPressSchechterGamma2 value="-0.01"/>
+    <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
+    <nodeMergersMethod value="singleLevelHierarchy"/>
+    <darkMatterProfileMethod value="NFW"/>
+    <darkMatterProfileConcentrationMethod value="gao2008"/>
+    <darkMatterProfileMinimumConcentration value="4"/>
+    <haloSpinDistributionMethod value="Bett2007"/>
+    <spinDistributionBett2007Alpha value="2.509"/>
+    <spinDistributionBett2007Lambda0 value="0.04326"/>
+    <randomSpinResetMassFactor value="2.0"/>
+    <accretionHaloMethod value="simple"/>
+    <reionizationSuppressionRedshift value="10.5"/>
+    <reionizationSuppressionVelocity value="35.0"/>
+    <hotHaloMassDistributionMethod value="null"/>
+    <satelliteOrbitStoreOrbitalParameters value="true"/>
+    <satelliteMergingRemnantSizeMethod value="null"/>
       <value>tidallyHeated</value>
     </parameter>
     <parameter>
       <name>darkMatterProfileTidallyHeatedUnheatedProfile</name>
-      <value>NFW</value>
-    </parameter>
-    <parameter>
-      <name>darkMatterProfileConcentrationMethod</name>
-      <value>gao2008</value>
-    </parameter>
-    <parameter>
-      <name>darkMatterProfileMinimumConcentration</name>
-      <value>4</value>
-    </parameter>
-    <parameter>
-      <name>haloSpinDistributionMethod</name>
-      <value>Bett2007</value>
-    </parameter>
-    <parameter>
-      <name>spinDistributionBett2007Alpha</name>
-      <value>2.509</value>
-    </parameter>
-    <parameter>
-      <name>spinDistributionBett2007Lambda0</name>
-      <value>0.04326</value>
-    </parameter>
-    <parameter>
-      <name>randomSpinResetMassFactor</name>
-      <value>2.0</value>
-    </parameter>
-    <parameter>
-      <name>accretionHaloMethod</name>
-      <value>simple</value>
-    </parameter>
-    <parameter>
-      <name>reionizationSuppressionRedshift</name>
-      <value>10.5</value>
-    </parameter>
-    <parameter>
-      <name>reionizationSuppressionVelocity</name>
-      <value>35.0</value>
-    </parameter>
-    <parameter>
-      <name>hotHaloMassDistributionMethod</name>
-      <value>null</value>
-    </parameter>
-    <parameter>
-      <name>satelliteOrbitStoreOrbitalParameters</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>satelliteMergingRemnantSizeMethod</name>
-      <value>null</value>
-    </parameter>
   </parameters>
 
   <!-- Statistics and tracking components -->
   <parameters>
-    <parameter>
-      <name>treeNodeMethodHostHistory</name>
-      <value>standard</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <treeNodeMethodHostHistory value="standard"/>
   </parameters>
   <parameters>
-    <parameter>
-      <name>treeNodeMethodMassFlowStatistics</name>
-      <value>standard</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <treeNodeMethodMassFlowStatistics value="standard"/>
   </parameters>
   <parameters>
-    <parameter>
-      <name>treeNodeMethodDynamicsStatistics</name>
-      <value>bars</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <treeNodeMethodDynamicsStatistics value="bars"/>
   </parameters>
 
 </parameterGrid>

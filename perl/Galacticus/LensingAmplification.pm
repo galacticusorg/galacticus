@@ -45,9 +45,9 @@ sub Get_Amplification {
     my $dataSetName = $_[0];
 
     # Extract cosmological parameters.
-    $hubble0  = $dataBlock->{'parameters'}->{'H_0'         };
-    $omegaM0  = $dataBlock->{'parameters'}->{'Omega_Matter'};
-    $omegaDE0 = $dataBlock->{'parameters'}->{'Omega_DE'    };
+    $hubble0  = $dataBlock->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant' }->{'value'};
+    $omegaM0  = $dataBlock->{'parameters'}->{'cosmologyParametersMethod'}->{'OmegaMatter'    }->{'value'};
+    $omegaDE0 = $dataBlock->{'parameters'}->{'cosmologyParametersMethod'}->{'OmegaDarkEnergy'}->{'value'};
     $cosmology = Astro::Cosmology->new(
 	omega_matter => $omegaM0,
 	omega_lambda => $omegaDE0,

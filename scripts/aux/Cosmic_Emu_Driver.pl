@@ -54,28 +54,27 @@ unless ( -e $galacticusPath."aux/CosmicEmu/emu.exe" ) {
 # Parse the parameter file.
 my $xml           = new XML::Simple;
 my $parameterData = $xml->XMLin($parameterFile);
-my $parameters    = $parameterData->{'parameter'};
 
 # Check that required parameters exist.
-my @parameters = ( "Omega_b", "Omega_Matter", "H_0", "sigma_8", "powerSpectrumIndex", "darkEnergyEquationOfState", "redshift" );
+my @parameters = ( "OmegaBaryon", "OmegaMatter", "HubbleConstant", "sigma_8", "powerSpectrumIndex", "darkEnergyEquationOfState", "redshift" );
 foreach my $parameter ( @parameters ) {
     die("Cosmic_Emu_Driver.pl: FATAL - parameter ".$parameter." can not be found.") 
-	unless ( exists($parameters->{$parameter}) );
+	unless ( exists($parameterData->{$parameter}) );
 }
 
 # Calculate derived parameters.
-my $omegaMatter = $parameters->{'Omega_Matter'}->{'value'}*($parameters->{'H_0'}->{'value'}/100.0)**2;
-my $omegaBaryon = $parameters->{'Omega_b'     }->{'value'}*($parameters->{'H_0'}->{'value'}/100.0)**2;
+my $omegaMatter = $parameterData->{'OmegaMatter'}->{'value'}*($parameterData->{'HubbleConstant'}->{'value'}/100.0)**2;
+my $omegaBaryon = $parameterData->{'OmegaBaryon'}->{'value'}*($parameterData->{'HubbleConstant'}->{'value'}/100.0)**2;
 
 # Run Cosmic_Emu.
 open(emuPipe,"|".$galacticusPath."aux/CosmicEmu/emu.exe");
 print emuPipe $powerSpectrumFile."\n";
 print emuPipe $omegaMatter."\n";
 print emuPipe $omegaBaryon."\n";
-print emuPipe $parameters->{'powerSpectrumIndex'       }->{'value'}."\n";
-print emuPipe $parameters->{'sigma_8'                  }->{'value'}."\n";
-print emuPipe $parameters->{'darkEnergyEquationOfState'}->{'value'}."\n";
-print emuPipe $parameters->{'redshift'                 }->{'value'}."\n";
+print emuPipe $parameterData->{'powerSpectrumIndex'       }->{'value'}."\n";
+print emuPipe $parameterData->{'sigma_8'                  }->{'value'}."\n";
+print emuPipe $parameterData->{'darkEnergyEquationOfState'}->{'value'}."\n";
+print emuPipe $parameterData->{'redshift'                 }->{'value'}."\n";
 print emuPipe "2\n";
 close(emuPipe);
 

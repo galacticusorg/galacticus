@@ -134,9 +134,9 @@ foreach my $outputRedshift ( $galacticus->{'outputs'}->{'redshift'}->list() ) {
 	
 	# Extract recycling parameter for the model.
 	die("test-Grasil.pl: FAIL - fixed IMF and instantaneous recycling expected for this model")
-	    unless ( $galacticus->{'parameters'}->{'imfSelectionMethod'} eq "fixed" && $galacticus->{'parameters'}->{'stellarPopulationPropertiesMethod'} eq "instantaneous" );
-	my $imfRecycledAttributeName = "imf".$galacticus->{'parameters'}->{'imfSelectionFixed'}."RecycledInstantaneous";
-	my $recycledFraction =$galacticus->{'parameters'}->{$imfRecycledAttributeName};
+	    unless ( $galacticus->{'parameters'}->{'imfSelectionMethod'}->{'value'} eq "fixed" && $galacticus->{'parameters'}->{'stellarPopulationPropertiesMethod'}->{'value'} eq "instantaneous" );
+	my $imfRecycledAttributeName = "imf".$galacticus->{'parameters'}->{'imfSelectionFixed'}->{'value'}."RecycledInstantaneous";
+	my $recycledFraction =$galacticus->{'parameters'}->{$imfRecycledAttributeName}->{'value'};
 
 	# Determine the number of galaxies selected and write a message reporting this.
 	my $numberSelected = nelem($galacticus->{'selection'});

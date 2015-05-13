@@ -10,71 +10,55 @@
 
   <!-- Density contrasts -->
   <parameters>
-    <parameter>
-      <name>outputDensityContrastData</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>outputDensityContrastDataDarkOnly</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputDensityContrastData value="true"/>
+    <outputDensityContrastDataDarkOnly>
       <value>false</value>
       <value>true</value>
-    </parameter>
-    <parameter>
-      <name>outputDensityContrastValues</name>
+    </outputDensityContrastDataDarkOnly>
+    <outputDensityContrastValues>
       <value>200</value>
       <value>200 500</value>
-    </parameter>
+    </outputDensityContrastValues>
   </parameters>
 
   <!-- Mass accretion histories -->
   <parameters>
-    <parameter>
-      <name>massAccretionHistoryOutput</name>
-      <value>true</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <massAccretionHistoryOutput value="true"/>
   </parameters>
 
   <!-- Cooling rates and radii -->
   <parameters>
-    <parameter>
-      <name>outputHotHaloCoolingRates</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>outputHotHaloCoolingRadii</name>
-      <value>true</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputHotHaloCoolingRates value="true"/>
+    <outputHotHaloCoolingRadii value="true"/>
   </parameters>
   
   <!-- Half mass radii -->
   <parameters>
-    <parameter>
-      <name>outputHalfMassData</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputHalfMassData>
       <value>true
-      <parameter>
-	<name>outputVirialData</name>
+      <outputVirialData>
 	<value>false</value>
-	<!-- Include an additional output which occurs after half-mass output to catch -->
-	<!-- regressions of a bug in which the half-mass output module erroneously     -->
-	<!-- incremented the property counter -->
 	<value>true</value>
-      </parameter>
+      </outputVirialData>
       </value>
-    </parameter>
+    </outputHalfMassData>
   </parameters>
-      
+  
   <!-- Rotation curves -->
   <parameters>
-    <parameter>
-      <name>outputRotationCurveData</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>outputVirialData</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>outputRotationCurveRadii</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputRotationCurveData value="true"/>
+    <outputVirialData value="true"/>
+    <outputRotationCurveRadii>
       <value>
 	diskHalfMassRadius:all:all:loaded:0.1
 	diskHalfMassRadius:all:all:loaded:0.173
@@ -293,68 +277,51 @@
 	darkMatterScaleRadius:spheroid:baryonic:loaded:5.477
 	darkMatterScaleRadius:spheroid:baryonic:loaded:10.0
       </value>
-    </parameter>
+    </outputRotationCurveRadii>
   </parameters>
 
   <!-- Velocity dispersions -->
   <parameters>
-    <parameter>
-      <name>outputVelocityDispersionData</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>outputVirialData</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>outputVelocityDispersionRadii</name>
-      <value>
-	spheroidHalfMassRadius:spheroid:stellar:loaded:radial:1.0
-      </value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputVelocityDispersionData value="true"/>
+    <outputVirialData value="true"/>
+    <outputVelocityDispersionRadii value="spheroidHalfMassRadius:spheroid:stellar:loaded:radial:1.0"/>
   </parameters>
-
+  
   <!-- Projected densities -->
   <parameters>
-    <parameter>
-      <name>outputProjectedDensityData</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>outputProjectedDensityRadii</name>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputProjectedDensityData value="true"/>
+    <outputProjectedDensityRadii>
       <value>
 	virialRadius:all:dark:loaded:1.0
 	darkMatterScaleRadius:all:dark:loaded:1.0
       </value>
-    </parameter>
+    </outputProjectedDensityRadii>
   </parameters>
 
   <!-- Satellite orbits -->
   <parameters>
-    <parameter>
-      <name>outputSatellitePericenterData</name>
-      <value>true</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputSatellitePericenterData value="true"/>
   </parameters>
-
+  
   <!-- Redshifts -->
   <parameters>
-    <parameter>
-      <name>outputNodeRedshifts</name>
-      <value>true</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputNodeRedshifts value="true"/>
   </parameters>
-
+  
   <!-- Merger tree structure -->
   <parameters>
-    <parameter>
-      <name>mergerTreeStructureOutput</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeStructureOutputVirialQuantities</name>
-      <value>true</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <mergerTreeStructureOutput value="true"/>
+    <mergerTreeStructureOutputVirialQuantities value="true"/>
   </parameters>
-
+  
 </parameterGrid>

@@ -56,41 +56,47 @@ contains
     use Numerical_Constants_Astronomical
     use Galacticus_Input_Paths
     use Input_Parameters
+    use Input_Parameters2
     implicit none
     type     (intergalacticMediumStateRecFast), target        :: recFastConstructor
     class    (cosmologyParametersClass       ), intent(inout) :: thisCosmologyParameters
     character(len=32                         )                :: parameterLabel
     type     (varying_string                 )                :: command                , parameterFile
     type     (xmlf_t                         )                :: parameterDoc
+    type     (inputParameterList             )                :: parameters
 
     ! Generate the name of the data file and an XML input parameter file.
     command='mkdir -p '//char(Galacticus_Input_Path())//'data/intergalacticMedium'
     call System_Command_Do(command)
     recFastConstructor%fileName=char(Galacticus_Input_Path())//'data/intergalacticMedium/recFast'
     parameterFile              =char(Galacticus_Input_Path())//'data/intergalacticMedium/recfast_parameters.xml'
-    call xml_OpenFile(char(parameterFile),parameterDoc)
-    call xml_NewElement(parameterDoc,"parameters")
-    write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter()
-    recFastConstructor%fileName=recFastConstructor%fileName//'_OmegaM'//trim(parameterLabel)
-    call Write_Parameter_XML(parameterDoc,"Omega_Matter",parameterLabel)
-    write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaDarkEnergy()
-    recFastConstructor%fileName=recFastConstructor%fileName//'_OmegaDE'//trim(parameterLabel)
-    call Write_Parameter_XML(parameterDoc,"Omega_DE",parameterLabel)
-    write (parameterLabel,'(f6.4)') thisCosmologyParameters%OmegaBaryon()
-    recFastConstructor%fileName=recFastConstructor%fileName//'_Omegab'//trim(parameterLabel)
-    call Write_Parameter_XML(parameterDoc,"Omega_b",parameterLabel)
-    write (parameterLabel,'(f4.1)') thisCosmologyParameters%HubbleConstant(hubbleUnitsStandard)
-    recFastConstructor%fileName=recFastConstructor%fileName//'_H0'//trim(parameterLabel)
-    call Write_Parameter_XML(parameterDoc,"H_0",parameterLabel)
-    write (parameterLabel,'(f5.3)') thisCosmologyParameters%temperatureCMB()
-    recFastConstructor%fileName=recFastConstructor%fileName//'_TCMB'//trim(parameterLabel)
-    call Write_Parameter_XML(parameterDoc,"T_CMB",parameterLabel)
+    ! Construct a parameter list containing all relevant values.
+    parameters=inputParameterList()
+    write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter    (                   )
+    recFastConstructor%fileName=recFastConstructor%fileName//'_OmegaMatter'    //trim(parameterLabel)
+    call parameters%add("Omega Matter"   ,parameterLabel)
+    write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaDarkEnergy(                   )
+    recFastConstructor%fileName=recFastConstructor%fileName//'_OmegaDarkEnergy'//trim(parameterLabel)
+    call parameters%add("OmegaDarkEnergy",parameterLabel)
+    write (parameterLabel,'(f6.4)') thisCosmologyParameters%OmegaBaryon    (                   )
+    recFastConstructor%fileName=recFastConstructor%fileName//'_OmegaBaryon'    //trim(parameterLabel)
+    call parameters%add("OmegaBaryon"    ,parameterLabel)
+    write (parameterLabel,'(f4.1)') thisCosmologyParameters%HubbleConstant (hubbleUnitsStandard)
+    recFastConstructor%fileName=recFastConstructor%fileName//'_HubbleConstant' //trim(parameterLabel)
+    call parameters%add("HubbleConstant" ,parameterLabel)
+    write (parameterLabel,'(f5.3)') thisCosmologyParameters%temperatureCMB (                   )
+    recFastConstructor%fileName=recFastConstructor%fileName//'_temperatureCMB' //trim(parameterLabel)
+    call parameters%add("temperatureCMB" ,parameterLabel)
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
-    recFastConstructor%fileName=recFastConstructor%fileName//'_YHe'//trim(parameterLabel)
-    call Write_Parameter_XML(parameterDoc,"Y_He",parameterLabel)
+    recFastConstructor%fileName=recFastConstructor%fileName//'_YHe'            //trim(parameterLabel)
+    call parameters%add("Y_He"           ,parameterLabel)
     recFastConstructor%fileName=recFastConstructor%fileName//'.xml'
     write (parameterLabel,'(i1)') fileFormatVersionCurrent
-    call Write_Parameter_XML(parameterDoc,"fileFormat",parameterLabel)
+    call parameters%add("fileFormat",parameterLabel)
+    ! Generate the parameters XML file.
+    call xml_OpenFile(char(parameterFile),parameterDoc)
+    call xml_NewElement(parameterDoc,"parameters")
+    call parameters%serializeToXML(parameterDoc)
     call xml_Close(parameterDoc)
     ! Run the RecFast driver script to generate the data.
     command=char(Galacticus_Input_Path())//'scripts/aux/RecFast_Driver.pl '//parameterFile//' '//recFastConstructor%fileName

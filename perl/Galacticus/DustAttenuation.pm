@@ -55,11 +55,11 @@ sub Get_Dust_Attenuated_Luminosity {
     die ("Get_Dust_Attenuated_Luminosity(): routine assumes exponential disks and Hernquist or Sersic spheroids")
 	unless
 	(
-	 $dataSet ->{'parameters'}->{"diskMassDistribution"    } eq "exponentialDisk"
+	 $dataSet ->{'parameters'}->{"diskMassDistribution"    }->{'value'} eq "exponentialDisk"
 	 &&
 	 (
-	  $dataSet->{'parameters'}->{"spheroidMassDistribution"} eq "hernquist"       ||
-	  $dataSet->{'parameters'}->{"spheroidMassDistribution"} eq "sersic" 
+	  $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "hernquist"       ||
+	  $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "sersic" 
 	 )
 	);
 
@@ -169,10 +169,10 @@ sub Get_Dust_Attenuated_Luminosity {
     if ( $component eq "spheroid" ) {
 	# Compute size as spheroid (assumed to be Hernquist profile) half-mass radius in units of disk scale length.
 	my $sizes;
-	if ( $dataSet->{'parameters'}->{"spheroidMassDistribution"} eq "Hernquist" ) {
+	if ( $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "Hernquist" ) {
 	    $sizes = (1.0+sqrt(2.0))*$dataSets->{"spheroidScaleLength"}/$dataSets->{"diskScaleLength"};
 	}
-	if ( $dataSet->{'parameters'}->{"spheroidMassDistribution"} eq "Sersic" ) {
+	if ( $dataSet->{'parameters'}->{"spheroidMassDistribution"}->{'value'} eq "Sersic" ) {
 	    $sizes =                 $dataSets->{"spheroidScaleLength"}/$dataSets->{"diskScaleLength"};
 	}
 	my $sizesLimited;

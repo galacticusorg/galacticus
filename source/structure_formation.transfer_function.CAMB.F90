@@ -59,6 +59,7 @@ contains
     use System_Command
     use Transfer_Functions_File
     use Input_Parameters
+    use Input_Parameters2
     use Cosmology_Parameters
     use Numerical_Constants_Astronomical
     use Galacticus_Input_Paths
@@ -89,8 +90,8 @@ contains
     call xml_AddCharacters(parameterDoc,char(Transfer_Function_CAMB_Label(includeSourceDigest=.true.)))
     call xml_EndElement(parameterDoc,"uniqueLabel")
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
-    call Write_Parameter_XML(parameterDoc,"Y_He",parameterLabel)
-    call dependentParameters%outputToXML(parameterDoc)
+    call dependentParameters%add("Y_He",parameterLabel)
+    call dependentParameters%serializeToXML(parameterDoc)
     call xml_Close(parameterDoc)
     ! Determine if we need to reinitialize this module.
     if (.not.transferFunctionInitialized) then

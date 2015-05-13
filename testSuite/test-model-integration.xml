@@ -8,18 +8,13 @@
   <modelRootDirectory>testSuite/outputs/test-model-integration</modelRootDirectory>
   <baseParameters>parameters.xml</baseParameters>
 
-  <!-- Set halo mass ranges -->
-  <parameter>
-    <name>mergerTreeBuildHaloMassMaximum</name>
-    <value>1.0e14</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeBuildHaloMassMinimum</name>
-    <value>1.0e10</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeBuildTreesPerDecade</name>
-    <value>150</value>
-  </parameter>
+  <parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <!-- Set halo mass ranges -->
+    <mergerTreeBuildHaloMassMaximum value="1.0e14"/>
+    <mergerTreeBuildHaloMassMinimum value="1.0e10"/>
+    <mergerTreeBuildTreesPerDecade value="150"/>
+  </parameters>
   
 </parameterGrid>

@@ -1,78 +1,25 @@
+<?xml version="1.0"?>
 <parameters>
-  <parameter>
-    <name>mergerTreeBuildTreesPerDecade</name>
-    <value>1000</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeBuildHaloMassMinimum</name>
-    <value>1.0d11</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeBuildHaloMassMaximum</name>
-    <value>2.0d15</value>
-  </parameter>  
-  <parameter>
-    <name>mergerTreesBuildMassResolutionMethod</name>
-    <value>fixed</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeBuildMassResolutionFixed</name>
-    <value>2.3561d10</value>
-  </parameter>
-  <parameter>
-    <name>outputRedshifts</name>
-    <value>0.0 0.5 1.0 2.0 4.0</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeBuildCole2000MergeProbability</name>
-    <value>0.1</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeBuildCole2000AccretionLimit</name>
-    <value>0.1</value>
-  </parameter>
-  <parameter>
-    <name>transferFunctionMethod</name>
-    <value>BBKS</value>
-  </parameter>
-  <parameter>
-    <name>Omega_Matter</name>
-    <value>0.25</value>
-  </parameter>
-  <parameter>
-    <name>Omega_DE</name>
-    <value>0.75</value>
-  </parameter>
-  <parameter>
-    <name>Omega_b</name>
-    <value>0.0</value>
-  </parameter>
-  <parameter>
-    <name>H_0</name>
-    <value>73.0</value>
-  </parameter>
-  <parameter>
-    <name>sigma_8</name>
-    <value>0.9</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumIndex</name>
-    <value>1.0</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumRunning</name>
-    <value>0.0</value>
-  </parameter>
-  <parameter>
-    <name>galacticusOutputFileName</name>
-    <value>tests/progenitorMassFunction/progenitorMassFunctionTest.hdf5</value>
-  </parameter>
-  <parameter>
-    <name>haloMassFunctionMethod</name>
-    <value>Tinker2008</value>
-  </parameter>
-  <parameter>
-    <name>transferFunctionMethod</name>
-    <value>Eisenstein + Hu</value>
-  </parameter>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <mergerTreeBuildTreesPerDecade value="1000"/>
+  <mergerTreeBuildHaloMassMinimum value="1.0d11"/>
+  <mergerTreeBuildHaloMassMaximum value="2.0d15"/>  
+  <mergerTreesBuildMassResolutionMethod value="fixed"/>
+  <mergerTreeBuildMassResolutionFixed value="2.3561d10"/>
+  <outputRedshifts value="0.0 0.5 1.0 2.0 4.0"/>
+  <mergerTreeBuildCole2000MergeProbability value="0.1"/>
+  <mergerTreeBuildCole2000AccretionLimit value="0.1"/>
+  <transferFunctionMethod value="BBKS"/>
+  <cosmologyParametersMethod value="simple">
+    <OmegaMatter value="0.25"/>
+    <OmegaDarkEnergy value="0.75"/>
+    <OmegaBaryon value="0.0"/>
+    <HubbleConstant value="73.0"/>
+  </cosmologyParametersMethod><sigma_8 value="0.9"/>
+  <powerSpectrumIndex value="1.0"/>
+  <powerSpectrumRunning value="0.0"/>
+  <galacticusOutputFileName value="tests/progenitorMassFunction/progenitorMassFunctionTest.hdf5"/>
+  <haloMassFunctionMethod value="Tinker2008"/>
+  <transferFunctionMethod value="Eisenstein + Hu"/>
 </parameters>

@@ -60,7 +60,7 @@ my $stellarDensity = $history->{'historyStellarDensity'};
 
 # Determine IMF correction factor.
 my $imfCorrection = 1.0;
-if ( $dataBlock->{'parameters'}->{'imfSelectionFixed'} eq "Chabrier" ) {
+if ( $dataBlock->{'parameters'}->{'imfSelectionFixed'}->{'value'} eq "Chabrier" ) {
     $imfCorrection = 0.6;
 }
 
@@ -99,9 +99,9 @@ foreach my $dataSet ( @{$data->{'starFormationRate'}} ) {
 	H0           => $columns->{'sfr'}->{'hubble'}
 	);
     my $cosmologyGalacticus = Astro::Cosmology->new(
-	omega_matter => $dataBlock->{'parameters'}->{'Omega_Matter'},
-	omega_lambda => $dataBlock->{'parameters'}->{'Omega_DE'},
-	H0           => $dataBlock->{'parameters'}->{'H_0'}
+	omega_matter => $dataBlock->{'parameters'}->{'cosmologyParametersMethod'}->{'OmegaMatter'    }->{'value'},
+	omega_lambda => $dataBlock->{'parameters'}->{'cosmologyParametersMethod'}->{'OmegaDarkEnergy'}->{'value'},
+	H0           => $dataBlock->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant' }->{'value'}
 	);
 
     my $volumeElementData            = $cosmologyData      ->differential_comoving_volume($x);
