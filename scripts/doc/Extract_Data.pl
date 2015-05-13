@@ -43,8 +43,14 @@ opendir(dirHndl,$sourceDir);
 my @fileNames = ( "work/build/objects.nodes.components.Inc" );
 while ( my $fileName = readdir(dirHndl) ) {
     # Find Fortran 90 and C++ source files.
-    push(@fileNames,$sourceDir."/".$fileName)
-	if ( ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.cpp$/ ) && $fileName !~ m/^\.\#/ );
+    if ( ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.cpp$/ ) && $fileName !~ m/^\.\#/ ) {
+	(my $preProcessedName = $fileName) =~ s/\.F90$/.p.F90/;
+	if ( -e "work/build/".$preProcessedName ) {
+	    push(@fileNames,"work/build/".$preProcessedName);
+	} else {
+	    push(@fileNames,$sourceDir."/".$fileName);
+	}
+    }
 }
 closedir(dirHndl);
 
