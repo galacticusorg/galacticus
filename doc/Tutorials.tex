@@ -225,7 +225,7 @@ where $|{\mathbf J}|$ is the magnitude of the node's angular momentum, $M$ is th
 \end{verbatim}
 the spin vector of each node will be set (assuming that the vector spin or angular momenta of nodes are available in the merger tree file) using:
 \begin{equation}
- {\boldmath \lambda} = {{\mathbf J} |E|^{1/2} \over {\mathrm G} M^{5/2}}.
+ {\mathbf \lambda} = {{\mathbf J} |E|^{1/2} \over {\mathrm G} M^{5/2}}.
 \end{equation}
 
 If spins could not be determined for some halos the spin (or angular momentum) should be set to zero in the merger tree file, and the parameter {\normalfont \ttfamily [mergerTreeReadPresetUnphysicalSpins]} set to {\normalfont \ttfamily true}. \glc\ will then assign a spin to such halos by sampling from the selected spin distribution (see \S\ref{sec:SpinParameterDistribution}). 
