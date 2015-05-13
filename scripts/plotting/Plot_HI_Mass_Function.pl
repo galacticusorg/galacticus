@@ -61,11 +61,11 @@ my $x = pdl @{$columns->{'mass'}->{'data'}};
 my $y = pdl @{$columns->{'massFunction'}->{'data'}};
 my $errorUp = pdl @{$columns->{'upperError'}->{'data'}};
 my $errorDown = pdl @{$columns->{'lowerError'}->{'data'}};
-$errorUp   = (+10.0**($y+$errorUp)  -10.0**$y)*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
-$errorDown = (-10.0**($y-$errorDown)+10.0**$y)*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
-$x         = (10.0**$x             )*($dataSet->{'parameters'}->{'H_0'}/$columns->{'mass'}->{'hubble'})**2;
-$y         = (10.0**$y             )*($dataSet->{'parameters'}->{'H_0'}/$columns->{'massFunction'}->{'hubble'})**3;
-$xBins     = $xBins+log10(           ($dataSet->{'parameters'}->{'H_0'}/$columns->{'mass'}->{'hubble'})**2);
+$errorUp   = (+10.0**($y+$errorUp)  -10.0**$y)*($dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$columns->{'massFunction'}->{'hubble'})**3;
+$errorDown = (-10.0**($y-$errorDown)+10.0**$y)*($dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$columns->{'massFunction'}->{'hubble'})**3;
+$x         = (10.0**$x             )*($dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$columns->{'mass'}->{'hubble'})**2;
+$y         = (10.0**$y             )*($dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$columns->{'massFunction'}->{'hubble'})**3;
+$xBins     = $xBins+log10(           ($dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$columns->{'mass'}->{'hubble'})**2);
 
 # Read galaxy data and construct mass function.
 my $yGalacticus = zeroes nelem($xBins);

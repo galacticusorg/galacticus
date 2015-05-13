@@ -1,7 +1,7 @@
+<?xml version="1.0"?>
 <!-- Parameter file used for testing abundances objects functions. -->
 <parameters>
-  <parameter>
-    <name>elementsToTrack</name>
-    <value>C N O Fe</value>
-  </parameter>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <elementsToTrack value="C N O Fe"/>
 </parameters>

@@ -51,7 +51,11 @@ contains
        !$omp critical (Tasks_Evolve_Tree_Initialize)
        if (.not.outputsInitialized) then
           ! Get a list of output redshifts - stored temporarily in the outputTimes array.
-          outputCount=max(Get_Input_Parameter_Array_Size('outputRedshifts'),1)
+          if (Input_Parameter_Is_Present('outputRedshifts')) then
+             outputCount=Get_Input_Parameter_Array_Size('outputRedshifts')
+          else
+             outputCount=1
+          end if
           call Alloc_Array(outputRedshifts,[outputCount])
           call Alloc_Array(outputTimes    ,[outputCount])
           !@ <inputParameter>

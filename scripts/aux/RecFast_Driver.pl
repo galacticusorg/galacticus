@@ -25,30 +25,29 @@ my $outputFile    = $ARGV[1];
 
 # Parse the parameter file.
 my $xml = new XML::Simple;
-my $data = $xml->XMLin($parameterFile);
-my $parameterHash = $data->{'parameter'};
+my $parameterData = $xml->XMLin($parameterFile);
 unlink($parameterFile);
 
 # Declare data structure.
 my $output;
 
 # Check that required parameters exist.
-my @parameters = ( "Omega_b", "Omega_Matter", "Omega_DE", "H_0", "T_CMB", "Y_He" );
+my @parameters = ( "OmegaBaryon", "OmegaMatter", "OmegaDarkEnergy", "HubbleConstant", "temperatureCMB", "Y_He" );
 foreach my $parameter ( @parameters ) {
-    die("CMBFast_Driver.pl: FATAL - parameter ".$parameter." can not be found.") unless ( exists($data->{'parameter'}->{$parameter}) );
-    $output->{'provenance'}->{'recFast'}->{'parameters'}->{$parameter} = $data->{'parameter'}->{$parameter};
+    die("CMBFast_Driver.pl: FATAL - parameter ".$parameter." can not be found.") unless ( exists($parameterData->{$parameter}) );
+    $output->{'provenance'}->{'recFast'}->{'parameters'}->{$parameter} = $parameterData->{$parameter};
 }
 
 # Extract variables.
-my $OmegaB = $parameterHash->{'Omega_b'      }->{'value'};
-my $OmegaM = $parameterHash->{'Omega_Matter' }->{'value'};
-my $OmegaL = $parameterHash->{'Omega_DE'     }->{'value'};
-my $H0     = $parameterHash->{'H_0'          }->{'value'};
-my $T0     = $parameterHash->{'T_CMB'        }->{'value'};
-my $Yp     = $parameterHash->{'Y_He'         }->{'value'};
+my $OmegaB = $parameterData->{'OmegaBaryon'    }->{'value'};
+my $OmegaM = $parameterData->{'OmegaMatter'    }->{'value'};
+my $OmegaL = $parameterData->{'OmegaDarkEnergy'}->{'value'};
+my $H0     = $parameterData->{'HubbleConstant' }->{'value'};
+my $T0     = $parameterData->{'temperatureCMB' }->{'value'};
+my $Yp     = $parameterData->{'Y_He'           }->{'value'};
 
 # Extract current file format version.
-my $fileFormat        = $parameterHash->{'fileFormat'}->{'value'};
+my $fileFormat        = $parameterData->{'fileFormat'}->{'value'};
 my $fileFormatCurrent = 1;
 die('RecFast_Driver.pl: this script supports file format version '.$fileFormatCurrent.' but version '.$fileFormat.' was requested')
     unless ( $fileFormat == $fileFormatCurrent );

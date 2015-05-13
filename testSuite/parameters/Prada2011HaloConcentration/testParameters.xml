@@ -1,95 +1,30 @@
+<?xml version="1.0"?>
 <!-- Parameter file used for testing the prada2011 halo concentration algorithm. -->
 <parameters>
-  <parameter>
-    <name>cosmologyFunctionsMethod</name>
-    <value>matterLambda</value>
-  </parameter>
-  <parameter>
-    <name>Omega_Matter</name>
-    <value>0.27</value>
-  </parameter>
-  <parameter>
-    <name>Omega_DE</name>
-    <value>0.73</value>
-  </parameter>
-  <parameter>
-    <name>Omega_b</name>
-    <value>0.0469</value>
-  </parameter>
-  <parameter>
-    <name>H_0</name>
-    <value>70.0</value>
-  </parameter>
-  <parameter>
-    <name>sigma_8</name>
-    <value>0.82</value>
-  </parameter>
-  <parameter>
-    <name>transferFunctionMethod</name>
-    <value>Eisenstein-Hu1999</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumIndex</name>
-    <value>0.95</value>
-  </parameter>
-  <parameter>
-    <name>darkMatterProfileConcentrationMethod</name>
-    <value>prada2011</value>
-  </parameter>
-  <parameter>
-    <name>prada2011ConcentrationA</name>
-    <value>2.881</value>
-  </parameter>
-  <parameter>
-    <name>prada2011ConcentrationB</name>
-    <value>1.257</value>
-  </parameter>
-  <parameter>
-    <name>prada2011ConcentrationC</name>
-    <value>1.022</value>
-  </parameter>
-  <parameter>
-    <name>prada2011ConcentrationD</name>
-    <value>0.060</value>
-  </parameter>
-  <parameter>
-    <name>prada2011ConcentrationC0</name>
-    <value>3.681</value>
-  </parameter>
-  <parameter>
-    <name>prada2011ConcentrationC1</name>
-    <value>5.033</value>
-  </parameter>
-  <parameter>
-    <name>prada2011ConcentrationX0</name>
-    <value>0.424</value>
-  </parameter>
-  <parameter>
-    <name>prada2011ConcentrationX1</name>
-    <value>0.526</value>
-  </parameter>
-  <parameter>
-    <name>prada2011ConcentrationInverseSigma0</name>
-    <value>1.047</value>
-  </parameter>
-  <parameter>
-    <name>prada2011ConcentrationInverseSigma1</name>
-    <value>1.646</value>
-  </parameter>
-  <parameter>
-    <name>prada2011ConcentrationAlpha</name>
-    <value>6.948</value>
-  </parameter>
-  <parameter>
-    <name>prada2011ConcentrationBeta</name>
-    <value>7.386</value>
-  </parameter>
-  <parameter>
-    <name>virialDensityConstrastFixed</name>
-    <value>200.0</value>
-  </parameter>
-  <parameter>
-    <name>virialDensityConstrastFixedType</name>
-    <value>criticalDensity</value>
-  </parameter>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <cosmologyFunctionsMethod value="matterLambda"/>
+  <cosmologyParametersMethod value="simple">
+    <OmegaMatter value="0.27"/>
+    <OmegaDarkEnergy value="0.73"/>
+    <OmegaBaryon value="0.0469"/>
+    <HubbleConstant value="70.0"/>
+  </cosmologyParametersMethod><sigma_8 value="0.82"/>
+  <transferFunctionMethod value="Eisenstein-Hu1999"/>
+  <powerSpectrumIndex value="0.95"/>
+  <darkMatterProfileConcentrationMethod value="prada2011"/>
+  <prada2011ConcentrationA value="2.881"/>
+  <prada2011ConcentrationB value="1.257"/>
+  <prada2011ConcentrationC value="1.022"/>
+  <prada2011ConcentrationD value="0.060"/>
+  <prada2011ConcentrationC0 value="3.681"/>
+  <prada2011ConcentrationC1 value="5.033"/>
+  <prada2011ConcentrationX0 value="0.424"/>
+  <prada2011ConcentrationX1 value="0.526"/>
+  <prada2011ConcentrationInverseSigma0 value="1.047"/>
+  <prada2011ConcentrationInverseSigma1 value="1.646"/>
+  <prada2011ConcentrationAlpha value="6.948"/>
+  <prada2011ConcentrationBeta value="7.386"/>
+  <virialDensityConstrastFixed value="200.0"/>
+  <virialDensityConstrastFixedType value="criticalDensity"/>
 </parameters>

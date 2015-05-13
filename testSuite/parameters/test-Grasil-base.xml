@@ -1,14 +1,8 @@
+<?xml version="1.0"?>
 <parameters>
-  <parameter>
-    <name>mergerTreeBuildTreesPerDecade</name>
-    <value>25</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeBuildHaloMassMaximum</name>
-    <value>1e+14</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeBuildHaloMassMinimum</name>
-    <value>10000000000</value>
-  </parameter>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <mergerTreeBuildTreesPerDecade value="25"/>
+  <mergerTreeBuildHaloMassMaximum value="1e+14"/>
+  <mergerTreeBuildHaloMassMinimum value="10000000000"/>
 </parameters>

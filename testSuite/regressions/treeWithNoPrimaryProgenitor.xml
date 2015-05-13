@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <!-- Test case for a merger tree (read from file) with the following structure: -->
 <!--             +‒‒‒+                                                          -->
 <!--             | 5 |                                                          -->
@@ -53,80 +54,26 @@
 <!-- Andrew Benson                                                              -->
 <!-- 08-November-2011                                                           -->
 <parameters>
-  <parameter>
-    <name>mergerTreeConstructMethod</name>
-    <value>read</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadFileName</name>
-    <value>testSuite/data/mergerTrees/treeWithNoPrimaryProgenitor.hdf5</value>
-  </parameter>
-  <parameter>
-    <name>allTreesExistAtFinalTime</name>
-    <value>false</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetPositions</name>
-    <value>false</value>
-  </parameter>
-  <parameter>
-    <name>treeNodeMethodSatellite</name>
-    <value>preset</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetOrbits</name>
-    <value>false</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetMergerTimes</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetMergerNodes</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetSubhaloMasses</name>
-    <value>false</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetSpins</name>
-    <value>false</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetScaleRadii</name>
-    <value>false</value>
-  </parameter>
-  <parameter>
-    <name>H_0</name>
-    <value>70.0</value>
-  </parameter>
-  <parameter>
-    <name>Omega_Matter</name>
-    <value>0.3</value>
-  </parameter>
-  <parameter>
-    <name>Omega_DE</name>
-    <value>0.7</value>
-  </parameter>
-  <parameter>
-    <name>Omega_b</name>
-    <value>0.04</value>
-  </parameter>
-  <parameter>
-    <name>sigma_8</name>
-    <value>0.93</value>
-  </parameter>
-  <parameter>
-    <name>hotHaloRamPressureStrippingMethod</name>
-    <value>virialRadius</value>
-  </parameter>
-  <parameter>
-    <name>hotHaloTrackStrippedGas</name>
-    <value>false</value>
-  </parameter>
-  <parameter>
-    <name>satelliteOrbitStoreOrbitalParameters</name>
-    <value>false</value>
-  </parameter>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <mergerTreeConstructMethod value="read"/>
+  <mergerTreeReadFileName value="testSuite/data/mergerTrees/treeWithNoPrimaryProgenitor.hdf5"/>
+  <allTreesExistAtFinalTime value="false"/>
+  <mergerTreeReadPresetPositions value="false"/>
+  <treeNodeMethodSatellite value="preset"/>
+  <mergerTreeReadPresetOrbits value="false"/>
+  <mergerTreeReadPresetMergerTimes value="true"/>
+  <mergerTreeReadPresetMergerNodes value="true"/>
+  <mergerTreeReadPresetSubhaloMasses value="false"/>
+  <mergerTreeReadPresetSpins value="false"/>
+  <mergerTreeReadPresetScaleRadii value="false"/>
+  <cosmologyParametersMethod value="simple">
+    <HubbleConstant value="70.0"/>
+    <OmegaMatter value="0.3"/>
+    <OmegaDarkEnergy value="0.7"/>
+    <OmegaBaryon value="0.04"/>
+  </cosmologyParametersMethod><sigma_8 value="0.93"/>
+  <hotHaloRamPressureStrippingMethod value="virialRadius"/>
+  <hotHaloTrackStrippedGas value="false"/>
+  <satelliteOrbitStoreOrbitalParameters value="false"/>
 </parameters>

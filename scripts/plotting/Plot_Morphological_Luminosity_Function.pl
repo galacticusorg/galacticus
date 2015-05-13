@@ -80,9 +80,9 @@ foreach my $morphology ( @{$data->{'morphology'}} ) {
 	# Get the luminosity function.
 	my $x  = pdl @{$morphology->{'magnitude'         }->{'datum'}};
 	my $y  = pdl @{$morphology->{'luminosityFunction'}->{'datum'}};
-	my $xMin    = where($x-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'})-0.25                                                         ,$x == -23.25);
-	my $xMax    = where($x-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'})+0.25                                                         ,$x == -23.25);
-	my $ySelect = where($y*($dataSet->{'parameters'}->{'H_0'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'},$x == -23.25);
+	my $xMin    = where($x-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'})-0.25                                                         ,$x == -23.25);
+	my $xMax    = where($x-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'})+0.25                                                         ,$x == -23.25);
+	my $ySelect = where($y*($dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'},$x == -23.25);
 	$bulgeToTotal->{$morphology->{"class"}}->{"abundance"}              = $ySelect->index(0);
 	$bulgeToTotal->{$morphology->{"class"}}->{"magnitude"}->{"minimum"} = $xMin   ->index(0);
 	$bulgeToTotal->{$morphology->{"class"}}->{"magnitude"}->{"maximum"} = $xMax   ->index(0);
@@ -168,9 +168,9 @@ foreach my $morphology ( @{$data->{'morphology'}} ) {
         }
 	
 	# Scale for Hubble parameter.
-	$x     += -5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
-	$y     *= ($dataSet->{'parameters'}->{'H_0'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'};
-	$error *= ($dataSet->{'parameters'}->{'H_0'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'};
+	$x     += -5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
+	$y     *= ($dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'};
+	$error *= ($dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'};
 
 	# Construct Galacticus luminosity function.
 	my $bulgeToTotalMinimum = $bulgeToTotal->{$morphology->{"class"}}->{"minimum"};

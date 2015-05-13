@@ -1,158 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
 
   <!-- Options controlling numerical aspects -->
-  <parameter>
-    <name>massFunctionCovarianceFFTGridSize</name>
-    <value>64</value>
-  </parameter>
+  <massFunctionCovarianceFFTGridSize value="64"/>
 
   <!-- Options controlling survey geometry -->
-  <parameter>
-    <name>surveyGeometryMethod</name>
-    <value>Caputi-2011-UKIDSS-UDS</value>
-  </parameter>
+  <surveyGeometryMethod value="Caputi-2011-UKIDSS-UDS"/>
 
   <!-- Options controlling the mass function -->
-  <parameter>
-    <name>massFunctionCovarianceRedshiftMinimum</name>
-    <value>3.0</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceRedshiftMaximum</name>
-    <value>5.0</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceBinCount</name>
-    <value>7</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceMassMinimum</name>
-    <value>2.4975941000e10</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceMassMaximum</name>
-    <value>3.95841980000e11</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceHaloMassMinimum</name>
-    <value>1.0e10</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceHaloMassMaximum</name>
-    <value>1.0e15</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceIncludePoisson</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceIncludeHalo</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceIncludeLSS</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>conditionalStellarMassFunctionMassCount</name>
-    <value>7</value>
-  </parameter>
-  <parameter>
-    <name>conditionalStellarMassFunctionMassMinimum</name>
-    <value>2.4975941000e10</value>
-  </parameter>
-  <parameter>
-    <name>conditionalStellarMassFunctionMassMaximum</name>
-    <value>3.95841980000e11</value>
-  </parameter>
-  <parameter>
-    <name>conditionalStellarMassFunctionHaloMassMinimum</name>
-    <value>1.0e10</value>
-  </parameter>
-  <parameter>
-    <name>conditionalStellarMassFunctionHaloMassMaximum</name>
-    <value>1.0e15</value>
-  </parameter>
-  <parameter>
-    <name>conditionalStellarMassFunctionRedshiftMinimum</name>
-    <value>3.0</value>
-  </parameter>
-  <parameter>
-    <name>conditionalStellarMassFunctionRedshiftMaximum</name>
-    <value>5.0</value>
-  </parameter>
-  <parameter>
-    <name>conditionalStellarMassFunctionUseSurveyLimits</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>conditionalStellarMassFunctionHaloMass</name>
-    <value>all</value>
-  </parameter>
+  <massFunctionCovarianceRedshiftMinimum value="3.0"/>
+  <massFunctionCovarianceRedshiftMaximum value="5.0"/>
+  <massFunctionCovarianceBinCount value="7"/>
+  <massFunctionCovarianceMassMinimum value="2.4975941000e10"/>
+  <massFunctionCovarianceMassMaximum value="3.95841980000e11"/>
+  <massFunctionCovarianceHaloMassMinimum value="1.0e10"/>
+  <massFunctionCovarianceHaloMassMaximum value="1.0e15"/>
+  <massFunctionCovarianceIncludePoisson value="true"/>
+  <massFunctionCovarianceIncludeHalo value="true"/>
+  <massFunctionCovarianceIncludeLSS value="true"/>
+  <conditionalStellarMassFunctionMassCount value="7"/>
+  <conditionalStellarMassFunctionMassMinimum value="2.4975941000e10"/>
+  <conditionalStellarMassFunctionMassMaximum value="3.95841980000e11"/>
+  <conditionalStellarMassFunctionHaloMassMinimum value="1.0e10"/>
+  <conditionalStellarMassFunctionHaloMassMaximum value="1.0e15"/>
+  <conditionalStellarMassFunctionRedshiftMinimum value="3.0"/>
+  <conditionalStellarMassFunctionRedshiftMaximum value="5.0"/>
+  <conditionalStellarMassFunctionUseSurveyLimits value="true"/>
+  <conditionalStellarMassFunctionHaloMass value="all"/>
 
   <!-- Cosmological parameters and options -->
-  <parameter>
-    <name>cosmologyMethod</name>
-    <value>matter-lambda</value>
-  </parameter>
-  <parameter>
-    <name>H_0</name>
-    <value>70.2</value>
-  </parameter>
-  <parameter>
-    <name>Omega_Matter</name>
-    <value>0.2725</value>
-  </parameter>
-  <parameter>
-    <name>Omega_DE</name>
-    <value>0.7275</value>
-  </parameter>
-  <parameter>
-    <name>Omega_b</name>
-    <value>0.0455</value>
-  </parameter>
-  <parameter>
-    <name>T_CMB</name>
-    <value>2.72548</value>
-  </parameter>
-
-  <!-- Power spectrum options -->
-  <parameter>
-    <name>sigma_8</name>
-    <value>0.807</value>
-  </parameter>
-  <parameter>
-    <name>transferFunctionMethod</name>
-    <value>Eisenstein-Hu1999</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumMethod</name>
-    <value>powerLaw</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumIndex</name>
-    <value>0.961</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumReferenceWavenumber</name>
-    <value>1.0</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumRunning</name>
-    <value>0.0</value>
-  </parameter>
-  <parameter>
-    <name>effectiveNumberNeutrinos</name>
-    <value>3.04</value>
-  </parameter>
-  <parameter>
-    <name>summedNeutrinoMasses</name>
-    <value>0.0</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumNonlinearMethod</name>
-    <value>Peacock-Dodds1996</value>
-  </parameter>
+  <cosmologyMethod value="matter-lambda"/>
+  <cosmologyParametersMethod value="simple">
+    <HubbleConstant value="70.2"/>
+    <OmegaMatter value="0.2725"/>
+    <OmegaDarkEnergy value="0.7275"/>
+    <OmegaBaryon value="0.0455"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParametersMethod><!-- Power spectrum options -->
+  <sigma_8 value="0.807"/>
+  <transferFunctionMethod value="Eisenstein-Hu1999"/>
+  <powerSpectrumMethod value="powerLaw"/>
+  <powerSpectrumIndex value="0.961"/>
+  <powerSpectrumReferenceWavenumber value="1.0"/>
+  <powerSpectrumRunning value="0.0"/>
+  <effectiveNumberNeutrinos value="3.04"/>
+  <summedNeutrinoMasses value="0.0"/>
+  <powerSpectrumNonlinearMethod value="Peacock-Dodds1996"/>
 
 </parameters>

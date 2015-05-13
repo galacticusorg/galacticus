@@ -64,20 +64,22 @@ contains
     use Galacticus_Input_Paths
     use Power_Spectra
     use Input_Parameters
+    use Input_Parameters2
     use File_Utilities
     use Memory_Management
     implicit none
-    double precision                , intent(in   ) :: time                    , waveNumber
-    double precision                , save          :: timePrevious     =-1.0d0
-    double precision                , parameter     :: wavenumberLong   =0.01d0, wavenumberShort  =1.0d0
-    class(cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
-    class    (cosmologyParametersClass              )               , pointer :: thisCosmologyParameters
-    double precision                                :: littleHubbleCMB         , redshift
-    type            (varying_string)                :: parameterFile           , powerSpectrumFile
-    type            (xmlf_t        )                :: parameterDoc
-    character       (len=32        )                :: parameterLabel
-    character       (len=128       )                :: powerSpectrumLine
-    integer                                         :: iWavenumber             , powerSpectrumUnit
+    double precision                          , intent(in   ) :: time                            , waveNumber
+    double precision                          , save          :: timePrevious             =-1.0d0
+    double precision                          , parameter     :: wavenumberLong           =0.01d0, wavenumberShort  =1.0d0
+    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctionsDefault
+    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    double precision                                          :: littleHubbleCMB                 , redshift
+    type            (varying_string          )                :: parameterFile                   , powerSpectrumFile
+    type            (xmlf_t                  )                :: parameterDoc
+    character       (len=32                  )                :: parameterLabel
+    character       (len=128                 )                :: powerSpectrumLine
+    integer                                                   :: iWavenumber                     , powerSpectrumUnit
+    type            (inputParameterList      )                :: parameters
 
     ! If the time has changed, recompute the power spectrum.
     if (time /= timePrevious) then
@@ -110,24 +112,26 @@ contains
             &                              'this method is applicable only to models with no running of the spectral index'  &
             &                             )
        ! Generate a parameter file.
+       parameters=inputParameterList()
+       write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter   ()
+       call parameters%add("OmegaMatter"              ,parameterLabel)
+       write (parameterLabel,'(f6.4)') thisCosmologyParameters%OmegaBaryon   ()
+       call parameters%add("OmegaBaryon"              ,parameterLabel)
+       write (parameterLabel,'(f7.4)') thisCosmologyParameters%HubbleConstant()
+       call parameters%add("HubbleConstant"           ,parameterLabel)
+       write (parameterLabel,'(f6.4)') sigma_8     ()
+       call parameters%add("sigma_8"                  ,parameterLabel)
+       write (parameterLabel,'(f6.4)') Primordial_Power_Spectrum_Logarithmic_Derivative(waveNumberShort)
+       call parameters%add("powerSpectrumIndex"       ,parameterLabel)
+       write (parameterLabel,'(f6.3)') -1.0d0
+       call parameters%add("darkEnergyEquationOfState",parameterLabel)
+       write (parameterLabel,'(f8.4)') redshift
+       call parameters%add("redshift"                 ,parameterLabel)       
        powerSpectrumFile="powerSpectrum.txt"
        parameterFile    ="powerSpectrumParameters.xml"
        call xml_OpenFile(char(parameterFile),parameterDoc)
        call xml_NewElement(parameterDoc,"parameters")
-       write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter   ()
-       call Write_Parameter_XML(parameterDoc,"Omega_Matter"             ,parameterLabel)
-       write (parameterLabel,'(f6.4)') thisCosmologyParameters%OmegaBaryon   ()
-       call Write_Parameter_XML(parameterDoc,"Omega_b"                  ,parameterLabel)
-       write (parameterLabel,'(f7.4)') thisCosmologyParameters%HubbleConstant()
-       call Write_Parameter_XML(parameterDoc,"H_0"                      ,parameterLabel)
-       write (parameterLabel,'(f6.4)') sigma_8     ()
-       call Write_Parameter_XML(parameterDoc,"sigma_8"                  ,parameterLabel)
-       write (parameterLabel,'(f6.4)') Primordial_Power_Spectrum_Logarithmic_Derivative(waveNumberShort)
-       call Write_Parameter_XML(parameterDoc,"powerSpectrumIndex"       ,parameterLabel)
-       write (parameterLabel,'(f6.3)') -1.0d0
-       call Write_Parameter_XML(parameterDoc,"darkEnergyEquationOfState",parameterLabel)
-       write (parameterLabel,'(f8.4)') redshift
-       call Write_Parameter_XML(parameterDoc,"redshift"                 ,parameterLabel)
+       call parameters%serializeToXML(parameterDoc)
        call xml_Close(parameterDoc)
 
        ! Generate the power spectrum.

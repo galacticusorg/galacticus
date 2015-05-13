@@ -8,26 +8,13 @@
   <modelRootDirectory>testSuite/outputs/test-plotting-scripts</modelRootDirectory>
   <baseParameters>testSuite/parameters/test-plotting-scripts-base.xml</baseParameters>
   <parameters>
-    <parameter>
-      <name>outputRedshifts</name>
-      <value>0.0 0.07 0.1</value>
-    </parameter>
-    <parameter>
-      <name>mergerTreeBuildTreesPerDecade</name>
-      <value>100</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputRedshifts value="0.0 0.07 0.1"/>
+    <mergerTreeBuildTreesPerDecade value="100"/>
     <!-- Luminosities -->
-    <parameter>
-      <name>luminosityFilter</name>
-      <value>UKIRT_K bJ RGO_I SDSS_g SDSS_r SDSS_i SDSS_z 2MASS_Ks</value>
-    </parameter>
-    <parameter>
-      <name>luminosityRedshift</name>
-      <value>0.0 0.0 0.0 0.1 0.1 0.1 0.1 0.0</value>
-    </parameter>
-    <parameter>
-      <name>luminosityType</name>
-      <value>rest rest rest observed observed observed observed observed</value>
-   </parameter>
+    <luminosityFilter value="UKIRT_K bJ RGO_I SDSS_g SDSS_r SDSS_i SDSS_z 2MASS_Ks"/>
+    <luminosityRedshift value="0.0 0.0 0.0 0.1 0.1 0.1 0.1 0.0"/>
+    <luminosityType value="rest rest rest observed observed observed observed observed"/>
   </parameters>
 </parameterGrid>

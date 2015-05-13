@@ -65,7 +65,11 @@ contains
           !@   <type>string</type>
           !@   <cardinality>1..*</cardinality>
           !@ </inputParameter>
-          coolingFunctionsCount=max(1,Get_Input_Parameter_Array_Size('coolingFunctionMethods'))
+          if (Input_Parameter_Is_Present('coolingFunctionMethods')) then             
+             coolingFunctionsCount=Get_Input_Parameter_Array_Size('coolingFunctionMethods')
+          else
+             coolingFunctionsCount=1
+          end if
           allocate(coolingFunctionMethods(coolingFunctionsCount))
           call Memory_Usage_Record(sizeof(coolingFunctionMethods))
           call Get_Input_Parameter('coolingFunctionMethods',coolingFunctionMethods,defaultValue=['atomicCIECloudy'])
