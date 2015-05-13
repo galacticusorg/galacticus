@@ -21,12 +21,16 @@ module Vectors
   !% Implements calculations of vectors.
   implicit none
   private
-  public :: Vector_Magnitude, Vector_Product, Vector_Outer_Product, Matrix_Copy_Upper_To_Lower_Triangle, Vector_Matrix_Multiply
+  public :: Vector_Magnitude, Vector_Product, Vector_Outer_Product, Vector_Outer_Product_Accumulate, Matrix_Copy_Upper_To_Lower_Triangle, Vector_Matrix_Multiply
 
   interface Vector_Outer_Product
      module procedure Vector_Outer_Product_Distinct
      module procedure Vector_Outer_Product_Self
   end interface Vector_Outer_Product
+
+  interface Vector_Outer_Product_Accumulate
+     module procedure Vector_Outer_Product_Accumulate_Self
+  end interface Vector_Outer_Product_Accumulate
 
 contains
 
@@ -76,6 +80,47 @@ contains
     if (present(symmetrize).and.symmetrize) Vector_Outer_Product_Self=Matrix_Copy_Upper_To_Lower_Triangle(Vector_Outer_Product_Self)
     return
   end function Vector_Outer_Product_Self
+
+  subroutine Vector_Outer_Product_Accumulate_Self(vector1,matrix,symmetrize,sparse)
+    !% Compute the outer product of a vector with itself and accumulate it to the given
+    !% matrix. Compute only the upper triangle unless the symmetrize option is set to true. If
+    !% the sparse option is set to true, assume a sparse matrix and accumulate only non-zero
+    !% terms.
+    implicit none
+    double precision, dimension(:  ), intent(in   ) :: vector1
+    double precision, dimension(:,:), intent(inout) :: matrix
+    logical         , optional      , intent(in   ) :: symmetrize, sparse
+    integer         , dimension(:  ), allocatable   :: nonZero
+    integer                                         :: i         , j
+
+    if (.not.present(sparse).or..not.sparse) then
+       ! Non-sparse calculation. Call the appropriate BLAS routine.
+       call dsyr("u",size(vector1),1.0d0,vector1,1,matrix,size(vector1))
+       ! Symmetrize if necessary.
+       if (present(symmetrize).and.symmetrize) matrix=Matrix_Copy_Upper_To_Lower_Triangle(matrix)
+    else
+       ! Sparse calculation.
+       ! Find non-zero elements of the vector.
+       nonZero=pack([(i,i=1,size(vector1))],vector1 /= 0.0d0)
+       if (size(nonZero) > 0) then
+          ! Upper triangle.
+          do i=1,size(nonZero)
+             do j=i,size(nonZero)
+                matrix(nonZero(i),nonZero(j))=matrix(nonZero(i),nonZero(j))+vector1(nonZero(i))*vector1(nonZero(j))
+             end do
+          end do
+          ! Lower triangle (if necessary).
+          if (present(symmetrize).and.symmetrize) then
+             do i=2,size(nonZero)
+                do j=1,i-1
+                   matrix(nonZero(i),nonZero(j))=matrix(nonZero(i),nonZero(j))+vector1(nonZero(i))*vector1(nonZero(j))
+                end do
+             end do
+          end if
+       end if
+    end if
+    return
+  end subroutine Vector_Outer_Product_Accumulate_Self
 
   function Matrix_Copy_Upper_To_Lower_Triangle(matrix)
     !% Copies the upper triangle of a square matrix to the lower triangle.
