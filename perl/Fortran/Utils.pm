@@ -318,6 +318,7 @@ sub Get_Fortran_Line {
 	my $tmpLine         = $line;
 	my $inDoubleQuotes  =  0;
 	my $inSingleQuotes  =  0;
+	my $inBraces        =  0;
 	my $commentPosition = -1;
 	for(my $iChar=0;$iChar<length($tmpLine);++$iChar) {
 	    my $char = substr($tmpLine,$iChar,1);
@@ -335,7 +336,11 @@ sub Get_Fortran_Line {
 		    $inSingleQuotes = 0;
 		}
 	    }
-	    if ( $commentPosition == -1 && $char eq "!" && $inDoubleQuotes == 0 && $inSingleQuotes == 0 ) {$commentPosition = $iChar};
+	    ++$inBraces
+		if ( $char eq "{" );
+	    --$inBraces
+		if ( $char eq "}" );
+	    if ( $commentPosition == -1 && $char eq "!" && $inDoubleQuotes == 0 && $inSingleQuotes == 0 && $inBraces == 0 ) {$commentPosition = $iChar};
 	}
 	$rawLine .= $line;
 	chomp($processedLine);

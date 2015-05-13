@@ -66,7 +66,8 @@ foreach my $fileName ( @fileNames ) {
     (my $fileNamePrint = $fileName) =~ s/_/\\_/g;
     (my $leafName = $fileName) =~ s/^$sourceDir\///;
     (my $leafNamePrint = $leafName) =~ s/_/\\_/g;
-
+    $leafNamePrint =~ s/^work\/build\/(.*)\.p\.F90/$1.F90/;
+    
     # Add the file to the list of filenames to process.
     my @fileNames     = ( $fileName );
     my @filePositions = (        -1 );
@@ -248,6 +249,7 @@ foreach my $fileName ( @fileNames ) {
 			    }
 			}
 			$attachedLink =~ s/:$//;
+			$attachedLink =~ s/^work\/build\/(.*)\.p\.F90/$1.F90/;
 			my $targetPrefix;
 			my $targetSuffix;
 			if ( $attachedTo =~ m/:/ ) {
@@ -264,7 +266,8 @@ foreach my $fileName ( @fileNames ) {
 			}
 			$attachedTo =~ s/_/\\_/g;
 			$buffer .= $targetPrefix.$attachedTo.$targetSuffix."\\\\\n";
-			$buffer .= "{\\normalfont \\bfseries File:} \\hyperlink{".$leafName."}{{\\normalfont \\ttfamily ".$leafNamePrint."}}\\\\\n";
+			(my $leafNameOriginal = $leafName) =~ s/^work\/build\/(.*)\.p\.F90/$1.F90/;
+			$buffer .= "{\\normalfont \\bfseries File:} \\hyperlink{".$leafNameOriginal."}{{\\normalfont \\ttfamily ".$leafNamePrint."}}\\\\\n";
 			$buffer .= "{\\normalfont \\bfseries Default value:} ";
 			if ( exists($contents->{'defaultValue'}) ) {
 			    $buffer .= $contents->{'defaultValue'};
@@ -425,7 +428,8 @@ foreach ( sort(keys(%enumerations)) ) {
     print oHndl "\\subsubsection{\\large {\\normalfont \\ttfamily ".$_."}}\\hypertarget{ht:AutoEnumerations".ucfirst($_)."}{}\\label{sec:AutoEnumerations".ucfirst($_)."}\\index{enumerations!".$_."\@{\\normalfont \\ttfamily ".$_."}}\n\n";
     print oHndl "\\begin{tabular}{rp{130mm}}\n";
     print oHndl "Description: & ".$enumerations{$_}->{'description'}." \\\\\n";
-    print oHndl "Provided by: & {\\normalfont \\ttfamily module} \\hyperlink{".$enumerations{$_}->{'file'}.":".lc($enumerations{$_}->{'module'})."}{\\normalfont \\ttfamily ".latex_encode($enumerations{$_}->{'module'})."} \\\\\n";
+    (my $enumerationFile = $enumerations{$_}->{'file'}) =~ s/^work\/build\/(.*)\.p\.F90/$1.F90/;
+    print oHndl "Provided by: & {\\normalfont \\ttfamily module} \\hyperlink{".$enumerationFile.":".lc($enumerations{$_}->{'module'})."}{\\normalfont \\ttfamily ".latex_encode($enumerations{$_}->{'module'})."} \\\\\n";
     my $first = 1;
     foreach my $entry ( @{$enumerations{$_}->{'entry'}} ) {
 	print oHndl "Members:"
