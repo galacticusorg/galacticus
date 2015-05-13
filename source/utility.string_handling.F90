@@ -22,20 +22,24 @@ module String_Handling
   use ISO_Varying_String
   implicit none
   private
-  public :: operator(//), String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
+  public :: operator(//), char, String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
        & Convert_VarString_To_Char, String_C_to_Fortran, String_Subscript, String_Superscript, String_Levenshtein_Distance,&
        & String_Join, String_Strip
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
      module procedure Concatenate_VarStr_Integer8
-  end interface
+  end interface operator(//)
 
   interface String_Split_Words
      module procedure String_Split_Words_VarString
      module procedure String_Split_Words_Char
-  end interface
+  end interface String_Split_Words
 
+  interface char
+     module procedure Char_Logical
+  end interface char
+  
   ! Maximum length of string needed to hold integer values.
   integer         , parameter :: maxIntegerSize=20
   character(len=5), parameter :: maxIntegerFormat='(i20)'
@@ -401,4 +405,18 @@ contains
     return
   end function String_Strip
 
+  elemental function Char_Logical(input)
+    !% Convert a logical to a string.
+    implicit none
+    character(len=5)                :: Char_Logical
+    logical         , intent(in   ) :: input
+
+    if (input) then
+       Char_Logical="true"
+    else
+       Char_Logical="false"
+    end if
+    return
+  end function Char_Logical
+  
 end module String_Handling

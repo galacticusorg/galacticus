@@ -222,7 +222,11 @@ contains
        if (.not.chemicalAbundancesInitialized) then
 
           ! Determine how many elements we are required to track.
-          chemicalsCount=Get_Input_Parameter_Array_Size('chemicalsToTrack')
+          if (Input_Parameter_Is_Present('chemicalsToTrack')) then
+             chemicalsCount=Get_Input_Parameter_Array_Size('chemicalsToTrack')
+          else
+             chemicalsCount=0
+          end if
           ! Number of properties to track is the same as the number of chemicals.
           propertyCount=chemicalsCount
           ! If tracking chemicals, read names of which ones to track.

@@ -297,7 +297,11 @@ contains
        !$omp critical (Abundances_Module_Initialize)
        if (.not.abundancesInitialized) then
           ! Determine how many elements we are required to track.
-          elementsCount=Get_Input_Parameter_Array_Size('elementsToTrack')
+          if (Input_Parameter_Is_Present('elementsToTrack')) then
+             elementsCount=Get_Input_Parameter_Array_Size('elementsToTrack')
+          else
+             elementsCount=0
+          end if
           ! Number of properties to track is one greater, as we always track total metallicity.
           propertyCount=elementsCount+1
           ! If tracking elements, read names of which ones to track.

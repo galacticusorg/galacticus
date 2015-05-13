@@ -7,7 +7,7 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
- $ENV{"GALACTICUS_ROOT_V094"} = "/";
+ $ENV{"GALACTICUS_ROOT_V094"} = "./";
 }
 unshift(@INC,$galacticusPath."perl"); 
 use Date::Format;
@@ -89,6 +89,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 my @executablesToRun = (
     {
 	name     => "tests.nodes.exe",                                                    # Tests of Galacticus nodes.
+	valgrind => 0
+    },
+    {
+	name     => "tests.parameters.exe",                                               # Tests of parameter input.
 	valgrind => 0
     },
     {

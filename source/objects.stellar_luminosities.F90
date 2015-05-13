@@ -319,7 +319,7 @@ contains
           end select
 
           ! Read in the parameters which specify the luminosities to be computed.
-          luminosityCount        =Get_Input_Parameter_Array_Size('luminosityRedshift')
+          luminosityCount=Get_Input_Parameter_Array_Size('luminosityRedshift')
           luminosityCountUnmapped=luminosityCount
           if (Get_Input_Parameter_Array_Size('luminosityFilter') /= luminosityCount) call&
                & Galacticus_Error_Report('Stellar_Luminosities_Initialize','luminosityFilter and luminosityRedshift&
