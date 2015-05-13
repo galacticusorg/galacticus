@@ -28,18 +28,11 @@ module Input_Parameters
   use Hashes_Cryptographic
   use Galacticus_Versioning
   use Galacticus_Build
+  use Input_Parameters2
   implicit none
   private
   public :: Input_Parameters_File_Open, Close_Parameters_Group, Input_Parameters_File_Close, Get_Input_Parameter, Get_Input_Parameter_Array_Size,&
-       & Write_Parameter_XML, Input_Parameter_Is_Present, inputParameterList
-
-  ! Include public specifiers for functions that will generate unique labels for modules.
-  include 'utility.input_parameters.unique_labels.visibilities.inc'
-
-  ! Node to hold the parameter document.
-  type   (Node    ), pointer :: parameterDoc  =>null()
-  type   (NodeList), pointer :: parameterList
-  integer                    :: parameterCount
+       & Input_Parameter_Is_Present
 
   ! Generic interface to parameter value functions.
   interface Get_Input_Parameter
@@ -55,200 +48,43 @@ module Input_Parameters
      module procedure Get_Input_Parameter_Integer_Long_Array
      module procedure Get_Input_Parameter_Logical
      module procedure Get_Input_Parameter_Logical_Array
-  end interface
-
-  ! Maximum length for parameters that must be extracted as text.
-  integer            , parameter :: parameterLengthMaximum=1024
+  end interface Get_Input_Parameter
 
   ! Parameters group identifier in the output file.
   logical                        :: parametersGroupCreated=.false.
   type   (hdf5Object)            :: parametersGroup
 
   ! Local pointer to the main output file object.
-  logical                        :: haveOutputFile
-  type   (hdf5Object), pointer   :: outputFileObject
+  type   (hdf5Object), pointer   :: outputFileObject => null()
 
-  ! Define a type to hold lists of parameters (and values) prior to output.
-  type :: inputParameterList
-     !% A class to hold lists of parameters (and values) prior to output.
-     integer                                            :: count
-     type   (varying_string), allocatable, dimension(:) :: name,value
-   contains
-     !@ <objectMethods>
-     !@   <object>inputParameterList</object>
-     !@   <objectMethod>
-     !@     <method>outputToXML</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Write a list fo input parameters to an XML document.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>add</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} name\argin, \textcolor{red}{\textless character(len=*)\textgreater} value\argin</arguments>
-     !@     <description>Add a parameter and value to the list.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     final     ::                inputParameterListDestructor    
-     procedure :: add         => inputParameterListAdd
-     procedure :: outputToXML => inputParameterListOutputToXML
-  end type inputParameterList
+  type(inputParameters), target :: globalParameters1
   
 contains
 
   subroutine Input_Parameters_File_Open(parameterFile,outputFileObjectTarget,allowedParametersFile)
-    !% Open an XML data file containing parameter values and parse it. The file should be structured as follows:
-    !% \begin{verbatim}
-    !% <parameters>
-    !%   <parameter>
-    !%     <name>parameter1Name</name>
-    !%     <value>parameter1Value</value>
-    !%   </parameter>
-    !%   <parameter>
-    !%     <name>parameter1Name</name>
-    !%     <value>parameter1Value</value>
-    !%   </parameter>
-    !%   .
-    !%   .
-    !%   .
-    !% </parameters>
-    !% \end{verbatim}
-    use Galacticus_Input_Paths
-    use String_Handling
-    use Galacticus_Display
-    use File_Utilities
-    use Regular_Expressions
-    !$ use OMP_Lib
+    !% Open an XML data file containing parameter values and parse it.
     implicit none
     type     (varying_string)         , intent(in   )                   :: parameterFile
     type     (hdf5Object    )         , intent(in   ), optional, target :: outputFileObjectTarget
     character(len=*         )         , intent(in   ), optional         :: allowedParametersFile
-    type     (Node          ), pointer                                  :: allowedParameterDoc   , nameElement             , &
-         &                                                                 thisParameter         , versionElement
-    type     (NodeList      ), pointer                                  :: allowedParameterList
-    type     (regEx         ), save                                     :: thisRegEx
-    !$omp threadprivate(thisRegEx)
-    logical                                                             :: parameterMatched      , unknownParametersPresent
-    integer                                                             :: allowedParameterCount , distance                , &
-         &                                                                 iParameter            , ioErr                   , &
-         &                                                                 jParameter            , minimumDistance
-    type     (varying_string)                                           :: possibleMatch         , thisParameterName       , &
-         &                                                                 unknownParameter      , message
-    character(len=10        )                                           :: versionLabel
-
-    ! Open and parse the data file.
-    !$omp critical (FoX_DOM_Access)
-    parameterDoc => parseFile(char(parameterFile),iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('Input_Parameters_File_Open','Unable to find or parse parameter file')
-    parameterList => getElementsByTagname(parameterDoc,"parameter")
-    parameterCount=getLength(parameterList)
-    ! Check for version information.
-    if (XML_Path_Exists(parameterDoc,"version")) then
-       versionElement => XML_Get_First_Element_By_Tag_Name(parameterDoc,"version")
-       versionLabel=getTextContent(versionElement)
-       if (trim(versionLabel) /= "0.9.3") then
-          message="HELP: Parameter file appears to be for version "                  // &
-               &  trim(versionLabel)                                       //char(10)// &
-               &  "      Consider using: scripts/aux/parametersMigrate.pl "          // &
-               &  trim(parameterFile)                                                // &
-               &  " newParameters.xml"                                     //char(10)// &
-               &  "      to migrate your parameter file."
-          call Galacticus_Display_Message(message)
-       end if
-    end if
-    !$omp end critical (FoX_DOM_Access)
 
     ! Create a pointer to the output object if given.
+    if (present(outputFileObjectTarget)) outputFileObject => outputFileObjectTarget
+    ! Wrap the new input parameters code.
     if (present(outputFileObjectTarget)) then
-       outputFileObject => outputFileObjectTarget
-       haveOutputFile=.true.
+       globalParameters1=inputParameters(parameterFile,allowedParametersFile=allowedParametersFile,outputParameters=parametersGroup)
     else
-       haveOutputFile=.false.
+       globalParameters1=inputParameters(parameterFile,allowedParametersFile=allowedParametersFile)
     end if
-
-    ! Open and parse the allowed parameters file if present.
-    if (present(allowedParametersFile)) then
-       ! Check if the file exists.
-       if (File_Exists(char(Galacticus_Input_Path())//'work/build/'//allowedParametersFile)) then
-          !$omp critical (FoX_DOM_Access)
-          ! Parse the file.
-          allowedParameterDoc => parseFile(char(Galacticus_Input_Path())//'work/build/'//allowedParametersFile,iostat=ioErr)
-          if (ioErr /= 0) call Galacticus_Error_Report('Input_Parameters_File_Open','Unable to find or parse allowed parameters file')
-          ! Extract the list of parameters.
-          allowedParameterList => getElementsByTagname(allowedParameterDoc,"parameter")
-          allowedParameterCount=getLength(allowedParameterList)
-          ! Loop over all parameters in the input file.
-          unknownParametersPresent=.false.
-          do iParameter=0,parameterCount-1
-             thisParameter => item(parameterList,iParameter)
-             nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-             jParameter    =  0
-             parameterMatched=.false.
-             do while (.not.parameterMatched .and. jParameter < allowedParameterCount)
-                thisParameter   => item(allowedParameterList,jParameter)
-                thisParameterName=getTextContent(thisParameter)
-                if (extract(thisParameterName,1,6) == "regEx:") then
-                   thisRegEx=regEx(char(extract(thisParameterName,7,len(thisParameterName))))
-                   parameterMatched=thisRegEx%matches(getTextContent(nameElement))
-                   call thisRegEx%destroy()
-                else
-                   parameterMatched=(getTextContent(nameElement) == thisParameterName)
-                end if
-                jParameter=jParameter+1
-             end do
-             if (.not.parameterMatched) then
-                if (.not.unknownParametersPresent) then
-                   !$ if (omp_in_parallel()) then
-                   !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
-                   !$ else
-                   !$    write (0,'(a2,a2,$)') "MM",": "
-                   !$ end if
-                   write (0,'(a)') '-> WARNING: unknown parameters present:'
-                end if
-                unknownParametersPresent=.true.
-                !$ if (omp_in_parallel()) then
-                !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
-                !$ else
-                !$    write (0,'(a2,a2,$)') "MM",": "
-                !$ end if
-                unknownParameter=getTextContent(nameElement)
-                minimumDistance=10000
-                do jParameter=0,allowedParameterCount-1
-                   thisParameter => item(allowedParameterList,jParameter)
-                   distance=String_Levenshtein_Distance(char(unknownParameter),getTextContent(thisParameter))
-                   if (distance < minimumDistance) then
-                      minimumDistance=distance
-                      possibleMatch=getTextContent(thisParameter)
-                   end if
-                end do
-                write (0,'(5a)') '    ',char(unknownParameter),' [did you mean "',char(possibleMatch),'"?]'
-             end if
-          end do
-          ! Destroy the document.
-          call destroy(allowedParameterDoc)
-          !$omp end critical (FoX_DOM_Access)
-          if (unknownParametersPresent) then
-             !$ if (omp_in_parallel()) then
-             !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
-             !$ else
-             !$    write (0,'(a2,a2,$)') "MM",": "
-             !$ end if
-             write (0,'(a)') '<-'
-          end if
-       else
-          call Galacticus_Display_Message("Allowed parameter file '"//allowedParametersFile//"' is missing - incorrect parameters will not be detected",verbosityWarn)
-       end if
-    end if
-
+    globalParameters => globalParameters1
     return
   end subroutine Input_Parameters_File_Open
 
   subroutine Input_Parameters_File_Close
-    !% Close the parameter file (actually just destroy the internal record of it and clean up memory).
+    !% Close the parameter file.
     implicit none
 
     call Close_Parameters_Group()
-    call destroy(parameterDoc)
     return
   end subroutine Input_Parameters_File_Close
 
@@ -256,22 +92,8 @@ contains
     !% Return true if {\normalfont \ttfamily parameterName} is present in the input file.
     implicit none
     character(len=*), intent(in   ) :: parameterName
-    type     (Node ), pointer       :: nameElement  , thisParameter
-    integer                         :: iParameter
 
-    ! If no parameter file has been read, stop with an error message.
-    if (.not.associated(parameterDoc)) call Galacticus_Error_Report('Input_Parameter_Is_Present','parameter file has not been parsed.')
-
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    Input_Parameter_Is_Present=.false.
-    do while (.not.Input_Parameter_Is_Present.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) Input_Parameter_Is_Present=.true.
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
+    Input_Parameter_Is_Present=globalParameters1%isPresent(parameterName)
     return
   end function Input_Parameter_Is_Present
 
@@ -280,859 +102,166 @@ contains
     use String_Handling
     implicit none
     character(len=*         ), intent(in   ) :: parameterName
-    type     (Node          ), pointer       :: nameElement  , thisParameter, valueElement
-    integer                                  :: iParameter
-    logical                                  :: foundMatch
-    type     (varying_string)                :: parameterText
 
-    ! If no parameter file has been read return zero.
-    if (.not.associated(parameterDoc)) then
-      Get_Input_Parameter_Array_Size=0
-      return
-    end if
-
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    foundMatch=.false.
-    do while (.not.foundMatch.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) then
-          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          parameterText=getTextContent(valueElement)
-          Get_Input_Parameter_Array_Size=String_Count_Words(char(parameterText))
-          foundMatch=.true.
-       end if
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
-    if (.not.foundMatch) then
-       Get_Input_Parameter_Array_Size=0
-       return
-    end if
+    Get_Input_Parameter_Array_Size=globalParameters1%count(parameterName,zeroIfNotPresent=.true.)
     return
   end function Get_Input_Parameter_Array_Size
 
   subroutine Get_Input_Parameter_Char(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\normalfont \ttfamily varying\_string} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
-    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily varying\_string} parameter from the parameter file.
     implicit none
     character(len=*       ), intent(  out)           :: parameterValue
     character(len=*       ), intent(in   )           :: parameterName
     character(len=*       ), intent(in   ), optional :: defaultValue
     logical                , intent(in   ), optional :: writeOutput
-    type     (Node        ), pointer                 :: nameElement   , thisParameter    , valueElement
-    type     (DOMException)                          :: exception
-    integer                                          :: iParameter
-    logical                                          :: foundMatch    , writeOutputActual
-
-    ! If no parameter file has been read, either return the default or stop with an error message.
-    if (.not.associated(parameterDoc)) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Char','parameter file has not been parsed.')
-       end if
-    end if
-
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    foundMatch=.false.
-    do while (.not.foundMatch.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) then
-          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          parameterValue=getTextContent(valueElement,ex=exception)
-          if (inException(exception))                                                                                           &
-               & call Galacticus_Error_Report(                                                                                  &
-               &                              'Get_Input_Parameter_Char'                                                      , &
-               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
-               &                              )
-         foundMatch=.true.
-       end if
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
-    if (.not.foundMatch) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Char','parameter '//trim(parameterName)//' can not be found')
-       end if
-    end if
-
-    ! Write the parameter to the output file.
-    if (present(writeOutput)) then
-       writeOutputActual=writeOutput
-    else
-       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
-    end if
-    if (writeOutputActual) then
-       !$omp critical(HDF5_Access)
-       call Make_Parameters_Group
-       call parametersGroup%writeAttribute(trim(parameterValue),trim(parameterName))
-       !$omp end critical(HDF5_Access)
-    end if
+ 
+    call Make_Parameters_Group()
+    call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Char
 
   subroutine Get_Input_Parameter_Char_Array(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\normalfont \ttfamily varying\_string} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
-    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily varying\_string} parameter from the parameter file.
     use String_Handling
     implicit none
     character(len=*         ), intent(  out)           :: parameterValue(:)
     character(len=*         ), intent(in   )           :: parameterName
     character(len=*         ), intent(in   ), optional :: defaultValue  (:)
     logical                  , intent(in   ), optional :: writeOutput
-    type     (Node          ), pointer                 :: nameElement      , thisParameter    , valueElement
-    type     (DOMException  )                          :: exception
-    integer                                            :: iParameter       , nEntries
-    logical                                            :: foundMatch       , writeOutputActual
-    type     (varying_string)                          :: parameterText
 
-    ! If no parameter file has been read, either return the default or stop with an error message.
-    if (.not.associated(parameterDoc)) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Char_Array','parameter file has not been parsed.')
-       end if
-    end if
-
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    foundMatch=.false.
-    do while (.not.foundMatch.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) then
-          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          parameterText=getTextContent(valueElement,ex=exception)
-          if (inException(exception))                                                                                           &
-               & call Galacticus_Error_Report(                                                                                  &
-               &                              'Get_Input_Parameter_Char_Array'                                                , &
-               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
-               &                              )
-          nEntries=String_Count_Words(char(parameterText))
-          if (nEntries > size(parameterValue)) then
-             call Galacticus_Error_Report('Get_Input_Parameter_Char_Array','array parameter has too many entries')
-          else
-             call String_Split_Words(parameterValue(1:nEntries),char(parameterText))
-          end if
-          foundMatch=.true.
-       end if
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
-    if (.not.foundMatch) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Char_Array','parameter '//trim(parameterName)//' can not be found')
-       end if
-    end if
-
-    ! Write the parameter to the output file.
-    if (present(writeOutput)) then
-       writeOutputActual=writeOutput
-    else
-       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
-    end if
-    if (writeOutputActual) then
-       !$omp critical(HDF5_Access)
-       call Make_Parameters_Group
-       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
-       !$omp end critical(HDF5_Access)
-    end if
+    call Make_Parameters_Group()
+    call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Char_Array
 
   subroutine Get_Input_Parameter_VarString(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\normalfont \ttfamily varying\_string} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
-    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily varying\_string} parameter from the parameter file.
     implicit none
     type     (varying_string), intent(  out)           :: parameterValue
     character(len=*         ), intent(in   )           :: parameterName
     character(len=*         ), intent(in   ), optional :: defaultValue
     logical                  , intent(in   ), optional :: writeOutput
-    type     (Node          ), pointer                 :: nameElement   , thisParameter    , valueElement
-    type     (DOMException  )                          :: exception
-    integer                                            :: iParameter
-    logical                                            :: foundMatch    , writeOutputActual
 
-    ! If no parameter file has been read, either return the default or stop with an error message.
-    if (.not.associated(parameterDoc)) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_VarString','parameter file has not been parsed.')
-       end if
-    end if
-
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    foundMatch=.false.
-    do while (.not.foundMatch.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) then
-          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          parameterValue=getTextContent(valueElement,ex=exception)
-          if (inException(exception))                                                                                           &
-               & call Galacticus_Error_Report(                                                                                  &
-               &                              'Get_Input_Parameter_VarString'                                                 , &
-               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
-               &                              )
-          foundMatch=.true.
-       end if
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
-    if (.not.foundMatch) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_VarString','parameter '//trim(parameterName)//' can not be found')
-       end if
-    end if
-
-    ! Write the parameter to the output file.
-    if (present(writeOutput)) then
-       writeOutputActual=writeOutput
-    else
-       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
-    end if
-    if (writeOutputActual) then
-       !$omp critical(HDF5_Access)
-       call Make_Parameters_Group
-       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
-       !$omp end critical(HDF5_Access)
-    end if
+    call Make_Parameters_Group()
+    call globalParameters1%value(parameterName,parameterValue,defaultValue=var_str(defaultValue),writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_VarString
 
   subroutine Get_Input_Parameter_VarString_Array(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\normalfont \ttfamily varying\_string} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
-    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
-    use String_Handling
+    !% Read a {\normalfont \ttfamily varying\_string} parameter from the parameter file.
     implicit none
     type     (varying_string), intent(  out)           :: parameterValue(:)
     character(len=*         ), intent(in   )           :: parameterName
     character(len=*         ), intent(in   ), optional :: defaultValue  (:)
     logical                  , intent(in   ), optional :: writeOutput
-    type     (Node          ), pointer                 :: nameElement      , thisParameter    , valueElement
-    type     (DOMException  )                          :: exception
-    integer                                            :: iParameter       , nEntries
-    logical                                            :: foundMatch       , writeOutputActual
-    type     (varying_string)                          :: parameterText
 
-    ! If no parameter file has been read, either return the default or stop with an error message.
-    if (.not.associated(parameterDoc)) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_VarString_Array','parameter file has not been parsed.')
-       end if
-    end if
-
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    foundMatch=.false.
-    do while (.not.foundMatch.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) then
-          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          parameterText=getTextContent(valueElement,ex=exception)
-          if (inException(exception))                                                                                           &
-               & call Galacticus_Error_Report(                                                                                  &
-               &                              'Get_Input_Parameter_VarString_Array'                                           , &
-               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
-               &                              )
-          nEntries=String_Count_Words(char(parameterText))
-          if (nEntries > size(parameterValue)) then
-             call Galacticus_Error_Report('Get_Input_Parameter_VarString_Array','array parameter has too many entries')
-          else
-             call String_Split_Words(parameterValue(1:nEntries),char(parameterText))
-          end if
-          foundMatch=.true.
-       end if
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
-    if (.not.foundMatch) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_VarString_Array','parameter '//trim(parameterName)//' can not be found')
-       end if
-    end if
-
-    ! Write the parameter to the output file.
-    if (present(writeOutput)) then
-       writeOutputActual=writeOutput
-    else
-       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
-    end if
-    if (writeOutputActual) then
-       !$omp critical(HDF5_Access)
-       call Make_Parameters_Group
-       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
-       !$omp end critical(HDF5_Access)
-    end if
+    call Make_Parameters_Group()
+    call globalParameters1%value(parameterName,parameterValue,defaultValue=var_str(defaultValue),writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_VarString_Array
 
   subroutine Get_Input_Parameter_Double(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\normalfont \ttfamily double precision} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
-    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily double precision} parameter from the parameter file.
     implicit none
     character       (len=*       ), intent(in   )           :: parameterName
     double precision              , intent(  out)           :: parameterValue
     double precision              , intent(in   ), optional :: defaultValue
     logical                       , intent(in   ), optional :: writeOutput
-    type            (Node        ), pointer                 :: nameElement   , thisParameter    , valueElement
-    type            (DOMException)                          :: exception
-    integer                                                 :: iParameter    , status
-    logical                                                 :: foundMatch    , writeOutputActual
 
-    ! If no parameter file has been read, either return the default or stop with an error message.
-    if (.not.associated(parameterDoc)) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Double','parameter file has not been parsed.')
-       end if
-    end if
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    foundMatch=.false.
-    do while (.not.foundMatch.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) then
-          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          call extractDataContent(valueElement,parameterValue,ex=exception,iostat=status)
-          if (inException(exception).or.status /= 0)                                                                            &
-               & call Galacticus_Error_Report(                                                                                  &
-               &                              'Get_Input_Parameter_Double'                                                    , &
-               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
-               &                              )
-          foundMatch=.true.
-       end if
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
-    if (.not.foundMatch) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Double','parameter '//trim(parameterName)//' can not be found')
-       end if
-    end if
-
-    ! Write the parameter to the output file.
-    if (present(writeOutput)) then
-       writeOutputActual=writeOutput
-    else
-       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
-    end if
-    if (writeOutputActual) then
-       !$omp critical(HDF5_Access)
-       call Make_Parameters_Group
-       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
-       !$omp end critical(HDF5_Access)
-    end if
+    call Make_Parameters_Group()
+    call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Double
 
   subroutine Get_Input_Parameter_Double_Array(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\normalfont \ttfamily double precision} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
-    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily double precision} parameter from the parameter file.
     implicit none
     character       (len=*       ), intent(in   )           :: parameterName
     double precision              , intent(  out)           :: parameterValue(:)
     double precision              , intent(in   ), optional :: defaultValue  (:)
     logical                       , intent(in   ), optional :: writeOutput
-    type            (Node        ), pointer                 :: nameElement      , thisParameter    , valueElement
-    type            (DOMException)                          :: exception
-    integer                                                 :: iParameter       , status
-    logical                                                 :: foundMatch       , writeOutputActual
-
-    ! If no parameter file has been read, either return the default or stop with an error message.
-    if (.not.associated(parameterDoc)) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Double','parameter file has not been parsed.')
-       end if
-    end if
-
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    foundMatch=.false.
-    do while (.not.foundMatch.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) then
-          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          call extractDataContent(valueElement,parameterValue,ex=exception,iostat=status)
-          if (inException(exception).or.status /= 0)                                                                            &
-               & call Galacticus_Error_Report(                                                                                  &
-               &                              'Get_Input_Parameter_Double_Array'                                              , &
-               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
-               &                              )
-          foundMatch=.true.
-       end if
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
-    if (.not.foundMatch) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Double_Array','parameter '//trim(parameterName)//' can not be found')
-       end if
-    end if
-
-    ! Write the parameter to the output file.
-    if (present(writeOutput)) then
-       writeOutputActual=writeOutput
-    else
-       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
-    end if
-    if (writeOutputActual) then
-       !$omp critical(HDF5_Access)
-       call Make_Parameters_Group
-       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
-       !$omp end critical(HDF5_Access)
-    end if
+    
+    call Make_Parameters_Group()
+    call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Double_Array
 
   subroutine Get_Input_Parameter_Integer(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\normalfont \ttfamily integer} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
-    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily integer} parameter from the parameter file.
     implicit none
     character(len=*       ), intent(in   )           :: parameterName
     integer                , intent(  out)           :: parameterValue
     integer                , intent(in   ), optional :: defaultValue
     logical                , intent(in   ), optional :: writeOutput
-    type     (Node        ), pointer                 :: nameElement   , thisParameter    , valueElement
-    type     (DOMException)                          :: exception
-    integer                                          :: iParameter    , status
-    logical                                          :: foundMatch    , writeOutputActual
 
-    ! If no parameter file has been read, either return the default or stop with an error message.
-    if (.not.associated(parameterDoc)) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Integer','parameter file has not been parsed.')
-       end if
-    end if
-
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    foundMatch=.false.
-    do while (.not.foundMatch.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) then
-          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          call extractDataContent(valueElement,parameterValue,ex=exception,iostat=status)
-          if (inException(exception).or.status /= 0)                                                                            &
-               & call Galacticus_Error_Report(                                                                                  &
-               &                              'Get_Input_Parameter_Integer'                                                   , &
-               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
-               &                              )
-         foundMatch=.true.
-       end if
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
-    if (.not.foundMatch) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Integer','parameter '//trim(parameterName)//' can not be found')
-       end if
-    end if
-
-    ! Write the parameter to the output file.
-    if (present(writeOutput)) then
-       writeOutputActual=writeOutput
-    else
-       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
-    end if
-    if (writeOutputActual) then
-       !$omp critical(HDF5_Access)
-       call Make_Parameters_Group
-       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
-       !$omp end critical(HDF5_Access)
-    end if
+    call Make_Parameters_Group()
+    call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Integer
 
   subroutine Get_Input_Parameter_Integer_Array(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read an {\normalfont \ttfamily integer} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
-    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read an {\normalfont \ttfamily integer} parameter from the parameter file.
     implicit none
     character(len=*       ), intent(in   )           :: parameterName
     integer                , intent(  out)           :: parameterValue(:)
     integer                , intent(in   ), optional :: defaultValue  (:)
     logical                , intent(in   ), optional :: writeOutput
-    type     (Node        ), pointer                 :: nameElement      , thisParameter    , valueElement
-    type     (DOMException)                          :: exception
-    integer                                          :: iParameter       , status
-    logical                                          :: foundMatch       , writeOutputActual
 
-    ! If no parameter file has been read, either return the default or stop with an error message.
-    if (.not.associated(parameterDoc)) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Integer','parameter file has not been parsed.')
-       end if
-    end if
-
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    foundMatch=.false.
-    do while (.not.foundMatch.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) then
-          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          call extractDataContent(valueElement,parameterValue,ex=exception,iostat=status)
-          if (inException(exception).or.status /= 0)                                                                            &
-               & call Galacticus_Error_Report(                                                                                  &
-               &                              'Get_Input_Parameter_Integer_Array'                                             , &
-               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
-               &                              )
-          foundMatch=.true.
-       end if
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
-    if (.not.foundMatch) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Integer_Array','parameter '//trim(parameterName)//' can not be found')
-       end if
-    end if
-
-    ! Write the parameter to the output file.
-    if (present(writeOutput)) then
-       writeOutputActual=writeOutput
-    else
-       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
-    end if
-    if (writeOutputActual) then
-       !$omp critical(HDF5_Access)
-       call Make_Parameters_Group
-       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
-       !$omp end critical(HDF5_Access)
-    end if
+    call Make_Parameters_Group()
+    call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Integer_Array
 
   subroutine Get_Input_Parameter_Logical(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a {\normalfont \ttfamily logical} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
-    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a {\normalfont \ttfamily logical} parameter from the parameter file.
     implicit none
     character(len=*       ), intent(in   )           :: parameterName
     logical                , intent(  out)           :: parameterValue
     logical                , intent(in   ), optional :: defaultValue
     logical                , intent(in   ), optional :: writeOutput
-    type     (Node        ), pointer                 :: nameElement   , thisParameter    , valueElement
-    type     (DOMException)                          :: exception
-    integer                                          :: iParameter    , status
-    logical                                          :: foundMatch    , writeOutputActual
-    character(len=5       )                          :: datasetValue
 
-    ! If no parameter file has been read, either return the default or stop with an error message.
-    if (.not.associated(parameterDoc)) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Logical','parameter file has not been parsed.')
-       end if
-    end if
-
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    foundMatch=.false.
-    do while (.not.foundMatch.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) then
-          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          call extractDataContent(valueElement,parameterValue,ex=exception,iostat=status)
-          if (inException(exception).or.status /= 0)                                                                            &
-               & call Galacticus_Error_Report(                                                                                  &
-               &                              'Get_Input_Parameter_Logical'                                                   , &
-               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
-               &                              )
-         foundMatch=.true.
-       end if
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
-    if (.not.foundMatch) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Logical','parameter '//trim(parameterName)//' can not be found')
-       end if
-    end if
-
-    ! Write the parameter to the output file.
-    if (present(writeOutput)) then
-       writeOutputActual=writeOutput
-    else
-       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
-    end if
-    if (writeOutputActual) then
-       !$omp critical(HDF5_Access)
-       call Make_Parameters_Group
-       select case (parameterValue)
-       case (.false.)
-          datasetValue='false'
-       case (.true.)
-          datasetValue='true'
-       end select
-       call parametersGroup%writeAttribute(datasetValue,trim(parameterName))
-       !$omp end critical(HDF5_Access)
-    end if
+    call Make_Parameters_Group()
+    call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Logical
 
   subroutine Get_Input_Parameter_Logical_Array(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read an {\normalfont \ttfamily logical} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
-    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read an {\normalfont \ttfamily logical} parameter from the parameter file.
     implicit none
     character(len=*       ), intent(in   )           :: parameterName
-    logical                , intent(  out)           :: parameterValue(:                   )
-    logical                , intent(in   ), optional :: defaultValue  (:                   )
+    logical                , intent(  out)           :: parameterValue(:)
+    logical                , intent(in   ), optional :: defaultValue  (:)
     logical                , intent(in   ), optional :: writeOutput
-    type     (Node        ), pointer                 :: nameElement                         , thisParameter    , &
-         &                                              valueElement
-    type     (DOMException)                          :: exception
-    character(len=5       )                          :: datasetValue  (size(parameterValue))
-    integer                                          :: iParameter                          , status
-    logical                                          :: foundMatch                          , writeOutputActual
 
-    ! If no parameter file has been read, either return the default or stop with an error message.
-    if (.not.associated(parameterDoc)) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Logical','parameter file has not been parsed.')
-       end if
-    end if
-
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    foundMatch=.false.
-    do while (.not.foundMatch.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) then
-          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          call extractDataContent(valueElement,parameterValue,ex=exception,iostat=status)
-          if (inException(exception).or.status /= 0)                                                                            &
-               & call Galacticus_Error_Report(                                                                                  &
-               &                              'Get_Input_Parameter_Logical_Array'                                             , &
-               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
-               &                              )
-          foundMatch=.true.
-       end if
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
-    if (.not.foundMatch) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Logical_Array','parameter '//trim(parameterName)//' can not be found')
-       end if
-    end if
-
-    ! Write the parameter to the output file.
-    if (present(writeOutput)) then
-       writeOutputActual=writeOutput
-    else
-       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
-    end if
-    if (writeOutputActual) then
-       !$omp critical(HDF5_Access)
-       call Make_Parameters_Group
-       where (parameterValue)
-          datasetValue='true'
-       elsewhere
-          datasetValue='false'
-       end where
-       call parametersGroup%writeAttribute(datasetValue,trim(parameterName))
-       !$omp end critical(HDF5_Access)
-    end if
+    call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Logical_Array
 
   subroutine Get_Input_Parameter_Integer_Long(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a long {\normalfont \ttfamily integer} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
-    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a long {\normalfont \ttfamily integer} parameter from the parameter file.
     use Kind_Numbers
     implicit none
     character(len=*                     ), intent(in   )           :: parameterName
     integer  (kind=kind_int8            ), intent(  out)           :: parameterValue
     integer  (kind=kind_int8            ), intent(in   ), optional :: defaultValue
     logical                              , intent(in   ), optional :: writeOutput
-    type     (Node                      ), pointer                 :: nameElement   , thisParameter    , valueElement
-    type     (DOMException              )                          :: exception
-    integer                                                        :: iParameter
-    logical                                                        :: foundMatch    , writeOutputActual
-    character(len=parameterLengthMaximum)                          :: parameterText
 
-    ! If no parameter file has been read, either return the default or stop with an error message.
-    if (.not.associated(parameterDoc)) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Integer_Long','parameter file has not been parsed.')
-       end if
-    end if
-
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    foundMatch=.false.
-    do while (.not.foundMatch.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) then
-          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          parameterText=getTextContent(valueElement,ex=exception)
-          if (inException(exception))                                                                                           &
-               & call Galacticus_Error_Report(                                                                                  &
-               &                              'Get_Input_Parameter_Integer_Long'                                              , &
-               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
-               &                              )
-          read (parameterText,*) parameterValue
-          foundMatch=.true.
-       end if
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
-    if (.not.foundMatch) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Integer_Long','parameter '//trim(parameterName)//' can not be found')
-       end if
-    end if
-
-    ! Write the parameter to the output file.
-    if (present(writeOutput)) then
-       writeOutputActual=writeOutput
-    else
-       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
-    end if
-    if (writeOutputActual) then
-       call Make_Parameters_Group
-       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
-    end if
+    call Make_Parameters_Group()
+    call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Integer_Long
 
   subroutine Get_Input_Parameter_Integer_Long_Array(parameterName,parameterValue,defaultValue,writeOutput)
-    !% Read a long {\normalfont \ttfamily integer} parameter from the parameter file. The parameter name is specified by {\normalfont \ttfamily parameterName} and
-    !% its value is returned in {\normalfont \ttfamily parameterValue}. If no parameter file has been opened by
-    !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\normalfont \ttfamily Input\_Parameters\_File\_Open}} or no matching parameter is found, the
-    !%  default value (if any) given by {\normalfont \ttfamily defaultValue} is returned. (If no default value is present an error occurs instead.)
+    !% Read a long {\normalfont \ttfamily integer} parameter from the parameter file.
     use Kind_Numbers
     implicit none
     character(len=*                     ), intent(in   )           :: parameterName
     integer  (kind=kind_int8            ), intent(  out)           :: parameterValue(:)
     integer  (kind=kind_int8            ), intent(in   ), optional :: defaultValue  (:)
     logical                              , intent(in   ), optional :: writeOutput
-    type     (Node                      ), pointer                 :: nameElement      , thisParameter    , valueElement
-    type     (DOMException              )                          :: exception
-    integer                                                        :: iParameter
-    logical                                                        :: foundMatch       , writeOutputActual
-    character(len=parameterLengthMaximum)                          :: parameterText
 
-    ! If no parameter file has been read, either return the default or stop with an error message.
-    if (.not.associated(parameterDoc)) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Integer_Long_Array','parameter file has not been parsed.')
-       end if
-    end if
-
-    !$omp critical (FoX_DOM_Access)
-    iParameter=0
-    foundMatch=.false.
-    do while (.not.foundMatch.and.iParameter<parameterCount)
-       thisParameter => item(parameterList, iParameter)
-       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-       if (parameterName == getTextContent(nameElement)) then
-          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          parameterText=getTextContent(valueElement,ex=exception)
-          if (inException(exception))                                                                                           &
-               & call Galacticus_Error_Report(                                                                                  &
-               &                              'Get_Input_Parameter_Integer_Long_Array'                                        , &
-               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
-               &                              )
-          read (parameterText,*) parameterValue
-          foundMatch=.true.
-       end if
-       iParameter=iParameter+1
-    end do
-    !$omp end critical (FoX_DOM_Access)
-    if (.not.foundMatch) then
-       if (present(defaultValue)) then
-          parameterValue=defaultValue
-       else
-          call Galacticus_Error_Report('Get_Input_Parameter_Integer_Long_Array','parameter '//trim(parameterName)//' can not be found')
-       end if
-    end if
-
-    ! Write the parameter to the output file.
-    if (present(writeOutput)) then
-       writeOutputActual=writeOutput
-    else
-       writeOutputActual=haveOutputFile .and. outputFileObject%isOpen()
-    end if
-    if (writeOutputActual) then
-       call Make_Parameters_Group
-       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
-    end if
+    call Make_Parameters_Group()
+    call globalParameters1%value(parameterName,parameterValue,defaultValue=defaultValue,writeOutput=writeOutput)    
     return
   end subroutine Get_Input_Parameter_Integer_Long_Array
 
@@ -1140,9 +269,11 @@ contains
     !% Create a group in the \glc\ output file in which to store parameters.
     implicit none
 
-    if (.not.parametersGroupCreated) then
-       parametersGroup=outputFileObject%openGroup('Parameters','Contains values for Galacticus parameters')
-       parametersGroupCreated=.true.
+    if (.not.parametersGroupCreated.and.associated(outputFileObject)) then
+       if (outputFileObject%isOpen()) then
+          parametersGroup=outputFileObject%openGroup('Parameters','Contains values for Galacticus parameters')
+          parametersGroupCreated=.true.
+       end if
     end if
     return
   end subroutine Make_Parameters_Group
@@ -1188,78 +319,5 @@ contains
     call Get_Input_Parameter_Integer(char(parameterNameF),parameterValue,defaultValue)
     return
   end subroutine Get_Input_Parameter_Integer_C
-
-  subroutine Write_Parameter_XML(parameterDoc,parameterName,parameterValue)
-    !% Add a parameter to the specified XML file.
-    use FoX_wxml
-    implicit none
-    type     (xmlf_t), intent(inout) :: parameterDoc
-    character(len=* ), intent(in   ) :: parameterName, parameterValue
-
-    call xml_NewElement   (parameterDoc,"parameter"         )
-    call xml_NewElement   (parameterDoc,"name"              )
-    call xml_AddCharacters(parameterDoc,trim(parameterName ))
-    call xml_EndElement   (parameterDoc,"name"              )
-    call xml_NewElement   (parameterDoc,"value"             )
-    call xml_AddCharacters(parameterDoc,trim(parameterValue))
-    call xml_EndElement   (parameterDoc,"value"             )
-    call xml_EndElement   (parameterDoc,"parameter"         )
-    return
-  end subroutine Write_Parameter_XML
-
-  subroutine inputParameterListDestructor(self)
-    !% Destroy an {\normalfont \ttfamily inputParameterList} object.
-    implicit none
-    type(inputParameterList), intent(inout) :: self
-
-    if (allocated(self%name )) deallocate(self%name )
-    if (allocated(self%value)) deallocate(self%value)
-    return
-  end subroutine inputParameterListDestructor
-
-  subroutine inputParameterListAdd(self,name,value)
-    !% Add a parameter to a list of input parameters to an XML document.
-    class    (inputParameterList), intent(inout)               :: self
-    character(len=*             ), intent(in   )               :: name             , value
-    type     (varying_string    ), allocatable  , dimension(:) :: nameTemporary    , valueTemporary
-    integer                      , parameter                   :: sizeIncrement =10
-    
-    if (.not.allocated(self%name)) then
-       allocate(self%name (sizeIncrement))
-       allocate(self%value(sizeIncrement))
-       self%count=0
-    else if (self%count == size(self%name)) then
-       call Move_Alloc(self%name , nameTemporary)
-       call Move_Alloc(self%value,valueTemporary)
-       allocate(self%name (size( nameTemporary)+sizeIncrement))
-       allocate(self%value(size(valueTemporary)+sizeIncrement))
-       self%name (1:size( nameTemporary))= nameTemporary
-       self%value(1:size(valueTemporary))=valueTemporary
-       deallocate( nameTemporary)
-       deallocate(valueTemporary)
-    end if
-    self%count=self%count+1
-    self%name (self%count)=name
-    self%value(self%count)=value
-    return
-  end subroutine inputParameterListAdd
-
-  subroutine inputParameterListOutputToXML(self,parameterDoc)
-    !% Write a list of input parameters to an XML document.
-    use FoX_wxml
-    class (inputParameterList), intent(in   ) :: self
-    type  (xmlf_t            ), intent(inout) :: parameterDoc
-    integer                                   :: i
-
-    if (allocated(self%name)) then
-       do i=1,self%count
-          call Write_Parameter_XML(parameterDoc,char(self%name(i)),char(self%value(i)))
-       end do
-    end if
-    return
-  end subroutine inputParameterListOutputToXML
-
-  ! Include functions that generate unique labels for modules.
-  include 'utility.input_parameters.unique_labels.inc'
 
 end module Input_Parameters

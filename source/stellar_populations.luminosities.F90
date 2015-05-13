@@ -75,6 +75,7 @@ contains
     use Galacticus_Display
     use Galacticus_Input_Paths
     use Input_Parameters
+    use Input_Parameters2
     use Star_Formation_IMF
     use String_Handling
     use IO_HDF5

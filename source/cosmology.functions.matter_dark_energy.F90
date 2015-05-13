@@ -598,11 +598,11 @@ contains
     do iTime=2,self%ageTableNumberPoints
        ! Compute the expansion factor if it is not already computed.
        if (self%ageTableExpansionFactor(iTime) < 0.0d0) then
-          self%ageTableExpansionFactor(iTime)=matterDarkEnergyExpansionFactorChange(                                  &
-               &                                                 self%ageTableTime           (iTime-1), &
-               &                                                 self%ageTableTime           (iTime  ), &
-               &                                                 self%ageTableExpansionFactor(iTime-1)  &
-               &                                                )
+          self%ageTableExpansionFactor(iTime)=matterDarkEnergyExpansionFactorChange(                                       &
+               &                                                                    self%ageTableTime           (iTime-1), &
+               &                                                                    self%ageTableTime           (iTime  ), &
+               &                                                                    self%ageTableExpansionFactor(iTime-1)  &
+               &                                                                   )
           ! Check for a universe which is no longer expanding (i.e. has reached its maximum expansion).
           if (self%ageTableExpansionFactor(iTime) == self%ageTableExpansionFactor(iTime-1)) then
              ! Record that we have a collapsing Universe.
