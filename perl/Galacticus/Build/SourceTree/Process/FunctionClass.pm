@@ -109,9 +109,6 @@ sub Process_FunctionClass {
 	    my %classes;
 	    foreach my $classLocation ( @classLocations ) {
 		my $classTree  = &SourceTree::ParseFile($classLocation);
-		# Reset the name of the file in the class tree to match that in the parent tree.
-		$classTree->{'name'} = $tree->{'name'}
-		    if ( $classTree->{'type'} eq "file" && $tree->{'type'} eq "file" );
 		&SourceTree::ProcessTree($classTree);
 		my $classNode  = $classTree;
 		my $classDepth = 0;
@@ -160,12 +157,6 @@ sub Process_FunctionClass {
 		    )
 		    unless ( exists($_->{'abstract'}) && $_->{'abstract'} eq "yes" );
 	    }
-	    
-	    
-	    #  # Add public functions.
-	    # $buildData->{'content'} .= ", ".$directive."DoCalculationReset"
-	    # 	if ( exists($buildData->{'calculationReset'}) && $buildData->{'calculationReset'} eq "yes" );
-	    
 	    # Initialize new nodes.
 	    my $preContains = 
 		[
