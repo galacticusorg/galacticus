@@ -115,9 +115,9 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     $y               .= $y     *$data->{'units'}->{'velocity'}->{'unitsInSI'}/$kilo;
     $yError          .= $yError*$data->{'units'}->{'velocity'}->{'unitsInSI'}/$kilo;
     if ( exists($cosmology{'H_0'}) ) {
-	$x      .= $x     *($dataSet->{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'mass'    }->{'hubbleExponent'};
-	$y      .= $y     *($dataSet->{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'velocity'}->{'hubbleExponent'};
-	$yError .= $yError*($dataSet->{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'velocity'}->{'hubbleExponent'};
+	$x      .= $x     *($dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$cosmology{'H_0'})**$data->{'units'}->{'mass'    }->{'hubbleExponent'};
+	$y      .= $y     *($dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$cosmology{'H_0'})**$data->{'units'}->{'velocity'}->{'hubbleExponent'};
+	$yError .= $yError*($dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$cosmology{'H_0'})**$data->{'units'}->{'velocity'}->{'hubbleExponent'};
     }
     my $xError           = $x*(10.0**0.18-1.0);
     my $logSpheroidMass  = log10($x);

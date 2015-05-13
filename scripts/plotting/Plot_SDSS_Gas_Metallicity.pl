@@ -90,7 +90,7 @@ foreach my $dataSet ( @{$data->{'gasMetallicity'}} ) {
     ++$iDataset;
     my $columns = $dataSet->{'columns'};
     my $x = pdl @{$columns->{'magnitude'}->{'data'}};
-    $x = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});
+    $x = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataBlock->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
 
     # Compute the distribution of Galacticus galaxies.
     my $filter = $columns->{'magnitude'}->{'filter'};

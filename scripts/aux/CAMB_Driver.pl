@@ -75,6 +75,7 @@ my @parameters = ( "Omega_b", "Omega_Matter", "Omega_DE", "H_0", "T_CMB", "Y_He"
 foreach my $parameter ( @parameters ) {
     die("CAMB_Driver.pl: FATAL - parameter ".$parameter." can not be found.")
 	unless ( exists($data->{'parameter'}->{$parameter}) );
+    $parameterHash->{$parameter}->{'value'} =~ s/d/e/;
 }
 
 # Calculate derived parameters.

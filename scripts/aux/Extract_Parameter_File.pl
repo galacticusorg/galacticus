@@ -26,32 +26,40 @@ my $dataSet;
 $dataSet->{'file'} = $galacticusFile;
 &HDF5::Get_Parameters($dataSet);
 
-my %data;
-my $iParameter = -1;
-foreach my $parameter ( keys(%{$dataSet->{'parameters'}}) ) {
-    ++$iParameter;
+my $outputData;
+my @stack = map {{name => $_, node => $dataSet->{'parameters'}->{$_}, to => \%{$outputData}}} keys(%{$dataSet->{'parameters'}});
+while ( scalar(@stack) > 0 ) {
+    my $parameter = pop(@stack);
     my $value;
-    if ( ref($dataSet->{'parameters'}->{$parameter}) eq "PDL" ) {
-	$value = join(" ",list($dataSet->{'parameters'}->{$parameter}));
-    } elsif ( ref($dataSet->{'parameters'}->{$parameter}) eq "PDL::Char" ) {
-	my @dims = $dataSet->{'parameters'}->{$parameter}->dims();
-	$value = "";
-	my $join  = "";
-	for (my $i=0;$i<$dims[1];++$i) {
-	    $value .= $join.$dataSet->{'parameters'}->{$parameter}->atstr($i);
-	    $join   = " ";
-	}
+    if ( $parameter->{'name'} =~ m/^sub:(.*)/ ) {
+	my $parameterName = $1;
+	push
+	    (
+	     @stack,
+	     map {{name => $_, node => $parameter->{'node'}->{$_}, to => \%{$parameter->{'to'}->{$parameterName}}}} keys(%{$parameter->{'node'}})
+	     );
+
     } else {
-	$value = $dataSet->{'parameters'}->{$parameter};
+	if ( ref($parameter->{'node'}->{'value'}) eq "PDL" ) {
+	    $value = join(" ",list($parameter->{'node'}->{'value'}));
+	} elsif ( ref($parameter->{'node'}->{'value'}) eq "PDL::Char" ) {
+	    my @dims = $parameter->{'node'}->{'value'}->dims();
+	    $value = "";
+	    my $join  = "";
+	    for (my $i=0;$i<$dims[1];++$i) {
+		(my $text = $parameter->{'node'}->{'value'}->atstr($i)) =~ s/\s+$//;
+		$value .= $join.$text;
+		$join   = " ";
+	    }
+	} else {
+	    ($value = $parameter->{'node'}->{'value'}) =~ s/\s+$//;
+	}
+	$parameter->{'to'}->{$parameter->{'name'}}->{'value'} = $value;
     }
-    ${$data{'parameter'}}[$iParameter] = {
-	"name"  => $parameter,
-	"value" => $value
-    };
 }
-my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
+my $xmlOutput = new XML::Simple (RootName=>"parameters");
 open(oHndl,">".$parametersFile);
-print oHndl $xmlOutput->XMLout(\%data);
+print oHndl $xmlOutput->XMLout($outputData);
 close(oHndl);
 
 exit;

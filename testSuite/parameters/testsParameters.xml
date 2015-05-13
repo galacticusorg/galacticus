@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Default parameters for Galacticus v0.9.2 -->
+<!-- 30-October-2011                          -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <!-- Cosmological parameters and options -->
+  <cosmologyParametersMethod value="simple">
+    <HubbleConstant value="70.2"/>
+    <OmegaMatter value="0.2725"/>
+    <OmegaDarkEnergy value="0.7275"/>
+    <OmegaBaryon value="0.0455"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParametersMethod>
+
+  <dblFromC value="1.2434" />
+  <longFromC value="12434" />
+
+</parameters>

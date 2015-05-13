@@ -8,25 +8,25 @@
   <modelRootDirectory>testSuite/outputs/test-cosmology</modelRootDirectory>
   <baseParameters>testSuite/test-cosmology-base.xml</baseParameters>
   <parameters>
-    <parameter>
-      <name>Omega_Matter</name>
-      <value>0.25</value>
-    </parameter>
-    <parameter>
-      <name>Omega_DE</name>
-      <value>0.75</value>
-      <value>0.00</value>
-    </parameter>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <cosmologyParametersMethod value="simple">
+      <OmegaMatter value="0.25"/>
+      <OmegaDarkEnergy>
+	<value>0.75</value>
+	<value>0.00</value>
+      </OmegaDarkEnergy>
+    </cosmologyParametersMethod>
   </parameters>
   <parameters>
-    <parameter>
-      <name>Omega_Matter</name>
-      <value>1.00</value>
-      <value>1.25</value>
-    </parameter>
-    <parameter>
-      <name>Omega_DE</name>
-      <value>0.00</value>
-    </parameter>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <cosmologyParametersMethod value="simple">
+      <OmegaMatter>
+	<value>1.00</value>
+	<value>1.25</value>
+      </OmegaMatter>
+      <OmegaDarkEnergy value="0.00"/>
+    </cosmologyParametersMethod>
   </parameters>
 </parameterGrid>

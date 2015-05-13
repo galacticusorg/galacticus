@@ -12,6 +12,8 @@ unshift(@INC,$galacticusPath."perl");
 use List::Uniq ':all';
 use Data::Dumper;
 use XML::Simple;
+require Galacticus::Build::Directives;
+require Fortran::Utils;
 require List::ExtraUtils;
 
 # Locate source files which have dependencies on modules.
@@ -170,8 +172,16 @@ foreach my $srcdir ( @sourcedirs ) {
 	    my @modfiles;
 	    my @extra_includes;
 	    my %libraryDependencies;
-
+	    # Push the main file onto the scan stack.
 	    push(@scanfiles,$fullname);
+	    # Special handling for functionClass directives - add implementation files to the
+	    # list of files to scan.
+	    open(my $baseFile,$fullname);
+	    my $functionClassDirective = &Directives::Extract_Directive($baseFile,"functionClass");
+	    close($baseFile);
+	    &ExtraUtils::smart_push(\@scanfiles,$locations->{$functionClassDirective->{'name'}}->{'file'})
+		if ( $functionClassDirective );
+	    # Scan all files on the stack.
 	    while ( scalar(@scanfiles) > 0 ) {
 		$fullname = pop(@scanfiles);
 		if ( ! -e $fullname ) {
@@ -190,6 +200,16 @@ foreach my $srcdir ( @sourcedirs ) {
 		my $active = 1;
 		open(my $infile,$fullname) or die "Can't open input file: $fullname";
 		while (my $line = <$infile>) {
+		    # Special handling: add dependency on input parameters module for files
+		    # containing input parameter or function class directives.
+		    if (
+			$line =~ m/^\s*\!\#\s+\<inputParameter\>\s*$/ 
+			||
+			$line =~ m/^\s*\!\#\s+\<functionClass\>\s*$/
+			) {
+			push(@incfiles,$workDir."input_parameters.mod ");
+			$hasuses=1;
+		    }
 		    if ( $line =~ m/^\s*\!;\s*([a-zA-Z0-9_]+)\s*$/ ) {
 			$libraryDependencies{$1} = 1;	
 		    }
@@ -234,7 +254,8 @@ foreach my $srcdir ( @sourcedirs ) {
 			}
 		    }
 		    if ( $active == 1 ) {
-# Locate any lines which use the "use" statement and extract the name of the file they use. (We ignore the "hdf5" module as it is external.)
+			# Locate any lines which use the "use" statement and extract the name of the file they use.
+			# (We ignore the "hdf5" module as it is external.)
 			if ( $line =~ m/^\s*use\s+([a-zA-Z0-9_]+)/i ) {
 			    my $incfile = $1;
 			    $libraryDependencies{$moduleLibararies{lc($incfile)}} = 1

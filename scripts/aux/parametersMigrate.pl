@@ -10,7 +10,8 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
 }
 unshift(@INC,$galacticusPath."perl"); 
 use Scalar::Util 'reftype';
-use XML::LibXML qw();
+use XML::LibXML qw(:libxml);
+use XML::LibXML::PrettyPrint;
 use Data::Dumper;
 require Galacticus::Options;
 require List::ExtraUtils;
@@ -26,8 +27,12 @@ my $outputFileName = $ARGV[1];
 my %options =
     (
      inputVersion  => "0.9.3",
-     outputVersion => "0.9.4"
+     outputVersion => "0.9.4",
+     validate      => "yes"  ,
+     prettyify     => "no"
     );
+# Parse options.
+my %optionsDefined = &Options::Parse_Options(\@ARGV,\%options);
 
 # Define translations.
 my @translations =
@@ -239,8 +244,13 @@ my @translations =
 	 outputVersion => "0.9.4",
 	 names         =>
 	 {
-	     mergerTreeBuildMethod   => "mergerTreeBuilderMethod"     ,
-	     darkMatterShapeMethod   => "darkMatterProfileShapeMethod"
+	     "mergerTreeBuildMethod"   => "mergerTreeBuilderMethod"     ,
+	     "darkMatterShapeMethod"   => "darkMatterProfileShapeMethod",
+	     "H_0"                     => "HubbleConstant"              ,
+	     "Omega_Matter"            => "OmegaMatter"                 ,
+	     "Omega_DE"                => "OmegaDarkEnergy"             ,
+	     "Omega_b"                 => "OmegaBaryon"                 ,
+	     "T_CMB"                   => "temperatureCMB"
 	 },
  	 values        =>
          {
@@ -268,105 +278,255 @@ my @translations =
     }
     );
 
-# Validate the paramter file.
-system($galacticusPath."scripts/aux/validateParameters.pl ".$inputFileName);
-die('input file "'.$inputFileName.'" is not a valid Galacticus parameter file')
-    unless ( $? == 0 );
+# Define subparameter associations.
+my %subParameters =
+    (    
+	 "HubbleConstant"  => "cosmologyParametersMethod",
+	 "OmegaMatter"     => "cosmologyParametersMethod",
+	 "OmegaDarkEnergy" => "cosmologyParametersMethod",
+	 "OmegaBaryon"     => "cosmologyParametersMethod",
+	 "temperatureCMB"  => "cosmologyParametersMethod"
+    );
+
+# Define known defaults.
+my %knownDefaults =
+    (
+     "cosmologyParametersMethod" => "simple"
+    );
 
 # Parse the input file.
 my $parser     = XML::LibXML->new();
 my $input      = $parser->parse_file($inputFileName);
-my $parameters = $input->findnodes('parameters')->[0];
-
-# Check for a version element.
-my $version    = $parameters->findnodes('version')->[0];
-if ( defined($version) ) {
-    $options{'inputVersion'} = $version->textContent();
-    $version->firstChild()->setData("0.9.3");
+my @parameterSets;
+if ( $input->findnodes('parameters') ) {
+    @parameterSets = $input->findnodes('parameters');
+} elsif ( $input->findnodes('parameterGrid') ) {
+    my $parameterGrid = $input->findnodes('parameterGrid')->[0];
+    if ( $parameterGrid->findnodes('parameters') ) {
+	@parameterSets = $parameterGrid->findnodes('parameters');
+    } else {
+	die('can not find parameters')
+    }
 } else {
-    my $versionNode = $input->createElement ("version");
-    my $newVersion  = $input->createTextNode("0.9.3"  );
-    my $newBreak    = $input->createTextNode("\n  "   );
-    $versionNode->addChild($newVersion);
-    $parameters->insertBefore($versionNode,$parameters->firstChild());
-    $parameters->insertBefore($newBreak   ,$parameters->firstChild());
+    die('can not find parameters')
 }
 
-# Parse options.
-&Options::Parse_Options(\@ARGV,\%options);
-
-# Iterate over translations.
-foreach my $translation ( @translations ) {
-    # Skip irrelevant translation.
-    next
-	unless ( $translation->{'inputVersion'} eq $options{'inputVersion'} );
-    # Report.
-    print "Translating from v".$translation->{'inputVersion'}." to v".$translation->{'outputVersion'}."\n";
-    $options{'inputVersion'} = $translation->{'outputVersion'};
-    # Apply translations.
-    for my $parameter ( $parameters->findnodes('parameter') ) {
-	# Get name and value text elements.
-	my $name  = $parameter->findnodes('name' )->[0]->firstChild();
-	my $value = $parameter->findnodes('value')->[0]->firstChild();
-	# Translate names.
-	if ( exists($translation->{'names'}->{$name->data()}) ) {
-	    print "   translate parameter name: ".$name->data()." --> ".$translation->{'names'}->{$name->data()}."\n";
-	    $name->setData($translation->{'names'}->{$name->data()});;
-	}
-	# Translate values.
-	if ( exists($translation->{'values'}->{$name->data()}) ) {
-	    # Split values.
-	    my $valuesText = $value->data();
-	    $valuesText =~ s/^\s*//;
-	    $valuesText =~ s/\s*$//;
-	    my @values;
-	    if ( $translation->{'inputVersion'} eq "0.9.0" ) {
-		# For v0.9.0, we cannot split as method names were permitted to contain spaces.
-		push(@values,$valuesText);
-	    } else {
-		@values = split(/\s+/,$valuesText);
-	    }
-	    foreach my $thisValue ( @values ) {
-		if ( exists($translation->{'values'}->{$name->data()}->{$thisValue}) ) {
-		    print "   translate parameter value: ".$name->data()."\n";
-		    if ( ref($translation->{'values'}->{$name->data()}->{$thisValue}) ) {
-			my $newValue = $translation->{'values'}->{$name->data()}->{$thisValue};
-			print "                                 ".$thisValue." --> ".$newValue->{'value'}."\n";
-			$thisValue = $newValue->{'value'};
-			if ( exists($newValue->{'new'}) ) {
-			    foreach my $newParameter ( &ExtraUtils::as_array($newValue->{'new'}) ) {
-				print "      add parameter: ".$newParameter->{'name'}." = ".$newParameter->{'value'}."\n";
-				my $parameterNode = $input->createElement (                "parameter" );
-				my $name          = $input->createElement (                "name"      );
-				my $value         = $input->createElement (                "value"     );
-				my $nameText      = $input->createTextNode($newParameter->{'name'     });
-				my $valueText     = $input->createTextNode($newParameter->{'value'    });
-				$name ->addChild($nameText );
-				$value->addChild($valueText);
-				$parameterNode->addChild($input->createTextNode("\n    "));
-				$parameterNode->addChild($name  );
-				$parameterNode->addChild($input->createTextNode("\n    "));
-				$parameterNode->addChild($value );
-				$parameterNode->addChild($input->createTextNode("\n  "));
-				$parameters->insertAfter($parameterNode,$parameter);
-				$parameters->insertAfter($input->createTextNode("\n  "),$parameter);
-			    }
-			}
-		    } else {
-			print "                                 ".$thisValue." --> ".$translation->{'values'}->{$name->data()}->{$thisValue}."\n";
-			$thisValue = $translation->{'values'}->{$name->data()}->{$thisValue};
-		    }
-		}
-		$value->setData(join(" ",@values));
-	    }
-	}
-    }
-    # Finished if output version is reached.
-    last
-	if ( $options{'outputVersion'} eq $options{'inputVersion'} );
+# Iterate over parameter sets.
+foreach my $parameters ( @parameterSets ) {
+    &Translate($parameters,1,$inputFileName);
 }
 
 # Output the resulting file.
+my $pp = XML::LibXML::PrettyPrint->new(indent_string => "  ");
+$pp->pretty_print($input)
+    if ( $options{'prettyify'} eq "yes" );
 $input->toFile($outputFileName);
 
 exit;
+
+sub Translate {
+    my $parameters    = shift();
+    my $rootLevel     = shift();
+    my $inputFileName = shift();
+
+    # Set initial input/output versions.
+    my $inputVersion  = $options{'inputVersion' };
+    my $outputVersion = $options{'outputVersion'};
+
+    # Check for a version element.
+    my $version    = $parameters->findnodes('version')->[0];
+    if ( defined($version) ) {
+	$inputVersion = $version->textContent()
+	    unless ( exists($optionsDefined{'inputVersion'}) );
+	$version->firstChild()->setData("0.9.4");
+    } elsif ( $rootLevel ) {
+	my $versionNode = $input->createElement ("version");
+	my $newVersion  = $input->createTextNode("0.9.4"  );
+	my $newBreak    = $input->createTextNode("\n  "   );
+	$versionNode->addChild($newVersion);
+	$parameters->insertBefore($versionNode,$parameters->firstChild());
+	$parameters->insertBefore($newBreak   ,$parameters->firstChild());
+    }
+    
+    # Determine output format version.
+    unless ( exists($options{'outputFormatVersion'}) ) {
+	$options{'outputFormatVersion'} = 1;
+	my @outputVersionSubstrings = split(/\./,$outputVersion);
+	$options{'outputFormatVersion'} = 2
+	    if (
+		$outputVersionSubstrings[0] >  0
+		||
+		(
+		 $outputVersionSubstrings[0] == 0
+		 &&    
+		 $outputVersionSubstrings[1] >  9
+		)
+		||
+		(
+		 $outputVersionSubstrings[0] == 0
+		 &&    
+		 $outputVersionSubstrings[1] == 9
+		 &&    
+		 $outputVersionSubstrings[2] >  3
+		)
+	    );
+    }
+    
+    # Check for a format version element.
+    my $formatVersion = $parameters->findnodes('formatVersion')->[0];
+    if ( defined($formatVersion) ) {
+	$options{'inputFormatVersion'} = $formatVersion->textContent();
+	$formatVersion->firstChild()->setData($options{'outputFormatVersion'});
+    } elsif ( $rootLevel ) {
+	my $formatVersionNode = $input->createElement ("formatVersion"                );
+	my $newFormatVersion  = $input->createTextNode($options{'outputFormatVersion'});
+	my $newBreak          = $input->createTextNode("\n  "                         );
+	$formatVersionNode->addChild($newFormatVersion);
+	$parameters->insertBefore($formatVersionNode,$parameters->firstChild());
+	$parameters->insertBefore($newBreak         ,$parameters->firstChild());
+    }
+        
+    # Validate the parameter file.
+    if ( $options{'validate'} eq "yes" ) {
+	system($galacticusPath."scripts/aux/validateParameters.pl ".$inputFileName);
+	die('input file "'.$inputFileName.'"is not a valid Galacticus parameter file')
+	    unless ( $? == 0 );
+    }
+    
+    # Iterate over translations.
+    foreach my $translation ( @translations ) {
+	# Skip irrelevant translation.
+	next
+	    unless ( $translation->{'inputVersion'} eq $inputVersion );
+	# Report.
+	print "Translating from v".$translation->{'inputVersion'}." to v".$translation->{'outputVersion'}."\n";
+	$inputVersion = $translation->{'outputVersion'};
+	# Apply translations.
+	for my $parameter ( $parameters->findnodes('parameter') ) {
+	    # Get name and value text elements.
+	    my $name  = $parameter->findnodes('name' )->[0]->firstChild();
+	    my $value = $parameter->findnodes('value')->[0]->firstChild();
+	    # Translate names.
+	    if ( exists($translation->{'names'}->{$name->data()}) ) {
+		print "   translate parameter name: ".$name->data()." --> ".$translation->{'names'}->{$name->data()}."\n";
+		$name->setData($translation->{'names'}->{$name->data()});;
+	    }
+	    # Translate values.
+	    if ( exists($translation->{'values'}->{$name->data()}) ) {
+		# Split values.
+		my $valuesText = $value->data();
+		$valuesText =~ s/^\s*//;
+		$valuesText =~ s/\s*$//;
+		my @values;
+		if ( $translation->{'inputVersion'} eq "0.9.0" ) {
+		    # For v0.9.0, we cannot split as method names were permitted to contain spaces.
+		    push(@values,$valuesText);
+		} else {
+		    @values = split(/\s+/,$valuesText);
+		}
+		foreach my $thisValue ( @values ) {
+		    if ( exists($translation->{'values'}->{$name->data()}->{$thisValue}) ) {
+			print "   translate parameter value: ".$name->data()."\n";
+			if ( ref($translation->{'values'}->{$name->data()}->{$thisValue}) ) {
+			    my $newValue = $translation->{'values'}->{$name->data()}->{$thisValue};
+			    print "                                 ".$thisValue." --> ".$newValue->{'value'}."\n";
+			    $thisValue = $newValue->{'value'};
+			    if ( exists($newValue->{'new'}) ) {
+				foreach my $newParameter ( &ExtraUtils::as_array($newValue->{'new'}) ) {
+				    print "      add parameter: ".$newParameter->{'name'}." = ".$newParameter->{'value'}."\n";
+				    my $parameterNode = $input->createElement (                "parameter" );
+				    my $name          = $input->createElement (                "name"      );
+				    my $value         = $input->createElement (                "value"     );
+				    my $nameText      = $input->createTextNode($newParameter->{'name'     });
+				    my $valueText     = $input->createTextNode($newParameter->{'value'    });
+				    $name ->addChild($nameText );
+				    $value->addChild($valueText);
+				    $parameterNode->addChild($input->createTextNode("\n    "));
+				    $parameterNode->addChild($name  );
+				    $parameterNode->addChild($input->createTextNode("\n    "));
+				    $parameterNode->addChild($value );
+				    $parameterNode->addChild($input->createTextNode("\n  "));
+				    $parameters->insertAfter($parameterNode,$parameter);
+				    $parameters->insertAfter($input->createTextNode("\n  "),$parameter);
+				}
+			    }
+			} else {
+			    print "                                 ".$thisValue." --> ".$translation->{'values'}->{$name->data()}->{$thisValue}."\n";
+			    $thisValue = $translation->{'values'}->{$name->data()}->{$thisValue};
+			}
+		    }
+		    $value->setData(join(" ",@values));
+		}
+	    }
+	}
+	# Finished if output version is reached.
+	last
+	    if ( $outputVersion eq $inputVersion );
+    }
+    
+    # Handle transition from old to new.
+    if ( $options{'outputFormatVersion'} == 2 ) {
+	print "Converting to new format (v2)...\n";
+	for my $parameter ( $parameters->findnodes('parameter') ) {
+	    # Get name and value text elements.
+	    my $name   = $parameter->findnodes('name' )->[0]->firstChild();
+	    my @values = $parameter->findnodes('value');
+	    # Create the new node.
+	    my $parameterNode = $input->createElement($name );
+	    # Determine if we can use a value attribute or not.
+	    my $useAttribute = 1;
+	    $useAttribute = 0
+		if ( scalar(@values) > 1 );
+	    foreach my $valueNode ( @values ) {
+		$useAttribute = 0
+		    if ( $valueNode->findnodes('*') );
+	    }
+	    # Add values.
+	    foreach my $valueNode ( @values ) {
+		my $value  = $valueNode->firstChild();
+		# Find any subparameters.
+		my @subParameters = $valueNode->findnodes('*');
+		if ( $useAttribute ) {
+		    $parameterNode->setAttribute('value',$value);
+		} else {
+		    &Translate($valueNode,0,$inputFileName)
+			if ( @subParameters );
+		    $parameterNode->addChild($input->createTextNode("\n"));
+		    $parameterNode->addChild($valueNode);
+		}
+	    }
+	    $parameterNode->addChild($input->createTextNode("\n"))
+		unless ( $useAttribute );
+	    # Insert the new node.
+	    $parameters->insertAfter($parameterNode,$parameter);
+	    # Remove the old parameter.
+	    $parameters->removeChild($parameter);
+	}
+	for my $parameter ( $parameters->getChildrenByTagName("*") ) {
+	    if ( exists($subParameters{$parameter->nodeName()}) ) {
+		$parameters->removeChild($parameter->nextSibling());
+		my $sibling = $parameter->nextSibling();
+		my $hostFound;
+		for my $hostParameter ( $parameters->getChildrenByTagName("*") ) {
+		    if ( $hostParameter->nodeName() eq $subParameters{$parameter->nodeName()} ) {
+			$hostParameter->addChild($input     ->createTextNode("  "      ));
+			$hostParameter->addChild($parameters->removeChild   ($parameter));
+			$hostParameter->addChild($input     ->createTextNode("\n  "    ));
+			$hostFound = 1;
+		    }
+		}
+		unless ( $hostFound ) {
+		    # Create the new node.
+		    die('parametersMigrate.pl: attempting to insert a "'.$subParameters{$parameter->nodeName()}.'" element, but no default value is known')
+			unless ( exists($knownDefaults{$subParameters{$parameter->nodeName()}}) );
+		    my $parameterNode = $input->createElement($subParameters{$parameter->nodeName()});
+		    $parameterNode->setAttribute('value',$knownDefaults{$subParameters{$parameter->nodeName()}});
+		    $parameterNode->addChild($input     ->createTextNode("\n    "  ));
+		    $parameterNode->addChild($parameters->removeChild   ($parameter));
+		    $parameterNode->addChild($input     ->createTextNode("\n  "    ));
+		    $parameters->insertBefore($parameterNode,$sibling);
+		}
+	    }
+	}
+    }
+}

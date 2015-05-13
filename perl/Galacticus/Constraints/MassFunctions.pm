@@ -121,7 +121,7 @@ sub Construct {
 	my $weight   = $dataSets->{'mergerTreeWeight'};
 	# Find cosmological conversion factors.
 	my $cosmologyObserved = Astro::Cosmology->new(omega_matter => $config->{'omegaMatterObserved'}, omega_lambda =>  $config->{'omegaDarkEnergyObserved'}, h0 =>  $config->{'hubbleConstantObserved'});
-	my $cosmologyModel    = Astro::Cosmology->new(omega_matter => $galacticus->{'parameters'}->{'Omega_Matter'}, omega_lambda => $galacticus->{'parameters'}->{'Omega_DE'}, h0 => $galacticus->{'parameters'}->{'H_0'});
+	my $cosmologyModel    = Astro::Cosmology->new(omega_matter => $galacticus->{'parameters'}->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}, omega_lambda => $galacticus->{'parameters'}->{'cosmologyParametersMethod'}->{'OmegaDarkEnergy'}->{'value'}, h0 => $galacticus->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
 	my $cosmologyScalingMass         = 1.0;
 	my $cosmologyScalingMassFunction = 1.0;
 	if ( $config->{'cosmologyScalingMass'} eq 'none' || $config->{'redshift'} <= 0.0 ) {
@@ -162,7 +162,7 @@ sub Construct {
 	    for(my $i=0;$i<=$config->{'systematicOrder'};++$i) {
 		my $parameterName = $config->{'systematicParameter'}.$i;
 		$systematicOffset += 
-		    $galacticus->{'parameters'}->{$parameterName}
+		    $galacticus->{'parameters'}->{$parameterName}->{'value'}
 		    *($logarithmicMass-$config->{'systematicZeroPoint'})**$i;
 	    }
 	    $logarithmicMass += $systematicOffset;

@@ -1,5 +1,296 @@
 \chapter{Coding \glc}
 
+\section{Galacticus Preprocessor Directives}
+
+\glc\ has its own preprocessor for Fortran source files. This preprocesses parses each source file into an internal tree representation, performs various manipulations on that tree, and then outputs the preprocessed file for compilation. The preprocessor is used to automate and standardize many common tasks, through the inclusion of directives into the source code. Directives are specified in comment lines beginning {\normalfont \ttfamily !\#}, and are written in XML. The remainder of this section describes the various preprocessor functionalities, and gives examples of their usage.
+
+\subsection{Optional Arguments}
+
+Fortran supports optional arguments to functions, but does not provide for a default value if those arguments are not present. The {\normalfont \ttfamily optionalArgument} directive allows a default value to be specified. In the following example, a default value is defined for the {\normalfont \ttfamily units} argument:
+
+\begin{lstlisting}
+  double precision function simpleHubbleConstant(self,units)
+    implicit none
+    class  (cosmologyParametersSimple), intent(inout)           :: self
+    integer                           , intent(in   ), optional :: units
+    !# <optionalArgument name="units" defaultsTo="hubbleUnitsStandard" />
+
+    select case (units_)
+    case (hubbleUnitsStandard)
+       ! Return the value using the default units.
+    case ....
+       ! Return the value using some other units.
+    end select
+    return
+  end function simpleHubbleConstant
+\end{lstlisting}
+The {\normalfont \ttfamily optionalArgument} directive should appear after variable declarations and before any attempt to use the optional argument, and should have two attributes, {\normalfont \ttfamily name} and {\normalfont \ttfamily defaultsTo} which give the name of the argument variable and its default value respectively. The preprocessor will add a new variable with the same name plus an underscore suffix, and will ensure that it is initialized to the default value if the optional variable is not present, otherwise setting it to the value of the optional variable.
+
+Note that for optional arguments that are {\normalfont \ttfamily intent(out)} or {\normalfont \ttfamily intent(inout)} the preprocessor currently \emph{does not} ensure that the value of the new variable is copied back to the argument prior to exit from the function.
+
+\subsection{Enumerations}
+
+The {\normalfont \ttfamily enumeration} directive allows specification of an enumeration (a set of labels), and (optionally) functions to decode such a label from user input. The following example illustrates this usage:
+
+\begin{lstlisting}
+module Cosmology_Parameters
+
+  !# <enumeration>
+  !#  <name>hubbleUnits</name>
+  !#  <description>Specifies the units for the Hubble constant.</description>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="standard" />
+  !#  <entry label="time"     />
+  !#  <entry label="littleH"  />
+  !# </enumeration>
+
+contains
+
+  subroutine Test_Enumeration()
+    implicit none
+    class(cosmologyParametersClass), pointer :: cosmologyParameters_
+    cosmologyParameters_ => cosmologyParameters()
+    write (0,*) "Hubble constant in little-h units is: ",cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+    if (enumerationComponentTypeEncode('hubbleUnitsStandard') == hubbleUnitsStandard) then
+      write (0,*) "Enumeration decoding succeeded"
+    else
+      write (0,*) "Enumeration decoding failed"
+    end if
+    if (enumerationComponentTypeEncode('standard',includesPrefix=.false.) == hubbleUnitsStandard) then
+      write (0,*) "Enumeration decoding succeeded"
+    else
+      write (0,*) "Enumeration decoding failed"
+    end if
+    return
+  end subroutine Test_Enumeration
+
+end module Cosmology_Parameters
+\end{lstlisting}
+
+Enumerations must be defined in the declaration section of a {\normalfont \ttfamily module}. The encoding function will only be generated if the {\normalfont \ttfamily encode} element is present and has content {\normalfont \ttfamily yes}. Note that the {\normalfont \ttfamily description} element is used to generate an entry for the enumeration in the document, and so should be written in \LaTeX\ syntax.
+
+\subsection{Input Parameters}
+
+The {\normalfont \ttfamily inputParameter} directive reads an input parameter and assigns the appropriate value to the given variable. {\normalfont \ttfamily inputParameter} directives must occur within the main body of a function, subroutine, or program. A default value can be specified if desired. The following example illustrates this usage:
+
+\begin{lstlisting}
+  subroutine simpleParametersRead()
+    implicit none
+    double precision :: hubbleConstant
+    !# <inputParameter>
+    !#   <name>HubbleConstant</name>
+    !#   <source>myParameters</source>
+    !#   <variable>hubbleConstant</variable>
+    !#   <defaultValue>69.7d0</defaultValue>
+    !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+    !#   <description>The present day value of the Hubble parameter in units of km/s/Mpc.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    if (hubbleConstant < 0.0d0) write (0,*) "The universe is collapsing!"
+    return
+  end subroutine simpleParametersRead
+\end{lstlisting}
+
+In this case, the value of the {\normalfont \ttfamily HubbleConstant} parameter is assigned to the {\normalfont \ttfamily hubbleConstant} variable, with a default for of $69.7$ if no value was specified in the input parameter file. If the {\normalfont \ttfamily source} element is present, the parameter will be read from the named {\normalfont \ttfamily inputParameters} set, otherwise the parameter will be read from the top-level of the parameters file. The {\normalfont \ttfamily defaultSource}, {\normalfont \ttfamily <description>The}, {\normalfont \ttfamily type}, and {\normalfont \ttfamily cardinality} elements are used only for adding an entry for the input parameter to the documentation, and so should be written in \LaTeX\ syntax.
+
+\subsection{Input Parameter Lists}
+
+The {\normalfont \ttfamily inputParameterList} directive will construct a {\normalfont \ttfamily varying\_string} array containing the names of all input parameters which are defined in the unit in which the directive appears. The name of the array is specified by the {\normalfont \ttfamily label} attribute of the {\normalfont \ttfamily inputParameterList} directive. Such a list can be used to validate the names of parameters passed to a function for example.
+
+\subsection{Function Classes}
+
+Most\footnote{At this time the \protect\glc\ code base is being transitioned to use this approach.} of the internal functionality within \glc\ is provided by ``function classes''. These are classes (in the object oriented sense) which model some particular physical entity or concept (e.g. the underlying cosmological model) and provide one or more functions associated with that entity or concept. A default implementation of each function class can be selected at run-time, allowing for simple user-defined control of model behavior. A function class is specified by a {\normalfont \ttfamily functionClass} directive, together with one or more implementations of the function class specified by their own directives.
+
+An example of a function class directive, which defines a class for cosmological parameters (which in this case, for simplicity, consists of just the Hubble constant) is given below:
+
+\begin{lstlisting}
+  !# <functionClass>
+  !#  <name>cosmologyParameters</name>
+  !#  <descriptiveName>Cosmological Parameters</descriptiveName>
+  !#  <description>Object providing various cosmological parameters.</description>
+  !#  <default>simple</default>
+  !#  <defaultThreadPrivate>no</defaultThreadPrivate>
+  !#  <stateful>no</stateful>
+  !#  <calculationReset>no</calculationReset>
+  !#  <method name="HubbleConstant" >
+  !#   <description>Return the Hubble constant at the present day. The optional {\normalfont \ttfamily units} argument specifies if the return value should be in units of km/s/Mpc (hubbleUnitsStandard), Gyr$^{-1}$ (hubbleUnitsTime), or 100 km/s/Mpc (hubbleUnitsLittleH).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ), optional :: units</argument>
+  !#  </method>
+  !# </functionClass>
+\end{lstlisting}
+
+The directive should contain the following elements:
+\begin{description}
+\item[{\normalfont \ttfamily name}] The name of this function class.
+\item[{\normalfont \ttfamily descriptiveName}] A descriptive name for the function class, suitable for inclusion in the documentation.
+\item[{\normalfont \ttfamily description}] A description of the purpose of this function class. This description will be included into the documentation so should be written in \LaTeX\ syntax.
+\item[{\normalfont \ttfamily default}] The default implementation to use for this function class if no choice is made in the input parameter file.
+\item[{\normalfont \ttfamily defaultThreadPrivate}] \emph{(optional)} If present and set to {\normalfont \ttfamily yes} then the default implementation of this function class will be made OpenMP thread private. Otherwise, the default implementation is shared between threads. A thread private default implementation can be useful if the function class may need to generate look-up tables unique to each thread on the fly for example.
+\item[{\normalfont \ttfamily stateful}] \emph{(optional)} If present and set to {\normalfont \ttfamily yes} then the default implementation of the function class is deemed to be stateful, in the sense that it may have internal state to be stored and restored from file (see \S\ref{sec:Restarting}). In this case, additional methods are generated for the function class: {\normalfont \ttfamily stateStore}, {\normalfont \ttfamily stateRestore}, and {\normalfont \ttfamily stateSnapshot} with interfaces:
+  \begin{lstlisting}
+    subroutine stateStore(self,stateFile,fgslStateFile)
+      class  (functionClassBaseName), intent(inout) :: self
+      integer                       , intent(in   ) :: stateFile
+      type   (fgsl_file            ), intent(in   ) :: fgslStateFile
+    end subroutine stateStore
+
+    subroutine stateRestore(self,stateFile,fgslStateFile)
+      class  (functionClassBaseName), intent(inout) :: self
+      integer                       , intent(in   ) :: stateFile
+      type   (fgsl_file            ), intent(in   ) :: fgslStateFile
+    end subroutine stateRestore
+
+    subroutine stateSnapshot(self)
+      class  (functionClassBaseName), intent(inout) :: self
+    end subroutine stateSnapshot
+  \end{lstlisting}
+  These methods have null implementations for the base class of the function class, but can be overridden to store/restore the state of any given implementation.
+\item[{\normalfont \ttfamily calculationReset}] \emph{(optional)} If present and set to {\normalfont \ttfamily yes} then the default implementation of the function class is assumed to possibly want to reset its calculations when the active \gls{node} changes (see \S\ref{sec:CalculationResetTask}). In this case, an additional method is generated for the function class: {\normalfont \ttfamily calculationReset} with interface:
+  \begin{lstlisting}
+    subroutine calculationReset(self,thisNode)
+      class  (functionClassBaseName), intent(inout)          :: self
+      type   (treeNode             ), intent(inout), pointer :: thisNode
+    end subroutine calculationReset
+  \end{lstlisting}
+  This method has a null implementation for the base class of the function class, but can be overridden to reset calculations of any given implementation.
+\item[{\normalfont \ttfamily method}] Each {\normalfont \ttfamily method} element defines a method which the function class will support, the name of which is given by a {\normalfont \ttfamily name} attribute. The method definition must contain the following elements:
+  \begin{description}
+  \item[{\normalfont \ttfamily description}] A description of this method (in \LaTeX\ syntax) suitable for inclusion into the documentation.
+  \item[{\normalfont \ttfamily type}] The type of the function (e.g. {\normalfont \ttfamily double precision}; use {\normalfont \ttfamily void} for a subroutine).
+  \item[{\normalfont \ttfamily pass}] If {\normalfont \ttfamily yes} pass the object that the method was called on as the first argument.
+  \item[{\normalfont \ttfamily argument}] \emph{(optional)} Zero or more declarations (in standard Fortran syntax) for the method arguments (there is no need to specify the declaration for the object upon which the method was called in the case where this object is passed to the method function).
+  \end{description}
+\end{description}
+
+Implementations of this function class must be declared with a directive having the same name as the function class (i.e. {\normalfont \ttfamily cosmologyParameters} in the example above). The directive must give the name of the implementation as an attribute, and a description of the implementation suitable for inclusion into the documentation. Each implementation should be placed in a separate file---the preprocessor will find these files and merge the implementations and function class definition into a single file for compilation. Each implementation should declare a class which extends the basic function class, constructor interfaces, and any module-scope data required by the class. The implementation should also define all necessary functions required by the class (separated from the declarations by a {\normalfont \ttfamily contains} keyword). An example is given below:
+
+\begin{lstlisting}
+  !# <cosmologyParameters name="cosmologyParametersSimple">
+  !#  <description>Provides the Hubble constant: $H_0$.</description>
+  !# </cosmologyParameters>
+  type, extends(cosmologyParametersClass) :: cosmologyParametersSimple
+     private
+     double precision :: HubbleConstantValue
+   contains
+     final     ::                    simpleDestructor
+     procedure :: HubbleConstant  => simpleHubbleConstant
+  end type cosmologyParametersSimple
+
+  interface cosmologyParametersSimple
+     module procedure simpleDefaultConstructor
+     module procedure simpleConstructor
+  end interface cosmologyParametersSimple
+
+contains
+
+  function simpleDefaultConstructor()
+    implicit none
+    type(cosmologyParametersSimple) :: simpleDefaultConstructor
+
+    ! Construct an instance of this class using a value of the Hubble constant read from the input parameter file.
+    !# <inputParameter>
+    !#   <name>H_0</name>
+    !#   <variable>simpleDefaultConstructor%HubbleConstantValue</variable>
+    !#   <defaultValue>69.7d0</defaultValue>
+    !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+    !#   <description>The present day value of the Hubble parameter in units of km/s/Mpc.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    return
+  end function simpleDefaultConstructor
+
+  function simpleConstructor(HubbleConstant)
+    implicit none
+    type            (cosmologyParametersSimple)                :: simpleConstructor
+    double precision                           , intent(in   ) :: HubbleConstant
+
+    ! Construct an instance of this class using a value of the Hubble constant provided directly.
+    simpleConstructor%HubbleConstantValue=HubbleConstant
+    return
+  end function simpleConstructor
+
+  elemental subroutine simpleDestructor(self)
+    implicit none
+    type(cosmologyParametersSimple), intent(inout) :: self
+
+    ! Do any clean-up required by this class when an instance goes out-of-scope.
+    return
+  end subroutine simpleDestructor
+
+  double precision function simpleHubbleConstant(self,units)
+    implicit none
+    class  (cosmologyParametersSimple), intent(inout)           :: self
+    integer                           , intent(in   ), optional :: units
+
+    ! Do whatever is necessary to return the Hubble constant in the appropriate units.
+    return
+  end function simpleHubbleConstant
+\end{lstlisting}
+
+In the above example, we define a ``simple'' implementation of the {\normalfont cosmologyParameters} class. Key points are:
+\begin{description}
+\item[Name:] The name should always be prefixed with the function class name. In this case, we have a {\normalfont \ttfamily simple} implementation of the {\normalfont \ttfamily cosmologyParameters} function class, and so our name is {\normalfont \ttfamily cosmologyParametersSimple}.
+\item[Extends:] The base class for the function class is always the function class name suffixed with {\normalfont \ttfamily Class}, in this case {\normalfont \ttfamily cosmologyParametersClass}. Implementations must always be extensions of either this base class, or of another implementation.
+\item[Procedures:] The implementation must define procedures for all methods of the function class, \emph{except} for where a method specified a {\normalfont \ttfamily code} element in the function class directive (in which case a procedure for the method may still be optionally defined). Specification of a {\normalfont \ttfamily final} function is encouraged.
+\item[Constructors:] The implementation must specify at least one constructor, which takes no arguments (usually known as the default constructor). This constructor must create an instance of the implementation, setting any parameters from the input parameter file as necessary. Additional constructors may be defined as required.
+\item[Procedures:] All required procedures (including constructors and destructors) should be given after a line containing the {\normalfont \ttfamily contains} keyword. \glc\ coding policy is that all procedures associated with an implementation should be prefixed with the implementation name, {\normalfont \ttfamily simple} in this case.
+\end{description}
+
+\subsection{Generic Programming}
+
+The preprocessor supports generic programming by allowing generic types to be defined, which are automatically expanded to a set of specific types. Significant flexibility is provided to allow control over how each specific type is handled. A generic type is specific via a {\normalfont \ttfamily generic} directive such as:
+\lstset{escapechar=@}
+\begin{lstlisting}
+  !# <generic identifier="Type">
+  !#  <instance label="Logical"        intrinsic="logical"                         outputConverter="regEx@\textbrokenbar@(.*)@\textbrokenbar@char($1)@\textbrokenbar@"/>
+  !#  <instance label="Integer"        intrinsic="integer"                         outputConverter="regEx@\textbrokenbar@(.*)@\textbrokenbar@$1@\textbrokenbar@"      />
+  !#  <instance label="Double"         intrinsic="double precision"                outputConverter="regEx@\textbrokenbar@(.*)@\textbrokenbar@$1@\textbrokenbar@"      />
+  !#  <instance label="LogicalRank1"   intrinsic="logical          , dimension(:)" outputConverter="regEx@\textbrokenbar@(.*)@\textbrokenbar@char($1)@\textbrokenbar@"/>
+  !#  <instance label="IntegerRank1"   intrinsic="integer          , dimension(:)" outputConverter="regEx@\textbrokenbar@(.*)@\textbrokenbar@$1@\textbrokenbar@"      />
+  !#  <instance label="DoubleRank1"    intrinsic="double precision , dimension(:)" outputConverter="regEx@\textbrokenbar@(.*)@\textbrokenbar@$1@\textbrokenbar@"      />
+  !# </generic>
+\end{lstlisting}
+The above defines a generic type, which will be identified using the label ``{\normalfont \ttfamily Type}''. The directive contains several {\normalfont \ttfamily instance} elements, each of which specifies a specific type which should be implemented for the generic type. Each instance can contain an arbitrary number of attributes which specify strings or regular expressions which will be used to construct the specific implementation.
+
+A generic directive applies to the entire unit within which it is scoped. The preprocessor will examine every element within that unit. If a generic tag (see below) is found in the opening of any subunit, that entire subunit is copied once for each instance, and any generic tags replaced with the appropriate content from the {\normalfont \ttfamily instance} element. Where a generic tag is found in a non-opening line (and that line is not contained within a subunit whose opener \emph{does} contain a generci tag), the line itself is replicated in the same way.
+
+An example of the usage of generic tags using the above generic directive is:
+\lstset{escapechar=@}
+\begin{lstlisting}
+
+  type :: exampleType
+     private
+     .
+     .
+     .
+   contains
+     final     ::        exampleTypeDestroy
+     procedure ::        exampleTypeSet{Type@\textbrokenbar@label}
+     generic   :: set => exampleTypeSet{Type@\textbrokenbar@label}
+  end type exampleType
+
+contains
+
+  subroutine exampleTypeSet{Type@\textbrokenbar@label}(self,setValue)
+    implicit none
+    class           (exampleType), intent(in   ) :: self
+    {Type@\textbrokenbar@intrinsic}             , intent(in   ) :: setValue
+
+    {Type@\textbrokenbar@match@\textbrokenbar@^Logical@\textbrokenbar@! Do something to set a logical value.@\textbrokenbar@! Do something different to set a numerical value.@\textbrokenbar@}
+    write (0,*) "Value is: ",{Type@\textbrokenbar@outputConverter@\textbrokenbar@setValue}
+  end subroutine exampleTypeSet{Type@\textbrokenbar@label}
+\end{lstlisting}
+
+In this example, the {\normalfont \ttfamily exampleType} class is defined to have a generic {\normalfont \ttfamily set} method. The presence of the {\normalfont \ttfamily \{Type@\textbrokenbar@label\}} generic tag will cause those lines to be replicated with the tag replaced by the content of the {\normalfont \ttfamily label} attribute of each instance of the generic type. In the contained subroutine, a generic tag appears in the opener. As such, the entire subroutine will be replicated once for each instance of the generic type, and the generic tags replaced as appropriate.
+
+When a generic instance attribute begins with {\normalfont \ttfamily regEx}, matching generic tags are handled differently. In particular, a match-and-replace regular expression is applied to the third element of the generic tag (elements are separated by broken vertical bar characters). The match and replace components of the regular expression are defined in the instance attribute, once again separated by broken vertical bars.
+
+Finally, the special generic tag {\normalfont \ttfamily match} acts as a ternary operator. If the regular expression specified in the third element matches the {\normalfont \ttfamily label} attribute of a specific instance, the generic tag is replaced with its fourth element, otherwise it is replaced with its fifth element.
+
 \section{Numerical Tools}
 
 \glc\ provides a variety of tools to solve basic numerical problems. These can be found in files {\normalfont \ttfamily source/numerical.*}. \glc\ makes use of the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} for many of these tools, but typically provides a higher-level wrapper around those functions, providing a cleaner interface and, in some cases, additional functionality.
@@ -191,6 +482,8 @@ Here, {\normalfont \ttfamily myFunction} is the name of the function to make glo
 \subsection{Enumerations}
 
 Enumerations are used to communicate options to many functions in \glc. All available enumerations, along with their members, are described below.
+
+\input{autoEnumerationDefinitions}
 
 \input{dataEnumerations}
 

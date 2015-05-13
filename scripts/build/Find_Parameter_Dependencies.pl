@@ -39,8 +39,26 @@ close(iHndl);
 my %parametersListed;
 opendir(sDir,"source");
 while ( my $fileName = readdir(sDir) ) {
-    if ( ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.cpp$/ ) && $fileName !~ m/^\.\#/ ) {
-	(my $objectFile = $fileName) =~ s/\.[a-zA-Z0-9]+$/\.o/;
+    # Skip junk files.
+    next
+	if ( $fileName =~ m/^\.\#/ );
+    # For Fortran files, check for a ".p" parameter file in the build directory.
+    if ( $fileName =~ m/\.F90$/) {
+	(my $parameterFile = $fileName) =~ s/\.F90$/.p/;
+	if ( -e $ENV{'BUILDPATH'}."/".$parameterFile ) {
+	    open(my $parameterFile,$ENV{'BUILDPATH'}"/".$parameterFile);
+	    while ( my $parameterName = <$parameterFile> ) {
+		chomp($parameterName);
+		unless ( grep {$_ eq $parameterName} @{$dependencies->{'parameters' }} ) {
+		    push(@{$dependencies->{'parameters'}},$parameterName);
+		}
+	    }
+	    close($parameterFile);
+	}
+    }
+    # Process Fortran and C++ files.
+    if ( $fileName =~ m/\.(F90|cpp)$/ ) {
+	(my $objectFile = $fileName) =~ s/\.(F90|cpp)$/\.o/;
 	# Open the file and scan for parameters.
 	my $xmlBuffer;
 	my @fileStack = ( "source/".$fileName );
@@ -56,8 +74,8 @@ while ( my $fileName = readdir(sDir) ) {
 			    unless ( $fileName eq "fftw3.f03" );
 		    }
 		}
-		# Search for XML.
-		if ( $line =~ m/^\s*(\!|\/\/)@(.*)/ ) {
+		# Search for XML.		
+		if ( $line =~ m/^\s*(!|\/\/)\@(.*)/ ) {
 		    my $xmlLine = $2;
 		    $xmlBuffer = "" if ( $xmlLine =~ m/^\s*<inputParameter>\s*$/ );
 		    $xmlBuffer .= $xmlLine;

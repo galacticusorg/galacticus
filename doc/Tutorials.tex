@@ -483,7 +483,7 @@ In this case we've constructed three new sets, in addition to the default set (w
 
 In this way it is relatively easy to extract multiple different measures of luminosity from a \glc\ model. For example, you could construct four postprocessor sets, each corresponding to one of the four different \gls{igm} absorption models ({\normalfont \ttfamily lycSuppress}, {\normalfont \ttfamily madau1995}, {\normalfont \ttfamily meiksin2006}, and {\normalfont \ttfamily inoue2014}) and apply these to the same luminosity filter to assess how luminosity depends on the \gls{igm} model used.
 
-\subsection{Migrating Parameter Files to a New Version}\index{migration}\index{parameters}
+\subsection{Migrating Parameter Files to a New Version}\label{sec:MigrateParameters}\index{migration}\index{parameters}
 
 The names and allowed values of parameters often change between versions of \glc. To permit easy and error-free migration between versions a script is provided to translate parameter files from earlier to later versions. To migrate a parameter file simply use:
 \begin{verbatim}

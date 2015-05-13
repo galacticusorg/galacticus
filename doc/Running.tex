@@ -32,16 +32,27 @@ setting {\normalfont \ttfamily passwordFrom} to {\normalfont \ttfamily kdewallet
 \glc\ requires a file of parameters to be given as a command line argument. The parameter file is an XML file (which makes it easy to manipulate and construct these files from within many languages, e.g. Perl) with the following structure:
 \begin{verbatim}
  <parameters>
-   <parameter>
-     <name>parameter1name</name>
-     <value>parameter1value</value>
-   </parameter>
+   <version>0.9.4</version>
+   <formatVersion>2</formatVersion>
+   <parameter1Name value= "parameter1Value" />
+   <parameter2Name>
+     <value>parameter2Value</value>
+   </parameter2Name>
+   <parameter3Name value= "parameter3Value" >
+      <subParameter1Name value= "subParameter1Value" />
+      <subParameter2Name value= "subParameter2Value" />
+      .
+      .
+      .
+   </parameter3Name>
    .
    .
    .
  </parameters>
 \end{verbatim}
-Each {\normalfont \ttfamily parameter} element contains {\normalfont \ttfamily name} and {\normalfont \ttfamily value} elements which contain the parameter name and desired value respectively. The value can be a number, word(s) or an array of space-separated numbers or words. Parameters are used to control the values of numerical parameters and also to select methods and other options. If a parameter is not specified in the file a default value (hard coded into \glc) will be used instead. The default values have been chosen to produce a realistic model of galaxy formation, but may change as \glc\ evolves.
+Each named element must have a {\normalfont \ttfamily value} attribute (preferred), or else contains a value element, which contains desired value respectively. The value can be a number, word(s) or an array of space-separated numbers or words. Parameters are used to control the values of numerical parameters and also to select methods and other options. If a parameter is not specified in the file a default value (hard coded into \glc) will be used instead. The default values have been chosen to produce a realistic model of galaxy formation, but may change as \glc\ evolves. Parameters may have sub-parameters embedded within them, as in the example above.
+
+The optional {\normalfont \ttfamily version} element specifies which version of \glc\ this parameter file is intended for. The optional {\normalfont \ttfamily formatVersion} element specifies the parameter file version number (the current standard for parameter files is version 2). While optional, these elements can be useful when migrating parameter files between versions of \glc\ (see \S\ref{sec:MigrateParameters}).
 
 All parameter values (both those specified in this file and those set to default) used during a \glc\ run are output to the {\normalfont \ttfamily Parameters} group within the \glc\ output file. The script {\normalfont \ttfamily scripts/aux/Extract\_Parameter\_File.pl} will, if given a \glc\ output file, extract the parameters from it and output them into an XML file suitable for re-input into \glc. If parameters are present in the parameter file which do not match any known parameter in \glc\ then a warning message, listing all unknown parameters, will be given when \glc\ is run. Note that this will \emph{not} prevent \glc\ from running---sometimes it is convenient to include parameters which are not used by \glc, but which might be used by some other code.
 
@@ -78,21 +89,12 @@ If \glc\ crashes, it can be useful to restart the calculation from just prior to
 
 To cause \glc\ to periodically store its internal state include the following input parameter:
 \begin{verbatim}
-  <parameter>
-    <name>stateFileRoot</name>
-    <value>galacticusState</value>
-  </parameter>
+  <stateFileRoot value="galacticusState" />
 \end{verbatim}
 This will cause the internal state to be stored to files {\normalfont \ttfamily galacticusState.state} and {\normalfont \ttfamily galacticusState.fgsl.state} prior to commencing building each merger tree. Should a tree crash then replace this input parameter with:
 \begin{verbatim}
-  <parameter>
-    <name>stateRetrieveFileRoot</name>
-    <value>galacticusState</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeBuildTreesBeginAtTree</name>
-    <value>N</value>
-  </parameter>
+  <stateRetrieveFileRoot           value="galacticusState" />
+  <mergerTreeBuildTreesBeginAtTree value="N"               />
 \end{verbatim}
 where {\normalfont \ttfamily N} is the number of the tree that crashed. This will cause calculations to begin with tree {\normalfont \ttfamily N} and for the internal state to be recovered from the above mentioned files. The resulting tree and all galaxy formation calculations should therefore proceed just as in the original run (and so create the same crash condition).
 
@@ -165,51 +167,43 @@ The {\normalfont \ttfamily runFile} is an XML file with the following structure:
                   
  <parameters>
   <label>modelLabel</label>
-  <parameter>
-   <name>stabilityThresholdStellar</name>
+  <stabilityThresholdStellar</name>
    <value>1.1</value>
    <value>0.9</value>
   </parameter>
  </parameters>
  <parameters>
-  <parameter>
-   <name>stabilityThresholdGaseous</name>
+  <stabilityThresholdGaseous>
    <value>1.1</value>
    <value>0.9</value>
-  </parameter>
-  <parameter>
-   <name>imfSalpeterYieldInstantaneous</name>
+  </stabilityThresholdGaseous>
+  <imfSalpeterYieldInstantaneous>
    <value>0.02</value>
    <value>0.04</value>
-  </parameter>
-  <parameter>
-   <name>imfSelectionFixed</name>
+  </imfSalpeterYieldInstantaneous>
+  <imfSelectionFixed>
    <value>Salpeter</value>
    <value>Chabrier</value>
-  </parameter>
-  <parameter>
-   <name>starFormationTimescaleDisksMethod</name>
+  </imfSelectionFixed>
+  <starFormationTimescaleDisksMethod>
    <value>Kennicutt-Schmidt
-    <parameter>
-     <name>starFormationKennicuttSchmidtTruncate</name>
+    <starFormationKennicuttSchmidtTruncate>
      <value>true</value>
      <value>false
-     <parameter>
-      <name>imfSelectionFixed</name>
+     <imfSelectionFixed>
       <modify>
         <find>^(.*)</find>
         <replace>\1Truncated</replace>
       </modify>
-     </parameter>
-     </value>
-    </parameter>
+     </imfSelectionFixed>
+    </starFormationKennicuttSchmidtTruncate>
    </value>
    <value>dynamicalTime</value>
-  </parameter>
+  </starFormationTimescaleDisksMethod>
  </parameters>
 </parameterGrid>
 \end{verbatim}
-Each {\normalfont \ttfamily parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\normalfont \ttfamily values}. A model will be run for all possible combinations of these values. Additionally, any {\normalfont \ttfamily value} element may contain further {\normalfont \ttfamily parameter} elements. All possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the above example, models will be run with {\normalfont \ttfamily [starFormationKennicuttSchmidtTruncate]}$=${\normalfont \ttfamily true} and {\normalfont \ttfamily false} only when {\normalfont \ttfamily [starFormationTimescaleDisksMethod]}$=${\normalfont \ttfamily Kennicutt-Schmidt} and not when {\normalfont \ttfamily [starFormationTimescaleDisksMethod]}$=${\normalfont \ttfamily dynamicalTime}.
+Each {\normalfont \ttfamily parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\normalfont \ttfamily values}. A model will be run for all possible combinations of these values. Additionally, any {\normalfont \ttfamily value} element may contain further parameter elements. All possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the above example, models will be run with {\normalfont \ttfamily [starFormationKennicuttSchmidtTruncate]}$=${\normalfont \ttfamily true} and {\normalfont \ttfamily false} only when {\normalfont \ttfamily [starFormationTimescaleDisksMethod]}$=${\normalfont \ttfamily Kennicutt-Schmidt} and not when {\normalfont \ttfamily [starFormationTimescaleDisksMethod]}$=${\normalfont \ttfamily dynamicalTime}.
 
 It is also possible to set the value of a parameter by modifying the current value using a Perl regular expression. This is done by given a {\normalfont \ttfamily modify} element instead of a {\normalfont \ttfamily value} element in the parameter definition. The {\normalfont \ttfamily modify} element must contain {\normalfont \ttfamily find} and {\normalfont \ttfamily replace} elements, the first of which must be a valid Perl regular expression, and the second of which must specify the replacement text. In the above example, the {\normalfont \ttfamily parameters} block specifies that models are two be run for {\normalfont \ttfamily [imfSelectionFixed]}$=${\normalfont \ttfamily Salpeter} and {\normalfont \ttfamily Chabrier}. However, for the case of {\normalfont \ttfamily [starFormationKennicuttSchmidtTruncate]}$=${\normalfont \ttfamily false} these parameters will be modified by suffixing them with ``{\normalfont \ttfamily Truncated}''.
 
@@ -329,14 +323,8 @@ If {\normalfont \ttfamily \textless doAnalysis \textgreater}$=${\normalfont \ttf
 
 While \glc\ is parallelized via OpenMP it is also possible to split a given model across several ``worker'' CPUs on one or more computers. The trees to be processed will be shared between these workers and the results can be later recombined. To use this ``poor man's'' parallelization, add the following to a model parameter file:
 \begin{verbatim}
-  <parameter>
-    <name>treeEvolveWorkerCount</name>
-    <value>N</value>
-  </parameter>
-  <parameter>
-    <name>treeEvolveWorkerNumber</name>
-    <value>i</value>
-  </parameter>
+  <treeEvolveWorkerCount  value="N" />
+  <treeEvolveWorkerNumber value="i" />
 \end{verbatim}
 where {\normalfont \ttfamily N} is the total number of workers to be used and {\normalfont \ttfamily i} is the number of this worker (ranging from 1 to {\normalfont \ttfamily N}). You can generate these individual input parameter files from a single base parameter file using:
 \begin{verbatim}

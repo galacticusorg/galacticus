@@ -19,21 +19,18 @@
 
 module Cosmology_Parameters
   !% Provides an object that implements cosmological parameters.
-  use ISO_Varying_String
 
   ! Enumeration for Hubble constant units.
-  !@ <include type="enumeration">
-  !@  <name>hubbleUnits</name>
-  !@  <description>Specifies the units for the Hubble constant.</description>
-  !@  <entry label="hubbleUnitsStandard" />
-  !@  <entry label="hubbleUnitsTime"     />
-  !@  <entry label="hubbleUnitsLittleH"  />
-  !@ </include>
-  integer, parameter, public :: hubbleUnitsStandard=0
-  integer, parameter, public :: hubbleUnitsTime    =1
-  integer, parameter, public :: hubbleUnitsLittleH =2
+  !# <enumeration>
+  !#  <name>hubbleUnits</name>
+  !#  <description>Specifies the units for the Hubble constant.</description>
+  !#  <entry label="standard" />
+  !#  <entry label="time"     />
+  !#  <entry label="littleH"  />
+  !# </enumeration>
 
-  !# <include directive="cosmologyParameters" type="function" >
+  !# <functionClass>
+  !#  <name>cosmologyParameters</name>
   !#  <descriptiveName>Cosmological Parameters</descriptiveName>
   !#  <description>Object providing various cosmological parameters.</description>
   !#  <default>simple</default>
@@ -78,7 +75,6 @@ module Cosmology_Parameters
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#  </method>
-  include 'cosmologyParameters.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Cosmology_Parameters

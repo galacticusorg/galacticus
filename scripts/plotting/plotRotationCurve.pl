@@ -109,12 +109,12 @@ foreach ( @rotationCurveDataSets ) {
 	} elsif ( $scale eq "diskHalfMassRadius"     ) {
 	    # Ensure that exponential disks are being used.
 	    die('plotRotationCurve.pl: only exponential disks are supported at present')
-		unless ( $galacticus->{'parameters'}->{'treeNodeMethodDisk'} eq "exponential" );
+		unless ( $galacticus->{'parameters'}->{'treeNodeMethodDisk'}->{'value'} eq "exponential" );
 	    $scaleFactor = $galacticus->{'dataSets'}->{'diskRadius'            }->(($selected))*1.678346990    ;
 	} elsif ( $scale eq "spheroidHalfMassRadius" ) {
 	    # Ensure that Hernquist spheroids are being used.
 	    die('plotRotationCurve.pl: only Hernquist spheroids are supported at present')
-		unless ( $galacticus->{'parameters'}->{'spheroidMassDistribution'} eq "hernquist" );
+		unless ( $galacticus->{'parameters'}->{'spheroidMassDistribution'}->{'value'} eq "hernquist" );
 	    $scaleFactor = $galacticus->{'dataSets'}->{'spheroidRadius'        }->(($selected))/(sqrt(2.0)-1.0);
 	} elsif ( $scale eq "virialRadius"           ) {
 	    $scaleFactor = $galacticus->{'dataSets'}->{'nodeVirialRadius'      }->(($selected))                ;

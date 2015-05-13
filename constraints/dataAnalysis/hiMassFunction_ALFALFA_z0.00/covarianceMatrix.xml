@@ -1,158 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
 
   <!-- Options controlling numerical aspects -->
-  <parameter>
-    <name>massFunctionCovarianceFFTGridSize</name>
-    <value>64</value>
-  </parameter>
+  <massFunctionCovarianceFFTGridSize value="64"/>
 
   <!-- Options controlling survey geometry -->
-  <parameter>
-    <name>surveyGeometryMethod</name>
-    <value>martin2010ALFALFA</value>
-  </parameter>
+  <surveyGeometryMethod value="martin2010ALFALFA"/>
 
   <!-- Options controlling the mass function -->
-  <parameter>
-    <name>massFunctionCovarianceRedshiftMinimum</name>
-    <value>0.0</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceRedshiftMaximum</name>
-    <value>0.12</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceBinCount</name>
-    <value>24</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceMassMinimum</name>
-    <value>2.0124728e6</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceMassMaximum</name>
-    <value>8.0118055e+10</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceHaloMassMinimum</name>
-    <value>1.0e8</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceHaloMassMaximum</name>
-    <value>1.0e15</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceIncludePoisson</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceIncludeHalo</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>massFunctionCovarianceIncludeLSS</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>conditionalMassFunctionMassCount</name>
-    <value>24</value>
-  </parameter>
-  <parameter>
-    <name>conditionalMassFunctionMassMinimum</name>
-    <value>2.0124728e6</value>
-  </parameter>
-  <parameter>
-    <name>conditionalMassFunctionMassMaximum</name>
-    <value>8.0118055e+10</value>
-  </parameter>
-  <parameter>
-    <name>conditionalMassFunctionHaloMassMinimum</name>
-    <value>1.0e8</value>
-  </parameter>
-  <parameter>
-    <name>conditionalMassFunctionHaloMassMaximum</name>
-    <value>1.0e15</value>
-  </parameter>
-  <parameter>
-    <name>conditionalMassFunctionRedshiftMinimum</name>
-    <value>0.0</value>
-  </parameter>
-  <parameter>
-    <name>conditionalMassFunctionRedshiftMaximum</name>
-    <value>0.5</value>
-  </parameter>
-  <parameter>
-    <name>conditionalMassFunctionUseSurveyLimits</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>conditionalMassFunctionHaloMass</name>
-    <value>all</value>
-  </parameter>
+  <massFunctionCovarianceRedshiftMinimum value="0.0"/>
+  <massFunctionCovarianceRedshiftMaximum value="0.12"/>
+  <massFunctionCovarianceBinCount value="24"/>
+  <massFunctionCovarianceMassMinimum value="2.0124728e6"/>
+  <massFunctionCovarianceMassMaximum value="8.0118055e+10"/>
+  <massFunctionCovarianceHaloMassMinimum value="1.0e8"/>
+  <massFunctionCovarianceHaloMassMaximum value="1.0e15"/>
+  <massFunctionCovarianceIncludePoisson value="true"/>
+  <massFunctionCovarianceIncludeHalo value="true"/>
+  <massFunctionCovarianceIncludeLSS value="true"/>
+  <conditionalMassFunctionMassCount value="24"/>
+  <conditionalMassFunctionMassMinimum value="2.0124728e6"/>
+  <conditionalMassFunctionMassMaximum value="8.0118055e+10"/>
+  <conditionalMassFunctionHaloMassMinimum value="1.0e8"/>
+  <conditionalMassFunctionHaloMassMaximum value="1.0e15"/>
+  <conditionalMassFunctionRedshiftMinimum value="0.0"/>
+  <conditionalMassFunctionRedshiftMaximum value="0.5"/>
+  <conditionalMassFunctionUseSurveyLimits value="true"/>
+  <conditionalMassFunctionHaloMass value="all"/>
 
   <!-- Cosmological parameters and options -->
-  <parameter>
-    <name>cosmologyFunctionsMethod</name>
-    <value>matterLambda</value>
-  </parameter>
-  <parameter>
-    <name>H_0</name>
-    <value>69.7</value>
-  </parameter>
-  <parameter>
-    <name>Omega_Matter</name>
-    <value>0.2812</value>
-  </parameter>
-  <parameter>
-    <name>Omega_DE</name>
-    <value>0.7188</value>
-  </parameter>
-  <parameter>
-    <name>Omega_b</name>
-    <value>0.04611</value>
-  </parameter>
-  <parameter>
-    <name>T_CMB</name>
-    <value>2.72548</value>
-  </parameter>
-
-  <!-- Power spectrum options -->
-  <parameter>
-    <name>sigma_8</name>
-    <value>0.817</value>
-  </parameter>
-  <parameter>
-    <name>transferFunctionMethod</name>
-    <value>Eisenstein-Hu1999</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumMethod</name>
-    <value>powerLaw</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumIndex</name>
-    <value>0.9646</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumReferenceWavenumber</name>
-    <value>1.0</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumRunning</name>
-    <value>0.0</value>
-  </parameter>
-  <parameter>
-    <name>effectiveNumberNeutrinos</name>
-    <value>3.04</value>
-  </parameter>
-  <parameter>
-    <name>summedNeutrinoMasses</name>
-    <value>0.0</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumNonlinearMethod</name>
-    <value>Peacock-Dodds1996</value>
-  </parameter>
+  <cosmologyMethod value="matterLambda"/>
+  <cosmologyParametersMethod value="simple">
+    <HubbleConstant value="69.7"/>
+    <OmegaMatter value="0.2812"/>
+    <OmegaDarkEnergy value="0.7188"/>
+    <OmegaBaryon value="0.04611"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParametersMethod><!-- Power spectrum options -->
+  <sigma_8 value="0.817"/>
+  <transferFunctionMethod value="Eisenstein-Hu1999"/>
+  <powerSpectrumMethod value="powerLaw"/>
+  <powerSpectrumIndex value="0.9646"/>
+  <powerSpectrumReferenceWavenumber value="1.0"/>
+  <powerSpectrumRunning value="0.0"/>
+  <effectiveNumberNeutrinos value="3.04"/>
+  <summedNeutrinoMasses value="0.0"/>
+  <powerSpectrumNonlinearMethod value="Peacock-Dodds1996"/>
 
 </parameters>

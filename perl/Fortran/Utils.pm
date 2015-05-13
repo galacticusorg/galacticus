@@ -21,6 +21,46 @@ use Fcntl qw(SEEK_SET);
 our $classDeclarationRegEx = qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i;
 our $variableDeclarationRegEx = qr/^\s*(?i)(integer|real|double precision|logical|character|type|class|complex)(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
 
+# Specify unit opening regexs.
+our %unitOpeners = (
+    # Find module openings, avoiding module procedures.
+    module             => { unitName => 0, regEx => qr/^\s*module\s+(?!procedure\s)([a-zA-Z0-9_]+)/ },
+    # Find program openings.
+    program            => { unitName => 0, regEx => qr/^\s*program\s+([a-zA-Z0-9_]+)/ },
+    # Find subroutine openings, allowing for pure, elemental and recursive subroutines.
+    subroutine         => { unitName => 1, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+([a-zA-Z0-9_]+)/},
+    # Find function openings, allowing for pure, elemental and recursive functions, and different function types.
+    function           => { unitName => 4, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double\s+precision|double\s+complex|character|logical)*\s*(\((kind|len)=[\w\d]*\))*\s*function\s+([a-zA-Z0-9_]+)/},
+    # Find interfaces.
+    interface          => { unitName => 1, regEx => qr/^\s*(abstract\s+)??interface\s+([a-zA-Z0-9_\(\)\/\+\-\*\.=]*)/},
+    # Find types.
+    type               => { unitName => 2, regEx => qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\([a-zA-Z0-9_]+\)\s*)*(::)??\s*([a-zA-Z0-9_]+)\s*$/}
+    );
+
+# Specify unit closing regexs.
+our %unitClosers = (
+    module             => { unitName => 0, regEx => qr/^\s*end\s+module\s+([a-zA-Z0-9_]+)/ },
+    program            => { unitName => 0, regEx => qr/^\s*end\s+program\s+([a-zA-Z0-9_]+)/ },
+    subroutine         => { unitName => 0, regEx => qr/^\s*end\s+subroutine\s+([a-zA-Z0-9_]+)/},
+    function           => { unitName => 0, regEx => qr/^\s*end\s+function\s+([a-zA-Z0-9_]+)/},
+    interface          => { unitName => 0, regEx => qr/^\s*end\s+interface\s*([a-zA-Z0-9_\(\)\/\+\-\*\.=]*)/},
+    type               => { unitName => 0, regEx => qr/^\s*end\s+type\s+([a-zA-Z0-9_]+)/}
+    );
+
+# Specify regexs for intrinsic variable declarations.
+our %intrinsicDeclarations = (
+    integer       => { intrinsic => "integer"         , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)integer(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    real          => { intrinsic => "real"            , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)real(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    double        => { intrinsic => "double precision", type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)double\s+precision(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    complex       => { intrinsic => "complex"         , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    doubleComplex => { intrinsic => "double complex"  , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)double\s+complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    logical       => { intrinsic => "logical"         , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)logical(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    character     => { intrinsic => "character"       , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)character(?-i)\s*(\(\s*[a-zA-Z0-9_=,\+\-\*\(\)]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    type          => { intrinsic => "type"            , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)type(?-i)\s*(\(\s*[a-zA-Z0-9_]+\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    class         => { intrinsic => "class"           , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)class(?-i)\s*(\(\s*[a-zA-Z0-9_]+\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    procedure     => { intrinsic => "procedure"       , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)procedure(?-i)\s*(\([a-zA-Z0-9_\s]*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)]+)\s*$/ },
+    );
+
 sub Truncate_Fortran_Lines {
     # Scans a Fortran file and truncates source lines to be less than 132 characters in length as (still) required by some compilers.
     # Includes intelligent handling of OpenMP directives.
@@ -275,7 +315,7 @@ sub Get_Fortran_Line {
 	# Get a line;
 	my $line = <$inHndl>;
 	# Strip comments and grab any continuation lines.
-	my $tmpLine = $line;
+	my $tmpLine         = $line;
 	my $inDoubleQuotes  =  0;
 	my $inSingleQuotes  =  0;
 	my $commentPosition = -1;
@@ -311,8 +351,8 @@ sub Get_Fortran_Line {
 	$processedLine .= $tmpLine;
 	if ( $processedLine =~ m/&\s*$/ ) {
 	    $processedLine =~ s/\s*&\s*$//;
-	} elsif ( $firstLine == 0 && $line =~ m/^\#/ ) {
-	    # This is a preprocessor directive in the middle of continuation lines. Just concatenate it.
+	} elsif ( $firstLine == 0 && ( $line =~ m/^\#/ || $line =~ m/^\s*![^\$]/ ) ) {
+	    # This is a preprocessor directive or comment in the middle of continuation lines. Just concatenate it.
 	} else {
 	    $processedFullLine = 1;
 	}

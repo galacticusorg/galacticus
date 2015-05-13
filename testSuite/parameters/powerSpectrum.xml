@@ -1,19 +1,10 @@
+<?xml version="1.0"?>
 <!-- Parameter file used for testing power spectrum calculations -->
 <parameters>
-  <parameter>
-    <name>sigma_8</name>
-    <value>0.8</value>
-  </parameter>
-  <parameter>
-    <name>transferFunctionMethod</name>
-    <value>null</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumIndex</name>
-    <value>-1.0</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumRunning</name>
-    <value>0.0</value>
-  </parameter>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <sigma_8 value="0.8"/>
+  <transferFunctionMethod value="null"/>
+  <powerSpectrumIndex value="-1.0"/>
+  <powerSpectrumRunning value="0.0"/>
 </parameters>
