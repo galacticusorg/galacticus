@@ -149,11 +149,19 @@ foreach my $srcdir ( @sourcedirs ) {
 	    push(@scanfiles,$fullname);
 	    # Special handling for functionClass directives - add implementation files to the
 	    # list of files to scan.
-	    open(my $baseFile,$fullname);
-	    my $functionClassDirective = &Directives::Extract_Directive($baseFile,"functionClass");
-	    close($baseFile);
-	    &ExtraUtils::smart_push(\@scanfiles,$locations->{$functionClassDirective->{'name'}}->{'file'})
-		if ( $functionClassDirective );
+	    my @functionClassDirective  = &Directives::Extract_Directives($fullname,"functionClass" );
+	    my @inputParameterDirective = &Directives::Extract_Directives($fullname,"inputParameter");
+	    my @enumerationDirectives   = &Directives::Extract_Directives($fullname,"enumeration"   );
+	    &ExtraUtils::smart_push(\@scanfiles,$locations->{$functionClassDirective[0]->{'name'}}->{'file'})
+		if ( @functionClassDirective );
+	    if ( @functionClassDirective || @inputParameterDirective ) {
+		push(@incfiles,$workDir."input_parameters.mod ");
+		$hasuses=1;
+	    }
+	    if ( @enumerationDirectives && grep {exists($_->{'encodeFunction'}) && $_->{'encodeFunction'} eq "yes"} @enumerationDirectives ) {
+		push(@incfiles,$workDir."galacticus_error.mod ");
+		$hasuses=1;	
+	    }
 	    # Scan all files on the stack.
 	    while ( scalar(@scanfiles) > 0 ) {
 		$fullname = pop(@scanfiles);
@@ -173,16 +181,6 @@ foreach my $srcdir ( @sourcedirs ) {
 		my $active = 1;
 		open(my $infile,$fullname) or die "Can't open input file: $fullname";
 		while (my $line = <$infile>) {
-		    # Special handling: add dependency on input parameters module for files
-		    # containing input parameter or function class directives.
-		    if (
-			$line =~ m/^\s*\!\#\s+\<inputParameter\>\s*$/ 
-			||
-			$line =~ m/^\s*\!\#\s+\<functionClass\>\s*$/
-			) {
-			push(@incfiles,$workDir."input_parameters.mod ");
-			$hasuses=1;
-		    }
 		    if ( $line =~ m/^\s*\!;\s*([a-zA-Z0-9_]+)\s*$/ ) {
 			$libraryDependencies{$1} = 1;	
 		    }
