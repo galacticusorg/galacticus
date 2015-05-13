@@ -127,10 +127,30 @@ sub Get_Parameters {
     my $dataBlock = shift;
     unless ( exists($dataBlock->{'parameters'}) ) {
 	&Open_File($dataBlock);
-	my @parameterNames = $dataBlock->{'hdf5File'}->group("Parameters")->attrs;
-	my @parameterValues = $dataBlock->{'hdf5File'}->group("Parameters")->attrGet(@parameterNames);
-	for(my $iParameter=0;$iParameter<=$#parameterNames;++$iParameter) {
-	    $dataBlock->{'parameters'}->{$parameterNames[$iParameter]} = $parameterValues[$iParameter];
+	my @groupStack =
+	    (
+	     {
+		 fromGroup =>    $dataBlock->{'hdf5File'  }->group("Parameters") ,
+		 toGroup   => \%{$dataBlock->{'parameters'}                     }
+	     }
+	    );
+	while ( scalar(@groupStack) > 0 ) {
+	    my $group     = pop(@groupStack);
+	    my @names     = $group->{'fromGroup'}->attrs  (      );
+	    my @values    = $group->{'fromGroup'}->attrGet(@names);
+	    my @subGroups = $group->{'fromGroup'}->groups (      );
+	    for(my $i=0;$i<scalar(@names);++$i) {
+		$group->{'toGroup'}->{$names[$i]}->{'value'} = $values[$i];
+	    }
+	    foreach ( @subGroups ) {
+		push(
+		    @groupStack,
+		    {
+			fromGroup =>    $group->{'fromGroup'}->group($_),
+			toGroup   => \%{$group->{'toGroup'  }->     {$_}}
+		    }
+		    );
+	    }
 	}
     }
 }

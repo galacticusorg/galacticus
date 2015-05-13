@@ -61,7 +61,7 @@ my $data = $xml->XMLin($galacticusPath."data/observations/galaxyColors/Galaxy_Co
 my $columns = $data->{'galaxyColors'}->{'columns'};
 my $magnitude = pdl @{$columns->{'magnitude'}->{'data'}};
 my $color = pdl @{$columns->{'color'}->{'data'}};
-$magnitude = $magnitude-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
+$magnitude = $magnitude-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
 
 # Bin data into grid.
 my $magnitudePoints = pdl 20;

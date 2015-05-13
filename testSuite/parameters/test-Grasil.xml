@@ -8,28 +8,18 @@
   <modelRootDirectory>testSuite/outputs/test-Grasil</modelRootDirectory>
   <baseParameters>testSuite/parameters/test-Grasil-base.xml</baseParameters>
   <parameters>
-
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    
     <!-- Specify output redshifts -->
-    <parameter>
-      <name>outputRedshifts</name>
-      <value>0.0 1.0</value>
-    </parameter>
+    <outputRedshifts value="0.0 1.0"/>
 
     <!-- Switch on star formation history tracking for Grasil processing. -->
-    <parameter>
-      <name>starFormationHistoriesMethod</name>
-      <value>metallicitySplit</value>
-    </parameter>
+    <starFormationHistoriesMethod value="metallicitySplit"/>
 
     <!-- Switch on output of star formation rates. -->
-    <parameter>
-      <name>spheroidOutputStarFormationRate</name>
-      <value>true</value>
-    </parameter>
-    <parameter>
-      <name>diskOutputStarFormationRate</name>
-      <value>true</value>
-    </parameter>
-
+    <spheroidOutputStarFormationRate value="true"/>
+    <diskOutputStarFormationRate value="true"/>
+    
   </parameters>
 </parameterGrid>

@@ -65,6 +65,7 @@ sub Parse_Options {
 	    $argumentsSeen{$argument} = 1;
 	}
     }
+    return %argumentsSeen;
 }
 
 1;

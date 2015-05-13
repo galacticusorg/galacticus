@@ -78,16 +78,16 @@ foreach my $correlationFunction ( @{$data->{'correlationFunction'}} ) {
     unless ( exists($correlationFunction->{'colorRange'}) || $correlationFunction->{'space'} ne "redshift" ) {
 	# Get magnitude ranges for this sample.
 	my $magnitudeMinimum = $correlationFunction->{'magnitudeRange'}->{'minimum'}
-	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
+	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
 	my $magnitudeMaximum = $correlationFunction->{'magnitudeRange'}->{'maximum'}
-	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
+	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
 	# Get separation, correlation function and errors.
 	my $separationData   = pdl @{$correlationFunction->{'separation'                          }->{'datum'}};
 	my $xiData           = pdl @{$correlationFunction->{'correlationFunction'                 }->{'datum'}};
 	my $xiBootData       = pdl @{$correlationFunction->{'correlationFunctionBootstrapped'     }->{'datum'}};
 	my $xiBootErrorData  = pdl @{$correlationFunction->{'correlationFunctionBootstrappedError'}->{'datum'}};
 	# Convert separation for Hubble constant.
-	$separationData  *= ($dataSet->{'parameters'}->{'H_0'}/$correlationFunction->{'separation'}->{'hubble'})**$correlationFunction->{'separation'}->{'hubbleExponent'};
+	$separationData  *= ($dataSet->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$correlationFunction->{'separation'}->{'hubble'})**$correlationFunction->{'separation'}->{'hubbleExponent'};
 	# Get error on actual correlation function.
 	my $xiErrorData      = $xiData*$xiBootErrorData/$xiBootData;
 

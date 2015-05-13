@@ -1,48 +1,19 @@
+<?xml version="1.0"?>
 <!-- Parameter file used for testing the Tinker et al. (2008) dark matter halo mass function by             -->
 <!-- comparing to results from Jeremy Tinker's code (http://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar) -->
 <parameters>
-  <parameter>
-    <name>cosmologyFunctionsMethod</name>
-    <value>matterLambda</value>
-  </parameter>
-  <parameter>
-    <name>Omega_Matter</name>
-    <value>0.3</value>
-  </parameter>
-  <parameter>
-    <name>Omega_DE</name>
-    <value>0.7</value>
-  </parameter>
-  <parameter>
-    <name>Omega_b</name>
-    <value>0.04</value>
-  </parameter>
-  <parameter>
-    <name>H_0</name>
-    <value>71.0</value>
-  </parameter>
-  <parameter>
-    <name>sigma_8</name>
-    <value>0.9</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumIndex</name>
-    <value>1.0</value>
-  </parameter>
-  <parameter>
-    <name>transferFunctionMethod</name>
-    <value>Eisenstein-Hu1999</value>
-  </parameter>
-  <parameter>
-    <name>virialDensityContrastMethod</name>
-    <value>fixed</value>
-  </parameter>
-  <parameter>
-    <name>virialDensityContrastFixed</name>
-    <value>200</value>
-  </parameter>
-  <parameter>
-    <name>virialDensityContrastFixedType</name>
-    <value>meanDensity</value>
-  </parameter>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <cosmologyFunctionsMethod value="matterLambda"/>
+  <cosmologyParametersMethod value="simple">
+    <OmegaMatter value="0.3"/>
+    <OmegaDarkEnergy value="0.7"/>
+    <OmegaBaryon value="0.04"/>
+    <HubbleConstant value="71.0"/>
+  </cosmologyParametersMethod><sigma_8 value="0.9"/>
+  <powerSpectrumIndex value="1.0"/>
+  <transferFunctionMethod value="Eisenstein-Hu1999"/>
+  <virialDensityContrastMethod value="fixed"/>
+  <virialDensityContrastFixed value="200"/>
+  <virialDensityContrastFixedType value="meanDensity"/>
 </parameters>

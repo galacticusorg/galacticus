@@ -85,7 +85,7 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     my $yUpperLimit = pdl @{$columns->{'distributionUpperLimit'}->{'data'}};
     my $yUpperError = pdl @{$columns->{'distributionErrorUp'}->{'data'}};
     my $yLowerError = pdl @{$columns->{'distributionErrorDown'}->{'data'}};
-    $x = $x*($columns->{'scaleLength'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});
+    $x = $x*($columns->{'scaleLength'}->{'hubble'}/$dataBlock->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
     $yUpperError = +$y*(10.0**$yUpperError)-$y;
     $yLowerError = -$y/(10.0**$yLowerError)+$y;
 
@@ -96,8 +96,8 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     $yP          ->index($zeroPoints) .=      $yUpperLimit->index($zeroPoints);
     $yUpperErrorP->index($zeroPoints) .=  0.0                                 ;
     $yLowerErrorP->index($zeroPoints) .= -0.7*$yUpperLimit->index($zeroPoints);
-    my $magnitudeMinimum = $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});
-    my $magnitudeMaximum = $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});
+    my $magnitudeMinimum = $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
+    my $magnitudeMaximum = $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
     my $morphologyMinimum = 0.05; # Morpology constraints are approximate, based on De Jong & Lacey's T-type selection of 3 < T < 8.
     my $morphologyMaximum = 0.30;
 

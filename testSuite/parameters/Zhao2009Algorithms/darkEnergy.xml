@@ -1,43 +1,17 @@
+<?xml version="1.0"?>
 <!-- Parameter file used for testing Zhao et al. 2009 algorithms in a dark energy universe model. -->
 <parameters>
-  <parameter>
-    <name>cosmologyFunctionsMethod</name>
-    <value>matterLambda</value>
-  </parameter>
-  <parameter>
-    <name>Omega_Matter</name>
-    <value>0.25</value>
-  </parameter>
-  <parameter>
-    <name>Omega_DE</name>
-    <value>0.75</value>
-  </parameter>
-  <parameter>
-    <name>Omega_b</name>
-    <value>0.0</value>
-  </parameter>
-  <parameter>
-    <name>H_0</name>
-    <value>100.0</value>
-  </parameter>
-  <parameter>
-    <name>sigma_8</name>
-    <value>0.8</value>
-  </parameter>
-  <parameter>
-    <name>transferFunctionMethod</name>
-    <value>BBKS</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumIndex</name>
-    <value>1.0</value>
-  </parameter>
-  <parameter>
-    <name>darkMatterHaloMassAccretionHistoryMethod</name>
-    <value>zhao2009</value>
-  </parameter>
-  <parameter>
-    <name>darkMatterProfileConcentrationMethod</name>
-    <value>zhao2009</value>
-  </parameter>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <cosmologyFunctionsMethod value="matterLambda"/>
+  <cosmologyParametersMethod value="simple">
+    <OmegaMatter value="0.25"/>
+    <OmegaDarkEnergy value="0.75"/>
+    <OmegaBaryon value="0.0"/>
+    <HubbleConstant value="100.0"/>
+  </cosmologyParametersMethod><sigma_8 value="0.8"/>
+  <transferFunctionMethod value="BBKS"/>
+  <powerSpectrumIndex value="1.0"/>
+  <darkMatterHaloMassAccretionHistoryMethod value="zhao2009"/>
+  <darkMatterProfileConcentrationMethod value="zhao2009"/>
 </parameters>

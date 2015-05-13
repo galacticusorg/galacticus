@@ -1,47 +1,18 @@
+<?xml version="1.0"?>
 <!-- Parameter file used for testing Correa et al. 2015 algorithms. -->
 <parameters>
-  <parameter>
-    <name>cosmologyFunctionsMethod</name>
-    <value>matterLambda</value>
-  </parameter>
-  <parameter>
-    <name>Omega_Matter</name>
-    <value>0.2815</value>
-  </parameter>
-  <parameter>
-    <name>Omega_DE</name>
-    <value>0.7185</value>
-  </parameter>
-  <parameter>
-    <name>Omega_b</name>
-    <value>0.0465</value>
-  </parameter>
-  <parameter>
-    <name>H_0</name>
-    <value>69.3</value>
-  </parameter>
-  <parameter>
-    <name>sigma_8</name>
-    <value>0.82</value>
-  </parameter>
-  <parameter>
-    <name>transferFunctionMethod</name>
-    <value>Eisenstein-Hu1999</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumIndex</name>
-    <value>0.971</value>
-  </parameter>
-  <parameter>
-    <name>darkMatterHaloMassAccretionHistoryMethod</name>
-    <value>correa2015</value>
-  </parameter>
-  <parameter>
-    <name>darkMatterProfileConcentrationMethod</name>
-    <value>correa2015</value>
-  </parameter>
-  <parameter>
-    <name>darkMatterHaloConcentrationCorrea2015AScaling</name>
-    <value>950.0</value>
-  </parameter>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <cosmologyFunctionsMethod value="matterLambda"/>
+  <cosmologyParametersMethod value="simple">
+    <OmegaMatter value="0.2815"/>
+    <OmegaDarkEnergy value="0.7185"/>
+    <OmegaBaryon value="0.0465"/>
+    <HubbleConstant value="69.3"/>
+  </cosmologyParametersMethod><sigma_8 value="0.82"/>
+  <transferFunctionMethod value="Eisenstein-Hu1999"/>
+  <powerSpectrumIndex value="0.971"/>
+  <darkMatterHaloMassAccretionHistoryMethod value="correa2015"/>
+  <darkMatterProfileConcentrationMethod value="correa2015"/>
+  <darkMatterHaloConcentrationCorrea2015AScaling value="950.0"/>
 </parameters>
