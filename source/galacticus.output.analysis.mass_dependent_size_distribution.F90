@@ -156,7 +156,6 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
   type :: sizeFunctionWork
      double precision, allocatable, dimension(:,:) :: sizeFunction
      double precision, allocatable, dimension(  :) :: sizeFunctionWeights
-     double precision, allocatable, dimension(:,:) :: covariance
   end type sizeFunctionWork
 
   ! Work array.
@@ -215,7 +214,7 @@ contains
     character       (len=128                       )                                :: distributionGroupName
     logical                                                                         :: groupFound
     type            (hdf5Object                    )                                :: dataFile,sizeDataset,distributionGroup,cosmologyGroup
-
+    
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
        !$omp critical(Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Initialize)
@@ -592,11 +591,6 @@ contains
        ! Allocate workspace.
        if (.not.allocated(thisGalaxy(i)%sizeFunction       )) call Alloc_Array(thisGalaxy(i)%sizeFunction       ,[sizeFunctions(i)%radiiCount,sizeFunctions(i)%massesCount])
        if (.not.allocated(thisGalaxy(i)%sizeFunctionWeights)) call Alloc_Array(thisGalaxy(i)%sizeFunctionWeights,[                            sizeFunctions(i)%massesCount])
-       if (.not.allocated(thisGalaxy(i)%covariance         )) call Alloc_Array(thisGalaxy(i)%covariance         ,[                                                          &
-            &                                                                                                     sizeFunctions(i)%radiiCount*sizeFunctions(i)%massesCount, &
-            &                                                                                                     sizeFunctions(i)%radiiCount*sizeFunctions(i)%massesCount  &
-            &                                                                                                    ]                                                          &
-            &                                                                 )
        ! Get the galactic mass.
        mass=                                                                                                                                            &
             &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=sizeFunctions(i)%descriptor%massType) &
@@ -668,13 +662,20 @@ contains
                 !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
              end if
           else
-             thisGalaxy(i)%covariance=                                                                                                   &
-                  & Vector_Outer_Product(reshape(thisGalaxy(i)%sizeFunction,[sizeFunctions(i)%massesCount*sizeFunctions(i)%radiiCount]))
-             ! Accumulate covariance.
              !$omp critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
-             sizeFunctions(i)%sizeFunctionCovariance=sizeFunctions(i)%sizeFunctionCovariance+thisGalaxy(i)%covariance
+             call Vector_Outer_Product_Accumulate(                                                   &
+                  &                               reshape(                                           &
+                  &                                       thisGalaxy(i)%sizeFunction               , &
+                  &                                       [                                          &
+                  &                                        +sizeFunctions(i)%massesCount             &
+                  &                                        *sizeFunctions(i)%radiiCount              &
+                  &                                       ]                                          &
+                  &                                      )                                         , &
+                  &                                         sizeFunctions(i)%sizeFunctionCovariance, &
+                  &                               sparse=.true.                                      &
+                  &                              )
              !$omp end critical (Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Accumulate)
-          end if
+           end if
        end if
     end do
     return
