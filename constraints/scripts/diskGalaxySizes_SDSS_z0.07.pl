@@ -309,7 +309,7 @@ if ( exists($arguments{'outputFile'}) ) {
     my $logDeterminant;
     my $offsets;
     my $inverseCovariance;
-    my $logLikelihood = &Covariances::ComputeLikelihood($dataRadiusFunction,$modelRadiusFunction,$fullCovariance, upperLimits => $upperLimits, determinant => \$logDeterminant, inverseCovariance => \$inverseCovariance, offsets => \$offsets, quiet => $arguments{'quiet'});
+    my $logLikelihood = &Covariances::ComputeLikelihood($dataRadiusFunction,$modelRadiusFunction,$fullCovariance, upperLimits => $upperLimits, determinant => \$logDeterminant, inverseCovariance => \$inverseCovariance, offsets => \$offsets, quiet => $arguments{'quiet'}, inversionMethod => "eigendecomposition");
     $constraint->{'logLikelihood'} = $logLikelihood;
     # Find the Jacobian of the log-likelihood with respect to the model mass function.
     my $jacobian = pdl zeroes(1,nelem($modelRadiusFunction));
