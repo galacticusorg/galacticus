@@ -44,7 +44,7 @@ sub SVDInvert {
     # Invert the matrix.
     my $minimumValue = 0.0;
     $minimumValue = $s->(($options{'keepTerms'}))
-	if ( exists($options{'keepTerms'}) && $s->(($options{'keepTerms'})) > 0.0 );
+     	if ( exists($options{'keepTerms'}) && $s->(($options{'keepTerms'})) > 0.0 );
     my $nonZeroSingularValues = which($s > $minimumValue);
     my $sInverse                                        = zeroes($r1);
     $sInverse->diagonal(0,1)->($nonZeroSingularValues) .= 1.0/$s->($nonZeroSingularValues);
@@ -59,6 +59,40 @@ sub SVDInvert {
 	unless ( all(         $eigenValues >= 0.0) || ( exists($options{'quiet'}) && $options{'quiet'} == 1 ) ); 
     unless (     isfinite($logDeterminant)  ) {
 	print "SVDInvert: covariance matrix determinant failed\n";
+	die
+	    unless ( $options{'errorTolerant'} == 1 );
+    }
+    unless ( all(isfinite($CInverseSPD   )) ) {
+	print "SVDInvert: covariance matrix inversion failed\n";
+	die
+	    unless ( $options{'errorTolerant'} == 1 );
+    }
+    return ($CInverseSPD, $logDeterminant);
+}
+
+sub EigenInvert {
+    # Invert a covariance matrix using eigendecomposition.
+    my $C = shift;
+    # Get any options.
+    my %options;
+    (%options) = @_
+	if ( scalar(@_) > 0 );
+    # Set default options.
+    $options{'errorTolerant'} = 0
+	unless ( exists($options{'errorTolerant'}) );
+    $options{'quiet'        } = 0
+	unless ( exists($options{'quiet'        }) );
+    # Do the eigendecomposition.
+    (my $eigenVectors, my $eigenValues) = eigens_sym($C);
+    # Compute the inverse.
+    my $CInverse       = $eigenVectors x stretcher(1.0/$eigenValues) x transpose($eigenVectors);
+    # Force the inverse covariance matrix to be semi-positive definite.
+    my $CInverseSPD    = &MakeSemiPositiveDefinite($CInverse);
+    # Compute the log of the determinant of the covariance matrix.
+    my $logDeterminant = sum(log($eigenValues));
+    # Perform sanity checks on the inverse covariance matrix and its determinant.
+    unless (     isfinite($logDeterminant)  ) {
+	print "EigennInvert: covariance matrix determinant failed\n";
 	die
 	    unless ( $options{'errorTolerant'} == 1 );
     }
@@ -108,7 +142,16 @@ sub ComputeLikelihood {
 	$d->($options{'upperLimits'})->($limitTruncate) .= 0.0;
     }
     # Invert the covariance matrix.
-    (my $CInverse,my $logDeterminant) = &SVDInvert($C,%options);
+    my $CInverse;
+    my $logDeterminant;
+    my $inversionMethod = exists($options{'inversionMethod'}) ? $options{'inversionMethod'} : "svd";
+    if      ( $inversionMethod eq "svd"                ) {
+	($CInverse, $logDeterminant) = &SVDInvert  ($C,%options);
+    } elsif ( $inversionMethod eq "eigendecomposition" ) {
+	($CInverse, $logDeterminant) = &EigenInvert($C,%options);
+    } else {
+	die("ComputeLikelihood(): unknown inversion method");
+    }
     # Construct the likelihood.
     my $vCv                           = $d x $CInverse x transpose($d);
     die("ComputeLikelihood: inverse covariance matrix is not semi-positive definite")
