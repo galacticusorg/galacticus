@@ -130,11 +130,12 @@ sub processFile {
 
 	# Process further only for Fortran.
 	if ( $fileName =~ m/\.[fF]90$/ ) {
-
+	    
 	    # Add the file to the list of filenames to process.
+	    (my $preProcessedFile = $fileName) =~ s/\.F90$/.p.F90/;
 	    my @fileNames     = ( $fileName );
 	    my @filePositions = (        -1 );
-
+	    
 	    # Process files until none remain.
 	    while ( scalar(@fileNames) > 0 ) {
 

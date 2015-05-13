@@ -44,6 +44,15 @@ endif
 # Order method descriptions.
 ls methods/*.tex | sort | awk '{print "\\input{"substr($1,1,length($1)-4)"}"}' > autoMethods.tex
 
+# Order input paramter definitions.
+ls inputParameters/*.tex | sort | awk '{print "\\input{"substr($1,1,length($1)-4)"}"}' > autoInputParameters.tex
+
+# Order enumeration definitions.
+ls enumerations/definitions/*.tex | sort | awk '{print "\\input{"substr($1,1,length($1)-4)"}"}' > autoEnumerationDefinitions.tex
+
+# Order enumeration specifiers.
+ls enumerations/specifiers/*.tex | sort | awk '{print "\\input{"substr($1,1,length($1)-4)"}"}' > autoEnumerationSpecifiers.tex
+
 # Compile the manual.
 @ iPass = 1
 while( $iPass <= 6 )

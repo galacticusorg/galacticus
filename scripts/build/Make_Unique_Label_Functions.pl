@@ -35,7 +35,7 @@ require File::Match;
 #
 #  c) For parameters part of a new-style Galacticus method, append the parameter only if the specific implementation:
 #
-#     i) is directly used by any  dependent file;
+#     i) is directly used by any dependent file;
 #
 #    ii) is used indirectly by virtue of being extended by some other implementation that is directly or indirectly used by any
 #        dependent file;
@@ -149,6 +149,20 @@ CODE
 		# Add this method to the list of method directives to watch.
 		push(@directives,$include->{'directive'});
  	    }
+	    # Locate and process any preprocessor functionClass directives.
+	    foreach my $functionClass ( &Directives::Extract_Directives($sourceFile,"functionClass") ) {
+		# Add any files implementing this method to the list of dependencies.
+		push(
+		    @dependencyFileStack,
+		    map
+		    {$_ =~ s/^.*$sourceDirectory\/(.*)\.F90/$1/; $_;}
+		    &ExtraUtils::as_array($codeDirectiveLocations->{$functionClass->{'name'}}->{'file'})
+		    );
+	        # Extract and store the default implementation for this method.
+		$defaultValues{$functionClass->{'name'}."Method"} = $functionClass->{'default'};
+		# Add this method to the list of method directives to watch.
+		push(@directives,$functionClass->{'name'});
+ 	    }
 	}		
     }
     # Construct dependencies between new-style method implementations.
@@ -233,10 +247,13 @@ CODE
 		&Directives::Extract_Directives($sourceFile,$directive);
 	    }
 	    # Extract any input parameters from this file.
-	    foreach my $directive ( &Directives::Extract_Directives($sourceFile,"inputParameter",comment => qr/^\s*(\!|\/\/)@/) ) {
+	    foreach my $directive ( &Directives::Extract_Directives($sourceFile,"inputParameter",comment => qr/^\s*(\!|\/\/)(\@|\#)/) ) {
 		# Use parameter regEx as name if no name is defined.
 		$directive->{'name'} = $directive->{'regEx'}
-		    unless ( exists($directive->{'name'}) );
+		   unless ( exists($directive->{'name'}) );
+		# Extract default value.
+		$defaultValues{$directive->{'name'}} = $directive->{'defaultValue'}
+		    if ( exists($directive->{'defaultValue'}) && ! exists($defaultValues{$directive->{'name'}}) );
 		# Ignore parameters that match an ignored name or regex.
 		unless ( exists($ignoreParameters{$directive->{'name'}}) || map {$directive->{'name'} =~ m/$_/} @ignorePatterns ) {
 		    $hasParameters = 1;
@@ -250,8 +267,8 @@ CODE
 				(my $parameterName = $directive->{'name'}) =~ s/\(\#[a-zA-Z0-9]+\->[a-z]+\)/$dependentProperty/;
 				$moduleCode .=
 <<CODE;
-  if (Input_Parameter_Is_Present('$parameterName')) then
-   call Get_Input_Parameter_VarString('$parameterName',parameterValue,writeOutput=.false.)
+  if (globalParameters%isPresent('$parameterName')) then
+   call globalParameters%value('$parameterName',parameterValue,writeOutput=.false.)
    $labelFunction=$labelFunction//'#$parameterName\['//parameterValue//']'
    if (present(parameters)) then
      call parameters%add("$parameterName",char(parameterValue))
@@ -265,7 +282,7 @@ CODE
 			my $defaultValue = exists($defaultValues{$directive->{'name'}}) ? $defaultValues{$directive->{'name'}} : "";
 			$moduleCode .=
 <<CODE;
-  call Get_Input_Parameter_VarString('$directive->{'name'}',parameterValue,defaultValue='$defaultValue',writeOutput=.false.)
+  call globalParameters%value('$directive->{'name'}',parameterValue,defaultValue=var_str('$defaultValue'),writeOutput=.false.)
   $labelFunction=$labelFunction//'#$directive->{'name'}\['//parameterValue//']'
   if (present(parameters)) then
     call parameters%add("$directive->{'name'}",char(parameterValue))
@@ -324,7 +341,7 @@ CODE
 		    my $defaultValue  = exists($defaultValues{$methodParameter}) ? $defaultValues{$methodParameter} : "";
  		    $definitionCode  .=
 <<CODE;
-  call Get_Input_Parameter_VarString('$methodParameter',parameterValue,defaultValue='$defaultValue',writeOutput=.false.)
+  call globalParameters%value('$methodParameter',parameterValue,defaultValue=var_str('$defaultValue'),writeOutput=.false.)
   if (present(parameters)) then
     call parameters%add("$methodParameter",char(parameterValue))
   end if
