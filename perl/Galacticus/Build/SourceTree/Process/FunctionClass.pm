@@ -797,7 +797,7 @@ sub Process_FunctionClass {
 		$cBindings .= "};\n\n";
 		# Create methods.
 		$cBindings .= $methodCode;
-		open(cHndl,">".$ENV{'BUILDPATH'}./".$directive->{'name'}.".h");
+		open(cHndl,">".$ENV{'BUILDPATH'}."/".$directive->{'name'}.".h");
 		print cHndl $cBindings;
 		close(cHndl);
 	    }

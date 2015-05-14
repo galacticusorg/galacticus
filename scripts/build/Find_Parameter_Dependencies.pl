@@ -46,7 +46,7 @@ while ( my $fileName = readdir(sDir) ) {
     if ( $fileName =~ m/\.F90$/) {
 	(my $parameterFile = $fileName) =~ s/\.F90$/.p/;
 	if ( -e $ENV{'BUILDPATH'}."/".$parameterFile ) {
-	    open(my $parameterFile,$ENV{'BUILDPATH'}"/".$parameterFile);
+	    open(my $parameterFile,$ENV{'BUILDPATH'}."/".$parameterFile);
 	    while ( my $parameterName = <$parameterFile> ) {
 		chomp($parameterName);
 		unless ( grep {$_ eq $parameterName} @{$dependencies->{'parameters' }} ) {
