@@ -41,7 +41,7 @@ module Merger_Tree_Branching
        double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
        integer         , intent(in   ) :: bound
      end function Tree_Branching_Probability_Bound_Template
-  end interface
+  end interface Tree_Branching_Probability_Template
   interface Tree_Branching_Probability_Template
      double precision function Tree_Branching_Probability_Template(haloMass,deltaCritical,massResolution)
        double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
