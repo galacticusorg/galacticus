@@ -999,7 +999,7 @@ contains
           call xml_AddCharacters(remnantFractionDoc,char(Formatted_Date_and_Time()))
           call xml_EndElement(remnantFractionDoc,"date")
           call xml_NewElement(remnantFractionDoc,"parameters")
-          call imfUniqueParameters%outputToXML(remnantFractionDoc)
+          call imfUniqueParameters%serializeToXML(remnantFractionDoc)
           call xml_EndElement(remnantFractionDoc,"parameters")
 
           ! Write ages to the XML file.
