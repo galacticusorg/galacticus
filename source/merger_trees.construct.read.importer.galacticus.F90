@@ -882,7 +882,12 @@ contains
     nodeCount     (1)=self%nodeCounts(i)
     ! Allocate the nodes array.
     allocate(nodeDataGalacticus :: nodes(nodeCount(1)))
-    call Memory_Usage_Record(sizeof(nodes))
+    !# <workaround type="gfortran" PR="65889" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65889">
+    select type (nodes)
+    type is (nodeDataGalacticus)
+       call Memory_Usage_Record(sizeof(nodes))
+    end select
+    !# </workaround>
     !$omp critical(HDF5_Access)
     ! nodeIndex
     call self%haloTrees%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount)
