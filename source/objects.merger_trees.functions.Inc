@@ -97,19 +97,24 @@ end subroutine Tree_Node_Create_Initialize
 function Merger_Tree_Node_Get(thisTree,nodeIndex)
   !% Return a pointer to a node in {\normalfont \ttfamily thisTree} given the index of the node.
   implicit none
-  class  (mergerTree    ), intent(in   ) :: thisTree
-  integer(kind=kind_int8), intent(in   ) :: nodeIndex
-  type   (treeNode      ), pointer       :: Merger_Tree_Node_Get, thisNode
+  class  (mergerTree    ), intent(in   ), target :: thisTree
+  integer(kind=kind_int8), intent(in   )         :: nodeIndex
+  type   (mergerTree    ), pointer               :: currentTree
+  type   (treeNode      ), pointer               :: Merger_Tree_Node_Get, thisNode
 
   Merger_Tree_Node_Get => null()
-  thisNode => thisTree%baseNode
-  do while (associated(thisNode))
-     if (thisNode%index() == nodeIndex) then
-        Merger_Tree_Node_Get => thisNode
-        return
-     end if
-     ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
-     call thisNode%walkTreeWithSatellites(thisNode)
+  currentTree => thisTree
+  do while (associated(currentTree))
+     thisNode => currentTree%baseNode
+     do while (associated(thisNode))
+        if (thisNode%index() == nodeIndex) then
+           Merger_Tree_Node_Get => thisNode
+           return
+        end if
+        ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
+        call thisNode%walkTreeWithSatellites(thisNode)
+     end do
+     currentTree => currentTree%nextTree
   end do
   return
 end function Merger_Tree_Node_Get
