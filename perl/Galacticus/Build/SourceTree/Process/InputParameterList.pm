@@ -104,7 +104,7 @@ sub Process_InputParameterList {
     # Output file of unlisted parameters.
     if ( @unlistedInputParameters ) {
 	$fileName =~ s/\.F90$/.p/;
-	open(my $parametersFile,">>work/build/".$fileName);
+	open(my $parametersFile,">>".$ENV{'BUILDPATH'}."/".$fileName);
 	print $parametersFile $_."\n"
 	    foreach ( @unlistedInputParameters );
 	close($parametersFile);

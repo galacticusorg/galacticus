@@ -548,8 +548,8 @@
      implicit none
      integer         (kind=c_int                )                               :: Intergalactic_Medium_State_Internal_ODEs
      real            (kind=c_double             ), value                        :: time
-     real            (kind=c_double             ), intent(in   ), dimension(10) :: properties
-     real            (kind=c_double             ), intent(  out), dimension(10) :: propertiesRateOfChange
+     real            (kind=c_double             ), intent(in   ), dimension( *) :: properties
+     real            (kind=c_double             )               , dimension( *) :: propertiesRateOfChange
      type            (c_ptr                     ), value                        :: parameterPointer
      class           (gauntFactorClass          ), pointer                      :: gauntFactor_
      double precision                            , parameter                    :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
