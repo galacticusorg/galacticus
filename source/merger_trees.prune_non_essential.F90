@@ -51,7 +51,7 @@ contains
     type (treeNode          ), pointer               :: essentialNode, nextNode, previousNode, thisNode
     class(nodeComponentBasic), pointer               :: thisBasic
     type (mergerTree        ), pointer               :: currentTree
-
+    
     ! Check if module is initialized.
     if (.not.pruneNonEssentialModuleInitialized) then
        !$omp critical (Merger_Tree_Non_Essential_Branches_Initialize)
@@ -102,49 +102,62 @@ contains
        do while (associated(currentTree))
           ! Find the essential node.
           essentialNode => currentTree%getNode(mergerTreePruningNonEssentialID)
-          ! Trace the essential node to the required time.
-          thisBasic => essentialNode%basic()
-          do while (thisBasic%time() < mergerTreePruningNonEssentialTime .and. associated(essentialNode%parent))
-             essentialNode => essentialNode%parent
+          if (associated(essentialNode)) then
+             ! Trace the essential node to the required time.
              thisBasic => essentialNode%basic()
-          end do
-          ! Get root node of the tree.
-          thisNode => currentTree%baseNode
-          ! Walk the tree, pruning branches.
-          do while (associated(thisNode))
-             ! Record the parent node to which we will return.
-             previousNode => thisNode%parent
-             if     (                                               &
-                  &  .not.                                          &
-                  &   (                                             &
-                  &     thisNode     %isProgenitorOf(essentialNode) &
-                  &    .or.                                         &
-                  &     essentialNode%isProgenitorOf(     thisNode) &
-                  &   )                                             &
-                  & ) then
-                ! Decouple from other nodes.                
-                call Merger_Tree_Prune_Unlink_Parent(                                                    &
-                     &                               thisNode                                          , &
-                     &                               previousNode                                      , &
-                     &                               .not.                                               &
-                     &                                    (                                              &
-                     &                                      previousNode %isProgenitorOf(essentialNode)  &
-                     &                                     .or.                                          &
-                     &                                      essentialNode%isProgenitorOf( previousNode)  &
-                     &                                    )                                              &
-                     &                               )
-                ! Clean the branch.
-                call Merger_Tree_Prune_Clean_Branch(thisNode)
-                ! Destroy the branch.
+             do while (thisBasic%time() < mergerTreePruningNonEssentialTime .and. associated(essentialNode%parent))
+                essentialNode => essentialNode%parent
+                thisBasic => essentialNode%basic()
+             end do
+             ! Get root node of the tree.
+             thisNode => currentTree%baseNode
+             ! Walk the tree, pruning branches.
+             do while (associated(thisNode))
+                ! Record the parent node to which we will return.
+                previousNode => thisNode%parent
+                if     (                                                &
+                     &   associated(previousNode)                       &
+                     &  .and.                                           &
+                     &   .not.                                          &
+                     &    (                                             &
+                     &      thisNode     %isProgenitorOf(essentialNode) &
+                     &     .or.                                         &
+                     &      essentialNode%isProgenitorOf(     thisNode) &
+                     &    )                                             &
+                     & ) then
+                   ! Decouple from other nodes.                
+                   call Merger_Tree_Prune_Unlink_Parent(                                                    &
+                        &                               thisNode                                          , &
+                        &                               previousNode                                      , &
+                        &                               .not.                                               &
+                        &                                    (                                              &
+                        &                                      previousNode %isProgenitorOf(essentialNode)  &
+                        &                                     .or.                                          &
+                        &                                      essentialNode%isProgenitorOf( previousNode)  &
+                        &                                    )                                              &
+                        &                               )
+                   ! Clean the branch.
+                   call Merger_Tree_Prune_Clean_Branch(thisNode)
+                   ! Destroy the branch.
+                   call currentTree%destroyBranch(thisNode)
+                   ! Return to parent node.
+                   thisNode => previousNode
+                end if
+                call thisNode%walkTree(thisNode)
+             end do
+          else
+             ! Entire tree can be pruned. Destroy all but this base node. (Leaving just
+             ! the base node makes the tree inert - i.e. it can not do anything.)
+             thisNode => currentTree%baseNode%firstChild
+             do while (associated(thisNode))
+                previousNode => thisNode%sibling
                 call currentTree%destroyBranch(thisNode)
-                ! Return to parent node.
                 thisNode => previousNode
-             end if
-             call thisNode%walkTree(thisNode)
-          end do
+             end do
+          end if
           ! Move to the next tree.
           currentTree => currentTree%nextTree
-       end do
+       end do       
     end if
     return
   end subroutine Merger_Tree_Non_Essential_Branches
