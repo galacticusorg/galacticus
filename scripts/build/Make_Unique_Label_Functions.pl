@@ -58,11 +58,11 @@ my $sourceDirectory = $galacticusDirectory."/source";
 
 # Parse the code directive locations file.
 my $codeDirectiveLocationsXML = new XML::Simple;
-my $codeDirectiveLocations    =$codeDirectiveLocationsXML->XMLin($galacticusDirectory."/work/build/Code_Directive_Locations.xml");
+my $codeDirectiveLocations    = $codeDirectiveLocationsXML->XMLin($ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
 
 # Open the output file.
-open(my $functionHandle,">".$galacticusDirectory."/work/build/utility.input_parameters.unique_labels.inc"             );
-open(my $scopeHandle,">".$galacticusDirectory."/work/build/utility.input_parameters.unique_labels.visibilities.inc");
+open(my $functionHandle,">".$ENV{'BUILDPATH'}."/utility.input_parameters.unique_labels.inc"             );
+open(my $scopeHandle,">".$ENV{'BUILDPATH'}."/utility.input_parameters.unique_labels.visibilities.inc");
 
 # Store for default parameter values.
 my %defaultValues;
@@ -94,7 +94,7 @@ foreach my $fileName ( @{$codeDirectiveLocations->{'uniqueLabel'}->{'file'}} ) {
     # Get the equivalent object file.
     (my $objectFile = $fileName) =~ s/\.F90$/.o/;
     # Get the name of the dependencies for this file.
-    (my $depFile = $objectFile) =~ s/source\/(.*)\.o$/work\/build\/$1.d/;
+    (my $depFile = $objectFile) =~ s/source\/(.*)\.o$/$ENV{'BUILDPATH'}\/$1.d/;
     # Extract the function name and any parameters to ignore.
     my ($labelFunction, %ignoreParameters, @ignorePatterns, @hashFiles);
     foreach my $uniqueLabel ( &Directives::Extract_Directives($fileName,"uniqueLabel") ) {
@@ -118,13 +118,13 @@ CODE
     # Scan dependencies for default parameter values, while also accumulating a full list of dependecy files.
     my @directives;
     my @dependencyFileList;
-    my @dependencyFileStack = map {s/\.\/work\/build\/(.*)\.o$/$1/; $_;} split("\n",read_file($depFile));
+    my @dependencyFileStack = map {s/$ENV{'BUILDPATH'}\/(.*)\.o$/$1/; $_;} split("\n",read_file($depFile));
     while ( scalar(@dependencyFileStack) > 0 ) {
 	my $depName = pop(@dependencyFileStack);
 	push(@dependencyFileList,$depName);
-	$depName =~ s/\.\/work\/build\/(.*)\.o$/$1/;       
+	$depName =~ s/$ENV{'BUILDPATH'}\/(.*)\.o$/$1/;       
 	# Scan the file for default parameter values.
-	my $sourceFile = $sourceDirectory."/".$depName.".F90";
+	my $sourceFile = $sourceDirectory."/".$depName.".F90";	
 	unless ( $depName eq "utility.input_parameters" ) {
 	    # Extract default values for all parameters defined in this file.
 	    map {
@@ -169,7 +169,7 @@ CODE
     foreach my $directive ( @directives ) {
 	$methodStructure->{$directive}->{$directive."Class"}->{'extends'} = undef();
 	foreach my $sourceFile ( &ExtraUtils::as_array($codeDirectiveLocations->{$directive}->{'file'}) ) {
-	    foreach my $classDeclaration ( &Fortran_Utils::Get_Matching_Lines($sourceFile,$Fortran_Utils::classDeclarationRegEx) ) {
+    	    foreach my $classDeclaration ( &Fortran_Utils::Get_Matching_Lines($sourceFile,$Fortran_Utils::classDeclarationRegEx) ) {
 		my $type      = $classDeclaration->{'submatches'}->[3];
 		my $extends   = $classDeclaration->{'submatches'}->[1];
 		(my $leafName = $sourceFile) =~ s/.*source\///;
@@ -261,7 +261,7 @@ CODE
 		    if ( $directive->{'name'} =~ m/\(\#([a-zA-Z0-9]+)\->([a-z]+)\)/ ) {
 			my $dependentDirectiveName = $1;
 			my $dependentPropertyName  = $2;
-			foreach my $dependentFileName ( @{$codeDirectiveLocations->{$dependentDirectiveName}->{'file'}} ) {
+			foreach my $dependentFileName ( &ExtraUtils::as_array($codeDirectiveLocations->{$dependentDirectiveName}->{'file'}) ) {
 			    foreach my $dependentDirective ( &Directives::Extract_Directives($dependentFileName,$dependentDirectiveName) ) {
 				my $dependentProperty = $dependentDirective->{$dependentPropertyName};
 				(my $parameterName = $directive->{'name'}) =~ s/\(\#[a-zA-Z0-9]+\->[a-z]+\)/$dependentProperty/;
@@ -293,7 +293,7 @@ CODE
 	    }
 	    # Add a source MD5 digest for this file.
 	    my $ctx = Digest::MD5->new();
-	    $ctx->add(&Fortran_Utils::read_file($sourceFile,state => "raw", followIncludes => 1, includeLocations => [ "../source", "../work/build" ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
+	    $ctx->add(&Fortran_Utils::read_file($sourceFile,state => "raw", followIncludes => 1, includeLocations => [ "../source", ".".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
 	    # Search for use on any files from the data directory by this source file.
 	    &Hash_Data_Files(
 		$ctx,
@@ -363,7 +363,7 @@ CODE
 		    if ( $suffix eq ".c" || $suffix eq ".cpp" ) {
 			# For C and C++ files, run them through the preprocessor to have any include files included.
 			my $includeOptions = join(" ",map {"-I".$_} @includeDirectories);
-			open($sourceHandle,"cpp -I".$galacticusDirectory."/source/ -I".$galacticusDirectory."/work/build/ ".$includeOptions." ".$sourceFile."|");
+			open($sourceHandle,"cpp -I".$galacticusDirectory."/source/ -I".$ENV{'BUILDPATH'}."/ ".$includeOptions." ".$sourceFile."|");
 		    } else {
 			# For other files, simply read the file directly.
 			open($sourceHandle,       $sourceFile    );

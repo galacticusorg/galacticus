@@ -22,7 +22,8 @@ module IO_XML
   implicit none
   private
   public :: XML_Extrapolation_Element_Decode , XML_Array_Read  , XML_Array_Read_Static, &
-       &    XML_Get_First_Element_By_Tag_Name, XML_Array_Length, XML_Path_Exists
+       &    XML_Get_First_Element_By_Tag_Name, XML_Array_Length, XML_Path_Exists      , &
+       &    XML_Extract_Text
 
   ! Labels for extrapolation methods.
   integer, parameter, public :: extrapolateFixed=1, extrapolatePowerLaw=2, extrapolateZero=0
@@ -41,6 +42,18 @@ module IO_XML
   end interface XML_Array_Read_Static
 
 contains
+
+  function XML_Extract_Text(xmlElement)
+    !% Extract the text from an XML element and return as a variable length string.
+    use ISO_Varying_String
+    use FoX_dom
+    implicit none
+    type(varying_string)                         :: XML_Extract_Text
+    type(node          ), intent(in   ), pointer :: xmlElement
+
+    XML_Extract_Text=getTextContent(xmlElement)
+    return
+  end function XML_Extract_Text
 
   integer function XML_Array_Length(xmlElement,arrayElementName)
     !% Return the length of an array of XML elements.
@@ -206,18 +219,25 @@ contains
     return
   end subroutine XML_List_Character_Array_Read_Static_One_Column
 
-  function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName)
+  function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName,directChildrenOnly)
     !% Return a pointer to the first node in an XML node that matches the given {\normalfont \ttfamily tagName}.
     use FoX_dom
     use Galacticus_Error
     implicit none
-    type     (node            )               , pointer :: XML_Get_First_Element_By_Tag_Name
-    type     (node            ), intent(in   ), pointer :: xmlElement
-    character(len=*           ), intent(in   )          :: tagName
-    type     (nodeList        )               , pointer :: elementList
-    character(len=len(tagName))                         :: currentTagName                   , path
-    integer                                             :: pathPosition
-
+    type     (node            )               , pointer  :: XML_Get_First_Element_By_Tag_Name
+    type     (node            ), intent(in   ), pointer  :: xmlElement
+    character(len=*           ), intent(in   )           :: tagName
+    logical                    , intent(in   ), optional :: directChildrenOnly
+    type     (nodeList        )               , pointer  :: elementList
+    type     (node            )               , pointer  :: parent
+    character(len=len(tagName))                          :: currentTagName                   , path
+    integer                                              :: pathPosition                     , i
+    logical                                              :: directChildrenOnlyActual
+    
+    ! Set default options.
+    directChildrenOnlyActual=.false.
+    if (present(directChildrenOnly)) directChildrenOnlyActual=directChildrenOnly
+    ! Find element.
     XML_Get_First_Element_By_Tag_Name => xmlElement
     path=tagName
     do while (path /= "")
@@ -233,7 +253,17 @@ contains
        if (getLength(elementList) < 1) then
           call Galacticus_Error_Report('XML_Get_First_Element_By_Tag_Name','no elements match tag name "'//trim(currentTagName)//'"')
        else
-          XML_Get_First_Element_By_Tag_Name => item(elementList,0)
+          if (directChildrenOnlyActual) then
+             do i=0,getLength(elementList)-1
+                parent => getParentNode(item(elementList,i))
+                if (associated(parent,xmlElement)) then
+                   XML_Get_First_Element_By_Tag_Name => item(elementList,i)
+                   exit
+                end if
+             end do
+          else
+             XML_Get_First_Element_By_Tag_Name => item(elementList,0)
+          end if
        end if
     end do
     return

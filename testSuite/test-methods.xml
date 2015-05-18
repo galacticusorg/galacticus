@@ -226,10 +226,10 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <virialOrbitsMethod>
-      <value>Wetzel2010</value>
-      <value>Benson2005</value>
-    </virialOrbitsMethod>
+    <virialOrbitMethod>
+      <value>benson2005</value>
+      <value>wetzel2010</value>
+    </virialOrbitMethod>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
@@ -700,6 +700,34 @@
     </intergalacticMediumStateMethod>
   </parameters>
 
+  <!-- Hot halo options -->
+  <parameters>
+    <parameter>
+      <name>treeNodeMethodHotHalo</name>
+      <value>standard</value>
+      <value>verySimple
+      <parameter>
+	<name>coolingRateMethod</name>
+	<value>simple</value>
+      </parameter>
+      <parameter>
+	<name>treeNodeMethodBlackHole</name>
+	<value>null</value>
+      </parameter>
+      </value>
+      <value>verySimpleDelayed
+      <parameter>
+	<name>coolingRateMethod</name>
+	<value>simple</value>
+      </parameter>
+      <parameter>
+	<name>treeNodeMethodBlackHole</name>
+	<value>null</value>
+      </parameter>
+      </value>
+    </parameter>
+  </parameters>
+  
   <!-- Internal IGM evolution -->
   <parameters>
     <formatVersion>2</formatVersion>
@@ -781,6 +809,10 @@
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteOrbitStoreOrbitalParameters value="true"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
+      <value>tidallyHeated</value>
+    </parameter>
+    <parameter>
+      <name>darkMatterProfileTidallyHeatedUnheatedProfile</name>
   </parameters>
 
   <!-- Statistics and tracking components -->
