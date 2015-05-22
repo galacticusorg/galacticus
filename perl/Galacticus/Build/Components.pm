@@ -5537,16 +5537,12 @@ sub Generate_Node_Copy_Function {
 	 {
 	     intrinsic  => "logical",
 	     variables  => [ "skipFormationNodeActual" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "i" ]
 	 }
 	);
-    push(
-	@dataContent,
-	{
-	    intrinsic  => "integer",
-	    variables  => [ "i" ]
-	}
-	)
-	if ( $workaround == 1 );
     # Generate the code.
     my $functionCode;
     $functionCode .= "  subroutine Tree_Node_Copy_Node_To(self,targetNode,skipFormationNode)\n";
