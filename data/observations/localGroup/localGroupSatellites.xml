@@ -4,6 +4,78 @@
   <doi>doi:10.1088/0004-6256/144/1/4</doi>
   <galaxies>
     <galaxy>
+      <name>Horologium II</name>
+      <alias>
+	<value>HorII</value>
+      </alias>
+      <rightAscensionHours>
+        <value>3</value>
+      </rightAscensionHours>
+      <rightAscensionMinutes>
+        <value>16</value>
+      </rightAscensionMinutes>
+      <rightAscensionSeconds>
+        <value>32.1</value>
+      </rightAscensionSeconds>
+      <declinationDegrees>
+        <value>-50</value>
+      </declinationDegrees>
+      <declinationArcMinutes>
+        <value>1</value>
+      </declinationArcMinutes>
+      <declinationArcSeconds>
+        <value>5</value>
+      </declinationArcSeconds>
+      <latitudeGalactic>
+        <value>262.472</value>
+      </latitudeGalactic>
+      <longitudeGalactic>
+        <value>-54.137</value>
+      </longitudeGalactic>
+      <distanceModulus>
+        <value>19.46</value>
+	<error>0.20</error>
+      </distanceModulus>
+       <distanceHeliocentric>
+         <value>78</value>
+	 <error>8</error>
+      </distanceHeliocentric>
+      <magnitudeAbsoluteV>
+        <value>-2.6</value>
+        <errorHigh>0.2</errorHigh>
+	<errorLow>0.3</errorLow>
+      </magnitudeAbsoluteV>
+      <radiusHalfLight>
+        <value>47e-3</value>
+        <error>10e-3</error>
+      </radiusHalfLight>
+      <radiusHalfLightAngular>
+        <value>2.09</value>
+        <errorHigh>0.44</errorHigh>
+        <errorLow>0.41</errorLow>
+      </radiusHalfLightAngular>
+      <ellipticityProjected>
+        <value>0.52</value>
+	<errorHigh>0.13</errorHigh>
+	<errorLow>0.17</errorLow>
+      </ellipticityProjected>
+      <positionAngle>
+        <value>127</value>
+	<error>11</error>
+      </positionAngle>
+      <massStellar>
+        <value>0.000904</value>
+	<errorHigh>0.000288</errorHigh>
+	<errorLow>0.000152</errorLow>
+      </massStellar>
+      <publication>
+	<value>Kim &amp; Jerjen (2015; arXiv:1505.04948)</value>
+      </publication>
+      <publicationURL>
+	<value>http://adsabs.harvard.edu/abs/2015arXiv150504948K</value>
+      </publicationURL>
+    </galaxy>   
+    <galaxy>
       <name>Pegasus III</name>
       <alias>
 	<value>PegIII</value>
