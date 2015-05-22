@@ -171,8 +171,7 @@ module Merger_Tree_Data_Structure
      !% A structure that holds metadata on units used.
      double precision                 :: unitsInSI
      integer                          :: hubbleExponent, scaleFactorExponent
-!     type            (varying_string) :: name
-     character(len=100)               :: name
+     type            (varying_string) :: name
   end type unitsMetaData
 
   ! Metadata labels.
@@ -210,13 +209,11 @@ module Merger_Tree_Data_Structure
   type treeMetaData
      !% Structure that holds metadata for the trees.
      integer                          :: metadataType
-!     type            (varying_string) :: label
-character(len=100) :: label 
-    integer                          :: dataType
+     type            (varying_string) :: label
+     integer                          :: dataType
      integer                          :: integerAttribute
      double precision                 :: doubleAttribute
-!     type            (varying_string) :: textAttribute
-character(len=100) :: textAttribute
+     type            (varying_string) :: textAttribute
   end type treeMetaData
 
   type mergerTreeData
@@ -274,13 +271,9 @@ character(len=100) :: textAttribute
           &                                                                     includesHubbleFlow         =.false., includesSubhaloMasses    =.false., &
           &                                                                     isPeriodic                 =.false.
      type            (unitsMetaData )             , dimension(unitTypeCount) :: units
-!     type            (propertyMetaData )      , dimension(propertyTapeCount) :: propertyType
      logical                                      , dimension(unitTypeCount) :: unitsSet                   =.false.
      integer                                                                 :: metaDataCount              =0
-     !# <workaround type="gfortran" PR="59765" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59765">
-     !#     type            (treeMetaData  ), allocatable, dimension(:)             :: metaData
-     type            (treeMetaData  )             , dimension(100          ) :: metaData
-     !# </workaround>
+     type            (treeMetaData  ), allocatable, dimension(:)             :: metaData
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeData</object>
@@ -563,27 +556,22 @@ contains
     double precision                , intent(in   ), optional     :: doubleValue
     character       (len=*         ), intent(in   ), optional     :: textValue
     integer                         , parameter                   :: metadataBlockSize=100
-    !# <workaround type="gfortran" PR="59765" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59765">
-    !#  type            (treeMetaData  ), allocatable  , dimension(:) :: metaDataTemporary
-    !# </workaround>
+    type            (treeMetaData  ), allocatable  , dimension(:) :: metaDataTemporary
 
     ! Validate the metadata type.
     if (metadataType < 1 .or. metadataType > metaDataTypeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Add_Metadata','invalid metadata type')
 
     ! Ensure we have enough space in the metadata properties array.
-    !# <workaround type="gfortran" PR="59765" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59765">
-    if (mergerTrees%metaDataCount > size(mergerTrees%metaData)) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Add_Metadata','too much metadata <workaround type="gfortran" PR="59765" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59765" />')
-    !# if (mergerTrees%metaDataCount == 0) then
-    !#    allocate(mergerTrees%metaData(metadataBlockSize))
-    !#    call Memory_Usage_Record(sizeof(mergerTrees%metaData))
-    !# else if (mergerTrees%metaDataCount == mergerTrees%metaDataCount) then
-    !#    call Move_Alloc(mergerTrees%metaData,metaDataTemporary)
-    !#    allocate(mergerTrees%metaData(size(metaDataTemporary)+metadataBlockSize))
-    !#    call Memory_Usage_Record(sizeof(metaDataTemporary(1)),addRemove=metadataBlockSize,blockCount=0)
-    !#    mergerTrees%metaData(1:size(metaDataTemporary))=metaDataTemporary
-    !#    deallocate(metaDataTemporary)
-    !# end if
-    !# </workaround>
+    if (mergerTrees%metaDataCount == 0) then
+       allocate(mergerTrees%metaData(metadataBlockSize))
+       call Memory_Usage_Record(sizeof(mergerTrees%metaData))
+    else if (mergerTrees%metaDataCount == mergerTrees%metaDataCount) then
+       call Move_Alloc(mergerTrees%metaData,metaDataTemporary)
+       allocate(mergerTrees%metaData(size(metaDataTemporary)+metadataBlockSize))
+       call Memory_Usage_Record(sizeof(metaDataTemporary(1)),addRemove=metadataBlockSize,blockCount=0)
+       mergerTrees%metaData(1:size(metaDataTemporary))=metaDataTemporary
+       deallocate(metaDataTemporary)
+    end if
 
     ! Increment number of metadata.
     mergerTrees%metaDataCount=mergerTrees%metaDataCount+1
@@ -1833,16 +1821,14 @@ contains
           end select
 
           ! Determine what data type to write.
-             !# <workaround type="gfortran" PR="59765" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59765">
           select case (mergerTrees%metaData(iAttribute)%dataType)
           case (dataTypeInteger)
-             call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%integerAttribute,mergerTrees%metaData(iAttribute)%label) !# char(mergerTrees%metaData(iAttribute)%label))
+             call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%integerAttribute,char(mergerTrees%metaData(iAttribute)%label))
           case (dataTypeDouble )
-             call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%doubleAttribute ,mergerTrees%metaData(iAttribute)%label) !# char(mergerTrees%metaData(iAttribute)%label))
+             call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%doubleAttribute ,char(mergerTrees%metaData(iAttribute)%label))
           case (dataTypeText   )
-             call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%textAttribute   ,mergerTrees%metaData(iAttribute)%label) !# char(mergerTrees%metaData(iAttribute)%label))
+             call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%textAttribute   ,char(mergerTrees%metaData(iAttribute)%label))
           end select
-          !# </workaround>
        end do
 
        ! Close attribute groups.
@@ -2114,10 +2100,9 @@ contains
           if (associated(attributeGroup)) then
 
              ! Perform dictionary mapping from our internal names (which follow Galacticus format) to IRATE names.
-             !# <workaround type="gfortran" PR="59765" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59765">
              select case (mergerTrees%metaData(iAttribute)%metadataType)
              case (metaDataCosmology  )
-                select case (mergerTrees%metaData(iAttribute)%label) !# char(mergerTrees%metaData(iAttribute)%label))
+                select case (char(mergerTrees%metaData(iAttribute)%label))
                 case ("powerSpectrumIndex")
                    mergerTrees%metaData(iAttribute)%label="PowerSpectrumIndex"
                 end select
@@ -2126,13 +2111,12 @@ contains
              ! Determine what data type to write.
              select case (mergerTrees%metaData(iAttribute)%dataType)
              case (dataTypeInteger)
-                call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%integerAttribute,mergerTrees%metaData(iAttribute)%label) !# char(mergerTrees%metaData(iAttribute)%label))
+                call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%integerAttribute,char(mergerTrees%metaData(iAttribute)%label))
              case (dataTypeDouble )
-                call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%doubleAttribute ,mergerTrees%metaData(iAttribute)%label) !# char(mergerTrees%metaData(iAttribute)%label))
+                call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%doubleAttribute ,char(mergerTrees%metaData(iAttribute)%label))
              case (dataTypeText   )
-                call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%textAttribute   ,mergerTrees%metaData(iAttribute)%label) !# char(mergerTrees%metaData(iAttribute)%label))
+                call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%textAttribute   ,char(mergerTrees%metaData(iAttribute)%label))
              end select
-             !# </workaround>
 
           end if
 
