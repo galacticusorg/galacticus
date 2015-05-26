@@ -14,9 +14,11 @@ use Data::Dumper;
 use File::Copy;
 use IO::Prompt;
 use IO::Interactive qw( is_interactive );
+use Scalar::Util qw( reftype );
 
 # Driver script for CAMB.
 # Andrew Benson (2-December-2013)
+# Contributions to this file from: Christoph Behrens.
 
 # Get arguments.
 die "Usage: CAMB_Driver.pl <parameterFile> <transferFunctionFile> <kMax> <fileFormatVersion>"
@@ -56,7 +58,7 @@ unless ( -e $galacticusPath."aux/camb" ) {
 
 # Build the code.
 unless ( -e $galacticusPath."aux/camb/camb" ) {
-    print "CAMB_Driver.pl: compiling CMBFast code.\n";
+    print "CAMB_Driver.pl: compiling CAMB code.\n";
     system("cd ".$galacticusPath."aux/camb/; sed -r -i~ s/\"F90C\\s*=\\s*.*\"/\"F90C = gfortran\"/ Makefile; sed -r -i~ s/\"^FFLAGS\\s*=\\s*.*\"/\"FFLAGS = -Ofast -march=native -fopenmp\"/ Makefile; sed -r -i~ /\"F90CRLINK\\s*=\\s*.*\"/d Makefile; make -j1");
     die("CAMB_Driver.pl: FATAL - failed to build CAMB code.")
 	unless ( -e $galacticusPath."aux/camb/camb" );
@@ -66,21 +68,20 @@ unless ( -e $galacticusPath."aux/camb/camb" ) {
 my $Omega_nu          = 0.0;
 
 # Parse the parameter file.
-my $xml           = new XML::Simple;
-my $data          = $xml->XMLin($parameterFile);
-my $parameterHash = $data->{'parameter'};
+my $xml  = new XML::Simple;
+my $data = $xml->XMLin($parameterFile);
 
 # Check that required parameters exist.
-my @parameters = ( "Omega_b", "Omega_Matter", "Omega_DE", "H_0", "T_CMB", "Y_He" );
+my @parameters = ( "OmegaBaryon", "OmegaMatter", "OmegaDarkEnergy", "HubbleConstant", "temperatureCMB", "Y_He" );
 foreach my $parameter ( @parameters ) {
     die("CAMB_Driver.pl: FATAL - parameter ".$parameter." can not be found.")
-	unless ( exists($data->{'parameter'}->{$parameter}) );
-    $parameterHash->{$parameter}->{'value'} =~ s/d/e/;
+	unless ( exists($data->{$parameter}) );
+    $data->{$parameter}->{'value'} =~ s/d/e/;
 }
 
 # Calculate derived parameters.
-my $Omega_c = $parameterHash->{'Omega_Matter'}->{'value'}-$parameterHash->{'Omega_b'}->{'value'};
-$kMax = $kMax/($parameterHash->{'H_0'}->{'value'}/100.0);
+my $Omega_c = $data->{'OmegaMatter'}->{'value'}-$data->{'OmegaBaryon'}->{'value'};
+$kMax = $kMax/($data->{'HubbleConstant'}->{'value'}/100.0);
 
 my $makeFile = 0;
 if ( -e $transferFunctionFile ) {
@@ -114,16 +115,16 @@ l_max_scalar      = 2200
 l_max_tensor      = 1500
 k_eta_max_tensor  = 3000
 use_physical   = F
-omega_baryon   = $parameterHash->{'Omega_b'}->{'value'}
+omega_baryon   = $data->{'OmegaBaryon'}->{'value'}
 omega_cdm      = $Omega_c
-omega_lambda   = $parameterHash->{'Omega_DE'}->{'value'}
+omega_lambda   = $data->{'OmegaDarkEnergy'}->{'value'}
 omega_neutrino = $Omega_nu
 omk            = 0
-hubble         = $parameterHash->{'H_0'}->{'value'}
+hubble         = $data->{'HubbleConstant'}->{'value'}
 w              = -1
 cs2_lam        = 1
-temp_cmb           = $parameterHash->{'T_CMB'}->{'value'}
-helium_fraction    = $parameterHash->{'Y_He'}->{'value'}
+temp_cmb           = $data->{'temperatureCMB'}->{'value'}
+helium_fraction    = $data->{'Y_He'}->{'value'}
 massless_neutrinos = 2.046
 nu_mass_eigenstates = 1
 massive_neutrinos  = 1
@@ -211,7 +212,7 @@ END
    while ( my $line = <inHndl> ) {
        $line =~ s/^\s*//;
        my @columns = split(/\s+/,$line);
-       my $k = $columns[0]*($parameterHash->{'H_0'}->{'value'}/100.0);
+       my $k = $columns[0]*($data->{'HubbleConstant'}->{'value'}/100.0);
        push(@transferFunctionData,$k." ".$columns[1]);
    }
    close(inHndl);
@@ -222,13 +223,9 @@ END
        "T(k) - transfer function"
        );
    @{$transferFunction{'description'}} = "Cold dark matter power spectrum created by CAMB.";
-   foreach my $parameter ( keys(%{$parameterHash}) ) {
-       push(@{$transferFunction{'parameter'}},	    
-	    {
-		"name"  => $parameter,
-		"value" => $parameterHash->{$parameter}->{'value'}
-	    }
-	   );
+   foreach my $parameter ( keys(%{$data}) ) {
+       ${$transferFunction{'parameters'}->{$parameter}}[0]->{'value'} = $data->{$parameter}->{'value'}
+           if ( reftype($data->{$parameter}) && exists($data->{$parameter}->{'value'}) );
    }
    # Add extrapolation data.
    ${$transferFunction{'extrapolation'}->{'wavenumber'}}[0]->{'limit' } = "low";
