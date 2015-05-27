@@ -47,9 +47,9 @@ my $distanceDataset = "distance".$arguments{'central'};
 (my $names, my $masses, my $distanceModuli, my $vBandApparentMagnitudes, my $vBandAbsoluteMagnitudes, my $detectionEfficiency, my $publication, my $distances) 
     = &LocalGroup::Select(["name","massStellar","distanceModulus","magnitudeApparentV","magnitudeAbsoluteV","detectionEfficiencyHalfLight","publication",$distanceDataset], excludeCentral => 1, );
 # Find the mass conversion.
-my $massConversion = $masses->{'meta'}->{'unitsInSI'}/1.9891e+30;
+my $massConversion     = $masses   ->{'meta'}->{'unitsInSI'}/1.9891e30;
 # Find the distance conversion.
-my $distanceConversion = $distances->{'meta'}->{'unitsInSI'}/3.086e22;
+my $distanceConversion = $distances->{'meta'}->{'unitsInSI'}/3.0860e22;
 # Estimate mass error from photometric uncertainty.
 $masses->{'error'} = 0.4*log(10.0)*$masses->{'value'}*sqrt($vBandApparentMagnitudes->{'error'}**2+$distanceModuli->{'error'}**2);
 my $haveAbsoluteMagnitude =which($vBandAbsoluteMagnitudes->{'error'} > 0.0);
@@ -68,16 +68,13 @@ $galacticus->{'file' } = $galacticusFileName;
 &HDF5::Get_Parameters($galacticus);
 my $massFunctionGroup = $galacticus->{'hdf5File'}->group('analysis')->group(lcfirst($arguments{'central'}).'MassFunction');
 my $model;
-$model->{'haloRadius'} = pdl 0.3; # AJB HACK #($model->{'haloRadius'}) = $massFunctionGroup->attrGet('haloRadius');
-foreach ( "massStellar", "massFunctionCumulative", "massFunctionCumulativeVariance" ) {
+($model->{'haloRadius'}, $model->{'logLikelihood'}, $model->{'haloCount'}) = $massFunctionGroup->attrGet('haloRadius','logLikelihood' ,'haloCount');
+foreach ( "massStellar", "massFunctionCumulative", "massFunctionCumulativeVariance", "massFunctionCumulativePoissonVariance" ) {
     $model->{$_} = $massFunctionGroup->dataset($_)->get();
 }
-# Extract number of halos used in analysis.
-$model->{'haloCount'} = $massFunctionGroup->attrGet('haloCount');
+
 # Extract V-band mass-to-light ratio to assume for Local Group satellites.
-my $massToLightRatio = pdl 1.0;
-$massToLightRatio = $galacticus->{'parameters'}->{'localGroupSatellitesMassToLightBandV'}
-    if ( exists($galacticus->{'parameters'}->{'localGroupSatellitesMassToLightBandV'}) );
+my $massToLightRatio = exists($galacticus->{'parameters'}->{'localGroupSatellitesMassToLightBandV'}) ? exists($galacticus->{'parameters'}->{'localGroupSatellitesMassToLightBandV'}) : pdl 1.0;
 # Scale observed masses for mass-to-light ratio.
 $masses->{'value'    } *= $massToLightRatio;
 $masses->{'errorLow' } *= $massToLightRatio;
@@ -143,7 +140,8 @@ if ( $arguments{'central'} eq "MilkyWay" ) {
 } else {
     $model->{'completeness'}                  = pdl ones(nelem($model->{'massStellar'}));
 }
-# Create a plot of the correlation function.
+
+# Create a plot of the mass function function.
 if ( exists($arguments{'plotFile'}) ) {
     require GnuPlot::PrettyPlots;
     require GnuPlot::LaTeX;
@@ -251,8 +249,8 @@ if ( exists($arguments{'plotFile'}) ) {
 # Output the results to file if requested.
 if ( exists($arguments{'resultFile'}) ) {
     # Interpolate model mass function to observed masses.
-    (my $modelMassFunction, my $modelMassFunctionError) = interpolate($masses->{'value'}->($masses->{'order'}),$model->{'massStellar'},$model->{'massFunctionCumulative'});
-    my $modelMassFunctionVariance = $modelMassFunction/$model->{'haloCount'};
+    (my $modelMassFunction        , my $modelMassFunctionError        ) = interpolate($masses->{'value'}->($masses->{'order'}),$model->{'massStellar'},$model->{'massFunctionCumulative'               });
+    (my $modelMassFunctionVariance, my $modelMassFunctionVarianceError) = interpolate($masses->{'value'}->($masses->{'order'}),$model->{'massStellar'},$model->{'massFunctionCumulativePoissonVariance'});
     my $resultsFile = new PDL::IO::HDF5(">".$arguments{'resultFile'});
     $resultsFile->dataset('x'             )->set($masses->{'value'}->($masses->{'order'}));
     $resultsFile->dataset('y'             )->set($modelMassFunction);
@@ -286,25 +284,36 @@ if ( exists($arguments{'outputFile'}) ) {
 	my $massesPerturbed = 10.0**($massesLogarithmic+grandom(nelem($massesLogarithmic))*$errorsLogarithmic);
 	my $orderPerturbed  = $massesPerturbed->qsorti();
 	# Interpolate model mass function to observed masses.
-	(my $modelMassFunction, my $modelMassFunctionError) = interpolate($massesPerturbed->($orderPerturbed),$model->{'massStellar'},$model->{'massFunctionCumulative'}*$model->{'completeness'});
+	(my $modelMassFunction        , my $modelMassFunctionError        ) = interpolate($massesPerturbed->($orderPerturbed),$model->{'massStellar'},$model->{'massFunctionCumulative'               }*$model->{'haloCount'}   );
+	(my $modelMassFunctionVariance, my $modelMassFunctionVarianceError) = interpolate($massesPerturbed->($orderPerturbed),$model->{'massStellar'},$model->{'massFunctionCumulativePoissonVariance'}*$model->{'haloCount'}**2);
+	(my $modelCompleteness        , my $modelCompletenessError        ) = interpolate($massesPerturbed->($orderPerturbed),$model->{'massStellar'},$model->{'completeness'                         }                         );
 	# Determine change in model mass function between each bin.
-	$modelMassFunction->(0:-2) -= $modelMassFunction->(1:-1);
+	$modelMassFunction        ->(0:-2) -= $modelMassFunction        ->(1:-1);
+	$modelMassFunctionVariance->(0:-2) -= $modelMassFunctionVariance->(1:-1);
 	# Find zeros of the mass function.
-	my $zeroMassFunction = which($modelMassFunction <= 0.0);
+	my $zeroMassFunction = which(($modelMassFunction <= 0.0) | ($modelMassFunctionVariance <= 0.0));
 	# Set zero mass function to small but non-zero value.
-	$modelMassFunction->($zeroMassFunction) .= 1.0e-3;
-	# Sample from the distribution of model mass functions, assuming a Poisson process.
-	my $modelMassFunctionUnscaled = $modelMassFunction*$model->{'haloCount'};
+	$modelMassFunction        ->($zeroMassFunction) .= 1.0e-3;
+	$modelMassFunctionVariance->($zeroMassFunction) .= 1.0e-3;
+	# Sample from the distribution of model mass functions, assuming a Poisson
+	# process. Since our mean mass function is a weighted sum of Poisson distributed
+	# variables the exact form of the distribution is not simple. We use the approximation
+	# proposed by Fay & Feuer (1997; Stat Med; 16; 791;
+	# http://www.ncbi.nlm.nih.gov/pubmed/9131766).
+	my $k = $modelMassFunction/$modelMassFunctionVariance;
+	my $modelMassFunctionUnscaled = $modelMassFunction*$k;
 	my $rng = PDL::GSL::RNG->new('taus');
 	$rng->set_seed(time());
 	$rng->ran_feed_poisson($modelMassFunctionUnscaled);
-	my $modelMassFunctionPerturbed = $modelMassFunctionUnscaled/$model->{'haloCount'};
+	my $modelMassFunctionPerturbed = $modelMassFunctionUnscaled*$modelCompleteness/$k/$model->{'haloCount'};
 	# Evaluate likelihood, catching impossible cases.
 	$likelihood += exp(sum(log($modelMassFunction)-$modelMassFunction)-$logLikelihoodRaw)
 	    if (all($modelMassFunction > 0.0));
     }
     $logLikelihood = log($likelihood/$realizationCount)+$logLikelihoodRaw;
-    $constraint->{'logLikelihood'} = $logLikelihood->sclr();
+    # Include any log-likelihood arising from the requirement to have Magellanic-like halos in the system.
+    $constraint->{'logLikelihood'        } = $logLikelihood->sclr()+$model->{'logLikelihood'}->sclr();
+    $constraint->{'logLikelihoodVariance'} = 0.0;
     # Output the constraint.
     my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
     open(oHndl,">".$arguments{'outputFile'});

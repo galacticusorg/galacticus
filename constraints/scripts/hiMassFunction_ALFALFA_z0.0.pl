@@ -75,14 +75,14 @@ sub ALFALFA_Mass_Error_Model {
     my $galacticus      = shift;
     # Use a simple model fit to Fig. 19 of Haynes et al. (2011).
     # See constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/alfalfaHIMassErrorModel.pl for details.
-    my $a                                  = pdl $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00ErrorA'};
-    my $b                                  = pdl $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00ErrorB'};
-    my $c                                  = pdl $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00ErrorC'};
+    my $a                                  = pdl $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00ErrorA'}->{'value'};
+    my $b                                  = pdl $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00ErrorB'}->{'value'};
+    my $c                                  = pdl $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00ErrorC'}->{'value'};
     my $logarithmicMassLimited             = $logarithmicMass->copy();
     my $lowMasses                          = which($logarithmicMassLimited < 6.0);
     $logarithmicMassLimited->($lowMasses) .= 6.0;
     my $errorObserved                      = $a+exp(-($logarithmicMassLimited-$b)/$c);
-    my $errorModel                         = $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionScatter'};
+    my $errorModel                         = $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionScatter'}->{'value'};
     my $error                              = sqrt($errorObserved**2+$errorModel**2);
     return $error;
 }
@@ -100,23 +100,23 @@ sub ALFALFA_Mass_Map {
 	(
 	 $massSolar  **2
 	 /$megaParsec**4
-	 *$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionK'}
+	 *$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionK'}->{'value'}
 	 *$galacticus->{'dataSets'  }->{$config->{'massType'}                         }                       
 	 *(
 	     +$galacticus->{'dataSets'  }->{$config->{'massType'}                              }
-	     +$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionfSigma'}
+	     +$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionfSigma'}->{'value'}
 	     *$galacticus->{'dataSets'  }->{'massStellar'                                      }
 	 )
 	 /$galacticus->{'dataSets'}->{'diskRadius'}**4
-	)**$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionBeta'};
+	)**$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionBeta'}->{'value'};
     # Compute net molecular ratio.
     my $molecularRatio = 
 	1.0
 	/(
-	    +                        $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionA1'    }
-	    /$molecularRatioCentral**$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1'}
-	    +                        $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionA2'    }
-            /$molecularRatioCentral**$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2'} 
+	    +                        $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionA1'    }->{'value'}
+	    /$molecularRatioCentral**$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1'}->{'value'}
+	    +                        $galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionA2'    }->{'value'}
+            /$molecularRatioCentral**$galacticus->{'parameters'}->{'alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2'}->{'value'}
 	);
     my $negativeMolecularRatio                  = which($molecularRatio < 0.0);
     $molecularRatio->($negativeMolecularRatio) .= 0.0;

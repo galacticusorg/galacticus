@@ -71,9 +71,9 @@ my $cosmologyData = Astro::Cosmology->new(
     H0           => &assclr($dataCompilation->group('cosmology')->attrGet('H_0'         ))
     );
 my $cosmologyGalacticus = Astro::Cosmology->new(
-    omega_matter => $model->{'parameters'}->{'Omega_Matter'},
-    omega_lambda => $model->{'parameters'}->{'Omega_DE'    },
-    H0           => $model->{'parameters'}->{'H_0'         }
+    omega_matter => $model->{'parameters'}->{'cosmologyParametersMethod'}->{'OmegaMatter'    }->{'value'},
+    omega_lambda => $model->{'parameters'}->{'cosmologyParametersMethod'}->{'OmegaDarkEnergy'}->{'value'},
+    H0           => $model->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant' }->{'value'}
     );
 
 # Compute cosmological correction factor for sizes.
@@ -212,10 +212,10 @@ unless ( $gotModelSizeFunction == 1 ) {
     my $massSystematicParameterRoot = "diskGalaxySizesSDSSZ0.07MassSystematic";
     my $massSystematicOffset = pdl zeroes(nelem($model->{'dataSets'}->{'massLogarithmic'}));
     my $iMass = 0;
-    while ( exists($model->{'parameters'}->{$massSystematicParameterRoot.$iMass}) ) {
+    while ( exists($model->{'parameters'}->{$massSystematicParameterRoot.$iMass}->{'value'}) ) {
 	$massSystematicOffset += 
-	    $model->{'parameters'}->{$massSystematicParameterRoot.$iMass}
-	*($model->{'dataSets'}->{'massLogarithmic'}-$massSystematicLogM0)**$iMass;
+	    $model->{'parameters'}->{$massSystematicParameterRoot.$iMass}->{'value'}
+	*($model->{'dataSets'}->{'massLogarithmic'}->{'value'}-$massSystematicLogM0)**$iMass;
     }
     $model->{'dataSets'}->{'massLogarithmic'} += $massSystematicOffset;
     # Apply radius systematics.
@@ -223,9 +223,9 @@ unless ( $gotModelSizeFunction == 1 ) {
     my $radiusSystematicParameterRoot = "diskGalaxySizesSDSSZ0.07RadiusSystematic";
     my $radiusSystematicOffset = pdl zeroes(nelem($model->{'dataSets'}->{'diskRadiusLogarithmic'}));
     my $iRadius = 0;
-    while ( exists($model->{'parameters'}->{$radiusSystematicParameterRoot.$iRadius}) ) {
+    while ( exists($model->{'parameters'}->{$radiusSystematicParameterRoot.$iRadius}->{'value'}) ) {
 	$radiusSystematicOffset += 
-	    $model->{'parameters'}->{$radiusSystematicParameterRoot.$iRadius}
+	    $model->{'parameters'}->{$radiusSystematicParameterRoot.$iRadius}->{'value'}
 	*($model->{'dataSets'}->{'diskRadiusLogarithmic'}-$radiusSystematicLogR0)**$iRadius;
     }
     $model->{'dataSets'}->{'diskRadiusLogarithmic'} += $radiusSystematicOffset;

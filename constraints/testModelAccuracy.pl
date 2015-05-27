@@ -71,18 +71,18 @@ if ( $arguments{'make'} eq "yes" ) {
 my @constraints = @{$constraintsRef};
 
 # Set an initial random number seed.
-$parameters->{'parameter'}->{'randomSeed'}->{'value'} = 824;
+$parameters->{'randomSeed'}->{'value'} = 824;
 
 # Switch off thread locking.
-$parameters->{'parameter'}->{'treeEvolveThreadLock'}->{'value'} = "false";
+$parameters->{'treeEvolveThreadLock'}->{'value'} = "false";
 
 # Set the default number of trees per decade.
-$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
+$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
 	if ( exists($arguments{'treesPerDecade'}) );
 
 # Ensure no abundance limits are applied for halo mass function sampling.
-$parameters->{'parameter'}->{'haloMassFunctionSamplingAbundanceMinimum'}->{'value'} = -1.0;
-$parameters->{'parameter'}->{'haloMassFunctionSamplingAbundanceMaximum'}->{'value'} = -1.0;
+$parameters->{'haloMassFunctionSamplingAbundanceMinimum'}->{'value'} = -1.0;
+$parameters->{'haloMassFunctionSamplingAbundanceMaximum'}->{'value'} = -1.0;
 
 # Define parameters to test for accuracy.
 my @accuracies =
@@ -127,7 +127,7 @@ foreach my $accuracy ( @accuracies ) {
     # Step through values of this parameter.
     for(my $i=0;$i<$accuracy->{'steps'};++$i) {
 	# Adjust the parameter.
-	$currentParameters->{'parameter'}->{$accuracy->{'parameter'}}->{'value'} *= $accuracy->{'factor'}
+	$currentParameters->{$accuracy->{'parameter'}}->{'value'} *= $accuracy->{'factor'}
 	    if ( $i > 0 );
 	# Iterate over sampling methods.
 	foreach my $samplingMethod ( @samplingMethods ) {
@@ -135,16 +135,16 @@ foreach my $accuracy ( @accuracies ) {
 	    my $modelDirectory = $workDirectory."/accuracy/".$accuracy->{'parameter'}."/".$samplingMethod->{'name'}."_n".$i;
 	    system("mkdir -p ".$modelDirectory);
 	    # Specify the sampling method.
-	    $currentParameters->{'parameter'}->{'haloMassFunctionSamplingMethod'          }->{'value'} = "haloMassFunction";
-	    $currentParameters->{'parameter'}->{'haloMassFunctionSamplingAbundanceMinimum'}->{'value'} = -1.0;
-	    $currentParameters->{'parameter'}->{'haloMassFunctionSamplingAbundanceMaximum'}->{'value'} = -1.0;
-	    $currentParameters->{'parameter'}->{'haloMassFunctionSamplingModifier1'       }->{'value'} = $samplingMethod->{'p1'};
-	    $currentParameters->{'parameter'}->{'haloMassFunctionSamplingModifier2'       }->{'value'} = $samplingMethod->{'p2'};
+	    $currentParameters->{'haloMassFunctionSamplingMethod'          }->{'value'} = "haloMassFunction";
+	    $currentParameters->{'haloMassFunctionSamplingAbundanceMinimum'}->{'value'} = -1.0;
+	    $currentParameters->{'haloMassFunctionSamplingAbundanceMaximum'}->{'value'} = -1.0;
+	    $currentParameters->{'haloMassFunctionSamplingModifier1'       }->{'value'} = $samplingMethod->{'p1'};
+	    $currentParameters->{'haloMassFunctionSamplingModifier2'       }->{'value'} = $samplingMethod->{'p2'};
 	    # Specify the output file name.
 	    my $galacticusFileName = $modelDirectory."/galacticus.hdf5";
-	    $currentParameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'} = $galacticusFileName;
+	    $currentParameters->{'galacticusOutputFileName'}->{'value'} = $galacticusFileName;
 	    # Increment the random number seed.
-	    $currentParameters->{'parameter'}->{'randomSeed'}->{'value'} += 1;
+	    $currentParameters->{'randomSeed'}->{'value'} += 1;
 	    # Check if the model has already been run.
 	    unless ( -e $galacticusFileName ) {
 		# Generate the parameter file.
@@ -270,7 +270,7 @@ foreach my $accuracy ( @accuracies ) {
 	# Step through values of this parameter.
 	for(my $i=0;$i<$accuracy->{'steps'};++$i) {
 	    # Adjust the parameter.
-	    $currentParameters->{'parameter'}->{$accuracy->{'parameter'}}->{'value'} *= $accuracy->{'factor'}
+	    $currentParameters->{$accuracy->{'parameter'}}->{'value'} *= $accuracy->{'factor'}
 	        if ( $i > 0 );
 	    # Locate the model directory.
 	    my $modelDirectory = $workDirectory."/accuracy/".$accuracy->{'parameter'}."/".$samplingMethod->{'name'}."_n".$i."/";
@@ -331,9 +331,9 @@ foreach my $accuracy ( @accuracies ) {
 		}
 	    }
 	    # Append this to the results arrays.
-	    $parameter       = $parameter      ->append($currentParameters->{'parameter'}->{$accuracy->{'parameter'}}->{'value'});
-	    $accuracyMeasure = $accuracyMeasure->append($thisAccuracyMeasure                                                    );
-	    $timing          = $timing         ->append($modelTiming                                                            );
+	    $parameter       = $parameter      ->append($currentParameters->{$accuracy->{'parameter'}}->{'value'});
+	    $accuracyMeasure = $accuracyMeasure->append($thisAccuracyMeasure                                     );
+	    $timing          = $timing         ->append($modelTiming                                             );
 	    # Append to the table of results.
 	    $reportTable->add(
 	    	$accuracy->{'parameter'}             ,

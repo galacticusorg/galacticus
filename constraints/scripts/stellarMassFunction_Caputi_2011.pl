@@ -68,9 +68,9 @@ foreach my $dataset ( @{$data->{'dataset'}} ) {
 	H0           => $data->{'cosmology'}->{'hubble'}
 	);
     my $cosmologyGalacticus = Astro::Cosmology->new(
-	omega_matter => $galacticus->{'parameters'}->{'Omega_Matter'},
-	omega_lambda => $galacticus->{'parameters'}->{'Omega_DE'},
-	H0           => $galacticus->{'parameters'}->{'H_0'}
+	omega_matter => $galacticus->{'parameters'}->{'cosmologyParametersMethod'}->{'OmegaMatter'    }->{'value'},
+	omega_lambda => $galacticus->{'parameters'}->{'cosmologyParametersMethod'}->{'OmegaDarkEnergy'}->{'value'},
+	H0           => $galacticus->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant' }->{'value'}
 	);
 
     my $volumeElementData            = $cosmologyData      ->differential_comoving_volume($redshift);

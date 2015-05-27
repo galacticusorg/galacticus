@@ -50,10 +50,10 @@ my @constraints = @{$constraintsRef};
 
 # Set an output file name.
 system("mkdir -p ".$maximumLikelihoodDirectory);
-$parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'} = $maximumLikelihoodDirectory."/galacticus.hdf5";
+$parameters->{'galacticusOutputFileName'}->{'value'} = $maximumLikelihoodDirectory."/galacticus.hdf5";
 
 # Set a random number seed.
-$parameters->{'parameter'}->{'randomSeed'}->{'value'} = int(rand(10000))+1
+$parameters->{'randomSeed'}->{'value'} = int(rand(10000))+1
     if ( exists($config->{'likelihood'}->{'randomize'}) && $config->{'likelihood'}->{'randomize'} eq "yes" );
 
 # Determine number of chains.
@@ -90,14 +90,19 @@ print "  Model parameters:\n".join("\t",@maximumLikelihoodParameters)."\n";
 my $newParameters = &Parameters::Convert_Parameters_To_Galacticus($config,@maximumLikelihoodParameters);
 
 # Apply to parameters.
-$parameters->{'parameter'}->{$_->{'name'}}->{'value'} = $_->{'value'}
-    foreach ( @{$newParameters->{'parameter'}} );
+for my $newParameterName ( keys(%{$newParameters}) ) {
+    my $parameter = $parameters;
+    foreach ( split(/\-\>/,$newParameterName) ) {
+	$parameter = $parameter->{$_};
+    }
+    $parameter->{'value'} = $newParameters->{$newParameterName};
+}
 
 # Apply any parameters from command line.
 foreach my $argument ( keys(%arguments) ) {
     if ( $argument =~ m/^parameter:(.*)/ ) {
 	my $parameter = $1;
-	$parameters->{'parameter'}->{$parameter}->{'value'} = $arguments{$argument};
+	$parameters->{$parameter}->{'value'} = $arguments{$argument};
     }
 }
 
