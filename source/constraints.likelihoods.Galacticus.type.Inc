@@ -21,6 +21,7 @@
      private
      type   (varying_string) :: configFileName    , timeCommand
      integer                 :: storeCountPrevious
+     double precision        :: delayInterval
    contains
      procedure :: evaluate        => likelihoodGalacticusEvaluate
      procedure :: willEvaluate    => likelihoodGalacticusWillEvaluate
