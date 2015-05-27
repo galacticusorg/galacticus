@@ -29,7 +29,7 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
      !% A merger tree importer class for \glc\ format merger tree files.
      private
-     type   (hdf5Object     )                            :: file                  , haloTrees
+     type   (hdf5Object     )                            :: file                  , forestHalos
      type   (statefulInteger)                            :: hasSubhalos           , areSelfContained          , &
           &                                                 includesHubbleFlow    , periodicPositions         , &
           &                                                 lengthStatus
@@ -37,17 +37,20 @@
      type   (statefulDouble )                            :: length
      type   (importerUnits  )                            :: massUnit              , lengthUnit                , &
           &                                                 timeUnit              , velocityUnit
-     logical                                             :: fatalMismatches       , treeIndicesRead           , &
+     logical                                             :: fatalMismatches       , forestIndicesRead         , &
           &                                                 angularMomentaIsScalar, angularMomentaIsVector    , &
           &                                                 spinIsScalar          , spinIsVector              , &
           &                                                 reweightTrees
-     integer                                             :: treesCount
+     integer                                             :: forestsCount          , formatVersion
      integer                 , allocatable, dimension(:) :: firstNodes            , nodeCounts
-     integer(kind=kind_int8 ), allocatable, dimension(:) :: treeIndices
+     integer(kind=kind_int8 ), allocatable, dimension(:) :: forestIndices
      double precision        , allocatable, dimension(:) :: weights
      type   (hdf5Object     )                            :: particles
      integer                                             :: particleEpochType
      type   (varying_string )                            :: particleEpochDataSetName
+     character(len=32)                                   :: forestHalosGroupName    , forestContainmentAttributeName, &
+          &                                                 forestIndexGroupName    , forestIndexDatasetName        , &
+          &                                                 forestWeightDatasetName
    contains
      final     ::                                  galacticusDestructor
      procedure :: open                          => galacticusOpen
@@ -137,7 +140,7 @@ contains
     galacticusDefaultConstructor%includesHubbleFlow%isSet=.false.
     galacticusDefaultConstructor%periodicPositions %isSet=.false.
     galacticusDefaultConstructor%length            %isSet=.false.
-    galacticusDefaultConstructor%treeIndicesRead         =.false.
+    galacticusDefaultConstructor%forestIndicesRead       =.false.
     galacticusDefaultConstructor%fatalMismatches         =mergerTreeImportGalacticusMismatchIsFatal
     galacticusDefaultConstructor%reweightTrees           =mergerTreeImportGalacticusReweightTrees
     return
@@ -172,15 +175,43 @@ contains
     thisCosmologyParameters => cosmologyParameters()
     ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
     localLittleH0   =thisCosmologyParameters%HubbleConstant (hubbleUnitsLittleH)
-    localOmegaMatter=thisCosmologyParameters%OmegaMatter    (            )
-    localOmegaDE    =thisCosmologyParameters%OmegaDarkEnergy(            )
-    localOmegaBaryon=thisCosmologyParameters%OmegaBaryon    (            )
-    localSigma8     =sigma_8                                (            )
+    localOmegaMatter=thisCosmologyParameters%OmegaMatter    (                  )
+    localOmegaDE    =thisCosmologyParameters%OmegaDarkEnergy(                  )
+    localOmegaBaryon=thisCosmologyParameters%OmegaBaryon    (                  )
+    localSigma8     =sigma_8                                (                  )
     !$omp critical(HDF5_Access)
     ! Open the file.
     call self%file%openFile(char(fileName),readOnly=.true.)
+    ! Get the file format version number.
+    if (self%file%hasAttribute('formatVersion')) then
+       call self%file%readAttribute('formatVersion',self%formatVersion,allowPseudoScalar=.true.)
+    else
+       self%formatVersion=1
+    end if
+    ! Validate format version number and set appropriate group names.
+    select case (self%formatVersion)
+    case (1)
+       ! This version will be deprecated.
+       !# <expiry version="1.0.0"/>
+       call Galacticus_Display_Message('WARNING: merger tree file format version is outdated - this format will soon be deprecated')
+       self%forestHalosGroupName          ='haloTrees'
+       self%forestContainmentAttributeName='treesAreSelfContained'
+       self%forestIndexGroupName          ='treeIndex'
+       self%forestIndexDatasetName        ='treeIndex'
+       self%forestWeightDatasetName       ='treeWeight'
+    case (2)
+       ! This is the current version - no problems.
+       self%forestHalosGroupName          ='forestHalos'
+       self%forestContainmentAttributeName='forestsAreSelfContained'
+       self%forestIndexGroupName          ='forestIndex'
+       self%forestIndexDatasetName        ='forestIndex'
+       self%forestWeightDatasetName       ='forestWeight'
+    case default
+       ! Unknown version - abort.
+       call Galacticus_Error_Report('galacticusOpen','unknown file format version number')
+    end select
     ! Open the merger trees group.
-    self%haloTrees=self%file%openGroup("haloTrees")
+    self%forestHalos=self%file%openGroup(trim(self%forestHalosGroupName))
     ! Check that cosmological parameters are consistent with the internal ones.
     cosmologicalParametersGroup=self%file%openGroup("cosmology")
     if (cosmologicalParametersGroup%hasAttribute("OmegaMatter")) then
@@ -301,8 +332,8 @@ contains
     ! Check for type of angular momenta data available.
     self%angularMomentaIsScalar=.false.
     self%angularMomentaIsVector=.false.
-    if (self%haloTrees%hasDataset("angularMomentum")) then     
-       angularMomentumDataset=self%haloTrees%openDataset("angularMomentum")
+    if (self%forestHalos%hasDataset("angularMomentum")) then     
+       angularMomentumDataset=self%forestHalos%openDataset("angularMomentum")
        select case (angularMomentumDataset%rank())
        case (1)
           self%angularMomentaIsScalar=.true.
@@ -317,8 +348,8 @@ contains
     ! Check for type of spin data available.
     self%spinIsScalar=.false.
     self%spinIsVector=.false.
-    if (self%haloTrees%hasDataset("spin")) then     
-       spinDataset=self%haloTrees%openDataset("spin")
+    if (self%forestHalos%hasDataset("spin")) then     
+       spinDataset=self%forestHalos%openDataset("spin")
        select case (spinDataset%rank())
        case (1)
           self%spinIsScalar=.true.
@@ -340,9 +371,9 @@ contains
     class(mergerTreeImporterGalacticus), intent(inout) :: self
     
     !$omp critical(HDF5_Access)
-    if (self%particles%isOpen()) call self%particles%close()
-    if (self%haloTrees%isOpen()) call self%haloTrees%close()
-    if (self%file     %isOpen()) call self%file     %close()
+    if (self%particles  %isOpen()) call self%particles  %close()
+    if (self%forestHalos%isOpen()) call self%forestHalos%close()
+    if (self%file       %isOpen()) call self%file       %close()
     !$omp end critical(HDF5_Access)
     return
   end subroutine galacticusClose
@@ -355,8 +386,8 @@ contains
 
     if (.not.self%hasSubhalos%isSet) then
        !$omp critical(HDF5_Access)
-       if (self%haloTrees%hasAttribute("treesHaveSubhalos")) then
-          call self%haloTrees%readAttribute("treesHaveSubhalos",self%hasSubhalos%value,allowPseudoScalar=.true.)
+       if (self%forestHalos%hasAttribute("treesHaveSubhalos")) then
+          call self%forestHalos%readAttribute("treesHaveSubhalos",self%hasSubhalos%value,allowPseudoScalar=.true.)
        else
           self%hasSubhalos%value=booleanUnknown
        end if
@@ -376,8 +407,8 @@ contains
 
     if (.not.self%massesAreInclusive%isSet) then
        !$omp critical(HDF5_Access)
-       if (self%haloTrees%hasAttribute("haloMassesIncludeSubhalos")) then
-          call self%haloTrees%readAttribute("haloMassesIncludeSubhalos",haloMassesIncludeSubhalosInteger,allowPseudoScalar=.true.)
+       if (self%forestHalos%hasAttribute("haloMassesIncludeSubhalos")) then
+          call self%forestHalos%readAttribute("haloMassesIncludeSubhalos",haloMassesIncludeSubhalosInteger,allowPseudoScalar=.true.)
           self%massesAreInclusive%value=(haloMassesIncludeSubhalosInteger == 1)
        else
           call Galacticus_Error_Report('galacticusMassesIncludeSubhalos','required attribute "haloMassesIncludeSubhalos" not present')
@@ -399,11 +430,11 @@ contains
 
     if (.not.self%angularMomentaAreInclusive%isSet) then
        !$omp critical(HDF5_Access)
-       attributeExists=self%haloTrees%hasAttribute("haloAngularMomentaIncludeSubhalos")
+       attributeExists=self%forestHalos%hasAttribute("haloAngularMomentaIncludeSubhalos")
        !$omp end critical(HDF5_Access)
        if (attributeExists) then
           !$omp critical(HDF5_Access)
-          call self%haloTrees%readAttribute("haloAngularMomentaIncludeSubhalos",haloAngularMomentaIncludeSubhalosInteger,allowPseudoScalar=.true.)
+          call self%forestHalos%readAttribute("haloAngularMomentaIncludeSubhalos",haloAngularMomentaIncludeSubhalosInteger,allowPseudoScalar=.true.)
           !$omp end critical(HDF5_Access)
           self%angularMomentaAreInclusive%value=(haloAngularMomentaIncludeSubhalosInteger == 1)
        else
@@ -423,8 +454,8 @@ contains
 
     if (.not.self%areSelfContained%isSet) then
        !$omp critical(HDF5_Access)
-       if (self%haloTrees%hasAttribute("treesAreSelfContained")) then
-          call self%haloTrees%readAttribute("treesAreSelfContained",self%areSelfContained%value,allowPseudoScalar=.true.)
+       if (self%forestHalos%hasAttribute(trim(self%forestContainmentAttributeName))) then
+          call self%forestHalos%readAttribute(trim(self%forestContainmentAttributeName),self%areSelfContained%value,allowPseudoScalar=.true.)
        else
           self%areSelfContained%value=booleanUnknown
        end if
@@ -443,8 +474,8 @@ contains
 
     if (.not.self%includesHubbleFlow%isSet) then
        !$omp critical(HDF5_Access)
-       if (self%haloTrees%hasAttribute("velocitiesIncludeHubbleFlow")) then
-          call self%haloTrees%readAttribute("velocitiesIncludeHubbleFlow",self%includesHubbleFlow%value,allowPseudoScalar=.true.)
+       if (self%forestHalos%hasAttribute("velocitiesIncludeHubbleFlow")) then
+          call self%forestHalos%readAttribute("velocitiesIncludeHubbleFlow",self%includesHubbleFlow%value,allowPseudoScalar=.true.)
        else
           self%includesHubbleFlow%value=booleanUnknown
        end if
@@ -463,8 +494,8 @@ contains
 
     if (.not.self%periodicPositions%isSet) then
        !$omp critical(HDF5_Access)
-       if (self%haloTrees%hasAttribute("positionsArePeriodic")) then
-          call self%haloTrees%readAttribute("positionsArePeriodic",self%periodicPositions%value,allowPseudoScalar=.true.)
+       if (self%forestHalos%hasAttribute("positionsArePeriodic")) then
+          call self%forestHalos%readAttribute("positionsArePeriodic",self%periodicPositions%value,allowPseudoScalar=.true.)
        else
           self%periodicPositions%value=booleanUnknown
        end if
@@ -520,8 +551,8 @@ contains
     integer(c_size_t                    )                :: galacticusTreeCount
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
 
-    call galacticusTreeIndicesRead(self)
-    galacticusTreeCount=self%treesCount
+    call galacticusForestIndicesRead(self)
+    galacticusTreeCount=self%forestsCount
     return
   end function galacticusTreeCount
 
@@ -531,8 +562,8 @@ contains
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                              , intent(in   ) :: i
 
-    call galacticusTreeIndicesRead(self)
-    galacticusTreeIndex=self%treeIndices(i)
+    call galacticusForestIndicesRead(self)
+    galacticusTreeIndex=self%forestIndices(i)
     return
   end function galacticusTreeIndex
 
@@ -543,12 +574,12 @@ contains
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                              , intent(in   ) :: i
 
-    call galacticusTreeIndicesRead(self)
+    call galacticusForestIndicesRead(self)
     galacticusNodeCount=self%nodeCounts(i)
     return
   end function galacticusNodeCount
 
-  subroutine galacticusTreeIndicesRead(self)
+  subroutine galacticusForestIndicesRead(self)
     !% Read the tree indices.
     use Galacticus_Error
     use HDF5
@@ -568,12 +599,12 @@ contains
     integer         (c_size_t                    )                            :: iNode
     double precision                                                          :: massMinimum    , massMaximum
     
-    if (self%treeIndicesRead) return
-    if (self%file%hasGroup("treeIndex")) then
-       treeIndexGroup=self%file%openGroup("treeIndex")
-       call treeIndexGroup%readDataset("firstNode"    ,self%firstNodes )
-       call treeIndexGroup%readDataset("numberOfNodes",self%nodeCounts )
-       call treeIndexGroup%readDataset("treeIndex"    ,self%treeIndices)
+    if (self%forestIndicesRead) return
+    if (self%file%hasGroup(trim(self%forestIndexGroupName))) then
+       treeIndexGroup=self%file%openGroup(trim(self%forestIndexGroupName))
+       call treeIndexGroup%readDataset("firstNode"                      ,self%firstNodes   )
+       call treeIndexGroup%readDataset("numberOfNodes"                  ,self%nodeCounts   )
+       call treeIndexGroup%readDataset(trim(self%forestIndexDatasetName),self%forestIndices)
        if (self%reweightTrees) then
           cosmologyFunctionsDefault => cosmologyFunctions()
           allocate(self%weights(size(self%firstNodes)))
@@ -587,31 +618,31 @@ contains
              allocate(nodeMass       (nodeCount(1)))
              allocate(nodeTime       (nodeCount(1)))
              !$omp critical(HDF5_Access)
-             call self%haloTrees%readDatasetStatic("descendentIndex",descendentIndex,firstNodeIndex,nodeCount)
-             call self%haloTrees%readDatasetStatic("nodeMass"       ,nodeMass       ,firstNodeIndex,nodeCount)
-             if      (self%haloTrees%hasDataset("time"           )) then
+             call self%forestHalos%readDatasetStatic("descendentIndex",descendentIndex,firstNodeIndex,nodeCount)
+             call self%forestHalos%readDatasetStatic("nodeMass"       ,nodeMass       ,firstNodeIndex,nodeCount)
+             if      (self%forestHalos%hasDataset("time"           )) then
                 ! Time is present, so read it.
-                call self%haloTrees%readDatasetStatic("time"           ,nodeTime,firstNodeIndex,nodeCount)
+                call self%forestHalos%readDatasetStatic("time"           ,nodeTime,firstNodeIndex,nodeCount)
                 nodeTime=importerUnitConvert(nodeTime,nodeTime,self%timeUnit,gigaYear)
-             else if (self%haloTrees%hasDataset("expansionFactor")) then
+             else if (self%forestHalos%hasDataset("expansionFactor")) then
                 ! Expansion factor is present, read it instead.
-                call self%haloTrees%readDatasetStatic("expansionFactor",nodeTime,firstNodeIndex,nodeCount)
+                call self%forestHalos%readDatasetStatic("expansionFactor",nodeTime,firstNodeIndex,nodeCount)
                 ! Convert expansion factors to times.
                 do iNode=1,nodeCount(1)
                    nodeTime(iNode)=cosmologyFunctionsDefault%cosmicTime(nodeTime(iNode))
                 end do
-             else if (self%haloTrees%hasDataset("redshift"       )) then
+             else if (self%forestHalos%hasDataset("redshift"       )) then
                 ! Redshift is present, read it instead.
-                call self%haloTrees%readDatasetStatic("redshift"       ,nodeTime,firstNodeIndex,nodeCount)
+                call self%forestHalos%readDatasetStatic("redshift"       ,nodeTime,firstNodeIndex,nodeCount)
                 ! Convert redshifts to times.
                 do iNode=1,nodeCount(1)
                    nodeTime(iNode)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodeTime(iNode)))
                 end do
              else
-                call Galacticus_Error_Report("galacticusImport","one of time, redshift or expansionFactor data sets must be present in haloTrees group")
+                call Galacticus_Error_Report("galacticusImport","one of time, redshift or expansionFactor data sets must be present in forestHalos group")
              end if
              !$omp end critical(HDF5_Access)
-             if (count(descendentIndex == -1) /= 1) call Galacticus_Error_Report('galacticusTreeIndicesRead','reweighting trees requires there to be only only root node')
+             if (count(descendentIndex == -1) /= 1) call Galacticus_Error_Report('galacticusForestIndicesRead','reweighting trees requires there to be only only root node')
              treeMass(i)=sum(nodeMass,mask=descendentIndex == -1)
              treeTime(i)=sum(nodeTime,mask=descendentIndex == -1)
              deallocate(descendentIndex)
@@ -637,22 +668,22 @@ contains
              ! Get the integral of the halo mass function over this range.
              self%weights(sortOrder(i))=Halo_Mass_Function_Integrated(treeTime(sortOrder(i)),massMinimum,massMaximum)
           end do
-          call treeIndexGroup%readDatasetStatic("treeWeight",self%weights)
+          call treeIndexGroup%readDatasetStatic(trim(self%forestWeightDatasetName),self%weights)
           deallocate(treeMass)
           deallocate(treeTime)
-       else if (treeIndexGroup%hasDataset("treeWeight")) then
-          call treeIndexGroup%readDataset("treeWeight",self%weights)
+       else if (treeIndexGroup%hasDataset(trim(self%forestWeightDatasetName))) then
+          call treeIndexGroup%readDataset(trim(self%forestWeightDatasetName),self%weights)
        end if
        call treeIndexGroup%close()
-       self%treesCount=size(self%treeIndices)
+       self%forestsCount=size(self%forestIndices)
        ! Reset first node indices to Fortran array standard.
        self%firstNodes=self%firstNodes+1
     else
-       call Galacticus_Error_Report('galacticusTreeIndicesRead','merger tree file must contain the treeIndex group')
+       call Galacticus_Error_Report('galacticusForestIndicesRead','merger tree file must contain the treeIndex group')
     end if
-    self%treeIndicesRead=.true.
+    self%forestIndicesRead=.true.
     return
-  end subroutine galacticusTreeIndicesRead
+  end subroutine galacticusForestIndicesRead
 
   double precision function galacticusTreeWeight(self,i)
     !% Return the weight to assign to trees.
@@ -667,7 +698,7 @@ contains
     double precision                                              :: lengthSimulationBox      , timePresent
     integer                                                       :: statusActual
 
-    call galacticusTreeIndicesRead(self)
+    call galacticusForestIndicesRead(self)
     ! Determine the time at present.
     cosmologyFunctionsDefault => cosmologyFunctions()
     timePresent=cosmologyFunctionsDefault%cosmicTime(1.0d0)
@@ -697,8 +728,8 @@ contains
 
     galacticusPositionsAvailable=.true.
     !$omp critical(HDF5_Access)
-    if (positions .and..not.self%haloTrees%hasDataset("position")) galacticusPositionsAvailable=.false.
-    if (velocities.and..not.self%haloTrees%hasDataset("velocity")) galacticusPositionsAvailable=.false.
+    if (positions .and..not.self%forestHalos%hasDataset("position")) galacticusPositionsAvailable=.false.
+    if (velocities.and..not.self%forestHalos%hasDataset("velocity")) galacticusPositionsAvailable=.false.
     !$omp end critical(HDF5_Access)
     return
   end function galacticusPositionsAvailable
@@ -709,10 +740,10 @@ contains
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
     !$omp critical(HDF5_Access)
-    galacticusScaleRadiiAvailable=                      &
-         &  self%haloTrees%hasDataset("halfMassRadius") &
-         & .or.                                         &
-         &  self%haloTrees%hasDataset("position"      )
+    galacticusScaleRadiiAvailable=                        &
+         &  self%forestHalos%hasDataset("halfMassRadius") &
+         & .or.                                           &
+         &  self%forestHalos%hasDataset("position"      )
     !$omp end critical(HDF5_Access)
     return
   end function galacticusScaleRadiiAvailable
@@ -723,7 +754,7 @@ contains
     class(mergerTreeImporterGalacticus), intent(inout) :: self
     
     !$omp critical(HDF5_Access)
-    galacticusParticleCountAvailable=self%haloTrees%hasDataset("particleCount")
+    galacticusParticleCountAvailable=self%forestHalos%hasDataset("particleCount")
     !$omp end critical(HDF5_Access)
     return
   end function galacticusParticleCountAvailable
@@ -734,7 +765,7 @@ contains
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
     !$omp critical(HDF5_Access)
-    galacticusVelocityMaximumAvailable=self%haloTrees%hasDataset("velocityMaximum")
+    galacticusVelocityMaximumAvailable=self%forestHalos%hasDataset("velocityMaximum")
     !$omp end critical(HDF5_Access)
     return
   end function galacticusVelocityMaximumAvailable
@@ -745,7 +776,7 @@ contains
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
     !$omp critical(HDF5_Access)
-    galacticusVelocityDispersionAvailable=self%haloTrees%hasDataset("velocityDispersion")
+    galacticusVelocityDispersionAvailable=self%forestHalos%hasDataset("velocityDispersion")
     !$omp end critical(HDF5_Access)
     return
   end function galacticusVelocityDispersionAvailable
@@ -876,7 +907,7 @@ contains
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()
     ! Ensure tree indices have been read.
-    call galacticusTreeIndicesRead(self)
+    call galacticusForestIndicesRead(self)
     ! Determine the first node index and the node count.
     firstNodeIndex(1)=self%firstNodes(i)
     nodeCount     (1)=self%nodeCounts(i)
@@ -890,22 +921,22 @@ contains
     !# </workaround>
     !$omp critical(HDF5_Access)
     ! nodeIndex
-    call self%haloTrees%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount)
+    call self%forestHalos%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount)
     ! hostIndex
-    call self%haloTrees%readDatasetStatic("hostIndex"      ,nodes%hostIndex      ,firstNodeIndex,nodeCount)
+    call self%forestHalos%readDatasetStatic("hostIndex"      ,nodes%hostIndex      ,firstNodeIndex,nodeCount)
     ! parentNode
-    call self%haloTrees%readDatasetStatic("descendentIndex",nodes%descendentIndex,firstNodeIndex,nodeCount)
+    call self%forestHalos%readDatasetStatic("descendentIndex",nodes%descendentIndex,firstNodeIndex,nodeCount)
     ! nodeMass
-    call self%haloTrees%readDatasetStatic("nodeMass"       ,nodes%nodeMass       ,firstNodeIndex,nodeCount)
+    call self%forestHalos%readDatasetStatic("nodeMass"       ,nodes%nodeMass       ,firstNodeIndex,nodeCount)
     ! nodeTime
     timesAreInternal=.true. 
-    if      (self%haloTrees%hasDataset("time"           )) then
+    if      (self%forestHalos%hasDataset("time"           )) then
        ! Time is present, so read it.
        timesAreInternal=.false.
-       call self%haloTrees%readDatasetStatic("time"           ,nodes%nodeTime,firstNodeIndex,nodeCount)
-    else if (self%haloTrees%hasDataset("expansionFactor")) then
+       call self%forestHalos%readDatasetStatic("time"           ,nodes%nodeTime,firstNodeIndex,nodeCount)
+    else if (self%forestHalos%hasDataset("expansionFactor")) then
        ! Expansion factor is present, read it instead.
-       call self%haloTrees%readDatasetStatic("expansionFactor",nodes%nodeTime,firstNodeIndex,nodeCount)
+       call self%forestHalos%readDatasetStatic("expansionFactor",nodes%nodeTime,firstNodeIndex,nodeCount)
        ! Validate expansion factors.
        if (any(nodes%nodeTime <= 0.0d0)) call Galacticus_Error_Report("galacticusImport","expansionFactor dataset values must be >0")
        if (any(nodes%nodeTime >  1.0d0)) call Galacticus_Display_Message("WARNING: some expansion factors are in the future when importing merger tree",verbosityWarn)
@@ -913,9 +944,9 @@ contains
        do iNode=1,nodeCount(1)
           nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(nodes(iNode)%nodeTime)
        end do
-    else if (self%haloTrees%hasDataset("redshift"       )) then
+    else if (self%forestHalos%hasDataset("redshift"       )) then
        ! Redshift is present, read it instead.
-       call self%haloTrees%readDatasetStatic("redshift"       ,nodes%nodeTime,firstNodeIndex,nodeCount)
+       call self%forestHalos%readDatasetStatic("redshift"       ,nodes%nodeTime,firstNodeIndex,nodeCount)
       ! Validate redshifts.
        if (any(nodes%nodeTime <= -1.0d0)) call Galacticus_Error_Report("galacticusImport","redshift dataset values must be >-1")
        if (any(nodes%nodeTime <   0.0d0)) call Galacticus_Display_Message("WARNING: some redshifts are in the future when importing merger tree",verbosityWarn)
@@ -924,64 +955,64 @@ contains
           nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodes(iNode)%nodeTime))
        end do
     else
-       call Galacticus_Error_Report("galacticusImport","one of time, redshift or expansionFactor data sets must be present in haloTrees group")
+       call Galacticus_Error_Report("galacticusImport","one of time, redshift or expansionFactor data sets must be present in forestHalos group")
     end if
     ! Scale or half-mass radius.
     if (present(requireScaleRadii).and.requireScaleRadii) then
-       if (self%haloTrees%hasDataset("scaleRadius")) then
+       if (self%forestHalos%hasDataset("scaleRadius")) then
           nodes%halfMassRadius=-1.0d0
-          call self%haloTrees%readDatasetStatic("scaleRadius"   ,nodes%scaleRadius   ,firstNodeIndex,nodeCount)
+          call self%forestHalos%readDatasetStatic("scaleRadius"   ,nodes%scaleRadius   ,firstNodeIndex,nodeCount)
        else
           nodes%scaleRadius   =-1.0d0
-          call self%haloTrees%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount)
+          call self%forestHalos%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount)
        end if
     end if
     ! Particle count.
     if (present(requireParticleCounts     ).and.requireParticleCounts     )                                              &
-         & call self%haloTrees%readDatasetStatic("particleCount"     ,nodes%particleCount     ,firstNodeIndex,nodeCount)
+         & call self%forestHalos%readDatasetStatic("particleCount"     ,nodes%particleCount     ,firstNodeIndex,nodeCount)
     ! Velocity maximum.
     if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                              &
-         & call self%haloTrees%readDatasetStatic("velocityMaximum"   ,nodes%velocityMaximum   ,firstNodeIndex,nodeCount)
+         & call self%forestHalos%readDatasetStatic("velocityMaximum"   ,nodes%velocityMaximum   ,firstNodeIndex,nodeCount)
     ! Velocity dispersion.
     if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                              &
-         & call self%haloTrees%readDatasetStatic("velocityDispersion",nodes%velocityDispersion,firstNodeIndex,nodeCount)
+         & call self%forestHalos%readDatasetStatic("velocityDispersion",nodes%velocityDispersion,firstNodeIndex,nodeCount)
     ! Halo angular momenta.
     if (present(requireAngularMomenta).and.requireAngularMomenta) then
        if (self%angularMomentaIsVector) then
-          call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
+          call self%forestHalos%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
           ! Transfer to nodes.
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum3D(:,iNode))
           end forall
           call Dealloc_Array(angularMomentum3D)
        else if (self%angularMomentaIsScalar) then
-          call self%haloTrees%readDatasetStatic("angularMomentum",nodes%angularMomentum,[firstNodeIndex(1)],[nodeCount(1)])
+          call self%forestHalos%readDatasetStatic("angularMomentum",nodes%angularMomentum,[firstNodeIndex(1)],[nodeCount(1)])
        else
           call Galacticus_Error_Report("galacticusImport","scalar angular momentum is not available")
        end if
     end if
     if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
        if (.not.self%angularMomentaIsVector) call Galacticus_Error_Report("galacticusImport","vector angular momentum is not available")
-       call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
+       call self%forestHalos%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
     end if
     ! Halo spins.
     if (present(requireSpin).and.requireSpin) then
        if (self%spinIsVector) then
-          call self%haloTrees%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
+          call self%forestHalos%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
           ! Transfer to nodes.
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%spin=Vector_Magnitude(spin3D(:,iNode))
           end forall
           call Dealloc_Array(spin3D)
        else if (self%spinIsScalar) then
-          call self%haloTrees%readDatasetStatic("spin",nodes%spin,[firstNodeIndex(1)],[nodeCount(1)])
+          call self%forestHalos%readDatasetStatic("spin",nodes%spin,[firstNodeIndex(1)],[nodeCount(1)])
        else
           call Galacticus_Error_Report("galacticusImport","scalar spin is not available")
        end if
     end if
     if (present(requireSpin3D).and.requireSpin3D) then
        if (.not.self%spinIsVector) call Galacticus_Error_Report("galacticusImport","vector spin is not available")
-       call self%haloTrees%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
+       call self%forestHalos%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
        ! Transfer to nodes.
        forall(iNode=1:nodeCount(1))
           nodes(iNode)%spin3D=spin3D(:,iNode)
@@ -996,13 +1027,13 @@ contains
        ! Positions (and velocities).
        if (present(requirePositions).and.requirePositions) then
           ! position.
-          call self%haloTrees%readDataset("position",position,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
+          call self%forestHalos%readDataset("position",position,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
           ! velocity.
-          call self%haloTrees%readDataset("velocity",velocity,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
+          call self%forestHalos%readDataset("velocity",velocity,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)])
           ! If a set of most bound particle indices are present, read them.
-          if (self%haloTrees%hasDataset("particleIndexStart").and.self%haloTrees%hasDataset("particleIndexCount")) then
-             call self%haloTrees%readDatasetStatic("particleIndexStart",nodes%particleIndexStart,firstNodeIndex,nodeCount)
-             call self%haloTrees%readDatasetStatic("particleIndexCount",nodes%particleIndexCount,firstNodeIndex,nodeCount)
+          if (self%forestHalos%hasDataset("particleIndexStart").and.self%forestHalos%hasDataset("particleIndexCount")) then
+             call self%forestHalos%readDatasetStatic("particleIndexStart",nodes%particleIndexStart,firstNodeIndex,nodeCount)
+             call self%forestHalos%readDatasetStatic("particleIndexCount",nodes%particleIndexCount,firstNodeIndex,nodeCount)
           end if
        end if
     class default
