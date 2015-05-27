@@ -11,9 +11,9 @@ In designing \glc\ our main goal was to make the code flexible, modular and easi
   \item Number of properties;
   \item Interfaces to set and get property values and rates of change;
   \item ``Pipes'' which allow for flows of mass/energy/etc. from one component to another;
-  \item Routines describing the differential equations which govern the evolution of the properties;
-  \item Routines describing how the component responds to various events (e.g. the node becoming a satellite, a galaxy-galaxy merger, etc.);
-  \item Auxhiliary routines for handling outputs etc.
+  \item Functions describing the differential equations which govern the evolution of the properties;
+  \item Functions describing how the component responds to various events (e.g. the node becoming a satellite, a galaxy-galaxy merger, etc.);
+  \item Auxiliary functions for handling outputs etc.
  \end{itemize}
  Short directives embedded in this module explain to the \glc\ build system how to incorporate the new component. A recompile will then build your new component into \glc. Typically, a new component can be created quickly by copying an existing one and modifying it as necessary. Furthermore, multiple implementations of a component are allowed. For example, \glc\ contains a component which is a Hernquist spheroid. You could add a de Vaucouler's spheroid component. A simple input parameter then allows you to select which implementation will be used in a given run.
 
