@@ -45,8 +45,8 @@ if ( exists($arguments{'outputFile'}) ) {
     # Find combined mass of M31 and Milky Way.
     my $massLocalGroup =
 	log10(
-	    +$galacticus->{'parameters'}->{'analysisLGSatelliteMFHaloMassMilkyWay'}
-	    +$galacticus->{'parameters'}->{'analysisLGSatelliteMFHaloMassM31'     }
+	    +$galacticus->{'parameters'}->{'analysisLGSatelliteMFHaloMassMilkyWay'}->{'value'}
+	    +$galacticus->{'parameters'}->{'analysisLGSatelliteMFHaloMassM31'     }->{'value'}
 	);
     # Compute the likelihood.
     my $constraint;

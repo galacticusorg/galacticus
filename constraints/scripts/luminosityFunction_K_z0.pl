@@ -53,10 +53,10 @@ my $xBins   = pdl @{$columns->{'magnitude'}->{'data'}};
 my $x       = pdl @{$columns->{'magnitude'}->{'data'}};
 my $y       = pdl @{$columns->{'luminosityFunction'}->{'data'}};
 my $error   = pdl @{$columns->{'error'}->{'data'}};
-$xBins      = $xBins-5.0*log10($columns->{'magnitude'}->{'hubble'}/$model->{'parameters'}->{'H_0'});
-$x          = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$model->{'parameters'}->{'H_0'});
-$y          = $y*($model->{'parameters'}->{'H_0'}/$columns->{'luminosityFunction'}->{'hubble'})**3;
-$error      = $error*($model->{'parameters'}->{'H_0'}/$columns->{'luminosityFunction'}->{'hubble'})**3;
+$xBins      = $xBins-5.0*log10($columns->{'magnitude'}->{'hubble'}/$model->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
+$x          = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$model->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'});
+$y          = $y*($model->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$columns->{'luminosityFunction'}->{'hubble'})**3;
+$error      = $error*($model->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/$columns->{'luminosityFunction'}->{'hubble'})**3;
 
 # Reverse the order of the vectors.
 $xBins = $xBins(-1:0);

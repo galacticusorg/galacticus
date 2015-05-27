@@ -84,13 +84,13 @@ if ( $arguments{'make'} eq "yes" ) {
 my @constraints = @{$constraintsRef};
 
 # Set an initial random number seed.
-$parameters->{'parameter'}->{'randomSeed'}->{'value'} = 824;
+$parameters>{'randomSeed'}->{'value'} = 824;
 
 # Set a dummy baseline variable.
-$parameters->{'parameter'}->{'baseline'  }->{'value'} = 1.0;
+$parameters->{'baseline'  }->{'value'} = 1.0;
 
 # Set the number of trees per decade of halo mass if specified on the command line.
-$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
+$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
    if ( exists($arguments{'treesPerDecade'}) );
 
 # Define parameters to test for convergence.
@@ -171,7 +171,7 @@ my @convergences =
 );
 
 # Add convergence checks for mass resolution.
-if ( $parameters->{'parameter'}->{'mergerTreesBuildMassResolutionMethod'}->{'value'} eq "fixed" ) {
+if ( $parameters->{'mergerTreesBuildMassResolutionMethod'}->{'value'} eq "fixed" ) {
     push(
 	@convergences,
 	{
@@ -181,7 +181,7 @@ if ( $parameters->{'parameter'}->{'mergerTreesBuildMassResolutionMethod'}->{'val
 	    ideal     => "smallest"
 	}
 	);
-} elsif ( $parameters->{'parameter'}->{'mergerTreesBuildMassResolutionMethod'}->{'value'} eq "scaled" ) {
+} elsif ( $parameters->{'mergerTreesBuildMassResolutionMethod'}->{'value'} eq "scaled" ) {
     push(
 	@convergences,
 	{
@@ -212,31 +212,31 @@ foreach my $convergence ( @convergences ) {
 	    my $parameterName = $1;
 	    if ( $arguments{$_} =~ m/^\%\%(.*)\%\%$/ ) {
 		my $copyParameter = $1;
-		$currentParameters->{'parameter'}->{$parameterName}->{'value'} = $currentParameters->{'parameter'}->{$copyParameter}->{'value'};
+		$currentParameters->{$parameterName}->{'value'} = $currentParameters->{$copyParameter}->{'value'};
 	    } else {
-		$currentParameters->{'parameter'}->{$parameterName}->{'value'} = $arguments{$_};
+		$currentParameters->{$parameterName}->{'value'} = $arguments{$_};
 	    }
 	}
     }
     # Step through values of this parameter.
     for(my $i=0;$i<$convergence->{'steps'};++$i) {
 	# Adjust the parameter.
-	$currentParameters->{'parameter'}->{$convergence->{'parameter'}}->{'value'} *= $convergence->{'factor'}
+	$currentParameters->{$convergence->{'parameter'}}->{'value'} *= $convergence->{'factor'}
 	   if ( $i > 0 );
 	# Create a directory for output.
 	my $modelDirectory = $workDirectory."/".$arguments{'directory'}."/".$convergence->{'parameter'}."/".$i;
 	system("mkdir -p ".$modelDirectory);
 	# Specify the output file name.
 	my $galacticusFileName = $modelDirectory."/galacticus.hdf5";
-	$currentParameters->{'parameter'}->{'galacticusOutputFileName'                }->{'value'} = $galacticusFileName;
+	$currentParameters->{'galacticusOutputFileName'                }->{'value'} = $galacticusFileName;
 	# Increment the random number seed.
-        $currentParameters->{'parameter'}->{'randomSeed'                              }->{'value'} += 12;
+        $currentParameters->{'randomSeed'                              }->{'value'} += 12;
 	# Switch off resource sharing.
-        $currentParameters->{'parameter'}->{'treeEvolveThreadLock'                    }->{'value'} = "false";
+        $currentParameters->{'treeEvolveThreadLock'                    }->{'value'} = "false";
 	# Switch off fixed random seeds.
-        $currentParameters->{'parameter'}->{'mergerTreeBuildCole2000FixedRandomSeeds' }->{'value'} = "false";
+        $currentParameters->{'mergerTreeBuildCole2000FixedRandomSeeds' }->{'value'} = "false";
 	# Ensure we randomly sample from the halo mass function.
-        $currentParameters->{'parameter'}->{'mergerTreeBuildTreesHaloMassDistribution'}->{'value'} = "random";
+        $currentParameters->{'mergerTreeBuildTreesHaloMassDistribution'}->{'value'} = "random";
 	# Check if the model has already been run.
 	unless ( -e $galacticusFileName ) {
 	    # Generate the parameter file.
@@ -334,7 +334,7 @@ foreach my $constraint ( @constraints ) {
 	# Step through values of this parameter.
 	for(my $i=0;$i<$convergence->{'steps'};++$i) {
 	    # Adjust the parameter.
-	    $currentParameters->{'parameter'}->{$convergence->{'parameter'}}->{'value'} *= $convergence->{'factor'}
+	    $currentParameters->{$convergence->{'parameter'}}->{'value'} *= $convergence->{'factor'}
 	       if ( $i > 0 );
 	    # Locate the model directory.
 	    my $modelDirectory = $workDirectory."/".$arguments{'directory'}."/".$convergence->{'parameter'}."/".$i;
@@ -348,7 +348,7 @@ foreach my $constraint ( @constraints ) {
 		(
 		 @results,
 		 {
-		     parameter  => $currentParameters->{'parameter'}->{$convergence->{'parameter'}}->{'value'},
+		     parameter  => $currentParameters->{$convergence->{'parameter'}}->{'value'},
 		     x          => $x,
 		     y          => $y,
 		     covariance => $covariance
@@ -426,7 +426,7 @@ foreach my $constraint ( @constraints ) {
 	    my $plotFileName = $constraintDefinition->{'label'}."_".$convergence->{'parameter'};
 	    $plotFileName =~ s/\./_/g;
 	    $plotFileName = $workDirectory."/".$arguments{'directory'}."/".$plotFileName.".pdf";
-	    my $usedValueX = pdl ( $parameters->{'parameter'}->{$convergence->{'parameter'}}->{'value'} );
+	    my $usedValueX = pdl ( $parameters->{$convergence->{'parameter'}}->{'value'} );
 	    my $usedValueY = pdl ( 1.0 );
 	    my $parameterFull = $parameter->append($usedValueX); 
 	    my $xMinimum = minimum($parameterFull     )/1.05;

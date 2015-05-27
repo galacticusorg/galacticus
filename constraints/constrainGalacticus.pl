@@ -35,12 +35,6 @@ die("Usage: constrainGalacticus.pl <configFile> <mpiRank> <likelihoodFile> <temp
     unless ( scalar(@ARGV) > 5 );
 my $configFile = $ARGV[0];
 my $config     = &Parameters::Parse_Config($configFile,useStored => 1);
-my @parameters;
-if ( UNIVERSAL::isa($config->{'parameters'}->{'parameter'},"ARRAY") ) {
-    @parameters = @{$config->{'parameters'}->{'parameter'}};
-} else {
-    push(@parameters,$config->{'parameters'}->{'parameter'});
-}
 
 # Error codes.
 my $errorStatusXCPU = 1025; # CPU time limit exceeded.
@@ -56,13 +50,6 @@ my $modelLock = new File::NFSLock {
 }
 if ( $runSequential eq "yes" );
 
-# Count active parameters.
-my $parameterCount = 0;
-for(my $i=0;$i<scalar(@parameters);++$i) {
-    ++$parameterCount 
-	if ( exists($parameters[$i]->{'prior'}) );
-}
-
 # Get the MPI rank.
 my $mpiRank        = $ARGV[1];
 
@@ -75,53 +62,8 @@ my $temperature    = $ARGV[3];
 # Get the store status.
 my $store          = $ARGV[4];
 
-# Convert command line arguments to a parameter structure.
-die("constrainGalacticus.pl: number of supplied arguments does not match number of parameters") 
-    unless ( scalar(@ARGV) == $parameterCount+5 );
-my $j = -1;
-my %parameterValues;
-for(my $i=0;$i<scalar(@parameters);++$i) {
-    if ( exists($parameters[$i]->{'prior'}) ) {
-	++$j;
-	$parameterValues{$parameters[$i]->{'name'}} = $ARGV[$j+5];
-    }
-}
-
-# Set the values of any parameters that are defined in terms of other parameters.
-my $failCount = 1;
-while ( $failCount > 0 ) {
-    $failCount = 0;
-    for(my $i=0;$i<scalar(@parameters);++$i) {
-	if ( exists($parameters[$i]->{'define'}) ) {
-	    die ("constrainGalacticusWrapper.pl: cannot specify a prior for a defined parameter")
-		if ( exists($parameters[$i]->{'prior'}) );
-	    # Attempt to replace named parameters in the definition with their values.
-	    while ( $parameters[$i]->{'define'} =~ m/\%\[([a-zA-Z0-9_]+)\]/ ) {
-		my $parameterName = $1;
-		if ( exists($parameterValues{$parameterName}) ) {
-		    $parameters[$i]->{'define'} =~ s/\%\[$parameterName\]/$parameterValues{$parameterName}/g;
-		} else {
-		    ++$failCount;
-		    last;
-		}
-		$parameterValues{$parameters[$i]->{'name'}} = eval($parameters[$i]->{'define'})
-		    unless ( $parameters[$i]->{'define'} =~ m/\%\[([a-zA-Z0-9_]+)\]/ );
-	    }
-	}
-    }
-}
-
-# Create an array of new parameters.
-my $newParameters;
-for(my $i=0;$i<scalar(@parameters);++$i) {
-    push(
-	 @{$newParameters->{'parameter'}},
-	 {
-	     name  =>                  $parameters[$i]->{'name'} ,
-	     value => $parameterValues{$parameters[$i]->{'name'}}
-	 }
-	 );
-}
+# Get a hash of the new parameters.
+my $newParameters = &Parameters::Convert_Parameters_To_Galacticus($config,@ARGV[5..$#ARGV]);
 
 # Find the scratch directory.
 my $scratchDirectory = $config->{'likelihood'}->{'workDirectory'}."/mcmc";
@@ -191,54 +133,54 @@ my @constraints = @{$constraintsRef};
 
 # Remove any old semaphore file.
 my $semaphoreName = "galacticus";
-$semaphoreName = $parameters->{'parameter'}->{'treeEvolveThreadLockName'}->{'value'}
-    if ( exists($parameters->{'parameter'}->{'treeEvolveThreadLockName'}) );
+$semaphoreName = $parameters->{'treeEvolveThreadLockName'}->{'value'}
+    if ( exists($parameters->{'treeEvolveThreadLockName'}) );
 unlink("/dev/shm/sem.".$semaphoreName)
     if ( -e "/dev/shm/sem.".$semaphoreName );
 
 # Set an output file name.
-$parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'} = $scratchDirectory."/".$galacticusFile;
-push(@temporaryFiles,$parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'});
+$parameters->{'galacticusOutputFileName'}->{'value'} = $scratchDirectory."/".$galacticusFile;
+push(@temporaryFiles,$parameters->{'galacticusOutputFileName'}->{'value'});
 
 # Set state file names.
 my $stateFileRoot;
 if ( exists($config->{'likelihood'}->{'saveState'}) && $config->{'likelihood'}->{'saveState'} eq "yes" ) {
     $stateFileRoot = $scratchDirectory."/".$galacticusFile;
     $stateFileRoot =~ s/\.hdf5//;
-    $parameters->{'parameter'}->{'stateFileRoot'}->{'value'} = $stateFileRoot;
+    $parameters->{'stateFileRoot'}->{'value'} = $stateFileRoot;
     push(@temporaryFiles,$stateFileRoot."*");
 }
 
 # Set a random number seed.
-$parameters->{'parameter'}->{'randomSeed'}->{'value'} = int(rand(10000))+1
+$parameters->{'randomSeed'}->{'value'} = int(rand(10000))+1
     unless ( exists($config->{'likelihood'}->{'randomize'}) && $config->{'likelihood'}->{'randomize'} eq "no" );
 
 # If running at a high temperature, modify the number of merger trees per decade.
 my $temperatureEffective = 1.0;
 if ( 
-    exists($parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}) 
+    exists($parameters->{'mergerTreeBuildTreesPerDecade'}) 
     &&
-    $parameters->{'parameter'}->{'mergerTreeConstructMethod'}->{'value'} eq "build" 
+    $parameters->{'mergerTreeConstructMethod'}->{'value'} eq "build" 
     ) {
     my $treesPerDecadeEffective =
 	&List::Util::max(
 	    int(
-		$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}
+		$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}
 		/$temperature
 	    )
 	    ,$config->{'likelihood'}->{'treesPerDecadeMinimum'}
 	);
-    $temperatureEffective = $parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}/$treesPerDecadeEffective;
-    $parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $treesPerDecadeEffective;
+    $temperatureEffective = $parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}/$treesPerDecadeEffective;
+    $parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $treesPerDecadeEffective;
 }
 
 # If fixed sets of trees are to be used, create them as necessary, and store to a file.
 if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood'}->{'useFixedTrees'} eq "yes" ) {
     # Record the required set of output redshifts.
-    my $outputRedshifts = $parameters->{'parameter'}->{'outputRedshifts'   }->{'value'};
+    my $outputRedshifts = $parameters->{'outputRedshifts'   }->{'value'};
     # Record and remove any analyses.
-    my $savedAnalyses   = $parameters->{'parameter'}->{'mergerTreeAnalyses'}->{'value'};
-    delete($parameters->{'parameter'}->{'mergerTreeAnalyses'});
+    my $savedAnalyses   = $parameters->{'mergerTreeAnalyses'}->{'value'};
+    delete($parameters->{'mergerTreeAnalyses'});
     # Get a lock on the tree file.
     my $fixedTreeDirectory;
     if ( exists($config->{'likelihood'}->{'fixedTreesInScratch'}) && $config->{'likelihood'}->{'fixedTreesInScratch'} eq "yes" ) {
@@ -246,8 +188,8 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
     } else {
 	$fixedTreeDirectory = $config->{'likelihood'}->{'workDirectory'   }."/";
     }
-    my $fixedTreeFile      = $fixedTreeDirectory                       .       "fixedTrees".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
-    my $buildFixedTreeFile = $config->{'likelihood'}->{'workDirectory'}."/trees/fixedTrees".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
+    my $fixedTreeFile      = $fixedTreeDirectory                       .       "fixedTrees".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
+    my $buildFixedTreeFile = $config->{'likelihood'}->{'workDirectory'}."/trees/fixedTrees".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
     system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'}."/trees");
     if ( 
 	my $lock = new File::NFSLock {
@@ -267,15 +209,15 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 		unless ( -e $buildFixedTreeFile ) {
 		    # Create the tree file if necessary. (Set output redshift to a very large value to avoid any galaxy formation
 		    # calculation being carried out - we only want to build the trees.)
-		    $parameters->{'parameter'}->{'outputRedshifts'             }->{'value'} = "10000.0";
-		    $parameters->{'parameter'}->{'mergerTreesWrite'            }->{'value'} = "true";
-		    $parameters->{'parameter'}->{'mergerTreeExportFileName'    }->{'value'} = $buildFixedTreeFile;
-		    $parameters->{'parameter'}->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
+		    $parameters->{'outputRedshifts'             }->{'value'} = "10000.0";
+		    $parameters->{'mergerTreesWrite'            }->{'value'} = "true";
+		    $parameters->{'mergerTreeExportFileName'    }->{'value'} = $buildFixedTreeFile;
+		    $parameters->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
 		    my $treeParameters;
-		    push(@{$treeParameters->{'parameter'}},{name => $_, value => $parameters->{'parameter'}->{$_}->{'value'}})
-			foreach ( keys(%{$parameters->{'parameter'}}) );
+		    push(@{$treeParameters},{name => $_, value => $parameters->{$_}->{'value'}})
+			foreach ( keys(%{$parameters}) );
 		    my $treeXML = new XML::Simple (RootName=>"parameters", NoAttr => 1);
-		    open(pHndl,">".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml");
+		    open(pHndl,">".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml");
 		    print pHndl $treeXML->XMLout($treeParameters);
 		    close pHndl;		  
 		    my $treeCommand;
@@ -291,8 +233,8 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 			if ( $coredump eq "NO" );
 		    $coreDumpSize = $config->{'likelihood'}->{'coredumpsize'}
 		        if ( exists($config->{'likelihood'}->{'coredumpsize'}) );
-		    $treeCommand .= "ulimit -c ".$coreDumpSize."; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
-		    my $treeLog = $config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".log";
+		    $treeCommand .= "ulimit -c ".$coreDumpSize."; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
+		    my $treeLog = $config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".log";
 		    SystemRedirect::tofile($treeCommand,$treeLog);
 		    unless ( $? == 0 ) {
 			system("mv ".$treeLog." ".$treeLog.".failed.".$$);
@@ -308,23 +250,21 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 	$lock->unlock();
     }
     # Modify parameters to use the tree file.
-    $parameters->{'parameter'}->{'mergerTreeConstructMethod'}->{'value'} = "read";
-    $parameters->{'parameter'}->{'mergerTreeReadFileName'   }->{'value'} = $fixedTreeFile;
-    $parameters->{'parameter'}->{'outputRedshifts'          }->{'value'} = $outputRedshifts;
-    $parameters->{'parameter'}->{'mergerTreeAnalyses'       }->{'value'} = $savedAnalyses;
-    $parameters->{'parameter'}->{'mergerTreesWrite'         }->{'value'} = "false";
+    $parameters->{'mergerTreeConstructMethod'}->{'value'} = "read";
+    $parameters->{'mergerTreeReadFileName'   }->{'value'} = $fixedTreeFile;
+    $parameters->{'outputRedshifts'          }->{'value'} = $outputRedshifts;
+    $parameters->{'mergerTreeAnalyses'       }->{'value'} = $savedAnalyses;
+    $parameters->{'mergerTreesWrite'         }->{'value'} = "false";
 }
 
 # Extract new parameters.
-if ( defined($newParameters->{'parameter'}) ) {
-    my @newParameterList;
-    if ( ref($newParameters->{'parameter'}) eq "ARRAY" ) {
-	@newParameterList = @{$newParameters->{'parameter'}};
-    } else {
-	push(@newParameterList,$newParameters->{'parameter'});
-    }
-    for my $newParameter ( @newParameterList ) {
-	$parameters->{'parameter'}->{$newParameter->{'name'}}->{'value'} = $newParameter->{'value'};
+if ( defined($newParameters) ) {
+    for my $newParameterName ( keys(%{$newParameters}) ) {
+	my $parameter = $parameters;
+	foreach ( split(/\-\>/,$newParameterName) ) {
+	    $parameter = $parameter->{$_};
+	}
+	$parameter->{'value'} = $newParameters->{$newParameterName};
     }
 }
 
@@ -431,7 +371,7 @@ foreach my $constraint ( @constraints ) {
     unless ( $? == 0 ) {
 	# Issue a failure.
 	print "ERROR: Analysis script failed to complete [".$constraint->{'definition'}."]\n";
-	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot);
+	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,0);
 	# Display the final likelihood.
 	&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
 	print "constrainGalacticus.pl: analysis code failed";
@@ -444,7 +384,7 @@ foreach my $constraint ( @constraints ) {
     if ( $likelihood->{'logLikelihood'} eq "nan" ) {
 	# Issue a failure.
         print "ERROR: Likelihood is NaN\n";
-	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot);
+	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,0);
 	# Display the final likelihood.
 	&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
 	print "constrainGalacticus.pl: likelihood calculation failed";

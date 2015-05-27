@@ -60,14 +60,10 @@ sub Output {
     my $parameters = shift;
     my $fileName   = shift;
     # Create an XML output object.
-    my $xmlOutput  = new XML::Simple (RootName=>"parameters", NoAttr => 1);
-    # Transfer parameters to a suitable array structure.
-    my $outputParameters;
-    push(@{$outputParameters->{'parameter'}},{name => $_, value => $parameters->{'parameter'}->{$_}->{'value'}})
-	foreach ( keys(%{$parameters->{'parameter'}}) );
+    my $xmlOutput  = new XML::Simple (RootName=>"parameters");
     # Output the parameters to file.
     open(pHndl,">".$fileName);
-    print pHndl $xmlOutput->XMLout($outputParameters);
+    print pHndl $xmlOutput->XMLout($parameters);
     close pHndl;
 }
 
@@ -186,7 +182,7 @@ sub Compilation {
 		$value =~ s/^\s*(.*?)\s*$/$1/;
 		my @values     = split(/\s+/,$value);
 		my @currentValues;
-		@currentValues = split(/\s+/,$parameters->{'parameter'}->{$name}->{'value'}) if ( exists($parameters->{'parameter'}->{$name}) );
+		@currentValues = split(/\s+/,$parameters->{$name}->{'value'}) if ( exists($parameters->{$name}) );
 		my $accumulation = "overwrite";
 		$accumulation = $parameter->{'accumulation'} if ( exists($parameter->{'accumulation'}) );
 		if ( $accumulation eq "overwrite" ) {
@@ -197,7 +193,7 @@ sub Compilation {
 		    push(@currentValues,@values);
 		    @currentValues = uniq(@currentValues);
 		}
-		$parameters->{'parameter'}->{$name}->{'value'} = join(" ",@currentValues);
+		$parameters->{$name}->{'value'} = join(" ",@currentValues);
 	    }
 	}
     }
@@ -210,23 +206,23 @@ sub Compilation {
 	@outputRedshiftList = sort(@outputRedshiftList);
     }
     # Modify the set of output redshifts.
-    $parameters->{'parameter'}->{'outputRedshifts'}->{'value'} = join(" ",@outputRedshiftList);
+    $parameters->{'outputRedshifts'}->{'value'} = join(" ",@outputRedshiftList);
     # Modify the minimum and maximum halo masses.
     $haloMassResolution = 5.00e09 unless ( defined($haloMassResolution) );
     $haloMassMinimum    = 1.00e10 unless ( defined($haloMassMinimum   ) );
     $haloMassMaximum    = 1.01e10 unless ( defined($haloMassMaximum   ) );
-    $parameters->{'parameter'}->{'mergerTreeBuildMassResolutionFixed'}->{'value'} = $haloMassResolution;
-    $parameters->{'parameter'}->{'mergerTreeBuildHaloMassMinimum'    }->{'value'} = $haloMassMinimum   ;
-    $parameters->{'parameter'}->{'mergerTreeBuildHaloMassMaximum'    }->{'value'} = $haloMassMaximum   ;
+    $parameters->{'mergerTreeBuildMassResolutionFixed'}->{'value'} = $haloMassResolution;
+    $parameters->{'mergerTreeBuildHaloMassMinimum'    }->{'value'} = $haloMassMinimum   ;
+    $parameters->{'mergerTreeBuildHaloMassMaximum'    }->{'value'} = $haloMassMaximum   ;
     # Set required options on.
-    $parameters->{'parameter'}->{$_}->{'value'} = "true" 
+    $parameters->{$_}->{'value'} = "true" 
 	foreach ( keys(%optionsOn) );
     # Construct luminosity requirements.
-    $parameters->{'parameter'}->{'luminosityFilter'  }->{'value'} = join(" ",map {(split(/:/,$_))[0]} keys(%outputLuminosities))
+    $parameters->{'luminosityFilter'  }->{'value'} = join(" ",map {(split(/:/,$_))[0]} keys(%outputLuminosities))
 	if ( scalar(keys(%outputLuminosities)) > 0 );
-    $parameters->{'parameter'}->{'luminosityRedshift'}->{'value'} = join(" ",map {(split(/:/,$_))[1]} keys(%outputLuminosities))
+    $parameters->{'luminosityRedshift'}->{'value'} = join(" ",map {(split(/:/,$_))[1]} keys(%outputLuminosities))
 	if ( scalar(keys(%outputLuminosities)) > 0 );
-    $parameters->{'parameter'}->{'luminosityType'    }->{'value'} = join(" ",map {(split(/:/,$_))[2]} keys(%outputLuminosities))
+    $parameters->{'luminosityType'    }->{'value'} = join(" ",map {(split(/:/,$_))[2]} keys(%outputLuminosities))
 	if ( scalar(keys(%outputLuminosities)) > 0 );
     # Return the parameter hash.
     return (\@constraints,$parameters);
@@ -250,6 +246,7 @@ sub Convert_Parameters_To_Galacticus {
     }
     die("Convert_Parameters_To_Galacticus: number of supplied values does not match number of parameters")
 	unless ( scalar(@values) == $parameterCount );
+
     # Map values to parameters, undoing any logarithmic mapping.
     my $j = -1;
     my %parameterValues;
@@ -265,7 +262,7 @@ sub Convert_Parameters_To_Galacticus {
 	$failCount = 0;
 	for(my $i=0;$i<scalar(@parameters);++$i) {
 	    if ( exists($parameters[$i]->{'define'}) ) {
-		die ("bieGalacticusWrapper.pl: cannot specify a prior for a defined parameter")
+		die ("Convert_Parameters_To_Galacticus: cannot specify a prior for a defined parameter")
 		    if ( exists($parameters[$i]->{'prior'}) );
 		# Attempt to replace named parameters in the definition with their values.
 		while ( $parameters[$i]->{'define'} =~ m/\%\[([a-zA-Z0-9_]+)\]/ ) {
@@ -282,17 +279,12 @@ sub Convert_Parameters_To_Galacticus {
 	    }
 	}
     }
-    # Create an array of new parameters.
+    # Create a hash of new parameters.
     my $newParameters;
     for(my $i=0;$i<scalar(@parameters);++$i) {
-	push(
-	    @{$newParameters->{'parameter'}},
-	    {
-		name  => $parameters[$i  ]->{'name'},
-		value => $parameterValues{$parameters[$i]->{'name'}}
-	    }
-	    );
+	$newParameters->{$parameters[$i]->{'name'}} = $parameterValues{$parameters[$i]->{'name'}};
     }
+    # Return the parameter has.
     return $newParameters;
 }
 
@@ -313,7 +305,7 @@ sub Sample_Models {
     my @constraints = @{$constraintsRef};
     # Parse the statefile to find all parameter values sampled by the chains.
     my @chainParameters;
-    open(iHndl,$workDirectory."/mcmc/galacticusBIE.statelog");
+    open(iHndl,$workDirectory."/mcmc/galacticus.statelog");
     while ( my $line = <iHndl> ) {
 	unless ( $line =~ m/^\"/ ) {
 	    $line =~ s/^\s*//;
@@ -361,21 +353,21 @@ sub Sample_Models {
 	    my $currentConfig = clone($config);
 	    my $newParameters = &Convert_Parameters_To_Galacticus($currentConfig,@{$chainParametersViable[$j]});    
 	    # Increment the random number seed.
-	    $parameters->{'parameter'}->{'randomSeed'}->{'value'} += $config->{'likelihood'}->{'threads'};
+	    $parameters->{'randomSeed'}->{'value'} += $config->{'likelihood'}->{'threads'};
 	    # Clone parameters.
 	    my $currentParameters = clone($parameters);
 	    # Apply to parameters.
-	    $currentParameters->{'parameter'}->{$_->{'name'}}->{'value'} = $_->{'value'}
-	       foreach ( @{$newParameters->{'parameter'}} );    
+	    $currentParameters->{$_}->{'value'} = $newParameters->{$_}
+	       foreach ( keys(%{$newParameters}) );    
 	    # Apply any parameter overrides from the command line.
 	    foreach ( keys(%arguments) ) {
 		if ( $_ =~ m/^parameterOverride:(.+)/ ) {
 		    my $parameterName = $1;
-		    $currentParameters->{'parameter'}->{$parameterName}->{'value'} = $arguments{$_};
+		    $currentParameters->{$parameterName}->{'value'} = $arguments{$_};
 		}
 	    }
 	    # Specify the output file name.
-	    $currentParameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'} = $galacticusFileName;
+	    $currentParameters->{'galacticusOutputFileName'}->{'value'} = $galacticusFileName;
 	    # Write the modified parameters to file.
 	    &Output($currentParameters,$modelDirectory."parameters.xml");
 	    # Create a batch script for PBS.

@@ -45,7 +45,7 @@ if ( exists($arguments{'outputFile'}) ) {
     &HDF5::Get_Parameters($galacticus);
     # Compute the likelihood.
     my $constraint;
-    $constraint->{'logLikelihood'        } = sclr(-0.5*($galacticus->{'parameters'}->{'H_0'}-$constraintValue)**2/($constraintSystematicError**2+$constraintStatisticalError**2));
+    $constraint->{'logLikelihood'        } = sclr(-0.5*($galacticus->{'parameters'}->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}-$constraintValue)**2/($constraintSystematicError**2+$constraintStatisticalError**2));
     $constraint->{'logLikelihoodVariance'} = 0.0;
     # Output the constraint.
     my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
