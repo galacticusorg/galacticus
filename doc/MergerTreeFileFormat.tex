@@ -4,7 +4,7 @@ Merger trees are stored in HDF5 files for portability and convenience. Additiona
 
 \subsection{Flexibility and Extensibility}
 
-All of the groups/datasets in the file except for the {\normalfont \ttfamily treeIndex} and {\normalfont \ttfamily haloTrees} groups are, in principle, optional. This does not mean that a file created without some of these optional groups/datasets will be useable by a given code. It is the responsibility of a given code to check that all data that it requires is present in the file. You are therefore encouraged to include as much information as possible when constructing merger tree files.
+All of the groups/datasets in the file except for the {\normalfont \ttfamily forestIndex} and {\normalfont \ttfamily forestHalos} groups are, in principle, optional. This does not mean that a file created without some of these optional groups/datasets will be useable by a given code. It is the responsibility of a given code to check that all data that it requires is present in the file. You are therefore encouraged to include as much information as possible when constructing merger tree files.
 
 Additionally, the file format is intended to be extensible. It is permissible to add additional datasets, for example to describe some other properties of nodes in each tree. Additional datasets should follow the structure of currently defined datasets, i.e. they should be stored as a single dataset combining all trees with nodes listed in the same order as for other datasets. For additional datasets which might be of general use you are encouraged to \href{mailto:abenson@obs.carnegiescience.edu}{contact us} and recommend them for inclusion in the standard---this allows their name to be standardized.
 
@@ -19,13 +19,14 @@ An example of the structure of such a file, called ``{\normalfont \ttfamily exam
 \begin{verbatim}
 HDF5 "example.hdf5" {
 GROUP "/" {
+   ATTRIBUTE "formatVersion"
    GROUP "cosmology" {
    }
    GROUP "groupFinder" {
    }
-   GROUP "haloTrees" {
+   GROUP "forestHalos" {
    }
-   GROUP "mergerTrees" {
+   GROUP "forests" {
    }
    GROUP "particles" {
    }
@@ -33,12 +34,16 @@ GROUP "/" {
    }
    GROUP "simulation" {
    }
-   GROUP "treeIndex" {
+   GROUP "forestIndex" {
    }
    GROUP "units" {
    }
 }
 \end{verbatim}
+
+\section{Format Version Attribute}
+
+The {\normalfont \ttfamily formatVersion} attribute specifies which version of the merger tree file format this file follows. The current standard is version 2.
 
 \section{Cosmology Group}
 
@@ -384,12 +389,12 @@ An example of this group, showing standard attributes, is given below.
 }
 \end{verbatim}
 
-\section{Halo Trees Group}\label{sec:HaloTreesGroup}
+\section{Forest Halos Group}\label{sec:ForestHalosGroup}
 
-The {\normalfont \ttfamily haloTrees} group contains the data describing the actual merger trees. Nodes from each tree must be stored contiguously. An example of this group is given below. In this example, {\normalfont \ttfamily $<$nodeCount$>$} is the total number of nodes in all merger trees.
+The {\normalfont \ttfamily forestHalos} group contains the data describing the actual merger tree forests. Nodes from each forest must be stored contiguously. An example of this group is given below. In this example, {\normalfont \ttfamily $<$nodeCount$>$} is the total number of nodes in all merger tree forests.
 
 \begin{verbatim}
-GROUP "haloTrees" {
+GROUP "forestHalos" {
    ATTRIBUTE "haloMassesIncludeSubhalos" {
       DATATYPE  H5T_STD_I32LE
       DATASPACE  SCALAR
@@ -404,7 +409,7 @@ GROUP "haloTrees" {
       (0): 0
       }
    }
-   ATTRIBUTE "treesAreSelfContained" {
+   ATTRIBUTE "forestsAreSelfContained" {
       DATATYPE  H5T_STD_I32LE
       DATASPACE  SCALAR
       DATA {
@@ -507,12 +512,12 @@ GROUP "haloTrees" {
 
 \subsection{Standard Attributes}
 
-The following are standard attributes in the {\normalfont \ttfamily haloTrees} group (others may be added as desired).
+The following are standard attributes in the {\normalfont \ttfamily forestHalos} group (others may be added as desired).
 
 \begin{description}
  \item [{\normalfont \ttfamily haloMassesIncludeSubhalos}] Indicates whether or not the masses of halos include the masses of any subhalos that they may contain. A value of 0 implies that halo masses do not include masses of subhalos, while a value of 1 indicates that they do;
  \item [{\normalfont \ttfamily haloAngularMomentaIncludeSubhalos}] Indicates whether or not the angular momenta of halos include the angular momenta contributed by any subhalos that they may contain. A value of 0 implies that halo masses do not include the contribution of subhalos, while a value of 1 indicates that they do. If this attribute is not present it is assumed to be equal to the {\normalfont \ttfamily haloMassesIncludeSubhalos} attribute;
- \item [{\normalfont \ttfamily treesAreSelfContained}] Indicates whether or not trees are self-contained, in the sense that nodes never transfer from one tree to another. A value of 0 implies that nodes \emph{can} move from one tree to another, while a value of 1 implies that they can not;
+ \item [{\normalfont \ttfamily forestsAreSelfContained}] Indicates whether or not forests are self-contained, in the sense that nodes never transfer from one forest to another. A value of 0 implies that nodes \emph{can} move from one tree to another, while a value of 1 implies that they can not;
  \item [{\normalfont \ttfamily treesHaveSubhalos}] Indicates whether or not trees contain information on subhalos. A value of 0 implies that they do not, while a value of 1 implies that they do. This attribute is a convenience, as subhalo presence can be determined from the node data directly;
  \item [{\normalfont \ttfamily velocitiesIncludeHubbleFlow}] Indicates whether or not velocities include the Hubble flow. A value of 0 indicates that they do not, while a value of 1 indicates that they do. See \S\ref{sec:GalacticusVelocityDefinitions} for important notes on velocity definitions in \glc.
  \item [{\normalfont \ttfamily positionsArePeriodic}] Indicates whether or not positions are periodic (as in a cosmological cube simulation). A value of 0 indicates that they are not, while a value of 1 indicates that they are periodic, with a period of {\normalfont \ttfamily boxSize}.
@@ -520,7 +525,7 @@ The following are standard attributes in the {\normalfont \ttfamily haloTrees} g
 
 \subsection{Standard Datasets}
 
-The following are standard datasets in the {\normalfont \ttfamily haloTrees} group.
+The following are standard datasets in the {\normalfont \ttfamily forestHalos} group.
 
 \begin{description}
  \item [{\normalfont \ttfamily angularMomentum}] The angular momentum of the halo. This can be either the magnitude of the angular momentum or a 3-D vector;
@@ -542,31 +547,31 @@ The following are standard datasets in the {\normalfont \ttfamily haloTrees} gro
 
 Note that, internally, \glc\ uses a different naming convention for the links between nodes. Specifically, an isolated node's descendent is known as its parent, while a satellite node's host is also referred to as the parent. By default, \glc\ will output a {\normalfont \ttfamily parentIndex} dataset, which therefore specifies either the descendent or host, depending on whether the node in question is isolated or not. To additionally output information which matches the use of ``descendent'' and ``host'' in these merger tree files, set both of the input parameters {\normalfont \ttfamily [outputDescendentIndices]} and {\normalfont \ttfamily [outputHostIndices]} to {\normalfont \ttfamily true}. This will result in the output of two additional datasets, {\normalfont \ttfamily descendentIndex} and {\normalfont \ttfamily hostIndex} which correspond to the definitions used in the merger tree file.
 
-\section{Tree Index Group}
+\section{Forest Index Group}
 
-The {\normalfont \ttfamily treeIndex} group contains indexing information which describes which sections of the datasets in the {\normalfont \ttfamily haloTrees} group belong to each tree. An example of this group is given below.
+The {\normalfont \ttfamily forestIndex} group contains indexing information which describes which sections of the datasets in the {\normalfont \ttfamily forestHalos} group belong to each forest. An example of this group is given below.
 
 \begin{verbatim}
-GROUP "treeIndex" {
+GROUP "forestIndex" {
    DATASET "firstNode" {
-   COMMENT "Position of the first node in each tree in the haloTrees datasets."
+   COMMENT "Position of the first node in each forest in the forestHalos datasets."
       DATATYPE  H5T_STD_I32LE
-      DATASPACE  SIMPLE { ( <treeCount> ) / ( <treeCount> ) }
+      DATASPACE  SIMPLE { ( <forestCount> ) / ( <forestCount> ) }
    }
    DATASET "numberOfNodes" {
-   COMMENT "Number of nodes in each tree."
+   COMMENT "Number of nodes in each forst."
       DATATYPE  H5T_STD_I32LE
-      DATASPACE  SIMPLE { ( <treeCount> ) / ( <treeCount> ) }
+      DATASPACE  SIMPLE { ( <forestCount> ) / ( <forestCount> ) }
    }
-   DATASET "treeIndex" {
-   COMMENT "Unique index of tree."
+   DATASET "forestIndex" {
+   COMMENT "Unique index of forst."
       DATATYPE  H5T_STD_I64LE
-      DATASPACE  SIMPLE { ( <treeCount> ) / ( <treeCount> ) }
+      DATASPACE  SIMPLE { ( <forestCount> ) / ( <forestCount> ) }
    }
-   DATASET "treeWeight" {
-   COMMENT "The number of such trees required per unit volume to create a representative sample."
+   DATASET "forestWeight" {
+   COMMENT "The number of such forests required per unit volume to create a representative sample."
       DATATYPE  H5T_STD_F64LE
-      DATASPACE  SIMPLE { ( <treeCount> ) / ( <treeCount> ) }
+      DATASPACE  SIMPLE { ( <forestCount> ) / ( <forestCount> ) }
    }
 }
 \end{verbatim}
@@ -574,23 +579,23 @@ GROUP "treeIndex" {
 \subsection{Standard Datasets}
 
 \begin{description}
- \item [{\normalfont \ttfamily firstNode}] For each tree, gives the position\footnote{That is, it gives the array index of the first node of the tree in the {\normalfont \ttfamily haloTrees/nodeIndex} dataset for example. It does \emph{not} give the {\normalfont \ttfamily nodeIndex} of the first node in the tree.} in the {\normalfont \ttfamily haloTrees} datasets of the first node in the tree (note that dataset indexing begins at 0). This \emph{does not} necessarily have to be the root node of the tree---nodes in a single tree can be stored in any order in the {\normalfont \ttfamily haloTrees} datasets, providing that they are contiguous;
- \item [{\normalfont \ttfamily numberOfNodes}] For each tree, gives the number of nodes in the tree;
- \item [{\normalfont \ttfamily treeIndex}] A unique ID number for each tree;
- \item [{\normalfont \ttfamily treeWeight}] A weight factor specifying the number density of each tree required to construct a representative sample. If not present, it is acceptable to assume that the weight is $1/${\normalfont \ttfamily boxSize}$^3$ if that attribute is present in the {\normalfont \ttfamily simulation} group.
+ \item [{\normalfont \ttfamily firstNode}] For each forest, gives the position\footnote{That is, it gives the array index of the first node of the forest in the {\normalfont \ttfamily forestHalos/nodeIndex} dataset for example. It does \emph{not} give the {\normalfont \ttfamily nodeIndex} of the first node in the forest.} in the {\normalfont \ttfamily forestHalos} datasets of the first node in the forest (note that dataset indexing begins at 0). This \emph{does not} necessarily have to be a root node of the forest---nodes in a single forest can be stored in any order in the {\normalfont \ttfamily forestHalos} datasets, providing that they are contiguous;
+ \item [{\normalfont \ttfamily numberOfNodes}] For each forest, gives the number of nodes in the forest;
+ \item [{\normalfont \ttfamily forestIndex}] A unique ID number for each forest;
+ \item [{\normalfont \ttfamily forestWeight}] A weight factor specifying the number density of each forest required to construct a representative sample. If not present, it is acceptable to assume that the weight is $1/${\normalfont \ttfamily boxSize}$^3$ if that attribute is present in the {\normalfont \ttfamily simulation} group.
 \end{description}
 
-\section{Merger Trees Group}
+\section{Forests Group}
 
-The {\normalfont \ttfamily mergerTrees} group is optional and provides a convenience method for accessing the properties of individual trees. If present, it contains one group for each tree in the file, named {\normalfont \ttfamily mergerTree<treeID>} where {\normalfont \ttfamily $<$treeID$>$} is the ID of the tree. Each of these groups should contain a set of scalar references to the sections of the datasets in the {\normalfont \ttfamily haloTrees} group to which this tree corresponds. For example, the {\normalfont \ttfamily descendentIndex} reference for the tree with ID number 89 would be as follows:
+The {\normalfont \ttfamily forests} group is optional and provides a convenience method for accessing the properties of individual forests. If present, it contains one group for each tree in the file, named {\normalfont \ttfamily forest<forestID>} where {\normalfont \ttfamily $<$forestID$>$} is the ID of the forest. Each of these groups should contain a set of scalar references to the sections of the datasets in the {\normalfont \ttfamily forestHalos} group to which this forest corresponds. For example, the {\normalfont \ttfamily descendentIndex} reference for the forest with ID number 89 would be as follows:
 
 \begin{verbatim}
-GROUP "mergerTrees/mergerTree89" {
+GROUP "forests/forest89" {
    DATASET "descendentIndex" {
       DATATYPE  H5T_REFERENCE
       DATASPACE  SCALAR
       DATA {
-         DATASET /haloTrees/descendentIndex {(<indexBegin>)-(<indexEnd>)}
+         DATASET /forestHalos/descendentIndex {(<indexBegin>)-(<indexEnd>)}
       }
    }
 }
@@ -598,7 +603,7 @@ GROUP "mergerTrees/mergerTree89" {
 
 \section{Particles Group}
 
-The {\normalfont \ttfamily particles} group is optional and contains information on particle trajectories. It is intended for use with merger tree derived from N-body simulations for which it is often useful to track the location of, for example, the most bound particle associated with a subhalo even after that subhalo can no longer be tracked in the simulation. An example of this group is given below. In this example, {\normalfont \ttfamily $<particleCount>$} is the total number of particles included in the group.
+The {\normalfont \ttfamily particles} group is optional and contains information on particle trajectories. It is intended for use with merger trees derived from N-body simulations for which it is often useful to track the location of, for example, the most bound particle associated with a subhalo even after that subhalo can no longer be tracked in the simulation. An example of this group is given below. In this example, {\normalfont \ttfamily $<particleCount>$} is the total number of particles included in the group.
 
 \begin{verbatim}
 GROUP "particles" {
