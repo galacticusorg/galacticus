@@ -100,7 +100,7 @@ $(BUILDPATH)/%.o : %.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Mak
 	done
 	scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
 	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS)
-	@mlist=`cat ./work/build/$*.m` ; \
+	@mlist=`cat $(BUILDPATH)/$*.m` ; \
 	for mod in $$mlist ; \
 	do \
 	 if [ -f $$mod~ ] ; then \
