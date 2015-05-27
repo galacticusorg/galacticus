@@ -141,7 +141,7 @@ contains
           call mergerTrees%reset                   (       )
 
           ! Specify a single tree in the structure.
-          call mergerTrees%treeCountSet            (      1)
+          call mergerTrees%forestCountSet          (      1)
 
           ! Specify that we do not want to create individual merger tree reference datasets.
           call mergerTrees%makeReferences          (.false.)
@@ -160,12 +160,12 @@ contains
           ! Get the default cosmology.
           thisCosmologyParameters => cosmologyParameters()
           ! Set cosmology metadata.
-          call mergerTrees%addMetadata(metaDataCosmology ,'OmegaMatter'       ,thisCosmologyParameters%OmegaMatter    (            ))
-          call mergerTrees%addMetadata(metaDataCosmology ,'OmegaBaryon'       ,thisCosmologyParameters%OmegaBaryon    (            ))
-          call mergerTrees%addMetadata(metaDataCosmology ,'OmegaLambda'       ,thisCosmologyParameters%OmegaDarkEnergy(            ))
+          call mergerTrees%addMetadata(metaDataCosmology ,'OmegaMatter'       ,thisCosmologyParameters%OmegaMatter    (                  ))
+          call mergerTrees%addMetadata(metaDataCosmology ,'OmegaBaryon'       ,thisCosmologyParameters%OmegaBaryon    (                  ))
+          call mergerTrees%addMetadata(metaDataCosmology ,'OmegaLambda'       ,thisCosmologyParameters%OmegaDarkEnergy(                  ))
           call mergerTrees%addMetadata(metaDataCosmology ,'HubbleParam'       ,thisCosmologyParameters%HubbleConstant (hubbleUnitsLittleH))
-          call mergerTrees%addMetadata(metaDataCosmology ,'sigma_8'           ,sigma_8                            (            ))
-          call mergerTrees%addMetadata(metaDataCosmology ,'powerSpectrumIndex',"not specified"                                  )
+          call mergerTrees%addMetadata(metaDataCosmology ,'sigma_8'           ,sigma_8                                (                  ))
+          call mergerTrees%addMetadata(metaDataCosmology ,'powerSpectrumIndex',"not specified"                                            )
 
           ! Set provenance metadata.
           call mergerTrees%addMetadata(metaDataProvenance,'fileBuiltBy'       ,'Galacticus'                   )

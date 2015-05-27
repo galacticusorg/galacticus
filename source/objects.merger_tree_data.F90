@@ -220,14 +220,14 @@ module Merger_Tree_Data_Structure
      !% A structure that holds raw merger tree data.
      private
      integer                                                                 :: dummyHostId                        , nodeCount                        , &
-          &                                                                     particlesCount                     , treeCount
+          &                                                                     particlesCount                     , forestCount
      double precision                                                        :: particleMass               =0.0d0
      integer                         , allocatable, dimension(:)             :: columnProperties                   , particleColumnProperties         , &
           &                                                                     treeBeginsAt                       , treeNodeCount
      integer         (kind=kind_int8), allocatable, dimension(:)             :: descendentIndex                    , hostIndex                        , &
           &                                                                     mostBoundParticleIndex             , nodeIndex                        , &
-          &                                                                     particleIndex                      , treeID                           , &
-          &                                                                     treeIndex
+          &                                                                     particleIndex                      , forestID                         , &
+          &                                                                     forestIndex
      integer         (c_size_t      ), allocatable, dimension(:)             :: particleCount                      , snapshot                         , &
           &                                                                     particleReferenceCount             , particleReferenceStart           , &
           &                                                                     particleSnapshot
@@ -235,7 +235,7 @@ module Merger_Tree_Data_Structure
           &                                                                     nodeMass                           , particleRedshift                 , &
           &                                                                     redshift                           , scaleFactor                      , &
           &                                                                     scaleRadius                        , spinMagnitude                    , &
-          &                                                                     treeWeight                         , treeWeightNode                   , &
+          &                                                                     treeWeight                         , forestWeightNode                 , &
           &                                                                     specificAngularMomentumMagnitude   , velocityMaximum                  , &
           &                                                                     velocityDispersion
      double precision                , allocatable, dimension(:,:)           :: angularMomentum                    , particlePosition                 , &
@@ -262,10 +262,10 @@ module Merger_Tree_Data_Structure
           &                                                                     hasScaleRadius                     , hasSnapshot                      , &
           &                                                                     hasSpinMagnitude                   , hasSpinX                         , &
           &                                                                     hasSpinY                           , hasSpinZ                         , &
-          &                                                                     hasTreeIndex                       , hasVelocityX                     , &
+          &                                                                     hasForestIndex                     , hasVelocityX                     , &
           &                                                                     hasVelocityY                       , hasVelocityZ                     , &
           &                                                                     hasVelocityMaximum                 , hasVelocityDispersion            , &
-          &                                                                     hasTreeWeight                                                         , &
+          &                                                                     hasForestWeight                                                       , &
           &                                                                     hasBoxSize
      logical                                                                 :: areSelfContained           =.true. , doMakeReferences         =.true. , &
           &                                                                     includesHubbleFlow         =.false., includesSubhaloMasses    =.false., &
@@ -284,10 +284,10 @@ module Merger_Tree_Data_Structure
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>treeCountSet</method>
-     !@     <description>Set the total number of trees in the data structure.</description>
+     !@     <method>forestCountSet</method>
+     !@     <description>Set the total number of forests in the data structure.</description>
      !@     <type>\void</type>
-     !@     <arguments>\intzero\ treeCount\argin</arguments>
+     !@     <arguments>\intzero\ forestCount\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>nodeCountSet</method>
@@ -399,7 +399,7 @@ module Merger_Tree_Data_Structure
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: reset                                           =>Merger_Tree_Data_Structure_Reset
-     procedure :: treeCountSet                                    =>Merger_Tree_Data_Structure_Set_Tree_Count
+     procedure :: forestCountSet                                  =>Merger_Tree_Data_Structure_Set_Forest_Count
      procedure :: nodeCountSet                                    =>Merger_Tree_Data_Structure_Set_Node_Count
      procedure :: particleCountSet                                =>Merger_Tree_Data_Structure_Set_Particle_Count
      procedure :: readASCII                                       =>Merger_Tree_Data_Structure_Read_ASCII
@@ -437,8 +437,8 @@ contains
     class(mergerTreeData), intent(inout) :: mergerTrees
 
     ! No properties.
-    mergerTrees%hasTreeIndex               =.false.
-    mergerTrees%hasTreeWeight              =.false.
+    mergerTrees%hasForestIndex             =.false.
+    mergerTrees%hasForestWeight            =.false.
     mergerTrees%hasBoxSize                 =.false.
     mergerTrees%hasNodeIndex               =.false.
     mergerTrees%hasDescendentIndex         =.false.
@@ -474,10 +474,10 @@ contains
     ! Deallocate any previous data.
     if (allocated(mergerTrees%treeBeginsAt          )) call Dealloc_Array(mergerTrees%treeBeginsAt          )
     if (allocated(mergerTrees%treeNodeCount         )) call Dealloc_Array(mergerTrees%treeNodeCount         )
-    if (allocated(mergerTrees%treeID                )) call Dealloc_Array(mergerTrees%treeID                )
+    if (allocated(mergerTrees%forestID              )) call Dealloc_Array(mergerTrees%forestID              )
     if (allocated(mergerTrees%treeWeight            )) call Dealloc_Array(mergerTrees%treeWeight            )
-    if (allocated(mergerTrees%treeWeightNode        )) call Dealloc_Array(mergerTrees%treeWeightNode        )
-    if (allocated(mergerTrees%treeIndex             )) call Dealloc_Array(mergerTrees%treeIndex             )
+    if (allocated(mergerTrees%forestWeightNode      )) call Dealloc_Array(mergerTrees%forestWeightNode      )
+    if (allocated(mergerTrees%forestIndex           )) call Dealloc_Array(mergerTrees%forestIndex           )
     if (allocated(mergerTrees%nodeIndex             )) call Dealloc_Array(mergerTrees%nodeIndex             )
     if (allocated(mergerTrees%mostBoundParticleIndex)) call Dealloc_Array(mergerTrees%mostBoundParticleIndex)
     if (allocated(mergerTrees%descendentIndex       )) call Dealloc_Array(mergerTrees%descendentIndex       )
@@ -603,17 +603,17 @@ contains
     return
   end subroutine Merger_Tree_Data_Structure_Add_Metadata
 
-  subroutine Merger_Tree_Data_Structure_Set_Tree_Count(mergerTrees,treeCount)
+  subroutine Merger_Tree_Data_Structure_Set_Forest_Count(mergerTrees,forestCount)
     !% Set the total number of trees in merger trees.
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
-    integer                , intent(in   ) :: treeCount
+    integer                , intent(in   ) :: forestCount
 
     ! Set the number of trees.
-    mergerTrees%treeCount=treeCount
+    mergerTrees%forestCount=forestCount
 
     return
-  end subroutine Merger_Tree_Data_Structure_Set_Tree_Count
+  end subroutine Merger_Tree_Data_Structure_Set_Forest_Count
 
   subroutine Merger_Tree_Data_Structure_Set_Node_Count(mergerTrees,nodeCount)
     !% Set the total number of nodes in merger trees.
@@ -839,10 +839,10 @@ contains
     ! Assign to the relevant property.
     select case (propertyType)
     case (propertyTypeTreeIndex      )
-       mergerTrees%hasTreeIndex      =.true.
-       if (allocated(mergerTrees%treeIndex      )) call Dealloc_Array(mergerTrees%treeIndex      )
-       call Alloc_Array(mergerTrees%treeIndex      ,[size(property)])
-       mergerTrees%treeIndex      =property
+       mergerTrees%hasForestIndex    =.true.
+       if (allocated(mergerTrees%forestIndex    )) call Dealloc_Array(mergerTrees%forestIndex    )
+       call Alloc_Array(mergerTrees%forestIndex    ,[size(property)])
+       mergerTrees%forestIndex    =property
        call Merger_Tree_Data_Structure_Set_Tree_Indices(mergerTrees)
     case (propertyTypeNodeIndex      )
        mergerTrees%hasNodeIndex      =.true.
@@ -885,18 +885,18 @@ contains
     ! Assign to the relevant property.
     select case (propertyType)
     case (propertyTypeTreeWeight     )
-       mergerTrees%hasTreeWeight    =.true.
-       if (allocated(mergerTrees%treeWeightNode )) call Dealloc_Array(mergerTrees%treeWeightNode )
-       call Alloc_Array(mergerTrees%treeWeightNode ,[size(property)])
-       mergerTrees%treeWeightNode =property
+       mergerTrees%hasForestWeight  =.true.
+       if (allocated(mergerTrees%forestWeightNode)) call Dealloc_Array(mergerTrees%forestWeightNode)
+       call Alloc_Array(mergerTrees%forestWeightNode ,[size(property)])
+       mergerTrees%forestWeightNode =property
     case (propertyTypeRedshift       )
        mergerTrees%hasRedshift       =.true.
-       if (allocated(mergerTrees%redshift       )) call Dealloc_Array(mergerTrees%redshift       )
+       if (allocated(mergerTrees%redshift        )) call Dealloc_Array(mergerTrees%redshift        )
        call Alloc_Array(mergerTrees%redshift       ,[size(property)])
        mergerTrees%redshift       =property
     case (propertyTypeNodeMass       )
        mergerTrees%hasNodeMass       =.true.
-       if (allocated(mergerTrees%nodeMass       )) call Dealloc_Array(mergerTrees%nodeMass       )
+       if (allocated(mergerTrees%nodeMass        )) call Dealloc_Array(mergerTrees%nodeMass        )
        call Alloc_Array(mergerTrees%nodeMass       ,[size(property)])
        mergerTrees%nodeMass       =property
     case (propertyTypePositionX      )
@@ -1004,8 +1004,8 @@ contains
     call mergerTrees%nodeCountSet(lineNumberStopActual-lineNumberStartActual+1)
 
     ! Specify what properties these trees have.
-    mergerTrees%hasTreeIndex               =any(mergerTrees%columnProperties == propertyTypeTreeIndex             )
-    mergerTrees%hasTreeWeight              =any(mergerTrees%columnProperties == propertyTypeTreeWeight            )
+    mergerTrees%hasForestIndex             =any(mergerTrees%columnProperties == propertyTypeTreeIndex             )
+    mergerTrees%hasForestWeight            =any(mergerTrees%columnProperties == propertyTypeTreeWeight            )
     mergerTrees%hasNodeIndex               =any(mergerTrees%columnProperties == propertyTypeNodeIndex             )
     mergerTrees%hasDescendentIndex         =any(mergerTrees%columnProperties == propertyTypeDescendentIndex       )
     mergerTrees%hasHostIndex               =any(mergerTrees%columnProperties == propertyTypeHostIndex             )
@@ -1076,8 +1076,8 @@ contains
          & Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","either redshift or scale factor has to be given")
 
     ! Deallocate internal arrays.
-    if (allocated(mergerTrees%treeIndex             )) call Dealloc_Array(mergerTrees%treeIndex             )
-    if (allocated(mergerTrees%treeWeightNode        )) call Dealloc_Array(mergerTrees%treeWeightNode        )
+    if (allocated(mergerTrees%forestIndex           )) call Dealloc_Array(mergerTrees%forestIndex           )
+    if (allocated(mergerTrees%forestWeightNode      )) call Dealloc_Array(mergerTrees%forestWeightNode      )
     if (allocated(mergerTrees%nodeIndex             )) call Dealloc_Array(mergerTrees%nodeIndex             )
     if (allocated(mergerTrees%mostBoundParticleIndex)) call Dealloc_Array(mergerTrees%mostBoundParticleIndex)
     if (allocated(mergerTrees%snapshot              )) call Dealloc_Array(mergerTrees%snapshot              )
@@ -1096,8 +1096,8 @@ contains
     if (allocated(mergerTrees%velocityDispersion    )) call Dealloc_Array(mergerTrees%velocityDispersion    )
 
     ! Allocate internal arrays to correct size as needed.
-    if (mergerTrees%hasTreeIndex               ) call Alloc_Array(mergerTrees%treeIndex               ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasTreeWeight              ) call Alloc_Array(mergerTrees%treeWeightNode          ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasForestIndex             ) call Alloc_Array(mergerTrees%forestIndex             ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasForestWeight            ) call Alloc_Array(mergerTrees%forestWeightNode        ,[  mergerTrees%nodeCount])
     if (mergerTrees%hasNodeIndex               ) call Alloc_Array(mergerTrees%nodeIndex               ,[  mergerTrees%nodeCount])
     if (mergerTrees%hasMostBoundParticleIndex  ) call Alloc_Array(mergerTrees%mostBoundParticleIndex  ,[  mergerTrees%nodeCount])
     if (mergerTrees%hasSnapshot                ) call Alloc_Array(mergerTrees%snapshot                ,[  mergerTrees%nodeCount])
@@ -1147,19 +1147,17 @@ contains
                 ! Ignore this column.
              case (propertyTypeTreeIndex             )
                 ! Column is a tree index.
-                read (inputColumns(iColumn),*) mergerTrees%treeIndex(iNode)
+                read (inputColumns(iColumn),*) mergerTrees%forestIndex(iNode)
                 if (iNode > 1) then
-                   if (mergerTrees%treeIndex(iNode) < mergerTrees%treeIndex(iNode-1)) call&
-                        & Galacticus_Error_Report('Merger_Tree_Data_Structure_Read_ASCII','tree indices must be in ascending &
-                        & order')
-                   if (mergerTrees%treeIndex(iNode) /= mergerTrees%treeIndex(iNode-1)) mergerTrees%treeCount&
-                        &=mergerTrees%treeCount+1
+                   if (mergerTrees%forestIndex(iNode) < mergerTrees%forestIndex(iNode-1)) call &
+                        & Galacticus_Error_Report('Merger_Tree_Data_Structure_Read_ASCII','tree indices must be in ascending order')
+                   if (mergerTrees%forestIndex(iNode) /= mergerTrees%forestIndex(iNode-1)) mergerTrees%forestCount=mergerTrees%forestCount+1
                 else
-                   mergerTrees%treeCount=1
+                   mergerTrees%forestCount=1
                 end if
              case (propertyTypeTreeWeight            )
                 ! Column is a tree weight.
-                read (inputColumns(iColumn),*) mergerTrees%treeWeightNode          (  iNode)
+                read (inputColumns(iColumn),*) mergerTrees%forestWeightNode        (  iNode)
              case (propertyTypeNodeIndex             )
                 ! Column is a node index.
                 read (inputColumns(iColumn),*) mergerTrees%nodeIndex               (  iNode)
@@ -1263,7 +1261,7 @@ contains
 
     ! Report number of trees found.
     message='Found '
-    message=message//mergerTrees%treeCount//' merger trees'
+    message=message//mergerTrees%forestCount//' forests'
     call Galacticus_Display_Message(message)
 
     ! Deallocate workspace.
@@ -1394,36 +1392,36 @@ contains
     ! Allocate arrays for tree start and stop indices and reference ID.
     if (allocated(mergerTrees%treeBeginsAt )) call Dealloc_Array(mergerTrees%treeBeginsAt )
     if (allocated(mergerTrees%treeNodeCount)) call Dealloc_Array(mergerTrees%treeNodeCount)
-    if (allocated(mergerTrees%treeID       )) call Dealloc_Array(mergerTrees%treeID       )
+    if (allocated(mergerTrees%forestID     )) call Dealloc_Array(mergerTrees%forestID     )
     if (allocated(mergerTrees%treeWeight   )) call Dealloc_Array(mergerTrees%treeWeight   )
-    call Alloc_Array(mergerTrees%treeBeginsAt ,[mergerTrees%treeCount])
-    call Alloc_Array(mergerTrees%treeNodeCount,[mergerTrees%treeCount])
-    call Alloc_Array(mergerTrees%treeID       ,[mergerTrees%treeCount])
-    call Alloc_Array(mergerTrees%treeWeight   ,[mergerTrees%treeCount])
+    call Alloc_Array(mergerTrees%treeBeginsAt ,[mergerTrees%forestCount])
+    call Alloc_Array(mergerTrees%treeNodeCount,[mergerTrees%forestCount])
+    call Alloc_Array(mergerTrees%forestID     ,[mergerTrees%forestCount])
+    call Alloc_Array(mergerTrees%treeWeight   ,[mergerTrees%forestCount])
 
     ! Determine index in arrays where each tree begins.
     mergerTrees%treeBeginsAt (1)=0
-    mergerTrees%treeID       (1)=mergerTrees%treeIndex     (1)
-    if (mergerTrees%hasTreeWeight) then
-       mergerTrees%treeWeight(1)=mergerTrees%treeWeightNode(1)
+    mergerTrees%forestID     (1)=mergerTrees%forestIndex     (1)
+    if (mergerTrees%hasForestWeight) then
+       mergerTrees%treeWeight(1)=mergerTrees%forestWeightNode(1)
     else
        mergerTrees%treeWeight(1)=1.0d0
     end if
     iTree                      =1
     do iNode=2,mergerTrees%nodeCount
-       if (mergerTrees%treeIndex(iNode) /= mergerTrees%treeIndex(iNode-1)) then
+       if (mergerTrees%forestIndex(iNode) /= mergerTrees%forestIndex(iNode-1)) then
           iTree=iTree+1
           mergerTrees%treeBeginsAt (iTree  )=iNode-1
-          mergerTrees%treeNodeCount(iTree-1)=mergerTrees%treeBeginsAt(iTree)-mergerTrees%treeBeginsAt(iTree-1)
-          mergerTrees%treeID       (iTree  )=mergerTrees%treeIndex     (iNode)
-          if (mergerTrees%hasTreeWeight) then
-             mergerTrees%treeWeight(iTree  )=mergerTrees%treeWeightNode(iNode)
+          mergerTrees%treeNodeCount(iTree-1)=mergerTrees%treeBeginsAt    (iTree)-mergerTrees%treeBeginsAt(iTree-1)
+          mergerTrees%forestID     (iTree  )=mergerTrees%forestIndex     (iNode)
+          if (mergerTrees%hasForestWeight) then
+             mergerTrees%treeWeight(iTree  )=mergerTrees%forestWeightNode(iNode)
           else
              mergerTrees%treeWeight(iTree  )=1.0d0
           end if
        end if
     end do
-    mergerTrees%treeNodeCount(mergerTrees%treeCount)=mergerTrees%nodeCount-mergerTrees%treeBeginsAt(mergerTrees%treeCount)
+    mergerTrees%treeNodeCount(mergerTrees%forestCount)=mergerTrees%nodeCount-mergerTrees%treeBeginsAt(mergerTrees%forestCount)
     return
   end subroutine Merger_Tree_Data_Structure_Set_Tree_Indices
 
@@ -1615,10 +1613,10 @@ contains
     integer  (kind=HSIZE_T  )             , dimension(2)                :: hyperslabCount        , hyperslabStart
     type     (hdf5Object    ), pointer                                  :: attributeGroup
     type     (hdf5Object    ), target                                   :: cosmologyGroup        , genericGroup       , groupFinderGroup, &
-         &                                                                 haloTrees             , outputFile         , particlesGroup  , &
+         &                                                                 forestHalos           , outputFile         , particlesGroup  , &
          &                                                                 provenanceGroup       , simulationGroup    , treeBuilderGroup, &
-         &                                                                 treeDataset           , treeGroup          , treeIndexGroup  , &
-         &                                                                 treesGroup            , unitsGroup
+         &                                                                 treeDataset           , treeGroup          , forestIndexGroup, &
+         &                                                                 forestsGroup          , unitsGroup
     integer                  , allocatable, dimension(:)                :: firstNode             , numberOfNodes
     integer                                                             :: iAttribute            , iProperty          , iTree           , &
          &                                                                 integerAttribute
@@ -1636,43 +1634,46 @@ contains
     !$omp critical (HDF5_Access)
     call outputFile%openFile(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
+    ! Write a format version attribute.
+    if (.not.fileExists) call outputFile%writeAttribute(2,"formatVersion")
+
     ! Create a group for the datasets.
-    haloTrees=outputFile%openGroup("haloTrees","Stores all data for merger trees.")
+    forestHalos=outputFile%openGroup("forestHalos","Stores all data for merger trees.")
 
     ! Write the data.
-    if (mergerTrees%hasNodeIndex               ) call haloTrees%writeDataset(mergerTrees%nodeIndex               ,"nodeIndex"          ,"The index of each node."                            ,appendTo=appendActual                  )
-    if (mergerTrees%hasDescendentIndex         ) call haloTrees%writeDataset(mergerTrees%descendentIndex         ,"descendentIndex"    ,"The index of each descendent node."                 ,appendTo=appendActual                  )
-    if (mergerTrees%hasHostIndex               ) call haloTrees%writeDataset(mergerTrees%hostIndex               ,"hostIndex"          ,"The index of each host node."                       ,appendTo=appendActual                  )
-    if (mergerTrees%hasNodeMass                ) call haloTrees%writeDataset(mergerTrees%nodeMass                ,"nodeMass"           ,"The mass of each node."                             ,appendTo=appendActual                  )
-    if (mergerTrees%hasRedshift                ) call haloTrees%writeDataset(mergerTrees%redshift                ,"redshift"           ,"The redshift of each node."                         ,appendTo=appendActual                  )
-    if (mergerTrees%hasScaleFactor             ) call haloTrees%writeDataset(mergerTrees%scaleFactor             ,"scaleFactor"        ,"The scale factor of each node."                     ,appendTo=appendActual                  )
-    if (mergerTrees%hasPositionX               ) call haloTrees%writeDataset(mergerTrees%position                ,"position"           ,"The position of each node."                         ,appendTo=appendActual,appendDimension=2)
-    if (mergerTrees%hasVelocityX               ) call haloTrees%writeDataset(mergerTrees%velocity                ,"velocity"           ,"The velocity of each node."                         ,appendTo=appendActual,appendDimension=2)
-    if (mergerTrees%hasSpinX                   ) call haloTrees%writeDataset(mergerTrees%spin                    ,"spin"               ,"The spin of each node."                             ,appendTo=appendActual                  )
-    if (mergerTrees%hasAngularMomentumX        ) call haloTrees%writeDataset(mergerTrees%angularMomentum         ,"angularMomentum"    ,"The angular momentum spin of each node."            ,appendTo=appendActual                  )
-    if (mergerTrees%hasSpinMagnitude           ) call haloTrees%writeDataset(mergerTrees%spinMagnitude           ,"spin"               ,"The spin of each node."                             ,appendTo=appendActual                  )
-    if (mergerTrees%hasAngularMomentumMagnitude) call haloTrees%writeDataset(mergerTrees%angularMomentumMagnitude,"angularMomentum"    ,"The angular momentum spin of each node."            ,appendTo=appendActual                  )
-    if (mergerTrees%hasHalfMassRadius          ) call haloTrees%writeDataset(mergerTrees%halfMassRadius          ,"halfMassRadius"     ,"The half mass radius of each node."                 ,appendTo=appendActual                  )
-    if (mergerTrees%hasScaleRadius             ) call haloTrees%writeDataset(mergerTrees%scaleRadius             ,"scaleRadius"        ,"The scale radius of each node."                     ,appendTo=appendActual                  )
-    if (mergerTrees%hasVelocityMaximum         ) call haloTrees%writeDataset(mergerTrees%velocityMaximum         ,"velocityMaximum"    ,"The maximum velocity of each node's rotation curve.",appendTo=appendActual                  )
-    if (mergerTrees%hasVelocityDispersion      ) call haloTrees%writeDataset(mergerTrees%velocityDispersion      ,"velocityDispersion" ,"The velocity dispersion of each node."              ,appendTo=appendActual                  )
-    if (mergerTrees%hasParticleCount           ) call haloTrees%writeDataset(mergerTrees%particleCount           ,"particleCount"      ,"The number of particles in each node."              ,appendTo=appendActual                  )
+    if (mergerTrees%hasNodeIndex               ) call forestHalos%writeDataset(mergerTrees%nodeIndex               ,"nodeIndex"          ,"The index of each node."                            ,appendTo=appendActual                  )
+    if (mergerTrees%hasDescendentIndex         ) call forestHalos%writeDataset(mergerTrees%descendentIndex         ,"descendentIndex"    ,"The index of each descendent node."                 ,appendTo=appendActual                  )
+    if (mergerTrees%hasHostIndex               ) call forestHalos%writeDataset(mergerTrees%hostIndex               ,"hostIndex"          ,"The index of each host node."                       ,appendTo=appendActual                  )
+    if (mergerTrees%hasNodeMass                ) call forestHalos%writeDataset(mergerTrees%nodeMass                ,"nodeMass"           ,"The mass of each node."                             ,appendTo=appendActual                  )
+    if (mergerTrees%hasRedshift                ) call forestHalos%writeDataset(mergerTrees%redshift                ,"redshift"           ,"The redshift of each node."                         ,appendTo=appendActual                  )
+    if (mergerTrees%hasScaleFactor             ) call forestHalos%writeDataset(mergerTrees%scaleFactor             ,"scaleFactor"        ,"The scale factor of each node."                     ,appendTo=appendActual                  )
+    if (mergerTrees%hasPositionX               ) call forestHalos%writeDataset(mergerTrees%position                ,"position"           ,"The position of each node."                         ,appendTo=appendActual,appendDimension=2)
+    if (mergerTrees%hasVelocityX               ) call forestHalos%writeDataset(mergerTrees%velocity                ,"velocity"           ,"The velocity of each node."                         ,appendTo=appendActual,appendDimension=2)
+    if (mergerTrees%hasSpinX                   ) call forestHalos%writeDataset(mergerTrees%spin                    ,"spin"               ,"The spin of each node."                             ,appendTo=appendActual                  )
+    if (mergerTrees%hasAngularMomentumX        ) call forestHalos%writeDataset(mergerTrees%angularMomentum         ,"angularMomentum"    ,"The angular momentum spin of each node."            ,appendTo=appendActual                  )
+    if (mergerTrees%hasSpinMagnitude           ) call forestHalos%writeDataset(mergerTrees%spinMagnitude           ,"spin"               ,"The spin of each node."                             ,appendTo=appendActual                  )
+    if (mergerTrees%hasAngularMomentumMagnitude) call forestHalos%writeDataset(mergerTrees%angularMomentumMagnitude,"angularMomentum"    ,"The angular momentum spin of each node."            ,appendTo=appendActual                  )
+    if (mergerTrees%hasHalfMassRadius          ) call forestHalos%writeDataset(mergerTrees%halfMassRadius          ,"halfMassRadius"     ,"The half mass radius of each node."                 ,appendTo=appendActual                  )
+    if (mergerTrees%hasScaleRadius             ) call forestHalos%writeDataset(mergerTrees%scaleRadius             ,"scaleRadius"        ,"The scale radius of each node."                     ,appendTo=appendActual                  )
+    if (mergerTrees%hasVelocityMaximum         ) call forestHalos%writeDataset(mergerTrees%velocityMaximum         ,"velocityMaximum"    ,"The maximum velocity of each node's rotation curve.",appendTo=appendActual                  )
+    if (mergerTrees%hasVelocityDispersion      ) call forestHalos%writeDataset(mergerTrees%velocityDispersion      ,"velocityDispersion" ,"The velocity dispersion of each node."              ,appendTo=appendActual                  )
+    if (mergerTrees%hasParticleCount           ) call forestHalos%writeDataset(mergerTrees%particleCount           ,"particleCount"      ,"The number of particles in each node."              ,appendTo=appendActual                  )
     if (mergerTrees%hasMostBoundParticleIndex) then
-       call haloTrees%writeDataset(mergerTrees%particleReferenceStart,"particleIndexStart","The starting index of particle data for each node.",appendTo=appendActual)
-       call haloTrees%writeDataset(mergerTrees%particleReferenceCount,"particleIndexCount","The number of particle data for each node."        ,appendTo=appendActual)
+       call forestHalos%writeDataset(mergerTrees%particleReferenceStart,"particleIndexStart","The starting index of particle data for each node.",appendTo=appendActual)
+       call forestHalos%writeDataset(mergerTrees%particleReferenceCount,"particleIndexCount","The number of particle data for each node."        ,appendTo=appendActual)
     end if
 
     ! Begin creating individual merger tree datasets if requested.
     if (mergerTrees%doMakeReferences) then
 
        ! Create a containing group for individual trees.
-       treesGroup=outputFile%openGroup("mergerTrees","Data for individual merger trees.")
+       forestsGroup=outputFile%openGroup("forests","Data for individual forests.")
 
        ! Create groups for trees and dataset references.
-       do iTree=1,mergerTrees%treeCount
-          groupName="mergerTree"
+       do iTree=1,mergerTrees%forestCount
+          groupName="forest"
           groupName=groupName//iTree
-          treeGroup=treesGroup%openGroup(char(groupName),"Data for a merger tree.")
+          treeGroup=forestsGroup%openGroup(char(groupName),"Data for a forest.")
 
           ! Standard datasets.
           hyperslabStart(1)=mergerTrees%treeBeginsAt (iTree)
@@ -1681,8 +1682,8 @@ contains
              ! Skip cases where we have the corresponding 3-D dataset.
              if (trim(propertyNames(iProperty)) == "spin"            .and. .not.mergerTrees%hasSpinMagnitude           ) cycle
              if (trim(propertyNames(iProperty)) == "angularMomentum" .and. .not.mergerTrees%hasAngularMomentumMagnitude) cycle
-             if (haloTrees%hasDataset(trim(propertyNames(iProperty)))) then
-                treeDataset=haloTrees%openDataset(propertyNames(iProperty))
+             if (forestHalos%hasDataset(trim(propertyNames(iProperty)))) then
+                treeDataset=forestHalos%openDataset(propertyNames(iProperty))
                 call treeGroup%createReference1D(treeDataset,trim(propertyNames(iProperty)),hyperslabStart,hyperslabCount)
                 call treeDataset%close()
              end if
@@ -1694,8 +1695,8 @@ contains
           hyperslabStart(1)=int(1,kind=HSIZE_T)
           hyperslabCount(1)=int(3,kind=HSIZE_T)
           do iProperty=1,size(propertyNames3D)
-             if (haloTrees%hasDataset(trim(propertyNames3D(iProperty)))) then
-                treeDataset=haloTrees%openDataset(propertyNames3D(iProperty))
+             if (forestHalos%hasDataset(trim(propertyNames3D(iProperty)))) then
+                treeDataset=forestHalos%openDataset(propertyNames3D(iProperty))
                 call treeGroup%createReference2D(treeDataset,trim(propertyNames3D(iProperty)),hyperslabStart,hyperslabCount)
                 call treeDataset%close()
              end if
@@ -1705,7 +1706,7 @@ contains
        end do
 
        ! Close the merger trees group.
-       call treesGroup%close()
+       call forestsGroup%close()
 
        ! Finished making individual merger tree datasets
     end if
@@ -1726,20 +1727,20 @@ contains
     end if
 
     ! Create datasets giving positions of merger trees within the node arrays.
-    treeIndexGroup=outputFile%openGroup("treeIndex","Locations of merger trees within the halo data arrays.")
+    forestIndexGroup=outputFile%openGroup("forestIndex","Locations of forests within the halo data arrays.")
     if (fileExists) then
-       call treeIndexGroup%readDataset("firstNode"    ,firstNode    )
-       call treeIndexGroup%readDataset("numberOfNodes",numberOfNodes)
+       call forestIndexGroup%readDataset("firstNode"    ,firstNode    )
+       call forestIndexGroup%readDataset("numberOfNodes",numberOfNodes)
        mergerTrees%treeBeginsAt=mergerTrees%treeBeginsAt+firstNode(size(firstNode))+numberOfNodes(size(numberOfNodes))
        call Dealloc_Array(firstNode    )
        call Dealloc_Array(numberOfNodes)
     end if
-    call        treeIndexGroup%writeDataset(mergerTrees%treeBeginsAt ,"firstNode"    ,"Position of the first node in each tree in the halo data arrays.",appendTo=appendActual)
-    call        treeIndexGroup%writeDataset(mergerTrees%treeNodeCount,"numberOfNodes","Number of nodes in each tree."                                   ,appendTo=appendActual)
-    call        treeIndexGroup%writeDataset(mergerTrees%treeID       ,"treeIndex"    ,"Unique index of tree."                                           ,appendTo=appendActual)
-    if (mergerTrees%hasTreeWeight.or..not.mergerTrees%hasBoxSize)                                                                                                               &
-         & call treeIndexGroup%writeDataset(mergerTrees%treeWeight   ,"treeWeight"   ,"Weight of tree."                                                 ,appendTo=appendActual)
-    call treeIndexGroup%close()
+    call        forestIndexGroup%writeDataset(mergerTrees%treeBeginsAt ,"firstNode"    ,"Position of the first node in each forest in the halo data arrays.",appendTo=appendActual)
+    call        forestIndexGroup%writeDataset(mergerTrees%treeNodeCount,"numberOfNodes","Number of nodes in each forest."                                   ,appendTo=appendActual)
+    call        forestIndexGroup%writeDataset(mergerTrees%forestID     ,"forestIndex"  ,"Unique index of forest."                                           ,appendTo=appendActual)
+    if (mergerTrees%hasForestWeight.or..not.mergerTrees%hasBoxSize)                                                                                                               &
+         & call forestIndexGroup%writeDataset(mergerTrees%treeWeight   ,"forestWeight" ,"Weight of forest."                                                 ,appendTo=appendActual)
+    call forestIndexGroup%close()
 
     ! Only write remaining data if we are not appending to an existing file.
     if (.not.fileExists) then
@@ -1755,35 +1756,35 @@ contains
           ! No host index is included - assume no nodes are subhalos.
           integerAttribute=0
        end if
-       call haloTrees%writeAttribute(integerAttribute,"treesHaveSubhalos")
+       call forestHalos%writeAttribute(integerAttribute,"treesHaveSubhalos")
        ! Determine if trees are self-contained.
        if (mergerTrees%areSelfContained) then
           integerAttribute=1
        else
           integerAttribute=0
        end if
-       call haloTrees%writeAttribute(integerAttribute,"treesAreSelfContained")
+       call forestHalos%writeAttribute(integerAttribute,"forestsAreSelfContained")
        ! Determine if velocities include the Hubble flow.
        if (mergerTrees%includesHubbleFlow) then
           integerAttribute=1
        else
           integerAttribute=0
        end if
-       call haloTrees%writeAttribute(integerAttribute,"velocitiesIncludeHubbleFlow")
+       call forestHalos%writeAttribute(integerAttribute,"velocitiesIncludeHubbleFlow")
        ! Determine if positions are periodic.
        if (mergerTrees%isPeriodic) then
           integerAttribute=1
        else
           integerAttribute=0
        end if
-       call haloTrees%writeAttribute(integerAttribute,"positionsArePeriodic")
+       call forestHalos%writeAttribute(integerAttribute,"positionsArePeriodic")
        ! Determine if halo masses include subhalo contributions.
        if (mergerTrees%includesSubhaloMasses) then
           integerAttribute=1
        else
           integerAttribute=0
        end if
-       call haloTrees%writeAttribute(integerAttribute,"haloMassesIncludeSubhalos")
+       call forestHalos%writeAttribute(integerAttribute,"haloMassesIncludeSubhalos")
 
        ! Store units.
        unitsGroup=outputFile%openGroup("units","The units system used.")
@@ -1842,7 +1843,7 @@ contains
     end if
 
     ! Close the group for datasets.
-    call haloTrees%close()
+    call forestHalos%close()
 
     ! Close the output file.
     call outputFile%close()
@@ -2003,7 +2004,7 @@ contains
     call                               mergerTreesGroup%writeDataset(            descendentSnapshot,"DescendentSnapshot","The snapshot of each descendent halo.",appendTo=appendActual)
     if (mergerTrees%hasHostIndex) call mergerTreesGroup%writeDataset(mergerTrees%hostIndex         ,"HostID"            ,"The index of each host halo."         ,appendTo=appendActual)
     call                               mergerTreesGroup%writeDataset(mergerTrees%treeNodeCount     ,"HalosPerTree"      ,"Number of halos in each tree."        ,appendTo=appendActual)
-    call                               mergerTreesGroup%writeDataset(mergerTrees%treeID            ,"TreeID"            ,"Unique index of tree."                ,appendTo=appendActual)
+    call                               mergerTreesGroup%writeDataset(mergerTrees%forestID          ,"TreeID"            ,"Unique index of tree."                ,appendTo=appendActual)
     call Dealloc_Array(descendentSnapshot)
     call mergerTreesGroup%close()
 
@@ -2205,7 +2206,7 @@ contains
     use Galacticus_Error
     class(mergerTreeData), intent(in   ) :: mergerTrees
 
-    if (.not.mergerTrees%hasTreeIndex      ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'treeIndex'"      )
+    if (.not.mergerTrees%hasForestIndex    ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'forestIndex'"    )
     if (.not.mergerTrees%hasNodeIndex      ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'nodeIndex'"      )
     if (.not.mergerTrees%hasDescendentIndex) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'descendentIndex'")
     if (.not.mergerTrees%hasRedshift       ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'redshift'"       )

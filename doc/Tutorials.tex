@@ -8,71 +8,37 @@ See \S\ref{sec:MergerTreeBuilder} for details of how to build merger tree files 
 
 \subsection{Setting Input Parameters}
 
-To utilize merger trees from the file that you created in a \glc\ run it's necessary to set two parameters in the input parameter file that you will use for the run:
+To utilize merger trees from the file\footnote{The following assumes that merger trees will be read from a file following \protect\glc's standard HDF5 format which is described in \S\protect\ref{sec:MergerTreeFileFormat}.} that you created in a \glc\ run it's necessary to set two parameters in the input parameter file that you will use for the run:
 \begin{verbatim}
   <!-- Specify that merger trees are to be read from file, and give the name of the file to read -->
-  <parameter>
-    <name>mergerTreeConstructMethod</name>
-    <value>read</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadFileName</name>
-    <value>myNBodyTrees.hdf5</value>
-  </parameter>
+  <mergerTreeConstructMethod value="read"             />
+  <mergerTreeReadFileName    value="myNBodyTrees.hdf5"/>
 \end{verbatim}
 The first of these {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tells \glc\ that merger trees will be constructed by reading them from a file. The second, {\normalfont \ttfamily [mergerTreeReadFileName]}, gives the name of the file from which to read the trees. In this example, we use the name of the file that was jus created.
 
 In addition to specifying that trees should be read from a file, it's also important to ensure that the values of cosmological parameters in \glc\ match those in the merger tree file. (If they don't match, \glc\ will stop with an error message unless you set {\normalfont \ttfamily [mergerTreeReadMismatchIsFatal]}$=${\normalfont \ttfamily false} in which case you'll just be warned about any mismatch.) In our case of using merger trees from the Millennium Simulation, the correct cosmological parameter values can be set as follows:
 \begin{verbatim}
   <!-- Use Millennium Simulation cosmology. -->
-  <parameter>
-    <name>H_0</name>
-    <value>73.0</value>
-  </parameter>
-  <parameter>
-    <name>Omega_Matter</name>
-    <value>0.25</value>
-  </parameter>
-  <parameter>
-    <name>Omega_DE</name>
-    <value>0.75</value>
-  </parameter>
-  <parameter>
-    <name>Omega_b</name>
-    <value>0.0455</value>
-  </parameter>
-  <parameter>
-    <name>sigma_8</name>
-    <value>0.9</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumIndex</name>
-    <value>1.0</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumReferenceWavenumber</name>
-    <value>1</value>
-  </parameter>
-  <parameter>
-    <name>powerSpectrumRunning</name>
-    <value>0</value>
-  </parameter>
+  <cosmologyParametersMethod value="simple"/>
+   <HubbleConstant  value="73.0"  />
+   <OmegaMatter     value="0.25"  />
+   <OmegaDarkEnergy value="0.75"  />
+   <OmegaBaryon     value="0.0455"/>
+  </cosmologyParametersMethod>
+  <sigma_8                          value="0.9"/>
+  <powerSpectrumIndex               value="1.0"/>
+  <powerSpectrumReferenceWavenumber value="1"  />
+  <powerSpectrumRunning             value="0"  />
 \end{verbatim}
 
 Normally, \glc\ assumes that all merger trees will exist (i.e. have at least one node present) at the final output time. This may not be true of trees extracted from an N-body simulation---in this case \glc\ can be informed of this fact by setting:
 \begin{verbatim}
-  <parameter>
-    <name>allTreesExistAtFinalTime</name>
-    <value>false</value>
-  </parameter>
+  <allTreesExistAtFinalTime value="false"/>
 \end{verbatim}
 
 N-body merger trees are often built from ``snapshots'' of the simulation, i.e. all of the nodes exist at a set of discrete times. Often we want to output nodes at precisely these output times. In such cases it is useful to set:
 \begin{verbatim}
-  <parameter>
-    <name>mergerTreeReadOutputTimeSnapTolerance</name>
-    <value>1.0d-3</value>
-  </parameter>
+  <mergerTreeReadOutputTimeSnapTolerance value="1.0d-3"/>
 \end{verbatim}
 which ensures that the times of nodes are adjusted to lie at precisely the output time if that time is within the specified relative tolerance (this avoids any small differences between node times and output times that can arises due to rounding errors when converting from redshifts to times and vice-versa).
 
@@ -83,26 +49,14 @@ Further parameters can be set to control what information from the stored trees 
 If position and velocity information for tree nodes is available within the merger tree file then \glc\ can be instructed to use this information by using the ``preset'' method for tree node positions and telling the merger tree construction method to preset node positions as follows:
 \begin{verbatim}
   <!-- Use merger tree node positions -->
-  <parameter>
-    <name>treeNodeMethodPosition</name>
-    <value>preset</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetPositions</name>
-    <value>true</value>
-  </parameter>
+  <treeNodeMethodPosition        value="preset"/>
+  <mergerTreeReadPresetPositions value="true"  />
 \end{verbatim}
 If position information is unavailable, the ``null'' position method can be selected and the merger tree construction method instructed not to preset positions as follows:
 \begin{verbatim}
   <!-- Do not use merger tree node positions -->
-  <parameter>
-    <name>treeNodeMethodPosition</name>
-    <value>null</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetPositions</name>
-    <value>false</value>
-  </parameter>
+  <treeNodeMethodPosition        value="null" />
+  <mergerTreeReadPresetPositions value="false"/>
 \end{verbatim}
 
 \subsubsection{Virial Orbits}\index{orbits!virial}\index{orbits!setting}\index{orbits!N-body}
@@ -110,22 +64,10 @@ If position information is unavailable, the ``null'' position method can be sele
 If position and velocity information for tree nodes is available within the merger tree file then \glc\ can be instructed to use this information to estimate the orbit of each subhalo at the point at which it crosses the virial radius of its host halo. This ``virial orbit'' may then be used by, for example, calculations of merging timescales.
 \begin{verbatim}
   <!-- Use merger tree node positions to compute orbits at the virial radius -->
-  <parameter>
-    <name>mergerTreeReadPresetOrbits</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetOrbitsBoundOnly</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetOrbitsSetAll</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetOrbitsAssertAllSet</name>
-    <value>true</value>
-  </parameter>
+  <mergerTreeReadPresetOrbits             value="true"/>
+  <mergerTreeReadPresetOrbitsBoundOnly    value="true"/>
+  <mergerTreeReadPresetOrbitsSetAll       value="true"/>
+  <mergerTreeReadPresetOrbitsAssertAllSet value="true"/>
 \end{verbatim}
 Typically, a merging halo is not seen at precisely the time at which it crosses the virial radius of its host (due to the fact that N-body simulations are output at discretely spaced timesteps). Therefore, \glc\ computes the orbit at the time just prior to merging and assumes that the orbital parameters (energy and angular momentum) remain fixed to propagate the orbit to the virial radius of the host. The second parameter in the above example, {\normalfont \ttfamily [mergerTreeReadPresetOrbitsBoundOnly]}, specifies whether or not only bound orbits should be set. Some calculations (e.g. of subhalo merging times) assume bound orbits and may fail if given an unbound orbit. Setting this option to {\normalfont \ttfamily true} causes only bound orbits to be preset---unbound orbits are ignored. Note that some orbits cannot be propagated to the virial radius (i.e. their pericenter is larger than the virial radius). The {\normalfont \ttfamily [mergerTreeReadPresetOrbitsSetAll]} option, if true, will cause such orbits to be assigned randomly using the selected XXXXX method, such that all orbits are assigned. The {\normalfont \ttfamily [mergerTreeReadPresetOrbitsAssertAllSet]} option requires that all orbits be set---if {\normalfont \ttfamily [mergerTreeReadPresetOrbitsSetAll]}$=${\normalfont \ttfamily false} and {\normalfont \ttfamily [mergerTreeReadPresetOrbitsAssertAllSet]}$=${\normalfont \ttfamily true} then \glc\ will exit with an error message if any orbit cannot be set.
 
@@ -133,38 +75,20 @@ Typically, a merging halo is not seen at precisely the time at which it crosses 
 
 The times at which subhalos merge with their host halo can be determined directly from the merger tree file if subhalo information is included in that file. Merging is assumed to occur when the subhalo no longer has a distinct descendent (i.e. it descends into a non-subhalo). If merging times are to be computed in this way set
 \begin{verbatim}
-  <parameter>
-    <name>treeNodeMethodSatellite</name>
-    <value>preset</value>    
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetMergerTimes</name>
-    <value>true</value>    
-  </parameter>
+  <treeNodeMethodSatellite         value="preset"/>
+  <mergerTreeReadPresetMergerTimes value="true"  />
 \end{verbatim}
 which select a satellite orbit method that allows merger times to be present and tell the merger tree construction method to preset those merger times respectively. If merger times are not to be computed in this way then instead set, for example,
 \begin{verbatim}
-  <parameter>
-    <name>treeNodeMethodSatellite</name>
-    <value>standard</value>    
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetMergerNodes</name>
-    <value>false</value>
-  </parameter>
-  <parameter>
-    <name>satelliteMergingMethod</name>
-    <value>Jiang2008</value>
-  </parameter>
+  <treeNodeMethodSatellite         value="standard" />
+  <mergerTreeReadPresetMergerNodes value="false"    />
+  <satelliteMergingMethod          value="Jiang2008"/>
 \end{verbatim}
 which selects a standard satellite orbit method, prevents attempts to preset the merger times and selects the {\normalfont \ttfamily Jiang2008} method for computing merger times instead.
 
 In addition to setting the times of merger events, it is possible to set the target node with which a merging node should merge. By default, \glc\ will assume that all merging occurs with the non-subhalo host node in which a subhalo is located. This may not be the desired behavior when using N-body merger trees. For example, such trees may indicate that a subhalo merges with another subhalo. Setting
 \begin{verbatim}
-  <parameter>
-    <name>mergerTreeReadPresetMergerNodes</name>
-    <value>true</value>
-  </parameter>
+  <mergerTreeReadPresetMergerNodes value="true"/>
 \end{verbatim}
 will cause the target node with which each merger should occur to be determined from the merger tree structure and preset for use in \glc.
 
@@ -174,14 +98,8 @@ It is possible to add a delay between the last time at which a subhalo was seen 
 
 The indices of subhalos are usually frozen at the index of the halo just prior to becoming a subhalo. The index of the corresponding halo in the original tree (as read from file) can be tracked as follows:
 \begin{verbatim}
-  <parameter>
-    <name>treeNodeMethodSatellite</name>
-    <value>preset</value>    
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetSubhaloIndices</name>
-    <value>true</value>
-  </parameter>
+  <treeNodeMethodSatellite            value="preset"/>
+  <mergerTreeReadPresetSubhaloIndices value="true"  />
 \end{verbatim}
 to first select the ``preset'' satellite orbit method (which allows subhalo indices to be preset) and, second, to instruct the merger tree construction algorithm to preset those indices. The index will then be available in output as {\normalfont \ttfamily satelliteNodeIndex}.
 
@@ -189,14 +107,8 @@ to first select the ``preset'' satellite orbit method (which allows subhalo indi
 
 The masses of subhalos (specifically their time evolution after they become subhalos) can be set using the values stored in the merger tree file (if available). To set subhalo masses in this way use
 \begin{verbatim}
-  <parameter>
-    <name>treeNodeMethodSatellite</name>
-    <value>preset</value>    
-  </parameter>
-  <parameter>
-    <name>mergerTreeReadPresetSubhaloMasses</name>
-    <value>true</value>
-  </parameter>
+  <treeNodeMethodSatellite           value="preset"/>
+  <mergerTreeReadPresetSubhaloMasses value="true"  />
 \end{verbatim}
 to first select the ``preset'' satellite orbit method (which allows subhalo masses to be preset) and, second, to instruct the merger tree construction algorithm to preset those masses.
 
@@ -205,10 +117,7 @@ to first select the ``preset'' satellite orbit method (which allows subhalo mass
 If information on the angular momenta of nodes is available in the merger tree file, this can be used to preset the value of the spin parameter in each node\footnote{Before doing this, it is important to be sure that the angular momenta of the nodes are reliable. For example, in low mass nodes extracted from an N-body simulation resolution effect may limit the accuracy of the measured angular momentum.} by setting:
 
 \begin{verbatim}
-  <parameter>
-    <name>mergerTreeReadPresetSpins</name>
-    <value>true</value>
-  </parameter>
+  <mergerTreeReadPresetSpins value="true"/>
 \end{verbatim}
 
 The spin parameter is set using the spin of each node if available, or otherwise using the angular momentum of each node stored in the merger tree file using:
@@ -218,10 +127,7 @@ The spin parameter is set using the spin of each node if available, or otherwise
 where $|{\mathbf J}|$ is the magnitude of the node's angular momentum, $M$ is the node's mass and $E$ is its energy. Additionally, by setting:
 
 \begin{verbatim}
-  <parameter>
-    <name>mergerTreeReadPresetSpins3D</name>
-    <value>true</value>
-  </parameter>
+  <mergerTreeReadPresetSpins3D value="true"/>
 \end{verbatim}
 the spin vector of each node will be set (assuming that the vector spin or angular momenta of nodes are available in the merger tree file) using:
 \begin{equation}
@@ -235,10 +141,7 @@ If spins could not be determined for some halos the spin (or angular momentum) s
 If information on the half-mass or scale radii of nodes is available in the merger tree file, it can be used to preset the value of the dark matter halo scale radius in each node by setting:
 
 \begin{verbatim}
-  <parameter>
-    <name>mergerTreeReadPresetScaleRadii</name>
-    <value>true</value>
-  </parameter>
+  <mergerTreeReadPresetScaleRadii value="true"/>
 \end{verbatim}
 
 Before doing this, it is important to be sure that the half-mass or scale radii of the nodes are reliable. For example, in low mass nodes extracted from an N-body simulation resolution effect may limit the accuracy of the measured half-mass or scale radius. In such cases, use the {\normalfont \ttfamily [mergerTreeReadPresetScaleRadiiMinimumMass]} parameter to specify the lowest mass halos for which the scale radii should be preset---lower mass halos will be assigned a scale radius using the method specified by the {\normalfont \ttfamily [mergerTreeReadConcentrationFallbackMethod]} parameter (which will default to the value of {\normalfont \ttfamily [darkMatterConcentrationMethod]}; see \S\ref{sec:DarkMatterProfileConcentration}). It is also possible to specify minimum and maximum allowed concentrations when computing the scale radius from the half mass radius using the {\normalfont \ttfamily [mergerTreeReadPresetScaleRadiiConcentrationMinimum]} and {\normalfont \ttfamily [mergerTreeReadPresetScaleRadiiConcentrationMaximum]} parameters. If matching the half mass radius would require a concentration outside of this range, \glc\ will abort unless {\normalfont \ttfamily [mergerTreeReadPresetScaleRadiiFailureIsFatal]}$=${\normalfont \ttfamily false}, in which case it will instead silently use the fallback concentration method described above.
@@ -262,10 +165,7 @@ The correct way to handle this issue is to combine trees A and B into a single t
 
 If for some reason this is not possible or desired, the fly-by problem will normally cause \glc\ to complain that the host halo of a node cannot be found (since it exists in a different tree). This problem can be avoided by setting:
 \begin{verbatim}
-  <parameter>
-    <name>mergerTreeReadMissingHostsAreFatal</name>
-    <value>false</value>
-  </parameter>
+  <mergerTreeReadMissingHostsAreFatal value="false"/>
 \end{verbatim}
 In this case, nodes with missing hosts are simply treated as being isolated halos. This will avoid an error condition, but is not a physically correct way to handle such cases, so use with caution.
 
@@ -296,9 +196,8 @@ The script generates multiple SQL queries to the Millennium database in order to
 
 Each of the merger tree files created can then be run through \glc\ in the usual way (see \S\ref{sec:nBodyRun}).  Outputs should be requested at every Millennium snapshot (up to the largest redshift to be considered), and the {\normalfont \ttfamily lightcone} filter should be used to cause only those galaxies which intersect the lightcone to be output---for example:
 \begin{verbatim}
-<!-- Set output redshifts to the snapshots in the milliMillennium. -->                                                                                                
-<parameter>
-  <name>outputRedshifts</name>
+<!-- Set output redshifts to the snapshots in the milliMillennium. -->
+<outputRedshifts
   <value>
     0.0000 0.0199 0.0414 0.0645 0.0893 0.1159 0.1444 0.1749 0.2075 0.2425
     0.2798 0.3197 0.3623 0.4079 0.4566 0.5086 0.5642 0.6236 0.6871 0.7550
@@ -306,17 +205,11 @@ Each of the merger tree files created can then be run through \glc\ in the usual
     1.9126 2.0700 2.2395 2.4220 2.6189 2.8312 3.0604 3.3081 3.5759 3.8657
     4.1795 4.5196 4.8884 5.2888 5.7239 6.1968
   </value>
-</parameter>
+</outputRedshifts>
 
-<!-- Add a lightcone filter with the required geometry -->                                                                    
-<parameter>
-  <name>mergerTreeOutputFilters</name>
-  <value>lightcone</value>
-</parameter>
-<parameter>
-  <name>filterLightconeGeometryFileName</name>
-  <value>lightconeDirectory/geometry.xml</value>
-</parameter>                                                                                                                                                          
+<!-- Add a lightcone filter with the required geometry -->
+<mergerTreeOutputFilters         value="lightcone"                     />
+<filterLightconeGeometryFileName value="lightconeDirectory/geometry.xml/>
 \end{verbatim}
 where the {\normalfont \ttfamily geometry.xml} file will have been automatically created within the {\normalfont \ttfamily \textless lightconeDirectory\textgreater} directory.
 
@@ -328,25 +221,16 @@ Choosing {\normalfont \ttfamily [stellarPopulationPropertiesMethod]}$=${\normalf
 
 Setting {\normalfont \ttfamily [stellarPopulationPropertiesMethod]}$=${\normalfont \ttfamily noninstantaneous} causes \glc\ to use a fully non-instantaneous, metal-depdendent calculation of recycling, metal production and \gls{sne} rates. However, it is possible to force this method to operate in the instantaneous recycling approximation limit (which can be useful for testing and comparison) by setting:
 \begin{verbatim}
-<parameter>
   <!-- Force the calculation of recycling, yields etc. to   -->
   <!-- be done assuming instantaneous recycling             -->
-  <name>starFormationImfInstantaneousApproximation</name>
-  <value>true</value>
-</parameter>
-<parameter>
+  <starFormationImfInstantaneousApproximation value="true"/>
   <!-- Set the mass of stars which should be used as the    -->
   <!-- dividing line between long-lived and instantaneously -->
   <!-- evolving in this approximation.                      -->
-  <name>starFormationImfInstantaneousApproximationMassLongLived</name>
-  <value>1.0</value>
-</parameter>
-<parameter>
+  <starFormationImfInstantaneousApproximationMassLongLived value="1.0"/>
   <!-- Set the effective age of populations to use in this -->
   <!-- approximation when computing SNe numbers.           -->
-  <name>starFormationImfInstantaneousApproximationEffectiveAge</name>
-  <value>13.8</value>
-</parameter>
+  <starFormationImfInstantaneousApproximationEffectiveAge value="13.8"/>
 \end{verbatim}
 
 \section{Computing Dust Attenuation and Emission Using Galacticus+Grasil}\label{sec:TutorialGrasil}\index{dust!emission}\index{dust!attenutation}\index{Grasil@{\normalfont \scshape Grasil}}
@@ -413,18 +297,9 @@ will plot the \gls{sed} of node 217, in merger tree 9, at output 5 from the {\no
 
 \glc\ can compute the stellar luminosity of galaxies in any required combination of filter, redshift, and frame. To cause luminosities to be computed add something such as the following to your input parameter file:
 \begin{verbatim}
- <parameter>
-  <name>luminosityFilter</name>
-  <value>SDSS_r</value>
- </parameter>
- <parameter>
-  <name>luminosityRedshift</name>
-  <value>0.1</value>
- </parameter>
- <parameter>
-  <name>luminosityType</name>
-  <value>observed</value>
- </parameter>
+ <luminosityFilter   value="SDSS_r"  />
+ <luminosityRedshift value="0.1"     />
+ <luminosityType     value="observed"/>
 \end{verbatim}
 This would result in a dataset called {\normalfont \ttfamily diskLuminositiesStellar:SDSS\_r:observed:z0.1000} being output (along with a similar dataset for the spheroid component), corresponding to the luminosity in the SDSS r-band filter, as observed at $z=0.1$. To get the same filter but in the rest-frame of the galaxy, change the {\normalfont \ttfamily luminosityType} to ``{\normalfont \ttfamily rest}''. If instead of specifying a unique redshift you instead specify ``{\normalfont \ttfamily all}'' for a filter in the {\normalfont \ttfamily luminosityRedshift} element, then the filter will be replicated to all output redshifts.
 
@@ -434,18 +309,9 @@ Luminosities are always output in units of the zero-point of the AB magnitude sy
 
 You can add additional luminosities by simply adding more entries in these parameter values. For example:
 \begin{verbatim}
- <parameter>
-   <name>luminosityFilter</name>
-   <value>SDSS_r SDSS_g</value>
- </parameter>
- <parameter>
-   <name>luminosityRedshift</name>
-   <value>0.1 0.3</value>
- </parameter>
- <parameter>
-   <name>luminosityType</name>
-   <value>observed rest</value>
- </parameter>
+ <luminosityFilter   value="SDSS_r   SDSS_g"/>
+ <luminosityRedshift value="0.1      0.3"   />
+ <luminosityType     value="observed rest"  />
 \end{verbatim}
 would result in datasets {\normalfont \ttfamily diskLuminositiesStellar:SDSS\_r:observed:z0.1000} and {\normalfont \ttfamily diskLuminositiesStellar:SDSS\_g:rest:z0.3000}. 
 
@@ -457,27 +323,15 @@ Typical uses of stellar spectra postprocessors include accounting for absorption
 
 If you don't specify a postprocessing set, the ``default'' set (consisting of the {\normalfont \ttfamily inoue2014} postprocessor; see \S\ref{phys:spectraPostprocessor:spectraPostprocessorInoue2014}) is applied to each luminosity calculation. To specify other postprocessing sets add the following to your parameter file:
 \begin{verbatim}
- <parameter>
-   <name>luminosityFilter</name>
-   <value>default recent unabsorbded recentUnabsorbed</value>
- </parameter>
+ <luminosityFilter value="default recent unabsorbded recentUnabsorbed"/>
 \end{verbatim}
 where one set must be specified for each luminosity specified in the {\normalfont \ttfamily luminosityFilter} parameter. Note that set names can be reused in order to apply the same postprocessor set to multiple luminosities.
 
 The chain of postprocessors to apply for each set is then specified as follows:
 \begin{verbatim}
- <parameter>
-   <name>stellarPopulationSpectraPostprocessRecentMethods</name>
-   <value>inoue2014 recent</value>
- </parameter>
- <parameter>
-   <name>stellarPopulationSpectraPostprocessUnabsorbedMethods</name>
-   <value>identity</value>
- </parameter>
- <parameter>
-   <name>stellarPopulationSpectraPostprocessRecentUnabsorbedMethods</name>
-   <value>recent</value>
- </parameter>
+ <stellarPopulationSpectraPostprocessRecentMethods           value="inoue2014 recent"/>
+ <stellarPopulationSpectraPostprocessUnabsorbedMethods       value="identity"        />
+ <stellarPopulationSpectraPostprocessRecentUnabsorbedMethods value="recent"          />
 \end{verbatim}
 In this case we've constructed three new sets, in addition to the default set (which applies just the {\normalfont \ttfamily inoue2014} postprocessor). The {\normalfont \ttfamily recent} set applies both the {\normalfont \ttfamily inoue2014} \gls{igm} absorption postprocessor, followed by the {\normalfont \ttfamily recent} postprocessor to retain only recently emitted light. The {\normalfont \ttfamily unabsorbed} set ignores \gls{igm} absorption entirely---it does this by using the {\normalfont \ttfamily identity} postprocessor which leaves the spectrum unaffected. Finally, the {\normalfont \ttfamily recentUnabsorbed} set applies only the {\normalfont \ttfamily recent} filter while ignoring \gls{igm} absorption.
 
@@ -519,42 +373,18 @@ Additionally, if a line is requested as {\normalfont \ttfamily totalLineLuminosi
 \glc\ can self-consistently solve for the evolution of the \gls{igm} as it becomes photoionized by light emitted by stars and AGN. To activate this calculation, include the following in your parameters file:
 \begin{verbatim}
   <!-- IGM evolver -->
-  <parameter>
-    <name>intergalacticMediumStateMethod</name>
-    <value>internal</value>
-  </parameter>
-  <parameter>
-    <name>igmPropertiesCompute</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>igmPropertiesTimeCountPerDecade</name>
-    <value>10</value>
-  </parameter>
+  <intergalacticMediumStateMethod  value="internal"/>
+  <igmPropertiesCompute            value="true"    />
+  <igmPropertiesTimeCountPerDecade value="10"      />
   
   <!-- Background radiation -->
-  <parameter>
-    <name>backgroundRadiationCompute</name>
-    <value>true</value>
-  </parameter>
-  <parameter>
-    <name>radiationIntergalacticBackgroundMethod</name>
-    <value>internal</value>
-  </parameter>
-  <parameter>
-    <name>backgroundRadiationWavelengthCountPerDecade</name>
-    <value>50</value>
-  </parameter>
-  <parameter>
-    <name>backgroundRadiationTimeCountPerDecade</name>
-    <value>10</value>
-  </parameter>
+  <backgroundRadiationCompute                  value="true"    />
+  <radiationIntergalacticBackgroundMethod      value="internal"/>
+  <backgroundRadiationWavelengthCountPerDecade value="50"      />
+  <backgroundRadiationTimeCountPerDecade       value="10"      />
 
   <!-- Halo accretion options -->
-  <parameter>
-    <name>accretionHaloMethod</name>
-    <value>naozBarkana2007</value>
-  </parameter>
+  <accretionHaloMethod value="naozBarkana2007"/>
 \end{verbatim}
 The first block of parameters switches \glc\ to using an internal calculation for the state of the \gls{igm}, instructs it to solve for \gls{igm} properties as a function of time, and specifies that \gls{igm} properties should be updated 10 times per decade of cosmic time. Specifically, at each of these time intervals, solving of galaxy evolution is halted and the \gls{igm} evolved up to this time using the currently computed photoionizing background spectrum.
 
