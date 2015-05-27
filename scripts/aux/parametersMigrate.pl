@@ -469,7 +469,7 @@ sub Translate {
 	print "Converting to new format (v2)...\n";
 	for my $parameter ( $parameters->findnodes('parameter') ) {
 	    # Get name and value text elements.
-	    my $name   = $parameter->findnodes('name' )->[0]->firstChild();
+	    my $name   = $parameter->findnodes('name' )->[0]->firstChild()->data();
 	    my @values = $parameter->findnodes('value');
 	    # Create the new node.
 	    my $parameterNode = $input->createElement($name );
@@ -483,7 +483,7 @@ sub Translate {
 	    }
 	    # Add values.
 	    foreach my $valueNode ( @values ) {
-		my $value  = $valueNode->firstChild();
+		my $value  = $valueNode->firstChild()->data();
 		# Find any subparameters.
 		my @subParameters = $valueNode->findnodes('*');
 		if ( $useAttribute ) {
