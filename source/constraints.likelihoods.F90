@@ -117,7 +117,8 @@ contains
          &                                                           likelihoodChainBaseNameDefinition              , likelihoodToleranceDefinition                           , &
          &                                                           likelihoodNeighborCountDefinition              , likelihoodProjectedCorrelationFunctionFileNameDefinition, &
          &                                                           likelihoodLineOfSightDepthDefinition           , likelihoodHalfIntegralDefinition                        , &
-         &                                                           likelihoodExclusionsDefinition                 , likelihoodDumpEmulatorDefinition
+         &                                                           likelihoodExclusionsDefinition                 , likelihoodDumpEmulatorDefinition                        , &
+         &                                                           likelihoodDelayIntervalDefinition
     type            (nodeList      ), pointer                     :: covarianceRows                                 , typeNodes
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
@@ -130,7 +131,8 @@ contains
          &                                                           likelihoodHaloMassMinimum                      , likelihoodHaloMassMaximum                 , &
          &                                                           likelihoodRedshiftMinimum                      , likelihoodRedshiftMaximum                 , &
          &                                                           likelihoodLogLikelihoodErrorTolerance          , likelihoodSurfaceBrightnessLimit          , &
-         &                                                           likelihoodTolerance                            , likelihoodLineOfSightDepth
+         &                                                           likelihoodTolerance                            , likelihoodLineOfSightDepth                , &
+         &                                                           likelihoodDelayInterval
     logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits                 , &
          &                                                           likelihoodModelSurfaceBrightness               , likelihoodHalfIntegral
 
@@ -181,7 +183,9 @@ contains
        allocate(likelihoodGalacticus :: newLikelihood)
        select type (newLikelihood)
        type is (likelihoodGalacticus)
-          newLikelihood=likelihoodGalacticus(configFileName)
+          likelihoodDelayIntervalDefinition => XML_Get_First_Element_By_Tag_Name(definition,"delayInterval")
+          call extractDataContent(likelihoodDelayIntervalDefinition,likelihoodDelayInterval)
+          newLikelihood=likelihoodGalacticus(configFileName,likelihoodDelayInterval)
        end select
     case ("gaussianRegression")
        allocate(likelihoodGaussianRegression :: newLikelihood)

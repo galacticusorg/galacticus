@@ -17,16 +17,18 @@
 
 !% Defines methods for a \glc\ likelihood function.
 
-function likelihoodGalacticusConstructor(configFileName)
+function likelihoodGalacticusConstructor(configFileName,delayInterval)
   !% Constructor for the \glc\ likelihood class.
   use File_Utilities
   use Galacticus_Error
   implicit none
-  type(likelihoodGalacticus)                :: likelihoodGalacticusConstructor
-  type(varying_string      ), intent(in   ) :: configFileName
+  type            (likelihoodGalacticus)                :: likelihoodGalacticusConstructor
+  type            (varying_string      ), intent(in   ) :: configFileName
+  double precision                      , intent(in   ) :: delayInterval
 
   ! Store the config file name
   likelihoodGalacticusConstructor%configFileName    =configFileName
+  likelihoodGalacticusConstructor%delayInterval     =delayInterval
   likelihoodGalacticusConstructor%storeCountPrevious=0
   ! Find the time command.
   likelihoodGalacticusConstructor%timeCommand       =Executable_Find('time')
@@ -44,6 +46,7 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   use System_Command
   use String_Handling
   use MPI_Utilities
+  use Galacticus_Error
   implicit none
   class           (likelihoodGalacticus), intent(inout)               :: self
   class           (state               ), intent(in   )               :: simulationState
@@ -55,10 +58,10 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   double precision                      , intent(  out), optional     :: logLikelihoodVariance
   double precision                      , allocatable  , dimension(:) :: stateVector
   type            (varying_string      )                              :: wrapperCommand       , likelihoodFileName  , &
-       &                                                                 timingFileName
+       &                                                                 timingFileName       , message
   character       (len=23              )                              :: label
   integer                                                             :: i                    , likelihoodFileUnit  , &
-       &                                                                 timingFileUnit
+       &                                                                 timingFileUnit       , status
   logical                                                             :: storeModel
   real                                                                :: timeSystem           , timeUser
 
@@ -113,8 +116,16 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
      wrapperCommand=wrapperCommand//label
   end do
   deallocate(stateVector)
+  ! If requested, sleep for a short time to desynchronize launching of the Galacticus wrapper command. On some systems this is
+  ! necessary to avoid resource conflicts.
+  if (self%delayInterval > 0.0d0) call Sleep(int(self%delayInterval*dble(mpiSelf%rank())))
   ! Run the Galacticus model and evaluate likelihood.
-  call System_Command_Do(wrapperCommand)
+  call System_Command_Do(wrapperCommand,status)
+  if (status /= 0) then
+     message="Galacticus wrapper failed with status code "
+     message=message//status
+     call Galacticus_Error_Report('likelihoodGalacticusEvaluate',message)
+  end if
   ! Read the likelihood back from file.
   open(newUnit=likelihoodFileUnit,file=char(likelihoodFileName),status='old',form='formatted')
   read                                     (likelihoodFileUnit,*) likelihoodGalacticusEvaluate
