@@ -54,7 +54,7 @@ module File_Utilities
      subroutine funlock_C(fd) bind(c,name='funlock_C')
        !% Template for a C function that calls {\normalfont \ttfamily flock()} to unlock a file..
        import
-       integer(c_int ) :: fd
+       integer(c_int ), value :: fd
      end subroutine funlock_C
   end interface
 

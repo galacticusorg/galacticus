@@ -17,16 +17,32 @@
 
 //% Implements Fortran-callable wrappers around the Linux file locking functions.
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/file.h>
+#include <errno.h>
+#include <unistd.h>
 
 int flock_C(const char *name) {
   //% Fortran-callable wrapper around the flock() function to lock a file.
-  int fd;
-  fd=open(name,O_RDONLY);
-  return flock(fd,LOCK_EX);
+  int fd, stat;
+  fd=open(name,O_RDONLY | O_CREAT,S_IRUSR | S_IWUSR);
+  if (fd == -1) {
+    if (errno == EDQUOT) printf("flock_C() failed: quota\n"              );
+    if (errno == EEXIST) printf("flock_C() failed: file exists\n"        );
+    if (errno == EACCES) printf("flock_C() failed: access denied\n"      );
+    if (errno == ENOENT) printf("flock_C() failed: file does not exist\n");
+    abort();
+  }
+  stat=flock(fd,LOCK_EX);
+  if (stat != 0) {
+    printf("flock_C(): failed %d %d\n",stat,fd);
+    abort();
+  }
+  return fd;
 }
 
 void funlock_C(int fd) {
