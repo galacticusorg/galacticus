@@ -47,6 +47,7 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   use String_Handling
   use MPI_Utilities
   use Galacticus_Error
+  use File_Utilities
   implicit none
   class           (likelihoodGalacticus), intent(inout)               :: self
   class           (state               ), intent(in   )               :: simulationState
@@ -121,9 +122,14 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
   if (self%delayInterval > 0.0d0) call Sleep(int(self%delayInterval*dble(mpiSelf%rank())))
   ! Run the Galacticus model and evaluate likelihood.
   call System_Command_Do(wrapperCommand,status)
-  if (status /= 0) then
+  if (status /= 0) then     
      message="Galacticus wrapper failed with status code "
-     message=message//status
+     message=message//status//" [message: "//trim(errorMessage)//"]"
+     if (File_Exists(likelihoodFileName)) then
+        message=message//" (likelihood file does exist)"
+     else
+        message=message//" (likelihood file DOES NOT exist)"
+     end if
      call Galacticus_Error_Report('likelihoodGalacticusEvaluate',message)
   end if
   ! Read the likelihood back from file.
