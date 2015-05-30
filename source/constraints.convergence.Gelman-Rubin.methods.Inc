@@ -45,17 +45,18 @@ function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,out
   ! Validate.
   if (mpiSelf%count()-outlierCountMaximum < 3) call Galacticus_Error_Report('convergenceGelmanRubinConstructor','maximum number of outliers is too large')
   ! Open log file.
-  open(newUnit=convergenceGelmanRubinConstructor%logFileUnit,file=trim(logFileName),form='formatted',status='unknown')
+  if (mpiSelf%isMaster()) open(newUnit=convergenceGelmanRubinConstructor%logFileUnit,file=trim(logFileName),form='formatted',status='unknown')
  return
 end function convergenceGelmanRubinConstructor
 
 subroutine convergenceGelmanRubinDestructor(self)
   !% Destroy a Gelman-Rubin convergence object.
+  use MPI_Utilities
   implicit none
   type(convergenceGelmanRubin), intent(inout) :: self
 
   ! Close the log file.
-  close(self%logFileUnit)
+  if (mpiSelf%isMaster()) close(self%logFileUnit)
   return
 end subroutine convergenceGelmanRubinDestructor
 
