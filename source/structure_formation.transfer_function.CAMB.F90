@@ -55,6 +55,7 @@ contains
   subroutine Transfer_Function_CAMB_Make(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber&
        &,transferFunctionLogT)
     !% Build a transfer function using \href{http://camb.info}{\normalfont \scshape CAMB}.
+    use, intrinsic :: ISO_C_Binding
     use FoX_wxml
     use System_Command
     use Transfer_Functions_File
@@ -64,10 +65,12 @@ contains
     use Numerical_Constants_Astronomical
     use Galacticus_Input_Paths
     use String_Handling
+    use File_Utilities
     implicit none
     double precision                                               , intent(in   ) :: logWavenumber
     double precision                    , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
     integer                                                        , intent(  out) :: transferFunctionNumberPoints
+    integer         (c_int             )                                           :: lockFileDescriptor
     logical                                                                        :: makeFile
     character       (len=32            )                                           :: parameterLabel              , wavenumberLabel
     character       (len=255                 )                                           :: hostName
@@ -75,24 +78,16 @@ contains
     type            (xmlf_t            )                                           :: parameterDoc
     type            (inputParameterList)                                           :: dependentParameters
 
-    ! Generate the name of the data file and an XML input parameter file.
     !# <uniqueLabel>
     !#  <function>Transfer_Function_CAMB_Label</function>
     !#  <ignore>transferFunctionFile</ignore>
     !# </uniqueLabel>
+    ! Generate the name of the data file.
     transferFunctionFile=char(Galacticus_Input_Path())//'data/largeScaleStructure/transfer_function_CAMB_'//Transfer_Function_CAMB_Label(includeSourceDigest=.true.,asHash=.true.,parameters=dependentParameters)//".xml"
+    lockFileDescriptor=File_Lock(char(transferFunctionFile//".lock"))
     parameterFile=char(Galacticus_Input_Path())//'data/transfer_function_parameters'
     call Get_Environment_Variable('HOSTNAME',hostName)
     parameterFile=parameterFile//'_'//trim(hostName)//'_'//GetPID()//'.xml'
-    call xml_OpenFile(char(parameterFile),parameterDoc)
-    call xml_NewElement(parameterDoc,"parameters")
-    call xml_NewElement(parameterDoc,"uniqueLabel")
-    call xml_AddCharacters(parameterDoc,char(Transfer_Function_CAMB_Label(includeSourceDigest=.true.)))
-    call xml_EndElement(parameterDoc,"uniqueLabel")
-    write (parameterLabel,'(f4.2)') heliumByMassPrimordial
-    call dependentParameters%add("Y_He",parameterLabel)
-    call dependentParameters%serializeToXML(parameterDoc)
-    call xml_Close(parameterDoc)
     ! Determine if we need to reinitialize this module.
     if (.not.transferFunctionInitialized) then
        makeFile=.true.
@@ -106,22 +101,31 @@ contains
     end if
     ! Read the file if this module has not been initialized or if the wavenumber is out of range.
     if (makeFile) then
+       ! Generate a parameter file for the CAMB wrapper script.
+       parameterFile=char(Galacticus_Input_Path())//'data/transfer_function_parameters.xml'
+       call xml_OpenFile(char(parameterFile),parameterDoc)
+       call xml_NewElement(parameterDoc,"parameters")
+       call xml_NewElement(parameterDoc,"uniqueLabel")
+       call xml_AddCharacters(parameterDoc,char(Transfer_Function_CAMB_Label(includeSourceDigest=.true.)))
+       call xml_EndElement(parameterDoc,"uniqueLabel")
+       write (parameterLabel,'(f4.2)') heliumByMassPrimordial
+       call dependentParameters%add("Y_He",parameterLabel)
+       call dependentParameters%serializeToXML(parameterDoc)
+       call xml_Close(parameterDoc)
        ! Run CAMB wrapper script.
        write (wavenumberLabel,'(e12.6)') exp(max(logWavenumber+1.0d0,logWavenumberMaximumDefault))
        command=char(Galacticus_Input_Path())//'scripts/aux/CAMB_Driver.pl '//parameterFile//' '//transferFunctionFile//' '//trim(wavenumberLabel)//' '//Transfer_Function_Named_File_Format_Version()
        call System_Command_Do(command)
-
+       ! Remove the parameter file.
+       command='rm -f '//parameterFile
+       call System_Command_Do(command)
        ! Flag that transfer function is now initialized.
        transferFunctionInitialized=.true.
-    end if
-
+    end if    
     ! Call routine to read in the tabulated data.
     call Transfer_Function_Named_File_Read(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber &
          &,transferFunctionLogT,transferFunctionFile)
-
-    ! Remove the parameter file.
-    command='rm -f '//parameterFile
-    call System_Command_Do(command)
+    call File_Unlock(lockFileDescriptor)
     return
   end subroutine Transfer_Function_CAMB_Make
 
