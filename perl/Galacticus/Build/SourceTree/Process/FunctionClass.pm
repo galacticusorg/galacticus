@@ -448,8 +448,8 @@ sub Process_FunctionClass {
 	    $postContains->[0]->{'content'} .= "      !\$omp critical (HDF5_Access)\n";
 	    $postContains->[0]->{'content'} .= "      parentOutputParameters=globalParameters%getOutputParameters()\n";
 	    $postContains->[0]->{'content'} .= "      if (parentOutputParameters%isOpen()) subParametersOutputGroup=parentOutputParameters%openGroup('".$directive->{'name'}."Method')\n";
-	    $postContains->[0]->{'content'} .= "      !\$omp end critical (HDF5_Access)\n";
 	    $postContains->[0]->{'content'} .= "      if (subParametersOutputGroup%isOpen()) call subParameters%setOutputParameters(subParametersOutputGroup)\n";
+	    $postContains->[0]->{'content'} .= "      !\$omp end critical (HDF5_Access)\n";
 	    $postContains->[0]->{'content'} .= "      select case (char(".$directive->{'name'}."Method))\n";
 	    foreach my $class ( @nonAbstractClasses ) {
 		(my $name = $class->{'name'}) =~ s/^$directive->{'name'}//;
@@ -483,7 +483,9 @@ sub Process_FunctionClass {
 	    }
 	    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report('".$directive->{'name'}."Initialize',message)\n";
 	    $postContains->[0]->{'content'} .= "      end select\n";
+	    $postContains->[0]->{'content'} .= "      !\$omp critical (HDF5_Access)\n";
 	    $postContains->[0]->{'content'} .= "      if (subParametersOutputGroup%isOpen()) call subParametersOutputGroup%close()\n";
+	    $postContains->[0]->{'content'} .= "      !\$omp end critical (HDF5_Access)\n";
 	    $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."Default%isDefault=.true.\n";
 	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end subroutine ".$directive->{'name'}."Initialize\n\n";
