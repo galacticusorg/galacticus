@@ -398,8 +398,8 @@ contains
     thisDiskComponent => thisNode%disk()
     ! Check if an standard disk component exists.
     select type (thisDiskComponent)
-       class is (nodeComponentDiskStandard)
-          ! Trim the stellar populations properties future history.
+    class is (nodeComponentDiskStandard)
+       ! Trim the stellar populations properties future history.
        thisBasicComponent => thisNode%basic()
        stellarPropertiesHistory=thisDiskComponent%stellarPropertiesHistory()
        call stellarPropertiesHistory%trim(thisBasicComponent%time())
@@ -446,7 +446,8 @@ contains
              call thisDiskComponent%  abundancesStellarSet(         zeroAbundances)
              call thisDiskComponent%luminositiesStellarSet(zeroStellarLuminosities)
           else
-             specificAngularMomentum=max(0.0d0,thisDiskComponent%angularMomentum()/diskMass)
+             specificAngularMomentum=thisDiskComponent%angularMomentum()/diskMass
+             if (specificAngularMomentum < 0.0d0) specificAngularMomentum=thisDiskComponent%radius()*thisDiskComponent%velocity()
           end if
 
           ! Reset the gas, abundances and angular momentum of the disk.
