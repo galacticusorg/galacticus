@@ -567,11 +567,14 @@ contains
           ! Get the black hole.
           thisBlackHoleComponent => thisNode%blackHole(instance=instance)
           ! Set scale for mass.
-          call thisBlackHoleComponent%massScale(                                                            &
-               &                                max(                                                        &
-               &                                    scaleMassRelative*thisSpheroidComponent %massStellar(), &
-               &                                                      thisBlackHoleComponent%mass       ()  &
-               &                                   )                                                        &
+          call thisBlackHoleComponent%massScale(                                                                &
+               &                                max(                                                            &
+               &                                                          thisBlackHoleComponent%massSeed   (), &
+               &                                    max(                                                        &
+               &                                        scaleMassRelative*thisSpheroidComponent %massStellar(), &
+               &                                                          thisBlackHoleComponent%mass       ()  &
+               &                                       )                                                        &
+               &                                   )                                                            &
                &                               )
           ! Set scale for spin.
           call thisBlackHoleComponent%spinScale(1.0d0)
