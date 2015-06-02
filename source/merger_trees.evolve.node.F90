@@ -251,7 +251,8 @@ contains
           call Memory_Usage_Record(sizeof(propertyValuesPrevious))
           allocate(propertyRatesPrevious (nProperties))
           call Memory_Usage_Record(sizeof(propertyRatesPrevious ))
-          nPropertiesMax=nProperties
+          nPropertiesMax        =nProperties
+          propertyValuesPrevious=0.0d0
        end if
        ! Serialize property values to array.
        call thisNode%serializeValues(propertyValues)
@@ -369,7 +370,7 @@ contains
 
     ! Extract values.
     call activeNode%deserializeValues(y(1:nProperties))
-
+    
     ! Set derivatives to zero initially.
     call activeNode%odeStepRatesInitialize()
 
