@@ -32,8 +32,9 @@ my $galacticusFileName = $ARGV[0];
 my $iArg = -1;
 my %arguments =
     (
-     quiet   => 0         ,
-     central => "MilkyWay"
+     quiet       => 0         ,
+     central     => "MilkyWay",
+     massMinimum => 0.0
     );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
@@ -81,12 +82,15 @@ $masses->{'errorLow' } *= $massToLightRatio;
 $masses->{'errorHigh'} *= $massToLightRatio;
 # Find members.
 my $members = which(
-    ($distances->{'value'} <= $model->{'haloRadius'})
+    ($distances->{'value'} <= $model->{'haloRadius'}  )
     &
-    ($distances->{'value'} >  0.0                   )
+    ($distances->{'value'} >  0.0                     )
     &
-    ($masses   ->{'value'} >  0.0                   )
+    ($masses   ->{'value'} >  0.0                     )
+    &
+    ($masses   ->{'value'} > $arguments{'massMinimum'})
     );
+
 # Reduce to members.
 $masses                 ->{'value'    } = $masses                 ->{'value'    }->($members);
 $masses                 ->{'error'    } = $masses                 ->{'error'    }->($members);
