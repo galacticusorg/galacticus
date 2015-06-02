@@ -136,7 +136,10 @@ foreach my $constraint ( @constraints ) {
     my $analysisCode = $constraintDefinition->{'analysis'};
     my $plotFile = $constraintDefinition->{'label'};
     $plotFile =~ s/\./_/g;
-    system($analysisCode." ".$maximumLikelihoodDirectory."/galacticus.hdf5 --outputFile ".$maximumLikelihoodDirectory."/likelihood".ucfirst($constraintDefinition->{'label'}).".xml --modelDiscrepancies ".$mcmcDirectory."/modelDiscrepancy --plotFile ".$maximumLikelihoodDirectory."/".$plotFile.".pdf --resultsFile ".$maximumLikelihoodDirectory."/".$constraintDefinition->{'label'}.":results.hdf5");
+    my $options = "";
+    $options = " ".$constraintDefinition->{'analysisArguments'}
+        if ( exists($constraintDefinition->{'analysisArguments'}) );
+    system($analysisCode." ".$maximumLikelihoodDirectory."/galacticus.hdf5 --outputFile ".$maximumLikelihoodDirectory."/likelihood".ucfirst($constraintDefinition->{'label'}).".xml --modelDiscrepancies ".$mcmcDirectory."/modelDiscrepancy --plotFile ".$maximumLikelihoodDirectory."/".$plotFile.".pdf --resultsFile ".$maximumLikelihoodDirectory."/".$constraintDefinition->{'label'}.":results.hdf5".$options);
     die("maximumLikelihoodModel.pl: analysis code failed")
 	unless ( $? == 0 );
     # Read the likelihood.
