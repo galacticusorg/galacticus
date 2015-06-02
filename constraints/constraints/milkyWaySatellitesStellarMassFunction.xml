@@ -7,5 +7,5 @@
   <haloMassMinimum>1.0e12</haloMassMinimum>
   <haloMassMaximum>3.0e12</haloMassMaximum>
   <analysis>constraints/scripts/localGroupSatellitesStellarMassFunction.pl</analysis>
-  <analysisArguments>--central MilkyWay</analysisArguments>
+  <analysisArguments>--central MilkyWay --massMinimum 1.0e6</analysisArguments>
 </constraint>
