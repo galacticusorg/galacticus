@@ -152,6 +152,45 @@
       <alias>
 	<value>HydII</value>
       </alias>
+      <velocityRadialHeliocentric>
+        <value>303.1</value>
+        <error>1.4</error>
+        <reference>Kirby, Simon, &amp; Cohen (arXiv:1506.01021)</reference>
+        <referenceURL>http://arxiv.org/abs/1506.01021</referenceURL>
+      </velocityRadialHeliocentric>
+      <velocityMilkyWay>
+        <value>135.4</value>
+        <reference>Kirby, Simon, &amp; Cohen (arXiv:1506.01021)</reference>
+        <referenceURL>http://arxiv.org/abs/1506.01021</referenceURL>
+      </velocityMilkyWay>
+      <velocityDispersionStellar>
+        <limit confidenceLevel="90%" type="upper">3.6</limit>
+        <limit confidenceLevel="95%" type="upper">4.5</limit>
+        <reference>Kirby, Simon, &amp; Cohen (arXiv:1506.01021)</reference>
+        <referenceURL>http://arxiv.org/abs/1506.01021</referenceURL>
+      </velocityDispersionStellar>
+      <massDynamicalHalfLightRadius>
+        <limit confidenceLevel="90%" type="upper">0.79</limit>
+        <limit confidenceLevel="95%" type="upper">1.26</limit>
+        <reference>Kirby, Simon, &amp; Cohen (arXiv:1506.01021)</reference>
+        <referenceURL>http://arxiv.org/abs/1506.01021</referenceURL>
+      </massDynamicalHalfLightRadius>
+      <metallicityMeasurementTechnique>
+        <value>1</value>
+      </metallicityMeasurementTechnique>
+      <metallicityStellar>
+        <value>-2.02</value>
+	<error>0.08</error>
+        <reference>Kirby, Simon, &amp; Cohen (arXiv:1506.01021)</reference>
+        <referenceURL>http://arxiv.org/abs/1506.01021</referenceURL>
+      </metallicityStellar>
+      <metallicityDispersionStellar>
+        <value>0.40</value>
+	<errorHigh>0.48</errorHigh>
+	<errorLow>0.26</errorLow>
+        <reference>Kirby, Simon, &amp; Cohen (arXiv:1506.01021)</reference>
+        <referenceURL>http://arxiv.org/abs/1506.01021</referenceURL>
+      </metallicityDispersionStellar>     
       <rightAscensionHours>
         <value>12</value>
       </rightAscensionHours>
@@ -193,8 +232,9 @@
         <error>0.3</error>
       </magnitudeAbsoluteV>
       <radiusHalfLight>
-        <value>68e-3</value>
-        <error>11e-3</error>
+        <value>66e-3</value>
+        <errorHigh>12e-3</errorHigh>
+	<errorLow>9e-3</errorLow>
       </radiusHalfLight>
       <radiusHalfLightAngular>
         <value>1.7</value>
@@ -1196,9 +1236,47 @@
     </galaxy>
     <galaxy>
       <name>Pisces II</name>
-      <commentsGeneral>
-        <value>Awaiting spectr. confirmation</value>
-      </commentsGeneral>
+      <velocityRadialHeliocentric>
+        <value>-226.5</value>
+        <error>2.7</error>
+        <reference>Kirby, Simon, &amp; Cohen (arXiv:1506.01021)</reference>
+        <referenceURL>http://arxiv.org/abs/1506.01021</referenceURL>
+      </velocityRadialHeliocentric>
+      <velocityMilkyWay>
+        <value>-79.9</value>
+        <reference>Kirby, Simon, &amp; Cohen (arXiv:1506.01021)</reference>
+        <referenceURL>http://arxiv.org/abs/1506.01021</referenceURL>
+      </velocityMilkyWay>
+      <velocityDispersionStellar>
+	<value>5.4</value>
+	<errorHigh>3.6</errorHigh>
+	<errorLow>2.4</errorLow>
+        <reference>Kirby, Simon, &amp; Cohen (arXiv:1506.01021)</reference>
+        <referenceURL>http://arxiv.org/abs/1506.01021</referenceURL>
+      </velocityDispersionStellar>
+      <massDynamicalHalfLightRadius>
+	<value>6.2</value>
+	<errorHigh>0.3</errorHigh>
+	<errorLow>0.2</errorLow>
+        <reference>Kirby, Simon, &amp; Cohen (arXiv:1506.01021)</reference>
+        <referenceURL>http://arxiv.org/abs/1506.01021</referenceURL>
+      </massDynamicalHalfLightRadius>
+      <metallicityMeasurementTechnique>
+        <value>1</value>
+      </metallicityMeasurementTechnique>
+      <metallicityStellar>
+        <value>-2.45</value>
+	<error>0.07</error>
+        <reference>Kirby, Simon, &amp; Cohen (arXiv:1506.01021)</reference>
+        <referenceURL>http://arxiv.org/abs/1506.01021</referenceURL>
+      </metallicityStellar>
+      <metallicityDispersionStellar>
+        <value>0.48</value>
+	<errorHigh>0.70</errorHigh>
+	<errorLow>0.29</errorLow>
+        <reference>Kirby, Simon, &amp; Cohen (arXiv:1506.01021)</reference>
+        <referenceURL>http://arxiv.org/abs/1506.01021</referenceURL>
+      </metallicityDispersionStellar>
       <declinationArcMinutes>
         <value>57</value>
       </declinationArcMinutes>
@@ -1276,8 +1354,8 @@
         <value>Belokurov et al. (2010)</value>
       </publication>
       <radiusHalfLight>
-        <error>99</error>
         <value>58</value>
+        <error>7</error>
       </radiusHalfLight>
       <radiusHalfLightAngular>
         <errorHigh>0.10</errorHigh>
@@ -17353,6 +17431,11 @@
   <properties>
     <name>metallicityStellar</name>
     <description>Stellar mean metallicity [Fe/H]</description>
+    <units>dex</units>
+  </properties>
+  <properties>
+    <name>metallicityDispersionStellar</name>
+    <description>Dispersion in the stellar metallicity [Fe/H]</description>
     <units>dex</units>
   </properties>
   <properties>
