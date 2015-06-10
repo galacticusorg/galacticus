@@ -103,18 +103,9 @@ contains
 
     ! Return immediately if the preset satellite implementation is not active.
     if (.not.defaultSatelliteComponent%presetIsActive()) return
-    ! Get the satellite component and check if it is of preset class.
-    thisSatelliteComponent   => thisNode  %satellite(autoCreate=.true.)
-    call thisSatelliteComponent%destroy()
-    ! Get the parent node of this node.
-    parentNode               => thisNode  %parent
-    parentSatelliteComponent => parentNode%satellite(                 )
-    ! Copy the satellite orbit from the parent node.
-    select type (parentSatelliteComponent)
-    class is (nodeComponentSatellitePreset)
-       thisSatelliteComponent=parentSatelliteComponent
-    end select
+    ! Move the satellite orbit from the parent node.
+    call thisnode%parent%satelliteMove(thisNode,overwrite=.true.)
     return
   end subroutine Node_Component_Satellite_Preset_Promote
-
+  
 end module Node_Component_Satellite_Preset

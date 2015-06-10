@@ -6840,6 +6840,11 @@ sub Generate_Component_Class_Move_Functions {
 		 variables  => [ "targetNode" ]
 	     },
 	     {
+		 intrinsic  => "logical",
+		 attributes => [ "intent(in   )", "optional" ],
+		 variables  => [ "overwrite" ]
+	     },
+	     {
 		 intrinsic  => "integer",
 		 variables  => [ "instanceCount", "targetCount", "i" ]
 	     },
@@ -6848,16 +6853,30 @@ sub Generate_Component_Class_Move_Functions {
 		 type       => "nodeComponent".ucfirst($componentClassName),
 		 attributes => [ "allocatable, dimension(:)" ],
 		 variables  => [ "instancesTemporary" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 variables  => [ "overwrite_" ]
 	     }
 	    );
 	# Generate the function code.
-	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Move(self,targetNode)\n";
+	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Move(self,targetNode,overwrite)\n";
 	$functionCode .= "    !% Move instances of the ".$componentClassName." component, from one node to another.\n";
 	$functionCode .= "    use Galacticus_Error\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "    overwrite_=.false.\n";
+	$functionCode .= "    if (present(overwrite)) overwrite_=overwrite\n";
 	$functionCode .= "    instanceCount=self      %".$componentClassName."count()\n";
 	$functionCode .= "    targetCount  =targetNode%".$componentClassName."count()\n";
+	$functionCode .= "    if (overwrite_ .and. targetCount > 0) then\n";
+	$functionCode .= "      do i=1,targetCount\n";
+	$functionCode .= "        call targetNode%component".ucfirst($componentClassName)."(i)%destroy()\n";
+	$functionCode .= "      end do \n";
+        $functionCode .= "      targetCount=0\n";
+	$functionCode .= "      deallocate(targetNode%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "      allocate(targetNode%component".ucfirst($componentClassName)."(1))\n";
+        $functionCode .= "    end if\n";	
 	$functionCode .= "    if (instanceCount == 0) return\n";
 	$functionCode .= "    if (targetCount == 0) then\n";
 	$functionCode .= "      deallocate(targetNode%component".ucfirst($componentClassName).")\n";
