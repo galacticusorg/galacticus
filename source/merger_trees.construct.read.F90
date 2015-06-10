@@ -1267,7 +1267,7 @@ contains
     type   (nodeEvent         ), pointer                                      :: newEvent                , pairEvent      
     type   (treeNode          ), pointer                                      :: promotionNode           , thisNode       
     integer(c_size_t          )                                               :: iNode                                    
-    logical                                                                   :: isolatedProgenitorExists                 
+    logical                                                                   :: isolatedProgenitorExists, nodeIsMostMassive
     type   (progenitorIterator)                                               :: progenitors                              
     
     ! Return immediately if subhalo promotion is not allowed.
@@ -1278,27 +1278,43 @@ contains
           descendentNode => nodes(iNode)%descendent
           ! Is this node isolated?
           if (.not.descendentNode%isSubhalo) then
-             ! Check if there is any isolated node which descends into this node.
+             ! Check if there is any isolated node which descends into this node, and also whether this is the most massive
+             ! subhalo which descends into the descendent.
              isolatedProgenitorExists=.false.
-             call progenitors%descendentSet(descendentNode,nodes)
-             do while (progenitors%next(nodes) .and. .not.isolatedProgenitorExists)
+             nodeIsMostMassive       =.true.
+             call progenitors%descendentSet(descendentNode,nodes)             
+             do while (progenitors%next(nodes))
                 progenitorNode => progenitors%current(nodes)
-                isolatedProgenitorExists=(progenitorNode%nodeIndex == progenitorNode%hostIndex)
+                if (progenitorNode%nodeIndex == progenitorNode%hostIndex) then
+                   isolatedProgenitorExists=.true.
+                else if (progenitorNode%nodeMass > nodes(iNode)%nodeMass) then
+                   nodeIsMostMassive=.false.
+                end if
              end do
-             if (.not.progenitors%exist() .or. .not.isolatedProgenitorExists) then
-                ! Node is isolated, has no isolated node that descends into it. Therefore, our subhalo must be promoted to
-                ! become an isolated halo again.
-                thisNode       => nodeList(nodes(inode)  %isolatedNodeIndex)%node
-                promotionNode  => nodeList(descendentNode%isolatedNodeIndex)%node
-                newEvent       => thisNode     %createEvent()
-                newEvent %time =  descendentNode%nodeTime
-                newEvent %node => promotionNode
-                newEvent %task => Node_Subhalo_Promotion
-                pairEvent      => promotionNode%createEvent()
-                pairEvent%time =  descendentNode%nodeTime
-                pairEvent%node => thisNode
-                pairEvent%task => null()
-                pairEvent%ID   =  newEvent%ID
+             if (.not.isolatedProgenitorExists) then
+                if (nodeIsMostMassive) then
+                   ! Node is isolated, has no isolated node that descends into it, and our subhalo is the most massive subhalo which
+                   ! descends into it. Therefore, our subhalo must be promoted to become an isolated halo again.
+                   thisNode       => nodeList(nodes(inode)  %isolatedNodeIndex)%node
+                   promotionNode  => nodeList(descendentNode%isolatedNodeIndex)%node
+                   newEvent       => thisNode     %createEvent()
+                   newEvent %time =  descendentNode%nodeTime
+                   newEvent %node => promotionNode
+                   newEvent %task => Node_Subhalo_Promotion
+                   pairEvent      => promotionNode%createEvent()
+                   pairEvent%time =  descendentNode%nodeTime
+                   pairEvent%node => thisNode
+                   pairEvent%task => null()
+                   pairEvent%ID   =  newEvent%ID
+                else if (mergerTreeReadAllowBranchJumps) then
+                   ! Node is isolated, has no isolated node that descends into it, and our subhalo is not the most massive subhalo
+                   ! which descends into it. Therefore, our subhalo must branch jump if this is allowed.                   
+                   call Create_Branch_Jump_Event(                                                 &
+                        &                        nodeList(nodes(inode)  %isolatedNodeIndex)%node, &
+                        &                        nodeList(descendentNode%isolatedNodeIndex)%node, &
+                        &                        descendentNode%nodeTime                          &
+                        &                       )
+                end if
              end if
           end if
        end if
@@ -1370,10 +1386,6 @@ contains
     ! Scan here for nodes that are subhalos and have no progenitor. These objects must be
     ! created as satellites within the tree.
     initialSatelliteCount=0
-
-
-
-
     do iNode=1,size(nodes)
        if (nodes(iNode)%isSubhalo) then
           call progenitors%descendentSet(nodes(iNode),nodes)
