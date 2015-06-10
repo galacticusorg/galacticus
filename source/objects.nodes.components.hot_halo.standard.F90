@@ -1592,10 +1592,10 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    type (treeNode            )               , pointer :: parentNode
-    class(nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    type (treeNode                ), intent(inout), pointer :: thisNode
+    type (treeNode                )               , pointer :: parentNode
+    class(nodeComponentHotHalo    )               , pointer :: parentHotHaloComponent, thisHotHaloComponent
+    class(darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
@@ -1605,8 +1605,13 @@ contains
        ! Get the parent node of this node and its hot halo component.
        parentNode             => thisNode  %parent
        parentHotHaloComponent => parentNode%hotHalo()
+       ! Update the outer radius to match the virial radius of the parent halo.
+       darkMatterHaloScale_ => darkMatterHaloScale()       
+       call thisHotHaloComponent%outerRadiusSet(                                              &
+            &                                   darkMatterHaloScale_%virialRadius(parentNode) &
+            &                                  )       
        ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
-       ! promotion.
+       ! promotion.       
        select type (parentHotHaloComponent)
        class is (nodeComponentHotHaloStandard)
           ! If (outflowed) mass is non-positive, set mass and all related quantities to zero.
@@ -1652,11 +1657,6 @@ contains
           call thisHotHaloComponent%          unaccretedMassSet(                                                   &
                &                                                   thisHotHaloComponent%unaccretedMass          () &
                &                                                +parentHotHaloComponent%unaccretedMass          () &
-               &                                               )
-          ! Update the outer radius to match the virial radius of the parent halo.
-          darkMatterHaloScale_ => darkMatterHaloScale()
-          call thisHotHaloComponent%             outerRadiusSet(                                                   &
-               &                                                darkMatterHaloScale_%virialRadius(parentNode)      &
                &                                               )
        end select
     end select

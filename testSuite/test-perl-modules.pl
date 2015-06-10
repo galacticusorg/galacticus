@@ -6,8 +6,7 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
  $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
- $galacticusPath = "./";
- $ENV{"GALACTICUS_ROOT_V094"} = "./";
+ $galacticusPath = "../";
 }
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
@@ -20,8 +19,8 @@ require Stats::Histograms;
 # Andrew Benson (7-July-2013)
 
 # Check individual compilation.
-system("find . -type f -name \"*.pl\" | xargs -n 1 perl -c 1>perl.tmp 2>&1; sed -r s/failed/FAILED/g perl.tmp; rm perl.tmp");
-system("find perl -type f -name \"*.pm\" | xargs -n 1 perl -c 1>perl.tmp 2>&1; sed -r s/failed/FAILED/g perl.tmp; rm perl.tmp");
+system("cd ..; find . -type f -name \"*.pl\" | xargs -n 1 perl -c 1>perl.tmp 2>&1; sed -r s/failed/FAILED/g perl.tmp; rm perl.tmp");
+system("cd ..; find perl -type f -name \"*.pm\" | xargs -n 1 perl -c 1>perl.tmp 2>&1; sed -r s/failed/FAILED/g perl.tmp; rm perl.tmp");
 
 # Statistics
 #  Create bins.
