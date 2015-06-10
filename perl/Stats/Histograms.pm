@@ -405,11 +405,14 @@ sub Histogram2D {
 		my $total;
 		if ( exists($options{'normalizeBy'}) && $options{'normalizeBy'} eq "histogram" ) {
 		    $total = sum($histogram->(($i),:));   
+		    $total = 1.0
+			if ( $total == 0.0 );
 		} else {
-		    $total = $rowWeights->(($i));
+		    $total = $rowWeights->(($i),:);
+		    my $zeros = which($total == 0.0);
+		    $total->($zeros) .= 1.0
+			if ( nelem($zeros) > 0 );
 		}
-		$total = 1.0
-		    if ( $total == 0.0 );
 		# Normalize the curve to unit area.
 		$errors   ->(($i),:) /= $total;
 		$histogram->(($i),:) /= $total;
