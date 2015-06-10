@@ -58,6 +58,8 @@ contains
     use Input_Parameters
     use Memory_Management
     use Sort
+    use File_Utilities
+    use System_Command
     implicit none
     type            (mergerTree              ), intent(in   ), target                                 :: thisTree
     integer         (kind=size_t             )                                            , parameter :: hdfChunkSize       =1024
@@ -124,6 +126,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeExportOutputFormat',mergerTreeExportOutputFormat,defaultValue="galacticus")
           needsSnapshots=(mergerTreeExportOutputFormat == "irate")
+          ! Remove old file if necessary.
+          if (mergerTreesWrite.and.File_Exists(mergerTreeExportFileName)) call System_Command_Do("rm -f "//mergerTreeExportFileName)
           ! Flag that module is initialized.
           moduleInitialized=.true.
        end if

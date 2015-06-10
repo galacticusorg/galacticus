@@ -67,6 +67,7 @@ contains
     type     (varying_string)          :: runTime
 
     ! Write a UUID for this model.
+    !$omp critical(HDF5_Access)
     call galacticusOutputFile%writeAttribute(generate_UUID(4),'UUID')
 
     ! Create a group for version information.
@@ -102,6 +103,7 @@ contains
 
     ! Close the version group.
     call versionGroup%close()
+    !$omp end critical(HDF5_Access)
     return
   end subroutine Galacticus_Version_Output
 
