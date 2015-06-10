@@ -734,6 +734,12 @@ sub Functions_Generate_Output {
 	    $buildData->{'content'} .= "   end function ".$_->{'name'}."_C\n\n";
 	}
     }
+    # Check if debugging is required.
+    my $debug = 0;
+    if ( exists($ENV{'GALACTICUS_FCFLAGS'}) ) {
+	$debug = 1
+	    if ( grep {$_ eq "-DDEBUGHDF5"} split(" ",$ENV{'GALACTICUS_FCFLAGS'}) );
+    }
     # Insert post-contains implementation code.
     foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
 	my $unitDepth     = 0;
@@ -746,6 +752,13 @@ sub Functions_Generate_Output {
 		    if ( $processedLine =~ m/$unitOpeners{$unitType}->{"regEx"}/i );
 		--$unitDepth
 		    if ( $processedLine =~ m/$unitClosers{$unitType}->{"regEx"}/i );
+	    }
+	    # Add HDF5 debug code.
+	    if ( $debug ) {
+		$rawLine .= "call IO_HDF5_Start_Critical()\n"
+		    if ( $rawLine =~ m /^\s*\!\$omp\s+critical\s*\(HDF5_Access\)\s*$/ );
+		$rawLine  = "call IO_HDF5_End_Critical()\n".$rawLine
+		    if ( $rawLine =~ m /^\s*\!\$omp\s+end\s+critical\s*\(HDF5_Access\)\s*$/ );
 	    }
 	    # Strip directive lines.
 	    $rawLine =~ s/^(\s*)!#/$1!/;

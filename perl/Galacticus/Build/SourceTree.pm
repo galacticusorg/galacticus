@@ -26,6 +26,7 @@ require Galacticus::Build::SourceTree::Process::InputParameterList;
 require Galacticus::Build::SourceTree::Process::FunctionClass;
 require Galacticus::Build::SourceTree::Process::OptionalArgument;
 require Galacticus::Build::SourceTree::Process::Generics;
+require Galacticus::Build::SourceTree::Process::DebugHDF5;
 
 sub ParseFile {
     # Grab the file name.
