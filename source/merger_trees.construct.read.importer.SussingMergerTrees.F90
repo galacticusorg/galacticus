@@ -2118,7 +2118,12 @@ contains
 
     ! Allocate the nodes array.
     allocate(nodeData :: nodes(self%treeSizes(i)))
-    call Memory_Usage_Record(sizeof(nodes))
+    !# <workaround type="gfortran" PR="65889" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65889">
+    select type (nodes)
+    type is (nodeData)
+       call Memory_Usage_Record(sizeof(nodes))
+    end select
+    !# </workaround>
     ! Copy data to nodes.
     select type (nodes)
     type is (nodeData)
