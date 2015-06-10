@@ -6,7 +6,7 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
  $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
- $galacticusPath = "./";
+ $galacticusPath = "../";
 }
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
