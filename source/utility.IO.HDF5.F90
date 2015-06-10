@@ -28,6 +28,12 @@ module IO_HDF5
   implicit none
   private
   public :: hdf5Object, IO_HDF5_Set_Defaults
+#ifdef DEBUGHDF5
+  public :: IO_HDF5_Start_Critical, IO_HDF5_End_Critical
+
+  logical                                                :: inCritical=.false.
+  !$omp threadprivate(inCritical)
+#endif
 
   ! Record of initialization of this module.
   logical                                                :: hdf5IsInitalized       =.false.
@@ -412,6 +418,10 @@ contains
     implicit none
     integer :: errorCode
 
+#ifdef DEBUGHDF5
+    call IO_HDF5_Assert_In_Critical()
+#endif
+    
     if (.not.hdf5IsInitalized) then
        call h5open_f(errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('IO_HDF5_Initialize','failed to initialize HDF5 subsystem')
@@ -436,6 +446,10 @@ contains
     implicit none
     integer :: errorCode
 
+#ifdef DEBUGHDF5
+    call IO_HDF5_Assert_In_Critical()
+#endif
+
     if (hdf5IsInitalized) then
        initializationsCount=initializationsCount-1
        if (initializationsCount == 0) then
@@ -452,10 +466,41 @@ contains
     use Galacticus_Error
     implicit none
 
+#ifdef DEBUGHDF5
+    call IO_HDF5_Assert_In_Critical()
+#endif
+
     if (.not.hdf5IsInitalized) call Galacticus_Error_Report('IO_HDF_Assert_Is_Initialized','HDF5 IO module has not been initialized')
     return
   end subroutine IO_HDF_Assert_Is_Initialized
 
+#ifdef DEBUGHDF5
+  subroutine IO_HDF5_Assert_In_Critical()
+    !% Assert that we are in an {\normalfont \ttfamily HDF5\_Access} OpenMP critical block.
+    use Galacticus_Error
+    implicit none
+
+    if (.not.inCritical) call Galacticus_Error_Report('IO_HDF5_Assert_In_Critical','HDF5 functions accessed outside of critical block')
+    return
+  end subroutine IO_HDF5_Assert_In_Critical
+  
+  subroutine IO_HDF5_Start_Critical()
+    !% Record that we have entered an {\normalfont \ttfamily HDF5\_Access} OpenMP critical block.
+    implicit none
+
+    inCritical=.true.
+    return
+  end subroutine IO_HDF5_Start_Critical
+
+  subroutine IO_HDF5_End_Critical()
+    !% Record that we have left an {\normalfont \ttfamily HDF5\_Access} OpenMP critical block.
+    implicit none
+
+    inCritical=.false.
+    return
+  end subroutine IO_HDF5_End_Critical
+#endif
+  
   subroutine IO_HDF5_Set_Defaults(chunkSize,compressionLevel)
     !% Sets the compression level and chunk size for dataset output.
     use Galacticus_Error
@@ -699,9 +744,9 @@ contains
     ! Set file format.
     if (present(useLatestFormat)) then
        if (useLatestFormat) then
-          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_EARLIEST_F,H5F_LIBVER_LATEST_F,errorCode)
-       else
           call h5pset_libver_bounds_f(accessList,H5F_LIBVER_LATEST_F  ,H5F_LIBVER_LATEST_F,errorCode)
+       else
+          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_EARLIEST_F,H5F_LIBVER_LATEST_F,errorCode)
        end if
        if (errorCode /= 0) then
           message="failed to set file format for HDF5 file '"//fileObject%objectName//"'"
@@ -747,6 +792,13 @@ contains
        end if
     end if
 
+    ! Finished with our property list.
+    call h5pclose_f(accessList,errorCode)
+    if (errorCode /= 0) then
+       message="failed to close access property list for HDF5 file '"//fileObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Open_File',message)
+    end if
+    
     ! Mark this object as open.
     fileObject%isOpenValue=.true.
 
