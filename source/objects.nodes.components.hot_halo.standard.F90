@@ -459,7 +459,7 @@ contains
     implicit none
     class(nodeComponentHotHaloStandard), intent(inout) :: self
     type (treeNode                    ), pointer       :: selfHost
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class(darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
 
     selfHost             => self%host          ()
     darkMatterHaloScale_ => darkMatterHaloScale()
@@ -1546,10 +1546,10 @@ contains
     !% thisNode} to account for any hot halo already in the parent.
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    type (treeNode            )               , pointer :: parentNode
-    class(nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    type (treeNode                ), intent(inout), pointer :: thisNode
+    type (treeNode                )               , pointer :: parentNode
+    class(nodeComponentHotHalo    )               , pointer :: parentHotHaloComponent, thisHotHaloComponent
+    class(darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
 
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
@@ -1559,8 +1559,13 @@ contains
        ! Get the parent node of this node and its hot halo component.
        parentNode             => thisNode  %parent
        parentHotHaloComponent => parentNode%hotHalo()
+       ! Update the outer radius to match the virial radius of the parent halo.
+       darkMatterHaloScale_ => darkMatterHaloScale()       
+       call thisHotHaloComponent%outerRadiusSet(                                              &
+            &                                   darkMatterHaloScale_%virialRadius(parentNode) &
+            &                                  )       
        ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
-       ! promotion.
+       ! promotion.       
        select type (parentHotHaloComponent)
        class is (nodeComponentHotHaloStandard)
           call thisHotHaloComponent%                    massSet(                                                   &
@@ -1594,11 +1599,6 @@ contains
           call thisHotHaloComponent%          unaccretedMassSet(                                                   &
                &                                                   thisHotHaloComponent%unaccretedMass          () &
                &                                                +parentHotHaloComponent%unaccretedMass          () &
-               &                                               )
-          ! Update the outer radius to match the virial radius of the parent halo.
-          darkMatterHaloScale_ => darkMatterHaloScale()
-          call thisHotHaloComponent%             outerRadiusSet(                                                   &
-               &                                                darkMatterHaloScale_%virialRadius(parentNode)      &
                &                                               )
        end select
     end select
