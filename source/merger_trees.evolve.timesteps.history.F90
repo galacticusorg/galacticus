@@ -265,6 +265,7 @@ contains
 
     ! Output the history data if and only if any has been collated.
     if (timestepHistoryInitialized) then
+       !$omp critical (HDF5_Access)
        !@ <outputType>
        !@   <name>globalHistory</name>
        !@   <description>A set of volume-averaged properites describing the mass content of the Universe.</description>
@@ -403,7 +404,7 @@ contains
        call historyDataset%close()
 
        call historyGroup%close()
-
+       !$omp end critical (HDF5_Access)
     end if
     return
   end subroutine Merger_Tree_History_Write

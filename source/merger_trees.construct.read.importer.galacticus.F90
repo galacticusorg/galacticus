@@ -151,7 +151,9 @@ contains
     implicit none
     type(mergerTreeImporterGalacticus), intent(inout) :: self
 
+    !$omp critical(HDF5_Access)
     call self%file%close()
+    !$omp end critical(HDF5_Access)
     return
   end subroutine galacticusDestructor
 
@@ -600,6 +602,7 @@ contains
     double precision                                                          :: massMinimum    , massMaximum
     
     if (self%forestIndicesRead) return
+    !$omp critical(HDF5_Access)
     if (self%file%hasGroup(trim(self%forestIndexGroupName))) then
        treeIndexGroup=self%file%openGroup(trim(self%forestIndexGroupName))
        call treeIndexGroup%readDataset("firstNode"                      ,self%firstNodes   )
@@ -617,7 +620,6 @@ contains
              allocate(descendentIndex(nodeCount(1)))
              allocate(nodeMass       (nodeCount(1)))
              allocate(nodeTime       (nodeCount(1)))
-             !$omp critical(HDF5_Access)
              call self%forestHalos%readDatasetStatic("descendentIndex",descendentIndex,firstNodeIndex,nodeCount)
              call self%forestHalos%readDatasetStatic("nodeMass"       ,nodeMass       ,firstNodeIndex,nodeCount)
              if      (self%forestHalos%hasDataset("time"           )) then
@@ -641,7 +643,6 @@ contains
              else
                 call Galacticus_Error_Report("galacticusImport","one of time, redshift or expansionFactor data sets must be present in forestHalos group")
              end if
-             !$omp end critical(HDF5_Access)
              if (count(descendentIndex == -1) /= 1) call Galacticus_Error_Report('galacticusForestIndicesRead','reweighting trees requires there to be only only root node')
              treeMass(i)=sum(nodeMass,mask=descendentIndex == -1)
              treeTime(i)=sum(nodeTime,mask=descendentIndex == -1)
@@ -681,6 +682,7 @@ contains
     else
        call Galacticus_Error_Report('galacticusForestIndicesRead','merger tree file must contain the treeIndex group')
     end if
+    !$omp end critical(HDF5_Access)
     self%forestIndicesRead=.true.
     return
   end subroutine galacticusForestIndicesRead

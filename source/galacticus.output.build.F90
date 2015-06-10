@@ -83,7 +83,7 @@ contains
     Galacticus_Build_String=Galacticus_Build_String//":FoX_version["//Fox_Version//"]"
     ! Write HDF5 library version string.
     call h5get_libversion_f(hdfVersionMajor,hdfVersionMinor,hdfVersionRelease,hdfError)
-    if (hdfError /= 0) call Galacticus_Error_Report('Galacticus_Build_Output','unable to get HDF5 library version number')
+    if (hdfError /= 0) call Galacticus_Error_Report('Galacticus_Build_String','unable to get HDF5 library version number')
     versionString=''
     versionString=versionString//hdfVersionMajor//"."
     versionString=versionString//hdfVersionMinor//"."
@@ -139,6 +139,7 @@ contains
     include 'galacticus.output.build.environment.inc' ! NO_USES
 
     ! Create a group for build information.
+    !$omp critical (HDF5_Access)
     buildGroup=galacticusOutputFile%openGroup('Build','Build information for this model.')
 
     ! Write FGSL library version string.
@@ -196,7 +197,8 @@ contains
 
     ! Close the build group.
     call buildGroup%close()
-    return
+    !$omp end critical (HDF5_Access)
+   return
   end subroutine Galacticus_Build_Output
 
 end module Galacticus_Build

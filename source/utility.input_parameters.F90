@@ -270,10 +270,12 @@ contains
     implicit none
 
     if (.not.parametersGroupCreated.and.associated(outputFileObject)) then
+       !$omp critical (HDF5_Access)
        if (outputFileObject%isOpen()) then
           parametersGroup=outputFileObject%openGroup('Parameters','Contains values for Galacticus parameters')
           parametersGroupCreated=.true.
        end if
+       !$omp end critical (HDF5_Access)
     end if
     return
   end subroutine Make_Parameters_Group
