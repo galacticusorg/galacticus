@@ -24,6 +24,8 @@ print "-> Opening output file: ".$outputFileName."\n";
 my $outputFile = new PDL::IO::HDF5(">".$outputFileName);
 my @mergeFiles;
 foreach my $mergeFileName ( @mergeFileNames ) {
+    die("Merge_Models.pl: file '".$mergeFileName."' does not exist")
+	unless ( -e $mergeFileName );
     print "-> Opening file for merge: ".$mergeFileName."\n";
     push(@mergeFiles,new PDL::IO::HDF5($mergeFileName));
 }
