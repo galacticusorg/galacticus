@@ -30,7 +30,7 @@ sub Process_InputParameters {
 
     # Get a list of executables (excluding test suite codes).
     my @executables;
-    open(my $makeFile,"work/build/Makefile_All_Execs");
+    open(my $makeFile,$ENV{'BUILDPATH'}."/Makefile_All_Execs");
     while ( my $line = <$makeFile> ) {
 	if ( $line =~ m/^all_exes\s+=\s+(.*)/ ) {
 	    my $executableText = $1;
@@ -42,8 +42,8 @@ sub Process_InputParameters {
     my $dependencies;
     foreach my $executableName ( @executables ) {
 	(my $dependencyFileName = $executableName) =~ s/\.exe/.d/;
-	if ( -e "work/build/".$dependencyFileName ) {
-	    open(my $dependencyFile,"work/build/".$dependencyFileName);
+	if ( -e $ENV{'BUILDPATH'}."/".$dependencyFileName ) {
+	    open(my $dependencyFile,$ENV{'BUILDPATH'}."/".$dependencyFileName);
 	    while ( my $line = <$dependencyFile> ) {
 		if ( $line =~ m/([^\/]+)\.o$/ ) {
 		    $dependencies->{$executableName}->{$1} = 1;

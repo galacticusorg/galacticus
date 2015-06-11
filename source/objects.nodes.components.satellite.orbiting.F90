@@ -180,7 +180,7 @@ contains
     double precision                                                              :: radius,halfMassRadiusSatellite
     double precision                                                              :: halfMassRadiusCentral,orbitalRadiusTest
     double precision                                                              :: radiusVirial
-    double precision                                                              :: orbitalPeriod
+    double precision                                                              :: orbitalPeriod, radialTimescale
     double precision                                                              :: angularVelocity,parentDensity
     double precision                                                              :: parentEnclosedMass,satelliteMass,basicMass
     double precision                                                              :: tidalHeatingNormalized
@@ -199,17 +199,18 @@ contains
           velocity                 =  satelliteComponent%velocity                 ()
           tidalTensorPathIntegrated=  satelliteComponent%tidalTensorPathIntegrated()
           tidalHeatingNormalized   =  satelliteComponent%tidalHeatingNormalized   ()
-          positionTensor           =  Vector_Self_Outer_Product       (         position                          )
-          radius                   =  Vector_Magnitude                (         position                          )
-          parentDensity            =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian)
-          parentEnclosedMass       =  Galactic_Structure_Enclosed_Mass(hostNode,radius                            )
+          positionTensor           =  Vector_Outer_Product            (         position                          ,symmetrize=.true.)
+          radius                   =  Vector_Magnitude                (         position                                            )
+          parentDensity            =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian                  )
+          parentEnclosedMass       =  Galactic_Structure_Enclosed_Mass(hostNode,radius                                              )
           ! Calcluate tidal tensor and rate of change of integrated tidal tensor.
           tidalTensor              =                                                                            &
                & -(gravitationalConstantGalacticus*parentEnclosedMass         /radius**3)*tensorIdentityR2D3Sym &
                & +(gravitationalConstantGalacticus*parentEnclosedMass*3.0d0   /radius**5)*positionTensor        &
                & -(gravitationalConstantGalacticus*parentDensity     *4.0d0*Pi/radius**2)*positionTensor
           angularVelocity=Vector_Magnitude(Vector_Product(position,velocity))/radius**2*kilo*gigaYear/megaParsec
-          orbitalPeriod  =2.0d0*Pi/angularVelocity
+          radialTimescale=abs             (Dot_Product   (position,velocity))/radius**2*kilo*gigaYear/megaParsec
+          orbitalPeriod  =1.0d0/(max(angularVelocity/2.0d0/Pi,radialTimescale))
           ! Calculate position, velocity, mass loss, integrated tidal tensor, and heating rates.
           call satelliteComponent%positionRate                 (                                                            &
                &                                                +(kilo*gigaYear/megaParsec)                                 &
@@ -235,8 +236,16 @@ contains
                &                                                +Satellite_Tidal_Heating_Rate(thisNode                    ) &
                &                                               )         
           ! Get half-mass radii of central and satellite galaxies.
-          halfMassRadiusCentral  =Galactic_Structure_Radius_Enclosing_Mass(hostNode,fractionalMass=0.5d0,massType=massTypeGalactic)
-          halfMassRadiusSatellite=Galactic_Structure_Radius_Enclosing_Mass(thisNode,fractionalMass=0.5d0,massType=massTypeGalactic)
+          if (Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic,radius=0.0d0) > 0.0d0) then
+             halfMassRadiusCentral  =Galactic_Structure_Radius_Enclosing_Mass(hostNode,fractionalMass=0.5d0,massType=massTypeGalactic)
+          else
+             halfMassRadiusCentral  =0.0d0
+          end if
+          if (Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic,radius=0.0d0) > 0.0d0) then
+             halfMassRadiusSatellite=Galactic_Structure_Radius_Enclosing_Mass(thisNode,fractionalMass=0.5d0,massType=massTypeGalactic)
+          else
+             halfMassRadiusSatellite=0.0d0
+          end if
           ! Convert from initial to final radius resulting from expansion due to tidal heating.
           halfMassRadiusSatellite =                                                &
                &                    halfMassRadiusSatellite                        &
@@ -318,7 +327,7 @@ contains
             &                                                 *                boundMassScaleFractional &
             &                                                )
        call satelliteComponent%tidalTensorPathIntegratedScale(                                          &
-            &                                                  tensorIdentityR2D3Sym                    &
+            &                                                  tensorUnitR2D3Sym                        &
             &                                                 *virialIntegratedTidalTensor              &
             &                                                 *tidalTensorPathIntegratedScaleFractional &
             &                                                )
@@ -345,6 +354,7 @@ contains
     type            (treeNode              ), pointer     , intent(inout) :: thisNode
     type            (treeNode              ), pointer                     :: hostNode
     class           (nodeComponentSatellite), pointer                     :: satelliteComponent
+    class           (virialOrbitClass      ), pointer                     :: virialOrbit_
     logical                                                               :: isNewSatellite
     type            (keplerOrbit           )                              :: thisOrbit
     double precision                        , dimension(3)                :: radialVector                    , velocityRadialVector     , &
@@ -353,8 +363,8 @@ contains
     logical                                 , save                        :: resetSequence            =.true.
     !$omp threadprivate(pseudoSequenceObject,resetSequence)
     double precision                                                      :: orbitalRadius                   , orbitalVelocityRadial    , &
-         &                                                                   orbitalVelocityTangential       , orbitalVelocityPhi       , &
-         &                                                                   orbitalVelocityTheta            , velocityPhi
+         &                                                                   orbitalVelocityTangential       , orbitalPositionPhi       , &
+         &                                                                   orbitalPositionTheta            , velocityPhi
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%orbitingIsActive()) return
@@ -374,21 +384,22 @@ contains
     class is (nodeComponentSatelliteOrbiting)
        ! Get an orbit for this satellite.
        hostNode => thisNode%parent
-       thisOrbit=Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits)
+       virialOrbit_ => virialOrbit()
+       thisOrbit=virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
        ! Store the orbit.
        call satelliteComponent%virialOrbitSet(thisOrbit)
        orbitalRadius            =thisOrbit%radius()
        orbitalVelocityRadial    =thisOrbit%velocityRadial()
        orbitalVelocityTangential=thisOrbit%velocityTangential()
-       orbitalVelocityPhi       =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi
-       orbitalVelocityTheta     =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*      Pi
+       orbitalPositionPhi       =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi
+       orbitalPositionTheta     =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*      Pi
        radialVector             =[                                                   &
-            &                     sin(orbitalVelocityTheta)*cos(orbitalVelocityPhi), &
-            &                     sin(orbitalVelocityTheta)*sin(orbitalVelocityPhi), &
-            &                     cos(orbitalVelocityTheta)                          &
+            &                     sin(orbitalPositionTheta)*cos(orbitalPositionPhi), &
+            &                     sin(orbitalPositionTheta)*sin(orbitalPositionPhi), &
+            &                     cos(orbitalPositionTheta)                          &
             &                    ]
        call satelliteComponent%positionSet(orbitalRadius*radialVector)
-       velocityRadialVector     =-orbitalVelocityRadial*radialVector
+       velocityRadialVector     =orbitalVelocityRadial*radialVector
        velocityTangentialVector1=Vector_Product(radialVector,[1.0d0,0.0d0,0.0d0]      )
        velocityTangentialVector2=Vector_Product(radialVector,velocityTangentialVector1)
        velocityPhi              =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi

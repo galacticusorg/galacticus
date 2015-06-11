@@ -12,13 +12,14 @@
   <treeNodeMethodBasic value="standard"/>
   <treeNodeMethodBlackHole value="standard"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
-  <treeNodeMethodDisk value="exponential"/>
+  <treeNodeMethodDisk value="standard"/>
   <treeNodeMethodHotHalo value="standard"/>
   <treeNodeMethodSatellite value="preset"/>
   <treeNodeMethodSpheroid value="standard"/>
   <spheroidMassDistribution value="hernquist"/>
   <treeNodeMethodSpin value="random"/>
   <treeNodeMethodPosition value="preset"/>
+  <diskMassDistribution value="exponentialDisk" />
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctionsMethod value="matterLambda"/>
@@ -169,7 +170,7 @@
   <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Galaxy merger options -->
-  <virialOrbitsMethod value="Benson2005"/>
+  <virialOrbitMethod value="benson2005"/>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <mergingTimescaleMultiplier value="1.0"/>
   <satelliteMergingMassMovementsMethod value="simple"/>
