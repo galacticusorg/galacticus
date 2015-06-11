@@ -122,7 +122,7 @@
   <treeNodeMethodBasic value="standard"/>
   <treeNodeMethodBlackHole value="standard"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
-  <treeNodeMethodDisk value="exponential"/>
+  <treeNodeMethodDisk value="standard"/>
   <treeNodeMethodHotHalo value="standard"/>
   <treeNodeMethodSatelliteOrbit value="simple"/>
   <treeNodeMethodSpheroid value="standard"/>
@@ -130,6 +130,8 @@
   <treeNodeMethodSpin value="random"/>
   <verbosityLevel value="1"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
-  <virialOrbitsMethod value="Benson2005"/>
+  <virialOrbitMethod value="benson2005"/>
   <zeroCoolingRateAboveVelocity value="10000"/>
+
+  <diskMassDistribution value="exponentialDisk" />
 </parameters>
