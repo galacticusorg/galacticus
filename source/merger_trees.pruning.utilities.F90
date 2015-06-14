@@ -20,7 +20,8 @@
 module Merger_Trees_Pruning_Utilities
   implicit none
   private
-  public :: Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Unlink_Parent
+  public :: Merger_Tree_Prune_Clean_Branch , Merger_Tree_Prune_Unlink_Parent, &
+       &    Merger_Tree_Prune_Uniqueify_IDs
 
 contains
 
@@ -90,5 +91,28 @@ contains
     end if
     return
   end subroutine Merger_Tree_Prune_Unlink_Parent
+
+  subroutine Merger_Tree_Prune_Uniqueify_IDs(tree)
+    !% Ensure that nodes cloned during tree pruning have unique IDs.
+    use Galacticus_Nodes
+    implicit none
+    type(mergerTree), target , intent(in   ) :: tree
+    type(treeNode  ), pointer                :: node
+    type(mergerTree), pointer                :: currentTree
+
+    ! Iterate over trees.
+    currentTree => tree
+    do while (associated(currentTree))
+       ! Iterate over nodes.
+       node => currentTree%baseNode
+       do while (associated(node))
+          if (node%uniqueID() == node%parent%uniqueID()) call node%uniqueIDSet()
+          call node%walkTree(node)
+       end do
+       ! Move to the next tree.
+       currentTree => currentTree%nextTree
+    end do
+    return
+  end subroutine Merger_Tree_Prune_Uniqueify_IDs
   
 end module Merger_Trees_Pruning_Utilities

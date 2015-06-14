@@ -258,10 +258,22 @@ my @translations =
 	     {
 		 "Cole2000" => "cole2000"
 	     },
+	     treeNodeMethodDisk      =>
+	     {
+		 "exponential"       => {
+		                         value => "standard",
+		                         new   => [
+					           {
+			                            name  => "diskMassDistribution",
+			                            value => "exponentialDisk"
+			                           }
+			                          ]
+		                        }
+	     },
 	     darkMatterProfileShapeMethod =>
 	     {
 		 "Gao2008"  => "gao2008"
-	     }
+             }
 	 }
     }
     );
@@ -301,7 +313,7 @@ if ( $input->findnodes('parameters') ) {
 
 # Iterate over parameter sets.
 foreach my $parameters ( @parameterSets ) {
-    &Translate($parameters,1);
+    &Translate($parameters,1,$inputFileName);
 }
 
 # Output the resulting file.
@@ -313,8 +325,9 @@ $input->toFile($outputFileName);
 exit;
 
 sub Translate {
-    my $parameters = shift();
-    my $rootLevel  = shift();
+    my $parameters    = shift();
+    my $rootLevel     = shift();
+    my $inputFileName = shift();
 
     # Set initial input/output versions.
     my $inputVersion  = $options{'inputVersion' };
@@ -376,7 +389,7 @@ sub Translate {
     # Validate the parameter file.
     if ( $options{'validate'} eq "yes" ) {
 	system($galacticusPath."scripts/aux/validateParameters.pl ".$inputFileName);
-	die('input file is not a valid Galacticus parameter file')
+	die('input file "'.$inputFileName.'"is not a valid Galacticus parameter file')
 	    unless ( $? == 0 );
     }
     
@@ -456,7 +469,7 @@ sub Translate {
 	print "Converting to new format (v2)...\n";
 	for my $parameter ( $parameters->findnodes('parameter') ) {
 	    # Get name and value text elements.
-	    my $name   = $parameter->findnodes('name' )->[0]->firstChild();
+	    my $name   = $parameter->findnodes('name' )->[0]->firstChild()->data();
 	    my @values = $parameter->findnodes('value');
 	    # Create the new node.
 	    my $parameterNode = $input->createElement($name );
@@ -470,13 +483,13 @@ sub Translate {
 	    }
 	    # Add values.
 	    foreach my $valueNode ( @values ) {
-		my $value  = $valueNode->firstChild();
+		my $value  = $valueNode->firstChild()->data();
 		# Find any subparameters.
 		my @subParameters = $valueNode->findnodes('*');
 		if ( $useAttribute ) {
 		    $parameterNode->setAttribute('value',$value);
 		} else {
-		    &Translate($valueNode,0)
+		    &Translate($valueNode,0,$inputFileName)
 			if ( @subParameters );
 		    $parameterNode->addChild($input->createTextNode("\n"));
 		    $parameterNode->addChild($valueNode);
