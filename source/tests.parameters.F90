@@ -17,7 +17,7 @@
 
 !% Contains a program which tests parameter input.
 
-!: work/build/tests.parameters.C.o
+!: $(BUILDPATH)/tests.parameters.C.o
 
 program Test_Parameters
   !% Test reading of input parameters.

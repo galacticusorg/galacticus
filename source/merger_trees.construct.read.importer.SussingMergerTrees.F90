@@ -21,6 +21,7 @@
   use IO_HDF5
   use Stateful_Types
   use ISO_Varying_String
+  use Pseudo_Random
 
   type, public, extends(nodeData) :: nodeDataSussing
      !% Extension of the {\normalfont \ttfamily nodeData} class for ``Sussing Merger Trees'' format merger trees \citep{srisawat_sussing_2013}.
@@ -47,6 +48,8 @@
      logical                                                     :: convertToBinary         , binaryFormatOld
      double precision                                            :: badValue
      integer                                                     :: badTest
+     double precision                                            :: treeSampleRate
+     type            (pseudoRandom  )                            :: randomSequence
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeImporterSussing</object>
@@ -124,7 +127,8 @@
   integer                                        :: mergerTreeImportSussingForestLast
   integer                                        :: mergerTreeImportSussingMassOption
   logical                                        :: mergerTreeImportSussingForestReverseSnapshotOrder
-
+  double precision                               :: mergerTreeImportSussingTreeSampleRate
+  
   ! Bad value detection limits.
   integer                         , parameter    :: sussingBadValueLessThan                  =-1
   integer                         , parameter    :: sussingBadValueGreaterThan               =+1
@@ -309,6 +313,17 @@ contains
              call Get_Input_Parameter('mergerTreeImportSussingForestReverseSnapshotOrder',mergerTreeImportSussingForestReverseSnapshotOrder,defaultValue=.false.)
           end if
           !@ <inputParameter>
+          !@   <name>mergerTreeImportSussingTreeSampleRate</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <defaultValue>false</defaultValue>
+          !@   <description>
+          !@     Specify the probability that any given tree should processed (to permit subsampling).
+          !@   </description>
+          !@   <type>float</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeImportSussingTreeSampleRate',mergerTreeImportSussingTreeSampleRate,defaultValue=1.0d0)
+          !@ <inputParameter>
           !@   <name>mergerTreeImportSussingMassOption</name>
           !@   <attachedTo>module</attachedTo>
           !@   <defaultValue>default</defaultValue>
@@ -346,9 +361,11 @@ contains
     sussingDefaultConstructor%binaryFormatOld         =mergerTreeImportSussingBinaryFormatOld
     sussingDefaultConstructor%badValue                =mergerTreeImportSussingBadValue
     sussingDefaultConstructor%badTest                 =mergerTreeImportSussingBadValueTest
+    sussingDefaultConstructor%treeSampleRate          =mergerTreeImportSussingTreeSampleRate
     sussingDefaultConstructor%spinsAvailableValue     =.true.
     sussingDefaultConstructor%scaleRadiiAvailableValue=.true.
-   return
+    call sussingDefaultConstructor%randomSequence%initialize()
+    return
   end function sussingDefaultConstructor
 
   subroutine sussingDestructor(self)
@@ -882,7 +899,7 @@ contains
                         &   Phi0          ,                           &
                         &   cNFW
                 else
-                   read          (snapshotUnit     ,ioStat=ioStat)    &
+                   read          (snapshotUnit     ,ioStat=ioStat) &
                         &   ID            ,                           &
                         &   hostHalo      ,                           &
                         &   numSubStruct  ,                           &
@@ -1987,13 +2004,13 @@ contains
     use Galacticus_Error
     use Cosmology_Functions
     implicit none
-    class           (mergerTreeImporterSussing), intent(inout) :: self
-    integer                                    , intent(in   ) :: i
-    class           (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
+    class  (mergerTreeImporterSussing), intent(inout) :: self
+    integer                           , intent(in   ) :: i
+    class  (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
 
     ! Compute the inverse of the cube volume.
     cosmologyFunctions_ => cosmologyFunctions()
-    sussingTreeWeight   =  1.0d0/self%cubeLength(cosmologyFunctions_%cosmicTime(1.0d0))**3
+    sussingTreeWeight   =  1.0d0/self%cubeLength(cosmologyFunctions_%cosmicTime(1.0d0))**3/self%treeSampleRate
     return
   end function sussingTreeWeight
 
@@ -2121,21 +2138,24 @@ contains
          &                                                                                     requireSpin3D
     integer         (c_size_t                 )                                             :: j
 
-    ! Allocate the nodes array.
-    allocate(nodeData :: nodes(self%treeSizes(i)))
+    ! Decide if this tree should be included.
+    if (self%randomSequence%sample() <= self%treeSampleRate) then
+       ! Allocate the nodes array.
+       allocate(nodeData :: nodes(self%treeSizes(i)))
     !# <workaround type="gfortran" PR="65889" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65889">
     select type (nodes)
     type is (nodeData)
        call Memory_Usage_Record(sizeof(nodes))
     end select
     !# </workaround>
-    ! Copy data to nodes.
-    select type (nodes)
-    type is (nodeData)
-       do j=1,self%treeSizes(i)
-          nodes(j)=self%nodes(self%treeIndexRanks(self%treeBegins(i)+j-1))
-       end do
-    end select
+       ! Copy data to nodes.
+       select type (nodes)
+       type is (nodeData)
+          do j=1,self%treeSizes(i)
+             nodes(j)=self%nodes(self%treeIndexRanks(self%treeBegins(i)+j-1))
+          end do
+       end select
+    end if
     return
   end subroutine sussingImport
 
@@ -2507,7 +2527,7 @@ contains
                &   Xgroup        ,                        &
                &   Ygroup        ,                        &
                &   Zgroup
-       else
+    else
           call Galacticus_Error_Report('sussingReadHaloASCII','unknown halo file format')
        end if
     end if

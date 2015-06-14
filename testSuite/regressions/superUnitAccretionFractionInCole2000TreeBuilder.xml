@@ -67,7 +67,8 @@
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <stabilityThresholdGaseous value="0.7"/>
   <conditionalMassFunctionBehrooziBeta value="0.403618413165"/>
-  <treeNodeMethodDisk value="exponential"/>
+  <treeNodeMethodDisk value="standard"/>
+  <spheroidMassDistribution value="exponentialDisk"/>
   <linearGrowthMethod value="simple"/>
   <hotHaloRamPressureStrippingMethod value="Font2008"/>
   <mergerTreeBuildMassResolutionFixed value="5.0e9"/>
@@ -86,7 +87,7 @@
   <accretionDiskSwitchedScaleAdafRadiativeEfficiency value="true"/>
   <hotHaloTemperatureMethod value="virial"/>
   <spinDistributionBett2007Lambda0 value="0.04326"/>
-  <virialOrbitsMethod value="Benson2005"/>
+  <virialOrbitMethod value="benson2005"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
   <conditionalMassFunctionBehrooziDelta value="0.493563322826"/>
@@ -165,4 +166,5 @@
   <modifiedPressSchechterFirstOrderAccuracy value="0.025"/>
   <accretionRateThinDiskMaximum value="0.30d0"/>
   <hotHaloOutflowReturnRate value="5.0"/>
+  <diskMassDistribution value="exponentialDisk" />
 </parameters>

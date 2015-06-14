@@ -70,9 +70,10 @@ contains
     double precision                                               , intent(in   ) :: logWavenumber
     double precision                    , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
     integer                                                        , intent(  out) :: transferFunctionNumberPoints
-    integer         (c_int             )                                           :: lockFileDescriptor
+    type            (lockDescriptor    )                                           :: fileLock
     logical                                                                        :: makeFile
     character       (len=32            )                                           :: parameterLabel              , wavenumberLabel
+    character       (len=255           )                                           :: hostName
     type            (varying_string    )                                           :: command                     , parameterFile
     type            (xmlf_t            )                                           :: parameterDoc
     type            (inputParameterList)                                           :: dependentParameters
@@ -83,7 +84,10 @@ contains
     !# </uniqueLabel>
     ! Generate the name of the data file.
     transferFunctionFile=char(Galacticus_Input_Path())//'data/largeScaleStructure/transfer_function_CAMB_'//Transfer_Function_CAMB_Label(includeSourceDigest=.true.,asHash=.true.,parameters=dependentParameters)//".xml"
-    lockFileDescriptor=File_Lock(char(transferFunctionFile//".lock"))
+    call File_Lock(char(transferFunctionFile//".lock"),fileLock)
+    parameterFile=char(Galacticus_Input_Path())//'data/transfer_function_parameters'
+    call Get_Environment_Variable('HOSTNAME',hostName)
+    parameterFile=parameterFile//'_'//trim(hostName)//'_'//GetPID()//'.xml'
     ! Determine if we need to reinitialize this module.
     if (.not.transferFunctionInitialized) then
        makeFile=.true.
@@ -121,7 +125,7 @@ contains
     ! Call routine to read in the tabulated data.
     call Transfer_Function_Named_File_Read(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber &
          &,transferFunctionLogT,transferFunctionFile)
-    call File_Unlock(lockFileDescriptor)
+    call File_Unlock(fileLock)
     return
   end subroutine Transfer_Function_CAMB_Make
 
