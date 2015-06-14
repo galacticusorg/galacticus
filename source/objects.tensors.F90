@@ -216,8 +216,9 @@ module Tensors
      procedure         :: doubleContract => Tensor_R2_D3_Sym_Double_Contract
   end type tensorRank2Dimension3Symmetric
 
-  ! Identity and null tensors.
+  ! Identity, unitary, and null tensors.
   type(tensorRank2Dimension3Symmetric), public :: tensorIdentityR2D3Sym=tensorRank2Dimension3Symmetric(1.0d0,0.0d0,0.0d0,1.0d0,0.0d0,1.0d0)
+  type(tensorRank2Dimension3Symmetric), public :: tensorUnitaryR2D3Sym =tensorRank2Dimension3Symmetric(1.0d0,1.0d0,1.0d0,1.0d0,1.0d0,1.0d0)
   type(tensorRank2Dimension3Symmetric), public :: tensorNullR2D3Sym    =tensorRank2Dimension3Symmetric(0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0)
 
 contains

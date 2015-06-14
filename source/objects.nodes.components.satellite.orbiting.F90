@@ -78,7 +78,7 @@ module Node_Component_Satellite_Orbiting
   !#     <name>virialOrbit</name>
   !#     <type>keplerOrbit</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="set" />
   !#   </property>
   !#   <property>
   !#     <name>tidalTensorPathIntegrated</name>
@@ -115,6 +115,7 @@ contains
     !% Initializes the orbiting satellite methods module.
     use Input_Parameters
     implicit none
+     type(nodeComponentSatelliteOrbiting) :: satelliteComponent
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Satellite_Orbiting_Initialize)
@@ -131,6 +132,8 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('satelliteOrbitingDestructionMassFraction',satelliteOrbitingDestructionMassFraction,defaultValue=0.01d0)
+        ! Specify the function to use for setting virial orbits.
+        call satelliteComponent%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
        ! Record that the module is now initialized.
        moduleInitialized=.true.
     end if
@@ -318,12 +321,12 @@ contains
             &                                                 *                boundMassScaleFractional &
             &                                                )
        call satelliteComponent%tidalTensorPathIntegratedScale(                                          &
-            &                                                  tensorIdentityR2D3Sym                    &
+            &                                                  tensorUnitaryR2D3Sym                     &
             &                                                 *virialIntegratedTidalTensor              &
             &                                                 *tidalTensorPathIntegratedScaleFractional &
             &                                                )
        call satelliteComponent%tidalHeatingNormalizedScale   (                                          &
-            &                                                  virialtidalHeatingNormalized             &
+            &                                                  virialTidalHeatingNormalized             &
             &                                                 *   tidalHeatingNormalizedScaleFractional &
             &                                                )
     end select
@@ -336,25 +339,14 @@ contains
   subroutine Node_Component_Satellite_Orbiting_Create(thisNode)
     !% Create a satellite orbit component and assign initial position, velocity, orbit, and tidal heating quantities. (The initial
     !% bound mass is automatically set to the original halo mass by virtue of that being the class default).
-    use Numerical_Constants_Math
     use Virial_Orbits
     use Satellite_Merging_Timescales
-    use Pseudo_Random
-    use Vectors
     implicit none
     type            (treeNode              ), pointer     , intent(inout) :: thisNode
     type            (treeNode              ), pointer                     :: hostNode
     class           (nodeComponentSatellite), pointer                     :: satelliteComponent
     logical                                                               :: isNewSatellite
     type            (keplerOrbit           )                              :: thisOrbit
-    double precision                        , dimension(3)                :: radialVector                    , velocityRadialVector     , &
-         &                                                                   velocityTangentialVector1       , velocityTangentialVector2
-    type            (fgsl_rng              ), save                        :: pseudoSequenceObject
-    logical                                 , save                        :: resetSequence            =.true.
-    !$omp threadprivate(pseudoSequenceObject,resetSequence)
-    double precision                                                      :: orbitalRadius                   , orbitalVelocityRadial    , &
-         &                                                                   orbitalVelocityTangential       , orbitalVelocityPhi       , &
-         &                                                                   orbitalVelocityTheta            , velocityPhi
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%orbitingIsActive()) return
@@ -377,28 +369,6 @@ contains
        thisOrbit=Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits)
        ! Store the orbit.
        call satelliteComponent%virialOrbitSet(thisOrbit)
-       orbitalRadius            =thisOrbit%radius()
-       orbitalVelocityRadial    =thisOrbit%velocityRadial()
-       orbitalVelocityTangential=thisOrbit%velocityTangential()
-       orbitalVelocityPhi       =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi
-       orbitalVelocityTheta     =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*      Pi
-       radialVector             =[                                                   &
-            &                     sin(orbitalVelocityTheta)*cos(orbitalVelocityPhi), &
-            &                     sin(orbitalVelocityTheta)*sin(orbitalVelocityPhi), &
-            &                     cos(orbitalVelocityTheta)                          &
-            &                    ]
-       call satelliteComponent%positionSet(orbitalRadius*radialVector)
-       velocityRadialVector     =-orbitalVelocityRadial*radialVector
-       velocityTangentialVector1=Vector_Product(radialVector,[1.0d0,0.0d0,0.0d0]      )
-       velocityTangentialVector2=Vector_Product(radialVector,velocityTangentialVector1)
-       velocityPhi              =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi
-       velocityTangentialVector1=velocityTangentialVector1*orbitalVelocityTangential*cos(velocityPhi)
-       velocityTangentialVector2=velocityTangentialVector2*orbitalVelocityTangential*sin(velocityPhi)
-       call satelliteComponent%velocitySet(velocityRadialVector+velocityTangentialVector1+velocityTangentialVector2)
-       ! Set the merging time to -1 to indicate that we don't know when merging will occur.
-       call satelliteComponent%mergeTimeSet                (           -1.0d0)
-       call satelliteComponent%tidalTensorPathIntegratedSet(tensorNullR2D3Sym)
-       call satelliteComponent%tidalHeatingNormalizedSet   (            0.0d0)       
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Create
@@ -413,5 +383,57 @@ contains
     call satelliteComponent%mergeTimeSet(0.0d0)
     return
   end subroutine Node_Component_Satellite_Orbiting_Trigger_Merger
+
+  subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set(self,thisOrbit)
+    !% Set the orbit of the satellite at the virial radius.
+    use Numerical_Constants_Math
+    use Pseudo_Random
+    use Vectors
+    implicit none
+    class           (nodeComponentSatellite), intent(inout) :: self
+    type            (keplerOrbit           ), intent(in   ) :: thisOrbit
+    double precision                        , dimension(3)  :: radialVector                    , velocityRadialVector     , &
+         &                                                     velocityTangentialVector1       , velocityTangentialVector2
+    type            (fgsl_rng              ), save          :: pseudoSequenceObject
+    logical                                 , save          :: resetSequence            =.true.
+    !$omp threadprivate(pseudoSequenceObject,resetSequence)
+    double precision                                        :: orbitalRadius                   , orbitalVelocityRadial    , &
+         &                                                     orbitalVelocityTangential       , orbitalVelocityPhi       , &
+         &                                                     orbitalVelocityTheta            , velocityPhi
+    type            (keplerOrbit           )                :: virialOrbit
+
+    select type (self)
+    class is (nodeComponentSatelliteOrbiting)
+       ! Ensure the orbit is defined.
+       call thisOrbit%assertIsDefined()
+       ! Store the orbit.
+       call self%virialOrbitSetValue(thisOrbit)
+       ! Compute and store orbitial position and velocity.
+       virialOrbit              =thisOrbit
+       orbitalRadius            =virialOrbit%radius()
+       orbitalVelocityRadial    =virialOrbit%velocityRadial()
+       orbitalVelocityTangential=virialOrbit%velocityTangential()
+       orbitalVelocityPhi       =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi
+       orbitalVelocityTheta     =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*      Pi
+       radialVector             =[                                                   &
+            &                     sin(orbitalVelocityTheta)*cos(orbitalVelocityPhi), &
+            &                     sin(orbitalVelocityTheta)*sin(orbitalVelocityPhi), &
+            &                     cos(orbitalVelocityTheta)                          &
+            &                    ]
+       call self%positionSet(orbitalRadius*radialVector)
+       velocityRadialVector     =-orbitalVelocityRadial*radialVector
+       velocityTangentialVector1=Vector_Product(radialVector,[1.0d0,0.0d0,0.0d0]      )
+       velocityTangentialVector2=Vector_Product(radialVector,velocityTangentialVector1)
+       velocityPhi              =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi
+       velocityTangentialVector1=velocityTangentialVector1*orbitalVelocityTangential*cos(velocityPhi)
+       velocityTangentialVector2=velocityTangentialVector2*orbitalVelocityTangential*sin(velocityPhi)
+       call self%velocitySet(velocityRadialVector+velocityTangentialVector1+velocityTangentialVector2)
+       ! Set the merging time to -1 to indicate that we don't know when merging will occur.
+       call self%mergeTimeSet                (           -1.0d0)
+       call self%tidalTensorPathIntegratedSet(tensorNullR2D3Sym)
+       call self%tidalHeatingNormalizedSet   (            0.0d0)       
+    end select
+    return
+  end subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set
 
 end module Node_Component_Satellite_Orbiting
