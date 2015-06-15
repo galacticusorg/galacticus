@@ -166,6 +166,7 @@ sub AddDeclarations {
 	};
 	# Inert the node, after any module use node if one exists.
 	if ( $usesNode ) {
+	    &SourceTree::InsertAfterNode ($usesNode            ,[$declarationsNode]);
 	} else {	
 	    &SourceTree::InsertBeforeNode($node->{'firstChild'},[$declarationsNode]);
 	}
