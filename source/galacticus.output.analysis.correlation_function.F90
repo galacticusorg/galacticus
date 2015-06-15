@@ -64,10 +64,9 @@ module Galacticus_Output_Analyses_Correlation_Functions
   ! Type for descriptors of correlation functions.
   type :: correlationFunctionDescriptor
      double precision                                           :: massSystematicLogM0
-     double precision                                           :: massRandomError
      procedure       (Mass_Error         ), pointer    , nopass :: massRandomErrorFunction
      double precision                                           :: massLogarithmicMinimum
-     integer                                                    :: massSystematicCoefficientCount
+     integer                                                    :: massSystematicCoefficientCount, massRandomCoefficientCount
      integer                                                    :: massType
      double precision                                           :: massUnitsInSI
      logical                                                    :: halfIntegral
@@ -82,10 +81,10 @@ module Galacticus_Output_Analyses_Correlation_Functions
        & [                                                                                                                      &
        ! Hearin et al. (2013) SDSS.
        &                           correlationFunctionDescriptor(                                                               &
-       &                                                         11.0000d+0                                              ,      &
        &                                                          0.07000+0                                              ,      &
        &                                                          null()                                                 ,      &
        &                                                          8.000d0                                                ,      &
+       &                                                          2                                                      ,      &
        &                                                          2                                                      ,      &
        &                                                          massTypeStellar                                        ,      &
        &                                                          massSolar                                              ,      &
@@ -102,7 +101,7 @@ module Galacticus_Output_Analyses_Correlation_Functions
      ! Copy of the mass function descriptor for this mass function.
      type            (correlationFunctionDescriptor), pointer                       :: descriptor
      ! Parameters for the systematic error model.
-     double precision                               , allocatable, dimension(:    ) :: massSystematicCoefficients
+     double precision                               , allocatable, dimension(:    ) :: massSystematicCoefficients, massRandomCoefficients
      ! Weights to apply to each output.
      double precision                               , allocatable, dimension(:,:  ) :: outputWeight
      ! Mass range.
@@ -283,6 +282,25 @@ contains
                             parameterName=trim(correlationFunctionLabels(j))//'MassSystematic'
                             parameterName=parameterName//(k-1)
                             call Get_Input_Parameter(char(parameterName),correlationFunctions(currentAnalysis)%massSystematicCoefficients(k),defaultValue=0.0d0)
+                         end do
+                      end if
+                      ! Read parameters of the random error model.
+                      if (correlationFunctionDescriptors(j)%massRandomCoefficientCount > 0) then
+                         allocate(correlationFunctions(currentAnalysis)%massRandomCoefficients(correlationFunctionDescriptors(j)%massRandomCoefficientCount))
+                         do k=1,correlationFunctionDescriptors(j)%massRandomCoefficientCount
+                            parameterName=trim(correlationFunctionLabels(j))//'MassRandom'
+                            parameterName=parameterName//(k-1)
+                            !@ <inputParameter>
+                            !@   <regEx>(sdssClustering)Z[0-9\.]+MassRandom[0-9]+</regEx>
+                            !@   <defaultValue>0</defaultValue>
+                            !@   <attachedTo>module</attachedTo>
+                            !@   <description>
+                            !@     Mass-dependent size function mass random parameters.
+                            !@   </description>
+                            !@   <type>real</type>
+                            !@   <cardinality>1</cardinality>
+                            !@ </inputParameter>
+                            call Get_Input_Parameter(char(parameterName),correlationFunctions(currentAnalysis)%massRandomCoefficients(k),defaultValue=0.0d0)
                          end do
                       end if
                       ! Initialize tree/halo indices.
@@ -484,14 +502,14 @@ contains
        end do
        if (massLogarithmic < correlationFunctions(i)%descriptor%massLogarithmicMinimum) cycle
        ! Accumulate the node.
-       call Accumulate_Node(correlationFunctions(i),thisHalo(i),thisTree,thisNode,nodeStatus,massLogarithmic,iOutput)
+       call Accumulate_Node(correlationFunctions(i),thisHalo(i),thisTree,thisNode,nodeStatus,mass,massLogarithmic,iOutput)
        ! Accumulate halo if this is the last node in the tree.
        if (nodeStatus == nodeStatusLast) call Accumulate_Halo(correlationFunctions(i),thisHalo(i))
     end do
     return
   end subroutine Galacticus_Output_Analysis_Correlation_Functions
 
-  subroutine Accumulate_Node(thisCorrelationFunction,thisHalo,thisTree,thisNode,nodeStatus,massLogarithmic,iOutput)
+  subroutine Accumulate_Node(thisCorrelationFunction,thisHalo,thisTree,thisNode,nodeStatus,mass,massLogarithmic,iOutput)
     !% Accumulate a single galaxy to the population of the current halo. Since galaxy masses
     !% have random errors, each galaxy added is assigned an inclusion probability, which will be
     !% taken into account when evaluating the one- and two-halo terms from this halo in the halo
@@ -508,7 +526,7 @@ contains
     type            (mergerTree             ), intent(in   )                 :: thisTree
     type            (treeNode               ), intent(inout), pointer        :: thisNode
     integer                                  , intent(in   )                 :: nodeStatus
-    double precision                         , intent(in   )                 :: massLogarithmic
+    double precision                         , intent(in   )                 :: mass                     , massLogarithmic
     integer         (c_size_t               ), intent(in   )                 :: iOutput
     type            (treeNode               )               , pointer        :: hostNode
     class           (cosmologyFunctionsClass)               , pointer        :: cosmologyFunctions_    
@@ -516,10 +534,11 @@ contains
     class           (darkMatterProfileClass )               , pointer        :: darkMatterProfile_
     double precision                         , allocatable  , dimension(:,:) :: satelliteProbabilityTmp
     integer                                  , parameter                     :: satelliteCountMinimum=100
+    double precision                         , parameter                     :: massRandomErrorMinimum=1.0d-3
     integer         (kind=kind_int8        )                                 :: hostIndex    
     integer                                                                  :: i, j
     double precision                                                         :: expansionFactor          , galaxyInclusionProbability, &
-         &                                                                      randomError              , mass
+         &                                                                      randomError
     logical                                                                  :: satelliteIncluded
     
     ! Get the index of the host halo.
@@ -553,10 +572,18 @@ contains
     thisCorrelationFunction%haloIndex=hostIndex
     ! Find the random error on the galaxy mass.
     if (associated(thisCorrelationFunction%descriptor%massRandomErrorFunction)) then
-       mass=10.0d0**massLogarithmic
        randomError=thisCorrelationFunction%descriptor%massRandomErrorFunction(mass,thisNode)
     else
-       randomError=thisCorrelationFunction%descriptor%massRandomError
+       randomError=0.0d0
+       do j=1,thisCorrelationFunction%descriptor%massRandomCoefficientCount
+          randomError=+randomError                                                  &
+               &          +thisCorrelationFunction%massRandomCoefficients(j)        &
+               &          *(                                                        &
+               &            +log10(mass)                                            &
+               &            -thisCorrelationFunction%descriptor%massSystematicLogM0 &
+               &           )**(j-1)
+       end do
+       randomError=max(randomError,massRandomErrorMinimum)
     end if
     ! Iterate over mass ranges.
     satelliteIncluded=.false.

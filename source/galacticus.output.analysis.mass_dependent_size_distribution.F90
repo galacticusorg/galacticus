@@ -86,11 +86,12 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
   ! Type for descriptors of mass functions.
   type :: sizeFunctionDescriptor
      double precision                                           :: massSystematicLogM0           , radiusSystematicLogR0
-     double precision                                           :: massRandomError               , radiusRandomError
+     double precision                                           :: radiusRandomError
      procedure       (  Mass_Error       ), pointer    , nopass :: massRandomErrorFunction
      procedure       (Radius_Error       ), pointer    , nopass :: radiusRandomErrorFunction
      double precision                                           :: massLogarithmicMinimum
-     integer                                                    :: massSystematicCoefficientCount, radiusSystematicCoefficientCount
+     integer                                                    :: massSystematicCoefficientCount, radiusSystematicCoefficientCount, &
+          &                                                        massRandomCoefficientCount
      integer                                                    :: massType
      double precision                                           :: massUnitsInSI                 , radiusUnitsInSI
      character       (len= 32            )                      :: label
@@ -107,11 +108,11 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
        &                           sizeFunctionDescriptor(                                                 &
        &                                                  11.0000d+0                         ,             &
        &                                                   1.0000d-3                         ,             &
-       &                                                   0.0806d+0                         ,             &
        &                                                   0.0128d+0                         ,             &
        &                                                   null()                            ,             &
        &                                                   null()                            ,             &
        &                                                   6.500d0                           ,             &
+       &                                                   2                                 ,             &
        &                                                   2                                 ,             &
        &                                                   2                                 ,             &
        &                                                   massTypeStellar                   ,             &
@@ -130,7 +131,8 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
      ! Copy of the mass function descriptor for this mass function.
      type            (sizeFunctionDescriptor), pointer                       :: descriptor
      ! Parameters for the systematic error model.
-     double precision                        , allocatable, dimension(:    ) :: massSystematicCoefficients, radiusSystematicCoefficients
+     double precision                        , allocatable, dimension(:    ) :: massSystematicCoefficients, radiusSystematicCoefficients, &
+          &                                                                     massRandomCoefficients
      ! The number of bins.
      integer                                                                 :: massesCount               , radiiCount
      ! Arrays for the masses, radii and size function.
@@ -206,6 +208,7 @@ contains
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
     integer         (c_size_t                      )                                :: k,jOutput
+    double precision                                , parameter                     :: massRandomErrorMinimum=1.0d-3
     integer                                                                         :: i,j,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution
     double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
          &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter,sersicIndexMaximum,redshift,timeMinimum,timeMaximum,distanceMinimum,distanceMaximum
@@ -352,6 +355,25 @@ contains
                             !@   <cardinality>1</cardinality>
                             !@ </inputParameter>
                             call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%radiusSystematicCoefficients(k),defaultValue=0.0d0)
+                         end do
+                      end if
+                      ! Read parameters of the random error model.
+                      if (sizeFunctionDescriptors(j)%massRandomCoefficientCount > 0) then
+                         allocate(sizeFunctions(currentAnalysis)%massRandomCoefficients(sizeFunctionDescriptors(j)%massRandomCoefficientCount))
+                         do k=1,sizeFunctionDescriptors(j)%massRandomCoefficientCount
+                            parameterName=trim(sizeFunctionLabels(j))//'MassRandom'
+                            parameterName=parameterName//(k-1)
+                            !@ <inputParameter>
+                            !@   <regEx>(sdssSizeFunction)Z[0-9\.]+MassRandom[0-9]+</regEx>
+                            !@   <defaultValue>0</defaultValue>
+                            !@   <attachedTo>module</attachedTo>
+                            !@   <description>
+                            !@     Mass-dependent size function mass random parameters.
+                            !@   </description>
+                            !@   <type>real</type>
+                            !@   <cardinality>1</cardinality>
+                            !@ </inputParameter>
+                            call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%massRandomCoefficients(k),defaultValue=0.0d0)
                          end do
                       end if
                       ! Read the appropriate observational data definition.
@@ -612,11 +634,26 @@ contains
        do j=1,sizeFunctions(i)%descriptor%radiusSystematicCoefficientCount
           radiusLogarithmic=radiusLogarithmic+sizeFunctions(i)%radiusSystematicCoefficients(j)*(log10(radius)-sizeFunctions(i)%descriptor%radiusSystematicLogR0)**(j-1)
        end do
-        ! Compute contributions to each bin.
-       massRandomError=sizeFunctions(i)%descriptor%  massRandomError
-       sizeRandomError=sizeFunctions(i)%descriptor%radiusRandomError
-       if (associated(sizeFunctions(i)%descriptor%  massRandomErrorFunction)) massRandomError=sizeFunctions(i)%descriptor%massRandomErrorFunction  (mass  ,thisNode)
-       if (associated(sizeFunctions(i)%descriptor%radiusRandomErrorFunction)) sizeRandomError=sizeFunctions(i)%descriptor%radiusRandomErrorFunction(radius,thisNode)
+       ! Compute contributions to each bin.
+       if (associated(sizeFunctions(i)%descriptor%massRandomErrorFunction)) then
+          massRandomError=sizeFunctions(i)%descriptor%massRandomErrorFunction(mass,thisNode)
+       else
+          massRandomError=0.0d0
+          do j=1,sizeFunctions(i)%descriptor%massRandomCoefficientCount
+             massRandomError=+massRandomError                                   &
+                  &          +sizeFunctions(i)%massRandomCoefficients(j)        &
+                  &          *(                                                 &
+                  &            +log10(mass)                                     &
+                  &            -sizeFunctions(i)%descriptor%massSystematicLogM0 &
+                  &           )**(j-1)
+          end do
+          massRandomError=max(massRandomError,massRandomErrorMinimum)
+       end if
+       if (associated(sizeFunctions(i)%descriptor%radiusRandomErrorFunction)) then
+          sizeRandomError=sizeFunctions(i)%descriptor%radiusRandomErrorFunction(radius,thisNode)
+       else
+          sizeRandomError=sizeFunctions(i)%descriptor%radiusRandomError
+       end if
        thisGalaxy(i)%sizeFunction=       (                                                                                               &
             &                             +erf((sizeFunctions(i)%radiiLogarithmicMaximum-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0)) &
             &                             -erf((sizeFunctions(i)%radiiLogarithmicMinimum-radiusLogarithmic)/sizeRandomError/sqrt(2.0d0)) &
