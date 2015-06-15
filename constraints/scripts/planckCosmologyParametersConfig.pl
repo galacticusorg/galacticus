@@ -38,11 +38,11 @@ my $planckDirectoryName = $galacticusPath."aux/base_planck_lowl_lowLike_highL_po
 # Specify parameter names of interest.
 my %parameterMap = 
     (
-     "omegabh2"  => "Omega_b",
-     "omegamh2*" => "Omega_Matter",
+     "omegabh2"  => "cosmologyParametersMethod->OmegaBaryon",
+     "omegamh2*" => "cosmologyParametersMethod->OmegaMatter",
      "tau"       => "reionizationSuppressionOpticalDepth",
      "ns"        => "powerSpectrumIndex",
-     "H0*"       => "H_0",
+     "H0*"       => "cosmologyParametersMethod->HubbleCOnstant",
      "sigma8*"   => "sigma_8"
     );
 
@@ -133,7 +133,7 @@ foreach my $parameter ( sort(keys(%parameterMap)) ) {
     $parameterName = $parameterMap{$parameter}
           unless ( $parameterMap{$parameter} eq "" );
     # If the parameter is a density parameter then it has been multiplied by h^2 in the Planck analysis. Undo this.
-    $value = "(".$value.")/(%H_0/100.0)**2"
+    $value = "(".$value.")/(%[cosmologyParametersMethod->HubbleConstant]/100.0)**2"
  	if ( $parameter =~ m/omega/ );
     # Store the parameter config in our array.
     push(
