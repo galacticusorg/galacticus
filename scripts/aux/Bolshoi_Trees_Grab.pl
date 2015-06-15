@@ -11,7 +11,6 @@ if ( exists($ENV{'GALACTICUS_ROOT_V094'}) ) {
 unshift(@INC,$galacticusPath."perl");
 $ENV{TZ} = 'Europe/London';
 
-use 5.010;  # so filetest ops can stack
 use Tie::File;
 use Fcntl qw( SEEK_SET );
 use POSIX::strftime::GNU;
@@ -23,7 +22,7 @@ use POSIX::strftime::GNU;
      my $outFile	= shift @ARGV	 ;	# Name of ouput file.
      my $ignoreFile     = "ignore.dat"   ;	# Name of file that contains the IDs of forests which should not be extracted.
      my $append		= 0		 ;	# Whether to append IDs of extracted forests to the ignore file.
-     my $treeCountMaximum = 10000	 ;	# Approximate number of trees that are to be extracted. When the number is reached the current forest will completed.
+     my $treeCountMaximum = 10000	 ;	# Approximate number of trees that are to be extracted. When the number is reached the current forest will be completed.
 
  my $lastChar = substr( $workDir,length($workDir)-1, 1 );
  if ( $lastChar eq '/' )
@@ -34,10 +33,9 @@ use POSIX::strftime::GNU;
 SWITCH: foreach my $arg ( @ARGV )
  {
     my @opt = split( "=", $arg );
-    if( $opt[0] eq "ignoreFile"   	) { $ignoreFile   	= $opt[1]; 		next SWITCH; }
-    if( $opt[0] eq "treeCountMaximum" 	) { $treeCountMaximum 	= $opt[1]; 	  	next SWITCH; }
-    if( $opt[0] eq "startLine"    	) { $startLine    	= $opt[1]; 		next SWITCH; }
-    if( $opt[0] eq "appendToIgnoreFile"	) { if ( $opt[1] eq "append" ) { $append = 1; };next SWITCH; }
+    if( $opt[0] eq "ignoreFile"   	) { $ignoreFile   	= $opt[1]; 			  next SWITCH; }
+    if( $opt[0] eq "treeCountMaximum" 	) { $treeCountMaximum 	= $opt[1]; 	  		  next SWITCH; }
+    if( $opt[0] eq "appendToIgnoreFile"	) { if ( ($opt[1] eq "append") || ($opt[1] eq "1") ) { $append = 1; };  next SWITCH; }
  }
 
 
@@ -46,13 +44,13 @@ SWITCH: foreach my $arg ( @ARGV )
 ########################## Determine forests to copy. ##########################################
 
 
-    my $forestFile     = "forests.list" ;
-    my $locationFile   = "locations.dat";
-    my $startLine      = 1              ;
+    my $forestFile	= "forests.list";
+    my $locationFile	= "locations.dat";
+    my $startLine   	= 1;
     my %forestHash;
     my %ignoreHash;
-    my $treeCount  = 0;
-    my $forestCount= 0;
+    my $treeCount  	= 0;
+    my $forestCount	= 0;
     my $timestamp;
     my @timestamp;
     my $urlHeader;
@@ -77,7 +75,7 @@ SWITCH: foreach my $arg ( @ARGV )
     $file = $forestFile;
     $fileGZ = "$file.gz";
     $url = "http://www.slac.stanford.edu/~behroozi/Bolshoi_Trees/$fileGZ";
-    if ( -f -s "$workDir/$file" ) {
+    if ( (-f "$workDir/$file") && (-s "$workDir/$file") ) {
 	@timestamp = localtime((stat "$workDir/$file")[9]);
     } else {
 	@timestamp = localtime(0);
@@ -95,7 +93,7 @@ SWITCH: foreach my $arg ( @ARGV )
     $file = $locationFile;
     $fileGZ = "$file.gz";
     $url = "http://www.slac.stanford.edu/~behroozi/Bolshoi_Trees/$fileGZ";
-    if ( -f -s "$workDir/$file" ) {
+    if ( (-f "$workDir/$file") && (-s "$workDir/$file") ) {
         @timestamp = localtime((stat "$workDir/$file")[9]);
     } else {
         @timestamp = localtime(0);
@@ -112,7 +110,7 @@ SWITCH: foreach my $arg ( @ARGV )
     # Collect forests.
     open( FORESTS,  "<", "$workDir/$forestFile" ) or die "Could not open $workDir/$forestFile: $!\n";
 
-    # Wrapper loop to find several forests.
+    # Wrapper loop to find more than one forest.
     while( $treeCount < $treeCountMaximum )
     {
 	# Reset Filepointer and line count.
@@ -214,7 +212,7 @@ LOCATION: while ( $locationLine = <LOCATIONS> )
 	# Download and unzip treefile if necessary.
 	$fileGZ = "$file.gz";
 	$url = "http://www.slac.stanford.edu/~behroozi/Bolshoi_Trees/$fileGZ";
-	if ( -f -s "$workDir/$file" ) {
+	if ( (-f "$workDir/$file") && (-s "$workDir/$file") ) {
 		@timestamp = localtime((stat "$workDir/$file")[9]);
 	} else {
 		@timestamp = localtime(0);
@@ -226,7 +224,7 @@ LOCATION: while ( $locationLine = <LOCATIONS> )
 		system( "gunzip", "--force", "$workDir/$fileGZ") == 0  or die "Could not unzip $workDir/$fileGZ: $!\n";
 	} else {
 		system( "rm", "--force", "$workDir/$fileGZ" );
-		die "Could not download $file from $url. Programm aborted.\n" unless ( -f -s "$workDir/$file" )
+		die "Could not download $file from $url. Programm aborted.\n" unless ( (-f "$workDir/$file") && (-s "$workDir/$file") )
         }
 
 	# Copy tree to file.
