@@ -143,6 +143,7 @@ contains
     !% assumes that their results for the original collapse barrier (i.e. the critical overdensity, and which they call $B_0$)
     !% scale with the effective Jeans mass of the warm dark matter particle as computed using their eqn.~(10).
     use Numerical_Interpolation
+    use Table_Labels
     implicit none
     double precision, intent(in   ) :: mass
     double precision, parameter     :: massScaleFreeMinimum=-10.d0
@@ -170,7 +171,7 @@ contains
           Critical_Overdensity_Mass_Scaling_WDM=exp(deltaTableDelta(1)+(massScaleFree-deltaTableMass(1))*smallMassLogarithmicSlope)
        else
           Critical_Overdensity_Mass_Scaling_WDM=exp(Interpolate(deltaTableMass,deltaTableDelta,interpolationObject&
-               &,interpolationAccelerator,massScaleFree,extrapolationType=extrapolationTypeFixed,reset=interpolationReset,interpolationType=fgsl_interp_cspline))
+               &,interpolationAccelerator,massScaleFree,extrapolationType=extrapolationTypeFix,reset=interpolationReset,interpolationType=fgsl_interp_cspline))
        end if
     end if
     return
@@ -181,6 +182,7 @@ contains
     !% assumes that their results for the original collapse barrier (i.e. the critical overdensity, and which they call $B_0$)
     !% scale with the effective Jeans mass of the warm dark matter particle as computed using their eqn.~(10).
     use Numerical_Interpolation
+    use Table_Labels
     implicit none
     double precision, intent(in   ) :: mass
     double precision                :: exponentialFit          , exponentialFitGradient, &
@@ -209,7 +211,7 @@ contains
           Critical_Overdensity_Mass_Scaling_Gradient_WDM=smallMassLogarithmicSlope*Critical_Overdensity_Mass_Scaling_WDM(mass)/mass
        else
           Critical_Overdensity_Mass_Scaling_Gradient_WDM=Interpolate_Derivative(deltaTableMass,deltaTableDelta&
-               &,interpolationObject,interpolationAccelerator,massScaleFree,extrapolationType=extrapolationTypeFixed,reset&
+               &,interpolationObject,interpolationAccelerator,massScaleFree,extrapolationType=extrapolationTypeFix,reset&
                &=interpolationReset,interpolationType=fgsl_interp_cspline)*Critical_Overdensity_Mass_Scaling_WDM(mass)/mass
        end if
     end if

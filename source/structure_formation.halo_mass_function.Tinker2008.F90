@@ -82,6 +82,7 @@ contains
     use FGSL
     use Numerical_Interpolation
     use Linear_Growth
+    use Table_Labels
     implicit none
     double precision                            , intent(in   )       :: mass                            , time
     double precision                                                  :: alpha                           , sigma
@@ -114,13 +115,13 @@ contains
 
        ! Compute coefficients of fitting function.
        normalization0=Interpolate(deltaTableDelta,deltaTableNormalization &
-            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)
+            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeExtrapolate)
        a0            =Interpolate(deltaTableDelta,deltaTableA &
-            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)
+            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeExtrapolate)
        b0            =Interpolate(deltaTableDelta,deltaTableB &
-            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)
+            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeExtrapolate)
        c0            =Interpolate(deltaTableDelta,deltaTableC &
-            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)
+            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeExtrapolate)
 
        ! Extrapolate to higher redshift using redshift scalings given by Tinker et al. (2008; eqns. 5-8).
        normalization=normalization0*expansionFactor**0.14d0

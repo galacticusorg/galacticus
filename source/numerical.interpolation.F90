@@ -28,11 +28,6 @@ module Numerical_Interpolation
   public :: Interpolate, Interpolate_Derivative, Interpolate_Locate, Interpolate_Done, Interpolate_Linear_Generate_Factors,&
        & Interpolate_Linear_Do, Interpolate_Linear_Generate_Gradient_Factors
 
-  ! Labels for extrapolation methods.
-  integer, parameter, public :: extrapolationTypeNone  =0
-  integer, parameter, public :: extrapolationTypeLinear=1
-  integer, parameter, public :: extrapolationTypeFixed =2
-
 contains
 
   double precision function Interpolate_Linear_Do(yArray,iInterpolate,interpolationFactors)
@@ -82,6 +77,7 @@ contains
     !% Perform an interpolation of {\normalfont \ttfamily x} into {\normalfont \ttfamily xArray()} and return the corresponding value in {\normalfont \ttfamily yArray()}.
     use Galacticus_Error
     use ISO_Varying_String
+    use Table_Labels
     implicit none
     double precision                   , dimension(:), intent(in   )           :: xArray                         , yArray
     type            (fgsl_interp      )              , intent(inout)           :: interpolationObject
@@ -129,16 +125,16 @@ contains
     if (present(extrapolationType)) then
        extrapolationTypeActual=extrapolationType
     else
-       extrapolationTypeActual=extrapolationTypeNone
+       extrapolationTypeActual=extrapolationTypeAbort
     end if
-    if     (                                                    &
-         &   extrapolationTypeActual == extrapolationTypeLinear &
-         &  .and.                                               &
-         &   (                                                  &
-         &     x < xArray(1       )                             &
-         &    .or.                                              &
-         &     x > xArray(nPointsC)                             &
-         &   )                                                  &
+    if     (                                                         &
+         &   extrapolationTypeActual == extrapolationTypeExtrapolate &
+         &  .and.                                                    &
+         &   (                                                       &
+         &     x < xArray(1       )                                  &
+         &    .or.                                                   &
+         &     x > xArray(nPointsC)                                  &
+         &   )                                                       &
          & ) then
        if (x < xArray(1)) then
           basePoint=1
@@ -160,9 +156,9 @@ contains
        ! Allow for rounding errors.
        xActual=x
        select case (extrapolationTypeActual)
-       case (extrapolationTypeFixed)
-          if (x < xArray(1       )                                                                         ) xActual=xArray(1       )
-          if (x > xArray(nPointsC)                                                                         ) xActual=xArray(nPointsC)
+       case (extrapolationTypeFix)
+          if (x < xArray(1       )                                                                ) xActual=xArray(1       )
+          if (x > xArray(nPointsC)                                                                ) xActual=xArray(nPointsC)
        case default
           if (x < xArray(1       ) .and. x > xArray(1       )-rangeTolerance*abs(xArray(1       ))) xActual=xArray(1       )
           if (x > xArray(nPointsC) .and. x < xArray(nPointsC)+rangeTolerance*abs(xArray(nPointsC))) xActual=xArray(nPointsC)
@@ -187,6 +183,7 @@ contains
     !% Perform an interpolation of {\normalfont \ttfamily x} into {\normalfont \ttfamily xArray()} and return the corresponding first derivative of {\normalfont \ttfamily yArray()}.
     use Galacticus_Error
     use ISO_Varying_String
+    use Table_Labels
     implicit none
     double precision                   , dimension(:), intent(in   )           :: xArray                  , yArray
     type            (fgsl_interp      )              , intent(inout)           :: interpolationObject
@@ -233,10 +230,10 @@ contains
     if (present(extrapolationType)) then
        extrapolationTypeActual=extrapolationType
     else
-       extrapolationTypeActual=extrapolationTypeNone
+       extrapolationTypeActual=extrapolationTypeAbort
     end if
     select case (extrapolationTypeActual)
-    case (extrapolationTypeLinear,extrapolationTypeFixed)
+    case (extrapolationTypeExtrapolate,extrapolationTypeFix)
        if (x < xArray(1       )) xActual=xArray(1       )
        if (x > xArray(nPointsC)) xActual=xArray(nPointsC)
     end select

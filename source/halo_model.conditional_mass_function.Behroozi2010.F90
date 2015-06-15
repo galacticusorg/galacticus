@@ -255,6 +255,7 @@ contains
   subroutine Cumulative_Conditional_Mass_Function_Compute(massHalo,mass,numberCentrals,numberSatellites)
     !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_{\mathrm halo}) \rangle \equiv \phi(M_\star|M_{\rm
     !% halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
+    use Table_Labels
     implicit none
     double precision                    , intent(in   ) :: massHalo                  , mass
     double precision                    , intent(  out) :: numberCentrals            , numberSatellites
@@ -273,17 +274,17 @@ contains
        if (massHalo > fMassHaloTableMaximum) fMassTableMaximum=2.0d0*fMassTableMaximum
        fMassTableCount=int(log10(fMassTableMaximum/fMassTableMinimum)*fMassTablePointsPerDecade)+1
        call fMassTable%destroy ()
-       call fMassTable%create  (                                          &
-            &                   fMassTableMinimum                       , &
-            &                   fMassTableMaximum                       , &
-            &                   fMassTableCount                         , &
-            &                   extrapolationType=extrapolationTypeAbort  &
+       call fMassTable%create  (                                                      &
+            &                   fMassTableMinimum                                   , &
+            &                   fMassTableMaximum                                   , &
+            &                   fMassTableCount                                     , &
+            &                   extrapolationType=spread(extrapolationTypeAbort,1,2)  &
             &                  )
-       call fMassTable%populate(                                          &
-            &                   fSHMRInverse(fMassTable%xs())             &
+       call fMassTable%populate(                                                      &
+            &                   fSHMRInverse(fMassTable%xs())                         &
             &                  )
-       call fMassTable%reverse (                                          &
-            &                   fMassHaloTable                            &
+       call fMassTable%reverse (                                                      &
+            &                   fMassHaloTable                                        &
             &                  )
        fMassHaloTableMinimum=fMassTable%y(+1)
        fMassHaloTableMaximum=fMassTable%y(-1)
