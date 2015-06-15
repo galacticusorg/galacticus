@@ -1,12 +1,14 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use Cwd;
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
  $galacticusPath = $ENV{"GALACTICUS_ROOT_V094"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "../";
+ $ENV{"GALACTICUS_ROOT_V094"} = getcwd()."/../";
 }
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
