@@ -60,7 +60,7 @@ $massFunctionConfig->{'omegaDarkEnergyObserved'     } =  0.692885;
 $massFunctionConfig->{'observationLabel'            } = "Constraint";
 
 # Limit comparison mass range.
-$massFunctionConfig->{'constraintMassMinimum'       } = 2.0e8;
+$massFunctionConfig->{'constraintMassMinimum'       } = 3.0e8;
 
 # Construct the mass function.
 &MassFunctions::Construct(\%arguments,$massFunctionConfig);
