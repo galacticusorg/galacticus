@@ -134,7 +134,8 @@ contains
          &                                                           likelihoodTolerance                            , likelihoodLineOfSightDepth                , &
          &                                                           likelihoodDelayInterval
     logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits                 , &
-         &                                                           likelihoodModelSurfaceBrightness               , likelihoodHalfIntegral
+         &                                                           likelihoodModelSurfaceBrightness               , likelihoodHalfIntegral                    , &
+         &                                                           likelihoodDummyEmultor
 
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type",directChildrenOnly=.true.))))
@@ -200,6 +201,7 @@ contains
           likelihoodReportCountDefinition                 => XML_Get_First_Element_By_Tag_Name(definition,"reportCount"                )
           likelihoodEmulateOutliersDefinition             => XML_Get_First_Element_By_Tag_Name(definition,"emulateOutliers"            )
           likelihoodDumpEmulatorDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"dumpEmulator"               )
+          likelihoodDummyEmulatorDefinition               => XML_Get_First_Element_By_Tag_Name(definition,"dummyEmulator"              )
           call extractDataContent(likelihoodEmulatorRebuildCountDefinition       ,likelihoodEmulatorRebuildCount       )
           call extractDataContent(likelihoodPolynomialOrderDefinition            ,likelihoodPolynomialOrder            )
           call extractDataContent(likelihoodSigmaBufferDefinition                ,likelihoodSigmaBuffer                )
@@ -207,6 +209,7 @@ contains
           call extractDataContent(likelihoodLogLikelihoodErrorToleranceDefinition,likelihoodLogLikelihoodErrorTolerance)
           call extractDataContent(likelihoodReportCountDefinition                ,likelihoodReportCount                )
           call extractDataContent(likelihoodEmulateOutliersDefinition            ,likelihoodEmulateOutliers            )
+          call extractDataContent(likelihoodDummyEmulatorDefinition              ,likelihoodDumymEmulator              )
           newLikelihood=likelihoodGaussianRegression(                                                  &
                &                                     likelihoodDefinition                            , &
                &                                     likelihoodEmulatorRebuildCount                  , &
@@ -217,6 +220,7 @@ contains
                &                                     likelihoodReportCount                           , &
                &                                     likelihoodEmulateOutliers                       , &
                &                                     getTextContent(likelihoodDumpEmulatorDefinition), &
+               &                                     likelihoodDummyEmulator                         , &
                &                                     configFileName                                    &
                &                                    )
        end select
