@@ -262,7 +262,9 @@ if ( defined($newParameters) ) {
     for my $newParameterName ( keys(%{$newParameters}) ) {
 	my $parameter = $parameters;
 	foreach ( split(/\-\>/,$newParameterName) ) {
-	    $parameter = $parameter->{$_};
+	     $parameter->{$_}->{'value'} = undef()
+		 unless ( exists($parameter->{$_}) );
+	     $parameter = $parameter->{$_};
 	}
 	$parameter->{'value'} = $newParameters->{$newParameterName};
     }
