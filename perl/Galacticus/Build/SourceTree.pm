@@ -26,6 +26,8 @@ require Galacticus::Build::SourceTree::Process::InputParameterList;
 require Galacticus::Build::SourceTree::Process::FunctionClass;
 require Galacticus::Build::SourceTree::Process::OptionalArgument;
 require Galacticus::Build::SourceTree::Process::Generics;
+require Galacticus::Build::SourceTree::Process::SourceDigest;                                                                                
+require Galacticus::Build::SourceTree::Process::ObjectBuilder;                                                                               
 require Galacticus::Build::SourceTree::Process::DebugHDF5;
 
 sub ParseFile {
@@ -477,7 +479,22 @@ sub SetVisibility {
 	    }
 	};
 	$visibilityNode->{'firstChild'}->{'parent'} = $visibilityNode;
-	&PrependChildToNode($node,[$visibilityNode]);
+
+	# If the node has a module use block, visibilities must appear after it.
+	my $child         = $node->{'firstChild'};
+	my $moduleUseNode;
+	while ( $child ) {
+	    $moduleUseNode = $child
+		if ( $child->{'type'} eq "moduleUse" );
+	    $child = $child->{'sibling'};
+	}
+	if ( $moduleUseNode ) {
+	    # A module use block exists, place visibilities after it.
+	    &InsertAfterNode   ($moduleUseNode,[$visibilityNode]);
+	} else {	
+	    # No module use block exists, place visibilities as first child of the node.
+	    &PrependChildToNode($node         ,[$visibilityNode]);
+	}
     }
     # Set visibility.
     $visibilityNode->{'visibility'}->{$visibility}->{$unitName} = 1;
