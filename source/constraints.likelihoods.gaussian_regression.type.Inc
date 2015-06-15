@@ -39,7 +39,8 @@
      double precision                                                :: C0                         , C1                         , &
           &                                                             CR                         , sigmaBuffer                , &
           &                                                             logLikelihoodBuffer        , logLikelihoodErrorTolerance
-     logical                                                         :: emulateOutliers            , dumpEmulator
+     logical                                                         :: emulateOutliers            , dumpEmulator               , &
+          &                                                             dummyEmulator
      type            (varying_string   )                             :: dumpEmulatorFileRoot
    contains
      final     ::                    likelihoodGaussianRegressionDestructor

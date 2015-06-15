@@ -17,7 +17,7 @@
 
 !% Defines methods for a Gaussian regression likelihood function.
 
-function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,dumpEmulator,configFileName)
+function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,dumpEmulator,dummyEmulatorconfigFileName)
   !% Constructor for Gaussian regression likelihood class.
   use FoX_DOM
   implicit none
@@ -27,7 +27,7 @@ function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,e
        &                                                                     reportCount
   double precision                              , intent(in   )           :: sigmaBuffer                            , logLikelihoodBuffer, &
        &                                                                     logLikelihoodErrorTolerance
-  logical                                       , intent(in   )           :: emulateOutliers
+  logical                                       , intent(in   )           :: emulateOutliers                        , dummyEmulator
   character       (len=*                       ), intent(in   )           :: dumpEmulator
   type            (varying_string              ), intent(in   ), optional :: configFileName
   
@@ -40,6 +40,7 @@ function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,e
   likelihoodGaussianRegressionConstructor%logLikelihoodErrorTolerance =  logLikelihoodErrorTolerance
   likelihoodGaussianRegressionConstructor%reportCount                 =  reportCount
   likelihoodGaussianRegressionConstructor%emulateOutliers             =  emulateOutliers
+  likelihoodGaussianRegressionConstructor%dummyEmulator               =  dummyEmulator
   likelihoodGaussianRegressionConstructor%dumpEmulatorFileRoot        =  trim(dumpEmulator)
   likelihoodGaussianRegressionConstructor%dumpEmulatorCount           =  0
   likelihoodGaussianRegressionConstructor%dumpEmulator                =  (likelihoodGaussianRegressionConstructor%dumpEmulatorFileRoot /= "")
@@ -230,7 +231,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
         end do
      end do
      if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting global trends (step #3) ['//char(Formatted_Date_and_Time())//']')
-    ! Assign vector and matrix in our linear system.
+     ! Assign vector and matrix in our linear system.
      likelihoodSums   =self%likelihoodSums
      stateSums        =self%stateSums
      ! Solve for regression coefficients.
@@ -344,7 +345,9 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
         failureRateExpected=1.0d0-Error_Function(emulatorFailureSignificance/sqrt(2.0d0))
         self%isGood= checksTotal         > checksTotalMinimum                                         &
              &      .and.                                                                             &
-             &       dble(failuresTotal) < emulatorFailureLimit*failureRateExpected*dble(checksTotal)
+             &       dble(failuresTotal) < emulatorFailureLimit*failureRateExpected*dble(checksTotal) &
+             &      .and.                                                                             &
+             &       .not.self%dummyEmulator
         ! Report on emulator failure rate.
         if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo .and. mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0) then
            write (label,'(i8)') failuresTotal
