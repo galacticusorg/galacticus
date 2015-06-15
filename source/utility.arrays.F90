@@ -21,7 +21,7 @@ module Array_Utilities
   !% Contains routines which implement useful operations on arrays.
   implicit none
   private
-  public :: Array_Reverse, Array_Cumulate, Array_Is_Monotonic, Array_Which, Array_Index, operator(.intersection.)
+  public :: Array_Reverse, Array_Cumulate, Array_Is_Monotonic, Array_Is_Uniform, Array_Which, Array_Index, operator(.intersection.)
 
   interface operator(.intersection.)
      module procedure Array_Intersection_Varying_String
@@ -382,9 +382,9 @@ contains
   function Array_Intersection_Varying_String(a,b)
     use ISO_Varying_String
     implicit none
-    type(varying_string), allocatable  , dimension(:) :: Array_Intersection_Varying_String
-    type(varying_string), intent(in   ), dimension(:) :: a,b
-integer :: i,c
+    type   (varying_string), allocatable  , dimension(:) :: Array_Intersection_Varying_String
+    type   (varying_string), intent(in   ), dimension(:) :: a, b
+    integer                                              :: i, c
 
     c=0
     do i=1,size(a)
@@ -403,4 +403,35 @@ integer :: i,c
     return
   end function Array_Intersection_Varying_String
 
+  logical function Array_Is_Uniform(array,tolerance,logarithmic)
+    !% Return true if an array is uniformly distributed (optionally in the logarithm of its
+    !% values) to the given tolerance.
+    use Numerical_Comparison
+    implicit none
+    double precision, intent(in   ), dimension(:) :: array
+    double precision, intent(in   )               :: tolerance
+    logical         , intent(in   ), optional     :: logarithmic
+    double precision                              :: increment  , incrementExpected
+    integer                                       :: i
+    !# <optionalArgument name="logarithmic" defaultsTo=".false." />
+
+    Array_Is_Uniform=.true.
+    if (size(array) <= 1) return
+    if (logarithmic_) then
+       incrementExpected=log(array(size(array))/array(1))/dble(size(array)-1)
+    else
+       incrementExpected=   (array(size(array))-array(1))/dble(size(array)-1)
+    end if
+    do i=2,size(array)
+       if (logarithmic_) then
+          increment=log(array(i)/array(i-1))
+       else
+          increment=    array(i)-array(i-1)
+       end if
+       Array_Is_Uniform=Values_Agree(increment,incrementExpected,absTol=tolerance)
+       if (.not.Array_Is_Uniform) return
+    end do
+    return
+  end function Array_Is_Uniform
+  
 end module Array_Utilities
