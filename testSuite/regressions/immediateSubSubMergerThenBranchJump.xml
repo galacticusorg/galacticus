@@ -88,15 +88,16 @@
   <haloMassFunctionMethod value="Tinker2008"/>
   <diskOutflowFraction value="1.0"/>
   <treeNodeMethodSatellite value="preset"/>
-  <effectiveNumberNeutrinos value="3.04"/>
   <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
   <satelliteMergingRemnantSizeMethod value="null"/>
   <zeroCoolingRateAboveVelocity value="10000"/>
-  <summedNeutrinoMasses value="0.0"/>
   <mergerTreeReadPresetSubhaloMasses value="false"/>
   <conditionalMassFunctionBehrooziSigmaLogMstar value="0.158558523426"/>
   <coolingRateSimpleScalingCutOffMass value="5.0e12"/>
-  <transferFunctionMethod value="Eisenstein-Hu1999"/>
+  <transferFunctionMethod value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.04"/>
+    <neutrinoMassSummed value="0.0"/>
+  </transferFunctionMethod>
   <mergerTreeReadPresetScaleRadii value="false"/>
   <odeToleranceAbsolute value="0.01"/>
   <coolingRateSimpleScalingTimescaleExponent value="3.0"/>

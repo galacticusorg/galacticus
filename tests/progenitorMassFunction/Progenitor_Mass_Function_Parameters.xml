@@ -16,10 +16,11 @@
     <OmegaDarkEnergy value="0.75"/>
     <OmegaBaryon value="0.0"/>
     <HubbleConstant value="73.0"/>
-  </cosmologyParametersMethod><sigma_8 value="0.9"/>
+  </cosmologyParametersMethod>
+  <sigma_8 value="0.9"/>
   <powerSpectrumIndex value="1.0"/>
   <powerSpectrumRunning value="0.0"/>
   <galacticusOutputFileName value="tests/progenitorMassFunction/progenitorMassFunctionTest.hdf5"/>
   <haloMassFunctionMethod value="Tinker2008"/>
-  <transferFunctionMethod value="Eisenstein + Hu"/>
+  <transferFunctionMethod value="eisensteinHu1999"/>
 </parameters>
