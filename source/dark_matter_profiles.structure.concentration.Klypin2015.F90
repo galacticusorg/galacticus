@@ -149,6 +149,7 @@ contains
   
   function klypin2015Constructor(sample)
     !% Constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
+    use Table_Labels
     implicit none
     type   (darkMatterProfileConcentrationKlypin2015)                :: klypin2015Constructor
     integer                                          , intent(in   ) :: sample
@@ -162,7 +163,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -190,7 +191,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -218,7 +219,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -246,7 +247,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -274,7 +275,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -302,7 +303,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -330,7 +331,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -358,7 +359,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -386,7 +387,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0]                , &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -414,7 +415,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0]                , &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -442,7 +443,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0]                , &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -470,7 +471,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0]                , &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -498,7 +499,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0]                , &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -526,7 +527,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0]                , &
             &            tableCount       =3                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -552,9 +553,9 @@ contains
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
-            &            x                =[0.000d0,0.380d0,0.500d0,1.000d0,1.440d0,2.500d0,2.890d0,5.410d0], &
+            &            x                =[0.000d0,0.380d0,0.500d0,1.000d0,1.440d0,2.500d0,2.890d0,5.410d0]                , &
             &            tableCount       =2                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -576,7 +577,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.380d0,0.500d0,1.000d0,1.440d0,2.500d0,2.890d0,5.410d0]                , &
             &            tableCount       =2                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -598,7 +599,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.380d0,0.500d0,1.000d0,1.440d0,2.500d0,5.500d0]                        , &
             &            tableCount       =2                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &
@@ -620,7 +621,7 @@ contains
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.380d0,0.500d0,1.000d0,1.440d0,2.500d0,5.500d0]                        , &
             &            tableCount       =2                                                                                , &
-            &            extrapolationType=extrapolationTypeFix                                                               &
+            &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
        call klypin2015Constructor                                                                                             &
             & %fitParameters                                                                                                  &

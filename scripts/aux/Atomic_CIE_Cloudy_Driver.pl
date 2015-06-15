@@ -199,14 +199,14 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
     # Cooling functions:
     # Specify extrapolation methods in temperature.
     ${${${$coolingFunctions{'extrapolation'}}{'temperature'}}[0]}{'limit'}  = "low";
-    ${${${$coolingFunctions{'extrapolation'}}{'temperature'}}[0]}{'method'} = "power law";
+    ${${${$coolingFunctions{'extrapolation'}}{'temperature'}}[0]}{'method'} = "powerLaw";
     ${${${$coolingFunctions{'extrapolation'}}{'temperature'}}[1]}{'limit'}  = "high";
-    ${${${$coolingFunctions{'extrapolation'}}{'temperature'}}[1]}{'method'} = "power law";
+    ${${${$coolingFunctions{'extrapolation'}}{'temperature'}}[1]}{'method'} = "powerLaw";
     # Specify extrapolation methods in metallicity.
     ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[0]}{'limit'}  = "low";
-    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[0]}{'method'} = "fixed";
+    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[0]}{'method'} = "fix";
     ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[1]}{'limit'}  = "high";
-    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "fixed";
+    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "fix";
     # Add some description.
     $coolingFunctions{'description'} = "CIE cooling functions computed by Cloudy ".$cloudyVersion;
     ${$coolingFunctions{'units'}}[0] = "Temperature: Kelvin";
@@ -217,14 +217,14 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
     # Chemical states:
     # Specify extrapolation methods in temperature.
     ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[0]}{'limit'}  = "low";
-    ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[0]}{'method'} = "fixed";
+    ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[0]}{'method'} = "fix";
     ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[1]}{'limit'}  = "high";
-    ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[1]}{'method'} = "fixed";
+    ${${${$chemicalStates{'extrapolation'}}{'temperature'}}[1]}{'method'} = "fix";
     # Specify extrapolation methods in metallicity.
     ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[0]}{'limit'}  = "low";
-    ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[0]}{'method'} = "fixed";
+    ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[0]}{'method'} = "fix";
     ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[1]}{'limit'}  = "high";
-    ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "fixed";
+    ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "fix";
     # Add some description.
     $chemicalStates{'description'} = "CIE ionization states computed by Cloudy ".$cloudyVersion;
     ${$chemicalStates{'units'}}[0] = "Temperature: Kelvin";
