@@ -148,10 +148,23 @@ sub Construct {
 	# Construct the full covariance matrix, which is the covariance matrix of the observations
 	# plus that of the model.
 	my $fullCovariance = $config->{'covariance'}+$covarianceGalacticus;
+	# If the range of masses over which to constrain is limited, set the model fraction function outside of that range equal to
+	# the observed fraction function.
+	my $yGalacticusLimited = $yGalacticus->copy();
+	if ( exists($config->{'constraintMassMinimum'}) ) {
+	    my $noConstraint = which($config->{'x'} < $config->{'constraintMassMinimum'});
+	    $yGalacticusLimited->($noConstraint) .= $config->{'y'}->($noConstraint)
+		if ( nelem($noConstraint) > 0 );
+	}
+	if ( exists($config->{'constraintMassMaximum'}) ) {
+	    my $noConstraint = which($config->{'x'} > $config->{'constraintMassMaximum'});
+	    $yGalacticusLimited->($noConstraint) .= $config->{'y'}->($noConstraint)
+		if ( nelem($noConstraint) > 0 );
+	}
 	# Compute the likelihood.
 	my $constraint;
 	my $logDeterminant;
-	my $logLikelihood = &Covariances::ComputeLikelihood($yGalacticus,$config->{'y'},$fullCovariance, determinant => \$logDeterminant, quiet => $arguments{'quiet'});
+	my $logLikelihood = &Covariances::ComputeLikelihood($yGalacticusLimited,$config->{'y'},$fullCovariance, determinant => \$logDeterminant, quiet => $arguments{'quiet'});
 	$constraint->{'logLikelihood'} = $logLikelihood;
 	# Output the constraint.
 	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");

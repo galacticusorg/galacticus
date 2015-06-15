@@ -56,6 +56,9 @@ $fractionFunctionConfig->{'omegaMatterObserved'             } =  0.307115;
 $fractionFunctionConfig->{'omegaDarkEnergyObserved'         } =  0.692885;
 $fractionFunctionConfig->{'observationLabel'                } = "Constraint";
 
+# Limit comparison mass range.
+$fractionFunctionConfig->{'constraintMassMinimum'           } = 3.0e8;
+
 # Construct the mass function.
 &FractionFunctions::Construct(\%arguments,$fractionFunctionConfig);
 
