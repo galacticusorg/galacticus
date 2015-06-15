@@ -433,19 +433,19 @@ contains
        else
           remakeTable=.true.
        end if
-       if (remakeTable)           call self%expansionFactorTabulate(time)
+       if (remakeTable) call self%expansionFactorTabulate(time)
        ! Quit on invalid input.
        if (self%collapsingUniverse.and.time > self%timeMaximum) &
             & call Galacticus_Error_Report('matterLambdaExpansionFactor','cosmological time exceeds that at the Big Crunch')
        ! Interpolate to get the expansion factor.
        if (self%collapsingUniverse) then
           if (time <= self%timeTurnaround) then
-             timeEffective=                      time
+             timeEffective=                 time
           else
              timeEffective=self%timeMaximum-time
           end if
        else
-          timeEffective   =                      time
+          timeEffective   =                 time
        end if
        self%expansionFactorPrevious                              &
             & =Interpolate(                                      &
@@ -1084,6 +1084,9 @@ contains
     type            (fgsl_function                 )                        :: integrandFunction
     type            (fgsl_integration_workspace    )                        :: integrationWorkspace
 
+
+double precision :: d
+    
     ! Find minimum and maximum times to tabulate.
     self%distanceTableTimeMinimum=min(self%distanceTableTimeMinimum,0.5d0*time)
     self%distanceTableTimeMaximum=    self%cosmicTime(1.0d0)
@@ -1105,17 +1108,17 @@ contains
     resetIntegration       =  .true.
     matterLambdaSelfGlobal => self
     do iTime=1,self%distanceTableNumberPoints
-       self%distanceTableComovingDistance(iTime)                                 &
-            & =Integrate(                                                        &
-            &            self%distanceTableTime(iTime)                         , &
-            &            self%distanceTableTime(self%distanceTableNumberPoints), &
-            &            matterLambdaComovingDistanceIntegrand                 , &
-            &            parameterPointer                                      , &
-            &            integrandFunction                                     , &
-            &            integrationWorkspace                                  , &
-            &            toleranceAbsolute=toleranceAbsolute                   , &
-            &            toleranceRelative=toleranceRelative                   , &
-            &            reset=resetIntegration                                  &
+       self%distanceTableComovingDistance(iTime)                                                       &
+            & =Integrate(                                                                              &
+            &            self%expansionFactor(self%distanceTableTime(iTime                         )), &
+            &            self%expansionFactor(self%distanceTableTime(self%distanceTableNumberPoints)), &
+            &            matterLambdaComovingDistanceIntegrand                                       , &
+            &            parameterPointer                                                            , &
+            &            integrandFunction                                                           , &
+            &            integrationWorkspace                                                        , &
+            &            toleranceAbsolute=toleranceAbsolute                                         , &
+            &            toleranceRelative=toleranceRelative                                         , &
+            &            reset=resetIntegration                                                        &
             &           )
        self         %distanceTableLuminosityDistanceNegated              (iTime)  &
             & = self%distanceTableComovingDistance                       (iTime)  &
@@ -1137,20 +1140,20 @@ contains
     return
   end subroutine matterLambdaMakeDistanceTable
 
-  function matterLambdaComovingDistanceIntegrand(time,parameterPointer) bind(c)
+  function matterLambdaComovingDistanceIntegrand(expansionFactor,parameterPointer) bind(c)
     !% Integrand function used in computing the comoving distance.
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     use, intrinsic :: ISO_C_Binding
     implicit none
     real(kind=c_double)        :: matterLambdaComovingDistanceIntegrand
-    real(kind=c_double), value :: time
+    real(kind=c_double), value :: expansionFactor
     type(c_ptr        ), value :: parameterPointer
 
-    matterLambdaComovingDistanceIntegrand=speedLight*gigaYear/megaParsec/matterLambdaSelfGlobal%expansionFactor(time)
+    matterLambdaComovingDistanceIntegrand=speedLight*gigaYear/megaParsec/expansionFactor**2/matterLambdaSelfGlobal%expansionRate(expansionFactor)
     return
   end function matterLambdaComovingDistanceIntegrand
-
+  
   double precision function matterLambdaEquationOfStateDarkEnergy(self,time,expansionFactor)
     !% Return the dark energy equation of state.
     implicit none
