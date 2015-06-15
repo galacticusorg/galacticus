@@ -25,9 +25,6 @@ module IO_XML
        &    XML_Get_First_Element_By_Tag_Name, XML_Array_Length, XML_Path_Exists      , &
        &    XML_Extract_Text
 
-  ! Labels for extrapolation methods.
-  integer, parameter, public :: extrapolateFixed=1, extrapolatePowerLaw=2, extrapolateZero=0
-
   ! Interface for array reading functions.
   interface XML_Array_Read
      module procedure XML_Array_Read_One_Column
@@ -319,6 +316,7 @@ contains
     !% specified---if the extracted method does not match one of these an error is issued.
     use Galacticus_Error
     use FoX_dom
+    use Table_Labels
     implicit none
     type     (Node    )              , intent(in   ), pointer  :: extrapolationElement
     character(len=*   )              , intent(  out)           :: limitType
@@ -339,17 +337,7 @@ contains
     if (getLength(elementList) /= 1) call Galacticus_Error_Report('Extrapolation_Element_Decode','extrapolation element must contain exactly one method element')
     methodElement => item(elementList,0)
     call extractDataContent(methodElement,methodType)
-    select case (trim(methodType))
-    case ('zero')
-       extrapolationMethod=extrapolateZero
-    case ('fixed')
-       extrapolationMethod=extrapolateFixed
-    case ('power law')
-       extrapolationMethod=extrapolatePowerLaw
-    case default
-       call Galacticus_Error_Report('Extrapolation_Element_Decode','unrecognized extrapolation method')
-    end select
-
+    extrapolationMethod=enumerationExtrapolationTypeEncode(trim(methodType),includesPrefix=.false.)
     ! Validate the method type.
     if (present(allowedMethods)) then
        if (all(allowedMethods /= extrapolationMethod)) call Galacticus_Error_Report('Extrapolation_Element_Decode','unallowed extrapolation method')

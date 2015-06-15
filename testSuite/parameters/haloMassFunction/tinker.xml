@@ -12,7 +12,7 @@
     <HubbleConstant value="71.0"/>
   </cosmologyParametersMethod><sigma_8 value="0.9"/>
   <powerSpectrumIndex value="1.0"/>
-  <transferFunctionMethod value="Eisenstein-Hu1999"/>
+  <transferFunctionMethod value="eisensteinHu1999"/>
   <virialDensityContrastMethod value="fixed"/>
   <virialDensityContrastFixed value="200"/>
   <virialDensityContrastFixedType value="meanDensity"/>

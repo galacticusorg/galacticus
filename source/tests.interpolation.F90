@@ -22,6 +22,7 @@ program Test_Interpolation
   use Unit_Tests
   use Numerical_Interpolation
   use FGSL
+  use Table_Labels
   implicit none
   type            (fgsl_interp      )                 :: interpolationObject
   type            (fgsl_interp_accel)                 :: interpolationAccelerator
@@ -45,12 +46,12 @@ program Test_Interpolation
 
   ! Test linear extrapolation.
   x=15.0d0
-  y=Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset,extrapolationType=extrapolationTypeLinear)
+  y=Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset,extrapolationType=extrapolationTypeExtrapolate)
   call Assert("linear extrapolation",y,17.0d0)
 
   ! Test fixed extrapolation.
   x=15.0d0
-  y=Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset,extrapolationType=extrapolationTypeFixed)
+  y=Interpolate(xArray,yArray,interpolationObject,interpolationAccelerator,x,reset=interpolationReset,extrapolationType=extrapolationTypeFix)
   call Assert("fixed extrapolation",y,9.0d0)
 
   ! End unit tests.

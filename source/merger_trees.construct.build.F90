@@ -64,6 +64,7 @@ contains
     use FoX_dom
     use IO_HDF5
     use IO_XML
+    use Table_Labels
     !# <include directive="mergerTreeBuildMethod" type="moduleUse">
     include 'merger_trees.build.modules.inc'
     !# </include>
@@ -280,7 +281,7 @@ contains
           do iTree=1,treeCount
              treeHaloMass(iTree)=Interpolate(massFunctionSampleProbability(1:massFunctionSampleCount)&
                   &,massFunctionSampleLogMassMonotonic(1:massFunctionSampleCount),interpolationObject,interpolationAccelerator&
-                  &,treeHaloMass(iTree) ,reset=interpolationReset,extrapolationType=extrapolationTypeFixed)
+                  &,treeHaloMass(iTree) ,reset=interpolationReset,extrapolationType=extrapolationTypeFix)
           end do
           treeHaloMass=10.0d0**treeHaloMass
           call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)

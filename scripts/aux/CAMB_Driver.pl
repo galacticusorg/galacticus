@@ -72,16 +72,26 @@ my $xml  = new XML::Simple;
 my $data = $xml->XMLin($parameterFile);
 
 # Check that required parameters exist.
+die("CAMB_Driver.pl: FATAL - this script expects the 'simple' cosmologyParametersMethod class to be used")
+    unless 
+    (
+     exists($data->{'cosmologyParametersMethod'}           ) 
+     && 
+            $data->{'cosmologyParametersMethod'}->{'value'}  eq "simple" 
+    );
 my @parameters = ( "OmegaBaryon", "OmegaMatter", "OmegaDarkEnergy", "HubbleConstant", "temperatureCMB", "Y_He" );
 foreach my $parameter ( @parameters ) {
+    my $node = $data->{'cosmologyParametersMethod'};
+    $node    = $data
+	if ( $parameter eq "Y_He" );
     die("CAMB_Driver.pl: FATAL - parameter ".$parameter." can not be found.")
-	unless ( exists($data->{$parameter}) );
-    $data->{$parameter}->{'value'} =~ s/d/e/;
+	unless ( exists($node->{$parameter}) );
+    $node->{$parameter}->{'value'} =~ s/d/e/;
 }
 
 # Calculate derived parameters.
-my $Omega_c = $data->{'OmegaMatter'}->{'value'}-$data->{'OmegaBaryon'}->{'value'};
-$kMax = $kMax/($data->{'HubbleConstant'}->{'value'}/100.0);
+my $Omega_c = $data->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}-$data->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'};
+$kMax = $kMax/($data->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/100.0);
 
 my $makeFile = 0;
 if ( -e $transferFunctionFile ) {
@@ -115,15 +125,15 @@ l_max_scalar      = 2200
 l_max_tensor      = 1500
 k_eta_max_tensor  = 3000
 use_physical   = F
-omega_baryon   = $data->{'OmegaBaryon'}->{'value'}
+omega_baryon   = $data->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
 omega_cdm      = $Omega_c
-omega_lambda   = $data->{'OmegaDarkEnergy'}->{'value'}
+omega_lambda   = $data->{'cosmologyParametersMethod'}->{'OmegaDarkEnergy'}->{'value'}
 omega_neutrino = $Omega_nu
 omk            = 0
-hubble         = $data->{'HubbleConstant'}->{'value'}
+hubble         = $data->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}
 w              = -1
 cs2_lam        = 1
-temp_cmb           = $data->{'temperatureCMB'}->{'value'}
+temp_cmb           = $data->{'cosmologyParametersMethod'}->{'temperatureCMB'}->{'value'}
 helium_fraction    = $data->{'Y_He'}->{'value'}
 massless_neutrinos = 2.046
 nu_mass_eigenstates = 1
@@ -200,11 +210,10 @@ accuracy_boost          = 1
 l_accuracy_boost        = 1
 l_sample_boost          = 1
 END
-   close(cambInput);
+close(cambInput);
 
    # Run CAMB.
    system($galacticusPath."aux/camb/camb ".$transferFunctionFile.".inp");
-
    # Read in the tabulated data and output as an XML file.
    my @transferFunctionData;
    my %transferFunction;
@@ -212,7 +221,7 @@ END
    while ( my $line = <inHndl> ) {
        $line =~ s/^\s*//;
        my @columns = split(/\s+/,$line);
-       my $k = $columns[0]*($data->{'HubbleConstant'}->{'value'}/100.0);
+       my $k = $columns[0]*($data->{'cosmologyParametersMethod'}->{'HubbleConstant'}->{'value'}/100.0);
        push(@transferFunctionData,$k." ".$columns[1]);
    }
    close(inHndl);
@@ -224,18 +233,16 @@ END
        );
    @{$transferFunction{'description'}} = "Cold dark matter power spectrum created by CAMB.";
    foreach my $parameter ( keys(%{$data}) ) {
-       ${$transferFunction{'parameters'}->{$parameter}}[0]->{'value'} = $data->{$parameter}->{'value'}
-           if ( reftype($data->{$parameter}) && exists($data->{$parameter}->{'value'}) );
+       ${$transferFunction{'parameters'}->{$parameter}}[0] = $data->{$parameter}
+       if ( reftype($data->{$parameter})  );
    }
    # Add extrapolation data.
    ${$transferFunction{'extrapolation'}->{'wavenumber'}}[0]->{'limit' } = "low";
-   ${$transferFunction{'extrapolation'}->{'wavenumber'}}[0]->{'method'} = "power law";
+   ${$transferFunction{'extrapolation'}->{'wavenumber'}}[0]->{'method'} = "extrapolate";
    ${$transferFunction{'extrapolation'}->{'wavenumber'}}[1]->{'limit' } = "high";
-   ${$transferFunction{'extrapolation'}->{'wavenumber'}}[1]->{'method'} = "power law";
+   ${$transferFunction{'extrapolation'}->{'wavenumber'}}[1]->{'method'} = "extrapolate";
    # Add file format version.
    $transferFunction{'fileFormat'} = $fileFormatCurrent;
-   # Add unique label.
-   $transferFunction{'uniqueLabel'} = $data->{'uniqueLabel'};
    # Output the transfer function.
    my $transferFunctionStructure = \%transferFunction;
    my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"data");

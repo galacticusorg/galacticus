@@ -16,286 +16,451 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
+  
+  !% Contains a module which implements a transfer function class using the fitting function of
+  !% \cite{eisenstein_power_1999}.
 
-!% Contains a module which generates a tabulated transfer function using the Eisenstein \& Hu fitting formula.
+  use Cosmology_Parameters
 
-module Transfer_Function_Eisenstein_Hu
-  !% Implements generation of a tabulated transfer function using the Eisenstein \& Hu fitting formula.
-  use ISO_Varying_String
-  implicit none
-  private
-  public :: Transfer_Function_Eisenstein_Hu_Initialize, Transfer_Function_Eisenstein_Hu_State_Store,&
-       & Transfer_Function_Eisenstein_Hu_State_Retrieve
+  !# <transferFunction name="transferFunctionEisensteinHu1999">
+  !#  <description>Provides the \cite{eisenstein_power_1999} fitting function to the transfer function. The effective number of neutrino species and the summed mass (in electron volts) of all neutrino species are specified via the {\normalfont \ttfamily neutrinoNumberEffective} and {\normalfont \ttfamily neutrinoMassSummed} parameters respectively.</description>
+  !# </transferFunction>
+  type, extends(transferFunctionClass) :: transferFunctionEisensteinHu1999
+     !% The ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+     private
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
+     double precision                                    :: temperatureCMB27    , distanceSoundWave      , &
+          &                                                 neutrinoMassFraction, neutrinoNumberEffective, &
+          &                                                 neutrinoFactor      , betaDarkMatter         , &
+          &                                                 neutrinoMassSummed
+   contains
+     !@ <objectMethods>
+     !@   <object>transferFunctionEisensteinHu1999</object>
+     !@   <objectMethod>
+     !@     <method>computeFactors</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ wavenumber\argin, \doublezero\ wavenumberEffective\argout, \doublezero\ wavenumberNeutrino\argout, \doublezero\ L\argout, \doublezero\ C\argout</arguments>
+     !@     <description>Compute common factors needed by \cite{eisenstein_power_1999} transfer function calculations.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                          eisensteinHu1999Destructor
+     procedure :: value                 => eisensteinHu1999Value
+     procedure :: logarithmicDerivative => eisensteinHu1999LogarithmicDerivative
+     procedure :: computeFactors        => eisensteinHu1999ComputeFactors
+     procedure :: halfModeMass          => eisensteinHu1999HalfModeMass
+     procedure :: descriptor            => eisensteinHu1999Descriptor
+  end type transferFunctionEisensteinHu1999
 
-  ! Wavenumber range and fineness of gridding.
-  double precision            :: logWavenumberMaximum          =log(10.0d0)
-  double precision            :: logWavenumberMinimum          =log(1.0d-5)
-  integer         , parameter :: numberPointsPerDecade         =1000
-
-  ! Neutrino properties.
-  double precision            :: effectiveNumberNeutrinos                  , summedNeutrinoMasses
-
-  ! Warm dark matter cut-off scale.
-  double precision            :: transferFunctionWdmCutOffScale
-  double precision            :: transferFunctionWdmEpsilon
-  double precision            :: transferFunctionWdmEta
-  double precision            :: transferFunctionWdmNu
+  interface transferFunctionEisensteinHu1999
+     !% Constructors for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+     module procedure eisensteinHu1999ConstructorParameters
+     module procedure eisensteinHu1999ConstructorInternal
+  end interface transferFunctionEisensteinHu1999
 
 contains
 
-  !# <transferFunctionMethod>
-  !#  <unitName>Transfer_Function_Eisenstein_Hu_Initialize</unitName>
-  !# </transferFunctionMethod>
-  subroutine Transfer_Function_Eisenstein_Hu_Initialize(transferFunctionMethod,Transfer_Function_Tabulate&
-       &,Transfer_Function_Half_Mode_Mass)
-    !% Initializes the ``transfer function from Eisenstein \& Hu'' module.
-    use Input_Parameters
+  function eisensteinHu1999ConstructorParameters(parameters)
+    !% Constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class
+    !% which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string                                ), intent(in   )          :: transferFunctionMethod
-    procedure(Transfer_Function_Eisenstein_Hu_Make          ), intent(inout), pointer :: Transfer_Function_Tabulate
-    procedure(Transfer_Function_Half_Mode_Mass_Eisenstein_Hu), intent(inout), pointer :: Transfer_Function_Half_Mode_Mass
+    type            (transferFunctionEisensteinHu1999)                :: eisensteinHu1999ConstructorParameters
+    type            (inputParameters                 ), intent(in   ) :: parameters
+    class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_
+    double precision                                                  :: neutrinoNumberEffective             , neutrinoMassSummed
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (transferFunctionMethod == 'Eisenstein-Hu1999') then
-       Transfer_Function_Tabulate       => Transfer_Function_Eisenstein_Hu_Make
-       Transfer_Function_Half_Mode_Mass => Transfer_Function_Half_Mode_Mass_Eisenstein_Hu
-       !@ <inputParameter>
-       !@   <name>effectiveNumberNeutrinos</name>
-       !@   <defaultValue>3.046 \citep{mangano_relic_2005}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The effective number of neutrino species as used in the \cite{eisenstein_power_1999} transfer function.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('effectiveNumberNeutrinos',effectiveNumberNeutrinos,defaultValue=3.046d0)
-       !@ <inputParameter>
-       !@   <name>summedNeutrinoMasses</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The summed mass (in electron volts) of all neutrino species.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('summedNeutrinoMasses'    ,summedNeutrinoMasses    ,defaultValue=0.00d0)
-       !@ <inputParameter>
-       !@   <name>transferFunctionWdmCutOffScale</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The cut-off scale in the transfer function due to warm dark matter.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('transferFunctionWdmCutOffScale',transferFunctionWdmCutOffScale,defaultValue=0.00d0)
-       !@ <inputParameter>
-       !@   <name>transferFunctionWdmEpsilon</name>
-       !@   <defaultValue>0.361 \citep{barkana_constraints_2001}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('transferFunctionWdmEpsilon',transferFunctionWdmEpsilon,defaultValue=0.361d0)
-       !@ <inputParameter>
-       !@   <name>transferFunctionWdmEta</name>
-       !@   <defaultValue>5.0 \citep{barkana_constraints_2001}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('transferFunctionWdmEta',transferFunctionWdmEta,defaultValue=5.0d0)
-       !@ <inputParameter>
-       !@   <name>transferFunctionWdmNu</name>
-       !@   <defaultValue>1.2 \citep{barkana_constraints_2001}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('transferFunctionWdmNu',transferFunctionWdmNu,defaultValue=1.200d0)
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>neutrinoNumberEffective</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>3.046d0</defaultValue>
+    !#   <defaultSource>\citep{mangano_relic_2005}</defaultSource>
+    !#   <description>The effective number of neutrino species.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>neutrinoMassSummed</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The summed mass (in electron volts) of all neutrino species.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    ! Call the internal constructor.
+    eisensteinHu1999ConstructorParameters=eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,cosmologyParameters_)
+    return
+  end function eisensteinHu1999ConstructorParameters
+
+  function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,cosmologyParameters_)
+    !% Internal constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+    implicit none
+    type            (transferFunctionEisensteinHu1999)                                  :: eisensteinHu1999ConstructorInternal
+    double precision                                  , intent(in   )                   :: neutrinoNumberEffective           , neutrinoMassSummed
+    class           (cosmologyParametersClass        ), intent(in   ), target, optional :: cosmologyParameters_
+    double precision                                                                    :: redshiftEquality                   , redshiftComptonDrag   , &
+         &                                                                                 b1                                 , b2                    , &
+         &                                                                                 massFractionBaryonic               , massFractionDarkMatter, &
+         &                                                                                 expansionFactorRatio               , massFractionMatter    , &
+         &                                                                                 massFractionBaryonsNeutrinos       , suppressionDarkMatter , &
+         &                                                                                 suppressionMatter
+
+    ! Determine the cosmological parameters to use.
+    if (present(cosmologyParameters_)) then
+       eisensteinHu1999ConstructorInternal%cosmologyParameters_ => cosmologyParameters_
+    else
+       eisensteinHu1999ConstructorInternal%cosmologyParameters_ => cosmologyParameters()
+    end if
+    ! Present day CMB temperature [in units of 2.7K].
+    eisensteinHu1999ConstructorInternal%temperatureCMB27       =+eisensteinHu1999ConstructorInternal%cosmologyParameters_%temperatureCMB(                  )    &
+         &                                                       /2.7d0
+    ! Redshift of matter-radiation equality.
+    redshiftEquality                                           =+2.50d4                                                                                         &
+         &                                                      *eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                                                      *eisensteinHu1999ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                                                      /eisensteinHu1999ConstructorInternal%temperatureCMB27                                       **4
+    ! Compute redshift at which baryons are released from Compton drag of photons (eqn. 2)
+    b1                                                         =+0.313d0                                                                                            &
+         &                                                      /(                                                                                                  &
+         &                                                        +  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                                                        *  eisensteinHu1999ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                                                       )**0.419d0                                                                                         &
+         &                                                      *(                                                                                                  &
+         &                                                        +1.000d0                                                                                          &
+         &                                                        +0.607d0                                                                                          &
+         &                                                        *(                                                                                                &
+         &                                                          +eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                                                          *eisensteinHu1999ConstructorInternal%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**2 &
+         &                                                         )**0.674d0                                                                                       &
+         &                                                       )
+    b2                                                         =+0.238d0                                                                                            &
+         &                                                      *(                                                                                                  &
+         &                                                        +  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                                                        *  eisensteinHu1999ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                                                       )**0.223d0
+    redshiftComptonDrag                                        =+1291.0d0                                                                                           &
+         &                                                      *(                                                                                                  &
+         &                                                        +  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                                                        *  eisensteinHu1999ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                                                       )**0.251d0                                                                                         &
+         &                                                      *(                                                                                                  &
+         &                                                        +1.0d0                                                                                            &
+         &                                                        +b1                                                                                               &
+         &                                                        *(                                                                                                &
+         &                                                          +eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaBaryon   (                  )    &
+         &                                                          *eisensteinHu1999ConstructorInternal%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**2 &
+         &                                                         )**b2                                                                                            &
+         &                                                       )                                                                                                  &
+         &                                                      /(                                                                                                  &
+         &                                                        +1.000d0                                                                                          &
+         &                                                        +0.659d0                                                                                          &
+         &                                                        *(                                                                                                &
+         &                                                          +eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                                                          *eisensteinHu1999ConstructorInternal%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**2 &
+         &                                                         )**0.828d0                                                                                       &
+         &                                                       )
+    ! Relative expansion factor between previous two computed redshifts.
+    expansionFactorRatio                                       =+(1.0d0+redshiftEquality   ) &
+         &                                                      /(1.0d0+redshiftComptonDrag)
+    ! Compute the comoving distance that a sound wave can propagate prior to redshiftComptonDrag (i.e. sound horizon; eq. 4)
+    eisensteinHu1999ConstructorInternal%distanceSoundWave      =+44.5d0                                                                                                 &
+         &                                                      *log (                                                                                                  &
+         &                                                            +9.83d0                                                                                           &
+         &                                                            /  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                                                            /  eisensteinHu1999ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                                                           )                                                                                                  &
+         &                                                      /sqrt(                                                                                                  &
+         &                                                            + 1.0d0                                                                                           &
+         &                                                            +10.0d0                                                                                           &
+         &                                                            *(                                                                                                &
+         &                                                              +eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaBaryon   (                  )    &
+         &                                                              *eisensteinHu1999ConstructorInternal%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**2 &
+         &                                                             )**0.75d0                                                                                        &
+         &                                                           )
+    ! Specify properties of neutrinos. Mass fraction formula is from Komatsu et al. (2007; http://adsabs.harvard.edu/abs/2010arXiv1001.4538K).
+    eisensteinHu1999ConstructorInternal%neutrinoMassSummed     =+neutrinoMassSummed
+    eisensteinHu1999ConstructorInternal%neutrinoMassFraction   =+neutrinoMassSummed                                                                           &
+         &                                                      /94.0d0                                                                                         &
+         &                                                      /eisensteinHu1999ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                                                      /eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )
+    eisensteinHu1999ConstructorInternal%neutrinoNumberEffective=+neutrinoNumberEffective
+    ! Compute baryonic and cold dark matter fractions.
+    massFractionBaryonic                                       =+  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaBaryon() &
+         &                                                      /  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter()
+    massFractionDarkMatter                                     =+(                                                                        &
+         &                                                        +eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter() &
+         &                                                        -eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaBaryon() &
+         &                                                       )                                                                        &
+         &                                                      /  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter()
+    ! Total matter fraction.
+    massFractionMatter                                         =+massFractionBaryonic   &
+         &                                                      +massFractionDarkMatter
+    ! Baryonic + neutrino fraction.
+    massFractionBaryonsNeutrinos                               =+eisensteinHu1999ConstructorInternal%neutrinoMassFraction &
+         &                                                      +massFractionBaryonic
+    ! Compute small scale suppression factor (eqn. 15).
+    suppressionDarkMatter                                      =+0.25d0*(5.0d0-sqrt(1.0d0+24.0d0*massFractionDarkMatter))
+    suppressionMatter                                          =+0.25d0*(5.0d0-sqrt(1.0d0+24.0d0*massFractionMatter    ))
+    eisensteinHu1999ConstructorInternal%neutrinoFactor         =+(                                                                      &
+         &                                                        +massFractionDarkMatter                                               &
+         &                                                        /massFractionMatter                                                   &
+         &                                                       )                                                                      &
+         &                                                      *(                                                                      &
+         &                                                        +(5.0d0-2.0d0*(suppressionDarkMatter+suppressionMatter))              &
+         &                                                        /(5.0d0-4.0d0*                       suppressionMatter )              &
+         &                                                       )                                                                      &
+         &                                                      *(                                                                      &
+         &                                                        +(                                                                    &
+         &                                                          +1.000d0                                                            &
+         &                                                          -0.533d0                                                            &
+         &                                                          *massFractionBaryonsNeutrinos                                       &
+         &                                                          +0.126d0                                                            &
+         &                                                          *massFractionBaryonsNeutrinos**3                                    &
+         &                                                         )                                                                    &
+         &                                                        *(                                                                    &
+         &                                                          +1.0d0                                                              &
+         &                                                          +expansionFactorRatio                                               &
+         &                                                         )**(                                                                 &
+         &                                                             +suppressionMatter                                               &
+         &                                                             -suppressionDarkMatter                                           &
+         &                                                            )                                                                 &
+         &                                                        /(                                                                    &
+         &                                                          +1.000d0                                                            &
+         &                                                          -0.193d0                                                            &
+         &                                                          *sqrt(                                                              &
+         &                                                                +eisensteinHu1999ConstructorInternal%neutrinoMassFraction     &
+         &                                                                *eisensteinHu1999ConstructorInternal%neutrinoNumberEffective  &
+         &                                                               )                                                              &
+         &                                                          +0.169d0                                                            &
+         &                                                          *eisensteinHu1999ConstructorInternal%neutrinoMassFraction           &
+         &                                                          *eisensteinHu1999ConstructorInternal%neutrinoNumberEffective**0.2d0 &
+         &                                                         )                                                                    &
+         &                                                       )                                                                      &
+         &                                                      *(                                                                      &
+         &                                                        +1.0d0                                                                &
+         &                                                        +0.5d0                                                                &
+         &                                                        *(                                                                    &
+         &                                                          +suppressionDarkMatter                                              &
+         &                                                          -suppressionMatter                                                  &
+         &                                                         )                                                                    &
+         &                                                        *(                                                                    &
+         &                                                          +1.0d0                                                              &
+         &                                                          +1.0d0                                                              &
+         &                                                          /(3.0d0-4.0d0*suppressionDarkMatter)                                &
+         &                                                          /(7.0d0-4.0d0*suppressionMatter    )                                &
+         &                                                         )                                                                    &
+         &                                                        /(                                                                    &
+         &                                                          +1.0d0                                                              &
+         &                                                          +expansionFactorRatio                                               &
+         &                                                         )                                                                    &
+         &                                                       )
+    eisensteinHu1999ConstructorInternal%betaDarkMatter      =+1.0d0                                                                     & ! Eqn. 21.
+         &                                                   /(                                                                         &
+         &                                                     +1.0d0                                                                   &
+         &                                                     -0.949d0                                                                 &
+         &                                                     *massFractionBaryonsNeutrinos                                            &
+         &                                                    )
+    return
+  end function eisensteinHu1999ConstructorInternal
+
+  subroutine eisensteinHu1999Destructor(self)
+    !% Destructor for the eisensteinHu1999 transfer function class.
+    implicit none
+    type(transferFunctionEisensteinHu1999), intent(inout) :: self
+
+    if     (                                                       &
+         &   associated(self%cosmologyParameters_                ) &
+         &  .and.                                                  &
+         &              self%cosmologyParameters_%isFinalizable()  &
+         & ) deallocate(self%cosmologyParameters_                )
+    return
+  end subroutine eisensteinHu1999Destructor
+
+  subroutine eisensteinHu1999ComputeFactors(self,wavenumber,wavenumberEffective,wavenumberNeutrino,L,C)
+    !% Compute common factors required by ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+    implicit none
+    class           (transferFunctionEisensteinHu1999), intent(in   ) :: self
+    double precision                                  , intent(in   ) :: wavenumber
+    double precision                                  , intent(  out) :: wavenumberEffective    , wavenumberNeutrino, &
+         &                                                               L                      , C
+    double precision                                                  :: wavenumberScaleFree
+    double precision                                                  :: shapeParameterEffective
+    
+    ! Compute rescaled shape parameter (eqn. 16)
+    shapeParameterEffective=+self%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                  *self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                  *(                                                               &
+         &                    +       sqrt(self%neutrinoFactor)                              &
+         &                    +(1.0d0-sqrt(self%neutrinoFactor))                             &
+         &                    /(                                                             &
+         &                      +1.0d0                                                       &
+         &                      +(                                                           &
+         &                        +0.43d0                                                    &
+         &                        *wavenumber                                                &
+         &                        *self%distanceSoundWave                                    &
+         &                       )**4                                                        &
+         &                     )                                                             &
+         &                   )
+    wavenumberEffective    =+wavenumber                                                      &
+         &                  *self%temperatureCMB27**2                                        &
+         &                  /shapeParameterEffective
+    L                      =+log(                                                            & ! Eqn. 19.
+         &                       +exp(1.0d0)                                                 &
+         &                       +1.84d0                                                     &
+         &                       *self%betaDarkMatter                                        &
+         &                       *sqrt(self%neutrinoFactor)                                  &
+         &                       *wavenumberEffective                                        &
+         &                      )
+    C                      =+ 14.4d0                                                         & ! Eqn. 20.
+         &                  +325.0d0                                                         &
+         &                  /(                                                               &
+         &                    + 1.0d0                                                        &
+         &                    +60.5d0                                                        &
+         &                    *wavenumberEffective**1.11d0                                   &
+         &                   )
+    ! Compute wavenumbers needed for horizon scale modes.
+    if     (                                    &
+         &   self%neutrinoMassFraction >  0.0d0 &
+         &  .and.                               &
+         &   self%neutrinoMassFraction <= 0.3d0 &
+         & ) then
+       ! Compute effective q.
+       wavenumberScaleFree =+wavenumber                                                      &
+            &               *self%temperatureCMB27                                       **2 &
+            &               /self%cosmologyParameters_%OmegaMatter   (                  )    &
+            &               /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       wavenumberNeutrino =+3.92d0                             &
+            &              *wavenumberScaleFree                &
+            &              *sqrt(self%neutrinoNumberEffective) &
+            &              /     self%neutrinoMassFraction
+    else
+       wavenumberNeutrino =+0.0d0
     end if
     return
-  end subroutine Transfer_Function_Eisenstein_Hu_Initialize
-
-  subroutine Transfer_Function_Eisenstein_Hu_Make(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber&
-       &,transferFunctionLogT)
-    !% Build a transfer function using the \cite{eisenstein_power_1999} fitting formula. Includes a modification for warm dark
-    !% matter using the fitting function of \citeauthor{bode_halo_2001}~(\citeyear{bode_halo_2001}; as re-expressed by
-    !% \citealt{barkana_constraints_2001}) to impose a cut-off below a specified {\normalfont \ttfamily [transferFunctionWdmCutOffScale]}.
-    use Memory_Management
-    use Cosmology_Parameters
-    use Numerical_Ranges
-    use Numerical_Constants_Math
+  end subroutine eisensteinHu1999ComputeFactors
+  
+  double precision function eisensteinHu1999Value(self,wavenumber)
+    !% Return the transfer function at the given wavenumber.
     implicit none
-    double precision                                                     , intent(in   ) :: logWavenumber
-    double precision                          , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
-    integer                                                              , intent(  out) :: transferFunctionNumberPoints
-    class           (cosmologyParametersClass), pointer                                  :: thisCosmologyParameters
-    integer                                                                              :: iWavenumber
-    double precision                                                                     :: Bk                          , C                            , &
-         &                                                                                  Gammaeff                    , L                            , &
-         &                                                                                  Nv                          , Theta27                      , &
-         &                                                                                  Tsup                        , alphav                       , &
-         &                                                                                  b1                          , b2                           , &
-         &                                                                                  betac                       , fb                           , &
-         &                                                                                  fc                          , fcb                          , &
-         &                                                                                  fv                          , fvb                          , &
-         &                                                                                  pc                          , pcb                          , &
-         &                                                                                  qEH                         , qeff                         , &
-         &                                                                                  qv                          , s                            , &
-         &                                                                                  transferFunctionWdmFactor   , wavenumber                   , &
-         &                                                                                  yd                          , zd                           , &
-         &                                                                                  zeq
+    class           (transferFunctionEisensteinHu1999), intent(inout) :: self
+    double precision                                  , intent(in   ) :: wavenumber
+    double precision                                                  :: wavenumberEffective, L                      , &
+         &                                                               C                  , wavenumberNeutrino     , &
+         &                                                               suppressionNeutrino
 
-    ! Set wavenumber range and number of points in table.
-    logWavenumberMinimum=min(logWavenumberMinimum,logWavenumber-ln10)
-    logWavenumberMaximum=max(logWavenumberMaximum,logWavenumber+ln10)
-    transferFunctionNumberPoints=int((logWavenumberMaximum-logWavenumberMinimum)*dble(numberPointsPerDecade)/ln10)
-    ! Deallocate arrays if currently allocated.
-    if (allocated(transferFunctionLogWavenumber)) call Dealloc_Array(transferFunctionLogWavenumber)
-    if (allocated(transferFunctionLogT))          call Dealloc_Array(transferFunctionLogT         )
-    ! Allocate the arrays to current required size.
-    call Alloc_Array(transferFunctionLogWavenumber,[transferFunctionNumberPoints])
-    call Alloc_Array(transferFunctionLogT         ,[transferFunctionNumberPoints])
-    ! Create range of wavenumbers.
-    transferFunctionLogWavenumber=Make_Range(logWavenumberMinimum,logWavenumberMaximum,transferFunctionNumberPoints&
-         &,rangeTypeLinear)
-    ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
-    ! Create transfer function.
-    ! Present day CMB temperature [in units of 2.7K].
-    Theta27=thisCosmologyParameters%temperatureCMB()/2.7d0
-    ! Redshift of matter-radiation equality.
-    zeq=2.50d4*thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)**2)/(Theta27**4)
-    ! Compute redshift at which baryons are released from Compton drag of photons (eqn. 2)
-    b1=0.313d0*((thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)**2))**(-0.419d0))*(1.0d0+0.607d0*((thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%hubbleConstant(hubbleUnitsLittleH)**2))**0.674d0))
-    b2=0.238d0*((thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)**2))**0.223d0)
-    zd=1291.0d0*((thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)**2))**0.251d0)*(1.0d0+b1*((thisCosmologyParameters%OmegaBaryon()*(thisCosmologyParameters%hubbleConstant(hubbleUnitsLittleH)**2))**b2))/(1.0d0+0.659d0*((thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%hubbleConstant(hubbleUnitsLittleH)**2))**0.828d0))
-    ! Relative expansion factor between previous two computed redshifts.
-    yd=(1.0d0+zeq)/(1.0d0+zd)
-    ! Compute the comoving distance that a sound wave can propagate prior to zd (i.e. sound horizon; eq. 4)
-    s=44.5d0*log(9.83d0/thisCosmologyParameters%OmegaMatter()/(thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)**2))/sqrt(1.0d0+10.0d0*((thisCosmologyParameters%OmegaBaryon()*(thisCosmologyParameters%hubbleConstant(hubbleUnitsLittleH)**2))**0.75d0))
-    ! Specify properties of neutrinos. Mass fraction formula is from Komatsu et al. (2007; http://adsabs.harvard.edu/abs/2010arXiv1001.4538K).
-    fv=summedNeutrinoMasses/94.0d0/(thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)**2)/thisCosmologyParameters%OmegaMatter()
-    Nv=effectiveNumberNeutrinos
-    ! Compute baryonic and cold dark matter fractions.
-    fb=thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter()
-    fc=(thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()
-    ! Total matter fraction.
-    fcb=fb+fc
-    ! Baryonic + neutrino fraction.
-    fvb=fv+fb
-    ! Compute small scale suppression factor (eqn. 15).
-    pc =0.25d0*(5.0d0-sqrt(1.0d0+24.0d0*fc ))
-    pcb=0.25d0*(5.0d0-sqrt(1.0d0+24.0d0*fcb))
-    alphav=(fc/fcb)*((5.0d0-2.0d0*(pc+pcb))/(5.0d0-4.0d0*pcb))*((1.0d0-0.533d0*fvb+0.126d0*(fvb**3))*((1.0d0+yd)**(pcb-pc))/(1.0d0-0.193d0&
-         &*sqrt(fv*Nv)+0.169d0*fv*(Nv**0.2d0)))*(1.0d0+0.5d0*(pc-pcb)*(1.0d0+1.0d0/(3.0d0-4.0d0*pc)/(7.0d0-4.0d0*pcb))/(1.0d0+yd))
-    ! Loop over all wavenumbers.
-    do iWavenumber=1,transferFunctionNumberPoints
-       wavenumber=exp(transferFunctionLogWavenumber(iWavenumber))
-       ! Compute effective q.
-       qEH=wavenumber*(Theta27**2)/thisCosmologyParameters%OmegaMatter()/(thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)**2)
-       ! Compute rescaled shape parameter (eqn. 16)
-       Gammaeff=thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)**2)*(sqrt(alphav)+(1.0d0-sqrt(alphav))/(1.0d0+((0.43d0*wavenumber*s)**4)))
-       qeff=wavenumber*(Theta27**2)/Gammaeff
-       betac=1.0d0/(1.0d0-0.949d0*fvb)                     ! Eqn. 21.
-       L=log(exp(1.0d0)+1.84d0*betac*sqrt(alphav)*qeff) ! Eqn. 19.
-       C=14.4d0+325.0d0/(1.0d0+60.5d0*(qeff**1.11d0))      ! Eqn. 20.
-       Tsup=L/(L+C*(qeff**2))                              ! Zero baryon form of the transfer function (eqn. 18).
-       ! Apply correction for scales close to horizon.
-       if (fv > 0.0d0.and.fv <= 0.3d0) then
-          qv=3.92d0*qEH*sqrt(Nv)/fv
-          Bk=1.0d0+(1.2d0*(fv**0.64d0)*(Nv**(0.3d0+0.6d0*fv)))/((qv**(-1.6d0))+(qv**0.8d0))
-       else
-          qv=0.0d0
-          Bk=1.0d0
-       end if
-       transferFunctionLogT(iWavenumber)=log(Tsup*Bk)
-       if (transferFunctionWdmCutOffScale > 0.0d0) then
-          transferFunctionWdmFactor=                                &
-               & (                                                  &
-               &   1.0d0                                            &
-               &  +                                                 &
-               &   (                                                &
-               &     transferFunctionWdmEpsilon                     &
-               &    *wavenumber                                     &
-               &    *transferFunctionWdmCutOffScale                 &
-               &   )**(2.0d0*transferFunctionWdmNu)                 &
-               & )**(-transferFunctionWdmEta/transferFunctionWdmNu)
-          if (transferFunctionWdmFactor > 0.0d0) then
-             transferFunctionLogT(iWavenumber)=transferFunctionLogT(iWavenumber)+log(transferFunctionWdmFactor)
-          else
-             transferFunctionLogT(iWavenumber)=transferFunctionLogT(iWavenumber)-100.0d0
-          end if
-       end if
-    end do
+    ! Compute common factors.
+    call self%computeFactors(wavenumber,wavenumberEffective,wavenumberNeutrino,L,C)
+    ! Evaluate the transfer function.
+    eisensteinHu1999Value  =+  L                                                             & ! Zero baryon form of the transfer function (eqn. 18).
+         &                  /(                                                               &
+         &                    +L                                                             &
+         &                    +C                                                             &
+         &                    *wavenumberEffective**2                                        &
+         &                   )                              
+    ! Apply correction for scales close to horizon.
+    if     (                                    &
+         &   self%neutrinoMassFraction >  0.0d0 &
+         &  .and.                               &
+         &   self%neutrinoMassFraction <= 0.3d0 &
+         & ) then
+       suppressionNeutrino=+1.0d0                                                                    &
+            &              +(                                                                        &
+            &                +1.2d0                                                                  &
+            &                *self%neutrinoMassFraction   ** 0.64d0                                  &
+            &                *self%neutrinoNumberEffective**(0.30d0+0.6d0*self%neutrinoMassFraction) &
+            &               )                                                                        &
+            &              /(                                                                        &
+            &                +wavenumberNeutrino**(-1.6d0)                                           &
+            &                +wavenumberNeutrino**(+0.8d0)                                           &
+            &               )
+       eisensteinHu1999Value=eisensteinHu1999Value*suppressionNeutrino
+    end if
     return
-  end subroutine Transfer_Function_Eisenstein_Hu_Make
+  end function eisensteinHu1999Value
 
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Transfer_Function_Eisenstein_Hu_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Transfer_Function_Eisenstein_Hu_State_Store(stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use FGSL
+  double precision function eisensteinHu1999LogarithmicDerivative(self,wavenumber)
+    !% Return the logarithmic derivative of the transfer function at the given wavenumber.
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    class           (transferFunctionEisensteinHu1999), intent(inout) :: self
+    double precision                                  , intent(in   ) :: wavenumber
+    double precision                                                  :: wavenumberEffective   , L                     , &
+         &                                                               C                     , wavenumberNeutrino    , &
+         &                                                               suppressionNeutrino   , dLdwavenumberEffective, &
+         &                                                               dCdwavenumberEffective, transferFunction
 
-    write (stateFile) logWavenumberMinimum,logWavenumberMaximum
+    ! Compute common factors.
+    call self%computeFactors(wavenumber,wavenumberEffective,wavenumberNeutrino,L,C)
+    ! Get the transfer function itself.
+    transferFunction=self%value(wavenumber)
+    ! Compute derivatives of transfer function terms.
+    dCdwavenumberEffective                                 =-325.00d0&
+         &                                * 60.50d0&
+         &                                *  1.11d0&
+         &                                /(&
+         &                                  + 1.0d0&
+         &                                  +60.5d0&
+         &                                  *wavenumberEffective**1.11d0&
+         &                                 )**2&
+         &                                *  wavenumberEffective**0.11d0    
+    dLdwavenumberEffective                                 =+1.0d0&
+         &                                /(&
+         &                                  +exp(1.0d0)&
+         &                                  /1.84d0                                                     &
+         &                                  /self%betaDarkMatter                                        &
+         &                                  /sqrt(self%neutrinoFactor)&
+         &                                  +wavenumberEffective&
+         &                                 )
+    ! Compute logarithmic derivative of transfer function.
+    eisensteinHu1999LogarithmicDerivative=+(                                                                                                        &
+         &                                  +dLdwavenumberEffective                                                                                 &
+         &                                  /(                            + L                    + C                    *wavenumberEffective**2)    &
+         &                                  - L                                                                                                     &
+         &                                  *(+2.0d0*C*wavenumberEffective+dLdwavenumberEffective+dCdwavenumberEffective*wavenumberEffective**2)    &
+         &                                  /(                            + L                    + C                    *wavenumberEffective**2)**2 &
+         &                                 )                                                                                                        &
+         &                                 *wavenumberEffective                                                                                     &
+         &                                 /transferFunction
+    ! Apply correction for scales close to horizon.
+    if     (                                    &
+         &   self%neutrinoMassFraction >  0.0d0 &
+         &  .and.                               &
+         &   self%neutrinoMassFraction <= 0.3d0 &
+         & ) eisensteinHu1999LogarithmicDerivative=eisensteinHu1999LogarithmicDerivative+0.8d0*(3.0d0/(1.0d0+wavenumberNeutrino**2.4d0)-1.0d0)
     return
-  end subroutine Transfer_Function_Eisenstein_Hu_State_Store
+  end function eisensteinHu1999LogarithmicDerivative
 
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Transfer_Function_Eisenstein_Hu_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Transfer_Function_Eisenstein_Hu_State_Retrieve(stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
-    use FGSL
+  double precision function eisensteinHu1999HalfModeMass(self)
+    !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
+    !% to a \gls{cdm} transfer function. Not supported in this implementation.
+    use Galacticus_Error
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    class(transferFunctionEisensteinHu1999), intent(inout) :: self
 
-    ! Read the minimum and maximum tabulated times.
-    read (stateFile) logWavenumberMinimum,logWavenumberMaximum
+    call Galacticus_Error_Report('eisensteinHu1999HalfModeMass','not supported by this implementation')
     return
-  end subroutine Transfer_Function_Eisenstein_Hu_State_Retrieve
+  end function eisensteinHu1999HalfModeMass
 
-  double precision function Transfer_Function_Half_Mode_Mass_Eisenstein_Hu()
-    !% Find the half-mode mass for \gls{wdm} calculations using the result from
-    !% \citeauthor{schneider_non-linear_2012}~(\citeyear{schneider_non-linear_2012}; their eqns. 8 \& 9).
-    use Cosmology_Parameters
-    use Numerical_Constants_Math
-    class           (cosmologyParametersClass), pointer :: thisCosmologyParameters
-    double precision                                    :: matterDensity          , halfModeWavenumber
-    
-    ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
-    ! Compute matter density
-    matterDensity    =thisCosmologyParameters%omegaMatter()*thisCosmologyParameters%densityCritical()
-    ! Compute half-mode wavenumber.
-    halfModeWavenumber= 2.0d0                                                    &
-         &             *Pi                                                       &
-         &             *transferFunctionWdmEpsilon                               &
-         &             *transferFunctionWdmCutOffScale                           &
-         &             *(                                                        &
-         &                2.0d0**(+transferFunctionWdmNu/transferFunctionWdmEta) &
-         &               -1.0d0                                                  &
-         &              )      **(-                 0.5d0/transferFunctionWdmNu)
-    ! Compute the half-mode mass.
-    Transfer_Function_Half_Mode_Mass_Eisenstein_Hu=4.0d0*Pi/3.0d0*matterDensity*(halfModeWavenumber/2.0d0)**3
+  subroutine eisensteinHu1999Descriptor(self,descriptor)
+    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters2
+    use FoX_DOM
+    implicit none
+    class    (transferFunctionEisensteinHu1999), intent(inout) :: self
+    type     (inputParameters                 ), intent(inout) :: descriptor
+    type     (node                            ), pointer       :: parameterNode
+    type     (inputParameters                 )                :: subParameters
+    character(len=10                          )                :: parameterLabel
+
+    call descriptor%addParameter("transferFunctionMethod","eisensteinHu1999")
+    parameterNode => descriptor%node("transferFunctionMethod")
+    subParameters=inputParameters(parameterNode)
+    write (parameterLabel,'(f10.6)') self%neutrinoMassSummed
+    call subParameters%addParameter("neutrinoMassSummed"     ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(f10.6)') self%neutrinoNumberEffective
+    call subParameters%addParameter("neutrinoNumberEffective",trim(adjustl(parameterLabel)))
+    call self%cosmologyParameters_%descriptor(subParameters)
     return
-  end function Transfer_Function_Half_Mode_Mass_Eisenstein_Hu
-
-end module Transfer_Function_Eisenstein_Hu
+  end subroutine eisensteinHu1999Descriptor

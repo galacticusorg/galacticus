@@ -164,7 +164,7 @@ sub Process_InputParameters {
 	    }
 	    print $defHndl "{\\normalfont \\bfseries Description:} ".$node->{'directive'}->{'description'}." \\\\\n";	    
 	    print $defHndl "{\\normalfont \\bfseries Defined in:} \\hyperlink{".join(":",@hyperTarget)."}{{\\normalfont \\ttfamily ".$definedIn."}}\\\\\n";
-	    print $defHndl "{\\normalfont \\bfseries File:} \\hyperlink{".$fileIn."}{{\\normalfont \\ttfamily ".$fileIn."}}\\\\\n";
+	    print $defHndl "{\\normalfont \\bfseries File:} \\hyperlink{".$fileIn."}{{\\normalfont \\ttfamily ".latex_encode($fileIn)."}}\\\\\n";
 	    print $defHndl "{\\normalfont \\bfseries Used by:} ".join(", ",map {"\\hyperlink{".&replace($_,qr/\.exe$/s,".F90")."}{\\normalfont \\ttfamily ".latex_encode($_)."}"} @influencedExecutableNames)."\\\\\n\n";
 	    close($defHndl);
 	}

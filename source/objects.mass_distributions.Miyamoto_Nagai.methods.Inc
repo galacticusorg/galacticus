@@ -153,6 +153,7 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Mass_Enclosed_Initialize(self)
   use Numerical_Integration
   use Numerical_Constants_Math
   use FGSL
+  use Table_Labels
   use, intrinsic :: ISO_C_Binding
   implicit none
   class           (massDistributionMiyamotoNagai), intent(inout) :: self
@@ -168,7 +169,7 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Mass_Enclosed_Initialize(self)
   ! Mass enclosed is not analytically tractable. Tabulate the results of numerical integration.
   if (.not.self%massEnclosedInitialized) then
      ! Initialize a table of radii.
-     call self%massEnclosedTable%create(radiusMinimum*self%a,radiusMaximum*self%a,radiusCount,1,extrapolationType=extrapolationTypeExtrapolate)
+     call self%massEnclosedTable%create(radiusMinimum*self%a,radiusMaximum*self%a,radiusCount,1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))
      ! Compute surface density at each radius.
      do i=1,radiusCount
         call self                                                      &
@@ -269,6 +270,7 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Surface_Density_Initialize(self)
   !% Construct a tabulation of the surface density profile in a Miyamoto-Nagai mass distribution.
   use Numerical_Integration
   use FGSL
+  use Table_Labels
   use, intrinsic :: ISO_C_Binding
   implicit none
   class           (massDistributionMiyamotoNagai), intent(inout) :: self
@@ -283,7 +285,7 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Surface_Density_Initialize(self)
   ! Surface density is not analytically tractable. Tabulate the results of numerical integration.
   if (.not.self%surfaceDensityInitialized) then
      ! Initialize a table of radii.
-     call self%surfaceDensityTable%create(radiusMinimum*self%a,radiusMaximum*self%a,radiusCount,1,extrapolationType=extrapolationTypeExtrapolate)
+     call self%surfaceDensityTable%create(radiusMinimum*self%a,radiusMaximum*self%a,radiusCount,1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))
      ! Compute surface density at each radius.
      do i=1,radiusCount
         call self                                                      &

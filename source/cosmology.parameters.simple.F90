@@ -35,6 +35,7 @@
      procedure :: HubbleConstant  => simpleHubbleConstant
      procedure :: temperatureCMB  => simpleTemperatureCMB
      procedure :: densityCritical => simpleDensityCritical
+     procedure :: descriptor      => simpleDescriptor
   end type cosmologyParametersSimple
 
   interface cosmologyParametersSimple
@@ -129,7 +130,7 @@ contains
   end function simpleConstructorInternal
 
   elemental subroutine simpleDestructor(self)
-    !% Default constructor for the simple cosmological parameters class.
+    !% Destructor for the simple cosmological parameters class.
     implicit none
     type(cosmologyParametersSimple), intent(inout) :: self
 
@@ -245,3 +246,30 @@ contains
          &                /gravitationalConstantGalacticus
     return
   end function simpleDensityCritical
+
+  subroutine simpleDescriptor(self,descriptor)
+    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters2
+    use FoX_DOM
+    implicit none
+    class    (cosmologyParametersSimple), intent(inout) :: self
+    type     (inputParameters          ), intent(inout) :: descriptor
+    character(len=10                   )                :: parameterLabel
+    type     (inputParameters          )                :: subParameters
+    type     (node                     ), pointer       :: parameterNode
+    
+    call descriptor%addParameter("cosmologyParametersMethod","simple")
+    parameterNode => descriptor%node("cosmologyParametersMethod")
+    subParameters=inputParameters(parameterNode)
+    write (parameterLabel,'(f10.6)') self%OmegaMatterValue
+    call subParameters%addParameter("OmegaMatter"    ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(f10.6)') self%OmegaDarkEnergyValue
+    call subParameters%addParameter("OmegaDarkEnergy",trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(f10.6)') self%OmegaBaryonValue
+    call subParameters%addParameter("OmegaBaryon"    ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(f10.6)') self%HubbleConstantValue
+    call subParameters%addParameter("HubbleConstant" ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(f10.6)') self%temperatureCMBValue
+    call subParameters%addParameter("temperatureCMB" ,trim(adjustl(parameterLabel)))
+    return
+  end subroutine simpleDescriptor

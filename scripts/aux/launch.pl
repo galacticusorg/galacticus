@@ -324,6 +324,8 @@ sub Parameters_To_Hash {
 	    unless ( reftype($parameters->{$name}) );
 	# Iterate over all subelements of this node.
 	my $subParameters;
+	die("Parameters_To_Hash(): duplicated parameter [".$name."] detected")
+	    if ( reftype($parameters->{$name}) eq "ARRAY" );
 	foreach my $subElementName ( keys(%{$parameters->{$name}}) ) { 
 	    if ( $subElementName eq "value" ) {
 		foreach my $value ( &ExtraUtils::as_array($parameters->{$name}->{'value'}) ) {

@@ -4,6 +4,38 @@
 
 \glc\ has its own preprocessor for Fortran source files. This preprocesses parses each source file into an internal tree representation, performs various manipulations on that tree, and then outputs the preprocessed file for compilation. The preprocessor is used to automate and standardize many common tasks, through the inclusion of directives into the source code. Directives are specified in comment lines beginning {\normalfont \ttfamily !\#}, and are written in XML. The remainder of this section describes the various preprocessor functionalities, and gives examples of their usage.
 
+\subsection{Source Digest}
+
+The {\normalfont \ttfamily sourceDigest} directive will generate an \gls{MD5hash} hash of the source code of the file in which the directive is placed, along with the source code of any files upon which it depends. This can be useful in generating unique labels (e.g. to use as suffixes in file names) which automatically update if the source code is modified. To generate a source digest simply use:
+
+\begin{lstlisting}
+  !# <sourceDigest name="mySourceDigest"/>
+\end{lstlisting}
+
+A source digest will be generated and stored as a {\normalfont \ttfamily character(len=22)} variable called {\normalfont \ttfamily mySourceDigest}.
+
+\subsection{Object Builder}
+
+When constructing instances of a class from a provided parameter set, a common pattern is to need to construct other objects based on those parameters, which will be used by the instance. For example, a transfer function class might require a cosmological parameters object for its operation. In such cases, we often want to use the default instance of the required class unless a different instance is explicitly specified. The {\normalfont \ttfamily objectBuilder} directive automates this process.
+
+As an example, the following constructor requires an instance of the {\normalfont \ttfamily cosmologyParameters} class, which is passes to an internal constructor:
+
+\begin{lstlisting}  
+  function myConstructorParameters(parameters)
+    use Input_Parameters2
+    implicit none
+    type(myClass                  )                :: myConstructorParameters
+    type(inputParameters          ), intent(in   ) :: parameters
+    class(cosmologyParametersClass), pointer       :: cosmologyParameters_    
+
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    myConstructorParameters=myConstructorInternal(cosmologyParameters_)
+    return
+  end function myConstructorParameters
+\end{lstlisting}
+
+The {\normalfont \ttfamily objectBuilder} directive will assign a member of the class specified by the {\normalfont \ttfamily class} attribute to the variable specified by the {\normalfont \ttfamily name} attribute. If the parameter set specified by the {\normalfont \ttfamily parameters} attribute contains an explicit definition of the relevant class, that definition will be used to construct the instance. Otherwise the default instance will be used.
+
 \subsection{Optional Arguments}
 
 Fortran supports optional arguments to functions, but does not provide for a default value if those arguments are not present. The {\normalfont \ttfamily optionalArgument} directive allows a default value to be specified. In the following example, a default value is defined for the {\normalfont \ttfamily units} argument:

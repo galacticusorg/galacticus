@@ -4,7 +4,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
   <sigma_8 value="0.8"/>
-  <transferFunctionMethod value="null"/>
+  <transferFunctionMethod value="identity"/>
   <powerSpectrumIndex value="-1.0"/>
   <powerSpectrumRunning value="0.0"/>
 </parameters>

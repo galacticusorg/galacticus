@@ -20,22 +20,12 @@
 module Tables
   !% Defines a {\normalfont \ttfamily table} class with optimized interpolation operators.
   use FGSL
+  use Table_Labels
   private
   public :: table                       , table1D                          , table1DGeneric                    , &
        &    table1DLinearLinear         , table1DLogarithmicLinear         , table1DNonUniformLinearLogarithmic, &
        &    table1DLinearCSpline        , table1DLogarithmicCSpline        , table2DLogLogLin                  , &
        &    table1DLinearMonotoneCSpline, table1DLogarithmicMonotoneCSpline
-
-  !@ <enumeration>
-  !@  <name>extrapolationType</name>
-  !@  <description>Used to specify the type of extrapolation to use when interpolating in tables.</description>
-  !@  <entry label="extrapolationTypeExtrapolate"/>
-  !@  <entry label="extrapolationTypeFix"        />
-  !@  <entry label="extrapolationTypeAbort"      />
-  !@ </enumeration>
-  integer, parameter, public :: extrapolationTypeExtrapolate=1
-  integer, parameter, public :: extrapolationTypeFix        =2
-  integer, parameter, public :: extrapolationTypeAbort      =3
 
   type, abstract :: table
      !% Basic table type.
@@ -63,7 +53,8 @@ module Tables
 
   type, abstract, extends(table) :: table1D
      !% Basic table type.
-     integer                                       :: extrapolationType, xCount
+     integer                                       :: xCount
+     integer                      , dimension(2  ) :: extrapolationType
      double precision, allocatable, dimension(:  ) :: xv
      double precision, allocatable, dimension(:,:) :: yv
    contains
@@ -165,6 +156,7 @@ module Tables
      !% Table type supporting generic one dimensional tables.
      type   (fgsl_interp      ) :: interpolator
      type   (fgsl_interp_accel) :: accelerator
+     type   (fgsl_interp_type ) :: interpolationType
      logical                    :: reset
    contains
      !@ <objectMethods>
@@ -546,6 +538,8 @@ contains
        end if
        ! Copy the extrapolation option from the original table.
        reversedSelf%extrapolationType=self%extrapolationType
+       ! Set linear interpolation.
+       reversedSelf%interpolationType=FGSL_Interp_Linear
     end select
     return
   end subroutine Table_1D_Reverse
@@ -603,15 +597,18 @@ contains
     end do
     return
   end function Table1D_Integration_Weights
-  
-  subroutine Table_Generic_1D_Create(self,x,tableCount,extrapolationType)
+
+  subroutine Table_Generic_1D_Create(self,x,tableCount,extrapolationType,interpolationType)
     !% Create a 1-D generic table.
     use Memory_Management
+    use Galacticus_Error
     implicit none
-    class           (table1DGeneric)              , intent(inout)           :: self
-    double precision                , dimension(:), intent(in   )           :: x
-    integer                                       , intent(in   ), optional :: extrapolationType, tableCount
-    integer                                                                 :: tableCountActual
+    class           (table1DGeneric  )              , intent(inout)           :: self
+    double precision                  , dimension(:), intent(in   )           :: x
+    integer                                         , intent(in   ), optional :: tableCount
+    integer                           , dimension(2), intent(in   ), optional :: extrapolationType
+    type            (fgsl_interp_type)              , intent(in   ), optional :: interpolationType
+    integer                                                                   :: tableCountActual
 
     ! Determine number of tables.
     tableCountActual=1
@@ -622,8 +619,15 @@ contains
     call Alloc_Array(self%yv,[size(x),tableCountActual])
     self%xv   =x
     self%reset=.true.
+    ! Set interpoaltion type.
+    if (present(interpolationType)) then
+       self%interpolationType=interpolationType
+    else
+       self%interpolationType=FGSL_Interp_Linear
+    end if
     ! Set extrapolation type.
     if (present(extrapolationType)) then
+       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('Table_Generic_1D_Create','zero extrapolation is not supported')
        self%extrapolationType=extrapolationType
     else
        self%extrapolationType=extrapolationTypeExtrapolate
@@ -694,19 +698,11 @@ contains
     class           (table1DGeneric), intent(inout)           :: self
     double precision                , intent(in   )           :: x
     integer                         , intent(in   ), optional :: table
-    integer                                                   :: tableActual, extrapolationType
+    integer                                                   :: tableActual
 
     tableActual=1
     if (present(table)) tableActual=table
-    select case (self%extrapolationType)
-    case (extrapolationTypeAbort)
-       extrapolationType=extrapolationTypeNone
-    case (extrapolationTypeExtrapolate)
-       extrapolationType=extrapolationTypeLinear
-    case (extrapolationTypeFix)
-       extrapolationType=extrapolationTypeFixed
-    end select
-    Table_Generic_1D_Interpolate=Interpolate(self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),extrapolationType=extrapolationType,reset=self%reset)
+    Table_Generic_1D_Interpolate=Interpolate(self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),extrapolationType=self%extrapolationType(1),reset=self%reset)
     return
   end function Table_Generic_1D_Interpolate
 
@@ -721,7 +717,7 @@ contains
 
     tableActual=1
     if (present(table)) tableActual=table
-    Table_Generic_1D_Interpolate_Gradient=Interpolate_Derivative(self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),reset=self%reset)
+    Table_Generic_1D_Interpolate_Gradient=Interpolate_Derivative(self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),reset=self%reset,extrapolationType=self%extrapolationType(1),interpolationType=self%interpolationType)
     return
   end function Table_Generic_1D_Interpolate_Gradient
 
@@ -729,12 +725,14 @@ contains
     !% Create a 1-D linear table.
     use Memory_Management
     use Numerical_Ranges
+    use Galacticus_Error
     implicit none
-    class           (table1DLinearLinear), intent(inout)           :: self
-    double precision                     , intent(in   )           :: xMaximum         , xMinimum
-    integer                              , intent(in   )           :: xCount
-    integer                              , intent(in   ), optional :: extrapolationType, tableCount
-    integer                                                        :: tableCountActual
+    class           (table1DLinearLinear), intent(inout)                         :: self
+    double precision                     , intent(in   )                         :: xMaximum         , xMinimum
+    integer                              , intent(in   )                         :: xCount
+    integer                              , intent(in   ), optional               :: tableCount
+    integer                              , intent(in   ), optional, dimension(2) :: extrapolationType
+    integer                                                                      :: tableCountActual
 
     ! Determine number of tables.
     tableCountActual=1
@@ -751,6 +749,7 @@ contains
     self%dxPrevious    =-1.0d0
     ! Set extrapolation type.
     if (present(extrapolationType)) then
+       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('Table_Linear_1D_Create','zero extrapolation is not supported')
        self%extrapolationType=extrapolationType
     else
        self%extrapolationType=extrapolationTypeExtrapolate
@@ -881,10 +880,11 @@ contains
   subroutine Table_Logarithmic_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D logarithmic table.
     implicit none
-    class           (table1DLogarithmicLinear), intent(inout)           :: self
-    double precision                          , intent(in   )           :: xMaximum         , xMinimum
-    integer                                   , intent(in   )           :: xCount
-    integer                                   , intent(in   ), optional :: extrapolationType, tableCount
+    class           (table1DLogarithmicLinear), intent(inout)                         :: self
+    double precision                          , intent(in   )                         :: xMaximum         , xMinimum
+    integer                                   , intent(in   )                         :: xCount
+    integer                                   , intent(in   ), optional               :: tableCount
+    integer                                   , intent(in   ), optional, dimension(2) :: extrapolationType
 
     self%previousSet         =.false.
     self%xLinearPrevious     =-1.0d0
@@ -1091,12 +1091,14 @@ contains
     !% Create a 1-D linear table.
     use Memory_Management
     use Numerical_Ranges
+    use Galacticus_Error
     implicit none
-    class           (table1DLinearCSpline), intent(inout)           :: self
-    double precision                      , intent(in   )           :: xMaximum         , xMinimum
-    integer                               , intent(in   )           :: xCount
-    integer                               , intent(in   ), optional :: extrapolationType, tableCount
-    integer                                                         :: tableCountActual
+    class           (table1DLinearCSpline), intent(inout)                         :: self
+    double precision                      , intent(in   )                         :: xMaximum         , xMinimum
+    integer                               , intent(in   )                         :: xCount
+    integer                               , intent(in   ), optional               :: tableCount
+    integer                               , intent(in   ), optional, dimension(2) :: extrapolationType
+    integer                                                                       :: tableCountActual
 
     ! Determine number of tables.
     tableCountActual=1
@@ -1117,6 +1119,7 @@ contains
     self%iPrevious    =-1
     ! Set extrapolation type.
     if (present(extrapolationType)) then
+       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('Table_Linear_CSpline_1D_Create','zero extrapolation is not supported')
        self%extrapolationType=extrapolationType
     else
        self%extrapolationType=extrapolationTypeExtrapolate
@@ -1321,10 +1324,11 @@ contains
   subroutine Table_Logarithmic_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D logarithmic table.
     implicit none
-    class           (table1DLogarithmicCSpline), intent(inout)           :: self
-    double precision                           , intent(in   )           :: xMaximum         , xMinimum
-    integer                                    , intent(in   )           :: xCount
-    integer                                    , intent(in   ), optional :: extrapolationType, tableCount
+    class           (table1DLogarithmicCSpline), intent(inout)                         :: self
+    double precision                           , intent(in   )                         :: xMaximum         , xMinimum
+    integer                                    , intent(in   )                         :: xCount
+    integer                                    , intent(in   ), optional               :: tableCount
+    integer                                    , intent(in   ), optional, dimension(2) :: extrapolationType
 
     self%previousSet         =.false.
     self%xLinearPrevious     =-1.0d0
@@ -1417,19 +1421,24 @@ contains
     class           (table1D), intent(inout) :: self
     double precision         , intent(in   ) :: x
 
-    if (x < self%x(1) .or. x > self%x(-1)) then
-       select case (self%extrapolationType)
+    if      (x < self%x(+1)) then
+       select case (self%extrapolationType(1))
        case (extrapolationTypeExtrapolate)
           Table1D_Find_Effective_X=x
        case (extrapolationTypeFix        )
-          if (x < self%x(1)) then
-             Table1D_Find_Effective_X=self%x( 1)
-          else
-             Table1D_Find_Effective_X=self%x(-1)
-          end if
+          Table1D_Find_Effective_X=self%x(+1)
        case default
-          call Galacticus_Error_Report('Table_1D_Find_Effective_X','x is out of range')
+          call Galacticus_Error_Report('Table_1D_Find_Effective_X','x is below range')
        end select
+    else if (x > self%x(-1)) then
+       select case (self%extrapolationType(2))
+       case (extrapolationTypeExtrapolate)
+          Table1D_Find_Effective_X=x
+       case (extrapolationTypeFix        )
+          Table1D_Find_Effective_X=self%x(-1)
+       case default
+          call Galacticus_Error_Report('Table_1D_Find_Effective_X','x is above range')
+       end select       
     else
        Table1D_Find_Effective_X=x
     end if

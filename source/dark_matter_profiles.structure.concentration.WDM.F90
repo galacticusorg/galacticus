@@ -96,18 +96,20 @@ contains
     class           (darkMatterProfileConcentrationWDM), intent(inout)          :: self
     type            (treeNode                         ), intent(inout), pointer :: node
     class           (nodeComponentBasic               )               , pointer :: basic
+    class           (transferFunctionClass            )               , pointer :: transferFunction_
     ! Parameters of Schneider et al. (2012)'s fitting formula.
     double precision                                   , parameter              :: gamma1=15.0d0, gamma2=0.3d0
 
-    ! Get the basic component.
-    basic => node%basic()
+    ! Get required objects.
+    basic             => node            %basic()
+    transferFunction_ => transferFunction      ()
     ! Get WDM concentration
-    wdmConcentration=                                           &
-         &  self%cdmConcentration%concentration(node)           &
-         & /(                                                   &
-         &    1.0d0                                             &
-         &   +gamma1                                            &
-         &   *(Transfer_Function_Half_Mode_Mass()/basic%mass()) &
+    wdmConcentration=                                         &
+         &  self%cdmConcentration%concentration(node)         &
+         & /(                                                 &
+         &    1.0d0                                           &
+         &   +gamma1                                          &
+         &   *(transferFunction_%halfModeMass()/basic%mass()) &
          &  )**gamma2
     return
   end function wdmConcentration

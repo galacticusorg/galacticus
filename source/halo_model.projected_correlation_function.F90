@@ -59,6 +59,7 @@ contains
     use               Power_Spectra
     use               FFTLogs
     use               Tables
+    use               Table_Labels
     implicit none
     class           (conditionalMassFunctionClass       ), intent(inout)                                             :: conditionalMassFunction_
     double precision                                     , intent(in   ), dimension(                             : ) :: projectedSeparationBinned

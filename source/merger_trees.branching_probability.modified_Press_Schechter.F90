@@ -719,6 +719,7 @@ contains
     !% Tabulate the hypergeometric term appearing in the subresolution merger fraction expression.
     use Hypergeometric_Functions
     use Galacticus_Error
+    use Table_Labels
     implicit none
     double precision, intent(in   ) :: x
     integer         , parameter     :: xCountPerDecade  =10
@@ -745,7 +746,7 @@ contains
     if (tabulate) then
        xCount=int(log10(xMaximum/xMinimum)*dble(xCountPerDecade))+1
        if (.not.subresolutionHypergeometricInitialized) call subresolutionHypergeometric%destroy()
-       call subresolutionHypergeometric%create(xMinimum,xMaximum,xCount,1,extrapolationType=extrapolationTypeAbort)
+       call subresolutionHypergeometric%create(xMinimum,xMaximum,xCount,1,extrapolationType=spread(extrapolationTypeAbort,1,2))
        do i=1,xCount
           call subresolutionHypergeometric%populate(                                                                                    &
                &                                    +sqrtTwoOverPi                                                                      &
@@ -770,6 +771,7 @@ contains
     !% Tabulate the hypergeometric term appearing in the upper bound branching probability rate expression.
     use Hypergeometric_Functions
     use Galacticus_Error
+    use Table_Labels
     implicit none
     double precision, intent(in   ) :: mass                 , massResolution
     integer         , parameter     :: massCountPerDecade=30
@@ -799,7 +801,7 @@ contains
     if (tabulate) then
        massCount=int(log10(massMaximum/massMinimum)*dble(massCountPerDecade))+1
        if (.not.upperBoundHypergeometricInitialized) call upperBoundHypergeometric%destroy()
-       call upperBoundHypergeometric%create(massMinimum,massMaximum,massCount,1,extrapolationType=extrapolationTypeAbort)
+       call upperBoundHypergeometric%create(massMinimum,massMaximum,massCount,1,extrapolationType=spread(extrapolationTypeAbort,1,2))
        ! Evaluate sigma and alpha at the mass resolution.
        call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(massResolution,resolutionMassSigma,resolutionMassAlpha)
        do i=1,massCount

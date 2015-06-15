@@ -75,6 +75,7 @@ double precision function Mass_Distribution_Sersic_Density(self,coordinates)
   !% Return the density at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
   use Coordinates
   use Numerical_Interpolation
+  use Table_Labels
   implicit none
   class           (massDistributionSersic), intent(in   ) :: self
   class           (coordinate            ), intent(in   ) :: coordinates
@@ -89,7 +90,7 @@ double precision function Mass_Distribution_Sersic_Density(self,coordinates)
    !$omp critical (Sersic_Profile_Tabulation)
    Mass_Distribution_Sersic_Density=(self%mass/self%radiusHalfMass**3)*Interpolate(sersicTableRadius&
         &,sersicTableDensity,sersicTableInterpolationObject,sersicTableInterpolationAccelerator,r,reset &
-        &=sersicTableInterpolationReset,extrapolationType=extrapolationTypeLinear)
+        &=sersicTableInterpolationReset,extrapolationType=extrapolationTypeExtrapolate)
    !$omp end critical (Sersic_Profile_Tabulation)
   return
 end function Mass_Distribution_Sersic_Density

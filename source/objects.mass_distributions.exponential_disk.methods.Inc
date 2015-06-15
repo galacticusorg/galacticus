@@ -75,6 +75,7 @@ end subroutine Mass_Distribution_Exponential_Disk_Initialize
 subroutine Mass_Distribution_Exponential_Disk_Build_Tables(self)
   !% Build tables used for exponential disk mass distributions.
   use Bessel_Functions
+  use Table_Labels
   implicit none
   class           (massDistributionExponentialDisk), intent(inout) :: self
   integer                                                          :: i   , potentialPointsCount
@@ -86,7 +87,7 @@ subroutine Mass_Distribution_Exponential_Disk_Build_Tables(self)
      potentialPointsCount=int(log10(exponentialDiskPotentialRadiusMaximum/exponentialDiskPotentialRadiusMinimum)*dble(exponentialDiskPotentialPointsPerDecade))+1
      ! Create the table.
      call exponentialDiskPotentialTable%destroy()
-     call exponentialDiskPotentialTable%create(exponentialDiskPotentialRadiusMinimum,exponentialDiskPotentialRadiusMaximum,potentialPointsCount,extrapolationType=extrapolationTypeAbort)
+     call exponentialDiskPotentialTable%create(exponentialDiskPotentialRadiusMinimum,exponentialDiskPotentialRadiusMaximum,potentialPointsCount,extrapolationType=spread(extrapolationTypeAbort,1,2))
      ! Compute Bessel factors.
      do i=1,potentialPointsCount
         x=exponentialDiskPotentialTable%x(i)

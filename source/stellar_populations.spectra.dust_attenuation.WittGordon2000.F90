@@ -67,12 +67,13 @@ contains
     use Numerical_Constants_Units
     use Numerical_Constants_Astronomical
     use Array_Utilities
+    use Table_Labels
     implicit none
     type     (stellarSpectraDustAttenuationWittGordon2000)                :: wittGordon2003Constructor
     character(len=*                                      ), intent(in   ) :: model
 
     ! Initialize fitting function parameters for the chosen model.
-    call wittGordon2003Constructor%attenuationTable%create(angstromsPerMicron/Array_Reverse([ 1000.0d0,   1142.0d0,   1285.0d0,   1428.0d0,   1571.0d0,  1714.0d0,  1857.0d0,  2000.0d0,   2142.0d0,  2285.0d0,   2428.0d0,   2571.0d0,   2714.0d0,   2857.0d0,   3000.0d0,   3776.0d0,   4754.0d0,   5985.0d0,   7535.0d0,   9487.0d0,  11943.0d0,  15036.0d0,  18929.0d0,  23830.0d0,  30001.0d0]),tableCount=1,extrapolationType=extrapolationTypeExtrapolate)
+    call wittGordon2003Constructor%attenuationTable%create(angstromsPerMicron/Array_Reverse([ 1000.0d0,   1142.0d0,   1285.0d0,   1428.0d0,   1571.0d0,  1714.0d0,  1857.0d0,  2000.0d0,   2142.0d0,  2285.0d0,   2428.0d0,   2571.0d0,   2714.0d0,   2857.0d0,   3000.0d0,   3776.0d0,   4754.0d0,   5985.0d0,   7535.0d0,   9487.0d0,  11943.0d0,  15036.0d0,  18929.0d0,  23830.0d0,  30001.0d0]),tableCount=1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))
      select case (model)
      case ("MilkyWayShellTau3.0")
         call wittGordon2003Constructor%attenuationTable%populate(magnitudesPerOpticalDepth*Array_Reverse([ 15.714d0,  11.754d0,   9.546d0,   8.340d0,   7.752d0,   7.527d0,   7.683d0,   8.529d0,   9.570d0,   8.730d0,   7.416d0,   6.582d0,   6.066d0,   5.715d0,   5.454d0,   4.581d0,   3.597d0,   2.727d0,   2.001d0,   1.320d0,   0.912d0,   0.630d0,   0.435d0,   0.300d0,   0.207d0]))
