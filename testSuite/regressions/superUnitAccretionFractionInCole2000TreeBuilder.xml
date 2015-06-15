@@ -102,7 +102,6 @@
   <adafAdiabaticIndex value="1.444"/>
   <accretionDisksMethod value="switched"/>
   <treeNodeMethodSatellite value="standard"/>
-  <effectiveNumberNeutrinos value="3.04"/>
   <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
   <starFormationSpheroidVelocityExponent value="4.0"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
@@ -110,9 +109,11 @@
   <satelliteMergingRemnantSizeMethod value="Cole2000"/>
   <zeroCoolingRateAboveVelocity value="10000"/>
   <bondiHoyleAccretionHotModeOnly value="true"/>
-  <summedNeutrinoMasses value="0.0"/>
+  <transferFunctionMethod value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.04"/>
+    <neutrinoMassSummed value="0.0"/>
+  </transferFunctionMethod>
   <conditionalMassFunctionBehrooziSigmaLogMstar value="0.158558523426"/>
-  <transferFunctionMethod value="Eisenstein-Hu1999"/>
   <minorMergerGasMovesTo value="spheroid"/>
   <odeToleranceAbsolute value="0.01"/>
   <starFormationTimescaleDisksMethod value="integratedSurfaceDensity"/>

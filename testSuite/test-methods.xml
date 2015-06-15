@@ -116,7 +116,6 @@
       <satelliteOrbitStoreOrbitalParameters value="false"/>
       <mergerTreeReadPresetOrbits value="true"/>
       <mergerTreeReadPresetOrbitsBoundOnly value="true"/>
-      <satelliteOrbitStoreOrbitalParameters value="true"/>
       <treeNodeMethodSatellite>
 	<value>standard
 	<mergerTreeReadPresetMergerTimes value="false"/>
@@ -205,12 +204,19 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <transferFunctionFile value="data/largeScaleStructure/transferFunctionMillenniumSimulation.xml"/>
     <transferFunctionMethod>
-      <value>file</value>
+      <value>file
+      <cosmologyParametersMethod value="simple">
+	<HubbleConstant value="73.0"/>
+	<OmegaMatter value="0.25"/>
+	<OmegaDarkEnergy value="0.75"/>
+	<OmegaBaryon value="0.0455"/>
+      </cosmologyParametersMethod>
+      </value>
       <value>BBKS</value>
       <value>CAMB</value>
-      <value>Eisenstein-Hu1999</value>
+      <value>eisensteinHu1999</value>
+      <fileName value="data/largeScaleStructure/transferFunctionMillenniumSimulation.xml"/>
     </transferFunctionMethod>
   </parameters>
   <parameters>
@@ -747,13 +753,14 @@
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
     <sigma_8 value="0.807"/>
-    <transferFunctionMethod value="Eisenstein-Hu1999"/>
+    <transferFunctionMethod value="eisensteinHu1999">
+      <neutrinoNumberEffective value="3.04"/>
+      <neutrinoMassSummed value="0.0"/>
+    </transferFunctionMethod>
     <powerSpectrumMethod value="powerLaw"/>
     <powerSpectrumIndex value="0.961"/>
     <powerSpectrumReferenceWavenumber value="1.0"/>
     <powerSpectrumRunning value="0.0"/>
-    <effectiveNumberNeutrinos value="3.04"/>
-    <summedNeutrinoMasses value="0.0"/>
     <linearGrowthMethod value="simple"/>
     <haloMassFunctionMethod value="Tinker2008"/>
     <criticalOverdensityMethod value="sphericalTopHat"/>

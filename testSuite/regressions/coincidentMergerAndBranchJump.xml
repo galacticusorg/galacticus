@@ -30,14 +30,15 @@
     <temperatureCMB value="2.72548"/>
   </cosmologyParametersMethod><!-- Power spectrum options -->
   <sigma_8 value="0.9"/>
-  <transferFunctionMethod value="Eisenstein-Hu1999"/>
+  <transferFunctionMethod value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.04"/>
+    <neutrinoMassSummed value="0.0"/>
+  </transferFunctionMethod>
   <powerSpectrumMethod value="powerLaw"/>
   <powerSpectrumIndex value="0.961"/>
   <powerSpectrumReferenceWavenumber value="1.0"/>
   <powerSpectrumRunning value="0.0"/>
-  <effectiveNumberNeutrinos value="3.04"/>
-  <summedNeutrinoMasses value="0.0"/>
-
+ 
   <!-- Structure formation options -->
   <linearGrowthMethod value="simple"/>
   <haloMassFunctionMethod value="Tinker2008"/>

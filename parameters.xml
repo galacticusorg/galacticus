@@ -17,24 +17,25 @@
   <treeNodeMethodSpin value="random"/>
 
   <!-- Cosmological parameters and options -->
-  <cosmologyFunctionsMethod  value="matterLambda"/>
-  <cosmologyParametersMethod value="simple"       >
-    <HubbleConstant  value="70.2"   />
-    <OmegaMatter     value="0.2725" />
-    <OmegaDarkEnergy value="0.7275" />
-    <OmegaBaryon     value="0.0455" />
-    <temperatureCMB  value="2.72548"/>
+  <cosmologyFunctionsMethod value="matterLambda"/>
+  <cosmologyParametersMethod value="simple">
+    <HubbleConstant value="70.2"/>
+    <OmegaMatter value="0.2725"/>
+    <OmegaDarkEnergy value="0.7275"/>
+    <OmegaBaryon value="0.0455"/>
+    <temperatureCMB value="2.72548"/>
   </cosmologyParametersMethod>
 
   <!-- Power spectrum options -->
   <sigma_8 value="0.807"/>
-  <transferFunctionMethod value="Eisenstein-Hu1999"/>
+  <transferFunctionMethod value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed value="0.000"/>
+  </transferFunctionMethod>
   <powerSpectrumMethod value="powerLaw"/>
   <powerSpectrumIndex value="0.961"/>
   <powerSpectrumReferenceWavenumber value="1.0"/>
   <powerSpectrumRunning value="0.0"/>
-  <effectiveNumberNeutrinos value="3.04"/>
-  <summedNeutrinoMasses value="0.0"/>
 
   <!-- Structure formation options -->
   <linearGrowthMethod value="simple"/>

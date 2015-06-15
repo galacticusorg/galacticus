@@ -27,7 +27,8 @@
     <OmegaDarkEnergy value="0.73"/>
     <OmegaBaryon value="0.0469"/>
     <temperatureCMB value="2.72548"/>
-  </cosmologyParametersMethod><!-- Power spectrum options                   -->
+  </cosmologyParametersMethod>
+  <!-- Power spectrum options                   -->
   <!-- as parameters used in Bolshoi simulation -->
   <sigma_8 value="0.82"/>
   <transferFunctionMethod value="CAMB"/>
@@ -35,8 +36,6 @@
   <powerSpectrumIndex value="0.95"/>
   <powerSpectrumReferenceWavenumber value="1.0"/>
   <powerSpectrumRunning value="0.0"/>
-  <effectiveNumberNeutrinos value="3.046"/>
-  <summedNeutrinoMasses value="0.0"/>
 
   <!-- Structure formation options -->
   <linearGrowthMethod value="simple"/>

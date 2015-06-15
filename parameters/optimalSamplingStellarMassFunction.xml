@@ -15,8 +15,10 @@
   <powerSpectrumReferenceWavenumber value="1"/>
   <powerSpectrumRunning value="0"/>
   <sigma_8 value="0.9"/>
-  <summedNeutrinoMasses value="0"/>
-  <transferFunctionMethod value="Eisenstein-Hu1999"/>
+  <transferFunctionMethod value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.04"/>
+    <neutrinoMassSummed value="0.0"/>
+  </transferFunctionMethod>
 
   <!-- File of tree timing data. -->
   <timePerTreeFitFileName value="treeTimingFit.xml"/>
