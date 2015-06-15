@@ -93,6 +93,8 @@ my $newParameters = &Parameters::Convert_Parameters_To_Galacticus($config,@maxim
 for my $newParameterName ( keys(%{$newParameters}) ) {
     my $parameter = $parameters;
     foreach ( split(/\-\>/,$newParameterName) ) {
+	$parameter->{$_}->{'value'} = undef()
+	    unless ( exists($parameter->{$_}) );
 	$parameter = $parameter->{$_};
     }
     $parameter->{'value'} = $newParameters->{$newParameterName};
