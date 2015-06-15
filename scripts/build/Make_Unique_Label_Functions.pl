@@ -115,7 +115,7 @@ function $labelFunction(includeVersion,includeBuild,includeSourceDigest,asHash,p
 
   $labelFunction=''
 CODE
-    # Scan dependencies for default parameter values, while also accumulating a full list of dependecy files.
+    # Scan dependencies for default parameter values, while also accumulating a full list of dependency files.
     my @directives;
     my @dependencyFileList;
     my @dependencyFileStack = map {s/\.\/work\/build\/(.*)\.o$/$1/; $_;} split("\n",read_file($depFile));
