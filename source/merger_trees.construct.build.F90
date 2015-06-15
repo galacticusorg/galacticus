@@ -369,7 +369,7 @@ contains
              ! For distributions of masses, adjust the masses at the end points so that they are at the
              ! geometric mean of their range.
              if     (                                                          &
-                  &   (iTreeFirst == 1 .or. iTreeLast == treeCount)            &
+                  &   (iTreeFirst == 1 .or.  iTreeLast == treeCount)           &
                   &  .and..not.                                                &
                   &   (iTreeFirst == 1 .and. iTreeLast == treeCount)           &
                   &  .and.                                                     &
