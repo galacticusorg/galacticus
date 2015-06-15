@@ -61,7 +61,7 @@
   double precision, parameter :: takahashi2011ConvergenceVarianceSmall=1.0d-5
 
   ! Smallest redshift for which to compute lensing.
-  double precision, parameter :: takahashi2011RedshiftTiny            =1.0d-2
+  double precision, parameter :: takahashi2011RedshiftTiny            =1.5d-2
 
 contains
 
@@ -536,9 +536,9 @@ contains
       !% Integral for the magnification probability distribution function.
       use, intrinsic :: ISO_C_Binding
       implicit none
-      real            (c_double)        :: magnificationPDFIntegrand
-      real            (c_double), value :: magnification
-      type            (c_ptr   ), value :: parameterPointer
+      real(c_double)        :: magnificationPDFIntegrand
+      real(c_double), value :: magnification
+      type(c_ptr   ), value :: parameterPointer
 
       magnificationPDFIntegrand=takahashi2011MagnificationDistribution(self,magnification)
       return
