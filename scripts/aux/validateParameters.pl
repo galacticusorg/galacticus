@@ -41,7 +41,7 @@ my $valid = 0;
 if ( $format == 1 ) {
     # Handle format version 1.
     # Validate the parameter file using XML schema.
-    my $validator = XML::Validator::Schema->new(file => 'schema/parameters.xsd');
+    my $validator = XML::Validator::Schema->new(file => $galacticusPath.'schema/parameters.xsd');
     my $parser    = XML::SAX::ParserFactory->parser(Handler => $validator); 
     eval { $parser->parse_file($file) };
     die "Parameter file fails XML schema validation\n".$@
