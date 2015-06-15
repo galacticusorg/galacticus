@@ -84,6 +84,7 @@ contains
     !% Close the parameter file.
     implicit none
 
+    call globalParameters1%destroy()
     call Close_Parameters_Group()
     return
   end subroutine Input_Parameters_File_Close

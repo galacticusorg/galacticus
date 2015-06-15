@@ -15,6 +15,7 @@ unshift(@INC, $galacticusPath."perl");
 use Data::Dumper;
 use XML::Simple;
 use Sort::Topological qw(toposort);
+use LaTeX::Encode;
 require List::ExtraUtils;
 require Fortran::Utils;
 require Galacticus::Build::SourceTree::Hooks;
@@ -47,60 +48,6 @@ sub Process_FunctionClass {
 	    # Find methods.
 	    my %methods = %{$directive->{'method'}}
 		if ( exists($directive->{'method'}) );
-	    # If the function is stateful, add methods to store and retrieve state.
-	    if ( exists($directive->{'stateful'}) && $directive->{'stateful'} eq "yes" ) {
-		$methods{'stateStore'} =
-		{
-		    description => "Store the state of the object to file.",
-		    type        => "void",
-		    pass        => "yes",
-		    modules     => "FGSL",
-		    argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
-		    code        => ""
-		};
- 		$methods{'stateRestore'} =
-		{
-		    description => "Restore the state of the object to file.",
-		    type        => "void",
-		    pass        => "yes",
-		    modules     => "FGSL",
-		    argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
-		    code        => ""
-		};
-  		$methods{'stateSnapshot'} =
-		{
-		    description => "Snapshot the state of the object.",
-		    type        => "void",
-		    pass        => "yes",
-		    argument    => [ ],
-		    code        => ""
-		};
-	    }
-	    # If the function requires calculation reset, add method to do so.
-	    if ( exists($directive->{'calculationReset'}) && $directive->{'calculationReset'} eq "yes" ) {
-		$methods{'calculationReset'} =
-		{
-		    description => "Reset the calculation state of the object.",
-		    type        => "void",
-		    pass        => "yes",
-		    argument    => [ "type(treeNode), intent(inout), pointer :: thisNode" ],
-		    code        => ""
-		};
-	    }
-	    # Add "isFinalizable" method.
-	    $methods{'isFinalizable'} = 
-	    {
-		description => "Return true if this object can be finalized..",
-		type        => "logical",
-		pass        => "yes",
-		code        => $directive->{'name'}."isFinalizable=.not.self%isDefault\n"
-	    };
-	    # Determine if any methods request that C-bindings be produced.
-	    my %methodsCBound;
-	    foreach ( keys(%methods) ) {
-		$methodsCBound{$_} = $methods{$_}
-		    if ( exists($methods{$_}->{'bindC'}) && $methods{$_}->{'bindC'} eq "true" );
-	    }
 	    # Find class locations.
 	    my @classLocations = &ExtraUtils::as_array($directiveLocations->{$directive->{'name'}}->{'file'})
 		if ( exists($directiveLocations->{$directive->{'name'}}) );
@@ -156,6 +103,80 @@ sub Process_FunctionClass {
 		    $_
 		    )
 		    unless ( exists($_->{'abstract'}) && $_->{'abstract'} eq "yes" );
+	    }
+	    # If the function is stateful, add methods to store and retrieve state.
+	    if ( exists($directive->{'stateful'}) && $directive->{'stateful'} eq "yes" ) {
+		$methods{'stateStore'} =
+		{
+		    description => "Store the state of the object to file.",
+		    type        => "void",
+		    pass        => "yes",
+		    modules     => "FGSL",
+		    argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
+		    code        => ""
+		};
+ 		$methods{'stateRestore'} =
+		{
+		    description => "Restore the state of the object to file.",
+		    type        => "void",
+		    pass        => "yes",
+		    modules     => "FGSL",
+		    argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
+		    code        => ""
+		};
+  		$methods{'stateSnapshot'} =
+		{
+		    description => "Snapshot the state of the object.",
+		    type        => "void",
+		    pass        => "yes",
+		    argument    => [ ],
+		    code        => ""
+		};
+	    }
+	    # If the function requires calculation reset, add method to do so.
+	    if ( exists($directive->{'calculationReset'}) && $directive->{'calculationReset'} eq "yes" ) {
+		$methods{'calculationReset'} =
+		{
+		    description => "Reset the calculation state of the object.",
+		    type        => "void",
+		    pass        => "yes",
+		    argument    => [ "type(treeNode), intent(inout), pointer :: thisNode" ],
+		    code        => ""
+		};
+	    }
+	    # Add "isFinalizable" method.
+	    $methods{'isFinalizable'} = 
+	    {
+		description => "Return true if this object can be finalized.",
+		type        => "logical",
+		pass        => "yes",
+		code        => $directive->{'name'}."isFinalizable=.not.self%isDefault\n"
+	    };
+	    # Add "descriptor" method.
+	    my $descriptorCode;
+	    $descriptorCode .= "select type (self)\n";
+	    foreach ( @nonAbstractClasses ) {
+		(my $label = $_->{'name'}) =~ s/^$directive->{'name'}//;
+		$label = lcfirst($label)
+		    unless ( $label =~ m/^[A-Z]{2,}/ );
+		$descriptorCode .= "type is (".$_->{'name'}.")\n";
+		$descriptorCode .= " call descriptor%addParameter('".$directive->{'name'}."Method','".$label."')\n";	
+	    }
+	    $descriptorCode .= "end select\n";
+	    $methods{'descriptor'} = 
+	    {
+		description => "Return an input parameter list descriptor which could be used to recreate this object.",
+		type        => "void",
+		pass        => "yes",
+		modules     => "Input_Parameters2",
+		argument    => [ "type(inputParameters), intent(inout) :: descriptor" ],
+		code        => $descriptorCode
+	    };
+	    # Determine if any methods request that C-bindings be produced.
+	    my %methodsCBound;
+	    foreach ( keys(%methods) ) {
+		$methodsCBound{$_} = $methods{$_}
+		    if ( exists($methods{$_}->{'bindC'}) && $methods{$_}->{'bindC'} eq "true" );
 	    }
 	    # Initialize new nodes.
 	    my $preContains = 
@@ -244,7 +265,7 @@ sub Process_FunctionClass {
 		$preContains->[0]->{'content'} .= "    !@   <objectMethod>\n";
 		$preContains->[0]->{'content'} .= "    !@     <method>".$methodName."</method>\n";
 		$preContains->[0]->{'content'} .= "    !@     <type>".$method->{'type'}."</type>\n";
-		$preContains->[0]->{'content'} .= "    !@     <arguments>".$argumentList."</arguments>\n";
+		$preContains->[0]->{'content'} .= "    !@     <arguments>".latex_encode($argumentList)."</arguments>\n";
 		$preContains->[0]->{'content'} .= "    !@     <description>".$method->{'description'}."</description>\n";
 		$preContains->[0]->{'content'} .= "    !@   </objectMethod>\n";
 	    }
@@ -356,11 +377,11 @@ sub Process_FunctionClass {
 	    $postContains->[0]->{'content'} .= "      type(inputParameters), intent(in   ) :: parameters\n";
 	    $postContains->[0]->{'content'} .= "      type(inputParameters)                :: subParameters\n";
 	    $postContains->[0]->{'content'} .= "      type(varying_string )                :: message   , instanceName\n\n";
-	    $postContains->[0]->{'content'} .= "      call parameters%value(char(".$directive->{'name'}."Method),instanceName)\n";
+	    $postContains->[0]->{'content'} .= "      call parameters%value('".$directive->{'name'}."Method',instanceName)\n";
 	    $postContains->[0]->{'content'} .= "      subParameters=parameters%subParameters('".$directive->{'name'}."Method')\n";
 	    $postContains->[0]->{'content'} .= "      select case (char(instanceName))\n";
 	    foreach my $class ( @nonAbstractClasses ) {
-		(my $name = $class->{'name'}) =~ s/^$directive//;
+		(my $name = $class->{'name'}) =~ s/^$directive->{'name'}//;
 		$name = lcfirst($name)
 		    unless ( $name =~ m/^[A-Z]{2,}/ );
 		$postContains->[0]->{'content'} .= "     case ('".$name."')\n";
@@ -376,7 +397,7 @@ sub Process_FunctionClass {
 	    push(@classNames,$_->{'name'})
 		foreach ( @nonAbstractClasses );
 	    foreach ( sort(@classNames) ) {
-		(my $name = $_) =~ s/^$directive//;
+		(my $name = $_) =~ s/^$directive->{'name'}//;
 		$name = lcfirst($name)
 		    unless ( $name =~ m/^[A-Z]{2,}/ );
 		$postContains->[0]->{'content'} .= "         message=message//char(10)//'   -> ".$name."'\n";
