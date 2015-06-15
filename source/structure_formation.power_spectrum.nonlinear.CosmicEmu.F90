@@ -67,6 +67,7 @@ contains
     use Input_Parameters2
     use File_Utilities
     use Memory_Management
+    use Table_Labels
     implicit none
     double precision                          , intent(in   ) :: time                            , waveNumber
     double precision                          , save          :: timePrevious             =-1.0d0
@@ -179,7 +180,7 @@ contains
 
     ! Interpolate in the tabulated data to get the power spectrum.
     Power_Spectrum_Nonlinear_CosmicEmu=exp(Interpolate(wavenumberTable,powerSpectrumTable ,interpolationObject&
-         &,interpolationAccelerator,log(wavenumber),reset=resetInterpolation,extrapolationType=extrapolationTypeLinear))
+         &,interpolationAccelerator,log(wavenumber),reset=resetInterpolation,extrapolationType=extrapolationTypeExtrapolate))
     !$omp end critical(Power_Spectrum_Nonlinear_CosmicEmu)
     return
   end function Power_Spectrum_Nonlinear_CosmicEmu

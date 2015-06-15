@@ -357,8 +357,6 @@ contains
     class           (virialOrbitClass      ), pointer                     :: virialOrbit_
     logical                                                               :: isNewSatellite
     type            (keplerOrbit           )                              :: thisOrbit
-         &                                                                   orbitalVelocityTangential       , orbitalPositionPhi       , &
-         &                                                                   orbitalPositionTheta            , velocityPhi
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%orbitingIsActive()) return
@@ -412,7 +410,8 @@ contains
     !$omp threadprivate(pseudoSequenceObject,resetSequence)
     double precision                                        :: orbitalRadius                   , orbitalVelocityRadial    , &
          &                                                     orbitalVelocityTangential       , orbitalVelocityPhi       , &
-         &                                                     orbitalVelocityTheta            , velocityPhi
+         &                                                     orbitalVelocityTheta            , velocityPhi              , &
+         &                                                     orbitalPositionPhi              , orbitalPositionTheta
     type            (keplerOrbit           )                :: virialOrbit
 
     select type (self)
@@ -423,9 +422,9 @@ contains
        call self%virialOrbitSetValue(thisOrbit)
        ! Compute and store orbitial position and velocity.
        virialOrbit              =thisOrbit
-       orbitalRadius            =thisOrbit%radius()
-       orbitalVelocityRadial    =thisOrbit%velocityRadial()
-       orbitalVelocityTangential=thisOrbit%velocityTangential()
+       orbitalRadius            =virialOrbit%radius()
+       orbitalVelocityRadial    =virialOrbit%velocityRadial()
+       orbitalVelocityTangential=virialOrbit%velocityTangential()
        orbitalPositionPhi       =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi
        orbitalPositionTheta     =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*      Pi
        radialVector             =[                                                   &
@@ -433,14 +432,14 @@ contains
             &                     sin(orbitalPositionTheta)*sin(orbitalPositionPhi), &
             &                     cos(orbitalPositionTheta)                          &
             &                    ]
-       call satelliteComponent%positionSet(orbitalRadius*radialVector)
+       call self%positionSet(orbitalRadius*radialVector)
        velocityRadialVector     =orbitalVelocityRadial*radialVector
        velocityTangentialVector1=Vector_Product(radialVector,[1.0d0,0.0d0,0.0d0]      )
        velocityTangentialVector2=Vector_Product(radialVector,velocityTangentialVector1)
        velocityPhi              =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi
        velocityTangentialVector1=velocityTangentialVector1*orbitalVelocityTangential*cos(velocityPhi)
        velocityTangentialVector2=velocityTangentialVector2*orbitalVelocityTangential*sin(velocityPhi)
-       call satelliteComponent%velocitySet(velocityRadialVector+velocityTangentialVector1+velocityTangentialVector2)
+       call self%velocitySet(velocityRadialVector+velocityTangentialVector1+velocityTangentialVector2)
        ! Set the merging time to -1 to indicate that we don't know when merging will occur.
        call self%mergeTimeSet                (           -1.0d0)
        call self%tidalTensorPathIntegratedSet(tensorNullR2D3Sym)

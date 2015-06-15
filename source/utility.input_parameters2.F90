@@ -58,9 +58,10 @@ module Input_Parameters2
   
   type :: inputParameters
      private
-     type(node      ), pointer :: parameterDoc
-     type(nodeList  ), pointer :: parameters
-     type(hdf5Object), pointer :: outputParameters
+     type   (node      ), pointer :: rootNode        , document
+     type   (nodeList  ), pointer :: parameters
+     type   (hdf5Object), pointer :: outputParameters
+     logical                      :: global
    contains
      !@ <objectMethods>
      !@   <object>inputParameters</object>
@@ -69,6 +70,12 @@ module Input_Parameters2
      !@     <type>\void</type>
      !@     <arguments></arguments>
      !@     <description>Mark an input parameter set as the global set.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>isGlobal</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return true if these parameters are the global set.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>validateName</method>
@@ -130,9 +137,34 @@ module Input_Parameters2
      !@     <arguments>\textcolor{red}({\textless *\textgreater} parameterName|{\textless node\textgreater} parameterNode)\argin, parameterValue, \textcolor{red}({\textless *\textgreater} [defaultValue]|)\argin, \enumInputParameterErrorStatus [errorStatus]\argout, \logicalzero [writeOutput]\argin</arguments>
      !@     <description>Return the value of a parameter specified by name or XML node. A default value can be specified only if the parameter is specified by name. Supported types include rank-0 and rank-1 logicals, integers, long integers, doubles, characters, and varying strings.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>serializeToString</method>
+     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
+     !@     <arguments></arguments>
+     !@     <description>Serialize input parameters to a string.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>serializeToXML</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(varying\_string)\textgreater} parameterFile\argin</arguments>
+     !@     <description>Serialize input parameters to an XML file.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>addParameter</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} parameterName\argin, \textcolor{red}{\textless character(len=*)\textgreater} parameterValue\argin</arguments>
+     !@     <description>Add a parameter.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Destroy the parameters document.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                        inputParametersDestroy
+     procedure :: destroy             => inputParametersDestroy
      procedure :: markGlobal          => inputParametersMarkGlobal
+     procedure :: isGlobal            => inputParametersIsGlobal
      procedure :: validateName        => inputParametersValidateName
      procedure :: isParameter         => inputParametersIsParameter
      procedure :: checkParameters     => inputParametersCheckParameters
@@ -146,6 +178,9 @@ module Input_Parameters2
      procedure ::                        inputParametersValueNode{Type¦label}
      generic   :: value               => inputParametersValueName{Type¦label}
      generic   :: value               => inputParametersValueNode{Type¦label}
+     procedure :: serializeToString   => inputParametersSerializeToString
+     procedure :: serializeToXML      => inputParametersSerializeToXML
+     procedure :: addParameter        => inputParametersAddParameter
   end type inputParameters
 
   interface inputParameters
@@ -177,9 +212,9 @@ module Input_Parameters2
      !@     <description>Add a parameter and value to the list.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                   inputParameterListDestructor    
-     procedure :: add            => inputParameterListAdd
-     procedure :: serializeToXML => inputParameterListSerializeToXML
+     final     ::                      inputParameterListDestructor    
+     procedure :: add               => inputParameterListAdd
+     procedure :: serializeToXML    => inputParameterListSerializeToXML
   end type inputParameterList
 
   interface inputParameterList
@@ -209,14 +244,16 @@ contains
     !% Constructor for the {\normalfont \ttfamily inputParameters} class creating a null instance.
     implicit none
     type(inputParameters) :: inputParametersConstructorNull
-    type(DOMImplementation), pointer :: docImplementation
-    type(node), pointer :: docType
 
-    allocate(docImplementation)
-    docType                                         => createDocumentType(docImplementation,qualifiedName='parameters',publicId=''     ,systemId='')
-    inputParametersConstructorNull%parameterDoc     => createDocument    (docImplementation,qualifiedName='parameters',docType =docType            )
-    inputParametersConstructorNull%parameters       => getChildNodes(inputParametersConstructorNull%parameterDoc)
+    inputParametersConstructorNull%document         => createDocument    (                                  &
+         &                                                                getImplementation()             , &
+         &                                                                qualifiedName      ="parameters", &
+         &                                                                docType            =null()        &
+         &                                                               )
+    inputParametersConstructorNull%rootNode         => getDocumentElement(inputParametersConstructorNull%document)
+    inputParametersConstructorNull%parameters       => getChildNodes     (inputParametersConstructorNull%rootNode)
     inputParametersConstructorNull%outputParameters => null()
+    inputParametersConstructorNull%global           = .false.
     return
   end function inputParametersConstructorNull
   
@@ -230,7 +267,12 @@ contains
     character(len=*          )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParameters
     
-    inputParametersConstructorFileVarStr=inputParametersConstructorFileChar(char(fileName),allowedParameterNames,allowedParametersFile,outputParameters)
+    inputParametersConstructorFileVarStr=inputParametersConstructorFileChar(                       &
+         &                                                                  char(fileName)       , &
+         &                                                                  allowedParameterNames, &
+         &                                                                  allowedParametersFile, &
+         &                                                                  outputParameters       &
+         &                                                                 )
     return
   end function inputParametersConstructorFileVarStr
   
@@ -252,7 +294,15 @@ contains
     parameterNode => parseFile(fileName,iostat=errorStatus)
     if (errorStatus /= 0) call Galacticus_Error_Report('inputParametersConstructorFileChar','Unable to find or parse parameter file')
     !$omp end critical (FoX_DOM_Access)
-    inputParametersConstructorFileChar=inputParametersConstructorNode(XML_Get_First_Element_By_Tag_Name(parameterNode,'parameters'),allowedParameterNames,allowedParametersFile,outputParameters)
+    inputParametersConstructorFileChar=inputParametersConstructorNode(                                                 &
+         &                                                            XML_Get_First_Element_By_Tag_Name(               &
+         &                                                                                              parameterNode, &
+         &                                                                                              'parameters'   &
+         &                                                                                             )             , &
+         &                                                            allowedParameterNames                          , &
+         &                                                            allowedParametersFile                          , &
+         &                                                            outputParameters                                 &
+         &                                                           )
     return
   end function inputParametersConstructorFileChar
 
@@ -277,9 +327,11 @@ contains
     character(len=  10       )                                        :: versionLabel
     type     (varying_string )                                        :: message
 
-    inputParametersConstructorNode%parameterDoc => parametersNode
+    inputParametersConstructorNode%global     =  .false.
+    inputParametersConstructorNode%document   => getOwnerDocument(parametersNode)    
+    inputParametersConstructorNode%rootNode   =>                  parametersNode
     !$omp critical (FoX_DOM_Access)
-    inputParametersConstructorNode%parameters   => getChildNodes(inputParametersConstructorNode%parameterDoc)
+    inputParametersConstructorNode%parameters => getChildNodes   (parametersNode)
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
     if (present(outputParameters)) then
@@ -333,8 +385,8 @@ contains
     if (.not.allocated(allowedParameterNamesCombined)) allocate(allowedParameterNamesCombined(0))
     ! Check for version information.
     !$omp critical (FoX_DOM_Access)
-    if (XML_Path_Exists(inputParametersConstructorNode%parameterDoc,"version")) then
-       versionElement => XML_Get_First_Element_By_Tag_Name(inputParametersConstructorNode%parameterDoc,"version")
+    if (XML_Path_Exists(inputParametersConstructorNode%rootNode,"version")) then
+       versionElement => XML_Get_First_Element_By_Tag_Name(inputParametersConstructorNode%rootNode,"version")
        versionLabel=getTextContent(versionElement)
        if (String_Strip(versionLabel) /= "0.9.4") then
           message="HELP: Parameter file appears to be for version "                 // &
@@ -354,18 +406,14 @@ contains
   
   subroutine inputParametersDestroy(self)
     !% Destructor for the {\normalfont \ttfamily inputParameters} class.
-    type(inputParameters), intent(inout) :: self
-    type(node           ), pointer       :: parent
+    class(inputParameters), intent(inout) :: self
+    type (node           ), pointer       :: parent
 
-    ! We only destroy the XML document if the parent of the current parameters document is the entire XML document (which implies
-    ! that this inputParameters object was created from the full file). Otherwise, we could destroy the entire document when some
-    ! subparameter object goes out of scope. Also, check that the parent node actually exists (it won't for a null input
-    ! parameters list).
+    ! Destroy the parameters document. Note that we do not use a finalizer for input parameters. This could destroy part of a
+    ! document which was still pointed to from elsewhere, leaving a dangling pointer. Instead, destruction only occurs when
+    ! explicitly requested.
     !$omp critical (FoX_DOM_Access)
-    parent => getParentNode(self%parameterDoc)
-    if (associated(parent)) then
-       if (getNodeName(parent) == "#document") call destroy(self%parameterDoc)
-    end if
+    call destroy(self%document)
     !$omp end critical (FoX_DOM_Access)
     return
   end subroutine inputParametersDestroy
@@ -375,7 +423,7 @@ contains
     use Regular_Expressions
     use String_Handling
     implicit none
-    class    (inputParameters), intent(in   )                         :: self
+    class    (inputParameters)              , intent(in   )           :: self
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (node           ), pointer                               :: thisNode
     type     (regEx          ), save                                  :: thisRegEx
@@ -496,8 +544,9 @@ contains
   subroutine inputParametersMarkGlobal(self)
     !% Mark an {\normalfont \ttfamily inputParameters} object as the global input parameters.
     use, intrinsic :: ISO_C_Binding
+    use Galacticus_Error
     implicit none
-    class(inputParameters), intent(in   ), target :: self
+    class(inputParameters), intent(inout), target :: self
     type (c_ptr          )                        :: globalParametersC
     interface
        subroutine inputParametersSetGlobalC(globalParametersC) bind(c,name="inputParametersSetGlobalC")
@@ -506,6 +555,10 @@ contains
        end subroutine inputParametersSetGlobalC
     end interface
 
+    ! Check that global parameters have not yet been assigned.
+    if (associated(globalParameters)) call Galacticus_Error_Report('inputParametersMarkGlobal','global parameters cannot be reassigned')
+    ! Mark as global.
+    self%global=.true.
     ! Set global parameters pointer.
     globalParameters => self
     ! Set global parameters pointer in the C interface also.
@@ -513,6 +566,15 @@ contains
     call inputParametersSetGlobalC(globalParametersC)
     return
   end subroutine inputParametersMarkGlobal
+  
+  logical function inputParametersIsGlobal(self)
+    !% Return true if an {\normalfont \ttfamily inputParameters} object is the global input parameter set.
+    implicit none
+    class(inputParameters), intent(in   ), target :: self
+
+    inputParametersIsGlobal=self%global
+    return
+  end function inputParametersIsGlobal
   
   subroutine inputParametersSetOutputParameters(self,outputParameters)
     !% Set a pointer to the HDF5 object to which parameter values should be output.
@@ -713,9 +775,9 @@ contains
        end if
     else if (hasValueAttribute .or. hasValueElement) then
        if (hasValueAttribute) then
-          valueElement => getAttributeNode(parameterNode,"value")
+          valueElement => getAttributeNode                 (parameterNode,"value"                          )
        else
-          valueElement => XML_Get_First_Element_By_Tag_Name(parameterNode,"value")
+          valueElement => XML_Get_First_Element_By_Tag_Name(parameterNode,"value",directChildrenOnly=.true.)
        end if
        if (trim(getTextContent(valueElement)) == "") then
           if (present(errorStatus)) then
@@ -869,6 +931,73 @@ contains
     return
   end subroutine inputParameterListSerializeToXML
 
+  recursive function inputParametersSerializeToString(self,hashed)
+    !% Serialize input parameters to a string.
+    use Hashes_Cryptographic
+    implicit none
+    type   (varying_string )                          :: inputParametersSerializeToString
+    class  (inputParameters), intent(in   )           :: self
+    logical                 , intent(in   ), optional :: hashed 
+    type   (node           ), pointer                 :: thisNode
+    integer                                           :: i                               , errorStatus, &
+         &                                               nodeCount
+    type   (varying_string )                          :: parameterValue
+    logical                                           :: firstParameter
+    type   (inputParameters)                          :: subParameters
+    !# <optionalArgument name="hashed" defaultsTo=".false." />
+
+    inputParametersSerializeToString=""
+    !$omp critical (FoX_DOM_Access)
+    nodeCount=getLength(self%parameters)
+    !$omp end critical (FoX_DOM_Access)
+    firstParameter=.true.
+    do i=0,nodeCount-1
+       !$omp critical (FoX_DOM_Access)
+       thisNode => item(self%parameters,i)
+       !$omp endcritical (FoX_DOM_Access)
+       if (self%isParameter(thisNode)) then
+          if (.not.firstParameter) inputParametersSerializeToString=inputParametersSerializeToString//"_"
+          call self%value(thisNode,parameterValue,errorStatus,writeOutput=.false.)
+          inputParametersSerializeToString=inputParametersSerializeToString// &
+               &                           getNodeName(thisNode)           // &
+               &                           ":"                             // &
+               &                           adjustl(trim(parameterValue))
+          subParameters=self%subParameters(getNodeName(thisNode))
+          if (getLength(subParameters%parameters) > 0) inputParametersSerializeToString=inputParametersSerializeToString // &
+               &                                                                        "{"                              // &
+               &                                                                        subParameters%serializeToString()// &
+               &                                                                        "}"
+          firstParameter=.false.
+       end if
+    end do
+    if (hashed_) inputParametersSerializeToString=Hash_MD5(inputParametersSerializeToString)
+    return
+  end function inputParametersSerializeToString
+  
+  subroutine inputParametersSerializeToXML(self,parameterFile)
+    !% Serialize input parameters to an XML file.
+    implicit none
+    class(inputParameters), intent(in   ) :: self
+    type (varying_string ), intent(in   ) :: parameterFile
+    
+    call serialize(self%document,char(parameterFile))
+    return
+  end subroutine inputParametersSerializeToXML
+    
+  subroutine inputParametersAddParameter(self,parameterName,parameterValue)
+    !% Add a parameter to the set.
+    implicit none
+    class    (inputParameters), intent(inout) :: self
+    character(len=*          ), intent(in   ) :: parameterName, parameterValue
+    type     (node           ), pointer       :: parameterNode, dummy
+
+    parameterNode   => createElementNS(self%document,getNamespaceURI(self%document),parameterName)
+    call setAttribute(parameterNode,"value",trim(parameterValue))
+    dummy           => appendChild  (self%rootNode,parameterNode)
+    self%parameters => getChildNodes(self%rootNode              )
+    return
+  end subroutine inputParametersAddParameter
+  
   ! Include functions that generate unique labels for modules.
   include 'utility.input_parameters.unique_labels.inc'
 

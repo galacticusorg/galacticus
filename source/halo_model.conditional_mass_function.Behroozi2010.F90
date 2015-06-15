@@ -334,6 +334,7 @@ contains
   subroutine behroozi2010Compute(self,massHalo,mass,numberCentrals,numberSatellites)
     !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_{\mathrm halo}) \rangle \equiv \phi(M_\star|M_{\rm
     !% halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
+    use Table_Labels
     implicit none
     class           (conditionalMassFunctionBehroozi2010), intent(inout), target :: self
     double precision                                     , intent(in   )         :: massHalo                , mass
@@ -367,7 +368,7 @@ contains
             &                        self%fMassTableMinimum                       , &
             &                        self%fMassTableMaximum                       , &
             &                        self%fMassTableCount                         , &
-            &                        extrapolationType=extrapolationTypeFix       &
+            &                   extrapolationType=spread(extrapolationTypeFix,1,2)  &          
             &                       )
        call self%fMassTable%populate(                                               &
             &                        behroozi2010fSHMRInverse(self%fMassTable%xs()) &

@@ -4,19 +4,19 @@
   <extrapolation>
     <metallicity>
       <limit>low</limit>
-      <method>fixed</method>
+      <method>fix</method>
     </metallicity>
     <metallicity>
       <limit>high</limit>
-      <method>fixed</method>
+      <method>fix</method>
     </metallicity>
     <temperature>
       <limit>low</limit>
-      <method>fixed</method>
+      <method>fix</method>
     </temperature>
     <temperature>
       <limit>high</limit>
-      <method>fixed</method>
+      <method>fix</method>
     </temperature>
   </extrapolation>
   <chemicalState>

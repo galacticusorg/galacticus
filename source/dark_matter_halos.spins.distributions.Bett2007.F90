@@ -52,6 +52,7 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use Gamma_Functions
+    use Table_Labels
     implicit none
     type            (varying_string                 ), intent(in   )          :: haloSpinDistributionMethod
     procedure       (Halo_Spin_Distribution_Bett2007), intent(inout), pointer :: Halo_Spin_Sample_Get
@@ -91,7 +92,7 @@ contains
             &                            spinDistributionBett2007Lambda0*spinDistributionTableMinimum**(spinDistributionBett2007Alpha/3.0d0), &
             &                            spinDistributionBett2007Lambda0*spinDistributionTableMaximum**(spinDistributionBett2007Alpha/3.0d0), &
             &                            spinDistributionTableNumberPoints                                                                  , &
-            &                            extrapolationType=extrapolationTypeFix                                                               &
+            &                            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                         &
             &                           )
        ! Compute the cumulative probability distribution.
        do iSpin=1,spinDistributionTableNumberPoints

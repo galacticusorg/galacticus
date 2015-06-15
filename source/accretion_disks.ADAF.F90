@@ -261,6 +261,7 @@ contains
     !% Tabulate jet power and spin-up efficiency for an ADAF.
     use Numerical_Constants_Physical
     use Black_Hole_Fundamentals
+    use Table_Labels
     implicit none
     double precision, parameter :: blackHoleSpinParameterMaximum=1.0d0, blackHoleSpinParameterMinimum=1.0d-6
     integer                     :: iSpin
@@ -272,12 +273,12 @@ contains
        !$omp critical(ADAF_Interpolate)
        if (.not.adafTableTabulated) then
           call adafTable%destroy()
-          call adafTable%create (                                                    &
-               &                 blackHoleSpinParameterMinimum                     , &
-               &                 blackHoleSpinParameterMaximum                     , &
-               &                 adafTableCount                                    , &
-               &                 tableCount                   =2                   , &
-               &                 extrapolationType            =extrapolationTypeFix  &
+          call adafTable%create (                                                                           &
+               &                 blackHoleSpinParameterMinimum                                            , &
+               &                 blackHoleSpinParameterMaximum                                            , &
+               &                 adafTableCount                                                           , &
+               &                 tableCount                   =2                                          , &
+               &                 extrapolationType            =[extrapolationTypeFix,extrapolationTypeFix]  &
                &                )
           do iSpin=1,adafTableCount
              ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack

@@ -40,7 +40,6 @@
   <diskMassToleranceAbsolute value="1e-06"/>
   <diskOutflowExponent value="2"/>
   <diskOutflowVelocity value="200"/>
-  <effectiveNumberNeutrinos value="4.34"/>
   <galacticStructureRadiusSolverMethod value="adiabatic"/>
   <haloMassFunctionMethod value="Tinker2008"/>
   <haloSpinDistributionMethod value="Bett2007"/>
@@ -112,12 +111,14 @@
   <starveSatellites value="true"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <stellarPopulationSpectraMethod value="Conroy-White-Gunn2009"/>
-  <summedNeutrinoMasses value="0"/>
   <timestepHostAbsolute value="1"/>
   <timestepHostRelative value="0.1"/>
   <timestepSimpleAbsolute value="1"/>
   <timestepSimpleRelative value="0.1"/>
-  <transferFunctionMethod value="Eisenstein-Hu1999"/>
+  <transferFunctionMethod value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.04"/>
+    <neutrinoMassSummed value="0.0"/>
+  </transferFunctionMethod>
   <treeBranchingMethod value="modifiedPress-Schechter"/>
   <treeNodeMethodBasic value="standard"/>
   <treeNodeMethodBlackHole value="standard"/>

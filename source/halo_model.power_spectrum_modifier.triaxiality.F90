@@ -87,6 +87,7 @@ contains
     use Cosmology_Parameters
     use Vectors
     use Galacticus_Error
+    use Table_Labels
     implicit none
     class           (haloModelPowerSpectrumModifierTriaxiality), intent(inout)                           :: self
     double precision                                           , intent(in   ), dimension(:  )           :: wavenumber
@@ -103,12 +104,12 @@ contains
     if (.not.present(mass)) call Galacticus_Error_Report('triaxialityModify','mass is required')
     ! Initialize tables if necessary.
     if (.not.triaxialityInitialized) then
-       call triaxialityTable%create(                              &
-            &                       triaxialityWavenumberMinimum, &
-            &                       triaxialityWavenumberMaximum, &
-            &                       triaxialityWavenumberCount  , &
-            &                       5                           , &
-            &                       extrapolationTypeExtrapolate  &
+       call triaxialityTable%create(                                          &
+            &                       triaxialityWavenumberMinimum            , &
+            &                       triaxialityWavenumberMaximum            , &
+            &                       triaxialityWavenumberCount              , &
+            &                       5                                       , &
+            &                       spread(extrapolationTypeExtrapolate,1,2)  &
             &                      )
        do i=1,4
           call triaxialityTable%populate(triaxialityOneHalo(:,i),i)

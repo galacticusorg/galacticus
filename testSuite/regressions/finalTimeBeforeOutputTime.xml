@@ -12,7 +12,6 @@
   <diskOutflowFraction value="1.0"/>
   <coolingTimeMethod value="simple"/>
   <treeNodeMethodSatellite value="verySimple"/>
-  <effectiveNumberNeutrinos value="3.04"/>
   <sigma_8 value="0.9"/>
   <intergalaticMediumStateFileName value="constraints/data/igmState.xml"/>
   <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
@@ -38,13 +37,15 @@
   <haloMassFunctionSamplingStellarMassFunctionErrorAlpha value="-0.3"/>
   <powerSpectrumReferenceWavenumber value="1"/>
   <barInstabilityMethod value="null"/>
-  <summedNeutrinoMasses value="0.0"/>
   <starFormationTimescaleDisksHaloScalingVirialVelocityExponent value="0.0"/>
   <mergerTreeReadPresetSubhaloMasses value="false"/>
   <coolingRateSimpleScalingCutOffMass value="5.0e12"/>
   <conditionalMassFunctionBehrooziSigmaLogMstar value="0.158558523426"/>
   <mergerTreeReadPresetOrbits value="false"/>
-  <transferFunctionMethod value="Eisenstein-Hu1999"/>
+  <transferFunctionMethod value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.04"/>
+    <neutrinoMassSummed value="0.0"/>
+  </transferFunctionMethod>
   <modifiedPressSchechterG0 value="0.57"/>
   <diskOutflowVirialVelocityExponent value="-3.0"/>
   <mergerTreeReadPresetScaleRadii value="false"/>

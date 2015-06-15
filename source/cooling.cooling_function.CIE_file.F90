@@ -235,6 +235,7 @@ contains
     use Radiation_Structure
     use Numerical_Constants_Astronomical
     use IO_XML
+    use Table_Labels
     implicit none
     double precision                    , intent(in   ) :: numberDensityHydrogen         , temperature
     type            (abundances        ), intent(in   ) :: gasAbundances
@@ -250,19 +251,19 @@ contains
     temperatureUse=temperature
     if (temperatureUse < temperatureMinimum) then
        select case (extrapolateTemperatureLow)
-       case (extrapolateZero)
+       case (extrapolationTypeZero)
           Cooling_Function_CIE_File_Interpolate=0.0d0
           return
-       case (extrapolateFixed,extrapolatePowerLaw)
+       case (extrapolationTypeFix,extrapolationTypePowerLaw)
           temperatureUse=temperatureMinimum
        end select
     end if
     if (temperatureUse > temperatureMaximum) then
        select case (extrapolateTemperatureHigh)
-       case (extrapolateZero)
+       case (extrapolationTypeZero)
           Cooling_Function_CIE_File_Interpolate=0.0d0
           return
-       case (extrapolateFixed,extrapolatePowerLaw)
+       case (extrapolationTypeFix,extrapolationTypePowerLaw)
           temperatureUse=temperatureMaximum
        end select
     end if
@@ -271,19 +272,19 @@ contains
     metallicityUse=Abundances_Get_Metallicity(gasAbundances)/metallicitySolar
     if (metallicityUse < metallicityMinimum) then
        select case (extrapolateMetallicityLow)
-       case (extrapolateZero)
+       case (extrapolationTypeZero)
           Cooling_Function_CIE_File_Interpolate=0.0d0
           return
-       case (extrapolateFixed)
+       case (extrapolationTypeFix)
           metallicityUse=metallicityMinimum
        end select
     end if
     if (metallicityUse > metallicityMaximum) then
        select case (extrapolateMetallicityHigh)
-       case (extrapolateZero)
+       case (extrapolationTypeZero)
           Cooling_Function_CIE_File_Interpolate=0.0d0
           return
-       case (extrapolateFixed)
+       case (extrapolationTypeFix)
           metallicityUse=metallicityMaximum
        end select
     end if
@@ -315,6 +316,7 @@ contains
     use Radiation_Structure
     use Numerical_Constants_Astronomical
     use IO_XML
+    use Table_Labels
     implicit none
     double precision                    , intent(in   ) :: numberDensityHydrogen              , temperature
     type            (abundances        ), intent(in   ) :: gasAbundances
@@ -330,19 +332,19 @@ contains
     temperatureUse=temperature
     if (temperatureUse < temperatureMinimum) then
        select case (extrapolateTemperatureLow)
-       case (extrapolateZero,extrapolateFixed)
+       case (extrapolationTypeZero,extrapolationTypeFix)
           Cooling_Function_CIE_File_logTemperature_Interpolate=0.0d0
           return
-       case (extrapolatePowerLaw)
+       case (extrapolationTypePowerLaw)
           temperatureUse=temperatureMinimum
        end select
     end if
     if (temperatureUse > temperatureMaximum) then
        select case (extrapolateTemperatureHigh)
-       case (extrapolateZero,extrapolateFixed)
+       case (extrapolationTypeZero,extrapolationTypeFix)
           Cooling_Function_CIE_File_logTemperature_Interpolate=0.0d0
           return
-       case (extrapolatePowerLaw)
+       case (extrapolationTypePowerLaw)
           temperatureUse=temperatureMaximum
        end select
     end if
@@ -351,19 +353,19 @@ contains
     metallicityUse=Abundances_Get_Metallicity(gasAbundances)/metallicitySolar
     if (metallicityUse < metallicityMinimum) then
        select case (extrapolateMetallicityLow)
-       case (extrapolateZero)
+       case (extrapolationTypeZero)
           Cooling_Function_CIE_File_logTemperature_Interpolate=0.0d0
           return
-       case (extrapolateFixed)
+       case (extrapolationTypeFix)
           metallicityUse=metallicityMinimum
        end select
     end if
     if (metallicityUse > metallicityMaximum) then
        select case (extrapolateMetallicityHigh)
-       case (extrapolateZero)
+       case (extrapolationTypeZero)
           Cooling_Function_CIE_File_logTemperature_Interpolate=0.0d0
           return
-       case (extrapolateFixed)
+       case (extrapolationTypeFix)
           metallicityUse=metallicityMaximum
        end select
     end if
@@ -405,6 +407,7 @@ contains
     use Numerical_Comparison
     use Galacticus_Display
     use IO_XML
+    use Table_Labels
     implicit none
     type            (varying_string)             , intent(in   )           :: coolingFunctionFileToRead
     double precision                             , intent(  out), optional :: metallicityMaximumTabulated
@@ -497,7 +500,7 @@ contains
     metallicityExtrapolationList => getElementsByTagname(extrapolationElement,"metallicity")
     do iExtrapolation=0,getLength(metallicityExtrapolationList)-1
        extrapolation => item(metallicityExtrapolationList,iExtrapolation)
-       call XML_Extrapolation_Element_Decode(extrapolation,limitType,extrapolationMethod,allowedMethods=[extrapolateZero,extrapolateFixed,extrapolatePowerLaw])
+       call XML_Extrapolation_Element_Decode(extrapolation,limitType,extrapolationMethod,allowedMethods=[extrapolationTypeZero,extrapolationTypeFix,extrapolationTypePowerLaw])
        select case (trim(limitType))
        case ('low')
           extrapolateMetallicityLow=extrapolationMethod
@@ -511,7 +514,7 @@ contains
     temperatureExtrapolationList => getElementsByTagname(extrapolationElement,"temperature")
     do iExtrapolation=0,getLength(temperatureExtrapolationList)-1
        extrapolation => item(temperatureExtrapolationList,iExtrapolation)
-       call XML_Extrapolation_Element_Decode(extrapolation,limitType,extrapolationMethod,allowedMethods=[extrapolateZero,extrapolateFixed,extrapolatePowerLaw])
+       call XML_Extrapolation_Element_Decode(extrapolation,limitType,extrapolationMethod,allowedMethods=[extrapolationTypeZero,extrapolationTypeFix,extrapolationTypePowerLaw])
        select case (trim(limitType))
        case ('low')
           extrapolateTemperatureLow=extrapolationMethod
@@ -547,16 +550,16 @@ contains
        coolingFunctionTable=log(coolingFunctionTable)
     else
        if     (                                                  &
-            &  extrapolateTemperatureLow  == extrapolatePowerLaw &
+            &  extrapolateTemperatureLow  == extrapolationTypePowerLaw &
             &  .or.                                              &
-            &  extrapolateTemperatureHigh == extrapolatePowerLaw &
+            &  extrapolateTemperatureHigh == extrapolationTypePowerLaw &
             & )                                                  &
             & call Galacticus_Error_Report('Cooling_Function_CIE_File_Read','power law extrapolation allowed only in loggable tables')
     end if
     if     (                                                  &
-         &  extrapolateMetallicityLow  == extrapolatePowerLaw &
+         &  extrapolateMetallicityLow  == extrapolationTypePowerLaw &
          &   .or.                                             &
-         &  extrapolateMetallicityHigh == extrapolatePowerLaw &
+         &  extrapolateMetallicityHigh == extrapolationTypePowerLaw &
          & )                                                  &
          & call Galacticus_Error_Report('Cooling_Function_CIE_File_Read','power law extrapolation not allowed in metallicity')
 

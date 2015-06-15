@@ -4,30 +4,22 @@
   <description>Transfer function used in the Mill Gas N-body calculation.</description>
   <source>John Helly [j.c.helly@durham.ac.uk] (originally supplied by Adrian Jenkins).</source>
   <fileFormat>1</fileFormat>
-  <parameter>
-    <name>Omega_b</name>
-    <value>0.0455</value>
-  </parameter>
-  <parameter>
-    <name>Omega_Matter</name>
-    <value>0.272</value>
-  </parameter>
-  <parameter>
-    <name>Omega_DE</name>
-    <value>0.728</value>
-  </parameter>
-  <parameter>
-    <name>H_0</name>
-    <value>70.4</value>
-  </parameter>
+  <parameters>
+    <cosmologyParametersMethod value="simple">
+      <HubbleConstant value="70.4"/>
+      <OmegaBaryon value="0.0455"/>
+      <OmegaDarkEnergy value="0.728"/>
+      <OmegaMatter value="0.272"/>
+    </cosmologyParametersMethod>
+  </parameters>
   <extrapolation>
     <wavenumber>
       <limit>low</limit>
-      <method>fixed</method>
+      <method>fix</method>
     </wavenumber>
     <wavenumber>
       <limit>high</limit>
-      <method>power law</method>
+      <method>extrapolate</method>
     </wavenumber>
   </extrapolation>
   <datum>4.99543e-06 1</datum>

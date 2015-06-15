@@ -13,7 +13,7 @@
     <temperatureCMB value="2.72548"/>
   </cosmologyParametersMethod>
 
-  <dblFromC value="1.2434" />
-  <longFromC value="12434" />
+  <dblFromC value="1.2434"/>
+  <longFromC value="12434"/>
 
 </parameters>

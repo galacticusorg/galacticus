@@ -2604,9 +2604,9 @@ contains
                          call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
                       end if
                       ! Read subhalo position trace data.
-                      call defaultImporter%subhaloTrace                                               &
-                           & (                                                                        &
-                           &  thisNode                                                              , &
+                      call defaultImporter%subhaloTrace                                                               &
+                           & (                                                                                        &
+                           &  thisNode                                                                              , &
                            &  historyTime(  historyCount+1:historyCount+defaultImporter%subhaloTraceCount(thisNode)), &
                            &  position   (:,historyCount+1:historyCount+defaultImporter%subhaloTraceCount(thisNode)), &
                            &  velocity   (:,historyCount+1:historyCount+defaultImporter%subhaloTraceCount(thisNode))  &

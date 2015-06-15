@@ -10,7 +10,7 @@
     <OmegaBaryon value="0.0465"/>
     <HubbleConstant value="69.3"/>
   </cosmologyParametersMethod><sigma_8 value="0.82"/>
-  <transferFunctionMethod value="Eisenstein-Hu1999"/>
+  <transferFunctionMethod value="eisensteinHu1999"/>
   <powerSpectrumIndex value="0.971"/>
   <darkMatterHaloMassAccretionHistoryMethod value="correa2015"/>
   <darkMatterProfileConcentrationMethod value="correa2015"/>
