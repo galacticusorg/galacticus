@@ -28,9 +28,9 @@ my $xml = new XML::Simple;
 my $parameters = $xml->XMLin($file, KeyAttr => "");
 # Determine the format.
 my $format = 2; # Best guess if not other information.
-if ( exists($parameters->{'formationVersion'}) ) {
+if ( exists($parameters->{'formatVersion'}) ) {
     # Use the format declared in the file itself.
-    $format = $parameters->{'formationVersion'};
+    $format = $parameters->{'formatVersion'};
 } elsif ( exists($parameters->{'parameter'}) ) {
     # Does it look like format version 1?
     $format = 1;
@@ -72,9 +72,12 @@ if ( $format == 1 ) {
 	    $valid = 1;
 	    print "Parameter '".$element->{'name'}."' appears ".scalar(@{$element->{'node'}})." times - should appear only once\n"; 
 	} else {
-	    unless ( exists($element->{'node'}->{'value'}) ) {
+	    if ( ! exists($element->{'node'}->{'value'}) ) {
 		$valid = 1;
 		print "Parameter '".$element->{'name'}."' has no value\n";
+	    } elsif ( reftype($element->{'node'}->{'value'}) && reftype($element->{'node'}->{'value'}) eq "ARRAY" ) {
+		$valid = 1;
+		print "Parameter '".$element->{'name'}."' has multiple values\n";
 	    }
 	    push
 		(
