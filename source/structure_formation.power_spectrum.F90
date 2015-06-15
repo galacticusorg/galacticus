@@ -64,14 +64,11 @@ contains
 
   double precision function Power_Spectrum_Logarithmic_Derivative(wavenumber)
     !% Return the logarithmic derivative of the power spectrum, ${\mathrm d}\ln P(k)/{\mathrm d}\ln k$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
-    use Transfer_Functions
-    use Primordial_Power_Spectra
+    use Primordial_Power_Spectra_Transferred
     implicit none
     double precision, intent(in   ) :: wavenumber
 
-    Power_Spectrum_Logarithmic_Derivative=                                                                    &
-         &                                       Primordial_Power_Spectrum_Logarithmic_Derivative(wavenumber) &
-         &                                +2.0d0*        Transfer_Function_Logarithmic_Derivative(wavenumber)
+    Power_Spectrum_Logarithmic_Derivative=Primordial_Power_Spectrum_Transferred_Logarithmic_Derivative(wavenumber)
     return
   end function Power_Spectrum_Logarithmic_Derivative
 

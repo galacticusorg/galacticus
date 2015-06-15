@@ -15,274 +15,291 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which reads a tabulated transfer function from a file.
+!% Contains a module which implements a file transfer function class.
 
-module Transfer_Functions_File
-  !% Implements reading of a tabulated transfer function from a file.
-  use ISO_Varying_String
-  implicit none
-  private
-  public :: Transfer_Function_File_Initialize, Transfer_Function_Named_File_Read, Transfer_Function_Named_File_Format_Version
+  use Tables
+  
+  !# <transferFunction name="transferFunctionFile">
+  !#  <description>
+  !# Provides a transfer function from a tabulation given in an XML file.The XML file format for transfer functions looks like:
+  !# \begin{verbatim}
+  !#  <data>
+  !#   <column>k [Mpc^{-1}] - wavenumber</column>
+  !#   <column>T(k) - transfer function</column>
+  !#   <datum>1.111614e-05 0.218866E+08</datum>
+  !#   <datum>1.228521e-05 0.218866E+08</datum>
+  !#   <datum>1.357727e-05 0.218866E+08</datum>
+  !#   <datum>1.50052e-05 0.218866E+08</datum>
+  !#   <datum>1.658335e-05 0.218866E+08</datum>
+  !#   <datum>1.83274e-05 0.218865E+08</datum>
+  !#   .
+  !#   .
+  !#   .
+  !#   <description>Cold dark matter power spectrum created by CAMB.</description>
+  !#   <fileFormat>1</fileFormat>
+  !#   <parameter>
+  !#     <name>Omega_b</name>
+  !#     <value>0.0450</value>
+  !#   </parameter>
+  !#   <parameter>
+  !#     <name>Omega_Matter</name>
+  !#     <value>0.250</value>
+  !#   </parameter>
+  !#   <parameter>
+  !#     <name>Omega_DE</name>
+  !#     <value>0.750</value>
+  !#   </parameter>
+  !#   <parameter>
+  !#     <name>H_0</name>
+  !#     <value>70.0</value>
+  !#   </parameter>
+  !#   <parameter>
+  !#     <name>T_CMB</name>
+  !#     <value>2.780</value>
+  !#   </parameter>
+  !#   <parameter>
+  !#     <name>Y_He</name>
+  !#     <value>0.24</value>
+  !#   </parameter>
+  !#   <extrapolation>
+  !#     <wavenumber>
+  !#       <limit>low</limit>
+  !#       <method>extrapolate</method>
+  !#     </wavenumber>
+  !#     <wavenumber>
+  !#       <limit>high</limit>
+  !#       <method>extrapolate</method>
+  !#     </wavenumber>
+  !#   </extrapolation>
+  !# </data>
+  !# \end{verbatim}
+  !# The {\normalfont \ttfamily datum} elements give wavenumber (in Mpc$^{-1}$) and transfer function pairs. The {\normalfont
+  !# \ttfamily extrapolation} element defines how the tabulated function should be extrapolated to lower and higher
+  !# wavenumbers. The two options for the {\normalfont \ttfamily method} are ``fixed'', in which case the transfer function is
+  !# extrapolated assuming that it remains constant, and ``extrapolate'' in which case the extrapolation is performed (typically
+  !# this extrapolation is based on extending the cubic spline interpolation used to interpolate the transfer function in a
+  !# log-log space). The {\normalfont \ttfamily column}, {\normalfont \ttfamily description} and {\normalfont \ttfamily parameter}
+  !# elements are optional, but are encouraged to make the file easier to understand. Finally, the {\normalfont \ttfamily
+  !# fileFormat} element should currently always contain the value $1$---this may change in future if the format of this file is
+  !# modified.
+  !# </description>
+  !# </transferFunction>
+  type, extends(transferFunctionClass) :: transferFunctionFile
+     !% A transfer function class which interpolates a transfer function given in a file.
+     private
+     type(table1DGeneric) :: transfer
+   contains
+     !@ <objectMethods>
+     !@   <object>transferFunctionFile</object>
+     !@   <objectMethod>
+     !@     <method>readFile</method>
+     !@     <type>void</type>
+     !@     <arguments>\textcolor{red}{\textless char(len=*)\textgreater} fileName\argin</arguments>
+     !@     <description>Read the named transfer function file.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                          fileDestructor
+     procedure :: readFile              => fileReadFile
+     procedure :: value                 => fileValue
+     procedure :: logarithmicDerivative => fileLogarithmicDerivative
+     procedure :: halfModeMass          => fileHalfModeMass
+  end type transferFunctionFile
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                     :: transferFunctionInitialized   =.false.
+  interface transferFunctionFile
+     !% Constructors for the file transfer function class.
+     module procedure fileConstructorParameters
+     module procedure fileConstructorInternal
+  end interface transferFunctionFile
 
-  ! File name for the transfer function data.
-  type            (varying_string)            :: transferFunctionFile
-
-  ! Extrapolation methods.
-  integer                                     :: extrapolateWavenumberHigh             , extrapolateWavenumberLow
-
-  ! Number of points per decade to add per decade when extrapolating and the buffer in log wavenumber to use.
-  integer                         , parameter :: extrapolatePointsPerDecade    =10
-  double precision                            :: extrapolateLogWavenumberBuffer=1.0d0
-
-  ! Current file format version for intergalactic background radiation files.
-  integer                         , parameter :: fileFormatVersionCurrent      =1
+  ! Current file format version for transfer function files.
+  integer, parameter :: fileFormatVersionCurrent=1
 
 contains
 
-  integer function Transfer_Function_Named_File_Format_Version()
-    !% Return the current file format version of transfer function files files.
+  function fileConstructorParameters(parameters)
+    !% Constructor for the file transfer function class which takes a parameter set as input.
     implicit none
+    type(transferFunctionFile)                :: fileConstructorParameters
+    type(inputParameters     ), intent(in   ) :: parameters
+    type(varying_string      )                :: fileName
+    !# <inputParameterList label="allowedParameterNames" />
 
-    Transfer_Function_Named_File_Format_Version=fileFormatVersionCurrent
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>fileName</name>
+    !#   <source>parameters</source>
+    !#   <description>The name of the file from which to read a tabulated transfer function.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    fileConstructorParameters=fileConstructorInternal(char(fileName))
     return
-  end function Transfer_Function_Named_File_Format_Version
-
-  !# <transferFunctionMethod>
-  !#  <unitName>Transfer_Function_File_Initialize</unitName>
-  !# </transferFunctionMethod>
-  subroutine Transfer_Function_File_Initialize(transferFunctionMethod,Transfer_Function_Tabulate,Transfer_Function_Half_Mode_Mass)
-    !% Initializes the ``transfer function from file'' module.
-    use Input_Parameters
-    implicit none
-    type     (varying_string                       ), intent(in   )          :: transferFunctionMethod
-    procedure(Transfer_Function_File_Read          ), intent(inout), pointer :: Transfer_Function_Tabulate
-    procedure(Transfer_Function_Half_Mode_Mass_Null), intent(inout), pointer :: Transfer_Function_Half_Mode_Mass
-
-    if (transferFunctionMethod == 'file') then
-       Transfer_Function_Tabulate       => Transfer_Function_File_Read
-       Transfer_Function_Half_Mode_Mass => Transfer_Function_Half_Mode_Mass_Null
-       !@ <inputParameter>
-       !@   <name>transferFunctionFile</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of a file containing a tabulation of the transfer function for the ``file'' transfer function method.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('transferFunctionFile',transferFunctionFile)
-    end if
-    return
-  end subroutine Transfer_Function_File_Initialize
-
-  subroutine Transfer_Function_Named_File_Read(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber&
-       &,transferFunctionLogT,fileName)
-    !% Read the transfer function from a file specified by {\normalfont \ttfamily fileName}.
-    implicit none
-    double precision                                           , intent(in   ) :: logWavenumber
-    double precision                , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
-    integer                                                    , intent(  out) :: transferFunctionNumberPoints
-    type            (varying_string)                           , intent(in   ) :: fileName
-
-    ! Set the filename to that specified.
-    transferFunctionFile=fileName
-    ! Flag that module is uninitialized again.
-    transferFunctionInitialized=.false.
-    ! Call routine to read in the data.
-    call Transfer_Function_File_Read(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber&
-         &,transferFunctionLogT)
-   return
-  end subroutine Transfer_Function_Named_File_Read
-
-  subroutine Transfer_Function_File_Read(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber&
-       &,transferFunctionLogT)
-    !% Reads a transfer function from an XML file.
-    use FoX_dom
+  end function fileConstructorParameters
+  
+  function fileConstructorInternal(fileName)
+    !% Internal constructor for the file transfer function class.
+    use Input_Parameters2
+    use Cosmology_Parameters
+    use FoX_DOM
+    use IO_XML
     use Numerical_Comparison
-    use Memory_Management
+    use Array_Utilities
     use Galacticus_Error
     use Galacticus_Display
-    use Cosmology_Parameters
-    use Numerical_Constants_Math
-    use Numerical_Ranges
-    use IO_XML
     implicit none
-    double precision                                                              , intent(in   ) :: logWavenumber
-    double precision                                   , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
-    integer                                                                       , intent(  out) :: transferFunctionNumberPoints
-    type            (Node                    ), pointer                                           :: doc                         , extrapolation                , &
-         &                                                                                           extrapolationElement        , formatElement                , &
-         &                                                                                           nameElement                 , thisParameter                , &
-         &                                                                                           valueElement
-    type            (NodeList                ), pointer                                           :: parameterList               , wavenumberExtrapolationList
-    double precision                                   , allocatable, dimension(:)                :: transferFunctionTemporary   , wavenumberTemporary
+    type     (transferFunctionFile)                :: fileConstructorInternal
+    character(len=*               ), intent(in   ) :: fileName
 
-    class           (cosmologyParametersClass), pointer                                           :: thisCosmologyParameters
-    integer                                                                                       :: addCount                    , extrapolationMethod          , &
-         &                                                                                           iExtrapolation              , iParameter                   , &
-         &                                                                                           ioErr                       , versionNumber
-    double precision                                                                              :: cmbTemperatureValue         , hubbleParameterValue         , &
-         &                                                                                           omegaBaryonValue            , omegaDarkEnergyValue         , &
-         &                                                                                           omegaMatterValue            , parameterValue
-    character       (len=32                  )                                                    :: limitType
-
-    ! Read the file if this module has not been initialized.
-    if (.not.transferFunctionInitialized) then
-
-       ! Get the default cosmology.
-       thisCosmologyParameters => cosmologyParameters()
-       ! Get values of cosmological parameters in advance (avoids trying to retrieve them while in an OpenMP "FoX_DOM_Access"
-       ! critical section which can lead to deadlocks).
-       omegaBaryonValue    =thisCosmologyParameters%OmegaBaryon    (                   )
-       omegaMatterValue    =thisCosmologyParameters%OmegaMatter    (                   )
-       omegaDarkEnergyValue=thisCosmologyParameters%OmegaDarkEnergy(                   )
-       hubbleParameterValue=thisCosmologyParameters%HubbleConstant (hubbleUnitsStandard)
-       cmbTemperatureValue =thisCosmologyParameters%temperatureCMB (                   )
-       ! Open and parse the data file.
-       !$omp critical (FoX_DOM_Access)
-       doc => parseFile(char(transferFunctionFile),iostat=ioErr)
-       if (ioErr /= 0) call Galacticus_Error_Report('Transfer_Function_File_Read','Unable to find transfer function file')
-       ! Check that the file has the correct format version number.
-       formatElement => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
-       call extractDataContent(formatElement,versionNumber)
-       if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('Transfer_Function_File_Read','file has the incorrect version number')
-       ! Check that parameters match if any are present.
-       parameterList => getElementsByTagname(doc,"parameter")
-       do iParameter=0,getLength(parameterList)-1
-          thisParameter => item(parameterList,iParameter)
-          nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name" )
-          valueElement  => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          select case (getTextContent(nameElement))
-          case ("Omega_b")
-             call extractDataContent(valueElement,parameterValue)
-             if (Values_Differ(parameterValue,omegaBaryonValue    ,absTol=1.0d-3)) call Galacticus_Display_Message('Omega_b from transfer &
-                  & function file does not match internal value')
-          case ("Omega_Matter")
-             call extractDataContent(valueElement,parameterValue)
-             if (Values_Differ(parameterValue,omegaMatterValue    ,absTol=1.0d-3)) call Galacticus_Display_Message('Omega_Matter from transfer &
-                  & function file does not match internal value')
-          case ("Omega_DE")
-             call extractDataContent(valueElement,parameterValue)
-             if (Values_Differ(parameterValue,omegaDarkEnergyValue,absTol=1.0d-3)) call Galacticus_Display_Message('Omega_DE from transfer &
-                  & function file does not match internal value')
-          case ("H_0")
-             call extractDataContent(valueElement,parameterValue)
-             if (Values_Differ(parameterValue,hubbleParameterValue,relTol=1.0d-3)) call Galacticus_Display_Message('H_0 from transfer &
-                  & function file does not match internal value')
-          case ("T_CMB")
-             call extractDataContent(valueElement,parameterValue)
-             if (Values_Differ(parameterValue,cmbTemperatureValue ,relTol=1.0d-3)) call Galacticus_Display_Message('T_CMB from transfer &
-                  & function file does not match internal value')
-          end select
-       end do
-       ! Get extrapolation methods.
-       extrapolationElement        => XML_Get_First_Element_By_Tag_Name(doc                 ,"extrapolation")
-       wavenumberExtrapolationList => getElementsByTagname             (extrapolationElement,"wavenumber"   )
-       do iExtrapolation=0,getLength(wavenumberExtrapolationList)-1
-          extrapolation => item(wavenumberExtrapolationList,iExtrapolation)
-          call XML_Extrapolation_Element_Decode(extrapolation,limitType,extrapolationMethod,allowedMethods=[extrapolateFixed,extrapolatePowerLaw])
-          select case (trim(limitType))
-          case ('low')
-             extrapolateWavenumberLow=extrapolationMethod
-          case ('high')
-             extrapolateWavenumberHigh=extrapolationMethod
-          case default
-             call Galacticus_Error_Report('Transfer_Function_File_Read','unrecognized extrapolation limit')
-          end select
-       end do
-       ! Deallocate arrays if currently allocated.
-       if (allocated(transferFunctionLogWavenumber)) call Dealloc_Array(transferFunctionLogWavenumber)
-       if (allocated(transferFunctionLogT))          call Dealloc_Array(transferFunctionLogT         )
-       ! Read the transfer function from file.
-       call XML_Array_Read(doc,"datum",transferFunctionLogWavenumber,transferFunctionLogT)
-       transferFunctionLogWavenumber= log(transferFunctionLogWavenumber)
-       transferFunctionLogT         = log(transferFunctionLogT         )
-       transferFunctionNumberPoints =size(transferFunctionLogWavenumber)
-       ! Destroy the document.
-       call destroy(doc)
-       !$omp end critical (FoX_DOM_Access)
-       ! Flag that transfer function is now initialized.
-       transferFunctionInitialized=.true.
-    end if
-    ! Check that the input wavenumber is within range, extend the range if possible.
-    if (logWavenumber < transferFunctionLogWavenumber(1)) then
-       ! Determine how many extra points to add.
-       addCount=int((transferFunctionLogWavenumber(1)-logWavenumber+extrapolateLogWavenumberBuffer)*dble(extrapolatePointsPerDecade)&
-            &/ln10)+1
-       ! Allocate temporary arrays.
-       call Alloc_Array(wavenumberTemporary      ,[size(transferFunctionLogWavenumber)+addCount])
-       call Alloc_Array(transferFunctionTemporary,[size(transferFunctionLogWavenumber)+addCount])
-       ! Create additional wavenumber range.
-       wavenumberTemporary(1:addCount+1)=Make_Range(logWavenumber-extrapolateLogWavenumberBuffer,transferFunctionLogWavenumber(1)&
-            &,addCount+1,rangeType=rangeTypeLinear)
-       ! Extrapolate as directed.
-       select case (extrapolateWavenumberLow)
-       case (extrapolateFixed   )
-          transferFunctionTemporary(1:addCount)=transferFunctionLogT(1)
-       case (extrapolatePowerLaw)
-          transferFunctionTemporary(1:addCount)=transferFunctionLogT(1)+(wavenumberTemporary(1:addCount)&
-               &-transferFunctionLogWavenumber(1))*(transferFunctionLogT(2)-transferFunctionLogT(1))&
-               &/(transferFunctionLogWavenumber(2)-transferFunctionLogWavenumber(1))
-       end select
-       ! Copy in original wavenumber and transfer function data.
-       wavenumberTemporary      (addCount+1:size(wavenumberTemporary))=transferFunctionLogWavenumber
-       transferFunctionTemporary(addCount+1:size(wavenumberTemporary))=transferFunctionLogT
-       ! Move the new tabulation into the output arrays.
-       call Dealloc_Array(                          transferFunctionLogWavenumber)
-       call Dealloc_Array(                          transferFunctionLogT         )
-       call Move_Alloc   (wavenumberTemporary      ,transferFunctionLogWavenumber)
-       call Move_Alloc   (transferFunctionTemporary,transferFunctionLogT         )
-       ! Reset the number of tabulated points.
-       transferFunctionNumberPoints=size(transferFunctionLogWavenumber)
-    end if
-    if (logWavenumber > transferFunctionLogWavenumber(transferFunctionNumberPoints)) then
-       ! Determine how many extra points to add.
-       addCount=int((logWavenumber-transferFunctionLogWavenumber(transferFunctionNumberPoints)+extrapolateLogWavenumberBuffer)&
-            &*dble(extrapolatePointsPerDecade)/ln10)+1
-       ! Allocate temporary arrays.
-       call Alloc_Array(wavenumberTemporary      ,[size(transferFunctionLogWavenumber)+addCount])
-       call Alloc_Array(transferFunctionTemporary,[size(transferFunctionLogWavenumber)+addCount])
-       ! Create additional wavenumber range.
-       wavenumberTemporary(transferFunctionNumberPoints:size(wavenumberTemporary))&
-            &=Make_Range(transferFunctionLogWavenumber(transferFunctionNumberPoints),logWavenumber+extrapolateLogWavenumberBuffer&
-            & ,addCount+1,rangeType=rangeTypeLinear)
-       ! Extrapolate as directed.
-       select case (extrapolateWavenumberLow)
-       case (extrapolateFixed   )
-          transferFunctionTemporary(transferFunctionNumberPoints+1:size(wavenumberTemporary))=transferFunctionLogT(transferFunctionNumberPoints)
-       case (extrapolatePowerLaw)
-          transferFunctionTemporary(transferFunctionNumberPoints+1:size(wavenumberTemporary))&
-               &=transferFunctionLogT(transferFunctionNumberPoints)+(wavenumberTemporary(transferFunctionNumberPoints&
-               &+1:size(wavenumberTemporary))-transferFunctionLogWavenumber(transferFunctionNumberPoints))&
-               &*(transferFunctionLogT(transferFunctionNumberPoints)-transferFunctionLogT(transferFunctionNumberPoints-1)) &
-               &/(transferFunctionLogWavenumber(transferFunctionNumberPoints)&
-               &-transferFunctionLogWavenumber(transferFunctionNumberPoints-1))
-       end select
-       ! Copy in original wavenumber and transfer function data.
-       wavenumberTemporary      (1:transferFunctionNumberPoints)=transferFunctionLogWavenumber
-       transferFunctionTemporary(1:transferFunctionNumberPoints)=transferFunctionLogT
-       ! Move the new tabulation into the output arrays.
-       call Dealloc_Array(                          transferFunctionLogWavenumber)
-       call Dealloc_Array(                          transferFunctionLogT         )
-       call Move_Alloc   (wavenumberTemporary      ,transferFunctionLogWavenumber)
-       call Move_Alloc   (transferFunctionTemporary,transferFunctionLogT         )
-       ! Reset the number of tabulated points.
-       transferFunctionNumberPoints=size(transferFunctionLogWavenumber)
-    end if
+    call fileConstructorInternal%readFile(fileName)
     return
-  end subroutine Transfer_Function_File_Read
+  end function fileConstructorInternal
+  
+  subroutine fileReadFile(self,fileName)
+    !% Internal constructor for the file transfer function class.
+    use Input_Parameters2
+    use Cosmology_Parameters
+    use FoX_DOM
+    use IO_XML
+    use Numerical_Comparison
+    use Array_Utilities
+    use Galacticus_Error
+    use Galacticus_Display
+    use Table_Labels
+    implicit none
+    class           (transferFunctionFile    ), intent(inout)             :: self
+    character       (len=*                   ), intent(in   )             :: fileName
+    type            (Node                    ), pointer                   :: doc                             , extrapolation              , &
+         &                                                                   extrapolationElement            , formatElement              , &
+         &                                                                   nameElement                     , thisParameter              , &
+         &                                                                   valueElement
+    type            (NodeList                ), pointer                   :: parameterList                   , wavenumberExtrapolationList
+    double precision                          , allocatable, dimension(:) :: transfer                        , wavenumber                 , &
+         &                                                                   transferLogarithmic             , wavenumberLogarithmic
+    class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_            , cosmologyParametersFile
+    double precision                          , parameter                 :: toleranceUniformity      =1.0d-6
+    type            (inputParameters         )                            :: transferFunctionCosmology
+    integer                                                               :: addCount                        , extrapolationMethod        , &
+         &                                                                   iExtrapolation                  , iParameter                 , &
+         &                                                                   ioError                         , versionNumber              , &
+         &                                                                   extrapolateWavenumberLow        , extrapolateWavenumberHigh
+    double precision                                                      :: temperatureCMB_                 , temperatureCMBFile         , &
+         &                                                                   hubbleConstant_                 , hubbleConstantFile         , &
+         &                                                                   omegaBaryon_                    , omegaBaryonFile            , &
+         &                                                                   omegaDarkEnergy_                , omegaDarkEnergyFile        , &
+         &                                                                   omegaMatter_                    , omegaMatterFile
+    character       (len=32                  )                            :: limitType
 
-  double precision function Transfer_Function_Half_Mode_Mass_Null()
-    !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    !% to a \gls{cdm} transfer function. Not supported in this implementation.
+    ! Get the default cosmology.
+    cosmologyParameters_ => cosmologyParameters()
+    ! Open and parse the data file.
+    !$omp critical (FoX_DOM_Access)
+    doc => parseFile(fileName,iostat=ioError)
+    if (ioError /= 0) call Galacticus_Error_Report('fileReadFile','Unable to find transfer function file')
+    ! Check that the file has the correct format version number.
+    formatElement => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
+    call extractDataContent(formatElement,versionNumber)
+    if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('fileReadFile','file has the incorrect version number')
+    ! Check that parameters match if any are present.
+    !$omp end critical (FoX_DOM_Access)
+    transferFunctionCosmology=inputParameters(XML_Get_First_Element_By_Tag_Name(doc,"parameters"))
+    cosmologyParametersFile => cosmologyParameters(transferFunctionCosmology)
+    if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
+         & call Galacticus_Display_Message('OmegaBaryon from transfer function file does not match internal value'    )
+    if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
+         & call Galacticus_Display_Message('OmegaMatter from transfer function file does not match internal value'    )
+    if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
+         & call Galacticus_Display_Message('OmegaDarkEnergy from transfer function file does not match internal value')
+    if (Values_Differ(cosmologyParametersFile%HubbleConstant (),cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
+         & call Galacticus_Display_Message('HubbleConstant from transfer function file does not match internal value' )
+    if (Values_Differ(cosmologyParametersFile%temperatureCMB (),cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
+         & call Galacticus_Display_Message('temperatureCMB from transfer function file does not match internal value' )
+    ! Get extrapolation methods.
+    !$omp critical (FoX_DOM_Access)
+    extrapolationElement        => XML_Get_First_Element_By_Tag_Name(doc                 ,"extrapolation")
+    wavenumberExtrapolationList => getElementsByTagname             (extrapolationElement,"wavenumber"   )
+    extrapolateWavenumberLow    =  extrapolationTypeExtrapolate
+    extrapolateWavenumberHigh   =  extrapolationTypeExtrapolate
+    do iExtrapolation=0,getLength(wavenumberExtrapolationList)-1
+       extrapolation => item(wavenumberExtrapolationList,iExtrapolation)
+       call XML_Extrapolation_Element_Decode(                                                   &
+            &                                extrapolation                                    , &
+            &                                limitType                                        , &
+            &                                extrapolationMethod                              , &
+            &                                allowedMethods     =[                              &
+            &                                                     extrapolationTypeFix        , &
+            &                                                     extrapolationTypeExtrapolate  &
+            &                                                    ]                              &
+            &                               )
+       select case (trim(limitType))
+       case ('low' )
+          extrapolateWavenumberLow =extrapolationMethod
+       case ('high')
+          extrapolateWavenumberHigh=extrapolationMethod
+       case default
+          call Galacticus_Error_Report('fileReadFile','unrecognized extrapolation limit')
+       end select
+    end do
+    ! Read the transfer function from file.
+    call XML_Array_Read(doc,"datum",wavenumber,transfer)
+    ! Destroy the document.
+    call destroy(doc)
+    !$omp end critical (FoX_DOM_Access)
+    ! Construct the tabulated transfer function.
+    call self%transfer%destroy()
+    wavenumberLogarithmic=log(wavenumber)
+    transferLogarithmic  =log(transfer  )   
+    ! Create the table.
+    call self%transfer%create  (                                                    &
+         &                      wavenumberLogarithmic                             , &
+         &                      extrapolationType=[                                 &
+         &                                         extrapolateWavenumberLow       , &
+         &                                         extrapolateWavenumberHigh        &
+         &                                        ]                               , &
+         &                      interpolationType= FGSL_Interp_cSpline              &
+         &                     )
+    call self%transfer%populate(                                                    &
+         &                      transferLogarithmic                                 &
+         &                     )
+    return
+  end subroutine fileReadFile
+
+  subroutine fileDestructor(self)
+    !% Destructor for the file transfer function class.
+    implicit none
+    type(transferFunctionFile), intent(inout) :: self
+
+    call self%transfer%destroy()
+    return
+  end subroutine fileDestructor
+
+  double precision function fileValue(self,wavenumber)
+    !% Return the transfer function at the given wavenumber.
+    implicit none
+    class           (transferFunctionFile), intent(inout) :: self
+    double precision                      , intent(in   ) :: wavenumber
+
+    fileValue=exp(self%transfer%interpolate(log(wavenumber)))
+    return
+  end function fileValue
+
+  double precision function fileLogarithmicDerivative(self,wavenumber)
+    !% Return the logarithmic derivative of the transfer function at the given wavenumber.
+    implicit none
+    class           (transferFunctionFile), intent(inout) :: self
+    double precision                      , intent(in   ) :: wavenumber
+
+    fileLogarithmicDerivative=+self%transfer%interpolateGradient(log(wavenumber))
+    return
+  end function fileLogarithmicDerivative
+  
+  double precision function fileHalfModeMass(self)
+    !% Compute the mass corresponding to the wavenumber at which the transfer function is
+    !% suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
+    !% this implementation.
     use Galacticus_Error
     implicit none
-
-    call Galacticus_Error_Report('Transfer_Function_Half_Mode_Mass_Null','not supported by this implementation')
+    class(transferFunctionFile), intent(inout) :: self
+    
+    call Galacticus_Error_Report('fileHalfModeMass','not supported by this implementation')
     return
-  end function Transfer_Function_Half_Mode_Mass_Null
-
-end module Transfer_Functions_File
+  end function fileHalfModeMass

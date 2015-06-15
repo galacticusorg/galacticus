@@ -21,19 +21,37 @@ module Primordial_Power_Spectra_Transferred
   !% Implements the primordial power spectrum transferred to late times.
   implicit none
   private
-  public :: Primordial_Power_Spectrum_Transferred
-
+  public :: Primordial_Power_Spectrum_Transferred, Primordial_Power_Spectrum_Transferred_Logarithmic_Derivative
+  
 contains
 
   double precision function Primordial_Power_Spectrum_Transferred(wavenumber)
-    !% Return the primordial power spectrum transferred to late times for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
+    !% Return the primordial power spectrum transferred to late times for $k=${\normalfont
+    !% \ttfamily wavenumber} [Mpc$^{-1}$].
     use Transfer_Functions
     use Primordial_Power_Spectra
     implicit none
-    double precision, intent(in   ) :: wavenumber
+    double precision                       , intent(in   ) :: wavenumber
+    class           (transferFunctionClass), pointer       :: transferFunction_
 
-    Primordial_Power_Spectrum_Transferred=(Transfer_Function(wavenumber)**2)*Primordial_Power_Spectrum(wavenumber)
+    transferFunction_ => transferFunction()
+    Primordial_Power_Spectrum_Transferred=transferFunction_%value(wavenumber)**2*Primordial_Power_Spectrum(wavenumber)
     return
   end function Primordial_Power_Spectrum_Transferred
+
+  double precision function Primordial_Power_Spectrum_Transferred_Logarithmic_Derivative(wavenumber)
+    !% Return the  logarithmic derivative of the  primordial power spectrum transferred to late
+    !% times for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
+    use Transfer_Functions
+    use Primordial_Power_Spectra
+    implicit none
+    double precision                       , intent(in   ) :: wavenumber
+    class           (transferFunctionClass), pointer       :: transferFunction_
+
+    transferFunction_ => transferFunction()
+    Primordial_Power_Spectrum_Transferred_Logarithmic_Derivative=+2.0d0*transferFunction_%logarithmicDerivative          (wavenumber) &
+         &                                                       +       Primordial_Power_Spectrum_Logarithmic_Derivative(wavenumber)
+    return
+  end function Primordial_Power_Spectrum_Transferred_Logarithmic_Derivative
 
 end module Primordial_Power_Spectra_Transferred
