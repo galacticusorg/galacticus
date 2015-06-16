@@ -83,6 +83,7 @@ contains
     type            (inputParameterList      )                :: parameters
 
     ! If the time has changed, recompute the power spectrum.
+    !$omp critical(Power_Spectrum_Nonlinear_CosmicEmu)
     if (time /= timePrevious) then
        ! Get the default cosmology.
        thisCosmologyParameters => cosmologyParameters()
@@ -180,7 +181,7 @@ contains
     ! Interpolate in the tabulated data to get the power spectrum.
     Power_Spectrum_Nonlinear_CosmicEmu=exp(Interpolate(wavenumberTable,powerSpectrumTable ,interpolationObject&
          &,interpolationAccelerator,log(wavenumber),reset=resetInterpolation,extrapolationType=extrapolationTypeExtrapolate))
-
+    !$omp end critical(Power_Spectrum_Nonlinear_CosmicEmu)
     return
   end function Power_Spectrum_Nonlinear_CosmicEmu
 
