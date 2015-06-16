@@ -526,7 +526,7 @@ sub Translate {
 	    my $name   = $parameter->findnodes('name' )->[0]->firstChild();
 	    my @values = $parameter->findnodes('value');
 	    # Create the new node.
-	    my $parameterNode = $input->createElement($name );
+	    my $parameterNode = $input->createElement($name->textContent());
 	    # Determine if we can use a value attribute or not.
 	    my $useAttribute = 1;
 	    $useAttribute = 0
