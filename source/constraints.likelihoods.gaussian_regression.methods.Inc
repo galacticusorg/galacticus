@@ -17,7 +17,7 @@
 
 !% Defines methods for a Gaussian regression likelihood function.
 
-function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,dumpEmulator,dummyEmulatorconfigFileName)
+function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,dumpEmulator,dummyEmulator,configFileName)
   !% Constructor for Gaussian regression likelihood class.
   use FoX_DOM
   implicit none
