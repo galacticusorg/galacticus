@@ -118,7 +118,7 @@ contains
          &                                                           likelihoodNeighborCountDefinition              , likelihoodProjectedCorrelationFunctionFileNameDefinition, &
          &                                                           likelihoodLineOfSightDepthDefinition           , likelihoodHalfIntegralDefinition                        , &
          &                                                           likelihoodExclusionsDefinition                 , likelihoodDumpEmulatorDefinition                        , &
-         &                                                           likelihoodDelayIntervalDefinition
+         &                                                           likelihoodDelayIntervalDefinition              , likelihoodDummyEmulatorDefinition
     type            (nodeList      ), pointer                     :: covarianceRows                                 , typeNodes
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
@@ -135,7 +135,7 @@ contains
          &                                                           likelihoodDelayInterval
     logical                                                       :: likelihoodEmulateOutliers                      , likelihoodUseSurveyLimits                 , &
          &                                                           likelihoodModelSurfaceBrightness               , likelihoodHalfIntegral                    , &
-         &                                                           likelihoodDummyEmultor
+         &                                                           likelihoodDummyEmulator
 
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type",directChildrenOnly=.true.))))
@@ -209,7 +209,7 @@ contains
           call extractDataContent(likelihoodLogLikelihoodErrorToleranceDefinition,likelihoodLogLikelihoodErrorTolerance)
           call extractDataContent(likelihoodReportCountDefinition                ,likelihoodReportCount                )
           call extractDataContent(likelihoodEmulateOutliersDefinition            ,likelihoodEmulateOutliers            )
-          call extractDataContent(likelihoodDummyEmulatorDefinition              ,likelihoodDumymEmulator              )
+          call extractDataContent(likelihoodDummyEmulatorDefinition              ,likelihoodDummyEmulator              )
           newLikelihood=likelihoodGaussianRegression(                                                  &
                &                                     likelihoodDefinition                            , &
                &                                     likelihoodEmulatorRebuildCount                  , &
