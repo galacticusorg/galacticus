@@ -67,6 +67,24 @@ module MPI_Utilities
      !@     <description>Return a label containing the rank of the process.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>nodeCount</method>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the number of nodes on which this MPI job is running.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>nodeAffinity</method>
+     !@     <type>\intzero</type>
+     !@     <arguments>\intzero\ [rank]\argin</arguments>
+     !@     <description>Return the index of the node on which the MPI process of the given rank (or this process if no rank is given) is running.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>hostAffinity</method>
+     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the name of the host on which this MPI process is running.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>requestData</method>
      !@     <type>\doubletwo|\inttwo</type>
      !@     <arguments>\intone requestFrom\argin, \doubleone|\intone array</arguments>
@@ -134,6 +152,7 @@ module MPI_Utilities
      procedure :: count          => mpiGetCount
      procedure :: nodeCount      => mpiGetNodeCount
      procedure :: nodeAffinity   => mpiGetNodeAffinity
+     procedure :: hostAffinity   => mpiGetHostAffinity
      procedure ::                   mpiRequestData1D   , mpiRequestData2D, &
           &                         mpiRequestDataInt1D
      generic   :: requestData    => mpiRequestData1D   , mpiRequestData2D, &
@@ -346,10 +365,24 @@ contains
     if (present(rank)) rankActual=rank
     mpiGetNodeAffinity=self%nodeAffinities(rankActual)
 #else
-    call Galacticus_Error_Report('mpiGetNodeCount','code was not compiled for MPI')
+    call Galacticus_Error_Report('mpiGetNodeAffinity','code was not compiled for MPI')
 #endif
     return
   end function mpiGetNodeAffinity
+  
+  function mpiGetHostAffinity(self)
+    !% Return host affinity of this MPI process.
+    implicit none
+    type (varying_string)                :: mpiGetHostAffinity
+    class(mpiObject     ), intent(in   ) :: self
+    
+#ifdef USEMPI
+    mpiGetHostAffinity=self%hostName
+#else
+    call Galacticus_Error_Report('mpiGetHostAffinity','code was not compiled for MPI')
+#endif
+    return
+  end function mpiGetHostAffinity
   
   logical function mpiMessageWaiting(self,from,tag)
     !% Return true if an MPI message (matching the optional {\normalfont \ttfamily from} and {\normalfont \ttfamily tag} if given) is waiting for receipt.
