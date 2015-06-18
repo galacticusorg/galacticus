@@ -26,7 +26,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-int flock_C(const char *name) {
+int flock_C(const char *name, int lockIsShared) {
   //% Fortran-callable wrapper around the flock() function to lock a file.
   int fd, stat;
   fd=open(name,O_RDONLY | O_CREAT,S_IRUSR | S_IWUSR);
@@ -37,7 +37,11 @@ int flock_C(const char *name) {
     if (errno == ENOENT) printf("flock_C() failed: file does not exist\n");
     abort();
   }
-  stat=flock(fd,LOCK_EX);
+  if (lockIsShared == 0) {
+    stat=flock(fd,LOCK_EX);
+  } else {
+    stat=flock(fd,LOCK_SH);
+  }
   if (stat != 0) {
     printf("flock_C(): failed %d %d\n",stat,fd);
     abort();
