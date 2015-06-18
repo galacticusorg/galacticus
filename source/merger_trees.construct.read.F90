@@ -2210,10 +2210,11 @@ contains
                 ! Catch zero separation halos.
                 if (Vector_Magnitude(relativePosition) == 0.0d0) then
                    if (mergerTreeReadPresetOrbitsSetAll) then
-                      ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
+                      ! The satellite and host have zero separation, so no orbit can be
+                      ! computed. Since all orbits must be set, choose an orbit at random.
                       thisOrbit=Virial_Orbital_Parameters(satelliteNode,hostNode,acceptUnboundOrbits)
                       call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
-                   else 
+                   else
                       message='merging halos ['
                       message=message//satelliteNode%index()//' & '//hostNode%index()//'] have zero separation'
                       call Galacticus_Error_Report('Scan_For_Mergers',message)
@@ -2236,6 +2237,10 @@ contains
                       call thisOrbit%propagate(radiusVirial,infalling=.true.)
                       ! Set the orbit.
                       call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
+                      ! If the satellite component supports full phase-space position, set that
+                      ! also.
+                      if (satelliteSatelliteComponent%positionIsSettable()) call satelliteSatelliteComponent%positionSet(relativePosition)
+                      if (satelliteSatelliteComponent%velocityIsSettable()) call satelliteSatelliteComponent%velocitySet(relativeVelocity)
                    else if (mergerTreeReadPresetOrbitsSetAll) then
                       ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
                       thisOrbit=Virial_Orbital_Parameters(satelliteNode,hostNode,acceptUnboundOrbits)
