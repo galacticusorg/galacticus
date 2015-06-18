@@ -267,7 +267,7 @@ contains
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
                 ! Open the file and check for the required dataset.
                 !$omp critical (HDF5_Access)
-                call File_Lock(char(luminositiesFileName),lockFileDescriptor)
+                call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.true.)
                 call luminositiesFile%openFile(char(luminositiesFileName),readOnly=.true.)
                 if (luminositiesFile%hasDataset(trim(datasetName))) then
                    ! Read the dataset.
@@ -380,7 +380,7 @@ contains
                 datasetName="redshift"//adjustl(trim(redshiftLabel))
                 ! Open the file.
                 !$omp critical (HDF5_Access)
-                call File_Lock(char(luminositiesFileName),lockFileDescriptor)
+                call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.false.)
                 call luminositiesFile%openFile(char(luminositiesFileName))
                 ! Write the dataset.
                 if (.not.luminositiesFile%hasDataset(trim(datasetName))) &

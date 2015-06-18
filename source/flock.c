@@ -34,7 +34,7 @@ struct lockDescriptor {
   char *name;
 };
 
-void flock_C(const char *name, struct lockDescriptor **ld) {
+void flock_C(const char *name, struct lockDescriptor **ld, int lockIsShared) {
   //% Fortran-callable wrapper around the fcntl() function to lock a file.
   int e;
   *ld = malloc(sizeof(struct lockDescriptor));
@@ -42,7 +42,11 @@ void flock_C(const char *name, struct lockDescriptor **ld) {
   (*ld)->name = malloc(sizeof(char)*(destination_size+1));
   (*ld)->name[destination_size] = '\0';
   strncpy((*ld)->name,name,destination_size);
-  (*ld)->fl.l_type  =F_WRLCK;
+  if (lockIsShared == 0) {
+    (*ld)->fl.l_type  =F_WRLCK;
+  } else {
+    (*ld)->fl.l_type  =F_RDLCK;
+  }
   (*ld)->fl.l_whence=SEEK_SET;
   (*ld)->fl.l_start =0;        /* Offset from l_whence         */
   (*ld)->fl.l_len   =1;        /* length, 0 = to EOF           */

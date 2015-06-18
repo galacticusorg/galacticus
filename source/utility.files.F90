@@ -42,11 +42,12 @@ module File_Utilities
   end interface File_Exists
 
   interface
-     subroutine flock_C(name,ld) bind(c,name='flock_C')
+     subroutine flock_C(name,ld,lockIsShared) bind(c,name='flock_C')
        !% Template for a C function that calls {\normalfont \ttfamily flock()} to lock a file.
        import
-       character(c_char) :: name
-       type     (c_ptr ) :: ld
+       character(c_char)        :: name
+       type     (c_ptr )        :: ld
+       integer  (c_int ), value :: lockIsShared
      end subroutine flock_C
   end interface
 
@@ -137,13 +138,17 @@ contains
     return
   end function Count_Lines_in_File_Char
 
-  subroutine File_Lock(fileName,lock)
+  subroutine File_Lock(fileName,lock,lockIsShared)
     !% Place a lock on a file.
     implicit none
-    character(len=*         ), intent(in   ) :: fileName
-    type     (lockDescriptor), intent(  out) :: lock
+    character(len=*         ), intent(in   )           :: fileName
+    type     (lockDescriptor), intent(  out)           :: lock
+    logical                  , intent(in   ), optional :: lockIsShared
+    integer  (c_int)                                   :: lockIsShared_
 
-    call flock_C(trim(fileName)//".lock"//char(0),lock%lockDescriptorC)
+    lockIsShared_=0
+    if (present(lockIsShared).and.lockIsShared) lockIsShared_=1
+    call flock_C(trim(fileName)//".lock"//char(0),lock%lockDescriptorC,lockIsShared_)
     lock%fileName=trim(fileName)
     return
   end subroutine File_Lock
