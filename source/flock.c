@@ -43,7 +43,11 @@ int flock_C(const char *name, int lockIsShared) {
     stat=flock(fd,LOCK_SH);
   }
   if (stat != 0) {
-    printf("flock_C(): failed %d %d\n",stat,fd);
+    if (errno == EBADF      ) printf("flock_C(): non-open file descriptor\n"          );
+    if (errno == EINTR      ) printf("flock_C(): interrupted while waiting for lock\n");
+    if (errno == EINVAL     ) printf("flock_C(): operation invalid\n"                 );
+    if (errno == ENOLCK     ) printf("flock_C(): out of memory\n"                     );
+    if (errno == EWOULDBLOCK) printf("flock_C(): would block\n"                       );
     abort();
   }
   return fd;
