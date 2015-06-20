@@ -554,7 +554,7 @@ sub Translate {
 		# Find any subparameters.
 		my @subParameters = $valueNode->findnodes('*');
 		if ( $useAttribute ) {
-		    $parameterNode->setAttribute('value',$value);
+		    $parameterNode->setAttribute('value',$value->textContent());
 		} else {
 		    &Translate($valueNode,0,$inputFileName)
 			if ( @subParameters );
