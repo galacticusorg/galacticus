@@ -19,7 +19,7 @@
 
 function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion &
           &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum&
-          &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum,temperatureLevelCount,sampleOutliers,logFlushCount,reportCount)
+          &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum,temperatureLevelCount,sampleOutliers,logFlushCount,reportCount,interactionRoot)
   !% Constructor for ``annealedDifferentialEvolution'' simulator class.
   implicit none
   type            (simulatorAnnealedDifferentialEvolution)                                      :: simulatorAnnealedDifferentialEvolutionConstructor
@@ -37,7 +37,7 @@ function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,rando
   integer                                                 , intent(in   )                       :: stepsMaximum                   , temperatureLevelCount, &
        &                                                                                           acceptanceAverageCount         , stateSwapCount       , &
        &                                                                                           logFlushCount                  , reportCount
-  character       (len=*                                 ), intent(in   )                       :: logFileRoot
+  character       (len=*                                 ), intent(in   )                       :: logFileRoot                    , interactionRoot
   logical                                                 , intent(in   )                       :: sampleOutliers
   integer                                                                                       :: i
 
@@ -56,6 +56,8 @@ function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,rando
   simulatorAnnealedDifferentialEvolutionConstructor%acceptanceAverageCount      =  acceptanceAverageCount
   simulatorAnnealedDifferentialEvolutionConstructor%stateSwapCount              =  stateSwapCount
   simulatorAnnealedDifferentialEvolutionConstructor%logFileRoot                 =  logFileRoot
+  simulatorAnnealedDifferentialEvolutionConstructor%isInteractive               =  trim(interactionRoot) /= "none"
+  simulatorAnnealedDifferentialEvolutionConstructor%interactionRoot             =  trim(interactionRoot)
   simulatorAnnealedDifferentialEvolutionConstructor%temperatureMaximum          =  temperatureMaximum
   simulatorAnnealedDifferentialEvolutionConstructor%temperatureLevelCount       =  temperatureLevelCount
   simulatorAnnealedDifferentialEvolutionConstructor%temperatureLevelCurrent     =  temperatureLevelCount

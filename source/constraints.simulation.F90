@@ -91,13 +91,14 @@ contains
          &                                                                                simulatorTemperatureMaximumDefinition    , simulatorUntemperedStepCountDefinition , &
          &                                                                                simulatorTemperingLevelCountDefinition   , simulatorStepsPerLevelDefinition       , &
          &                                                                                simulatorStateSwapCountDefinition        , simulatorLogFlushCountDefinition       , &
-         &                                                                                simulatorReportCountDefinition           , simulatorTemperatureScaleDefinition
+         &                                                                                simulatorReportCountDefinition           , simulatorTemperatureScaleDefinition    , &
+         &                                                                                simulatorInteractionRootDefinition
     integer                                                                            :: simulatorStepsMaximum                    , simulatorStateSwapCount                , &
          &                                                                                simulatorAcceptanceAverageCount          , simulatorUntemperedStepCount           , &
          &                                                                                simulatorTemperingLevelCount             , simulatorStepsPerLevel                 , &
          &                                                                                simulatorLogFlushCount                   , simulatorReportCount
     double precision                                                                   :: simulatorTemperatureMaximum              , simulatorTemperatureScale
-    type            (varying_string  )                                                 :: simulatorLogFile
+    type            (varying_string  )                                                 :: simulatorLogFile                         , simulatorInteractionRoot
     logical                                                                            :: simulatorSampleOutliers
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
@@ -109,6 +110,7 @@ contains
           simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount")
           simulatorStateSwapCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"stateSwapCount"        )
           simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"           )
+          simulatorInteractionRootDefinition        => XML_Get_First_Element_By_Tag_Name(definition,"interactionRoot"       )
           simulatorSampleOutliersDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"sampleOutliers"        )
           simulatorLogFlushCountDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"logFlushCount"         )
           simulatorReportCountDefinition            => XML_Get_First_Element_By_Tag_Name(definition,"reportCount"           )
@@ -118,7 +120,8 @@ contains
           call extractDataContent(simulatorSampleOutliersDefinition        ,simulatorSampleOutliers        )
           call extractDataContent(simulatorLogFlushCountDefinition         ,simulatorLogFlushCount         )
           call extractDataContent(simulatorReportCountDefinition           ,simulatorReportCount           )
-          simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
+          simulatorLogFile        =XML_Extract_Text(simulatorLogFileDefinition        )
+          simulatorInteractionRoot=XML_Extract_Text(simulatorInteractionRootDefinition)
           newSimulator=simulatorDifferentialEvolution(                                 &
                &                                      parameterPriors                , &
                &                                      randomDistributions            , &
@@ -136,7 +139,8 @@ contains
                &                                      char(simulatorLogFile)         , &
                &                                      simulatorSampleOutliers        , &
                &                                      simulatorLogFlushCount         , &
-               &                                      simulatorReportCount             &
+               &                                      simulatorReportCount           , &
+               &                                      char(simulatorInteractionRoot)   &
                &                                     )
        end select
     case ("temperedDifferentialEvolution")
@@ -147,6 +151,7 @@ contains
           simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount")
           simulatorStateSwapCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"stateSwapCount"        )
           simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"           )
+          simulatorInteractionRootDefinition        => XML_Get_First_Element_By_Tag_Name(definition,"interactionRoot"       )
           simulatorTemperatureMaximumDefinition     => XML_Get_First_Element_By_Tag_Name(definition,"temperatureMaximum"    )
           simulatorUntemperedStepCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"untemperedStepCount"   )
           simulatorTemperingLevelCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"temperedLevels"        )
@@ -164,7 +169,8 @@ contains
           call extractDataContent(simulatorSampleOutliersDefinition        ,simulatorSampleOutliers        )
           call extractDataContent(simulatorLogFlushCountDefinition         ,simulatorLogFlushCount         )
           call extractDataContent(simulatorReportCountDefinition           ,simulatorReportCount           )
-          simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
+          simulatorLogFile        =XML_Extract_Text(simulatorLogFileDefinition        )
+          simulatorInteractionRoot=XML_Extract_Text(simulatorInteractionRootDefinition)
           newSimulator=simulatorTemperedDifferentialEvolution(                                 &
                &                                              parameterPriors                , &
                &                                              randomDistributions            , &
@@ -187,7 +193,8 @@ contains
                &                                              simulatorStepsPerLevel         , &
                &                                              simulatorSampleOutliers        , &
                &                                              simulatorLogFlushCount         , &
-               &                                              simulatorReportCount             &
+               &                                              simulatorReportCount           , &
+               &                                              char(simulatorInteractionRoot)   &
                &                                             )
        end select
    case ("annealedDifferentialEvolution")
@@ -198,6 +205,7 @@ contains
           simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount")
           simulatorStateSwapCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"stateSwapCount"        )
           simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"           )
+          simulatorInteractionRootDefinition        => XML_Get_First_Element_By_Tag_Name(definition,"interactionRoot"       )
           simulatorTemperatureMaximumDefinition     => XML_Get_First_Element_By_Tag_Name(definition,"temperatureMaximum"    )
           simulatorTemperingLevelCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"temperatureLevels"     )
           simulatorSampleOutliersDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"sampleOutliers"        )
@@ -211,7 +219,8 @@ contains
           call extractDataContent(simulatorSampleOutliersDefinition        ,simulatorSampleOutliers        )
           call extractDataContent(simulatorLogFlushCountDefinition         ,simulatorLogFlushCount         )
           call extractDataContent(simulatorReportCountDefinition           ,simulatorReportCount           )
-          simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
+          simulatorLogFile        =XML_Extract_Text(simulatorLogFileDefinition        )
+          simulatorInteractionRoot=XML_Extract_Text(simulatorInteractionRootDefinition)
           newSimulator=simulatorAnnealedDifferentialEvolution(                                 &
                &                                              parameterPriors                , &
                &                                              randomDistributions            , &
@@ -231,7 +240,8 @@ contains
                &                                              simulatorTemperingLevelCount   , &
                &                                              simulatorSampleOutliers        , &
                &                                              simulatorLogFlushCount         , &
-               &                                              simulatorReportCount             &
+               &                                              simulatorReportCount           , &
+               &                                              char(simulatorInteractionRoot)   &
                &                                             )
        end select
     case ("stochasticDifferentialEvolution")
@@ -242,6 +252,7 @@ contains
           simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount")
           simulatorStateSwapCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"stateSwapCount"        )
           simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"           )
+          simulatorInteractionRootDefinition        => XML_Get_First_Element_By_Tag_Name(definition,"interactionRoot"       )
           simulatorTemperatureScaleDefinition       => XML_Get_First_Element_By_Tag_Name(definition,"temperatureScale"      )
           simulatorSampleOutliersDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"sampleOutliers"        )
           simulatorLogFlushCountDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"logFlushCount"         )
@@ -253,7 +264,8 @@ contains
           call extractDataContent(simulatorLogFlushCountDefinition         ,simulatorLogFlushCount         )
           call extractDataContent(simulatorTemperatureScaleDefinition      ,simulatorTemperatureScale      )
           call extractDataContent(simulatorReportCountDefinition           ,simulatorReportCount           )
-          simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
+          simulatorLogFile        =XML_Extract_Text(simulatorLogFileDefinition        )
+          simulatorInteractionRoot=XML_Extract_Text(simulatorInteractionRootDefinition)
           newSimulator=simulatorStochasticDifferentialEvolution(                                 &
                &                                                parameterPriors                , &
                &                                                randomDistributions            , &
@@ -272,7 +284,8 @@ contains
                &                                                simulatorSampleOutliers        , &
                &                                                simulatorLogFlushCount         , &
                &                                                simulatorReportCount           , &
-               &                                                simulatorTemperatureScale        &
+               &                                                simulatorTemperatureScale      , &
+               &                                                char(simulatorInteractionRoot)   &
                &                                               )
        end select
    case default
