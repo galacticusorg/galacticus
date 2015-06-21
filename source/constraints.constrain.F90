@@ -81,7 +81,7 @@ contains
     call System_Command_Do(filterCommand)
     ! Parse the simulation config file.
     configDoc => parseFile(char(filteredFile),iostat=ioError)
-    if (ioError /= 0) call Galacticus_Error_Report('Constrain','Unable to find or parse config file')
+    if (ioError /= 0) call Galacticus_Error_Report('Constrain','Unable to find or parse config file "'//char(filteredFile)//'"')
     call System_Command_Do("rm -f "//filteredFile)
     ! Determine the number of parameters.
     parameterCount         =  0
