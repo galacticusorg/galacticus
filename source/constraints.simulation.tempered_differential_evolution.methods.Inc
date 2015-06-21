@@ -20,7 +20,7 @@
 function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion &
           &,simulationState,simulationStateInitializor,proposalSize,proposalSizeTemperatureExponent,randomJump,stepsMaximum&
           &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum ,untemperedStepCount,temperingLevelCount&
-          &,stepsPerLevel,sampleOutliers,logFlushCount,reportCount)
+          &,stepsPerLevel,sampleOutliers,logFlushCount,reportCount,interactionRoot)
   !% Constructor for ``temperedDifferentialEvolution'' simulator class.
   implicit none
   type            (simulatorTemperedDifferentialEvolution)                                      :: simulatorTemperedDifferentialEvolutionConstructor
@@ -40,7 +40,7 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
        &                                                                                           acceptanceAverageCount         , untemperedStepCount     , &
        &                                                                                           temperingLevelCount            , stepsPerLevel           , &
        &                                                                                           logFlushCount                  , reportCount
-  character       (len=*                                 ), intent(in   )                       :: logFileRoot
+  character       (len=*                                 ), intent(in   )                       :: logFileRoot                    , interactionRoot
   logical                                                 , intent(in   )                       :: sampleOutliers
   integer                                                                                       :: i
 
@@ -60,6 +60,8 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   simulatorTemperedDifferentialEvolutionConstructor%acceptanceAverageCount          =  acceptanceAverageCount
   simulatorTemperedDifferentialEvolutionConstructor%stateSwapCount                  =  stateSwapCount
   simulatorTemperedDifferentialEvolutionConstructor%logFileRoot                     =  logFileRoot
+  simulatorTemperedDifferentialEvolutionConstructor%isInteractive                   =  trim(interactionRoot) /= "none"
+  simulatorTemperedDifferentialEvolutionConstructor%interactionRoot                 =  trim(interactionRoot)
   simulatorTemperedDifferentialEvolutionConstructor%temperatureMaximum              =  temperatureMaximum
   simulatorTemperedDifferentialEvolutionConstructor%untemperedStepCount             =  untemperedStepCount
   simulatorTemperedDifferentialEvolutionConstructor%temperingLevelCount             =  temperingLevelCount
@@ -67,7 +69,7 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   simulatorTemperedDifferentialEvolutionConstructor%sampleOutliers                  =  sampleOutliers
   simulatorTemperedDifferentialEvolutionConstructor%temperingStep                   =  0
   simulatorTemperedDifferentialEvolutionConstructor%temperingLevelMonotonic         =  0
-  simulatorTemperedDifferentialEvolutionConstructor%logFlushCount               =  logFlushCount
+  simulatorTemperedDifferentialEvolutionConstructor%logFlushCount                   =  logFlushCount
   allocate(simulatorTemperedDifferentialEvolutionConstructor%temperatures(temperingLevelCount))
   allocate(stateSimple :: simulatorTemperedDifferentialEvolutionConstructor%temperedStates(temperingLevelCount))
   do i=1,temperingLevelCount

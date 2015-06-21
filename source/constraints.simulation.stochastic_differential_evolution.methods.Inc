@@ -19,7 +19,7 @@
 
 function simulatorStochasticDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion &
           &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum&
-          &,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,temperatureScale)
+          &,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,temperatureScale,interactionRoot)
   !% Constructor for ``stochasticDifferentialEvolution'' simulator class.
   implicit none
   type            (simulatorStochasticDifferentialEvolution)                                      :: simulatorStochasticDifferentialEvolutionConstructor
@@ -37,7 +37,7 @@ function simulatorStochasticDifferentialEvolutionConstructor(parameterPriors,ran
        &                                                                                             acceptanceAverageCount         , logFlushCount           , &
        &                                                                                             reportCount
   double precision                                          , intent(in   )                       :: temperatureScale
-  character       (len=*                                   ), intent(in   )                       :: logFileRoot
+  character       (len=*                                   ), intent(in   )                       :: logFileRoot                    , interactionRoot
   logical                                                   , intent(in   )                       :: sampleOutliers
   integer                                                                                         :: i
 
@@ -56,6 +56,8 @@ function simulatorStochasticDifferentialEvolutionConstructor(parameterPriors,ran
   simulatorStochasticDifferentialEvolutionConstructor%acceptanceAverageCount      =  acceptanceAverageCount
   simulatorStochasticDifferentialEvolutionConstructor%stateSwapCount              =  stateSwapCount
   simulatorStochasticDifferentialEvolutionConstructor%logFileRoot                 =  logFileRoot
+  simulatorStochasticDifferentialEvolutionConstructor%isInteractive               =  trim(interactionRoot) /= "none"
+  simulatorStochasticDifferentialEvolutionConstructor%interactionRoot             =  trim(interactionRoot)
   simulatorStochasticDifferentialEvolutionConstructor%sampleOutliers              =  sampleOutliers
   simulatorStochasticDifferentialEvolutionConstructor%logFlushCount               =  logFlushCount
   simulatorStochasticDifferentialEvolutionConstructor%reportCount                 =  reportCount

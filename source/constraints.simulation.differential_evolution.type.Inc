@@ -22,7 +22,8 @@
           &                                                        stateSwapCount       , acceptanceAverageCount, & 
           &                                                        logFlushCount        , reportCount
      double precision                                           :: logPosterior
-     logical                                                    :: isConverged          , sampleOutliers
+     logical                                                    :: isConverged          , sampleOutliers, &
+          &                                                        isInteractive
      type            (prior            ), pointer, dimension(:) :: parameterPriors
      type            (distributionList ), pointer, dimension(:) :: randomDistributions
      type            (mappingList      ), pointer, dimension(:) :: parameterMappings
@@ -33,7 +34,7 @@
      class           (stateInitializor ), pointer               :: simulationStateInitializor
      class           (deProposalSize   ), pointer               :: proposalSize
      class           (deRandomJump     ), pointer               :: randomJump
-     type            (varying_string   )                        :: logFileRoot
+     type            (varying_string   )                        :: logFileRoot                , interactionRoot
    contains
      !@ <objectMethods>
      !@   <object>simulatorDifferentialEvolution</object>
