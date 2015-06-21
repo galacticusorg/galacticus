@@ -26,7 +26,7 @@ my $outFile = $ARGV[1];
 my $parser = XML::LibXML->new();
 my $dom    = $parser->load_xml(location => $inFile);
 $parser->process_xincludes($dom);
-my $twig = XML::Twig->new (comments => 'drop', pretty_print => 'indented');
+my $twig = XML::Twig->new (comments => 'drop', pretty_print => 'indented', escape_gt => 1);
 $twig->parse($dom->serialize());
 
 # Dump the output to file.
