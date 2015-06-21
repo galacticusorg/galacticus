@@ -210,7 +210,7 @@ contains
     if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','failed to determine MPI rank' )
     call MPI_Get_Processor_Name(processorName(1),processorNameLength,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','failed to get MPI processor name' )
-    mpiSelf%hostName=processorName(1)
+    mpiSelf%hostName=trim(processorName(1))
     call mpiBarrier()
     ! Construct an array containing all ranks.
     call Alloc_Array(mpiSelf%allRanks,[mpiSelf%countValue],[0])
