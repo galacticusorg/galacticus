@@ -207,21 +207,19 @@ contains
        do while (associated(currentTree))          
           ! Get the base node of the tree.
           thisNode => currentTree%baseNode
-       ! Skip empty trees.
-       if (associated(thisNode)) then          
-          ! Initialize output buffers.
+          ! Skip empty trees.
+          if (associated(thisNode)) then          
+             ! Initialize output buffers.
              ! Count up the number of properties to be output.
              call Count_Properties        (time,thisNode)          
              ! Ensure buffers are allocated for temporary property storage.
              call Allocate_Buffers        (iOutput      )
              ! Get names for all properties to be output.
              call Establish_Property_Names(time,thisNode)
-          ! Loop over all nodes in the tree.
-          integerPropertiesWritten=0
-          doublePropertiesWritten =0
-          do while (associated(thisNode))
-             ! Accumulate galaxies if output is to be performed.
-             if (mergerTreeOutput) then
+             ! Loop over all nodes in the tree.
+             integerPropertiesWritten=0
+             doublePropertiesWritten =0
+             do while (associated(thisNode))
                 ! Get the basic component.
                 thisBasicComponent => thisNode%basic()
                 if (thisBasicComponent%time() == time) then
@@ -257,10 +255,9 @@ contains
                    include 'galacticus.output.merger_tree.tasks.extra.inc'
                    !# </include>
                 end if
-             end if
-             call thisNode%walkTreeWithSatellites(thisNode)
-          end do
-          ! Finished output.
+                call thisNode%walkTreeWithSatellites(thisNode)
+             end do
+             ! Finished output.
              if (integerPropertyCount > 0 .and. integerBufferCount > 0) call Integer_Buffer_Dump(iOutput)
              if (doublePropertyCount  > 0 .and. doubleBufferCount  > 0) call Double_Buffer_Dump (iOutput)
              ! Compute the start and length of regions to reference.
@@ -298,7 +295,6 @@ contains
              outputGroups(iOutput)%length=outputGroups(iOutput)%length+referenceLength(1)
              !$omp end critical(HDF5_Access)
           end if
-       end if
           ! Skip to the next tree.
           currentTree => currentTree%nextTree
        end do
