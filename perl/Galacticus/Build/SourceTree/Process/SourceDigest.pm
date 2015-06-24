@@ -36,18 +36,18 @@ sub Process_SourceDigests {
 	    # Initialize an MD5 hash.
 	    my $hasher = Digest::MD5->new();
 	    # Process all source files upon which this file depends.
-	    (my $dependencyFileName = "./work/build/".$tree->{'name'}) =~ s/\.F90$/.d/;
+	    (my $dependencyFileName = $ENV{'BUILDPATH'}."/".$tree->{'name'}) =~ s/\.F90$/.d/;
 	    if ( -e $dependencyFileName ) {
 		open(my $dependencyFile,$dependencyFileName);
 		while ( my $objectFileName = <$dependencyFile> ) {
 		    chomp($objectFileName);
-		    (my $sourceFileNamePrefix = $objectFileName) =~ s/\.\/work\/build\/(.*)\.o$/source\/$1/;
+		    (my $sourceFileNamePrefix = $objectFileName) =~ s/(.*\/.*)\.o$/source\/$1/;
 		    foreach my $suffix ( "F90", "c", "h", "Inc", "cpp" ) {
 			my $sourceFileName = $sourceFileNamePrefix.".".$suffix;
 			if ( -e $sourceFileName ) {
 			    if ( $suffix eq "F90" || $suffix eq "Inc" ) {
 				# Parse the file ignoring whitespace and comments.
-				$hasher->add(&Fortran_Utils::read_file($sourceFileName,state => "raw", followIncludes => 1, includeLocations => [ "../source", "../work/build" ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
+				$hasher->add(&Fortran_Utils::read_file($sourceFileName,state => "raw", followIncludes => 1, includeLocations => [ "../source", "../".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
 				# Search for use on any files from the data directory by this source file.
 				&Hash_Data_Files(
 				    $hasher,

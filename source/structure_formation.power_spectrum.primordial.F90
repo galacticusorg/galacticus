@@ -73,16 +73,15 @@ contains
        call Power_Spectrum_Tabulate(logWavenumber,powerSpectrumNumberPoints,powerSpectrumLogWavenumber,powerSpectrumLogP)
        call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
        resetInterpolation=.true.
-   end if
-    !$omp end critical(Power_Spectrum_Initialization)
-
+    end if
+    
     ! Interpolate in the tabulated function and return a value.
     Primordial_Power_Spectrum=exp(Interpolate(powerSpectrumLogWavenumber,powerSpectrumLogP &
          &,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation))
-
+    !$omp end critical(Power_Spectrum_Initialization)
     return
   end function Primordial_Power_Spectrum
-
+  
   double precision function Primordial_Power_Spectrum_Logarithmic_Derivative(wavenumber)
     !% Return the logarithmic derivative CDM primordial power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
     use Numerical_Interpolation
@@ -108,12 +107,11 @@ contains
        call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
        resetInterpolation=.true.
     end if
-    !$omp end critical(Power_Spectrum_Initialization)
 
     ! Interpolate in the tabulated function and return a value.
     Primordial_Power_Spectrum_Logarithmic_Derivative=Interpolate_Derivative(powerSpectrumLogWavenumber&
          &,powerSpectrumLogP ,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation)
-
+    !$omp end critical(Power_Spectrum_Initialization)
     return
   end function Primordial_Power_Spectrum_Logarithmic_Derivative
 

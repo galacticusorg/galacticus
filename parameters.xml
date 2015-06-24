@@ -9,7 +9,8 @@
   <treeNodeMethodBasic value="standard"/>
   <treeNodeMethodBlackHole value="standard"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
-  <treeNodeMethodDisk value="exponential"/>
+  <treeNodeMethodDisk value="standard"/>
+  <diskMassDistribution value="exponentialDisk"/>
   <treeNodeMethodHotHalo value="standard"/>
   <treeNodeMethodSatellite value="standard"/>
   <treeNodeMethodSpheroid value="standard"/>
@@ -174,7 +175,7 @@
   <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Galaxy merger options -->
-  <virialOrbitsMethod value="Benson2005"/>
+  <virialOrbitMethod value="benson2005"/>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <mergingTimescaleMultiplier value="0.75"/>
   <satelliteMergingMassMovementsMethod value="simple"/>
