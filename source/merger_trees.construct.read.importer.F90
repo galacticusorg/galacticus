@@ -50,10 +50,14 @@ module Merger_Tree_Read_Importers
      !@     <description>Raise to the given integer power.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: multiply    =>importerUnitsMultiply     
-     procedure :: exponentiate=>importerUnitsExponentiate 
+     procedure :: multiply     => importerUnitsMultiply     
+     procedure :: exponentiate => importerUnitsExponentiate 
+     procedure :: areEqual     => importerUnitsAreEqual
+     procedure :: areNotEqual  => importerUnitsAreNotEqual
      generic   :: operator(* ) => multiply
      generic   :: operator(**) => exponentiate
+     generic   :: operator(==) => areEqual
+     generic   :: operator(/=) => areNotEqual
   end type importerUnits
 
   ! Type used to store raw data.
@@ -256,6 +260,32 @@ module Merger_Tree_Read_Importers
     importerUnitsExponentiate%hubbleExponent     =units1%hubbleExponent     * exponent
     return
   end function importerUnitsExponentiate
+
+  logical function importerUnitsAreEqual(units1,units2)
+    !% Test whether two {\normalfont \ttfamily importerUnits} objects are equal.
+    use Galacticus_Error
+    implicit none
+    class(importerUnits), intent(in   ) :: units1                
+    type (importerUnits), intent(in   ) :: units2                
+
+    if (.not.(units1%status.and.units2%status)) call Galacticus_Error_Report('importerUnitsAreEqual','units not defined')
+    importerUnitsAreEqual= units1%unitsInSI           ==  units2%unitsInSI           &
+         &                .and.                                                      &
+         &                 units1%scaleFactorExponent ==  units2%scaleFactorExponent &
+         &                .and.                                                      &
+         &                 units1%hubbleExponent      ==  units2%hubbleExponent
+    return
+  end function importerUnitsAreEqual
+
+  logical function importerUnitsAreNotEqual(units1,units2)
+    !% Test whether two {\normalfont \ttfamily importerUnits} objects are not equal.
+    implicit none
+    class(importerUnits), intent(in   ) :: units1                
+    type (importerUnits), intent(in   ) :: units2                
+
+    importerUnitsAreNotEqual=.not.(units1 == units2)
+    return
+  end function importerUnitsAreNotEqual
 
   function importerUnitConvertScalar(values,times,units,requiredUnits)
     !% Convert a set of values for \glc\ internal units.
