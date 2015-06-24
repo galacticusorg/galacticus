@@ -226,16 +226,15 @@ double precision function Merger_Tree_Latest_Time(self)
   implicit none
   class           (mergerTree        ), intent(inout), target :: self
   type            (mergerTree        ), pointer               :: currentTree
-  type            (treeNode          ), pointer               :: thisNode
-  class           (nodeComponentBasic), pointer               :: thisBasic
+  class           (nodeComponentBasic), pointer               :: baseBasic
   
   Merger_Tree_Latest_Time =  -1.0d0
   currentTree             => self
   do while (associated(currentTree))
-     thisNode                =>                             currentTree%baseNode
-     thisBasic               =>                             thisNode   %basic   ()
-     Merger_Tree_Latest_Time =  max(Merger_Tree_Latest_Time,thisBasic  %time    ())
-     call thisNode%walkTreeWithSatellites(thisNode)
+     if (associated(currentTree%baseNode)) then
+        baseBasic               =>                             currentTree%baseNode%basic()
+        Merger_Tree_Latest_Time =  max(Merger_Tree_Latest_Time,baseBasic  %time          ())
+     end if
      currentTree => currentTree%nextTree
   end do
   return

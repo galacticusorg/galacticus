@@ -85,7 +85,8 @@ contains
     logical                                           , save :: overloaded                                               , &
          &                                                      treeIsFinished                  , evolutionIsEventLimited, &
          &                                                      success                         , removeTree
-    type            (mergerTree        ), pointer     , save :: currentTree                     , previousTree
+    type            (mergerTree        ), pointer     , save :: currentTree                     , previousTree           , &
+         &                                                      nextTree
     !$omp threadprivate(currentTree,previousTree)
     type            (treeNode          ), pointer     , save :: satelliteNode
     class           (nodeComponentBasic), pointer, save :: baseNodeBasic
@@ -315,29 +316,35 @@ contains
                 previousTree => null()
                 currentTree  => thisTree
                 do while (associated(currentTree))
-                   baseNodeBasic => currentTree%baseNode%basic()                   
-                   removeTree    =   .not.associated(currentTree%baseNode%firstChild) &
-                        &           .and.                                             &
-                        &            (baseNodeBasic%time() < evolveToTime)
-                   if (removeTree) then
-                      ! Does the node have attached satellites which are about to merge.
-                      satelliteNode => currentTree%baseNode%firstSatellite
-                      do while (associated(satelliteNode))
-                         if (associated(satelliteNode%mergeTarget)) then
-                            removeTree=.false.
-                            exit
-                         end if
-                         satelliteNode => satelliteNode%sibling
-                      end do
+                   ! Skip empty trees.
+                   if (associated(currentTree%baseNode)) then
+                      baseNodeBasic => currentTree%baseNode%basic()                   
+                      removeTree    =   .not.associated(currentTree%baseNode%firstChild) &
+                           &           .and.                                             &
+                           &            (baseNodeBasic%time() < evolveToTime)
+                      if (removeTree) then
+                         ! Does the node have attached satellites which are about to merge.
+                         satelliteNode => currentTree%baseNode%firstSatellite
+                         do while (associated(satelliteNode))
+                            if (associated(satelliteNode%mergeTarget)) then
+                               removeTree=.false.
+                               exit
+                            end if
+                            satelliteNode => satelliteNode%sibling
+                         end do
+                      end if
+                   else
+                      ! No need to remove already empty trees.
+                      removeTree=.false.
                    end if
                    if (removeTree) then
                       message="Removing remnant tree "
                       message=message//currentTree%index
                       call Galacticus_Display_Message(message,verbosityInfo)
                       if (.not.associated(previousTree)) then
-                         thisTree    => currentTree%nextTree
+                         nextTree    => currentTree%nextTree
                          call currentTree%destroy()
-                         currentTree => thisTree
+                         currentTree => nextTree
                       else
                          previousTree%nextTree => currentTree%nextTree
                          call currentTree%destroy()
@@ -392,7 +399,7 @@ contains
              end if
              
           end if
-
+          
           ! Destroy the tree.
           if (associated(thisTree)) then
              currentTree => thisTree
@@ -406,7 +413,7 @@ contains
              end do
              nullify(thisTree)
           end if
-
+          
           ! Perform any post-evolution tasks on the tree.
           if (treeIsFinished) then
              !# <include directive="mergerTreePostEvolveTask" type="functionCall" functionType="void">
