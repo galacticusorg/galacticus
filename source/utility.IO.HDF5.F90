@@ -23,6 +23,7 @@
 module IO_HDF5
   !% Implements simple and convenient interfaces to a variety of HDF5 functionality.
   use HDF5
+  use H5TB
   use ISO_Varying_String
   use, intrinsic :: ISO_C_Binding
   implicit none
@@ -353,6 +354,14 @@ module IO_HDF5
           &                              IO_HDF5_Read_Dataset_Double_5D_Array_Static          , &
           &                              IO_HDF5_Read_Dataset_Character_1D_Array_Static       , &
           &                              IO_HDF5_Read_Dataset_VarString_1D_Array_Static
+     procedure :: IO_HDF5_Read_Table_Real_1D_Array_Allocatable
+     procedure :: IO_HDF5_Read_Table_Integer_1D_Array_Allocatable
+     procedure :: IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable
+     procedure :: IO_HDF5_Read_Table_Character_1D_Array_Allocatable
+     generic   :: readTable          =>IO_HDF5_Read_Table_Real_1D_Array_Allocatable    , &
+          &                            IO_HDF5_Read_Table_Integer_1D_Array_Allocatable , &
+          &                            IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable, &
+          &                            IO_HDF5_Read_Table_Character_1D_Array_Allocatable
      procedure :: size               =>IO_HDF5_Dataset_Size
      procedure :: rank               =>IO_HDF5_Dataset_Rank
      procedure :: hasAttribute       =>IO_HDF5_Has_Attribute
@@ -406,8 +415,18 @@ module IO_HDF5
             &                        xfer_plist_id
        type   (c_ptr     ), value :: buf
      end function H5Dread
+     function H5TBread_fields_name(loc_id,table_name,field_names,start,nrecords,type_size,field_offset,dst_sizes,data) bind(c, name='H5TBread_fields_name')
+       !% Template for the HDF5 C API table read fields by name function.
+       import
+       integer  (kind=c_int  )               :: H5TBread_fields_name
+       integer  (kind=hid_t  ), value        :: loc_id
+       character(kind=c_char )               :: table_name          , field_names(*)
+       integer  (kind=hsize_t), value        :: start               , nrecords      , type_size
+       integer  (kind=size_t ), dimension(*) :: field_offset        , dst_sizes
+       type     (c_ptr       ), value        :: data
+     end function H5TBread_fields_name
   end interface
-
+  
 contains
 
   !! Initialization routines.
@@ -10214,6 +10233,340 @@ contains
     return
   end subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Static_Do_Read
 
+  !! Table routines.
+
+  subroutine IO_HDF5_Read_Table_Real_1D_Array_Allocatable(thisObject,tableName,columnName,datasetValue,readBegin,readCount)
+    !% Open and read a real 1D array from a table {\normalfont \ttfamily thisObject}.
+    use Galacticus_Error
+    use Memory_Management
+    implicit none
+    real                     , allocatable, dimension(:), intent(  out)           :: datasetValue
+    class    (hdf5Object    )                           , intent(inout)           :: thisObject
+    character(len=*         )                           , intent(in   )           :: tableName      , columnName
+    integer  (kind=HSIZE_T  )                           , intent(in   ), optional :: readBegin      , readCount
+    integer  (kind=HSIZE_T  )                                                     :: readBeginActual, readCountActual, &
+         &                                                                           fieldCount     , recordCount
+    integer  (kind=SIZE_T   ), allocatable, dimension(:)                          :: fieldSizes     , fieldOffsets
+    character(len=200       ), allocatable, dimension(:)                          :: fieldNames
+    integer  (kind=SIZE_T   )                                                     :: recordTypeSize
+    integer                                                                       :: errorCode
+    logical                                                                       :: readSubsection
+    type     (varying_string)                                                     :: message
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
+    ! Check that the object is already open.
+    if (.not.thisObject%isOpenValue) then
+       message="attempt to read table '"//trim(tableName)//"' in unopen object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Real_1D_Array_Allocatable',message)
+    end if
+    ! If a subsection is to be read, we need both start and count values.
+    if (present(readBegin)) then
+       if (.not.present(readCount)) then
+          message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
+          call Galacticus_Error_Report('IO_HDF5_Read_Table_Real_1D_Array_Allocatable',message)
+       end if
+       readSubsection=.true.
+    else
+       if (present(readCount)) then
+          message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
+          call Galacticus_Error_Report('IO_HDF5_Read_Table_Real_1D_Array_Allocatable',message)
+       end if
+       readSubsection=.false.
+    end if
+
+    ! Check that the object is a group or a file
+    if (thisObject%hdf5ObjectType == hdf5ObjectTypeFile .or. thisObject%hdf5ObjectType == hdf5ObjectTypeGroup) then
+       ! Check that the dataset exists.
+       if (.not.thisObject%hasDataset(tableName)) then
+          message="table '"//trim(tableName)//"' does not exist in '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Read_Table_Real_1D_Array_Allocatable',message)
+       end if
+    else
+       message="attempt to read table from '"//thisObject%objectName//"' which is neither a file or a group"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Real_1D_Array_Allocatable',message) 
+    end if
+    ! Get the table dimensions.
+    call h5tbget_table_info_f(thisObject%objectID,tableName,fieldCount,recordCount,errorCode) 
+    if (errorCode < 0) then
+       message="unable to get dimensions of table '"//tableName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Real_1D_Array_Allocatable',message)
+    end if
+    ! Determine records to read.
+    if (readSubsection) then
+       readBeginActual=readBegin
+       readCountActual=readCount
+    else
+       readBeginActual=0
+       readCountActual=recordCount
+    end if
+    ! Allocate the array to the appropriate size.
+    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
+    call Alloc_Array(datasetValue,[readCountActual])
+
+    ! Read the column.
+    call h5tget_size_f(H5T_NATIVE_REAL,recordTypeSize,errorCode)
+    if (errorCode /= 0) then
+       message="unable to get real datatype size"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Real_1D_Array_Allocatable',message)
+    end if
+    call h5tbread_field_name_f(thisObject%objectID,tableName,columnName,readBeginActual,readCountActual,recordTypeSize,datasetValue,errorCode) 
+    if (errorCode /= 0) then
+       message="unable to read table '"//trim(tableName)//"' in object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Real_1D_Array_Allocatable',message)
+    end if
+    return
+  end subroutine IO_HDF5_Read_Table_Real_1D_Array_Allocatable
+
+  subroutine IO_HDF5_Read_Table_Integer_1D_Array_Allocatable(thisObject,tableName,columnName,datasetValue,readBegin,readCount)
+    !% Open and read an integer 1D array from a table {\normalfont \ttfamily thisObject}.
+    use Galacticus_Error
+    use Memory_Management
+    implicit none
+    integer                  , allocatable, dimension(:), intent(  out)           :: datasetValue
+    class    (hdf5Object    )                           , intent(inout)           :: thisObject
+    character(len=*         )                           , intent(in   )           :: tableName      , columnName
+    integer  (kind=HSIZE_T  )                           , intent(in   ), optional :: readBegin      , readCount
+    integer  (kind=HSIZE_T  )                                                     :: readBeginActual, readCountActual, &
+         &                                                                           fieldCount     , recordCount
+    integer  (kind=SIZE_T   ), allocatable, dimension(:)                          :: fieldSizes     , fieldOffsets
+    character(len=200       ), allocatable, dimension(:)                          :: fieldNames
+    integer  (kind=SIZE_T   )                                                     :: recordTypeSize
+    integer                                                                       :: errorCode
+    logical                                                                       :: readSubsection
+    type     (varying_string)                                                     :: message
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
+    ! Check that the object is already open.
+    if (.not.thisObject%isOpenValue) then
+       message="attempt to read table '"//trim(tableName)//"' in unopen object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer_1D_Array_Allocatable',message)
+    end if
+    ! If a subsection is to be read, we need both start and count values.
+    if (present(readBegin)) then
+       if (.not.present(readCount)) then
+          message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
+          call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer_1D_Array_Allocatable',message)
+       end if
+       readSubsection=.true.
+    else
+       if (present(readCount)) then
+          message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
+          call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer_1D_Array_Allocatable',message)
+       end if
+       readSubsection=.false.
+    end if
+    ! Check that the object is a group or a file
+    if (thisObject%hdf5ObjectType == hdf5ObjectTypeFile .or. thisObject%hdf5ObjectType == hdf5ObjectTypeGroup) then
+       ! Check that the dataset exists.
+       if (.not.thisObject%hasDataset(tableName)) then
+          message="table '"//trim(tableName)//"' does not exist in '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer_1D_Array_Allocatable',message)
+       end if
+    else
+       message="attempt to read table from '"//thisObject%objectName//"' which is neither a file or a group"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer_1D_Array_Allocatable',message) 
+    end if
+    ! Get the table dimensions.
+    call h5tbget_table_info_f(thisObject%objectID,tableName,fieldCount,recordCount,errorCode) 
+    if (errorCode < 0) then
+       message="unable to get dimensions of table '"//tableName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer_1D_Array_Allocatable',message)
+    end if
+    ! Determine records to read.
+    if (readSubsection) then
+       readBeginActual=readBegin
+       readCountActual=readCount
+    else
+       readBeginActual=0
+       readCountActual=recordCount
+    end if
+    ! Allocate the array to the appropriate size.
+    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
+    call Alloc_Array(datasetValue,[readCountActual])
+    ! Read the column.
+    call h5tget_size_f(H5T_NATIVE_REAL,recordTypeSize,errorCode)
+    if (errorCode /= 0) then
+       message="unable to get real datatype size"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer_1D_Array_Allocatable',message)
+    end if
+    call h5tbread_field_name_f(thisObject%objectID,tableName,columnName,readBeginActual,readCountActual,recordTypeSize,datasetValue,errorCode) 
+    if (errorCode /= 0) then
+       message="unable to read table '"//trim(tableName)//"' in object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer_1D_Array_Allocatable',message)
+    end if
+    return
+  end subroutine IO_HDF5_Read_Table_Integer_1D_Array_Allocatable
+
+  subroutine IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable(thisObject,tableName,columnName,datasetValue,readBegin,readCount)
+    !% Open and read a real scalar from a table {\normalfont \ttfamily thisObject}.
+    use Galacticus_Error
+    use Memory_Management
+    use Kind_Numbers
+    implicit none
+    integer  (kind=kind_int8     ), allocatable, dimension(:), intent(  out), target   :: datasetValue
+    class    (hdf5Object         )                           , intent(inout)           :: thisObject
+    character(len=*              )                           , intent(in   )           :: tableName      , columnName
+    integer  (kind=HSIZE_T  )                                , intent(in   ), optional :: readBegin      , readCount
+    integer  (kind=HSIZE_T       )                                                     :: fieldCount     , recordCount    , &
+         &                                                                                readBeginActual, readCountActual
+    integer  (kind=SIZE_T        )                                                     :: recordTypeSize
+    integer                                                                            :: errorCode
+    type     (varying_string     )                                                     :: message
+    type     (c_ptr              )                                                     :: dataValueC
+    logical                                                                            :: readSubsection
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
+    ! Check that the object is already open.
+    if (.not.thisObject%isOpenValue) then
+       message="attempt to read table '"//trim(tableName)//"' in unopen object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable',message)
+    end if
+    ! If a subsection is to be read, we need both start and count values.
+    if (present(readBegin)) then
+       if (.not.present(readCount)) then
+          message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
+          call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable',message)
+       end if
+       readSubsection=.true.
+    else
+       if (present(readCount)) then
+          message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
+          call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable',message)
+       end if
+       readSubsection=.false.
+    end if
+    ! Check that the object is a group or a file
+    if (thisObject%hdf5ObjectType == hdf5ObjectTypeFile .or. thisObject%hdf5ObjectType == hdf5ObjectTypeGroup) then
+       ! Check that the dataset exists.
+       if (.not.thisObject%hasDataset(tableName)) then
+          message="table '"//trim(tableName)//"' does not exist in '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable',message)
+       end if
+    else
+       message="attempt to read table from '"//thisObject%objectName//"' which is neither a file or a group"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable',message) 
+    end if
+    ! Get the table dimensions.
+    call h5tbget_table_info_f(thisObject%objectID,tableName,fieldCount,recordCount,errorCode) 
+    if (errorCode < 0) then
+       message="unable to get dimensions of table '"//tableName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable',message)
+    end if
+    ! Determine records to read.
+    if (readSubsection) then
+       readBeginActual=readBegin
+       readCountActual=readCount
+    else
+       readBeginActual=0
+       readCountActual=recordCount
+    end if
+    ! Allocate the array to the appropriate size.
+    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
+    call Alloc_Array(datasetValue,[readCountActual])
+    ! Read the column.
+    call h5tget_size_f(H5T_NATIVE_INTEGER_8,recordTypeSize,errorCode)
+    if (errorCode /= 0) then
+       message="unable to get long integer datatype size"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable',message)
+    end if
+    dataValueC=c_loc(datasetValue)
+    errorCode=H5TBread_fields_name(thisObject%objectID,trim(tableName)//C_NULL_CHAR,trim(columnName)//C_NULL_CHAR,readBeginActual,readCountActual,recordTypeSize,[0_size_t],[8_size_t],dataValueC)
+    if (errorCode /= 0) then
+       message="unable to read table '"//trim(tableName)//"' in object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable',message)
+    end if
+    return
+  end subroutine IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable
+
+  subroutine IO_HDF5_Read_Table_Character_1D_Array_Allocatable(thisObject,tableName,columnName,datasetValue,readBegin,readCount)
+    !% Open and read a real 1D array from a table {\normalfont \ttfamily thisObject}.
+    use Galacticus_Error
+    use Memory_Management
+    implicit none
+    character(len=*                ), allocatable, dimension(:), intent(  out)           :: datasetValue
+    class    (hdf5Object           )                           , intent(inout)           :: thisObject
+    character(len=*                )                           , intent(in   )           :: tableName      , columnName
+    integer  (kind=HSIZE_T         )                           , intent(in   ), optional :: readBegin      , readCount
+    integer  (kind=HSIZE_T         )                                                     :: readBeginActual, readCountActual, &
+         &                                                                                  fieldCount     , recordCount
+    integer  (kind=SIZE_T          ), allocatable, dimension(:)                          :: fieldSizes     , fieldOffsets
+    character(len=200              ), allocatable, dimension(:)                          :: fieldNames
+    integer  (kind=SIZE_T          )                                                     :: recordTypeSize
+    integer                                                                              :: errorCode     , i
+    logical                                                                              :: readSubsection
+    type     (varying_string       )                                                     :: message
+    character(len=len(datasetValue))                                                     :: convertValue
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
+    ! Check that the object is already open.
+    if (.not.thisObject%isOpenValue) then
+       message="attempt to read table '"//trim(tableName)//"' in unopen object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Character_1D_Array_Allocatable',message)
+    end if
+    ! If a subsection is to be read, we need both start and count values.
+    if (present(readBegin)) then
+       if (.not.present(readCount)) then
+          message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
+          call Galacticus_Error_Report('IO_HDF5_Read_Table_Character_1D_Array_Allocatable',message)
+       end if
+       readSubsection=.true.
+    else
+       if (present(readCount)) then
+          message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
+          call Galacticus_Error_Report('IO_HDF5_Read_Table_Character_1D_Array_Allocatable',message)
+       end if
+       readSubsection=.false.
+    end if
+    ! Check that the object is a group or a file
+    if (thisObject%hdf5ObjectType == hdf5ObjectTypeFile .or. thisObject%hdf5ObjectType == hdf5ObjectTypeGroup) then
+       ! Check that the dataset exists.
+       if (.not.thisObject%hasDataset(tableName)) then
+          message="table '"//trim(tableName)//"' does not exist in '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report('IO_HDF5_Read_Table_Character_1D_Array_Allocatable',message)
+       end if
+    else
+       message="attempt to read table from '"//thisObject%objectName//"' which is neither a file or a group"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Character_1D_Array_Allocatable',message) 
+    end if
+    ! Get the table dimensions.
+    call h5tbget_table_info_f(thisObject%objectID,tableName,fieldCount,recordCount,errorCode) 
+    if (errorCode < 0) then
+       message="unable to get dimensions of table '"//tableName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Character_1D_Array_Allocatable',message)
+    end if
+    ! Determine records to read.
+    if (readSubsection) then
+       readBeginActual=readBegin
+       readCountActual=readCount
+    else
+       readBeginActual=0
+       readCountActual=recordCount
+    end if
+    ! Allocate the array to the appropriate size.
+    if (allocated(datasetValue)) call Dealloc_Array(datasetValue)
+    call Alloc_Array(datasetValue,[readCountActual])
+    ! Read the column.
+    recordTypeSize=len(datasetValue(1))
+    call h5tbread_field_name_f(thisObject%objectID,tableName,columnName,readBeginActual,readCountActual,recordTypeSize,datasetValue,errorCode) 
+    if (errorCode /= 0) then
+       message="unable to read table '"//trim(tableName)//"' in object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Read_Table_Character_1D_Array_Allocatable',message)
+    end if
+    ! Convert to Fortran form.
+    do i=1,size(datasetValue)
+       convertValue=datasetValue(i)
+       if (index(convertValue,char(0)) /= 0) then
+          convertValue(index(convertValue,char(0)):len(convertValue))=repeat(" ",len(convertValue)-index(convertValue,char(0))+1)
+          datasetValue(i)=convertValue
+       end if
+    end do
+    return
+  end subroutine IO_HDF5_Read_Table_Character_1D_Array_Allocatable
+  
   !! Reference routines.
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_1D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
@@ -10824,5 +11177,5 @@ contains
 
     return
   end function IO_HDF5_Is_Reference
-
+  
 end module IO_HDF5
