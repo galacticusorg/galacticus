@@ -15,24 +15,28 @@ my @compilerOptions = @ARGV;
 # Specify library dependencies.
 my %dependencies = 
     (
-     hdf5_fortran  => [ "hdf5"                             ],
-     hdf5          => [ "z"                                ],
-     fgsl_gfortran => [ "gsl"                              ],
-     gsl           => [ "gslcblas"                         ],
-     FoX_dom       => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
-     FoX_sax       => [ "FoX_common"                       ]
+     hdf5hl_fortran => [ "hdf5_hl"                          ],
+     hdf5_hl        => [ "hdf5"                             ],
+     hdf5_fortran   => [ "hdf5"                             ],
+     hdf5           => [ "z"                                ],
+     fgsl_gfortran  => [ "gsl"                              ],
+     gsl            => [ "gslcblas"                         ],
+     FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
+     FoX_sax        => [ "FoX_common"                       ]
     );
 
 # Library order dependencies for static linking.
 my %staticLinkDependencies =
     (
-     hdf5          => [ "z", "dl"                          ],
-     hdf5_fortran  => [ "hdf5"                             ],
-     fgsl_gfortran => [ "gsl"                              ],
-     gsl           => [ "gslcblas"                         ],
-     FoX_dom       => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
-     FoX_sax       => [ "FoX_common"                       ],
-     FoX_common    => [ "FoX_fsys"                         ]
+     hdf5           => [ "z", "dl"                          ],
+     hdf5_hl        => [ "hdf5"                             ],
+     hdf5_fortran   => [ "hdf5"                             ],
+     hdf5hl_fortran => [ "hdf5_hl"                          ],
+     fgsl_gfortran  => [ "gsl"                              ],
+     gsl            => [ "gslcblas"                         ],
+     FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
+     FoX_sax        => [ "FoX_common"                       ],
+     FoX_common     => [ "FoX_fsys"                         ]
     );
 
 # Detect static linking.
