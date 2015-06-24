@@ -24,6 +24,8 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
   !% \end{itemize}
   use, intrinsic :: ISO_C_Binding
   use Galacticus_Nodes
+  use FGSL
+  use Tables
   use Galactic_Structure_Options
   use Geometry_Surveys
   use Numerical_Constants_Astronomical
@@ -31,7 +33,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
   implicit none
   private
   public :: Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins, Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Output
-
+  
   ! Record of module initialization.
   logical                                                   :: moduleInitialized          =.false.
 
@@ -172,6 +174,12 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Sz_Dstrbtins
   double precision            :: analysisSizeFunctionsHaloMassMinimum                   , analysisSizeFunctionsHaloMassMaximum           , &
        &                         analysisSizeFunctionsHaloMassIntervalLogarithmicInverse, analysisSizeFunctionsHaloMassMinimumLogarithmic
 
+  ! Table of half-light radius vs. inclination.
+  type   (table1DLinearLinear) :: inclinationTable
+  type   (fgsl_rng           ) :: randomSequenceObject
+  logical                      :: resetRandomSequence =.true.
+  !$omp threadprivate(resetRandomSequence,randomSequenceObject)
+
 contains
 
   !# <mergerTreeAnalysisTask>
@@ -190,12 +198,15 @@ contains
     use Galacticus_Output_Times
     use Galacticus_Error
     use Cosmology_Functions
+    use Pseudo_Random
     use Numerical_Comparison
     use String_Handling
     use IO_HDF5
     use Vectors
     use Galacticus_Output_Analyses_Cosmology_Scalings
     use Galacticus_Output_Merger_Tree_Data
+    use Root_Finder
+    use Table_Labels
     implicit none
     type            (mergerTree                    ), intent(in   )                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
@@ -208,15 +219,18 @@ contains
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
     integer         (c_size_t                      )                                :: k,jOutput
-    double precision                                , parameter                     :: massRandomErrorMinimum=1.0d-3
+    double precision                                , parameter                     :: massRandomErrorMinimum =1.0d-3
+    integer                                         , parameter                     :: inclinationAngleCount  =100
+    double precision                                , parameter                     :: inclinationAngleEpsilon=1.0d-3
     integer                                                                         :: i,j,l,currentAnalysis,activeAnalysisCount,haloMassBin,iDistribution,jDistribution
     double precision                                                                :: dataHubbleParameter ,mass,massLogarithmic&
-         &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter,sersicIndexMaximum,redshift,timeMinimum,timeMaximum,distanceMinimum,distanceMaximum
+         &,massRandomError,radiusLogarithmic,radius,sizeRandomError,dataOmegaDarkEnergy,dataOmegaMatter,sersicIndexMaximum,redshift,timeMinimum,timeMaximum,distanceMinimum,distanceMaximum,xIntegrate,inclinationAngle,halfLightRadius,halfLightRadiusFaceOn
     type            (varying_string                )                                :: parameterName&
          &,analysisSizeFunctionCovarianceModelText,cosmologyScalingSizeFunction,cosmologyScalingMass,cosmologyScalingSize,message
     character       (len=128                       )                                :: distributionGroupName
     logical                                                                         :: groupFound
     type            (hdf5Object                    )                                :: dataFile,sizeDataset,distributionGroup,cosmologyGroup
+    type            (rootFinder                    )                                :: finder
     
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
@@ -594,6 +608,33 @@ contains
                   &                             defaultDiskComponent%radiusAttributeMatch(requireGettable=.true.)  &
                   &                           )                                                                    &
                   & )             
+             ! Tabulate dependence of projected half-light radius on disk inclination angle.
+             call finder%tolerance            (                                                                           &
+                  &                            toleranceRelative            =1.0d-6                                     , &
+                  &                            toleranceAbsolute            =1.0d-6                                       &
+                  &                           )
+             call finder         %rootFunction(                                                                           &
+                  &                                                          halfLightRadiusRoot                          &
+                  &                           )
+             call finder          %rangeExpand(                                                                           &
+                  &                            rangeExpandUpward            =2.0d0                                      , &
+                  &                            rangeExpandDownward          =0.5d0                                      , &
+                  &                            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive              , &
+                  &                            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative              , &
+                  &                            rangeExpandType              =rangeExpandMultiplicative                    &
+                  &                           )
+             call inclinationTable%create     (                                                                           &
+                  &                                                          0.0d0                                      , &
+                  &                                                          0.5d0*Pi*(1.0d0-inclinationAngleEpsilon)   , &
+                  &                            inclinationAngleCount                                                    , &
+                  &                            extrapolationType            =[extrapolationTypeFix,extrapolationTypeFix]  &
+                  &                           )
+             do i=1,inclinationAngleCount
+                inclinationAngle=inclinationTable%x(i)
+                halfLightRadius =finder%find(rootGuess=1.0d0)
+                if (i==1) halfLightRadiusFaceOn=halfLightRadius
+                call inclinationTable%populate(halfLightRadius/halfLightRadiusFaceOn,i)
+             end do
           end if
           ! Record that module is initialized.
           moduleInitialized=.true.
@@ -634,6 +675,9 @@ contains
        do j=1,sizeFunctions(i)%descriptor%radiusSystematicCoefficientCount
           radiusLogarithmic=radiusLogarithmic+sizeFunctions(i)%radiusSystematicCoefficients(j)*(log10(radius)-sizeFunctions(i)%descriptor%radiusSystematicLogR0)**(j-1)
        end do
+       ! Adjust radius for inclination.
+       inclinationAngle =acos(Pseudo_Random_Get(randomSequenceObject,resetRandomSequence))
+       radiusLogarithmic=radiusLogarithmic+log10(inclinationTable%interpolate(inclinationAngle))
        ! Compute contributions to each bin.
        if (associated(sizeFunctions(i)%descriptor%massRandomErrorFunction)) then
           massRandomError=sizeFunctions(i)%descriptor%massRandomErrorFunction(mass,thisNode)
@@ -716,6 +760,59 @@ contains
        end if
     end do
     return
+
+  contains
+
+    double precision function halfLightRadiusRoot(xHalf)
+      !% Function used in solving for the half-light radii of inclined disks.
+      use FGSL
+      use Numerical_Integration
+      implicit none
+      double precision, intent(in   ) :: xHalf
+      double precision                :: integralHalf
+      type            (fgsl_function             ) :: integrandFunction
+      type            (fgsl_integration_workspace) :: integrationWorkspace
+      type            (c_ptr                     ) :: parameterPointer
+      logical                                      :: integrationReset
+      
+      integrationReset=.true.
+      integralHalf=Integrate(0.0d0,xHalf,halfLightRadiusIntegrandX,parameterPointer,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
+      halfLightRadiusRoot=integralHalf/2.0d0/Pi/cos(inclinationAngle)-0.5d0
+      return
+    end function halfLightRadiusRoot
+
+    function halfLightRadiusIntegrandX(x,parameterPointer) bind(c)
+      !% Integral for half-light radius.
+      use, intrinsic :: ISO_C_Binding
+      use Numerical_Integration
+      use FGSL
+      implicit none
+      real(kind=c_double)        :: halfLightRadiusIntegrandX
+      real(kind=c_double), value :: x
+      type(c_ptr        ), value :: parameterPointer
+      type            (fgsl_function             ) :: integrandFunction
+      type            (fgsl_integration_workspace) :: integrationWorkspace
+      logical                                      :: integrationReset
+
+      integrationReset=.true.
+      xIntegrate      =x
+      halfLightRadiusIntegrandX=Integrate(0.0d0,2.0d0*Pi,halfLightRadiusIntegrandPhi,parameterPointer,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)*x
+      return
+    end function halfLightRadiusIntegrandX
+
+    function halfLightRadiusIntegrandPhi(Phi,parameterPointer) bind(c)
+      !% Integral for half-light radius.
+      use, intrinsic :: ISO_C_Binding
+      implicit none
+      real(kind=c_double)        :: halfLightRadiusIntegrandPhi
+      real(kind=c_double), value :: phi
+      type(c_ptr        ), value :: parameterPointer
+
+      halfLightRadiusIntegrandPhi=exp(-xIntegrate*sqrt((sin(phi)/cos(inclinationAngle))**2+cos(phi)**2))
+      return
+    end function halfLightRadiusIntegrandPhi
+
+    
   end subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins
 
   !# <hdfPreCloseTask>
