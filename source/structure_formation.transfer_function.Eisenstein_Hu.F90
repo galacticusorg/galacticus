@@ -388,8 +388,8 @@ contains
     double precision                                  , intent(in   ) :: wavenumber
     double precision                                                  :: wavenumberEffective   , L                     , &
          &                                                               C                     , wavenumberNeutrino    , &
-         &                                                               suppressionNeutrino   , dLdwavenumberEffective, &
-         &                                                               dCdwavenumberEffective, transferFunction
+         &                                                               transferFunction      , dLdwavenumberEffective, &
+         &                                                               dCdwavenumberEffective
 
     ! Compute common factors.
     call self%computeFactors(wavenumber,wavenumberEffective,wavenumberNeutrino,L,C)
