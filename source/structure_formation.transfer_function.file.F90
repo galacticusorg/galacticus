@@ -170,23 +170,16 @@ contains
     character       (len=*                   ), intent(in   )             :: fileName
     type            (Node                    ), pointer                   :: doc                             , extrapolation              , &
          &                                                                   extrapolationElement            , formatElement              , &
-         &                                                                   nameElement                     , thisParameter              , &
-         &                                                                   valueElement
-    type            (NodeList                ), pointer                   :: parameterList                   , wavenumberExtrapolationList
+         &                                                                   thisParameter
+    type            (NodeList                ), pointer                   :: wavenumberExtrapolationList
     double precision                          , allocatable, dimension(:) :: transfer                        , wavenumber                 , &
          &                                                                   transferLogarithmic             , wavenumberLogarithmic
     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_            , cosmologyParametersFile
     double precision                          , parameter                 :: toleranceUniformity      =1.0d-6
     type            (inputParameters         )                            :: transferFunctionCosmology
-    integer                                                               :: addCount                        , extrapolationMethod        , &
-         &                                                                   iExtrapolation                  , iParameter                 , &
-         &                                                                   ioError                         , versionNumber              , &
+    integer                                                               :: extrapolationMethod             , versionNumber              , &
+         &                                                                   iExtrapolation                  , ioError                    , &
          &                                                                   extrapolateWavenumberLow        , extrapolateWavenumberHigh
-    double precision                                                      :: temperatureCMB_                 , temperatureCMBFile         , &
-         &                                                                   hubbleConstant_                 , hubbleConstantFile         , &
-         &                                                                   omegaBaryon_                    , omegaBaryonFile            , &
-         &                                                                   omegaDarkEnergy_                , omegaDarkEnergyFile        , &
-         &                                                                   omegaMatter_                    , omegaMatterFile
     character       (len=32                  )                            :: limitType
 
     ! Get the default cosmology.

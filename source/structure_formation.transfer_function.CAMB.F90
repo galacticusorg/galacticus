@@ -148,11 +148,8 @@ contains
     class           (transferFunctionCAMB), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
     integer         (c_int               )                :: lockFileDescriptor
-    logical                                               :: makeFile
     character       (len=32              )                :: wavenumberLabel
     type            (varying_string      )                :: command             , parameterFile
-    type            (xmlf_t              )                :: parameterDoc
-    type            (inputParameterList  )                :: dependentParameters
     logical                                               :: makeTransferFunction
     double precision                                      :: wavenumberCAMB
 

@@ -158,7 +158,6 @@ contains
     implicit none
     class           (transferFunctionBode2001), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
-    double precision                                          :: wavenumberScaleFree
 
     bode2001LogarithmicDerivative=+self%transferFunctionCDM%logarithmicDerivative(wavenumber)    
     if (self%scaleCutOff > 0.0d0)                                       &
