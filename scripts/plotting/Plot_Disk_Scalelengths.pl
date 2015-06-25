@@ -14,7 +14,7 @@ use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
 use LaTeX::Encode;
-use File::Which;
+require File::Which;
 require Stats::Histograms;
 require Galacticus::HDF5;
 require Galacticus::Magnitudes;

@@ -130,8 +130,9 @@ contains
           ! Move to the next tree.
           currentTree => currentTree%nextTree
        end do
+       ! Uniqueify nodes.
+       call Merger_Tree_Prune_Uniqueify_IDs(thisTree)
     end if
-
     return
   end subroutine Merger_Tree_Prune_Branches
 
