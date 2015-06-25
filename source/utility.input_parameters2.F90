@@ -407,7 +407,6 @@ contains
   subroutine inputParametersDestroy(self)
     !% Destructor for the {\normalfont \ttfamily inputParameters} class.
     class(inputParameters), intent(inout) :: self
-    type (node           ), pointer       :: parent
 
     ! Destroy the parameters document. Note that we do not use a finalizer for input parameters. This could destroy part of a
     ! document which was still pointed to from elsewhere, leaving a dangling pointer. Instead, destruction only occurs when
