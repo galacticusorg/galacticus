@@ -71,7 +71,6 @@ contains
     use Galacticus_Error
     use Cosmology_Parameters
     use Cosmology_Functions
-    use Regular_Expressions
     use String_Handling
     use File_Utilities
     use Memory_Management
@@ -82,23 +81,15 @@ contains
     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_
     real                                           , allocatable, dimension(:) :: snapshotExpansionFactors
-    type            (varying_string               )                            :: message                 , baseDirectory        , &
-         &                                                                        simulationDefinitionFile, snapshotTimesFile
-    character       (len=1024                     )                            :: line                    , parameterName        , &
-         &                                                                         parameterValue
-    character       (len=14                       )                            :: valueString             , unitString
-    type            (regEx                        )                            :: parameterRegEx
-    integer                                                                    :: fileUnit                , snapshotNumber       , &
-         &                                                                        ioStat                  , snapshotFileCount    , &
-         &                                                                        i
+    type            (varying_string               )                            :: message
+    character       (len=14                       )                            :: valueString
+    integer                                                                    :: i
     double precision                                                           :: localLittleH0           , localOmegaMatter     , &
-         &                                                                        localOmegaDE            , cosmologicalParameter, &
-         &                                                                        expansionFactor         , redshift             , &
-         &                                                                        timeNormalized          , time                 , &
+         &                                                                        localOmegaDE            , localSigma8          , &
          &                                                                        localOmegaBaryon        , fileOmegaBaryon      , &
          &                                                                        fileOmegaCDM            , fileLittleH0         , &
-         &                                                                        fileOmegaDE             , fileSigma8           , &
-         &                                                                        localSigma8
+         &                                                                        fileOmegaDE             , fileSigma8
+         &                                                                        
     
     ! Get the default cosmology.
     cosmologyParameters_ => cosmologyParameters()
@@ -213,82 +204,27 @@ contains
     use String_Handling
     implicit none
     class    (mergerTreeImporterSussingHDF5), intent(inout)                              :: self
-    integer  (kind_int8                    ), intent(  out), dimension(:  ), allocatable :: nodeSelfIndices              , nodeTreeIndices
-    integer  (c_size_t                     ), intent(  out), dimension(:  ), allocatable :: nodeIndexRanks               , nodeDescendentLocations
+    integer  (kind_int8                    ), intent(  out), dimension(:  ), allocatable :: nodeSelfIndices      , nodeTreeIndices
+    integer  (c_size_t                     ), intent(  out), dimension(:  ), allocatable :: nodeIndexRanks       , nodeDescendentLocations
     logical                                 , intent(  out), dimension(:  ), allocatable :: nodeIncomplete
     integer  (kind=c_size_t                ), intent(  out)                              :: nodeCountTrees
-    logical                                 , intent(  out)                              :: treeIndicesAssigned          , branchJumpCheckRequired
-    type     (importerUnits                ), intent(  out)                              :: massUnits                    , lengthUnits            , &
+    logical                                 , intent(  out)                              :: treeIndicesAssigned  , branchJumpCheckRequired
+    type     (importerUnits                ), intent(  out)                              :: massUnits            , lengthUnits                , &
          &                                                                                  velocityUnits
-    integer  (kind=kind_int8               )               , dimension(:  ), allocatable :: nodesInSubvolume             , nodesTmp                    , &
-         &                                                                                  hostsInSubvolume             , mergerTreeHaloIndices, &
-         &                                                                                  mergerTreeDescendentIndices
-    logical                                                , dimension(:  ), allocatable :: nodeIncompleteTmp
-    integer  (c_size_t                     )               , dimension(:  ), allocatable :: forestSnapshotHaloCount      , forestSnapshotHaloCountFirst, &
-         &                                                                                  forestSnapshotHaloCountLast  , forestID
-    integer  (c_size_t                     )               , dimension(:,:), allocatable :: forestSnapshotHaloCounts
-    integer                                 , parameter                                  :: fileFormatVersionCurrent   =1
+    integer  (kind=kind_int8               )               , dimension(:  ), allocatable :: mergerTreeHaloIndices, mergerTreeDescendentIndices
     real                                                   , dimension(:  ), allocatable :: propertyReal
     integer                                                , dimension(:  ), allocatable :: propertyInteger
     integer  (kind=kind_int8               )               , dimension(:  ), allocatable :: propertyLongInteger
-    character(len=32                       )               , dimension(:  ), allocatable :: propertyNames                , propertyUnitsText
-    logical                                                                              :: nodeIsActive                 , doBinaryConversion          , &
-         &                                                                                  readBinary                   , mergerTreeFileIsBinary      , &
-         &                                                                                  mergerTreeFileConvert        , processHalo
-    integer                                                                              :: fileUnit                     , progenitorCount             , &
-         &                                                                                  fileFormatVersion            , fileUnitOut                 , &
-         &                                                                                  snapshotUnit                 , snapshotOutUnit             , &
-         &                                                                                  ioStat
-    character(len=1024                     )                                             :: line
-    integer  (kind=c_size_t                )                                             :: l                            , i                           , &
-         &                                                                                  j                                                          , &
-         &                                                                                  iNode                                                      , &
-         &                                                                                  jNode                        , iCount                      , &
-         &                                                                                  nodeCount                    , nodeCountSubvolume          , &
-         &                                                                                  iProgenitor                  , jCount                      , &
-         &                                                                                  jForest                      , nodeCountSnapshot           , &
-         &                                                                                  iHalo
-    integer  (kind=kind_int8               )                                             :: nodeIndex
-    type     (varying_string               )                                             :: message                      , snapshotName
-    type     (hdf5Object                   )                                             :: snapshot                     , mergerTrees
-    integer  (kind=kind_int8               )                                             :: ID                           , hostHalo                    , &
-         &                                                                                  progenitorIndex 
-    integer  (c_size_t                     )                                             :: forestCount                  , forestHaloCount             , &
-         &                                                                                  forestFirst                  , forestLast                  , &
-         &                                                                                  forestHaloCountLast          , forestHaloCountFirst
+    character(len=32                       )               , dimension(:  ), allocatable :: propertyNames        , propertyUnitsText
+    integer  (kind=c_size_t                )                                             :: i                    , j                          , &
+         &                                                                                  nodeCount            , iProgenitor                , &
+         &                                                                                  nodeCountSnapshot    , iHalo
+    type     (varying_string               )                                             :: snapshotName
+    type     (hdf5Object                   )                                             :: snapshot             , mergerTrees
     type     (importerUnits                )                                             :: propertyUnits
-    logical                                                                              :: massUnitsAssigned            , lengthUnitsAssigned         , &
+    logical                                                                              :: massUnitsAssigned    , lengthUnitsAssigned        , &
          &                                                                                  velocityUnitsAssigned
-    integer                                                                              :: numSubStruct                 , npart                       , &
-         &                                                                                  haloFormat                   , haloIndexOffset
-    double precision                                                                     :: Mvir                         , Xc                          , &
-               &                                                                            Yc                           , Zc                          , &
-               &                                                                            VXc                          , Vyc                         , &
-               &                                                                            VZc                          , Rvir                        , &
-               &                                                                            Rmax                         , r2                          , &
-               &                                                                            mbp_offset                   , com_offset                  , &
-               &                                                                            Vmax                         , v_esc                       , &
-               &                                                                            sigV                         , lambda                      , &
-               &                                                                            lambdaE                      , Lx                          , &
-               &                                                                            Ly                           , Lz                          , &
-               &                                                                            b                            , c                           , &
-               &                                                                            Eax                          , Eay                         , &
-               &                                                                            Eaz                          , Ebx                         , &
-               &                                                                            Eby                          , Ebz                         , &
-               &                                                                            Ecx                          , Ecy                         , &
-               &                                                                            Ecz                          , ovdens                      , &
-               &                                                                            fMhires                      , Ekin                        , &
-               &                                                                            Epot                         , SurfP                       , &
-               &                                                                            Phi0                         , cNFW                        , &
-               &                                                                            nbins                        , FoFMass                     , &
-               &                                                                            M_200Mean                    , M_200Crit                   , &
-               &                                                                            M_TopHat                     , R_200Mean                   , &
-               &                                                                            R_200Crit                    , R_TopHat                    , &
-               &                                                                            HalfMassRadius               , sigV_200Mean                , &
-               &                                                                            sigV_200Crit                 , sigV_TopHat                 , &
-               &                                                                            Xcm                          , Ycm                         , &
-               &                                                                            Zcm                          , Xgroup                      , &
-               &                                                                            Ygroup                       , Zgroup
+    integer                                                                              :: haloIndexOffset
 
     ! Display counter.
     call Galacticus_Display_Indent ('Parsing "Sussing Merger Trees" HDF5 format merger tree file',verbosityWorking)
