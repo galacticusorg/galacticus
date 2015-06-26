@@ -18,7 +18,7 @@
 !% Defines methods for the ``differentialEvolution'' simulator class.
 
 function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistributions,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion&
-     &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount)
+     &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot)
   !% Constructor for ``differentialEvolution'' simulator class.
   implicit none
   type     (simulatorDifferentialEvolution)                                      :: simulatorDifferentialEvolutionConstructor
@@ -33,7 +33,7 @@ function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistrib
   class    (deProposalSize                ), intent(in   ), target               :: proposalSize
   class    (deRandomJump                  ), intent(in   ), target               :: randomJump
   integer                                  , intent(in   )                       :: stepsMaximum,acceptanceAverageCount,stateSwapCount,logFlushCount, reportCount
-  character(len=*                         ), intent(in   )                       :: logFileRoot
+  character(len=*                         ), intent(in   )                       :: logFileRoot, interactionRoot
   logical                                  , intent(in   )                       :: sampleOutliers
 
   simulatorDifferentialEvolutionConstructor%parameterCount              =  size(parameterPriors)
@@ -51,6 +51,8 @@ function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistrib
   simulatorDifferentialEvolutionConstructor%acceptanceAverageCount      =  acceptanceAverageCount
   simulatorDifferentialEvolutionConstructor%stateSwapCount              =  stateSwapCount
   simulatorDifferentialEvolutionConstructor%logFileRoot                 =  logFileRoot
+  simulatorDifferentialEvolutionConstructor%isInteractive               =  trim(interactionRoot) /= "none"
+  simulatorDifferentialEvolutionConstructor%interactionRoot             =  trim(interactionRoot)
   simulatorDifferentialEvolutionConstructor%sampleOutliers              =  sampleOutliers
   simulatorDifferentialEvolutionConstructor%logFlushCount               =  logFlushCount
   simulatorDifferentialEvolutionConstructor%reportCount                 =  reportCount
@@ -66,24 +68,34 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   use String_Handling
   use Constraints_Constants
   use Kind_Numbers
+  use File_Utilities
+  use System_Command
   implicit none
   class           (simulatorDifferentialEvolution), intent(inout)                    :: self
   integer                                         , dimension(                    2) :: chainPair
   double precision                                , dimension(self%parameterCount,2) :: statePair
-  double precision                                , dimension(self%parameterCount  ) :: stateVector          , stateVectorProposed
+  double precision                                , dimension(self%parameterCount  ) :: stateVector           , stateVectorProposed          , &
+       &                                                                                stateVectorInteractive
   class           (state                         ), allocatable                      :: stateProposed
-  real                                                                               :: timePreEvaluate      , timePostEvaluate             , &
-       &                                                                                timeEvaluate         , timeEvaluatePrevious
-  double precision                                                                   :: logLikelihoodProposed, logPosteriorProposed         , &
-       &                                                                                logLikelihood        , logLikelihoodVariance        , &
-       &                                                                                timeEvaluateInitial  , logLikelihoodVarianceProposed
+  real                                                                               :: timePreEvaluate       , timePostEvaluate             , &
+       &                                                                                timeEvaluate          , timeEvaluatePrevious
+  double precision                                                                   :: logLikelihoodProposed , logPosteriorProposed         , &
+       &                                                                                logLikelihood         , logLikelihoodVariance        , &
+       &                                                                                timeEvaluateInitial   , logLikelihoodVarianceProposed
   type            (pseudoRandom                  )                                   :: randomNumberGenerator
-  type            (varying_string                )                                   :: logFileName          , message
-  integer                                                                            :: logFileUnit          , convergedAtStep              , &
-       &                                                                                convergenceFileUnit  , i
+  type            (varying_string                )                                   :: logFileName           , message                      , &
+       &                                                                                interactionFileName
+  integer                                                                            :: logFileUnit           , convergedAtStep              , &
+       &                                                                                convergenceFileUnit   , i                            , &
+       &                                                                                ioStatus              , interactionFile
+  logical                                                                               forceAcceptance
+  character       (len=32                        )                                   :: label
   
   ! Check that we have sufficient chains for differential evolution.
   if (mpiSelf%count() < 3) call Galacticus_Error_Report('simulatorDifferentialEvolutionSimulate','at least 3 chains are required for differential evolution')
+  ! Write start-up message.
+  message="Process "//mpiSelf%rankLabel()//" is running on host '"//mpiSelf%hostAffinity()//"'"
+  call Galacticus_Display_Message(message)
   ! Allocate a simple state object for the proposed state.
   allocate(stateSimple :: stateProposed)
   select type (stateProposed)
@@ -127,6 +139,45 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
           &               )
      ! Add random perturbations to the proposal.
      stateVectorProposed=stateVectorProposed+self%randomJump%sample(self%randomDistributions,self%simulationState)
+     ! If simulation is interactive, check for any interaction file.
+     forceAcceptance=.false.
+     if (self%isInteractive) then
+        ! Check if an interaction file exists.
+        interactionFileName=self%interactionRoot//"_"//mpiSelf%rankLabel()
+        if (File_Exists(interactionFileName)) then
+           ! Read the file and validate.
+           open(newUnit=interactionFile,file=char(interactionFileName),status='old',form='formatted',ioStat=ioStatus)
+           if (ioStatus == 0) then
+              read (interactionFile,*,ioStat=ioStatus) stateVectorInteractive
+              if (ioStatus == 0) then
+                 ! Copy the state to the proposed state vector.
+                 stateVectorProposed=stateVectorInteractive
+                 message="Chain "//mpiSelf%rankLabel()//" is being interactively moved to state:"
+                 call Galacticus_Display_Indent(message)
+                 ! Map parameters of interactively proposed state.
+                 do i=1,size(stateVector)
+                    write (label,*) stateVectorProposed(i)
+                    message="State["
+                    message=message//i//"] = "//trim(adjustl(label))
+                    call Galacticus_Display_Message(message)
+                    stateVectorProposed(i)=self%parameterMappings(i)%thisMapping%map(stateVectorProposed(i))
+                 end do
+                 call Galacticus_Display_Unindent('end')
+                 ! Force acceptance of this state.
+                 forceAcceptance=.true.
+              else
+                 message="WARNING: state proposed in interaction file '"//interactionFileName//"' cannot be read"
+                 call Galacticus_Display_Message(message)
+              end if
+           else
+              message="WARNING: unable to open interaction file '"//interactionFileName//"'"
+              call Galacticus_Display_Message(message)
+           end if
+           close(interactionFile)
+           ! Remove the interaction file.
+           call System_Command_Do("rm -f "//interactionFileName)
+        end if
+     end if
      ! Store the proposed state vector.
      call stateProposed%update(stateVectorProposed,.false.,.false.)
      ! Evaluate likelihood.
@@ -137,7 +188,11 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      call CPU_Time(timePostEvaluate)
      if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
      ! Decide whether to take step.
-     if (self%acceptProposal(self%logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator)) then
+     if     (                                                                                                                                       &
+          &   self%acceptProposal(self%logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator) &
+          &  .or.                                                                                                                                   &
+          &   forceAcceptance                                                                                                                       &
+          & ) then
         self%logPosterior    =logPosteriorProposed
         logLikelihood        =logLikelihoodProposed
         logLikelihoodVariance=logLikelihoodVarianceProposed
