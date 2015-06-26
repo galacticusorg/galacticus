@@ -38,7 +38,10 @@ my $configFile = $ARGV[0];
 my $iArg = -1;
 my %arguments = 
     (
-     make => "yes"
+     make                    => "yes",
+     treesPerDecadeFactor    => 0.5,
+     treesPerDecadeSteps     => 8,
+     samplingAbundanceLimits => "yes"
     );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
@@ -49,6 +52,10 @@ my $config = &Parameters::Parse_Config($configFile);
 die("testModelAccuracy.pl: workDirectory must be specified in config file" ) unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
 die("testModelAccuracy.pl: compilation must be specified in config file"   ) unless ( exists($config->{'likelihood'}->{'compilation'   }) );
 die("testModelAccuracy.pl: baseParameters must be specified in config file") unless ( exists($config->{'likelihood'}->{'baseParameters'}) );
+
+# Overwrite base parameters if specified on the command line.
+$config->{'likelihood'}->{'baseParameters'} = $arguments{'baseParameters'}
+    if ( exists($arguments{'baseParameters'}) );
 
 # Determine the scratch and work directories.
 my $workDirectory    = $config->{'likelihood'}->{'workDirectory'   };
@@ -81,16 +88,18 @@ $parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPer
 	if ( exists($arguments{'treesPerDecade'}) );
 
 # Ensure no abundance limits are applied for halo mass function sampling.
-$parameters->{'haloMassFunctionSamplingAbundanceMinimum'}->{'value'} = -1.0;
-$parameters->{'haloMassFunctionSamplingAbundanceMaximum'}->{'value'} = -1.0;
+if ( $arguments{'samplingAbundanceLimits'} eq "no" ) {
+    $parameters->{'haloMassFunctionSamplingAbundanceMinimum'}->{'value'} = -1.0;
+    $parameters->{'haloMassFunctionSamplingAbundanceMaximum'}->{'value'} = -1.0;
+}
 
 # Define parameters to test for accuracy.
 my @accuracies =
 (
  {
      parameter => "mergerTreeBuildTreesPerDecade",
-     factor    => 0.5,
-     steps     => 8
+     factor    => $arguments{'treesPerDecadeFactor'},
+     steps     => $arguments{'treesPerDecadeSteps'}
  },
 );
 
@@ -104,17 +113,17 @@ my @samplingMethods =
 	  p2    =>  0.0
       },
       {
-	  name  => "p1_m0.5_p2_0.0"           ,
-	  label => "\$(p_1,p_2)=(-0.5,+0.0)\$",
-	  p1    => -0.5                       ,
-	  p2    =>  0.0
+      	  name  => "p1_m0.5_p2_0.0"           ,
+      	  label => "\$(p_1,p_2)=(-0.5,+0.0)\$",
+      	  p1    => -0.5                       ,
+      	  p2    =>  0.0
       },
       {
        	  name  => "p1_0.5_p2_0.0"            ,
        	  label => "\$(p_1,p_2)=(+0.5,+0.0)\$",
        	  p1    =>  0.5                       ,
        	  p2    =>  0.0
-      },
+      }
     );
 
 # Iterate over parameters to run models that will test for accuracy.
@@ -136,8 +145,6 @@ foreach my $accuracy ( @accuracies ) {
 	    system("mkdir -p ".$modelDirectory);
 	    # Specify the sampling method.
 	    $currentParameters->{'haloMassFunctionSamplingMethod'          }->{'value'} = "haloMassFunction";
-	    $currentParameters->{'haloMassFunctionSamplingAbundanceMinimum'}->{'value'} = -1.0;
-	    $currentParameters->{'haloMassFunctionSamplingAbundanceMaximum'}->{'value'} = -1.0;
 	    $currentParameters->{'haloMassFunctionSamplingModifier1'       }->{'value'} = $samplingMethod->{'p1'};
 	    $currentParameters->{'haloMassFunctionSamplingModifier2'       }->{'value'} = $samplingMethod->{'p2'};
 	    # Specify the output file name.
@@ -173,7 +180,8 @@ foreach my $accuracy ( @accuracies ) {
 		    my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
 		    # Insert code to run the analysis code.
 		    my $analysisCode = $constraintDefinition->{'analysis'};
-		    print oHndl $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5\n";
+		    (my $plotFileName = $constraintDefinition->{'label'}) =~ s/\./_/g;
+		    print oHndl $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".hdf5 --plotFile ".$modelDirectory."/".$plotFileName.".pdf\n";
 		}
 		close(oHndl);
 		# Queue the calculation.
@@ -185,7 +193,7 @@ foreach my $accuracy ( @accuracies ) {
 	}
     }
     # Send jobs to PBS.
-    &PBS_Submit(@pbsStack)
+    &PBS_Submit(reverse(@pbsStack))
 	if ( scalar(@pbsStack) > 0 );
 }
 
@@ -198,6 +206,14 @@ foreach my $accuracy ( @accuracies ) {
 	{
 	    title  => "Parameter",
 	    align  => "left"
+	},
+	{
+	    is_sep => 1,
+	    body   => " "
+	},
+	{
+	    title  => "Value", 
+	    align  => "num"
 	},
 	{
 	    is_sep => 1,
@@ -252,8 +268,8 @@ foreach my $accuracy ( @accuracies ) {
     print $gnuPlot "set format x '\$10^{\%L}\$'\n";
     print $gnuPlot "set mytics 10\n";
     print $gnuPlot "set format y '\$10^{\%L}\$'\n";
-    print $gnuPlot "set xrange [1.0e+2:1.0e5]\n";
-    print $gnuPlot "set yrange [1.0e-1:1.0e4]\n";
+    print $gnuPlot "set xrange [3.0e+2:2.0e5]\n";
+    print $gnuPlot "set yrange [5.0e+1:6.0e2]\n";
     print $gnuPlot "set title 'Convergence with tree processing time'\n";
     print $gnuPlot "set xlabel 'Tree processing time [s]'\n";
     print $gnuPlot "set ylabel 'Convergence measured []'\n";
@@ -298,36 +314,16 @@ foreach my $accuracy ( @accuracies ) {
 		    # Open the file.
 		    my $resultFile = new PDL::IO::HDF5($resultFileName);
 		    # Read covariance matrices.
-		    my $covarianceModel = $resultFile->dataset('covariance'    )->get();
-		    my $covarianceData  = $resultFile->dataset('covarianceData')->get();
-		    # Normalize the matrices.
-		    my $normalization = $covarianceData->((0),(0))->copy();
-		    $covarianceModel /= $normalization;
-		    $covarianceData  /= $normalization;
-		    # Find negligble rows in the data matrix.
-		    my $tiny                       = pdl 1.0e-30;
-		    my $significant                = which($covarianceData->diagonal(0,1) > $tiny);
-		    my $covarianceDataSignificant  = $covarianceData ->dice($significant,$significant);
-		    my $covarianceModelSignificant = $covarianceModel->dice($significant,$significant);
-		    # For any empty rows in the model covariance, set the diagonal to a small value.
-		    my $epsilon                                = pdl 1.0e-3;		    
-		    my $empty                                  = which($covarianceModelSignificant->diagonal(0,1) < $epsilon*$covarianceDataSignificant->diagonal(0,1));
-		    $covarianceModelSignificant->diagonal(0,1)->($empty) .= $epsilon*$covarianceDataSignificant->diagonal(0,1)->($empty);
-		    # Do Cholesky decompositions.
-		    my $choleskyData  = mchol($covarianceDataSignificant );
-		    my $choleskyModel = eval{mchol($covarianceModelSignificant)};
-		    if ( defined($choleskyModel) ) {
-			# Construct P and Q matrices.
-			my $P = minv($choleskyData) x transpose($choleskyModel);
-			my $Q = minv($choleskyData) x           $choleskyModel;
-			# Construct accuracy measure matrix.
-			my $PTP = transpose($P) x $P;
-			$PTP->diagonal(0,1) += 1.0;
-			my $PTPinv = minv($PTP);
-			my $accuracyMatrix = $Q x $PTPinv x transpose($Q);
-			# Construct accuracy measure.
-			$thisAccuracyMeasure += sum($accuracyMatrix);			
-		    }
+		    my $covarianceModel        = $resultFile->dataset('covariance'    )->get();
+		    my $covarianceData         = $resultFile->dataset('covarianceData')->get();
+		    my $unitary                = pdl ones($covarianceData->dim(0));
+		    my $choleskyData           = mchol($covarianceData);
+		    my $Delta                  = $unitary x $choleskyData;
+		    my $inverseCovarianceData  = minv($covarianceData                 );
+		    my $inverseCovarianceTotal = minv($covarianceData+$covarianceModel);
+		    my $likelihoodData         = $Delta x $inverseCovarianceData  x transpose($Delta);
+		    my $likelihoodTotal        = $Delta x $inverseCovarianceTotal x transpose($Delta);
+		    $thisAccuracyMeasure      += sum($likelihoodData-$likelihoodTotal);
 		}
 	    }
 	    # Append this to the results arrays.
@@ -337,9 +333,10 @@ foreach my $accuracy ( @accuracies ) {
 	    # Append to the table of results.
 	    $reportTable->add(
 	    	$accuracy->{'parameter'}             ,
+		$currentParameters->{$accuracy->{'parameter'}}->{'value'},
 	    	$samplingMethod->{'p1'}              ,
 	    	$samplingMethod->{'p2'}              ,
-	    	FormatSigFigs($thisAccuracyMeasure,5),
+	    	$thisAccuracyMeasure                 ,
 	    	FormatSigFigs($modelTiming        ,5)
 	    	);
 	}
@@ -413,7 +410,8 @@ sub PBS_Submit {
 	    sleep 5;
 	} else {
 	    # Wait.
-	    sleep 60;
+	    sleep 60
+		if ( scalar(keys %pbsJobs) > 0 || scalar(@pbsStack) > 0 );
 	}
     }
 }
