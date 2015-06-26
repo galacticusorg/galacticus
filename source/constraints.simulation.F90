@@ -62,6 +62,7 @@ module Constraints_Simulation
   include 'constraints.simulation.tempered_differential_evolution.type.inc'
   include 'constraints.simulation.annealed_differential_evolution.type.inc'
   include 'constraints.simulation.stochastic_differential_evolution.type.inc'
+  include 'constraints.simulation.particle_swarm.type.inc'
 
 contains
 
@@ -86,19 +87,23 @@ contains
     class           (deProposalSize   ), intent(in   ), optional, target               :: proposalSize
     class           (dePropSizeTempExp), intent(in   ), optional, target               :: proposalSizeTemperatureExponent
     class           (deRandomJump     ), intent(in   ), optional, target               :: randomJump
-    type            (node             ), pointer                                       :: simulatorStepsMaximumDefinition          , simulatorSampleOutliersDefinition      , &
-         &                                                                                simulatorAcceptanceAverageCountDefinition, simulatorLogFileDefinition             , &
-         &                                                                                simulatorTemperatureMaximumDefinition    , simulatorUntemperedStepCountDefinition , &
-         &                                                                                simulatorTemperingLevelCountDefinition   , simulatorStepsPerLevelDefinition       , &
-         &                                                                                simulatorStateSwapCountDefinition        , simulatorLogFlushCountDefinition       , &
-         &                                                                                simulatorReportCountDefinition           , simulatorTemperatureScaleDefinition    , &
-         &                                                                                simulatorInteractionRootDefinition
-    integer                                                                            :: simulatorStepsMaximum                    , simulatorStateSwapCount                , &
-         &                                                                                simulatorAcceptanceAverageCount          , simulatorUntemperedStepCount           , &
-         &                                                                                simulatorTemperingLevelCount             , simulatorStepsPerLevel                 , &
-         &                                                                                simulatorLogFlushCount                   , simulatorReportCount
-    double precision                                                                   :: simulatorTemperatureMaximum              , simulatorTemperatureScale
-    type            (varying_string  )                                                 :: simulatorLogFile                         , simulatorInteractionRoot
+    type            (node             ), pointer                                       :: simulatorStepsMaximumDefinition                    , simulatorSampleOutliersDefinition                , &
+         &                                                                                simulatorAcceptanceAverageCountDefinition          , simulatorLogFileDefinition                       , &
+         &                                                                                simulatorTemperatureMaximumDefinition              , simulatorUntemperedStepCountDefinition           , &
+         &                                                                                simulatorTemperingLevelCountDefinition             , simulatorStepsPerLevelDefinition                 , &
+         &                                                                                simulatorStateSwapCountDefinition                  , simulatorLogFlushCountDefinition                 , &
+         &                                                                                simulatorReportCountDefinition                     , simulatorTemperatureScaleDefinition              , &
+         &                                                                                simulatorInteractionRootDefinition                 , simulatorInertiaWeightDefinition                 , &
+         &                                                                                simulatorAccelerationCoefficientPersonalDefinition , simulatorAccelerationCoefficientGlobalDefinition , &
+         &                                                                                simulatorVelocityCoefficientDefinition
+    integer                                                                            :: simulatorStepsMaximum                              , simulatorStateSwapCount                          , &
+         &                                                                                simulatorAcceptanceAverageCount                    , simulatorUntemperedStepCount                     , &
+         &                                                                                simulatorTemperingLevelCount                       , simulatorStepsPerLevel                           , &
+         &                                                                                simulatorLogFlushCount                             , simulatorReportCount
+    double precision                                                                   :: simulatorTemperatureMaximum                        , simulatorTemperatureScale                        , &
+         &                                                                                simulatorInertiaWeight                             , simulatorAccelerationCoefficientPersonal         , &
+         &                                                                                simulatorAccelerationCoefficientGlobal             , simulatorVelocityCoefficient
+    type            (varying_string  )                                                 :: simulatorLogFile                                   , simulatorInteractionRoot
     logical                                                                            :: simulatorSampleOutliers
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
@@ -288,7 +293,42 @@ contains
                &                                                char(simulatorInteractionRoot)   &
                &                                               )
        end select
-   case default
+    case ("particleSwarm")
+       allocate(simulatorParticleSwarm :: newSimulator)
+       select type (newSimulator)
+       type is (simulatorParticleSwarm)
+          simulatorStepsMaximumDefinition                    => XML_Get_First_Element_By_Tag_Name(definition,"stepsMaximum"                   )
+          simulatorLogFileDefinition                         => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"                    )
+          simulatorReportCountDefinition                     => XML_Get_First_Element_By_Tag_Name(definition,"reportCount"                    )
+          simulatorInertiaWeightDefinition                   => XML_Get_First_Element_By_Tag_Name(definition,"inertialWeight"                 )
+          simulatorAccelerationCoefficientPersonalDefinition => XML_Get_First_Element_By_Tag_Name(definition,"accelerationCoefficientPersonal")
+          simulatorAccelerationCoefficientGlobalDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"accelerationCoefficientGlobal"  )
+          simulatorVelocityCoefficientDefinition             => XML_Get_First_Element_By_Tag_Name(definition,"velocityCoefficient"            )
+          call extractDataContent(simulatorStepsMaximumDefinition                   ,simulatorStepsMaximum                   )
+          call extractDataContent(simulatorReportCountDefinition                    ,simulatorReportCount                    )
+          call extractDataContent(simulatorInertiaWeightDefinition                  ,simulatorInertiaWeight                  )
+          call extractDataContent(simulatorAccelerationCoefficientPersonalDefinition,simulatorAccelerationCoefficientPersonal)
+          call extractDataContent(simulatorAccelerationCoefficientGlobalDefinition  ,simulatorAccelerationCoefficientGlobal  )
+          call extractDataContent(simulatorVelocityCoefficientDefinition            ,simulatorVelocityCoefficient            )
+          simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
+          newSimulator=simulatorParticleSwarm(                                          &
+               &                              parameterPriors                         , &
+               &                              parameterMappings                       , &
+               &                              modelLikelihood                         , &
+               &                              simulationConvergence                   , &
+               &                              simulationStoppingCriterion             , &
+               &                              simulationState                         , &
+               &                              simulationStateInitializor              , &
+               &                              simulatorStepsMaximum                   , &
+               &                              char(simulatorLogFile)                  , &
+               &                              simulatorReportCount                    , &
+               &                              simulatorInertiaWeight                  , &
+               &                              simulatorAccelerationCoefficientPersonal, &
+               &                              simulatorAccelerationCoefficientGlobal  , &
+               &                              simulatorVelocityCoefficient              &
+               &                             )
+       end select
+    case default
        call Galacticus_Error_Report('simulatorNew','simulator type is unrecognized')
     end select
     return
@@ -299,5 +339,6 @@ contains
   include 'constraints.simulation.tempered_differential_evolution.methods.inc'
   include 'constraints.simulation.annealed_differential_evolution.methods.inc'
   include 'constraints.simulation.stochastic_differential_evolution.methods.inc'
+  include 'constraints.simulation.particle_swarm.methods.inc'
 
 end module Constraints_Simulation
