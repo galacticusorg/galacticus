@@ -19,7 +19,7 @@
      !% Defines a simulator class implementing the particle swarm algorithm.
      private
      integer                                                    :: parameterCount                 , stepsMaximum                 , &
-          &                                                        reportCount     
+          &                                                        reportCount                    , logFlushCount
      double precision                                           :: accelerationCoefficientPersonal, accelerationCoefficientGlobal, &
           &                                                        inertiaWeight                  , velocityCoefficient
      type            (varying_string   )                        :: logFileRoot
