@@ -47,19 +47,26 @@ module Galacticus_Output_Analyses_LG_Satellite_Mass_Functions
   double precision                       , dimension(centralGalaxyCount) :: analysisLGSatelliteHaloMass
   double precision                       , dimension(centralGalaxyCount) :: analysisLGSatelliteHaloRadius
 
+  ! Include constraints on presence of high-mass subhalos (to mimic presence of Magellanic Clouds).
+  logical                                                                :: analysisLGSatelliteMFHighMassSubhalos
+  double precision                                                       :: analysisLGSatelliteMFLogMassLMC      , analysisLGSatelliteMFLogMassSMC     , &
+       &                                                                    analysisLGSatelliteMFSigmaLogMassLMC , analysisLGSatelliteMFSigmaLogMassSMC
+
   ! Output number corresponding to present day.
-  integer         (c_size_t)                                                     :: outputPresentDay
+  integer         (c_size_t)                                             :: outputPresentDay
 
   ! Mass function bins.
   integer                                                                :: massBinsCount
   double precision          , allocatable, dimension(:                 ) :: massBins
-  integer                   , allocatable, dimension(:,:               ) :: massFunctionCumulative               , massFunctionCumulativeHalo, &
-       &                                                                    massFunctionSquaredCumulative
-  integer                                , dimension(centralGalaxyCount) :: massFunctionHaloCount
-  double precision                       , dimension(centralGalaxyCount) :: massFunctionHaloRadius
+  double precision          , allocatable, dimension(:,:               ) :: massFunctionCumulative               , massFunctionCumulativeHalo          , &
+       &                                                                    massFunctionSquaredCumulative        , massFunctionCumulativeVariance
+  integer                                , dimension(centralGalaxyCount) :: massFunctionTreeCount
+  double precision                       , dimension(centralGalaxyCount) :: massFunctionHaloCount                , massFunctionLogLikelihood
+  double precision                       , dimension(centralGalaxyCount) :: massFunctionHaloRadius               , treeFirstSubhaloMass                , &
+       &                                                                    treeSecondSubhaloMass                , treeHaloRadius
   logical                                                                :: workArraysInitialized        =.false.
   logical                                , dimension(centralGalaxyCount) :: treeActive
-  !$omp threadprivate(massFunctionCumulativeHalo,workArraysInitialized,treeActive)
+  !$omp threadprivate(massFunctionCumulativeHalo,workArraysInitialized,treeActive,treeFirstSubhaloMass,treeSecondSubhaloMass,treeHaloRadius)
 
 contains
 
@@ -149,6 +156,66 @@ contains
                 !@ </inputParameter>
                 parameterName="analysisLGSatelliteMFHaloRadius"//trim(localGroupCentralLabel(i))
                 call Get_Input_Parameter(trim(parameterName),analysisLGSatelliteHaloRadius(i),defaultValue=radiusVirial)
+                !@ <inputParameter>
+                !@   <name>analysisLGSatelliteMFHighMassSubhalos</name>
+                !@   <defaultValue>false</defaultValue>
+                !@   <attachedTo>module</attachedTo>
+                !@   <description>
+                !@    If true, include constraints on the presence of high mass subhalos (e.g. Magellanic Clouds).
+                !@   </description>
+                !@   <type>boolean</type>
+                !@   <cardinality>0..1</cardinality>
+                !@   <group>output</group>
+                !@ </inputParameter>
+                call Get_Input_Parameter('analysisLGSatelliteMFHighMassSubhalos',analysisLGSatelliteMFHighMassSubhalos,defaultValue=.false.)
+                !@ <inputParameter>
+                !@   <name>analysisLGSatelliteMFLogMassLMC</name>
+                !@   <defaultValue>11</defaultValue>
+                !@   <attachedTo>module</attachedTo>
+                !@   <description>
+                !@    Base-10 logarithm of the mass of the LMC subhalo (in units of $M_\odot$).
+                !@   </description>
+                !@   <type>real</type>
+                !@   <cardinality>0..1</cardinality>
+                !@   <group>output</group>
+                !@ </inputParameter>
+                call Get_Input_Parameter('analysisLGSatelliteMFLogMassLMC',analysisLGSatelliteMFLogMassLMC,defaultValue=11.0d0)
+                !@ <inputParameter>
+                !@   <name>analysisLGSatelliteMFLogMassSMC</name>
+                !@   <defaultValue>11</defaultValue>
+                !@   <attachedTo>module</attachedTo>
+                !@   <description>
+                !@    Base-10 logarithm of the mass of the SMC subhalo (in units of $M_\odot$).
+                !@   </description>
+                !@   <type>real</type>
+                !@   <cardinality>0..1</cardinality>
+                !@   <group>output</group>
+                !@ </inputParameter>
+                call Get_Input_Parameter('analysisLGSatelliteMFLogMassSMC',analysisLGSatelliteMFLogMassSMC,defaultValue=9.5d0)
+                !@ <inputParameter>
+                !@   <name>analysisLGSatelliteMFSigmaLogMassLMC</name>
+                !@   <defaultValue>0.5</defaultValue>
+                !@   <attachedTo>module</attachedTo>
+                !@   <description>
+                !@    Root-variance in the base-10 logarithm of the mass of the LMC subhalo (in units of $M_\odot$).
+                !@   </description>
+                !@   <type>real</type>
+                !@   <cardinality>0..1</cardinality>
+                !@   <group>output</group>
+                !@ </inputParameter>
+                call Get_Input_Parameter('analysisLGSatelliteMFSigmaLogMassLMC',analysisLGSatelliteMFSigmaLogMassLMC,defaultValue=0.5d0)
+                !@ <inputParameter>
+                !@   <name>analysisLGSatelliteMFSigmaLogMassSMC</name>
+                !@   <defaultValue>0.5</defaultValue>
+                !@   <attachedTo>module</attachedTo>
+                !@   <description>
+                !@    Root-variance in the base-10 logarithm of the mass of the SMC subhalo (in units of $M_\odot$).
+                !@   </description>
+                !@   <type>real</type>
+                !@   <cardinality>0..1</cardinality>
+                !@   <group>output</group>
+                !@ </inputParameter>
+                call Get_Input_Parameter('analysisLGSatelliteMFSigmaLogMassSMC',analysisLGSatelliteMFSigmaLogMassSMC,defaultValue=0.5d0)
                 ! Solve for the virial mass that gives the required enclosed mass.
                 call finder%tolerance(1.0d-6,1.0d-6)
                 call finder%rangeExpand(rangeExpandUpward=2.0d0,rangeExpandDownward=0.5d0,rangeExpandType=rangeExpandMultiplicative)
@@ -185,14 +252,18 @@ contains
                   &                             )
              ! Construct mass bins.
              massBinsCount=int(log10(massMaximum/massMinimum)*dble(massFunctionBinsPerDecade))+1
-             call Alloc_Array(massBins                     ,[massBinsCount                   ])
-             call Alloc_Array(massFunctionCumulative       ,[massBinsCount,centralGalaxyCount])
-             call Alloc_Array(massFunctionSquaredCumulative,[massBinsCount,centralGalaxyCount])
+             call Alloc_Array(massBins                      ,[massBinsCount                   ])
+             call Alloc_Array(massFunctionCumulative        ,[massBinsCount,centralGalaxyCount])
+             call Alloc_Array(massFunctionSquaredCumulative ,[massBinsCount,centralGalaxyCount])
+             call Alloc_Array(massFunctionCumulativeVariance,[massBinsCount,centralGalaxyCount])
              massBins=Make_Range(massMinimum,massMaximum,massBinsCount,rangeTypeLogarithmic)
-             massFunctionHaloCount        =0
-             massFunctionHaloRadius       =0.0d0
-             massFunctionCumulative       =0
-             massFunctionSquaredCumulative=0
+             massFunctionHaloCount         =0.0d0
+             massFunctionHaloRadius        =0.0d0
+             massFunctionLogLikelihood     =0.0d0
+             massFunctionCumulative        =0.0d0
+             massFunctionSquaredCumulative =0.0d0
+             massFunctionCumulativeVariance=0.0d0
+             massFunctionTreeCount         =0
              ! Record that module is initialized.
              moduleInitialized=.true.
           end if
@@ -206,8 +277,11 @@ contains
     ! Initialize mass function count array if necessary.
     if (.not.workArraysInitialized) then
        call Alloc_Array(massFunctionCumulativeHalo,[massBinsCount,centralGalaxyCount])
-       massFunctionCumulativeHalo=0
+       massFunctionCumulativeHalo= 0.0d0
        treeActive                =.false.
+       treeFirstSubhaloMass      = 0.0d0   
+       treeSecondSubhaloMass     = 0.0d0   
+       treeHaloRadius            = 0.0d0
        workArraysInitialized     =.true.
     end if
     ! Accumulate halo if necessary.
@@ -222,29 +296,40 @@ contains
     do while (host%isSatellite())
        host => host%parent
     end do
-    hostBasic => host%basic()
+    hostBasic => host    %basic()
+    basic     => thisNode%basic()
     ! Iterate over central galaxies.
     do i=1,centralGalaxyCount
        ! Skip non-active analyses.
        if (analysisActive(i)) then
           ! Check if host halo mass agrees with Milky Way halo mass.
+
+
+write (0,*) hostBasic%mass(),analysisLGSatelliteHaloMass(i)
+
+
           if (Values_Differ(hostBasic%mass(),analysisLGSatelliteHaloMass(i),relTol=1.0d-3)) cycle
           ! Proceed for satellite galaxies.
           if (.not.treeActive(i)) then
-             darkMatterHaloScale_      => darkMatterHaloScale                (    )
-             !$omp atomic
-             massFunctionHaloRadius(i) =  massFunctionHaloRadius             (   i) &
-                  &                      +darkMatterHaloScale_  %virialRadius(host)
-             treeActive            (i) =  .true.
+             darkMatterHaloScale_ => darkMatterHaloScale()
+             treeHaloRadius(i)=darkMatterHaloScale_%virialRadius(host)
+             treeActive    (i)=.true.
           end if
           if (thisNode%isSatellite()) then
+             ! Record masses of two most massive subhalos.
+             if (basic%mass() > treeFirstSubhaloMass(i)) then
+                treeSecondSubhaloMass(i)=treeFirstSubhaloMass(i)
+                treeFirstSubhaloMass (i)=basic%mass()
+             else if (basic%mass() > treeSecondSubhaloMass(i)) then
+                treeSecondSubhaloMass(i)=basic%mass()
+             end if
              ! Get the galactic mass.
              mass=                                                                                                                       &
                   &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=massTypeStellar) &
                   & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=massTypeStellar)
              ! Accumulate this galaxy.
              do j=1,massBinsCount
-                if (mass > massBins(j)) massFunctionCumulativeHalo(j,i)=massFunctionCumulativeHalo(j,i)+1
+                if (mass > massBins(j)) massFunctionCumulativeHalo(j,i)=massFunctionCumulativeHalo(j,i)+1.0d0
              end do
           end if
           ! Accumulate halo if necessary.
@@ -280,15 +365,52 @@ contains
     !% Accumulate the cumulative mass function for a single halo to the global arrays.
     implicit none
     integer         , intent(in   )                 :: localGroupCentral
-    integer         , intent(inout), dimension(:,:) :: massFunctionCumulativeHalo
+    double precision, intent(inout), dimension(:,:) :: massFunctionCumulativeHalo
+    double precision                                :: treeWeight
 
+    ! Compute the weight for this tree.
+    if (analysisLGSatelliteMFHighMassSubhalos .and. localGroupCentral == localGroupCentralMilkyWay) then
+       if (treeFirstSubhaloMass(localGroupCentral) > 0.0d0 .and. treeSecondSubhaloMass(localGroupCentral) > 0.0d0) then
+          treeWeight=+exp(                                                     &
+               &          -0.5d0                                               &
+               &          *(                                                   &
+               &            +(                                                 &
+               &              +log10(treeFirstSubhaloMass(localGroupCentral))  &
+               &              -analysisLGSatelliteMFLogMassLMC                 &
+               &             )                                                 &
+               &            /analysisLGSatelliteMFSigmaLogMassLMC              &
+               &           )**2                                                &
+               &         )                                                     &
+               &     *exp(                                                     &
+               &          -0.5d0                                               &
+               &          *(                                                   &
+               &            +(                                                 &
+               &              +log10(treeSecondSubhaloMass(localGroupCentral)) &
+               &              -analysisLGSatelliteMFLogMassSMC                 &
+               &             )                                                 &
+               &            /analysisLGSatelliteMFSigmaLogMassSMC              &
+               &           )**2                                                &
+               &         )
+       else
+          treeWeight=0.0d0
+       end if
+    else
+       treeWeight=1.0d0
+    end if
     !$omp critical(MW_Satellite_Mass_Function_Accumulate)
-    massFunctionCumulative       (:,localGroupCentral)=massFunctionCumulative       (:,localGroupCentral)+massFunctionCumulativeHalo(:,localGroupCentral)
-    massFunctionSquaredCumulative(:,localGroupCentral)=massFunctionSquaredCumulative(:,localGroupCentral)+massFunctionCumulativeHalo(:,localGroupCentral)**2
-    massFunctionHaloCount        (  localGroupCentral)=massFunctionHaloCount        (  localGroupCentral)+1
+    massFunctionCumulative        (:,localGroupCentral)=massFunctionCumulative        (:,localGroupCentral)+massFunctionCumulativeHalo(:,localGroupCentral)   *treeWeight
+    massFunctionSquaredCumulative (:,localGroupCentral)=massFunctionSquaredCumulative (:,localGroupCentral)+massFunctionCumulativeHalo(:,localGroupCentral)**2*treeWeight
+    massFunctionCumulativeVariance(:,localGroupCentral)=massFunctionCumulativeVariance(:,localGroupCentral)+massFunctionCumulativeHalo(:,localGroupCentral)   *treeWeight**2
+    massFunctionHaloCount         (  localGroupCentral)=massFunctionHaloCount         (  localGroupCentral)+                                                   treeWeight
+    massFunctionHaloRadius        (  localGroupCentral)=massFunctionHaloRadius        (  localGroupCentral)+treeHaloRadius            (  localGroupCentral)   *treeWeight
+    massFunctionLogLikelihood     (  localGroupCentral)=massFunctionLogLikelihood     (  localGroupCentral)+                                                   treeWeight
+    massFunctionTreeCount         (  localGroupCentral)=massFunctionTreeCount         (  localGroupCentral)+                                                   1
     !$omp end critical(MW_Satellite_Mass_Function_Accumulate)
-    massFunctionCumulativeHalo(:,localGroupCentral)=0
     treeActive                (  localGroupCentral)=.false.
+    treeFirstSubhaloMass      (  localGroupCentral)=0.0d0
+    treeSecondSubhaloMass     (  localGroupCentral)=0.0d0
+    treeHaloRadius            (  localGroupCentral)=0.0d0
+    massFunctionCumulativeHalo(:,localGroupCentral)=0.0d0
     return
   end subroutine MW_Satellite_Mass_Function_Accumulate_Halo
 
@@ -301,8 +423,10 @@ contains
     use Numerical_Constants_Astronomical
     use String_Handling
     implicit none
-    double precision            , dimension(massBinsCount) :: massFunctionCumulativeMean, massFunctionCumulativeMeanVariance
-    type            (hdf5Object)                           :: analysisGroup             , massFunctionGroup                 , &
+    double precision            , dimension(massBinsCount) :: massFunctionCumulativeMean                       , massFunctionCumulativeMeanVariance, &
+         &                                                    massFunctionCumulativeMeanPoissonVariance
+    double precision            , parameter                :: logImpossible                            =-1.0d30
+    type            (hdf5Object)                           :: analysisGroup                                    , massFunctionGroup                 , &
          &                                                    thisDataset
     integer                                                :: i
 
@@ -311,36 +435,43 @@ contains
        ! Skip if this analysis is not active.
        if (.not.analysisActive(i)) cycle   
        ! Compute the mean mass function and its variance.
-       if (massFunctionHaloCount(i) > 0) then
-          massFunctionCumulativeMean           =  dble(massFunctionCumulative       (:,i))/dble(massFunctionHaloCount(i))
-          massFunctionHaloRadius            (i)=+     massFunctionHaloRadius(i)                                           &
-               &                                /dble(massFunctionHaloCount (i)  )
+       if (massFunctionHaloCount(i) > 0.0d0) then
+          massFunctionCumulativeMean                  =+massFunctionCumulative        (:,i)    &
+               &                                       /massFunctionHaloCount         (  i)
+          massFunctionHaloRadius                   (i)=+massFunctionHaloRadius        (  i)    &
+               &                                       /massFunctionHaloCount         (  i)  
+          massFunctionCumulativeMeanVariance          =+massFunctionSquaredCumulative (:,i)    &
+               &                                       /massFunctionHaloCount         (  i)    &
+               &                                       -massFunctionCumulativeMean         **2
+          massFunctionCumulativeMeanPoissonVariance=   +massFunctionCumulativeVariance(:,i)    &
+               &                                       /massFunctionHaloCount         (  i)**2
        else
-          massFunctionCumulativeMean           =0.0d0
-          massFunctionHaloRadius            (i)=0.0d0
+          massFunctionCumulativeMean                  =+0.0d0
+          massFunctionHaloRadius                   (i)=+0.0d0
+          massFunctionCumulativeMeanVariance          =+0.0d0
+          massFunctionCumulativeMeanPoissonVariance   =+0.0d0
        end if
-       if (massFunctionHaloCount(i) > 1) then
-          massFunctionCumulativeMeanVariance   =( dble(massFunctionSquaredCumulative(:,i))/dble(massFunctionHaloCount(i)) &
-               &                                 -massFunctionCumulativeMean**2                                           &
-               &                                )                                                                         &
-               &                                *dble(massFunctionHaloCount (i)  )                                        &
-               &                                /dble(massFunctionHaloCount (i)-1)
+       ! Compute log-likelihood based on tree acceptibility.
+       if (massFunctionLogLikelihood(i) > 0.0d0) then
+          massFunctionLogLikelihood(i)=log(massFunctionLogLikelihood(i)/dble(massFunctionTreeCount(i)))
        else
-          massFunctionCumulativeMeanVariance   =0.0d0
-       end if       
+          massFunctionLogLikelihood(i)=logImpossible
+       end if
        ! Output the mass function.
        !$omp critical(HDF5_Access)
        analysisGroup    =galacticusOutputFile%openGroup('analysis'                                                              ,'Model analysis'                     )
        massFunctionGroup=analysisGroup       %openGroup(trim(String_Lower_Case_First(localGroupCentralLabel(i)))//'MassFunction','Stellar mass function of satellites')
-       call massFunctionGroup%writeAttribute(massFunctionHaloRadius(i),'haloRadius')
-       call massFunctionGroup%writeDataset  (massFunctionCumulativeMean        ,'massFunctionCumulative'        ,'Cumulative mass function'                                     )
-       call massFunctionGroup%writeDataset  (massFunctionCumulativeMeanVariance,'massFunctionCumulativeVariance','Cumulative mass function variance'                            )
-       call massFunctionGroup%writeDataset  (massBins                          ,'massStellar'                   ,'Stellar mass'                     ,datasetReturned=thisDataset)
-       call thisDataset      %writeAttribute(massSolar            ,'unitsInSI')
-       call thisDataset      %close()
-       call massFunctionGroup%writeAttribute(massFunctionHaloCount,'haloCount')
-       call massFunctionGroup%close()
-       call analysisGroup    %close()
+       call massFunctionGroup%writeAttribute(massFunctionHaloRadius                   (i),'haloRadius'                                                                                                            )
+       call massFunctionGroup%writeAttribute(massFunctionLogLikelihood                (i),'logLikelihood'                                                                                                         )
+       call massFunctionGroup%writeAttribute(massFunctionHaloCount                    (i),'haloCount'                                                                                                             )
+       call massFunctionGroup%writeDataset  (massFunctionCumulativeMean                  ,'massFunctionCumulative'               ,'Cumulative mass function'                                                      )
+       call massFunctionGroup%writeDataset  (massFunctionCumulativeMeanVariance          ,'massFunctionCumulativeVariance'       ,'Cumulative mass function variance'                                             )
+       call massFunctionGroup%writeDataset  (massFunctionCumulativeMeanPoissonVariance   ,'massFunctionCumulativePoissonVariance','Cumulative mass function variance assuming Poisson'                            )
+       call massFunctionGroup%writeDataset  (massBins                                    ,'massStellar'                          ,'Stellar mass'                                      ,datasetReturned=thisDataset)
+       call thisDataset      %writeAttribute(massSolar                                   ,'unitsInSI'                                                                                                             )
+       call thisDataset      %close         (                                                                                                                                                                     )
+       call massFunctionGroup%close         (                                                                                                                                                                     )
+       call analysisGroup    %close         (                                                                                                                                                                     )
        !$omp end critical(HDF5_Access)
     end do
     return
