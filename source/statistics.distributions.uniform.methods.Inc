@@ -28,6 +28,24 @@ function distributionUniformConstructor(limitLower,limitUpper)
   return
 end function distributionUniformConstructor
 
+double precision function distributionUniformMinimum(self)
+  !% Return the minimum possible value of a uniform distribution.
+  implicit none
+  class(distributionUniform), intent(in   ) :: self
+
+  distributionUniformMinimum=self%limitLower
+  return
+end function distributionUniformMinimum
+
+double precision function distributionUniformMaximum(self)
+  !% Return the maximum possible value of a uniform distribution.
+  implicit none
+  class(distributionUniform), intent(in   ) :: self
+
+  distributionUniformMaximum=self%limitUpper
+  return
+end function distributionUniformMaximum
+
 double precision function distributionUniformDensity(self,x)
   !% Return the density of a uniform distribution.
   implicit none

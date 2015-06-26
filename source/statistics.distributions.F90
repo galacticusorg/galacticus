@@ -62,12 +62,24 @@ module Statistics_Distributions
      !@     <arguments></arguments>
      !@     <description>Reset the sampler for the distribution.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>minimum</method>
+     !@     <type>\doublezero</type>
+     !@     <description>Returns the minimum possible value in the distribution.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>maximum</method>
+     !@     <type>\doublezero</type>
+     !@     <description>Returns the maximum possible value in the distribution.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure(distribution1DDensity   ), deferred :: density
      procedure(distribution1DCumulative), deferred :: cumulative
      procedure                                     :: inverse      => distribution1DInverse
      procedure                                     :: sample       => distribution1DSample
      procedure                                     :: samplerReset => distribution1DSamplerReset
+     procedure                                     :: minimum      => distribution1DMinimum
+     procedure                                     :: maximum      => distribution1DMaximum
   end type distribution1D
   
   abstract interface
@@ -289,6 +301,28 @@ contains
          &                      )
     return
   end function distribution1DInverse
+
+  double precision function distribution1DMinimum(self)
+    !% Null implementation of distribution minimum value.
+    use Galacticus_Error
+    class(distribution1D), intent(in   ) :: self
+
+    call Galacticus_Error_Report('distribution1DMinimum', &
+         &                       'not implemented'        &
+         &                      )
+    return
+  end function distribution1DMinimum
+
+  double precision function distribution1DMaximum(self)
+    !% Null implementation of distribution maximum value.
+    use Galacticus_Error
+    class(distribution1D), intent(in   ) :: self
+
+    call Galacticus_Error_Report('distribution1DMaximum', &
+         &                       'not implemented'        &
+         &                      )
+    return
+  end function distribution1DMaximum
 
   ! Include all distribution methods.
   include 'statistics.distributions.uniform.methods.inc'

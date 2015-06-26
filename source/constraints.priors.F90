@@ -52,10 +52,22 @@ module Constraints_Priors
      !@     <arguments>\doublezero p\argin</arguments>
      !@     <description>Return the value of the random variable corresponding to the given cumulative probability.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>minimum</method>
+     !@     <type>\doublezero</type>
+     !@     <description>Returns the minimum possible value of the parameter.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>maximum</method>
+     !@     <type>\doublezero</type>
+     !@     <description>Returns the maximum possible value of the parameter.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
     procedure :: sample     => priorSample
     procedure :: logDensity => priorLogDensity
     procedure :: invert     => priorInvert
+    procedure :: minimum    => priorMinimum
+    procedure :: maximum    => priorMaximum
   end type prior
   
   interface prior
@@ -161,6 +173,30 @@ contains
     end select
     return
   end function priorLogDensity
+
+  double precision function priorMinimum(self)
+    !% Return the minimum possible value of the prior.
+    implicit none
+    class           (prior), intent(in   )             :: self
+
+    select type (priorDistribution => self%priorDistribution)
+    class is (distribution1D)
+       priorMinimum=priorDistribution%minimum()
+    end select
+    return
+  end function priorMinimum
+
+  double precision function priorMaximum(self)
+    !% Return the maximum possible value of the prior.
+    implicit none
+    class           (prior), intent(in   )             :: self
+
+    select type (priorDistribution => self%priorDistribution)
+    class is (distribution1D)
+       priorMaximum=priorDistribution%maximum()
+    end select
+    return
+  end function priorMaximum
 
   double precision function priorsEvaluateLog(priors,simulationState)
     !% Evaluate the logarithm of the prior for the given {\normalfont \ttfamily state}.

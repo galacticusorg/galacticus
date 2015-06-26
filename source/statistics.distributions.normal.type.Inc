@@ -26,6 +26,8 @@
      procedure :: density    => distributionNormalDensity
      procedure :: cumulative => distributionNormalCumulative
      procedure :: inverse    => distributionNormalInverse
+     procedure :: minimum    => distributionNormalMinimum
+     procedure :: maximum    => distributionNormalMaximum
   end type distributionNormal
 
   interface distributionNormal
