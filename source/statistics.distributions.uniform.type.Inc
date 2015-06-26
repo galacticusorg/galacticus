@@ -23,6 +23,8 @@
      procedure :: density    => distributionUniformDensity
      procedure :: cumulative => distributionUniformCumulative
      procedure :: inverse    => distributionUniformInverse
+     procedure :: minimum    => distributionUniformMinimum
+     procedure :: maximum    => distributionUniformMaximum
   end type distributionUniform
 
   interface distributionUniform
