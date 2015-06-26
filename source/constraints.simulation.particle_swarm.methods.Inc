@@ -18,7 +18,7 @@
 !% Defines methods for the ``particleSwarm'' simulator class.
 
 function simulatorParticleSwarmConstructor(parameterPriors,parameterMappings,modelLikelihood,simulationConvergence,simulationStoppingCriterion&
-     &,simulationState,simulationStateInitializor,stepsMaximum,logFileRoot,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient)
+     &,simulationState,simulationStateInitializor,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient)
   !% Constructor for ``particleSwarm'' simulator class.
   implicit none
   type            (simulatorParticleSwarm)                                              :: simulatorParticleSwarmConstructor
@@ -30,7 +30,8 @@ function simulatorParticleSwarmConstructor(parameterPriors,parameterMappings,mod
   class           (state                         ), intent(in   ), target               :: simulationState
   class           (stateInitializor              ), intent(in   ), target               :: simulationStateInitializor
   character       (len=*                         ), intent(in   )                       :: logFileRoot
-  integer                                         , intent(in   )                       :: stepsMaximum                     , reportCount
+  integer                                         , intent(in   )                       :: stepsMaximum                     , reportCount                    , &
+       &                                                                                   logFlushCount
   double precision                                , intent(in   )                       :: inertiaWeight                    , accelerationCoefficientPersonal, &
        &                                                                                   accelerationCoefficientGlobal    , velocityCoefficient
 
@@ -43,6 +44,7 @@ function simulatorParticleSwarmConstructor(parameterPriors,parameterMappings,mod
   simulatorParticleSwarmConstructor%simulationState                => simulationState
   simulatorParticleSwarmConstructor%simulationStateInitializor     => simulationStateInitializor
   simulatorParticleSwarmConstructor%stepsMaximum                   =  stepsMaximum
+  simulatorParticleSwarmConstructor%logFlushCount                  =  logFlushCount
   simulatorParticleSwarmConstructor%reportCount                    =  reportCount
   simulatorParticleSwarmConstructor%inertiaWeight                  =  inertiaWeight
   simulatorParticleSwarmConstructor%accelerationCoefficientPersonal=  accelerationCoefficientPersonal
@@ -191,7 +193,8 @@ subroutine simulatorParticleSwarmSimulate(self)
           &                isConverged                    , &
           &                logPosterior                   , &
           &                stateVector
-     ! Repeat.
+     if (mod(self%simulationState%count(),self%logFlushCount) == 0) call flush(logFileUnit)
+    ! Repeat.
      call mpiBarrier()
      ! Test for convergence.
      if (.not.isConverged) then

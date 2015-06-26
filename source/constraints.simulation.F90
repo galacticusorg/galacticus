@@ -304,12 +304,14 @@ contains
           simulatorAccelerationCoefficientPersonalDefinition => XML_Get_First_Element_By_Tag_Name(definition,"accelerationCoefficientPersonal")
           simulatorAccelerationCoefficientGlobalDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"accelerationCoefficientGlobal"  )
           simulatorVelocityCoefficientDefinition             => XML_Get_First_Element_By_Tag_Name(definition,"velocityCoefficient"            )
+          simulatorLogFlushCountDefinition                   => XML_Get_First_Element_By_Tag_Name(definition,"logFlushCount"                  )
           call extractDataContent(simulatorStepsMaximumDefinition                   ,simulatorStepsMaximum                   )
           call extractDataContent(simulatorReportCountDefinition                    ,simulatorReportCount                    )
           call extractDataContent(simulatorInertiaWeightDefinition                  ,simulatorInertiaWeight                  )
           call extractDataContent(simulatorAccelerationCoefficientPersonalDefinition,simulatorAccelerationCoefficientPersonal)
           call extractDataContent(simulatorAccelerationCoefficientGlobalDefinition  ,simulatorAccelerationCoefficientGlobal  )
           call extractDataContent(simulatorVelocityCoefficientDefinition            ,simulatorVelocityCoefficient            )
+          call extractDataContent(simulatorLogFlushCountDefinition                  ,simulatorLogFlushCount                  )
           simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
           newSimulator=simulatorParticleSwarm(                                          &
                &                              parameterPriors                         , &
@@ -321,6 +323,7 @@ contains
                &                              simulationStateInitializor              , &
                &                              simulatorStepsMaximum                   , &
                &                              char(simulatorLogFile)                  , &
+               &                              simulatorLogFlushCount                  , &
                &                              simulatorReportCount                    , &
                &                              simulatorInertiaWeight                  , &
                &                              simulatorAccelerationCoefficientPersonal, &
