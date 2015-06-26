@@ -440,7 +440,7 @@ sub Translate {
 	    my @allValues;
 	    if ( $options{'inputFormatVersion'} <= 1 ) {
 		$name      = $parameter->findnodes('name' )->[0]->firstChild();
-		$nameText  = $name->data();
+		$nameText  = $name->textContent();
 		@allValues = $parameter->findnodes('value');
 	    } else {
 		$name     = $parameter;
@@ -468,7 +468,7 @@ sub Translate {
 		    if ( $value->isSameNode($name) ) {
 			$valuesText = $value->getAttribute('value');
 		    } else {
-			$valuesText = $value->firstChild()->data();
+			$valuesText = $value->firstChild()->textContent();
 		    }
 		    $valuesText =~ s/^\s*//;
 		    $valuesText =~ s/\s*$//;
@@ -536,7 +536,7 @@ sub Translate {
 	print "Converting to new format (v2)...\n";
 	for my $parameter ( $parameters->findnodes('parameter') ) {
 	    # Get name and value text elements.
-	    my $name   = $parameter->findnodes('name' )->[0]->firstChild()->data();
+	    my $name   = $parameter->findnodes('name' )->[0]->firstChild();
 	    my @values = $parameter->findnodes('value');
 	    # Create the new node.
 	    my $parameterNode = $input->createElement($name->textContent());
@@ -550,7 +550,7 @@ sub Translate {
 	    }
 	    # Add values.
 	    foreach my $valueNode ( @values ) {
-		my $value  = $valueNode->firstChild()->data();
+		my $value  = $valueNode->firstChild();
 		# Find any subparameters.
 		my @subParameters = $valueNode->findnodes('*');
 		if ( $useAttribute ) {
