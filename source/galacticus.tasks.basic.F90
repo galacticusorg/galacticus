@@ -53,7 +53,7 @@ contains
        call Galacticus_Output_Open_File
 
        ! Tell OpenMP that nested parallelism is allowed.
-       call omp_set_nested(.true.)
+       !$ call omp_set_nested(.true.)
 
        call Galacticus_Display_Indent('Starting task set')
        doneStart=.true.
