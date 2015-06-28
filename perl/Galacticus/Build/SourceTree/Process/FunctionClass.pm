@@ -16,6 +16,7 @@ use Data::Dumper;
 use XML::Simple;
 use Sort::Topological qw(toposort);
 use LaTeX::Encode;
+use Scalar::Util qw(reftype);
 require List::ExtraUtils;
 require Fortran::Utils;
 require Galacticus::Build::SourceTree::Hooks;
@@ -46,8 +47,14 @@ sub Process_FunctionClass {
 	    $directiveLocations = $xml->XMLin($galacticusPath."work/build/Code_Directive_Locations.xml")
 		unless ( $directiveLocations );	    
 	    # Find methods.
-	    my %methods = %{$directive->{'method'}}
-		if ( exists($directive->{'method'}) );
+	    my %methods;
+	    if ( exists($directive->{'method'}) ) {
+		if ( exists($directive->{'method'}->{'name'}) && ! reftype($directive->{'method'}->{'name'}) ) {
+		    $methods{$directive->{'method'}->{'name'}} = $directive->{'method'};
+		} else {
+		    %methods = %{$directive->{'method'}};
+		}
+	    }
 	    # Find class locations.
 	    my @classLocations = &ExtraUtils::as_array($directiveLocations->{$directive->{'name'}}->{'file'})
 		if ( exists($directiveLocations->{$directive->{'name'}}) );
