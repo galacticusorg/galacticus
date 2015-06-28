@@ -126,6 +126,19 @@ The {\normalfont \ttfamily inputParameter} directive reads an input parameter an
 
 In this case, the value of the {\normalfont \ttfamily HubbleConstant} parameter is assigned to the {\normalfont \ttfamily hubbleConstant} variable, with a default for of $69.7$ if no value was specified in the input parameter file. If the {\normalfont \ttfamily source} element is present, the parameter will be read from the named {\normalfont \ttfamily inputParameters} set, otherwise the parameter will be read from the top-level of the parameters file. The {\normalfont \ttfamily defaultSource}, {\normalfont \ttfamily <description>The}, {\normalfont \ttfamily type}, and {\normalfont \ttfamily cardinality} elements are used only for adding an entry for the input parameter to the documentation, and so should be written in \LaTeX\ syntax.
 
+It is also possible to specify a set of parameter which iterate over names defined by other directives. The following example would read one parameter named ``{\normalfont \ttfamily fileNameForXXXXXXIMF}'' where ``{\normalfont \ttfamily XXXXXX}'' equals the {\normalfont \ttfamily name} element each {\normalfont \ttfamily imfRegisterName} dircetive:
+\begin{lstlisting}
+    !# <inputParameter>
+    !#   <iterator>fileNameFor(#imfRegisterName->name)IMF</iterator>
+    !#   <source>parameters</source>
+    !#   <variable>fileNames(IMF_Index("$1"))</variable>
+    !#   <defaultValue>Galacticus_Input_Path()//"data/SSP_Spectra_imf$1.hdf5"</defaultValue>
+    !#   <description>The name of the file of stellar populations to use for the named \gls{imf}.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+  !# </inputParameter>
+\end{lstlisting}
+
 \subsection{Input Parameter Lists}
 
 The {\normalfont \ttfamily inputParameterList} directive will construct a {\normalfont \ttfamily varying\_string} array containing the names of all input parameters which are defined in the unit in which the directive appears. The name of the array is specified by the {\normalfont \ttfamily label} attribute of the {\normalfont \ttfamily inputParameterList} directive. Such a list can be used to validate the names of parameters passed to a function for example.
