@@ -16,6 +16,8 @@ use Data::Dumper;
 use XML::Simple;
 use LaTeX::Encode;
 require List::ExtraUtils;
+require Fortran::Utils;
+require Galacticus::Build::Directives;
 require Galacticus::Build::SourceTree::Hooks;
 require Galacticus::Build::SourceTree;
 
@@ -52,6 +54,8 @@ sub Process_InputParameters {
 	    close($dependencyFile);
 	}
     }
+    # Get code directive locations.
+    my $directiveLocations = $xml->XMLin($galacticusPath."work/build/Code_Directive_Locations.xml");
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
     my $depth = 0;
@@ -59,24 +63,68 @@ sub Process_InputParameters {
 	if ( $node->{'type'} eq "inputParameter" && ! $node->{'directive'}->{'processed'} ) {
 	    # Generate source code for the input parameter.
 	    $node->{'directive'}->{'processed'} =  1;
+	    my $nameForFile;
+	    my $nameForDocumentation;
 	    my $inputParameterSource                ;
-	    my $i                               = -1;
 	    $inputParameterSource .= "  ! Auto-generated input parameter\n";
-	    $inputParameterSource .= "  call ";
-	    if ( exists($node->{'directive'}->{'source'}) ) {
-		$inputParameterSource .= $node->{'directive'}->{'source'};
-	    } else {
-		$inputParameterSource .= "globalParameters";
-	    }
-	    $inputParameterSource .= "%value('".$node->{'directive'}->{'name'}."',";
-	    if ( exists($node->{'directive'}->{'variable'}) ) {
-		$inputParameterSource .= $node->{'directive'}->{'variable'};
-	    } else {
-		$inputParameterSource .= $node->{'directive'}->{'name'    };
-	    }
-	    $inputParameterSource .= ",defaultValue=".$node->{'directive'}->{'defaultValue'}
-	        if ( exists($node->{'directive'}->{'defaultValue'}) );
-	    $inputParameterSource .= ")\n";
+	    if ( exists($node->{'directive'}->{'name'}) ) {
+		# Simple parameter defined by a name.
+		$inputParameterSource .= "  call ";
+		if ( exists($node->{'directive'}->{'source'}) ) {
+		    $inputParameterSource .= $node->{'directive'}->{'source'};
+		} else {
+		    $inputParameterSource .= "globalParameters";
+		}
+		$inputParameterSource .= "%value('".$node->{'directive'}->{'name'}."',";
+		if ( exists($node->{'directive'}->{'variable'}) ) {
+		    $inputParameterSource .= $node->{'directive'}->{'variable'};
+		} else {
+		    $inputParameterSource .= $node->{'directive'}->{'name'    };
+		}
+		$inputParameterSource .= ",defaultValue=".$node->{'directive'}->{'defaultValue'}
+	            if ( exists($node->{'directive'}->{'defaultValue'}) );
+		$inputParameterSource .= ")\n";
+		# Use raw name for file and documentation.
+		$nameForFile          = $node->{'directive'}->{'name'};
+		$nameForDocumentation = $node->{'directive'}->{'name'};
+	    } elsif ( exists($node->{'directive'}->{'iterator'})) {
+		# A parameter whose name iterates over a set of possible names.
+		if ( $node->{'directive'}->{'iterator'} =~ m/\(\#([a-zA-Z0-9]+)\-\>([a-zA-Z0-9]+)\)/ ) {
+		    my $directiveName = $1;
+		    my $attributeName = $2;
+		    die('Process_InputParameter(): locations not found for directives')
+			unless ( exists($directiveLocations->{$directiveName}) );
+		    foreach my $fileName ( &ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
+			foreach ( &Directives::Extract_Directives($fileName,$directiveName) ) {
+			    (my $parameterName = $node->{'directive'}->{'iterator'}) =~ s/\(\#$directiveName\-\>$attributeName\)/$_->{$attributeName}/;
+			    # Generate code.
+			    $inputParameterSource .= "  call ";
+			    if ( exists($node->{'directive'}->{'source'}) ) {
+				$inputParameterSource .= $node->{'directive'}->{'source'};
+			    } else {
+				$inputParameterSource .= "globalParameters";
+			    }
+			    $inputParameterSource .= "%value('".$parameterName."',";
+			    if ( exists($node->{'directive'}->{'variable'}) ) {
+				(my $variableName = $node->{'directive'}->{'variable'}) =~ s/\$1/$_->{$attributeName}/;
+				$inputParameterSource .= $variableName;
+			    } else {
+				$inputParameterSource .= $parameterName;
+			    }
+			    if ( exists($node->{'directive'}->{'defaultValue'}) ) {
+				(my $defaultValue = $node->{'directive'}->{'defaultValue'}) =~ s/\$1/$_->{$attributeName}/;
+				$inputParameterSource .= ",defaultValue=".$defaultValue;
+			    }
+			    $inputParameterSource .= ")\n";
+			}
+		    }
+		} else {
+		    die('Process_InputParameter(): nothing to iterate over');
+		}
+		# Construct names for file and documentation.
+		$nameForFile          = $node->{'directive'}->{'iterator'};
+		$nameForDocumentation = $node->{'directive'}->{'iterator'};
+	    }	    
 	    $inputParameterSource .= "  ! End auto-generated input parameter\n\n";
 	    # Create a new node.
 	    my $newNode =
@@ -108,8 +156,8 @@ sub Process_InputParameters {
 		if ( $fileName );
 	    # Create documentation.
 	    system("mkdir -p doc/inputParameters");
-	    open(my $defHndl,">doc/inputParameters/".$node->{'directive'}->{'name'}.".tex");
-	    print $defHndl "\\noindent {\\normalfont \\bfseries Name:} {\\normalfont \\ttfamily ".latex_encode($node->{'directive'}->{'name'})."}\\\\\n";
+	    open(my $defHndl,">doc/inputParameters/".$nameForFile.".tex");
+	    print $defHndl "\\noindent {\\normalfont \\bfseries Name:} {\\normalfont \\ttfamily ".latex_encode($nameForDocumentation)."}\\\\\n";
 	    my $definedIn;
 	    my @hyperTarget;
 	    my $fileIn;
