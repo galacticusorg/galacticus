@@ -119,7 +119,8 @@ sub Build_Children {
     # Read lines.
     do {
 	# Get a line.
-	&Fortran_Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments);
+	my ($rawLine, $processedLine, $bufferedComments);
+	&Fortran_Utils::Get_Fortran_Line($code,$rawLine,$processedLine,$bufferedComments);
 	# Check for unit opening.
 	my $unitFound;	
 	foreach my $unitType ( keys(%unitOpeners) ) {
@@ -154,7 +155,12 @@ sub Build_Children {
 		}
 		do {
 		    # Get the next line.
-		    &Fortran_Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments);
+		    if ( eof($code) ) {
+			$rawLine       = "";
+			$processedLine = "";
+		    } else {
+			&Fortran_Utils::Get_Fortran_Line($code,$rawLine, $processedLine, $bufferedComments);
+		    }
 		    if ( ( $unitType eq "contains" && eof($code) ) || ( my @matches = ( $processedLine =~ $closerRegExp ) ) ) {
 			my $closeUnitName = $matches[$Fortran_Utils::unitClosers{$unitType}->{'unitName'}]
 			    unless ( $unitType eq "contains" );
