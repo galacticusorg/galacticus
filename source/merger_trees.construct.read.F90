@@ -1316,7 +1316,7 @@ contains
                    nodeIsMostMassive=.false.
                 end if
              end do
-             if (.not.isolatedProgenitorExists) then
+             if (.not.progenitors%exist() .or. .not.isolatedProgenitorExists) then
                 if (nodeIsMostMassive) then
                    ! Node is isolated, has no isolated node that descends into it, and our subhalo is the most massive subhalo which
                    ! descends into it. Therefore, our subhalo must be promoted to become an isolated halo again.
@@ -1451,17 +1451,17 @@ contains
     use String_Handling
     use Galacticus_Error
     implicit none
-    type     (mergerTree        )                       , intent(inout) , target::                    thisTree 
-    class    (nodeData          )         , dimension(:), intent(inout) ::      nodes                          
-    type     (treeNodeList      )         , dimension(:), intent(inout) ::      nodeList                       
-    class    (nodeComponentBasic), pointer                              ::      nodeBasicComponent             
-    type     (mergerTree        ), pointer                              ::      currentTree                    
-    class    (nodeData          ), pointer                              ::      parentNode                     
-    integer                                                             ::      iNode                          
-    integer  (c_size_t          )                                       ::      iIsolatedNode                  
-    type     (varying_string    )                                       ::      message                        
-    character(len=12            )                                       ::      label                          
-    logical                                                             ::      assignLastIsolatedTime         
+    type     (mergerTree        )                       , intent(inout) , target :: thisTree
+    type     (nodeData          )         , dimension(:), intent(inout)          ::      nodes
+    type     (treeNodeList      )         , dimension(:), intent(inout)          ::      nodeList
+    class    (nodeComponentBasic), pointer                                       ::      nodeBasicComponent
+    type     (mergerTree        ), pointer                                       ::      currentTree
+    type     (nodeData          ), pointer                                       ::      parentNode
+    integer                                                                      ::      iNode
+    integer  (c_size_t          )                                                ::      iIsolatedNode                  
+    type     (varying_string    )                                                ::      message
+    character(len=12            )                                                ::      label
+    logical                                                                      ::      assignLastIsolatedTime
     
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node (or an initial satellite).
@@ -2000,7 +2000,8 @@ contains
     class           (nodeComponentPosition          ), pointer                                        :: childPositionComponent             , hostPositionComponent       , & 
          &                                                                                               satellitePositionComponent         , thisPositionComponent           
     class           (nodeComponentSatellite         ), pointer                                        :: satelliteSatelliteComponent        , thisSatelliteComponent          
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass       ), pointer                                        :: darkMatterHaloScale_
+    class           (virialOrbitClass               ), pointer                                        :: virialOrbit_
     type            (keplerOrbit                    )                                                 :: thisOrbit                                                            
     integer                                                                                           :: iNode                              , thispass
     integer         (c_size_t                       )                                                 :: historyCount                       , iIsolatedNode                   
@@ -2174,6 +2175,7 @@ contains
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Set orbits.
     if (mergerTreeReadPresetOrbits) then
+       virialOrbit_ => virialOrbit()
        iIsolatedNode=0
        do iNode=1,size(nodes)
          if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeIsUnreachable) then
@@ -2212,7 +2214,7 @@ contains
                    if (mergerTreeReadPresetOrbitsSetAll) then
                       ! The satellite and host have zero separation, so no orbit can be
                       ! computed. Since all orbits must be set, choose an orbit at random.
-                      thisOrbit=Virial_Orbital_Parameters(satelliteNode,hostNode,acceptUnboundOrbits)
+                      thisOrbit=virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
                       call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
                    else
                       message='merging halos ['
@@ -2243,7 +2245,7 @@ contains
                       if (satelliteSatelliteComponent%velocityIsSettable()) call satelliteSatelliteComponent%velocitySet(relativeVelocity)
                    else if (mergerTreeReadPresetOrbitsSetAll) then
                       ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
-                      thisOrbit=Virial_Orbital_Parameters(satelliteNode,hostNode,acceptUnboundOrbits)
+                      thisOrbit=virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
                       call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
                    else if (mergerTreeReadPresetOrbitsAssertAllSet) then
                       message='virial orbit could not be set for node '
@@ -2774,14 +2776,14 @@ contains
              style='solid'
           end if
           if (nodes(iNode)%isSubhalo) then
-             write (fileUnit,'(a,i16.16,a,i16.16,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=box   , label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
+             write (fileUnit,'(a,i20.20,a,i20.20,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=box   , label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
              ! If a host node is given, add a link to it as a red line.
-             if (associated(nodes(iNode)%host)) write (fileUnit,'(a,i16.16,a,i16.16,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%host%nodeIndex,'" [color=red];'
+             if (associated(nodes(iNode)%host)) write (fileUnit,'(a,i20.20,a,i20.20,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%host%nodeIndex,'" [color=red];'
           else
-             write (fileUnit,'(a,i16.16,a,i16.16,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=circle, label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
+             write (fileUnit,'(a,i20.20,a,i20.20,a,f5.2,a,a,a,a,a,f5.2,a)') '"',nodes(iNode)%nodeIndex,'" [shape=circle, label="',nodes(iNode)%nodeIndex,':',nodes(iNode)%nodeTime,'", color=',trim(color),', style=',trim(style),', z=',nodes(iNode)%nodeTime,'];'
           endif
           ! Make a link to the descendent node using a black line.
-          if (associated(nodes(iNode)%descendent)) write (fileUnit,'(a,i16.16,a,i16.16,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%descendent%nodeIndex,'" ;'
+          if (associated(nodes(iNode)%descendent)) write (fileUnit,'(a,i20.20,a,i20.20,a)') '"',nodes(iNode)%nodeIndex,'" -> "',nodes(iNode)%descendent%nodeIndex,'" ;'
        end if
     end do
 

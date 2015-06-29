@@ -5,8 +5,36 @@
     <description>Data are 2DSWML estimates, as shown in Fig. 10 of source.</description>
     <url>http://adsabs.harvard.edu/abs/2010ApJ...723.1359M</url>
     <label>Martin et al. (2010)</label>
-    <source>Data read by Andrew Benson from Fig. 10 of source using Datathief.</source>
+    <source>Data read by Andrew Benson from Figs. 5 and 10 of source using Datathief.</source>
     <columns>
+      <number>
+	<description>Number of observed galaxies per bin</description>
+	<scaling>linear</scaling>
+	<datum>3</datum>
+	<datum>7</datum>
+	<datum>11</datum>
+	<datum>18</datum>
+	<datum>14</datum>
+	<datum>30</datum>
+	<datum>59</datum>
+	<datum>85</datum>
+	<datum>102</datum>
+	<datum>108</datum>
+	<datum>167</datum>
+	<datum>179</datum>
+	<datum>261</datum>
+	<datum>415</datum>
+	<datum>715</datum>
+	<datum>1216</datum>
+	<datum>1306</datum>
+	<datum>1731</datum>
+	<datum>1773</datum>
+	<datum>1282</datum>
+	<datum>533</datum>
+	<datum>83</datum>
+	<datum>16</datum>
+	<datum>2</datum>
+      </number>
       <mass>
 	<description>HI gas mass</description>
 	<units>Solar masses</units>
