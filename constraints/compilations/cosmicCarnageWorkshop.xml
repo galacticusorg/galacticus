@@ -1,0 +1,34 @@
+<!-- Defines the set of constraints used for the Cosmic CARnage workshop -->
+<constraintCompilation>
+
+  <!-- z=0 stellar mass function -->
+  <constraint>
+    <definition>constraints/constraints/cosmicCarnageStellarMassFunctionZ0.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=2 stellar mass function -->
+  <constraint>
+    <definition>constraints/constraints/cosmicCarnageStellarMassFunctionZ2.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=0 passive fraction function -->
+  <constraint>
+    <definition>constraints/constraints/cosmicCarnagePassiveFractionFunctionZ0.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=2 passive fraction function -->
+  <constraint>
+    <definition>constraints/constraints/cosmicCarnagePassiveFractionFunctionZ2.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=0 bulge-dominated fraction function -->
+  <constraint>
+    <definition>constraints/constraints/cosmicCarnageBulgeDominatedFractionFunctionZ0.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+</constraintCompilation>
