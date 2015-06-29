@@ -92,7 +92,7 @@ contains
     ! Parse the definition file.
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(char(mergerTreeConstructFullySpecifiedFileName),iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('Merger_Tree_Construct_Fully_Specified','unable to read or parse merger tree root mass file')
+    if (ioErr /= 0) call Galacticus_Error_Report('Merger_Tree_Construct_Fully_Specified','unable to read or parse fully-specified merger tree file')
     ! Get the list of nodes.
     nodes => getElementsByTagname(doc,"node")
     nodeCount=getLength(nodes)

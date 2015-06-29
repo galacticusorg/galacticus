@@ -16,6 +16,8 @@ use Data::Dumper;
 use XML::Simple;
 use LaTeX::Encode;
 require List::ExtraUtils;
+require Fortran::Utils;
+require Galacticus::Build::Directives;
 require Galacticus::Build::SourceTree::Hooks;
 require Galacticus::Build::SourceTree;
 require Galacticus::Build::SourceTree::Parse::Declarations;
@@ -33,6 +35,8 @@ sub Process_InputParameterList {
     my $fileName;
     $fileName = $tree->{'name'}
         if ( $tree->{'type'} eq "file" );
+    # Get code directive locations.
+    my $directiveLocations = $xml->XMLin($galacticusPath."work/build/Code_Directive_Locations.xml");
     # Initialize list of unlisted parameters.
     my @unlistedInputParameters;
     # Walk the tree, looking for input parameter list directives.
@@ -47,8 +51,28 @@ sub Process_InputParameterList {
 	    my @inputParameterNames;
 	    my $sibling = $node->{'parent'}->{'firstChild'};
 	    while ( $sibling ) {
-		push(@inputParameterNames,$sibling->{'directive'}->{'name'})
-		    if ( $sibling->{'type'} eq "inputParameter" );
+		if ( $sibling->{'type'} eq "inputParameter" ) {
+		    if      ( exists($sibling->{'directive'}->{'name'}) ) {
+			# Single parameter defined by its name - simply push onto the list.
+			push(@inputParameterNames,$sibling->{'directive'}->{'name'});
+		    } elsif ( exists($sibling->{'directive'}->{'iterator'}) ) {
+			# A parameter whose name iterates over a set of possible names.
+			if ( $sibling->{'directive'}->{'iterator'} =~ m/\(\#([a-zA-Z0-9]+)\-\>([a-zA-Z0-9]+)\)/ ) {
+			    my $directiveName = $1;
+			    my $attributeName = $2;
+			    die('Process_InputParameterList(): locations not found for directives')
+				unless ( exists($directiveLocations->{$directiveName}) );
+			    foreach my $fileName ( &ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
+				foreach ( &Directives::Extract_Directives($fileName,$directiveName) ) {
+				    (my $parameterName = $sibling->{'directive'}->{'iterator'}) =~ s/\(\#$directiveName\-\>$attributeName\)/$_->{$attributeName}/;
+				    push(@inputParameterNames,$parameterName);
+				}
+			    }
+			} else {
+			    die('Process_InputParameterList(): nothing to iterate over');
+			}
+		    }
+		}
 		$sibling = $sibling->{'sibling'};
 	    }
 	    if ( scalar(@inputParameterNames) > 0 ) {

@@ -249,8 +249,15 @@ CODE
 	    # Extract any input parameters from this file.
 	    foreach my $directive ( &Directives::Extract_Directives($sourceFile,"inputParameter",comment => qr/^\s*(\!|\/\/)(\@|\#)/) ) {
 		# Use parameter regEx as name if no name is defined.
-		$directive->{'name'} = $directive->{'regEx'}
-		   unless ( exists($directive->{'name'}) );
+		unless ( exists($directive->{'name'}) ) {
+		    if      ( exists($directive->{'regEx'   }) ) {
+			$directive->{'name'} = $directive->{'regEx'   };
+		    } elsif ( exists($directive->{'iterator'}) ) {
+			$directive->{'name'} = $directive->{'iterator'};
+		    } else {
+			die('Make_Unique_Label_Functions.pl: parameter has no name');
+		    }
+		}
 		# Extract default value.
 		$defaultValues{$directive->{'name'}} = $directive->{'defaultValue'}
 		    if ( exists($directive->{'defaultValue'}) && ! exists($defaultValues{$directive->{'name'}}) );

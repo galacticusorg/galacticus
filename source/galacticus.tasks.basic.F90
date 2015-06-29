@@ -52,7 +52,7 @@ contains
        ! Open the Galacticus output file.
        call Galacticus_Output_Open_File()
        ! Tell OpenMP that nested parallelism is allowed.
-       call OMP_Set_Nested(.true.)
+       !$ call OMP_Set_Nested(.true.)
        ! Establish global functions.
        call Functions_Global_Set()
        ! Write initial message.
