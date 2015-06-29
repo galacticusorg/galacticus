@@ -90,12 +90,10 @@ sub Process_FunctionClass {
 		# Store tree.
 		$class->{'tree'} = $classTree;
 		# Set defaults.
-		$class->{'abstract'} = "no";
-		$class->{'abstract'} = $class->{'directive'}->{'abstract'}
-		    if ( exists($class->{'directive'}->{'abstract'}) );
-		$class->{'defaultThreadPrivate'} = "default";
-		$class->{'defaultThreadPrivate'} = $class->{'directive'}->{'defaultThreadPrivate'}
-		    if ( exists($class->{'directive'}->{'defaultThreadPrivate'}) );
+		$class->{'abstract'            } = "no"
+		    unless ( exists($class->{'abstract'}            ) );
+		$class->{'defaultThreadPrivate'} = "default"
+		    unless ( exists($class->{'defaultThreadPrivate'}) );
 		# Store to set of all classes.
 		$classes{$class->{'type'}} = $class;
 	    }
