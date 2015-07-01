@@ -385,7 +385,7 @@ foreach my $object ( sort(keys(%objects)) ) {
 		} else {
 		    print "Warning: missing type for method ".$method." of ".$object." object\n";
 		}
-		print methodHndl $objects{$object}->{'methods'}->{$method}->{'method'}."(";
+		print methodHndl latex_encode($objects{$object}->{'methods'}->{$method}->{'method'})."(";
 		if ( exists($objects{$object}->{'methods'}->{$method}->{'arguments'}) ) {
 		    print methodHndl $objects{$object}->{'methods'}->{$method}->{'arguments'}
 		       unless ( UNIVERSAL::isa($objects{$object}->{'methods'}->{$method}->{'arguments'},"HASH") );
