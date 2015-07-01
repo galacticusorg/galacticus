@@ -90,14 +90,13 @@ contains
     type            (treeNode                    ), intent(inout), pointer :: thisNode
     class           (nodeComponentHotHalo        )               , pointer :: thisHotHaloComponent
     class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
     double precision                                                       :: coolingDensity      , infallRadius  , infallRadiusGrowthRate, &
          &                                                                    outerRadius         , virialVelocity
 
     ! Get the virial velocity.
     darkMatterHaloScale_ => darkMatterHaloScale()
     virialVelocity=darkMatterHaloScale_%virialVelocity(thisNode)
-
     ! Return zero cooling rate if virial velocity exceeds critical value.
     if (virialVelocity > zeroCoolingRateAboveVelocity) then
        Cooling_Rate_White_Frenk=0.0d0
