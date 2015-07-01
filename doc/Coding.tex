@@ -36,6 +36,20 @@ As an example, the following constructor requires an instance of the {\normalfon
 
 The {\normalfont \ttfamily objectBuilder} directive will assign a member of the class specified by the {\normalfont \ttfamily class} attribute to the variable specified by the {\normalfont \ttfamily name} attribute. If the parameter set specified by the {\normalfont \ttfamily parameters} attribute contains an explicit definition of the relevant class, that definition will be used to construct the instance. Otherwise the default instance will be used.
 
+\subsection{Object Destructor}
+
+This directive can (and should) be used to destroy objects built by the {\normalfont \ttfamily objectBuilder} directive. The {\normalfont \ttfamily objectDestructor} directive automates the process of deciding if these objects should be destroyed (or merely have pointers to them nullified). As an example, the following destructor destroys two associated objects:
+\begin{lstlisting}  
+  subroutine simpleDestructor(self)
+    implicit none
+    type(powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
+
+    !# <objectDestructor name="self%transferFunction_"       />
+    !# <objectDestructor name="self%powerSpectrumPrimordial_"/>
+   return
+  end subroutine simpleDestructor
+\end{lstlisting}
+
 \subsection{Optional Arguments}
 
 Fortran supports optional arguments to functions, but does not provide for a default value if those arguments are not present. The {\normalfont \ttfamily optionalArgument} directive allows a default value to be specified. In the following example, a default value is defined for the {\normalfont \ttfamily units} argument:
@@ -124,7 +138,7 @@ The {\normalfont \ttfamily inputParameter} directive reads an input parameter an
   end subroutine simpleParametersRead
 \end{lstlisting}
 
-In this case, the value of the {\normalfont \ttfamily HubbleConstant} parameter is assigned to the {\normalfont \ttfamily hubbleConstant} variable, with a default for of $69.7$ if no value was specified in the input parameter file. If the {\normalfont \ttfamily source} element is present, the parameter will be read from the named {\normalfont \ttfamily inputParameters} set, otherwise the parameter will be read from the top-level of the parameters file. The {\normalfont \ttfamily defaultSource}, {\normalfont \ttfamily <description>The}, {\normalfont \ttfamily type}, and {\normalfont \ttfamily cardinality} elements are used only for adding an entry for the input parameter to the documentation, and so should be written in \LaTeX\ syntax.
+In this case, the value of the {\normalfont \ttfamily HubbleConstant} parameter is assigned to the {\normalfont \ttfamily hubbleConstant} variable, with a default of $69.7$ if no value was specified in the input parameter file. If the {\normalfont \ttfamily source} element is present, the parameter will be read from the named {\normalfont \ttfamily inputParameters} set, otherwise the parameter will be read from the top-level of the parameters file. The {\normalfont \ttfamily defaultSource}, {\normalfont \ttfamily <description>The}, {\normalfont \ttfamily type}, and {\normalfont \ttfamily cardinality} elements are used only for adding an entry for the input parameter to the documentation, and so should be written in \LaTeX\ syntax.
 
 It is also possible to specify a set of parameter which iterate over names defined by other directives. The following example would read one parameter named ``{\normalfont \ttfamily fileNameForXXXXXXIMF}'' where ``{\normalfont \ttfamily XXXXXX}'' equals the {\normalfont \ttfamily name} element each {\normalfont \ttfamily imfRegisterName} dircetive:
 \begin{lstlisting}

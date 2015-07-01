@@ -50,6 +50,18 @@ module Merger_Tree_Read_Importers
      !@     <arguments>\intzero exponent\argin</arguments>
      !@     <description>Raise to the given integer power.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>areEqual</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\textcolor{red}{\textless type(importerUnits)\textgreater} units2\argin</arguments>
+     !@     <description>Return true if the provided units are equal.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>areNotEqual</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\textcolor{red}{\textless type(importerUnits)\textgreater} units2\argin</arguments>
+     !@     <description>Return true if the provided units are not equal.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: multiply     => importerUnitsMultiply     
      procedure :: exponentiate => importerUnitsExponentiate 

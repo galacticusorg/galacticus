@@ -43,7 +43,7 @@ if ( -e $coolingFunctionFile ) {
     $computeCoolingFunctions = 1;
 }
 
-# Determine if we need to compute cooling functions.
+# Determine if we need to compute chemical states.
 my $computeChemicalStates = 0;
 if ( -e $chemicalStateFile ) {
     my $xmlDoc = new XML::Simple;

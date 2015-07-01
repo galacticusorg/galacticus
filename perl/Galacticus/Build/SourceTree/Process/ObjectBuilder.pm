@@ -54,6 +54,29 @@ sub Process_ObjectBuilder {
 	    # Mark the directive as processed.
 	    $node->{'directive'}->{'processed'} =  1;
 	}
+	if ( $node->{'type'} eq "objectDestructor" && ! $node->{'directive'}->{'processed'} ) {
+	    # Generate source code for the object destructor. The pointer should only be deallocated if associated and
+	    # finalizable. Otherwise simply nullify it.
+	    my $destructorCode;
+	    $destructorCode .= "if (associated(".$node->{'directive'}->{'name'}.").and.".$node->{'directive'}->{'name'}."%isFinalizable()) then\n";
+	    $destructorCode .= "   ! Deallocate the pointer.\n";
+	    $destructorCode .= "   deallocate(".$node->{'directive'}->{'name'}.")\n";
+	    $destructorCode .= "else\n";
+	    $destructorCode .= "   ! Nullify the pointer.\n";
+	    $destructorCode .= "   nullify(".$node->{'directive'}->{'name'}.")\n";
+	    $destructorCode .= "end if\n";
+	    # Build a code node.
+	    my $newNode =
+	    {
+		type       => "code"      ,
+		content    => $destructorCode,
+		firstChild => undef()
+	    };
+	    # Insert the node.
+	    &SourceTree::InsertAfterNode($node,[$newNode]);
+	    # Mark the directive as processed.
+	    $node->{'directive'}->{'processed'} =  1;
+	}
 	# Walk to the next node in the tree.
 	$node = &SourceTree::Walk_Tree($node,\$depth);
     }
