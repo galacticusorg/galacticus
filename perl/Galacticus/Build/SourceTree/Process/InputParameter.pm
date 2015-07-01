@@ -89,9 +89,11 @@ sub Process_InputParameters {
 		$nameForDocumentation = $node->{'directive'}->{'name'};
 	    } elsif ( exists($node->{'directive'}->{'iterator'})) {
 		# A parameter whose name iterates over a set of possible names.
-		if ( $node->{'directive'}->{'iterator'} =~ m/\(\#([a-zA-Z0-9]+)\-\>([a-zA-Z0-9]+)\)/ ) {
-		    my $directiveName = $1;
-		    my $attributeName = $2;
+		if ( $node->{'directive'}->{'iterator'} =~ m/(.*)\(\#([a-zA-Z0-9]+)\-\>([a-zA-Z0-9]+)\)(.*)/ ) {
+		    my $parameterPrefix = $1;
+		    my $directiveName   = $2;
+		    my $attributeName   = $3;
+		    my $parameterSuffix = $4;
 		    die('Process_InputParameter(): locations not found for directives')
 			unless ( exists($directiveLocations->{$directiveName}) );
 		    foreach my $fileName ( &ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
@@ -118,12 +120,12 @@ sub Process_InputParameters {
 			    $inputParameterSource .= ")\n";
 			}
 		    }
+		    # Construct names for file and documentation.
+		    $nameForFile          = $parameterPrefix.$directiveName.$attributeName.$parameterSuffix;
+		    $nameForDocumentation = $node->{'directive'}->{'iterator'};
 		} else {
 		    die('Process_InputParameter(): nothing to iterate over');
 		}
-		# Construct names for file and documentation.
-		$nameForFile          = $node->{'directive'}->{'iterator'};
-		$nameForDocumentation = $node->{'directive'}->{'iterator'};
 	    }	    
 	    $inputParameterSource .= "  ! End auto-generated input parameter\n\n";
 	    # Create a new node.
@@ -204,6 +206,8 @@ sub Process_InputParameters {
 			$defaultValue .= $exponent."}";
 		    }
 		    $defaultValue   .= "\$";
+		} else {
+		    $defaultValue = latex_encode($defaultValue);
 		}
 		print $defHndl "{\\normalfont \\bfseries Default value:} ".$defaultValue;
 		print $defHndl " ".$node->{'directive'}->{'defaultSource'}
