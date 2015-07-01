@@ -55,6 +55,7 @@ sub Parse_ModuleUses {
 			$moduleUses->{$moduleName}->{'intrinsic'} = 0;
 		    }
 		    if ( $only && ! exists($moduleUses->{$moduleName}->{'all'}) ) {
+			chomp($only);
 			map {$moduleUses->{$moduleName}->{'only'}->{$_} = 1} split(/\s*,\s*/,$only);
 		    } else {
 			$moduleUses->{$moduleName}->{'all'} = 1;
