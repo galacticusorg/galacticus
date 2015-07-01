@@ -117,6 +117,12 @@ module IO_HDF5
      !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} [datasetName]\argin, \textcolor{red}{\textless (integer|integer(kind=kind\_int8)|double|character(len=*)|type(varying\_string))[:$^{0-1}$]) \textgreater} datasetValue\argout, \textcolor{red}{\textless integer(kind=HSIZE\_T)[1]\textgreater} [readBegin]\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)[1]\textgreater} [readCount]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>readTable</method>
+     !@     <description>Read a column from an HDF5 table into an allocatable array.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} [tableName]\argin), \textcolor{red}{\textless character(len=*)\textgreater} [columnName]\argin), \textcolor{red}{\textless (integer|integer(kind=kind\_int8)|double|character(len=*))[:$^{0-1}$*]) \textgreater} datasetValue\argout, \textcolor{red}{\textless integer(kind=HSIZE\_T)[1]\textgreater} [readBegin]\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)[1]\textgreater} [readCount]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>size</method>
      !@     <description>Return the size of a dataset.</description>
      !@     <type>\textcolor{red}{\textless integer(kind=HSIZE\_T)\textgreater}</type>
