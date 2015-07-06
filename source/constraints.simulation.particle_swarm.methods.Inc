@@ -65,24 +65,29 @@ subroutine simulatorParticleSwarmSimulate(self)
   use Kind_Numbers
   use File_Utilities
   use System_Command
+  use Error_Functions
   implicit none
   class           (simulatorParticleSwarm), intent(inout)                               :: self
-  double precision                        , dimension(self%parameterCount)              :: stateVector             , positionMinimum       , &
-       &                                                                                   positionMaximum         , velocityParticle      , &
-       &                                                                                   velocityMaximum         , stateBestPersonal     , &
+  double precision                        , dimension(self%parameterCount)              :: stateVector             , positionMinimum                  , &
+       &                                                                                   positionMaximum         , velocityParticle                 , &
+       &                                                                                   velocityMaximum         , stateBestPersonal                , &
        &                                                                                   stateBestGlobal
   double precision                        , dimension(:,:)                , allocatable :: stateVectors
-  double precision                        , dimension(:  )                , allocatable :: logPosteriorsBestGlobal
-  real                                                                                  :: timePreEvaluate         , timePostEvaluate      , &
+  double precision                        , dimension(:  )                , allocatable :: logPosteriorsAll        , logLikelihoodVariancesAll 
+  double precision                        , dimension(1,1)                              :: pseudoScalar
+  real                                                                                  :: timePreEvaluate         , timePostEvaluate                 , &
        &                                                                                   timeEvaluate            , timeEvaluatePrevious
-  double precision                                                                      :: timeEvaluateInitial     , logPosterior          , &
-       &                                                                                   logPosteriorBestPersonal, logPosteriorBestGlobal
+  double precision                                                                      :: timeEvaluateInitial     , logPosterior                     , &
+       &                                                                                   logPosteriorBestPersonal, logPosteriorBestGlobal           , &
+       &                                                                                   logLikelihoodVariance   , logLikelihoodVarianceBestPersonal, &
+       &                                                                                   combinedVariance        , probabilityNewBest               , &
+       &                                                                                   logLikelihoodVarianceBestGlobal
   type            (pseudoRandom          )                                              :: randomNumberGenerator
   type            (varying_string        )                                              :: logFileName             , message
-  integer                                                                               :: logFileUnit             , convergedAtStep       , &
-       &                                                                                   convergenceFileUnit     , i                     , &
+  integer                                                                               :: logFileUnit             , convergedAtStep                  , &
+       &                                                                                   convergenceFileUnit     , i                                , &
        &                                                                                   ioStatus
-  logical                                                                               :: isConverged
+  logical                                                                               :: isConverged             , accept
   
   ! Initialize the particle state vector.
   logPosterior=logImpossible
@@ -93,23 +98,50 @@ subroutine simulatorParticleSwarmSimulate(self)
      timeEvaluate        =-1.0
      timeEvaluatePrevious=real(timeEvaluateInitial)
      call CPU_Time(timePreEvaluate )
-     call self%posterior(self%simulationState,logPosterior,timeEvaluate,timeEvaluatePrevious)
+     call self%posterior(self%simulationState,logPosterior,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
      call CPU_Time(timePostEvaluate)
      if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
      timeEvaluatePrevious=timeEvaluate
   end do
   ! Set the personal best state to the initial state.
-  logPosteriorBestPersonal=logPosterior
-  stateBestPersonal       =self%simulationState%get()
+  logPosteriorBestPersonal         =logPosterior
+  logLikelihoodVarianceBestPersonal=logLikelihoodVariance
+  stateBestPersonal                =self%simulationState%get()
   ! Set global best state.
-  allocate(stateVectors           (self%parameterCount,mpiSelf%count()))
-  allocate(logPosteriorsBestGlobal(                    mpiSelf%count()))
-  logPosteriorBestGlobal  =logPosterior
-  stateBestGlobal         =self%simulationState%get()
-  logPosteriorsBestGlobal =mpiSelf%gather(logPosteriorBestGlobal)
-  stateVectors            =mpiSelf%gather(stateBestGlobal       )
-  stateBestGlobal         =stateVectors(:,maxloc(logPosteriorsBestGlobal,dim=1))
-  logPosteriorBestGlobal  =               maxval(logPosteriorsBestGlobal      )
+  allocate(stateVectors             (self%parameterCount,mpiSelf%count()))
+  allocate(logPosteriorsAll         (                    mpiSelf%count()))
+  allocate(logLikelihoodVariancesAll(                    mpiSelf%count()))
+  logPosteriorBestGlobal         =logPosterior
+  logLikelihoodVarianceBestGlobal=logLikelihoodVariance
+  stateBestGlobal                =self%simulationState%get()
+  logPosteriorsAll               =mpiSelf%gather(logPosteriorBestGlobal         )
+  logLikelihoodVariancesAll      =mpiSelf%gather(logLikelihoodVarianceBestGlobal)
+  stateVectors                   =mpiSelf%gather(stateBestGlobal                )
+  if (mpiSelf%isMaster()) then
+     do i=1,mpiSelf%count()
+        accept=.false.
+        if (i == 1) then
+           accept=.true.
+        else
+           combinedVariance=logLikelihoodVariancesAll(i)+logLikelihoodVarianceBestGlobal
+           if (combinedVariance > 0.0d0) then
+              probabilityNewBest=0.5d0*(1.0d0+Error_Function((logPosteriorsAll(i)-logPosteriorBestGlobal)/sqrt(2.0d0*combinedVariance)))
+              accept=(randomNumberGenerator%sample() < probabilityNewBest)
+           else
+              accept=(logPosteriorsAll(i) > logPosteriorBestGlobal)
+           end if
+        end if
+        if (accept) then
+           stateBestGlobal                =stateVectors             (:,i)
+           logPosteriorBestGlobal         =logPosteriorsAll         (  i)
+           logLikelihoodVarianceBestGlobal=logLikelihoodVariancesAll(  i)
+        end if
+     end do
+  end if
+  call mpiBarrier()
+  stateBestGlobal                =reshape(mpiSelf%requestData([0],                 stateBestGlobal ),[self%parameterCount])
+  logPosteriorBestGlobal         =sum    (mpiSelf%requestData([0],[         logPosteriorBestGlobal])                      )
+  logLikelihoodVarianceBestGlobal=sum    (mpiSelf%requestData([0],[logLikelihoodVarianceBestGlobal])                      )
   ! Set an initial velocity for the particle.
   do i=1,self%parameterCount     
      positionMinimum (i)=self%parameterPriors(i)%minimum()
@@ -166,23 +198,48 @@ subroutine simulatorParticleSwarmSimulate(self)
      timeEvaluatePrevious=timeEvaluate
      timeEvaluate        =-1.0
      call CPU_Time(timePreEvaluate )
-     call self%posterior(self%simulationState,logPosterior,timeEvaluate,timeEvaluatePrevious)
+     call self%posterior(self%simulationState,logPosterior,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
      call CPU_Time(timePostEvaluate)
      if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
      ! Update personal best state.
-     if (logPosterior > logPosteriorBestPersonal) then
-        logPosteriorBestPersonal=logPosterior
-        stateBestPersonal       =stateVector
+     accept=.false.
+     combinedVariance=logLikelihoodVariance+logLikelihoodVarianceBestPersonal
+     if (combinedVariance > 0.0d0) then
+        probabilityNewBest=0.5d0*(1.0d0+Error_Function((logPosterior-logPosteriorBestPersonal)/sqrt(2.0d0*combinedVariance)))
+        accept=(randomNumberGenerator%sample() < probabilityNewBest)
+     else
+        accept=(logPosterior > logPosteriorBestPersonal)
+     end if
+     if (accept) then
+        logPosteriorBestPersonal         =logPosterior
+        logLikelihoodVarianceBestPersonal=logLikelihoodVariance
+        stateBestPersonal                =stateVector
      end if
      ! Update global best state.
-     if (logPosterior > logPosteriorBestGlobal  ) then
-        logPosteriorBestGlobal  =logPosterior
-        stateBestGlobal         =stateVector
+     logPosteriorsAll         =mpiSelf%gather(logPosterior         )
+     logLikelihoodVariancesAll=mpiSelf%gather(logLikelihoodVariance)
+     stateVectors             =mpiSelf%gather(stateVector          )
+     if (mpiSelf%isMaster()) then
+        do i=1,mpiSelf%count()
+           accept=.false.
+           combinedVariance=logLikelihoodVariancesAll(i)+logLikelihoodVarianceBestGlobal
+           if (combinedVariance > 0.0d0) then
+              probabilityNewBest=0.5d0*(1.0d0+Error_Function((logPosteriorsAll(i)-logPosteriorBestGlobal)/sqrt(2.0d0*combinedVariance)))
+              accept=(randomNumberGenerator%sample() < probabilityNewBest)
+           else
+              accept=(logPosteriorsAll(i) > logPosteriorBestGlobal)
+           end if
+           if (accept) then
+              stateBestGlobal                =stateVectors             (:,i)
+              logPosteriorBestGlobal         =logPosteriorsAll         (  i)
+              logLikelihoodVarianceBestGlobal=logLikelihoodVariancesAll(  i)
+           end if
+        end do
      end if
-     logPosteriorsBestGlobal=mpiSelf%gather(logPosteriorBestGlobal)
-     stateVectors           =mpiSelf%gather(stateBestGlobal         )
-     stateBestGlobal        =stateVectors(:,maxloc(logPosteriorsBestGlobal,dim=1))
-     logPosteriorBestGlobal =               maxval(logPosteriorsBestGlobal      )
+     call mpiBarrier()
+     stateBestGlobal                =reshape(mpiSelf%requestData([0],                 stateBestGlobal ),[self%parameterCount])
+     logPosteriorBestGlobal         =sum    (mpiSelf%requestData([0],[         logPosteriorBestGlobal])                      )
+     logLikelihoodVarianceBestGlobal=sum    (mpiSelf%requestData([0],[logLikelihoodVarianceBestGlobal])                      )
      ! Unmap parameters and write to log file.
      do i=1,size(stateVector)
         stateVector(i)=self%parameterMappings(i)%thisMapping%unmap(stateVector(i))
@@ -194,7 +251,7 @@ subroutine simulatorParticleSwarmSimulate(self)
           &                logPosterior                   , &
           &                stateVector
      if (mod(self%simulationState%count(),self%logFlushCount) == 0) call flush(logFileUnit)
-    ! Repeat.
+     ! Repeat.
      call mpiBarrier()
      ! Test for convergence.
      if (.not.isConverged) then
@@ -218,7 +275,7 @@ subroutine simulatorParticleSwarmSimulate(self)
   return
 end subroutine simulatorParticleSwarmSimulate
 
-subroutine simulatorParticleSwarmPosterior(self,simulationState,logPosterior,timeEvaluate,timeEvaluatePrevious)
+subroutine simulatorParticleSwarmPosterior(self,simulationState,logPosterior,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
   !% Return the log of the posterior for the current state.
   use Constraints_Constants
   use MPI_Utilities
@@ -228,7 +285,7 @@ subroutine simulatorParticleSwarmPosterior(self,simulationState,logPosterior,tim
   implicit none
   class           (simulatorParticleSwarm), intent(inout)               :: self
   class           (state                 ), intent(inout)               :: simulationState
-  double precision                        , intent(  out)               :: logPosterior
+  double precision                        , intent(  out)               :: logPosterior              , logLikelihoodVariance
   real                                    , intent(inout)               :: timeEvaluate
   real                                    , intent(in   )               :: timeEvaluatePrevious
   double precision                        , dimension(:  ), allocatable :: timesEvaluate             , nodeWork                , &
@@ -342,25 +399,30 @@ subroutine simulatorParticleSwarmPosterior(self,simulationState,logPosterior,tim
   call simulationState%update       (  stateVectorWork(:,1),logState=.false.,isConverged=.false.)
   call simulationState%chainIndexSet(particleIndexWork(1,1)                                     )
   ! Evaluate the likelihood.
-  logLikelihood=self%modelLikelihood%evaluate(                                 &
-       &                                      simulationState                , &
-       &                                      self%parameterMappings         , &
-       &                                      self%simulationConvergence     , &
-       &                                      temperature                    , &
-       &                                      logImpossible                  , &
-       &                                      logImpossible                  , &
-       &                                      logPriorWork              (1,1), &
-       &                                      timeEvaluate                     &
+  logLikelihood=self%modelLikelihood%evaluate(                                                       &
+       &                                                            simulationState                , &
+       &                                                            self%parameterMappings         , &
+       &                                                            self%simulationConvergence     , &
+       &                                                            temperature                    , &
+       &                                                            logImpossible                  , &
+       &                                                            logImpossible                  , &
+       &                                                            logPriorWork              (1,1), &
+       &                                                            timeEvaluate                   , &
+       &                                      logLikelihoodVariance=logLikelihoodVariance            &
        &                                     )
   call mpiBarrier()
   ! Distribute likelihoods back to origins.
   logLikelihoodWork    =                                                                         logLikelihood
-  logLikelihoodSelf    =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     logLikelihoodWork         )
+  logLikelihoodSelf    =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     logLikelihoodWork          )
   logLikelihood        =                                                                         logLikelihoodSelf    (1,1)
+  ! Distribute likelihood variances back to origins.
+  logLikelihoodWork    =                                                                         logLikelihoodVariance
+  logLikelihoodSelf    =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     logLikelihoodWork          )
+  logLikelihoodVariance=                                                                         logLikelihoodSelf    (1,1)
   ! Distribute evaluation times back to origins.
-  timeEvaluateWork    =                                                                     dble(timeEvaluate             )
-  timeEvaluateSelf    =mpiSelf%requestData (processToProcess(mpiSelf%rank():mpiSelf%rank()),     timeEvaluateWork          )
-  timeEvaluate        =                                                                     real(timeEvaluateSelf     (1,1))
+  timeEvaluateWork     =                                                                    dble(timeEvaluate              )
+  timeEvaluateSelf     =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     timeEvaluateWork           )
+  timeEvaluate         =                                                                    real(timeEvaluateSelf     (1,1))
   ! Restore state and particle index.
   call simulationState%update       (  stateVectorSelf   ,logState=.false.,isConverged=.false.)
   call simulationState%chainIndexSet(particleIndexSelf(1)                                     )
