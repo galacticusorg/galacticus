@@ -39,7 +39,8 @@ die("maximumLikelihoodModel.pl: baseParameters must be specified in config file"
 my $workDirectory  = $config->{'likelihood'}->{'workDirectory'};
 
 # Determine the MCMC directory.
-my $mcmcDirectory  = $workDirectory."/mcmc/";
+my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};
+(my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;
 
 # Determine the maximum likelihood model directory.
 my $maximumLikelihoodDirectory  = $mcmcDirectory."/".$arguments{'directory'}."/";
@@ -60,7 +61,7 @@ $parameters->{'randomSeed'}->{'value'} = int(rand(10000))+1
 my $chainCount = 0;
 while () {
     ++$chainCount;
-    my $chainFileName = sprintf("%s/chains_%4.4i.log",$mcmcDirectory,$chainCount);
+    my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,$chainCount);
     last
 	unless ( -e $chainFileName );
 }
@@ -69,7 +70,7 @@ while () {
 my $maximumLikelihood = -1e30;
 my @maximumLikelihoodParameters;
 for(my $i=0;$i<$chainCount;++$i) {
-    open(iHndl,$mcmcDirectory."/chains_".sprintf("%4.4i",$i).".log");
+    open(iHndl,sprintf("%s_%4.4i.log",$logFileRoot,$i));
     while ( my $line = <iHndl> ) {
 	unless ( $line =~ m/^\"/ ) {
 	    $line =~ s/^\s*//;
