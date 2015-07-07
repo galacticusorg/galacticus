@@ -361,7 +361,7 @@ contains
     self%badTest                 =mergerTreeImportSussingBadValueTest
     self%treeSampleRate          =mergerTreeImportSussingTreeSampleRate
     self%scaleRadiiAvailableValue=.true.
-    call sussingDefaultConstructor%randomSequence%initialize()
+    call self%randomSequence%initialize()
     return
   end subroutine sussingInitialize
 
