@@ -299,6 +299,7 @@ contains
     class           (cosmologyParametersClass     )               , pointer :: thisCosmologyParameters
     class           (intergalacticMediumStateClass)               , pointer :: intergalacticMediumState_
     class           (darkMatterHaloScaleClass     )               , pointer :: darkMatterHaloScale_
+    class           (chemicalStateClass           )               , pointer :: chemicalState_
     type            (chemicalAbundances           ), save                   :: chemicalDensities      , chemicalDensitiesHot , &
          &                                                                     chemicalDensitiesCold
     !$omp threadprivate(chemicalDensities,chemicalDensitiesCold,chemicalDensitiesHot)
@@ -310,6 +311,7 @@ contains
     ! Get required objects.
     thisCosmologyParameters => cosmologyParameters()
     darkMatterHaloScale_    => darkMatterHaloScale()
+    chemicalState_          => chemicalState      ()
     ! Get the basic component.
     thisBasicComponent   => node%basic()
     ! Compute coefficient in conversion of mass to density for this node.
@@ -327,8 +329,8 @@ contains
     fractionHot =self%coldModeFraction(node,accretionModeHot )
     fractionCold=self%coldModeFraction(node,accretionModeCold)
     ! Get the chemical densities.
-    call Chemical_Densities(chemicalDensitiesHot ,temperatureHot ,numberDensityHydrogen,zeroAbundances,self%radiation)
-    call Chemical_Densities(chemicalDensitiesCold,temperatureCold,numberDensityHydrogen,zeroAbundances,self%radiation)
+    call chemicalState_%chemicalDensities(chemicalDensitiesHot ,numberDensityHydrogen,temperatureHot ,zeroAbundances,self%radiation)
+    call chemicalState_%chemicalDensities(chemicalDensitiesCold,numberDensityHydrogen,temperatureCold,zeroAbundances,self%radiation)
     select case (accretionMode)
     case (accretionModeTotal)
        chemicalDensities=chemicalDensitiesHot*fractionHot+chemicalDensitiesCold*fractionCold
@@ -368,10 +370,12 @@ contains
     class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
     class           (nodeComponentBasic      )               , pointer :: thisBasic
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (chemicalStateClass      )               , pointer :: chemicalState_
+    class           (coolingFunctionClass    )               , pointer :: coolingFunction_
     type            (chemicalAbundances      ), save                   :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
     double precision                                                   :: shockStability       , coldFraction        , &
-         &                                                                radiusShock          , coolingFunction     , &
+         &                                                                radiusShock          , coolingFunctionValue, &
          &                                                                densityPreShock      , densityPostShock    , &
          &                                                                numberDensityHydrogen, temperaturePostShock, &
          &                                                                velocityPreShock     , stabilityRatio
@@ -383,6 +387,8 @@ contains
        ! Get required objects.
        thisCosmologyParameters => cosmologyParameters()
        darkMatterHaloScale_    => darkMatterHaloScale()
+       chemicalState_          => chemicalState      ()
+       coolingFunction_        => coolingFunction    ()
        ! Set the radiation field.
        call self%radiation%set(node)
        ! Get the basic component.
@@ -424,31 +430,31 @@ contains
             &                *hydrogenByMassPrimordial                   &
             &                /atomicMassUnit                             &
             &                /atomicMassHydrogen
-       call Chemical_Densities(                                          &
-            &                  chemicalDensities    ,                    &
-            &                  temperaturePostShock ,                    &
-            &                  numberDensityHydrogen,                    &
-            &                  zeroAbundances       ,                    &
-            &                  self%radiation                            &
-            &                 )
-       coolingFunction     =                                             &
-            &               Cooling_Function(                            &
-            &                                temperaturePostShock ,      &
-            &                                numberDensityHydrogen,      &
-            &                                zeroAbundances       ,      &
+       call chemicalState_%chemicalDensities(                            &
             &                                chemicalDensities    ,      &
+            &                                numberDensityHydrogen,      &
+            &                                temperaturePostShock ,      &
+            &                                zeroAbundances       ,      &
             &                                self%radiation              &
             &                               )
+       coolingFunctionValue=                                             &
+            &               coolingFunction_%coolingFunction(                       &
+            &                                                numberDensityHydrogen, &
+            &                                                temperaturePostShock , &
+            &                                                zeroAbundances       , &
+            &                                                chemicalDensities    , &
+            &                                                self%radiation         &
+            &                                               )
        ! Compute the shock stability parameter from Birnboim & Dekel (2003).
-       shockStability=                      &
-            &          megaParsec       **4 &
-            &          /massSolar           &
-            &          *ergs                &
-            &          /centi           **3 &
-            &          /kilo            **3 &
-            &          /densityPreShock     &
-            &          *radiusShock         &
-            &          *coolingFunction     &
+       shockStability=                           &
+            &          megaParsec            **4 &
+            &          /massSolar                &
+            &          *ergs                     &
+            &          /centi                **3 &
+            &          /kilo                 **3 &
+            &          /densityPreShock          &
+            &          *radiusShock              &
+            &          *coolingFunctionValue     &
             &          /velocityPreShock**3
        ! Compute the cold fraction using the model from eqn. (2) of Benson & Bower (2011). The original form doesn't allow the
        ! cold fraction to go to zero in high mass halos, since "shockStability" can never be less than zero. This form is
