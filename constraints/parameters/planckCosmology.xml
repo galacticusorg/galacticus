@@ -129,7 +129,7 @@
     <define>67.3319820833335+%[cosmology0]*1.17458962225062</define>
   </parameter>
   <parameter>
-    <name>powerSpectrumIndex</name>
+    <name>powerSpectrumPrimordialMethod-&gt;index</name>
     <define>0.958504159601165+%[cosmology0]*0.00577823455280713+%[cosmology1]*0.00387439417724313</define>
   </parameter>
   <parameter>
