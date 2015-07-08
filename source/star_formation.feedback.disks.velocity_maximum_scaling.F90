@@ -46,7 +46,7 @@ contains
     implicit none
     type            (varying_string                                        ), intent(in   )          :: starFormationFeedbackDisksMethod              
     procedure       (Star_Formation_Feedback_Disk_Outflow_Rate_VlctyMxSclng), intent(inout), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get 
-    double precision                                                        , parameter              :: virialVelocityNormalization=200.0d0
+    double precision                                                        , parameter              :: velocityNormalization=200.0d0
 
     if (starFormationFeedbackDisksMethod == 'velocityMaximumScaling') then
        Star_Formation_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Feedback_Disk_Outflow_Rate_VlctyMxSclng
@@ -68,7 +68,7 @@ contains
        !@   <defaultValue>$-2.0$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The exponent of virial velocity in the outflow rate in disks.
+       !@     The exponent of maximum velocity in the outflow rate in disks.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -88,9 +88,9 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('diskOutflowRedshiftExponent',diskOutflowRedshiftExponent,defaultValue=0.0d0)
        ! Compute the normalization factor.
-       outflowNormalization= diskOutflowFraction                                      &
-            &               /feedbackEnergyInputAtInfinityCanonical                   &
-            &               /virialVelocityNormalization**diskOutflowVelocityExponent
+       outflowNormalization= diskOutflowFraction                                &
+            &               /feedbackEnergyInputAtInfinityCanonical             &
+            &               /velocityNormalization**diskOutflowVelocityExponent
     end if
     return
   end subroutine Star_Formation_Feedback_Disks_VlctyMxSclng_Initialize
@@ -116,7 +116,7 @@ contains
     darkMatterProfile_  => darkMatterProfile ()
     ! Get the basic component.
     basic               => node%basic        ()
-    ! Get virial velocity and expansion factor.
+    ! Get maximum velocity and expansion factor.
     velocityMaximum=darkMatterProfile_ %circularVelocityMaximum(node        )
     expansionFactor=cosmologyFunctions_%expansionFactor        (basic%time())
     ! Compute the velocity factor.
