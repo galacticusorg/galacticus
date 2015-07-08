@@ -102,6 +102,7 @@
      procedure :: distanceComovingConvert       => matterLambdaDistanceComovingConvert
      procedure :: expansionFactorTabulate       => matterLambdaMakeExpansionFactorTable
      procedure :: distanceTabulate              => matterLambdaMakeDistanceTable
+     procedure :: matterDensityEpochal          => matterLambdaMatterDensityEpochal
   end type cosmologyFunctionsMatterLambda
 
   ! Module scope pointer to the current object.
@@ -432,19 +433,19 @@ contains
        else
           remakeTable=.true.
        end if
-       if (remakeTable)           call self%expansionFactorTabulate(time)
+       if (remakeTable) call self%expansionFactorTabulate(time)
        ! Quit on invalid input.
        if (self%collapsingUniverse.and.time > self%timeMaximum) &
             & call Galacticus_Error_Report('matterLambdaExpansionFactor','cosmological time exceeds that at the Big Crunch')
        ! Interpolate to get the expansion factor.
        if (self%collapsingUniverse) then
           if (time <= self%timeTurnaround) then
-             timeEffective=                      time
+             timeEffective=                 time
           else
              timeEffective=self%timeMaximum-time
           end if
        else
-          timeEffective   =                      time
+          timeEffective   =                 time
        end if
        self%expansionFactorPrevious                              &
             & =Interpolate(                                      &
@@ -576,6 +577,31 @@ contains
          &  /expansionFactorActual**3
     return
   end function matterLambdaOmegaMatterEpochal
+  double precision function matterLambdaMatterDensityEpochal(self,time,expansionFactor,collapsingPhase)
+    !% Return the matter density at expansion factor {\normalfont \ttfamily expansionFactor}.
+    use Galacticus_Error
+    implicit none
+    class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
+    double precision                                , intent(in   ), optional :: expansionFactor      , time
+    logical                                         , intent(in   ), optional :: collapsingPhase
+    double precision                                                          :: expansionFactorActual
+    ! Determine the actual expansion factor to use.
+    if (present(time)) then
+       if (present(expansionFactor)) then
+          call Galacticus_Error_Report('matterLambdaMatterDensityEpochal','only one of time or expansion factor can be specified')
+       else
+          expansionFactorActual=self%expansionFactor(time)
+       end if
+    else
+       if (present(expansionFactor)) then
+          expansionFactorActual=expansionFactor
+       else
+          call Galacticus_Error_Report('matterLambdaMatterDensityEpochal','either a time or expansion factor must be specified')
+       end if
+    end if
+    matterLambdaMatterDensityEpochal=self%cosmology%omegaMatter()*self%cosmology%densityCritical()/expansionFactorActual**3
+    return
+  end function matterLambdaMatterDensityEpochal
 
   double precision function matterLambdaOmegaMatterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !% Return the rate of change of the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
@@ -938,11 +964,12 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
+    double precision                                , parameter     :: toleranceRelative=1.0d-6
     logical                                                         :: remakeTable
 
     ! Quit on invalid input.
     call self%epochValidate(timeIn=time)
-    if (time > self%cosmicTime(1.0d0)) call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time must be in the past')
+    if (time > self%cosmicTime(1.0d0)*(1.0d0+toleranceRelative)) call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time must be in the past')
     ! Check if we need to recompute our table.
     if (self%distanceTableInitialized) then
        remakeTable=(time < self%distanceTableTime(1).or.time > self%distanceTableTime(self%distanceTableNumberPoints))
@@ -1057,6 +1084,9 @@ contains
     type            (fgsl_function                 )                        :: integrandFunction
     type            (fgsl_integration_workspace    )                        :: integrationWorkspace
 
+
+double precision :: d
+    
     ! Find minimum and maximum times to tabulate.
     self%distanceTableTimeMinimum=min(self%distanceTableTimeMinimum,0.5d0*time)
     self%distanceTableTimeMaximum=    self%cosmicTime(1.0d0)
@@ -1078,22 +1108,23 @@ contains
     resetIntegration       =  .true.
     matterLambdaSelfGlobal => self
     do iTime=1,self%distanceTableNumberPoints
-       self%distanceTableComovingDistance(iTime)                                 &
-            & =Integrate(                                                        &
-            &            self%distanceTableTime(iTime)                         , &
-            &            self%distanceTableTime(self%distanceTableNumberPoints), &
-            &            matterLambdaComovingDistanceIntegrand                 , &
-            &            parameterPointer                                      , &
-            &            integrandFunction                                     , &
-            &            integrationWorkspace                                  , &
-            &            toleranceAbsolute=toleranceAbsolute                   , &
-            &            toleranceRelative=toleranceRelative                   , &
-            &            reset=resetIntegration                                  &
+       self%distanceTableComovingDistance(iTime)                                                       &
+            & =Integrate(                                                                              &
+            &            self%expansionFactor(self%distanceTableTime(iTime                         )), &
+            &            self%expansionFactor(self%distanceTableTime(self%distanceTableNumberPoints)), &
+            &            matterLambdaComovingDistanceIntegrand                                       , &
+            &            parameterPointer                                                            , &
+            &            integrandFunction                                                           , &
+            &            integrationWorkspace                                                        , &
+            &            toleranceAbsolute=toleranceAbsolute                                         , &
+            &            toleranceRelative=toleranceRelative                                         , &
+            &            reset=resetIntegration                                                        &
             &           )
        self         %distanceTableLuminosityDistanceNegated              (iTime)  &
             & = self%distanceTableComovingDistance                       (iTime)  &
             &  /self%expansionFactor              (self%distanceTableTime(iTime))
     end do
+    call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Make a negated copy of the distances so that we have an increasing array for use in interpolation routines.
     self%distanceTableComovingDistanceNegated  =-self%distanceTableComovingDistance
     self%distanceTableLuminosityDistanceNegated=-self%distanceTableLuminosityDistanceNegated
@@ -1109,20 +1140,20 @@ contains
     return
   end subroutine matterLambdaMakeDistanceTable
 
-  function matterLambdaComovingDistanceIntegrand(time,parameterPointer) bind(c)
+  function matterLambdaComovingDistanceIntegrand(expansionFactor,parameterPointer) bind(c)
     !% Integrand function used in computing the comoving distance.
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     use, intrinsic :: ISO_C_Binding
     implicit none
     real(kind=c_double)        :: matterLambdaComovingDistanceIntegrand
-    real(kind=c_double), value :: time
+    real(kind=c_double), value :: expansionFactor
     type(c_ptr        ), value :: parameterPointer
 
-    matterLambdaComovingDistanceIntegrand=speedLight*gigaYear/megaParsec/matterLambdaSelfGlobal%expansionFactor(time)
+    matterLambdaComovingDistanceIntegrand=speedLight*gigaYear/megaParsec/expansionFactor**2/matterLambdaSelfGlobal%expansionRate(expansionFactor)
     return
   end function matterLambdaComovingDistanceIntegrand
-
+  
   double precision function matterLambdaEquationOfStateDarkEnergy(self,time,expansionFactor)
     !% Return the dark energy equation of state.
     implicit none

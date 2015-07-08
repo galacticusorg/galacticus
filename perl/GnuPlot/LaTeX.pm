@@ -12,7 +12,7 @@ require System::Redirect;
 sub GnuPlot2PNG {
     # Generate a PNG image of the plot with a transparent background.
 
-    # Get the name of the GnuPlot-generated EPS file.
+    # Get the name of the GnuPlot-generated file.
     my $gnuplotEpsFile = shift;
     my (%options) = @_ if ( $#_ >= 1 );
     
@@ -156,13 +156,13 @@ sub GnuPlot2ODG {
 
 sub GnuPlot2PDF {
     # Get the name of the GnuPlot-generated EPS file.
-    my $gnuplotEpsFile = shift;
+    my $gnuplotFile = shift;
 
     # Extract any remaining options.
     my (%options) = @_ if ( $#_ >= 0 );
 
     # Get the root name.
-    (my $gnuplotRoot = $gnuplotEpsFile) =~ s/\.eps//;
+    (my $gnuplotRoot = $gnuplotFile) =~ s/\.(eps|tex)//;
 
     # Get any folder name.
     my $folderName = "./";
@@ -175,7 +175,7 @@ sub GnuPlot2PDF {
     # Construct the name of the corresponding LaTeX files.
     my $gnuplotLatexFile = $gnuplotRoot.".tex";
     my $gnuplotAuxFile   = $gnuplotRoot.".aux";
-
+    
     # Construct the name of the corresponding pdf file.
     my $gnuplotPdfFile = $gnuplotRoot.".pdf";
 
@@ -209,51 +209,81 @@ sub GnuPlot2PDF {
     move($gnuplotRoot.".tex.swapped",$gnuplotRoot.".tex");
 
     # Convert the plot body from EPS to PDF.
-    &SystemRedirect::tofile("epstopdf ".$gnuplotEpsFile,"/dev/null");
+    &SystemRedirect::tofile("epstopdf ".$gnuplotRoot.".eps","/dev/null")
+	if ( -e $gnuplotRoot.".eps" );
 
-    # Get the dimensions of the plot body.
-    my $width;
-    my $height;
-    open(pHndl,"pdfinfo ".$gnuplotPdfFile."|");
-    while ( my $line = <pHndl> ) {
-	if ( $line =~ m/Page size:\s*(\d+)\s*x\s*(\d+)/ ) {
-	    $width  = $1+100;
-	    $height = $2+100;
-	}
-    }
-    close(pHndl);
+    # Do we need to create a wrapper?
+    my $needWrapper = 0;
+    $needWrapper = 1
+	if ( $gnuplotFile =~ m/\.eps$/ );
 
     # Create a wrapper file for the LaTeX.
-    my $fontSize = "10";
-    $fontSize = $options{'fontSize'}
-        if ( exists($options{'fontSize'}) );
-    my $wrapper = "gnuplotWrapper".$$;
-    open(wHndl,">".$folderName.$wrapper.".tex");
-    print wHndl "\\documentclass[".$fontSize."pt]{article}\n";
-    print wHndl "\\usepackage[margin=0pt";
-    print wHndl ",paperwidth=".$width."pt,paperheight=".$height."pt"
-	if ( defined($width) );
-    print wHndl "]{geometry}\n";
-    print wHndl "\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotBase."}\n\\end{document}\n";
-    close(wHndl);
-    my $command = "cd ".$folderName."; pdflatex -interaction=nonstopmode ".$wrapper."; pdfcrop ".$wrapper.".pdf";
+    my $fileToLaTeX = $gnuplotRoot;
+    if ( $needWrapper == 1 ) {
+	# Get the dimensions of the plot body.
+	my $width;
+	my $height;
+	open(pHndl,"pdfinfo ".$gnuplotPdfFile."|");
+	while ( my $line = <pHndl> ) {
+	    if ( $line =~ m/Page size:\s*(\d+)\s*x\s*(\d+)/ ) {
+		$width  = $1+100;
+		$height = $2+100;
+	    }
+	}
+	close(pHndl);
+	my $fontSize = "10";
+	$fontSize = $options{'fontSize'}
+           if ( exists($options{'fontSize'}) );
+	my $wrapper = "gnuplotWrapper".$$;
+	open(wHndl,">".$folderName.$wrapper.".tex");
+	print wHndl "\\documentclass[".$fontSize."pt]{article}\n";
+	print wHndl "\\usepackage[margin=0pt";
+	print wHndl ",paperwidth=".$width."pt,paperheight=".$height."pt"
+	    if ( defined($width) );
+	print wHndl "]{geometry}\n";
+	print wHndl "\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotBase."}\n\\end{document}\n";
+	close(wHndl);
+	$fileToLaTeX = $wrapper;
+    } else {
+	if ( $fileToLaTeX =~ m/^(.*)\/(.*)$/ ) {
+	    my $dirName  = $1;
+	    my $fileName = $2;
+	    system("mv ".$fileToLaTeX.".tex ".$fileToLaTeX.".tmp");
+	    open(my $inTeX,     $fileToLaTeX.".tmp");
+	    open(my $outTeX,">".$fileToLaTeX.".tex");
+	    while ( my $line = <$inTeX> ) {
+		$line =~ s/$dirName//g;
+		print $outTeX $line;
+	    }
+	    close($inTeX );
+	    close($outTeX);
+	    unlink($fileToLaTeX.".tmp");
+	    $fileToLaTeX = $fileName;
+	}
+    }
+    my $command = "cd ".$folderName."; pdflatex -interaction=nonstopmode ".$fileToLaTeX."; pdfcrop ".$fileToLaTeX.".pdf";
     $command .= " --margins ".$options{'margin'}
-       if ( exists($options{'margin'}) );
+        if ( exists($options{'margin'}) );
     my $tmpFile = File::Temp->new();
     &SystemRedirect::tofile($command,$tmpFile->filename());
     my $logOutput = read_file($tmpFile->filename());
     unless ( $logOutput =~ m/LaTeX Error/ ) {
-	move($folderName.$wrapper."-crop.pdf",$gnuplotPdfFile);
-	unlink(
-	    $folderName.$wrapper.".pdf",
-	    $folderName.$wrapper.".tex",
-	    $folderName.$wrapper.".log",
-	    $folderName.$wrapper.".aux",
-	    $gnuplotEpsFile,
-	    $gnuplotLatexFile,
-	    $gnuplotAuxFile
-	    )
-	    unless ( exists($options{'cleanUp'}) && $options{'cleanUp'} == 0 );
+	move($folderName.$fileToLaTeX."-crop.pdf",$gnuplotPdfFile);
+	unless ( exists($options{'cleanUp'}) && $options{'cleanUp'} == 0 ) {
+	    unlink(
+		$folderName.$fileToLaTeX.".tex",
+		$folderName.$fileToLaTeX.".log",
+		$folderName.$fileToLaTeX.".aux",
+		$gnuplotFile,
+		$gnuplotLatexFile,
+		$gnuplotAuxFile
+		);
+	    if ( $needWrapper == 1 ) {
+		unlink($folderName.$fileToLaTeX.    ".pdf");
+	    } else {
+		unlink(            $gnuplotRoot."-inc.pdf");
+	    }
+	}
     } else {
 	print $logOutput;
 	print "\n*** pdflatex FAILED ***\n\n";
