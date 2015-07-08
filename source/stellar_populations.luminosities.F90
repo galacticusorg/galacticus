@@ -81,34 +81,35 @@ contains
     use IO_HDF5
     use File_Utilities
     implicit none
-    integer                                                                                    , intent(in   ) :: filterIndex                              (:), imfIndex                   , &
-         &                                                                                                        luminosityIndex                          (:), postprocessingChainIndex(:)
-    double precision                                                                           , intent(in   ) :: age                                      (:), redshift                (:)
-    type            (abundances                )                                               , intent(in   ) :: abundancesStellar
-    double precision                                         , dimension(size(luminosityIndex))                :: Stellar_Population_Luminosity
-    type            (luminosityTable           ), allocatable, dimension(:)                                    :: luminosityTablesTemporary
-    double precision                            , allocatable, dimension(:,:,:)                                :: luminosityTemporary
-    logical                                     , allocatable, dimension(:)                                    :: isTabulatedTemporary
-    double precision                                         , dimension(2)                                    :: wavelengthRange
-    double precision                                         , dimension(0:1)                                  :: hAge                                        , hMetallicity
-    integer         (c_int                     )                                                               :: lockFileDescriptor
-    integer         (c_size_t                  )                                                               :: iAge                                        , iLuminosity                , &
-         &                                                                                                        iMetallicity
-    integer                                                                                                    :: loopCountMaximum                            , jAge                       , &
-         &                                                                                                        jMetallicity                                , loopCount                  , &
-         &                                                                                                        errorStatus
-    logical                                                                                                    :: computeTable                                , calculateLuminosity        , &
-         &                                                                                                        stellarLuminositiesUniqueLabelConstructed
-    double precision                                                                                           :: ageLast                                     , metallicity                , &
-         &                                                                                                        normalization                               , toleranceRelative
-    type            (c_ptr                     )                                                               :: parameterPointer
-    type            (fgsl_function             )                                                               :: integrandFunction
-    type            (fgsl_integration_workspace)                                                               :: integrationWorkspace
-    type            (varying_string            )                                                               :: message                                     , luminositiesFileName       , &
-         &                                                                                                        stellarLuminositiesUniqueLabel
-    character       (len=16                    )                                                               :: datasetName                                 , redshiftLabel              , &
-         &                                                                                                        label
-    type            (hdf5Object                )                                                               :: luminositiesFile
+    integer                                                                                       , intent(in   ) :: filterIndex                              (:), imfIndex                   , &
+         &                                                                                                           luminosityIndex                          (:), postprocessingChainIndex(:)
+    double precision                                                                              , intent(in   ) :: age                                      (:), redshift                (:)
+    type            (abundances                   )                                               , intent(in   ) :: abundancesStellar
+    double precision                                            , dimension(size(luminosityIndex))                :: Stellar_Population_Luminosity
+    type            (luminosityTable              ), allocatable, dimension(:)                                    :: luminosityTablesTemporary
+    double precision                               , allocatable, dimension(:,:,:)                                :: luminosityTemporary
+    logical                                        , allocatable, dimension(:)                                    :: isTabulatedTemporary
+    double precision                                            , dimension(2)                                    :: wavelengthRange
+    double precision                                            , dimension(0:1)                                  :: hAge                                        , hMetallicity
+    class           (stellarPopulationSpectraClass), pointer                                                      :: stellarPopulationSpectra_
+    integer         (c_int                        )                                                               :: lockFileDescriptor
+    integer         (c_size_t                     )                                                               :: iAge                                        , iLuminosity                , &
+         &                                                                                                           iMetallicity
+    integer                                                                                                       :: loopCountMaximum                            , jAge                       , &
+         &                                                                                                           jMetallicity                                , loopCount                  , &
+         &                                                                                                           errorStatus
+    logical                                                                                                       :: computeTable                                , calculateLuminosity        , &
+         &                                                                                                           stellarLuminositiesUniqueLabelConstructed
+    double precision                                                                                              :: ageLast                                     , metallicity                , &
+         &                                                                                                           normalization                               , toleranceRelative
+    type            (c_ptr                        )                                                               :: parameterPointer
+    type            (fgsl_function                )                                                               :: integrandFunction
+    type            (fgsl_integration_workspace   )                                                               :: integrationWorkspace
+    type            (varying_string               )                                                               :: message                                     , luminositiesFileName       , &
+         &                                                                                                           stellarLuminositiesUniqueLabel
+    character       (len=16                       )                                                               :: datasetName                                 , redshiftLabel              , &
+         &                                                                                                           label
+    type            (hdf5Object                   )                                                               :: luminositiesFile
 
     ! Determine if we have created space for this IMF yet.
     !$omp critical (Luminosity_Tables_Initialize)
@@ -177,7 +178,8 @@ contains
     end if
 
     ! Determine if we have tabulated luminosities for this luminosityIndex in this IMF yet.
-    stellarLuminositiesUniqueLabelConstructed=.false.
+    stellarLuminositiesUniqueLabelConstructed = .false.
+    stellarPopulationSpectra_                 => null()
     do iLuminosity=1,size(luminosityIndex)
        if (allocated(luminosityTables(imfIndex)%isTabulated)) then
           if (size(luminosityTables(imfIndex)%isTabulated) >= luminosityIndex(iLuminosity)) then
@@ -200,7 +202,8 @@ contains
           luminosityTables(imfIndex)%isTabulated=.false.
           ! Since we have not yet tabulated any luminosities yet for this IMF, we need to get a list of suitable metallicities and
           ! ages at which to tabulate.
-          call Stellar_Population_Spectrum_Tabulation(imfIndex,luminosityTables(imfIndex)%agesCount &
+          if (.not.associated(stellarPopulationSpectra_)) stellarPopulationSpectra_ => stellarPopulationSpectra()
+          call stellarPopulationSpectra_%tabulation(imfIndex,luminosityTables(imfIndex)%agesCount &
                &,luminosityTables(imfIndex)%metallicitiesCount,luminosityTables(imfIndex)%age&
                &,luminosityTables(imfIndex)%metallicity)
           where (luminosityTables(imfIndex)%metallicity > 0.0d0)
@@ -277,6 +280,8 @@ contains
              message=message//iLuminosity//' of '//size(luminosityIndex)
              call Galacticus_Display_Indent (message,verbosityWorking)
              call Galacticus_Display_Counter(0,.true.,verbosityWorking)             
+             ! Get stellar population spectra object if necessary.
+             if (.not.associated(stellarPopulationSpectra_)) stellarPopulationSpectra_ => stellarPopulationSpectra()
              ! Get wavelength extent of the filter.
              wavelengthRange=Filter_Extent(filterIndex(iLuminosity))
              ! Integrate over the wavelength range.
@@ -286,7 +291,9 @@ contains
              imfIndexTabulate                =imfIndex
              loopCountMaximum                =luminosityTables(imfIndex)%metallicitiesCount*luminosityTables(imfIndex)%agesCount
              loopCount                       =0
-             !$omp parallel do private(iAge,iMetallicity,integrandFunction,integrationWorkspace,toleranceRelative,errorStatus) copyin(filterIndexTabulate,postprocessingChainIndexTabulate,redshiftTabulate,imfIndexTabulate)
+             !# <workaround type="gfortran" PR="66633" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66633">
+             !!omp parallel do private(iAge,iMetallicity,integrandFunction,integrationWorkspace,toleranceRelative,errorStatus) copyin(filterIndexTabulate,postprocessingChainIndexTabulate,redshiftTabulate,imfIndexTabulate)
+             !# </workaround>
              do iAge=1,luminosityTables(imfIndex)%agesCount
                 ageTabulate=luminosityTables(imfIndex)%age(iAge)
                 do iMetallicity=1,luminosityTables(imfIndex)%metallicitiesCount
@@ -340,7 +347,9 @@ contains
                    end do
                 end do
              end do
-             !$omp end parallel do
+             !# <workaround type="gfortran" PR="66633" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66633">
+             !!omp end parallel do
+             !# </workaround>
              ! Clear the counter and write a completion message.
              call Galacticus_Display_Counter_Clear(           verbosityWorking)
              call Galacticus_Display_Unindent     ('finished',verbosityWorking)
@@ -423,45 +432,47 @@ contains
     Stellar_Population_Luminosity=max(Stellar_Population_Luminosity,0.0d0)
 
     return
+
+  contains
+    
+    function Filter_Luminosity_Integrand(wavelength,parameterPointer) bind(c)
+      !% Integrand for the luminosity through a given filter.
+      use Stellar_Population_Spectra_Postprocess
+      use Instruments_Filters
+      implicit none
+      real            (kind=c_double)        :: Filter_Luminosity_Integrand
+      real            (kind=c_double), value :: wavelength
+      type            (c_ptr        ), value :: parameterPointer
+      double precision                       :: wavelengthRedshifted
+      
+      ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population spectrum
+      ! to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these will be
+      ! shifted into the filter by z=0. Factor of 1/wavelength appears since we want to integrate F_nu (dnu / nu) and dnu =
+      ! -c/lambda^2 dlambda. Note that we follow the convention of Hogg et al. (2002) and assume that the filter response gives the
+      ! fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response
+      ! (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a
+      ! bolometer/calorimeter type detector).
+      wavelengthRedshifted=wavelength/(1.0d0+redshiftTabulate)
+      Filter_Luminosity_Integrand=Filter_Response(filterIndexTabulate,wavelength)*stellarPopulationSpectra_%luminosity(abundancesTabulate &
+           &,ageTabulate,wavelengthRedshifted,imfIndexTabulate)*Stellar_Population_Spectrum_PostProcess(postprocessingChainIndexTabulate,wavelengthRedshifted,ageTabulate,redshiftTabulate)/wavelength
+      return
+    end function Filter_Luminosity_Integrand
+    
+    function Filter_Luminosity_Integrand_AB(wavelength,parameterPointer) bind(c)
+      !% Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
+      use Instruments_Filters
+      use Numerical_Constants_Astronomical
+      implicit none
+      real            (kind=c_double)            :: Filter_Luminosity_Integrand_AB
+      real            (kind=c_double), value     :: wavelength
+      type            (c_ptr        ), value     :: parameterPointer
+      ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz.
+      double precision               , parameter :: luminosityZeroPointABSolar    =luminosityZeroPointAB/luminositySolar
+      
+      Filter_Luminosity_Integrand_AB=Filter_Response(filterIndexTabulate,wavelength)*luminosityZeroPointABSolar/wavelength
+      return
+    end function Filter_Luminosity_Integrand_AB
+
   end function Stellar_Population_Luminosity
-
-  function Filter_Luminosity_Integrand(wavelength,parameterPointer) bind(c)
-    !% Integrand for the luminosity through a given filter.
-    use Stellar_Population_Spectra
-    use Stellar_Population_Spectra_Postprocess
-    use Instruments_Filters
-    implicit none
-    real            (kind=c_double)        :: Filter_Luminosity_Integrand
-    real            (kind=c_double), value :: wavelength
-    type            (c_ptr        ), value :: parameterPointer
-    double precision                       :: wavelengthRedshifted
-
-    ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population spectrum
-    ! to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these will be
-    ! shifted into the filter by z=0. Factor of 1/wavelength appears since we want to integrate F_nu (dnu / nu) and dnu =
-    ! -c/lambda^2 dlambda. Note that we follow the convention of Hogg et al. (2002) and assume that the filter response gives the
-    ! fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response
-    ! (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a
-    ! bolometer/calorimeter type detector).
-    wavelengthRedshifted=wavelength/(1.0d0+redshiftTabulate)
-    Filter_Luminosity_Integrand=Filter_Response(filterIndexTabulate,wavelength)*Stellar_Population_Spectrum(abundancesTabulate &
-         &,ageTabulate,wavelengthRedshifted,imfIndexTabulate)*Stellar_Population_Spectrum_PostProcess(postprocessingChainIndexTabulate,wavelengthRedshifted,ageTabulate,redshiftTabulate)/wavelength
-    return
-  end function Filter_Luminosity_Integrand
-
-  function Filter_Luminosity_Integrand_AB(wavelength,parameterPointer) bind(c)
-    !% Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
-    use Instruments_Filters
-    use Numerical_Constants_Astronomical
-    implicit none
-    real            (kind=c_double)            :: Filter_Luminosity_Integrand_AB
-    real            (kind=c_double), value     :: wavelength
-    type            (c_ptr        ), value     :: parameterPointer
-    ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz.
-    double precision               , parameter :: luminosityZeroPointABSolar    =luminosityZeroPointAB/luminositySolar
-
-    Filter_Luminosity_Integrand_AB=Filter_Response(filterIndexTabulate,wavelength)*luminosityZeroPointABSolar/wavelength
-    return
-  end function Filter_Luminosity_Integrand_AB
-
+  
 end module Stellar_Population_Luminosities
