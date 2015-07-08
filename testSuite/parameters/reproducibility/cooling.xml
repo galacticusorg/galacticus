@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test of cooling functions -->
+<!-- 27-June-2015              -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Component selection -->
+  <treeNodeMethodBasic             value="standard"/>
+  <treeNodeMethodHotHalo           value="standard"/>
+  <treeNodeMethodBlackHole         value="null"    />
+  <treeNodeMethodDarkMatterProfile value="null"    />
+  <treeNodeMethodDisk              value="null"    />
+  <treeNodeMethodSatellite         value="null"    />
+  <treeNodeMethodSpheroid          value="null"    />
+  <treeNodeMethodSpin              value="null"    />
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctionsMethod  value="matterLambda"/>
+  <cosmologyParametersMethod value="simple"       >
+    <HubbleConstant  value="70.0"   />
+    <OmegaMatter     value="0.3"    />
+    <OmegaDarkEnergy value="0.7"    />
+    <OmegaBaryon     value="0.05"   />
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParametersMethod>
+
+  <!-- Power spectrum options -->
+  <sigma_8 value="0.807"/>
+  <transferFunctionMethod           value="eisensteinHu1999" >
+    <neutrinoNumberEffective        value="3.046"           />
+    <neutrinoMassSummed             value="0.000"           />
+  </transferFunctionMethod>
+  <powerSpectrumPrimordialMethod    value="powerLaw"         >
+    <index                          value="1.000"           />
+    <wavenumberReference            value="1.000"           />
+    <running                        value="0.000"           />
+  </powerSpectrumPrimordialMethod>
+
+  <!-- Structure formation options -->
+  <linearGrowthMethod          value="simple"                       />
+  <haloMassFunctionMethod      value="Tinker2008"                   />
+  <criticalOverdensityMethod   value="sphericalTopHat"              />
+  <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructMethod                 value="fullySpecified"                                      />
+  <mergerTreeConstructFullySpecifiedFileName value="testSuite/parameters/reproducibility/coolingTree.xml"/>
+
+  <!-- Dark matter halo profile -->
+  <darkMatterProfileMethod value="isothermal"/>
+  
+  <!-- Halo accretion options -->
+  <accretionHaloMethod value="null"/>
+
+  <!-- Hot halo gas cooling model options -->
+  <hotHaloMassDistributionMethod     value="betaProfile"    />
+  <hotHaloTemperatureMethod          value="virial"         />
+  <hotHaloCoreRadiusOverVirialRadius value="0.1"            />
+  <coolingFunctionMethod             value="atomicCIECloudy"/>
+  <coolingRadiusMethod               value="simple"         />
+  <coolingRateMethod                 value="White-Frenk1991"/>
+  <coolingTimeMethod                 value="simple"         />
+  <coolingTimeAvailableAgeFactor     value="0"              />
+  <coolingTimeAvailableMethod        value="White-Frenk1991"/>
+  <coolingTimeSimpleDegreesOfFreedom value="3"              />
+
+  <!-- Numerical tolerances -->
+  <odeToleranceAbsolute   value="0.01"/>
+  <odeToleranceRelative   value="0.01"/>
+  <timestepHostAbsolute   value="1.00"/>
+  <timestepHostRelative   value="0.10"/>
+  <timestepSimpleAbsolute value="1.00"/>
+  <timestepSimpleRelative value="0.10"/>
+
+  <!-- Output options -->
+  <mergerTreeOutputReferences value="false"/>
+
+  <!-- Output file -->
+  <galacticusOutputFileName value="testSuite/outputs/reproducibility/cooling.hdf5"/>
+  
+</parameters>

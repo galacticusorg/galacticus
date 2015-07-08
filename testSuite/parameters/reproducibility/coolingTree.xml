@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test of cooling functions -->
+<!-- 27-June-2015              -->
+<tree>
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>12.47</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <hotHalo>
+      <mass>1.0e11</mass>
+      <unaccretedMass>0.0</unaccretedMass>
+      <outerRadius>0.3</outerRadius>
+      <angularMomentum>1.0</angularMomentum>
+      <abundances>
+	<metals>0.0189e11</metals>
+      </abundances>
+    </hotHalo>
+  </node>
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>13.47</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <hotHalo>
+      <mass>0.0</mass>
+      <unaccretedMass>0.0e0</unaccretedMass>
+      <outerRadius>0.2474</outerRadius>
+      <angularMomentum>1.0</angularMomentum>
+      <abundances>
+	<metals>0.0189e11</metals>
+      </abundances>
+    </hotHalo>
+  </node>
+</tree>
