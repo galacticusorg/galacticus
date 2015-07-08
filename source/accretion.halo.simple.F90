@@ -459,27 +459,29 @@ contains
     type            (treeNode                ), intent(inout), pointer :: node
     double precision                          , intent(in   )          :: massAccreted
     class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
-    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    class           (cosmologyParametersClass)               , pointer :: cosmologyParameters_
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (chemicalStateClass      )               , pointer :: chemicalState_
     type            (chemicalAbundances      ), save                   :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
     double precision                                                   :: massToDensityConversion, numberDensityHydrogen, &
          &                                                                temperature
 
-    ! Compute coefficient in conversion of mass to density for this node.
+    ! Get required objects.
+    cosmologyParameters_ => cosmologyParameters()
     darkMatterHaloScale_ => darkMatterHaloScale()
+    chemicalState_       => chemicalState      ()
+    ! Compute coefficient in conversion of mass to density for this node.
     massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(node))/3.0d0
-    ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
     temperature          =darkMatterHaloScale_%virialTemperature(node)
     thisBasicComponent   => node%basic()
-    numberDensityHydrogen=hydrogenByMassPrimordial*(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*self%massTotal(node)*massToDensityConversion/atomicMassHydrogen
+    numberDensityHydrogen=hydrogenByMassPrimordial*(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*self%massTotal(node)*massToDensityConversion/atomicMassHydrogen
     ! Set the radiation field.
     call self%radiation%set(node)
     ! Get the chemical densities.
-    call Chemical_Densities(chemicalDensities,temperature,numberDensityHydrogen,zeroAbundances,self%radiation)
+    call chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,zeroAbundances,self%radiation)
     ! Convert from densities to masses.
     call chemicalDensities%numberToMass(simpleChemicalMasses)
     simpleChemicalMasses=simpleChemicalMasses*massAccreted*hydrogenByMassPrimordial/numberDensityHydrogen/atomicMassHydrogen

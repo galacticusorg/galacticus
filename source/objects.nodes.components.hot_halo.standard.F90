@@ -957,7 +957,7 @@ contains
        ! Get the rate at which abundances are accreted onto this halo.
        call thisHotHaloComponent%abundancesRate(accretionHalo_%accretionRateMetals(thisNode,accretionModeHot),interrupt,interruptProcedure)
        ! Next block of tasks occur only if the accretion rate is non-zero.
-          if (thisBasicComponent%accretionRate() /= 0.0d0) then
+       if (thisBasicComponent%accretionRate() /= 0.0d0) then
           ! Compute the rate of accretion of angular momentum.
           angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(thisNode)*(massAccretionRate &
                &/thisBasicComponent%accretionRate())
@@ -1083,6 +1083,7 @@ contains
     class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
     class           (cosmologyParametersClass    )               , pointer :: thisCosmologyParameters
     class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
+    class           (chemicalStateClass          )               , pointer :: chemicalState_
     double precision                                                       :: outflowedMass            , massReturnRate         , &
          &                                                                    angularMomentumReturnRate, massToDensityConversion, &
          &                                                                    hydrogenByMass           , temperature            , &
@@ -1143,8 +1144,10 @@ contains
        end if
        ! If we have a non-zero return rate, compute associated chemical rates.
        if (chemicalsCount > 0 .and. massReturnRate /= 0.0d0) then
-          ! Compute coefficient in conversion of mass to density for this node.
+          ! Get required objects.
           darkMatterHaloScale_ => darkMatterHaloScale()
+          chemicalState_       => chemicalState      ()
+          ! Compute coefficient in conversion of mass to density for this node.
           massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(selfNode))/3.0d0
           ! Get the abundances of the outflowed material.
           outflowedAbundances    =self%outflowedAbundances()/outflowedMass
@@ -1156,7 +1159,7 @@ contains
           ! Set the radiation field.
           call radiation%set(selfNode)
           ! Get the chemical densities.
-          call Chemical_Densities(chemicalDensities,temperature,numberDensityHydrogen,outflowedAbundances,radiation)
+          call chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,outflowedAbundances,radiation)
           ! Convert from densities to masses.
           call chemicalDensities%numberToMass(chemicalMasses)
           chemicalMassesRates=chemicalMasses*massReturnRate*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen
@@ -1701,14 +1704,15 @@ contains
     use Numerical_Constants_Astronomical
     use Node_Component_Hot_Halo_Standard_Data
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    class           (nodeComponentHotHalo    )               , pointer :: thisHotHaloComponent
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    type            (abundances          ), save                   :: outflowedAbundances
-    type            (chemicalAbundances  ), save                   :: chemicalDensities    , chemicalMasses
+    class           (chemicalStateClass      )               , pointer :: chemicalState_
+    type            (abundances              ), save                   :: outflowedAbundances
+    type            (chemicalAbundances      ), save                   :: chemicalDensities    , chemicalMasses
     !$omp threadprivate(outflowedAbundances,chemicalDensities,chemicalMasses)
-    double precision                                               :: hydrogenByMass       , massToDensityConversion, &
-         &                                                            numberDensityHydrogen, temperature
+    double precision                                                   :: hydrogenByMass       , massToDensityConversion, &
+         &                                                                numberDensityHydrogen, temperature
 
     ! Return immediately if return of outflowed gas on formation events is not requested.
     if (.not.hotHaloOutflowReturnOnFormation) return
@@ -1721,8 +1725,10 @@ contains
 
        ! Compute mass of chemicals transferred to the hot halo.
        if (chemicalsCount > 0 .and. thisHotHaloComponent%outflowedMass() > 0.0d0) then
-          ! Compute coefficient in conversion of mass to density for this node.
+          ! Get required objects.
           darkMatterHaloScale_ => darkMatterHaloScale()
+          chemicalState_       => chemicalState      ()
+          ! Compute coefficient in conversion of mass to density for this node.
           massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(thisNode))/3.0d0
           ! Get abundance mass fractions of the outflowed material.
           outflowedAbundances= thisHotHaloComponent%outflowedAbundances() &
@@ -1735,7 +1741,7 @@ contains
           ! Set the radiation field.
           call radiation%set(thisNode)
           ! Get the chemical densities.
-          call Chemical_Densities(chemicalDensities,temperature,numberDensityHydrogen,outflowedAbundances,radiation)
+          call chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,outflowedAbundances,radiation)
           ! Convert from densities to masses.
           call chemicalDensities%numberToMass(chemicalMasses)
           chemicalMasses=chemicalMasses*thisHotHaloComponent%outflowedMass()*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen
