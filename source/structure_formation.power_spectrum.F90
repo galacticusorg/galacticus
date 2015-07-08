@@ -64,46 +64,50 @@ contains
 
   double precision function Power_Spectrum_Logarithmic_Derivative(wavenumber)
     !% Return the logarithmic derivative of the power spectrum, ${\mathrm d}\ln P(k)/{\mathrm d}\ln k$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
-    use Primordial_Power_Spectra_Transferred
+    use Power_Spectra_Primordial_Transferred
     implicit none
-    double precision, intent(in   ) :: wavenumber
+    double precision                                         , intent(in   ) :: wavenumber
+    class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
 
-    Power_Spectrum_Logarithmic_Derivative=Primordial_Power_Spectrum_Transferred_Logarithmic_Derivative(wavenumber)
+    powerSpectrumPrimordialTransferred_ => powerSpectrumPrimordialTransferred()
+    Power_Spectrum_Logarithmic_Derivative=powerSpectrumPrimordialTransferred_%logarithmicDerivative(wavenumber)
     return
   end function Power_Spectrum_Logarithmic_Derivative
 
   double precision function Power_Spectrum(wavenumber)
     !% Return the cosmological power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
-    use Primordial_Power_Spectra_Transferred
+    use Power_Spectra_Primordial_Transferred
     use Numerical_Constants_Math
     use Cosmology_Parameters
     use Galacticus_Error
     implicit none
-    double precision                          , intent(in   ) :: wavenumber
-    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
-    double precision                                          :: mass
-    character       (len=15                  )                :: label
-    type            (varying_string          )                :: message
+    double precision                                         , intent(in   ) :: wavenumber
+    class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
+    class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
+    double precision                                                         :: mass
+    character       (len=15                                 )                :: label
+    type            (varying_string                         )                :: message
 
-    ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
+    ! Get required objects.
+    cosmologyParameters_                => cosmologyParameters               ()
+    powerSpectrumPrimordialTransferred_ => powerSpectrumPrimordialTransferred()
     ! Ensure that the normalization of the power spectrum has been computed.
-    mass=(4.0d0*PI/3.0d0)*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()/waveNumber**3
+    mass=(4.0d0*PI/3.0d0)*cosmologyParameters_%OmegaMatter()*cosmologyParameters_%densityCritical()/waveNumber**3
     if (mass <= 0.0d0) then
        message="zero mass when trying to initialize power spectrum"//char(10)
        write (label,'(e12.6)') waveNumber
        message=message//"        waveNumber  : "//trim(label)//char(10)
-       write (label,'(e12.6)') thisCosmologyParameters%OmegaMatter()
-       message=message//"      thisCosmologyParameters%OmegaMatter(): "//trim(label)//char(10)
-       write (label,'(e12.6)') thisCosmologyParameters%densityCritical()
-       message=message//"  thisCosmologyParameters%densityCritical(): "//trim(label)
+       write (label,'(e12.6)') cosmologyParameters_%OmegaMatter()
+       message=message//"      cosmologyParameters_%OmegaMatter(): "//trim(label)//char(10)
+       write (label,'(e12.6)') cosmologyParameters_%densityCritical()
+       message=message//"  cosmologyParameters_%densityCritical(): "//trim(label)
        call Galacticus_Error_Report("Power_Spectrum",message)
     end if
     !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance(mass)
     !$omp end critical (Cosmological_Mass_Variance_Interpolate)
     ! Compute the power spectrum.
-    Power_Spectrum=Primordial_Power_Spectrum_Transferred(wavenumber)
+    Power_Spectrum=powerSpectrumPrimordialTransferred_%power(wavenumber)
     ! Scale by the normalization factor.
     Power_Spectrum=Power_Spectrum*sigmaNormalization**2
     return

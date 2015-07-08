@@ -15,43 +15,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the primordial power spectrum transferred to late times.
+!% Contains a module which provides a class that implements the transferred primordial power spectrum.
 
-module Primordial_Power_Spectra_Transferred
-  !% Implements the primordial power spectrum transferred to late times.
-  implicit none
-  private
-  public :: Primordial_Power_Spectrum_Transferred, Primordial_Power_Spectrum_Transferred_Logarithmic_Derivative
-  
-contains
+module Power_Spectra_Primordial_Transferred
+  !% Provides a class that implements the transferred primordial power spectrum.
 
-  double precision function Primordial_Power_Spectrum_Transferred(wavenumber)
-    !% Return the primordial power spectrum transferred to late times for $k=${\normalfont
-    !% \ttfamily wavenumber} [Mpc$^{-1}$].
-    use Transfer_Functions
-    use Primordial_Power_Spectra
-    implicit none
-    double precision                       , intent(in   ) :: wavenumber
-    class           (transferFunctionClass), pointer       :: transferFunction_
+  !# <functionClass>
+  !#  <name>powerSpectrumPrimordialTransferred</name>
+  !#  <descriptiveName>Transferred Primordial Power Spectrum</descriptiveName>
+  !#  <description>Class providing the transferred primordial power spectrum.</description>
+  !#  <default>simple</default>
+  !#  <method name="power" >
+  !#   <description>Return the (unnormalized) power in the transferred primordial power spectrum at the given {\normalfont \ttfamily wavenumber} (specified in units of Mpc$^{-1}$.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: wavenumber</argument>
+  !#  </method>
+  !#  <method name="logarithmicDerivative" >
+  !#   <description>Return the logarithmic derivative with respect to wavenumber of the transferred primordial power spectrum at the given {\normalfont \ttfamily wavenumber} (specified in units of Mpc$^{-1}$.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: wavenumber</argument>
+  !#  </method>
+  !# </functionClass>
 
-    transferFunction_ => transferFunction()
-    Primordial_Power_Spectrum_Transferred=transferFunction_%value(wavenumber)**2*Primordial_Power_Spectrum(wavenumber)
-    return
-  end function Primordial_Power_Spectrum_Transferred
-
-  double precision function Primordial_Power_Spectrum_Transferred_Logarithmic_Derivative(wavenumber)
-    !% Return the  logarithmic derivative of the  primordial power spectrum transferred to late
-    !% times for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
-    use Transfer_Functions
-    use Primordial_Power_Spectra
-    implicit none
-    double precision                       , intent(in   ) :: wavenumber
-    class           (transferFunctionClass), pointer       :: transferFunction_
-
-    transferFunction_ => transferFunction()
-    Primordial_Power_Spectrum_Transferred_Logarithmic_Derivative=+2.0d0*transferFunction_%logarithmicDerivative          (wavenumber) &
-         &                                                       +       Primordial_Power_Spectrum_Logarithmic_Derivative(wavenumber)
-    return
-  end function Primordial_Power_Spectrum_Transferred_Logarithmic_Derivative
-
-end module Primordial_Power_Spectra_Transferred
+end module Power_Spectra_Primordial_Transferred
