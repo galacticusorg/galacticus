@@ -74,9 +74,9 @@ CPPFLAGS += -DUSEMPI
 endif
 
 # Detect YEPPP libraries.
-ifdef YEPROOT
-FCFLAGS += -I$(YEPROOT)/bindings/fortran/modules/$(YEPPLATFORM)-gfortran/ -L$(YEPBINARIES) -DYEPPP
-endif
+# ifdef YEPROOT
+# FCFLAGS += -I$(YEPROOT)/bindings/fortran/modules/$(YEPPLATFORM)-gfortran/ -L$(YEPBINARIES) -DYEPPP
+# endif
 
 # List of additional Makefiles which contain dependency information
 MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Deps $(BUILDPATH)/Makefile_Use_Deps $(BUILDPATH)/Makefile_Include_Deps

@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use Sort::Topological qw(toposort);
+use Data::Dumper;
 
 # Output linker options to link required libraries for building an executable.
 # Andrew Benson (24-May-2012)
@@ -90,6 +91,12 @@ while ( scalar(keys(%libraries)) != $libraryCount) {
 	    foreach ( @{$dependencies{$library}} ) {$libraries{$_} +=1};
 	}
     }
+}
+
+# Remove YEPPP library if not used.
+unless ( grep {$_ eq "-DYEPPP"} @compilerOptions ) {
+    delete($libraries{'yeppp'})
+	if ( exists($libraries{'yeppp'}) );
 }
 
 # Perform a topological sort on libraries to ensure they are in the correct order for static linking.
