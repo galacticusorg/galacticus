@@ -5463,7 +5463,7 @@ sub Generate_Node_Copy_Function {
     if ( $workaround == 1 ) {
 	foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
 	    $functionCode .= "    if (allocated(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0]).")) deallocate(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
-	    $functionCode .= "    allocate(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0])."(size(self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")),source=self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
+	    $functionCode .= "    allocate(targetNode%component".padComponentClass(ucfirst($componentClassName),[0,0])."(size(self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")),source=self%component".padComponentClass(ucfirst($componentClassName),[0,0])."(1))\n";
 	    $functionCode .= "    do i=1,size(self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
 	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 		$functionCode .= "      select type (from => self%component".padComponentClass(ucfirst($componentClassName),[0,0]).")\n";
@@ -6871,7 +6871,7 @@ sub Generate_Component_Class_Removal_Functions {
 	$functionCode .= "      allocate(self%component".ucfirst($componentClassName)."(1))\n";
 	$functionCode .= "    else\n";
 	$functionCode .= "      ! Multiple instances, so remove the specified instance.\n";
-	$functionCode .= "      allocate(instancesTemporary(instanceCount-1),source=self%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "      allocate(instancesTemporary(instanceCount-1),source=self%component".ucfirst($componentClassName)."(1))\n";
 	if ( $workaround == 1 ) {
 	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 		$functionCode .= "      select type (from => self%component".ucfirst($componentClassName).")\n";
