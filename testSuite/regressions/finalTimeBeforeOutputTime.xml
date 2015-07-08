@@ -128,7 +128,7 @@
   <galacticStructureRadiusSolverMethod value="fixed"/>
   <mergerTreeBuildCole2000AccretionLimit value="0.1"/>
   <virialOrbitsFixedRadialVelocity value="0.90"/>
-  <virialOrbitsMethod value="fixed"/>
+  <virialOrbitMethod value="fixed"/>
   <mergerTreeReadPresetPositions value="false"/>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
   <mergerTreeConstructMethod value="read"/>
