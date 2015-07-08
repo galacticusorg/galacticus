@@ -58,7 +58,7 @@ contains
     use Galacticus_Error
     use FoX_wxml
     use Numerical_Comparison
-    use Primordial_Power_Spectra
+    use Power_Spectra_Primordial
     use System_Command
     use ISO_Varying_String
     use Galacticus_Input_Paths
@@ -69,43 +69,42 @@ contains
     use Memory_Management
     use Table_Labels
     implicit none
-    double precision                          , intent(in   ) :: time                            , waveNumber
-    double precision                          , save          :: timePrevious             =-1.0d0
-    double precision                          , parameter     :: wavenumberLong           =0.01d0, wavenumberShort  =1.0d0
-    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctionsDefault
-    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
-    double precision                                          :: littleHubbleCMB                 , redshift
-    type            (varying_string          )                :: parameterFile                   , powerSpectrumFile
-    type            (xmlf_t                  )                :: parameterDoc
-    character       (len=32                  )                :: parameterLabel
-    character       (len=128                 )                :: powerSpectrumLine
-    integer                                                   :: iWavenumber                     , powerSpectrumUnit
-    type            (inputParameterList      )                :: parameters
+    double precision                              , intent(in   ) :: time                           , waveNumber
+    double precision                              , save          :: timePrevious            =-1.0d0
+    double precision                              , parameter     :: wavenumberLong          =0.01d0, wavenumberShort  =1.0d0
+    class           (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
+    class           (cosmologyParametersClass    ), pointer       :: cosmologyParameters_
+    class           (powerSpectrumPrimordialClass), pointer       :: powerSpectrumPrimordial_
+    double precision                                              :: littleHubbleCMB                , redshift
+    type            (varying_string              )                :: parameterFile                  , powerSpectrumFile
+    type            (xmlf_t                      )                :: parameterDoc
+    character       (len=32                      )                :: parameterLabel
+    character       (len=128                     )                :: powerSpectrumLine
+    integer                                                       :: iWavenumber                    , powerSpectrumUnit
+    type            (inputParameterList          )                :: parameters
 
     ! If the time has changed, recompute the power spectrum.
     !$omp critical(Power_Spectrum_Nonlinear_CosmicEmu)
     if (time /= timePrevious) then
-       ! Get the default cosmology.
-       thisCosmologyParameters => cosmologyParameters()
-       ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()     
- 
+       ! Get required objects.
+       cosmologyParameters_     => cosmologyParameters    ()
+       cosmologyFunctions_      => cosmologyFunctions     ()     
+       powerSpectrumPrimordial_ => powerSpectrumPrimordial()
        ! Store the new time and find the corresponding redshift.
        timePrevious=time
-       redshift=cosmologyFunctionsDefault%redshiftFromExpansionFactor(cosmologyFunctionsDefault%expansionFactor(time))
-
+       redshift=cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(time))
        ! Check that this is a flat cosmology.
-       if (Values_Differ(thisCosmologyParameters%OmegaMatter()+thisCosmologyParameters%OmegaDarkEnergy(),1.0d0,absTol=1.0d-3))                                       &
-            & call Galacticus_Error_Report(                                                                    &
-            &                              'Power_Spectrum_Nonlinear_CosmicEmu'                              , &
-            &                              'this method is applicable only to flat matter+dark energy models'  &
+       if (Values_Differ(cosmologyParameters_%OmegaMatter()+cosmologyParameters_%OmegaDarkEnergy(),1.0d0,absTol=1.0d-3)) &
+            & call Galacticus_Error_Report(                                                                              &
+            &                              'Power_Spectrum_Nonlinear_CosmicEmu'                              ,           &
+            &                              'this method is applicable only to flat matter+dark energy models'            &
             &                             )
 
        ! Check that the primordial power spectrum has no running of the spectral index.
        if     (                                                                                                              &
             &  Values_Differ(                                                                                                &
-            &                Primordial_Power_Spectrum_Logarithmic_Derivative(waveNumberShort),                              &
-            &                Primordial_Power_Spectrum_Logarithmic_Derivative(waveNumberLong ),                              &
+            &                powerSpectrumPrimordial_%logarithmicDerivative(waveNumberShort),                                &
+            &                powerSpectrumPrimordial_%logarithmicDerivative(waveNumberLong ),                                &
             &                relTol=1.0d-3                                                                                   &
             &               )                                                                                                &
             & )                                                                                                              &
@@ -115,15 +114,15 @@ contains
             &                             )
        ! Generate a parameter file.
        parameters=inputParameterList()
-       write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter   ()
+       write (parameterLabel,'(f5.3)') cosmologyParameters_%OmegaMatter   ()
        call parameters%add("OmegaMatter"              ,parameterLabel)
-       write (parameterLabel,'(f6.4)') thisCosmologyParameters%OmegaBaryon   ()
+       write (parameterLabel,'(f6.4)') cosmologyParameters_%OmegaBaryon   ()
        call parameters%add("OmegaBaryon"              ,parameterLabel)
-       write (parameterLabel,'(f7.4)') thisCosmologyParameters%HubbleConstant()
+       write (parameterLabel,'(f7.4)') cosmologyParameters_%HubbleConstant()
        call parameters%add("HubbleConstant"           ,parameterLabel)
-       write (parameterLabel,'(f6.4)') sigma_8     ()
+       write (parameterLabel,'(f6.4)') sigma_8                            ()
        call parameters%add("sigma_8"                  ,parameterLabel)
-       write (parameterLabel,'(f6.4)') Primordial_Power_Spectrum_Logarithmic_Derivative(waveNumberShort)
+       write (parameterLabel,'(f6.4)') powerSpectrumPrimordial_%logarithmicDerivative(waveNumberShort)
        call parameters%add("powerSpectrumIndex"       ,parameterLabel)
        write (parameterLabel,'(f6.3)') -1.0d0
        call parameters%add("darkEnergyEquationOfState",parameterLabel)
@@ -152,7 +151,7 @@ contains
           if (powerSpectrumLine(1:1) == "#") then
              if (powerSpectrumLine(1:33) == "# dimensionless Hubble parameter") then
                 read (powerSpectrumLine(index(powerSpectrumLine,":")+1:),*) littleHubbleCMB
-                if (Values_Differ(littleHubbleCMB,thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH),relTol=1.0d-2)) &
+                if (Values_Differ(littleHubbleCMB,cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH),relTol=1.0d-2)) &
                      call Galacticus_Error_Report(                                                                         &
                      &                            'Power_Spectrum_Nonlinear_CosmicEmu'                                   , &
                      &                            'values of H_0 in Galacticus and CosmicEmu are significantly different'  &
