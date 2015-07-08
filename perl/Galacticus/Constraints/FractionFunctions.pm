@@ -164,8 +164,18 @@ sub Construct {
 	# Compute the likelihood.
 	my $constraint;
 	my $logDeterminant;
-	my $logLikelihood = &Covariances::ComputeLikelihood($yGalacticusLimited,$config->{'y'},$fullCovariance, determinant => \$logDeterminant, quiet => $arguments{'quiet'});
+	my $offsets;
+	my $inverseCovariance;
+	my $logLikelihood = &Covariances::ComputeLikelihood($yGalacticusLimited,$config->{'y'},$fullCovariance, determinant => \$logDeterminant, inverseCovariance => \$inverseCovariance, offsets => \$offsets, quiet => $arguments{'quiet'});
 	$constraint->{'logLikelihood'} = $logLikelihood;
+	# Find the Jacobian of the log-likelihood with respect to the model mass function.
+	my $jacobian = pdl zeroes(1,nelem($yGalacticus));
+	for(my $i=0;$i<nelem($yGalacticus);++$i) {
+	    $jacobian->((0),($i)) .= sum($inverseCovariance->(($i),:)*$offsets);
+	}
+	# Compute the variance in the log-likelihood due to errors in the model.
+	my $logLikelihoodVariance = transpose($jacobian) x $covarianceGalacticus x $jacobian;
+	$constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
 	# Output the constraint.
 	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
 	open(oHndl,">".$arguments{'outputFile'});
