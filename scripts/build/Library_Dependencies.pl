@@ -22,7 +22,10 @@ my %dependencies =
      fgsl_gfortran  => [ "gsl"                              ],
      gsl            => [ "gslcblas"                         ],
      FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
-     FoX_sax        => [ "FoX_common"                       ]
+     FoX_sax        => [ "FoX_common"                       ],
+     yepLibrary     => [ "yeppp"                            ],
+     yepCore        => [ "yeppp"                            ],
+     yepMath        => [ "yeppp"                            ]
     );
 
 # Library order dependencies for static linking.
@@ -36,7 +39,10 @@ my %staticLinkDependencies =
      gsl            => [ "gslcblas"                         ],
      FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
      FoX_sax        => [ "FoX_common"                       ],
-     FoX_common     => [ "FoX_fsys"                         ]
+     FoX_common     => [ "FoX_fsys"                         ],
+     YEPLibrary     => [ "yeppp"                            ],
+     YEPCore        => [ "yeppp"                            ],
+     YEPMath        => [ "yeppp"                            ]
     );
 
 # Detect static linking.
@@ -55,7 +61,7 @@ $pthreadIncluded = 1
 my %libraries;
 
 # Open the file of dependencies for the executable.
-(my $dependencyFile = "./work/build/".$executable) =~ s/\.exe$/\.d/;
+(my $dependencyFile = $ENV{'BUILDPATH'}."/".$executable) =~ s/\.exe$/\.d/;
 die("Library_Dependencies.pl: dependency file is missing")
     unless ( -e $dependencyFile );
 open(iHndl,$dependencyFile);
@@ -93,10 +99,33 @@ my @sortedLibraries = toposort(\&staticLinkDependency, \@unsortedLibraries);
 
 # Add static link options.
 my $staticOptions = "";
-$staticOptions = "-Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
+$staticOptions = " -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
     if ( $isStatic == 1 && $pthreadIncluded == 0 );
 
 # Write the linker options to standard output.
-print join(" ",map {"-l".$_} @sortedLibraries)." ".$staticOptions."\n";
+print join(" ",map {"-l".$_} @sortedLibraries).$staticOptions;
+
+# If we are linking BLAS, cause GFortran to use the external BLAS library.
+print " -fexternal-blas"
+    if ( grep{$_ eq "blas"} @sortedLibraries );
+
+# Check glibc version.
+my $glibcVersionMajor;
+my $glibcVersionMinor;
+open(my $pipe,"ldd --version|");
+while ( my $line = <$pipe> ) {
+    if ( $line =~ m/^ldd \(GNU libc\) (\d+)\.(\d+)/ ) {
+	$glibcVersionMajor = $1;
+	$glibcVersionMinor = $2;
+    }
+}
+close($pipe);
+
+# Determine if we need to link the realtime library.
+print " -lrt"
+    if ( $glibcVersionMajor < 2 || $glibcVersionMajor == 2 && $glibcVersionMinor <= 16 );
+
+# Write newline.
+print "\n";
 
 exit;
