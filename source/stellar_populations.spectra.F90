@@ -15,115 +15,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of stellar population spectra.
+!% Contains a module that provides a class implementing stellar population spectra.
 
 module Stellar_Population_Spectra
-  !% Implements calculations of stellar population spectra.
+  !% Provides a class implementing stellar population spectra.
   use Abundances_Structure
-  use ISO_Varying_String
-  !# <include directive="stellarPopulationSpectraMethod" type="moduleUse">
-  include 'stellar_populations.spectra.modules.inc'
-  !# </include>
-  implicit none
-  private
-  public :: Stellar_Population_Spectrum, Stellar_Population_Spectrum_Tabulation
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                                      :: stellarPopulationSpectraInitialized=.false.
-
-  ! Name of cooling time available method used.
-  type     (varying_string                          )          :: stellarPopulationSpectraMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Stellar_Population_Spectrum_Get_Template), pointer :: Stellar_Population_Spectrum_Get    =>null()
-  abstract interface
-     double precision function Stellar_Population_Spectrum_Get_Template(abundancesStellar,age,wavelength,imfIndex,status)
-       import abundances
-       type            (abundances), intent(in   )           :: abundancesStellar
-       double precision            , intent(in   )           :: age              , wavelength
-       integer                     , intent(in   )           :: imfIndex
-       integer                     , intent(  out), optional :: status
-     end function Stellar_Population_Spectrum_Get_Template
-  end interface
-  procedure(Stellar_Population_Tabulation_Get_Template), pointer :: Stellar_Population_Spectrum_Tabulation_Get=>null()
-  abstract interface
-     subroutine Stellar_Population_Tabulation_Get_Template(imfIndex,agesCount,metallicitiesCount,ages,metallicity)
-       integer                                    , intent(in   ) :: imfIndex
-       integer                                    , intent(  out) :: agesCount, metallicitiesCount
-       double precision, allocatable, dimension(:), intent(  out) :: ages     , metallicity
-     end subroutine Stellar_Population_Tabulation_Get_Template
-  end interface
-
-contains
-
-  subroutine Stellar_Population_Spectrum_Initialize
-    !% Initialize the stellar population spectra module
-    use Galacticus_Error
-    use Input_Parameters
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.stellarPopulationSpectraInitialized) then
-       !$omp critical(Stellar_Population_Spectrum_Initialization)
-       if (.not.stellarPopulationSpectraInitialized) then
-          ! Get the cooling function method parameter.
-          !@ <inputParameter>
-          !@   <name>stellarPopulationSpectraMethod</name>
-          !@   <defaultValue>Conroy-White-Gunn2009</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for calculations of stellar population spectra.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('stellarPopulationSpectraMethod',stellarPopulationSpectraMethod,defaultValue='Conroy-White-Gunn2009')
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="stellarPopulationSpectraMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>stellarPopulationSpectraMethod,Stellar_Population_Spectrum_Get,Stellar_Population_Spectrum_Tabulation_Get</functionArgs>
-          include 'stellar_populations.spectra.inc'
-          !# </include>
-          if (.not.(associated(Stellar_Population_Spectrum_Get).and.associated(Stellar_Population_Spectrum_Tabulation_Get))) call&
-               & Galacticus_Error_Report('Stellar_Population_Spectrum','method ' //char(stellarPopulationSpectraMethod)//' is&
-               & unrecognized')
-          stellarPopulationSpectraInitialized=.true.
-       end if
-       !$omp end critical(Stellar_Population_Spectrum_Initialization)
-    end if
-    return
-  end subroutine Stellar_Population_Spectrum_Initialize
-
-  double precision function Stellar_Population_Spectrum(abundancesStellar,age,wavelength,imfIndex,status)
-    !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\normalfont \ttfamily abundances}, of the
-    !% given {\normalfont \ttfamily age} (in Gyr) and the specified {\normalfont \ttfamily wavelength} (in Angstroms).
-    implicit none
-    type            (abundances), intent(in   )           :: abundancesStellar
-    double precision            , intent(in   )           :: age              , wavelength
-    integer                     , intent(in   )           :: imfIndex
-    integer                     , intent(  out), optional :: status
-
-    ! Initialize the module.
-    call Stellar_Population_Spectrum_Initialize
-
-    ! Get the spectrum using the selected method.
-    Stellar_Population_Spectrum=Stellar_Population_Spectrum_Get(abundancesStellar,age,wavelength,imfIndex,status)
-
-    return
-  end function Stellar_Population_Spectrum
-
-  subroutine Stellar_Population_Spectrum_Tabulation(imfIndex,agesCount,metallicitiesCount,age,metallicity)
-    !% Return a tabulation of ages and metallicities at which stellar spectra for the specified IMF should be tabulated.
-    implicit none
-    integer                                    , intent(in   ) :: imfIndex
-    integer                                    , intent(  out) :: agesCount, metallicitiesCount
-    double precision, allocatable, dimension(:), intent(  out) :: age      , metallicity
-
-    ! Initialize the module.
-    call Stellar_Population_Spectrum_Initialize
-
-    ! Get the tabulation using the selected method.
-    call Stellar_Population_Spectrum_Tabulation_Get(imfIndex,agesCount,metallicitiesCount,age,metallicity)
-    return
-  end subroutine Stellar_Population_Spectrum_Tabulation
+  !# <functionClass>
+  !#  <name>stellarPopulationSpectra</name>
+  !#  <descriptiveName>Stellar Population Spectra</descriptiveName>
+  !#  <description>Class providing stellar population spectra.</description>
+  !#  <default>FSPS</default>
+  !#  <stateful>no</stateful>
+  !#  <method name="luminosity" >
+  !#   <description>Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with \gls{imf} specified by {\normalfont \ttfamily imfIndex}, composition {\normalfont \ttfamily abundances}, of the given {\normalfont \ttfamily age} (in Gyr), at the specified {\normalfont \ttfamily wavelength} (in Angstroms).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (abundances), intent(in   )           :: abundancesStellar</argument>
+  !#   <argument>double precision            , intent(in   )           :: age              , wavelength</argument>
+  !#   <argument>integer                     , intent(in   )           :: imfIndex</argument>
+  !#   <argument>integer                     , intent(  out), optional :: status</argument>
+  !#  </method>
+  !#  <method name="tabulation" >
+  !#   <description>Return a tabulation of ages and metallicities at which stellar spectra for the specified \gls{imf} should be tabulated.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer                                    , intent(in   ) :: imfIndex</argument>
+  !#   <argument>integer                                    , intent(  out) :: agesCount, metallicitiesCount</argument>
+  !#   <argument>double precision, allocatable, dimension(:), intent(  out) :: ages     , metallicity</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Stellar_Population_Spectra

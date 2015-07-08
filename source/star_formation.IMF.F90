@@ -32,8 +32,8 @@ module Star_Formation_IMF
   !# </include>
   implicit none
   private
-  public :: IMF_Select, IMF_Recycled_Fraction_Instantaneous, IMF_Recycling_Rate_NonInstantaneous, IMF_Yield_Instantaneous,&
-       & IMF_Metal_Yield_Rate_NonInstantaneous, IMF_Energy_Input_Rate_NonInstantaneous, IMF_Name, IMF_Tabulate, IMF_Descriptor
+  public :: IMF_Select, IMF_Available_Count, IMF_Recycled_Fraction_Instantaneous, IMF_Recycling_Rate_NonInstantaneous, IMF_Yield_Instantaneous,&
+       & IMF_Metal_Yield_Rate_NonInstantaneous, IMF_Energy_Input_Rate_NonInstantaneous, IMF_Name, IMF_Tabulate, IMF_Descriptor, IMF_Index
 
   ! Flag to indicate if this module has been initialized.
   logical                                                                           :: imfInitialized                         =.false.
@@ -129,6 +129,16 @@ contains
     return
   end function IMF_Select
 
+  integer function IMF_Available_Count()
+    implicit none
+
+    ! Initialize the IMF subsystem.
+    call Star_Formation_IMF_Initialize()
+    ! Return the number of available IMFs.
+    IMF_Available_Count=imfAvailableCount
+    return
+  end function IMF_Available_Count
+  
   function IMF_Name(imfIndex)
     !% Return the name of the IMF with the specified index.
     use Galacticus_Error
@@ -146,6 +156,26 @@ contains
     end if
     return
   end function IMF_Name
+
+  integer function IMF_Index(imfName)
+    !% Return the name of the IMF with the specified index.
+    use Galacticus_Error
+    implicit none
+    character(len=*), intent(in   ) :: imfName
+    integer                         :: i
+    
+    ! Initialize the IMF subsystem.
+    call Star_Formation_IMF_Initialize()
+    ! Search for the name.
+    do i=1,imfAvailableCount
+       if (imfName == imfNames(i)) then
+          IMF_Index=i
+          return
+       end if
+    end do
+    call Galacticus_Error_Report('IMF_Index','IMF name is unknown')
+    return
+  end function IMF_Index
 
   function IMF_Descriptor(imfIndex)
     !% Return a full descriptor for the IMF with the specified index.
@@ -434,6 +464,7 @@ contains
     type            (c_ptr                     )                                                              ::        parameterPointer
     type            (fgsl_function             )                                                              ::        integrandFunction
     type            (fgsl_integration_workspace)                                                              ::        integrationWorkspace
+    logical                                                                                                   ::        integrationReset
     integer         (c_size_t                  )                                                              ::        metallicityIndex
     integer                                                                                                   ::        fileFormat                                         , iAge                                      , &
          &                                                                                                              iMetallicity                                       , iRecycledFraction                         , &
@@ -629,7 +660,7 @@ contains
           call xml_NewElement(recycledFractionDoc,"recycledFraction")
           loopCountTotal=recycledFractionTableMetallicityCount*recycledFractionTableAgeCount
           loopCount     =0
-          !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace) copyin(imfSelectedGlobal)
+          !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace,integrationReset) copyin(imfSelectedGlobal)
           do iAge=1,recycledFractionTableAgeCount
              lifetime=recycledFractionTableAge(iAge)
              write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
@@ -653,8 +684,9 @@ contains
                 minimumMass=IMF_Minimum_Mass(imfSelected)
                 maximumMass=IMF_Maximum_Mass(imfSelected)
                 ! Integrate ejected mass over the IMF between these limits.
+                integrationReset=.true.
                 recycledFractionTable(iAge,iMetallicity,recycledFractionIndex(imfSelected))=Integrate(minimumMass,maximumMass&
-                     &,Recycled_Fraction_Integrand ,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute&
+                     &,Recycled_Fraction_Integrand ,parameterPointer,integrandFunction,integrationWorkspace,reset=integrationReset,toleranceAbsolute&
                      &=1.0d-3 ,toleranceRelative=1.0d-4)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
              end do

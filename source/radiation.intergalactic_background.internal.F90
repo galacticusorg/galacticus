@@ -263,36 +263,37 @@ contains
     use               Galacticus_HDF5
     use               IO_HDF5
     implicit none
-    class           (universeEvent             ), intent(in   ) :: thisEvent
-    type            (universe                  ), intent(inout) :: thisUniverse
-    type            (mergerTree                ), pointer       :: thisTree       
-    type            (mergerTreeList            ), pointer       :: thisForest       
-    type            (treeNode                  ), pointer       :: thisNode
-    class           (nodeComponentBasic        ), pointer       :: thisBasic
-    class           (nodeComponentDisk         ), pointer       :: thisDisk
-    class           (nodeComponentSpheroid     ), pointer       :: thisSpheroid
-    type            (universeEvent             ), pointer       :: newEvent
-    class           (accretionDiskSpectraClass ), pointer       :: accretionDiskSpectra_
-    double precision                            , parameter     :: odeToleranceAbsolute        =1.0d-30, odeToleranceRelative        =1.0d-3
-    double precision                            , parameter     :: integrationToleranceAbsolute=1.0d-30, integrationToleranceRelative=1.0d-3
-    type            (fodeiv2_system            ), save          :: ode2System
-    type            (fodeiv2_driver            ), save          :: ode2Driver
-    logical                                     , save          :: odeReset
-    type            (c_ptr                     )                :: parameterPointer
-    double precision                                            :: starFormationRateDisk               , starFormationRateSpheroid          , &
-         &                                                         gasMassDisk                         , gasMassSpheroid                    , &
-         &                                                         ageEnd                              , ageStart                           , &
-         &                                                         stellarSpectrumDisk                 , stellarSpectrumSpheroid            , & 
-         &                                                         timeStart                           , timeEnd                            , &
-         &                                                         treeTimeLatest
-    type            (abundances                ), target        :: gasAbundancesDisk                   , gasAbundancesSpheroid
-    integer                                                     :: imfIndexDisk                        , imfIndexSpheroid                   , &
-         &                                                         iTime                               , iWavelength
-    type            (varying_string            )                :: message
-    character       (len=6                     )                :: label
-    type            (hdf5Object                )                :: backgroundRadiationGroup            , backgroundRadiationDataset
-    integer         (c_size_t                  )                :: iNow
-    logical                                                     :: firstTime
+    class           (universeEvent                ), intent(in   ) :: thisEvent
+    type            (universe                     ), intent(inout) :: thisUniverse
+    type            (mergerTree                   ), pointer       :: thisTree       
+    type            (mergerTreeList               ), pointer       :: thisForest       
+    type            (treeNode                     ), pointer       :: thisNode
+    class           (nodeComponentBasic           ), pointer       :: thisBasic
+    class           (nodeComponentDisk            ), pointer       :: thisDisk
+    class           (nodeComponentSpheroid        ), pointer       :: thisSpheroid
+    type            (universeEvent                ), pointer       :: newEvent
+    class           (accretionDiskSpectraClass    ), pointer       :: accretionDiskSpectra_
+    class           (stellarPopulationSpectraClass), pointer       :: stellarPopulationSpectra_
+    double precision                               , parameter     :: odeToleranceAbsolute        =1.0d-30, odeToleranceRelative        =1.0d-3
+    double precision                               , parameter     :: integrationToleranceAbsolute=1.0d-30, integrationToleranceRelative=1.0d-3
+    type            (fodeiv2_system               ), save          :: ode2System
+    type            (fodeiv2_driver               ), save          :: ode2Driver
+    logical                                        , save          :: odeReset
+    type            (c_ptr                        )                :: parameterPointer
+    double precision                                               :: starFormationRateDisk               , starFormationRateSpheroid          , &
+         &                                                            gasMassDisk                         , gasMassSpheroid                    , &
+         &                                                            ageEnd                              , ageStart                           , &
+         &                                                            stellarSpectrumDisk                 , stellarSpectrumSpheroid            , & 
+         &                                                            timeStart                           , timeEnd                            , &
+         &                                                            treeTimeLatest
+    type            (abundances                   ), target        :: gasAbundancesDisk                   , gasAbundancesSpheroid
+    integer                                                        :: imfIndexDisk                        , imfIndexSpheroid                   , &
+         &                                                            iTime                               , iWavelength
+    type            (varying_string               )                :: message
+    character       (len=6                        )                :: label
+    type            (hdf5Object                   )                :: backgroundRadiationGroup            , backgroundRadiationDataset
+    integer         (c_size_t                     )                :: iNow
+    logical                                                        :: firstTime
 
     ! Display message.
     write (label,'(f6.3)') thisEvent%time
@@ -301,7 +302,8 @@ contains
     ! Find the current timestep.
     iNow=Search_Array_For_Closest(backgroundRadiationTime,thisEvent%time)
     ! Get required objects.
-    accretionDiskSpectra_ => accretionDiskSpectra()
+    accretionDiskSpectra_     => accretionDiskSpectra    ()
+    stellarPopulationSpectra_ => stellarPopulationSpectra()
     ! Iterate over all nodes.
     call Galacticus_Display_Message('Accumulating emissivity')
     treeTimeLatest=0.0d0
@@ -347,6 +349,7 @@ contains
                          wavelength              =  backgroundRadiationWavelength(iWavelength)
                          imfIndex                =  imfIndexDisk
                          gasAbundances           => gasAbundancesDisk
+                         integrationReset=.true.
                          stellarSpectrumDisk     =  Integrate(                                                        &
                               &                               ageStart                                              , &
                               &                               ageEnd                                                , &
@@ -358,7 +361,9 @@ contains
                               &                               toleranceRelative        =integrationToleranceRelative, &
                               &                               reset                    =integrationReset              &
                               &                              )
+                         call Integrate_Done(integrandFunction,integrationWorkspace)
                          gasAbundances           => gasAbundancesSpheroid
+                         integrationReset=.true.
                          stellarSpectrumSpheroid =  Integrate(                                                        &
                               &                               ageStart                                              , &
                               &                               ageEnd                                                , &
@@ -370,6 +375,7 @@ contains
                               &                               toleranceRelative        =integrationToleranceRelative, &
                               &                               reset                    =integrationReset              &
                               &                              )
+                         call Integrate_Done(integrandFunction,integrationWorkspace)
                          backgroundRadiationEmissivity        (iWavelength,iTime)          &
                               & =backgroundRadiationEmissivity(iWavelength,iTime)          &
                               & +(                                                         &
@@ -471,37 +477,37 @@ contains
     ! Return true since we've performed our task.
     success=.true.
     return
-  end function Radiation_Intergalactic_Background_Internal_Update
 
-  function stellarSpectraConvolution(age,parameterPointer) bind(c)
-    !% Integrand for convolution of stellar spectra.
-    use               Stellar_Population_Spectra
-    use, intrinsic :: ISO_C_Binding
-    use Galacticus_Error
-    implicit none
-    real(kind=c_double)        :: stellarSpectraConvolution
-    real(kind=c_double), value :: age
-    type(c_ptr        ), value :: parameterPointer
-    integer                    :: status
+  contains
+    
+    function stellarSpectraConvolution(age,parameterPointer) bind(c)
+      !% Integrand for convolution of stellar spectra.
+      implicit none
+      real   (kind=c_double)        :: stellarSpectraConvolution
+      real   (kind=c_double), value :: age
+      type   (c_ptr        ), value :: parameterPointer
+      integer                       :: status
 
-    stellarSpectraConvolution=Stellar_Population_Spectrum(               &
-         &                                                gasAbundances, &
-         &                                                age          , &
-         &                                                wavelength   , &
-         &                                                imfIndex     , &
-         &                                                status         &
-         &                                               )
-    if     (                                                                             &
-         &   status /= errorStatusSuccess                                                &
-         &  .and.                                                                        &
-         &   status /= errorStatusInputDomain                                            &
-         & ) call Galacticus_Error_Report(                                               &
-         &                                'stellarSpectraConvolution'                  , &
-         &                                'stellar population spectrum function failed'  &
+      stellarSpectraConvolution=stellarPopulationSpectra_%luminosity(               &
+           &                                                         gasAbundances, &
+           &                                                         age          , &
+           &                                                         wavelength   , &
+           &                                                         imfIndex     , &
+           &                                                         status         &
+           &                                                        )
+      if     (                                                                             &
+           &   status /= errorStatusSuccess                                                &
+           &  .and.                                                                        &
+           &   status /= errorStatusInputDomain                                            &
+           & ) call Galacticus_Error_Report(                                               &
+           &                                'stellarSpectraConvolution'                  , &
+           &                                'stellar population spectrum function failed'  &
          &                               )
-    return
-  end function stellarSpectraConvolution
-  
+      return
+    end function stellarSpectraConvolution
+
+  end function Radiation_Intergalactic_Background_Internal_Update
+    
   function backgroundRadiationODEs(time,spectrum,spectrumRateOfChange,parameterPointer) bind(c)
     !% Evaluates the ODEs controlling the evolution of cosmic background radiation.
     use               ODE_Solver_Error_Codes
