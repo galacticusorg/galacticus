@@ -72,31 +72,36 @@ contains
     use Cooling_Functions
     use Chemical_States
     implicit none
-    double precision                    , intent(in   ) :: density                       , temperature
-    type            (abundances        ), intent(in   ) :: gasAbundances
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensities
-    type            (radiationStructure), intent(in   ) :: radiation
+    double precision                      , intent(in   ) :: density                       , temperature
+    type            (abundances          ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
+    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (chemicalStateClass  ), pointer       :: chemicalState_
+    class           (coolingFunctionClass), pointer       :: coolingFunction_
     ! Effectively infinite time (for arbitrarily long cooling times).
-    double precision                    , parameter     :: largeTime              =1.0d10
-    double precision                                    :: coolingFunction               , energyDensityThermal , &
-         &                                                 numberDensityAllSpecies       , numberDensityHydrogen
+    double precision                      , parameter     :: largeTime              =1.0d10
+    double precision                                      :: coolingFunctionValue          , energyDensityThermal , &
+         &                                                   numberDensityAllSpecies       , numberDensityHydrogen
 
+    ! Get required objects.
+    chemicalState_   => chemicalState  ()
+    coolingFunction_ => coolingFunction()
     ! Compute number density of hydrogen (in cm^-3).
     numberDensityHydrogen=density*gasAbundances%hydrogenMassFraction()*massSolar/massHydrogenAtom/(hecto*megaParsec)**3
 
     ! Get the number density of all species, including electrons.
     numberDensityAllSpecies= numberDensityHydrogen/gasAbundances%hydrogenNumberFraction() &
-         &                  +Electron_Density(temperature,numberDensityHydrogen,gasAbundances,radiation)
+         &                  +chemicalState_%electronDensity(numberDensityHydrogen,temperature,gasAbundances,radiation)
 
     ! Get the cooling function (in ergs cm^-3 s^-1).
-    coolingFunction=Cooling_Function(temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
+    coolingFunctionValue=coolingFunction_%coolingFunction(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
 
     ! Determine the thermal energy density of the gas (in ergs cm^-3).
     energyDensityThermal=(coolingTimeSimpleDegreesOfFreedom/2.0d0)*boltzmannsConstant*temperature*numberDensityAllSpecies/ergs
 
     ! Compute the cooling time.
-    if (coolingFunction > 0.0d0) then
-       Cooling_Time_Simple=energyDensityThermal/coolingFunction/gigaYear
+    if (coolingFunctionValue > 0.0d0) then
+       Cooling_Time_Simple=energyDensityThermal/coolingFunctionValue/gigaYear
     else
        Cooling_Time_Simple=largeTime
     end if
@@ -111,12 +116,14 @@ contains
     use Radiation_Structure
     use Cooling_Functions
     implicit none
-    double precision                    , intent(in   ) :: density          , temperature
-    type            (abundances        ), intent(in   ) :: gasAbundances
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensities
-    type            (radiationStructure), intent(in   ) :: radiation
+    double precision                      , intent(in   ) :: density          , temperature
+    type            (abundances          ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
+    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (coolingFunctionClass), pointer       :: coolingFunction_
 
-    Cooling_Time_Density_Log_Slope_Simple=1.0d0-Cooling_Function_Density_Log_Slope(temperature,density,gasAbundances,chemicalDensities,radiation)
+    coolingFunction_ => coolingFunction()
+    Cooling_Time_Density_Log_Slope_Simple=1.0d0-coolingFunction_%coolingFunctionDensityLogSlope(density,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function Cooling_Time_Density_Log_Slope_Simple
 
@@ -128,12 +135,14 @@ contains
     use Radiation_Structure
     use Cooling_Functions
     implicit none
-    double precision                    , intent(in   ) :: density          , temperature
-    type            (abundances        ), intent(in   ) :: gasAbundances
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensities
-    type            (radiationStructure), intent(in   ) :: radiation
+    double precision                      , intent(in   ) :: density          , temperature
+    type            (abundances          ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
+    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (coolingFunctionClass), pointer       :: coolingFunction_
 
-    Cooling_Time_Temperature_Log_Slope_Simple=-Cooling_Function_Temperature_Log_Slope(temperature,density,gasAbundances,chemicalDensities,radiation)
+    coolingFunction_ => coolingFunction()
+    Cooling_Time_Temperature_Log_Slope_Simple=-coolingFunction_%coolingFunctionTemperatureLogSlope(density,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function Cooling_Time_Temperature_Log_Slope_Simple
 

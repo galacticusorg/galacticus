@@ -15,46 +15,59 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which computes the contribution to the cooling function due to Compton cooling off of the cosmic microwave
-!% background.
+  !% Implements a cooling function class which implements cooling due to Compton scattering off of \gls{cmb} photons.
+  
+  !# <coolingFunction name="coolingFunctionCMBCompton">
+  !#  <description>Class providing a cooling function due to Compton scattering off of \gls{cmb} photons.</description>
+  !# </coolingFunction>
+  type, extends(coolingFunctionClass) :: coolingFunctionCMBCompton
+     !% A cooling function class which implements cooling due to Compton scattering off of \gls{cmb} photons.
+     private
+   contains
+     final     ::                                       cmbComptonDestructor
+     procedure :: coolingFunction                    => cmbComptonCoolingFunction
+     procedure :: coolingFunctionTemperatureLogSlope => cmbComptonCoolingFunctionTemperatureLogSlope
+     procedure :: coolingFunctionDensityLogSlope     => cmbComptonCoolingFunctionDensityLogSlope
+  end type coolingFunctionCMBCompton
 
-module Cooling_Functions_CMB_Compton
-  !% Computes the contribution to the cooling function due to Compton cooling off of the cosmic microwave background.
-  use ISO_Varying_String
-  implicit none
-  private
-  public :: Cooling_Function_CMB_Compton_Initialize, Cooling_Function_CMB_Compton,&
-       & Cooling_Function_Density_Slope_CMB_Compton, Cooling_Function_Temperature_Slope_CMB_Compton
-
-  ! Flag indicating whether or not this cooling function is selected.
-  logical :: functionSelected=.false.
+  interface coolingFunctionCMBCompton
+     !% Constructors for the ``CMB Compton'' cooling function class.
+     module procedure cmbComptonConstructorParameters
+     module procedure cmbComptonConstructorInternal
+  end interface coolingFunctionCMBCompton
 
 contains
 
-  !# <coolingFunctionMethods>
-  !#  <unitName>Cooling_Function_CMB_Compton_Initialize</unitName>
-  !#  <methodName>CMBCompton</methodName>
-  !# </coolingFunctionMethods>
-  subroutine Cooling_Function_CMB_Compton_Initialize(coolingFunctionMethods,coolingFunctionsMatched)
-    !% Initializes the ``atomic CIE cooling function from {\normalfont \scshape Cloudy}'' module.
+  function cmbComptonConstructorParameters(parameters)
+    !% Constructor for the ``CMB Compton'' cooling function class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type   (varying_string), intent(in   ) :: coolingFunctionMethods (:)
-    integer                , intent(inout) :: coolingFunctionsMatched
-
-    ! Check if this cooling function has been selected.
-    if (any(coolingFunctionMethods == 'CMBCompton')) then
-       functionSelected=.true.
-       coolingFunctionsMatched=coolingFunctionsMatched+1
-    end if
-
+    type(coolingFunctionCMBCompton)                :: cmbComptonConstructorParameters
+    type(inputParameters          ), intent(in   ) :: parameters
+  
+    cmbComptonConstructorParameters=cmbComptonConstructorInternal()
     return
-  end subroutine Cooling_Function_CMB_Compton_Initialize
+  end function cmbComptonConstructorParameters
+  
+  function cmbComptonConstructorInternal()
+    !% Internal constructor for the ``CMB Compton'' cooling function class.
+    implicit none
+    type(coolingFunctionCMBCompton) :: cmbComptonConstructorInternal
+    
+    return
+  end function cmbComptonConstructorInternal
+  
+  subroutine cmbComptonDestructor(self)
+    !% Destructor for the ``CMB Compton'' cooling function class.
+    implicit none
+    type(coolingFunctionCMBCompton), intent(inout) :: self
 
-  !# <coolingFunctionCompute>
-  !#   <unitName>Cooling_Function_CMB_Compton</unitName>
-  !# </coolingFunctionCompute>
-  subroutine Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
-    !% Return the cooling function assuming atomic CIE as computed by {\normalfont \scshape Cloudy}.
+    ! Nothing to do.
+    return
+  end subroutine cmbComptonDestructor
+
+  double precision function cmbComptonCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+    !% Return the cooling function due to Compton scattering off of \gls{cmb} photons.
     use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
@@ -62,115 +75,100 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen                                                                                               , temperature
-    type            (abundances        ), intent(in   ) :: gasAbundances
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensities
-    type            (radiationStructure), intent(in   ) :: radiation
-    double precision                    , intent(  out) :: coolingFunction
-    double precision                    , parameter     :: comptonRateNormalization=4.0d0*thomsonCrossSection*radiationConstant*boltzmannsConstant/electronMass/speedLight/ergs
-    double precision                                    :: electronDensity
+    class           (coolingFunctionCMBCompton), intent(inout) :: self
+    double precision                           , intent(in   ) :: numberDensityHydrogen                        , temperature
+    type            (abundances               ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
+    type            (radiationStructure       ), intent(in   ) :: radiation
+    class           (chemicalStateClass       ), pointer       :: chemicalState_
+    double precision                           , parameter     :: comptonRateNormalization=+4.0d0                             &
+         &                                                                                 *thomsonCrossSection               &
+         &                                                                                 *radiationConstant                 &
+         &                                                                                 *boltzmannsConstant                &
+         &                                                                                 /electronMass                      &
+         &                                                                                 /speedLight                        &
+         &                                                                                 /ergs
 
-    ! Check if this cooling function has been selected.
-    if (functionSelected) then
-
-       ! Get the electron density.
-       electronDensity=Electron_Density(temperature,numberDensityHydrogen,gasAbundances,radiation)
-
-       ! Compute the Compton cooling rate.
-       coolingFunction=comptonRateNormalization*electronDensity*(radiation%temperature([radiationTypeCMB])**4)&
-            &*(temperature-radiation%temperature([radiationTypeCMB]))
-
-    else
-
-       ! Not selected, return zero.
-       coolingFunction=0.0d0
-
-    end if
-
+    ! Get required objects.
+    chemicalState_ => chemicalState()
+    ! Compute the Compton cooling rate.
+    cmbComptonCoolingFunction=+comptonRateNormalization                                &
+         &                    *  chemicalState_%electronDensity(                       &
+         &                                                      numberDensityHydrogen, &
+         &                                                      temperature          , &
+         &                                                      gasAbundances        , &
+         &                                                      radiation              &
+         &                                                     )                       &
+         &                    *  radiation     %temperature    (                       &
+         &                                                      [radiationTypeCMB]     &
+         &                                                     )**4                    &
+         &                    *(                                                       &
+         &                      +               temperature                            &
+         &                      -radiation     %temperature    (                       &
+         &                                                      [radiationTypeCMB]     &
+         &                                                     )                       &
+         &                     )
     return
-  end subroutine Cooling_Function_CMB_Compton
+  end function cmbComptonCoolingFunction
 
-  !# <coolingFunctionDensitySlopeCompute>
-  !#   <unitName>Cooling_Function_Density_Slope_CMB_Compton</unitName>
-  !# </coolingFunctionDensitySlopeCompute>
-  subroutine Cooling_Function_Density_Slope_CMB_Compton(coolingFunctionDensitySlope,temperature,numberDensityHydrogen,gasAbundances&
-       &,chemicalDensities ,radiation)
-    !% Return the gradient with respect to density of cooling function assuming atomic CIE as computed by {\normalfont \scshape Cloudy}.
+  double precision function cmbComptonCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+    !% Return the logarithmic gradient with respect to density of the cooling function due to Compton scattering off of \gls{cmb}
+    !% photons.
     use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen      , temperature
-    type            (abundances        ), intent(in   ) :: gasAbundances
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensities
-    type            (radiationStructure), intent(in   ) :: radiation
-    double precision                    , intent(  out) :: coolingFunctionDensitySlope
-    double precision                                    :: coolingFunction            , electronDensityDensityLogSlope
+    class           (coolingFunctionCMBCompton), intent(inout) :: self
+    double precision                           , intent(in   ) :: numberDensityHydrogen, temperature
+    type            (abundances               ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
+    type            (radiationStructure       ), intent(in   ) :: radiation
+    class           (chemicalStateClass       ), pointer       :: chemicalState_
 
-    ! Check if this cooling function has been selected.
-    if (functionSelected) then
-
-       ! Get the cooling function.
-       call Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
-
-       ! Get logarithmic slope of electron density with density.
-       electronDensityDensityLogSlope=Electron_Density_Density_Log_Slope(temperature,numberDensityHydrogen,gasAbundances&
-            &,radiation)
-
-       ! Depends only on the behavior of electron density with density.
-       coolingFunctionDensitySlope=electronDensityDensityLogSlope*coolingFunction/numberDensityHydrogen
-
-    else
-
-       ! Not selected, return zero.
-       coolingFunctionDensitySlope=0.0d0
-
-    end if
-
+    ! Get required objects.
+    chemicalState_ => chemicalState()
+    ! Slope depends only on the behavior of electron density with density.
+    cmbComptonCoolingFunctionDensityLogSlope=+chemicalState_%electronDensityDensityLogSlope(                       &
+         &                                                                                  numberDensityHydrogen, &
+         &                                                                                  temperature          , &
+         &                                                                                  gasAbundances        , &
+         &                                                                                  radiation              &
+         &                                                                                 )
     return
-  end subroutine Cooling_Function_Density_Slope_CMB_Compton
-
-  !# <coolingFunctionTemperatureSlopeCompute>
-  !#   <unitName>Cooling_Function_Temperature_Slope_CMB_Compton</unitName>
-  !# </coolingFunctionTemperatureSlopeCompute>
-  subroutine Cooling_Function_Temperature_Slope_CMB_Compton(coolingFunctionTemperatureSlope,temperature,numberDensityHydrogen&
-       &,gasAbundances,chemicalDensities,radiation)
-    !% Return the cooling function assuming atomic CIE as computed by {\normalfont \scshape Cloudy}.
+  end function cmbComptonCoolingFunctionDensityLogSlope
+  
+  double precision function cmbComptonCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+    !% Return the logarithmic gradient with respect to temperature of the cooling function due to Compton scattering off of
+    !% \gls{cmb} photons.
     use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen          , temperature
-    type            (abundances        ), intent(in   ) :: gasAbundances
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensities
-    type            (radiationStructure), intent(in   ) :: radiation
-    double precision                    , intent(  out) :: coolingFunctionTemperatureSlope
-    double precision                                    :: coolingFunction                , electronDensityTemperatureLogSlope
+    class           (coolingFunctionCMBCompton), intent(inout) :: self
+    double precision                           , intent(in   ) :: numberDensityHydrogen                       , temperature
+    type            (abundances               ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
+    type            (radiationStructure       ), intent(in   ) :: radiation
+    class           (chemicalStateClass       ), pointer       :: chemicalState_
 
-    ! Check if this cooling function has been selected.
-    if (functionSelected) then
-
-       ! Get the cooling function.
-       call Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
-
-       ! Get logarithmic slope of electron density with temperature.
-       electronDensityTemperatureLogSlope=Electron_Density_Temperature_Log_Slope(temperature,numberDensityHydrogen,gasAbundances&
-            &,radiation)
-
-       ! Compute the partial derivative of the cooling rate with respect to temperature.
-       coolingFunctionTemperatureSlope=coolingFunction*(electronDensityTemperatureLogSlope/temperature+1.0d0/(temperature&
-            &-Radiation_Temperature(radiation,[radiationTypeCMB])))
-
-    else
-
-       ! Not selected, return zero.
-       coolingFunctionTemperatureSlope=0.0d0
-
-    end if
-
+    ! Get required objects.
+    chemicalState_ => chemicalState()
+    ! Compute the logarithmic slope.
+    cmbComptonCoolingFunctionTemperatureLogSlope=                                      &
+         & +  chemicalState_%electronDensityTemperatureLogSlope(                       &
+         &                                                      numberDensityHydrogen, &
+         &                                                      temperature          , &
+         &                                                      gasAbundances        , &
+         &                                                      radiation              &
+         &                                                     )                       &
+         & +                 temperature                                               &
+         & /(                                                                          &
+         &   +               temperature                                               &
+         &   -radiation     %temperature                       (                       &
+         &                                                      [radiationTypeCMB]     &
+         &                                                     )                       &
+         &  )
     return
-  end subroutine Cooling_Function_Temperature_Slope_CMB_Compton
-
-end module Cooling_Functions_CMB_Compton
+  end function cmbComptonCoolingFunctionTemperatureLogSlope
