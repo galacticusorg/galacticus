@@ -11,7 +11,11 @@
     <HubbleConstant value="70.0"/>
   </cosmologyParametersMethod><sigma_8 value="0.82"/>
   <transferFunctionMethod value="eisensteinHu1999"/>
-  <powerSpectrumIndex value="0.95"/>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index               value="0.95"/>
+    <wavenumberReference value="1.00"/>
+    <running             value="0.00"/>
+  </powerSpectrumPrimordialMethod>
   <darkMatterProfileConcentrationMethod value="prada2011"/>
   <prada2011ConcentrationA value="2.881"/>
   <prada2011ConcentrationB value="1.257"/>

@@ -25,7 +25,7 @@
   <bondiHoyleAccretionEnhancementHotHalo value="1"/>
   <bondiHoyleAccretionEnhancementSpheroid value="1"/>
   <bondiHoyleAccretionTemperatureSpheroid value="100"/>
-  <coolingFunctionMethods value="atomic_CIE_Cloudy"/>
+  <coolingFunctionMethod value="atomicCIECloudy"/>
   <coolingRadiusMethod value="simple"/>
   <coolingRateMethod value="White + Frenk"/>
   <coolingTimeAvailableAgeFactor value="0"/>
@@ -67,10 +67,11 @@
   <odeToleranceRelative value="0.01"/>
   <outputRedshifts value="0"/>
   <outputVirialData value="false"/>
-  <powerSpectrumIndex value="1.0"/>
-  <powerSpectrumMethod value="power law"/>
-  <powerSpectrumReferenceWavenumber value="1"/>
-  <powerSpectrumRunning value="0"/>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index value="1.0"/>
+    <wavenumberReference value="1"/>
+    <running value="0"/>
+  </powerSpectrumPrimordialMethod>
   <randomSeed value="228"/>
   <randomSpinResetMassFactor value="2"/>
   <reionizationSuppressionRedshift value="9"/>
@@ -99,7 +100,7 @@
   <starFormationTimescaleSpheroidsMethod value="dynamical time"/>
   <starveSatellites value="true"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
-  <stellarPopulationSpectraMethod value="Conroy, White &amp;amp; Gunn"/>
+  <stellarPopulationSpectraMethod value="FSPS"/>
   <timestepHostAbsolute value="1"/>
   <timestepHostRelative value="0.1"/>
   <timestepSimpleAbsolute value="1"/>

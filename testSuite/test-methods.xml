@@ -85,10 +85,10 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <chemicalStateFile value="data/chemicalState/chemical_state_Atomic_CIE_Cloudy.xml"/>
     <chemicalStateMethod>
       <value>atomicCIECloudy</value>
-      <value>cieFromFile</value>
+      <value>CIEFile</value>
+      <fileName value="data/chemicalState/chemical_state_Atomic_CIE_Cloudy.xml"/>
     </chemicalStateMethod>
   </parameters>
   <parameters>
@@ -149,7 +149,11 @@
       <OmegaBaryon value="0.045"/>
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
-    <powerSpectrumIndex value="0.961"/>
+    <powerSpectrumPrimordialMethod value="powerLaw">
+      <index               value="0.961"/>
+      <wavenumberReference value="1.000"/>
+      <running             value="0.000"/>
+    </powerSpectrumPrimordialMethod>
     <sigma_8 value="0.9"/>
   </parameters>
   <parameters>
@@ -180,10 +184,12 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <stellarPopulationSpectraFile value="data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.1_imfSalpeter.hdf5"/>
     <stellarPopulationSpectraMethod>
-      <value>Conroy-White-Gunn2009</value>
-      <value>file</value>
+      <value>FSPS</value>
+      <value>file
+      <imfSelectionFixed      value="Salpeter"                                                              />
+      <fileNameForSalpeterIMF value="data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.1_imfSalpeter.hdf5"/>
+      </value>
     </stellarPopulationSpectraMethod>
   </parameters>
   <parameters>
@@ -292,7 +298,11 @@
     <hydrogenNetworkFast value="true"/>
     <hydrogenNetworkCMBOnly value="true"/>
     <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/>
-    <coolingFunctionMethods value="atomicCIECloudy CMBCompton molecularHydrogenGalliPalla"/>
+    <coolingFunctionMethod value="summation">
+      <coolingFunctionMethod value="atomicCIECloudy"            />
+      <coolingFunctionMethod value="CMBCompton"                 />
+      <coolingFunctionMethod value="molecularHydrogenGalliPalla"/>
+    </coolingFunctionMethod>
     <mergerTreeBuildHaloMassMaximum value="1.0e11"/>
   </parameters>
   
@@ -757,10 +767,11 @@
       <neutrinoNumberEffective value="3.04"/>
       <neutrinoMassSummed value="0.0"/>
     </transferFunctionMethod>
-    <powerSpectrumMethod value="powerLaw"/>
-    <powerSpectrumIndex value="0.961"/>
-    <powerSpectrumReferenceWavenumber value="1.0"/>
-    <powerSpectrumRunning value="0.0"/>
+    <powerSpectrumPrimordialMethod value="powerLaw">
+      <index               value="0.961"/>
+      <wavenumberReference value="1.000"/>
+      <running             value="0.000"/>
+    </powerSpectrumPrimordialMethod>
     <linearGrowthMethod value="simple"/>
     <haloMassFunctionMethod value="Tinker2008"/>
     <criticalOverdensityMethod value="sphericalTopHat"/>

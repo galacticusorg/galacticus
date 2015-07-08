@@ -246,55 +246,57 @@ my @translations =
 	 outputVersion => "0.9.4",
 	 names         =>
 	 {
-	     "mergerTreeBuildMethod"                  => "mergerTreeBuilderMethod"     ,
-	     "darkMatterShapeMethod"                  => "darkMatterProfileShapeMethod",
-	     "H_0"                                    => "HubbleConstant"              ,
-	     "Omega_Matter"                           => "OmegaMatter"                 ,
-	     "Omega_DE"                               => "OmegaDarkEnergy"             ,
-	     "Omega_b"                                => "OmegaBaryon"                 ,
-	     "T_CMB"                                  => "temperatureCMB"              ,
-	     "effectiveNumberNeutrinos"               => "neutrinoNumberEffective"     ,
-	     "summedNeutrinoMasses"                   => "neutrinoMassSummed"          ,
-	     "transferFunctionWDMFreeStreamingLength" => "freeStreamingLength"         ,
-	     "transferFunctionWdmCutOffScale"         => "scaleCutOff"                 ,
-	     "transferFunctionWdmEpsilon"             => "epsilon"                     ,
-	     "transferFunctionWdmEta"                 => "eta"                         ,
-	     "transferFunctionWdmNu"                  => "nu"		 
+	     "mergerTreeBuildMethod"                             => "mergerTreeBuilderMethod"                                        ,
+	     "darkMatterShapeMethod"                             => "darkMatterProfileShapeMethod"                                   ,
+	     "H_0"                                               => "cosmologyParametersMethod->HubbleConstant"                      ,
+	     "Omega_Matter"                                      => "cosmologyParametersMethod->OmegaMatter"                         ,
+	     "Omega_DE"                                          => "cosmologyParametersMethod->OmegaDarkEnergy"                     ,
+	     "Omega_b"                                           => "cosmologyParametersMethod->OmegaBaryon"                         ,
+	     "T_CMB"                                             => "cosmologyParametersMethod->temperatureCMB"                      ,
+	     "effectiveNumberNeutrinos"                          => "transferFunctionMethod->neutrinoNumberEffective"                ,
+	     "summedNeutrinoMasses"                              => "transferFunctionMethod->neutrinoMassSummed"                     ,
+	     "transferFunctionWDMFreeStreamingLength"            => "transferFunctionMethod->freeStreamingLength"                    ,
+	     "transferFunctionWdmCutOffScale"                    => "transferFunctionMethod->scaleCutOff"                            ,
+	     "transferFunctionWdmEpsilon"                        => "transferFunctionMethod->epsilon"                                ,
+	     "transferFunctionWdmEta"                            => "transferFunctionMethod->eta"                                    ,
+	     "transferFunctionWdmNu"                             => "transferFunctionMethod->nu"                                     ,
+	     "stellarPopulationSpectraFileForceZeroMetallicity"  => "stellarPopulationSpectraMethod->forceZeroMetallicity"           ,
+	     "stellarPopulationSpectraForChabrierIMF"            => "stellarPopulationSpectraMethod->fileNameForChabrierIMF"         ,
+	     "stellarPopulationSpectraForBaugh2005TopHeavyIMF"   => "stellarPopulationSpectraMethod->fileNameForBaugh2005TopHeavyIMF",
+	     "stellarPopulationSpectraForKroupaIMF"              => "stellarPopulationSpectraMethod->fileNameForKroupaIMF"           ,
+	     "stellarPopulationSpectraForMiller-ScaloIMF"        => "stellarPopulationSpectraMethod->fileNameForMiller-ScaloIMF"     ,
+	     "stellarPopulationSpectraForSalpeterIMF"            => "stellarPopulationSpectraMethod->fileNameForSalpeterIMF"         ,
+	     "stellarPopulationSpectraForScaloIMF"               => "stellarPopulationSpectraMethod->fileNameForScaloIMF"            ,
+	     "stellarPopulationSpectraForKennicuttIMF"           => "stellarPopulationSpectraMethod->fileNameForKennicuttIMF"        ,
+	     "accretionDiskSpectraFileName"                      => "accretionDiskSpectraMethod->fileName"                           ,
+	     "chemicalStateFile"                                 => "chemicalStateMethod->fileName"                                  ,
+	     "coolingFunctionsMethod"                            => "coolingFunctionMethod"                                          ,
+	     "powerSpectrumMethod"                               => "powerSpectrumPrimordialMethod"                                  ,
+	     "powerSpectrumIndex"                                => "powerSpectrumPrimordialMethod->index"                           ,
+	     "powerSpectrumRunning"                              => "powerSpectrumPrimordialMethod->running"                         ,
+	     "powerSpectrumReferenceWavenumber"                  => "powerSpectrumPrimordialMethod->wavenumberReference"	     
 	 },
  	 values        =>
          {
-	     mergerTreeBuilderMethod      =>
+	     mergerTreeBuilderMethod        =>
 	     {
-		 "Cole2000"          => "cole2000"
+		 "Cole2000"              => "cole2000"
 	     },
-	     darkMatterProfileShapeMethod =>
+	     darkMatterProfileShapeMethod   =>
 	     {
-		 "Gao2008"           => "gao2008"
+		 "Gao2008"               => "gao2008"
 	     },
-	     transferFunctionMethod       =>
+	     transferFunctionMethod         =>
 	     {
-		 "null"              => "identity"        ,
-		 "Eisenstein-Hu1999" => "eisensteinHu1999"
+		 "null"                  => "identity"        ,
+		 "Eisenstein-Hu1999"     => "eisensteinHu1999"
 	     },
+	     stellarPopulationSpectraMethod =>
+	     {
+	         "Conroy-White-Gunn2009" => "FSPS"
+             }		     
 	 }
     }
-    );
-
-# Define subparameter associations.
-my %subParameters =
-    (    
-	 "HubbleConstant"          => "cosmologyParametersMethod",
-	 "OmegaMatter"             => "cosmologyParametersMethod",
-	 "OmegaDarkEnergy"         => "cosmologyParametersMethod",
-	 "OmegaBaryon"             => "cosmologyParametersMethod",
-	 "temperatureCMB"          => "cosmologyParametersMethod",
-	 "neutrinoMassSummed"      => "transferFunctionMethod"   ,
-	 "neutrinoNumberEffective" => "transferFunctionMethod"   ,
-	 "freeStreamingLength"     => "transferFunctionMethod"   ,
-	 "scaleCutOff"             => "transferFunctionMethod"   ,
-	 "epsilon"                 => "transferFunctionMethod"   ,
-	 "eta"                     => "transferFunctionMethod"   ,
-	 "nu"                      => "transferFunctionMethod"
     );
 
 # Define known defaults.
@@ -557,12 +559,15 @@ sub Translate {
 	    $parameters->removeChild($parameter);
 	}
 	for my $parameter ( $parameters->getChildrenByTagName("*") ) {
-	    if ( exists($subParameters{$parameter->nodeName()}) ) {
+	    if ( $parameter->nodeName() =~ m/(.+)\-\>(.+)/ ) {
+		my $hostName = $1;
+		my $subName  = $2;
 		$parameters->removeChild($parameter->nextSibling());
 		my $sibling = $parameter->nextSibling();
 		my $hostFound;
+		$parameter->setNodeName($subName);
 		for my $hostParameter ( $parameters->getChildrenByTagName("*") ) {
-		    if ( $hostParameter->nodeName() eq $subParameters{$parameter->nodeName()} ) {
+		    if ( $hostParameter->nodeName() eq $hostName ) {
 			$hostParameter->addChild($input     ->createTextNode("  "      ));
 			$hostParameter->addChild($parameters->removeChild   ($parameter));
 			$hostParameter->addChild($input     ->createTextNode("\n  "    ));
@@ -571,10 +576,10 @@ sub Translate {
 		}
 		unless ( $hostFound ) {
 		    # Create the new node.
-		    die('parametersMigrate.pl: attempting to insert a "'.$subParameters{$parameter->nodeName()}.'" element, but no default value is known')
-			unless ( exists($knownDefaults{$subParameters{$parameter->nodeName()}}) );
-		    my $parameterNode = $input->createElement($subParameters{$parameter->nodeName()});
-		    $parameterNode->setAttribute('value',$knownDefaults{$subParameters{$parameter->nodeName()}});
+		    die('parametersMigrate.pl: attempting to insert a "'.$hostName.'" element, but no default value is known')
+			unless ( exists($knownDefaults{$hostName}) );
+		    my $parameterNode = $input->createElement($hostName);
+		    $parameterNode->setAttribute('value',$knownDefaults{$hostName});
 		    $parameterNode->addChild($input     ->createTextNode("\n    "  ));
 		    $parameterNode->addChild($parameters->removeChild   ($parameter));
 		    $parameterNode->addChild($input     ->createTextNode("\n  "    ));

@@ -27,15 +27,18 @@
     <OmegaMatter value="0.25"/>
   </cosmologyParametersMethod><haloMassFunctionSamplingStellarMassFunctionErrorConstant value="1.0e-8"/>
   <coolingTimeAvailableAgeFactor value="0"/>
-  <powerSpectrumMethod value="powerLaw"/>
-  <stellarPopulationSpectraMethod value="Conroy-White-Gunn2009"/>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index               value="1.000"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordialMethod>
+  <stellarPopulationSpectraMethod value="FSPS"/>
   <satelliteMergingRemnantSizeMethod value="null"/>
   <mergerTreeReadTreeIndexToRootNodeIndex value="true"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <conditionalMassFunctionBehrooziGamma value="1.16052646522"/>
   <zeroCoolingRateAboveVelocity value="10000"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorAlpha value="-0.3"/>
-  <powerSpectrumReferenceWavenumber value="1"/>
   <barInstabilityMethod value="null"/>
   <starFormationTimescaleDisksHaloScalingVirialVelocityExponent value="0.0"/>
   <mergerTreeReadPresetSubhaloMasses value="false"/>
@@ -78,7 +81,7 @@
   <imfChabrierYieldInstantaneous value="0.035"/>
   <treeNodeMethodBasic value="standard"/>
   <mergerTreeBuildHaloMassMaximum value="2.0e14"/>
-  <coolingFunctionMethods value="atomicCIECloudy"/>
+  <coolingFunctionMethod value="atomicCIECloudy"/>
   <imfSelectionFixed value="Chabrier"/>
   <treeNodeMethodHotHalo value="verySimple"/>
   <conditionalMassFunctionBehrooziBetaCut value="-1.76747815862"/>
@@ -91,7 +94,6 @@
   <coolingTimeAvailableMethod value="White-Frenk1991"/>
   <hotHaloCoreRadiusOverVirialRadius value="0.1"/>
   <odeToleranceRelative value="0.01"/>
-  <powerSpectrumRunning value="0"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum value="7.5857758e11"/>
   <intergalacticMediumStateMethod value="file"/>
   <haloMassFunctionSamplingMethod value="stellarMassFunction"/>
@@ -109,7 +111,6 @@
   <mergerTreeBuildMassResolutionFixed value="5.0e9"/>
   <mergerTreeBuildHaloMassMinimum value="2.0e10"/>
   <mergerTreeBuildCole2000MergeProbability value="0.1"/>
-  <powerSpectrumIndex value="1"/>
   <outputRedshifts value="0.0700"/>
   <conditionalMassFunctionBehrooziBetaSatellite value="1.46136840213"/>
   <mergerTreeReadFileName value="testSuite/data/mergerTrees/finalTimeBeforeOutputTime.hdf5"/>

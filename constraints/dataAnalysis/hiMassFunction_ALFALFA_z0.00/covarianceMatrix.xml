@@ -44,7 +44,7 @@
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
-  <powerSpectrumMethod value="powerLaw"/>
+  <powerSpectrumPrimordialMethod value="powerLaw"/>
   <powerSpectrumIndex value="0.9646"/>
   <powerSpectrumReferenceWavenumber value="1.0"/>
   <powerSpectrumRunning value="0.0"/>

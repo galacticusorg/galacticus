@@ -23,10 +23,13 @@
   <starFormationDiskMinimumTimescale value="0.001"/>
   <darkMatterProfileMethod value="NFW"/>
   <coolingTimeAvailableAgeFactor value="0"/>
-  <stellarPopulationSpectraMethod value="Conroy-White-Gunn2009"/>
-  <powerSpectrumMethod value="powerLaw"/>
+  <stellarPopulationSpectraMethod value="FSPS"/>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index               value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordialMethod>
   <diskMassToleranceAbsolute value="1e-06"/>
-  <powerSpectrumReferenceWavenumber value="1"/>
   <haloSpinDistributionMethod value="Bett2007"/>
   <barInstabilityMethod value="ELN"/>
   <mergerRemnantSizeOrbitalEnergy value="1"/>
@@ -49,7 +52,7 @@
   <treeNodeMethodBasic value="standard"/>
   <mergerTreeBuildHaloMassMaximum value="1.01e12"/>
   <darkMatterProfileMinimumConcentration value="4"/>
-  <coolingFunctionMethods value="atomicCIECloudy"/>
+  <coolingFunctionMethod value="atomicCIECloudy"/>
   <adiabaticContractionGnedinA value="0.8"/>
   <coolingTimeAvailableMethod value="White-Frenk1991"/>
   <odeToleranceRelative value="0.01"/>
@@ -63,7 +66,6 @@
   <mergerTreeBuilderMethod value="cole2000"/>
   <mergerTreeBuildTreesBeginAtTree value="1"/>
   <mergerTreeBuildHaloMassMinimum value="1.0e12"/>
-  <powerSpectrumIndex value="0.961"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
   <spinDistributionBett2007Alpha value="2.509"/>
   <spheroidEnergeticOutflowMassRate value="1"/>
@@ -120,7 +122,6 @@
   <spheroidOutflowVelocity value="50"/>
   <stabilityThresholdStellar value="1.1"/>
   <elementsToTrack value="Ca O Fe"/>
-  <powerSpectrumRunning value="0"/>
   <spheroidOutflowExponent value="2"/>
   <starFormationFeedbackDisksMethod value="powerLaw"/>
   <coolingRateMethod value="White-Frenk1991"/>

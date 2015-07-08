@@ -11,7 +11,11 @@
     <HubbleConstant value="69.3"/>
   </cosmologyParametersMethod><sigma_8 value="0.82"/>
   <transferFunctionMethod value="eisensteinHu1999"/>
-  <powerSpectrumIndex value="0.971"/>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index               value="0.971"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordialMethod>
   <darkMatterHaloMassAccretionHistoryMethod value="correa2015"/>
   <darkMatterProfileConcentrationMethod value="correa2015"/>
   <darkMatterHaloConcentrationCorrea2015AScaling value="950.0"/>

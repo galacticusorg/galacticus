@@ -5,6 +5,9 @@
   <version>0.9.4</version>
   <sigma_8 value="0.8"/>
   <transferFunctionMethod value="identity"/>
-  <powerSpectrumIndex value="-1.0"/>
-  <powerSpectrumRunning value="0.0"/>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index               value="-1.000"/>
+    <wavenumberReference value="+1.000"/>
+    <running             value="+0.000"/>
+  </powerSpectrumPrimordialMethod>
 </parameters>
