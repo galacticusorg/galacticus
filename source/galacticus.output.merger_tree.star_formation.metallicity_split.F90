@@ -195,7 +195,7 @@ contains
     ! Find the start and end times for this history.
     thisBasicComponent =>               thisNode          %basic()
     timeBeginActual    =  min(timeBegin,thisBasicComponent%time ())
-    timeEnd            =  Galacticus_Next_Output_Time(timeBeginActual)
+    timeEnd            =  Galacticus_Next_Output_Time(thisBasicComponent%time())
     call Star_Formation_History_Metallicity_Split_Make_History(thisHistory,timeBeginActual,timeEnd)
     return
   end subroutine Star_Formation_History_Create_Metallicity_Split
