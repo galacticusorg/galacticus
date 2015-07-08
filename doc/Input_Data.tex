@@ -127,7 +127,7 @@ The following requirements must be met for the input parameters to \glc\ when us
 
 \subsubsection{Dark Matter Scale Radii}\index{dark matter halo!concentration}\index{dark matter halo!scale radius}
 
-If {\normalfont \ttfamily [mergerTreeReadPresetScaleRadii]}$=${\normalfont \ttfamily true} and the {\normalfont \ttfamily halfMassRadius} dataset is available within the {\normalfont \ttfamily haloTrees} group (see \S\ref{sec:HaloTreesGroup}) then the half-mass radii of nodes will be used to compute the corresponding scale length of the dark matter halo profile\footnote{The scale radius is found by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass (specifically the virial overdensity) in \protect\glc\ be the same as was used in computing the input half mass radii.}. This requires a dark matter profile scale component which supports setting of the scale length (see \S\ref{sec:DarkMatterProfileComponent}).
+If {\normalfont \ttfamily [mergerTreeReadPresetScaleRadii]}$=${\normalfont \ttfamily true} and the {\normalfont \ttfamily halfMassRadius} dataset is available within the {\normalfont \ttfamily haloTrees} group (see \S\ref{sec:ForestHalosGroup}) then the half-mass radii of nodes will be used to compute the corresponding scale length of the dark matter halo profile\footnote{The scale radius is found by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass (specifically the virial overdensity) in \protect\glc\ be the same as was used in computing the input half mass radii.}. This requires a dark matter profile scale component which supports setting of the scale length (see \S\ref{sec:DarkMatterProfileComponent}).
 
 \subsubsection{Satellite Merger Times}\index{merger times}\index{satellite!merger times}
 
@@ -135,4 +135,4 @@ If {\normalfont \ttfamily [mergerTreeReadPresetMergerTimes]}$=${\normalfont \ttf
 
 \subsubsection{Dark Matter Halo Spins}\index{dark matter halo!spin}
 
-If {\normalfont \ttfamily [mergerTreeReadPresetSpins]}$=${\normalfont \ttfamily true} and the {\normalfont \ttfamily angularMomentum} dataset is available within the {\normalfont \ttfamily haloTrees} group (see \S\ref{sec:HaloTreesGroup}) then the spin parameters of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the spin (see \S\ref{sec:DarkMatterHaloSpinComponent}).
+If {\normalfont \ttfamily [mergerTreeReadPresetSpins]}$=${\normalfont \ttfamily true} and the {\normalfont \ttfamily angularMomentum} dataset is available within the {\normalfont \ttfamily haloTrees} group (see \S\ref{sec:ForestHalosGroup}) then the spin parameters of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the spin (see \S\ref{sec:DarkMatterHaloSpinComponent}).
