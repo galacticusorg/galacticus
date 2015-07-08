@@ -348,10 +348,6 @@ CODE
 		    my $defaultValue  = exists($defaultValues{$methodParameter}) ? $defaultValues{$methodParameter} : "";
  		    $definitionCode  .=
 <<CODE;
-  call globalParameters%value('$methodParameter',parameterValue,defaultValue=var_str('$defaultValue'),writeOutput=.false.)
-  if (present(parameters)) then
-    call parameters%add("$methodParameter",char(parameterValue))
-  end if
   if (parameterValue == '$methodValue') then
 $moduleCode  end if
 CODE
