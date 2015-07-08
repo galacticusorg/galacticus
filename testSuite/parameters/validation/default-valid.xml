@@ -27,10 +27,11 @@
   </cosmologyParametersMethod><!-- Power spectrum options -->
   <sigma_8 value="0.807"/>
   <transferFunctionMethod value="Eisenstein-Hu1999"/>
-  <powerSpectrumMethod value="powerLaw"/>
-  <powerSpectrumIndex value="0.961"/>
-  <powerSpectrumReferenceWavenumber value="1.0"/>
-  <powerSpectrumRunning value="0.0"/>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index               value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordialMethod>
   <effectiveNumberNeutrinos value="3.04"/>
   <summedNeutrinoMasses value="0.0"/>
 
@@ -75,7 +76,7 @@
   <hotHaloAngularMomentumLossFraction value="0.3"/>
   <coolingSpecificAngularMomentumMethod value="constantRotation"/>
   <hotHaloOutflowReturnRate value="5.0"/>
-  <coolingFunctionMethods value="atomicCIECloudy"/>
+  <coolingFunctionMethod value="atomicCIECloudy"/>
   <coolingMeanAngularMomentumFrom value="hotGas"/>
   <coolingRotationVelocityFrom value="hotGas"/>
   <coolingRadiusMethod value="simple"/>
@@ -128,7 +129,7 @@
 
   <!-- Stellar populations options -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>
-  <stellarPopulationSpectraMethod value="Conroy-White-Gunn2009"/>
+  <stellarPopulationSpectraMethod value="FSPS"/>
   <imfSelectionMethod value="fixed"/>
   <imfSelectionFixed value="Chabrier"/>
   <imfChabrierRecycledInstantaneous value="0.46"/>

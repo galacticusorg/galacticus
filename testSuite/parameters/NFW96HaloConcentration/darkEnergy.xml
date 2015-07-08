@@ -11,7 +11,11 @@
     <HubbleConstant value="65.0"/>
   </cosmologyParametersMethod><sigma_8 value="0.9"/>
   <transferFunctionMethod value="BBKS"/>
-  <powerSpectrumIndex value="1.0"/>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index               value="1.000"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordialMethod>
   <darkMatterProfileConcentrationMethod value="NFW1996"/>
   <nfw1996ConcentrationC value="3000.0"/>
   <virialDensityContrastMethod value="fixed"/>

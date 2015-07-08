@@ -18,8 +18,10 @@
     <HubbleConstant value="73.0"/>
   </cosmologyParametersMethod>
   <sigma_8 value="0.9"/>
-  <powerSpectrumIndex value="1.0"/>
-  <powerSpectrumRunning value="0.0"/>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index value="1.0"/>
+    <running value="0.0"/>
+  </powerSpectrumPrimordialMethod>
   <galacticusOutputFileName value="tests/progenitorMassFunction/progenitorMassFunctionTest.hdf5"/>
   <haloMassFunctionMethod value="Tinker2008"/>
   <transferFunctionMethod value="eisensteinHu1999"/>

@@ -25,12 +25,15 @@
     <OmegaMatter value="0.2725"/>
   </cosmologyParametersMethod><haloMassFunctionSamplingStellarMassFunctionErrorConstant value="1.0e-8"/>
   <coolingTimeAvailableAgeFactor value="0"/>
-  <powerSpectrumMethod value="powerLaw"/>
-  <stellarPopulationSpectraMethod value="Conroy-White-Gunn2009"/>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index               value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordialMethod>
+  <stellarPopulationSpectraMethod value="FSPS"/>
   <conditionalMassFunctionBehrooziGamma value="1.16052646522"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorAlpha value="-0.3"/>
-  <powerSpectrumReferenceWavenumber value="1.0"/>
   <haloSpinDistributionMethod value="Bett2007"/>
   <barInstabilityMethod value="ELN"/>
   <mergerRemnantSizeOrbitalEnergy value="1"/>
@@ -55,7 +58,7 @@
   <treeNodeMethodBasic value="standard"/>
   <darkMatterProfileMinimumConcentration value="4"/>
   <mergerTreeBuildHaloMassMaximum value="3.0e10"/>
-  <coolingFunctionMethods value="atomicCIECloudy"/>
+  <coolingFunctionMethod value="atomicCIECloudy"/>
   <hotHaloAngularMomentumLossFraction value="0.3"/>
   <satelliteOrbitStoreOrbitalParameters value="true"/>
   <adiabaticContractionGnedinA value="0.8"/>
@@ -74,7 +77,6 @@
   <mergerTreeBuilderMethod value="cole2000"/>
   <mergerTreeBuildHaloMassMinimum value="2.0e10"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
-  <powerSpectrumIndex value="0.961"/>
   <spinDistributionBett2007Alpha value="2.509"/>
   <diskOutflowVelocity value="250.0"/>
   <spheroidEnergeticOutflowMassRate value="1.0"/>
@@ -142,7 +144,6 @@
   <conditionalMassFunctionBehrooziBCut value="87.509076382"/>
   <spheroidOutflowVelocity value="300.0"/>
   <stabilityThresholdStellar value="0.7"/>
-  <powerSpectrumRunning value="0.0"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum value="7.5857758e11"/>
   <spheroidOutflowExponent value="2.0"/>
   <starFormationFeedbackDisksMethod value="powerLaw"/>

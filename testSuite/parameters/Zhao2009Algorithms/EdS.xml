@@ -11,7 +11,11 @@
     <HubbleConstant value="100.0"/>
   </cosmologyParametersMethod><sigma_8 value="0.8"/>
   <transferFunctionMethod value="BBKS"/>
-  <powerSpectrumIndex value="1.0"/>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index               value="1.000"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordialMethod>
   <darkMatterHaloMassAccretionHistoryMethod value="zhao2009"/>
   <darkMatterProfileConcentrationMethod value="zhao2009"/>
 </parameters>
