@@ -406,8 +406,49 @@ contains
     end do
     !$omp end critical (Luminosity_Tables_Initialize)
     return
-  end subroutine Stellar_Population_Luminosity_Tabulate
 
+  contains
+
+    function Filter_Luminosity_Integrand(wavelength,parameterPointer) bind(c)
+      !% Integrand for the luminosity through a given filter.
+      use Stellar_Population_Spectra_Postprocess
+      use Instruments_Filters
+      implicit none
+      real            (kind=c_double)        :: Filter_Luminosity_Integrand
+      real            (kind=c_double), value :: wavelength
+      type            (c_ptr        ), value :: parameterPointer
+      double precision                       :: wavelengthRedshifted
+      
+      ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population spectrum
+      ! to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these will be
+      ! shifted into the filter by z=0. Factor of 1/wavelength appears since we want to integrate F_nu (dnu / nu) and dnu =
+      ! -c/lambda^2 dlambda. Note that we follow the convention of Hogg et al. (2002) and assume that the filter response gives the
+      ! fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response
+      ! (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a
+      ! bolometer/calorimeter type detector).
+      wavelengthRedshifted=wavelength/(1.0d0+redshiftTabulate)
+      Filter_Luminosity_Integrand=Filter_Response(filterIndexTabulate,wavelength)*stellarPopulationSpectra_%luminosity(abundancesTabulate &
+           &,ageTabulate,wavelengthRedshifted,imfIndexTabulate)*Stellar_Population_Spectrum_PostProcess(postprocessingChainIndexTabulate,wavelengthRedshifted,ageTabulate,redshiftTabulate)/wavelength
+      return
+    end function Filter_Luminosity_Integrand
+    
+    function Filter_Luminosity_Integrand_AB(wavelength,parameterPointer) bind(c)
+      !% Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
+      use Instruments_Filters
+      use Numerical_Constants_Astronomical
+      implicit none
+      real            (kind=c_double)            :: Filter_Luminosity_Integrand_AB
+      real            (kind=c_double), value     :: wavelength
+      type            (c_ptr        ), value     :: parameterPointer
+      ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz.
+      double precision               , parameter :: luminosityZeroPointABSolar    =luminosityZeroPointAB/luminositySolar
+      
+      Filter_Luminosity_Integrand_AB=Filter_Response(filterIndexTabulate,wavelength)*luminosityZeroPointABSolar/wavelength
+      return
+    end function Filter_Luminosity_Integrand_AB
+    
+  end subroutine Stellar_Population_Luminosity_Tabulate
+  
   function Stellar_Population_Luminosity(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,abundancesStellar,age,redshift)
     !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\normalfont \ttfamily abundances} and {\normalfont \ttfamily age} drawn from IMF
     !% specified by {\normalfont \ttfamily imfIndex} and observed through the filter specified by {\normalfont \ttfamily filterIndex}.
@@ -482,47 +523,6 @@ contains
     ! Prevent interpolation from returning negative fluxes.
     Stellar_Population_Luminosity=max(Stellar_Population_Luminosity,0.0d0)
     return
-
-  contains
-
-    function Filter_Luminosity_Integrand(wavelength,parameterPointer) bind(c)
-      !% Integrand for the luminosity through a given filter.
-      use Stellar_Population_Spectra_Postprocess
-      use Instruments_Filters
-      implicit none
-      real            (kind=c_double)        :: Filter_Luminosity_Integrand
-      real            (kind=c_double), value :: wavelength
-      type            (c_ptr        ), value :: parameterPointer
-      double precision                       :: wavelengthRedshifted
-      
-      ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population spectrum
-      ! to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these will be
-      ! shifted into the filter by z=0. Factor of 1/wavelength appears since we want to integrate F_nu (dnu / nu) and dnu =
-      ! -c/lambda^2 dlambda. Note that we follow the convention of Hogg et al. (2002) and assume that the filter response gives the
-      ! fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response
-      ! (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a
-      ! bolometer/calorimeter type detector).
-      wavelengthRedshifted=wavelength/(1.0d0+redshiftTabulate)
-      Filter_Luminosity_Integrand=Filter_Response(filterIndexTabulate,wavelength)*stellarPopulationSpectra_%luminosity(abundancesTabulate &
-           &,ageTabulate,wavelengthRedshifted,imfIndexTabulate)*Stellar_Population_Spectrum_PostProcess(postprocessingChainIndexTabulate,wavelengthRedshifted,ageTabulate,redshiftTabulate)/wavelength
-      return
-    end function Filter_Luminosity_Integrand
-    
-    function Filter_Luminosity_Integrand_AB(wavelength,parameterPointer) bind(c)
-      !% Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
-      use Instruments_Filters
-      use Numerical_Constants_Astronomical
-      implicit none
-      real            (kind=c_double)            :: Filter_Luminosity_Integrand_AB
-      real            (kind=c_double), value     :: wavelength
-      type            (c_ptr        ), value     :: parameterPointer
-      ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz.
-      double precision               , parameter :: luminosityZeroPointABSolar    =luminosityZeroPointAB/luminositySolar
-      
-      Filter_Luminosity_Integrand_AB=Filter_Response(filterIndexTabulate,wavelength)*luminosityZeroPointABSolar/wavelength
-      return
-    end function Filter_Luminosity_Integrand_AB
-
   end function Stellar_Population_Luminosity
   
   subroutine Stellar_Population_Luminosity_Track(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,abundancesStellar,redshift,ages,luminosities)
