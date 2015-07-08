@@ -145,21 +145,21 @@ sub Construct_Models {
 			my $xml  = new XML::Simple;
 			my $data = $xml->XMLin($launchScript->{'baseParameters'});
 			foreach my $parameterName ( keys(%{$data}) ) {
-			    $parameters->{$parameterName} = $data->{$parameterName}
+			    $parameters->{$parameterName}->[0] = $data->{$parameterName}
 			        if ( reftype($data->{$parameterName}) );
 			}
 		    }
 		    # Set the output file name.
-		    $parameters->{'galacticusOutputFileName'}->{'value'} 
+		    $parameters->{'galacticusOutputFileName'}->[0]->{'value'} 
 		        = &{$Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'outputFileName'}}
 		           ($galacticusOutputFile,$launchScript);
 		    # Set the random seed.
-		    $parameters->{'randomSeed'}->{'value'} = $randomSeed 
+		    $parameters->{'randomSeed'}->[0]->{'value'} = $randomSeed 
 			unless ( exists($parameters->{'randomSeed'}) );
 		    # Set a state restore file.
 		    if ( $launchScript->{'useStateFile'} eq "yes" ) {
-			(my $stateFile = $parameters->{'galacticusOutputFileName'}->{'value'}) =~ s/\.hdf5//;
-			$parameters->{'stateFileRoot'}->{'value'} = $stateFile;
+			(my $stateFile = $parameters->{'galacticusOutputFileName'}->[0]->{'value'}) =~ s/\.hdf5//;
+			$parameters->{'stateFileRoot'}->[0]->{'value'} = $stateFile;
 		    }
 		    # Transfer parameters for this model from the array of model parameter hashes to the
 		    # active hash.
@@ -171,8 +171,10 @@ sub Construct_Models {
 		    my $data;
 		    foreach my $name ( sort(keys(%{$parameters})) ) {
 			$data->{$name} = $parameters->{$name};
-			$data->{$name}->{'value'} =~ s/\%\%galacticusOutputPath\%\%/$galacticusOutputDirectory/g
-			    unless ( $name eq "label" );
+			foreach ( @{$data->{$name}} ) {
+			    $_->{'value'} =~ s/\%\%galacticusOutputPath\%\%/$galacticusOutputDirectory/g
+				unless ( $name eq "label" );
+			}
 		    }
 		    # Output the parameters as an XML file.
 		    my $xmlOutput = new XML::Simple (RootName=>"parameters");
@@ -226,58 +228,65 @@ sub Create_Parameter_Hashes {
 	my @stack = map {$hash->{$_}} keys(%{$hash});
 	# Iterate over parameters.
 	while ( scalar(@stack) > 0 ) {
-	    # Pop a node from the stack.
-	    my $node = pop(@stack);
-	    # Push any subparameters onto the stack.
-	    push(@stack,map {$node->{'subParameters'}->{$_}} keys(%{$node->{'subParameters'}}))
-		if ( exists($node->{'subParameters'}) );
-	    # Check for non-flat structure.
-	    if ( scalar(@{$node->{'values'}}) > 1 ) {
-		# Parameter has multiple values. Iterate over them, generating a new hash for each value, and
-		# push these new hashes back onto the stack.
-		my @values = @{$node->{'values'}};
-		foreach my $value ( @values ) {
-		    @{$node->{'values'}} = ( $value );
-		    my $newHash = clone($hash);
-		    push(
-			@toProcessHashes,
-			$newHash
+	    # Pop a node array from the stack.
+	    my $nodeArray = pop(@stack);
+	    # Iterate over nodes.
+	    foreach my $node ( @{$nodeArray} ) {		
+		# Push any subparameters onto the stack.
+		push(@stack,map {$node->{'subParameters'}->{$_}} keys(%{$node->{'subParameters'}}))
+		    if ( exists($node->{'subParameters'}) );
+		# Check for non-flat structure.
+		if ( scalar(@{$node->{'values'}}) > 1 ) {
+		    # Parameter has multiple values. Iterate over them, generating a new hash for each value, and
+		    # push these new hashes back onto the stack.
+		    my @values = @{$node->{'values'}};
+		    foreach my $value ( @values ) {
+			@{$node->{'values'}} = ( $value );
+			my $newHash = clone($hash);
+			push(
+			    @toProcessHashes,
+			    $newHash
 			);
-		}
-		$isFlat = 0;
-	    } elsif ( exists(${$node->{'values'}}[0]->{'subtree'}) ) {
-		# Parameter has only one value, but it has sub-structure. Promote that substructure and push
-		# the hash back onto the stack.
-		foreach my $subName ( keys(%{${$node->{'values'}}[0]->{'subtree'}}) ) {
-		    # Look for parameter definitions which modify existing values, and apply them
-		    foreach my $subValue ( @{${$node->{'values'}}[0]->{'subtree'}->{$subName}->{'values'}} ) {
-			if ( $subValue->{'value'} =~ m/\%\%modify\%\%([^\%]+)\%\%([^\%]+)\%\%/ ) {
-			    my $find        = $1;
-			    my $replaceBase = $2;
-			    my @newValues = @{$hash->{$subName}->{'values'}};
-			    foreach my $newValue ( @newValues ) {
-				if ( my @captures = $newValue->{'value'} =~ m/$find/ ) {
-				    my $replace = $replaceBase;
-				    for(my $i=scalar(@captures)-1;$i>=0;--$i) {
-					my $j = $i+1;
-					$replace =~ s/\\$j/$captures[$i]/g;
+		    }
+		    $isFlat = 0;
+		} elsif ( exists(${$node->{'values'}}[0]->{'subtree'}) ) {
+		    # Parameter has only one value, but it has sub-structure. Promote that substructure and push
+		    # the hash back onto the stack.
+		    foreach my $subName ( keys(%{${$node->{'values'}}[0]->{'subtree'}}) ) {
+			# Look for parameter definitions which modify existing values, and apply them			
+			my $subValuesCount = -1;
+			foreach my $subValues ( @{${$node->{'values'}}[0]->{'subtree'}->{$subName}}  ) {
+			    ++$subValuesCount;
+			    foreach my $subValue ( @{$subValues->{'values'}} ) {
+				if ( $subValue->{'value'} =~ m/\%\%modify\%\%([^\%]+)\%\%([^\%]+)\%\%/ ) {
+				    my $find        = $1;
+				    my $replaceBase = $2;
+				    my @newValues = @{$hash->{$subName}->{'values'}};
+				    foreach my $newValue ( @newValues ) {
+					if ( my @captures = $newValue->{'value'} =~ m/$find/ ) {
+					    my $replace = $replaceBase;
+					    for(my $i=scalar(@captures)-1;$i>=0;--$i) {
+						my $j = $i+1;
+						$replace =~ s/\\$j/$captures[$i]/g;
+					    }
+					    $newValue->{'value'} =~ s/$find/$replace/;
+					}
 				    }
-				    $newValue->{'value'} =~ s/$find/$replace/;
+				    @{$subValues} = @newValues;
 				}
 			    }
-			    @{${$node->{'values'}}[0]->{'subtree'}->{$subName}} = @newValues;
+			    @{$hash->{$subName}->[$subValuesCount]->{'values'}} = @{$subValues->{'values'}};
+			    $hash->{$subName}->[$subValuesCount]->{'subParameters'} = $subValues->{'subParameters'}
+			    if ( exists($subValues->{'subParameters'}) );
 			}
 		    }
-		    @{$hash->{$subName}->{'values'}} = @{${$node->{'values'}}[0]->{'subtree'}->{$subName}->{'values'}};
-		    $hash->{$subName}->{'subParameters'} = ${$node->{'values'}}[0]->{'subtree'}->{$subName}->{'subParameters'}
-		        if ( exists(${$node->{'values'}}[0]->{'subtree'}->{$subName}->{'subParameters'}) );
-		}
-		delete(${$node->{'values'}}[0]->{'subtree'});
-		push(
-		    @toProcessHashes,
-		    $hash
+		    delete(${$node->{'values'}}[0]->{'subtree'});
+		    push(
+			@toProcessHashes,
+			$hash
 		    );
-		$isFlat = 0;	
+		    $isFlat = 0;	
+		}
 	    }
 	    # Exit parameter iteration if the hash was found to be not flat.
 	    last
@@ -293,21 +302,25 @@ sub Create_Parameter_Hashes {
     foreach my $hash ( @processedHashes ) {
     	my @stack = map {$hash->{$_}} keys(%{$hash});	
     	while ( scalar(@stack) > 0 ) {
-    	    my $node = pop(@stack);
-    	    my $value = $node->{'values'}->[0]->{'value'};
-    	    $value =~ s/^\s*//;
-    	    $value =~ s/\s*$//;
-    	    $node->{'value'} = $value;
-	    delete($node->{'values'});
-	    # Handle sub-parameters:
-	    #  --> Transfer them out of the "subParameters" element so that they will be in the correct location in the output XML;
-	    #  --> Push them onto the stack for conversion to simple form.
-	    if ( exists($node->{'subParameters'}) ) {
-		foreach ( keys(%{$node->{'subParameters'}}) ) {		    
-		    $node->{$_} = $node->{'subParameters'}->{$_};		   
-		    push(@stack,$node->{$_});
+	    # Pop a node array from the stack.
+	    my $nodeArray = pop(@stack);
+	    # Iterate over nodes.
+	    foreach my $node ( @{$nodeArray} ) {
+		my $value = $node->{'values'}->[0]->{'value'};
+		$value =~ s/^\s*//;
+		$value =~ s/\s*$//;
+		$node->{'value'} = $value;
+		delete($node->{'values'});
+		# Handle sub-parameters:
+		#  --> Transfer them out of the "subParameters" element so that they will be in the correct location in the output XML;
+		#  --> Push them onto the stack for conversion to simple form.
+		if ( exists($node->{'subParameters'}) ) {
+		    foreach ( keys(%{$node->{'subParameters'}}) ) {		    
+			$node->{$_} = $node->{'subParameters'}->{$_};		   
+			push(@stack,$node->{$_});
+		    }
+		    delete($node->{'subParameters'});
 		}
-		delete($node->{'subParameters'});
 	    }
     	}
     }
@@ -324,59 +337,61 @@ sub Parameters_To_Hash {
 	    unless ( reftype($parameters->{$name}) );
 	# Iterate over all subelements of this node.
 	my $subParameters;
-	die("Parameters_To_Hash(): duplicated parameter [".$name."] detected")
-	    if ( reftype($parameters->{$name}) eq "ARRAY" );
-	foreach my $subElementName ( keys(%{$parameters->{$name}}) ) { 
-	    if ( $subElementName eq "value" ) {
-		foreach my $value ( &ExtraUtils::as_array($parameters->{$name}->{'value'}) ) {
-		    if ( UNIVERSAL::isa($value,"HASH") ) {
-			# This value of the parameter contains a subtree. Get a hash representation by calling ourself recursively.
-			push(
-			    @{$hash->{$name}->{'values'}},
-			    {
-				value   => $value->{'content'},
-				subtree => &Parameters_To_Hash($value)
-			    }
-			    );
-		    } else {
-			# This value has no subtree, so just store the value.
-			push(
-			    @{$hash->{$name}->{'values'}},
-			    {
-				value   => $value
-			    }
-			    );
+	my $elementCounter = -1;
+	foreach my $element ( &ExtraUtils::as_array($parameters->{$name}) ) {
+	    ++$elementCounter;	    
+	    foreach my $subElementName ( keys(%{$element}) ) { 
+		if ( $subElementName eq "value" ) {
+		    foreach my $value ( &ExtraUtils::as_array($element->{'value'}) ) {
+			if ( UNIVERSAL::isa($value,"HASH") ) {
+			    # This value of the parameter contains a subtree. Get a hash representation by calling ourself recursively.
+			    push(
+				@{$hash->{$name}->[$elementCounter]->{'values'}},
+				{
+				    value   => $value->{'content'},
+				    subtree => &Parameters_To_Hash($value)
+				}
+				);
+			} else {
+			    # This value has no subtree, so just store the value.
+			    push(
+				@{$hash->{$name}->[$elementCounter]->{'values'}},
+				{
+				    value   => $value
+				}
+				);
+			}
 		    }
-		}
-	    } elsif ( $subElementName eq "modify" ) {
-		foreach my $modify ( &ExtraUtils::as_array($parameters->{$name}->{'modify'}) ) {
-		    if ( exists($modify->{'parameter'}) ) {
-			# This modify of the parameter contains a subtree. Get a hash representation by calling ourself recursively.
-			push(
-			    @{$hash->{$name}->{'values'}},
-			    {
-				modify  => $modify->{'content'},
-				subtree => &Parameters_To_Hash($modify)
-			    }
-			    );
-		    } else {
-			# This modify has no subtree, so just store the value.
-			push(
-			    @{$hash->{$name}->{'values'}},
-			    {
-				value   => "\%\%modify\%\%".$modify->{'find'}."\%\%".$modify->{'replace'}."\%\%"
-			    }
-			    );
+		} elsif ( $subElementName eq "modify" ) {
+		    foreach my $modify ( &ExtraUtils::as_array($element->{'modify'}) ) {
+			if ( exists($modify->{'parameter'}) ) {
+			    # This modify of the parameter contains a subtree. Get a hash representation by calling ourself recursively.
+			    push(
+				@{$hash->{$name}->[$elementCounter]->{'values'}},
+				{
+				    modify  => $modify->{'content'},
+				    subtree => &Parameters_To_Hash($modify)
+				}
+				);
+			} else {
+			    # This modify has no subtree, so just store the value.
+			    push(
+				@{$hash->{$name}->[$elementCounter]->{'values'}},
+				{
+				    value   => "\%\%modify\%\%".$modify->{'find'}."\%\%".$modify->{'replace'}."\%\%"
+				}
+				);
+			}
 		    }
+		} else {
+		    # For any other element, accumulate to set of subparameters.
+		    $subParameters->{$subElementName} = $element->{$subElementName};
 		}
-	    } else {
-		# For any other element, accumulate to set of subparameters.
-		$subParameters->{$subElementName} = $parameters->{$name}->{$subElementName};
 	    }
-	}
-	# Process and attach any subparameters.
-	$hash->{$name}->{'subParameters'} = &Parameters_To_Hash($subParameters)
-	    if ( $subParameters );	
+	    # Process and attach any subparameters.
+	    $hash->{$name}->[$elementCounter]->{'subParameters'} = &Parameters_To_Hash($subParameters)
+		if ( $subParameters );	
+ 	}
     }
     return $hash;
 }

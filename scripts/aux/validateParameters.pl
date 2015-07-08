@@ -69,8 +69,25 @@ if ( $format == 1 ) {
 	} elsif ( $element->{'name'} eq 'version' ) {
 	    $hasVersion = 1;
 	} elsif ( reftype($element->{'node'}) eq "ARRAY" ) {
-	    $valid = 1;
-	    print "Parameter '".$element->{'name'}."' appears ".scalar(@{$element->{'node'}})." times - should appear only once\n"; 
+	    if ( $element->{'name'} =~ m/\-\>/ ) { # Duplicates are allowed only in subparameters.
+		foreach my $node ( @{$element->{'node'}} ) {
+		    if ( ! exists($node->{'value'}) ) {
+			$valid = 1;
+			print "Parameter '".$element->{'name'}."' has no value\n";
+		    } elsif ( reftype($node->{'value'}) && reftype($node->{'value'}) eq "ARRAY" ) {
+			$valid = 1;
+			print "Parameter '".$element->{'name'}."' has multiple values\n";
+		    }
+		    push
+			(
+			 @stack,
+			 map {$_ eq "value" || ! reftype($node->{$_}) ? () : {name => $element->{'name'}."->".$_, node => $node->{$_}}} keys(%{$node})
+			);
+		}
+	    } else {
+		$valid = 1;
+		print "Parameter '".$element->{'name'}."' appears ".scalar(@{$element->{'node'}})." times - should appear only once\n";
+	    }
 	} else {
 	    if ( ! exists($element->{'node'}->{'value'}) ) {
 		$valid = 1;
