@@ -41,7 +41,7 @@ my %parameterMap =
      "omegabh2"  => "cosmologyParametersMethod->OmegaBaryon",
      "omegamh2*" => "cosmologyParametersMethod->OmegaMatter",
      "tau"       => "reionizationSuppressionOpticalDepth",
-     "ns"        => "powerSpectrumIndex",
+     "ns"        => "powerSpectrumPrimordialMethod->index",
      "H0*"       => "cosmologyParametersMethod->HubbleCOnstant",
      "sigma8*"   => "sigma_8"
     );
