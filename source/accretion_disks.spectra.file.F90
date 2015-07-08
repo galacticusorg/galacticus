@@ -26,6 +26,7 @@
   type, extends(accretionDiskSpectraClass) :: accretionDiskSpectraFile
      !% An accretion disk spectra class which interpolates in spectra read from file.
      private
+     type            (varying_string   )                              :: fileName
      double precision                   , allocatable, dimension(:  ) :: luminosity                        , wavelength
      double precision                   , allocatable, dimension(:,:) :: SED
      type            (fgsl_interp_accel)                              :: interpolationAcceleratorLuminosity, interpolationAcceleratorWavelength
@@ -40,88 +41,77 @@
      !@     <description>Load a file of AGN spectra.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::             fileDestructor
-     procedure :: spectrum => fileSpectrum
-     procedure :: loadFile => fileLoadFile
+     final     ::               fileDestructor
+     procedure :: spectrum   => fileSpectrum
+     procedure :: loadFile   => fileLoadFile
+     procedure :: descriptor => fileDescriptor
   end type accretionDiskSpectraFile
 
   interface accretionDiskSpectraFile
      !% Constructors for the {\normalfont \ttfamily file} accretion disk spectra class.
-     module procedure fileDefaultConstructor
-     module procedure fileConstructor
+     module procedure fileConstructorParameters
+     module procedure fileConstructorInternal
   end interface accretionDiskSpectraFile
 
-  ! Initialization status.
-  logical                 :: fileInitialized             =.false.
-
-  ! Default file to read.
-  type   (varying_string) :: accretionDiskSpectraFileName
-
   ! Supported file format.
-  integer                 :: fileFormatCurrent           =1
+  integer :: fileFormatCurrent=1
 
 contains
 
-  function fileDefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
-    use Input_Parameters
+  function fileConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily file} accretion disk spectra class which takes a parameter set as input.
     implicit none
-    type (accretionDiskSpectraFile), target :: fileDefaultConstructor
-    
-    if (.not.fileInitialized) then
-       !$omp critical(accretionDiskSpectraFileInitialize)
-       if (.not.fileInitialized) then
-          !@ <inputParameter>
-          !@   <name>accretionDiskSpectraFileName</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of a file from which to read tabulated spectra of accretion disks.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('accretionDiskSpectraFileName',accretionDiskSpectraFileName)
-          ! Record that this method is now initialized.
-          fileInitialized=.true.
-       end if
-       !$omp end critical(accretionDiskSpectraFileInitialize)
-    end if
-    fileDefaultConstructor=fileConstructor(char(accretionDiskSpectraFileName))
-    return
-  end function fileDefaultConstructor
+    type(accretionDiskSpectraFile)                :: fileConstructorParameters
+    type(inputParameters         ), intent(in   ) :: parameters
+    type(varying_string          )                :: fileName
+    !# <inputParameterList label="allowedParameterNames" />
 
-  function fileConstructor(fileName)
-    !% Constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>fileName</name>
+    !#   <source>parameters</source>
+    !#   <description>The name of a file from which to read tabulated spectra of accretion disks.</description>
+    !#   <type>string</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    fileConstructorParameters=fileConstructorInternal(char(fileName))
+    return
+  end function fileConstructorParameters
+
+  function fileConstructorInternal(fileName)
+    !% Internal constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
     use Galacticus_Error
     use Array_Utilities
     implicit none
-    type     (accretionDiskSpectraFile), target        :: fileConstructor
+    type     (accretionDiskSpectraFile), target        :: fileConstructorInternal
     character(len=*                   ), intent(in   ) :: fileName
  
     ! Ensure that the required methods are supported.
-    if     (                                                                                                    &
-            &  .not.(                                                                                           &
-            &         defaultBlackHoleComponent%massIsGettable() .and.                                          &
-            &         defaultBlackHoleComponent%spinIsGettable()                                                &
-            &       )                                                                                           &
-            & ) call Galacticus_Error_Report                                                                    &
-            & (                                                                                                 &
-            &  'fileConstructor'                                                                              , &
-            &  'This method requires that the "mass", and "spin" properties of the black hole are gettable.'//  &
-            &  Galacticus_Component_List(                                                                       &
-            &                            'blackHole'                                                          , &
-            &                             defaultBlackHoleComponent%massAttributeMatch(requireGettable=.true.)  &
-            &                            .intersection.                                                         &
-            &                             defaultBlackHoleComponent%spinAttributeMatch(requireGettable=.true.)  &
-            &                           )                                                                       &
+    if     (                                                                                                                           &
+            &  .not.(                                                                                                                  &
+            &         defaultBlackHoleComponent%radiativeEfficiencyIsGettable()                                                        &
+            &        .and.                                                                                                             &
+            &         defaultBlackHoleComponent%      accretionRateIsGettable()                                                        &
+            &       )                                                                                                                  &
+            & ) call Galacticus_Error_Report                                                                                           &
+            & (                                                                                                                        &
+            &  'fileConstructorInternal'                                                                                             , &
+            &  'This method requires that the "radiativeEfficiency", and "accretionRate" properties of the black hole are gettable.'// &
+            &  Galacticus_Component_List(                                                                                              &
+            &                            'blackHole'                                                                                ,  &
+            &                             defaultBlackHoleComponent%radiativeEfficiencyAttributeMatch(requireGettable=.true.)          &
+            &                            .intersection.                                                                                &
+            &                             defaultBlackHoleComponent%      accretionRateAttributeMatch(requireGettable=.true.)          &
+            &                           )                                                                                              &
             & )
     ! Load the file.
-    call fileConstructor%loadFile(fileName)
+    fileConstructorInternal%fileName=fileName
+    call fileConstructorInternal%loadFile(fileName)
     ! Initialize interpolators.
-    fileConstructor%resetLuminosity=.true.
-    fileConstructor%resetWavelength=.true.
+    fileConstructorInternal%resetLuminosity=.true.
+    fileConstructorInternal%resetWavelength=.true.
     return
-  end function fileConstructor
+  end function fileConstructorInternal
 
   subroutine fileDestructor(self)
     !% Default destructor for the {\normalfont \ttfamily file} accretion disk spectra class.
@@ -149,16 +139,18 @@ contains
     type     (hdf5Object              )                :: spectraFile
 
     ! Open the file.
+    !$omp critical(HDF5_Access)
     call spectraFile%openFile(fileName,readOnly=.true.)
     ! Check file format.
     call spectraFile%readAttribute('fileFormat',fileFormatFile,allowPseudoScalar=.true.)
-    if (fileFormatFile /= fileFormatCurrent) call Galacticus_Error_Report('self','file format mismatch')
+    if (fileFormatFile /= fileFormatCurrent) call Galacticus_Error_Report('fileLoadFile','file format mismatch')
     ! Read datasets.
     call spectraFile%readDataset('wavelength'          ,self%wavelength)
     call spectraFile%readDataset('bolometricLuminosity',self%luminosity)
     call spectraFile%readDataset('SED'                 ,self%SED       )
     ! Close the file.
     call spectraFile%close()
+    !$omp end critical(HDF5_Access)
     return
   end subroutine fileLoadFile
 
@@ -192,10 +184,10 @@ contains
          &   wavelength > self%wavelength(size(self%wavelength)) &
          & ) return
     ! Get the interpolating factors.
-    iLuminosity=Interpolate_Locate(self%luminosity,self%interpolationAcceleratorLuminosity,log10(luminosityBolometric),self%resetLuminosity)
-    iWavelength=Interpolate_Locate(self%wavelength,self%interpolationAcceleratorWavelength,      wavelength           ,self%resetWavelength)
-    hLuminosity=Interpolate_Linear_Generate_Factors(self%luminosity,iLuminosity,log10(luminosityBolometric))
-    hWavelength=Interpolate_Linear_Generate_Factors(self%wavelength,iWavelength,      wavelength           )
+    iLuminosity=Interpolate_Locate                 (self%luminosity,self%interpolationAcceleratorLuminosity,log10(luminosityBolometric),self%resetLuminosity)
+    iWavelength=Interpolate_Locate                 (self%wavelength,self%interpolationAcceleratorWavelength,      wavelength           ,self%resetWavelength)
+    hLuminosity=Interpolate_Linear_Generate_Factors(self%luminosity,iLuminosity                            ,log10(luminosityBolometric)                     )
+    hWavelength=Interpolate_Linear_Generate_Factors(self%wavelength,iWavelength                            ,      wavelength                                )
     ! Do the interpolation.
     do jLuminosity=0,1
        do jWavelength=0,1
@@ -214,3 +206,19 @@ contains
     return
   end function fileSpectrum
   
+  subroutine fileDescriptor(self,descriptor)
+    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters2
+    use FoX_DOM
+    implicit none
+    class(accretionDiskSpectraFile), intent(inout) :: self
+    type (inputParameters         ), intent(inout) :: descriptor
+    type (node                    ), pointer       :: parameterNode
+    type (inputParameters         )                :: subParameters
+
+    call descriptor%addParameter("accretionDiskSpectraMethod","file")
+    parameterNode => descriptor%node("accretionDiskSpectraMethod")
+    subParameters=inputParameters(parameterNode)
+    call subParameters%addParameter("fileName",char(self%fileName))
+    return
+  end subroutine fileDescriptor

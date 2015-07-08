@@ -19,26 +19,22 @@
 
 module Accretion_Disk_Spectra
   !% Implements calculations of accretion disk spectra.
-  use ISO_Varying_String
   use Galacticus_Nodes
-  !# <include directive="accretionDiskSpectra" type="functionModules" >
-  include 'accretionDiskSpectra.functionModules.inc'
-  !# </include>
-  private
 
-  !# <include directive="accretionDiskSpectra" type="function" >
+  !# <functionClass>
+  !#  <name>accretionDiskSpectra</name>
   !#  <descriptiveName>Accretion Disk Spectra</descriptiveName>
   !#  <description>Class providing spectra of accretion disks.</description>
   !#  <default>hopkins2007</default>
+  !#  <stateful>no</stateful>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="spectrum" >
-  !#   <description>Returns the spectrum (in units of $L_\odot$~Hz$^{-1}$) of the accretion disk at the given wavelength (in units of \AA) for {\normalfont \ttfamily node} .</description>
+  !#   <description>Returns the spectrum (in units of $L_\odot$~Hz$^{-1}$) of the accretion disk at the given wavelength (in units of \AA) for {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#   <argument>double precision          , intent(in   ) :: wavelength</argument>
   !#  </method>
-  include 'accretionDiskSpectra.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Accretion_Disk_Spectra
