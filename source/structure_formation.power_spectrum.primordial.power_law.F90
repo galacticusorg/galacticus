@@ -15,141 +15,154 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which generates a tabulated power-law primordial power spectrum.
+  !% A primordial power spectrum class which provides a power-law power spectrum.
+  
+  !# <powerSpectrumPrimordial name="powerSpectrumPrimordialPowerLaw">
+  !#  <description>
+  !#   Implements a power-law primordial power spectrum, possibly with a running index. It is defined by
+  !#   \begin{equation}
+  !#    P(k)\propto k^{n_{\mathrm s} + \ln(k/k_{\mathrm ref}) [\d n /\d\ln k]},
+  !#   \end{equation}
+  !#   where the parameters are specified by input parameters $n_{\mathrm s}\equiv${\normalfont \ttfamily [index]}, $k_{\mathrm ref}\equiv${\normalfont \ttfamily [wavenumberReference]} and $\d n / \d \ln k \equiv${\normalfont \ttfamily [running]}.
+  !#  </description>
+  !# </powerSpectrumPrimordial>
+  type, extends(powerSpectrumPrimordialClass) :: powerSpectrumPrimordialPowerLaw
+     !% A power-law primordial power spectrum class.
+     private
+     double precision :: index              , running, &
+          &              wavenumberReference
+   contains
+     final     ::                          powerLawDestructor
+     procedure :: power                 => powerLawPower
+     procedure :: logarithmicDerivative => powerLawLogarithmicDerivative
+     procedure :: descriptor            => powerLawDescriptor
+  end type powerSpectrumPrimordialPowerLaw
 
-module Primordial_Power_Spectrum_Power_Law
-  !% Implements generation of a tabulated power-law primordial power spectrum. The default power spectrum parameters are taken
-  !% from \citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO).
-  implicit none
-  private
-  public :: Primordial_Power_Spectrum_Power_Law_Initialize, Primordial_Power_Spectrum_Power_Law_State_Store,&
-       & Primordial_Power_Spectrum_Power_Law_State_Retrieve
-
-  ! Parameters of the power-law.
-  double precision            :: powerSpectrumIndex              , powerSpectrumReferenceWavenumber             , &
-       &                         powerSpectrumRunning
-
-  ! Parameters controlling the gridding of the power spectrum and default wavenumber range.
-  integer         , parameter :: nPointsPerDecade    =1000
-  double precision            :: logWavenumberMaximum=log(10.0d0), logWavenumberMinimum            =log(1.0d-5)
+  interface powerSpectrumPrimordialPowerLaw
+     !% Constructors for the ``power-law'' primordial power spectrum class.
+     module procedure powerLawConstructorParameters
+     module procedure powerLawConstructorInternal
+  end interface powerSpectrumPrimordialPowerLaw
 
 contains
 
-  !# <powerSpectrumMethod>
-  !#  <unitName>Primordial_Power_Spectrum_Power_Law_Initialize</unitName>
-  !# </powerSpectrumMethod>
-  subroutine Primordial_Power_Spectrum_Power_Law_Initialize(powerSpectrumMethod,Power_Spectrum_Tabulate)
-    !% Initializes the ``transfer function from CMBFast'' module.
-    use Input_Parameters
-    use ISO_Varying_String
+  function powerLawConstructorParameters(parameters)
+    !% Constructor for the ``power-law'' primordial power spectrum class which takes a parameter set as input.
+    use Galacticus_Display
     implicit none
-    type     (varying_string                   ), intent(in   )          :: powerSpectrumMethod
-    procedure(Power_Spectrum_Power_Law_Tabulate), intent(inout), pointer :: Power_Spectrum_Tabulate
+    type(powerSpectrumPrimordialPowerLaw)                :: powerLawConstructorParameters
+    type(inputParameters                ), intent(in   ) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (powerSpectrumMethod == 'powerLaw') then
-       Power_Spectrum_Tabulate => Power_Spectrum_Power_Law_Tabulate
-       !@ <inputParameter>
-       !@   <name>powerSpectrumIndex</name>
-       !@   <defaultValue>0.9646 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The index of the power-law primordial power spectrum.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('powerSpectrumIndex'              ,powerSpectrumIndex              ,defaultValue=0.9646d0)
-       !@ <inputParameter>
-       !@   <name>powerSpectrumRunning</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The running, $\d n_{\mathrm s} / \d \ln k$, of the power spectrum index.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('powerSpectrumRunning'            ,powerSpectrumRunning            ,defaultValue=0.0d0  )
-       !@ <inputParameter>
-       !@   <name>powerSpectrumReferenceWavenumber</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     When a running power spectrum index is used, this is the wavenumber at which the index is equal to {\normalfont \ttfamily [powerSpectrumIndex]}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('powerSpectrumReferenceWavenumber',powerSpectrumReferenceWavenumber,defaultValue=1.0d0  )
-    end if
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>index</name>
+    !#   <source>parameters</source>
+    !#   <variable>powerLawConstructorParameters%index</variable>
+    !#   <defaultValue>0.9646d0</defaultValue>
+    !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+    !#   <description>The index of the power-law primordial power spectrum.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>running</name>
+    !#   <source>parameters</source>
+    !#   <variable>powerLawConstructorParameters%running</variable>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The running, $\d n_{\mathrm s} / \d \ln k$, of the power spectrum index.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>wavenumberReference</name>
+    !#   <source>parameters</source>
+    !#   <variable>powerLawConstructorParameters%wavenumberReference</variable>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>When a running power spectrum index is used, this is the wavenumber at which the index is equal to {\normalfont \ttfamily [index]}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     return
-  end subroutine Primordial_Power_Spectrum_Power_Law_Initialize
+  end function powerLawConstructorParameters
 
-  subroutine Power_Spectrum_Power_Law_Tabulate(logWavenumber,powerSpectrumNumberPoints,powerSpectrumLogWavenumber&
-       &,powerSpectrumLogP)
-    !% Tabulate a power-law primordial power spectrum.
-    use Memory_Management
-    use Numerical_Ranges
-    use Numerical_Constants_Math
+  function powerLawConstructorInternal(index,running,wavenumberReference)
+    !% Internal constructor for the ``power-law'' primordial power spectrum class.
     implicit none
-    double precision                           , intent(in   ) :: logWavenumber
-    double precision, allocatable, dimension(:), intent(inout) :: powerSpectrumLogP        , powerSpectrumLogWavenumber
-    integer                                    , intent(  out) :: powerSpectrumNumberPoints
-    integer                                                    :: iWavenumber
-    double precision                                           :: wavenumber
+    type            (powerSpectrumPrimordialPowerLaw)                :: powerLawConstructorInternal
+    double precision                                 , intent(in   ) :: index                      , running, &
+         &                                                              wavenumberReference
 
-    ! Determine range of wavenumbers required.
-    logWavenumberMinimum=min(logWavenumberMinimum,logWavenumber-ln10)
-    logWavenumberMaximum=max(logWavenumberMaximum,logWavenumber+ln10)
-
-    ! Determine number of points to tabulate.
-    powerSpectrumNumberPoints=int((logWavenumberMaximum-logWavenumberMinimum)*dble(nPointsPerDecade)/ln10)
-
-    ! Deallocate arrays if currently allocated.
-    if (allocated(powerSpectrumLogWavenumber)) call Dealloc_Array(powerSpectrumLogWavenumber)
-    if (allocated(powerSpectrumLogP))          call Dealloc_Array(powerSpectrumLogP         )
-    ! Allocate the arrays to current required size.
-    call Alloc_Array(powerSpectrumLogWavenumber,[powerSpectrumNumberPoints])
-    call Alloc_Array(powerSpectrumLogP         ,[powerSpectrumNumberPoints])
-
-    ! Tabulate the function.
-    powerSpectrumLogWavenumber=Make_Range(logWavenumberMinimum,logWavenumberMaximum,powerSpectrumNumberPoints,rangeTypeLinear)
-    do iWavenumber=1,powerSpectrumNumberPoints
-       wavenumber=exp(powerSpectrumLogWavenumber(iWavenumber))
-       powerSpectrumLogP(iWavenumber)=(powerSpectrumIndex+0.5d0*powerSpectrumRunning*log(wavenumber&
-            &/powerSpectrumReferenceWavenumber))*powerSpectrumLogWavenumber(iWavenumber)
-    end do
-
+    powerLawConstructorInternal%index              =index
+    powerLawConstructorInternal%running            =running
+    powerLawConstructorInternal%wavenumberReference=wavenumberReference
     return
-  end subroutine Power_Spectrum_Power_Law_Tabulate
+  end function powerLawConstructorInternal
 
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Primordial_Power_Spectrum_Power_Law_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Primordial_Power_Spectrum_Power_Law_State_Store(stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use FGSL
+  elemental subroutine powerLawDestructor(self)
+    !% Destructor for the ``power-law'' primordial power spectrum class.
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    type(powerSpectrumPrimordialPowerLaw), intent(inout) :: self
 
-    write (stateFile) logWavenumberMinimum,logWavenumberMaximum
+    ! Nothing to do.
     return
-  end subroutine Primordial_Power_Spectrum_Power_Law_State_Store
+  end subroutine powerLawDestructor
 
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Primordial_Power_Spectrum_Power_Law_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Primordial_Power_Spectrum_Power_Law_State_Retrieve(stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
-    use FGSL
+  double precision function powerLawPower(self,wavenumber)
+    !% Return the primordial power spectrum at the given {\normalfont \ttfamily wavenumber}.
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    class           (powerSpectrumPrimordialPowerLaw), intent(inout) :: self
+    double precision                                 , intent(in   ) :: wavenumber
 
-    ! Read the minimum and maximum tabulated times.
-    read (stateFile) logWavenumberMinimum,logWavenumberMaximum
+    powerLawPower=+(                                  &
+         &          +             wavenumber          &
+         &          /        self%wavenumberReference &
+         &         )**(                               &
+         &             +self%index                    &
+         &             +0.5d0                         &
+         &             *self%running                  &
+         &             *log(                          &
+         &                  +     wavenumber          &
+         &                  /self%wavenumberReference &
+         &                 )                          &
+         &            )
     return
-  end subroutine Primordial_Power_Spectrum_Power_Law_State_Retrieve
+  end function powerLawPower
 
-end module Primordial_Power_Spectrum_Power_Law
+  double precision function powerLawLogarithmicDerivative(self,wavenumber)
+    !% Return the logarithmic derivative of the primordial power spectrum at the given {\normalfont \ttfamily wavenumber}.
+    implicit none
+    class           (powerSpectrumPrimordialPowerLaw), intent(inout) :: self
+    double precision                                 , intent(in   ) :: wavenumber
+
+    powerLawLogarithmicDerivative=+self%index                    &
+         &                        +self%running                  &
+         &                        *log(                          &
+         &                             +     wavenumber          &
+         &                             /self%wavenumberReference &
+         &                            )
+    return
+  end function powerLawLogarithmicDerivative
+
+  subroutine powerLawDescriptor(self,descriptor)
+    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters2
+    use FoX_DOM
+    implicit none
+    class    (powerSpectrumPrimordialPowerLaw), intent(inout) :: self
+    type     (inputParameters                ), intent(inout) :: descriptor
+    type     (node                           ), pointer       :: parameterNode
+    type     (inputParameters                )                :: subParameters
+    character(len=10                         )                :: parameterLabel
+
+    call descriptor%addParameter("powerSpectrumPrimordialMethod","powerLaw")
+    parameterNode => descriptor%node("powerSpectrumPrimordialMethod")
+    subParameters=inputParameters(parameterNode)
+    write (parameterLabel,'(f10.6)') self%index
+    call subParameters%addParameter("index"              ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(f10.6)') self%running
+    call subParameters%addParameter("running"            ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(f10.6)') self%wavenumberReference
+    call subParameters%addParameter("wavenumberReference",trim(adjustl(parameterLabel)))
+    return
+  end subroutine powerLawDescriptor

@@ -126,20 +126,23 @@ contains
     use Numerical_Integration
     use Cosmology_Parameters
     use Power_Spectrum_Window_Functions
+    use Power_Spectra_Primordial_Transferred
     implicit none
-    double precision                            , intent(in   ) :: mass
-    logical                                     , intent(in   ) :: useTopHat
-    class           (cosmologyParametersClass  ), pointer       :: thisCosmologyParameters
-    double precision                                            :: topHatRadius           , wavenumberMaximum, &
-         &                                                         wavenumberMinimum
-    type            (c_ptr                     )                :: parameterPointer
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    double precision                                         , intent(in   ) :: mass
+    logical                                                  , intent(in   ) :: useTopHat
+    class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
+    class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
+    double precision                                                         :: topHatRadius                       , wavenumberMaximum, &
+         &                                                                      wavenumberMinimum
+    type            (c_ptr                                  )                :: parameterPointer
+    type            (fgsl_function                          )                :: integrandFunction
+    type            (fgsl_integration_workspace             )                :: integrationWorkspace
 
-    ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
+    ! Get required objects.
+    cosmologyParameters_                => cosmologyParameters               ()
+    powerSpectrumPrimordialTransferred_ => powerSpectrumPrimordialTransferred()
     smoothingMass=mass
-    topHatRadius=((3.0d0/4.0d0/Pi)*mass/thisCosmologyParameters%OmegaMatter()/thisCosmologyParameters%densityCritical())**(1.0d0/3.0d0)
+    topHatRadius=((3.0d0/4.0d0/Pi)*mass/cosmologyParameters_%OmegaMatter()/cosmologyParameters_%densityCritical())**(1.0d0/3.0d0)
     wavenumberMinimum=    0.0d0/topHatRadius
     wavenumberMaximum=min(1.0d3/topHatRadius,Power_Spectrum_Window_Function_Wavenumber_Maximum(smoothingMass))
     if (useTopHat) then
@@ -152,39 +155,40 @@ contains
     call Integrate_Done(integrandFunction,integrationWorkspace)
     Variance_Integral=sqrt(Variance_Integral)
     return
+
+  contains
+    
+    function Variance_Integrand(wavenumber,parameterPointer) bind(c)
+      !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
+      use, intrinsic :: ISO_C_Binding
+      use Power_Spectrum_Window_Functions
+      implicit none
+      real(kind=c_double)        :: Variance_Integrand
+      real(kind=c_double), value :: wavenumber
+      type(c_ptr        ), value :: parameterPointer
+
+      ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
+      ! elsewhere.
+      Variance_Integrand=powerSpectrumPrimordialTransferred_%power(wavenumber)*(Power_Spectrum_Window_Function(wavenumber,smoothingMass)*wavenumber)**2
+      return
+    end function Variance_Integrand
+    
+    function Variance_Integrand_TopHat(wavenumber,parameterPointer) bind(c)
+      !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
+      use, intrinsic :: ISO_C_Binding
+      use Power_Spectrum_Window_Functions_Top_Hat
+      implicit none
+      real(kind=c_double)        :: Variance_Integrand_TopHat
+      real(kind=c_double), value :: wavenumber
+      type(c_ptr        ), value :: parameterPointer
+      
+      ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
+      ! elsewhere.
+      Variance_Integrand_TopHat=powerSpectrumPrimordialTransferred_%power(wavenumber)*(Power_Spectrum_Window_Function_Top_Hat(wavenumber,smoothingMass)*wavenumber)**2
+      return
+    end function Variance_Integrand_TopHat
+    
   end function Variance_Integral
-
-  function Variance_Integrand(wavenumber,parameterPointer) bind(c)
-    !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
-    use, intrinsic :: ISO_C_Binding
-    use Power_Spectrum_Window_Functions
-    use Primordial_Power_Spectra_Transferred
-    implicit none
-    real(kind=c_double)        :: Variance_Integrand
-    real(kind=c_double), value :: wavenumber
-    type(c_ptr        ), value :: parameterPointer
-
-    ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
-    ! elsewhere.
-    Variance_Integrand=Primordial_Power_Spectrum_Transferred(wavenumber)*(Power_Spectrum_Window_Function(wavenumber,smoothingMass)*wavenumber)**2
-    return
-  end function Variance_Integrand
-
-  function Variance_Integrand_TopHat(wavenumber,parameterPointer) bind(c)
-    !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
-    use, intrinsic :: ISO_C_Binding
-    use Power_Spectrum_Window_Functions_Top_Hat
-    use Primordial_Power_Spectra_Transferred
-    implicit none
-    real(kind=c_double)        :: Variance_Integrand_TopHat
-    real(kind=c_double), value :: wavenumber
-    type(c_ptr        ), value :: parameterPointer
-
-    ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
-    ! elsewhere.
-    Variance_Integrand_TopHat=Primordial_Power_Spectrum_Transferred(wavenumber)*(Power_Spectrum_Window_Function_Top_Hat(wavenumber,smoothingMass)*wavenumber)**2
-    return
-  end function Variance_Integrand_TopHat
 
   !# <galacticusStateStoreTask>
   !#  <unitName>Cosmological_Mass_Variance_FPS_State_Store</unitName>
