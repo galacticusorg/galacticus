@@ -123,7 +123,7 @@ contains
     implicit none
     class           (nodeComponentDarkMatterProfileScale), intent(inout) :: self
     type            (treeNode                           ), pointer       :: selfNode
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     double precision                                                     :: scaleLengthMaximum, scaleLengthMinimum
 
     selfNode             => self%host          ()
@@ -152,14 +152,14 @@ contains
     logical                                         , intent(inout)          :: interrupt
     procedure       (                              ), intent(inout), pointer :: interruptProcedure
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
     double precision                                                         :: concentration                 , growthRate
 
     ! Get the dark matter profile component.
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
     ! Ensure that it is of the scale class.
     select type (thisDarkMatterProfileComponent)
-       class is (nodeComponentDarkMatterProfileScale)
+    class is (nodeComponentDarkMatterProfileScale)
        ! Find the concentration of this halo.
        darkMatterHaloScale_ => darkMatterHaloScale()
        concentration=darkMatterHaloScale_%virialRadius(thisNode)/thisDarkMatterProfileComponent%scale()
