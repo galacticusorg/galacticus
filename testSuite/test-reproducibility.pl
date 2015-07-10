@@ -31,6 +31,43 @@ my @tests =
 		  toleranceRelative => 1.0e-12
 	      }
 	     ]
+     },
+     {
+	 # Closed box chemical evolution model - values below are computed from the analytic solution for this model.
+	 name           => "closedBox"                                         ,
+	 parameters     => "testSuite/parameters/reproducibility/closedBox.xml",
+	 outputFileName => "testSuite/outputs/reproducibility/closedBox.hdf5"  ,
+	 assertions     =>
+	     [
+	      {
+		  name              => "gas mass"                   ,
+		  output            => 1                            ,
+		  property          => "diskMassGas"                ,
+		  values            => pdl ( 9.0717953e9  )         ,
+		  toleranceRelative => 1.0e-2
+	      },
+	      {
+		  name              => "stellar mass"               ,
+		  output            => 1                            ,
+		  property          => "diskMassStellar"            ,
+		  values            => pdl ( 9.0928205e10  )        ,
+		  toleranceRelative => 1.0e-2
+	      },
+	      {
+		  name              => "gas metals"                 ,
+		  output            => 1                            ,
+		  property          => "diskAbundancesGasMetals"    ,
+		  values            => pdl ( 9.0717953e8 )          ,
+		  toleranceRelative => 1.0e-2
+	      },
+	      {
+		  name              => "stellar metals"             ,
+		  output            => 1                            ,
+		  property          => "diskAbundancesStellarMetals",
+		  values            => pdl ( 2.8814957E9 )          ,
+		  toleranceRelative => 1.0e-2
+	      }
+	     ]
      }
     );
 
