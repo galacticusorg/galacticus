@@ -291,9 +291,7 @@ contains
              imfIndexTabulate                =imfIndex
              loopCountMaximum                =luminosityTables(imfIndex)%metallicitiesCount*luminosityTables(imfIndex)%agesCount
              loopCount                       =0
-             !# <workaround type="gfortran" PR="66633" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66633">
-             !!omp parallel do private(iAge,iMetallicity,integrandFunction,integrationWorkspace,toleranceRelative,errorStatus) copyin(filterIndexTabulate,postprocessingChainIndexTabulate,redshiftTabulate,imfIndexTabulate)
-             !# </workaround>
+             !$omp parallel do private(iAge,iMetallicity,integrandFunction,integrationWorkspace,toleranceRelative,errorStatus) copyin(filterIndexTabulate,postprocessingChainIndexTabulate,redshiftTabulate,imfIndexTabulate)
              do iAge=1,luminosityTables(imfIndex)%agesCount
                 ageTabulate=luminosityTables(imfIndex)%age(iAge)
                 do iMetallicity=1,luminosityTables(imfIndex)%metallicitiesCount
@@ -347,9 +345,7 @@ contains
                    end do
                 end do
              end do
-             !# <workaround type="gfortran" PR="66633" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66633">
-             !!omp end parallel do
-             !# </workaround>
+             !$omp end parallel do
              ! Clear the counter and write a completion message.
              call Galacticus_Display_Counter_Clear(           verbosityWorking)
              call Galacticus_Display_Unindent     ('finished',verbosityWorking)
