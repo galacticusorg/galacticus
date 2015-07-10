@@ -90,7 +90,7 @@ contains
     use Virial_Density_Contrast
     use Galacticus_Display
     use Galacticus_Calculations_Resets
-use iso_varying_string
+    use ISO_Varying_String
     implicit none
     class           (nodeComponentBasic            ), pointer :: thisBasic
     class           (nodeComponentDarkMatterProfile), pointer :: thisDarkMatterProfile
@@ -152,16 +152,6 @@ use iso_varying_string
     virialDensityContrast_    => virialDensityContrast()
     darkMatterProfile_        => darkMatterProfile    ()
 
-    ! Compute output time properties.
-    do iOutput=1,outputCount
-       outputExpansionFactors     (iOutput)=cosmologyFunctionsDefault%expansionFactorFromRedshift(outputRedshifts       (iOutput))
-       outputTimes                (iOutput)=cosmologyFunctionsDefault%cosmicTime                 (outputExpansionFactors(iOutput))
-       outputGrowthFactors        (iOutput)=Linear_Growth_Factor                                 (outputTimes           (iOutput))
-       outputCriticalOverdensities(iOutput)=Critical_Overdensity_for_Collapse                    (outputTimes           (iOutput))
-       outputVirialDensityContrast(iOutput)=virialDensityContrast_%densityContrast               (outputTimes           (iOutput))
-       outputCharacteristicMass   (iOutput)=Critical_Overdensity_Collapsing_Mass                 (outputTimes           (iOutput))
-    end do
-
     ! Find the mass range and increment size.
     !@ <inputParameter>
     !@   <name>haloMassFunctionsMassMinimum</name>
@@ -199,6 +189,16 @@ use iso_varying_string
 
     ! Compute number of tabulation points.
     haloMassFunctionsCount=int(log10(haloMassFunctionsMassMaximum/haloMassFunctionsMassMinimum)*dble(haloMassFunctionsPointsPerDecade))+1
+
+    ! Compute output time properties.
+    do iOutput=1,outputCount
+       outputExpansionFactors     (iOutput)=cosmologyFunctionsDefault%expansionFactorFromRedshift(                             outputRedshifts       (iOutput))
+       outputTimes                (iOutput)=cosmologyFunctionsDefault%cosmicTime                 (                             outputExpansionFactors(iOutput))
+       outputGrowthFactors        (iOutput)=Linear_Growth_Factor                                 (                             outputTimes           (iOutput))
+       outputCriticalOverdensities(iOutput)=Critical_Overdensity_for_Collapse                    (                             outputTimes           (iOutput))
+       outputVirialDensityContrast(iOutput)=virialDensityContrast_%densityContrast               (haloMassFunctionsMassMinimum,outputTimes           (iOutput))
+       outputCharacteristicMass   (iOutput)=Critical_Overdensity_Collapsing_Mass                 (                             outputTimes           (iOutput))
+    end do
 
     ! Allocate arrays for halo mass functions.
     call Alloc_Array(haloMassFunction_Mass             ,[haloMassFunctionsCount,outputCount])
