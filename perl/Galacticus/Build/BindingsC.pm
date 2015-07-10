@@ -79,7 +79,8 @@ sub CBinding_Generate_Output {
     $buildData->{'content'} .= "!  Time: ".$now."\n";
 
     # Iterate over all labels, and add them to the content.
-    $buildData->{'content'} .= $buildData->{'cBinding'}->{'code'};
+    $buildData->{'content'} .= $buildData->{'cBinding'}->{'code'}
+        if ( exists($buildData->{'cBinding'}) );
 }
 
 sub CTemplate_Parse_Directive {
