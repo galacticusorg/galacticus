@@ -49,10 +49,11 @@
      ! Record of unique ID of node which we last computed results for.
      integer         (kind=kind_int8          )              :: lastUniqueID
      ! Record of whether or not quantities have been computed.
-     logical                                                 :: specificAngularMomentumScalingsComputed
+     logical                                                 :: specificAngularMomentumScalingsComputed, maximumVelocityComputed
      ! Stored values of computed quantities.
      double precision                                        :: specificAngularMomentumLengthScale     , specificAngularMomentumScale     , &
-          &                                                     concentrationPrevious                  , nfwNormalizationFactorPrevious
+          &                                                     concentrationPrevious                  , nfwNormalizationFactorPrevious   , &
+          &                                                     maximumVelocityPrevious
      ! Pointer to object setting halo scales.
      class(darkMatterHaloScaleClass           ), pointer     :: scale
    contains
@@ -216,6 +217,7 @@ contains
     if (self%nfwInverseTableInitialized ) then
        call self%nfwSpecificAngularMomentum       %destroy()
        call self%nfwSpecificAngularMomentumInverse%destroy()
+       deallocate(self%nfwSpecificAngularMomentumInverse)
     end if
     if (self%nfwTableInitialized        ) then
        call self%nfwConcentrationTable            %destroy()
@@ -231,6 +233,7 @@ contains
     type (treeNode            ), intent(inout), pointer :: thisNode
 
     self%specificAngularMomentumScalingsComputed=.false.
+    self%maximumVelocityComputed                =.false.
     self%lastUniqueID                           =thisNode%uniqueID()
     call self%scale%calculationReset(thisNode)
     return
@@ -302,7 +305,7 @@ contains
     end if
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%nfwInverseTableNumberPoints=int(log10(self%radiusMaximum/self%radiusMinimum)*dble(nfwInverseTablePointsPerDecade))+1
+       self%nfwInverseTableNumberPoints=int(log10(self%radiusMaximum/self%radiusMinimum)*dble(nfwInverseTablePointsPerDecade))+1       
        ! Create a range of radii.
        call self%nfwSpecificAngularMomentum%destroy(                                                       )
        call self%nfwSpecificAngularMomentum%create (self%radiusMinimum,self%radiusMaximum,self%nfwInverseTableNumberPoints)
@@ -463,8 +466,8 @@ contains
   double precision function nfwPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
+    use Galactic_Structure_Options
     use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles_Error_Codes
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout), pointer  :: node
@@ -475,9 +478,9 @@ contains
     double precision                                                          :: radiusOverScaleRadius                 , radiusTerm, &
          &                                                                       virialRadiusOverScaleRadius
 
-    if (present(status)) status=darkMatterProfileSuccess
+    if (present(status)) status=structureErrorCodeSuccess
     thisDarkMatterProfileComponent   => node%darkMatterProfile(autoCreate=.true.)
-    radiusOverScaleRadius            =radius                           /thisDarkMatterProfileComponent%scale()
+    radiusOverScaleRadius            =radius                       /thisDarkMatterProfileComponent%scale()
     virialRadiusOverScaleRadius      =self%scale%virialRadius(node)/thisDarkMatterProfileComponent%scale()
     if (radiusOverScaleRadius < radiusSmall) then
        ! Use a series solution for very small radii.
@@ -486,9 +489,14 @@ contains
        ! Use the full expression for larger radii.
        radiusTerm=log(1.0d0+radiusOverScaleRadius)/radiusOverScaleRadius
     end if
-    nfwPotential=(-1.0d0-virialRadiusOverScaleRadius*(radiusTerm-log(1.0d0+virialRadiusOverScaleRadius)&
-         &/virialRadiusOverScaleRadius)/(log(1.0d0 +virialRadiusOverScaleRadius)-virialRadiusOverScaleRadius/(1.0d0&
-         &+virialRadiusOverScaleRadius)))*self%scale%virialVelocity(node)**2
+    nfwPotential=-virialRadiusOverScaleRadius              &
+         &       *radiusTerm                               &
+         &       /(                                        &
+         &         +log(1.0d0+virialRadiusOverScaleRadius) &
+         &         -           virialRadiusOverScaleRadius &
+         &         /   (1.0d0+virialRadiusOverScaleRadius) &
+         &        )                                        &
+         &       *self%scale%virialVelocity(node)**2
     return
   end function nfwPotential
 
@@ -502,8 +510,7 @@ contains
     double precision                      , intent(in   )          :: radius
 
     if (radius > 0.0d0) then
-       nfwCircularVelocity=sqrt(gravitationalConstantGalacticus&
-            &*self%enclosedMass(node,radius)/radius)
+       nfwCircularVelocity=sqrt(gravitationalConstantGalacticus*self%enclosedMass(node,radius)/radius)
     else
        nfwCircularVelocity=0.0d0
     end if
@@ -521,17 +528,22 @@ contains
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile
     double precision                                                         :: scaleRadius
 
-    thisDarkMatterProfile      => node                 %darkMatterProfile(autoCreate=.true.                          )
-    scaleRadius                =  thisDarkMatterProfile%scale            (                                           )
-    nfwCircularVelocityMaximum =  self                 %circularVelocity (node             ,radiusMaximum*scaleRadius)
+    ! Check if node differs from previous one for which we performed calculations.
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    ! Check if maximum velocity is already computed. Compute and store if not.
+    if (.not.self%maximumVelocityComputed) then
+       thisDarkMatterProfile        => node                 %darkMatterProfile(autoCreate=.true.                          )
+       scaleRadius                  =  thisDarkMatterProfile%scale            (                                           )
+       self%maximumVelocityPrevious =  self                 %circularVelocity (node             ,radiusMaximum*scaleRadius)
+       self%maximumVelocityComputed =  .true.
+    end if
+    nfwCircularVelocityMaximum=self%maximumVelocityPrevious
     return
   end function nfwCircularVelocityMaximum
 
   double precision function nfwRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
-    !% in units of km s$^{-1}$ Mpc). For an NFW halo, the circular velocity is constant (and therefore equal to the virial
-    !% velocity). Therefore, $r = j/V_{\mathrm virial}$ where $j$(={\normalfont \ttfamily specificAngularMomentum}) is the specific angular momentum and
-    !% $r$ the required radius.
+    !% in units of km s$^{-1}$ Mpc).
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
@@ -565,7 +577,6 @@ contains
     ! Compute the specific angular momentum in scale free units (using the scale length for distances the sqrt(G M(r_scale) /
     ! r_scale) for velocities).
     specificAngularMomentumScaleFree=specificAngularMomentum/self%specificAngularMomentumScale
-
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%inverseAngularMomentum(specificAngularMomentumScaleFree)
 
