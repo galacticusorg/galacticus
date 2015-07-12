@@ -68,8 +68,10 @@ contains
           coolant => summationConstructorParameters%coolants
        end if
        coolant%coolingFunction => coolingFunction(parameters)
+       !$omp critical (FoX_DOM_Access)
        parent              => getParentNode(       coolingFunctionNode)
        coolingFunctionNode => removeChild  (parent,coolingFunctionNode)
+       !$omp end critical (FoX_DOM_Access)
     end do
     return
   end function summationConstructorParameters
