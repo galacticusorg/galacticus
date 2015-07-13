@@ -211,7 +211,9 @@ contains
 
        ! Remove label is requested.
        if (.not.labelNodesActual) then
-          write (fileUnit,'(a,i16.16,a)') '"',thisNode%index(),'" [label=""];'
+          write (fileUnit,'(a,i16.16,a)'         ) '"',thisNode%index(),'" [label=""];'
+       else
+          write (fileUnit,'(a,i16.16,a,i16.16,a)') '"',thisNode%index(),'" [label="',thisNode%index(),'"];'
        end if
 
        ! Walk the tree, including satellite nodes.
