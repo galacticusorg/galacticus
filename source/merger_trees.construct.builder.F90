@@ -19,15 +19,12 @@
 
 module Merger_Trees_Builders
   !% Provides a class of merger tree builders.
-  use ISO_Varying_String
   use Galacticus_Nodes
   use FGSL
-  !# <include directive="mergerTreeBuilder" type="functionModules" >
-  include 'mergerTreeBuilder.functionModules.inc'
-  !# </include>
   private
 
-  !# <include directive="mergerTreeBuilder" type="function" >
+  !# <functionClass>
+  !#  <name>mergerTreeBuilder</name>
   !#  <descriptiveName>Merger Tree Builders</descriptiveName>
   !#  <description>Class providing merger tree builders.</description>
   !#  <default>cole2000</default>
@@ -39,7 +36,6 @@ module Merger_Trees_Builders
   !#   <pass>yes</pass>
   !#   <argument>type(mergerTree), intent(inout), target :: tree</argument>
   !#  </method>
-  include 'mergerTreeBuilder.type.inc'
-  !# </include>
+  !# </functionClass>
   
 end module Merger_Trees_Builders

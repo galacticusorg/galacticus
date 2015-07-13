@@ -274,7 +274,11 @@ my @translations =
 	     "powerSpectrumMethod"                               => "powerSpectrumPrimordialMethod"                                  ,
 	     "powerSpectrumIndex"                                => "powerSpectrumPrimordialMethod->index"                           ,
 	     "powerSpectrumRunning"                              => "powerSpectrumPrimordialMethod->running"                         ,
-	     "powerSpectrumReferenceWavenumber"                  => "powerSpectrumPrimordialMethod->wavenumberReference"	     
+	     "powerSpectrumReferenceWavenumber"                  => "powerSpectrumPrimordialMethod->wavenumberReference"             ,
+	     "mergerTreeBuildCole2000AccretionLimit"             => "mergerTreeBuildMethod->accretionLimit"                          ,
+	     "mergerTreeBuildCole2000MergeProbability"           => "mergerTreeBuildMethod->mergeProbability"                        ,
+	     "mergerTreeBuildCole2000HighestRedshift"            => "mergerTreeBuildMethod->redshiftMaximum"                         ,
+	     "mergerTreeBuildCole2000FixedRandomSeeds"           => "mergerTreeBuildMethod->randomSeedsFixed"
 	 },
  	 values        =>
          {
@@ -446,7 +450,8 @@ sub Translate {
 		if ( $options{'inputFormatVersion'} <= 1 ) {
 		    $name->setData    ($translation->{'names'}->{$nameText});
 		} else {
-		    $name->setNodeName($translation->{'names'}->{$nameText});
+		    (my $leafName = $translation->{'names'}->{$nameText}) =~ s/^(.*\->)//;
+		    $name->setNodeName($leafName);
 		}
 	    }
 	    # Translate values.
