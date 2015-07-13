@@ -20,15 +20,14 @@
   !# <mergerTreeBuilder name="mergerTreeBuilderCole2000">
   !#  <description>Merger trees are built using the algorithm of \cite{cole_hierarchical_2000}.</description>
   !# </mergerTreeBuilder>
-
   type, extends(mergerTreeBuilderClass) :: mergerTreeBuilderCole2000
      !% A merger tree builder class using the algorithm of \cite{cole_hierarchical_2000}.
      private
      ! Variables controlling merger tree accuracy.
-     double precision           :: accretionLimit      , earliestTime    , &
+     double precision           :: accretionLimit      , timeEarliest    , &
           &                        mergeProbability
      ! Option controlling random number sequences.
-     logical                    :: fixedRandomSeeds
+     logical                    :: randomSeedsFixed
      
      ! Random number sequence variables
      type            (fgsl_rng) :: clonedPseudoSequence, pseudoSequence
@@ -61,99 +60,99 @@
 
   interface mergerTreeBuilderCole2000
      !% Constructors for the {\normalfont \ttfamily cole2000} merger tree builder class.
-     module procedure cole2000DefaultConstructor
+     module procedure cole2000ConstructorParameters
+     module procedure cole2000ConstructorInternal
   end interface mergerTreeBuilderCole2000
-
-  ! Default options controlling merger tree accuracy.
-  double precision :: cole2000AccretionLimit         , cole2000EarliestTime    , &
-       &              cole2000HighestRedshift        , cole2000MergeProbability
-  ! Default option controlling random number sequences.
-  logical          :: cole2000FixedRandomSeeds
-  ! Default initialization state.
-  logical          :: cole2000Initialized    =.false.
   
 contains
 
-  function cole2000DefaultConstructor()
-    !% Default constructor for the \cite{cole_hierarchical_2000} merger tree building class.
+  function cole2000ConstructorParameters(parameters)
+    !% Constructor for the \cite{cole_hierarchical_2000} merger tree building class which reads parameters from a provided parameter list.
     use, intrinsic :: ISO_C_Binding
-    use Input_Parameters
-    use ISO_Varying_String
     use Cosmology_Functions
     implicit none
-    type (mergerTreeBuilderCole2000)          :: cole2000DefaultConstructor    
-    class(cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_
+    type            (mergerTreeBuilderCole2000)                :: cole2000ConstructorParameters    
+    type            (inputParameters          ), intent(in   ) :: parameters
+    class           (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
+    double precision                                           :: redshiftMaximum
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (.not.cole2000Initialized) then
-       !$omp critical(mergerTreeBuilderCole2000Initialize)
-       if (.not.cole2000Initialized) then    
-          ! Read parameters controlling tree accuracy.
-          !@ <inputParameter>
-          !@   <name>mergerTreeBuildCole2000MergeProbability</name>
-          !@   <defaultValue>0.1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The largest probability of branching allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeBuildCole2000MergeProbability',cole2000MergeProbability,defaultValue=1.0d-1)
-          !@ <inputParameter>
-          !@   <name>mergerTreeBuildCole2000AccretionLimit</name>
-          !@   <defaultValue>0.1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The largest fractional mass change due to subresolution accretion allowed in a timestep in merger trees built by the
-          !@     \cite{cole_hierarchical_2000} method.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeBuildCole2000AccretionLimit'  ,cole2000AccretionLimit  ,defaultValue=1.0d-1)
-          !@ <inputParameter>
-          !@   <name>mergerTreeBuildCole2000HighestRedshift</name>
-          !@   <defaultValue>$10^5$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The highest redshift to which merger trees will be built in the \cite{cole_hierarchical_2000} method.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeBuildCole2000HighestRedshift'  ,cole2000HighestRedshift  ,defaultValue=1.0d5 )
-          cosmologyFunctions_ => cosmologyFunctions()
-          cole2000EarliestTime=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(cole2000HighestRedshift))
-          !@ <inputParameter>
-          !@   <name>mergerTreeBuildCole2000FixedRandomSeeds</name>
-          !@   <defaultValue>{\normalfont \ttfamily false}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether the random number sequence should be restarted for each tree using a deterministically derived (from the tree index) seed. This allows the exact same tree to be generated even when running multiple threads.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeBuildCole2000FixedRandomSeeds',cole2000FixedRandomSeeds,defaultValue=.false.)
-          ! Record that default is initialized.
-          cole2000Initialized=.true.
-       end if
-       !$omp end critical(mergerTreeBuilderCole2000Initialize)
-    end if
-    ! Construct the default object.
-    cole2000DefaultConstructor%accretionLimit  =cole2000AccretionLimit
-    cole2000DefaultConstructor%earliestTime    =cole2000EarliestTime
-    cole2000DefaultConstructor%mergeProbability=cole2000MergeProbability
-    cole2000DefaultConstructor%fixedRandomSeeds=cole2000FixedRandomSeeds
-    cole2000DefaultConstructor%reset           =.true.
-    cole2000DefaultConstructor%ompThreadOffset =.true.
-    cole2000DefaultConstructor%incrementSeed   =0
-    if (FGSL_Well_Defined(cole2000DefaultConstructor%      pseudoSequence)) &
-         & call FGSL_Obj_C_Ptr(cole2000DefaultConstructor%      pseudoSequence,C_Null_Ptr)
-    if (FGSL_Well_Defined(cole2000DefaultConstructor%clonedPseudoSequence)) &
-         & call FGSL_Obj_C_Ptr(cole2000DefaultConstructor%clonedPseudoSequence,C_Null_Ptr)
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>mergeProbability</name>
+    !#   <source>parameters</source>
+    !#   <variable>cole2000ConstructorParameters%mergeProbability</variable>
+    !#   <defaultValue>0.1d0</defaultValue>
+    !#   <description>The largest probability of branching allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>accretionLimit</name>
+    !#   <source>parameters</source>
+    !#   <variable>cole2000ConstructorParameters%accretionLimit</variable>
+    !#   <defaultValue>0.1d0</defaultValue>
+    !#   <description>The largest fractional mass change due to subresolution accretion allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>redshiftMaximum</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d5</defaultValue>
+    !#   <description>The highest redshift to which merger trees will be built in the \cite{cole_hierarchical_2000} method.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>randomSeedsFixed</name>
+    !#   <source>parameters</source>
+    !#   <variable>cole2000ConstructorParameters%randomSeedsFixed</variable>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description></description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    ! Convert maximum redshift to earliest time.
+    cosmologyFunctions_ => cosmologyFunctions()
+    cole2000ConstructorParameters%timeEarliest=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
+    ! Initialize state.
+    cole2000ConstructorParameters%reset           =.true.
+    cole2000ConstructorParameters%ompThreadOffset =.true.
+    cole2000ConstructorParameters%incrementSeed   =0
+    if (FGSL_Well_Defined(cole2000ConstructorParameters%      pseudoSequence))                &
+         & call FGSL_Obj_C_Ptr(cole2000ConstructorParameters%      pseudoSequence,C_Null_Ptr)
+    if (FGSL_Well_Defined(cole2000ConstructorParameters%clonedPseudoSequence))                &
+         & call FGSL_Obj_C_Ptr(cole2000ConstructorParameters%clonedPseudoSequence,C_Null_Ptr)
     return
-  end function cole2000DefaultConstructor
+  end function cole2000ConstructorParameters
+
+  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,randomSeedsFixed)
+    !% Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
+    use, intrinsic :: ISO_C_Binding
+    use Cosmology_Functions
+    implicit none
+    type            (mergerTreeBuilderCole2000)                :: cole2000ConstructorInternal
+    double precision                           , intent(in   ) :: mergeProbability           , accretionLimit, &
+         &                                                        timeEarliest
+    logical                                    , intent(in   ) :: randomSeedsFixed
+
+    ! Store options.
+    cole2000ConstructorInternal%mergeProbability=mergeProbability
+    cole2000ConstructorInternal%accretionLimit  =accretionLimit
+    cole2000ConstructorInternal%timeEarliest    =timeEarliest
+    cole2000ConstructorInternal%randomSeedsFixed=randomSeedsFixed
+    ! Initialize state.
+    cole2000ConstructorInternal%reset           =.true.
+    cole2000ConstructorInternal%ompThreadOffset =.true.
+    cole2000ConstructorInternal%incrementSeed   =0
+    if (FGSL_Well_Defined(cole2000ConstructorInternal%      pseudoSequence))                &
+         & call FGSL_Obj_C_Ptr(cole2000ConstructorInternal%      pseudoSequence,C_Null_Ptr)
+    if (FGSL_Well_Defined(cole2000ConstructorInternal%clonedPseudoSequence))                &
+         & call FGSL_Obj_C_Ptr(cole2000ConstructorInternal%clonedPseudoSequence,C_Null_Ptr)
+    return
+  end function cole2000ConstructorInternal
 
   subroutine cole2000Build(self,tree)
     !% Build a merger tree.
@@ -182,7 +181,7 @@ contains
     thisNode  => tree    %baseNode   ! Point to the base node.
     thisBasic => thisNode%basic   () ! Get the basic component of the node.
     ! Restart the random number sequence.
-    if (self%fixedRandomSeeds) then
+    if (self%randomSeedsFixed) then
        if (.not.self%reset) call Pseudo_Random_Free(self%pseudoSequence)
        self%reset          =.true.
        self%incrementSeed  =int(tree%index)
@@ -202,7 +201,7 @@ contains
        if     (                                                                                                   &
             &                                                              thisBasic%mass()  > massResolution     &
             &  .and.                                                                                              &
-            &   Time_of_Collapse(criticalOverdensity=thisBasic%time(),mass=thisBasic%mass()) > self%earliestTime  &
+            &   Time_of_Collapse(criticalOverdensity=thisBasic%time(),mass=thisBasic%mass()) > self%timeEarliest  &
             &  .and.                                                                                              &
             &   self%shouldFollowBranch(tree,thisNode)                                                            &
             & ) then
