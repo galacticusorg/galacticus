@@ -210,6 +210,7 @@ sub Process_FunctionClass {
 
 	    # Generate the base class.
 	    &SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}."Class","public");
+	    &SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}        ,"public");
 	    $preContains->[0]->{'content'} .= "   type :: ".$directive->{'name'}."Class\n";
 	    $preContains->[0]->{'content'} .= "    private\n";
 	    $preContains->[0]->{'content'} .= "    logical :: isDefault=.false.\n";
