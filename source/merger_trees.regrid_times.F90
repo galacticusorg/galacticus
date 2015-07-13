@@ -42,12 +42,13 @@ module Merger_Trees_Regrid_Times
   integer                         , parameter                 :: mergerTreeRegridSpacingLogarithmic           =1
   integer                         , parameter                 :: mergerTreeRegridSpacingLogCriticalOverdensity=2
   integer                         , parameter                 :: mergerTreeRegridSpacingMillennium            =3
-  integer,              parameter                 :: mergerTreeRegridSpacingRead                  =4
+  integer                         , parameter                 :: mergerTreeRegridSpacingRead                  =4
 
 contains
 
   !# <mergerTreePreEvolveTask>
   !#   <unitName>Merger_Tree_Regrid_Time</unitName>
+  !#   <before>Merger_Tree_Prune_Branches</before>
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Regrid_Time(thisTree)
     !% Regrid times of halos in {\normalfont \ttfamily thisTree}.
