@@ -48,6 +48,7 @@ contains
 
   !# <mergerTreePreEvolveTask>
   !#   <unitName>Merger_Tree_Regrid_Time</unitName>
+  !#   <before>Merger_Tree_Prune_Branches</before>
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Regrid_Time(thisTree)
     !% Regrid times of halos in {\normalfont \ttfamily thisTree}.
