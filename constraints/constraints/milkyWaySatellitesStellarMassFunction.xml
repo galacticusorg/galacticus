@@ -1,0 +1,11 @@
+<!-- Defines a constraint to match to the Milky Way satellite stellar mass functions. -->
+<constraint>
+  <name>Milky Way satellite stellar mass functions</name>
+  <label>milkyWaySMF</label>
+  <outputRedshift>0.0</outputRedshift>
+  <haloMassResolution>1.0e8</haloMassResolution>
+  <haloMassMinimum>1.0e12</haloMassMinimum>
+  <haloMassMaximum>3.0e12</haloMassMaximum>
+  <analysis>constraints/scripts/localGroupSatellitesStellarMassFunction.pl</analysis>
+  <analysisArguments>--central MilkyWay --massMinimum 1.0e6</analysisArguments>
+</constraint>
