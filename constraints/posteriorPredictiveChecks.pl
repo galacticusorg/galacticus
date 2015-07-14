@@ -70,7 +70,7 @@ if ( exists($arguments{'compilationOverride'}) ) {
 my @constraints = @{$constraintsRef};
 
 # Set a random number seed.
-$parameters->{'parameter'}->{'randomSeed'}->{'value'} = int(rand(10000))+1;
+$parameters->{'randomSeed'}->{'value'} = int(rand(10000))+1;
 
 # Generate a sample of models.
 my $sampleCount = &Parameters::Sample_Models($config,\%arguments);

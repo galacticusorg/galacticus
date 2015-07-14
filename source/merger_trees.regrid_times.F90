@@ -162,7 +162,7 @@ contains
                 mergerTreeRegridSpacing=mergerTreeRegridSpacingLinear
              case ("logarithmic")
                 mergerTreeRegridSpacing=mergerTreeRegridSpacingLogarithmic
-             case ("log critical density")
+             case ("logCriticalDensity")
                 mergerTreeRegridSpacing=mergerTreeRegridSpacingLogCriticalOverdensity
              case ("millennium")
                 mergerTreeRegridSpacing=mergerTreeRegridSpacingMillennium
