@@ -356,6 +356,11 @@
       <alias>
 	<value>RetII</value>
       </alias>
+      <massNeutralHydrogen>
+        <limit confidenceLevel="99.999971%" type="upper">0.0001549</limit>
+        <reference>Westmeier et al. (arXiv:1507.03661)</reference>
+        <referenceURL>http://arxiv.org/abs/1507.03661</referenceURL>
+      </massNeutralHydrogen>
       <rightAscensionHours>
         <value>3</value>
       </rightAscensionHours>
@@ -421,6 +426,11 @@
       <alias>
 	<value>EriII</value>
       </alias>
+      <massNeutralHydrogen>
+        <limit confidenceLevel="99.999971%" type="upper">0.02570</limit>
+        <reference>Westmeier et al. (arXiv:1507.03661)</reference>
+        <referenceURL>http://arxiv.org/abs/1507.03661</referenceURL>
+      </massNeutralHydrogen>
       <rightAscensionHours>
         <value>3</value>
       </rightAscensionHours>
@@ -486,6 +496,11 @@
       <alias>
 	<value>HorI</value>
       </alias>
+      <massNeutralHydrogen>
+        <limit confidenceLevel="99.999971%" type="upper">0.001175</limit>
+        <reference>Westmeier et al. (arXiv:1507.03661)</reference>
+        <referenceURL>http://arxiv.org/abs/1507.03661</referenceURL>
+      </massNeutralHydrogen>
       <rightAscensionHours>
         <value>2</value>
       </rightAscensionHours>
@@ -550,6 +565,11 @@
       <alias>
 	<value>PicI</value>
       </alias>
+      <massNeutralHydrogen>
+        <limit confidenceLevel="99.999971%" type="upper">0.003162</limit>
+        <reference>Westmeier et al. (arXiv:1507.03661)</reference>
+        <referenceURL>http://arxiv.org/abs/1507.03661</referenceURL>
+      </massNeutralHydrogen>
       <rightAscensionHours>
         <value>4</value>
       </rightAscensionHours>
@@ -615,6 +635,11 @@
       <alias>
 	<value>PheII</value>
       </alias>
+      <massNeutralHydrogen>
+        <limit confidenceLevel="99.999971%" type="upper">0.001585</limit>
+        <reference>Westmeier et al. (arXiv:1507.03661)</reference>
+        <referenceURL>http://arxiv.org/abs/1507.03661</referenceURL>
+      </massNeutralHydrogen>
       <rightAscensionHours>
         <value>23</value>
       </rightAscensionHours>
@@ -680,6 +705,11 @@
       <alias>
 	<value>IndI</value>
       </alias>
+      <massNeutralHydrogen>
+        <limit confidenceLevel="99.999971%" type="upper">0.001660</limit>
+        <reference>Westmeier et al. (arXiv:1507.03661)</reference>
+        <referenceURL>http://arxiv.org/abs/1507.03661</referenceURL>
+      </massNeutralHydrogen>
       <rightAscensionHours>
         <value>21</value>
       </rightAscensionHours>
@@ -744,6 +774,11 @@
       <alias>
 	<value>GruI</value>
       </alias>
+      <massNeutralHydrogen>
+        <limit confidenceLevel="99.999971%" type="upper">0.003020</limit>
+        <reference>Westmeier et al. (arXiv:1507.03661)</reference>
+        <referenceURL>http://arxiv.org/abs/1507.03661</referenceURL>
+      </massNeutralHydrogen>
       <rightAscensionHours>
         <value>22</value>
       </rightAscensionHours>
@@ -804,6 +839,11 @@
       <alias>
 	<value>EriIII</value>
       </alias>
+      <massNeutralHydrogen>
+        <limit confidenceLevel="99.999971%" type="upper">0.001778</limit>
+        <reference>Westmeier et al. (arXiv:1507.03661)</reference>
+        <referenceURL>http://arxiv.org/abs/1507.03661</referenceURL>
+      </massNeutralHydrogen>
       <rightAscensionHours>
         <value>2</value>
       </rightAscensionHours>
@@ -868,6 +908,11 @@
       <alias>
 	<value>TucII</value>
       </alias>
+      <massNeutralHydrogen>
+        <limit confidenceLevel="99.999971%" type="upper">0.0006918</limit>
+        <reference>Westmeier et al. (arXiv:1507.03661)</reference>
+        <referenceURL>http://arxiv.org/abs/1507.03661</referenceURL>
+      </massNeutralHydrogen>
       <rightAscensionHours>
         <value>22</value>
       </rightAscensionHours>
