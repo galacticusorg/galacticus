@@ -63,7 +63,7 @@ sub Process_FunctionClass {
 	    my %classes;
 	    foreach my $classLocation ( @classLocations ) {
 		my $classTree  = &SourceTree::ParseFile($classLocation);
-		&SourceTree::ProcessTree($classTree);
+		&SourceTree::ProcessTree($classTree, errorTolerant => 1);
 		my $classNode  = $classTree;
 		my $classDepth = 0;
 		my $className;
