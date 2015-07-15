@@ -52,10 +52,10 @@ contains
     use FoX_DOM
     use IO_XML
     implicit none
-    type   (coolingFunctionSummation)                :: summationConstructorParameters
-    type   (inputParameters         ), intent(in   ) :: parameters
-    type   (node                    ), pointer       :: coolingFunctionNode           , parent
-    type   (coolantList             ), pointer       :: coolant
+    type(coolingFunctionSummation)                :: summationConstructorParameters
+    type(inputParameters         ), intent(in   ) :: parameters
+    type(node                    ), pointer       :: coolingFunctionNode           , parent
+    type(coolantList             ), pointer       :: coolant
 
     coolant => null()
     do while (parameters%isPresent('coolingFunctionMethod'))
@@ -76,11 +76,13 @@ contains
     return
   end function summationConstructorParameters
   
-  function summationConstructorInternal()
+  function summationConstructorInternal(coolants)
     !% Internal constructor for the ``summation'' cooling function class.
     implicit none
-    type(coolingFunctionSummation) :: summationConstructorInternal
-    
+    type(coolingFunctionSummation)                        :: summationConstructorInternal
+    type(coolantList             ), target, intent(in   ) :: coolants
+
+    summationConstructorInternal%coolants => coolants
     return
   end function summationConstructorInternal
   
