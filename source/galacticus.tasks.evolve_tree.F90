@@ -46,6 +46,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use ISO_Varying_String
     use String_Handling
+    use Merger_Tree_Operators
     use Merger_Trees_Evolve
     use Galacticus_Output_Merger_Tree
     use Galacticus_Display
@@ -69,33 +70,34 @@ contains
     include 'galacticus.tasks.evolve_tree.universePreEvolveTask.moduleUse.inc'
     !# </include>
     implicit none
-    type            (mergerTree        ), pointer     , save :: thisTree
-    logical                                           , save :: finished                        , skipTree               , &
-         &                                                      treeIsNew
-    integer         (c_size_t          )              , save :: iOutput
-    double precision                                  , save :: evolveToTime                    , treeTimeEarliest       , &
-         &                                                      universalEvolveToTime           , treeTimeLatest         , &
-         &                                                      outputTimeNext
-    type            (varying_string    )              , save :: message
-    character       (len=20            )              , save :: label
+    type            (mergerTree             ), pointer     , save :: thisTree
+    logical                                                , save :: finished                        , skipTree               , &
+         &                                                           treeIsNew
+    integer         (c_size_t               )              , save :: iOutput
+    double precision                                       , save :: evolveToTime                    , treeTimeEarliest       , &
+         &                                                           universalEvolveToTime           , treeTimeLatest         , &
+         &                                                           outputTimeNext
+    type            (varying_string         )              , save :: message
+    character       (len=20                 )              , save :: label
     !$omp threadprivate(thisTree,finished,skipTree,iOutput,evolveToTime,message,label,treeIsNew,treeTimeEarliest,universalEvolveToTime,outputTimeNext)
-    integer                                                  :: iTree
-    integer                                           , save :: activeTasks                     , totalTasks
-    double precision                    , dimension(3), save :: loadAverage
-    logical                                           , save :: overloaded                                               , &
-         &                                                      treeIsFinished                  , evolutionIsEventLimited, &
-         &                                                      success                         , removeTree
-    type            (mergerTree        ), pointer     , save :: currentTree                     , previousTree           , &
-         &                                                      nextTree
+    integer                                                       :: iTree
+    integer                                                , save :: activeTasks                     , totalTasks
+    double precision                         , dimension(3), save :: loadAverage
+    logical                                                , save :: overloaded                                               , &
+         &                                                           treeIsFinished                  , evolutionIsEventLimited, &
+         &                                                           success                         , removeTree
+    type            (mergerTree             ), pointer     , save :: currentTree                     , previousTree           , &
+         &                                                           nextTree
     !$omp threadprivate(currentTree,previousTree)
-    type            (treeNode          ), pointer     , save :: satelliteNode
-    class           (nodeComponentBasic), pointer, save :: baseNodeBasic
+    type            (treeNode               ), pointer     , save :: satelliteNode
+    class           (nodeComponentBasic     ), pointer     , save :: baseNodeBasic
     !$omp threadprivate(satelliteNode,baseNodeBasic)
-    type            (semaphore         ), pointer            :: galacticusMutex
-    character       (len=32            )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
+    class           (mergerTreeOperatorClass), pointer            :: mergerTreeOperator_
+    type            (semaphore              ), pointer            :: galacticusMutex
+    character       (len=32                 )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
     !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeIsFinished,evolutionIsEventLimited,success,removeTree)
-    type            (universe          )                     :: universeWaiting                 , universeProcessed
-    type            (universeEvent     ), pointer     , save :: thisEvent
+    type            (universe               )                     :: universeWaiting                 , universeProcessed
+    type            (universeEvent          ), pointer     , save :: thisEvent
     !$omp threadprivate(thisEvent)
 
     ! Initialize the task if necessary.
@@ -191,6 +193,9 @@ contains
     call Galacticus_Nodes_Initialize()
     call Node_Components_Initialize ()
 
+    ! Get required objects.
+    mergerTreeOperator_ => mergerTreeOperator()
+    
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It
     ! allows for the possibility of "universal events" - events which require all merger trees to reach the same cosmic time. If
     ! such an event exists, each tree is processed up to that time and then pushed onto a stack where it waits to be
@@ -266,6 +271,7 @@ contains
                 !#  <functionArgs>thisTree</functionArgs>
                 include 'galacticus.tasks.evolve_tree.preEvolveTask.inc'
                 !# </include>
+                call mergerTreeOperator_%operate(thisTree)
                 message="Evolving tree number "
              else
                 message="Resuming tree number "
