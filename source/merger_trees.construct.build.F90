@@ -194,7 +194,11 @@ contains
             &                                 'to failures in merger tree construction'                                      ,  &
             &                                 verbosityWarn                                                                     &
             &                                )
-
+       if (mergerTreeBuildHaloMassMaximum <= mergerTreeBuildHaloMassMinimum)                                                  &
+            & call Galacticus_Error_Report(                                                                                   &
+            &                              'Merger_Tree_Build_Initialize'                                                   , &
+            &                              '[mergerTreeBuildHaloMassMaximum] > [mergerTreeBuildHaloMassMinimum] is required'  &
+            &                             )
        ! Get the default cosmology functions object.
        cosmologyFunctionsDefault => cosmologyFunctions()
        ! Find the cosmic time at which the trees are based.
