@@ -26,7 +26,7 @@ my $xBins = pdl sequence(10)/2.0+8.0;
 
 # Create data structure to read the results.
 my $dataSet;
-$dataSet->{'file' } = "testSuite/outputs/test-model-integration/galacticus_0:1/galacticus.hdf5";
+$dataSet->{'file' } = "outputs/test-model-integration/galacticus_0:1/galacticus.hdf5";
 $dataSet->{'store'} = 0;
 $dataSet->{'tree' } = "all";
 &HDF5::Get_Parameters($dataSet    );

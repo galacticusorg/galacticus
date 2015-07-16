@@ -54,7 +54,7 @@ FCFLAGS += -g
 # A copy of the flags prior to any optimizations.
 FCFLAGS_NOOPT := $(FCFLAGS)
 # Optimization flags.
-FCFLAGS += -O3 -ffinite-math-only -fno-math-errno -march=native
+FCFLAGS += -O3 -ffinite-math-only -fno-math-errno
 # For OpenMP compilation.
 FCFLAGS += -fopenmp
 
