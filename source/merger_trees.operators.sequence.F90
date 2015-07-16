@@ -21,7 +21,7 @@
   !#  <description>Provides a sequence of operators on merger trees.</description>
   !# </mergerTreeOperator>
 
-  type :: operatorList
+  type, public :: operatorList
      class(mergerTreeOperatorClass), pointer :: operator_
      type (operatorList           ), pointer :: next      => null()
   end type operatorList
