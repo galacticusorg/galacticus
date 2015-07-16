@@ -248,37 +248,45 @@ my @translations =
 	 {
 	     "mergerTreeBuildMethod"                             => "mergerTreeBuilderMethod"                                        ,
 	     "darkMatterShapeMethod"                             => "darkMatterProfileShapeMethod"                                   ,
-	     "H_0"                                               => "cosmologyParametersMethod->HubbleConstant"                      ,
-	     "Omega_Matter"                                      => "cosmologyParametersMethod->OmegaMatter"                         ,
-	     "Omega_DE"                                          => "cosmologyParametersMethod->OmegaDarkEnergy"                     ,
-	     "Omega_b"                                           => "cosmologyParametersMethod->OmegaBaryon"                         ,
-	     "T_CMB"                                             => "cosmologyParametersMethod->temperatureCMB"                      ,
-	     "effectiveNumberNeutrinos"                          => "transferFunctionMethod->neutrinoNumberEffective"                ,
-	     "summedNeutrinoMasses"                              => "transferFunctionMethod->neutrinoMassSummed"                     ,
-	     "transferFunctionWDMFreeStreamingLength"            => "transferFunctionMethod->freeStreamingLength"                    ,
-	     "transferFunctionWdmCutOffScale"                    => "transferFunctionMethod->scaleCutOff"                            ,
-	     "transferFunctionWdmEpsilon"                        => "transferFunctionMethod->epsilon"                                ,
-	     "transferFunctionWdmEta"                            => "transferFunctionMethod->eta"                                    ,
-	     "transferFunctionWdmNu"                             => "transferFunctionMethod->nu"                                     ,
-	     "stellarPopulationSpectraFileForceZeroMetallicity"  => "stellarPopulationSpectraMethod->forceZeroMetallicity"           ,
-	     "stellarPopulationSpectraForChabrierIMF"            => "stellarPopulationSpectraMethod->fileNameForChabrierIMF"         ,
-	     "stellarPopulationSpectraForBaugh2005TopHeavyIMF"   => "stellarPopulationSpectraMethod->fileNameForBaugh2005TopHeavyIMF",
-	     "stellarPopulationSpectraForKroupaIMF"              => "stellarPopulationSpectraMethod->fileNameForKroupaIMF"           ,
-	     "stellarPopulationSpectraForMiller-ScaloIMF"        => "stellarPopulationSpectraMethod->fileNameForMiller-ScaloIMF"     ,
-	     "stellarPopulationSpectraForSalpeterIMF"            => "stellarPopulationSpectraMethod->fileNameForSalpeterIMF"         ,
-	     "stellarPopulationSpectraForScaloIMF"               => "stellarPopulationSpectraMethod->fileNameForScaloIMF"            ,
-	     "stellarPopulationSpectraForKennicuttIMF"           => "stellarPopulationSpectraMethod->fileNameForKennicuttIMF"        ,
-	     "accretionDiskSpectraFileName"                      => "accretionDiskSpectraMethod->fileName"                           ,
-	     "chemicalStateFile"                                 => "chemicalStateMethod->fileName"                                  ,
+	     "H_0"                                               => "cosmologyParametersMethod--HubbleConstant"                      ,
+	     "Omega_Matter"                                      => "cosmologyParametersMethod--OmegaMatter"                         ,
+	     "Omega_DE"                                          => "cosmologyParametersMethod--OmegaDarkEnergy"                     ,
+	     "Omega_b"                                           => "cosmologyParametersMethod--OmegaBaryon"                         ,
+	     "T_CMB"                                             => "cosmologyParametersMethod--temperatureCMB"                      ,
+	     "effectiveNumberNeutrinos"                          => "transferFunctionMethod--neutrinoNumberEffective"                ,
+	     "summedNeutrinoMasses"                              => "transferFunctionMethod--neutrinoMassSummed"                     ,
+	     "transferFunctionWDMFreeStreamingLength"            => "transferFunctionMethod--freeStreamingLength"                    ,
+	     "transferFunctionWdmCutOffScale"                    => "transferFunctionMethod--scaleCutOff"                            ,
+	     "transferFunctionWdmEpsilon"                        => "transferFunctionMethod--epsilon"                                ,
+	     "transferFunctionWdmEta"                            => "transferFunctionMethod--eta"                                    ,
+	     "transferFunctionWdmNu"                             => "transferFunctionMethod--nu"                                     ,
+	     "stellarPopulationSpectraFileForceZeroMetallicity"  => "stellarPopulationSpectraMethod--forceZeroMetallicity"           ,
+	     "stellarPopulationSpectraForChabrierIMF"            => "stellarPopulationSpectraMethod--fileNameForChabrierIMF"         ,
+	     "stellarPopulationSpectraForBaugh2005TopHeavyIMF"   => "stellarPopulationSpectraMethod--fileNameForBaugh2005TopHeavyIMF",
+	     "stellarPopulationSpectraForKroupaIMF"              => "stellarPopulationSpectraMethod--fileNameForKroupaIMF"           ,
+	     "stellarPopulationSpectraForMiller-ScaloIMF"        => "stellarPopulationSpectraMethod--fileNameForMiller-ScaloIMF"     ,
+	     "stellarPopulationSpectraForSalpeterIMF"            => "stellarPopulationSpectraMethod--fileNameForSalpeterIMF"         ,
+	     "stellarPopulationSpectraForScaloIMF"               => "stellarPopulationSpectraMethod--fileNameForScaloIMF"            ,
+	     "stellarPopulationSpectraForKennicuttIMF"           => "stellarPopulationSpectraMethod--fileNameForKennicuttIMF"        ,
+	     "accretionDiskSpectraFileName"                      => "accretionDiskSpectraMethod--fileName"                           ,
+	     "chemicalStateFile"                                 => "chemicalStateMethod--fileName"                                  ,
 	     "coolingFunctionsMethod"                            => "coolingFunctionMethod"                                          ,
 	     "powerSpectrumMethod"                               => "powerSpectrumPrimordialMethod"                                  ,
-	     "powerSpectrumIndex"                                => "powerSpectrumPrimordialMethod->index"                           ,
-	     "powerSpectrumRunning"                              => "powerSpectrumPrimordialMethod->running"                         ,
-	     "powerSpectrumReferenceWavenumber"                  => "powerSpectrumPrimordialMethod->wavenumberReference"             ,
-	     "mergerTreeBuildCole2000AccretionLimit"             => "mergerTreeBuildMethod->accretionLimit"                          ,
-	     "mergerTreeBuildCole2000MergeProbability"           => "mergerTreeBuildMethod->mergeProbability"                        ,
-	     "mergerTreeBuildCole2000HighestRedshift"            => "mergerTreeBuildMethod->redshiftMaximum"                         ,
-	     "mergerTreeBuildCole2000FixedRandomSeeds"           => "mergerTreeBuildMethod->randomSeedsFixed"
+	     "powerSpectrumIndex"                                => "powerSpectrumPrimordialMethod--index"                           ,
+	     "powerSpectrumRunning"                              => "powerSpectrumPrimordialMethod--running"                         ,
+	     "powerSpectrumReferenceWavenumber"                  => "powerSpectrumPrimordialMethod--wavenumberReference"             ,
+	     "mergerTreeBuildCole2000AccretionLimit"             => "mergerTreeBuildMethod--accretionLimit"                          ,
+	     "mergerTreeBuildCole2000MergeProbability"           => "mergerTreeBuildMethod--mergeProbability"                        ,
+	     "mergerTreeBuildCole2000HighestRedshift"            => "mergerTreeBuildMethod--redshiftMaximum"                         ,
+	     "mergerTreeBuildCole2000FixedRandomSeeds"           => "mergerTreeBuildMethod--randomSeedsFixed"                        ,
+	     "mergerTreeRegridTimes"                             => "mergerTreeOperatorMethod.regridTimes."                          ,
+	     "mergerTreeRegridDumpTrees"                         => "mergerTreeOperatorMethod.regridTimes.--dumpTrees"               ,
+	     "mergerTreeRegridCount"                             => "mergerTreeOperatorMethod.regridTimes.--regridCount"             ,
+	     "mergerTreeRegridStartExpansionFactor"              => "mergerTreeOperatorMethod.regridTimes.--expansionFactorStart"    ,
+	     "mergerTreeRegridEndExpansionFactor"                => "mergerTreeOperatorMethod.regridTimes.--expansionFactorEnd"      ,
+	     "mergerTreeRegridSpacing"                           => "mergerTreeOperatorMethod.regridTimes.--snapshotSpacing"         ,
+	     "mergerTreePruneBranches"                           => "mergerTreeOperatorMethod.pruneByMass."                          ,
+	     "mergerTreePruningMassThreshold"                    => "mergerTreeOperatorMethod.pruneByMass.--massThreshold"
 	 },
  	 values        =>
          {
@@ -463,8 +471,16 @@ sub Translate {
 		if ( $options{'inputFormatVersion'} <= 1 ) {
 		    $name->setData    ($translation->{'names'}->{$nameText});
 		} else {
-		    (my $leafName = $translation->{'names'}->{$nameText}) =~ s/^(.*\->)//;
+		    (my $leafName = $translation->{'names'}->{$nameText});# =~ s/^(.*\->)//;
+		    my $valueTo;
+		    unless ( $translation->{'names'}->{$nameText} =~ m/\-\-/ ) {
+			if ( $leafName =~ m/(.*)\.(.*)\./ ) {
+			    $valueTo    = $2;
+			}
+		    }
 		    $name->setNodeName($leafName);
+		    $name->setAttribute('value',$valueTo)
+			if ( $valueTo );
 		}
 	    }
 	    # Translate values.
@@ -576,34 +592,65 @@ sub Translate {
 	    # Remove the old parameter.
 	    $parameters->removeChild($parameter);
 	}
-	for my $parameter ( $parameters->getChildrenByTagName("*") ) {
-	    if ( $parameter->nodeName() =~ m/(.+)\-\>(.+)/ ) {
-		my $hostName = $1;
-		my $subName  = $2;
-		$parameters->removeChild($parameter->nextSibling());
-		my $sibling = $parameter->nextSibling();
-		my $hostFound;
-		$parameter->setNodeName($subName);
-		for my $hostParameter ( $parameters->getChildrenByTagName("*") ) {
-		    if ( $hostParameter->nodeName() eq $hostName ) {
-			$hostParameter->addChild($input     ->createTextNode("  "      ));
-			$hostParameter->addChild($parameters->removeChild   ($parameter));
-			$hostParameter->addChild($input     ->createTextNode("\n  "    ));
-			$hostFound = 1;
-		    }
-		}
-		unless ( $hostFound ) {
-		    # Create the new node.
-		    die('parametersMigrate.pl: attempting to insert a "'.$hostName.'" element, but no default value is known')
-			unless ( exists($knownDefaults{$hostName}) );
-		    my $parameterNode = $input->createElement($hostName);
-		    $parameterNode->setAttribute('value',$knownDefaults{$hostName});
-		    $parameterNode->addChild($input     ->createTextNode("\n    "  ));
-		    $parameterNode->addChild($parameters->removeChild   ($parameter));
-		    $parameterNode->addChild($input     ->createTextNode("\n  "    ));
-		    $parameters->insertBefore($parameterNode,$sibling);
+    }
+    # Put subparameters into their host parameter.
+    for my $parameter ( $parameters->getChildrenByTagName("*") ) {
+	if ( $parameter->nodeName() =~ m/(.+)\-\-(.+)/ ) {
+	    my $hostName = $1;
+	    my $subName  = $2;	    
+	    $parameters->removeChild($parameter->nextSibling());
+	    my $sibling = $parameter->nextSibling();
+	    my $hostFound;
+	    $parameter->setNodeName($subName);
+	    for my $hostParameter ( $parameters->getChildrenByTagName("*") ) {
+		if ( $hostParameter->nodeName() eq $hostName ) {
+		    my $hostChildren = $hostParameter->getChildrenByTagName("*");
+		    $hostParameter->addChild($input     ->createTextNode("\n"      ))
+			if ( $hostChildren->size() == 0 );
+		    $hostParameter->addChild($input     ->createTextNode("  "      ));
+		    $hostParameter->addChild($parameters->removeChild   ($parameter));
+		    $hostParameter->addChild($input     ->createTextNode("\n  "    ));
+		    $hostFound = 1;
 		}
 	    }
+	    unless ( $hostFound ) {
+		# Create the new node.
+		die('parametersMigrate.pl: attempting to insert a "'.$hostName.'" element, but no default value is known')
+		    unless ( exists($knownDefaults{$hostName}) );
+		my $parameterNode = $input->createElement($hostName);
+		$parameterNode->setAttribute('value',$knownDefaults{$hostName});
+		$parameterNode->addChild($input     ->createTextNode("\n    "  ));
+		$parameterNode->addChild($parameters->removeChild   ($parameter));
+		$parameterNode->addChild($input     ->createTextNode("\n  "    ));
+		$parameters->insertBefore($parameterNode,$sibling);
+	    }
+	}
+    }
+    # Strip out value extensions.
+    for my $parameter ( $parameters->getChildrenByTagName("*") ) {
+	if ( $parameter->nodeName() =~ m/([^\.]+)\./ ) {
+	    my $nodeName = $1;
+	    $parameter->setNodeName($nodeName);
+	}
+    }
+    # Search for duplicated parameters.
+    my %duplicates =
+	(
+	 mergerTreeOperatorMethod => "sequence"
+	);
+   for my $parameter ( $parameters->getChildrenByTagName("*") ) {
+	my $nodeName = $parameter->nodeName();
+	my $duplicates = $parameters->getChildrenByTagName($nodeName);
+	if ( $duplicates->size() > 1 && exists($duplicates{$nodeName}) ) {
+	    my $sibling = $parameter->nextSibling();
+	    my $wrapperNode = $input->createElement($nodeName);
+	    $wrapperNode->setAttribute('value',$duplicates{$nodeName});
+	    foreach my $duplicate ( $duplicates->get_nodelist() ) {
+		$wrapperNode->addChild($input     ->createTextNode("\n    "  ));
+		$wrapperNode->addChild($parameters->removeChild   ($duplicate));
+		$wrapperNode->addChild($input     ->createTextNode("\n  "    ));
+	    }
+	    $parameters->insertBefore($wrapperNode,$sibling);
 	}
     }
 }

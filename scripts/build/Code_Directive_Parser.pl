@@ -31,6 +31,7 @@ my $xml = new XML::Simple;
 # Initialize hashes.
 my %includeDirectives;
 my $otherDirectives;
+my %functionClasses;
 
 # Open the source directory.
 foreach my $srcdir ( @sourcedirs ) {
@@ -131,6 +132,9 @@ foreach my $srcdir ( @sourcedirs ) {
 			    }
 			} else {
 			    $otherDirectives->{$xmlTag}->{'files'}->{$srcdir."/".$fname} = 1;
+			    if ( $xmlTag eq "functionClass" ) {
+				$functionClasses{$data->{'name'}} = $fname;
+			    }
 			}
 			# Process any included file name if it exists.
 			if ( defined($includedFileName) ) {
@@ -201,6 +205,16 @@ foreach my $directive ( keys(%includeDirectives) ) {
 	system("mv ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml");
     }
 }
+# Add additional dependencies for object files of source files that contain functionClass directives. These source files get other
+# source files incorporated into them via the source tree preprocessor.
+foreach my $xmlTag ( keys(%{$otherDirectives}) ) {
+    if ( exists($functionClasses{$xmlTag}) ) {
+	my @fileNames;
+	foreach my $fileName ( keys(%{$otherDirectives->{$xmlTag}->{'files'}} ) ){
+	    push(@fileNames,$fileName);
+	}
+	(my $objectFileName = $functionClasses{$xmlTag}) =~ s/\.F90/.o/;
+	print makefileHndl $ENV{'BUILDPATH'}."/".$objectFileName.": ".join(" ",@fileNames)."\n\n";
 
 # Include explicit dependencies for Makefile_Use_Deps to ensure that module dependencies get rebuilt
 # after these directive include files are constructed.
@@ -210,6 +224,9 @@ foreach my $directive ( keys(%includeDirectives) ) {
     print makefileHndl " ".$fileName;
 }
 print makefileHndl "\n\n";
+
+    }
+}
 
 # Include a rule for including Makefile_Component_Includes. This has to go here since Makefile_Component_Includes depends on
 # objects.nodes.components.Inc for which Makefile_Directive contains the build rule.
