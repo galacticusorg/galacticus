@@ -21,7 +21,7 @@
   !#  <description>Class providing a cooling function which sums over other cooling functions.</description>
   !# </coolingFunction>
 
-  type :: coolantList
+  type, public :: coolantList
      class(coolingFunctionClass), pointer :: coolingFunction
      type (coolantList         ), pointer :: next            => null()
   end type coolantList
