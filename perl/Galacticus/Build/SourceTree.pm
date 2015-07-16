@@ -82,9 +82,10 @@ sub BuildTree {
 
 sub ProcessTree {
     # Get the tree.
-    my $tree = shift();
+    my $tree      = shift();
+    my (%options) = @_;
     # Run all defined processors on the tree.
-    &{$Hooks::processHooks{$_}}($tree)
+    &{$Hooks::processHooks{$_}}($tree,\%options)
 	foreach ( keys(%Hooks::processHooks) );
 }
 

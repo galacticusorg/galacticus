@@ -24,18 +24,19 @@ $Hooks::processHooks{'enumerations'} = \&Process_Enumerations;
 
 sub Process_Enumerations {
     # Get the tree.
-    my $tree = shift();
+    my $tree      = shift();
     # Get an XML parser.
     my $xml = new XML::Simple();
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
     my $depth = 0;
     while ( $node ) {
-	if ( $node->{'type'} eq "enumeration" ) {
-	    # Assert that our parent is a module (for now).
-	    die("Process_Enumerations: parent node must be a module")
-		unless ( $node->{'parent'}->{'type'} eq "module" );
+	if ( $node->{'type'} eq "enumeration" && ! $node->{'directive'}->{'processed'} ) {
+	    # Assert that our parent is a module or file (for now).
+	    die("Process_Enumerations: parent node must be a module or file")
+		unless ( $node->{'parent'}->{'type'} eq "module" || $node->{'parent'}->{'type'} eq "file" );
 	    # Generate source code for the enumeration.
+	    $node->{'directive'}->{'processed'} =  1;
 	    my $enumerationSource     ;
 	    my $i                 = -1;
 	    $enumerationSource .= "  ! Auto-generated enumeration\n";
