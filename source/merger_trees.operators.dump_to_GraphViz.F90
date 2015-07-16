@@ -1,0 +1,132 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements a dump to \gls{graphviz} operator on merger trees.
+
+  !# <mergerTreeOperator name="mergerTreeOperatorDumpToGraphViz">
+  !#  <description>Provides a dump to \gls{graphviz} operator on merger trees.</description>
+  !# </mergerTreeOperator>
+  type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorDumpToGraphViz
+     !% A dump to \gls{graphviz} merger tree operator class.
+     private
+     type            (varying_string) :: path
+     double precision                 :: massMinimum, massMaximum
+   contains
+     final     ::            dumpToGraphVizDestructor
+     procedure :: operate => dumpToGraphVizOperate
+  end type mergerTreeOperatorDumpToGraphViz
+
+  interface mergerTreeOperatorDumpToGraphViz
+     !% Constructors for the dump to \gls{graphviz} merger tree operator class.
+     module procedure dumpToGraphVizConstructorParameters
+     module procedure dumpToGraphVizConstructorInternal
+  end interface mergerTreeOperatorDumpToGraphViz
+
+contains
+
+  function dumpToGraphVizConstructorParameters(parameters)
+    !% Constructor for the dump-to-\gls{graphviz} merger tree operator class which takes a parameter set as input.
+    use Input_Parameters2
+    implicit none
+    type(mergerTreeOperatorDumpToGraphViz)                :: dumpToGraphVizConstructorParameters
+    type(inputParameters                 ), intent(in   ) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
+    
+    !# <inputParameter>
+    !#   <name>path</name>
+    !#   <defaultValue>var_str('.')</defaultValue>
+    !#   <source>parameters</source>
+    !#   <variable>dumpToGraphVizConstructorParameters%path</variable>
+    !#   <description>Specifies the directory to which merger tree structure should be dumped.</description>
+    !#   <type>text</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massMinimum</name>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <source>parameters</source>
+    !#   <variable>dumpToGraphVizConstructorParameters%massMinimum</variable>
+    !#   <description>Specifies the minimum root mass for which merger tree structure should be dumped.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massMaximum</name>
+    !#   <defaultValue>huge(0.0d0)</defaultValue>
+    !#   <source>parameters</source>
+    !#   <variable>dumpToGraphVizConstructorParameters%massMaximum</variable>
+    !#   <description>Specifies the minimum root mass for which merger tree structure should be dumped.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    return
+  end function dumpToGraphVizConstructorParameters
+
+  function dumpToGraphVizConstructorInternal(path,massMinimum,massMaximum)
+    !% Internal constructor for the dump-to-\gls{graphviz} merger tree operator class.
+    implicit none
+    type            (mergerTreeOperatorDumpToGraphViz)                :: dumpToGraphVizConstructorInternal
+    type            (varying_string                  )                :: path
+    double precision                                  , intent(in   ) :: massMinimum                      , massMaximum
+
+    dumpToGraphVizConstructorInternal%path       =path
+    dumpToGraphVizConstructorInternal%massMinimum=massMinimum
+    dumpToGraphVizConstructorInternal%massMaximum=massMaximum
+    return
+  end function dumpToGraphVizConstructorInternal
+
+  elemental subroutine dumpToGraphVizDestructor(self)
+    !% Destructor for the merger tree operator function class.
+    implicit none
+    type(mergerTreeOperatorDumpToGraphViz), intent(inout) :: self
+
+    ! Nothing to do.
+    return
+  end subroutine dumpToGraphVizDestructor
+
+  subroutine dumpToGraphVizOperate(self,tree)
+    !% Output the structure of {\normalfont \ttfamily tree}.
+    use Galacticus_Nodes
+    use Merger_Trees_Dump
+    implicit none
+    class(mergerTreeOperatorDumpToGraphViz), intent(inout)         :: self
+    type (mergerTree                      ), intent(inout), target :: tree
+    type (mergerTree                      ), pointer               :: treeCurrent
+    class(nodeComponentBasic              ), pointer               :: basicBase
+    
+    ! Iterate over trees.
+    treeCurrent => tree
+    do while (associated(treeCurrent))
+       ! Dump the tree.
+       basicBase => treeCurrent%baseNode%basic()
+       if     (                                                     &
+            &   basicBase%mass() >= self%massMinimum                &
+            &  .and.                                                &
+            &   basicBase%mass() <  self%massMaximum                &
+            & )                                                     &
+            & call Merger_Tree_Dump(                                &
+            &                       treeCurrent%index             , &
+            &                       treeCurrent%baseNode          , &
+            &                       scaleNodesByLogMass =.true.   , &
+            &                       edgeLengthsToTimes  =.true.   , &
+            &                       path                =self%path  &
+            &                      )
+       ! Move to the next tree.
+       treeCurrent => treeCurrent%nextTree
+    end do
+    return
+  end subroutine dumpToGraphVizOperate
