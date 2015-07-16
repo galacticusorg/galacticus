@@ -53,9 +53,7 @@ contains
   !# <mergerTreePreEvolveTask>
   !#   <unitName>Merger_Tree_Conditional_Mass_Function</unitName>
   !#   <after>Merger_Tree_Monotonic_Mass_Growth</after>
-  !#   <after>Merger_Tree_Prune_Branches</after>
   !#   <after>Merger_Tree_Prune_Hierarchy</after>
-  !#   <after>Merger_Tree_Regrid_Time</after>
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Conditional_Mass_Function(thisTree)
     !% Compute conditional mass function on {\normalfont \ttfamily thisTree}.
