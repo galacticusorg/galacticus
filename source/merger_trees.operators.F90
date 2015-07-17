@@ -30,6 +30,12 @@ module Merger_Tree_Operators
   !#   <pass>yes</pass>
   !#   <argument>type(mergerTree), intent(inout), target :: tree</argument>
   !#  </method>
+  !#  <method name="finalize" >
+  !#   <description>Finalize a merger tree operator.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <code>! Nothing to do.</code>
+  !#  </method>
   !# </functionClass>
 
 end module Merger_Tree_Operators

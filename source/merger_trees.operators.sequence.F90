@@ -31,8 +31,9 @@
      private
      type(operatorList), pointer :: operators
   contains
-     final     ::            sequenceDestructor
-     procedure :: operate => sequenceOperate
+     final     ::             sequenceDestructor
+     procedure :: operate  => sequenceOperate
+     procedure :: finalize => sequenceFinalize
   end type mergerTreeOperatorSequence
 
   interface mergerTreeOperatorSequence
@@ -105,3 +106,17 @@ contains
     end do
     return
   end subroutine sequenceOperate
+
+  subroutine sequenceFinalize(self)
+    !% Perform a finalization on a sequence of operators on a merger tree.
+    implicit none
+    class(mergerTreeOperatorSequence), intent(inout)         :: self
+    type (operatorList              ), pointer               :: operator_
+
+    operator_ => self%operators
+    do while (associated(operator_))
+       call operator_%operator_%finalize()
+       operator_ => operator_%next
+    end do
+    return
+  end subroutine sequenceFinalize
