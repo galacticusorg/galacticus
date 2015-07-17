@@ -205,6 +205,9 @@ contains
     call Alloc_Array(conditionalMFConstructorInternal%timeParents        ,[conditionalMFConstructorInternal%timeCount        ])
     call Alloc_Array(conditionalMFConstructorInternal%massParents        ,[conditionalMFConstructorInternal%parentMassCount+1])
     call Alloc_Array(conditionalMFConstructorInternal%massRatios         ,[conditionalMFConstructorInternal%massRatioCount +1])
+          do i=1,mergerTreeComputeConditionalMassFunctionParentMassCount
+             massParents(i)=exp(massParentLogarithmicMinimum+(dble(i)-0.5d0)/massParentLogarithmicBinWidthInverse)
+          end do
     call Alloc_Array(                                                                      &
          &            conditionalMFConstructorInternal%normalization                     , &
          &           [                                                                     &
