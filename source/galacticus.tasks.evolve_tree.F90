@@ -19,20 +19,22 @@
 
 module Galacticus_Tasks_Evolve_Tree
   !% Implements the task of evolving merger trees.
+  use ISO_Varying_String
   implicit none
   private
   public :: Galacticus_Task_Evolve_Tree
 
   ! Flag to indicate if output times have been initialized.
-  logical          :: treeEvolveInitialized       =.false.
+  logical                          :: treeEvolveInitialized       =.false.
 
   ! Parameters controlling which trees will be processed.
-  integer          :: treeEvolveWorkerCount               , treeEvolveWorkerNumber
+  integer                          :: treeEvolveWorkerCount               , treeEvolveWorkerNumber
 
   ! Parameters controlling load averaging and thread locking.
-  logical          :: treeEvolveLimitLoadAverage          , treeEvolveThreadLock
-  double precision :: treeEvolveLoadAverageMaximum
-  integer          :: treeEvolveThreadsMaximum
+  logical                          :: treeEvolveLimitLoadAverage          , treeEvolveThreadLock
+  double precision                 :: treeEvolveLoadAverageMaximum
+  integer                          :: treeEvolveThreadsMaximum
+  type            (varying_string) :: treeEvolveThreadLockName
 
 contains
 
@@ -44,7 +46,6 @@ contains
   logical function Galacticus_Task_Evolve_Tree()
     !% Evolves the complete set of merger trees as specified.
     use, intrinsic :: ISO_C_Binding
-    use ISO_Varying_String
     use String_Handling
     use Merger_Tree_Operators
     use Merger_Trees_Evolve
@@ -183,6 +184,17 @@ contains
           else
              read (treeEvolveThreadsMaximumText,*) treeEvolveThreadsMaximum
           end if
+          !@ <inputParameter>
+          !@   <name>treeEvolveThreadLockName</name>
+          !@   <defaultValue>galacticus</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name to use for the semaphore used to lock threads across all \glc\ processes.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeEvolveThreadLockName',treeEvolveThreadLockName,defaultValue="galacticus")
           ! Flag that this task is now initialized.
           treeEvolveInitialized=.true.
        end if
@@ -203,6 +215,7 @@ contains
     ! continues by popping trees off of the stack and processing them further (possibly to the next universal event).
 
     ! Allow events to be attached to the universe.
+    universeWaiting%event => null()
     !# <include directive="universePreEvolveTask" type="functionCall" functionType="void">
     !#  <functionArgs>universeWaiting</functionArgs>
     include 'galacticus.tasks.evolve_tree.universePreEvolveTask.inc'
@@ -213,7 +226,7 @@ contains
     iTree   =0
 
     ! Create a semaphore if threads are being locked.
-    if (treeEvolveThreadLock) galacticusMutex => Semaphore_Open("/galacticus",treeEvolveThreadsMaximum)
+    if (treeEvolveThreadLock) galacticusMutex => Semaphore_Open("/"//char(treeEvolveThreadLockName),treeEvolveThreadsMaximum)
     
     ! Initialize universes which will act as tree stacks. We use two stacks: one for trees waiting to be processed, one for trees
     ! that have already been processed.

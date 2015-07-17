@@ -28,14 +28,17 @@ module Power_Spectra
 
   ! Flag to indicate if the power spectrum has been normalized.
   logical                                                                     :: sigmaInitialized                   =.false.
+  logical                                                                     :: sigmaTableInitialized              =.false.
   double precision                                              , parameter   :: radiusNormalization                =8.0d0   !    Radius for sigma(M) normalization in Mpc/h.
   double precision                                                            :: massNormalization                           !    Mass for sigma(M) normalization in M_Solar.
   double precision                                                            :: sigmaNormalization                 =1.0d0   !    Normalization for sigma(M).
   double precision                                                            :: sigma_8_Value                               !    Power spectrum normalization parameter.
-
+  !$omp threadprivate(sigmaTableInitialized,sigmaNormalization)
+  
   ! Variables to hold the tabulated sigma(M) data.
   class           (table1D                                     ), allocatable :: sigmaTable
-
+  !$omp threadprivate(sigmaTable)
+  
   ! Name of mass variance method used.
   type            (varying_string                              )              :: cosmologicalMassVarianceMethod
 
@@ -103,10 +106,8 @@ contains
        message=message//"  cosmologyParameters_%densityCritical(): "//trim(label)
        call Galacticus_Error_Report("Power_Spectrum",message)
     end if
-    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance(mass)
-    !$omp end critical (Cosmological_Mass_Variance_Interpolate)
-    ! Compute the power spectrum.
+    ! Compute the power spectrum.    
     Power_Spectrum=powerSpectrumPrimordialTransferred_%power(wavenumber)
     ! Scale by the normalization factor.
     Power_Spectrum=Power_Spectrum*sigmaNormalization**2
@@ -121,7 +122,6 @@ contains
     double precision                :: h    , logMass
 
     ! Ensure that the sigma(M) tabulation exists.
-    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance()
 
     ! If the requested sigma is below the lowest value tabulated, attempt to tabulate to higher mass (lower sigma).
@@ -143,7 +143,6 @@ contains
        logMass=log(sigmaTable%x(iMass))*(1.0d0-h)+log(sigmaTable%x(iMass-1))*h
        Mass_from_Cosmolgical_Root_Variance=exp(logMass)
     end if
-    !$omp end critical (Cosmological_Mass_Variance_Interpolate)
     return
   end function Mass_from_Cosmolgical_Root_Variance
 
@@ -153,12 +152,10 @@ contains
     double precision, intent(in   ) :: mass
 
     ! Check if we need to initialize this function.
-    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance(mass)
 
     ! Interpolate in tabulated function and return result.
     Cosmological_Mass_Root_Variance=sigmaTable%interpolate(mass)
-    !$omp end critical(Cosmological_Mass_Variance_Interpolate)
     return
   end function Cosmological_Mass_Root_Variance
 
@@ -180,15 +177,10 @@ contains
     double precision, intent(  out) :: sigma, sigmaLogarithmicDerivative
 
     ! Check if we need to initialize this function.
-    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance(mass)
-    !$omp end critical (Cosmological_Mass_Variance_Interpolate)
-
     ! Interpolate in tabulated function and return result.
-    !$omp critical(Cosmological_Mass_Variance_Interpolate)
     sigma                     =sigmaTable%interpolate        (mass)
     sigmaLogarithmicDerivative=sigmaTable%interpolateGradient(mass)*mass/sigma
-    !$omp end critical(Cosmological_Mass_Variance_Interpolate)
     return
   end subroutine Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative
 
@@ -197,9 +189,7 @@ contains
     implicit none
 
     ! Ensure the module has been initialized.
-    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance()
-    !$omp end critical (Cosmological_Mass_Variance_Interpolate)
     ! Return the value of sigma_8.
     sigma_8=sigma_8_Value
     return
@@ -222,45 +212,46 @@ contains
     double precision                                                    :: massActual
 
     ! Compute the normalization if required.
-    remakeTable=.false.
     if (.not.sigmaInitialized) then
-       !@ <inputParameter>
-       !@   <name>sigma_8</name>
-       !@   <defaultValue>0.817 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('sigma_8',sigma_8_Value,defaultValue=0.817d0)
-       !@ <inputParameter>
-       !@   <name>cosmologicalMassVarianceMethod</name>
-       !@   <defaultValue>filteredPowerSpectrum</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Selects the method to be used for computing the cosmological mass variance.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('cosmologicalMassVarianceMethod',cosmologicalMassVarianceMethod,defaultValue='filteredPowerSpectrum')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="cosmologicalMassVarianceMethod" type="functionCall" functionType="void">
-       !#  <functionArgs>cosmologicalMassVarianceMethod,Cosmological_Mass_Variance_Tabulate</functionArgs>
-       include 'structure_formation.cosmological_mass_variance.inc'
-       !# </include>
-       if (.not.associated(Cosmological_Mass_Variance_Tabulate)) call Galacticus_Error_Report('Initialize_Cosmological_Mass_Variance','method ' &
-            &//char(cosmologicalMassVarianceMethod)//' is unrecognized')
-       ! Get the default cosmology.
-       thisCosmologyParameters => cosmologyParameters()
-       ! Compute the mass at which the mass variance is normalized.
-       massNormalization=(4.0d0*Pi/3.0d0)*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()*(radiusNormalization/thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH))**3
-       ! Flag that this module is now initialized.
-       sigmaInitialized=.true.
-       ! Table must be rebuilt.
-       remakeTable=.true.
+       !$omp critical (Cosmological_Mass_Variance_Initialize)
+       if (.not.sigmaInitialized) then
+          !@ <inputParameter>
+          !@   <name>sigma_8</name>
+          !@   <defaultValue>0.817 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('sigma_8',sigma_8_Value,defaultValue=0.817d0)
+          !@ <inputParameter>
+          !@   <name>cosmologicalMassVarianceMethod</name>
+          !@   <defaultValue>filteredPowerSpectrum</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Selects the method to be used for computing the cosmological mass variance.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('cosmologicalMassVarianceMethod',cosmologicalMassVarianceMethod,defaultValue='filteredPowerSpectrum')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="cosmologicalMassVarianceMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>cosmologicalMassVarianceMethod,Cosmological_Mass_Variance_Tabulate</functionArgs>
+          include 'structure_formation.cosmological_mass_variance.inc'
+          !# </include>
+          if (.not.associated(Cosmological_Mass_Variance_Tabulate)) call Galacticus_Error_Report('Initialize_Cosmological_Mass_Variance','method ' &
+               &//char(cosmologicalMassVarianceMethod)//' is unrecognized')
+          ! Get the default cosmology.
+          thisCosmologyParameters => cosmologyParameters()
+          ! Compute the mass at which the mass variance is normalized.
+          massNormalization=(4.0d0*Pi/3.0d0)*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()*(radiusNormalization/thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH))**3
+          ! Flag that this module is now initialized.
+          sigmaInitialized=.true.
+       end if
+       !$omp end critical (Cosmological_Mass_Variance_Initialize)
     end if
     ! Tabulate the mass variance.
     if (present(mass)) then
@@ -268,10 +259,12 @@ contains
     else
        massActual=massNormalization
     end if
+    remakeTable=.not.sigmaTableInitialized
     if (.not.remakeTable) remakeTable=(massActual < sigmaTable%x(1) .or. massActual > sigmaTable%x(-1))
     if (remakeTable) then
        sigmaNormalization=sigma_8_Value
        call Cosmological_Mass_Variance_Tabulate(massActual,massNormalization,sigmaNormalization,sigmaTable)
+       sigmaTableInitialized=.true.
     end if
     return
   end subroutine Initialize_Cosmological_Mass_Variance
