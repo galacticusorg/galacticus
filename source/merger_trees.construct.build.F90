@@ -54,6 +54,7 @@ contains
     use Quasi_Random
     use Pseudo_Random
     use Halo_Mass_Function
+    use Merger_Trees_Mass_Function_Sampling_Modifiers
     use Sort
     use Galacticus_Error
     use Galacticus_Display
@@ -68,31 +69,33 @@ contains
     include 'merger_trees.build.modules.inc'
     !# </include>
     implicit none
-    type            (varying_string            )             , intent(in   )          :: mergerTreeConstructMethod
-    procedure       (Merger_Tree_Build_Do      )             , intent(inout), pointer :: Merger_Tree_Construct
-    type            (Node                      )                            , pointer :: doc
-    class           (cosmologyFunctionsClass   )                            , pointer :: cosmologyFunctionsDefault
-    integer                                     , parameter                           :: massFunctionSamplePerDecade  =100
-    double precision                            , parameter                           :: toleranceAbsolute            =1.0d-12, toleranceRelative                 =1.0d-3
-    double precision                            , allocatable, dimension(:)           :: massFunctionSampleLogMass            , massFunctionSampleLogMassMonotonic       , &
-         &                                                                               massFunctionSampleProbability
-    logical                                                                           :: computeTreeWeights
-    integer                                                                           :: ioErr                                , jSample                                  , &
-         &                                                                               massFunctionSampleCount              , iSample                                  , &
-         &                                                                               iTree
-    type            (fgsl_qrng                 )                                      :: quasiSequenceObject
-    type            (fgsl_rng                  )                                      :: pseudoSequenceObject
-    logical                                                                           :: quasiSequenceReset           =.true. , pseudoSequenceReset               =.true.
-    double precision                                                                  :: expansionFactor                      , massFunctionSampleLogPrevious            , &
-         &                                                                               massMaximum                          , massMinimum                              , &
-         &                                                                               probability
-    type            (fgsl_function             )                                      :: integrandFunction
-    type            (fgsl_integration_workspace)                                      :: integrationWorkspace
-    type            (fgsl_interp               )                                      :: interpolationObject
-    type            (fgsl_interp_accel         )                                      :: interpolationAccelerator
-    type            (c_ptr                     )                                      :: parameterPointer
-    logical                                                                           :: integrandReset               =.true. , interpolationReset                =.true.
-    type(hdf5Object)                                :: treeFile
+    type            (varying_string                   )             , intent(in   )          :: mergerTreeConstructMethod
+    procedure       (Merger_Tree_Build_Do             )             , intent(inout), pointer :: Merger_Tree_Construct
+    type            (Node                             )                            , pointer :: doc
+    class           (cosmologyFunctionsClass          )                            , pointer :: cosmologyFunctionsDefault
+    class           (massFunctionSamplingModifierClass)                            , pointer :: massFunctionSamplingModifier_
+    integer                                            , parameter                           :: massFunctionSamplePerDecade  =100
+    double precision                                   , parameter                           :: toleranceAbsolute            =1.0d-12, toleranceRelative                 =1.0d-3
+    double precision                                   , allocatable, dimension(:)           :: massFunctionSampleLogMass            , massFunctionSampleLogMassMonotonic       , &
+         &                                                                                      massFunctionSampleProbability
+    logical                                                                                  :: computeTreeWeights
+    integer                                                                                  :: ioErr                                , jSample                                  , &
+         &                                                                                      massFunctionSampleCount              , iSample                                  , &
+         &                                                                                      iTree                                , iTreeFirst                               , &
+         &                                                                                      iTreeLast
+    type            (fgsl_qrng                        )                                      :: quasiSequenceObject
+    type            (fgsl_rng                         )                                      :: pseudoSequenceObject
+    logical                                                                                  :: quasiSequenceReset           =.true. , pseudoSequenceReset               =.true.
+    double precision                                                                         :: expansionFactor                      , massFunctionSampleLogPrevious            , &
+         &                                                                                      massMaximum                          , massMinimum                              , &
+         &                                                                                      probability
+    type            (fgsl_function                    )                                      :: integrandFunction
+    type            (fgsl_integration_workspace       )                                      :: integrationWorkspace
+    type            (fgsl_interp                      )                                      :: interpolationObject
+    type            (fgsl_interp_accel                )                                      :: interpolationAccelerator
+    type            (c_ptr                            )                                      :: parameterPointer
+    logical                                                                                  :: integrandReset               =.true. , interpolationReset                =.true.
+    type            (hdf5Object                       )                                      :: treeFile
 
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'build') then
@@ -289,6 +292,12 @@ contains
           call Dealloc_Array(massFunctionSampleLogMass         )
           call Dealloc_Array(massFunctionSampleProbability     )
           call Dealloc_Array(massFunctionSampleLogMassMonotonic)
+          ! Allow modification of the halo mass sample.
+          massFunctionSamplingModifier_ => massFunctionSamplingModifier()
+          call massFunctionSamplingModifier_%modify(treeHaloMass,mergerTreeBuildTreesBaseTime)
+          call Sort_Do(treeHaloMass)
+          treeCount=size(treeHaloMass)
+          call Alloc_Array(treeWeight,[treeCount])
        case ("read")
           ! Read masses from a file.
           ! Detect file type.
@@ -329,39 +338,52 @@ contains
        case default
           call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown halo mass distribution option')
        end select
-
        ! Compute the weight (number of trees per unit volume) for each tree.
        if (computeTreeWeights) then
-          do iTree=1,treeCount
+          iTreeFirst=0
+          do while (iTreeFirst < treeCount)
+             iTreeFirst=iTreeFirst+1
+             ! Find the last tree with the same mass.
+             iTreeLast=iTreeFirst
+             if (iTreeLast < treeCount) then
+                do while (treeHaloMass(iTreeLast+1) == treeHaloMass(iTreeFirst))
+                   iTreeLast=iTreeLast+1
+                   if (iTreeLast == treeCount) exit
+                end do
+             end if
              ! Get the minimum mass of the interval occupied by this tree.
-             if (iTree==1) then
+             if (iTreeFirst == 1) then
                 if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
-                   massMinimum=treeHaloMass(iTree)*sqrt(treeHaloMass(iTree)/treeHaloMass(iTree+1))
+                   massMinimum=treeHaloMass(iTreeFirst)*sqrt(treeHaloMass(iTreeFirst)/treeHaloMass(iTreeFirst+1))
                 else
-                   massMinimum=mergerTreeBuildHaloMassMinimum
+                   massMinimum=min(mergerTreeBuildHaloMassMinimum,treeHaloMass(iTreeFirst))
                 end if
              else
-                massMinimum=sqrt(treeHaloMass(iTree)*treeHaloMass(iTree-1))
+                massMinimum=sqrt(treeHaloMass(iTreeFirst)*treeHaloMass(iTreeFirst-1))
              end if
              ! Get the maximum mass of the interval occupied by this tree.
-             if (iTree==treeCount) then
+             if (iTreeLast == treeCount) then
                 if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
-                   massMaximum=treeHaloMass(iTree)*sqrt(treeHaloMass(iTree)/treeHaloMass(iTree-1))
+                   massMaximum=treeHaloMass(iTreeLast)*sqrt(treeHaloMass(iTreeLast)/treeHaloMass(iTreeLast-1))
                 else
-                   massMaximum=mergerTreeBuildHaloMassMaximum
+                   massMaximum=max(mergerTreeBuildHaloMassMaximum,treeHaloMass(iTreeLast))
                 end if
              else
-                massMaximum=sqrt(treeHaloMass(iTree)*treeHaloMass(iTree+1))
+                massMaximum=sqrt(treeHaloMass(iTreeLast)*treeHaloMass(iTreeLast+1))
              end if
              ! For distributions of masses, adjust the masses at the end points so that they are at the
              ! geometric mean of their range.
              if     (                                                          &
-                  &   (iTree == 1 .or. iTree == treeCount)                     &
+                  &   (iTreeFirst == 1 .or.  iTreeLast == treeCount)           &
+                  &  .and..not.                                                &
+                  &   (iTreeFirst == 1 .and. iTreeLast == treeCount)           &
                   &  .and.                                                     &
                   &   char(mergerTreeBuildTreesHaloMassDistribution) /= "read" &
-                  & ) treeHaloMass(iTree)=sqrt(massMinimum*massMaximum)
+                  & ) treeHaloMass(iTreeFirst:iTreeLast)=sqrt(massMinimum*massMaximum)
              ! Get the integral of the halo mass function over this range.
-             treeWeight(iTree)=Halo_Mass_Function_Integrated(mergerTreeBuildTreesBaseTime,MassMinimum,MassMaximum)
+             treeWeight(iTreeFirst:iTreeLast)=Halo_Mass_Function_Integrated(mergerTreeBuildTreesBaseTime,MassMinimum,MassMaximum)/dble(iTreeLast-iTreeFirst+1)
+             ! Update to the last tree processed.
+             iTreeFirst=iTreeLast
           end do
        end if
        ! Determine the index of the tree at which to begin.

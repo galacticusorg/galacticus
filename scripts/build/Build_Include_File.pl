@@ -22,6 +22,7 @@ require Galacticus::Build::Labels;
 require Galacticus::Build::Function;
 require Galacticus::Build::FunctionCall;
 require Galacticus::Build::BindingsC;
+require Galacticus::Build::FunctionGlobal;
 
 # Scans source code for "!#" directives and generates an include file.
 # Andrew Benson (18-November-2011)
@@ -40,9 +41,9 @@ my $componentsLoaded = 0;
 
 # Load the file of directive locations.
 my $locations;
-if ( -e "./work/build/Code_Directive_Locations.xml" ) {
+if ( -e $ENV{'BUILDPATH'}."/Code_Directive_Locations.xml" ) {
     my $xml    = new XML::Simple;
-    $locations = $xml->XMLin("./work/build/Code_Directive_Locations.xml");
+    $locations = $xml->XMLin($ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
 }
 
 # Create XML object and process the XML file.
@@ -140,7 +141,7 @@ foreach my $currentFileName ( @filesToScan ) {
 			}
 			# Check for included files.
 			if ( $buildData->{'codeType'} eq "fortran" && $nextLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
-			    $includeFile = $sourceDirectory."/work/build/".$1;
+			    $includeFile = $sourceDirectory."/".$ENV{'BUILDPATH'}."/".$1;
 			    $includeFile =~ s/\.inc$/.Inc/;
 			}
 			# Add the line to our XML.
