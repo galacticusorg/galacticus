@@ -134,6 +134,19 @@ foreach my $srcdir ( @sourcedirs ) {
 			    $otherDirectives->{$xmlTag}->{'files'}->{$srcdir."/".$fname} = 1;
 			    if ( $xmlTag eq "functionClass" ) {
 				$functionClasses{$data->{'name'}} = $fname;
+				(my $fileName = "work/build/".$fname) =~ s/\.F90$/.p.F90/;
+				if ( exists($data->{'stateful'        }) && $data->{'stateful'        } eq "yes" ) {
+				    $otherDirectives->{"galacticusStateRetrieveTask"}->{'files'     }->{$fileName} = 1;
+				    $otherDirectives->{"galacticusStateStoreTask"   }->{'files'     }->{$fileName} = 1;
+				    $otherDirectives->{"galacticusStateSnapshotTask"}->{'files'     }->{$fileName} = 1;
+				    $otherDirectives->{"galacticusStateRetrieveTask"}->{'dependency'}->{$fileName} = 1;
+				    $otherDirectives->{"galacticusStateStoreTask"   }->{'dependency'}->{$fileName} = 1;
+				    $otherDirectives->{"galacticusStateSnapshotTask"}->{'dependency'}->{$fileName} = 1;
+				}
+				if ( exists($data->{'calculationReset'}) && $data->{'calculationReset'} eq "yes" ) {
+				    $otherDirectives->{"calculationResetTask"       }->{'files'     }->{$fileName} = 1;
+				    $otherDirectives->{"calculationResetTask"       }->{'dependency'}->{$fileName} = 1;
+				}
 			    }
 			}
 			# Process any included file name if it exists.
@@ -213,8 +226,8 @@ foreach my $xmlTag ( keys(%{$otherDirectives}) ) {
 	foreach my $fileName ( keys(%{$otherDirectives->{$xmlTag}->{'files'}} ) ){
 	    push(@fileNames,$fileName);
 	}
-	(my $objectFileName = $functionClasses{$xmlTag}) =~ s/\.F90/.o/;
-	print makefileHndl "work/build/".$objectFileName.": ".join(" ",@fileNames)."\n\n";
+	(my $processedFileName = $functionClasses{$xmlTag}) =~ s/\.F90/.p.F90/;
+	print makefileHndl "work/build/".$processedFileName.": ".join(" ",@fileNames)."\n\n";
     }
 }
 
