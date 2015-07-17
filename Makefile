@@ -57,16 +57,18 @@ CPPCOMPILER_VERSION = `$(CPPCOMPILER) -v 2>&1`
 # General suffix rules: i.e. rules for making a file of one suffix from files of another suffix.
 
 # Object (*.o) files are built by preprocessing and then compiling Fortran 90 (*.F90) source
-# files. Ensure that any modules they make are "touch"ed so that their modification time is
-# after that of the corresponding object file (to avoid circular remake problems).
+# files. Note that .F90 source files should not have names which coincide with the name of a
+# module - this will lead to circular dependency problems as Make becomes confused about how to
+# build the module file.
 vpath %.F90 source
-./work/build/%.o : %.F90 ./work/build/%.m ./work/build/%.d ./work/build/%.fl Makefile
+./work/build/%.p.F90 : source/%.F90
+	scripts/build/preprocess.pl source/$*.F90 ./work/build/$*.p.F90
+./work/build/%.o : ./work/build/%.p.F90 ./work/build/%.m ./work/build/%.d ./work/build/%.fl Makefile
 	@mlist=`cat ./work/build/$*.m` ; \
 	for mod in $$mlist ; \
 	do \
 	 if [ -f $$mod ] ; then mv $$mod $$mod~; fi \
 	done
-	scripts/build/preprocess.pl source/$*.F90 ./work/build/$*.p.F90
 	$(FCCOMPILER) -c ./work/build/$*.p.F90 -o ./work/build/$*.o $(FCFLAGS)
 	@mlist=`cat ./work/build/$*.m` ; \
 	for mod in $$mlist ; \
@@ -172,7 +174,7 @@ vpath %.cpp source
 	 ./scripts/build/Find_Parameter_Dependencies.pl `pwd` $*.exe
 
 # Ensure that we don't delete object files which make considers to be intermediate
-.PRECIOUS: %.o %.d %.dd %.m %.make %.Inc %.pF90
+.PRECIOUS: %.o %.d %.dd %.m %.make %.Inc ./work/build/%.p.F90
 
 # Include depenencies on "include" files.
 -include ./work/build/Makefile_Include_Deps 
