@@ -5476,6 +5476,7 @@ sub Generate_Component_Creation_Functions {
 	$functionCode .= "    !% Create the {\\normalfont \\ttfamily ".$componentClassName."} component of {\\normalfont \\ttfamily self}.\n";
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    use Galacticus_Display\n";
+	$functionCode .= "    use Galacticus_Error\n";
 	$functionCode .= "    use String_Handling\n";
     	$functionCode .= "    implicit none\n";
  	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
@@ -5486,8 +5487,13 @@ sub Generate_Component_Creation_Functions {
 	$functionCode .= "    end if\n";
     	$functionCode .= "    if (present(template)) then\n";
 	$functionCode .= "       allocate(self%component".ucfirst($componentClassName)."(1),source=template)\n";
-    	$functionCode .= "    else\n"; 
-	$functionCode .= "       allocate(self%component".ucfirst($componentClassName)."(1),source="."default".ucfirst($componentClassName)."Component)\n";
+    	$functionCode .= "    else\n";
+	$functionCode .= "       select type (default".ucfirst($componentClassName)."Component)\n";
+	$functionCode .= "       type is (nodeComponent".ucfirst($componentClassName)."Null)\n";
+	$functionCode .= "          call Galacticus_Error_Report('".$componentClassName."CreateLinked','refusing to create null instance')\n";
+	$functionCode .= "       class default\n";
+	$functionCode .= "          allocate(self%component".ucfirst($componentClassName)."(1),source="."default".ucfirst($componentClassName)."Component)\n";
+   	$functionCode .= "       end select\n";
    	$functionCode .= "    end if\n";
      	$functionCode .= "    select type (self)\n";
 	$functionCode .= "    type is (treeNode)\n";
