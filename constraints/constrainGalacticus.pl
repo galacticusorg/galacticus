@@ -188,6 +188,10 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
     # Record and remove any analyses.
     my $savedAnalyses   = $parameters->{'mergerTreeAnalyses'}->{'value'};
     delete($parameters->{'mergerTreeAnalyses'});
+    # Record pruning.
+    my $savedBaryonPrune = "false";
+    $savedBaryonPrune =  $parameters->{'mergerTreePruneBaryons'}->{'value'}
+        if ( exists($parameters->{'mergerTreePruneBaryons'}) );
     # Get a lock on the tree file.
     my $fixedTreeDirectory;
     if ( exists($config->{'likelihood'}->{'fixedTreesInScratch'}) && $config->{'likelihood'}->{'fixedTreesInScratch'} eq "yes" ) {
@@ -219,6 +223,7 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 		    $parameters->{'outputRedshifts'             }->{'value'} = "10000.0";
 		    $parameters->{'mergerTreesWrite'            }->{'value'} = "true";
 		    $parameters->{'mergerTreeExportFileName'    }->{'value'} = $buildFixedTreeFile;
+		    $parameters->{'mergerTreePruneBaryons'      }->{'value'} = "false";
 		    $parameters->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
 		    my $treeXML = new XML::Simple (RootName=>"parameters", NoAttr => 1);
 		    open(pHndl,">".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml");
@@ -259,6 +264,7 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
     $parameters->{'outputRedshifts'          }->{'value'} = $outputRedshifts;
     $parameters->{'mergerTreeAnalyses'       }->{'value'} = $savedAnalyses;
     $parameters->{'mergerTreesWrite'         }->{'value'} = "false";
+    $parameters->{'mergerTreePruneBaryons'   }->{'value'} = $savedBaryonPrune;
 }
 
 # Extract new parameters.
