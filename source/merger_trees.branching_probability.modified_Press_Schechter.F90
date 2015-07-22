@@ -925,15 +925,7 @@ contains
        end if
     end if
     if (tabulate) then
-
-
-
-       !! AJB HACK
-       call Signal( 8,tableFPE)
-
-
-
-    massCount=int(log10(massMaximum/massMinimum)*dble(massCountPerDecade))+1
+       massCount=int(log10(massMaximum/massMinimum)*dble(massCountPerDecade))+1
        if (.not.upperBoundHypergeometricInitialized) call upperBoundHypergeometric%destroy()
        call upperBoundHypergeometric%create(massMinimum,massMaximum,massCount,1,extrapolationType=spread(extrapolationTypeAbort,1,2))
        ! Evaluate sigma and alpha at the mass resolution.
@@ -969,41 +961,8 @@ contains
                &                                   )
        end do
        upperBoundHypergeometricInitialized=.true.
-
-
-!! AJB HACK
-       call Signal( 8,Galacticus_Signal_Handler_SIGFPE )
-
-
- end if
+    end if
     return
-
-
-    
-    !! AJB HACK
-  contains
-  subroutine tableFPE()
-    implicit none
-
-    !! AJB NOTE: THE PROBLEM SEEMS TO BE THAT halfMassAlpha BECOMES VERY SMALL AND SO gammaEffective BECOMES HUGE LEADING TO FLOATING OVERFLOW. THIS SEEMS STRANGE - MY GUESS IS THAT IT OCCURS BECAUSE OF THE LIMITATIONS OF THE TABULATED SIGMA(M) AND NUMERICAL DIFFERENTIATION. THE FOLLOWING NOW DUMPS THE VALUES OF ALPHA AND SIGMA FOR EACH POINT IN THE TABLE IN CASE OF AN FPE.
-    write (0,*) "HYPERGEO TABLE FPE"
-    write (0,*) "A",i,masscount
-    write (0,*) "B",upperBoundHypergeometric%x(i),halfMassSigma,halfMassAlpha
-    write (0,*) "C",massSigma
-    write (0,*) "D",gammaEffective
-    write (0,*) "E",resolutionMassSigma
-    do i=1,massCount
-       ! Evaluate sigmas and alpha.
-       call           Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(0.5d0*upperBoundHypergeometric%x(i),halfMassSigma,halfMassAlpha)
-       massSigma     =Cosmological_Mass_Root_Variance                            (      upperBoundHypergeometric%x(i)                            )
-       write (0,*) "TABLE ",i,massCount,upperBoundHypergeometric%x(i),halfMassSigma,halfMassAlpha,massSigma
-    end do
-    call flush(0)
-    call Abort()
-    return
-  end subroutine tableFPE
-
-    
   end subroutine Upper_Bound_Hypergeometric_Tabulate
   
 end module Modified_Press_Schechter_Branching

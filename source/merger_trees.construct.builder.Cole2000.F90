@@ -160,12 +160,6 @@ contains
     use Pseudo_Random
     use Kind_Numbers
     use Merger_Trees_Build_Mass_Resolution
-
-    !! AJB HACK
-    use omp_lib
-
-
-
     implicit none
     class           (mergerTreeBuilderCole2000), intent(inout)         :: self
     type            (mergerTree               ), intent(inout), target :: tree
@@ -181,10 +175,6 @@ contains
          &                                                                branchDeltaCriticalCurrent, branchingInterval          , branchingIntervalScaleFree, &
          &                                                                branchingProbabilityRate  , deltaWAccretionLimit
     logical                                                            :: doBranch                  , branchIsDone               , snapAccretionFraction
-
-!! AJB HACK
-logical :: snapAccretionFractionOrig
-integer :: nodecount
 
     ! Begin construction.
     nodeIndex =  1                   ! Initialize the node index counter to unity.
@@ -257,51 +247,32 @@ integer :: nodecount
                    deltaW               =deltaWAccretionLimit
                    snapAccretionFraction=.true.
                 end if
-
-                !! AJB HACK
                 if (deltaW <= 0.0d0) then
-                 write (0,*) "TERMINATE BRANCH ",self%accretionLimit,accretionFractionCumulative,accretionFraction,deltaWAccretionLimit,branchMassCurrent,massResolution,branchDeltaCriticalCurrent
-            ! Terminate the branch with a final node.
-             nodeIndex          =  nodeIndex+1
-             newNode1           => treeNode      (nodeIndex,tree)
-             newBasic1          => newNode1%basic(autoCreate=.true. )
-             ! Compute new mass accounting for sub-resolution accretion.
-             nodeMass1          = branchMassCurrent
-             ! Compute the time corresponding to this event.
-             time=Time_of_Collapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent)
-             ! Set properties of the new node.
-             deltaCritical1=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass1)
-             call newBasic1%massSet(nodeMass1     )
-             call newBasic1%timeSet(deltaCritical1)
-             ! Create links from old to new node and vice-versa.
-             thisNode%firstChild => newNode1
-             newNode1%parent     => thisNode
-             
-             branchIsDone        =  .true.
-                   branchIsDone=.true.
+                   ! Terminate the branch with a final node.
+                   nodeIndex          =  nodeIndex+1
+                   newNode1           => treeNode      (nodeIndex,tree)
+                   newBasic1          => newNode1%basic(autoCreate=.true. )
+                   ! Compute new mass accounting for sub-resolution accretion.
+                   nodeMass1          = branchMassCurrent
+                   ! Compute the time corresponding to this event.
+                   time=Time_of_Collapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent)
+                   ! Set properties of the new node.
+                   deltaCritical1=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass1)
+                   call newBasic1%massSet(nodeMass1     )
+                   call newBasic1%timeSet(deltaCritical1)
+                   ! Create links from old to new node and vice-versa.
+                   thisNode%firstChild => newNode1
+                   newNode1%parent     => thisNode
+                   branchIsDone        =  .true.
                    return
-                end if
-                
+                end if                
              end if
-
-!! AJB HACK
-snapAccretionFractionOrig=snapAccretionFraction
-
-             if     (                                                                                                 &
-                  &   branchingProbabilityRate > 0.0d0                                                                &
-                  &  .and.                                                                                            &
-                  &   .not.self%branchIntervalStep                                                                    &
+             if     (                                                                   &
+                  &   branchingProbabilityRate > 0.0d0                                  &
+                  &  .and.                                                              &
+                  &   .not.self%branchIntervalStep                                      &
                   & ) deltaW=min(deltaW,self%mergeProbability/branchingProbabilityRate)
-
-             !! AJB HACK
-             if (deltaW <= 0.0d0) then
-                write (0,*) "DELTAW NEG #1 ",deltaW
-                call flush(0)
-             end if
-
-
-
-    ! Scale values to the determined timestep.
+             ! Scale values to the determined timestep.
              if (.not.self%branchIntervalStep)                           &
                   & branchingProbability=branchingProbabilityRate*deltaW
              accretionFraction          =accretionFraction       *deltaW
@@ -313,15 +284,8 @@ snapAccretionFractionOrig=snapAccretionFraction
                 accretionFraction          =accretionFraction   *0.5d0
                 deltaW                     =deltaW              *0.5d0
                 snapAccretionFraction      =.false.
-             end do
-  
-             !! AJB HACK
-             if (deltaW <= 0.0d0) then
-                write (0,*) "DELTAW NEG #2 ",deltaW
-                call flush(0)
-             end if
-
-           ! Decide if a branching occurs.
+             end do             
+             ! Decide if a branching occurs.
              if (self%branchIntervalStep) then
                 ! In this case we draw intervals between branching events from a negative exponential distribution.
                 if (branchingProbabilityRate > 0.0d0) then
@@ -342,14 +306,7 @@ snapAccretionFractionOrig=snapAccretionFraction
                          ! Branching occured, adjust the accretion fraction, and timestep to their values at the branching event.
                          accretionFraction    =accretionFraction*branchingInterval/deltaW
                          deltaW               =branchingInterval
-  
-             !! AJB HACK
-             if (deltaW <= 0.0d0) then
-                write (0,*) "DELTAW NEG #3 ",deltaW,branchingIntervalScaleFree,branchingInterval
-                call flush(0)
-             end if
-             
-                       snapAccretionFraction=.false.
+                         snapAccretionFraction=.false.
                          ! Draw a random deviate and scale by the branching rate - this will be used to choose the branch mass.
                        uniformRandom       =tree%randomNumberGenerator%sample()
                        branchingProbability=uniformRandom*branchingProbabilityRate
@@ -380,17 +337,7 @@ snapAccretionFractionOrig=snapAccretionFraction
                    doBranch=.false.
                 end if
              end if
-             ! Determine the critical overdensity for collapse for the new halo(s).
-
-
-             
-             !! AJB HACK
-             if (branchDeltaCriticalCurrent + deltaW <= branchDeltaCriticalCurrent) then
-                write (0,*) "DELTA UNDERFLOW PROBLEM ",branchDeltaCriticalCurrent,deltaW,branchDeltaCriticalCurrent+deltaW,doBranch; call flush(0)
-                stop
-             end if
-             
-             
+             ! Determine the critical overdensity for collapse for the new halo(s).             
              deltaCritical                 =branchDeltaCriticalCurrent +deltaW
              if (snapAccretionFraction) then
                 accretionFractionCumulative=self%accretionLimit
@@ -422,16 +369,6 @@ snapAccretionFractionOrig=snapAccretionFraction
                 deltaCritical2=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass2)
                 call newBasic2%massSet(nodeMass2     )
                 call newBasic2%timeSet(deltaCritical2)
-
-
-
-                !! AJB HACK
-                if (nodeMass1 <= 0.0d0 .or. nodeMass2 <= 0.0d0) then
-                   write (0,*) "NEGATIVE MASSES IN BRANCH SPLIT ",nodeMass1,nodeMass2,branchMassCurrent,branchDeltaCriticalCurrent,massResolution,accretionFractionCumulative,accretionFraction
-                   call abort()
-                end if
-
-
                 ! Create links from old to new nodes and vice-versa. (Ensure that child node is the more massive progenitor.)
                 if (nodeMass2 > nodeMass1) then
                    thisNode%firstChild => newNode2
@@ -467,13 +404,6 @@ snapAccretionFractionOrig=snapAccretionFraction
                end if
              end select
           end if
-
-!! AJB HACK
-          if (snapAccretionFractionOrig.and..not.branchIsDone) then
-             write (0,*) "SNAP PROBLEM ",snapAccretionFractionOrig,snapAccretionFraction,branchIsDone,accretionFractionCumulative,self%accretionLimit,accretionFractionCumulative-self%accretionLimit; call flush(0)
-          end if
-
-
        end do
        ! Check if tree should be aborted.
        if (self%shouldAbort(tree)) then
@@ -484,36 +414,6 @@ snapAccretionFractionOrig=snapAccretionFraction
           call thisNode%walkTreeUnderConstruction(thisNode)
        end if
     end do
-
-
-
-
-
-
-!! AJB HACK
-    ! Check for well-ordering in delta.
-    thisNode => tree%baseNode
-!   nodecount=0
-    do while (associated(thisNode))       
-       if (associated(thisNode%parent)) then
-          thisBasic   => thisNode       %basic()
-          parentBasic => thisNode%parent%basic()
-          if (parentBasic%time() >= thisBasic%time()) then
-
-!! AJB HACK
-write (0,*) "DELTA ORDERING ",thisNode%index(),thisNode%parent%index(),thisBasic%time(),parentBasic%time(),thisBasic%mass(),parentBasic%mass()
-
-          end if
-       end if
-!nodecount=nodecount+1
-       call thisNode%walkTree(thisNode)
-end do
-!write (  0,*) "NODECOUNT ",tree%index,nodeCount,omp_get_thread_num()
-!write (404,*) "NODECOUNT ",tree%index,nodeCount,omp_get_thread_num()
-
-
-
-
     ! Walk the tree and convert w to time.
     thisNode => tree%baseNode
     do while (associated(thisNode))
@@ -533,13 +433,7 @@ end do
        if (associated(thisNode%parent)) then
           thisBasic   => thisNode       %basic()
           parentBasic => thisNode%parent%basic()
-          if (parentBasic%time() <= thisBasic%time()) then
-
-!! AJB HACK
-write (0,*) "TIME ORDERING ",thisNode%index(),thisNode%parent%index(),thisBasic%time(),parentBasic%time(),thisBasic%mass(),parentBasic%mass()
-
-             call Galacticus_Error_Report('cole2000Build','branch is not well-ordered in time')
-          end if
+          if (parentBasic%time() <= thisBasic%time()) call Galacticus_Error_Report('cole2000Build','branch is not well-ordered in time')
        end if
        call thisNode%walkTree(thisNode)
     end do
