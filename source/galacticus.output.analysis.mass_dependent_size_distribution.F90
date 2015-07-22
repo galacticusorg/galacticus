@@ -208,7 +208,7 @@ contains
     use Root_Finder
     use Table_Labels
     implicit none
-    type            (mergerTree                    ), intent(in   )                 :: thisTree
+    type            (mergerTree                    ), intent(inout)                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
     integer                                         , intent(in   )                 :: nodeStatus
     integer         (c_size_t                      ), intent(in   )                 :: iOutput
@@ -676,7 +676,7 @@ contains
           radiusLogarithmic=radiusLogarithmic+sizeFunctions(i)%radiusSystematicCoefficients(j)*(log10(radius)-sizeFunctions(i)%descriptor%radiusSystematicLogR0)**(j-1)
        end do
        ! Adjust radius for inclination.
-       inclinationAngle =acos(Pseudo_Random_Get(randomSequenceObject,resetRandomSequence))
+       inclinationAngle =acos(thisTree%randomNumberGenerator%sample())
        radiusLogarithmic=radiusLogarithmic+log10(inclinationTable%interpolate(inclinationAngle))
        ! Compute contributions to each bin.
        if (associated(sizeFunctions(i)%descriptor%massRandomErrorFunction)) then

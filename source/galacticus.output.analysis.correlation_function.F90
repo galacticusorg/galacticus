@@ -113,8 +113,6 @@ module Galacticus_Output_Analyses_Correlation_Functions
      double precision                               , allocatable, dimension(:,:  ) :: integralConstraint
      ! Line-of-sight integration depth.
      double precision                                                               :: lineOfSightDepth
-     ! Indices of current halo.
-     integer         (kind=kind_int8               )                                :: treeIndex                 , haloIndex
      ! Population statistics.
      double precision                               , allocatable, dimension(:    ) :: meanDensity
      ! Density and count of galaxies on the main branches of trees.
@@ -138,13 +136,15 @@ module Galacticus_Output_Analyses_Correlation_Functions
 
   ! Type for storing temporary size functions during cumulation.
   type :: correlationFunctionWork
-     double precision, allocatable, dimension(:,:) :: satelliteProbability
-     double precision, allocatable, dimension(  :) :: centralProbability  , fourierProfile
-     integer                                       :: satelliteCount      , outputNumber
-     double precision                              :: haloBias            , haloWeight    , &
-          &                                           haloTime            , haloMass
-     logical                                       :: propertiesSet       , isMainBranch  , &
-          &                                           initialized
+     double precision                , allocatable, dimension(:,:) :: satelliteProbability
+     double precision                , allocatable, dimension(  :) :: centralProbability  , fourierProfile
+     integer                                                       :: satelliteCount      , outputNumber
+     double precision                                              :: haloBias            , haloWeight    , &
+          &                                                           haloTime            , haloMass
+     logical                                                       :: propertiesSet       , isMainBranch  , &
+          &                                                           initialized
+     ! Indices of current halo.
+     integer         (kind=kind_int8)                              :: treeIndex           , haloIndex
   end type correlationFunctionWork
 
   ! Work array.
@@ -188,7 +188,7 @@ contains
     use Linear_Growth
     use Galacticus_Output_Merger_Tree_Data
     implicit none
-    type            (mergerTree                    ), intent(in   )                 :: thisTree
+    type            (mergerTree                    ), intent(inout)                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
     integer                                         , intent(in   )                 :: nodeStatus
     integer         (c_size_t                      ), intent(in   )                 :: iOutput
@@ -303,9 +303,6 @@ contains
                             call Get_Input_Parameter(char(parameterName),correlationFunctions(currentAnalysis)%massRandomCoefficients(k),defaultValue=0.0d0)
                          end do
                       end if
-                      ! Initialize tree/halo indices.
-                      correlationFunctions(currentAnalysis)%treeIndex=-1_kind_int8
-                      correlationFunctions(currentAnalysis)%haloIndex=-1_kind_int8
                       ! Read the appropriate observational data definition.
                       select case (trim(correlationFunctionLabels(j)))
                       case ('sdssClusteringZ0.07')
@@ -559,17 +556,19 @@ contains
        thisHalo%centralProbability=0.0d0
        thisHalo%isMainBranch      =.false.
        thisHalo%initialized       =.true.
+       thisHalo%treeIndex         =-1_kind_int8
+       thisHalo%haloIndex         =-1_kind_int8
     end if
     ! Check if the host has changed.
     if     (                                                     &
-         &   thisTree%index /= thisCorrelationFunction%treeIndex &
+         &   thisTree%index /= thisHalo%treeIndex &
          &  .or.                                                 &
-         &   hostIndex      /= thisCorrelationFunction%haloIndex &
+         &   hostIndex      /= thisHalo%haloIndex &
          & )                                                     &
          & call Accumulate_Halo(thisCorrelationFunction,thisHalo)
     ! Accumulate properties to the current halo.
-    thisCorrelationFunction%treeIndex=thisTree%index
-    thisCorrelationFunction%haloIndex=hostIndex
+    thisHalo%treeIndex=thisTree%index
+    thisHalo%haloIndex=hostIndex
     ! Find the random error on the galaxy mass.
     if (associated(thisCorrelationFunction%descriptor%massRandomErrorFunction)) then
        randomError=thisCorrelationFunction%descriptor%massRandomErrorFunction(mass,thisNode)
@@ -671,7 +670,7 @@ contains
     class           (haloModelPowerSpectrumModifierClass), pointer                                                                        :: haloModelPowerSpectrumModifier_
 
     ! Return immediately if no nodes have been accumulated.
-    if (thisCorrelationFunction%treeIndex /= -1_kind_int8) then
+    if (thisHalo%treeIndex /= -1_kind_int8) then
        oneHaloTermActive=.false.
        twoHaloTermActive=.false.
        mainBranchCounted=.false.
@@ -847,8 +846,8 @@ contains
     thisHalo%satelliteCount=0
     thisHalo%propertiesSet =.false.
     ! Reset indices.
-    thisCorrelationFunction%treeIndex=-1_kind_int8
-    thisCorrelationFunction%haloIndex=-1_kind_int8
+    thisHalo%treeIndex=-1_kind_int8
+    thisHalo%haloIndex=-1_kind_int8
     return
   end subroutine Accumulate_Halo
   

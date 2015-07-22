@@ -57,6 +57,9 @@ module Modified_Press_Schechter_Branching
   ! Branching probability integrand integration tolerance.
   double precision, parameter :: branchingProbabilityIntegrandToleraceRelative=1.0d-3
 
+  ! Limit on alpha for use in effective gamma parameters.
+  double precision, parameter :: alphaMinimum                                 =5.0d-3
+
   ! Branching assumptions.
   logical                     :: modifiedPressSchechterUseCDMAssumptions
 
@@ -79,19 +82,14 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type     (varying_string  ), intent(in   )          :: treeBranchingMethod
+    type     (varying_string                                      ), intent(in   )          :: treeBranchingMethod
     procedure(Modified_Press_Schechter_Branching_Probability_Bound), intent(inout), pointer :: Tree_Branching_Probability_Bound
-    procedure(Modified_Press_Schechter_Branching_Probability), intent(inout), pointer :: Tree_Branching_Probability
-    procedure(Modified_Press_Schechter_Subresolution_Fraction), intent(inout), pointer :: Tree_Subresolution_Fraction
-    procedure(Modified_Press_Schechter_Branch_Mass), intent(inout), pointer :: Tree_Branch_Mass
-    procedure(Modified_Press_Schechter_Branching_Maximum_Step), intent(inout), pointer :: Tree_Maximum_Step
-
+    procedure(Modified_Press_Schechter_Branching_Probability      ), intent(inout), pointer :: Tree_Branching_Probability
+    procedure(Modified_Press_Schechter_Subresolution_Fraction     ), intent(inout), pointer :: Tree_Subresolution_Fraction
+    procedure(Modified_Press_Schechter_Branch_Mass_Generic        ), intent(inout), pointer :: Tree_Branch_Mass
+    procedure(Modified_Press_Schechter_Branching_Maximum_Step     ), intent(inout), pointer :: Tree_Maximum_Step
+    
     if (treeBranchingMethod == 'modifiedPress-Schechter') then
-       Tree_Branching_Probability_Bound  => Modified_Press_Schechter_Branching_Probability_Bound
-       Tree_Branching_Probability        => Modified_Press_Schechter_Branching_Probability
-       Tree_Subresolution_Fraction       => Modified_Press_Schechter_Subresolution_Fraction
-       Tree_Branch_Mass                  => Modified_Press_Schechter_Branch_Mass
-       Tree_Maximum_Step                 => Modified_Press_Schechter_Branching_Maximum_Step
        !@ <inputParameter>
        !@   <name>modifiedPressSchechterG0</name>
        !@   <defaultValue>0.57</defaultValue>
@@ -176,23 +174,152 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('modifiedPressSchechterUseCDMAssumptions',modifiedPressSchechterUseCDMAssumptions,defaultValue=.false.)
+       Tree_Branching_Probability_Bound  => Modified_Press_Schechter_Branching_Probability_Bound
+       Tree_Branching_Probability        => Modified_Press_Schechter_Branching_Probability
+       Tree_Subresolution_Fraction       => Modified_Press_Schechter_Subresolution_Fraction
+       Tree_Maximum_Step                 => Modified_Press_Schechter_Branching_Maximum_Step
+       if (modifiedPressSchechterUseCDMAssumptions) then
+          Tree_Branch_Mass               => Modified_Press_Schechter_Branch_Mass_CDMAssumptions
+       else
+          Tree_Branch_Mass               => Modified_Press_Schechter_Branch_Mass_Generic
+       end if
     end if
     return
   end subroutine Modified_Press_Schechter_Branching_Initialize
 
-  double precision function Modified_Press_Schechter_Branch_Mass(haloMass,deltaCritical,massResolution,probability)
+  double precision function Modified_Press_Schechter_Branch_Mass_CDMAssumptions(haloMass,deltaCritical,massResolution,probability,randomNumberGenerator)
+    !% A merger tree branch split mass function which assumes a \gls{cdm}-like power
+    !% spectrum. With these assumptions, it can employ the mass sampling algorithm of
+    !% \cite{parkinson_generating_2008}. One difference with respect to the algorithm of
+    !% \cite{parkinson_generating_2008} is that here the normalization of their function $S(q)$
+    !% (eqn. A2) is irrelevant, since a branch split has already been decided to have
+    !% occcurred---all that remains necessary is to determine its mass. Variable and function
+    !% names follow \cite{parkinson_generating_2008}.
+    use Pseudo_Random
+    implicit none
+    double precision              , intent(in   ) :: deltaCritical                 , haloMass       , &
+         &                                           massResolution                , probability
+    type            (pseudoRandom), intent(inout) :: randomNumberGenerator
+    double precision                              :: massFractionResolution        , beta           , &
+         &                                           B                             , halfMassSigma  , &
+         &                                           halfMassAlpha                 , eta            , &
+         &                                           x                             , mu             , &
+         &                                           massFraction                  , resolutionSigma, &
+         &                                           massFractionResolutionPowerEta, halfPowerEta   , &
+         &                                           halfMassV
+    logical                                       :: reject
+
+    ! Get parent and half-mass sigmas and alphas.
+    parentSigmaSquared=Cosmological_Mass_Root_Variance(haloMass)**2
+    call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(0.5d0*haloMass,halfMassSigma,halfMassAlpha)
+    ! Compute parameters beta, mu, and B.
+    massFractionResolution=+massResolution                 &
+         &                 /haloMass
+    halfMassV             =+V(0.5d0)
+    beta                  =+log(                           &
+         &                      +V(massFractionResolution) &
+         &                      /halfMassV                 &
+         &                     )                           &
+         &                 /log(                           &
+         &                      +massFractionResolution    &
+         &                      /0.5d0                     &
+         &                     )
+    B                     =+halfMassV                      &
+         &                 *2.0d0    **beta
+    if (modifiedPressSchechterGamma1 >= 0.0d0) then
+       mu                 =-halfMassAlpha
+    else
+       resolutionSigma    =+Cosmological_Mass_Root_Variance(massResolution)
+       mu                 =-log(                        &
+            &                   +resolutionSigma        &
+            &                   /halfMassSigma          &
+            &                  )                        &
+            &              /log(                        &
+            &                   +massFractionResolution &
+            &                   /0.5d0                  &
+            &                  )
+    end if
+    eta                           =+beta                              &
+         &                         -1.0d0                             &
+         &                         -mu                                &
+         &                         *modifiedPressSchechterGamma1
+    massFractionResolutionPowerEta=+massFractionResolution      **eta
+    halfPowerEta                  =+0.5d0                       **eta
+    ! Sample from S(q), using rejection sampling on R(q) to decide whether to keep/reject the
+    ! proposed q.
+    reject=.true.
+    do while (reject)
+       ! Draw a random q from S(q).
+       x           =randomNumberGenerator%sample()
+       massFraction=(                                                 &
+            &        +              massFractionResolutionPowerEta    &
+            &        +(halfPowerEta-massFractionResolutionPowerEta)*x &
+            &       )**(1.0d0/eta)
+       x           =randomNumberGenerator%sample()
+       reject=x > R(massFraction)
+    end do
+    Modified_Press_Schechter_Branch_Mass_CDMAssumptions=massFraction*haloMass
+    return
+
+  contains
+
+    double precision function R(massFraction)
+      !% The function $R(q)$ from \cite[][eqn. A3]{parkinson_generating_2008}.
+      implicit none
+      double precision, intent(in   ) :: massFraction
+      double precision                :: massFractionSigma, massFractionAlpha
+
+       call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(massFraction*haloMass,massFractionSigma,massFractionAlpha)   
+       R      =+(                               &
+            &    +massFractionAlpha             &
+            &    /halfMassAlpha                 &
+            &   )                               &
+            &  *V(massFraction)                 &
+            &  /B                               &
+            &  /massFraction**beta              &
+            &  *(                               &
+            &    +(                             &
+            &      +2.0d0                       &
+            &      *massFraction                &
+            &     )**mu                         &
+            &    *massFractionSigma             &
+            &    /halfMassSigma                 &
+            &   )**modifiedPressSchechterGamma1
+       return
+    end function R
+      
+    double precision function V(massFraction)
+      !% The function $V(q)$ from \cite[][eqn. A4]{parkinson_generating_2008}.
+      implicit none
+      double precision, intent(in   ) :: massFraction
+      double precision                :: childSigmaSquared
+
+      childSigmaSquared=Cosmological_Mass_Root_Variance(massFraction*haloMass)**2
+      V                =+   childSigmaSquared &
+           &            /(                    &
+           &              + childSigmaSquared &
+           &              -parentSigmaSquared &
+           &             )**1.5d0
+      return
+    end function V
+    
+  end function Modified_Press_Schechter_Branch_Mass_CDMAssumptions
+  
+  double precision function Modified_Press_Schechter_Branch_Mass_Generic(haloMass,deltaCritical,massResolution,probability,randomNumberGenerator)
     !% Determine the mass of one of the halos to which the given halo branches, given the branching probability,
     !% {\normalfont \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\tt
     !% Modified\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     !% branches. This routine then finds the progenitor mass corresponding to this value.
+    use Pseudo_Random
     use Root_Finder
     implicit none
-    double precision            , intent(in   ) :: deltaCritical          , haloMass                , &
-         &                                         massResolution         , probability
-    double precision            , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-9
-    type            (rootFinder), save          :: finder
+    double precision              , intent(in   ) :: deltaCritical              , haloMass                , &
+         &                                           massResolution             , probability
+    type            (pseudoRandom), intent(inout) :: randomNumberGenerator
+    double precision              , parameter     :: toleranceAbsolute    =0.0d0, toleranceRelative=1.0d-9
+    type            (rootFinder  ), save          :: finder
     !$omp threadprivate(finder)
-    double precision                            :: logMassMinimum         , logMassMaximum
+    double precision                              :: logMassMinimum             , logMassMaximum
     
     ! Initialize global variables.
     parentHaloMass           =haloMass
@@ -207,7 +334,7 @@ contains
     if (Modified_Press_Schechter_Branch_Mass_Root(probabilityMaximumMassLog) >= 0.0d0) then
        ! The root function is zero, or very close to it (which can happen due to rounding errors
        ! occasionally). Therefore we have an almost perfect binary split.
-       Modified_Press_Schechter_Branch_Mass=0.5d0*haloMass
+       Modified_Press_Schechter_Branch_Mass_Generic=0.5d0*haloMass
     else
        ! Initialize our root finder.
        if (.not.finder%isInitialized()) then
@@ -225,15 +352,15 @@ contains
                &                            )
        end if
        ! Split is not binary - seek the actual mass of the smaller progenitor.
-       logMassMinimum                      =log(      massResolution)
-       logMassMaximum                      =log(0.5d0*haloMass      )
-       probabilityGradientMinimum          =Modified_Press_Schechter_Branch_Mass_Root_Derivative(logMassMinimum)
-       probabilityGradientMaximum          =Modified_Press_Schechter_Branch_Mass_Root_Derivative(logMassMaximum)
-       probabilityMaximum                  =Modified_Press_Schechter_Branch_Mass_Root           (logMassMaximum)
-       Modified_Press_Schechter_Branch_Mass=exp(finder%find(rootRange=[logMassMinimum,logMassMaximum]))
+       logMassMinimum                              =log(      massResolution)
+       logMassMaximum                              =log(0.5d0*haloMass      )
+       probabilityGradientMinimum                  =Modified_Press_Schechter_Branch_Mass_Root_Derivative(logMassMinimum)
+       probabilityGradientMaximum                  =Modified_Press_Schechter_Branch_Mass_Root_Derivative(logMassMaximum)
+       probabilityMaximum                          =Modified_Press_Schechter_Branch_Mass_Root           (logMassMaximum)
+       Modified_Press_Schechter_Branch_Mass_Generic=exp(finder%find(rootRange=[logMassMinimum,logMassMaximum]))
     end if
     return
-  end function Modified_Press_Schechter_Branch_Mass
+  end function Modified_Press_Schechter_Branch_Mass_Generic
 
   double precision function Modified_Press_Schechter_Branch_Mass_Root(logMassMaximum)
     !% Used to find the mass of a merger tree branching event.
@@ -399,7 +526,6 @@ contains
     double precision          , save          :: massResolutionPrevious   =-1.0d0, resolutionSigma          , &
          &                                       resolutionAlpha
     !$omp threadprivate(resolutionSigma,resolutionAlpha,massResolutionPrevious)
-    double precision          , parameter     :: alphaMinimum             =5.0d-3
     double precision                          :: probabilityIntegrandLower       , probabilityIntegrandUpper, &
          &                                       halfParentSigma                 , halfParentAlpha          , &
          &                                       gammaEffective

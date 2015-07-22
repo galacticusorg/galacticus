@@ -61,12 +61,29 @@ double precision function distributionNegativeExponentialInverse(self,p)
   implicit none
   class           (distributionNegativeExponential), intent(in   ) :: self
   double precision                                 , intent(in   ) :: p
+  double precision                                 , parameter     :: pTiny=1.0d-6
 
   if (p < 0.0d0 .or. p > 1.0d0)                                                    &
        & call Galacticus_Error_Report(                                             &
        &                              'distributionNegativeExponentialCumulative', &
        &                              'probability out of range'                   &
        &                             )
-  distributionNegativeExponentialInverse=-log(1.0d0-p)/self%rate
+  if (p > pTiny) then
+     distributionNegativeExponentialInverse=-log(1.0d0-p)/self%rate
+  else
+     distributionNegativeExponentialInverse=+(            &
+          &                                   +p**1/1.0d0 &
+          &                                   +p**2/2.0d0 &
+          &                                   +p**3/3.0d0 &
+          &                                   +p**4/4.0d0 &
+          &                                  )            &
+          &                                 /self%rate
+  end if
+
+!! AJB HACK
+if (distributionNegativeExponentialInverse <= 0.0d0) then
+   write (0,*) "OUT OF RANGE NEG EXP ",p,distributionNegativeExponentialInverse
+end if
+
   return
 end function distributionNegativeExponentialInverse

@@ -20,6 +20,7 @@
 module Merger_Tree_Branching
   !% Implements calculations of merger tree branching probabilities.
   use ISO_Varying_String
+  use Pseudo_Random
   implicit none
   private
   public :: Tree_Branching_Probability_Bound, Tree_Branching_Probability, Tree_Subresolution_Fraction, Tree_Branch_Mass, Tree_Maximum_Step
@@ -53,9 +54,11 @@ module Merger_Tree_Branching
      end function Tree_Subresolution_Fraction_Template
   end interface Tree_Subresolution_Fraction_Template
   interface Tree_Branch_Mass_Template
-     double precision function Tree_Branch_Mass_Template(haloMass,deltaCritical,massResolution,probabilityFraction)
-       double precision, intent(in   ) :: deltaCritical      , haloMass, massResolution, &
-            &                             probabilityFraction
+     double precision function Tree_Branch_Mass_Template(haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator)
+       import pseudoRandom
+       double precision              , intent(in   ) :: deltaCritical      , haloMass, massResolution, &
+            &                                           probabilityFraction
+       type            (pseudoRandom), intent(inout) :: randomNumberGenerator
      end function Tree_Branch_Mass_Template
   end interface Tree_Branch_Mass_Template
   interface Tree_Maximum_Step_Template
@@ -119,17 +122,18 @@ contains
     return
   end function Tree_Subresolution_Fraction
 
-  double precision function Tree_Branch_Mass(haloMass,deltaCritical,massResolution,probabilityFraction)
+  double precision function Tree_Branch_Mass(haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator)
     !% Return the mass of a progenitor halo in a branch split.
     implicit none
-    double precision, intent(in   ) :: deltaCritical      , haloMass, massResolution, &
-         &                             probabilityFraction
+    double precision              , intent(in   ) :: deltaCritical        , haloMass, massResolution, &
+         &                                           probabilityFraction
+    type            (pseudoRandom), intent(inout) :: randomNumberGenerator
 
     ! Initialize if necessary.
     call Tree_Branching_Initialize
 
     ! Interpolate in the tabulated function and return a value.
-    Tree_Branch_Mass=Tree_Branch_Mass_Function(haloMass,deltaCritical,massResolution,probabilityFraction)
+    Tree_Branch_Mass=Tree_Branch_Mass_Function(haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator)
     return
   end function Tree_Branch_Mass
 
