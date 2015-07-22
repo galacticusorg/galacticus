@@ -709,8 +709,8 @@ contains
     !$    nextTreeToReadThread=nextTreeToReadThread+1
     !$    nextTreeToReadActual=nextTreeToReadThread
     !$ else
-       nextTreeToRead      =nextTreeToRead      +1
-       nextTreeToReadActual=nextTreeToRead
+    nextTreeToRead      =nextTreeToRead      +1
+    nextTreeToReadActual=nextTreeToRead
     !$ end if
     ! Keep incrementing the tree index until we find the first tree to process (if we haven't done so already). Also skip trees
     ! that contain 1 or fewer nodes and these are unprocessable.
@@ -743,7 +743,7 @@ contains
        !$ end if
     end if
 
-    if (nextTreeToRead > defaultImporter%treeCount())  then
+    if (nextTreeToReadActual > defaultImporter%treeCount())  then
        ! Flag that we do not have a tree.
        haveTree=.false.
     else
@@ -759,7 +759,7 @@ contains
        ! Take a snapshot of the internal state and store it.
        call Galacticus_State_Snapshot
        message='Storing state for tree #'
-       message=message//nextTreeToRead
+       message=message//nextTreeToReadActual
        call Galacticus_State_Store(message)
 
        ! If the tree is to be skipped, do not read it.
@@ -769,15 +769,15 @@ contains
        else
           ! Set tree properties.
           ! treeIndex
-          thisTree%index=defaultImporter%treeIndex(nextTreeToRead)
+          thisTree%index=defaultImporter%treeIndex(nextTreeToReadActual)
           ! volumeWeight
-          treeVolumeWeightCurrent=defaultImporter%treeWeight(nextTreeToRead)
+          treeVolumeWeightCurrent=defaultImporter%treeWeight(nextTreeToReadActual)
           thisTree%volumeWeight=treeVolumeWeightCurrent
           ! Initialize no events.
           thisTree%event => null()
           ! Read data from the file.
           call defaultImporter%import(                                                                                                                           &
-               &                      nextTreeToRead                                                                                                           , &
+               &                      nextTreeToReadActual                                                                                                     , &
                &                      nodes                                                                                                                    , &
                &                      requireScaleRadii         = mergerTreeReadPresetScaleRadii                                                               , &
                &                      requireParticleCounts     = mergerTreeReadPresetParticleCounts                                                           , &
