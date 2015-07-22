@@ -94,7 +94,8 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   ! Check that we have sufficient chains for differential evolution.
   if (mpiSelf%count() < 3) call Galacticus_Error_Report('simulatorDifferentialEvolutionSimulate','at least 3 chains are required for differential evolution')
   ! Write start-up message.
-  message="Process "//mpiSelf%rankLabel()//" is running on host '"//mpiSelf%hostAffinity()//"'"
+  message="Process "//mpiSelf%rankLabel()//" [PID: "
+  message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
   call Galacticus_Display_Message(message)
   ! Allocate a simple state object for the proposed state.
   allocate(stateSimple :: stateProposed)
@@ -102,19 +103,18 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   type is (stateSimple)
      stateProposed=stateSimple(self%parameterCount,1)
   end select
-  self%logPosterior=logImpossible
-  do while (self%logPosterior <= logImpossible)
-     ! Initialize chain to some state vector.
-     call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parametermappings,timeEvaluateInitial)
-     ! Evaluate the posterior in the initial state.
-     timeEvaluate        =-1.0
-     timeEvaluatePrevious=real(timeEvaluateInitial)
-     call CPU_Time(timePreEvaluate )
-     call self%posterior(self%simulationState,logImpossible,logImpossible,self%logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
-     call CPU_Time(timePostEvaluate)
-     if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
-     timeEvaluatePrevious=timeEvaluate
-  end do
+  ! Initialize chain to some state vector.
+  call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors,self%parametermappings,timeEvaluateInitial)
+  ! Evaluate the posterior in the initial state.
+  timeEvaluate        =-1.0
+  timeEvaluatePrevious=real(timeEvaluateInitial)
+  call CPU_Time(timePreEvaluate )
+  call self%posterior(self%simulationState,logImpossible,logImpossible,self%logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
+  call CPU_Time(timePostEvaluate)
+  if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
+  timeEvaluatePrevious=timeEvaluate     
+  ! Check for impossible state.
+  if (self%logPosterior <= logImpossible) call Galacticus_Error_Report('simulatorDifferentialEvolutionSimulate','impossible initial state')
   ! Begin stepping.
   logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
   open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
