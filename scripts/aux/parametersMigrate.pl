@@ -275,29 +275,29 @@ my @translations =
 	     "powerSpectrumIndex"                                             => "powerSpectrumPrimordialMethod--index"                              ,
 	     "powerSpectrumRunning"                                           => "powerSpectrumPrimordialMethod--running"                            ,
 	     "powerSpectrumReferenceWavenumber"                               => "powerSpectrumPrimordialMethod--wavenumberReference"                ,
-	     "mergerTreeBuildCole2000AccretionLimit"                          => "mergerTreeBuildMethod--accretionLimit"                             ,
-	     "mergerTreeBuildCole2000MergeProbability"                        => "mergerTreeBuildMethod--mergeProbability"                           ,
-	     "mergerTreeBuildCole2000HighestRedshift"                         => "mergerTreeBuildMethod--redshiftMaximum"                            ,
-	     "mergerTreeBuildCole2000FixedRandomSeeds"                        => "mergerTreeBuildMethod--randomSeedsFixed"                           ,
-	     "mergerTreeRegridTimes"                                          => "mergerTreeOperatorMethod.regridTimes."                             ,
-	     "mergerTreeRegridDumpTrees"                                      => "mergerTreeOperatorMethod.regridTimes.--dumpTrees"                  ,
-	     "mergerTreeRegridCount"                                          => "mergerTreeOperatorMethod.regridTimes.--regridCount"                ,
-	     "mergerTreeRegridStartExpansionFactor"                           => "mergerTreeOperatorMethod.regridTimes.--expansionFactorStart"       ,
-	     "mergerTreeRegridEndExpansionFactor"                             => "mergerTreeOperatorMethod.regridTimes.--expansionFactorEnd"         ,
-	     "mergerTreeRegridSpacing"                                        => "mergerTreeOperatorMethod.regridTimes.--snapshotSpacing"            ,
-	     "mergerTreePruneBranches"                                        => "mergerTreeOperatorMethod.pruneByMass."                             ,
-	     "mergerTreePruningMassThreshold"                                 => "mergerTreeOperatorMethod.pruneByMass.--massThreshold"              ,
-	     "mergerTreeComputeConditionalMassFunction"                       => "mergerTreeOperatorMethod.conditionalMF."                           ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassCount"        => "mergerTreeOperatorMethod.conditionalMF.--parentMassCount"          ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassMinimum"      => "mergerTreeOperatorMethod.conditionalMF.--parentMassMinimum"        ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassMaximum"      => "mergerTreeOperatorMethod.conditionalMF.--parentMassMaximum"        ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioCount"         => "mergerTreeOperatorMethod.conditionalMF.--massRatioCount"           ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioMinimum"       => "mergerTreeOperatorMethod.conditionalMF.--massRatioMinimum"         ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioMaximum"       => "mergerTreeOperatorMethod.conditionalMF.--massRatioMaximum"         ,
-	     "mergerTreeComputeConditionalMassFunctionParentRedshifts"        => "mergerTreeOperatorMethod.conditionalMF.--parentRedshifts"          ,
-	     "mergerTreeComputeConditionalMassFunctionProgenitorRedshifts"    => "mergerTreeOperatorMethod.conditionalMF.--progenitorRedshifts"      ,
-	     "mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth" => "mergerTreeOperatorMethod.conditionalMF.--primaryProgenitorDepth"   ,
-	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"     => "mergerTreeOperatorMethod.conditionalMF.--formationRateTimeFraction"
+	     "mergerTreeBuildCole2000AccretionLimit"                          => "mergerTreeBuilderMethod--accretionLimit"                             ,
+	     "mergerTreeBuildCole2000MergeProbability"                        => "mergerTreeBuilderMethod--mergeProbability"                           ,
+	     "mergerTreeBuildCole2000HighestRedshift"                         => "mergerTreeBuilderMethod--redshiftMaximum"                            ,
+	     "mergerTreeBuildCole2000FixedRandomSeeds"                        => "mergerTreeBuilderMethod--randomSeedsFixed"                           ,
+	     "mergerTreeRegridTimes"                                          => "mergerTreeOperatorMethod+regridTimes+"                             ,
+	     "mergerTreeRegridDumpTrees"                                      => "mergerTreeOperatorMethod+regridTimes+--dumpTrees"                  ,
+	     "mergerTreeRegridCount"                                          => "mergerTreeOperatorMethod+regridTimes+--regridCount"                ,
+	     "mergerTreeRegridStartExpansionFactor"                           => "mergerTreeOperatorMethod+regridTimes+--expansionFactorStart"       ,
+	     "mergerTreeRegridEndExpansionFactor"                             => "mergerTreeOperatorMethod+regridTimes+--expansionFactorEnd"         ,
+	     "mergerTreeRegridSpacing"                                        => "mergerTreeOperatorMethod+regridTimes+--snapshotSpacing"            ,
+	     "mergerTreePruneBranches"                                        => "mergerTreeOperatorMethod+pruneByMass+"                             ,
+	     "mergerTreePruningMassThreshold"                                 => "mergerTreeOperatorMethod+pruneByMass+--massThreshold"              ,
+	     "mergerTreeComputeConditionalMassFunction"                       => "mergerTreeOperatorMethod+conditionalMF+"                           ,
+	     "mergerTreeComputeConditionalMassFunctionParentMassCount"        => "mergerTreeOperatorMethod+conditionalMF+--parentMassCount"          ,
+	     "mergerTreeComputeConditionalMassFunctionParentMassMinimum"      => "mergerTreeOperatorMethod+conditionalMF+--parentMassMinimum"        ,
+	     "mergerTreeComputeConditionalMassFunctionParentMassMaximum"      => "mergerTreeOperatorMethod+conditionalMF+--parentMassMaximum"        ,
+	     "mergerTreeComputeConditionalMassFunctionMassRatioCount"         => "mergerTreeOperatorMethod+conditionalMF+--massRatioCount"           ,
+	     "mergerTreeComputeConditionalMassFunctionMassRatioMinimum"       => "mergerTreeOperatorMethod+conditionalMF+--massRatioMinimum"         ,
+	     "mergerTreeComputeConditionalMassFunctionMassRatioMaximum"       => "mergerTreeOperatorMethod+conditionalMF+--massRatioMaximum"         ,
+	     "mergerTreeComputeConditionalMassFunctionParentRedshifts"        => "mergerTreeOperatorMethod+conditionalMF+--parentRedshifts"          ,
+	     "mergerTreeComputeConditionalMassFunctionProgenitorRedshifts"    => "mergerTreeOperatorMethod+conditionalMF+--progenitorRedshifts"      ,
+	     "mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth" => "mergerTreeOperatorMethod+conditionalMF+--primaryProgenitorDepth"   ,
+	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"     => "mergerTreeOperatorMethod+conditionalMF+--formationRateTimeFraction"
 	 },
  	 values        =>
          {
@@ -337,7 +337,8 @@ my @translations =
 # Define known defaults.
 my %knownDefaults =
     (
-     "cosmologyParametersMethod" => "simple"
+     "cosmologyParametersMethod" => "simple",
+     "mergerTreeBuilderMethod"   => "cole2000"
     );
 
 # Parse the input file.
@@ -485,7 +486,7 @@ sub Translate {
 		    (my $leafName = $translation->{'names'}->{$nameText});# =~ s/^(.*\->)//;
 		    my $valueTo;
 		    unless ( $translation->{'names'}->{$nameText} =~ m/\-\-/ ) {
-			if ( $leafName =~ m/(.*)\.(.*)\./ ) {
+			if ( $leafName =~ m/(.*)\+(.*)\+/ ) {
 			    $valueTo    = $2;
 			}
 		    }
@@ -639,7 +640,7 @@ sub Translate {
     }
     # Strip out value extensions.
     for my $parameter ( $parameters->getChildrenByTagName("*") ) {
-	if ( $parameter->nodeName() =~ m/([^\.]+)\./ ) {
+	if ( $parameter->nodeName() =~ m/([^\+]+)\+/ ) {
 	    my $nodeName = $1;
 	    $parameter->setNodeName($nodeName);
 	}
