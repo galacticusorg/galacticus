@@ -603,86 +603,92 @@ contains
     
     if (self%forestIndicesRead) return
     !$omp critical(HDF5_Access)
-    if (self%file%hasGroup(trim(self%forestIndexGroupName))) then
-       treeIndexGroup=self%file%openGroup(trim(self%forestIndexGroupName))
-       call treeIndexGroup%readDataset("firstNode"                      ,self%firstNodes   )
-       call treeIndexGroup%readDataset("numberOfNodes"                  ,self%nodeCounts   )
-       call treeIndexGroup%readDataset(trim(self%forestIndexDatasetName),self%forestIndices)
-       if (self%reweightTrees) then
-          cosmologyFunctionsDefault => cosmologyFunctions()
-          allocate(self%weights(size(self%firstNodes)))
-          allocate(treeMass    (size(self%firstNodes)))
-          allocate(treeTime    (size(self%firstNodes)))
-          do i=1,size(self%firstNodes)
-             firstNodeIndex(1)=self%firstNodes(i)+1
-             nodeCount     (1)=self%nodeCounts(i)
-             ! Allocate the nodes array.
-             allocate(descendentIndex(nodeCount(1)))
-             allocate(nodeMass       (nodeCount(1)))
-             allocate(nodeTime       (nodeCount(1)))
-             call self%forestHalos%readDatasetStatic("descendentIndex",descendentIndex,firstNodeIndex,nodeCount)
-             call self%forestHalos%readDatasetStatic("nodeMass"       ,nodeMass       ,firstNodeIndex,nodeCount)
-             if      (self%forestHalos%hasDataset("time"           )) then
-                ! Time is present, so read it.
-                call self%forestHalos%readDatasetStatic("time"           ,nodeTime,firstNodeIndex,nodeCount)
-                nodeTime=importerUnitConvert(nodeTime,nodeTime,self%timeUnit,gigaYear)
-             else if (self%forestHalos%hasDataset("expansionFactor")) then
-                ! Expansion factor is present, read it instead.
-                call self%forestHalos%readDatasetStatic("expansionFactor",nodeTime,firstNodeIndex,nodeCount)
-                ! Convert expansion factors to times.
-                do iNode=1,nodeCount(1)
-                   nodeTime(iNode)=cosmologyFunctionsDefault%cosmicTime(nodeTime(iNode))
-                end do
-             else if (self%forestHalos%hasDataset("redshift"       )) then
-                ! Redshift is present, read it instead.
-                call self%forestHalos%readDatasetStatic("redshift"       ,nodeTime,firstNodeIndex,nodeCount)
-                ! Convert redshifts to times.
-                do iNode=1,nodeCount(1)
-                   nodeTime(iNode)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodeTime(iNode)))
-                end do
-             else
-                call Galacticus_Error_Report("galacticusImport","one of time, redshift or expansionFactor data sets must be present in forestHalos group")
-             end if
-             if (count(descendentIndex == -1) /= 1) call Galacticus_Error_Report('galacticusForestIndicesRead','reweighting trees requires there to be only only root node')
-             treeMass(i)=sum(nodeMass,mask=descendentIndex == -1)
-             treeTime(i)=sum(nodeTime,mask=descendentIndex == -1)
-             deallocate(descendentIndex)
-             deallocate(nodeMass       )
-             deallocate(nodeTime       )
-          end do
-          ! Sort the trees into mass order.
-          sortOrder=Sort_Index_Do(treeMass)
-          ! Compute the weight for each tree.
-          do i=1,size(self%firstNodes)
-             ! Get the minimum mass of the interval occupied by this tree.
-             if (i == 1) then
-                massMinimum=treeMass(sortOrder(i))*sqrt(treeMass(sortOrder(i))/treeMass(sortOrder(i+1)))
-             else
-                massMinimum=sqrt(treeMass(sortOrder(i))*treeMass(sortOrder(i-1)))
-             end if
-             ! Get the maximum mass of the interval occupied by this tree.
-             if (i == size(self%firstNodes)) then
-                massMaximum=treeMass(sortOrder(i))*sqrt(treeMass(sortOrder(i))/treeMass(sortOrder(i-1)))
-             else
-                massMaximum=sqrt(treeMass(sortOrder(i))*treeMass(sortOrder(i+1)))
-             end if
-             ! Get the integral of the halo mass function over this range.
-             self%weights(sortOrder(i))=Halo_Mass_Function_Integrated(treeTime(sortOrder(i)),massMinimum,massMaximum)
-          end do
-          call treeIndexGroup%readDatasetStatic(trim(self%forestWeightDatasetName),self%weights)
-          deallocate(treeMass)
-          deallocate(treeTime)
-       else if (treeIndexGroup%hasDataset(trim(self%forestWeightDatasetName))) then
-          call treeIndexGroup%readDataset(trim(self%forestWeightDatasetName),self%weights)
-       end if
-       call treeIndexGroup%close()
-       self%forestsCount=size(self%forestIndices)
-       ! Reset first node indices to Fortran array standard.
-       self%firstNodes=self%firstNodes+1
-    else
-       call Galacticus_Error_Report('galacticusForestIndicesRead','merger tree file must contain the treeIndex group')
-    end if
+    if (.not.self%file%hasGroup(trim(self%forestIndexGroupName))) &
+         & call Galacticus_Error_Report('galacticusForestIndicesRead','merger tree file must contain the treeIndex group')
+    treeIndexGroup=self%file%openGroup(trim(self%forestIndexGroupName))
+    call treeIndexGroup%readDataset("firstNode"                      ,self%firstNodes   )
+    call treeIndexGroup%readDataset("numberOfNodes"                  ,self%nodeCounts   )
+    call treeIndexGroup%readDataset(trim(self%forestIndexDatasetName),self%forestIndices)
     !$omp end critical(HDF5_Access)
+    if (self%reweightTrees) then
+       cosmologyFunctionsDefault => cosmologyFunctions()
+       allocate(self%weights(size(self%firstNodes)))
+       allocate(treeMass    (size(self%firstNodes)))
+       allocate(treeTime    (size(self%firstNodes)))
+       !$omp critical(HDF5_Access)
+       do i=1,size(self%firstNodes)
+          firstNodeIndex(1)=self%firstNodes(i)+1
+          nodeCount     (1)=self%nodeCounts(i)
+          ! Allocate the nodes array.
+          allocate(descendentIndex(nodeCount(1)))
+          allocate(nodeMass       (nodeCount(1)))
+          allocate(nodeTime       (nodeCount(1)))
+          call self%forestHalos%readDatasetStatic("descendentIndex",descendentIndex,firstNodeIndex,nodeCount)
+          call self%forestHalos%readDatasetStatic("nodeMass"       ,nodeMass       ,firstNodeIndex,nodeCount)
+          if      (self%forestHalos%hasDataset("time"           )) then
+             ! Time is present, so read it.
+             call self%forestHalos%readDatasetStatic("time"           ,nodeTime,firstNodeIndex,nodeCount)
+             nodeTime=importerUnitConvert(nodeTime,nodeTime,self%timeUnit,gigaYear)
+          else if (self%forestHalos%hasDataset("expansionFactor")) then
+             ! Expansion factor is present, read it instead.
+             call self%forestHalos%readDatasetStatic("expansionFactor",nodeTime,firstNodeIndex,nodeCount)
+             ! Convert expansion factors to times.
+             do iNode=1,nodeCount(1)
+                nodeTime(iNode)=cosmologyFunctionsDefault%cosmicTime(nodeTime(iNode))
+             end do
+          else if (self%forestHalos%hasDataset("redshift"       )) then
+             ! Redshift is present, read it instead.
+             call self%forestHalos%readDatasetStatic("redshift"       ,nodeTime,firstNodeIndex,nodeCount)
+             ! Convert redshifts to times.
+             do iNode=1,nodeCount(1)
+                nodeTime(iNode)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodeTime(iNode)))
+             end do
+          else
+             call Galacticus_Error_Report("galacticusImport","one of time, redshift or expansionFactor data sets must be present in forestHalos group")
+          end if
+          if (count(descendentIndex == -1) /= 1) call Galacticus_Error_Report('galacticusForestIndicesRead','reweighting trees requires there to be only only root node')
+          treeMass(i)=sum(nodeMass,mask=descendentIndex == -1)
+          treeTime(i)=sum(nodeTime,mask=descendentIndex == -1)
+          deallocate(descendentIndex)
+          deallocate(nodeMass       )
+          deallocate(nodeTime       )
+       end do
+       !$omp end critical(HDF5_Access)
+       ! Sort the trees into mass order.
+       sortOrder=Sort_Index_Do(treeMass)
+       ! Compute the weight for each tree.
+       do i=1,size(self%firstNodes)
+          ! Get the minimum mass of the interval occupied by this tree.
+          if (i == 1) then
+             massMinimum=treeMass(sortOrder(i))*sqrt(treeMass(sortOrder(i))/treeMass(sortOrder(i+1)))
+          else
+             massMinimum=sqrt(treeMass(sortOrder(i))*treeMass(sortOrder(i-1)))
+          end if
+          ! Get the maximum mass of the interval occupied by this tree.
+          if (i == size(self%firstNodes)) then
+             massMaximum=treeMass(sortOrder(i))*sqrt(treeMass(sortOrder(i))/treeMass(sortOrder(i-1)))
+          else
+             massMaximum=sqrt(treeMass(sortOrder(i))*treeMass(sortOrder(i+1)))
+          end if
+          ! Get the integral of the halo mass function over this range.
+          self%weights(sortOrder(i))=Halo_Mass_Function_Integrated(treeTime(sortOrder(i)),massMinimum,massMaximum)
+       end do
+       !$omp critical(HDF5_Access)
+       call treeIndexGroup%readDatasetStatic(trim(self%forestWeightDatasetName),self%weights)
+       !$omp end critical(HDF5_Access)
+       deallocate(treeMass)
+       deallocate(treeTime)
+    else if (treeIndexGroup%hasDataset(trim(self%forestWeightDatasetName))) then
+       !$omp critical(HDF5_Access)
+       call treeIndexGroup%readDataset(trim(self%forestWeightDatasetName),self%weights)
+       !$omp endcritical(HDF5_Access)
+    end if
+    !$omp critical(HDF5_Access)
+    call treeIndexGroup%close()
+    !$omp end critical(HDF5_Access)
+    self%forestsCount=size(self%forestIndices)
+    ! Reset first node indices to Fortran array standard.
+    self%firstNodes=self%firstNodes+1
     self%forestIndicesRead=.true.
     return
   end subroutine galacticusForestIndicesRead
