@@ -176,6 +176,9 @@ vpath %.cpp source
 # Ensure that we don't delete object files which make considers to be intermediate
 .PRECIOUS: %.o %.d %.dd %.m %.make %.Inc ./work/build/%.p.F90
 
+# Cancel all builtin rules.
+.SUFFIXES:
+
 # Include depenencies on "include" files.
 -include ./work/build/Makefile_Include_Deps 
 
