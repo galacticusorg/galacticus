@@ -96,7 +96,8 @@ vpath %.F90 source
 $(BUILDPATH)/%.p.F90 : source/%.F90
 	scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
-	@for mod in $$mlist ; \
+	@mlist=`cat ./work/build/$*.m` ; \
+	for mod in $$mlist ; \
 	do \
 	 if [ -f $$mod ] ; then mv $$mod $$mod~; fi \
 	done
