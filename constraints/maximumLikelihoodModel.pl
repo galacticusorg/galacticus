@@ -109,6 +109,21 @@ foreach my $argument ( keys(%arguments) ) {
     }
 }
 
+# If fixed sets of trees are to be used, modify parameters to use them.
+if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood'}->{'useFixedTrees'} eq "yes" ) {
+    # Get a lock on the tree file.
+    my $fixedTreeDirectory;
+    if ( exists($config->{'likelihood'}->{'fixedTreesInScratch'}) && $config->{'likelihood'}->{'fixedTreesInScratch'} eq "yes" ) {
+	$fixedTreeDirectory = $config->{'likelihood'}->{'scratchDirectory'}."/";
+    } else {
+	$fixedTreeDirectory = $config->{'likelihood'}->{'workDirectory'   }."/";
+    }
+    my $fixedTreeFile      = $fixedTreeDirectory                       .       "fixedTrees".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
+    # Modify parameters to use the tree file.
+    $parameters->{'mergerTreeConstructMethod'}->{'value'} = "read";
+    $parameters->{'mergerTreeReadFileName'   }->{'value'} = $fixedTreeFile;
+}
+
 # Write the modified parameters to file.
 system("mkdir -p ".$maximumLikelihoodDirectory);
 &Parameters::Output($parameters,$maximumLikelihoodDirectory."/parameters.xml");
