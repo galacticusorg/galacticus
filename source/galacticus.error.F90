@@ -30,9 +30,6 @@ module Galacticus_Error
        &    Galacticus_Component_List             , Galacticus_GSL_Error_Handler_Abort_On, &
        &    Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Status
 
-  !! AJB HACK
-  public :: Galacticus_Signal_Handler_SIGFPE
-
   interface Galacticus_Error_Report
      module procedure Galacticus_Error_Report_Char
      module procedure Galacticus_Error_Report_VarStr
@@ -105,12 +102,6 @@ contains
     call Signal(11,Galacticus_Signal_Handler_SIGSEGV)
     call Signal(15,Galacticus_Signal_Handler_SIGINT )
     call Signal(24,Galacticus_Signal_Handler_SIGXCPU)
-
-
-!! AJB HACK
-    call Signal(9,Galacticus_Signal_Handler_SIGKILL)
-
-
     galacticusGslErrorHandler=FGSL_Error_Handler_Init(Galacticus_GSL_Error_Handler)
     standardGslErrorHandler  =FGSL_Set_Error_Handler (galacticusGslErrorHandler   )
    return
@@ -325,60 +316,5 @@ contains
     end if
     return
   end function Galacticus_Component_List
-
-
-
-
-
-
-
-!! AJB HACK
-  subroutine Galacticus_Signal_Handler_SIGKILL()
-    !% Handle {\normalfont \ttfamily SIGKILL} signals, by flushing all data and then aborting.
-    !$ use OMP_Lib
-#ifdef USEMPI
-    use MPI
-#endif
-    implicit none
-    integer            :: error   , mpiRank
-    character(len=128) :: hostName
-    logical            :: flag
-    
-    write (0,*) 'Galacticus experienced a kill signal - will try to flush data before exiting.'
-    !$ if (omp_in_parallel()) then
-    !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
-    !$ else
-    !$    write (0,*) " => Error occurred in master thread"
-    !$ end if
-    call Flush(0)
-#ifdef USEMPI
-    call MPI_Initialized(flag,error)
-    if (flag) then
-       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
-       call hostnm(hostName)
-       write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
-       call Flush(0)
-       call Sleep(86400)
-    end if
-#endif
-    call H5Close_F(error)
-    call H5Close_C()
-    call Semaphore_Post_On_Error()
-    call Abort()
-    return
-  end subroutine Galacticus_Signal_Handler_SIGKILL
-
-
-
-
-
-
-
-
-
-
-
-
   
 end module Galacticus_Error
