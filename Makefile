@@ -96,7 +96,7 @@ vpath %.F90 source
 $(BUILDPATH)/%.p.F90 : source/%.F90
 	scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
-	@mlist=`cat ./work/build/$*.m` ; \
+	@mlist=`cat $(BUILDPATH)/$*.m` ; \
 	for mod in $$mlist ; \
 	do \
 	 if [ -f $$mod ] ; then mv $$mod $$mod~; fi \
@@ -214,7 +214,7 @@ $(BUILDPATH)/%.m : ./source/%.F90
 	 ./scripts/build/Find_Parameter_Dependencies.pl `pwd` $*.exe
 
 # Ensure that we don't delete object files which make considers to be intermediate
-.PRECIOUS: %.o %.d %.dd %.m %.make %.Inc ./work/build/%.p.F90
+.PRECIOUS: %.o %.d %.dd %.m %.make %.Inc $(BUILDPATH)/%.p.F90
 
 # Include depenencies on "include" files.
 -include $(BUILDPATH)/Makefile_Include_Deps 
