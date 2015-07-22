@@ -696,7 +696,7 @@ contains
     use Galacticus_Output_Merger_Tree_Data
     use Vectors
     implicit none
-    type            (mergerTree                    ), intent(in   )                 :: thisTree
+    type            (mergerTree                    ), intent(inout)                 :: thisTree
     type            (treeNode                      ), intent(inout), pointer        :: thisNode
     integer                                         , intent(in   )                 :: nodeStatus
     integer         (c_size_t                      ), intent(in   )                 :: iOutput

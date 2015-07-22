@@ -29,12 +29,9 @@
      double precision                                  :: accretionLimit                          , timeEarliest      , &
           &                                               mergeProbability
      ! Option controlling random number sequences.
-     logical                    :: randomSeedsFixed
+     logical                                           :: randomSeedsFixed
      ! Random number sequence variables
-     type            (fgsl_rng                       ) :: clonedPseudoSequence                    , pseudoSequence
-     logical                                           :: reset                                   , ompThreadOffset   , &
-          &                                               resetSnapshot                           , branchIntervalStep
-     integer                                           :: incrementSeed    
+     logical                                           :: branchIntervalStep
      ! Interval distribution.
      logical                                           :: branchingIntervalDistributionInitialized
      type            (distributionNegativeExponential) :: branchingIntervalDistribution
@@ -57,9 +54,6 @@
      procedure :: build              => cole2000Build
      procedure :: shouldAbort        => cole2000ShouldAbort
      procedure :: shouldFollowBranch => cole2000ShouldFollowBranch
-     procedure :: stateStore         => cole2000StateStore 
-     procedure :: stateRestore       => cole2000StateRestore
-     procedure :: stateSnapshot      => cole2000StateSnapshot
   end type mergerTreeBuilderCole2000
 
   interface mergerTreeBuilderCole2000
@@ -131,14 +125,7 @@ contains
     cosmologyFunctions_ => cosmologyFunctions()
     cole2000ConstructorParameters%timeEarliest=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
     ! Initialize state.
-    cole2000ConstructorParameters%reset                                    =.true.
-    cole2000ConstructorParameters%ompThreadOffset                          =.true.
     cole2000ConstructorParameters%branchingIntervalDistributionInitialized=.false.
-    cole2000ConstructorParameters%incrementSeed                            =0
-    if (FGSL_Well_Defined(cole2000ConstructorParameters%      pseudoSequence))                &
-         & call FGSL_Obj_C_Ptr(cole2000ConstructorParameters%      pseudoSequence,C_Null_Ptr)
-    if (FGSL_Well_Defined(cole2000ConstructorParameters%clonedPseudoSequence))                &
-         & call FGSL_Obj_C_Ptr(cole2000ConstructorParameters%clonedPseudoSequence,C_Null_Ptr)     
     return
   end function cole2000ConstructorParameters
 
@@ -159,14 +146,7 @@ contains
     cole2000ConstructorInternal%randomSeedsFixed  =randomSeedsFixed
     cole2000ConstructorInternal%branchIntervalStep=branchIntervalStep
     ! Initialize state.
-    cole2000ConstructorInternal%reset                                   =.true.
-    cole2000ConstructorInternal%ompThreadOffset                         =.true.
     cole2000ConstructorInternal%branchingIntervalDistributionInitialized=.false.
-    cole2000ConstructorInternal%incrementSeed                           =0
-    if (FGSL_Well_Defined(cole2000ConstructorInternal%      pseudoSequence))                &
-         & call FGSL_Obj_C_Ptr(cole2000ConstructorInternal%      pseudoSequence,C_Null_Ptr)
-    if (FGSL_Well_Defined(cole2000ConstructorInternal%clonedPseudoSequence))                &
-         & call FGSL_Obj_C_Ptr(cole2000ConstructorInternal%clonedPseudoSequence,C_Null_Ptr)
     return
   end function cole2000ConstructorInternal
 
@@ -180,6 +160,12 @@ contains
     use Pseudo_Random
     use Kind_Numbers
     use Merger_Trees_Build_Mass_Resolution
+
+    !! AJB HACK
+    use omp_lib
+
+
+
     implicit none
     class           (mergerTreeBuilderCole2000), intent(inout)         :: self
     type            (mergerTree               ), intent(inout), target :: tree
@@ -193,9 +179,13 @@ contains
          &                                                                nodeMass2                 , time                       , uniformRandom             , &
          &                                                                massResolution            , accretionFractionCumulative, branchMassCurrent         , &
          &                                                                branchDeltaCriticalCurrent, branchingInterval          , branchingIntervalScaleFree, &
-         &                                                                branchingProbabilityRate
-    logical                                                            :: doBranch                  , branchIsDone
-    
+         &                                                                branchingProbabilityRate  , deltaWAccretionLimit
+    logical                                                            :: doBranch                  , branchIsDone               , snapAccretionFraction
+
+!! AJB HACK
+logical :: snapAccretionFractionOrig
+integer :: nodecount
+
     ! Begin construction.
     nodeIndex =  1                   ! Initialize the node index counter to unity.
     thisNode  => tree    %baseNode   ! Point to the base node.
@@ -206,13 +196,7 @@ contains
        self%branchingIntervalDistributionInitialized=.true.
     end if
     ! Restart the random number sequence.
-    if (self%randomSeedsFixed) then
-       if (.not.self%reset) call Pseudo_Random_Free(self%pseudoSequence)
-       self%reset          =.true.
-       self%incrementSeed  =int(tree%index)
-       self%ompThreadOffset=.false.
-       if (self%branchIntervalStep) call self%branchingIntervalDistribution%samplerReset()
-    end if
+    uniformRandom=tree%randomNumberGenerator%sample(ompThreadOffset=.false.,incrementSeed=int(tree%index))
     ! Get the mass resolution for this tree.
     massResolution=Merger_Tree_Build_Mass_Resolution(tree)
     ! Convert time for base node to critical overdensity (which we use as a time coordinate in this module).
@@ -249,7 +233,7 @@ contains
              ! Terminate the branch with a final node.
              nodeIndex          =  nodeIndex+1
              newNode1           => treeNode      (nodeIndex,tree)
-             newBasic1 => newNode1%basic(autoCreate=.true. )
+             newBasic1          => newNode1%basic(autoCreate=.true. )
              ! Compute new mass accounting for sub-resolution accretion.
              nodeMass1          = massResolution
              ! Compute the time corresponding to this event.
@@ -265,16 +249,59 @@ contains
           else
              ! Finding maximum allowed step in w. Limit based on branching rate only if we are using the original Cole et
              ! al. (2000) algorithm.
-             deltaW=Tree_Maximum_Step(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)
-             if     (                                                                                                 &
-                  &   accretionFraction        > 0.0d0                                                                &
-                  & ) deltaW=min(deltaW,(self%accretionLimit  -accretionFractionCumulative)/accretionFraction       )
+             deltaW               =Tree_Maximum_Step(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)
+             snapAccretionFraction=.false.
+             if (accretionFraction > 0.0d0) then
+                deltaWAccretionLimit=(self%accretionLimit-accretionFractionCumulative)/accretionFraction
+                if (deltaWAccretionLimit <= deltaW) then
+                   deltaW               =deltaWAccretionLimit
+                   snapAccretionFraction=.true.
+                end if
+
+                !! AJB HACK
+                if (deltaW <= 0.0d0) then
+                 write (0,*) "TERMINATE BRANCH ",self%accretionLimit,accretionFractionCumulative,accretionFraction,deltaWAccretionLimit,branchMassCurrent,massResolution,branchDeltaCriticalCurrent
+            ! Terminate the branch with a final node.
+             nodeIndex          =  nodeIndex+1
+             newNode1           => treeNode      (nodeIndex,tree)
+             newBasic1          => newNode1%basic(autoCreate=.true. )
+             ! Compute new mass accounting for sub-resolution accretion.
+             nodeMass1          = branchMassCurrent
+             ! Compute the time corresponding to this event.
+             time=Time_of_Collapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent)
+             ! Set properties of the new node.
+             deltaCritical1=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass1)
+             call newBasic1%massSet(nodeMass1     )
+             call newBasic1%timeSet(deltaCritical1)
+             ! Create links from old to new node and vice-versa.
+             thisNode%firstChild => newNode1
+             newNode1%parent     => thisNode
+             
+             branchIsDone        =  .true.
+                   branchIsDone=.true.
+                   return
+                end if
+                
+             end if
+
+!! AJB HACK
+snapAccretionFractionOrig=snapAccretionFraction
+
              if     (                                                                                                 &
                   &   branchingProbabilityRate > 0.0d0                                                                &
                   &  .and.                                                                                            &
                   &   .not.self%branchIntervalStep                                                                    &
-                  & ) deltaW=min(deltaW, self%mergeProbability                             /branchingProbabilityRate)
-             ! Scale values to the determined timestep.
+                  & ) deltaW=min(deltaW,self%mergeProbability/branchingProbabilityRate)
+
+             !! AJB HACK
+             if (deltaW <= 0.0d0) then
+                write (0,*) "DELTAW NEG #1 ",deltaW
+                call flush(0)
+             end if
+
+
+
+    ! Scale values to the determined timestep.
              if (.not.self%branchIntervalStep)                           &
                   & branchingProbability=branchingProbabilityRate*deltaW
              accretionFraction          =accretionFraction       *deltaW
@@ -285,13 +312,26 @@ contains
                      & branchingProbability=branchingProbability*0.5d0
                 accretionFraction          =accretionFraction   *0.5d0
                 deltaW                     =deltaW              *0.5d0
+                snapAccretionFraction      =.false.
              end do
-             ! Decide if a branching occurs.
+  
+             !! AJB HACK
+             if (deltaW <= 0.0d0) then
+                write (0,*) "DELTAW NEG #2 ",deltaW
+                call flush(0)
+             end if
+
+           ! Decide if a branching occurs.
              if (self%branchIntervalStep) then
                 ! In this case we draw intervals between branching events from a negative exponential distribution.
                 if (branchingProbabilityRate > 0.0d0) then
-                   branchingIntervalScaleFree=self%branchingIntervalDistribution%sample()
-                   branchingInterval         =branchingIntervalScaleFree/branchingProbabilityRate
+                   branchingIntervalScaleFree=0.0d0
+                   do while (branchingIntervalScaleFree <= 0.0d0)
+                      branchingIntervalScaleFree=self%branchingIntervalDistribution%sample(randomNumberGenerator=tree%randomNumberGenerator)
+                   end do
+
+
+                   branchingInterval=branchingIntervalScaleFree/branchingProbabilityRate
                    ! Based on the upper bound on the rate, check if branching occurs before the maximum allowed timestep.
                    if (branchingInterval < deltaW) then
                       ! It does, so recheck using the actual branching rate.
@@ -300,11 +340,19 @@ contains
                       doBranch                =(branchingInterval <= deltaW)
                       if (doBranch) then
                          ! Branching occured, adjust the accretion fraction, and timestep to their values at the branching event.
-                         accretionFraction   =accretionFraction*branchingInterval/deltaW
-                         deltaW              =branchingInterval
+                         accretionFraction    =accretionFraction*branchingInterval/deltaW
+                         deltaW               =branchingInterval
+  
+             !! AJB HACK
+             if (deltaW <= 0.0d0) then
+                write (0,*) "DELTAW NEG #3 ",deltaW,branchingIntervalScaleFree,branchingInterval
+                call flush(0)
+             end if
+             
+                       snapAccretionFraction=.false.
                          ! Draw a random deviate and scale by the branching rate - this will be used to choose the branch mass.
-                         uniformRandom       =Pseudo_Random_Get(self%pseudoSequence,reset=self%reset,ompThreadOffset=self%ompThreadOffset,incrementSeed=self%incrementSeed)
-                         branchingProbability=uniformRandom*branchingProbabilityRate
+                       uniformRandom       =tree%randomNumberGenerator%sample()
+                       branchingProbability=uniformRandom*branchingProbabilityRate
                       end if
                    else
                       doBranch=.false.
@@ -315,7 +363,7 @@ contains
              else
                ! In this case we're using the original Cole et al. (2000) algorithm.
                if (branchingProbability > 0.0d0) then
-                   uniformRandom=Pseudo_Random_Get(self%pseudoSequence,reset=self%reset,ompThreadOffset=self%ompThreadOffset,incrementSeed=self%incrementSeed)
+                   uniformRandom=tree%randomNumberGenerator%sample()
                    doBranch=(uniformRandom <= branchingProbability)
                    if (doBranch) then
                       branchingProbability=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundLower)*deltaW
@@ -333,8 +381,22 @@ contains
                 end if
              end if
              ! Determine the critical overdensity for collapse for the new halo(s).
-             deltaCritical              =branchDeltaCriticalCurrent +deltaW
-             accretionFractionCumulative=accretionFractionCumulative+accretionFraction             
+
+
+             
+             !! AJB HACK
+             if (branchDeltaCriticalCurrent + deltaW <= branchDeltaCriticalCurrent) then
+                write (0,*) "DELTA UNDERFLOW PROBLEM ",branchDeltaCriticalCurrent,deltaW,branchDeltaCriticalCurrent+deltaW,doBranch; call flush(0)
+                stop
+             end if
+             
+             
+             deltaCritical                 =branchDeltaCriticalCurrent +deltaW
+             if (snapAccretionFraction) then
+                accretionFractionCumulative=self%accretionLimit
+             else
+                accretionFractionCumulative=accretionFractionCumulative+accretionFraction
+             end if
              ! Create new nodes.
              select case (doBranch)
              case (.true.)
@@ -343,7 +405,7 @@ contains
                 newNode1  => treeNode(nodeIndex,tree)
                 newBasic1 => newNode1%basic(autoCreate=.true.)
                 ! Compute mass of one of the new nodes.
-                nodeMass1=Tree_Branch_Mass(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,branchingProbability)
+                nodeMass1=Tree_Branch_Mass(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,branchingProbability,tree%randomNumberGenerator)
                 ! Compute the time corresponding to this branching event.
                 time=Time_of_Collapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
                 ! Set properties of first new node.
@@ -360,6 +422,16 @@ contains
                 deltaCritical2=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass2)
                 call newBasic2%massSet(nodeMass2     )
                 call newBasic2%timeSet(deltaCritical2)
+
+
+
+                !! AJB HACK
+                if (nodeMass1 <= 0.0d0 .or. nodeMass2 <= 0.0d0) then
+                   write (0,*) "NEGATIVE MASSES IN BRANCH SPLIT ",nodeMass1,nodeMass2,branchMassCurrent,branchDeltaCriticalCurrent,massResolution,accretionFractionCumulative,accretionFraction
+                   call abort()
+                end if
+
+
                 ! Create links from old to new nodes and vice-versa. (Ensure that child node is the more massive progenitor.)
                 if (nodeMass2 > nodeMass1) then
                    thisNode%firstChild => newNode2
@@ -395,6 +467,13 @@ contains
                end if
              end select
           end if
+
+!! AJB HACK
+          if (snapAccretionFractionOrig.and..not.branchIsDone) then
+             write (0,*) "SNAP PROBLEM ",snapAccretionFractionOrig,snapAccretionFraction,branchIsDone,accretionFractionCumulative,self%accretionLimit,accretionFractionCumulative-self%accretionLimit; call flush(0)
+          end if
+
+
        end do
        ! Check if tree should be aborted.
        if (self%shouldAbort(tree)) then
@@ -405,6 +484,36 @@ contains
           call thisNode%walkTreeUnderConstruction(thisNode)
        end if
     end do
+
+
+
+
+
+
+!! AJB HACK
+    ! Check for well-ordering in delta.
+    thisNode => tree%baseNode
+!   nodecount=0
+    do while (associated(thisNode))       
+       if (associated(thisNode%parent)) then
+          thisBasic   => thisNode       %basic()
+          parentBasic => thisNode%parent%basic()
+          if (parentBasic%time() >= thisBasic%time()) then
+
+!! AJB HACK
+write (0,*) "DELTA ORDERING ",thisNode%index(),thisNode%parent%index(),thisBasic%time(),parentBasic%time(),thisBasic%mass(),parentBasic%mass()
+
+          end if
+       end if
+!nodecount=nodecount+1
+       call thisNode%walkTree(thisNode)
+end do
+!write (  0,*) "NODECOUNT ",tree%index,nodeCount,omp_get_thread_num()
+!write (404,*) "NODECOUNT ",tree%index,nodeCount,omp_get_thread_num()
+
+
+
+
     ! Walk the tree and convert w to time.
     thisNode => tree%baseNode
     do while (associated(thisNode))
@@ -424,7 +533,13 @@ contains
        if (associated(thisNode%parent)) then
           thisBasic   => thisNode       %basic()
           parentBasic => thisNode%parent%basic()
-          if (parentBasic%time() <= thisBasic%time()) call Galacticus_Error_Report('cole2000Build','branch is not well-ordered in time')
+          if (parentBasic%time() <= thisBasic%time()) then
+
+!! AJB HACK
+write (0,*) "TIME ORDERING ",thisNode%index(),thisNode%parent%index(),thisBasic%time(),parentBasic%time(),thisBasic%mass(),parentBasic%mass()
+
+             call Galacticus_Error_Report('cole2000Build','branch is not well-ordered in time')
+          end if
        end if
        call thisNode%walkTree(thisNode)
     end do
@@ -453,48 +568,3 @@ contains
     cole2000ShouldFollowBranch=.true.
     return
   end function cole2000ShouldFollowBranch
-  
-  subroutine cole2000StateSnapshot(self)
-    !% Store a snapshot of the random number generator internal state.
-    use Pseudo_Random
-    implicit none
-    class(mergerTreeBuilderCole2000), intent(inout) :: self
-
-    if (.not.self%reset) then
-       if (FGSL_Well_Defined(self%clonedPseudoSequence)) call Pseudo_Random_Free(self%clonedPseudoSequence)
-       self%clonedPseudoSequence=FGSL_Rng_Clone(self%pseudoSequence)
-    end if
-    self%resetSnapshot=self%reset
-    return
-  end subroutine cole2000StateSnapshot
-
-  subroutine cole2000StateStore(self,stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use, intrinsic :: ISO_C_Binding
-    use Pseudo_Random
-    implicit none
-    class  (mergerTreeBuilderCole2000), intent(inout) :: self
-    integer                           , intent(in   ) :: stateFile
-    type   (fgsl_file                ), intent(in   ) :: fgslStateFile
-
-    write (stateFile) self%resetSnapshot
-    if (.not.self%resetSnapshot) then
-       call Pseudo_Random_Store(self%clonedPseudoSequence,fgslStateFile)
-       call FGSL_RNG_Free      (self%clonedPseudoSequence              )
-       call FGSL_Obj_C_Ptr     (self%clonedPseudoSequence,C_Null_Ptr   )
-    end if
-    return
-  end subroutine cole2000StateStore
-
-  subroutine cole2000StateRestore(self,stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Pseudo_Random
-    implicit none
-    class  (mergerTreeBuilderCole2000), intent(inout) :: self
-    integer                           , intent(in   ) :: stateFile
-    type   (fgsl_file                ), intent(in   ) :: fgslStateFile
-
-    read (stateFile) self%reset
-    if (.not.self%reset) call Pseudo_Random_Retrieve(self%pseudoSequence,fgslStateFile)
-    return
-  end subroutine cole2000StateRestore

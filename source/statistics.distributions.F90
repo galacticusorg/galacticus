@@ -53,7 +53,7 @@ module Statistics_Distributions
      !@   <objectMethod>
      !@     <method>sample</method>
      !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
+     !@     <arguments>\textless type(pseudoRandom)\textgreater\ [randomNumberGenerator]\arginout</arguments>
      !@     <description>Return a random deviate from the distribution.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -272,21 +272,33 @@ contains
     return
   end subroutine distribution1DSamplerReset
   
-  double precision function distribution1DSample(self,incrementSeed)
+  double precision function distribution1DSample(self,incrementSeed,ompThreadOffset,mpiRankOffset,randomNumberGenerator)
     !% Sample from a 1D distribution.
     implicit none
-    class  (distribution1D), intent(inout)           :: self
-    integer                , intent(in   ), optional :: incrementSeed
- 
+    class           (distribution1D), intent(inout)           :: self
+    integer                         , intent(in   ), optional :: incrementSeed
+    logical                         , intent(in   ), optional :: ompThreadOffset      , mpiRankOffset
+    type            (pseudoRandom  ), intent(inout), optional :: randomNumberGenerator
+    logical                                                   :: ompThreadOffset_     , mpiRankOffset_
+    double precision                                          :: uniformRandom
+    
+    ompThreadOffset_=.true.
+    mpiRankOffset_  =.true.
+    if (present(ompThreadOffset)) ompThreadOffset_=ompThreadOffset
+    if (present(mpiRankOffset  )) mpiRankOffset_  =mpiRankOffset
     ! Draw a random number uniformly from 0 to 1 and use the inverse of our self to get the
     ! corresponding random variate.
-    distribution1DSample=self%inverse(                                                                 &
-         &                            self%randomNumberGenerator%sample(                               &
-         &                                                              ompThreadOffset=.true.       , &
-         &                                                              mpiRankOffset  =.true.       , &
-         &                                                              incrementSeed  =incrementSeed  &
-         &                                                             )                               &
-         &                           )
+    if (present(randomNumberGenerator)) then
+       uniformRandom=     randomNumberGenerator%sample(                                  &
+            &                                         )
+    else
+       uniformRandom=self%randomNumberGenerator%sample(                                  &
+            &                                          ompThreadOffset=ompThreadOffset_, &
+            &                                          mpiRankOffset  =mpiRankOffset_  , &
+            &                                          incrementSeed  =incrementSeed     &
+            &                                         )
+    end if
+    distribution1DSample=self%inverse(uniformRandom)
     return
   end function distribution1DSample
 
