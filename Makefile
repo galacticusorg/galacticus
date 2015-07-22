@@ -216,6 +216,9 @@ $(BUILDPATH)/%.m : ./source/%.F90
 # Ensure that we don't delete object files which make considers to be intermediate
 .PRECIOUS: %.o %.d %.dd %.m %.make %.Inc $(BUILDPATH)/%.p.F90
 
+# Cancel all builtin rules.
+.SUFFIXES:
+
 # Include depenencies on "include" files.
 -include $(BUILDPATH)/Makefile_Include_Deps 
 
