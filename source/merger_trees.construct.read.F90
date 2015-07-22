@@ -34,8 +34,10 @@ module Merger_Tree_Read
   logical                                                                                         :: importerOpen                             =.false.
   
   ! Index of the next merger tree to read.
-  integer                                                                                         :: nextTreeToRead                           =0                                                  
-  
+  integer                                                                                         :: nextTreeToRead                           =0
+  integer                                                                                         :: nextTreeToReadThread                     =0
+  !$omp threadprivate(nextTreeToReadThread)
+    
   ! Index of the first tree to process.
   integer         (kind=kind_int8                )                                                :: mergerTreeReadBeginAt                                                                        
   
@@ -43,6 +45,9 @@ module Merger_Tree_Read
   double precision                                                                                :: treeVolumeWeightCurrent                                                                      
   !$omp threadprivate(treeVolumeWeightCurrent)
 
+  ! Flag indicating if the same tree should always be assigned to the same thread.
+  logical                                                                                         :: mergerTreeReadFixedThreadAssignment
+  
   ! Flag indicating whether branch jumps are allowed.
   logical                                                                                         :: mergerTreeReadAllowBranchJumps                                                               
   
@@ -187,6 +192,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadFileName',mergerTreeReadFileName)
+       !@ <inputParameter>
+       !@   <name>mergerTreeReadFixedThreadAssignment</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     If true, assignment of trees to OpenMP threads will be done deterministically. Otherwise, assignment is on a first-come-first-served basis.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeReadFixedThreadAssignment',mergerTreeReadFixedThreadAssignment,defaultValue=.false.)
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetMergerTimes</name>
        !@   <attachedTo>module</attachedTo>
@@ -668,6 +684,7 @@ contains
     use Array_Utilities
     use Numerical_Comparison
     use Vectors
+    !$ use OMP_Lib
     implicit none
     type            (mergerTree                    )                             , intent(inout), target :: thisTree                               
     logical                                                                      , intent(in   )         :: skipTree                               
@@ -684,30 +701,47 @@ contains
          &                                                                                                  iOutput
     logical                                                                                              :: haveTree              , processTree
     type            (varying_string                )                                                     :: message
-
+    integer                                                                                              :: nextTreeToReadActual
+    
     !$omp critical(mergerTreeReadTree)
     ! Increment the tree to read index.
-    nextTreeToRead=nextTreeToRead+1
+    !$ if (mergerTreeReadFixedThreadAssignment) then
+    !$    nextTreeToReadThread=nextTreeToReadThread+1
+    !$    nextTreeToReadActual=nextTreeToReadThread
+    !$ else
+       nextTreeToRead      =nextTreeToRead      +1
+       nextTreeToReadActual=nextTreeToRead
+    !$ end if
     ! Keep incrementing the tree index until we find the first tree to process (if we haven't done so already). Also skip trees
     ! that contain 1 or fewer nodes and these are unprocessable.
-    if (nextTreeToRead <= defaultImporter%treeCount()) then
-       do while (                                                                      &
-            &     (                                                                    &
-            &       mergerTreeReadBeginAt                     > 0                      &
-            &      .and.                                                               &
-            &       defaultImporter%treeIndex(nextTreeToRead) /= mergerTreeReadBeginAt &
-            &     )                                                                    &
-            &    .or.                                                                  &
-            &       defaultImporter%nodeCount(nextTreeToRead) <= 1                     &
+    if (nextTreeToReadActual <= defaultImporter%treeCount()) then
+       do while (                                                                            &
+            &     (                                                                          &
+            &       mergerTreeReadBeginAt                           > 0                      &
+            &      .and.                                                                     &
+            &       defaultImporter%treeIndex(nextTreeToReadActual) /= mergerTreeReadBeginAt &
+            &     )                                                                          &
+            &    .or.                                                                        &
+            &       defaultImporter%nodeCount(nextTreeToReadActual) <= 1                     &
+            !$ &    .or.                                                                        &
+            !$ &     (                                                                          &
+            !$ &       mergerTreeReadFixedThreadAssignment                                      &
+            !$ &      .and.                                                                     &
+            !$ &       mod(nextTreeToReadActual,omp_get_num_threads()) /= omp_get_thread_num()  &
+            !$ &     )                                                                          &
             &   )
-          nextTreeToRead=nextTreeToRead+1
+          ! Record if we've now found the first merger tree to process.
+          if (mergerTreeReadBeginAt > 0 .and. defaultImporter%treeIndex(nextTreeToReadActual) /= mergerTreeReadBeginAt) mergerTreeReadBeginAt=-1
+          nextTreeToReadActual=nextTreeToReadActual+1
           ! If the end of the list has been reached, exit.
-          if (nextTreeToRead > defaultImporter%treeCount()) exit
+          if (nextTreeToReadActual > defaultImporter%treeCount()) exit
        end do
+       !$ if (mergerTreeReadFixedThreadAssignment) then       
+       !$    nextTreeToReadThread=nextTreeToReadActual
+       !$ else
+       nextTreeToRead=nextTreeToReadActual
+       !$ end if
     end if
-
-    ! Flag that we've now found the first merger tree to process.
-    mergerTreeReadBeginAt=-1
 
     if (nextTreeToRead > defaultImporter%treeCount())  then
        ! Flag that we do not have a tree.
