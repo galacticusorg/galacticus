@@ -9,6 +9,8 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
  $galacticusPath = "./";
 }
 unshift(@INC,$galacticusPath."perl"); 
+use Config;
+use if $Config{'useithreads'}, 'threads';
 use XML::Simple;
 use Data::Dumper;
 use Fcntl qw(:DEFAULT :flock);
@@ -17,11 +19,17 @@ use List::Util;
 use Storable;
 use Fcntl;
 use POSIX::RT::Semaphore;
+use PDL;
 require File::Which;
 require File::NFSLock;
 require System::Redirect;
 require Galacticus::Constraints::Parameters;
 require List::ExtraUtils;
+my $useThreads = 0;
+if ( $^V gt v5.10.0 && $Config{useithreads} ) {
+    $useThreads = 1;
+    &PDL::no_clone_skip_warning;
+}
 # Script timing
 # use Time::HiRes qw(gettimeofday tv_interval);
 # my $self      = $0;
@@ -61,7 +69,6 @@ my $temperature    = $ARGV[3];
 
 # Get the store status.
 my $store          = $ARGV[4];
-
 # Get a hash of the new parameters.
 my $newParameters = &Parameters::Convert_Parameters_To_Galacticus($config,@ARGV[5..$#ARGV]);
 
@@ -213,12 +220,9 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 		    $parameters->{'mergerTreesWrite'            }->{'value'} = "true";
 		    $parameters->{'mergerTreeExportFileName'    }->{'value'} = $buildFixedTreeFile;
 		    $parameters->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
-		    my $treeParameters;
-		    push(@{$treeParameters},{name => $_, value => $parameters->{$_}->{'value'}})
-			foreach ( keys(%{$parameters}) );
 		    my $treeXML = new XML::Simple (RootName=>"parameters", NoAttr => 1);
 		    open(pHndl,">".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml");
-		    print pHndl $treeXML->XMLout($treeParameters);
+		    print pHndl $treeXML->XMLout($parameters);
 		    close pHndl;		  
 		    my $treeCommand;
 		    $treeCommand .= "ulimit -t ".$cpuLimit."; "
@@ -265,7 +269,7 @@ if ( defined($newParameters) ) {
 	     $parameter->{$_}->{'value'} = undef()
 		 unless ( exists($parameter->{$_}) );
 	     $parameter = $parameter->{$_};
-	}
+    }
 	$parameter->{'value'} = $newParameters->{$newParameterName};
     }
 }
@@ -345,9 +349,11 @@ $modelLock->unlock()
     if ( $runSequential eq "yes" );
 
 # Perform processing of the model, accumulating likelihood as we go.
-my $logLikelihood         = 0.0;
-my $logLikelihoodVariance = 0.0;
-my $xml           = new XML::Simple;
+my $logLikelihood         =  0.0;
+my $logLikelihoodVariance =  0.0;
+my $i                     = -1;
+my $xml                   = new XML::Simple;
+my @threads;
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $constraintDefinition;
@@ -357,8 +363,9 @@ foreach my $constraint ( @constraints ) {
 	$constraintDefinition = $xml->XMLin($constraint->{'definition'});
     }
     # Run the analysis code.
+    ++$i;
     my $analysisCommand = $constraintDefinition->{'analysis'};
-    $analysisCommand   .= " ".$scratchDirectory."/".$galacticusFile." --outputFile ".$scratchDirectory."/likelihood".$mpiRank.".xml --quiet 1";
+    $analysisCommand   .= " ".$scratchDirectory."/".$galacticusFile." --outputFile ".$scratchDirectory."/likelihood".$mpiRank.":".$i.".xml --quiet 1";
     $analysisCommand .= " --temperature ".$temperatureEffective;
     $analysisCommand .= " --modelDiscrepancies ".$projectDirectory."/modelDiscrepancy"
 	if ( -e $projectDirectory."/modelDiscrepancy" );
@@ -369,8 +376,39 @@ foreach my $constraint ( @constraints ) {
     }
     $analysisCommand .= " ".$constraintDefinition->{'analysisArguments'}
         if ( exists($constraintDefinition->{'analysisArguments'}) );
-    system($analysisCommand);
-    unless ( $? == 0 ) {
+    if ( $useThreads ) {
+	my ($thread) = threads->create(\&systemThread,$analysisCommand);
+	push(
+	    @threads,
+	    {
+		thread     => $thread,
+		constraint => $constraintDefinition
+	    }
+	    );
+    } else {
+	system($analysisCommand);
+	push(
+	    @threads,
+	    {
+		result     => $?,
+		constraint => $constraintDefinition
+	    }
+	    );
+    }
+}
+$i = -1;
+foreach my $constraint ( @constraints ) {
+    my $descriptor           = pop(@threads);
+    my $constraintDefinition = $descriptor->{'constraint'};
+    my $result;
+    if ( $useThreads ) {
+	my $thread  = $descriptor->{'thread'};
+	my @results = $thread->join();
+	$result     = $results[0];
+    } else {
+	$result = $descriptor->{'result'};
+    }
+    unless ( $result == 0 ) {
 	# Issue a failure.
 	print "ERROR: Analysis script failed to complete [".$constraint->{'definition'}."]\n";
 	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,0);
@@ -382,7 +420,8 @@ foreach my $constraint ( @constraints ) {
 	exit;
     }
     # Read the likelihood.
-    my $likelihood = $xml->XMLin($scratchDirectory."/likelihood".$mpiRank.".xml");
+    ++$i;
+    my $likelihood = $xml->XMLin($scratchDirectory."/likelihood".$mpiRank.":".$i.".xml");
     if ( $likelihood->{'logLikelihood'} eq "nan" ) {
 	# Issue a failure.
         print "ERROR: Likelihood is NaN\n";
@@ -405,7 +444,7 @@ foreach my $constraint ( @constraints ) {
     $logLikelihood         += $thisLogLikelihood;
     $logLikelihoodVariance += $thisLogLikelihoodVariance;
     # Clean up.
-    unlink($scratchDirectory."/likelihood".$mpiRank.".xml")
+    unlink($scratchDirectory."/likelihood".$mpiRank.":".$i.".xml")
 	if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" );
 }
 
@@ -528,4 +567,12 @@ sub semaphorePost {
     }
     my $count = $galacticusSemaphore->getvalue();
     print "Final semaphore value is: ".$count."\n";    
+}
+
+sub systemThread {
+    # Launch a system command.
+    my $command = shift();    
+    system($command);
+    my $status = $?;
+    return $status;
 }

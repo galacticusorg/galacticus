@@ -31,6 +31,7 @@ module Galacticus_Nodes
   use Histories
   use Numerical_Constants_Astronomical
   use IO_HDF5
+  use Pseudo_Random
   private
   public :: Galacticus_Nodes_Initialize, Galacticus_Nodes_Finalize, Galacticus_Nodes_Unique_ID_Set, Interrupt_Procedure_Template
   !# <workaround type="gfortran">

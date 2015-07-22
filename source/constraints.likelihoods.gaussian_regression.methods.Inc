@@ -744,11 +744,12 @@ subroutine likelihoodGaussianRegressionEmulate(self,simulationState,likelihoodEm
   implicit none
   class           (likelihoodGaussianRegression  ), intent(inout)               :: self
   class           (state                         ), intent(in   )               :: simulationState
-  double precision                                , intent(  out)               :: likelihoodEmulated, likelihoodEmulatedError
+  double precision                                , intent(  out)               :: likelihoodEmulated        , likelihoodEmulatedError
   double precision                                , allocatable  , dimension(:) :: stateCurrent
-  integer                                                                       :: i                 , j
-  double precision                                                              :: separation        , likelihoodFit
-  type            (fgsl_vector                   )                              :: stateOffsetVector , weightVector
+  double precision                                , parameter                   :: likelihoodErrorLarge=1.0d6
+  integer                                                                       :: i                         , j
+  double precision                                                              :: separation                , likelihoodFit
+  type            (fgsl_vector                   )                              :: stateOffsetVector         , weightVector
   integer         (kind=FGSL_Int                 )                              :: status
   type            (polynomialIterator            )                              :: iterator1
   
@@ -769,7 +770,12 @@ subroutine likelihoodGaussianRegressionEmulate(self,simulationState,likelihoodEm
   call FGSL_Vector_Free(stateOffsetVector)
   ! Compute the likelihood and variance.
   likelihoodEmulated     =sum(self%likelihoodResiduals*self%weight(1:self%emulatorRebuildCount))
-  likelihoodEmulatedError=sqrt(likelihoodGaussianRegressionCorrelation(self,0.0d0)-sum(self%weight*self%stateOffset))
+  likelihoodEmulatedError=likelihoodGaussianRegressionCorrelation(self,0.0d0)-sum(self%weight*self%stateOffset)
+  if (likelihoodEmulatedError > 0.0d0) then
+     likelihoodEmulatedError=sqrt(likelihoodEmulatedError)
+  else
+     likelihoodEmulatedError=likelihoodErrorLarge
+  end if
   iterator1=polynomialIterator(self%polynomialOrder,simulationState%dimension())
   do while (iterator1%iterate())
      likelihoodFit=self%coefficients(iterator1%counter())

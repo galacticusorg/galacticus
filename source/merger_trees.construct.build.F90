@@ -26,18 +26,23 @@ module Merger_Tree_Build
   public :: Merger_Tree_Build_Initialize
 
   ! Variables giving the mass range and sampling frequency for mass function sampling.
-  double precision                                                          :: mergerTreeBuildHaloMassMaximum               , mergerTreeBuildHaloMassMinimum          , &
-       &                                                                       mergerTreeBuildTreesBaseRedshift             , mergerTreeBuildTreesBaseTime            , &
+  double precision                                                          :: mergerTreeBuildHaloMassMaximum          , mergerTreeBuildHaloMassMinimum          , &
+       &                                                                       mergerTreeBuildTreesBaseRedshift        , mergerTreeBuildTreesBaseTime            , &
        &                                                                       mergerTreeBuildTreesPerDecade
   integer                                                                   :: mergerTreeBuildTreesBeginAtTree
-  type            (varying_string              )                            :: mergerTreeBuildTreeMassesFile                , mergerTreeBuildTreesHaloMassDistribution
+  type            (varying_string              )                            :: mergerTreeBuildTreeMassesFile           , mergerTreeBuildTreesHaloMassDistribution
 
   ! Direction in which to process trees.
   logical                                                                   :: mergerTreeBuildTreesProcessDescending
 
+  ! Assignment of trees to threads.
+  logical                                                                   :: mergerTreesBuildFixedThreadAssignment
+
   ! Array of halo masses to use.
-  integer                                                                   :: nextTreeIndex                                , treeCount
-  double precision                              , allocatable, dimension(:) :: treeHaloMass                                 , treeWeight
+  integer                                                                   :: nextTreeIndex                           , treeCount                               , &
+       &                                                                       nextTreeIndexThread                  =-1
+  !$omp threadprivate(nextTreeIndexThread)
+  double precision                              , allocatable, dimension(:) :: treeHaloMass                            , treeWeight
 
 contains
 
@@ -179,6 +184,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreesProcessDescending',mergerTreeBuildTreesProcessDescending,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>mergerTreesBuildFixedThreadAssignment</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     If true, assignment of trees to OpenMP threads will be done deterministically. Otherwise, assignment is on a first-come-first-served basis.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreesBuildFixedThreadAssignment',mergerTreesBuildFixedThreadAssignment,defaultValue=.false.)
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreeMassesFile</name>
        !@   <defaultValue>null</defaultValue>
@@ -417,6 +433,7 @@ contains
     use Kind_Numbers
     use String_Handling
     use Merger_Trees_Builders
+    !$ use OMP_Lib
     implicit none
     type   (mergerTree            ), intent(inout), target :: thisTree
     logical                        , intent(in   )         :: skipTree
@@ -425,41 +442,71 @@ contains
     integer(kind=kind_int8        ), parameter             :: baseNodeIndex         =1
     integer(kind=kind_int8        )                        :: thisTreeIndex
     type   (varying_string        )                        :: message
-
+    logical                                                :: finished
+    
     ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
     ! tree.
     !$omp critical (Merger_Tree_Build_Do)
-    if (nextTreeIndex <= treeCount) then
+    if     (                                                                                      &
+         &   (.not. mergerTreesBuildFixedThreadAssignment .and. nextTreeIndex       <= treeCount) &
+         &  .or.                                                                                  &
+         &   (      mergerTreesBuildFixedThreadAssignment .and. nextTreeIndexThread <= treeCount) &
+         & ) then
        ! Retrieve stored internal state if possible.
        call Galacticus_State_Retrieve
        ! Take a snapshot of the internal state and store it.
        call Galacticus_State_Snapshot
        message='Storing state for tree #'
-       message=message//nextTreeIndex
+       if (mergerTreesBuildFixedThreadAssignment) then
+          message=message//nextTreeIndexThread
+       else
+          message=message//nextTreeIndex
+       end if
        call Galacticus_State_Store(message)
        ! Determine the index of the tree to process.
-       select case (mergerTreeBuildTreesProcessDescending)
-       case(.false.)
-          ! Processing trees in ascending order, to just use nextTreeIndex as the index of the tree to process.
-          thisTreeIndex=nextTreeIndex
-       case(.true. )
-          ! Processing trees in descending order, so begin from the final index and work back.
-          thisTreeIndex=treeCount+1-nextTreeIndex
-       end select
-       ! Give the tree an index.
-       thisTree%index=thisTreeIndex
-       ! Create the base node.
-       thisTree%baseNode => treeNode(baseNodeIndex,thisTree)
-       ! Assign a weight to the tree.
-       thisTree%volumeWeight=treeWeight(thisTreeIndex)
-       ! Get the basic component of the base node.
-       baseNodeBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
-       ! Assign a mass to it.
-       call baseNodeBasicComponent%massSet(treeHaloMass(thisTreeIndex) )
-       ! Assign a time.
-       call baseNodeBasicComponent%timeSet(mergerTreeBuildTreesBaseTime)
-       ! Increment the tree index counter.
-       nextTreeIndex=nextTreeIndex+1
+       finished=.false.
+       if (mergerTreesBuildFixedThreadAssignment) then
+          if (nextTreeIndexThread == -1) nextTreeIndexThread=nextTreeIndex
+          !$ do while (mod(nextTreeIndexThread,omp_get_num_threads()) /= omp_get_thread_num() .and. nextTreeIndexThread <= treeCount)
+          !$    nextTreeIndexThread=nextTreeIndexThread+1
+          !$ end do
+          select case (mergerTreeBuildTreesProcessDescending)
+          case(.false.)
+             ! Processing trees in ascending order, to just use nextTreeIndex as the index of the tree to process.
+             thisTreeIndex=nextTreeIndexThread
+          case(.true. )
+             ! Processing trees in descending order, so begin from the final index and work back.
+             thisTreeIndex=treeCount+1-nextTreeIndexThread
+          end select    
+          ! Increment the tree index counter.
+          finished=(nextTreeIndexThread > treeCount) 
+          nextTreeIndexThread=nextTreeIndexThread+1
+       else
+          select case (mergerTreeBuildTreesProcessDescending)
+          case(.false.)
+             ! Processing trees in ascending order, to just use nextTreeIndex as the index of the tree to process.
+             thisTreeIndex=nextTreeIndex
+          case(.true. )
+             ! Processing trees in descending order, so begin from the final index and work back.
+             thisTreeIndex=treeCount+1-nextTreeIndex
+          end select
+          ! Increment the tree index counter.
+          nextTreeIndex=nextTreeIndex+1
+       end if
+       if (.not.finished) then
+          ! Give the tree an index.
+          thisTree%index=thisTreeIndex
+          ! Create the base node.
+          thisTree%baseNode => treeNode(baseNodeIndex,thisTree)
+          ! Assign a weight to the tree.
+          thisTree%volumeWeight=treeWeight(thisTreeIndex)
+          ! Get the basic component of the base node.
+          baseNodeBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
+          ! Assign a mass to it.
+          call baseNodeBasicComponent%massSet(treeHaloMass(thisTreeIndex) )
+          ! Assign a time.
+          call baseNodeBasicComponent%timeSet(mergerTreeBuildTreesBaseTime)
+       end if
     end if
     !$omp end critical (Merger_Tree_Build_Do)
     ! If we got a tree, we can now process it (in parallel if running under OpenMP).

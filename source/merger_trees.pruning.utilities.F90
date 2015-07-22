@@ -71,7 +71,6 @@ contains
           ! to-be-pruned branch being misidentified as the primary progenitor.
           allocate(newNode)
           call parentNode%copyNodeTo(newNode)
-          call newNode%uniqueIDSet()
           newNode%sibling        => node%sibling
           newNode%parent         => parentNode
           parentNode%firstChild  => newNode

@@ -25,15 +25,15 @@ use Data::Dumper;
 # Andrew Benson (16-October-2014)
 
 # Download Planck MCMC chains data set.
-system("wget \"http://pla.esac.esa.int/pla/aio/product-action?COSMOLOGY.FILE_ID=COM_CosmoParams_base_planck_lowl_lowLike_highL_post_lensing_R1.10.tar.gz\" -O ".$galacticusPath."aux/COM_CosmoParams_base_planck_lowl_lowLike_highL_post_lensing_R1.10.tar.gz")
-    unless ( -e $galacticusPath."aux/COM_CosmoParams_base_planck_lowl_lowLike_highL_post_lensing_R1.10.tar.gz" );
+system("wget \"http://pla.esac.esa.int/pla-sl/data-action?COSMOLOGY.COSMOLOGY_OID=1200\" -O ".$galacticusPath."aux/COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz")
+    unless ( -e $galacticusPath."aux/COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz" );
 
 # Unpack Planck MCMC chains data set.
-system("cd ".$galacticusPath."aux; tar xvfz COM_CosmoParams_base_planck_lowl_lowLike_highL_post_lensing_R1.10.tar.gz")
-    unless ( -e $galacticusPath."aux/base_planck_lowl_lowLike_highL_post_lensing" );
+system("cd ".$galacticusPath."aux; tar xvfz COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz")
+    unless ( -e $galacticusPath."aux/base/plikHM_TT_lowTEB_lensing" );
 
 # Specify Planck directory.
-my $planckDirectoryName = $galacticusPath."aux/base_planck_lowl_lowLike_highL_post_lensing/base/planck_lowl_lowLike_highL";
+my $planckDirectoryName = $galacticusPath."aux/base/plikHM_TT_lowTEB_lensing/";
 
 # Specify parameter names of interest.
 my %parameterMap = 
@@ -42,13 +42,13 @@ my %parameterMap =
      "omegamh2*" => "cosmologyParametersMethod->OmegaMatter",
      "tau"       => "reionizationSuppressionOpticalDepth",
      "ns"        => "powerSpectrumPrimordialMethod->index",
-     "H0*"       => "cosmologyParametersMethod->HubbleCOnstant",
+     "H0*"       => "cosmologyParametersMethod->HubbleConstant",
      "sigma8*"   => "sigma_8"
     );
 
 # Read Planck parameter names.
 my $parameters;
-open(my $parameterNameFile,$planckDirectoryName."/base_planck_lowl_lowLike_highL_post_lensing.paramnames");
+open(my $parameterNameFile,$planckDirectoryName."/base_plikHM_TT_lowTEB_lensing_post_BAO_H070p6_JLA.paramnames");
 my $i = -1;
 while ( my $line = <$parameterNameFile> ) {
     ++$i;
@@ -71,7 +71,7 @@ foreach ( keys(%parameterMap) ) {
 my @columnsToRead = map {$parameters->{$_}->{'column'}} sort(keys(%parameterMap));
 opendir(my $planckDirectory,$planckDirectoryName);
 while ( my $fileName = readdir($planckDirectory) ) {
-    if ( $fileName =~ m/base_planck_lowl_lowLike_highL_post_lensing_\d+\.txt/ ) {
+    if ( $fileName =~ m/base_plikHM_TT_lowTEB_lensing_post_BAO_H070p6_JLA_\d+\.txt/ ) {
 	my @columnData = rcols($planckDirectoryName."/".$fileName,@columnsToRead);
 	# Append to chains.
 	my $i = -1;
@@ -125,7 +125,7 @@ foreach my $parameter ( sort(keys(%parameterMap)) ) {
 	 # Extract the coefficient for this random deviate and (if it is non-zero) add it multiplied by the appropriate random
 	 # deviate.
 	 my $coefficient = $choleskyDecomposed->(($index),($i));
-	 $value .= "+\%cosmology".$i."*".$coefficient
+	 $value .= "+\%[cosmology".$i."]*".$coefficient
 	     if ( $coefficient != 0.0 );
      }
     # Extract the parameter name, mapping to the Galacticus name if necessary.
@@ -135,6 +135,11 @@ foreach my $parameter ( sort(keys(%parameterMap)) ) {
     # If the parameter is a density parameter then it has been multiplied by h^2 in the Planck analysis. Undo this.
     $value = "(".$value.")/(%[cosmologyParametersMethod->HubbleConstant]/100.0)**2"
  	if ( $parameter =~ m/omega/ );
+    # Add limits.
+    $value = "&List::Util::min(".$value.",1.0)"
+	if ( $parameter eq "omegamh2*" );
+    $value = "&List::Util::max(".$value.",0.0)"
+	if ( $parameter eq "tau" );    
     # Store the parameter config in our array.
     push(
  	@{$parameterConfig->{'parameter'}},
