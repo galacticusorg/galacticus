@@ -143,11 +143,12 @@ contains
     return
   end subroutine Excursion_Sets_Maximum_Sigma_Test
 
-  double precision function Generalized_Press_Schechter_Branch_Mass(haloMass,deltaCritical,massResolution,probability)
+  double precision function Generalized_Press_Schechter_Branch_Mass(haloMass,deltaCritical,massResolution,probability,randomNumberGenerator)
     !% Determine the mass of one of the halos to which the given halo branches, given the branching probability,
     !% {\normalfont \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\tt
     !% Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     !% branches. This routine then finds the progenitor mass corresponding to this value.
+    use Pseudo_Random
     use ISO_Varying_String
     use Root_Finder
     use Galacticus_Display
@@ -155,6 +156,7 @@ contains
     implicit none
     double precision                , intent(in   ) :: deltaCritical                  , haloMass                , &
          &                                             massResolution                 , probability
+    type            (pseudoRandom  ), intent(inout) :: randomNumberGenerator
     double precision                , parameter     :: toleranceAbsolute       =0.0d0 , toleranceRelative=1.0d-9
     double precision                , parameter     :: smallProbabilityFraction=1.0d-3
     type            (varying_string)                :: message

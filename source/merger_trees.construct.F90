@@ -91,6 +91,9 @@ contains
     ! reset this to true.
     thisTree%initializedUntil=0.0d0
 
+    ! Initialize a random number generator.
+    call thisTree%randomNumberGenerator%initialize()
+    
     ! Call the routine to construct the merger tree.
     call Merger_Tree_Construct(thisTree,skipTree)
 
