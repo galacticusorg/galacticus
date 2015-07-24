@@ -369,7 +369,7 @@ if ( exists($arguments{'plotFile'}) ) {
 	print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
 	my $plogMassMinimum = sprintf("%5.2f",log10($sizeData->{'massMinimum'}->(($i))));
 	my $plogMassMaximum = sprintf("%5.2f",log10($sizeData->{'massMaximum'}->(($i))));
-	print $gnuPlot "set title 'Petrosian half-light radius distribution; late-type; \$".$plogMassMinimum." < \\log_{10}(M_\\star/M_\\odot) < ".$plogMassMaximum." \$'\n";
+	print $gnuPlot "set title offset 0,-0.5 'Petrosian half-light radius distribution; late-type; \$".$plogMassMinimum." < \\log_{10}(M_\\star/M_\\odot) < ".$plogMassMaximum." \$'\n";
 	print $gnuPlot "set xlabel 'Petrosian half-light radius; \$r_{50}\$ [kpc]'\n";
 	print $gnuPlot "set ylabel 'Differential fraction; \${\\rm d}F/{\\rm d}\\log_{10}r_{50}\$ [dex\$^{-1}\$]'\n";
 	# Extract errors for the observed data.
