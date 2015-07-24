@@ -88,7 +88,7 @@ if ( exists($arguments{'plotFile'}) ) {
 	print $gnuPlot "set format y '\$10^{\%L}\$'\n";
 	print $gnuPlot "set xrange [0.15:25.0]\n";
 	print $gnuPlot "set yrange [1.0:1000.0]\n";
-	print $gnuPlot "set title 'Projected correlation function at \$z\\approx 0.07\$ for \$\\log_{10}(M_\\star/M_\\odot) > ".$data->{'observed'}->{$entry}->{'massMinimum'}."\$'\n";
+	print $gnuPlot "set title offset 0,-0.5 'Projected correlation function at \$z\\approx 0.07\$ for \$\\log_{10}(M_\\star/M_\\odot) > ".$data->{'observed'}->{$entry}->{'massMinimum'}."\$'\n";
 	print $gnuPlot "set xlabel 'Separation; \$r_{\\rm p}\$ [Mpc]'\n";
 	print $gnuPlot "set ylabel 'Projected correlation; \$w_{\\rm p}(r_{\\rm p})\$ [Mpc]'\n";
 	&PrettyPlots::Prepare_Dataset(\$plot,

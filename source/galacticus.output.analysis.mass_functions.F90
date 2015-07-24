@@ -1972,7 +1972,7 @@ contains
     massStellar =  thisDisk%massStellar()
     diskRadius  =  thisDisk%radius     ()
     ! Get the molecular to atomic mass ratio (H2/HI).
-    if (diskRadius <= 0.0d0) then
+    if (diskRadius <= 0.0d0 .or. massStellar < 0.0d0) then
        Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00=1.0d0
     else
        molecularRatioCentral                                         &
@@ -1995,8 +1995,8 @@ contains
                &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA1     &
                &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1 &
                &    +                       alfalfaHiMassFunctionZ0_00MolecularFractionA2     &
-            &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2 &
-            &   )
+               &    /molecularRatioCentral**alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2 &
+               &   )
        else
           Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00=0.0d0
        end if
