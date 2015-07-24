@@ -321,7 +321,7 @@ sub Construct {
 	print $gnuPlot "set format y '\$10^{\%L}\$'\n";
 	print $gnuPlot "set xrange [".$config->{'xRange'}."]\n";
 	print $gnuPlot "set yrange [".$config->{'yRange'}."]\n";
-	print $gnuPlot "set title '".$config->{'title'}."'\n";
+	print $gnuPlot "set title offset 0,-0.5 '".$config->{'title'}."'\n";
 	print $gnuPlot "set xlabel '".$config->{'xLabel'}."'\n";
 	print $gnuPlot "set ylabel '".$config->{'yLabel'}."'\n";
 	&PrettyPlots::Prepare_Dataset(\$plot,

@@ -188,10 +188,24 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
     # Record and remove any analyses.
     my $savedAnalyses   = $parameters->{'mergerTreeAnalyses'}->{'value'};
     delete($parameters->{'mergerTreeAnalyses'});
-    # Record pruning.
-    my $savedBaryonPrune = "false";
-    $savedBaryonPrune =  $parameters->{'mergerTreePruneBaryons'}->{'value'}
-        if ( exists($parameters->{'mergerTreePruneBaryons'}) );
+    # Reset parameters.
+    my %parametersToSave =
+	(
+	 mergerTreePruneBaryons => "false"
+	);
+    my @savedParameters;
+    foreach my $parameterName ( keys(%parametersToSave) ) {
+	if ( exists($parameters->{$parameterName}) ) {
+	    push
+		(
+		 @savedParameters,
+		 {
+		     name  =>               $parameterName            ,
+		     value => $parameters->{$parameterName}->{'value'}
+		 }
+		);
+	}
+    }
     # Get a lock on the tree file.
     my $fixedTreeDirectory;
     if ( exists($config->{'likelihood'}->{'fixedTreesInScratch'}) && $config->{'likelihood'}->{'fixedTreesInScratch'} eq "yes" ) {
@@ -264,7 +278,10 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
     $parameters->{'outputRedshifts'          }->{'value'} = $outputRedshifts;
     $parameters->{'mergerTreeAnalyses'       }->{'value'} = $savedAnalyses;
     $parameters->{'mergerTreesWrite'         }->{'value'} = "false";
-    $parameters->{'mergerTreePruneBaryons'   }->{'value'} = $savedBaryonPrune;
+    # Restore parameters.
+    foreach my $parameter ( @savedParameters ) {
+	$parameters->{$parameter->{'name'}}->{'value'} = $parameter->{'value'};
+    }
 }
 
 # Extract new parameters.
