@@ -154,7 +154,7 @@ contains
     !% Build a merger tree.
     use Galacticus_Nodes
     use Galacticus_Error
-    use Critical_Overdensity
+    use Critical_Overdensities
     use Merger_Tree_Branching
     use Merger_Tree_Branching_Options
     use Pseudo_Random
@@ -164,6 +164,7 @@ contains
     class           (mergerTreeBuilderCole2000), intent(inout)         :: self
     type            (mergerTree               ), intent(inout), target :: tree
     type            (treeNode                 ), pointer               :: newNode1                  , newNode2                   , thisNode
+    class           (criticalOverdensityClass ), pointer               :: criticalOverdensity_
     class           (nodeComponentBasic       ), pointer               :: newBasic1                 , newBasic2                  , thisBasic                 , &
          &                                                                parentBasic
     integer         (kind=kind_int8           )                        :: nodeIndex
@@ -176,6 +177,8 @@ contains
          &                                                                branchingProbabilityRate  , deltaWAccretionLimit
     logical                                                            :: doBranch                  , branchIsDone               , snapAccretionFraction
 
+    ! Get default objects.
+    criticalOverdensity_ => criticalOverdensity()
     ! Begin construction.
     nodeIndex =  1                   ! Initialize the node index counter to unity.
     thisNode  => tree    %baseNode   ! Point to the base node.
@@ -191,7 +194,7 @@ contains
     massResolution=Merger_Tree_Build_Mass_Resolution(tree)
     ! Convert time for base node to critical overdensity (which we use as a time coordinate in this module).
     baseNodeTime =thisBasic%time()
-    deltaCritical=Critical_Overdensity_for_Collapse(time=thisBasic%time(),mass=thisBasic%mass())
+    deltaCritical=criticalOverdensity_%value(time=thisBasic%time(),mass=thisBasic%mass())
     call thisBasic%timeSet(deltaCritical)
     ! Begin tree build loop.
     do while (associated(thisNode))
@@ -203,14 +206,14 @@ contains
        branchDeltaCriticalCurrent =thisBasic%time()
        ! Evolve the branch until mass falls below the resolution limit, the earliest time is reached, or the branch ends.       
        branchIsDone=.false.
-       do while(                                                                                                             &
-            &    branchMassCurrent                                                                       > massResolution    &
-            &   .and.                                                                                                        &
-            &    Time_of_Collapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent) > self%timeEarliest &
-            &  .and.                                                                                                         &
-            &   self%shouldFollowBranch(tree,thisNode)                                                                       &
-            &   .and.                                                                                                        &
-            &    .not.branchIsDone                                                                                           &
+       do while(                                                                                                                                &
+            &    branchMassCurrent                                                                                          > massResolution    &
+            &   .and.                                                                                                                           &
+            &    criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent) > self%timeEarliest &
+            &   .and.                                                                                                                           &
+            &    self%shouldFollowBranch(tree,thisNode)                                                                                         &
+            &   .and.                                                                                                                           &
+            &    .not.branchIsDone                                                                                                              &
             &  )
           ! Find branching probability rate per unit deltaW.
           branchingProbabilityRate=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundUpper)
@@ -227,9 +230,9 @@ contains
              ! Compute new mass accounting for sub-resolution accretion.
              nodeMass1          = massResolution
              ! Compute the time corresponding to this event.
-             time=Time_of_Collapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent)
+             time               = criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent)
              ! Set properties of the new node.
-             deltaCritical1=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass1)
+             deltaCritical1     = criticalOverdensity_%value         (time               =time                      ,mass=nodeMass1        )
              call newBasic1%massSet(nodeMass1     )
              call newBasic1%timeSet(deltaCritical1)
              ! Create links from old to new node and vice-versa.
@@ -255,9 +258,9 @@ contains
                    ! Compute new mass accounting for sub-resolution accretion.
                    nodeMass1          = branchMassCurrent
                    ! Compute the time corresponding to this event.
-                   time=Time_of_Collapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent)
+                   time               = criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent)
                    ! Set properties of the new node.
-                   deltaCritical1=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass1)
+                   deltaCritical1     = criticalOverdensity_%value         (time               =time                      ,mass=nodeMass1        )
                    call newBasic1%massSet(nodeMass1     )
                    call newBasic1%timeSet(deltaCritical1)
                    ! Create links from old to new node and vice-versa.
@@ -348,15 +351,15 @@ contains
              select case (doBranch)
              case (.true.)
                 ! Branching occurs - create two progenitors.
-                nodeIndex =  nodeIndex+1
-                newNode1  => treeNode(nodeIndex,tree)
-                newBasic1 => newNode1%basic(autoCreate=.true.)
+                nodeIndex     =  nodeIndex+1
+                newNode1      => treeNode(nodeIndex,tree)
+                newBasic1     => newNode1%basic(autoCreate=.true.)
                 ! Compute mass of one of the new nodes.
-                nodeMass1=Tree_Branch_Mass(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,branchingProbability,tree%randomNumberGenerator)
+                nodeMass1     =  Tree_Branch_Mass(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,branchingProbability,tree%randomNumberGenerator)
                 ! Compute the time corresponding to this branching event.
-                time=Time_of_Collapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
+                time          =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
                 ! Set properties of first new node.
-                deltaCritical1=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass1)
+                deltaCritical1=  criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        )
                 call newBasic1%massSet(nodeMass1     )
                 call newBasic1%timeSet(deltaCritical1)
                 ! Create second progenitor.
@@ -366,7 +369,7 @@ contains
                 ! Compute mass of second new node.
                 nodeMass2=thisBasic%mass()*(1.0d0-accretionFractionCumulative)-nodeMass1
                 ! Set properties of second new node.
-                deltaCritical2=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass2)
+                deltaCritical2=criticalOverdensity_%value(time=time,mass=nodeMass2)
                 call newBasic2%massSet(nodeMass2     )
                 call newBasic2%timeSet(deltaCritical2)
                 ! Create links from old to new nodes and vice-versa. (Ensure that child node is the more massive progenitor.)
@@ -383,15 +386,15 @@ contains
              case (.false.)
                 ! No branching occurs - create one progenitor.
                 if (accretionFractionCumulative >= self%accretionLimit) then
-                   nodeIndex=nodeIndex+1
-                   newNode1 => treeNode(nodeIndex,tree)
-                   newBasic1 => newNode1%basic(autoCreate=.true.)
+                   nodeIndex      =  nodeIndex+1
+                   newNode1       => treeNode(nodeIndex,tree)
+                   newBasic1      => newNode1%basic(autoCreate=.true.)
                    ! Compute new mass accounting for sub-resolution accretion.
-                   nodeMass1=thisBasic%mass()*(1.0d0-accretionFractionCumulative)
+                   nodeMass1      =  thisBasic%mass()*(1.0d0-accretionFractionCumulative)
                    ! Compute the time corresponding to this new node.
-                   time=Time_of_Collapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
+                   time           =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
                    ! Set properties of the new node.
-                   deltaCritical1=Critical_Overdensity_for_Collapse(time=time,mass=nodeMass1)
+                   deltaCritical1 =  criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        )
                    call newBasic1%massSet(nodeMass1     )
                    call newBasic1%timeSet(deltaCritical1)
                    ! Create links from old to new node and vice-versa.
@@ -418,9 +421,9 @@ contains
     thisNode => tree%baseNode
     do while (associated(thisNode))
        ! Get the basic component of the node.
-       thisBasic => thisNode%basic()
+       thisBasic    => thisNode%basic()
        ! Compute the collapse time.
-       collapseTime=Time_of_Collapse(criticalOverdensity=thisBasic%time(),mass=thisBasic%mass())
+       collapseTime =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=thisBasic%time(),mass=thisBasic%mass())
        call thisBasic%timeSet(collapseTime)
        ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
        call thisNode%walkTree(thisNode)

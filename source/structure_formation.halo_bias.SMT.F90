@@ -58,16 +58,21 @@ contains
 
   double precision function Dark_Matter_Halo_Bias_SMT(mass,time)
     !% Computes the bias for a dark matter halo using the method of \cite{sheth_ellipsoidal_2001}.
-    use Critical_Overdensity
+    use Critical_Overdensities
     use Power_Spectra
     implicit none
-    double precision, intent(in   ) :: mass                 , time
-    double precision, parameter     :: a            =0.707d0, b   =0.5d0, c    =0.6d0
-    double precision                :: deltaCritical        , nu        , sigma
+    double precision                          , intent(in   ) :: mass                        , time
+    double precision                          , parameter     :: a                   =0.707d0, b   =0.5d0, &
+         &                                                       c                   =0.600d0
+    class           (criticalOverdensityClass), pointer       :: criticalOverdensity_
+    double precision                                          :: deltaCritical               , nu        , &
+         &                                                       sigma
 
+    ! Get default objects.
+    criticalOverdensity_ => criticalOverdensity()
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
-    deltaCritical=Critical_Overdensity_for_Collapse(time=time,mass=mass)
-    sigma        =Cosmological_Mass_Root_Variance(mass)
+    deltaCritical=criticalOverdensity_%value     (time=time,mass=mass)
+    sigma        =Cosmological_Mass_Root_Variance(               mass)
     nu           =deltaCritical/sigma
 
     ! Compute halo bias.

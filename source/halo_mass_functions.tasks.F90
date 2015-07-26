@@ -82,7 +82,7 @@ contains
     use Memory_Management
     use Numerical_Ranges
     use Input_Parameters
-    use Critical_Overdensity
+    use Critical_Overdensities
     use Power_Spectra
     use Dark_Matter_Halo_Scales
     use Cosmology_Functions
@@ -99,6 +99,7 @@ contains
     class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
     class           (darkMatterProfileClass        ), pointer :: darkMatterProfile_
     class           (virialDensityContrastClass    ), pointer :: virialDensityContrast_
+    class           (criticalOverdensityClass      ), pointer :: criticalOverdensity_
     integer                                                   :: haloMassFunctionsCount      , haloMassFunctionsPointsPerDecade, &
          &                                                       iMass                       , iOutput                         , &
          &                                                       outputCount                 , verbosityLevel
@@ -151,6 +152,7 @@ contains
     cosmologyFunctionsDefault => cosmologyFunctions   ()
     virialDensityContrast_    => virialDensityContrast()
     darkMatterProfile_        => darkMatterProfile    ()
+    criticalOverdensity_      => criticalOverdensity  ()
 
     ! Find the mass range and increment size.
     !@ <inputParameter>
@@ -195,9 +197,9 @@ contains
        outputExpansionFactors     (iOutput)=cosmologyFunctionsDefault%expansionFactorFromRedshift(                             outputRedshifts       (iOutput))
        outputTimes                (iOutput)=cosmologyFunctionsDefault%cosmicTime                 (                             outputExpansionFactors(iOutput))
        outputGrowthFactors        (iOutput)=Linear_Growth_Factor                                 (                             outputTimes           (iOutput))
-       outputCriticalOverdensities(iOutput)=Critical_Overdensity_for_Collapse                    (                             outputTimes           (iOutput))
+       outputCriticalOverdensities(iOutput)=criticalOverdensity_  %value                         (                             outputTimes           (iOutput))
        outputVirialDensityContrast(iOutput)=virialDensityContrast_%densityContrast               (haloMassFunctionsMassMinimum,outputTimes           (iOutput))
-       outputCharacteristicMass   (iOutput)=Critical_Overdensity_Collapsing_Mass                 (                             outputTimes           (iOutput))
+       outputCharacteristicMass   (iOutput)=criticalOverdensity_  %collapsingMass                (                             outputTimes           (iOutput))
     end do
 
     ! Allocate arrays for halo mass functions.

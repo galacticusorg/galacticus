@@ -428,12 +428,14 @@ contains
 
   subroutine Compute_Common_Factors
     !% Precomputes some useful factors that are used in the generalized Press-Schechter branching integrals.
-    use Critical_Overdensity
+    use Critical_Overdensities
     implicit none
+    class(criticalOverdensityClass), pointer :: criticalOverdensity_
 
-    parentSigmaSquared       =parentSigma**2
-    parentTime               =Time_of_Collapse(parentDelta,parentHaloMass)
-    parentDTimeDDeltaCritical=1.0d0/Critical_Overdensity_for_Collapse_Time_Gradient(parentTime,mass=parentHaloMass)
+    criticalOverdensity_     =>       criticalOverdensity                (                               )
+    parentSigmaSquared       =                                            parentSigma                     **2
+    parentTime               =        criticalOverdensity_%timeOfCollapse(parentDelta,     parentHaloMass)
+    parentDTimeDDeltaCritical=  1.0d0/criticalOverdensity_%gradientTime  (parentTime ,mass=parentHaloMass)
     return
   end subroutine Compute_Common_Factors
 

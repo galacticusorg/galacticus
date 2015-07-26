@@ -118,7 +118,7 @@ contains
     use Dark_Matter_Halo_Scales
     use Galacticus_Error
     use Pseudo_Random
-    use Critical_Overdensity
+    use Critical_Overdensities
     use Cosmology_Functions
     implicit none
     type            (keplerOrbit               )                         :: wetzel2010Orbit
@@ -128,7 +128,8 @@ contains
     class           (nodeComponentBasic        )               , pointer :: hostBasic             , basic
     class           (cosmologyFunctionsClass   )               , pointer :: cosmologyFunctions_
     class           (virialDensityContrastClass), pointer                :: virialDensityContrast_
-    class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass  ), pointer                :: darkMatterHaloScale_
+    class           (criticalOverdensityClass  ), pointer                :: criticalOverdensity_
     double precision                            , parameter              :: circularityMaximum       =1.0d0, circularityMinimum    =0.0d0
     double precision                            , parameter              :: redshiftMaximum          =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
     double precision                                                     :: R1                             , apocentricRadius                                    , &
@@ -146,6 +147,7 @@ contains
     ! Get required objects.
     cosmologyFunctions_  => cosmologyFunctions ()
     darkMatterHaloScale_ => darkMatterHaloScale()
+    criticalOverdensity_ => criticalOverdensity()
     ! Set masses and radius of the orbit.
     basic                => node%basic         ()
     hostBasic            => host%basic         ()
@@ -168,7 +170,7 @@ contains
        timeNode       =cosmologyFunctions_%cosmicTime(expansionFactorMinimum)
     end if
     ! Get the characteristic mass, M*.
-    massCharacteristic=Critical_Overdensity_Collapsing_Mass(timeNode)
+    massCharacteristic=criticalOverdensity_%collapsingMass(timeNode)
     ! Compute parameter of the circularity fitting function. We limit C1 to a given maximum - the fit is not explored in this
     ! regime and without the truncation we get problems evaluating hypergeometric functions.
     g1              =(1.0d0/expansionFactor)**wetzel2010CircularityP1
