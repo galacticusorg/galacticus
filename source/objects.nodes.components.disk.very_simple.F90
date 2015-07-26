@@ -714,9 +714,10 @@ contains
     use Galacticus_Error
     use Abundances_Structure
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    type (treeNode         )               , pointer :: hostNode
-    class(nodeComponentDisk)               , pointer :: hostDiskComponent, thisDiskComponent
+    type (treeNode             ), intent(inout), pointer :: thisNode
+    type (treeNode             )               , pointer :: hostNode
+    class(nodeComponentDisk    )               , pointer :: hostDiskComponent    , thisDiskComponent
+    class(nodeComponentSpheroid)               , pointer :: hostSpheroidComponent
 
     ! Check that the disk is of the verySimple class.
     thisDiskComponent => thisNode%disk()
@@ -724,25 +725,30 @@ contains
     class is (nodeComponentDiskVerySimple)
 
        ! Find the node to merge with and its disk component.
-       hostNode          => thisNode%mergesWith()
-       hostDiskComponent => hostNode%disk      ()
+       hostNode              => thisNode%mergesWith(                 )
+       hostDiskComponent     => hostNode%disk      (autoCreate=.true.)
+       hostSpheroidComponent => hostNode%spheroid  (autoCreate=.true.)
 
        ! Move the gas component of the very simple disk to the host.
        select case (thisMergerGasMovesTo)
        case (movesToDisk)
-          call hostDiskComponent%massGasSet          (                                       &
-               &                                       hostDiskComponent%      massGas()     &
-               &                                      +thisDiskComponent%      massGas()     &
-               &                                     )
-          call hostDiskComponent%abundancesGasSet    (                                       &
-               &                                       hostDiskComponent%abundancesGas()     &
-               &                                      +thisDiskComponent%abundancesGas()     &
-               &                                     )
+          call hostDiskComponent    %massGasSet          (                                       &
+               &                                           hostDiskComponent    %      massGas() &
+               &                                          +thisDiskComponent    %      massGas() &
+               &                                         )
+          call hostDiskComponent    %abundancesGasSet    (                                       &
+               &                                           hostDiskComponent    %abundancesGas() &
+               &                                          +thisDiskComponent    %abundancesGas() &
+               &                                         )
        case (movesToSpheroid)
-          call Galacticus_Error_Report(                                                      &
-               &                       'Node_Component_Disk_Very_Simple_Satellite_Merging',  &
-               &                       'this component does not work with spheroids'         &
-               &                      )
+          call hostSpheroidComponent%massGasSet          (                                       &
+               &                                           hostSpheroidComponent%massGas      () &
+               &                                          +thisDiskComponent    %massGas      () &
+               &                                         )
+          call hostSpheroidComponent%abundancesGasSet    (                                       &
+               &                                           hostSpheroidComponent%abundancesGas() &
+               &                                          +thisDiskComponent    %abundancesGas() &
+               &                                         )
        case default
           call Galacticus_Error_Report(                                                      &
                &                       'Node_Component_Disk_Very_Simple_Satellite_Merging',  &
@@ -759,19 +765,23 @@ contains
        ! Move the stellar component of the very simple disk to the host.
        select case (thisMergerStarsMoveTo)
        case (movesToDisk)
-          call hostDiskComponent%massStellarSet      (                                       &
-               &                                       hostDiskComponent%      massStellar() &
-               &                                      +thisDiskComponent%      massStellar() &
-               &                                     )
-          call hostDiskComponent%abundancesStellarSet(                                       &
-               &                                       hostDiskComponent%abundancesStellar() &
-               &                                      +thisDiskComponent%abundancesStellar() &
-               &                                     )
+          call hostDiskComponent    %massStellarSet      (                                           &
+               &                                           hostDiskComponent    %      massStellar() &
+               &                                          +thisDiskComponent    %      massStellar() &
+               &                                         )
+          call hostDiskComponent    %abundancesStellarSet(                                           &
+               &                                           hostDiskComponent    %abundancesStellar() &
+               &                                          +thisDiskComponent    %abundancesStellar() &
+               &                                         )
        case (movesToSpheroid)
-          call Galacticus_Error_Report(                                                      &
-               &                       'Node_Component_Disk_Very_Simple_Satellite_Merging',  &
-               &                       'this component does not work with spheroids'         &
-               &                      )
+          call hostSpheroidComponent%massStellarSet      (                                           &
+               &                                           hostSpheroidComponent%massStellar      () &
+               &                                          +thisDiskComponent    %massStellar      () &
+               &                                         )
+          call hostSpheroidComponent%abundancesStellarSet(                                           &
+               &                                           hostSpheroidComponent%abundancesStellar() &
+               &                                          +thisDiskComponent    %abundancesStellar() &
+               &                                         )
        case default
           call Galacticus_Error_Report(                                                      &
                &                       'Node_Component_Disk_Very_Simple_Satellite_Merging',  &
