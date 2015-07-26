@@ -190,6 +190,27 @@ foreach my $srcdir ( @sourcedirs ) {
 		push(@incfiles,$workDir."galacticus_error.mod ");
 		$hasuses=1;	
 	    }
+	    # Find modules used in functionClass directives.
+	    foreach my $functionClass ( @functionClassDirective ) {
+		if ( exists($functionClass->{'method'}) ) {
+		    my @methods;
+		    if ( exists($functionClass->{'method'}->{'name'}) ) {
+			@methods = ( $functionClass->{'method'} );
+		    } else {
+			@methods = map {$functionClass->{'method'}->{$_}} keys(%{$functionClass->{'method'}}); 
+		    }
+		    foreach my $method ( @methods ) {
+			if ( exists($method->{'modules'}) ) {
+			    push
+				(
+				 @incfiles,
+				 map {$_ eq "hdf5" ? () : $workDir.$_.".mod "} split(" ",lc($method->{'modules'}))
+				);
+			    $hasuses=1;
+			}
+		    }
+		}
+	    }
 	    # Scan all files on the stack.
 	    while ( scalar(@scanfiles) > 0 ) {
 		$fullname = pop(@scanfiles);
