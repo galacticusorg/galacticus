@@ -297,39 +297,48 @@ my @translations =
 	     "mergerTreeComputeConditionalMassFunctionParentRedshifts"        => "mergerTreeOperatorMethod+conditionalMF+--parentRedshifts"          ,
 	     "mergerTreeComputeConditionalMassFunctionProgenitorRedshifts"    => "mergerTreeOperatorMethod+conditionalMF+--progenitorRedshifts"      ,
 	     "mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth" => "mergerTreeOperatorMethod+conditionalMF+--primaryProgenitorDepth"   ,
-	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"     => "mergerTreeOperatorMethod+conditionalMF+--formationRateTimeFraction"
+	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"     => "mergerTreeOperatorMethod+conditionalMF+--formationRateTimeFraction",
+	     "warmDarkMatterCriticalOverdensityGX"                            => "criticalDensityMethod+barkana2001WDM+--gX"                         ,
+	     "warmDarkMatterCriticalOverdensityMX"                            => "criticalDensityMethod+barkana2001WDM+--mX"                         ,
+	     "warmDarkMatterCriticalOverdensityUseFittingFunction"            => "criticalDensityMethod+barkana2001WDM+--useFittingFunction"
 	 },
  	 values        =>
          {
 	     mergerTreeBuilderMethod        =>
 	     {
-		 "Cole2000"              => "cole2000"
+		 "Cole2000"                  => "cole2000"
 	     },
 	     treeNodeMethodDisk      =>
 	     {
-		 "exponential"       => {
-		                         value => "standard",
-		                         new   => [
-					           {
-			                            name  => "diskMassDistribution",
-			                            value => "exponentialDisk"
-			                           }
-			                          ]
-		                        }
+		 "exponential"           => {
+		                             value => "standard",
+		                             new   => [
+				    	               {
+			                                name  => "diskMassDistribution",
+			                                value => "exponentialDisk"
+			                               }
+			                              ]
+		                            }
 	     },
 	     darkMatterProfileShapeMethod   =>
 	     {
-		 "Gao2008"               => "gao2008"
+		 "Gao2008"                   => "gao2008"
 	     },
 	     transferFunctionMethod         =>
 	     {
-		 "null"                  => "identity"        ,
-		 "Eisenstein-Hu1999"     => "eisensteinHu1999"
+		 "null"                      => "identity"        ,
+		 "Eisenstein-Hu1999"         => "eisensteinHu1999"
 	     },
 	     stellarPopulationSpectraMethod =>
 	     {
-	         "Conroy-White-Gunn2009" => "FSPS"
-             }		     
+	         "Conroy-White-Gunn2009"     => "FSPS"
+             },
+	     criticalOverdensityMethod =>
+	     {
+		 "Kitayama-Suto1996"         => "kitayamaSuto1996"             ,
+		 "sphericalTopHat"           => "sphericalCollapseMatterLambda",
+		 "sphericalTopHatDarkEnergy" => "sphericalCollapseMatterDE"
+	     }
 	 }
     }
     );

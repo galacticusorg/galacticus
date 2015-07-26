@@ -192,18 +192,20 @@ contains
     use Numerical_Constants_Math
     use Gaussian_Random
     use Power_Spectra
-    use Critical_Overdensity
+    use Critical_Overdensities
     use Cosmology_Parameters
     implicit none
     class           (darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout)          :: self
     type            (treeNode                                        ), intent(inout), pointer :: node
     class           (nodeComponentBasic                              )               , pointer :: basic
     class           (cosmologyParametersClass                        )               , pointer :: cosmologyParameters_
+    class           (criticalOverdensityClass                        )               , pointer :: criticalOverdensity_
     double precision                                                                           :: radiusHaloLagrangian, peakHeight        , &
          &                                                                                        wavenumber          , powerSpectrumSlope, &
          &                                                                                        concentrationMinimum, peakHeightMinimum
     
     cosmologyParameters_           => cosmologyParameters      ()
+    criticalOverdensity_           => criticalOverdensity      ()
     basic                          => node               %basic()
     radiusHaloLagrangian           =  +(                                                &
          &                              +3.0d0                                          &
@@ -214,8 +216,8 @@ contains
          &                              /cosmologyParameters_%OmegaMatter    ()         &
          &                             )**(1.0d0/3.0d0)
     peakHeight                     =                                                    &
-         &                            +Critical_Overdensity_for_Collapse(basic%time())  &
-         &                            /Cosmological_Mass_Root_Variance  (basic%mass())
+         &                            +criticalOverdensity_%value     (basic%time())    &
+         &                            /Cosmological_Mass_Root_Variance(basic%mass())
     wavenumber                     =                                                    &
          &                            +self%kappa                                       &
          &                            *2.0d0                                            &

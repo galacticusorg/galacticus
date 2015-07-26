@@ -58,22 +58,25 @@ contains
 
   double precision function Dark_Matter_Halo_Bias_Tinker2010(mass,time)
     !% Computes the bias for a dark matter halo using the method of \cite{tinker_large_2010}.
-    use Critical_Overdensity
+    use Critical_Overdensities
     use Power_Spectra
     use Virial_Density_Contrast
     implicit none
     double precision                            , intent(in   ) :: mass                        , time
     double precision                            , parameter     :: lowerB                =1.5d0, lowerC             =2.4d0 , upperB=0.183d0
     class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
+    class           (criticalOverdensityClass  ), pointer       :: criticalOverdensity_
     double precision                                            :: deltaCritical               , haloDensityContrast       , nu            , &
          &                                                         sigma                       , y
     double precision, save                                      :: lowerA                      , timePrevious       =-1.0d0, upperA        , &
          &                                                         upperC                      , massPrevious       =-1.0d0
     !$omp threadprivate(timePrevious,massPrevious,lowerA,upperA,upperC)
 
+    ! Get default objects.
+    criticalOverdensity_ => criticalOverdensity()
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
-    deltaCritical=Critical_Overdensity_for_Collapse(time=time,mass=mass)
-    sigma        =Cosmological_Mass_Root_Variance(mass)
+    deltaCritical=criticalOverdensity_%value     (time=time,mass=mass)
+    sigma        =Cosmological_Mass_Root_Variance(               mass)
     nu           =deltaCritical/sigma
 
     ! Update fitting parameters if the time has changed.

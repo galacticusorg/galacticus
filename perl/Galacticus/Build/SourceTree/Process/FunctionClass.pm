@@ -656,7 +656,6 @@ sub Process_FunctionClass {
 		} else {
 		    $postContains->[0]->{'content'} .= "      call Galacticus_Error_Report('".$methodName."Null','this is a null method - initialize the ".$directive->{'name'}." object before use')\n";
 		}
-		$postContains->[0]->{'content'} .= "      return\n";
 		$postContains->[0]->{'content'} .= "   end ".$category." ".$directive->{'name'}.ucfirst($methodName).$extension."\n\n";
 	    }
  	    
