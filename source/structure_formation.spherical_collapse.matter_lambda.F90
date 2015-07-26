@@ -23,7 +23,7 @@ module Spherical_Collapse_Matter_Lambda
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
-  public :: Spherical_Collape_Delta_Critical_Initialize, Spherical_Collapse_Critical_Overdensity,&
+  public :: Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate,&
        & Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate,&
        & Spherical_Collapse_Matter_Lambda_State_Store, Spherical_Collapse_Matter_Lambda_State_Retrieve
 
@@ -42,21 +42,7 @@ module Spherical_Collapse_Matter_Lambda
 
 contains
 
-  !# <criticalOverdensityMethod>
-  !#  <unitName>Spherical_Collape_Delta_Critical_Initialize</unitName>
-  !# </criticalOverdensityMethod>
-  subroutine Spherical_Collape_Delta_Critical_Initialize(criticalOverdensityMethod,Critical_Overdensity_Tabulate)
-    !% Initializes the $\delta_{\mathrm crit}$ calculation for the spherical collapse module.
-    use ISO_Varying_String
-    implicit none
-    type     (varying_string                         ), intent(in   )          :: criticalOverdensityMethod
-    procedure(Spherical_Collapse_Critical_Overdensity), intent(inout), pointer :: Critical_Overdensity_Tabulate
-
-    if (criticalOverdensityMethod == 'sphericalTopHat') Critical_Overdensity_Tabulate => Spherical_Collapse_Critical_Overdensity
-    return
-  end subroutine Spherical_Collape_Delta_Critical_Initialize
-
-  subroutine Spherical_Collapse_Critical_Overdensity(time,deltaCritTable)
+  subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,deltaCritTable)
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
     use Tables
     implicit none
@@ -65,7 +51,7 @@ contains
 
     call Make_Table(time,deltaCritTable,calculationDeltaCrit)
     return
-  end subroutine Spherical_Collapse_Critical_Overdensity
+  end subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate
 
   subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,deltaVirialTable)
     !% Tabulate the virial density contrast for the spherical collapse model.

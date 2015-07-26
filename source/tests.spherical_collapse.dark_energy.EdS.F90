@@ -28,16 +28,17 @@ program Tests_Spherical_Collapse_Dark_Energy_EdS
   use Memory_Management
   use Virial_Density_Contrast
   use Numerical_Constants_Math
-  use Critical_Overdensity
+  use Critical_Overdensities
   implicit none
   double precision                            , dimension(7) :: redshift                   =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
   class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctionsDefault
   class           (virialDensityContrastClass), pointer      :: virialDensityContrast_
+  class           (criticalOverdensityClass  ), pointer      :: criticalOverdensity_
   double precision                            , parameter    :: massDummy                    =1.0d0
   type            (varying_string            )               :: parameterFile
   character       (len=1024                  )               :: message
   integer                                                    :: iExpansion
-  double precision                                           :: age                                                                       , criticalOverdensity          , &
+  double precision                                           :: age                                                                       , criticalOverdensityValue     , &
        &                                                        criticalOverdensityExpected                                               , expansionFactor              , &
        &                                                        virialDensityContrastActual                                               , virialDensityContrastExpected
 
@@ -53,13 +54,14 @@ program Tests_Spherical_Collapse_Dark_Energy_EdS
   ! Get the default cosmology functions object.
   cosmologyFunctionsDefault => cosmologyFunctions   ()
   virialDensityContrast_    => virialDensityContrast()
+  criticalOverdensity_      => criticalOverdensity  ()
   do iExpansion=1,size(redshift)
-     expansionFactor            =cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift(iExpansion))
-     age                        =cosmologyFunctionsDefault%cosmicTime(expansionFactor)
-     criticalOverdensity        =Critical_Overdensity_for_Collapse(age)
+     expansionFactor            =cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift       (iExpansion))
+     age                        =cosmologyFunctionsDefault%cosmicTime                 (expansionFactor            )
+     criticalOverdensityValue   =criticalOverdensity_     %value                      (age                        )
      criticalOverdensityExpected=3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0/expansionFactor
      write (message,'(a,f6.1,a,f6.4,a)') "critical density for collapse [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctionsDefault%omegaMatterEpochal(age),"]"
-     call Assert(trim(message),criticalOverdensity,criticalOverdensityExpected,relTol=3.0d-5)
+     call Assert(trim(message),criticalOverdensityValue,criticalOverdensityExpected,relTol=3.0d-5)
      virialDensityContrastActual  =virialDensityContrast_%densityContrast(massDummy,age)
      virialDensityContrastExpected=18.0d0*Pi**2
      write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast       [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctionsDefault%omegaMatterEpochal(age),"]"
