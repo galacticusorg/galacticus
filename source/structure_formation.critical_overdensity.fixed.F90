@@ -15,81 +15,121 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of critical overdensity using a fixed value.
+!% Contains a module which implements an fixed critical overdensity class.
 
-module Critical_Overdensities_Fixed
-  implicit none
-  private
-  public :: Critical_Overdensity_Fixed_Initialize
+  !# <criticalOverdensity name="criticalOverdensityFixed">
+  !#  <description>The critical overdensity is set to a fixed number divided by the linear growth factor.</description>
+  !# </criticalOverdensity>
+  type, extends(criticalOverdensityClass) :: criticalOverdensityFixed
+     !% A fixed critical overdensity class.
+     private
+     double precision :: criticalOverdensity
+   contains
+     final     ::                   fixedDestructor
+     procedure :: value          => fixedValue
+     procedure :: gradientTime   => fixedGradientTime
+     procedure :: gradientMass   => fixedGradientMass
+  end type criticalOverdensityFixed
 
-  ! Value to use for critical overdenisty.
-  double precision :: criticalOverdensityFixed
-
-  ! Variables to hold the tabulated critical overdensity data.
-  double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum=1.0d0
-  integer         , parameter :: deltaTableNPointsPerDecade=100
+  interface criticalOverdensityFixed
+     !% Constructors for the fixed critical overdensity class.
+     module procedure fixedConstructorParameters
+     module procedure fixedConstructorInternal
+  end interface criticalOverdensityFixed
 
 contains
 
-  !# <criticalOverdensityMethod>
-  !#  <unitName>Critical_Overdensity_Fixed_Initialize</unitName>
-  !# </criticalOverdensityMethod>
-  subroutine Critical_Overdensity_Fixed_Initialize(criticalOverdensityMethod,Critical_Overdensity_Contrast_Tabulate)
-    !% Initializes the $\delta_{\mathrm c}$ calculation for the fixed module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function fixedConstructorParameters(parameters)
+    !% Constructor for the fixed critical overdensity class which takes a parameter set as input.
+    use Input_Parameters2
     use Numerical_Constants_Math
     implicit none
-    type     (varying_string            ), intent(in   )          :: criticalOverdensityMethod
-    procedure(Critical_Overdensity_Fixed), intent(inout), pointer :: Critical_Overdensity_Contrast_Tabulate
-
-    if (criticalOverdensityMethod == 'fixed') then
-       Critical_Overdensity_Contrast_Tabulate => Critical_Overdensity_Fixed     
-       !@ <inputParameter>
-       !@   <name>criticalOverdensityFixed</name>
-       !@   <defaultValue>$(3/20)(12\pi)^{2/3}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The value to use for the critical overdensity for collapse of dark matter halos when using a fixed value.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('criticalOverdensityFixed',criticalOverdensityFixed,defaultValue=(3.0d0/20.0d0)*(12.0d0*Pi)**(2.0d0/3.0d0))
-    end if
+    type(criticalOverdensityFixed)                :: fixedConstructorParameters
+    type(inputParameters         ), intent(in   ) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
+    
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>criticalOverdensity</name>
+    !#   <source>parameters</source>
+    !#   <variable>fixedConstructorParameters%criticalOverdensity</variable>
+    !#   <defaultValue>(3.0d0/20.0d0)*(12.0d0*Pi)**(2.0d0/3.0d0)</defaultValue>
+    !#   <description>The value to use for the critical overdensity for collapse of dark matter halos when using a fixed value.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     return
-  end subroutine Critical_Overdensity_Fixed_Initialize
+  end function fixedConstructorParameters
 
-  subroutine Critical_Overdensity_Fixed(time,deltaTable)
-    !% Tabulate the virial density contrast for the fixed module.
-    use Tables
-    use Linear_Growth
+  function fixedConstructorInternal(criticalOverdensity)
+    !% Internal constructor for the fixed critical overdensity class.
     implicit none
-    double precision                      , intent(in   ) :: time
-    class           (table1D), allocatable, intent(inout) :: deltaTable
-    integer                                               :: deltaTableNumberPoints, iTime
+    type            (criticalOverdensityFixed)                :: fixedConstructorInternal
+    double precision                          , intent(in   ) :: criticalOverdensity
 
-    ! Find minimum and maximum times to tabulate.
-    deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
-    deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
-    ! Determine number of points to tabulate.
-    deltaTableNumberPoints=int(log10(deltaTableTimeMaximum/deltaTableTimeMinimum)*dble(deltaTableNPointsPerDecade))
-    ! Create the table.
-    if (allocated(deltaTable)) then
-       call deltaTable%destroy()
-       deallocate(deltaTable)
-    end if
-    allocate(table1DLogarithmicLinear :: deltaTable)
-    select type (deltaTable)
-    type is (table1DLogarithmicLinear)
-       ! Create the table.
-       call deltaTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
-       ! Populate the table with our fixed value of the critical overdensity.
-       do iTime=1,deltaTableNumberPoints
-          call deltaTable%populate(criticalOverdensityFixed/Linear_Growth_Factor(deltaTable%x(iTime)),iTime)
-       end do
-    end select
+    fixedConstructorInternal%criticalOverdensity=criticalOverdensity
     return
-  end subroutine Critical_Overdensity_Fixed
+  end function fixedConstructorInternal
 
-end module Critical_Overdensities_Fixed
+  elemental subroutine fixedDestructor(self)
+    !% Destructor for the fixed critical overdensity class.
+    implicit none
+    type(criticalOverdensityFixed), intent(inout) :: self
+
+    ! Nothing to do.
+    return
+  end subroutine fixedDestructor
+
+  double precision function fixedValue(self,time,expansionFactor,collapsing,mass)
+    !% Return the critical overdensity at the given time and mass.
+    use Linear_Growth
+    use Cosmology_Functions
+    implicit none
+    class           (criticalOverdensityFixed), intent(inout)           :: self
+    double precision                          , intent(in   ), optional :: time               , expansionFactor
+    logical                                   , intent(in   ), optional :: collapsing
+    double precision                          , intent(in   ), optional :: mass
+    class           (cosmologyFunctionsClass ), pointer                 :: cosmologyFunctions_
+    double precision                                                    :: time_
+    
+    cosmologyFunctions_ => cosmologyFunctions()
+    call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
+    fixedValue=self%criticalOverdensity/Linear_Growth_Factor(time_)
+    return
+  end function fixedValue
+
+  double precision function fixedGradientTime(self,time,expansionFactor,collapsing,mass)
+    !% Return the gradient with respect to time of critical overdensity at the given time and mass.
+    use Linear_Growth
+    use Cosmology_Functions
+    implicit none
+    class           (criticalOverdensityFixed), intent(inout)           :: self
+    double precision                          , intent(in   ), optional :: time               , expansionFactor
+    logical                                   , intent(in   ), optional :: collapsing
+    double precision                          , intent(in   ), optional :: mass
+    class           (cosmologyFunctionsClass ), pointer                 :: cosmologyFunctions_
+    double precision                                                    :: time_
+    
+    cosmologyFunctions_ => cosmologyFunctions()
+    call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
+    fixedGradientTime=-self%criticalOverdensity                           &
+         &            *Linear_Growth_Factor_Logarithmic_Derivative(time_) &
+         &            /Linear_Growth_Factor                       (time_) &
+         &            /                                            time_
+    return
+  end function fixedGradientTime
+
+  double precision function fixedGradientMass(self,time,expansionFactor,collapsing,mass)
+    !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
+    use Linear_Growth
+    use Cosmology_Functions
+    implicit none
+    class           (criticalOverdensityFixed), intent(inout)           :: self
+    double precision                          , intent(in   ), optional :: time               , expansionFactor
+    logical                                   , intent(in   ), optional :: collapsing
+    double precision                          , intent(in   ), optional :: mass
+
+    fixedGradientMass=0.0d0
+    return
+  end function fixedGradientMass
