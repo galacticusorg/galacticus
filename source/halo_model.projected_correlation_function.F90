@@ -60,6 +60,7 @@ contains
     use               FFTLogs
     use               Tables
     use               Table_Labels
+    use               Linear_Growth
     implicit none
     class           (conditionalMassFunctionClass       ), intent(inout)                                             :: conditionalMassFunction_
     double precision                                     , intent(in   ), dimension(                             : ) :: projectedSeparationBinned
@@ -75,6 +76,7 @@ contains
     class           (nodeComponentBasic                 ), pointer                                                   :: thisBasic
     class           (nodeComponentDarkMatterProfile     ), pointer                                                   :: thisDarkMatterProfile
     class           (darkMatterHaloScaleClass           ), pointer                                                   :: darkMatterHaloScale_
+    class           (linearGrowthClass                  ), pointer                                                   :: linearGrowth_
     procedure       (integrandWeight                    ), pointer                                                   :: integrandWeightFunction
     double precision                                     , allocatable  , dimension(                             : ) :: powerSpectrumOneHalo                              , powerSpectrumTwoHalo                              , &
          &                                                                                                              wavenumber                                        , powerSpectrum                                     , &
@@ -98,11 +100,12 @@ contains
     logical                                                                                                          :: integrationReset
     type            (table1DLogarithmicLinear           )                                                            :: correlationTable
 
-    ! Get the default cosmology functions, survey geometry, and dark matter profile concentration objects.
+    ! Get required objects.
     cosmologyFunctions_             => cosmologyFunctions            ()     
     surveyGeometry_                 => surveyGeometry                ()
     darkMatterProfileConcentration_ => darkMatterProfileConcentration()
     darkMatterHaloScale_            => darkMatterHaloScale           ()
+    linearGrowth_                   => linearGrowth                  ()
     ! Create worker node.
     thisNode              => treeNode                  (                 )
     thisBasic             => thisNode%basic            (autoCreate=.true.)
@@ -394,16 +397,15 @@ contains
 
     function powerSpectrumTwoHaloTimeIntegrand(timePrime,parameterPointer) bind(c)
       !% Time integrand for the two-halo term in the power spectrum.
-      use Linear_Growth
       use Galacticus_Display
       implicit none
-      real   (c_double                  )        :: powerSpectrumTwoHaloTimeIntegrand
-      real   (c_double                  ), value :: timePrime
-      type   (c_ptr                     ), value :: parameterPointer
-      type   (fgsl_function             )        :: integrandFunctionTime
-      type   (fgsl_integration_workspace)        :: integrationWorkspaceTime
-      logical                                    :: integrationResetTime
-      integer                                    :: errorStatus
+      real   (c_double                  )          :: powerSpectrumTwoHaloTimeIntegrand
+      real   (c_double                  ), value   :: timePrime
+      type   (c_ptr                     ), value   :: parameterPointer
+      type   (fgsl_function             )          :: integrandFunctionTime
+      type   (fgsl_integration_workspace)          :: integrationWorkspaceTime
+      logical                                      :: integrationResetTime
+      integer                                      :: errorStatus
 
       time           =timePrime
       expansionFactor=cosmologyFunctions_%expansionFactor(time)
@@ -423,7 +425,7 @@ contains
            &            integrationRule                            =FGSL_Integ_Gauss61  , &
            &            errorStatus                                =errorStatus           &
            &           )                                                                  &
-           & *Linear_Growth_Factor                         (time)                         &
+           & *linearGrowth_      %value                    (time)                         &
            & *cosmologyFunctions_%comovingVolumeElementTime(time)
       call Integrate_Done(integrandFunctionTime,integrationWorkspaceTime)
       if (errorStatus /= errorStatusSuccess .and. .not.integrationWarningIssued) then

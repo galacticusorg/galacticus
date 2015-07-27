@@ -102,7 +102,7 @@ contains
                    if (.not.accretionHalo_%branchHasBaryons(thisNode).and.thisNode%uniqueID() /= previousNode%uniqueID()) then
                       didPruning=.true.
                       ! Decouple from other nodes.
-                      call Merger_Tree_Prune_Unlink_Parent(thisNode,previousNode,.not.accretionHalo_%branchHasBaryons(previousNode))
+                      call Merger_Tree_Prune_Unlink_Parent(thisNode,previousNode,.not.accretionHalo_%branchHasBaryons(previousNode),.true.)
                       ! Clean the branch.
                       call Merger_Tree_Prune_Clean_Branch(thisNode)
                       ! Destroy the branch.

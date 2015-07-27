@@ -51,7 +51,8 @@ contains
     integer                                  , parameter           :: iterationCountMaximum    =1000
     double precision                         , parameter           :: tolerance                =1.0d-3
     double precision                         , parameter           :: updateFraction           =0.5d+0
-    class           (cosmologyFunctionsClass), pointer             :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass), pointer             :: cosmologyFunctions_
+    class           (linearGrowthClass      ), pointer             :: linearGrowth_
     double precision                         , dimension(2) , save :: waveNumberPrevious       =-1.0d0, fNLPrevious        
     double precision                                        , save :: timePrevious             =-1.0d0
     !$omp threadprivate(waveNumberPrevious,fNLPrevious,timePrevious)
@@ -67,11 +68,12 @@ contains
          &                                                            omegaMatterFourSevenths         , logRatioBest
     
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
+    cosmologyFunctions_ => cosmologyFunctions()
+    linearGrowth_       => linearGrowth      ()
     ! Pre-compute quantities which depend only on time, and so will be constant throughout this calculation.
-    linearGrowthFactorSquared=Linear_Growth_Factor                            (time)**2
-    omegaMatter              =cosmologyFunctionsDefault%omegaMatterEpochal    (time)
-    omegaDarkEnergy          =cosmologyFunctionsDefault%omegaDarkEnergyEpochal(time)
+    linearGrowthFactorSquared=linearGrowth_      %value                 (time)**2
+    omegaMatter              =cosmologyFunctions_%omegaMatterEpochal    (time)
+    omegaDarkEnergy          =cosmologyFunctions_%omegaDarkEnergyEpochal(time)
     omegaMatterFourSevenths  =omegaMatter                                           **(4.0d0/7.0d0)
     ! Determine if we can use a previous estimate of fNL as our starting guess.
     fNL         =-1.0d0

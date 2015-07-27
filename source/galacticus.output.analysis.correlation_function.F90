@@ -194,6 +194,7 @@ contains
     integer         (c_size_t                      ), intent(in   )                 :: iOutput
     type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
+    class           (linearGrowthClass             )               , pointer        :: linearGrowth_
     integer                                         , parameter                     :: wavenumberCount  =60
     double precision                                , parameter                     :: wavenumberMinimum=0.001d0, wavenumberMaximum=10000.0d0
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
@@ -269,6 +270,7 @@ contains
              currentAnalysis=0
              allocate(correlationFunctions(activeAnalysisCount))
              cosmologyFunctionsModel => cosmologyFunctions()
+             linearGrowth_           => linearGrowth      ()
              do i=1,size(mergerTreeAnalyses)
                 do j=1,correlationFunctionsSupportedCount
                    if (mergerTreeAnalyses(i) == trim(correlationFunctionLabels(j))) then
@@ -421,7 +423,7 @@ contains
                                correlationFunctions        (currentAnalysis)%linearGrowthFactor(k)= &
                                     & +correlationFunctions(currentAnalysis)%linearGrowthFactor(k)  &
                                     & +weight                                                       &
-                                    & *Linear_Growth_Factor(Galacticus_Output_Time(jOutput))**2
+                                    & *linearGrowth_%value(Galacticus_Output_Time(jOutput))**2
                             end do
                          end do
                          where(correlationFunctions(currentAnalysis)%outputWeight(k,:) < 0.0d0)

@@ -42,7 +42,7 @@
   <mergerTreeBuildTreesPerDecade value="5"/>
   <blackHoleHeatsHotHalo value="true"/>
   <hotHaloExcessHeatDrivesOutflow value="true"/>
-  <criticalOverdensityMethod value="sphericalTopHat"/>
+  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
   <spheroidMassDistribution value="hernquist"/>
   <cosmologyFunctionsMethod value="matterLambda"/>
   <adafRadiativeEfficiency value="0.01"/>

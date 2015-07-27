@@ -24,7 +24,7 @@
   use Tables
 
   type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseMatterLambda
-     !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus cosmological constant universe.
+     !% A critical overdensity class based on spherical collapse in a matter plus cosmological constant universe.
      private
      logical                                :: tableInitialized
      double precision                       :: tableTimeMinimum   , tableTimeMaximum
@@ -113,7 +113,7 @@ contains
   end subroutine sphericalCollapseMatterLambdaRetabulate
 
   double precision function sphericalCollapseMatterLambdaValue(self,time,expansionFactor,collapsing,mass)
-    !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
+    !% Return the critical overdensity at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     use Galacticus_Error
     use Cosmology_Functions
     implicit none
@@ -136,8 +136,8 @@ contains
   end function sphericalCollapseMatterLambdaValue
 
   double precision function sphericalCollapseMatterLambdaGradientTime(self,time,expansionFactor,collapsing,mass)
-    !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
-    use Galacticus_Error
+    !% Return the time derivative of the critical overdensity at the given epoch, based spherical collapse in a matter plus
+    !% cosmological constant universe.
     use Cosmology_Functions
     implicit none
     class           (criticalOverdensitySphericalCollapseMatterLambda), intent(inout)           :: self
