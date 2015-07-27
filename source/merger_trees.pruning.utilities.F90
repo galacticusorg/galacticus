@@ -51,20 +51,21 @@ contains
     return
   end subroutine Merger_Tree_Prune_Clean_Branch
 
-  subroutine Merger_Tree_Prune_Unlink_Parent(node,parentNode,parentWillBePruned)
+  subroutine Merger_Tree_Prune_Unlink_Parent(node,parentNode,parentWillBePruned,preservePrimaryProgenitor)
     !% Unlink a parent node from a tree branch which is about to be pruned.
     use Galacticus_Nodes
     implicit none
     type   (treeNode          ), pointer, intent(inout) :: node              , parentNode
-    logical                             , intent(in   ) :: parentWillBePruned
+    logical                             , intent(in   ) :: parentWillBePruned, preservePrimaryProgenitor
     type   (treeNode          ), pointer                :: newNode           , workNode
     class  (nodeComponentBasic), pointer                :: newBasic
 
     ! Check primary progenitor status.
     if (node%isPrimaryProgenitorOf(parentNode)) then
        ! Node is primary progenitor - we must check if the parent will be pruned also.
-       if (parentWillBePruned) then
-          ! Parent will eventually be pruned - simply replace the current first child (about to pruned) with its sibling.
+       if (parentWillBePruned.or..not.preservePrimaryProgenitor) then
+          ! Parent will eventually be pruned - simply replace the current first child (about to pruned) with its
+          ! sibling. Alternatively, we've been asked to not preserve primary progenitor status by inserting cloned nodes.
           parentNode%firstChild => node%sibling
        else
           ! Parent will not be pruned. Insert a clone of the parent as its own first progenitor to prevent any siblings of the

@@ -24,6 +24,7 @@
      !% A pruning-by-mass merger tree operator class.
      private
      double precision :: massThreshold
+     logical          :: preservePrimaryProgenitor
    contains
      final     ::            pruneByMassDestructor
      procedure :: operate => pruneByMassOperate
@@ -54,16 +55,27 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>preservePrimaryProgenitor</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <variable>pruneByMassConstructorParameters%preservePrimaryProgenitor</variable>
+    !#   <description>If true, primary progenitor status is preserved even if the primary progenitor is pruned from the tree.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     return
   end function pruneByMassConstructorParameters
 
-  function pruneByMassConstructorInternal(massThreshold)
+  function pruneByMassConstructorInternal(massThreshold,preservePrimaryProgenitor)
     !% Internal constructor for the prune-by-mass merger tree operator class.
     implicit none
     type            (mergerTreeOperatorPruneByMass)                :: pruneByMassConstructorInternal
     double precision                               , intent(in   ) :: massThreshold
+    logical                                        , intent(in   ) :: preservePrimaryProgenitor
     
-    pruneByMassConstructorInternal%massThreshold=massThreshold
+    pruneByMassConstructorInternal%massThreshold            =massThreshold
+    pruneByMassConstructorInternal%preservePrimaryProgenitor=preservePrimaryProgenitor
     return
   end function pruneByMassConstructorInternal
 
@@ -114,10 +126,10 @@ contains
                 ! Record the parent node to which we will return.
                 nodePrevious => node%parent
                 if (basic%mass() < self%massThreshold) then
-                   didPruning=.true.
+                   didPruning=.true.                   
                    ! Decouple from other nodes.
                    basicPrevious => nodePrevious%basic()
-                   call Merger_Tree_Prune_Unlink_Parent(node,nodePrevious,basicPrevious%mass() < self%massThreshold)
+                   call Merger_Tree_Prune_Unlink_Parent(node,nodePrevious,basicPrevious%mass() < self%massThreshold,self%preservePrimaryProgenitor)
                    ! Clean the branch.
                    call Merger_Tree_Prune_Clean_Branch (node                                                       )
                    ! Destroy the branch.

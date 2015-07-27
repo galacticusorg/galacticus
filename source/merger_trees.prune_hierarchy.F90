@@ -112,7 +112,7 @@ contains
                       if (.not.workNode%isPrimaryProgenitor().and.associated(workNode%parent)) hierarchyDepth=hierarchyDepth+1
                       workNode => workNode%parent
                    end do
-                   call Merger_Tree_Prune_Unlink_Parent(thisNode,previousNode,hierarchyDepth >= mergerTreePruneHierarchyAtDepth)
+                   call Merger_Tree_Prune_Unlink_Parent(thisNode,previousNode,hierarchyDepth >= mergerTreePruneHierarchyAtDepth,.true.)
                    ! Clean the branch.
                    call Merger_Tree_Prune_Clean_Branch(thisNode)
                    ! Destroy the branch.
