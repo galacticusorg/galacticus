@@ -23,51 +23,35 @@ module Spherical_Collapse_Matter_Lambda
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
-  public :: Spherical_Collape_Delta_Critical_Initialize, Spherical_Collapse_Critical_Overdensity,&
+  public :: Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate,&
        & Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate,&
        & Spherical_Collapse_Matter_Lambda_State_Store, Spherical_Collapse_Matter_Lambda_State_Retrieve
 
   ! Variables to hold the tabulated critical overdensity data.
   double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum =1.0d0
   integer         , parameter :: deltaTableNPointsPerDecade=1000
-
+  !$omp threadprivate(deltaTableTimeMaximum,deltaTableTimeMinimum)
   ! Variables used in root finding.
   double precision            :: OmegaDE                          , OmegaM                      , &
        &                         epsilonPerturbationShared        , hubbleParameterInvGyr       , &
        &                         tNow
-
+  !$omp threadprivate(OmegaDE,OmegaM,epsilonPerturbationShared,hubbleParameterInvGyr,tNow)
+  
   ! Calculation types.
   integer         , parameter :: calculationDeltaCrit      =0     , calculationDeltaVirial=1
 
 contains
 
-  !# <criticalOverdensityMethod>
-  !#  <unitName>Spherical_Collape_Delta_Critical_Initialize</unitName>
-  !# </criticalOverdensityMethod>
-  subroutine Spherical_Collape_Delta_Critical_Initialize(criticalOverdensityMethod,Critical_Overdensity_Tabulate)
-    !% Initializes the $\delta_{\mathrm crit}$ calculation for the spherical collapse module.
-    use ISO_Varying_String
-    implicit none
-    type     (varying_string                         ), intent(in   )          :: criticalOverdensityMethod
-    procedure(Spherical_Collapse_Critical_Overdensity), intent(inout), pointer :: Critical_Overdensity_Tabulate
-
-    if (criticalOverdensityMethod == 'sphericalTopHat') Critical_Overdensity_Tabulate => Spherical_Collapse_Critical_Overdensity
-    return
-  end subroutine Spherical_Collape_Delta_Critical_Initialize
-
-  subroutine Spherical_Collapse_Critical_Overdensity(time,deltaCritTable)
+  subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,deltaCritTable)
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
     use Tables
     implicit none
     double precision                      , intent(in   ) :: time
     class           (table1D), allocatable, intent(inout) :: deltaCritTable
 
-    !$omp critical(Spherical_Collapse_Make_Table)
     call Make_Table(time,deltaCritTable,calculationDeltaCrit)
-    !$omp end critical(Spherical_Collapse_Make_Table)
-
     return
-  end subroutine Spherical_Collapse_Critical_Overdensity
+  end subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate
 
   subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,deltaVirialTable)
     !% Tabulate the virial density contrast for the spherical collapse model.
@@ -76,9 +60,7 @@ contains
     double precision                      , intent(in   ) :: time
     class           (table1D), allocatable, intent(inout) :: deltaVirialTable
 
-    !$omp critical(Spherical_Collapse_Make_Table)
     call Make_Table(time,deltaVirialTable,calculationDeltaVirial)
-    !$omp end critical(Spherical_Collapse_Make_Table)
     return
   end subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate
 
@@ -262,6 +244,7 @@ contains
     type   (fgsl_function             )               , save :: integrandFunction
     type   (fgsl_integration_workspace)               , save :: integrationWorkspace
     logical                                           , save :: integrationReset     =.true.
+    !$omp threadprivate(integrandFunction,integrationWorkspace,integrationReset)
     real   (kind=c_double             ), parameter           :: aMinimum             =0.0d0
     real   (kind=c_double             ), parameter           :: numericalLimitEpsilon=1.0d-4
     type   (c_ptr                     )                      :: parameterPointer

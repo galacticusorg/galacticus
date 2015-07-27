@@ -46,23 +46,25 @@ contains
     !% Compute the Sheth-Tormen halo mass function.
     use Numerical_Constants_Math
     use Power_Spectra
-    use Critical_Overdensity
+    use Critical_Overdensities
     use Cosmology_Parameters
     implicit none
-    double precision                          , intent(in   ) :: mass                           , time
-    double precision                          , parameter     :: a                      =0.707d0, normalization=0.3221836349d0, &
-         &                                                       p                      =0.3d0
-    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
-    double precision                                          :: alpha                          , nu                          , &
+    double precision                          , intent(in   ) :: mass                        , time
+    double precision                          , parameter     :: a                   =0.707d0, normalization=0.3221836349d0, &
+         &                                                       p                   =0.3d0
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    class           (criticalOverdensityClass), pointer       :: criticalOverdensity_
+    double precision                                          :: alpha                       , nu                          , &
          &                                                       nuPrime
 
-    ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
+    ! Get default objects.
+    criticalOverdensity_ => criticalOverdensity()
+    cosmologyParameters_ => cosmologyParameters()
     ! Compute the mass function.
-    nu=(Critical_Overdensity_for_Collapse(time=time,mass=mass)/Cosmological_Mass_Root_Variance(mass))**2
+    nu     =(criticalOverdensity_%value(time=time,mass=mass)/Cosmological_Mass_Root_Variance(mass))**2
     nuPrime=a*nu
     alpha=abs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
-    Halo_Mass_Function_Sheth_Tormen_Differential=(thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()/mass**2)*alpha*sqrt(2.0d0*nuPrime/Pi)*normalization&
+    Halo_Mass_Function_Sheth_Tormen_Differential=(cosmologyParameters_%OmegaMatter()*cosmologyParameters_%densityCritical()/mass**2)*alpha*sqrt(2.0d0*nuPrime/Pi)*normalization&
          &*(1.0d0+1.0d0/nuPrime**p) *exp(-0.5d0*nuPrime)
     return
   end function Halo_Mass_Function_Sheth_Tormen_Differential

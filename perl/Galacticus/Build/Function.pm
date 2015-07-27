@@ -184,16 +184,35 @@ sub Functions_Generate_Output {
 	    )
     }
 
-    # Add "isFinalizable" method.
+    # Add "isFinalizable" and "makeIndestrucible" methods.
     push(
 	@methods,
 	{
 	    name        => "isFinalizable",
-	    description => "Return true if this object can be finalized..",
+	    description => "Return true if this object can be finalized.",
 	    type        => "logical",
 	    pass        => "yes",
-	    code        => $directive."isFinalizable=.not.self%isDefault\n"
+	    code        => $directive."isFinalizable=.not.self%isIndestructible\n"
 	},
+	{
+	    name        => "makeIndestructible",
+	    description => "Make this object non-finalizable.",
+	    type        => "void",
+	    pass        => "yes",
+	    code        => "self%isIndestructible=.true.\n"
+	}
+	);
+
+    # Add "isDefault" method.
+    push(
+	@methods,
+	{
+	    name        => "isDefault",
+	    description => "Return true if this object is the default for its class.",
+	    type        => "logical",
+	    pass        => "yes",
+	    code        => $directive."isDefault=self%isDefaultValue\n"
+	}
 	);
 
 
@@ -235,7 +254,8 @@ sub Functions_Generate_Output {
     # Generate the function object.
     $buildData->{'content'} .= "   type :: ".$directive."Class\n";
     $buildData->{'content'} .= "    private\n";
-    $buildData->{'content'} .= "    logical :: isDefault=.false.\n";
+    $buildData->{'content'} .= "    logical :: isIndestructible=.false.\n";
+    $buildData->{'content'} .= "    logical :: isDefaultValue  =.false.\n";
     foreach ( &ExtraUtils::as_array($buildData->{'data'}) ) {
 	if ( reftype($_) ) {
 	    $_->{'scope'} = "self"
@@ -297,6 +317,7 @@ sub Functions_Generate_Output {
 	$buildData->{'content'} .= "    !@   </objectMethod>\n";
     }
     $buildData->{'content'} .= "    !@ </objectMethods>\n";
+    $buildData->{'content'} .= "    final :: ".$directive."Destructor\n";
     my $methodTable = Text::Table->new(
 	{
 	    is_sep => 1,
@@ -320,6 +341,7 @@ sub Functions_Generate_Output {
 	    align  => "left"
 	}
 	);    
+
     foreach ( @methods ) {
 	my $extension = "Null";
 	$extension = ""
@@ -469,6 +491,16 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "      return\n";
     $buildData->{'content'} .= "   end function ".$directive."ConstructorNamed\n\n";
 
+    # Create destructor.
+    $buildData->{'content'} .= "   subroutine ".$directive."Destructor(self)\n";
+    $buildData->{'content'} .= "      !%  {\\tt ".$directive."} object.\n";
+    $buildData->{'content'} .= "      use Galacticus_Error\n";
+    $buildData->{'content'} .= "      implicit none\n";
+    $buildData->{'content'} .= "      type(".$directive."Class), intent(in   ) :: self\n\n";
+    $buildData->{'content'} .= "      if (self%isIndestructible) call Galacticus_Error_Report('".$directive."Destructor','attempt to destroy indestructible object')\n";
+    $buildData->{'content'} .= "      return\n";
+    $buildData->{'content'} .= "   end subroutine ".$directive."Destructor\n\n";
+
     # Create initialization function.
     $buildData->{'content'} .= "   subroutine ".$directive."Initialize()\n";
     $buildData->{'content'} .= "      !% Initialize the default {\\normalfont \\ttfamily ".$directive."} object.\n";
@@ -528,12 +560,24 @@ sub Functions_Generate_Output {
     }
     $buildData->{'content'} .= "         call Galacticus_Error_Report('".$directive."Initialize',message)\n";
     $buildData->{'content'} .= "      end select\n";
-    $buildData->{'content'} .= "      ".$directive."Default%isDefault=.true.\n";
+    $buildData->{'content'} .= "      ".$directive."Default%isIndestructible=.true.\n";
+    $buildData->{'content'} .= "      ".$directive."Default%isDefaultValue  =.true.\n";
     $buildData->{'content'} .= "      return\n";
     $buildData->{'content'} .= "   end subroutine ".$directive."Initialize\n\n";
 
     # Create global state store/restore functions.
     if ( exists($buildData->{'stateful'}) && $buildData->{'stateful'} eq "yes" ) {
+	$buildData->{'content'} .= "  !# <galacticusStateSnapshotTask>\n";
+	$buildData->{'content'} .= "  !#  <unitName>".$directive."DoStateSnapshot</unitName>\n";
+	$buildData->{'content'} .= "  !# </galacticusStateSnapshotTask>\n";
+	$buildData->{'content'} .= "  subroutine ".$directive."DoStateSnapshot()\n";
+	$buildData->{'content'} .= "    !% Snapshot the state.\n";
+	$buildData->{'content'} .= "    implicit none\n";
+	$buildData->{'content'} .= "    class  (".$directive."Class), pointer :: default\n\n";
+	$buildData->{'content'} .= "    default => ".$directive."()\n";
+	$buildData->{'content'} .= "    call default%stateSnapshot()\n";
+	$buildData->{'content'} .= "    return\n";
+	$buildData->{'content'} .= "  end subroutine ".$directive."DoStateSnapshot\n\n";
 	$buildData->{'content'} .= "  !# <galacticusStateStoreTask>\n";
 	$buildData->{'content'} .= "  !#  <unitName>".$directive."DoStateStore</unitName>\n";
 	$buildData->{'content'} .= "  !# </galacticusStateStoreTask>\n";
@@ -560,17 +604,6 @@ sub Functions_Generate_Output {
 	$buildData->{'content'} .= "    call default%stateRestore(stateFile,fgslStateFile)\n";
 	$buildData->{'content'} .= "    return\n";
 	$buildData->{'content'} .= "  end subroutine ".$directive."DoStateRetrieve\n\n";
-	$buildData->{'content'} .= "  !# <galacticusStateSnapshotTask>\n";
-	$buildData->{'content'} .= "  !#  <unitName>".$directive."DoStateSnapshot</unitName>\n";
-	$buildData->{'content'} .= "  !# </galacticusStateSnapshotTask>\n";
-	$buildData->{'content'} .= "  subroutine ".$directive."DoStateSnapshot()\n";
-	$buildData->{'content'} .= "    !% Snapshot the object.\n";
-	$buildData->{'content'} .= "    implicit none\n";
-	$buildData->{'content'} .= "    class  (".$directive."Class), pointer :: default\n\n";
-	$buildData->{'content'} .= "    default => ".$directive."()\n";
-	$buildData->{'content'} .= "    call default%stateSnapshot()\n";
-	$buildData->{'content'} .= "    return\n";
-	$buildData->{'content'} .= "  end subroutine ".$directive."DoStateSnapshot\n\n";
     }
 
     # Create global calculation reset function.
@@ -871,7 +904,7 @@ sub Functions_Generate_Output {
 	$cBindings .= "};\n\n";
 	# Create methods.
 	$cBindings .= $methodCode;
-	open(cHndl,">work/build/".$directive.".h");
+	open(cHndl,">".$ENV{'BUILDPATH'}."/".$directive.".h");
 	print cHndl $cBindings;
 	close(cHndl);
     }

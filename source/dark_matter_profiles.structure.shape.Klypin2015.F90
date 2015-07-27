@@ -111,19 +111,22 @@ contains
     !% \cite{klypin_multidark_2014} algorithm.
     use Galacticus_Nodes
     use Power_Spectra
-    use Critical_Overdensity
+    use Critical_Overdensities
     implicit none
     class           (darkMatterProfileShapeKlypin2015), intent(inout)          :: self
     type            (treeNode                        ), intent(inout), pointer :: node
     double precision                                  , parameter              :: nuMaximum=3.907d0
+    class           (criticalOverdensityClass        )               , pointer :: criticalOverdensity_
     class           (nodeComponentBasic              )               , pointer :: basic
     double precision                                                           :: nu
     
+    ! Get default objects.
+    criticalOverdensity_ => criticalOverdensity()
     ! Get the basic component.
     basic => node%basic()
     ! Compute the shape parameter.
-    nu     =+Critical_Overdensity_for_Collapse(time=basic%time(),mass=basic%mass()) &
-         &  /Cosmological_Mass_Root_Variance  (                       basic%mass())
+    nu     =+criticalOverdensity_%value     (time=basic%time(),mass=basic%mass()) &
+         &  /Cosmological_Mass_Root_Variance(                       basic%mass())
     select case (self%sample)
     case (klypin2015SampleAll    )
        klypin2015Shape=0.115d0+0.0165d0*nu**2

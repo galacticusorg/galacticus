@@ -24,31 +24,31 @@ my $inFile  = new PDL::IO::HDF5(     $inFileName);
 my $outFile = new PDL::IO::HDF5(">".$outFileName);
 
 # Find the tree to extract.
-my $treeIndex = $inFile->group("treeIndex")->dataset("treeIndex"    )->get();
-my $firstNode = $inFile->group("treeIndex")->dataset("firstNode"    )->get();
-my $nodeCount = $inFile->group("treeIndex")->dataset("numberOfNodes")->get();
-my $selected  = which($treeIndex == $tree);
-my $start     = $firstNode->index($selected)->sclr();
-my $count     = $nodeCount->index($selected)->sclr();
-my $end       = $start+$count-1;
+my $forestIndex = $inFile->group("forestIndex")->dataset("forestIndex"  )->get();
+my $firstNode   = $inFile->group("forestIndex")->dataset("firstNode"    )->get();
+my $nodeCount   = $inFile->group("forestIndex")->dataset("numberOfNodes")->get();
+my $selected    = which($forestIndex == $tree);
+my $start       = $firstNode->index($selected)->sclr();
+my $count       = $nodeCount->index($selected)->sclr();
+my $end         = $start+$count-1;
 
-# Read all haloTrees datasets.
-foreach my $datasetName ( $inFile->group("haloTrees")->datasets() ) {
-    my $dataset    = $inFile->group("haloTrees")->dataset($datasetName)->get();
+# Read all forestHalos datasets.
+foreach my $datasetName ( $inFile->group("forestHalos")->datasets() ) {
+    my $dataset    = $inFile->group("forestHalos")->dataset($datasetName)->get();
     my $dimensions = $dataset->ndims();
      if      ( $dimensions == 1 ) {
-     	$outFile->group("haloTrees")->dataset($datasetName)->set($dataset->(  $start:$end));
+     	$outFile->group("forestHalos")->dataset($datasetName)->set($dataset->(  $start:$end));
      } elsif ( $dimensions == 2 ) {
-     	$outFile->group("haloTrees")->dataset($datasetName)->set($dataset->(:,$start:$end));
+     	$outFile->group("forestHalos")->dataset($datasetName)->set($dataset->(:,$start:$end));
      } else {
      	die("??");
      }
 }
 
-# Create the treeIndex group.
-$outFile->group("treeIndex")->dataset("treeIndex"    )->set(pdl longlong([$tree ]));
-$outFile->group("treeIndex")->dataset("firstNode"    )->set(pdl longlong([     0]));
-$outFile->group("treeIndex")->dataset("numberOfNodes")->set(pdl longlong([$count]));
+# Create the forestIndex group.
+$outFile->group("forestIndex")->dataset("forestIndex"  )->set(pdl longlong([$tree ]));
+$outFile->group("forestIndex")->dataset("firstNode"    )->set(pdl longlong([     0]));
+$outFile->group("forestIndex")->dataset("numberOfNodes")->set(pdl longlong([$count]));
 
 # Copy all attributes.
 foreach my $groupName ( $inFile->groups() ) {

@@ -275,49 +275,70 @@ my @translations =
 	     "powerSpectrumIndex"                                             => "powerSpectrumPrimordialMethod--index"                              ,
 	     "powerSpectrumRunning"                                           => "powerSpectrumPrimordialMethod--running"                            ,
 	     "powerSpectrumReferenceWavenumber"                               => "powerSpectrumPrimordialMethod--wavenumberReference"                ,
-	     "mergerTreeBuildCole2000AccretionLimit"                          => "mergerTreeBuildMethod--accretionLimit"                             ,
-	     "mergerTreeBuildCole2000MergeProbability"                        => "mergerTreeBuildMethod--mergeProbability"                           ,
-	     "mergerTreeBuildCole2000HighestRedshift"                         => "mergerTreeBuildMethod--redshiftMaximum"                            ,
-	     "mergerTreeBuildCole2000FixedRandomSeeds"                        => "mergerTreeBuildMethod--randomSeedsFixed"                           ,
-	     "mergerTreeRegridTimes"                                          => "mergerTreeOperatorMethod.regridTimes."                             ,
-	     "mergerTreeRegridDumpTrees"                                      => "mergerTreeOperatorMethod.regridTimes.--dumpTrees"                  ,
-	     "mergerTreeRegridCount"                                          => "mergerTreeOperatorMethod.regridTimes.--regridCount"                ,
-	     "mergerTreeRegridStartExpansionFactor"                           => "mergerTreeOperatorMethod.regridTimes.--expansionFactorStart"       ,
-	     "mergerTreeRegridEndExpansionFactor"                             => "mergerTreeOperatorMethod.regridTimes.--expansionFactorEnd"         ,
-	     "mergerTreeRegridSpacing"                                        => "mergerTreeOperatorMethod.regridTimes.--snapshotSpacing"            ,
-	     "mergerTreePruneBranches"                                        => "mergerTreeOperatorMethod.pruneByMass."                             ,
-	     "mergerTreePruningMassThreshold"                                 => "mergerTreeOperatorMethod.pruneByMass.--massThreshold"              ,
-	     "mergerTreeComputeConditionalMassFunction"                       => "mergerTreeOperatorMethod.conditionalMF."                           ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassCount"        => "mergerTreeOperatorMethod.conditionalMF.--parentMassCount"          ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassMinimum"      => "mergerTreeOperatorMethod.conditionalMF.--parentMassMinimum"        ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassMaximum"      => "mergerTreeOperatorMethod.conditionalMF.--parentMassMaximum"        ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioCount"         => "mergerTreeOperatorMethod.conditionalMF.--massRatioCount"           ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioMinimum"       => "mergerTreeOperatorMethod.conditionalMF.--massRatioMinimum"         ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioMaximum"       => "mergerTreeOperatorMethod.conditionalMF.--massRatioMaximum"         ,
-	     "mergerTreeComputeConditionalMassFunctionParentRedshifts"        => "mergerTreeOperatorMethod.conditionalMF.--parentRedshifts"          ,
-	     "mergerTreeComputeConditionalMassFunctionProgenitorRedshifts"    => "mergerTreeOperatorMethod.conditionalMF.--progenitorRedshifts"      ,
-	     "mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth" => "mergerTreeOperatorMethod.conditionalMF.--primaryProgenitorDepth"   ,
-	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"     => "mergerTreeOperatorMethod.conditionalMF.--formationRateTimeFraction"
+	     "mergerTreeBuildCole2000AccretionLimit"                          => "mergerTreeBuilderMethod--accretionLimit"                             ,
+	     "mergerTreeBuildCole2000MergeProbability"                        => "mergerTreeBuilderMethod--mergeProbability"                           ,
+	     "mergerTreeBuildCole2000HighestRedshift"                         => "mergerTreeBuilderMethod--redshiftMaximum"                            ,
+	     "mergerTreeBuildCole2000FixedRandomSeeds"                        => "mergerTreeBuilderMethod--randomSeedsFixed"                           ,
+	     "mergerTreeRegridTimes"                                          => "mergerTreeOperatorMethod+regridTimes+"                             ,
+	     "mergerTreeRegridDumpTrees"                                      => "mergerTreeOperatorMethod+regridTimes+--dumpTrees"                  ,
+	     "mergerTreeRegridCount"                                          => "mergerTreeOperatorMethod+regridTimes+--regridCount"                ,
+	     "mergerTreeRegridStartExpansionFactor"                           => "mergerTreeOperatorMethod+regridTimes+--expansionFactorStart"       ,
+	     "mergerTreeRegridEndExpansionFactor"                             => "mergerTreeOperatorMethod+regridTimes+--expansionFactorEnd"         ,
+	     "mergerTreeRegridSpacing"                                        => "mergerTreeOperatorMethod+regridTimes+--snapshotSpacing"            ,
+	     "mergerTreePruneBranches"                                        => "mergerTreeOperatorMethod+pruneByMass+"                             ,
+	     "mergerTreePruningMassThreshold"                                 => "mergerTreeOperatorMethod+pruneByMass+--massThreshold"              ,
+	     "mergerTreeComputeConditionalMassFunction"                       => "mergerTreeOperatorMethod+conditionalMF+"                           ,
+	     "mergerTreeComputeConditionalMassFunctionParentMassCount"        => "mergerTreeOperatorMethod+conditionalMF+--parentMassCount"          ,
+	     "mergerTreeComputeConditionalMassFunctionParentMassMinimum"      => "mergerTreeOperatorMethod+conditionalMF+--parentMassMinimum"        ,
+	     "mergerTreeComputeConditionalMassFunctionParentMassMaximum"      => "mergerTreeOperatorMethod+conditionalMF+--parentMassMaximum"        ,
+	     "mergerTreeComputeConditionalMassFunctionMassRatioCount"         => "mergerTreeOperatorMethod+conditionalMF+--massRatioCount"           ,
+	     "mergerTreeComputeConditionalMassFunctionMassRatioMinimum"       => "mergerTreeOperatorMethod+conditionalMF+--massRatioMinimum"         ,
+	     "mergerTreeComputeConditionalMassFunctionMassRatioMaximum"       => "mergerTreeOperatorMethod+conditionalMF+--massRatioMaximum"         ,
+	     "mergerTreeComputeConditionalMassFunctionParentRedshifts"        => "mergerTreeOperatorMethod+conditionalMF+--parentRedshifts"          ,
+	     "mergerTreeComputeConditionalMassFunctionProgenitorRedshifts"    => "mergerTreeOperatorMethod+conditionalMF+--progenitorRedshifts"      ,
+	     "mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth" => "mergerTreeOperatorMethod+conditionalMF+--primaryProgenitorDepth"   ,
+	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"     => "mergerTreeOperatorMethod+conditionalMF+--formationRateTimeFraction",
+	     "warmDarkMatterCriticalOverdensityGX"                            => "criticalDensityMethod+barkana2001WDM+--gX"                         ,
+	     "warmDarkMatterCriticalOverdensityMX"                            => "criticalDensityMethod+barkana2001WDM+--mX"                         ,
+	     "warmDarkMatterCriticalOverdensityUseFittingFunction"            => "criticalDensityMethod+barkana2001WDM+--useFittingFunction"
 	 },
  	 values        =>
          {
 	     mergerTreeBuilderMethod        =>
 	     {
-		 "Cole2000"              => "cole2000"
+		 "Cole2000"                  => "cole2000"
+	     },
+	     treeNodeMethodDisk      =>
+	     {
+		 "exponential"           => {
+		                             value => "standard",
+		                             new   => [
+				    	               {
+			                                name  => "diskMassDistribution",
+			                                value => "exponentialDisk"
+			                               }
+			                              ]
+		                            }
 	     },
 	     darkMatterProfileShapeMethod   =>
 	     {
-		 "Gao2008"               => "gao2008"
+		 "Gao2008"                   => "gao2008"
 	     },
 	     transferFunctionMethod         =>
 	     {
-		 "null"                  => "identity"        ,
-		 "Eisenstein-Hu1999"     => "eisensteinHu1999"
+		 "null"                      => "identity"        ,
+		 "Eisenstein-Hu1999"         => "eisensteinHu1999"
 	     },
 	     stellarPopulationSpectraMethod =>
 	     {
-	         "Conroy-White-Gunn2009" => "FSPS"
-             }		     
+	         "Conroy-White-Gunn2009"     => "FSPS"
+             },
+	     criticalOverdensityMethod =>
+	     {
+		 "Kitayama-Suto1996"         => "kitayamaSuto1996"             ,
+		 "sphericalTopHat"           => "sphericalCollapseMatterLambda",
+		 "sphericalTopHatDarkEnergy" => "sphericalCollapseMatterDE"
+	     }
 	 }
     }
     );
@@ -325,7 +346,8 @@ my @translations =
 # Define known defaults.
 my %knownDefaults =
     (
-     "cosmologyParametersMethod" => "simple"
+     "cosmologyParametersMethod" => "simple",
+     "mergerTreeBuilderMethod"   => "cole2000"
     );
 
 # Parse the input file.
@@ -350,7 +372,7 @@ print "Translating file: ".$inputFileName."\n";
 
 # Iterate over parameter sets.
 foreach my $parameters ( @parameterSets ) {
-    &Translate($parameters,1);
+    &Translate($parameters,1,$inputFileName);
 }
 
 # Output the resulting file.
@@ -362,8 +384,9 @@ $input->toFile($outputFileName);
 exit;
 
 sub Translate {
-    my $parameters = shift();
-    my $rootLevel  = shift();
+    my $parameters    = shift();
+    my $rootLevel     = shift();
+    my $inputFileName = shift();
 
     # Set initial input/output versions.
     my $inputVersion  = $options{'inputVersion' };
@@ -425,7 +448,7 @@ sub Translate {
     # Validate the parameter file.
     if ( $options{'validate'} eq "yes" ) {
 	system($galacticusPath."scripts/aux/validateParameters.pl ".$inputFileName);
-	die('input file is not a valid Galacticus parameter file')
+	die('input file "'.$inputFileName.'"is not a valid Galacticus parameter file')
 	    unless ( $? == 0 );
     }
     
@@ -452,7 +475,7 @@ sub Translate {
 	    my @allValues;
 	    if ( $options{'inputFormatVersion'} <= 1 ) {
 		$name      = $parameter->findnodes('name' )->[0]->firstChild();
-		$nameText  = $name->data();
+		$nameText  = $name->textContent();
 		@allValues = $parameter->findnodes('value');
 	    } else {
 		$name     = $parameter;
@@ -472,7 +495,7 @@ sub Translate {
 		    (my $leafName = $translation->{'names'}->{$nameText});# =~ s/^(.*\->)//;
 		    my $valueTo;
 		    unless ( $translation->{'names'}->{$nameText} =~ m/\-\-/ ) {
-			if ( $leafName =~ m/(.*)\.(.*)\./ ) {
+			if ( $leafName =~ m/(.*)\+(.*)\+/ ) {
 			    $valueTo    = $2;
 			}
 		    }
@@ -489,7 +512,7 @@ sub Translate {
 		    if ( $value->isSameNode($name) ) {
 			$valuesText = $value->getAttribute('value');
 		    } else {
-			$valuesText = $value->firstChild()->data();
+			$valuesText = $value->firstChild()->textContent();
 		    }
 		    $valuesText =~ s/^\s*//;
 		    $valuesText =~ s/\s*$//;
@@ -577,7 +600,7 @@ sub Translate {
 		if ( $useAttribute ) {
 		    $parameterNode->setAttribute('value',$value->textContent());
 		} else {
-		    &Translate($valueNode,0)
+		    &Translate($valueNode,0,$inputFileName)
 			if ( @subParameters );
 		    $parameterNode->addChild($input->createTextNode("\n"));
 		    $parameterNode->addChild($valueNode);
@@ -626,7 +649,7 @@ sub Translate {
     }
     # Strip out value extensions.
     for my $parameter ( $parameters->getChildrenByTagName("*") ) {
-	if ( $parameter->nodeName() =~ m/([^\.]+)\./ ) {
+	if ( $parameter->nodeName() =~ m/([^\+]+)\+/ ) {
 	    my $nodeName = $1;
 	    $parameter->setNodeName($nodeName);
 	}

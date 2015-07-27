@@ -28,9 +28,11 @@ module Cosmological_Mass_Variance_Filtered_Power_Spectrum
   ! Initial ranges and tabulation scale for the mass variance.
   double precision            :: sigmaTableMassMaximum     =1.0d15, sigmaTableMassMinimum=1.0d6
   integer         , parameter :: sigmaTableNPointsPerDecade=10
+  !$omp threadprivate(sigmaTableMassMinimum,sigmaTableMassMaximum)
 
   ! Smoothing mass scale used in computing variance.
   double precision            :: smoothingMass
+  !$omp threadprivate(smoothingMass)
 
   ! Integration tolerances.
   double precision            :: massVarianceFilteredPowerSpectrumTopHatTolerance
