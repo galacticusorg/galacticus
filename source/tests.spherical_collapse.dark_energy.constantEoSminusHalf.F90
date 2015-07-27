@@ -32,8 +32,9 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Half
   use Linear_Growth
   implicit none
   double precision                          , dimension(7) :: redshift                 =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
-  class           (cosmologyFunctionsClass ), pointer      :: cosmologyFunctionsDefault
+  class           (cosmologyFunctionsClass ), pointer      :: cosmologyFunctions_
   class           (criticalOverdensityClass), pointer      :: criticalOverdensity_
+  class           (linearGrowthClass       ), pointer      :: linearGrowth_
   type            (varying_string          )               :: parameterFile
   character       (len=1024                )               :: message
   integer                                                  :: iExpansion
@@ -50,16 +51,17 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Half
   parameterFile='testSuite/parameters/sphericalCollapse/darkEnergy.constantEoSminusHalf.xml'
   call Input_Parameters_File_Open(parameterFile)
   ! Get the default cosmology functions object.
-  cosmologyFunctionsDefault => cosmologyFunctions ()
-  criticalOverdensity_      => criticalOverdensity()
+  cosmologyFunctions_  => cosmologyFunctions ()
+  criticalOverdensity_ => criticalOverdensity()
+  linearGrowth_        => linearGrowth       ()
   do iExpansion=1,size(redshift)
-     expansionFactor            =cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift       (iExpansion))
-     age                        =cosmologyFunctionsDefault%cosmicTime                 (expansionFactor            )
+     expansionFactor            =cosmologyFunctions_%expansionFactorFromRedshift(redshift       (iExpansion))
+     age                        =cosmologyFunctions_%cosmicTime                 (expansionFactor            )
      criticalOverdensityValue   =criticalOverdensity_     %value                      (age                        )
-     omega                      =cosmologyFunctionsDefault%equationOfStateDarkEnergy(age)
+     omega                      =cosmologyFunctions_%equationOfStateDarkEnergy(age)
      alpha                      =0.353d0*omega**4+1.044d0*omega**3+1.128d0*omega**2+0.555d0*omega+0.131d0
-     criticalOverdensityExpected=(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)*(1.0d0+alpha*log10(cosmologyFunctionsDefault%omegaMatterEpochal(age)))/Linear_Growth_Factor(age)
-     write (message,'(a,f6.1,a,f6.4,a)') "critical density for collapse [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctionsDefault%omegaMatterEpochal(age),"]"
+     criticalOverdensityExpected=(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)*(1.0d0+alpha*log10(cosmologyFunctions_%omegaMatterEpochal(age)))/linearGrowth_%value(age)
+     write (message,'(a,f6.1,a,f6.4,a)') "critical density for collapse [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctions_%omegaMatterEpochal(age),"]"
      call Assert(trim(message),criticalOverdensityValue,criticalOverdensityExpected,relTol=1.0d-3)
   end do
   call Input_Parameters_File_Close

@@ -697,7 +697,7 @@
     <cosmologyFunctionsMethod value="matterDarkEnergy"/>
     <darkEnergyEquationOfStateW0 value="-0.8"/>
     <darkEnergyEquationOfStateW1 value="0.0"/>
-    <criticalOverdensityMethod value="sphericalTopHatDarkEnergy"/>
+    <criticalOverdensityMethod value="sphericalCollapseMatterDE"/>
     <virialDensityContrastMethod value="sphericalCollapseMatterDE"/>
     <virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt value="turnaround"/>
   </parameters>
@@ -802,7 +802,7 @@
     </powerSpectrumPrimordialMethod>
     <linearGrowthMethod value="simple"/>
     <haloMassFunctionMethod value="Tinker2008"/>
-    <criticalOverdensityMethod value="sphericalTopHat"/>
+    <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
     <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
     <mergerTreeConstructMethod value="build"/>
     <mergerTreeBuilderMethod value="cole2000"/>

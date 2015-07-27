@@ -33,7 +33,7 @@
   <coolingTimeMethod value="simple"/>
   <coolingTimeSimpleDegreesOfFreedom value="3"/>
   <cosmologyFunctionsMethod value="matterLambda"/>
-  <criticalOverdensityMethod value="sphericalTopHat"/>
+  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
   <darkMatterProfileMethod value="NFW"/>
   <darkMatterProfileMinimumConcentration value="4"/>

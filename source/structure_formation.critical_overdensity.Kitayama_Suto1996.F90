@@ -79,13 +79,15 @@ contains
     logical                                              , intent(in   ), optional :: collapsing
     double precision                                     , intent(in   ), optional :: mass
     class           (cosmologyFunctionsClass            ), pointer                 :: cosmologyFunctions_
+    class           (linearGrowthClass                  ), pointer                 :: linearGrowth_
     double precision                                                               :: time_
     
     cosmologyFunctions_ => cosmologyFunctions()
+    linearGrowth_       => linearGrowth      ()
     call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     kitayamaSuto1996Value=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                             &
          &                *(1.0d0+0.0123d0*log10(cosmologyFunctions_%omegaMatterEpochal(time_))) &
-         &                /Linear_Growth_Factor                                        (time_)
+         &                /                      linearGrowth_      %value             (time_)
     return
   end function kitayamaSuto1996Value
 
@@ -100,19 +102,22 @@ contains
     logical                                              , intent(in   ), optional :: collapsing
     double precision                                     , intent(in   ), optional :: mass
     class           (cosmologyFunctionsClass            ), pointer                 :: cosmologyFunctions_
-    double precision                                                               :: time_
+    class           (linearGrowthClass                  ), pointer                 :: linearGrowth_
+    double precision                                                               :: time_              , expansionFactor_
     
     cosmologyFunctions_ => cosmologyFunctions()
-    call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
-    kitayamaSuto1996GradientTime=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                                    &
-         &                       *(                                                                            &
-         &                                +0.0123d0*      cosmologyFunctions_%omegaMatterRateOfChange(time_)   &
-         &                         /                      cosmologyFunctions_%omegaMatterEpochal     (time_)   &
-         &                         /                log  (10.0d0                                            )  &
-         &                         -(1.0d0+0.0123d0*log10(cosmologyFunctions_%omegaMatterEpochal     (time_))) &
-         &                         *Linear_Growth_Factor_Logarithmic_Derivative                      (time_)   &
-         &                        )                                                                            &
-         &                       /  Linear_Growth_Factor                                             (time_)
+    linearGrowth_       => linearGrowth      ()
+    call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
+    kitayamaSuto1996GradientTime=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                                                            &
+         &                       *(                                                                                                    &
+         &                                +0.0123d0*      cosmologyFunctions_%omegaMatterRateOfChange             (time_           )   &
+         &                         /                      cosmologyFunctions_%omegaMatterEpochal                  (time_           )   &
+         &                         /                log  (10.0d0                                                                    )  &
+         &                         -(1.0d0+0.0123d0*log10(cosmologyFunctions_%omegaMatterEpochal                  (time_           ))) &
+         &                         *                      linearGrowth_      %logarithmicDerivativeExpansionFactor(time_           )   &
+         &                         *                      cosmologyFunctions_%expansionRate                       (expansionFactor_)   &
+         &                        )                                                                                                    &
+         &                       /                        linearGrowth_      %value                               (time_           )
     return
   end function kitayamaSuto1996GradientTime
 

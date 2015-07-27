@@ -68,17 +68,18 @@
      use Galacticus_Output_Times
      use Galacticus_Error
      implicit none
-     type            (universe     ), intent(inout) :: thisUniverse
-     type            (universeEvent), pointer       :: thisEvent
-     integer                                        :: iTime                       , atomicNumber             , &
-          &                                            ionizationState
-     double precision                               :: massFilteringInitial        , massFilteringCoefficient1, &
-          &                                            massFilteringVarianceInitial, massFilteringCoefficient2, &
-          &                                            massFilteringCoefficient3   , massFilteringCoefficient4, &
-          &                                            wavenumberFilteringInitial  , expansionFactorInitial   , &
-          &                                            expansionRateInitial        , atomicMass               , &
-          &                                            density                     , ionicFraction            , &
-          &                                            massFractionPrimordial
+     type            (universe         ), intent(inout) :: thisUniverse
+     type            (universeEvent    ), pointer       :: thisEvent
+     class           (linearGrowthClass), pointer       :: linearGrowth_
+     integer                                            :: iTime                       , atomicNumber             , &
+          &                                                ionizationState
+     double precision                                   :: massFilteringInitial        , massFilteringCoefficient1, &
+          &                                                massFilteringVarianceInitial, massFilteringCoefficient2, &
+          &                                                massFilteringCoefficient3   , massFilteringCoefficient4, &
+          &                                                wavenumberFilteringInitial  , expansionFactorInitial   , &
+          &                                                expansionRateInitial        , atomicMass               , &
+          &                                                density                     , ionicFraction            , &
+          &                                                massFractionPrimordial
      
      ! Get parameter controlling properties.
      !@ <inputParameter>
@@ -129,9 +130,10 @@
         ! Build tables of properties and time for the temperature and ionization state densities in the IGM.
         cosmologyParameters_ => cosmologyParameters            (                    )
         cosmologyFunctions_  => cosmologyFunctions             (                    )
+        linearGrowth_        => linearGrowth                   (                    )
         igmInitialState      =  intergalacticMediumStateRecFast(cosmologyParameters_)
         timeMaximum                                                                                 &
-             & =cosmologyFunctions_%cosmictime                 (                                    &
+             & =cosmologyFunctions_%cosmicTime                 (                                    &
              &  cosmologyFunctions_%expansionFactorFromredshift (                                   &
              &                                                   igmPropertiesRedshiftMinimum       &
              &                                                  )                                   &
@@ -275,29 +277,29 @@
         ! Find the initial mass variance on the filtering mass scale.
         massFilteringVarianceInitial=Cosmological_Mass_Root_Variance(massFilteringInitial)        
         ! Set the initial clumping factor.
-        clumpingFactor(1)= 1.0d0+(massFilteringVarianceInitial**2*Linear_Growth_Factor(timeMinimum)**2)
+        clumpingFactor(1)= 1.0d0+(massFilteringVarianceInitial**2*linearGrowth_%value(timeMinimum)**2)
         ! Set the composite variables used to solve for filtering mass.
-        massFilteringComposite(1,1)=                                       &
-             &   +Linear_Growth_Factor                       (timeMinimum) &
+        massFilteringComposite(1,1)=                                              &
+             &   +linearGrowth_%value                               (timeMinimum) &
              &   /wavenumberFilteringInitial**2
-        massFilteringComposite(1,2)=                                       &
-             &   +Linear_Growth_Factor                       (timeMinimum) &
-             &   /timeMinimum                                              &
-             &   *Linear_Growth_Factor_Logarithmic_Derivative(timeMinimum) &
-             &   /wavenumberFilteringInitial**2                            &
-             &   +2.0d0                                                    &
-             &   /3.0d0                                                    &
-             &   *Linear_Growth_Factor                       (timeMinimum) &
-             &   /wavenumberFilteringInitial**2                            &
-             &   *(                                                        &
-             &     -3.0d0                                                  &
-             &     *massFilteringCoefficient1                              &
-             &     *log(expansionFactorInitial)**2                         &
-             &     +2.0d0                                                  &
-             &     *massFilteringCoefficient2                              &
-             &     *log(expansionFactorInitial)                            &
-             &     -massFilteringCoefficient3                              &
-             &    )                                                        &
+        massFilteringComposite(1,2)=                                              &
+             &   +linearGrowth_%value                               (timeMinimum) &
+             &   /timeMinimum                                                     &
+             &   *linearGrowth_%logarithmicDerivativeExpansionFactor(timeMinimum) &
+             &   /wavenumberFilteringInitial**2                                   &
+             &   +2.0d0                                                           &
+             &   /3.0d0                                                           &
+             &   *linearGrowth_%value                               (timeMinimum) &
+             &   /wavenumberFilteringInitial**2                                   &
+             &   *(                                                               &
+             &     -3.0d0                                                         &
+             &     *massFilteringCoefficient1                                     &
+             &     *log(expansionFactorInitial)**2                                &
+             &     +2.0d0                                                         &
+             &     *massFilteringCoefficient2                                     &
+             &     *log(expansionFactorInitial)                                   &
+             &     -massFilteringCoefficient3                                     &
+             &    )                                                               &
              &   *expansionRateInitial
         ! Initialize optical depth.
         opticalDepth(1)=0.0d0
@@ -353,6 +355,7 @@
      type            (universe                     ), intent(inout)            :: thisUniverse
      type            (universeEvent                ), pointer                  :: newEvent
      class           (intergalacticMediumStateClass), pointer                  :: igmState_
+     class           (linearGrowthClass            ), pointer                  :: linearGrowth_
      double precision                               , parameter                :: odeToleranceAbsolute        =1.0d-03,             &
           &                                                                       odeToleranceRelative        =1.0d-03,             &
           &                                                                       timeToleranceRelative       =1.0d-6
@@ -385,6 +388,7 @@
         ! Get required objects.
         cosmologyParameters_ => cosmologyParameters()
         cosmologyFunctions_  => cosmologyFunctions ()
+        linearGrowth_        => linearGrowth       ()
         ! Map properties to a contiguous array.
         properties( 1   )=temperature           (iNow-1    )
         properties( 2: 3)=densityHydrogen       (iNow-1,1:2)
@@ -393,10 +397,10 @@
         properties( 9   )=opticalDepth          (iNow-1    )
         properties(10   )=massFiltering         (iNow-1    )
         ! Set property scales.
-        propertyScales( 1  )=        temperature    (iNow-1  )
-        propertyScales( 2:3)=abs(sum(densityHydrogen(iNow-1,:)))
-        propertyScales( 4:6)=abs(sum(densityHelium  (iNow-1,:)))
-        propertyScales( 7  )=+Linear_Growth_Factor(time(iNow-1))         &
+        propertyScales( 1  )=        temperature      (iNow-1  )
+        propertyScales( 2:3)=abs(sum(densityHydrogen  (iNow-1,:)))
+        propertyScales( 4:6)=abs(sum(densityHelium    (iNow-1,:)))
+        propertyScales( 7  )=+linearGrowth_%value(time(iNow-1  ))        &
              &               *(                                          &
              &                 +massFiltering(iNow-1)                    &
              &                 *3.0d0                                    &
@@ -440,7 +444,7 @@
         ! Compute the filtering mass at this time.
         clumpingFactor        (iNow    )=+1.0d0                                                   &
              &                           +Cosmological_Mass_Root_Variance(massFiltering(iNow))**2 &
-             &                           *Linear_Growth_Factor           (time         (iNow))**2
+             &                           *linearGrowth_%value            (time         (iNow))**2
     end if
     ! Find the latest time across all trees in the universe.
     treetimeLatest=0.0d0
@@ -552,6 +556,7 @@
      real            (kind=c_double             )               , dimension( *) :: propertiesRateOfChange
      type            (c_ptr                     ), value                        :: parameterPointer
      class           (gauntFactorClass          ), pointer                      :: gauntFactor_
+     class           (linearGrowthClass         ), pointer                      :: linearGrowth_
      double precision                            , parameter                    :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
      double precision                            , parameter                    :: massFilteringMinimum                      =1.0d2
      double precision                                           , dimension( 2) :: densityHydrogen_                                  , massFilteringComposite_            , &
@@ -597,6 +602,7 @@
      ! Get required objects.
      cosmologyParameters_ => cosmologyParameters()
      cosmologyFunctions_  => cosmologyFunctions ()
+     linearGrowth_        => linearGrowth       ()
      ! Initialize heating rate to zero.
      heatingRate          =  0.0d0
      ! Compute dark matter mass fraction.
@@ -620,7 +626,7 @@
              &                                *boltzmannsConstant                                                                   &
              &                                *temperature                                                                          & 
              &                                /massParticleMean                                                                     &
-             &                                *Linear_Growth_Factor                                                 (time)          &
+             &                                *linearGrowth_%value                                                  (time)          &
              &                                *(                                                                                    &
              &                                  +1.0d0                                                                              &
              &                                  +rLSS(                                                                              &
@@ -644,22 +650,22 @@
      end if
      if (massFilteringComposite_(1) > 0.0d0) then
         wavenumberFiltering            =+sqrt(                            &
-             &                                +Linear_Growth_Factor(time) &
+             &                                +linearGrowth_%value (time) &
              &                                /massFilteringComposite_(1) &
              &                               )
-        wavenumberFilteringRateOfChange=+0.5d0                                                                                    &
-             &                          /sqrt(                                                                                    &
-             &                                +Linear_Growth_Factor                                                       (time)  &
-             &                                /massFilteringComposite_                                                    (1   )  &
-             &                               )                                                                                    &
-             &                          *(                                                                                        &
-             &                            +Linear_Growth_Factor_Logarithmic_Derivative                                    (time)  &
-             &                            *cosmologyFunctions_%expansionRate          (cosmologyFunctions_%expansionFactor(time)) &
-             &                            *Linear_Growth_Factor                                                           (time)  &
-             &                            *massFilteringComposite_                                                        (1   )  &
-             &                            -Linear_Growth_Factor                                                           (time)  &
-             &                            *massFilteringComposite_                                                        (2   )  &
-             &                           )                                                                                        &
+        wavenumberFilteringRateOfChange=+0.5d0                                                                                                 &
+             &                          /sqrt(                                                                                                 &
+             &                                +linearGrowth_%value                                                                     (time)  &
+             &                                /massFilteringComposite_                                                                 (1   )  &
+             &                               )                                                                                                 &
+             &                          *(                                                                                                     &
+             &                            +linearGrowth_      %logarithmicDerivativeExpansionFactor                                    (time)  &
+             &                            *cosmologyFunctions_%expansionRate                       (cosmologyFunctions_%expansionFactor(time)) &
+             &                            *linearGrowth_%value                                                                         (time)  &
+             &                            *massFilteringComposite_                                                                     (1   )  &
+             &                            -linearGrowth_%value                                                                         (time)  &
+             &                            *massFilteringComposite_                                                                     (2   )  &
+             &                           )                                                                                                     &
              &                          /massFilteringComposite_(1)**2
         massFilteringRateOfChange      =-4.0d0                                     &
              &                          *Pi                                    **4 &
@@ -674,7 +680,7 @@
      clumpingFactor=+1.0d0                                             &
           &         +(                                                 &
           &           +Cosmological_Mass_Root_Variance(massFiltering_) &
-          &           *Linear_Growth_Factor           (time          ) &
+          &           *linearGrowth_%value            (time          ) &
           &          )**2
      ! Iterate over ionic species.
      iProperty=1 ! Counter for ionic species in properties array.

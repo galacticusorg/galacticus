@@ -106,23 +106,24 @@ contains
     use Galacticus_Display
     use Input_Parameters
     implicit none
-    double precision                             , intent(in   ) :: time
-    integer                                      , intent(in   ) :: calculationType
-    class           (table1D       ), allocatable, intent(inout) :: deltaTable
-    double precision                , parameter                  :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-9
-    type            (rootFinder    ), save                       :: finder                               , maximumExpansionFinder
+    double precision                                , intent(in   ) :: time
+    integer                                         , intent(in   ) :: calculationType
+    class           (table1D          ), allocatable, intent(inout) :: deltaTable
+    class           (linearGrowthClass), pointer                    :: linearGrowth_
+    double precision                   , parameter                  :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-9
+    type            (rootFinder       ), save                       :: finder                               , maximumExpansionFinder
     !$omp threadprivate(finder,maximumExpansionFinder)
-    integer                                                      :: deltaTableNumberPoints               , iTime
-    double precision                                             :: aExpansionNow                        , epsilonPerturbation                   , &
-         &                                                          epsilonPerturbationMaximum           , epsilonPerturbationMinimum            , &
-         &                                                          maximumExpansionDensityContrast      , maximumExpansionExpansionFactor       , &
-         &                                                          maximumExpansionRadius               , maximumExpansionTime                  , &
-         &                                                          normalization                        , q                                     , &
-         &                                                          timeEnergyFixed                      , timeInitial                           , &
-         &                                                          y
-    double complex                                               :: a,b,x
-    type            (varying_string)                             :: message
-    character       (len=7         )                             :: label
+    integer                                                         :: deltaTableNumberPoints               , iTime
+    double precision                                                :: aExpansionNow                        , epsilonPerturbation                   , &
+         &                                                             epsilonPerturbationMaximum           , epsilonPerturbationMinimum            , &
+         &                                                             maximumExpansionDensityContrast      , maximumExpansionExpansionFactor       , &
+         &                                                             maximumExpansionRadius               , maximumExpansionTime                  , &
+         &                                                             normalization                        , q                                     , &
+         &                                                             timeEnergyFixed                      , timeInitial                           , &
+         &                                                             y
+    double complex                                                  :: a,b,x
+    type            (varying_string   )                             :: message
+    character       (len=7            )                             :: label
 
     ! Initialize the module if this is not already done.
     if (.not.moduleInitialized) then
@@ -199,7 +200,8 @@ contains
           end if
           epsilonPerturbation=finder%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           ! Compute the corresponding critical overdensity.
-          normalization=Linear_Growth_Factor(tNow,normalize=normalizeMatterDominated)/Linear_Growth_Factor(tNow)/aExpansionNow
+          linearGrowth_ => linearGrowth()
+         normalization=linearGrowth_%value(tNow,normalize=normalizeMatterDominated)/linearGrowth_%value(tNow)/aExpansionNow
           select case (calculationType)
           case (calculationDeltaCrit)
              ! Critical linear overdensity.
