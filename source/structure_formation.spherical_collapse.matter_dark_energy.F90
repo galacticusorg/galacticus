@@ -25,9 +25,9 @@ module Spherical_Collapse_Matter_Dark_Energy
   use Cosmology_Functions
   implicit none
   private
-  public :: Spherical_Collapse_Dark_Energy_Delta_Critical_Initialize, Spherical_Collapse_Dark_Energy_Critical_Overdensity,&
-       & Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate,&
-       & Spherical_Collapse_Matter_Dark_Energy_State_Store, Spherical_Collapse_Matter_Dark_Energy_State_Retrieve
+  public :: Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate,&
+       & Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate, Spherical_Collapse_Matter_Dark_Energy_State_Store,&
+       & Spherical_Collapse_Matter_Dark_Energy_State_Retrieve, Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate
 
   ! Variables to hold the tabulated critical overdensity data.
   double precision                                     :: deltaTableTimeMaximum                                    =20.0d0, deltaTableTimeMinimum =1.0d0
@@ -42,7 +42,8 @@ module Spherical_Collapse_Matter_Dark_Energy
   double precision                         , parameter :: expansionFactorInitialFraction                           =1.0d-6
 
   ! Calculation types.
-  integer                                  , parameter :: calculationDeltaCrit                                     =0     , calculationDeltaVirial=1
+  integer                                  , parameter :: calculationDeltaCrit                                     =0     , calculationDeltaVirial=1, &
+       &                                                  calculationTurnaround                                    =2
 
   ! Parameter controlling the epoch at which the energy of a perturbation is fixed when computing virial overdensities.
   type            (varying_string         )            :: virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt
@@ -56,20 +57,7 @@ module Spherical_Collapse_Matter_Dark_Energy
 
 contains
 
-  !# <criticalOverdensityMethod>
-  !#  <unitName>Spherical_Collapse_Dark_Energy_Delta_Critical_Initialize</unitName>
-  !# </criticalOverdensityMethod>
-  subroutine Spherical_Collapse_Dark_Energy_Delta_Critical_Initialize(criticalOverdensityMethod,Critical_Overdensity_Tabulate)
-    !% Initializes the $\delta_{\mathrm crit}$ calculation for the spherical collapse module.
-    implicit none
-    type     (varying_string                                     ), intent(in   )          :: criticalOverdensityMethod
-    procedure(Spherical_Collapse_Dark_Energy_Critical_Overdensity), intent(inout), pointer :: Critical_Overdensity_Tabulate
-
-    if (criticalOverdensityMethod == 'sphericalTopHatDarkEnergy') Critical_Overdensity_Tabulate => Spherical_Collapse_Dark_Energy_Critical_Overdensity
-    return
-  end subroutine Spherical_Collapse_Dark_Energy_Delta_Critical_Initialize
-
-  subroutine Spherical_Collapse_Dark_Energy_Critical_Overdensity(time,deltaCritTable)
+  subroutine Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate(time,deltaCritTable)
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
     use Tables
     implicit none
@@ -81,7 +69,7 @@ contains
     !$omp end critical(Spherical_Collapse_Make_Table)
 
     return
-  end subroutine Spherical_Collapse_Dark_Energy_Critical_Overdensity
+  end subroutine Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate
 
   subroutine Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate(time,deltaVirialTable)
     !% Tabulate the virial density contrast for the spherical collapse model.
@@ -95,6 +83,19 @@ contains
     !$omp end critical(Spherical_Collapse_Make_Table)
     return
   end subroutine Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate
+
+  subroutine Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate(time,turnaroundTable)
+    !% Tabulate the ratio of turnaround to virial radiii for the spherical collapse model.
+    use Tables
+    implicit none
+    double precision                      , intent(in   ) :: time
+    class           (table1D), allocatable, intent(inout) :: turnaroundTable
+
+    !$omp critical(Spherical_Collapse_Make_Table)
+    call Make_Table(time,turnaroundTable,calculationTurnaround)
+    !$omp end critical(Spherical_Collapse_Make_Table)
+    return
+  end subroutine Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate
 
   subroutine Make_Table(time,deltaTable,calculationType)
     !% Tabulate $\delta_{\mathrm crit}$ or $\Delta_{\mathrm vir}$ vs. time.
@@ -119,9 +120,9 @@ contains
          &                                                          normalization                        , q                                     , &
          &                                                          timeEnergyFixed                      , timeInitial                           , &
          &                                                          y
-    double complex :: a,b,x
-    type     (varying_string) :: message
-    character(len=7         ) :: label
+    double complex                                               :: a,b,x
+    type            (varying_string)                             :: message
+    character       (len=7         )                             :: label
 
     ! Initialize the module if this is not already done.
     if (.not.moduleInitialized) then
@@ -206,7 +207,7 @@ contains
                   &                   normalization*0.6d0*(1.0d0-OmegaM-OmegaDE-epsilonPerturbation)/OmegaM, &
                   &                   iTime                                                                  &
                   &                  )
-          case (calculationDeltaVirial)
+          case (calculationDeltaVirial,calculationTurnaround)
              ! Find the epoch of maximum expansion for the perturbation.
              if (.not.maximumExpansionFinder%isInitialized()) then
                 call maximumExpansionFinder%rootFunction(expansionRatePerturbation          )
@@ -253,10 +254,18 @@ contains
                      & -(1.0d0/b*((54.0d0+6.0d0*sqrt(3.0d0)*sqrt((16.0d0*a**3+27.0d0*b)/b))*b**2)**(+1.0d0/3.0d0)/12.0d0) &
                      & +(      a*((54.0d0+6.0d0*sqrt(3.0d0)*sqrt((16.0d0*a**3+27.0d0*b)/b))*b**2)**(-1.0d0/3.0d0)       )
              end if
-             call deltaTable%populate(                                           &
-                  &                   1.0d0/(dble(x)*maximumExpansionRadius)**3, &
-                  &                   iTime                                      &
-                  &                  )
+             select case (calculationType)
+             case (calculationDeltaVirial)
+                call deltaTable%populate(                                           &
+                     &                   1.0d0/(dble(x)*maximumExpansionRadius)**3, &
+                     &                   iTime                                      &
+                     &                  )
+             case (calculationTurnaround)
+                call deltaTable%populate(                                           &
+                     &                   1.0d0/ dble(x)                           , &
+                     &                   iTime                                      &
+                     &                  )
+             end select
           end select
        end do
        call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
@@ -348,13 +357,13 @@ contains
     implicit none
     integer         (kind=c_int   )                       :: perturbationODEs
     real            (kind=c_double)               , value :: time
-    real            (kind=c_double), intent(in   )        :: y               (2)
-    real            (kind=c_double), intent(  out)        :: dydt            (2)
+    real            (kind=c_double), intent(in   )        :: y               (*)
+    real            (kind=c_double)                       :: dydt            (*)
     type            (c_ptr        )               , value :: parameterPointer
     double precision                                      :: expansionFactor
 
     if (y(1) <= 0.0d0) then
-       dydt=0.0d0
+       dydt(1:2)=0.0d0
     else
        expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)/cosmologyFunctionsDefault%expansionFactor(tNow)
        dydt(1)=y(2)

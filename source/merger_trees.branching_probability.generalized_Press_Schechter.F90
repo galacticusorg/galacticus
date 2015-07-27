@@ -60,23 +60,25 @@ contains
   !# <treeBranchingMethod>
   !#  <unitName>Generalized_Press_Schechter_Branching_Initialize</unitName>
   !# </treeBranchingMethod>
-  subroutine Generalized_Press_Schechter_Branching_Initialize(treeBranchingMethod,Tree_Branching_Probability&
+  subroutine Generalized_Press_Schechter_Branching_Initialize(treeBranchingMethod,Tree_Branching_Probability_Bound,Tree_Branching_Probability&
        &,Tree_Subresolution_Fraction,Tree_Branch_Mass,Tree_Maximum_Step)
     !% Initialize the generalized Press-Schechter branching routines.
     use Input_Parameters
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: treeBranchingMethod
+    procedure(Generalized_Press_Schechter_Branching_Probability_Bound), intent(inout), pointer :: Tree_Branching_Probability_Bound
     procedure(Generalized_Press_Schechter_Branching_Probability), intent(inout), pointer :: Tree_Branching_Probability
     procedure(Generalized_Press_Schechter_Subresolution_Fraction), intent(inout), pointer :: Tree_Subresolution_Fraction
     procedure(Generalized_Press_Schechter_Branch_Mass), intent(inout), pointer :: Tree_Branch_Mass
     procedure(Generalized_Press_Schechter_Branching_Maximum_Step), intent(inout), pointer :: Tree_Maximum_Step
 
     if (treeBranchingMethod == 'generalizedPress-Schechter') then
-       Tree_Branching_Probability  => Generalized_Press_Schechter_Branching_Probability
-       Tree_Subresolution_Fraction => Generalized_Press_Schechter_Subresolution_Fraction
-       Tree_Branch_Mass            => Generalized_Press_Schechter_Branch_Mass
-       Tree_Maximum_Step           => Generalized_Press_Schechter_Branching_Maximum_Step
+       Tree_Branching_Probability_Bound => Generalized_Press_Schechter_Branching_Probability_Bound
+       Tree_Branching_Probability       => Generalized_Press_Schechter_Branching_Probability
+       Tree_Subresolution_Fraction      => Generalized_Press_Schechter_Subresolution_Fraction
+       Tree_Branch_Mass                 => Generalized_Press_Schechter_Branch_Mass
+       Tree_Maximum_Step                => Generalized_Press_Schechter_Branching_Maximum_Step
        !@ <inputParameter>
        !@   <name>generalizedPressSchechterDeltaStepMaximum</name>
        !@   <defaultValue>0.1</defaultValue>
@@ -141,11 +143,12 @@ contains
     return
   end subroutine Excursion_Sets_Maximum_Sigma_Test
 
-  double precision function Generalized_Press_Schechter_Branch_Mass(haloMass,deltaCritical,massResolution,probability)
+  double precision function Generalized_Press_Schechter_Branch_Mass(haloMass,deltaCritical,massResolution,probability,randomNumberGenerator)
     !% Determine the mass of one of the halos to which the given halo branches, given the branching probability,
     !% {\normalfont \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\tt
     !% Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     !% branches. This routine then finds the progenitor mass corresponding to this value.
+    use Pseudo_Random
     use ISO_Varying_String
     use Root_Finder
     use Galacticus_Display
@@ -153,6 +156,7 @@ contains
     implicit none
     double precision                , intent(in   ) :: deltaCritical                  , haloMass                , &
          &                                             massResolution                 , probability
+    type            (pseudoRandom  ), intent(inout) :: randomNumberGenerator
     double precision                , parameter     :: toleranceAbsolute       =0.0d0 , toleranceRelative=1.0d-9
     double precision                , parameter     :: smallProbabilityFraction=1.0d-3
     type            (varying_string)                :: message
@@ -241,6 +245,17 @@ contains
     Generalized_Press_Schechter_Branching_Maximum_Step=generalizedPressSchechterDeltaStepMaximum
     return
   end function Generalized_Press_Schechter_Branching_Maximum_Step
+
+  double precision function Generalized_Press_Schechter_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound)
+    !% Return bounds onthe probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
+    !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
+    implicit none
+    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
+    integer         , intent(in   ) :: bound
+    
+    Generalized_Press_Schechter_Branching_Probability_Bound=Generalized_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
+    return
+  end function Generalized_Press_Schechter_Branching_Probability_Bound
 
   double precision function Generalized_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
     !% Return the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
@@ -413,12 +428,14 @@ contains
 
   subroutine Compute_Common_Factors
     !% Precomputes some useful factors that are used in the generalized Press-Schechter branching integrals.
-    use Critical_Overdensity
+    use Critical_Overdensities
     implicit none
+    class(criticalOverdensityClass), pointer :: criticalOverdensity_
 
-    parentSigmaSquared       =parentSigma**2
-    parentTime               =Time_of_Collapse(parentDelta,parentHaloMass)
-    parentDTimeDDeltaCritical=1.0d0/Critical_Overdensity_for_Collapse_Time_Gradient(parentTime,mass=parentHaloMass)
+    criticalOverdensity_     =>       criticalOverdensity                (                               )
+    parentSigmaSquared       =                                            parentSigma                     **2
+    parentTime               =        criticalOverdensity_%timeOfCollapse(parentDelta,     parentHaloMass)
+    parentDTimeDDeltaCritical=  1.0d0/criticalOverdensity_%gradientTime  (parentTime ,mass=parentHaloMass)
     return
   end subroutine Compute_Common_Factors
 
