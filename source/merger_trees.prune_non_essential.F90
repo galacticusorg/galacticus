@@ -134,8 +134,9 @@ contains
                         &                                      previousNode %isProgenitorOf(essentialNode)  &
                         &                                     .or.                                          &
                         &                                      essentialNode%isProgenitorOf( previousNode)  &
-                        &                                    )                                              &
-                        &                               )
+                        &                                    )                                            , &
+                        &                               .true.                                              &
+                        &                              )
                    ! Clean the branch.
                    call Merger_Tree_Prune_Clean_Branch(thisNode)
                    ! Destroy the branch.
