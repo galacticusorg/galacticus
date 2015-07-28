@@ -153,6 +153,10 @@
   ! Current file format version for CIE cooling function files.
   integer, parameter :: cieFileFormatVersionCurrent=1
 
+  ! Initialization status and default parameters.
+  logical                 :: cieFileInitialized         =.false.
+  type   (varying_string) :: cieFileFileName
+
 contains
 
   function cieFileConstructorParameters(parameters)
@@ -161,19 +165,26 @@ contains
     implicit none
     type(coolingFunctionCIEFile)                :: cieFileConstructorParameters
     type(inputParameters       ), intent(in   ) :: parameters
-    type(varying_string        )                :: fileName
     !# <inputParameterList label="allowedParameterNames" />
-
-    call parameters%checkParameters(allowedParameterNames)    
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of the file containing a tabulation of the collisional ionization equilibrium cooling function.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
+    
+    if (.not.cieFileInitialized) then
+       !$omp critical(cieFileInitialize)
+       if (.not.cieFileInitialized) then
+          call parameters%checkParameters(allowedParameterNames)    
+          !# <inputParameter>
+          !#   <name>fileName</name>
+          !#   <source>parameters</source>
+          !#   <variable>cieFileFileName</variable>
+          !#   <description>The name of the file containing a tabulation of the collisional ionization equilibrium cooling function.</description>
+          !#   <type>string</type>
+          !#   <cardinality>1</cardinality>
+          !# </inputParameter>
+          cieFileInitialized=.true.
+       end if
+       !$omp end critical(cieFileInitialize)
+    end if
     ! Construct the instance.    
-    cieFileConstructorParameters=cieFileConstructorInternal(char(fileName))
+    cieFileConstructorParameters=cieFileConstructorInternal(char(cieFileFileName))
     return
   end function cieFileConstructorParameters
   
