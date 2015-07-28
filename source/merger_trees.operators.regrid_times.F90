@@ -52,6 +52,7 @@ contains
 
   function regridTimesConstructorParameters(parameters)
     !% Constructor for the regrid times merger tree operator class which takes a parameter set as input.
+    use Galacticus_Error
     use Cosmology_Functions
     implicit none
     type            (mergerTreeOperatorRegridTimes)                              :: regridTimesConstructorParameters
@@ -110,6 +111,8 @@ contains
     snapshotSpacing=enumerationSnapshotSpacingEncode(char(snapshotSpacingText),includesPrefix=.false.)
     ! Read redshifts if necessary.
     if (snapshotSpacing == snapshotSpacingList) then
+       allocate(snapshotTimes(parameters%count('snapshotRedshifts')))
+       if (size(snapshotTimes) /= regridCount) call Galacticus_Error_Report('regridTimesConstructorParameters','mismatch between [regridCount] and size of [snapshotRedshifts]')
        !# <inputParameter>
        !#   <name>snapshotRedshifts</name>
        !#   <variable>snapshotTimes</variable>
@@ -124,7 +127,7 @@ contains
        end do
     end if
     ! Build the instance.
-    regridTimesConstructorParameters=regridTimesConstructorInternal(regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees)
+    regridTimesConstructorParameters=regridTimesConstructorInternal(regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes)
     return
   end function regridTimesConstructorParameters
 
