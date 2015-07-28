@@ -49,10 +49,17 @@
      !@     <arguments>\textless type(mergerTree)\textgreater\ tree\argin, \textless type(treeNode)\textgreater\ node\argin</arguments>
      !@     <description>Return true if the branch should be followed.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>timeEarliestSet</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ timeEarliest\argin</arguments>
+     !@     <description>Set the earliest time for the builder to the given value.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: build              => cole2000Build
      procedure :: shouldAbort        => cole2000ShouldAbort
      procedure :: shouldFollowBranch => cole2000ShouldFollowBranch
+     procedure :: timeEarliestSet    => cole2000TimeEarliestSet
      procedure :: stateStore         => cole2000StateStore 
      procedure :: stateRestore       => cole2000StateRestore
      procedure :: stateSnapshot      => cole2000StateSnapshot
@@ -351,6 +358,16 @@ contains
     cole2000ShouldFollowBranch=.true.
     return
   end function cole2000ShouldFollowBranch
+  
+  subroutine cole2000TimeEarliestSet(self,timeEarliest)
+    !% Set the earliest time for the tree builder.
+    implicit none
+    class           (mergerTreeBuilderCole2000), intent(inout) :: self
+    double precision                           , intent(in   ) :: timeEarliest
+
+    self%timeEarliest=timeEarliest
+    return
+  end subroutine cole2000TimeEarliestSet
   
   subroutine cole2000StateSnapshot(self)
     !% Store a snapshot of the random number generator internal state.
