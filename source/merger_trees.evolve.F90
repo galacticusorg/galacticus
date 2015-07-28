@@ -148,10 +148,7 @@ contains
                    vMessage=vMessage//' HELP: If you expect that not all trees will exist at the latest requested'//char(10)
                    vMessage=vMessage//'       output time (this can happen when using trees extracted from N-body'//char(10)
                    vMessage=vMessage//'       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
-                   vMessage=vMessage//'         <parameter>'//char(10)
-                   vMessage=vMessage//'          <name>allTreesExistAtFinalTime</name>'//char(10)
-                   vMessage=vMessage//'          <value>false</value>'//char(10)
-                   vMessage=vMessage//'         </parameter>'//char(10)
+                   vMessage=vMessage//'         <allTreesExistAtFinalTime value="false" />'//char(10)
                    call Galacticus_Error_Report('Merger_Tree_Evolve_To',vMessage)
                 end if
              else
