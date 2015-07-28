@@ -55,13 +55,14 @@ module Input_Parameters2
   !#  <instance label="Double" intrinsic="real   (kind=c_double)" />
   !#  <instance label="Long"   intrinsic="integer(kind=c_long  )" />
   !# </generic>
-  
+
   type :: inputParameters
      private
-     type   (node      ), pointer :: rootNode        , document
-     type   (nodeList  ), pointer :: parameters
-     type   (hdf5Object), pointer :: outputParameters
-     logical                      :: global
+     type   (node      ), pointer, public :: document
+     type   (node      ), pointer         :: rootNode
+     type   (nodeList  ), pointer         :: parameters
+     type   (hdf5Object), pointer         :: outputParameters
+     logical                              :: global
    contains
      !@ <objectMethods>
      !@   <object>inputParameters</object>
@@ -106,6 +107,12 @@ module Input_Parameters2
      !@     <type>\logicalzero</type>
      !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} parameterName\argin</arguments>
      !@     <description>Return true if the named parameter is present in the set.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>copiesCount</method>
+     !@     <type>\intzero</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} parameterName\argin, \logicalzero [zeroIfNotPresent]\argin</arguments>
+     !@     <description>Return a count of the number copies of the named parameter. If the parameter is not present, this function aborts, unless {\normalfont \ttfamily zeroIfNotPresent} is set to {\normalfont \ttfamily true}, in which case a result of 0 is returned.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>count</method>
@@ -170,6 +177,7 @@ module Input_Parameters2
      procedure :: checkParameters     => inputParametersCheckParameters
      procedure :: node                => inputParametersNode
      procedure :: isPresent           => inputParametersIsPresent
+     procedure :: copiesCount         => inputParametersCopiesCount
      procedure :: count               => inputParametersCount
      procedure :: subParameters       => inputParametersSubParameters
      procedure :: setOutputParameters => inputParametersSetOutputParameters
@@ -674,7 +682,38 @@ contains
     !$omp end critical (FoX_DOM_Access)
     return
   end function inputParametersIsPresent
-  
+
+  integer function inputParametersCopiesCount(self,parameterName,zeroIfNotPresent)
+    !% Return true if the specified parameter is present.
+    use Galacticus_Error
+    implicit none
+    class    (inputParameters), intent(in   )           :: self
+    character(len=*          ), intent(in   )           :: parameterName
+    logical                   , intent(in   ), optional :: zeroIfNotPresent
+    type     (node           ), pointer                 :: thisNode
+    integer                                             :: i
+    !# <optionalArgument name="zeroIfNotPresent" defaultsTo=".false." />
+    
+    call self%validateName(parameterName)
+    if (self%isPresent(parameterName)) then
+       inputParametersCopiesCount=0
+       !$omp critical (FoX_DOM_Access)
+       do i=0,getLength(self%parameters)-1
+          thisNode => item(self%parameters,i)
+          if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
+             if (hasAttribute(thisNode,'value') .or. XML_Path_Exists(thisNode,"value")) &
+                  & inputParametersCopiesCount=inputParametersCopiesCount+1
+          end if
+       end do
+       !$omp end critical (FoX_DOM_Access)
+    else if (zeroIfNotPresent_) then
+       inputParametersCopiesCount=0
+    else
+       call Galacticus_Error_Report('inputParametersCopiesCount','parameter ['//parameterName//'] is not present')  
+    end if
+    return
+  end function inputParametersCopiesCount
+
   integer function inputParametersCount(self,parameterName,zeroIfNotPresent)
     !% Return a count of the number of values in a parameter.
     use Galacticus_Error
