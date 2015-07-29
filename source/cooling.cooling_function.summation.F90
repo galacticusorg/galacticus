@@ -126,15 +126,9 @@ use root_finder
     type            (chemicalAbundances      ), intent(in   ) :: chemicalDensities
     type            (radiationStructure      ), intent(in   ) :: radiation
     type            (coolantList             ), pointer       :: coolant
-
-
-integer :: i
     
     summationCoolingFunction =  0.0d0
     coolant                  => self%coolants
-
-
-i=0
     do while (associated(coolant))
        summationCoolingFunction=                                                                &
             &                   +summationCoolingFunction                                       &
@@ -145,11 +139,6 @@ i=0
             &                                                            chemicalDensities    , &
             &                                                            radiation              &
             &                                                           )
-
-       i=i+1
-       ct_(i,1:3)=ct_(i,2:4)
-       ct_(i,4)=summationCoolingFunction
-
        coolant => coolant%next
     end do
     return
