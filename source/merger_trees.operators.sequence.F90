@@ -17,7 +17,7 @@
 
 !% Contains a module which implements a sequence of operators on merger trees.
 
-  !# <mergerTreeOperator name="mergerTreeOperatorSequence">
+  !# <mergerTreeOperator name="mergerTreeOperatorSequence" defaultThreadPrivate="yes">
   !#  <description>Provides a sequence of operators on merger trees.</description>
   !# </mergerTreeOperator>
 
@@ -51,9 +51,12 @@ contains
     implicit none
     type(mergerTreeOperatorSequence)                :: sequenceConstructorParameters
     type(inputParameters           ), intent(in   ) :: parameters
-    type(node                      ), pointer       :: operatorNode                 , parent
+    type(node                      ), pointer       :: operatorNode                 , parent, &
+         &                                             removedOperators
     type(operatorList              ), pointer       :: operator_
 
+    !$omp critical(mergerTreeOperatorSequenceInitialize)
+    removedOperators => createElement(parameters%document,'removedOperators')
     operator_ => null()
     do while (parameters%isPresent('mergerTreeOperatorMethod'))
        operatorNode => parameters%node('mergerTreeOperatorMethod')
@@ -66,10 +69,18 @@ contains
        end if
        operator_%operator_ => mergerTreeOperator(parameters)
        !$omp critical (FoX_DOM_Access)
-       parent       => getParentNode(       operatorNode)
-       operatorNode => removeChild  (parent,operatorNode)
+       parent       =>                              getParentNode(       operatorNode)
+       operatorNode => appendChild(removedOperators,removeChild  (parent,operatorNode))
        !$omp end critical (FoX_DOM_Access)
     end do
+    ! Restore removed children.
+    !$omp critical (FoX_DOM_Access)
+    do while (hasChildNodes(removedOperators))
+       operatorNode =>                    getFirstChild(removedOperators             )
+       operatorNode => appendChild(parent,removeChild  (removedOperators,operatorNode))
+    end do
+    !$omp end critical (FoX_DOM_Access)
+    !$omp end critical(mergerTreeOperatorSequenceInitialize)
     return
   end function sequenceConstructorParameters
 
