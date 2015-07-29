@@ -613,11 +613,15 @@ contains
     use IO_HDF5
     use Galacticus_HDF5
     use Numerical_Constants_Astronomical
+    use Memory_Management
     implicit none
-    class  (mergerTreeOperatorConditionalMF), intent(inout) :: self
-    type   (hdf5Object                     )                :: conditionalMassFunctionGroup, massDataset
-    integer                                                 :: i                           , j          , &
-         &                                                     iPrimary
+    class           (mergerTreeOperatorConditionalMF), intent(inout)                     :: self
+    type            (hdf5Object                     )                                    :: conditionalMassFunctionGroup , massDataset
+    double precision                                 , allocatable  , dimension(:,:,:  ) :: conditionalMassFunction      , conditionalMassFunctionError
+    double precision                                 , allocatable  , dimension(:,:,:,:) :: primaryProgenitorMassFunction, primaryProgenitorMassFunctionError
+    double precision                                 , allocatable  , dimension(:,:,:,:) :: formationRateFunction        , formationRateFunctionError
+    integer                                                                              :: i                            , j                                 , &
+         &                                                                                  iPrimary
 
     ! Normalize the conditional mass functions.
     self%normalization=self%normalization/self%massRatioLogarithmicBinWidthInverse/log(10.0d0)
@@ -636,15 +640,47 @@ contains
        end do
     end do
     ! Output the data.
-    conditionalMassFunctionGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.')
-    call conditionalMassFunctionGroup%writeDataset  (self%massParents                       ,"massParent"                        ,"Mass of parent node [Msolar]"              ,datasetReturned=massDataset)
-    call massDataset                 %writeAttribute(massSolar                              ,"unitsInSI"                                                                                                  )
-    call massDataset                 %close         (                                                                                                                                                     )
-    call conditionalMassFunctionGroup%writeDataset  (self%massRatios                        ,"massRatio"                         ,"Mass of ratio node [Msolar]"               ,datasetReturned=massDataset)
-    call massDataset                 %writeAttribute(massSolar                              ,"unitsInSI"                                                                                                  )
-    call massDataset                 %close         (                                                                                                                                                     )
-    call conditionalMassFunctionGroup%writeDataset  (self%parentRedshifts                   ,"redshiftParent"                    ,"Redshift of parent node []"                                            )
-    call conditionalMassFunctionGroup%writeDataset  (self%progenitorRedshifts               ,"redshiftProgenitor"                ,"Redshift of progenitor node []"                                        )
+    !$omp critical(HDF5_Access)
+    ! Check if our output group already exists.
+    if (galacticusOutputFile%hasGroup('char(self%outputGroupName)')) then
+       ! Our group does exist. Read existing mass functions, add them to our own, then write back to file.
+       conditionalMassFunctionGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.')
+       call Alloc_Array(conditionalMassFunction           ,shape(self%conditionalMassFunction           ))
+       call Alloc_Array(conditionalMassFunctionError      ,shape(self%conditionalMassFunctionError      ))
+       call Alloc_Array(primaryProgenitorMassFunction     ,shape(self%primaryProgenitorMassFunction     ))
+       call Alloc_Array(primaryProgenitorMassFunctionError,shape(self%primaryProgenitorMassFunctionError))
+       call Alloc_Array(formationRateFunction             ,shape(self%formationRateFunction             ))
+       call Alloc_Array(formationRateFunctionError        ,shape(self%formationRateFunctionError        ))
+       call conditionalMassFunctionGroup%readDataset('conditionalMassFunction'           ,conditionalMassFunction           )
+       call conditionalMassFunctionGroup%readDataset('conditionalMassFunctionError'      ,conditionalMassFunctionError      )
+       call conditionalMassFunctionGroup%readDataset('primaryProgenitorMassFunction'     ,primaryProgenitorMassFunction     )
+       call conditionalMassFunctionGroup%readDataset('primaryProgenitorMassFunctionError',primaryProgenitorMassFunctionError)
+       call conditionalMassFunctionGroup%readDataset('formationRateFunction'             ,formationRateFunction             )
+       call conditionalMassFunctionGroup%readDataset('formationRateFunctionError'        ,formationRateFunctionError        )
+       self%conditionalMassFunction           =    (self%conditionalMassFunction              +conditionalMassFunction              )
+       self%conditionalMassFunctionError      =sqrt(self%conditionalMassFunctionError      **2+conditionalMassFunctionError      **2)
+       self%primaryProgenitorMassFunction     =    (self%primaryProgenitorMassFunction        +primaryProgenitorMassFunction        )
+       self%primaryProgenitorMassFunctionError=sqrt(self%primaryProgenitorMassFunctionError**2+primaryProgenitorMassFunctionError**2)
+       self%formationRateFunction             =    (self%formationRateFunction                +formationRateFunction                )
+       self%formationRateFunctionError        =sqrt(self%formationRateFunctionError        **2+formationRateFunctionError        **2)
+       call Dealloc_Array(conditionalMassFunction           )
+       call Dealloc_Array(conditionalMassFunctionError      )
+       call Dealloc_Array(primaryProgenitorMassFunction     )
+       call Dealloc_Array(primaryProgenitorMassFunctionError)
+       call Dealloc_Array(formationRateFunction             )
+       call Dealloc_Array(formationRateFunctionError        )
+    else
+       ! Our group does not already exist. Simply write the data.
+       conditionalMassFunctionGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.')
+       call conditionalMassFunctionGroup%writeDataset  (self%massParents                       ,"massParent"                        ,"Mass of parent node [Msolar]"              ,datasetReturned=massDataset)
+       call massDataset                 %writeAttribute(massSolar                              ,"unitsInSI"                                                                                                  )
+       call massDataset                 %close         (                                                                                                                                                     )
+       call conditionalMassFunctionGroup%writeDataset  (self%massRatios                        ,"massRatio"                         ,"Mass of ratio node [Msolar]"               ,datasetReturned=massDataset)
+       call massDataset                 %writeAttribute(massSolar                              ,"unitsInSI"                                                                                                  )
+       call massDataset                 %close         (                                                                                                                                                     )
+       call conditionalMassFunctionGroup%writeDataset  (self%parentRedshifts                   ,"redshiftParent"                    ,"Redshift of parent node []"                                            )
+       call conditionalMassFunctionGroup%writeDataset  (self%progenitorRedshifts               ,"redshiftProgenitor"                ,"Redshift of progenitor node []"                                        )
+    end if
     call conditionalMassFunctionGroup%writeDataset  (self%conditionalMassFunction           ,"conditionalMassFunction"           ,"Conditional mass functions []"                                         )
     call conditionalMassFunctionGroup%writeDataset  (self%conditionalMassFunctionError      ,"conditionalMassFunctionError"      ,"Conditional mass function errors []"                                   )
     call conditionalMassFunctionGroup%writeDataset  (self%primaryProgenitorMassFunction     ,"primaryProgenitorMassFunction"     ,"Primary progenitor mass functions []"                                  )
@@ -652,5 +688,6 @@ contains
     call conditionalMassFunctionGroup%writeDataset  (self%formationRateFunction             ,"formationRateFunction"             ,"Formation rate functions []"                                           )
     call conditionalMassFunctionGroup%writeDataset  (self%formationRateFunctionError        ,"formationRateFunctionError"        ,"Formation rate function errors []"                                     )
     call conditionalMassFunctionGroup%close         (                                                                                                                                                     )    
+    !$omp end critical(HDF5_Access)
     return
   end subroutine conditionalMFFinalize
