@@ -657,12 +657,9 @@ contains
        call conditionalMassFunctionGroup%readDataset('primaryProgenitorMassFunctionError',primaryProgenitorMassFunctionError)
        call conditionalMassFunctionGroup%readDataset('formationRateFunction'             ,formationRateFunction             )
        call conditionalMassFunctionGroup%readDataset('formationRateFunctionError'        ,formationRateFunctionError        )
-       self%conditionalMassFunction           =    (self%conditionalMassFunction              +conditionalMassFunction              )
-       self%conditionalMassFunctionError      =sqrt(self%conditionalMassFunctionError      **2+conditionalMassFunctionError      **2)
-       self%primaryProgenitorMassFunction     =    (self%primaryProgenitorMassFunction        +primaryProgenitorMassFunction        )
-       self%primaryProgenitorMassFunctionError=sqrt(self%primaryProgenitorMassFunctionError**2+primaryProgenitorMassFunctionError**2)
-       self%formationRateFunction             =    (self%formationRateFunction                +formationRateFunction                )
-       self%formationRateFunctionError        =sqrt(self%formationRateFunctionError        **2+formationRateFunctionError        **2)
+       call weightedAverage(self%conditionalMassFunction      ,conditionalMassFunction      ,self%conditionalMassFunctionError      ,conditionalMassFunctionError      ,self%conditionalMassFunction      ,conditionalMassFunction      )
+       call weightedAverage(self%primaryProgenitorMassFunction,primaryProgenitorMassFunction,self%primaryProgenitorMassFunctionError,primaryProgenitorMassFunctionError,self%primaryProgenitorMassFunction,primaryProgenitorMassFunction)
+       call weightedAverage(self%formationRateFunction        ,formationRateFunction        ,self%formationRateFunctionError        ,formationRateFunctionError        ,self%formationRateFunction        ,formationRateFunction        )
        call Dealloc_Array(conditionalMassFunction           )
        call Dealloc_Array(conditionalMassFunctionError      )
        call Dealloc_Array(primaryProgenitorMassFunction     )
@@ -690,4 +687,33 @@ contains
     call conditionalMassFunctionGroup%close         (                                                                                                                                                     )    
     !$omp end critical(HDF5_Access)
     return
+
+  contains
+
+    elemental subroutine weightedAverage(x,y,xError,yError,z,zError)
+      !% Computed a minimum-variance weighted average of two values, {\normalfont \ttfamily x} and {\normalfont \ttfamily y},
+      !% given errors on those quantities.
+      implicit none
+      double precision, intent(in   ) :: x     , y     , &
+           &                             xError, yError
+      double precision, intent(  out) :: z     , zError
+
+      ! Compute the weighted mean.      
+      z      =+    (                 &
+           &        +    x/xError**2 &
+           &        +    y/yError**2 &
+           &       )                 &
+           &  /    (                 &
+           &        +1.0d0/xError**2 &
+           &        +1.0d0/yError**2 &
+           &       )
+      ! Compute the variance on the weighted mean.
+      zError =+1.0d0                 &
+           &  /sqrt(                 &
+           &        +1.0d0/xError**2 &
+           &        +1.0d0/yError**2 &
+           &       )
+      return
+    end subroutine weightedAverage
+      
   end subroutine conditionalMFFinalize
