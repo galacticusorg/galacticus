@@ -616,7 +616,7 @@ contains
     use Memory_Management
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                     :: self
-    type            (hdf5Object                     )                                    :: conditionalMassFunctionGroup , massDataset
+    type            (hdf5Object                     )                                    :: conditionalMassFunctionGroup , massDataset, dataset
     double precision                                 , allocatable  , dimension(:,:,:  ) :: conditionalMassFunction      , conditionalMassFunctionError
     double precision                                 , allocatable  , dimension(:,:,:,:) :: primaryProgenitorMassFunction, primaryProgenitorMassFunctionError
     double precision                                 , allocatable  , dimension(:,:,:,:) :: formationRateFunction        , formationRateFunctionError
@@ -642,9 +642,9 @@ contains
     ! Output the data.
     !$omp critical(HDF5_Access)
     ! Check if our output group already exists.
-    if (galacticusOutputFile%hasGroup('char(self%outputGroupName)')) then
+    if (galacticusOutputFile%hasGroup(char(self%outputGroupName))) then
        ! Our group does exist. Read existing mass functions, add them to our own, then write back to file.
-       conditionalMassFunctionGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.')
+       conditionalMassFunctionGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
        call Alloc_Array(conditionalMassFunction           ,shape(self%conditionalMassFunction           ))
        call Alloc_Array(conditionalMassFunctionError      ,shape(self%conditionalMassFunctionError      ))
        call Alloc_Array(primaryProgenitorMassFunction     ,shape(self%primaryProgenitorMassFunction     ))
@@ -668,7 +668,7 @@ contains
        call Dealloc_Array(formationRateFunctionError        )
     else
        ! Our group does not already exist. Simply write the data.
-       conditionalMassFunctionGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.')
+       conditionalMassFunctionGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
        call conditionalMassFunctionGroup%writeDataset  (self%massParents                       ,"massParent"                        ,"Mass of parent node [Msolar]"              ,datasetReturned=massDataset)
        call massDataset                 %writeAttribute(massSolar                              ,"unitsInSI"                                                                                                  )
        call massDataset                 %close         (                                                                                                                                                     )
@@ -697,21 +697,32 @@ contains
       double precision, intent(inout) :: x, xError
       double precision, intent(in   ) :: y, yError
 
-      ! Compute the weighted mean.      
-      x      =+    (                 &
-           &        +    x/xError**2 &
-           &        +    y/yError**2 &
-           &       )                 &
-           &  /    (                 &
-           &        +1.0d0/xError**2 &
-           &        +1.0d0/yError**2 &
-           &       )
-      ! Compute the variance on the weighted mean.
-      xError =+1.0d0                 &
-           &  /sqrt(                 &
-           &        +1.0d0/xError**2 &
-           &        +1.0d0/yError**2 &
-           &       )
+      ! Catch zero cases.
+      if      (xError <= 0.0d0 .and. yError <= 0.0d0) then
+         ! Leave x unchanged.
+      else if (                      yError <= 0.0d0) then
+         ! Leave x unchanged.
+      else if (xError <= 0.0d0                      ) then
+         ! x is just y.
+         x     =y
+         xError=yError
+      else
+         ! Compute the weighted mean.      
+         x      =+    (                 &
+              &        +    x/xError**2 &
+              &        +    y/yError**2 &
+              &       )                 &
+              &  /    (                 &
+              &        +1.0d0/xError**2 &
+              &        +1.0d0/yError**2 &
+              &       )
+         ! Compute the variance on the weighted mean.
+         xError =+1.0d0                 &
+              &  /sqrt(                 &
+              &        +1.0d0/xError**2 &
+              &        +1.0d0/yError**2 &
+              &       )
+      end if
       return
     end subroutine weightedAverage
       
