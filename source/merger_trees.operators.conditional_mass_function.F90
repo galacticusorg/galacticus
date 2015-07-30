@@ -657,9 +657,9 @@ contains
        call conditionalMassFunctionGroup%readDataset('primaryProgenitorMassFunctionError',primaryProgenitorMassFunctionError)
        call conditionalMassFunctionGroup%readDataset('formationRateFunction'             ,formationRateFunction             )
        call conditionalMassFunctionGroup%readDataset('formationRateFunctionError'        ,formationRateFunctionError        )
-       call weightedAverage(self%conditionalMassFunction      ,conditionalMassFunction      ,self%conditionalMassFunctionError      ,conditionalMassFunctionError      ,self%conditionalMassFunction      ,conditionalMassFunction      )
-       call weightedAverage(self%primaryProgenitorMassFunction,primaryProgenitorMassFunction,self%primaryProgenitorMassFunctionError,primaryProgenitorMassFunctionError,self%primaryProgenitorMassFunction,primaryProgenitorMassFunction)
-       call weightedAverage(self%formationRateFunction        ,formationRateFunction        ,self%formationRateFunctionError        ,formationRateFunctionError        ,self%formationRateFunction        ,formationRateFunction        )
+       call weightedAverage(self%conditionalMassFunction      ,conditionalMassFunction      ,self%conditionalMassFunctionError      ,conditionalMassFunctionError      )
+       call weightedAverage(self%primaryProgenitorMassFunction,primaryProgenitorMassFunction,self%primaryProgenitorMassFunctionError,primaryProgenitorMassFunctionError)
+       call weightedAverage(self%formationRateFunction        ,formationRateFunction        ,self%formationRateFunctionError        ,formationRateFunctionError        )
        call Dealloc_Array(conditionalMassFunction           )
        call Dealloc_Array(conditionalMassFunctionError      )
        call Dealloc_Array(primaryProgenitorMassFunction     )
@@ -690,16 +690,15 @@ contains
 
   contains
 
-    elemental subroutine weightedAverage(x,y,xError,yError,z,zError)
+    elemental subroutine weightedAverage(x,y,xError,yError)
       !% Computed a minimum-variance weighted average of two values, {\normalfont \ttfamily x} and {\normalfont \ttfamily y},
       !% given errors on those quantities.
       implicit none
-      double precision, intent(in   ) :: x     , y     , &
-           &                             xError, yError
-      double precision, intent(  out) :: z     , zError
+      double precision, intent(inout) :: x, xError
+      double precision, intent(in   ) :: y, yError
 
       ! Compute the weighted mean.      
-      z      =+    (                 &
+      x      =+    (                 &
            &        +    x/xError**2 &
            &        +    y/yError**2 &
            &       )                 &
@@ -708,7 +707,7 @@ contains
            &        +1.0d0/yError**2 &
            &       )
       ! Compute the variance on the weighted mean.
-      zError =+1.0d0                 &
+      xError =+1.0d0                 &
            &  /sqrt(                 &
            &        +1.0d0/xError**2 &
            &        +1.0d0/yError**2 &
