@@ -860,7 +860,7 @@ contains
 
   !! Group routines.
 
-  function IO_HDF5_Open_Group(inObject,groupName,commentText,objectsOverwritable,chunkSize,compressionLevel) result (groupObject)
+  function IO_HDF5_Open_Group(inObject,groupName,commentText,objectsOverwritable,overwriteOverride,chunkSize,compressionLevel) result (groupObject)
     !% Open an HDF5 group and return an appropriate HDF5 object. The group name can be provided as an input parameter or, if
     !% not provided, will be taken from the stored object name in {\normalfont \ttfamily groupObject}. The location at which to open the group is
     !% taken from either {\normalfont \ttfamily inObject} or {\normalfont \ttfamily inPath}.
@@ -869,7 +869,7 @@ contains
     type     (hdf5Object    )                          :: groupObject
     character(len=*         ), intent(in   )           :: groupName
     character(len=*         ), intent(in   ), optional :: commentText
-    logical                  , intent(in   ), optional :: objectsOverwritable
+    logical                  , intent(in   ), optional :: objectsOverwritable, overwriteOverride
     integer                  , intent(in   ), optional :: chunkSize          , compressionLevel
     class    (hdf5Object    ), intent(in   ), target   :: inObject
     ! <HDF5> Why are "message" and "locationPath" saved? Because if they aren't then they get dynamically allocated on the stack, which results
@@ -963,10 +963,12 @@ contains
 
     ! Mark whether objects are overwritable.
     if (present(objectsOverwritable)) then
-       if (objectsOverwritable.and..not.groupObject%parentObject%isOverwritable) then
-          message="cannot make objects in '"//trim(groupName)//"' overwritable as objects in parent '"&
-               &//groupObject%parentObject%objectName//"' are not overwritable"
-          call Galacticus_Error_Report('IO_HDF5_Open_Group',message)
+       if (.not.present(overwriteOverride).or..not.overwriteOverride) then
+          if (objectsOverwritable.and..not.groupObject%parentObject%isOverwritable) then
+             message="cannot make objects in '"//trim(groupName)//"' overwritable as objects in parent '"&
+                  &//groupObject%parentObject%objectName//"' are not overwritable"
+             call Galacticus_Error_Report('IO_HDF5_Open_Group',message)
+          end if
        end if
        groupObject%isOverwritable=objectsOverwritable
     else
