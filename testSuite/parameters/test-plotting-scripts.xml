@@ -11,7 +11,7 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <outputRedshifts value="0.0 0.07 0.1"/>
-    <mergerTreeBuildTreesPerDecade value="100"/>
+    <mergerTreeBuildTreesPerDecade value="400"/>
     <!-- Luminosities -->
     <luminosityFilter value="UKIRT_K bJ RGO_I SDSS_g SDSS_r SDSS_i SDSS_z 2MASS_Ks"/>
     <luminosityRedshift value="0.0 0.0 0.0 0.1 0.1 0.1 0.1 0.0"/>
