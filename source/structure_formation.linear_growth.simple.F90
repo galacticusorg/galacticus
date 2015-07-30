@@ -15,188 +15,296 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of linear growth factor in simple cosomologies. Ignores pressure terms for the
-!% growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.
+  !% An implementation of linear growth of cosmological structure in simple cosomologies. Ignores pressure terms for the growth of
+  !% baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.
 
-module Linear_Growth_Simple
-  !% Implements calculations of linear growth factor in simple cosmologies. Ignores pressure terms for the growth of baryons and
-  !% has no wavenumber dependence. Also assumes no growth of radiation perturbations.
-  use Cosmology_Parameters
-  use Cosmology_Functions
-  use, intrinsic :: ISO_C_Binding
-  use FGSL
-  implicit none
-  private
-  public :: Growth_Factor_Simple_Initialize, Linear_Growth_Simple_State_Store,&
-       & Linear_Growth_Simple_State_Retrieve
+  !# <linearGrowth name="linearGrowthSimple">
+  !#  <description>Linear growth of cosmological structure in simple cosomologies. Ignores pressure terms for the growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.</description>
+  !# </linearGrowth>
+  use Tables
 
-  ! Variables to hold table of growth factor vs. cosmic time.
-  double precision                                     :: growthTableTimeMaximum     =20.0d0, growthTableTimeMinimum                                                       =1.0d0
-  integer                                  , parameter :: growthTableNPointsPerDecade=1000
+  type, extends(linearGrowthClass) :: linearGrowthSimple
+     !% A linear growth of cosmological structure contrast class in simple cosomologies.
+     private
+     logical                                :: tableInitialized
+     double precision                       :: tableTimeMinimum            , tableTimeMaximum, &
+          &                                    normalizationMatterDominated
+     class           (table1D), allocatable :: growthFactor
+   contains
+     !@ <objectMethods>
+     !@   <object>linearGrowthSimple</object>
+     !@   <objectMethod>
+     !@     <method>retabulate</method>
+     !@     <type>void</type>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <description>Tabulate linear growth factor.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                                         simpleDestructor
+     procedure :: stateStore                           => simpleStateStore
+     procedure :: stateRestore                         => simpleStateRestore
+     procedure :: value                                => simpleValue
+     procedure :: logarithmicDerivativeExpansionFactor => simpleLogarithmicDerivativeExpansionFactor
+     procedure :: retabulate                           => simpleRetabulate
+  end type linearGrowthSimple
 
-  ! Variables used in the ODE solver.
-  type            (fgsl_odeiv_step        )            :: odeStepper
-  type            (fgsl_odeiv_control     )            :: odeController
-  type            (fgsl_odeiv_evolve      )            :: odeEvolver
-  type            (fgsl_odeiv_system      )            :: odeSystem
-  logical                                              :: odeReset                   =.true.                         !    Ensure ODE variables will be reset on first call.
-
-  ! Pointer to the default cosmology functions class.
-  class           (cosmologyFunctionsClass), pointer   :: cosmologyFunctionsDefault
-  !$omp threadprivate(cosmologyFunctionsDefault)
+  interface linearGrowthSimple
+     !% Constructors for the {\normalfont \ttfamily simple} linear growth class.
+     module procedure simpleConstructorParameters
+     module procedure simpleConstructorInternal
+  end interface linearGrowthSimple
 
 contains
 
-  !# <linearGrowthMethod>
-  !#  <unitName>Growth_Factor_Simple_Initialize</unitName>
-  !# </linearGrowthMethod>
-  subroutine Growth_Factor_Simple_Initialize(linearGrowthMethod,Linear_Growth_Tabulate)
-    !% Initializes the simple growth factor module.
-    use ISO_Varying_String
+  function simpleConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily simple} linear growth class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string                      ), intent(in   )          :: linearGrowthMethod
-    procedure(Linear_Growth_Factor_Simple_Tabulate), intent(inout), pointer :: Linear_Growth_Tabulate
+    type(linearGrowthSimple)                :: simpleConstructorParameters
+    type(inputParameters   ), intent(in   ) :: parameters
 
-    if (linearGrowthMethod == 'simple') then
-       Linear_Growth_Tabulate => Linear_Growth_Factor_Simple_Tabulate
+    simpleConstructorParameters=simpleConstructorInternal()
+    return
+  end function simpleConstructorParameters
+
+  function simpleConstructorInternal()
+    !% Internal constructor for the {\normalfont \ttfamily simple} linear growth class.
+    implicit none
+    type(linearGrowthSimple) :: simpleConstructorInternal
+
+    simpleConstructorInternal%tableInitialized=.false.
+    simpleConstructorInternal%tableTimeMinimum= 1.0d0
+    simpleConstructorInternal%tableTimeMaximum=20.0d0
+    return
+  end function simpleConstructorInternal
+
+  subroutine simpleDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily simple} linear growth class.
+    implicit none
+    type (linearGrowthSimple), intent(inout) :: self
+    
+    if (self%tableInitialized) then
+       call self%growthFactor%destroy()
+       deallocate(self%growthFactor)
     end if
     return
-  end subroutine Growth_Factor_Simple_Initialize
+  end subroutine simpleDestructor
 
-  subroutine Linear_Growth_Factor_Simple_Tabulate(time,growthTableNumberPoints,growthTableTime,growthTableWavenumber&
-       &,growthTableGrowthFactor ,normalizationMatterDominated)
+  subroutine simpleRetabulate(self,time)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that $D(1)=1$ for a simple
     !% matter plus cosmological constant cosmology.
-    use Numerical_Interpolation
-    use Memory_Management
-    use Numerical_Ranges
+    use, intrinsic :: ISO_C_Binding
+    use Tables
+    use Table_Labels
     use ODE_Solver
+    use Cosmology_Functions
+    use Cosmology_Parameters
     implicit none
-    double precision                                                                    , intent(in   ) :: time
-    integer                                                                             , intent(  out) :: growthTableNumberPoints
-    double precision                                     , allocatable, dimension(:)    , intent(inout) :: growthTableTime                        , growthTableWavenumber
-    double precision                                     , allocatable, dimension(:,:,:), intent(inout) :: growthTableGrowthFactor
-    double precision                                                  , dimension(3)    , intent(  out) :: normalizationMatterDominated
-    double precision                          , parameter                                               :: dominateFactor                 =1.0d4
-    double precision                          , parameter                                               :: odeToleranceAbsolute           =1.0d-10, odeToleranceRelative     =1.0d-10
-    class           (cosmologyParametersClass), pointer                                                 :: thisCosmologyParameters
-    integer                                                                                             :: iComponent                             , iTime
-    double precision                                                                                    :: aMatterDominant                        , growthFactorDerivative           , &
-         &                                                                                                 growthFactorODEVariables    (2)        , linearGrowthFactorPresent        , &
-         &                                                                                                 tMatterDominant                        , tPresent                         , &
-         &                                                                                                 timeNow
-    type            (c_ptr                   )                                                          :: parameterPointer
-    type            (fgsl_interp             )                                                          :: interpolationObject
-    type            (fgsl_interp_accel       )                                                          :: interpolationAccelerator
-    logical                                                                                             :: resetInterpolation             =.true.
-
-    ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
-
-    ! Find the present-day epoch.
-    tPresent=cosmologyFunctionsDefault%cosmicTime(1.0d0)
-
-    ! Find epoch of matter-dark energy equality.
-    aMatterDominant=min(cosmologyFunctionsDefault%expansionFactor(growthTableTimeMinimum),cosmologyFunctionsDefault%dominationEpochMatter(dominateFactor))
-    tMatterDominant=cosmologyFunctionsDefault%cosmicTime(aMatterDominant)
-
-    ! Find minimum and maximum times to tabulate.
-    growthTableTimeMinimum=min(growthTableTimeMinimum,min(tPresent,min(time/2.0,tMatterDominant)      ))
-    growthTableTimeMaximum=max(growthTableTimeMaximum,max(tPresent,max(time    ,tMatterDominant)*2.0d0))
-
-    ! Determine number of points to tabulate.
-    growthTableNumberPoints=int(log10(growthTableTimeMaximum/growthTableTimeMinimum)*dble(growthTableNPointsPerDecade))
-
-    ! Deallocate arrays if currently allocated.
-    if (allocated(growthTableTime        )) call Dealloc_Array(growthTableTime        )
-    if (allocated(growthTableWavenumber  )) call Dealloc_Array(growthTableWavenumber  )
-    if (allocated(growthTableGrowthFactor)) call Dealloc_Array(growthTableGrowthFactor)
-    ! Allocate the arrays to current required size.
-    call Alloc_Array(growthTableTime        ,[    growthTableNumberPoints])
-    call Alloc_Array(growthTableWavenumber  ,[  1                        ])
-    call Alloc_Array(growthTableGrowthFactor,[growthTableNumberPoints,1,3])
-
-    ! Set an arbitrary wavenumber (we do not tabulate as a function of wavenumber so the value does not matter).
-    growthTableWavenumber=1.0d0
-
-    ! Create set of grid points in time variable.
-    growthTableTime=Make_Range(growthTableTimeMinimum,growthTableTimeMaximum,growthTableNumberPoints,rangeTypeLogarithmic)
-
-    ! Solve ODE to get corresponding expansion factors. Initialize with solution for matter dominated phase.
-    growthTableGrowthFactor(1,:,:)=1.0d0
-    growthFactorDerivative=cosmologyFunctionsDefault%expansionRate(cosmologyFunctionsDefault%expansionFactor(growthTableTime(1)))
-    do iTime=2,growthTableNumberPoints
-       timeNow=growthTableTime(iTime-1)
-       growthFactorODEVariables(1)=growthTableGrowthFactor(iTime-1,1,1)
-       growthFactorODEVariables(2)=growthFactorDerivative
-       call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,timeNow,growthTableTime(iTime),2,growthFactorODEVariables &
-            &,growthTableODEs,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
-       growthTableGrowthFactor(iTime,1,1:2)=growthFactorODEVariables(1)
-       growthFactorDerivative              =growthFactorODEVariables(2)
-    end do
-    growthTableGrowthFactor(:,1,3)=1.0d0 ! Assume no growth in radiation.
-
-    ! Flag that interpolation must be reset.
-    call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
-    resetInterpolation=.true.
-
-    ! Normalize to growth factor of unity at present day.
-    do iComponent=1,3
-       linearGrowthFactorPresent=Interpolate(growthTableTime,growthTableGrowthFactor(:,1,iComponent)&
-            &,interpolationObject,interpolationAccelerator,tPresent,reset=resetInterpolation)
-       call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
-       resetInterpolation=.true.
-       growthTableGrowthFactor(:,1,iComponent)=growthTableGrowthFactor(:,1,iComponent)/linearGrowthFactorPresent
-    end do
-
-    ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
-    ! Compute relative normalization factor such that growth factor behaves as expansion factor at early times.
-    normalizationMatterDominated(:)=((9.0d0*thisCosmologyParameters%OmegaMatter()/4.0d0)**(1.0d0/3.0d0))*((thisCosmologyParameters%HubbleConstant(hubbleUnitsTime)*growthTableTime(1))**(2.0d0/3.0d0)) &
-         &/growthTableGrowthFactor(1,1,:)
+    class           (linearGrowthSimple      ), intent(inout) :: self
+    double precision                          , intent(in   ) :: time
+    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    double precision                          , parameter     :: dominateFactor               =   1.0d+04
+    double precision                          , parameter     :: odeToleranceAbsolute         =   1.0d-10, odeToleranceRelative     =1.0d-10
+    integer                                   , parameter     :: growthTablePointsPerDecade   =1000
+    double precision                          , dimension(2)  :: growthFactorODEVariables
+    logical                                                   :: remakeTable
+    integer                                                   :: i
+    double precision                                          :: expansionFactorMatterDominant           , growthFactorDerivative           , &
+         &                                                       timeNow                                 , linearGrowthFactorPresent        , &
+         &                                                       timeMatterDominant                      , timePresent
+    type            (c_ptr                   )                :: parameterPointer
+    integer                                                   :: growthTableNumberPoints    
+    type            (fgsl_odeiv_step         )                :: odeStepper
+    type            (fgsl_odeiv_control      )                :: odeController
+    type            (fgsl_odeiv_evolve       )                :: odeEvolver
+    type            (fgsl_odeiv_system       )                :: odeSystem
+    logical                                                   :: odeReset                     =.true.
+    
+    ! Check if we need to recompute our table.
+    if (self%tableInitialized) then
+       remakeTable=(                              &
+            &        time < self%tableTimeMinimum &
+            &       .or.                          &
+            &        time > self%tableTimeMaximum &
+            &      )
+    else
+       remakeTable=.true.
+    end if
+    if (remakeTable) then
+       ! Get required objects.
+       cosmologyParameters_ => cosmologyParameters()
+       cosmologyFunctions_  => cosmologyFunctions ()     
+       ! Find the present-day epoch.
+       timePresent                 =     cosmologyFunctions_%cosmicTime           (                        1.0d0)
+       ! Find epoch of matter-dark energy equality.
+       expansionFactorMatterDominant=min(                                                                          &
+            &                            cosmologyFunctions_%expansionFactor      (        self%tableTimeMinimum), &
+            &                            cosmologyFunctions_%dominationEpochMatter(               dominateFactor)  &
+            &                           )
+       timeMatterDominant           =    cosmologyFunctions_%cosmicTime           (expansionFactorMatterDominant)       
+       ! Find minimum and maximum times to tabulate.
+       self%tableTimeMinimum=min(self%tableTimeMinimum,min(timePresent,min(time/2.0,timeMatterDominant)      ))
+       self%tableTimeMaximum=max(self%tableTimeMaximum,max(timePresent,max(time    ,timeMatterDominant)*2.0d0))
+              ! Determine number of points to tabulate.
+       growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecade))       
+       ! Destroy current table.
+       if (allocated(self%growthFactor)) then
+          call self%growthFactor%destroy()
+          deallocate(self%growthFactor)
+       end if
+       ! Create table.
+       allocate(table1DLogarithmicLinear :: self%growthFactor)
+       select type (growthFactor => self%growthFactor)
+       type is (table1DLogarithmicLinear)
+          call growthFactor%create(self%tableTimeMinimum,self%tableTimeMaximum,growthTableNumberPoints)
+          ! Solve ODE to get corresponding expansion factors. Initialize with solution for matter dominated phase.
+          call growthFactor%populate(1.0d0,1)
+          growthFactorDerivative=cosmologyFunctions_ %expansionRate  (                   &
+               &                  cosmologyFunctions_%expansionFactor (                  &
+               &                                                       growthFactor%x(1) &
+               &                                                      )                  &
+               &                                                     )
+          do i=2,growthTableNumberPoints
+             timeNow                    =growthFactor          %x(i-1)
+             growthFactorODEVariables(1)=growthFactor          %y(i-1)
+             growthFactorODEVariables(2)=growthFactorDerivative
+             call ODE_Solve(                                   &
+                  &         odeStepper                       , &
+                  &         odeController                    , &
+                  &         odeEvolver                       , &
+                  &         odeSystem                        , &
+                  &         timeNow                          , &
+                  &         growthFactor%x(i)                , &
+                  &         2                                , &
+                  &         growthFactorODEVariables         , &
+                  &         growthFactorODEs                 , &
+                  &         parameterPointer                 , &
+                  &         odeToleranceAbsolute             , &
+                  &         odeToleranceRelative             , &
+                  &         reset                   =odeReset  &
+                  &        )
+             call growthFactor%populate(growthFactorODEVariables(1),i)
+             growthFactorDerivative=growthFactorODEVariables(2)
+          end do
+          ! Normalize to growth factor of unity at present day.
+          linearGrowthFactorPresent=growthFactor%interpolate(timePresent)
+          call growthFactor%populate(reshape(growthFactor%ys(),[growthTableNumberPoints])/linearGrowthFactorPresent)
+          ! Compute relative normalization factor such that growth factor behaves as expansion factor at early times.
+          self%normalizationMatterDominated=+(                                                      &
+               &                              +9.0d0                                                &
+               &                              *cosmologyParameters_%OmegaMatter   (               ) &
+               &                              /4.0d0                                                &
+               &                             )**(1.0d0/3.0d0)                                       &
+               &                            *(                                                      &
+               &                              +cosmologyParameters_%HubbleConstant(hubbleUnitsTime) &
+               &                              *growthFactor        %x             (              1) &
+               &                             )**(2.0d0/3.0d0)                                       &
+               &                            /  growthFactor        %y             (              1)
+          self%tableInitialized=.true.
+       end select
+    end if
     return
-  end subroutine Linear_Growth_Factor_Simple_Tabulate
+    
+  contains
+    
+    function growthFactorODEs(time,values,derivatives,parameterPointer) bind(c)
+      !% System of differential equations to solve for the growth factor.
+      integer(kind=c_int   )                              :: growthFactorODEs
+      real   (kind=c_double)              , value         :: time
+      real   (kind=c_double), dimension(2), intent(in   ) :: values
+      real   (kind=c_double), dimension(2)                :: derivatives
+      type   (     c_ptr   )              , value         :: parameterPointer
+      real   (kind=c_double)                              :: expansionFactor
+      
+      expansionFactor   =+cosmologyFunctions_%expansionFactor   (                           time)
+      derivatives    (1)=+values                                (                              2)
+      derivatives    (2)=+1.5d0                                                                      &
+           &             *cosmologyFunctions_%expansionRate     (                expansionFactor)**2 &
+           &             *cosmologyFunctions_%omegaMatterEpochal(expansionFactor=expansionFactor)    &
+           &             *values                                (                              1)    &
+           &             -2.0d0                                                                      &
+           &             *cosmologyFunctions_%expansionRate     (                expansionFactor)    &
+           &             *values                                (                              2)
+      growthFactorODEs  = FGSL_Success
+    end function growthFactorODEs
 
-  function growthTableODEs(t,D,dDdt,parameterPointer) bind(c)
-    !% System of differential equations to solve for the growth factor.
-    integer(kind=c_int   )                              :: growthTableODEs
-    real   (kind=c_double)              , value         :: t
-    real   (kind=c_double), dimension(2), intent(in   ) :: D
-    real   (kind=c_double), dimension(2)                :: dDdt
-    type   (c_ptr        )              , value         :: parameterPointer
-    real   (kind=c_double)                              :: aExpansion
+  end subroutine simpleRetabulate
 
-    aExpansion=cosmologyFunctionsDefault%expansionFactor(t)
-    dDdt(1)=D(2)
-    dDdt(2)=1.5d0*(cosmologyFunctionsDefault%expansionRate(aExpansion)**2)*cosmologyFunctionsDefault%omegaMatterEpochal(expansionFactor=aExpansion)*D(1)-2.0d0*cosmologyFunctionsDefault%expansionRate(aExpansion)*D(2)
-    growthTableODEs=FGSL_Success
-  end function growthTableODEs
-
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Linear_Growth_Simple_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Linear_Growth_Simple_State_Store(stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
+  double precision function simpleValue(self,time,expansionFactor,collapsing,normalize,component,wavenumber)
+    !% Return the linear growth factor at the given epoch.
+    use Cosmology_Functions
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-
-    write (stateFile) growthTableTimeMinimum,growthTableTimeMaximum
+    class           (linearGrowthSimple     ), intent(inout)           :: self
+    double precision                         , intent(in   ), optional :: time               , expansionFactor
+    logical                                  , intent(in   ), optional :: collapsing
+    integer                                  , intent(in   ), optional :: normalize          , component
+    class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctions_
+    double precision                         , intent(in   ), optional :: wavenumber
+    double precision                                                   :: time_
+    !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
+    
+    ! Determine cosmological time.
+    cosmologyFunctions_ => cosmologyFunctions()
+    call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
+    ! Remake the table if necessary.
+    call self%retabulate(time_)
+    ! Interpolate to get the expansion factor.
+    simpleValue=self%growthFactor%interpolate(time_)
+    ! Normalize.
+    select case (normalize_)
+    case (normalizeMatterDominated)
+       simpleValue=simpleValue*self%normalizationMatterDominated
+    end select
     return
-  end subroutine Linear_Growth_Simple_State_Store
+  end function simpleValue
 
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Linear_Growth_Simple_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Linear_Growth_Simple_State_Retrieve(stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
+  double precision function simpleLogarithmicDerivativeExpansionFactor(self,time,expansionFactor,collapsing,component,wavenumber)
+    !% Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
+    use Galacticus_Error
+    use Cosmology_Functions
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-
-    ! Read the minimum and maximum tabulated times.
-    read (stateFile) growthTableTimeMinimum,growthTableTimeMaximum
+    class           (linearGrowthSimple     ), intent(inout)           :: self
+    double precision                         , intent(in   ), optional :: time               , expansionFactor
+    logical                                  , intent(in   ), optional :: collapsing
+    integer                                  , intent(in   ), optional :: component 
+    double precision                         , intent(in   ), optional :: wavenumber 
+    class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctions_
+    double precision                                                   :: time_              , expansionFactor_
+    
+    ! Determine cosmological time.
+    cosmologyFunctions_ => cosmologyFunctions()
+    call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
+    ! Remake the table if necessary.
+    call self%retabulate(time_)
+    ! Interpolate to get the expansion factor.
+    simpleLogarithmicDerivativeExpansionFactor=+self               %growthFactor %interpolateGradient(time_           ) &
+         &                                     /self               %growthFactor %interpolate        (time_           ) &
+         &                                     /cosmologyFunctions_%expansionRate                    (expansionFactor_)
     return
-  end subroutine Linear_Growth_Simple_State_Retrieve
+  end function simpleLogarithmicDerivativeExpansionFactor
 
-end module Linear_Growth_Simple
+  subroutine simpleStateStore(self,stateFile,fgslStateFile)
+    !% Store the tabulation.
+    use FGSL
+    implicit none
+    class  (linearGrowthSimple), intent(inout) :: self
+    integer                    , intent(in   ) :: stateFile
+    type   (fgsl_file         ), intent(in   ) :: fgslStateFile
+    
+    write (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
+    return
+  end subroutine simpleStateStore
+  
+  subroutine simpleStateRestore(self,stateFile,fgslStateFile)
+    !% Reset the tabulation if state is to be retrieved.
+    use FGSL
+    implicit none
+    class  (linearGrowthSimple), intent(inout) :: self
+    integer                    , intent(in   ) :: stateFile
+    type   (fgsl_file         ), intent(in   ) :: fgslStateFile
+
+    read (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
+    self%tableInitialized=.false.
+    return
+  end subroutine simpleStateRestore

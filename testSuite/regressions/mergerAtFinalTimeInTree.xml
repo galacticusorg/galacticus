@@ -76,7 +76,7 @@
   <allTreesExistAtFinalTime value="false"/>
   <hotHaloTemperatureMethod value="virial"/>
   <mergerTreeReadPresetSpins value="false"/>
-  <virialOrbitsMethod value="fixed"/>
+  <virialOrbitMethod value="fixed"/>
   <mergerTreeReadPresetPositions value="true"/>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>

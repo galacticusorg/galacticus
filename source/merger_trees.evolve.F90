@@ -307,7 +307,7 @@ contains
                             deadlockStatus=isNotDeadlocked
                          else
                             ! Call routine to handle end of timestep processing.
-                            if (associated(End_Of_Timestep_Task)) call End_Of_Timestep_Task(currentTree,thisNode,deadlockStatus)
+                            if (associated(End_Of_Timestep_Task).and.associated(thisNode)) call End_Of_Timestep_Task(currentTree,thisNode,deadlockStatus)
                          end if
                       end do
                       

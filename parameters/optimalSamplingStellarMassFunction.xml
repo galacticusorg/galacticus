@@ -8,7 +8,7 @@
     <OmegaDarkEnergy value="0.75"/>
     <OmegaBaryon value="0.045"/>
   </cosmologyParametersMethod><cosmologyFunctionsMethod value="matterLambda"/>
-  <criticalOverdensityMethod value="sphericalTopHat"/>
+  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
   <haloMassFunctionMethod value="Tinker2008"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
     <index               value="1.000"/>

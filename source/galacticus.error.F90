@@ -19,12 +19,16 @@
 
 module Galacticus_Error
   !% Implements error reporting for the {\normalfont \scshape Galacticus} package.
+  use, intrinsic :: ISO_C_Binding
   use HDF5
+  use Semaphores
   use FGSL
   use Semaphores
   implicit none
   private
-  public :: Galacticus_Error_Report, Galacticus_Error_Handler_Register, Galacticus_Component_List
+  public :: Galacticus_Error_Report               , Galacticus_Error_Handler_Register    , &
+       &    Galacticus_Component_List             , Galacticus_GSL_Error_Handler_Abort_On, &
+       &    Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Status
 
   interface Galacticus_Error_Report
      module procedure Galacticus_Error_Report_Char
@@ -32,7 +36,7 @@ module Galacticus_Error
   end interface Galacticus_Error_Report
 
   ! Specify an explicit dependence on the hdf5_cFuncs.o object file.
-  !: ./work/build/hdf5_cFuncs.o
+  !: $(BUILDPATH)/hdf5_cFuncs.o
   interface
      subroutine H5Close_C() bind(c,name='H5Close_C')
      end subroutine H5Close_C
@@ -44,7 +48,13 @@ module Galacticus_Error
   integer, parameter, public :: errorStatusFail       =FGSL_Failure ! Generic failure.
   integer, parameter, public :: errorStatusInputDomain=FGSL_eDom    ! Input domain error.
   integer, parameter, public :: errorStatusOutOfRange =FGSL_eRange  ! Output range error.
+  integer, parameter, public :: errorStatusXCPU       =1025         ! CPU time limit exceeded.
 
+  ! GSL error status.
+  logical             :: abortOnErrorGSL=.true.
+  integer(kind=c_int) :: errorStatusGSL
+  !$omp threadprivate(abortOnErrorGSL,errorStatusGSL)
+  
 contains
 
   subroutine Galacticus_Error_Report_VarStr(unitName,message)
@@ -91,6 +101,7 @@ contains
     call Signal( 8,Galacticus_Signal_Handler_SIGFPE )
     call Signal(11,Galacticus_Signal_Handler_SIGSEGV)
     call Signal(15,Galacticus_Signal_Handler_SIGINT )
+    call Signal(24,Galacticus_Signal_Handler_SIGXCPU)
     galacticusGslErrorHandler=FGSL_Error_Handler_Init(Galacticus_GSL_Error_Handler)
     standardGslErrorHandler  =FGSL_Set_Error_Handler (galacticusGslErrorHandler   )
    return
@@ -99,8 +110,13 @@ contains
   subroutine Galacticus_Signal_Handler_SIGINT()
     !% Handle {\normalfont \ttfamily SIGINT} signals, by flushing all data and then aborting.
     !$ use OMP_Lib
+#ifdef USEMPI
+    use MPI
+#endif
     implicit none
-    integer :: error
+    integer            :: error   , mpiRank
+    character(len=128) :: hostName
+    logical            :: flag
 
     write (0,*) 'Galacticus was interrupted - will try to flush data before exiting.'
     !$ if (omp_in_parallel()) then
@@ -109,6 +125,17 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
     call Flush(0)
+#ifdef USEMPI
+    call MPI_Initialized(flag,error)
+    if (flag) then
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
+       write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
+       call Flush(0)
+       call Sleep(86400)
+    end if
+#endif
     call H5Close_F(error)
     call H5Close_C()
     call Semaphore_Post_On_Error()
@@ -119,9 +146,14 @@ contains
   subroutine Galacticus_Signal_Handler_SIGSEGV()
     !% Handle {\normalfont \ttfamily SIGSEGV} signals, by flushing all data and then aborting.
     !$ use OMP_Lib
+#ifdef USEMPI
+    use MPI
+#endif
     implicit none
-    integer :: error
-
+    integer            :: error   , mpiRank
+    character(len=128) :: hostName
+    logical            :: flag
+    
     write (0,*) 'Galacticus experienced a segfault - will try to flush data before exiting.'
     !$ if (omp_in_parallel()) then
     !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
@@ -129,6 +161,17 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
     call Flush(0)
+#ifdef USEMPI
+    call MPI_Initialized(flag,error)
+    if (flag) then
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
+       write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
+       call Flush(0)
+       call Sleep(86400)
+    end if
+#endif
     call H5Close_F(error)
     call H5Close_C()
     call Semaphore_Post_On_Error()
@@ -139,8 +182,13 @@ contains
   subroutine Galacticus_Signal_Handler_SIGFPE()
     !% Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
     !$ use OMP_Lib
+#ifdef USEMPI
+    use MPI
+#endif
     implicit none
-    integer :: error
+    integer            :: error   , mpiRank
+    character(len=128) :: hostName
+    logical            :: flag
 
     write (0,*) 'Galacticus experienced a floating point exception - will try to flush data before exiting.'
     !$ if (omp_in_parallel()) then
@@ -149,6 +197,17 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
     call Flush(0)
+#ifdef USEMPI
+    call MPI_Initialized(flag,error)
+    if (flag) then
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
+       write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
+       call Flush(0)
+       call Sleep(86400)
+    end if
+#endif
     call H5Close_F(error)
     call H5Close_C()
     call Semaphore_Post_On_Error()
@@ -156,33 +215,90 @@ contains
     return
   end subroutine Galacticus_Signal_Handler_SIGFPE
 
-  subroutine Galacticus_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
-    !% Handle errors from the GSL library, by flushing all data and then aborting.
-    !$ use OMP_Lib
-    use FGSL
-    use, intrinsic :: ISO_C_Binding
-    type     (c_ptr                         ), value :: file       , reason
-    integer  (kind=c_int                    ), value :: errorNumber, line
-    character(kind=FGSL_Char,len=FGSL_StrMax)        :: message
-    integer                                          :: error
+  subroutine Galacticus_Signal_Handler_SIGXCPU()
+    !% Handle {\normalfont \ttfamily SIGXCPU} signals, by flushing all data and then aborting.
+    implicit none
+    integer :: error
 
-    message=FGSL_StrError(errorNumber)
-    write (0,*) 'Galacticus experienced an error in the GSL library - will try to flush data before exiting.'
-    write (0,*) ' => Error occurred in ',trim(FGSL_Name(file  )),' at line ',line
-    write (0,*) ' => Reason was: '      ,trim(FGSL_Name(reason))
-    !$ if (omp_in_parallel()) then
-    !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
-    !$ else
-    !$    write (0,*) " => Error occurred in master thread"
-    !$ end if
+    write (0,*) 'Galacticus exceeded available CPU time - will try to flush data before exiting.'
+    call Semaphore_Post_On_Error()
     call Flush(0)
     call H5Close_F(error)
     call H5Close_C()
-    call Semaphore_Post_On_Error()
-    call Abort()
+    call Exit(errorStatusXCPU)
+    return
+  end subroutine Galacticus_Signal_Handler_SIGXCPU
+
+  subroutine Galacticus_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
+    !% Handle errors from the GSL library, by flushing all data and then aborting.
+    !$ use OMP_Lib
+#ifdef USEMPI
+    use MPI
+#endif
+    use FGSL
+    type     (c_ptr                         ), value :: file       , reason
+    integer  (kind=c_int                    ), value :: errorNumber, line
+    character(kind=FGSL_Char,len=FGSL_StrMax)        :: message
+    integer                                          :: error     , mpiRank
+    character(len=128                       )        :: hostName
+    logical                                          :: flag
+
+    if (abortOnErrorGSL) then
+       message=FGSL_StrError(errorNumber)
+       write (0,*) 'Galacticus experienced an error in the GSL library - will try to flush data before exiting.'
+       write (0,*) ' => Error occurred in ',trim(FGSL_Name(file  )),' at line ',line
+       write (0,*) ' => Reason was: '      ,trim(FGSL_Name(reason))
+       !$ if (omp_in_parallel()) then
+       !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
+       !$ else
+       !$    write (0,*) " => Error occurred in master thread"
+       !$ end if
+       call Flush(0)
+#ifdef USEMPI
+       call MPI_Initialized(flag,error)
+       if (flag) then
+          call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+          call hostnm(hostName)
+          write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
+          write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
+          call Flush(0)
+          call Sleep(86400)
+       end if
+#endif
+      call H5Close_F(error)
+       call H5Close_C()
+       call Semaphore_Post_On_Error()
+       call Abort()
+    else
+       errorStatusGSL=errorNumber
+    end if
     return
   end subroutine Galacticus_GSL_Error_Handler
 
+  subroutine Galacticus_GSL_Error_Handler_Abort_On()
+    !% Record that we should abort on GSL errors.
+    implicit none
+
+    abortOnErrorGSL=.true.
+    return
+  end subroutine Galacticus_GSL_Error_Handler_Abort_On
+
+  subroutine Galacticus_GSL_Error_Handler_Abort_Off()
+    !% Record that we should not abort on GSL errors.
+    implicit none
+
+    abortOnErrorGSL=.false.
+    return
+  end subroutine Galacticus_GSL_Error_Handler_Abort_Off
+
+  integer function Galacticus_GSL_Error_Status()
+    !% Return current GSL error status.
+    implicit none
+
+    Galacticus_GSL_Error_Status=errorStatusGSL
+    return
+  end function Galacticus_GSL_Error_Status
+  
   function Galacticus_Component_List(className,componentList)
     !% Construct a message describing which implementations of a component class provide required functionality. 
     use ISO_Varying_String
@@ -200,5 +316,5 @@ contains
     end if
     return
   end function Galacticus_Component_List
-
+  
 end module Galacticus_Error
