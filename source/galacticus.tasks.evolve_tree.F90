@@ -462,10 +462,9 @@ contains
        end if
 
     end do
-    !$omp end parallel
-
     ! Finalize any merger tree operator.
     call mergerTreeOperator_%finalize()
+    !$omp end parallel
     
     ! Close the semaphore.
     if (treeEvolveThreadLock) call galacticusMutex%close()
