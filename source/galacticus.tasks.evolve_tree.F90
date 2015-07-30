@@ -93,7 +93,8 @@ contains
     type            (treeNode               ), pointer     , save :: satelliteNode
     class           (nodeComponentBasic     ), pointer     , save :: baseNodeBasic
     !$omp threadprivate(satelliteNode,baseNodeBasic)
-    class           (mergerTreeOperatorClass), pointer            :: mergerTreeOperator_
+    class           (mergerTreeOperatorClass), pointer     , save :: mergerTreeOperator_ => null()
+    !$omp threadprivate(mergerTreeOperator_)
     type            (semaphore              ), pointer            :: galacticusMutex
     character       (len=32                 )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
     !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeIsFinished,evolutionIsEventLimited,success,removeTree)
@@ -205,9 +206,6 @@ contains
     call Galacticus_Nodes_Initialize()
     call Node_Components_Initialize ()
 
-    ! Get required objects.
-    mergerTreeOperator_ => mergerTreeOperator()
-    
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It
     ! allows for the possibility of "universal events" - events which require all merger trees to reach the same cosmic time. If
     ! such an event exists, each tree is processed up to that time and then pushed onto a stack where it waits to be
@@ -235,7 +233,10 @@ contains
 
     ! Begin parallel processing of trees until all work is done.
     !$omp parallel copyin(finished)
-    do while (.not.finished)
+    do while (.not.finished)       
+       ! Get required objects.
+       if (.not.associated(mergerTreeOperator_)) mergerTreeOperator_ => mergerTreeOperator()
+       
        ! If locking threads, claim one.
        if (treeEvolveThreadLock) call galacticusMutex%wait()
        
