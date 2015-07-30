@@ -85,7 +85,7 @@ foreach my $srcdir ( @sourcedirs ) {
 				$nextLine = <$fileHandle>;
 				# Detect included file names.
 				if ( $nextLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
-				    $includedFileName = "./work/build/".$1;
+				    $includedFileName = $ENV{'BUILDPATH'}."/".$1;
 				}
 				$nextLine =~ s/^\s*!\#\s+//;
 				$nextLine =~ s/^\s*\/\/\#\s+//;
@@ -103,7 +103,7 @@ foreach my $srcdir ( @sourcedirs ) {
 			if ( $xmlTag eq "include" ) {
 			    my $fileName;
 			    if ( ${$data}{'content'} =~ m/^\s*\#??include\s*["'<](.+)["'>]/i ) {
-				($fileName = "work/build/".$1) =~ s/\.inc$/\.Inc/;
+				($fileName = $ENV{'BUILDPATH'}."/".$1) =~ s/\.inc$/\.Inc/;
 				${$data}{'fileName'} = $fileName;
 			    }
 			    delete(${$data}{'content'});
@@ -183,12 +183,12 @@ foreach my $xmlTag ( keys(%{$otherDirectives}) ) {
     @{$outputDirectives->{$xmlTag}->{'file'}} = @fileNames;
 }
 my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"directives");
-open(directiveHndl,">./work/build/Code_Directive_Locations.xml");
+open(directiveHndl,">".$ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
 print directiveHndl $xmlOutput->XMLout($outputDirectives);
 close(directiveHndl);
 
 # Output the Makefile
-open(makefileHndl,">./work/build/Makefile_Directives");
+open(makefileHndl,">".$ENV{'BUILDPATH'}."/Makefile_Directives");
 foreach my $directive ( keys(%includeDirectives) ) {
     (my $fileName = ${$includeDirectives{$directive}}{'fileName'}) =~ s/\.inc$/\.Inc/;
     my $extraDependencies = "";
@@ -205,17 +205,17 @@ foreach my $directive ( keys(%includeDirectives) ) {
 	$extraDependencies .= " ".join(" ",keys(%{$otherDirectives->{$name}->{'dependency'}}))
 	    if ( exists($otherDirectives->{$name}->{'dependency'}) );
     }
-    print makefileHndl $fileName.": ./work/build/".$directive.".xml".$extraDependencies."\n";
-    print makefileHndl "\t./scripts/build/Build_Include_File.pl ".$sourcedir." ./work/build/".$directive.".xml\n";
+    print makefileHndl $fileName.": ".$ENV{'BUILDPATH'}."/".$directive.".xml".$extraDependencies."\n";
+    print makefileHndl "\t./scripts/build/Build_Include_File.pl ".$sourcedir." ".$ENV{'BUILDPATH'}."/".$directive.".xml\n";
     print makefileHndl "\n";
-    open(xmlHndl,">./work/build/".$directive.".xml.tmp");
+    open(xmlHndl,">".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp");
     print xmlHndl ${$includeDirectives{$directive}}{'xml'};
     close(xmlHndl);
-    &SystemRedirect::tofile("diff -q  $sourcedir/work/build/".$directive.".xml.tmp $sourcedir/work/build/".$directive.".xml","/dev/null");
+    &SystemRedirect::tofile("diff -q  ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml","/dev/null");
     if ( $? == 0 ) {
-	system("rm -f $sourcedir/work/build/".$directive.".xml.tmp");
+	system("rm -f ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp");
     } else {
-	system("mv $sourcedir/work/build/".$directive.".xml.tmp $sourcedir/work/build/".$directive.".xml");
+	system("mv ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp ".$sourcedir."/".$ENV{'BUILDPATH'}."/".$directive.".xml");
     }
 }
 # Add additional dependencies for object files of source files that contain functionClass directives. These source files get other
@@ -227,13 +227,23 @@ foreach my $xmlTag ( keys(%{$otherDirectives}) ) {
 	    push(@fileNames,$fileName);
 	}
 	(my $processedFileName = $functionClasses{$xmlTag}) =~ s/\.F90/.p.F90/;
-	print makefileHndl "work/build/".$processedFileName.": ".join(" ",@fileNames)."\n\n";
+	print makefileHndl $ENV{'BUILDPATH'}."/".$processedFileName.": ".join(" ",@fileNames)."\n\n";
+
+# Include explicit dependencies for Makefile_Use_Deps to ensure that module dependencies get rebuilt
+# after these directive include files are constructed.
+print makefileHndl $ENV{'BUILDPATH'}."/Makefile_Use_Deps:";
+foreach my $directive ( keys(%includeDirectives) ) {
+    (my $fileName = ${$includeDirectives{$directive}}{'fileName'}) =~ s/\.inc$/\.Inc/;
+    print makefileHndl " ".$fileName;
+}
+print makefileHndl "\n\n";
+
     }
 }
 
 # Include a rule for including Makefile_Component_Includes. This has to go here since Makefile_Component_Includes depends on
 # objects.nodes.components.Inc for which Makefile_Directive contains the build rule.
-print makefileHndl "-include ./work/build/Makefile_Component_Includes\n";
-print makefileHndl "./work/build/Makefile_Component_Includes: ./work/build/objects.nodes.components.Inc\n\n";
+print makefileHndl "-include ".$ENV{'BUILDPATH'}."/Makefile_Component_Includes\n";
+print makefileHndl $ENV{'BUILDPATH'}."/Makefile_Component_Includes: ".$ENV{'BUILDPATH'}."/objects.nodes.components.Inc\n\n";
 close(makefileHndl);
 exit;

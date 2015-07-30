@@ -31,13 +31,15 @@ contains
     use Numerical_Constants_Math
     use Linear_Growth
     implicit none
-    double precision, intent(in   ) :: mass                     , expansionFactor
-    double precision, intent(  out) :: aTilde                   , bTilde
-    double precision, parameter     :: deltaCritical    =1.686d0
-    double precision                :: redshiftFormation        , q              , &
-         &                             sigma                    , sigmaQ         , &
-         &                             f
-    
+    double precision                   , intent(in   ) :: mass                     , expansionFactor
+    double precision                   , intent(  out) :: aTilde                   , bTilde
+    class           (linearGrowthClass), pointer       :: linearGrowth_
+    double precision                   , parameter     :: deltaCritical    =1.686d0
+    double precision                                   :: redshiftFormation        , q              , &
+         &                                                sigma                    , sigmaQ         , &
+         &                                                f
+
+    linearGrowth_ => linearGrowth()
     redshiftFormation=+1.8837d0                & ! Correa et al. eqn. 6
          &            +0.0237d0*log10(mass)    &
          &            -0.0064d0*log10(mass)**2
@@ -45,14 +47,14 @@ contains
     sigma =Cosmological_Mass_Root_Variance(mass  )
     sigmaQ=Cosmological_Mass_Root_Variance(mass/q)    
     f     =1.0d0/sqrt(sigmaQ**2-sigma**2)
-    aTilde=+f                                                                              & ! Correa et al. eqn. 2.
-         & *(                                                                              &
-         &   +1.0d0                                                                        &
-         &   -sqrt(2.0d0/Pi)                                                               &
-         &   *deltaCritical                                                                &
-         &   *                                                            expansionFactor  &
-         &   *Linear_Growth_Factor_Logarithmic_Derivative(expansionFactor=expansionFactor) &
-         &   /Linear_Growth_Factor                       (expansionFactor=expansionFactor) &
+    aTilde=+f                                                                                     & ! Correa et al. eqn. 2.
+         & *(                                                                                     &
+         &   +1.0d0                                                                               &
+         &   -sqrt(2.0d0/Pi)                                                                      &
+         &   *deltaCritical                                                                       &
+         &   *                                                                   expansionFactor  &
+         &   *linearGrowth_%logarithmicDerivativeExpansionFactor(expansionFactor=expansionFactor) &
+         &   /linearGrowth_%value                               (expansionFactor=expansionFactor) &
          &  )
     bTilde=-f ! Correa et al. eqn. 3.
     return

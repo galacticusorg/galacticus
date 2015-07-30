@@ -44,7 +44,7 @@ sub Process_FunctionClass {
 	    # Extract the directive.
 	    my $directive = $node->{'directive'};
 	    # Get code directive locations if we do not have them.
-	    $directiveLocations = $xml->XMLin($galacticusPath."work/build/Code_Directive_Locations.xml")
+	    $directiveLocations = $xml->XMLin($galacticusPath.$ENV{'BUILDPATH'}."/Code_Directive_Locations.xml")
 		unless ( $directiveLocations );	    
 	    # Find methods.
 	    my %methods;
@@ -343,7 +343,7 @@ sub Process_FunctionClass {
 	    &ModuleUses::AddUses($node->{'parent'},$usesNode);
 	    if ( $tree->{'type'} eq "file" ) {
 		(my $fileName = $tree->{'name'}) =~ s/\.F90$/.p/;
-		open(my $parametersFile,">>work/build/".$fileName);
+		open(my $parametersFile,">>".$ENV{'BUILDPATH'}."/".$fileName);
 		print $parametersFile $directive->{'name'}."Method\n";
 		close($parametersFile);
 	    }
@@ -654,7 +654,6 @@ sub Process_FunctionClass {
 		} else {
 		    $postContains->[0]->{'content'} .= "      call Galacticus_Error_Report('".$methodName."Null','this is a null method - initialize the ".$directive->{'name'}." object before use')\n";
 		}
-		$postContains->[0]->{'content'} .= "      return\n";
 		$postContains->[0]->{'content'} .= "   end ".$category." ".$directive->{'name'}.ucfirst($methodName).$extension."\n\n";
 	    }
  	    
@@ -836,7 +835,7 @@ sub Process_FunctionClass {
 		$cBindings .= "};\n\n";
 		# Create methods.
 		$cBindings .= $methodCode;
-		open(cHndl,">work/build/".$directive->{'name'}.".h");
+		open(cHndl,">".$ENV{'BUILDPATH'}."/".$directive->{'name'}.".h");
 		print cHndl $cBindings;
 		close(cHndl);
 	    }

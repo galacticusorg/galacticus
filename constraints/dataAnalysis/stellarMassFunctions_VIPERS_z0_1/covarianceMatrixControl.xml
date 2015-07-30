@@ -1,0 +1,47 @@
+<constrain>
+  <!-- Configuration file for fitting of CSMF to Davidzon et al. mass functions -->
+  <!-- Andrew Benson                                                            -->
+  <!-- 05-July-2014                                                             -->
+
+  <observedDataFile>data/observations/massFunctionsStellar/Stellar_Mass_Functions_VIPERS_2013.xml</observedDataFile>
+
+  <baseDirectory>constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/</baseDirectory>
+
+  <mcmcConfigFile>constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/mcmcConfig.xml</mcmcConfigFile>
+
+  <constraintFile>constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/covarianceMatrix.hdf5</constraintFile>
+
+  <parameterFile>constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/covarianceMatrix.xml</parameterFile>
+
+  <!-- Label for PBS jobs -->
+  <pbsLabel>smfVIPERS</pbsLabel>
+
+  <!-- Number of stages (iterations) to carry out -->
+  <stageCount>4</stageCount>
+
+  <!-- Source for mass function -->
+  <sourceLabel>Davidzon et al. (2013)</sourceLabel>
+
+  <!-- Label for mass type -->
+  <massType>stellar</massType>
+  <massVariable>M_\star</massVariable>
+
+  <!-- Redshift ranges -->
+  <redshift>
+    <minimum>0.50</minimum>
+    <maximum>0.60</maximum>
+  </redshift>
+  <redshift>
+    <minimum>0.60</minimum>
+    <maximum>0.80</maximum>
+  </redshift>
+  <redshift>
+    <minimum>0.80</minimum>
+    <maximum>1.00</maximum>
+  </redshift>
+
+  <!-- Thread control -->
+  <nodeCount>1</nodeCount>
+  <threadsPerNode>12</threadsPerNode>
+
+</constrain>

@@ -10,13 +10,15 @@
   <treeNodeMethodBasic value="standard"/>
   <treeNodeMethodBlackHole value="standard"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
-  <treeNodeMethodDisk value="exponential"/>
+  <treeNodeMethodDisk value="standard"/>
   <treeNodeMethodHotHalo value="standard"/>
   <treeNodeMethodSatellite value="preset"/>
   <treeNodeMethodSpheroid value="standard"/>
   <spheroidMassDistribution value="hernquist"/>
   <treeNodeMethodSpin value="preset3D"/>
   <treeNodeMethodNBody value="standard"/>
+
+  <diskMassDistribution value="exponentialDisk" />
 
   <!-- Cosmological parameters and options      -->
   <!-- as parameters used in Bolshoi simulation -->
@@ -41,7 +43,7 @@
   <!-- Structure formation options -->
   <linearGrowthMethod value="simple"/>
   <haloMassFunctionMethod value="Tinker2008"/>
-  <criticalOverdensityMethod value="sphericalTopHat"/>
+  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
 
   <!-- Merger tree reading options -->
@@ -203,7 +205,7 @@
   <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Galaxy merger options -->
-  <virialOrbitsMethod value="Benson2005"/>
+  <virialOrbitMethod value="benson2005"/>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <mergingTimescaleMultiplier value="0.75"/>
   <satelliteMergingMassMovementsMethod value="simple"/>

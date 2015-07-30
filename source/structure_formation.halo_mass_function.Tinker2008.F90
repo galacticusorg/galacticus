@@ -92,6 +92,8 @@ contains
     !$omp threadprivate(interpolationObject,interpolationAccelerator,resetInterpolation)
     double precision                                           , save :: timePrevious             =-1.0d0
     !$omp threadprivate(timePrevious)  
+    double precision                                           , save :: massPrevious             =-1.0d0
+    !$omp threadprivate(massPrevious)  
     double precision                                           , save :: Delta                           , a             , &
          &                                                               a0                              , alphaDelta    , &
          &                                                               b                               , b0            , &
@@ -99,19 +101,21 @@ contains
          &                                                               expansionFactor                 , growthFactor  , &
          &                                                               normalization                   , normalization0
     !$omp threadprivate(expansionFactor,Delta,growthFactor,normalization0,a0,b0,c0,normalization,a,alphaDelta,b,c)
-    class           (cosmologyParametersClass  ), pointer             :: thisCosmologyParameters
-    class           (cosmologyFunctionsClass   ), pointer             :: cosmologyFunctionsDefault
+    class           (cosmologyParametersClass  ), pointer             :: cosmologyParameters_
+    class           (cosmologyFunctionsClass   ), pointer             :: cosmologyFunctions_
+    class           (linearGrowthClass         ), pointer             :: linearGrowth_
     class           (virialDensityContrastClass), pointer             :: virialDensityContrast_
 
     ! Update fitting function parameters if the time differs from that on the previous call.
-    if (time /= timePrevious) then
+    if (time /= timePrevious .or. mass /= massPrevious) then
        ! Get the default objects.
-       cosmologyFunctionsDefault => cosmologyFunctions   ()
-       virialDensityContrast_    => virialDensityContrast()
+       cosmologyFunctions_    => cosmologyFunctions   ()
+       virialDensityContrast_ => virialDensityContrast()
+       linearGrowth_          => linearGrowth         ()
        ! Get halo virial density contrast, expansion factor and growth factor.
-       expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
-       Delta          =virialDensityContrast_   %densityContrast(time)
-       growthFactor   =Linear_Growth_Factor                     (time)
+       expansionFactor=cosmologyFunctions_   %expansionFactor(     time)
+       Delta          =virialDensityContrast_%densityContrast(mass,time)
+       growthFactor   =linearGrowth_         %value          (     time)
 
        ! Compute coefficients of fitting function.
        normalization0=Interpolate(deltaTableDelta,deltaTableNormalization &
@@ -130,16 +134,17 @@ contains
        b=b0*expansionFactor**alphaDelta
        c=c0
 
-       ! Store the time.
+       ! Store the time and mass.
        timePrevious=time
+       massPrevious=mass
     end if
 
     ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
+    cosmologyParameters_ => cosmologyParameters()
     ! Compute the mass function.
     sigma=Cosmological_Mass_Root_Variance(mass)*growthFactor
     alpha=abs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
-    Halo_Mass_Function_Differential_Tinker2008=(thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()/mass**2)*alpha*normalization*exp(-c/sigma**2)&
+    Halo_Mass_Function_Differential_Tinker2008=(cosmologyParameters_%OmegaMatter()*cosmologyParameters_%densityCritical()/mass**2)*alpha*normalization*exp(-c/sigma**2)&
          &*(1.0d0+(b/sigma)**a)
     return
   end function Halo_Mass_Function_Differential_Tinker2008
