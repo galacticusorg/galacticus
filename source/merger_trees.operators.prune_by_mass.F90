@@ -113,6 +113,7 @@ contains
           if (basic%mass() < self%massThreshold) then
              ! Entire tree is below threshold. Destroy all but this base node. (Leaving just
              ! the base node makes the tree inert - i.e. it can not do anything.)
+             call Merger_Tree_Prune_Clean_Branch (node)
              node => node%firstChild
              do while (associated(node))
                 nodeNext => node%sibling
@@ -126,12 +127,12 @@ contains
                 ! Record the parent node to which we will return.
                 nodePrevious => node%parent
                 if (basic%mass() < self%massThreshold) then
-                   didPruning=.true.                   
+                   didPruning=.true.
                    ! Decouple from other nodes.
                    basicPrevious => nodePrevious%basic()
                    call Merger_Tree_Prune_Unlink_Parent(node,nodePrevious,basicPrevious%mass() < self%massThreshold,self%preservePrimaryProgenitor)
                    ! Clean the branch.
-                   call Merger_Tree_Prune_Clean_Branch (node                                                       )
+                   call Merger_Tree_Prune_Clean_Branch (node)
                    ! Destroy the branch.
                    call currentTree%destroyBranch(node)
                    ! Return to parent node.
