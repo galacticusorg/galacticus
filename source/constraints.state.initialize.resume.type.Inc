@@ -19,7 +19,8 @@
 
   type, public, extends(stateInitializor) :: stateInitializorResume
      private
-     type(varying_string) :: logFileRoot
+     type   (varying_string) :: logFileRoot
+     logical                 :: restoreState
    contains
      procedure :: initialize => stateInitializorResumeInitialize
   end type stateInitializorResume

@@ -69,12 +69,14 @@ contains
     use Galacticus_Error
     use String_Handling
     implicit none
-    class (stateInitializor), pointer                    :: newStateInitializor
-    type  (node            ), pointer    , intent(in   ) :: definition
-    type  (varying_string  ), optional   , intent(in   ) :: configFileName
-    type  (node            ), pointer                    :: stateInitializorFileDefinition, stateInitializorTrialCountDefinition
-    type  (varying_string  )                             :: logFileRoot
-    integer                                              :: stateInitializorTrialCount
+    class  (stateInitializor), pointer                    :: newStateInitializor
+    type   (node            ), pointer    , intent(in   ) :: definition
+    type   (varying_string  ), optional   , intent(in   ) :: configFileName
+    type   (node            ), pointer                    :: stateInitializorFileDefinition   , stateInitializorTrialCountDefinition, &
+         &                                                   stateInitializorRestoreDefinition
+    type   (varying_string  )                             :: logFileRoot
+    integer                                               :: stateInitializorTrialCount
+    logical                                               :: stateInitializorRestore
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
     case ("priorRandom"  )
@@ -95,9 +97,11 @@ contains
        allocate(stateInitializorResume :: newStateInitializor)
        select type (newStateInitializor)
        type is (stateInitializorResume)
-          stateInitializorFileDefinition => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot")
+          stateInitializorFileDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot" )
+          stateInitializorRestoreDefinition => XML_Get_First_Element_By_Tag_Name(definition,"restoreState")
           logFileRoot=getTextContent(stateInitializorFileDefinition)
-          newStateInitializor=stateInitializorResume(char(logFileRoot))
+          call extractDataContent(stateInitializorRestoreDefinition,stateInitializorRestore)
+          newStateInitializor=stateInitializorResume(char(logFileRoot),stateInitializorRestore)
        end select
     case default
        call Galacticus_Error_Report('stateInitializorNew','stateInitializor type is unrecognized')
