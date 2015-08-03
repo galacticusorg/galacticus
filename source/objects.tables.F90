@@ -1112,11 +1112,14 @@ contains
     call Alloc_Array(self%bv,[xCount-1,tableCountActual])
     call Alloc_Array(self%cv,[xCount-1,tableCountActual])
     call Alloc_Array(self%dv,[xCount-1,tableCountActual])
-    self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
-    self%       deltaX=self%xv(2)-self%xv(1)
-    self%inverseDeltaX=1.0d0/self%deltaX
-    self%tablePrevious=-1
-    self%iPrevious    =-1
+    self%xv            =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
+    self%       deltaX =self%xv(2)-self%xv(1)
+    self%inverseDeltaX =1.0d0/self%deltaX
+    self%tablePrevious =-1
+    self%dTablePrevious=-1
+    self%iPrevious     =-1
+    self%xPrevious     =-1.0d0
+    self%dxPrevious    =-1.0d0
     ! Set extrapolation type.
     if (present(extrapolationType)) then
        if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('Table_Linear_CSpline_1D_Create','zero extrapolation is not supported')
