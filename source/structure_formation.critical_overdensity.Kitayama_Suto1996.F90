@@ -24,6 +24,7 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensityKitayamaSuto1996
      !% A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}.
      private
+     double precision :: timePrevious, valuePrevious
    contains
      final     ::                   kitayamaSuto1996Destructor
      procedure :: value          => kitayamaSuto1996Value
@@ -48,6 +49,7 @@ contains
     type(inputParameters                    ), intent(in   ) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
     
+    kitayamaSuto1996ConstructorParameters=kitayamaSuto1996ConstructorInternal()
     return
   end function kitayamaSuto1996ConstructorParameters
 
@@ -56,6 +58,7 @@ contains
     implicit none
     type(criticalOverdensityKitayamaSuto1996) :: kitayamaSuto1996ConstructorInternal
 
+    kitayamaSuto1996ConstructorInternal%timePrevious=-1.0d0
     return
   end function kitayamaSuto1996ConstructorInternal
 
@@ -85,9 +88,11 @@ contains
     cosmologyFunctions_ => cosmologyFunctions()
     linearGrowth_       => linearGrowth      ()
     call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
-    kitayamaSuto1996Value=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                             &
-         &                *(1.0d0+0.0123d0*log10(cosmologyFunctions_%omegaMatterEpochal(time_))) &
-         &                /                      linearGrowth_      %value             (time_)
+    if (time_ /= self%timePrevious)                                                                  &
+         & self%valuePrevious=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                             &
+         &                    *(1.0d0+0.0123d0*log10(cosmologyFunctions_%omegaMatterEpochal(time_))) &
+         &                    /                      linearGrowth_      %value             (time_)
+    kitayamaSuto1996Value=self%valuePrevious
     return
   end function kitayamaSuto1996Value
 
