@@ -312,9 +312,9 @@ sub Process_FunctionClass {
 	    foreach ( &ExtraUtils::as_array($directive->{'data'}) ) {
 		if ( reftype($_) ) {
 		    if ( exists($_->{'scope'}) && $_->{'scope'} eq "module" ) {
-			$directive->{'content'} .= $_->{'content'}."\n";
+			$preContains->[0]->{'content'} .= $_->{'content'}."\n";
 			if ( exists($_->{'threadprivate'}) && $_->{'threadprivate'} eq "yes" && $_->{'content'} =~ m/::\s*(.*)$/ ) {
-			    $directive->{'content'} .= "   !\$omp threadprivate(".$1.")\n";
+			    $preContains->[0]->{'content'} .= "   !\$omp threadprivate(".$1.")\n";
 			}
 		    }
 		}
@@ -599,8 +599,17 @@ sub Process_FunctionClass {
 			push(@arguments,  $method->{'argument'} );
 		    }
 		}
+		my $pass = "yes";
+		$pass = $method->{'pass'}
+		    if ( exists($method->{'pass'}) );
 		my $argumentList = "";
-		my $argumentCode = "      class(".$directive->{'name'}."Class), intent(inout) :: self\n";
+		my $argumentCode;
+		if ( $pass eq "yes" ) {
+		    $argumentCode .= "      class(".$directive->{'name'}."Class), intent(inout)";
+		    $argumentCode .= ", target"
+			if ( exists($method->{'selfTarget'}) && $method->{'selfTarget'} eq "yes" );
+		    $argumentCode .= " :: self\n";
+		}
 		my $separator = "";
 		foreach my $argument ( @arguments ) {
 		    (my $variables = $argument) =~ s/^.*::\s*(.*?)\s*$/$1/;
