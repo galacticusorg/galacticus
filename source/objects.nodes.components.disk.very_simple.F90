@@ -724,11 +724,15 @@ contains
     select type (thisDiskComponent)
     class is (nodeComponentDiskVerySimple)
 
-       ! Find the node to merge with and its disk component.
+       ! Find the node to merge with and its disk component (and spheroid if necessary).
        hostNode              => thisNode%mergesWith(                 )
        hostDiskComponent     => hostNode%disk      (autoCreate=.true.)
-       hostSpheroidComponent => hostNode%spheroid  (autoCreate=.true.)
-
+       if     (                                          &
+            &   thisMergerGasMovesTo  == movesToSpheroid &
+            &  .or.                                      &
+            &   thisMergerStarsMoveTo == movesToSpheroid &
+            & )                                          &
+            & hostSpheroidComponent => hostNode%spheroid(autoCreate=.true.)
        ! Move the gas component of the very simple disk to the host.
        select case (thisMergerGasMovesTo)
        case (movesToDisk)
