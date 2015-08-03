@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test of closed-box chemical evolution -->
+<!-- 08-July-2015                          -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Component selection -->
+  <treeNodeMethodBasic             value="standard"   />
+  <treeNodeMethodHotHalo           value="null"       />
+  <treeNodeMethodBlackHole         value="null"       />
+  <treeNodeMethodDarkMatterProfile value="null"       />
+  <treeNodeMethodDisk              value="verySimple" />
+  <treeNodeMethodSatellite         value="null"       />
+  <treeNodeMethodSpheroid          value="null"       />
+  <treeNodeMethodSpin              value="null"       />
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctionsMethod  value="matterLambda"/>
+  <cosmologyParametersMethod value="simple"       >
+    <HubbleConstant  value="70.0"   />
+    <OmegaMatter     value="0.3"    />
+    <OmegaDarkEnergy value="0.7"    />
+    <OmegaBaryon     value="0.05"   />
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParametersMethod>
+
+  <!-- Power spectrum options -->
+  <sigma_8 value="0.807"/>
+  <transferFunctionMethod           value="eisensteinHu1999" >
+    <neutrinoNumberEffective        value="3.046"           />
+    <neutrinoMassSummed             value="0.000"           />
+  </transferFunctionMethod>
+  <powerSpectrumPrimordialMethod    value="powerLaw"         >
+    <index                          value="1.000"           />
+    <wavenumberReference            value="1.000"           />
+    <running                        value="0.000"           />
+  </powerSpectrumPrimordialMethod>
+
+  <!-- Structure formation options -->
+  <linearGrowthMethod          value="simple"                       />
+  <haloMassFunctionMethod      value="Tinker2008"                   />
+  <criticalOverdensityMethod   value="sphericalTopHat"              />
+  <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructMethod                 value="fullySpecified"                                      />
+  <mergerTreeConstructFullySpecifiedFileName value="testSuite/parameters/reproducibility/closedBoxTree.xml"/>
+
+  <!-- Halo accretion options -->
+  <accretionHaloMethod value="null"/>
+
+  <!-- Dark matter halo profile -->
+  <darkMatterProfileMethod value="isothermal"/>
+  
+  <!-- Hot hal model options -->
+  <hotHaloMassDistributionMethod value="null"/>
+
+  <!-- Star formation rate -->
+  <starFormationTimescaleDisksMethod         value="fixed" />
+  <starFormationTimescaleDisksFixedTimescale value="0.25"  />
+
+  <!-- Feedback -->
+  <starFormationFeedbackDisksMethod          value="fixed" />
+  <diskOutflowFraction                       value="0.0"   />
+
+  <!-- Metal production -->
+  <diskVerySimpleTrackAbundances             value="true"  />
+  <imfChabrierYieldInstantaneous             value="0.025" />
+  <imfChabrierRecycledInstantaneous          value="0.4"   />
+
+  <!-- Numerical tolerances -->
+  <odeToleranceAbsolute   value="1.0e-6"/>
+  <odeToleranceRelative   value="0.001" />
+  <timestepHostAbsolute   value="1.000" />
+  <timestepHostRelative   value="0.100" />
+  <timestepSimpleAbsolute value="1.000" />
+  <timestepSimpleRelative value="0.100" />
+
+  <!-- Output options -->
+  <mergerTreeOutputReferences value="false"/>
+
+  <!-- Output file -->
+  <galacticusOutputFileName value="testSuite/outputs/reproducibility/closedBox.hdf5"/>
+  
+</parameters>
