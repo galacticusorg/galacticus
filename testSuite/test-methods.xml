@@ -150,12 +150,13 @@
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
     <powerSpectrumPrimordialMethod value="powerLaw">
-      <index               value="0.961"/>
+      <index value="0.961"/>
       <wavenumberReference value="1.000"/>
-      <running             value="0.000"/>
+      <running value="0.000"/>
     </powerSpectrumPrimordialMethod>
+    <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.9"/>
-  </parameters>
+  </cosmologicalMassVarianceMethod></parameters>
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
@@ -186,8 +187,7 @@
     <version>0.9.4</version>
     <stellarPopulationSpectraMethod>
       <value>FSPS</value>
-      <value>file
-      <imfSelectionFixed      value="Salpeter"                                                              />
+      <value>file<imfSelectionFixed value="Salpeter"/>
       <fileNameForSalpeterIMF value="data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.1_imfSalpeter.hdf5"/>
       </value>
     </stellarPopulationSpectraMethod>
@@ -211,8 +211,7 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <transferFunctionMethod>
-      <value>file
-      <cosmologyParametersMethod value="simple">
+      <value>file<cosmologyParametersMethod value="simple">
 	<HubbleConstant value="73.0"/>
 	<OmegaMatter value="0.25"/>
 	<OmegaDarkEnergy value="0.75"/>
@@ -222,7 +221,9 @@
       <value>BBKS</value>
       <value>CAMB</value>
       <value>eisensteinHu1999</value>
-      <fileName value="data/largeScaleStructure/transferFunctionMillenniumSimulation.xml"/>
+      <fileName        value="data/largeScaleStructure/transferFunctionMillenniumSimulation.xml"/>
+      <tolerance       value="3.0e-4"/>
+      <toleranceTopHat value="3.0e-4"/>
     </transferFunctionMethod>
   </parameters>
   <parameters>
@@ -299,8 +300,8 @@
     <hydrogenNetworkCMBOnly value="true"/>
     <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/>
     <coolingFunctionMethod value="summation">
-      <coolingFunctionMethod value="atomicCIECloudy"            />
-      <coolingFunctionMethod value="CMBCompton"                 />
+      <coolingFunctionMethod value="atomicCIECloudy"/>
+      <coolingFunctionMethod value="CMBCompton"/>
       <coolingFunctionMethod value="molecularHydrogenGalliPalla"/>
     </coolingFunctionMethod>
     <mergerTreeBuildHaloMassMaximum value="1.0e11"/>
@@ -718,6 +719,8 @@
 
   <!-- Hot halo options -->
   <parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
     <parameter>
       <name>treeNodeMethodHotHalo</name>
       <value>standard</value>
@@ -790,31 +793,35 @@
       <OmegaBaryon value="0.0455"/>
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
+    <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.807"/>
-    <transferFunctionMethod value="eisensteinHu1999">
+  </cosmologicalMassVarianceMethod><transferFunctionMethod value="eisensteinHu1999">
       <neutrinoNumberEffective value="3.04"/>
       <neutrinoMassSummed value="0.0"/>
     </transferFunctionMethod>
     <powerSpectrumPrimordialMethod value="powerLaw">
-      <index               value="0.961"/>
+      <index value="0.961"/>
       <wavenumberReference value="1.000"/>
-      <running             value="0.000"/>
+      <running value="0.000"/>
     </powerSpectrumPrimordialMethod>
     <linearGrowthMethod value="simple"/>
     <haloMassFunctionMethod value="Tinker2008"/>
     <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
     <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
     <mergerTreeConstructMethod value="build"/>
-    <mergerTreeBuilderMethod value="cole2000"/>
-    <mergerTreeBuildCole2000AccretionLimit value="0.1"/>
-    <mergerTreeBuildCole2000MergeProbability value="0.1"/>
+    <mergerTreeBuilderMethod value="cole2000">
+  <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
+  </mergerTreeBuilderMethod>
     <treeBranchingMethod value="modifiedPress-Schechter"/>
     <modifiedPressSchechterG0 value="0.57"/>
     <modifiedPressSchechterGamma1 value="0.38"/>
     <modifiedPressSchechterGamma2 value="-0.01"/>
     <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
     <nodeMergersMethod value="singleLevelHierarchy"/>
-    <darkMatterProfileMethod value="NFW"/>
+    <darkMatterProfileMethod value="tidallyHeated">
+      <darkMatterProfileTidallyHeatedUnheatedProfile value="NFW"/>
+    </darkMatterProfileMethod>
     <darkMatterProfileConcentrationMethod value="gao2008"/>
     <darkMatterProfileMinimumConcentration value="4"/>
     <haloSpinDistributionMethod value="Bett2007"/>
@@ -827,10 +834,6 @@
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteOrbitStoreOrbitalParameters value="true"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-      <value>tidallyHeated</value>
-    </parameter>
-    <parameter>
-      <name>darkMatterProfileTidallyHeatedUnheatedProfile</name>
   </parameters>
 
   <!-- Statistics and tracking components -->

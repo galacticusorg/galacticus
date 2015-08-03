@@ -20,7 +20,7 @@
   <treeNodeMethodSpin value="random"/>
   <treeNodeMethodPosition value="preset"/>
 
-  <diskMassDistribution value="exponentialDisk" />
+  <diskMassDistribution value="exponentialDisk"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctionsMethod value="matterLambda"/>
@@ -31,15 +31,16 @@
     <OmegaBaryon value="0.0455"/>
     <temperatureCMB value="2.72548"/>
   </cosmologyParametersMethod><!-- Power spectrum options -->
-  <sigma_8 value="0.9"/>
-  <transferFunctionMethod value="eisensteinHu1999">
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.9"/>
+  </cosmologicalMassVarianceMethod><transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
   <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="0.961"/>
+    <index value="0.961"/>
     <wavenumberReference value="1.000"/>
-    <running             value="0.000"/>
+    <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
  
   <!-- Structure formation options -->
@@ -61,9 +62,10 @@
   <mergerTreeReadPresetMergerNodes value="true"/>
   <mergerTreeReadPresetScaleRadii value="false"/>
   <mergerTreeReadPresetSubhaloMasses value="false"/>
-  <mergerTreeBuilderMethod value="cole2000"/>
-  <mergerTreeBuildCole2000AccretionLimit value="0.1"/>
-  <mergerTreeBuildCole2000MergeProbability value="0.1"/>
+  <mergerTreeBuilderMethod value="cole2000">
+  <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
+  </mergerTreeBuilderMethod>
   <treeBranchingMethod value="modifiedPress-Schechter"/>
   <modifiedPressSchechterG0 value="0.57"/>
   <modifiedPressSchechterGamma1 value="0.38"/>
@@ -89,7 +91,7 @@
 
   <!-- Hot halo gas cooling model options -->
   <hotHaloMassDistributionMethod value="betaProfile"/>
-  <hotHaloTemperatureMethod value="virial"/>
+  <hotHaloTemperatureProfileMethod value="virial"/>
   <hotHaloCoreRadiusOverVirialRadius value="0.4123"/>
   <hotHaloAngularMomentumLossFraction value="0.3"/>
   <hotHaloOutflowReturnRate value="5.0"/>
