@@ -45,9 +45,30 @@ module Pseudo_Random
      !@     <arguments></arguments>
      !@     <description>Initialize a pseudo-random number generator.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>clone</method>
+     !@     <type>\textless type(pseudoRandom)\textgreater</type>
+     !@     <arguments></arguments>
+     !@     <description>Clone a pseudo-random number generator.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>store</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ stateFile\argin, \textless type(fgsl\_file)\textgreater\ fgslStateFile\argin</arguments>
+     !@     <description>Store a pseudo-random number generator state to file.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>restore</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ stateFile\argin, \textless type(fgsl\_file)\textgreater\ fgslStateFile\argin</arguments>
+     !@     <description>Restore a pseudo-random number generator state from file.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: sample     => pseudoRandomSample
      procedure :: initialize => pseudoRandomInitialize
+     procedure :: clone      => pseudoRandomClone
+     procedure :: store      => pseudoRandomStore
+     procedure :: restore    => pseudoRandomRestore
   end type pseudoRandom
   
   logical                 :: Seed_Is_Set=.false.
@@ -189,5 +210,51 @@ contains
     if (FGSL_Well_Defined(self%pseudoSequence)) call FGSL_Obj_C_Ptr(self%pseudoSequence,C_Null_Ptr)
     return
   end subroutine pseudoRandomInitialize
+
+  function pseudoRandomClone(self)
+    !% Clone a pseudo-random sequence object.
+    use FGSL
+    implicit none
+    type (pseudoRandom)                :: pseudoRandomClone
+    class(pseudoRandom), intent(inout) :: self
+
+    if (.not.self%pseudoSequenceReset) then
+       if (FGSL_Well_Defined(pseudoRandomClone%pseudoSequence)) call Pseudo_Random_Free(pseudoRandomClone%pseudoSequence)
+       pseudoRandomClone%pseudoSequence=FGSL_Rng_Clone(self%pseudoSequence)
+    end if
+    pseudoRandomClone%pseudoSequenceReset=self%pseudoSequenceReset
+    return
+  end function pseudoRandomClone
+
+  subroutine pseudoRandomStore(self,stateFile,fgslStateFile)
+    !% Store a pseudo-random sequence object state to file.
+    use FGSL
+    implicit none
+    class  (pseudoRandom), intent(inout) :: self
+    integer              , intent(in   ) :: stateFile
+    type   (fgsl_file   ), intent(in   ) :: fgslStateFile
+    integer                              :: iStatus
+
+    write (stateFile) self%pseudoSequenceReset
+    if (.not.self%pseudoSequenceReset) iStatus=FGSL_Rng_FWrite(fgslStateFile,self%pseudoSequence)
+    return
+  end subroutine pseudoRandomStore
+
+  subroutine pseudoRandomRestore(self,stateFile,fgslStateFile)
+    !% Store a pseudo-random sequence object state to file.
+    use FGSL
+    implicit none
+    class  (pseudoRandom), intent(inout) :: self
+    integer              , intent(in   ) :: stateFile
+    type   (fgsl_file   ), intent(in   ) :: fgslStateFile
+    integer                              :: iStatus
+
+    read (stateFile) self%pseudoSequenceReset
+    if (.not.self%pseudoSequenceReset) then
+       if (.not.FGSL_Well_Defined(self%pseudoSequence)) self%pseudoSequence=FGSL_RNG_Alloc(FGSL_RNG_Default)
+       iStatus=FGSL_Rng_FRead(fgslStateFile,self%pseudoSequence)
+    end if
+    return
+  end subroutine pseudoRandomRestore
 
 end module Pseudo_Random
