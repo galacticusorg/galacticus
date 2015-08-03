@@ -49,21 +49,23 @@ contains
 
   double precision function Excursion_Sets_Barrier_Critical_Overdensity(variance,time)
     !% Return a critical overdensity barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
-    use Power_Spectra
+    use Cosmological_Mass_Variance
     use Critical_Overdensities
     implicit none
-    double precision                          , intent(in   ) :: time                , variance
-    class           (criticalOverdensityClass), pointer       :: criticalOverdensity_
-    double precision                                          :: mass
+    double precision                               , intent(in   ) :: time                , variance
+    class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                                               :: mass
 
     ! Get default objects.
-    criticalOverdensity_ => criticalOverdensity()
+    criticalOverdensity_      => criticalOverdensity     ()
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     if (variance <= 0.0d0) then
        ! Return the critical overdensity at this time for infinite mass.
        Excursion_Sets_Barrier_Critical_Overdensity=criticalOverdensity_%value(time=time          )
     else
        ! Get the halo mass corresponding to this variance.
-       mass=Mass_from_Cosmolgical_Root_Variance(sqrt(variance))
+       mass=cosmologicalMassVariance_%mass(sqrt(variance))
        ! Return the critical overdensity at this time at the computed mass scale.
        Excursion_Sets_Barrier_Critical_Overdensity=criticalOverdensity_%value(time=time,mass=mass)
     end if
@@ -72,23 +74,25 @@ contains
 
   double precision function Excursion_Sets_Barrier_Gradient_Critical_Overdensity(variance,time)
     !% Return the gradient of a critical overdensity barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
-    use Power_Spectra
+    use Cosmological_Mass_Variance
     use Critical_Overdensities
     implicit none
-    double precision                          , intent(in   ) :: time                , variance
-    class           (criticalOverdensityClass), pointer       :: criticalOverdensity_
-    double precision                                          :: alpha               , mass
+    double precision                               , intent(in   ) :: time                , variance
+    class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                                               :: alpha               , mass
 
     if (variance <= 0.0d0) then
        ! Return zero critical overdensity gradient at this time for infinite mass.
        Excursion_Sets_Barrier_Gradient_Critical_Overdensity=0.0d0
     else
        ! Get default objects.
-       criticalOverdensity_ => criticalOverdensity()
-      ! Get the halo mass corresponding to this variance.
-       mass=Mass_from_Cosmolgical_Root_Variance(sqrt(variance))
+       criticalOverdensity_      => criticalOverdensity     ()
+       cosmologicalMassVariance_ => cosmologicalMassVariance()
+       ! Get the halo mass corresponding to this variance.
+       mass=cosmologicalMassVariance_%mass(sqrt(variance))
        ! Get the logarithmic slope of sigma(M).
-       alpha=Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass)
+       alpha=cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass)
        ! Return the critical overdensity at this time at the computed mass scale.
        Excursion_Sets_Barrier_Gradient_Critical_Overdensity=+0.5d0                                                  &
             &                                               *mass                                                   &

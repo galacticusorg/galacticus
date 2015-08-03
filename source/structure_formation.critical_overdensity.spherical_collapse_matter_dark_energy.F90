@@ -18,7 +18,7 @@
   !% An implementation of critical overdensity for collapse based on spherical collapse in a
   !% matter plus dark energy universe.
 
-  !# <criticalOverdensity name="criticalOverdensitySphericalCollapseMatterDE">
+  !# <criticalOverdensity name="criticalOverdensitySphericalCollapseMatterDE" defaultThreadPrivate="yes">
   !#  <description>Critical overdensity for collapse based on the spherical collapse in a matter plus dark energy universe.</description>
   !# </criticalOverdensity>
   use Tables

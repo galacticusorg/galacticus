@@ -20,6 +20,8 @@
 module Critical_Overdensities
   !% Provides an object that implements critical overdensities.
   use FGSL
+  use Cosmological_Mass_Variance
+  private
   
   !# <functionClass>
   !#  <name>criticalOverdensity</name>
@@ -27,6 +29,18 @@ module Critical_Overdensities
   !#  <description>Object providing critical overdensities.</description>
   !#  <default>sphericalCollapseMatterLambda</default>
   !#  <stateful>yes</stateful>
+  !#  <data>double precision :: criticalOverdensityTarget, mass, time</data>
+  !#  <data>logical          :: massPresent</data>
+  !#  <data>
+  !#   <scope>module</scope>
+  !#   <threadprivate>yes</threadprivate>
+  !#   <content>class(criticalOverdensityClass), pointer :: globalSelf</content>
+  !#  </data>
+  !#  <data>
+  !#   <scope>module</scope>
+  !#   <threadprivate>yes</threadprivate>
+  !#   <content>class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_</content>
+  !#  </data>
   !#  <method name="value" >
   !#   <description>Return the critical overdensity at the given time and mass.</description>
   !#   <type>double precision</type>
@@ -39,6 +53,7 @@ module Critical_Overdensities
   !#   <description>Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
   !#   <argument>double precision, intent(in   )           :: criticalOverdensity</argument>
   !#   <argument>double precision, intent(in   ), optional :: mass</argument>
   !#   <modules>Cosmology_Functions Root_Finder</modules>
@@ -59,31 +74,31 @@ module Critical_Overdensities
   !#            &amp;                  )
   !#    end if
   !#    cosmologyFunctions_ => cosmologyFunctions()
+  !#    globalSelf          => self
+  !#    self                      %criticalOverdensityTarget=criticalOverdensity
+  !#    self                      %massPresent              =present(mass)
+  !#    if (self%massPresent) self%mass                     =        mass
   !#    criticalOverdensityTimeOfCollapse=finder%find(rootGuess=cosmologyFunctions_%cosmicTime(1.0d0))
   !#    return
-  !#    contains
-  !#      double precision function collapseTimeRoot(time)
-  !#        double precision, intent(in   ) :: time
-  !#        collapseTimeRoot=criticalOverdensity-self%value(time=time,mass=mass)
-  !#        return
-  !#      end function collapseTimeRoot
   !#   </code>
   !#  </method>
   !#  <method name="collapsingMass" >
   !#   <description>Return the mass scale just collapsing at the given cosmic time.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
-  !#   <modules>Cosmology_Functions Root_Finder Power_Spectra</modules>
+  !#   <modules>Cosmology_Functions Root_Finder</modules>
   !#   <code>
-  !#    double precision                         , parameter :: massGuess           =1.0d13, toleranceAbsolute=0.0d0, &amp;
-  !#         &amp;                                              toleranceRelative   =1.0d-6
-  !#    type            (rootFinder             ), save      :: finder
+  !#    double precision                               , parameter :: massGuess           =1.0d13, toleranceAbsolute=0.0d0, &amp;
+  !#         &amp;                                                    toleranceRelative   =1.0d-6
+  !#    type            (rootFinder                   ), save      :: finder
   !#    !$omp threadprivate(finder)
-  !#    class           (cosmologyFunctionsClass), pointer   :: cosmologyFunctions_
-  !#    double precision                                     :: collapseTime
-  !#    cosmologyFunctions_ => cosmologyFunctions()
+  !#    class           (cosmologyFunctionsClass      ), pointer   :: cosmologyFunctions_
+  !#    double precision                                           :: collapseTime
+  !#    cosmologyFunctions_       => cosmologyFunctions      ()
+  !#    cosmologicalMassVariance_ => cosmologicalMassVariance()
   !#    call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=collapseTime)
   !#    if (.not.finder%isInitialized()) then
   !#       call finder%rootFunction(collapsingMassRoot                 )
@@ -96,16 +111,10 @@ module Critical_Overdensities
   !#            &amp;                   rangeExpandType              =rangeExpandMultiplicative      &amp;
   !#            &amp;                  )
   !#    end if
+  !#    globalSelf => self
+  !#    self%time  =collapseTime
   !#    criticalOverdensityCollapsingMass=finder%find(rootGuess=massGuess)
   !#    return
-  !#    contains
-  !#      double precision function collapsingMassRoot(mass)
-  !#        use Power_Spectra
-  !#        implicit none
-  !#        double precision, intent(in   ) :: mass        
-  !#        collapsingMassRoot=Cosmological_Mass_Root_Variance(mass)-self%value(time=collapseTime,mass=mass)
-  !#        return
-  !#      end function collapsingMassRoot
   !#   </code>
   !#  </method>
   !#  <method name="gradientTime" >
@@ -126,4 +135,28 @@ module Critical_Overdensities
   !#  </method>
   !# </functionClass>
 
+contains
+
+  double precision function collapseTimeRoot(time)
+    !% Function used in root finding for the collapse time at a given critical overdensity.
+    implicit none
+    double precision, intent(in   ) :: time
+
+    if (globalSelf%massPresent) then
+       collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf%value(time=time,mass=globalSelf%mass)
+    else
+       collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf%value(time=time                     )
+    end if
+    return
+  end function collapseTimeRoot
+  
+  double precision function collapsingMassRoot(mass)
+    !% Function used in root finding for the collapsing mass at a given time.
+    implicit none
+    double precision, intent(in   ) :: mass        
+
+    collapsingMassRoot=cosmologicalMassVariance_%rootVariance(mass)-globalSelf%value(time=globalSelf%time,mass=mass)
+    return
+  end function collapsingMassRoot
+  
 end module Critical_Overdensities

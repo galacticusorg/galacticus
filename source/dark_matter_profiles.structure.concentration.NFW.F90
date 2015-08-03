@@ -102,7 +102,7 @@ contains
   double precision function nfw1996Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{navarro_structure_1996} algorithm.
     use Cosmology_Functions
-    use Power_Spectra
+    use Cosmological_Mass_Variance
     use Critical_Overdensities
     use Root_Finder
     use Virial_Density_Contrast
@@ -115,6 +115,7 @@ contains
     class           (cosmologyFunctionsClass              )               , pointer :: cosmologyFunctions_
     class           (virialDensityContrastClass           )               , pointer :: virialDensityContrast_
     class           (criticalOverdensityClass             )               , pointer :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass        )               , pointer :: cosmologicalMassVariance_
     type            (rootFinder                           ), save                   :: finder
     !$omp threadprivate(finder)
     double precision                                                                :: collapseCriticalOverdensity             , collapseExpansionFactor       , &
@@ -123,9 +124,10 @@ contains
          &                                                                             nodeMass                                , nodeTime
 
     ! Get default objects.
-    cosmologyFunctions_    => cosmologyFunctions   ()
-    virialDensityContrast_ => virialDensityContrast()
-    criticalOverdensity_   => criticalOverdensity  ()
+    cosmologyFunctions_       => cosmologyFunctions      ()
+    virialDensityContrast_    => virialDensityContrast   ()
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
+    criticalOverdensity_      => criticalOverdensity     ()
     ! Get the basic component.
     basic               => node%basic()
     ! Get the properties of the node.
@@ -135,7 +137,7 @@ contains
     ! Compute the mass of a progenitor as defined by NFW.
     collapseMass               =self%F*nodeMass
     ! Find the time of collapse for this progenitor.
-    collapseCriticalOverdensity=sqrt(2.0d0*fitParameterNuHalf**2*(Cosmological_Mass_Root_Variance(collapseMass)**2-Cosmological_Mass_Root_Variance(nodeMass)**2))+criticalOverdensity_%value(nodeTime)
+    collapseCriticalOverdensity=sqrt(2.0d0*fitParameterNuHalf**2*(cosmologicalMassVariance_%rootVariance(collapseMass)**2-cosmologicalMassVariance_%rootVariance(nodeMass)**2))+criticalOverdensity_%value(nodeTime)
     collapseTime               =criticalOverdensity_%timeOfCollapse(collapseCriticalOverdensity)
     collapseExpansionFactor    =cosmologyFunctions_%expansionFactor(collapseTime               )
     ! Compute the overdensity of the progenitor at collapse using the scaling given by NFW.

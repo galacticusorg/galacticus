@@ -162,25 +162,27 @@ contains
     use Numerical_Comparison
     use Galacticus_Display
     use Galacticus_Error
-    use Power_Spectra
+    use Cosmological_Mass_Variance
     use Cosmology_Parameters
     implicit none
-    class           (mergerTreeImporterGalacticus), intent(inout) :: self
-    type            (varying_string              ), intent(in   ) :: fileName
-    class           (cosmologyParametersClass    ), pointer       :: thisCosmologyParameters
-    type            (hdf5Object                  )                :: cosmologicalParametersGroup, unitsGroup, angularMomentumDataset, spinDataset
-    type            (varying_string              )                :: message
-    character       (len=14                      )                :: valueString
-    double precision                                              :: localLittleH0, localOmegaMatter, localOmegaDE, localOmegaBaryon, localSigma8, cosmologicalParameter
+    class           (mergerTreeImporterGalacticus ), intent(inout) :: self
+    type            (varying_string               ), intent(in   ) :: fileName
+    class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    type            (hdf5Object                   )                :: cosmologicalParametersGroup, unitsGroup, angularMomentumDataset, spinDataset
+    type            (varying_string               )                :: message
+    character       (len=14                       )                :: valueString
+    double precision                                               :: localLittleH0, localOmegaMatter, localOmegaDE, localOmegaBaryon, localSigma8, cosmologicalParameter
 
     ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
+    cosmologyParameters_      => cosmologyParameters     ()
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
-    localLittleH0   =thisCosmologyParameters%HubbleConstant (hubbleUnitsLittleH)
-    localOmegaMatter=thisCosmologyParameters%OmegaMatter    (                  )
-    localOmegaDE    =thisCosmologyParameters%OmegaDarkEnergy(                  )
-    localOmegaBaryon=thisCosmologyParameters%OmegaBaryon    (                  )
-    localSigma8     =sigma_8                                (                  )
+    localLittleH0   =cosmologyParameters_     %HubbleConstant (hubbleUnitsLittleH)
+    localOmegaMatter=cosmologyParameters_     %OmegaMatter    (                  )
+    localOmegaDE    =cosmologyParameters_     %OmegaDarkEnergy(                  )
+    localOmegaBaryon=cosmologyParameters_     %OmegaBaryon    (                  )
+    localSigma8     =cosmologicalMassVariance_%sigma8         (                  )
     !$omp critical(HDF5_Access)
     ! Open the file.
     call self%file%openFile(char(fileName),readOnly=.true.)

@@ -18,7 +18,7 @@
   !% An implementation of linear growth of cosmological structure in simple cosomologies. Ignores pressure terms for the growth of
   !% baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.
 
-  !# <linearGrowth name="linearGrowthSimple">
+  !# <linearGrowth name="linearGrowthSimple" defaultThreadPrivate="yes">
   !#  <description>Linear growth of cosmological structure in simple cosomologies. Ignores pressure terms for the growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.</description>
   !# </linearGrowth>
   use Tables
@@ -146,7 +146,7 @@ contains
        ! Find minimum and maximum times to tabulate.
        self%tableTimeMinimum=min(self%tableTimeMinimum,min(timePresent,min(time/2.0,timeMatterDominant)      ))
        self%tableTimeMaximum=max(self%tableTimeMaximum,max(timePresent,max(time    ,timeMatterDominant)*2.0d0))
-              ! Determine number of points to tabulate.
+       ! Determine number of points to tabulate.
        growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecade))       
        ! Destroy current table.
        if (allocated(self%growthFactor)) then
@@ -306,5 +306,6 @@ contains
 
     read (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
     self%tableInitialized=.false.
+    call self%retabulate(sqrt(self%tableTimeMinimum*self%tableTimeMaximum))
     return
   end subroutine simpleStateRestore

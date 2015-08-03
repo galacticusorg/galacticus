@@ -19,12 +19,13 @@
 
 module Modified_Press_Schechter_Branching
   !% Implements calculations of branching probabilties in modified Press-Schechter theory.
-  use Power_Spectra
+  use Cosmological_Mass_Variance
   use Numerical_Constants_Math
   use Tables
   implicit none
   private
-  public :: Modified_Press_Schechter_Branching_Initialize
+  public :: Modified_Press_Schechter_Branching_Initialize   , Modified_Press_Schechter_Branching_State_Store, &
+       &    Modified_Press_Schechter_Branching_State_Restore
   
   ! Parent halo shared variables.
   double precision            :: branchingProbabilityPreFactor                               , modificationG0Gamma2Factor  , &
@@ -39,6 +40,7 @@ module Modified_Press_Schechter_Branching
   !$omp threadprivate(probabilityMaximum,probabilityGradientMinimum,probabilityGradientMaximum)
 
   ! Parameters of the merger rate modification function.
+  logical                     :: parametersRead                               =.false.
   double precision            :: modifiedPressSchechterG0                                    , modifiedPressSchechterGamma1, &
        &                         modifiedPressSchechterGamma2
 
@@ -69,7 +71,8 @@ module Modified_Press_Schechter_Branching
   ! Tables of hypergeometric factors.
   type   (table1DLogarithmicLinear) :: subresolutionHypergeometric                   , upperBoundHypergeometric
   logical                           :: subresolutionHypergeometricInitialized=.false., upperBoundHypergeometricInitialized=.false.
-  !$omp threadprivate(subresolutionHypergeometric,upperBoundHypergeometric,subresolutionHypergeometricInitialized,upperBoundHypergeometricInitialized)
+  double precision                  :: massResolutionTabulated               =-1.0d0
+  !$omp threadprivate(subresolutionHypergeometric,upperBoundHypergeometric,subresolutionHypergeometricInitialized,upperBoundHypergeometricInitialized,massResolutionTabulated)
 
 contains
 
@@ -79,7 +82,6 @@ contains
   subroutine Modified_Press_Schechter_Branching_Initialize(treeBranchingMethod,Tree_Branching_Probability_Bound,Tree_Branching_Probability&
        &,Tree_Subresolution_Fraction,Tree_Branch_Mass,Tree_Maximum_Step)
     !% Initialize the modified Press-Schechter branching routines.
-    use Input_Parameters
     use ISO_Varying_String
     implicit none
     type     (varying_string                                      ), intent(in   )          :: treeBranchingMethod
@@ -90,90 +92,7 @@ contains
     procedure(Modified_Press_Schechter_Branching_Maximum_Step     ), intent(inout), pointer :: Tree_Maximum_Step
     
     if (treeBranchingMethod == 'modifiedPress-Schechter') then
-       !@ <inputParameter>
-       !@   <name>modifiedPressSchechterG0</name>
-       !@   <defaultValue>0.57</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The parameter $G_0$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('modifiedPressSchechterG0'                ,modifiedPressSchechterG0                ,defaultValue=&
-            & 0.57d0)
-       !@ <inputParameter>
-       !@   <name>modifiedPressSchechterGamma1</name>
-       !@   <defaultValue>0.38</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The parameter $\gamma_1$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('modifiedPressSchechterGamma1'            ,modifiedPressSchechterGamma1            ,defaultValue=&
-            & 0.38d0)
-       !@ <inputParameter>
-       !@   <name>modifiedPressSchechterGamma2</name>
-       !@   <defaultValue>-0.01</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The parameter $\gamma_2$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('modifiedPressSchechterGamma2'            ,modifiedPressSchechterGamma2            ,defaultValue=&
-            &-0.01d0)
-       !@ <inputParameter>
-       !@   <name>modifiedPressSchechterFirstOrderAccuracy</name>
-       !@   <defaultValue>0.1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Limits the step in $\delta_{\mathrm crit}$ when constructing merger trees using the \cite{parkinson_generating_2008}
-       !@     algorithm, so that it never exceeds {\normalfont \ttfamily
-       !@     modifiedPressSchechterFirstOrderAccuracy}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('modifiedPressSchechterFirstOrderAccuracy',modifiedPressSchechterFirstOrderAccuracy,defaultValue &
-            &=0.1d0)
-       !@ <inputParameter>
-       !@   <name>modifiedPressSchechterHypergeometricPrecision</name>
-       !@   <defaultValue>$10^{-6}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The fractional precision required in evaluates of hypergeometric functions in the modified Press-Schechter tree branching calculations.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('modifiedPressSchechterHypergeometricPrecision',modifiedPressSchechterHypergeometricPrecision,defaultValue &
-            &=1.0d-6)
-       !@ <inputParameter>
-       !@   <name>modifiedPressSchechterTabulateHypergeometricFactors</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether hypergeometric factors should be precomputed and tabulated in modified Press-Schechter tree branching functions.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('modifiedPressSchechterTabulateHypergeometricFactors',modifiedPressSchechterTabulateHypergeometricFactors,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>modifiedPressSchechterUseCDMAssumptions</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     If true, assume that $\alpha(=-{\mathrm d}\log \sigma/{\mathrm d}\log M)>0$ and ${\mathrm d}\alpha/{\mathrm d}M>0$ (as is true in the case of \gls{cdm}) when constructing merger trees using the \cite{parkinson_generating_2008}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('modifiedPressSchechterUseCDMAssumptions',modifiedPressSchechterUseCDMAssumptions,defaultValue=.false.)
+       call Modified_Press_Schechter_Branching_Parameters()
        Tree_Branching_Probability_Bound  => Modified_Press_Schechter_Branching_Probability_Bound
        Tree_Branching_Probability        => Modified_Press_Schechter_Branching_Probability
        Tree_Subresolution_Fraction       => Modified_Press_Schechter_Subresolution_Fraction
@@ -187,6 +106,105 @@ contains
     return
   end subroutine Modified_Press_Schechter_Branching_Initialize
 
+  subroutine Modified_Press_Schechter_Branching_Parameters()
+    !% Read paramters for the modified Press-Schechter merger tree branching module.
+    use Input_Parameters
+    implicit none
+    
+    if (.not.parametersRead) then
+       !$omp critical(Modified_Press_Schechter_Branching_Parameters)
+       if (.not.parametersRead) then
+          !@ <inputParameter>
+          !@   <name>modifiedPressSchechterG0</name>
+          !@   <defaultValue>0.57</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter $G_0$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('modifiedPressSchechterG0'                ,modifiedPressSchechterG0                ,defaultValue=&
+               & 0.57d0)
+          !@ <inputParameter>
+          !@   <name>modifiedPressSchechterGamma1</name>
+          !@   <defaultValue>0.38</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter $\gamma_1$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('modifiedPressSchechterGamma1'            ,modifiedPressSchechterGamma1            ,defaultValue=&
+               & 0.38d0)
+          !@ <inputParameter>
+          !@   <name>modifiedPressSchechterGamma2</name>
+          !@   <defaultValue>-0.01</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter $\gamma_2$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('modifiedPressSchechterGamma2'            ,modifiedPressSchechterGamma2            ,defaultValue=&
+               &-0.01d0)
+          !@ <inputParameter>
+          !@   <name>modifiedPressSchechterFirstOrderAccuracy</name>
+          !@   <defaultValue>0.1</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Limits the step in $\delta_{\mathrm crit}$ when constructing merger trees using the \cite{parkinson_generating_2008}
+          !@     algorithm, so that it never exceeds {\normalfont \ttfamily
+          !@     modifiedPressSchechterFirstOrderAccuracy}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('modifiedPressSchechterFirstOrderAccuracy',modifiedPressSchechterFirstOrderAccuracy,defaultValue &
+               &=0.1d0)
+          !@ <inputParameter>
+          !@   <name>modifiedPressSchechterHypergeometricPrecision</name>
+          !@   <defaultValue>$10^{-6}$</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The fractional precision required in evaluates of hypergeometric functions in the modified Press-Schechter tree branching calculations.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('modifiedPressSchechterHypergeometricPrecision',modifiedPressSchechterHypergeometricPrecision,defaultValue &
+               &=1.0d-6)
+          !@ <inputParameter>
+          !@   <name>modifiedPressSchechterTabulateHypergeometricFactors</name>
+          !@   <defaultValue>true</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether hypergeometric factors should be precomputed and tabulated in modified Press-Schechter tree branching functions.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('modifiedPressSchechterTabulateHypergeometricFactors',modifiedPressSchechterTabulateHypergeometricFactors,defaultValue=.true.)
+          !@ <inputParameter>
+          !@   <name>modifiedPressSchechterUseCDMAssumptions</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     If true, assume that $\alpha(=-{\mathrm d}\log \sigma/{\mathrm d}\log M)>0$ and ${\mathrm d}\alpha/{\mathrm d}M>0$ (as is true in the case of \gls{cdm}) when constructing merger trees using the \cite{parkinson_generating_2008}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('modifiedPressSchechterUseCDMAssumptions',modifiedPressSchechterUseCDMAssumptions,defaultValue=.false.)
+          parametersRead=.true.
+       end if
+       !$omp end critical(Modified_Press_Schechter_Branching_Parameters)
+    end if
+    return
+  end subroutine Modified_Press_Schechter_Branching_Parameters
+  
   double precision function Modified_Press_Schechter_Branch_Mass_CDMAssumptions(haloMass,deltaCritical,massResolution,probability,randomNumberGenerator)
     !% A merger tree branch split mass function which assumes a \gls{cdm}-like power
     !% spectrum. With these assumptions, it can employ the mass sampling algorithm of
@@ -197,21 +215,23 @@ contains
     !% names follow \cite{parkinson_generating_2008}.
     use Pseudo_Random
     implicit none
-    double precision              , intent(in   ) :: deltaCritical                 , haloMass       , &
-         &                                           massResolution                , probability
-    type            (pseudoRandom), intent(inout) :: randomNumberGenerator
-    double precision                              :: massFractionResolution        , beta           , &
-         &                                           B                             , halfMassSigma  , &
-         &                                           halfMassAlpha                 , eta            , &
-         &                                           x                             , mu             , &
-         &                                           massFraction                  , resolutionSigma, &
-         &                                           massFractionResolutionPowerEta, halfPowerEta   , &
-         &                                           halfMassV
-    logical                                       :: reject
+    double precision                               , intent(in   ) :: deltaCritical                 , haloMass       , &
+         &                                                            massResolution                , probability
+    type            (pseudoRandom                 ), intent(inout) :: randomNumberGenerator
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                                               :: massFractionResolution        , beta           , &
+         &                                                            B                             , halfMassSigma  , &
+         &                                                            halfMassAlpha                 , eta            , &
+         &                                                            x                             , mu             , &
+         &                                                            massFraction                  , resolutionSigma, &
+         &                                                            massFractionResolutionPowerEta, halfPowerEta   , &
+         &                                                            halfMassV
+    logical                                                        :: reject
 
     ! Get parent and half-mass sigmas and alphas.
-    parentSigmaSquared=Cosmological_Mass_Root_Variance(haloMass)**2
-    call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(0.5d0*haloMass,halfMassSigma,halfMassAlpha)
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
+    parentSigmaSquared=cosmologicalMassVariance_%rootVariance(haloMass)**2
+    call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*haloMass,halfMassSigma,halfMassAlpha)
     ! Compute parameters beta, mu, and B.
     massFractionResolution=+massResolution                 &
          &                 /haloMass
@@ -229,7 +249,7 @@ contains
     if (modifiedPressSchechterGamma1 >= 0.0d0) then
        mu                 =-halfMassAlpha
     else
-       resolutionSigma    =+Cosmological_Mass_Root_Variance(massResolution)
+       resolutionSigma    =+cosmologicalMassVariance_%rootVariance(massResolution)
        mu                 =-log(                        &
             &                   +resolutionSigma        &
             &                   /halfMassSigma          &
@@ -269,7 +289,7 @@ contains
       double precision, intent(in   ) :: massFraction
       double precision                :: massFractionSigma, massFractionAlpha
 
-       call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(massFraction*haloMass,massFractionSigma,massFractionAlpha)   
+       call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massFraction*haloMass,massFractionSigma,massFractionAlpha)   
        R      =+(                               &
             &    +massFractionAlpha             &
             &    /halfMassAlpha                 &
@@ -294,7 +314,7 @@ contains
       double precision, intent(in   ) :: massFraction
       double precision                :: childSigmaSquared
 
-      childSigmaSquared=Cosmological_Mass_Root_Variance(massFraction*haloMass)**2
+      childSigmaSquared=cosmologicalMassVariance_%rootVariance(massFraction*haloMass)**2
       V                =+   childSigmaSquared &
            &            /(                    &
            &              + childSigmaSquared &
@@ -313,17 +333,20 @@ contains
     use Pseudo_Random
     use Root_Finder
     implicit none
-    double precision              , intent(in   ) :: deltaCritical              , haloMass                , &
-         &                                           massResolution             , probability
-    type            (pseudoRandom), intent(inout) :: randomNumberGenerator
-    double precision              , parameter     :: toleranceAbsolute    =0.0d0, toleranceRelative=1.0d-9
-    type            (rootFinder  ), save          :: finder
+    double precision                               , intent(in   ) :: deltaCritical              , haloMass                , &
+         &                                                            massResolution             , probability
+    type            (pseudoRandom                 ), intent(inout) :: randomNumberGenerator
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                               , parameter     :: toleranceAbsolute    =0.0d0, toleranceRelative=1.0d-9
+    type            (rootFinder                   ), save          :: finder
     !$omp threadprivate(finder)
-    double precision                              :: logMassMinimum             , logMassMaximum
+    double precision                                               :: logMassMinimum             , logMassMaximum
     
+    ! Get required objects.
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Initialize global variables.
     parentHaloMass           =haloMass
-    parentSigma              =Cosmological_Mass_Root_Variance(haloMass)
+    parentSigma              =cosmologicalMassVariance_%rootVariance(haloMass)
     parentDelta              =deltaCritical
     probabilityMinimumMass   =massResolution
     probabilityMinimumMassLog=log(massResolution)
@@ -426,7 +449,7 @@ contains
     return
   end function Modified_Press_Schechter_Branch_Mass_Root_Derivative
 
- subroutine Modified_Press_Schechter_Branch_Mass_Root_Both(massMaximum,massRoot,massRootDerivative)
+  subroutine Modified_Press_Schechter_Branch_Mass_Root_Both(massMaximum,massRoot,massRootDerivative)
     !% Used to find the mass of a merger tree branching event.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
@@ -443,15 +466,17 @@ contains
     !% Return the maximum allowed step in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
     !% deltaCritical} should be allowed to take.
     implicit none
-    double precision, intent(in   ) :: deltaCritical             , haloMass, &
-         &                             massResolution
-    double precision, parameter     :: largeStep          =1.0d10           !   Effectively infinitely large step in w(=delta_crit).
-    double precision                :: parentHalfMassSigma
+    double precision                               , intent(in   ) :: deltaCritical                   , haloMass, &
+         &                                                            massResolution
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                               , parameter     :: largeStep                =1.0d10           !   Effectively infinitely large step in w(=delta_crit).
+    double precision                                               :: parentHalfMassSigma
 
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass>2.0d0*massResolution) then
-       parentSigma        =Cosmological_Mass_Root_Variance(      haloMass)
-       parentHalfMassSigma=Cosmological_Mass_Root_Variance(0.5d0*haloMass)
+       cosmologicalMassVariance_ => cosmologicalMassVariance()
+       parentSigma        =cosmologicalMassVariance_%rootVariance(      haloMass)
+       parentHalfMassSigma=cosmologicalMassVariance_%rootVariance(0.5d0*haloMass)
        Modified_Press_Schechter_Branching_Maximum_Step=modifiedPressSchechterFirstOrderAccuracy*sqrt(2.0d0&
             &*(parentHalfMassSigma**2-parentSigma**2))
     else
@@ -466,14 +491,15 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
-    double precision                            , intent(in   ) :: deltaCritical                , haloMass                    , &
-         &                                                         massResolution
-    type            (c_ptr                     )                :: parameterPointer
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: massMaximum                  , massMinimum
-    double precision                            , save          :: haloMassPrevious      =-1.0d0, deltaCriticalPrevious=-1.0d0, &
-         &                                                         massResolutionPrevious=-1.0d0, probabilityPrevious
+    double precision                               , intent(in   ) :: deltaCritical                , haloMass                    , &
+         &                                                            massResolution
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    type            (c_ptr                        )                :: parameterPointer
+    type            (fgsl_function                )                :: integrandFunction
+    type            (fgsl_integration_workspace   )                :: integrationWorkspace
+    double precision                                               :: massMaximum                  , massMinimum
+    double precision                               , save          :: haloMassPrevious      =-1.0d0, deltaCriticalPrevious=-1.0d0, &
+         &                                                            massResolutionPrevious=-1.0d0, probabilityPrevious
     !$omp threadprivate(haloMassPrevious,deltaCriticalPrevious,massResolutionPrevious,probabilityPrevious)
     
     ! Recompute branching probability if necessary.
@@ -483,8 +509,9 @@ contains
        massResolutionPrevious=massResolution
        ! Get sigma and delta_critical for the parent halo.
        if (haloMass>2.0d0*massResolution) then
+          cosmologicalMassVariance_ => cosmologicalMassVariance()
           parentHaloMass=haloMass
-          parentSigma=Cosmological_Mass_Root_Variance(haloMass)
+          parentSigma=cosmologicalMassVariance_%rootVariance(haloMass)
           parentDelta=deltaCritical
           call Compute_Common_Factors()
           massMinimum=      massResolution
@@ -520,39 +547,39 @@ contains
     use FGSL
     use Numerical_Comparison
     implicit none
-    double precision          , intent(in   ) :: deltaCritical                   , haloMass                 , &
-         &                                       massResolution
-    integer                   , intent(in   ) :: bound
-    double precision          , save          :: massResolutionPrevious   =-1.0d0, resolutionSigma          , &
-         &                                       resolutionAlpha
-    !$omp threadprivate(resolutionSigma,resolutionAlpha,massResolutionPrevious)
-    double precision                          :: probabilityIntegrandLower       , probabilityIntegrandUpper, &
-         &                                       halfParentSigma                 , halfParentAlpha          , &
-         &                                       gammaEffective
-    double precision                          :: hyperGeometricFactorLower       , hyperGeometricFactorUpper, &
-         &                                       resolutionSigmaOverParentSigma
-    integer         (fgsl_int)                :: statusLower                     , statusUpper
-    logical                                   :: usingCDMAssumptions
-    integer                                   :: iBound
+    double precision                               , intent(in   ) :: deltaCritical                   , haloMass                 , &
+         &                                                            massResolution
+    integer                                        , intent(in   ) :: bound
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                               , save          :: resolutionSigma                 , resolutionAlpha
+    !$omp threadprivate(resolutionSigma,resolutionAlpha)
+    double precision                                               :: probabilityIntegrandLower       , probabilityIntegrandUpper, &
+         &                                                            halfParentSigma                 , halfParentAlpha          , &
+         &                                                            gammaEffective
+    double precision                                               :: hyperGeometricFactorLower       , hyperGeometricFactorUpper, &
+         &                                                            resolutionSigmaOverParentSigma
+    integer         (fgsl_int                     )                :: statusLower                     , statusUpper
+    logical                                                        :: usingCDMAssumptions
+    integer                                                        :: iBound
     
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
+       cosmologicalMassVariance_ => cosmologicalMassVariance()
        parentHaloMass=haloMass
-       parentSigma=Cosmological_Mass_Root_Variance(haloMass)
+       parentSigma=cosmologicalMassVariance_%rootVariance(haloMass)
        parentDelta=deltaCritical
        call Compute_Common_Factors()
-       if (massResolution /= massResolutionPrevious) then
+       if (massResolution /= massResolutionTabulated) then
           ! Resolution changed - recompute sigma and alpha at resolution limit. Also reset the hypergeometric factor tables since
           ! these depend on resolution.
-          call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(massResolution,resolutionSigma,resolutionAlpha)
-          massResolutionPrevious             =massResolution
+          call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massResolution,resolutionSigma,resolutionAlpha)
           upperBoundHypergeometricInitialized=.false.
        end if
        resolutionSigmaOverParentSigma=resolutionSigma/parentSigma
        ! Estimate probability.
        if (resolutionSigmaOverParentSigma > 1.0d0) then
           ! Compute relevant sigmas and alphas.
-          call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(0.5d0*parentHaloMass,halfParentSigma,halfParentAlpha)
+          call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*parentHaloMass,halfParentSigma,halfParentAlpha)
           ! Iterative over available bounds.
           do iBound=1,2
              ! Determine if CDM assumptions can be used. Do this only is these have been explicitly allowed, if this is our first
@@ -589,11 +616,11 @@ contains
                 ! subresolution merger fraction.
                 call Subresolution_Hypergeometric_Tabulate(resolutionSigmaOverParentSigma)
                 call Subresolution_Hypergeometric_Tabulate(halfParentSigma   /parentSigma)
-                probabilityIntegrandLower=+subresolutionHypergeometric%interpolate(+resolutionSigmaOverParentSigma-1.0d0)/parentSigma
-                probabilityIntegrandUpper=+subresolutionHypergeometric%interpolate(+halfParentSigma   /parentSigma-1.0d0)/parentSigma
+                probabilityIntegrandLower=+modificationG0Gamma2Factor*subresolutionHypergeometric%interpolate(+resolutionSigmaOverParentSigma-1.0d0)/parentSigma
+                probabilityIntegrandUpper=+modificationG0Gamma2Factor*subresolutionHypergeometric%interpolate(+halfParentSigma   /parentSigma-1.0d0)/parentSigma                
              else
                 ! Next, check if CDM assumptions are being used, we're allowed to tabulate hypergeometric factors, and the bound
-                ! requested is the upper bound.
+                ! requested is the upper bound.                
                 if     ( usingCDMAssumptions                                 &
                      &  .and.                                                &
                      &   modifiedPressSchechterTabulateHypergeometricFactors &
@@ -604,7 +631,7 @@ contains
                    ! tables already include the difference between the upper and lower integrand, we simply set the lower
                    ! integrand to zero here.
                    call Upper_Bound_Hypergeometric_Tabulate(parentHaloMass,massResolution)
-                   probabilityIntegrandUpper=upperBoundHypergeometric%interpolate(parentHaloMass)
+                   probabilityIntegrandUpper=modificationG0Gamma2Factor*upperBoundHypergeometric%interpolate(parentHaloMass)
                    probabilityIntegrandLower=0.0d0
                 else
                    ! Use a direct calculation of the hypergeometric factors in this case.
@@ -729,27 +756,31 @@ contains
     !% terms of the $_2F_1$ hypergeometric function.
     use Hypergeometric_Functions
     implicit none
-    double precision, intent(in   ) :: deltaCritical                 , haloMass                      , &
-         &                             massResolution
-    double precision, save          :: massResolutionPrevious=-1.0d+0, resolutionSigma
+    double precision                               , intent(in   ) :: deltaCritical                 , haloMass                      , &
+         &                                                            massResolution
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                               , save          :: massResolutionPrevious=-1.0d+0, resolutionSigma
     !$omp threadprivate(resolutionSigma,massResolutionPrevious)
-    double precision                :: hyperGeometricFactor          , resolutionSigmaOverParentSigma
+    double precision                                               :: hyperGeometricFactor          , resolutionSigmaOverParentSigma
 
+    ! Get required objects.
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Get sigma and delta_critical for the parent halo.
     parentHaloMass=haloMass
-    parentSigma   =Cosmological_Mass_Root_Variance(haloMass)
+    parentSigma   =cosmologicalMassVariance_%rootVariance(haloMass)
     parentDelta   =deltaCritical
     call Compute_Common_Factors
     if (massResolution /= massResolutionPrevious) then
-       resolutionSigma       =Cosmological_Mass_Root_Variance(massResolution)
-       massResolutionPrevious=                                massResolution
+       resolutionSigma       =cosmologicalMassVariance_%rootVariance(massResolution)
+       massResolutionPrevious=                                       massResolution
     end if
     resolutionSigmaOverParentSigma=resolutionSigma/parentSigma
     if (resolutionSigmaOverParentSigma > 1.0d0) then
        if (modifiedPressSchechterTabulateHypergeometricFactors) then
           ! Use tabulation of hypergeometric factors.
           call Subresolution_Hypergeometric_Tabulate(resolutionSigmaOverParentSigma)
-          Modified_Press_Schechter_Subresolution_Fraction=+subresolutionHypergeometric%interpolate(                                &
+          Modified_Press_Schechter_Subresolution_Fraction=+modificationG0Gamma2Factor                                              &
+               &                                          *subresolutionHypergeometric%interpolate(                                &
                &                                                                                   +resolutionSigmaOverParentSigma &
                &                                                                                   -1.0d0                          &
                &                                                                                  )                                &
@@ -779,13 +810,15 @@ contains
     !% Integrand for the branching probability.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(kind=c_double)        :: Branching_Probability_Integrand_Logarithmic
-    real(kind=c_double), value :: logChildHaloMass
-    type(c_ptr        ), value :: parameterPointer
-    real(kind=c_double)        :: childAlpha                     , childSigma, childHaloMass
+    real (kind=c_double                )          :: Branching_Probability_Integrand_Logarithmic
+    real (kind=c_double                ), value   :: logChildHaloMass
+    type (     c_ptr                   ), value   :: parameterPointer
+    class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+    real (kind=c_double                )          :: childAlpha                     , childSigma, childHaloMass
     
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     childHaloMass=exp(logChildHaloMass)
-    call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
+    call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,childSigma,childAlpha)
     Branching_Probability_Integrand_Logarithmic=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)*childHaloMass
     return
   end function Branching_Probability_Integrand_Logarithmic
@@ -841,23 +874,32 @@ contains
     return
   end subroutine Compute_Common_Factors
 
-  subroutine Subresolution_Hypergeometric_Tabulate(x)
+  subroutine Subresolution_Hypergeometric_Tabulate(x,xMinimumIn,xMaximumIn)
     !% Tabulate the hypergeometric term appearing in the subresolution merger fraction expression.
     use Hypergeometric_Functions
     use Galacticus_Error
     use Table_Labels
     implicit none
-    double precision, intent(in   ) :: x
-    integer         , parameter     :: xCountPerDecade  =10
-    double precision                :: xMinimum                , xMaximum
-    integer                         :: xCount                  , i
-    logical                         :: tabulate
+    double precision, intent(in   )           :: x
+    double precision, intent(in   ), optional :: xMinimumIn        , xMaximumIn
+    integer         , parameter               :: xCountPerDecade=10
+    double precision                          :: xMinimum          , xMaximum
+    integer                                   :: xCount            , i
+    logical                                   :: tabulate
     
     tabulate=.false.
     if (.not.subresolutionHypergeometricInitialized) then
        tabulate=.true.
-       xMinimum=min( 1.0d-9 ,     (x-1.0d0))
-       xMaximum=max(12.5d+0,2.0d0*(x-1.0d0))
+       if (present(xMinimumIn)) then
+          xMinimum=xMinimumIn
+       else
+          xMinimum=min( 1.0d-9 ,     (x-1.0d0))
+       end if
+       if (present(xMaximumIn)) then
+          xMaximum=xMaximumIn
+       else
+          xMaximum=max(12.5d+0,2.0d0*(x-1.0d0))
+       end if
     else
        if     (                                               &
             &   (x-1.0d0) < subresolutionHypergeometric%x(+1) &
@@ -876,7 +918,6 @@ contains
        do i=1,xCount
           call subresolutionHypergeometric%populate(                                                                                    &
                &                                    +sqrtTwoOverPi                                                                      &
-               &                                    *modificationG0Gamma2Factor                                                         &
                &                                    *(subresolutionHypergeometric%x(i)+1.0d0)**(+modifiedPressSchechterGamma1-1.0d0)    &
                &                                    /                                          (-modifiedPressSchechterGamma1+1.0d0)    &
                &                                    *Hypergeometric_2F1(                                                                &
@@ -893,26 +934,36 @@ contains
     return
   end subroutine Subresolution_Hypergeometric_Tabulate
   
-  subroutine Upper_Bound_Hypergeometric_Tabulate(mass,massResolution)
+  subroutine Upper_Bound_Hypergeometric_Tabulate(mass,massResolution,massMinimumIn,massMaximumIn)
     !% Tabulate the hypergeometric term appearing in the upper bound branching probability rate expression.
     use Hypergeometric_Functions
     use Galacticus_Error
     use Table_Labels
     implicit none
-    double precision, intent(in   ) :: mass                 , massResolution
-    integer         , parameter     :: massCountPerDecade=30
-    double precision                :: massMinimum          , massMaximum
-    integer                         :: massCount            , i
-    logical                         :: tabulate
-    double precision                :: massSigma            , gammaEffective     , &
-         &                             halfMassSigma        , halfMassAlpha      , &
-         &                             resolutionMassSigma  , resolutionMassAlpha
+    double precision                               , intent(in   )           :: mass                        , massResolution
+    double precision                               , intent(in   ), optional :: massMinimumIn               , massMaximumIn
+    class           (cosmologicalMassVarianceClass), pointer                 :: cosmologicalMassVariance_
+    integer                                        , parameter               :: massCountPerDecade       =30
+    double precision                                                         :: massMinimum                 , massMaximum
+    integer                                                                  :: massCount                   , i
+    logical                                                                  :: tabulate
+    double precision                                                         :: massSigma                   , gammaEffective     , &
+         &                                                                      halfMassSigma               , halfMassAlpha      , &
+         &                                                                      resolutionMassSigma         , resolutionMassAlpha
 
     tabulate=.false.
     if (.not.upperBoundHypergeometricInitialized) then
        tabulate=.true.
-       massMinimum=           2.0d0*massResolution
-       massMaximum=max(1.0d16,2.0d0*mass          )
+       if (present(massMinimumIn)) then
+          massMinimum=massMinimumIn
+       else
+          massMinimum=           2.0d0*massResolution
+       end if
+       if (present(massMaximumIn)) then
+          massMaximum=massMaximumIn
+       else
+          massMaximum=max(1.0d16,2.0d0*mass          )
+       end if
     else
        if     (                                       &
             &   mass < upperBoundHypergeometric%x(+1) &
@@ -925,19 +976,20 @@ contains
        end if
     end if
     if (tabulate) then
+       massResolutionTabulated=massResolution
        massCount=int(log10(massMaximum/massMinimum)*dble(massCountPerDecade))+1
        if (.not.upperBoundHypergeometricInitialized) call upperBoundHypergeometric%destroy()
        call upperBoundHypergeometric%create(massMinimum,massMaximum,massCount,1,extrapolationType=spread(extrapolationTypeAbort,1,2))
        ! Evaluate sigma and alpha at the mass resolution.
-       call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(massResolution,resolutionMassSigma,resolutionMassAlpha)
+       cosmologicalMassVariance_ => cosmologicalMassVariance()
+       call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massResolution,resolutionMassSigma,resolutionMassAlpha)
        do i=1,massCount
           ! Evaluate sigmas and alpha.
-          call           Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(0.5d0*upperBoundHypergeometric%x(i),halfMassSigma,halfMassAlpha)
-          massSigma     =Cosmological_Mass_Root_Variance                            (      upperBoundHypergeometric%x(i)                            )
+          call           cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*upperBoundHypergeometric%x(i),halfMassSigma,halfMassAlpha)
+          massSigma     =cosmologicalMassVariance_%rootVariance                      (      upperBoundHypergeometric%x(i)                            )
           gammaEffective=modifiedPressSchechterGamma1-1.0d0/halfMassAlpha
           call upperBoundHypergeometric%populate(                                                                                         &
                &                                    +sqrtTwoOverPi                                                                        &
-               &                                    *modificationG0Gamma2Factor                                                           &
                &                                    /massSigma                                                                            & 
                &                                    *(                                                                                    &
                &                                      +(halfMassSigma/massSigma)**(+gammaEffective-1.0d0)                                 &
@@ -965,4 +1017,48 @@ contains
     return
   end subroutine Upper_Bound_Hypergeometric_Tabulate
   
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Modified_Press_Schechter_Branching_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Modified_Press_Schechter_Branching_State_Store(stateFile,fgslStateFile)
+    !% Write the stored snapshot of the random number state to file.
+    use FGSL
+    implicit none
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
+    write (stateFile) subresolutionHypergeometricInitialized,upperBoundHypergeometricInitialized
+    if (subresolutionHypergeometricInitialized) write (stateFile) subresolutionHypergeometric%x(1),subresolutionHypergeometric%x(-1)
+    if (   upperBoundHypergeometricInitialized) write (stateFile)    upperBoundHypergeometric%x(1),   upperBoundHypergeometric%x(-1),massResolutionTabulated
+    return
+  end subroutine Modified_Press_Schechter_Branching_State_Store
+
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Modified_Press_Schechter_Branching_State_Restore</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Modified_Press_Schechter_Branching_State_Restore(stateFile,fgslStateFile)
+    !% Write the stored snapshot of the random number state to file.
+    use FGSL
+    implicit none
+    integer                    , intent(in   ) :: stateFile
+    type            (fgsl_file), intent(in   ) :: fgslStateFile
+    double precision                           :: xMinimum     , xMaximum, &
+         &                                        xResolution
+
+    read (stateFile) subresolutionHypergeometricInitialized,upperBoundHypergeometricInitialized
+    if (subresolutionHypergeometricInitialized) then
+       subresolutionHypergeometricInitialized=.false.
+       read (stateFile) xMinimum,xMaximum
+       call Modified_Press_Schechter_Branching_Parameters()
+       call Subresolution_Hypergeometric_Tabulate(xMinimum            ,xMinimum,xMaximum)
+    end if
+    if (   upperBoundHypergeometricInitialized) then
+       upperBoundHypergeometricInitialized   =.false.
+       read (stateFile) xMinimum,xMaximum,xResolution
+       call Modified_Press_Schechter_Branching_Parameters()
+       call Upper_Bound_Hypergeometric_Tabulate  (xMinimum,xResolution,xMinimum,xMaximum)
+    end if
+    return
+  end subroutine Modified_Press_Schechter_Branching_State_Restore
+
 end module Modified_Press_Schechter_Branching

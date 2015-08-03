@@ -60,18 +60,20 @@ contains
   double precision function Dark_Matter_Halo_Bias_Press_Schechter(mass,time)
     !% Computes the bias for a dark matter halo using the method of \cite{mo_analytic_1996}.
     use Critical_Overdensities
-    use Power_Spectra
+    use Cosmological_Mass_Variance
     implicit none
-    double precision                          , intent(in   ) :: mass                , time
-    class           (criticalOverdensityClass), pointer       :: criticalOverdensity_
-    double precision                                          :: deltaCritical       , nu  , &
-         &                                                       sigma
+    double precision                               , intent(in   ) :: mass                , time
+    class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                                               :: deltaCritical       , nu  , &
+         &                                                            sigma
 
     ! Get default objects.
-    criticalOverdensity_ => criticalOverdensity()
+    criticalOverdensity_      => criticalOverdensity     ()
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
-    deltaCritical=criticalOverdensity_%value     (time=time,mass=mass)
-    sigma        =Cosmological_Mass_Root_Variance(               mass)
+    deltaCritical=criticalOverdensity_     %value       (time=time,mass=mass)
+    sigma        =cosmologicalMassVariance_%rootVariance(               mass)
     nu           =deltaCritical/sigma
 
     ! Compute halo bias.
