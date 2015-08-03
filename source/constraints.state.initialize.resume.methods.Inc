@@ -17,13 +17,15 @@
 
 !% Defines methods for a resuming state initializor.
 
-function stateInitializorResumeConstructor(logFileRoot)
+function stateInitializorResumeConstructor(logFileRoot,restoreState)
   !% Constructor for the resume state initializor class.
   implicit none
   type     (stateInitializorResume)                :: stateInitializorResumeConstructor
   character(len=*                 ), intent(in   ) :: logFileRoot
+  logical                          , intent(in   ) :: restoreState
 
-  stateInitializorResumeConstructor%logFileRoot=logFileRoot
+  stateInitializorResumeConstructor%logFileRoot =logFileRoot
+  stateInitializorResumeConstructor%restoreState=restoreState
   return
 end function stateInitializorResumeConstructor
 
@@ -66,7 +68,7 @@ subroutine stateInitializorResumeInitialize(self,simulationState,parameterPriors
            stateVector(i)=parameterMappings(i)%thisMapping%map(stateVector(i))
         end do
         ! Restore the state object.
-        call simulationState%restore(stateVector,first)
+        if (self%restoreState) call simulationState%restore(stateVector,first)
         first=.false.
      end if
   end do
