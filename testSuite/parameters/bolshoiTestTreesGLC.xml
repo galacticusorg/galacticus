@@ -18,7 +18,7 @@
   <treeNodeMethodSpin value="preset3D"/>
   <treeNodeMethodNBody value="standard"/>
 
-  <diskMassDistribution value="exponentialDisk" />
+  <diskMassDistribution value="exponentialDisk"/>
 
   <!-- Cosmological parameters and options      -->
   <!-- as parameters used in Bolshoi simulation -->
@@ -32,12 +32,13 @@
   </cosmologyParametersMethod>
   <!-- Power spectrum options                   -->
   <!-- as parameters used in Bolshoi simulation -->
-  <sigma_8 value="0.82"/>
-  <transferFunctionMethod value="CAMB"/>
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.82"/>
+  </cosmologicalMassVarianceMethod><transferFunctionMethod value="CAMB"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="0.95"/>
+    <index value="0.95"/>
     <wavenumberReference value="1.00"/>
-    <running             value="0.00"/>
+    <running value="0.00"/>
   </powerSpectrumPrimordialMethod>
 
   <!-- Structure formation options -->
@@ -97,7 +98,7 @@
 
   <!-- Hot halo gas cooling model options -->
   <hotHaloMassDistributionMethod value="betaProfile"/>
-  <hotHaloTemperatureMethod value="virial"/>
+  <hotHaloTemperatureProfileMethod value="virial"/>
   <hotHaloCoreRadiusOverVirialRadius value="0.1"/>
   <hotHaloAngularMomentumLossFraction value="0.3"/>
   <coolingSpecificAngularMomentumMethod value="constantRotation"/>

@@ -246,6 +246,7 @@ my @translations =
 	 outputVersion => "0.9.4",
 	 names         =>
 	 {
+	     "hotHaloTemperatureMethod"                                       => "hotHaloTemperatureProfileMethod"                                   ,
 	     "mergerTreeBuildMethod"                                          => "mergerTreeBuilderMethod"                                           ,
 	     "darkMatterShapeMethod"                                          => "darkMatterProfileShapeMethod"                                      ,
 	     "H_0"                                                            => "cosmologyParametersMethod--HubbleConstant"                         ,
@@ -279,28 +280,29 @@ my @translations =
 	     "mergerTreeBuildCole2000MergeProbability"                        => "mergerTreeBuilderMethod--mergeProbability"                           ,
 	     "mergerTreeBuildCole2000HighestRedshift"                         => "mergerTreeBuilderMethod--redshiftMaximum"                            ,
 	     "mergerTreeBuildCole2000FixedRandomSeeds"                        => "mergerTreeBuilderMethod--randomSeedsFixed"                           ,
-	     "mergerTreeRegridTimes"                                          => "mergerTreeOperatorMethod+regridTimes+"                             ,
-	     "mergerTreeRegridDumpTrees"                                      => "mergerTreeOperatorMethod+regridTimes+--dumpTrees"                  ,
-	     "mergerTreeRegridCount"                                          => "mergerTreeOperatorMethod+regridTimes+--regridCount"                ,
-	     "mergerTreeRegridStartExpansionFactor"                           => "mergerTreeOperatorMethod+regridTimes+--expansionFactorStart"       ,
-	     "mergerTreeRegridEndExpansionFactor"                             => "mergerTreeOperatorMethod+regridTimes+--expansionFactorEnd"         ,
-	     "mergerTreeRegridSpacing"                                        => "mergerTreeOperatorMethod+regridTimes+--snapshotSpacing"            ,
-	     "mergerTreePruneBranches"                                        => "mergerTreeOperatorMethod+pruneByMass+"                             ,
-	     "mergerTreePruningMassThreshold"                                 => "mergerTreeOperatorMethod+pruneByMass+--massThreshold"              ,
-	     "mergerTreeComputeConditionalMassFunction"                       => "mergerTreeOperatorMethod+conditionalMF+"                           ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassCount"        => "mergerTreeOperatorMethod+conditionalMF+--parentMassCount"          ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassMinimum"      => "mergerTreeOperatorMethod+conditionalMF+--parentMassMinimum"        ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassMaximum"      => "mergerTreeOperatorMethod+conditionalMF+--parentMassMaximum"        ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioCount"         => "mergerTreeOperatorMethod+conditionalMF+--massRatioCount"           ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioMinimum"       => "mergerTreeOperatorMethod+conditionalMF+--massRatioMinimum"         ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioMaximum"       => "mergerTreeOperatorMethod+conditionalMF+--massRatioMaximum"         ,
-	     "mergerTreeComputeConditionalMassFunctionParentRedshifts"        => "mergerTreeOperatorMethod+conditionalMF+--parentRedshifts"          ,
-	     "mergerTreeComputeConditionalMassFunctionProgenitorRedshifts"    => "mergerTreeOperatorMethod+conditionalMF+--progenitorRedshifts"      ,
-	     "mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth" => "mergerTreeOperatorMethod+conditionalMF+--primaryProgenitorDepth"   ,
-	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"     => "mergerTreeOperatorMethod+conditionalMF+--formationRateTimeFraction",
-	     "warmDarkMatterCriticalOverdensityGX"                            => "criticalDensityMethod+barkana2001WDM+--gX"                         ,
-	     "warmDarkMatterCriticalOverdensityMX"                            => "criticalDensityMethod+barkana2001WDM+--mX"                         ,
-	     "warmDarkMatterCriticalOverdensityUseFittingFunction"            => "criticalDensityMethod+barkana2001WDM+--useFittingFunction"
+	     "mergerTreeRegridTimes"                                          => "mergerTreeOperatorMethod.regridTimes."                             ,
+	     "mergerTreeRegridDumpTrees"                                      => "mergerTreeOperatorMethod.regridTimes.--dumpTrees"                  ,
+	     "mergerTreeRegridCount"                                          => "mergerTreeOperatorMethod.regridTimes.--regridCount"                ,
+	     "mergerTreeRegridStartExpansionFactor"                           => "mergerTreeOperatorMethod.regridTimes.--expansionFactorStart"       ,
+	     "mergerTreeRegridEndExpansionFactor"                             => "mergerTreeOperatorMethod.regridTimes.--expansionFactorEnd"         ,
+	     "mergerTreeRegridSpacing"                                        => "mergerTreeOperatorMethod.regridTimes.--snapshotSpacing"            ,
+	     "mergerTreePruneBranches"                                        => "mergerTreeOperatorMethod.pruneByMass."                             ,
+	     "mergerTreePruningMassThreshold"                                 => "mergerTreeOperatorMethod.pruneByMass.--massThreshold"              ,
+	     "mergerTreeComputeConditionalMassFunction"                       => "mergerTreeOperatorMethod.conditionalMF."                           ,
+	     "mergerTreeComputeConditionalMassFunctionParentMassCount"        => "mergerTreeOperatorMethod.conditionalMF.--parentMassCount"          ,
+	     "mergerTreeComputeConditionalMassFunctionParentMassMinimum"      => "mergerTreeOperatorMethod.conditionalMF.--parentMassMinimum"        ,
+	     "mergerTreeComputeConditionalMassFunctionParentMassMaximum"      => "mergerTreeOperatorMethod.conditionalMF.--parentMassMaximum"        ,
+	     "mergerTreeComputeConditionalMassFunctionMassRatioCount"         => "mergerTreeOperatorMethod.conditionalMF.--massRatioCount"           ,
+	     "mergerTreeComputeConditionalMassFunctionMassRatioMinimum"       => "mergerTreeOperatorMethod.conditionalMF.--massRatioMinimum"         ,
+	     "mergerTreeComputeConditionalMassFunctionMassRatioMaximum"       => "mergerTreeOperatorMethod.conditionalMF.--massRatioMaximum"         ,
+	     "mergerTreeComputeConditionalMassFunctionParentRedshifts"        => "mergerTreeOperatorMethod.conditionalMF.--parentRedshifts"          ,
+	     "mergerTreeComputeConditionalMassFunctionProgenitorRedshifts"    => "mergerTreeOperatorMethod.conditionalMF.--progenitorRedshifts"      ,
+	     "mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth" => "mergerTreeOperatorMethod.conditionalMF.--primaryProgenitorDepth"   ,
+	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"     => "mergerTreeOperatorMethod.conditionalMF.--formationRateTimeFraction",
+	     "warmDarkMatterCriticalOverdensityGX"                            => "criticalDensityMethod.barkana2001WDM.--gX"                         ,
+	     "warmDarkMatterCriticalOverdensityMX"                            => "criticalDensityMethod.barkana2001WDM.--mX"                         ,
+	     "warmDarkMatterCriticalOverdensityUseFittingFunction"            => "criticalDensityMethod.barkana2001WDM.--useFittingFunction"         ,
+	     "sigma_8"                                                        => "cosmologicalMassVarianceMethod.filteredPower.--sigma_8"
 	 },
  	 values        =>
          {
@@ -346,8 +348,10 @@ my @translations =
 # Define known defaults.
 my %knownDefaults =
     (
-     "cosmologyParametersMethod" => "simple",
-     "mergerTreeBuilderMethod"   => "cole2000"
+     "cosmologyParametersMethod"      => "simple"       ,
+     "mergerTreeBuilderMethod"        => "cole2000"     ,
+     "cosmologicalMassVarianceMethod" => "filteredPower",
+     "powerSpectrumPrimordialMethod"  => "powerLaw"
     );
 
 # Parse the input file.
@@ -492,10 +496,10 @@ sub Translate {
 		if ( $options{'inputFormatVersion'} <= 1 ) {
 		    $name->setData    ($translation->{'names'}->{$nameText});
 		} else {
-		    (my $leafName = $translation->{'names'}->{$nameText});# =~ s/^(.*\->)//;
+		    my $leafName = $translation->{'names'}->{$nameText};
 		    my $valueTo;
 		    unless ( $translation->{'names'}->{$nameText} =~ m/\-\-/ ) {
-			if ( $leafName =~ m/(.*)\+(.*)\+/ ) {
+			if ( $leafName =~ m/(.*)\.(.*)\./ ) {
 			    $valueTo    = $2;
 			}
 		    }
@@ -636,10 +640,11 @@ sub Translate {
 	    }
 	    unless ( $hostFound ) {
 		# Create the new node.
-		die('parametersMigrate.pl: attempting to insert a "'.$hostName.'" element, but no default value is known')
-		    unless ( exists($knownDefaults{$hostName}) );
-		my $parameterNode = $input->createElement($hostName);
-		$parameterNode->setAttribute('value',$knownDefaults{$hostName});
+		(my $hostLeafName = $hostName) =~ s/\..+\.//;
+		die('parametersMigrate.pl: attempting to insert a "'.$hostLeafName.'" element, but no default value is known')
+		    unless ( exists($knownDefaults{$hostLeafName}) );
+		my $parameterNode = $input->createElement($hostLeafName);
+		$parameterNode->setAttribute('value',$knownDefaults{$hostLeafName});
 		$parameterNode->addChild($input     ->createTextNode("\n    "  ));
 		$parameterNode->addChild($parameters->removeChild   ($parameter));
 		$parameterNode->addChild($input     ->createTextNode("\n  "    ));
@@ -649,7 +654,7 @@ sub Translate {
     }
     # Strip out value extensions.
     for my $parameter ( $parameters->getChildrenByTagName("*") ) {
-	if ( $parameter->nodeName() =~ m/([^\+]+)\+/ ) {
+	if ( $parameter->nodeName() =~ m/([^\.]+)\./ ) {
 	    my $nodeName = $1;
 	    $parameter->setNodeName($nodeName);
 	}
