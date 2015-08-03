@@ -52,23 +52,25 @@ contains
     !% \end{equation}
     !% where $\nu=\delta_{\mathrm c}(t)/\sigma(M)$ is the peak height of the halo.
     use Galacticus_Nodes
-    use Power_Spectra
+    use Cosmological_Mass_Variance
     use Critical_Overdensities
     implicit none
     class           (darkMatterProfileShapeGao2008), intent(inout)          :: self
     type            (treeNode                     ), intent(inout), pointer :: node
-    double precision                               , parameter              :: nuMaximum=3.907d0
+    double precision                               , parameter              :: nuMaximum                =3.907d0
     class           (criticalOverdensityClass     )               , pointer :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass)               , pointer :: cosmologicalMassVariance_
     class           (nodeComponentBasic           )               , pointer :: basic
     double precision                                                        :: nu
     
     ! Get default objects.
-    criticalOverdensity_ => criticalOverdensity()
+    criticalOverdensity_      => criticalOverdensity     ()
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Get the basic component.
     basic => node%basic()
     ! Compute the shape parameter.
-    nu     =+criticalOverdensity_%value     (time=basic%time(),mass=basic%mass()) &
-         &  /Cosmological_Mass_Root_Variance(                       basic%mass())
+    nu     =+criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
+         &  /cosmologicalMassVariance_%rootVariance(                       basic%mass())
     if (nu < nuMaximum) then
        gao2008Shape=0.155d0+0.0095d0*nu**2
     else

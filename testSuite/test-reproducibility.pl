@@ -81,7 +81,7 @@ my @tests =
 		  output            => 1                            ,
 		  property          => "diskMassGas"                ,
 		  values            => pdl ( 4.0762204e9  )         ,
-		  toleranceRelative => 1.0e-2
+		  toleranceRelative => 1.1e-2
 	      },
 	      {
 		  name              => "stellar mass"               ,
@@ -125,6 +125,9 @@ foreach my $test ( @tests ) {
 		print "SUCCESS: assertion '".$assertion->{'name'}."' of reproducibility test '".$test->{'name'}."' passed\n";
 	    } else {
 		print    "FAIL: assertion '".$assertion->{'name'}."' of reproducibility test '".$test->{'name'}."' failed\n";
+		for(my $i=0;$i<nelem($difference);++$i) {
+		    print "\t".$values->(($i))."\t".$assertion->{'values'}->(($i))."\t".$difference->(($i))."\t".$allowedError->(($i))."\n";
+		}
 	    }
 	}
     } else {

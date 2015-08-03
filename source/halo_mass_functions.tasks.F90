@@ -83,7 +83,7 @@ contains
     use Numerical_Ranges
     use Input_Parameters
     use Critical_Overdensities
-    use Power_Spectra
+    use Cosmological_Mass_Variance
     use Dark_Matter_Halo_Scales
     use Cosmology_Functions
     use Linear_Growth
@@ -95,12 +95,13 @@ contains
     class           (nodeComponentBasic            ), pointer :: thisBasic
     class           (nodeComponentDarkMatterProfile), pointer :: thisDarkMatterProfile
     type            (treeNode                      ), pointer :: thisNode
-    class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
     class           (darkMatterProfileClass        ), pointer :: darkMatterProfile_
     class           (virialDensityContrastClass    ), pointer :: virialDensityContrast_
     class           (criticalOverdensityClass      ), pointer :: criticalOverdensity_
     class           (linearGrowthClass             ), pointer :: linearGrowth_
+    class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_
     integer                                                   :: haloMassFunctionsCount      , haloMassFunctionsPointsPerDecade, &
          &                                                       iMass                       , iOutput                         , &
          &                                                       outputCount                 , verbosityLevel
@@ -150,11 +151,11 @@ contains
        call Get_Input_Parameter('outputRedshifts',outputRedshifts                     )
     end if
     ! Get required objects.
-    cosmologyFunctionsDefault => cosmologyFunctions   ()
-    virialDensityContrast_    => virialDensityContrast()
-    darkMatterProfile_        => darkMatterProfile    ()
-    criticalOverdensity_      => criticalOverdensity  ()
-    linearGrowth_             => linearGrowth         ()
+    cosmologyFunctions_    => cosmologyFunctions   ()
+    virialDensityContrast_ => virialDensityContrast()
+    darkMatterProfile_     => darkMatterProfile    ()
+    criticalOverdensity_   => criticalOverdensity  ()
+    linearGrowth_          => linearGrowth         ()
 
     ! Find the mass range and increment size.
     !@ <inputParameter>
@@ -196,12 +197,12 @@ contains
 
     ! Compute output time properties.
     do iOutput=1,outputCount
-       outputExpansionFactors     (iOutput)=cosmologyFunctionsDefault%expansionFactorFromRedshift(                             outputRedshifts       (iOutput))
-       outputTimes                (iOutput)=cosmologyFunctionsDefault%cosmicTime                 (                             outputExpansionFactors(iOutput))
-       outputGrowthFactors        (iOutput)=linearGrowth_            %value                      (                             outputTimes           (iOutput))
-       outputCriticalOverdensities(iOutput)=criticalOverdensity_     %value                      (                             outputTimes           (iOutput))
-       outputVirialDensityContrast(iOutput)=virialDensityContrast_   %densityContrast            (haloMassFunctionsMassMinimum,outputTimes           (iOutput))
-       outputCharacteristicMass   (iOutput)=criticalOverdensity_     %collapsingMass             (                             outputTimes           (iOutput))
+       outputExpansionFactors     (iOutput)=cosmologyFunctions_   %expansionFactorFromRedshift(                             outputRedshifts       (iOutput))
+       outputTimes                (iOutput)=cosmologyFunctions_   %cosmicTime                 (                             outputExpansionFactors(iOutput))
+       outputGrowthFactors        (iOutput)=linearGrowth_         %value                      (                             outputTimes           (iOutput))
+       outputCriticalOverdensities(iOutput)=criticalOverdensity_  %value                      (                             outputTimes           (iOutput))
+       outputVirialDensityContrast(iOutput)=virialDensityContrast_%densityContrast            (haloMassFunctionsMassMinimum,outputTimes           (iOutput))
+       outputCharacteristicMass   (iOutput)=criticalOverdensity_  %collapsingMass             (                             outputTimes           (iOutput))
     end do
 
     ! Allocate arrays for halo mass functions.
@@ -220,8 +221,9 @@ contains
     call Alloc_Array(haloMassFunction_velocityMaximum  ,[haloMassFunctionsCount,outputCount])
 
     ! Get required objects.
-    darkMatterHaloScale_   => darkMatterHaloScale  ()
-    virialDensityContrast_ => virialDensityContrast()
+    darkMatterHaloScale_      => darkMatterHaloScale     ()
+    virialDensityContrast_    => virialDensityContrast   ()
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
 
     ! Create a node object.
     thisNode => treeNode()
@@ -251,7 +253,7 @@ contains
           haloMassFunction_dndlnM           (iMass,iOutput)=haloMassFunction_dndM(iMass,iOutput)*haloMassFunction_Mass(iMass,iOutput)
           haloMassFunction_cumulative       (iMass,iOutput)=Halo_Mass_Function_Integrated(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
           haloMassFunction_massFraction     (iMass,iOutput)=Halo_Mass_Fraction_Integrated(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
-          haloMassFunction_sigma            (iMass,iOutput)=Cosmological_Mass_Root_Variance(haloMassFunction_Mass(iMass,iOutput))
+          haloMassFunction_sigma            (iMass,iOutput)=cosmologicalMassVariance_%rootVariance(haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_nu               (iMass,iOutput)=outputCriticalOverdensities(iOutput)/haloMassFunction_sigma(iMass,iOutput)
           haloMassFunction_bias             (iMass,iOutput)=Dark_Matter_Halo_Bias                        (thisNode)
           haloMassFunction_virialVelocity   (iMass,iOutput)=darkMatterHaloScale_ %virialVelocity         (thisNode)

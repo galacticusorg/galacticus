@@ -58,6 +58,7 @@ contains
     use Galacticus_Error
     use FoX_wxml
     use Numerical_Comparison
+    use Cosmological_Mass_Variance
     use Power_Spectra_Primordial
     use System_Command
     use ISO_Varying_String
@@ -69,28 +70,30 @@ contains
     use Memory_Management
     use Table_Labels
     implicit none
-    double precision                              , intent(in   ) :: time                           , waveNumber
-    double precision                              , save          :: timePrevious            =-1.0d0
-    double precision                              , parameter     :: wavenumberLong          =0.01d0, wavenumberShort  =1.0d0
-    class           (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
-    class           (cosmologyParametersClass    ), pointer       :: cosmologyParameters_
-    class           (powerSpectrumPrimordialClass), pointer       :: powerSpectrumPrimordial_
-    double precision                                              :: littleHubbleCMB                , redshift
-    type            (varying_string              )                :: parameterFile                  , powerSpectrumFile
-    type            (xmlf_t                      )                :: parameterDoc
-    character       (len=32                      )                :: parameterLabel
-    character       (len=128                     )                :: powerSpectrumLine
-    integer                                                       :: iWavenumber                    , powerSpectrumUnit
-    type            (inputParameterList          )                :: parameters
+    double precision                               , intent(in   ) :: time                           , waveNumber
+    double precision                               , save          :: timePrevious            =-1.0d0
+    double precision                               , parameter     :: wavenumberLong          =0.01d0, wavenumberShort  =1.0d0
+    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
+    class           (powerSpectrumPrimordialClass ), pointer       :: powerSpectrumPrimordial_
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                                               :: littleHubbleCMB                , redshift
+    type            (varying_string               )                :: parameterFile                  , powerSpectrumFile
+    type            (xmlf_t                       )                :: parameterDoc
+    character       (len=32                       )                :: parameterLabel
+    character       (len=128                      )                :: powerSpectrumLine
+    integer                                                        :: iWavenumber                    , powerSpectrumUnit
+    type            (inputParameterList           )                :: parameters
 
     ! If the time has changed, recompute the power spectrum.
     !$omp critical(Power_Spectrum_Nonlinear_CosmicEmu)
     if (time /= timePrevious) then
        ! Get required objects.
-       cosmologyParameters_     => cosmologyParameters    ()
-       cosmologyFunctions_      => cosmologyFunctions     ()     
-       powerSpectrumPrimordial_ => powerSpectrumPrimordial()
-       ! Store the new time and find the corresponding redshift.
+       cosmologyParameters_      => cosmologyParameters     ()
+       cosmologyFunctions_       => cosmologyFunctions      ()     
+       powerSpectrumPrimordial_  => powerSpectrumPrimordial ()
+       cosmologicalMassVariance_ => cosmologicalMassVariance()
+      ! Store the new time and find the corresponding redshift.
        timePrevious=time
        redshift=cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(time))
        ! Check that this is a flat cosmology.
@@ -114,15 +117,15 @@ contains
             &                             )
        ! Generate a parameter file.
        parameters=inputParameterList()
-       write (parameterLabel,'(f5.3)') cosmologyParameters_%OmegaMatter   ()
+       write (parameterLabel,'(f5.3)') cosmologyParameters_     %OmegaMatter          (               )
        call parameters%add("OmegaMatter"              ,parameterLabel)
-       write (parameterLabel,'(f6.4)') cosmologyParameters_%OmegaBaryon   ()
+       write (parameterLabel,'(f6.4)') cosmologyParameters_     %OmegaBaryon          (               )
        call parameters%add("OmegaBaryon"              ,parameterLabel)
-       write (parameterLabel,'(f7.4)') cosmologyParameters_%HubbleConstant()
+       write (parameterLabel,'(f7.4)') cosmologyParameters_     %HubbleConstant       (               )
        call parameters%add("HubbleConstant"           ,parameterLabel)
-       write (parameterLabel,'(f6.4)') sigma_8                            ()
+       write (parameterLabel,'(f6.4)') cosmologicalMassVariance_%sigma8               (               )
        call parameters%add("sigma_8"                  ,parameterLabel)
-       write (parameterLabel,'(f6.4)') powerSpectrumPrimordial_%logarithmicDerivative(waveNumberShort)
+       write (parameterLabel,'(f6.4)') powerSpectrumPrimordial_ %logarithmicDerivative(waveNumberShort)
        call parameters%add("powerSpectrumIndex"       ,parameterLabel)
        write (parameterLabel,'(f6.3)') -1.0d0
        call parameters%add("darkEnergyEquationOfState",parameterLabel)
