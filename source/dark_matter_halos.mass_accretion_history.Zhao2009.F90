@@ -50,13 +50,14 @@ contains
     use FGSL
     use ODE_Solver
     use Galacticus_Error
-    use Power_Spectra
+    use Cosmological_Mass_Variance
     use Critical_Overdensities
     implicit none
     class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout)          :: self
     type            (treeNode                                  ), intent(inout), pointer :: node
     double precision                                            , intent(in   )          :: mass
     class           (criticalOverdensityClass                  )               , pointer :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass             )               , pointer :: cosmologicalMassVariance_
     class           (nodeComponentBasic                        )               , pointer :: baseBasicComponent
     double precision                                            , parameter              :: odeToleranceAbsolute          =1.0d-10, odeToleranceRelative =1.0d-10
     double precision                                            , dimension(1)           :: nowTime
@@ -73,7 +74,8 @@ contains
     logical                                                                              :: odeReset                      =.true.
     
     ! Get required objects.
-    criticalOverdensity_ => criticalOverdensity()
+    criticalOverdensity_      => criticalOverdensity     ()
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Get properties of the base node.
     baseBasicComponent => node%basic()
     baseMass=baseBasicComponent%mass()
@@ -85,7 +87,7 @@ contains
     ! Calculate quantities which remain fixed through the ODE.
 
     ! Get sigma(M) and its logarithmic derivative.
-    call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(baseMass,sigmaObserved,dSigmadMassLogarithmicObserved)
+    call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(baseMass,sigmaObserved,dSigmadMassLogarithmicObserved)
 
     ! Compute sigma proxy.
     sObserved=sigmaObserved*10.0d0**dSigmadMassLogarithmicObserved ! Equation 8 from Zhao et al. (2009).
@@ -115,7 +117,6 @@ contains
     
     function growthRateODEs(mass,nowTime,dNowTimedMass,parameterPointer) bind(c)
       !% System of differential equations to solve for the growth rate.
-      use Power_Spectra
       use Critical_Overdensities
       implicit none
       integer(kind=c_int   )                              :: growthRateODEs
@@ -136,7 +137,7 @@ contains
       end if
       
       ! Get sigma(M) and its logarithmic derivative.
-      call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(mass,sigmaNow,dSigmadMassLogarithmicNow)
+      call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(mass,sigmaNow,dSigmadMassLogarithmicNow)
       
       ! Compute sigma proxy.
       sNow=sigmaNow*10.0d0**dSigmadMassLogarithmicNow ! Equation 8 from Zhao et al. (2009).

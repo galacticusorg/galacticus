@@ -75,7 +75,7 @@ contains
 
   double precision function Halo_Mass_Function_Differential_Tinker2008(time,mass)
     !% Compute the \cite{tinker_towardhalo_2008} halo mass function.
-    use Power_Spectra
+    use Cosmological_Mass_Variance
     use Virial_Density_Contrast
     use Cosmology_Parameters
     use Cosmology_Functions
@@ -101,10 +101,11 @@ contains
          &                                                               expansionFactor                 , growthFactor  , &
          &                                                               normalization                   , normalization0
     !$omp threadprivate(expansionFactor,Delta,growthFactor,normalization0,a0,b0,c0,normalization,a,alphaDelta,b,c)
-    class           (cosmologyParametersClass  ), pointer             :: cosmologyParameters_
-    class           (cosmologyFunctionsClass   ), pointer             :: cosmologyFunctions_
-    class           (linearGrowthClass         ), pointer             :: linearGrowth_
-    class           (virialDensityContrastClass), pointer             :: virialDensityContrast_
+    class           (cosmologyParametersClass     ), pointer             :: cosmologyParameters_
+    class           (cosmologyFunctionsClass      ), pointer             :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass), pointer             :: cosmologicalMassVariance_
+    class           (linearGrowthClass            ), pointer             :: linearGrowth_
+    class           (virialDensityContrastClass   ), pointer             :: virialDensityContrast_
 
     ! Update fitting function parameters if the time differs from that on the previous call.
     if (time /= timePrevious .or. mass /= massPrevious) then
@@ -139,11 +140,12 @@ contains
        massPrevious=mass
     end if
 
-    ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters()
+    ! Get required objects.
+    cosmologyParameters_      => cosmologyParameters     ()
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Compute the mass function.
-    sigma=Cosmological_Mass_Root_Variance(mass)*growthFactor
-    alpha=abs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
+    sigma=cosmologicalMassVariance_%rootVariance(mass)*growthFactor
+    alpha=abs(cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass))
     Halo_Mass_Function_Differential_Tinker2008=(cosmologyParameters_%OmegaMatter()*cosmologyParameters_%densityCritical()/mass**2)*alpha*normalization*exp(-c/sigma**2)&
          &*(1.0d0+(b/sigma)**a)
     return

@@ -17,7 +17,7 @@
 
 !% Contains a module which implements a critical overdensity for collapse the \gls{wdm} modifier of \cite{barkana_constraints_2001}.
 
-  !# <criticalOverdensity name="criticalOverdensityBarkana2001WDM">
+  !# <criticalOverdensity name="criticalOverdensityBarkana2001WDM" defaultThreaedPrivate="yes">
   !#  <description>Provides a critical overdensity for collapse based on the \gls{wdm} modifier of \cite{barkana_constraints_2001} applied to some other critical overdensity class.</description>
   !# </criticalOverdensity>
   type, extends(criticalOverdensityClass) :: criticalOverdensityBarkana2001WDM

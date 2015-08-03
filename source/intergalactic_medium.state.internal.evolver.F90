@@ -59,7 +59,7 @@
      use Cosmology_Functions
      use Cosmology_Parameters
      use Linear_Growth
-     use Power_Spectra
+     use Cosmological_Mass_Variance
      use Numerical_Constants_Math
      use Numerical_Constants_Units
      use Numerical_Constants_Atomic
@@ -68,18 +68,19 @@
      use Galacticus_Output_Times
      use Galacticus_Error
      implicit none
-     type            (universe         ), intent(inout) :: thisUniverse
-     type            (universeEvent    ), pointer       :: thisEvent
-     class           (linearGrowthClass), pointer       :: linearGrowth_
-     integer                                            :: iTime                       , atomicNumber             , &
-          &                                                ionizationState
-     double precision                                   :: massFilteringInitial        , massFilteringCoefficient1, &
-          &                                                massFilteringVarianceInitial, massFilteringCoefficient2, &
-          &                                                massFilteringCoefficient3   , massFilteringCoefficient4, &
-          &                                                wavenumberFilteringInitial  , expansionFactorInitial   , &
-          &                                                expansionRateInitial        , atomicMass               , &
-          &                                                density                     , ionicFraction            , &
-          &                                                massFractionPrimordial
+     type            (universe                     ), intent(inout) :: thisUniverse
+     type            (universeEvent                ), pointer       :: thisEvent
+     class           (linearGrowthClass            ), pointer       :: linearGrowth_
+     class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+     integer                                                        :: iTime                       , atomicNumber             , &
+          &                                                            ionizationState
+     double precision                                               :: massFilteringInitial        , massFilteringCoefficient1, &
+          &                                                            massFilteringVarianceInitial, massFilteringCoefficient2, &
+          &                                                            massFilteringCoefficient3   , massFilteringCoefficient4, &
+          &                                                            wavenumberFilteringInitial  , expansionFactorInitial   , &
+          &                                                            expansionRateInitial        , atomicMass               , &
+          &                                                            density                     , ionicFraction            , &
+          &                                                            massFractionPrimordial
      
      ! Get parameter controlling properties.
      !@ <inputParameter>
@@ -128,10 +129,11 @@
         !@ </inputParameter>
         call Get_Input_Parameter('igmPropertiesRedshiftMaximum', igmPropertiesRedshiftMaximum,defaultValue=400.0d0)
         ! Build tables of properties and time for the temperature and ionization state densities in the IGM.
-        cosmologyParameters_ => cosmologyParameters            (                    )
-        cosmologyFunctions_  => cosmologyFunctions             (                    )
-        linearGrowth_        => linearGrowth                   (                    )
-        igmInitialState      =  intergalacticMediumStateRecFast(cosmologyParameters_)
+        cosmologyParameters_      => cosmologyParameters            (                    )
+        cosmologyFunctions_       => cosmologyFunctions             (                    )
+        linearGrowth_             => linearGrowth                   (                    )
+        cosmologicalMassVariance_ => cosmologicalMassVariance       (                    )
+        igmInitialState           =  intergalacticMediumStateRecFast(cosmologyParameters_)
         timeMaximum                                                                                 &
              & =cosmologyFunctions_%cosmicTime                 (                                    &
              &  cosmologyFunctions_%expansionFactorFromredshift (                                   &
@@ -275,7 +277,7 @@
              &                       /cosmologyParameters_%densityCritical() &
              &                      )**(1.0d0/3.0d0)
         ! Find the initial mass variance on the filtering mass scale.
-        massFilteringVarianceInitial=Cosmological_Mass_Root_Variance(massFilteringInitial)        
+        massFilteringVarianceInitial=cosmologicalMassVariance_%rootVariance(massFilteringInitial)        
         ! Set the initial clumping factor.
         clumpingFactor(1)= 1.0d0+(massFilteringVarianceInitial**2*linearGrowth_%value(timeMinimum)**2)
         ! Set the composite variables used to solve for filtering mass.
@@ -346,7 +348,7 @@
      use               Cosmology_Functions
      use               Cosmology_Parameters
      use               Linear_Growth
-     use               Power_Spectra
+     use               Cosmological_Mass_Variance
      use               ISO_Varying_String
      use               Galacticus_HDF5
      use               IO_HDF5
@@ -356,6 +358,7 @@
      type            (universeEvent                ), pointer                  :: newEvent
      class           (intergalacticMediumStateClass), pointer                  :: igmState_
      class           (linearGrowthClass            ), pointer                  :: linearGrowth_
+     class           (cosmologicalMassVarianceClass), pointer                  :: cosmologicalMassVariance_
      double precision                               , parameter                :: odeToleranceAbsolute        =1.0d-03,             &
           &                                                                       odeToleranceRelative        =1.0d-03,             &
           &                                                                       timeToleranceRelative       =1.0d-6
@@ -386,9 +389,10 @@
      ! Evolve the properties up to this timestep.
      if (iNow > 1) then        
         ! Get required objects.
-        cosmologyParameters_ => cosmologyParameters()
-        cosmologyFunctions_  => cosmologyFunctions ()
-        linearGrowth_        => linearGrowth       ()
+        cosmologyParameters_      => cosmologyParameters     ()
+        cosmologyFunctions_       => cosmologyFunctions      ()
+        linearGrowth_             => linearGrowth            ()
+        cosmologicalMassVariance_ => cosmologicalMassVariance()
         ! Map properties to a contiguous array.
         properties( 1   )=temperature           (iNow-1    )
         properties( 2: 3)=densityHydrogen       (iNow-1,1:2)
@@ -442,9 +446,9 @@
         opticalDepth          (iNow    )=max(properties( 9   ),0.0d0)
         massFiltering         (iNow    )=properties(10   )
         ! Compute the filtering mass at this time.
-        clumpingFactor        (iNow    )=+1.0d0                                                   &
-             &                           +Cosmological_Mass_Root_Variance(massFiltering(iNow))**2 &
-             &                           *linearGrowth_%value            (time         (iNow))**2
+        clumpingFactor        (iNow    )=+1.0d0                                                          &
+             &                           +cosmologicalMassVariance_%rootVariance(massFiltering(iNow))**2 &
+             &                           *linearGrowth_            %value       (time         (iNow))**2
     end if
     ! Find the latest time across all trees in the universe.
     treetimeLatest=0.0d0
@@ -546,44 +550,45 @@
      use               Radiation_Structure
      use               Atomic_Cross_Sections_Ionization_Photo
      use               Linear_Growth
-     use               Power_Spectra
+     use               Cosmological_Mass_Variance
      use               Numerical_Integration
      use               FGSL
      implicit none
-     integer         (kind=c_int                )                               :: Intergalactic_Medium_State_Internal_ODEs
-     real            (kind=c_double             ), value                        :: time
-     real            (kind=c_double             ), intent(in   ), dimension( *) :: properties
-     real            (kind=c_double             )               , dimension( *) :: propertiesRateOfChange
-     type            (c_ptr                     ), value                        :: parameterPointer
-     class           (gauntFactorClass          ), pointer                      :: gauntFactor_
-     class           (linearGrowthClass         ), pointer                      :: linearGrowth_
-     double precision                            , parameter                    :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
-     double precision                            , parameter                    :: massFilteringMinimum                      =1.0d2
-     double precision                                           , dimension( 2) :: densityHydrogen_                                  , massFilteringComposite_            , &
-          &                                                                        massFilteringCompositeRateOfChange
-     double precision                                           , dimension( 3) :: densityHelium_
-     type            (radiationStructure        ), save                         :: radiation  
-     type            (fgsl_function             )                               :: integrationFunction
-     type            (fgsl_integration_workspace)                               :: integrationWorkspace
-     logical                                                                    :: integrationReset
-     integer                                                                    :: electronNumber                                    , atomicNumber                       , &
+     integer         (kind=c_int                   )                               :: Intergalactic_Medium_State_Internal_ODEs
+     real            (kind=c_double                ), value                        :: time
+     real            (kind=c_double                ), intent(in   ), dimension( *) :: properties
+     real            (kind=c_double                )               , dimension( *) :: propertiesRateOfChange
+     type            (c_ptr                        ), value                        :: parameterPointer
+     class           (gauntFactorClass             ), pointer                      :: gauntFactor_
+     class           (linearGrowthClass            ), pointer                      :: linearGrowth_
+     class           (cosmologicalMassVarianceClass), pointer                      :: cosmologicalMassVariance_
+     double precision                               , parameter                    :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
+     double precision                               , parameter                    :: massFilteringMinimum                      =1.0d2
+     double precision                                              , dimension( 2) :: densityHydrogen_                                  , massFilteringComposite_            , &
+          &                                                                           massFilteringCompositeRateOfChange
+     double precision                                              , dimension( 3) :: densityHelium_
+     type            (radiationStructure           ), save                         :: radiation  
+     type            (fgsl_function                )                               :: integrationFunction
+     type            (fgsl_integration_workspace   )                               :: integrationWorkspace
+     logical                                                                       :: integrationReset
+     integer                                                                       :: electronNumber                                    , atomicNumber                       , &
           &                                                                        ionizationState                                   , shellNumber                        , &
-          &                                                                        photoionizationGroundIonizationState              , photoionizationGroundElectronNumber, &
-          &                                                                        iProperty
-     double precision                                                           :: temperature                                       , clumpingFactor                     , &
-          &                                                                        electronDensityRateOfChange                       , densityElectron                    , &
-          &                                                                        densityTotal                                      , ionizationPhotoRateFrom            , &
-          &                                                                        ionizationPhotoRateTo                             , opticalDepthRateOfChange           , &
-          &                                                                        massFilteringRateOfChange                         , wavenumberFilteringRateOfChange    , &
-          &                                                                        collisionIonizationRateFrom                       , collisionIonizationRateTo          , &
-          &                                                                        densityLowerIon                                   , densityUpperIon                    , &
-          &                                                                        densityThisIon                                    , recombinationDielectronicRateTo    , &
-          &                                                                        recombinationDielectronicRateFrom                 , recombinationRateTo                , &
-          &                                                                        recombinationRateFrom                             , wavelengthMinimum                  , &
-          &                                                                        wavelengthMaximum                                 , darkMatterFraction                 , &
-          &                                                                        massParticleMean                                  , massFiltering_                     , &
-          &                                                                        wavenumberFiltering                               , opticalDepth                       , &
-          &                                                                        heatingRate
+          &                                                                           photoionizationGroundIonizationState              , photoionizationGroundElectronNumber, &
+          &                                                                           iProperty
+     double precision                                                              :: temperature                                       , clumpingFactor                     , &
+          &                                                                           electronDensityRateOfChange                       , densityElectron                    , &
+          &                                                                           densityTotal                                      , ionizationPhotoRateFrom            , &
+          &                                                                           ionizationPhotoRateTo                             , opticalDepthRateOfChange           , &
+          &                                                                           massFilteringRateOfChange                         , wavenumberFilteringRateOfChange    , &
+          &                                                                           collisionIonizationRateFrom                       , collisionIonizationRateTo          , &
+          &                                                                           densityLowerIon                                   , densityUpperIon                    , &
+          &                                                                           densityThisIon                                    , recombinationDielectronicRateTo    , &
+          &                                                                           recombinationDielectronicRateFrom                 , recombinationRateTo                , &
+          &                                                                           recombinationRateFrom                             , wavelengthMinimum                  , &
+          &                                                                           wavelengthMaximum                                 , darkMatterFraction                 , &
+          &                                                                           massParticleMean                                  , massFiltering_                     , &
+          &                                                                           wavenumberFiltering                               , opticalDepth                       , &
+          &                                                                           heatingRate
 
      ! Extract properties from the contiguous array.
      temperature            =max(properties( 1   ),0.0d0               )
@@ -600,9 +605,10 @@
           &                  +sum(max(      densityHelium_     ,0.0d0)) &
           &                  +densityElectron
      ! Get required objects.
-     cosmologyParameters_ => cosmologyParameters()
-     cosmologyFunctions_  => cosmologyFunctions ()
-     linearGrowth_        => linearGrowth       ()
+     cosmologyParameters_      => cosmologyParameters     ()
+     cosmologyFunctions_       => cosmologyFunctions      ()
+     linearGrowth_             => linearGrowth            ()
+     cosmologicalMassVariance_ => cosmologicalMassVariance()
      ! Initialize heating rate to zero.
      heatingRate          =  0.0d0
      ! Compute dark matter mass fraction.
@@ -677,10 +683,10 @@
        massFilteringRateOfChange=0.0d0
      end if
      ! Compute the clumping factor.
-     clumpingFactor=+1.0d0                                             &
-          &         +(                                                 &
-          &           +Cosmological_Mass_Root_Variance(massFiltering_) &
-          &           *linearGrowth_%value            (time          ) &
+     clumpingFactor=+1.0d0                                                    &
+          &         +(                                                        &
+          &           +cosmologicalMassVariance_%rootVariance(massFiltering_) &
+          &           *linearGrowth_            %value       (time          ) &
           &          )**2
      ! Iterate over ionic species.
      iProperty=1 ! Counter for ionic species in properties array.
