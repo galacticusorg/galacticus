@@ -724,7 +724,7 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('gamaEarlyTypeLBSProbability',gamaEarlyTypeLBSProbability,defaultValue=0.5d0)
           ! Record that function is initialized.
-          initiaized=.true.
+          initialized=.true.
        end if
        !$omp end critical (Classifier_GAMA_Early_Type_Fraction_Z0_03_Initialize)
     end if
