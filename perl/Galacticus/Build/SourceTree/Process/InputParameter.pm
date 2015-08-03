@@ -55,7 +55,7 @@ sub Process_InputParameters {
 	}
     }
     # Get code directive locations.
-    my $directiveLocations = $xml->XMLin($galacticusPath."work/build/Code_Directive_Locations.xml");
+    my $directiveLocations = $xml->XMLin($galacticusPath.$ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
     my $depth = 0;

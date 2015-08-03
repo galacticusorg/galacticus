@@ -134,7 +134,7 @@ foreach my $srcdir ( @sourcedirs ) {
 			    $otherDirectives->{$xmlTag}->{'files'}->{$srcdir."/".$fname} = 1;
 			    if ( $xmlTag eq "functionClass" ) {
 				$functionClasses{$data->{'name'}} = $fname;
-				(my $fileName = "work/build/".$fname) =~ s/\.F90$/.p.F90/;
+				(my $fileName = $ENV{'BUILDPATH'}."/".$fname) =~ s/\.F90$/.p.F90/;
 				if ( exists($data->{'stateful'        }) && $data->{'stateful'        } eq "yes" ) {
 				    $otherDirectives->{"galacticusStateRetrieveTask"}->{'files'     }->{$fileName} = 1;
 				    $otherDirectives->{"galacticusStateStoreTask"   }->{'files'     }->{$fileName} = 1;
