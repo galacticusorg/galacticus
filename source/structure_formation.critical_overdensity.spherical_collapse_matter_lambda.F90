@@ -18,7 +18,7 @@
   !% An implementation of critical overdensity for collapse based on spherical collapse in a
   !% matter plus cosmological constant universe.
 
-  !# <criticalOverdensity name="criticalOverdensitySphericalCollapseMatterLambda">
+  !# <criticalOverdensity name="criticalOverdensitySphericalCollapseMatterLambda" defaultThreadPrivate="yes">
   !#  <description>Critical overdensity for collapse based on the spherical collapse in a matter plus cosmological constant universe (see, for example, \citealt{percival_cosmological_2005}).</description>
   !# </criticalOverdensity>
   use Tables
@@ -194,5 +194,6 @@ contains
 
     read (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
     self%tableInitialized=.false.
+    call self%retabulate(sqrt(self%tableTimeMinimum*self%tableTimeMaximum))
     return
   end subroutine sphericalCollapseMatterLambdaStateRestore

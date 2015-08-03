@@ -19,7 +19,7 @@
 
 module Generalized_Press_Schechter_Branching
   !% Implements calculations of branching probabilties in generalized Press-Schechter theory.
-  use Power_Spectra
+  use Cosmological_Mass_Variance
   use Numerical_Constants_Math
   implicit none
   private
@@ -124,16 +124,18 @@ contains
     use Excursion_Sets_First_Crossings
     use Cosmology_Functions
     implicit none
-    class           (cosmologyFunctionsClass), pointer :: cosmologyFunctionsDefault
-    double precision                                   :: presentTime              , testResult, &
-         &                                                varianceMaximum
+    class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+    double precision                                         :: presentTime              , testResult, &
+         &                                                      varianceMaximum
 
     !$omp critical (Excursion_Sets_Maximum_Sigma_Test)
     if (.not.excursionSetsTested) then
-       ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       presentTime    =cosmologyFunctionsDefault%cosmicTime(1.0d0)
-       sigmaMaximum   =Cosmological_Mass_Root_Variance(generalizedPressSchechterMinimumMass)
+       ! Get required objects.
+       cosmologyFunctions_       => cosmologyFunctions      ()
+       cosmologicalMassVariance_ => cosmologicalMassVariance()
+       presentTime    =cosmologyFunctions_      %cosmicTime  (1.0d0                               )
+       sigmaMaximum   =cosmologicalMassVariance_%rootVariance(generalizedPressSchechterMinimumMass)
        varianceMaximum=sigmaMaximum**2
        testResult     =Excursion_Sets_First_Crossing_Probability(                      varianceMaximum,presentTime)
        testResult     =Excursion_Sets_First_Crossing_Rate       (0.5d0*varianceMaximum,varianceMaximum,presentTime)
@@ -154,21 +156,24 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    double precision                , intent(in   ) :: deltaCritical                  , haloMass                , &
-         &                                             massResolution                 , probability
-    type            (pseudoRandom  ), intent(inout) :: randomNumberGenerator
-    double precision                , parameter     :: toleranceAbsolute       =0.0d0 , toleranceRelative=1.0d-9
-    double precision                , parameter     :: smallProbabilityFraction=1.0d-3
-    type            (varying_string)                :: message
-    character       (len=26        )                :: label
-    type            (rootFinder    ), save          :: finder
+    double precision                               , intent(in   ) :: deltaCritical                   , haloMass                , &
+         &                                                            massResolution                  , probability
+    type            (pseudoRandom                 ), intent(inout) :: randomNumberGenerator
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                               , parameter     :: toleranceAbsolute        =0.0d0 , toleranceRelative=1.0d-9
+    double precision                               , parameter     :: smallProbabilityFraction =1.0d-3
+    type            (varying_string               )                :: message
+    character       (len=26                       )                :: label
+    type            (rootFinder                   ), save          :: finder
     !$omp threadprivate(finder)
 
+    ! Get required objects.
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Ensure excursion set calculations have sufficient range in sigma.
     call Excursion_Sets_Maximum_Sigma_Test()
     ! Initialize global variables.
-    parentHaloMass        =haloMass
-    parentSigma           =Cosmological_Mass_Root_Variance(haloMass)
+    parentHaloMass        =                                       haloMass
+    parentSigma           =cosmologicalMassVariance_%rootVariance(haloMass)
     parentDelta           =deltaCritical
     probabilityMinimumMass=massResolution
     probabilitySeek       =probability
@@ -263,17 +268,19 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
-    double precision                            , intent(in   ) :: deltaCritical       , haloMass   , massResolution
-    type            (c_ptr                     )                :: parameterPointer
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: massMaximum         , massMinimum
+    double precision                               , intent(in   ) :: deltaCritical            , haloMass   , massResolution
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    type            (c_ptr                        )                :: parameterPointer
+    type            (fgsl_function                )                :: integrandFunction
+    type            (fgsl_integration_workspace   )                :: integrationWorkspace
+    double precision                                               :: massMaximum              , massMinimum
 
     call Excursion_Sets_Maximum_Sigma_Test()
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass>2.0d0*massResolution) then
-       parentHaloMass           =haloMass
-       parentSigma              =Cosmological_Mass_Root_Variance(haloMass)
+       cosmologicalMassVariance_ => cosmologicalMassVariance()
+       parentHaloMass           =                                       haloMass
+       parentSigma              =cosmologicalMassVariance_%rootVariance(haloMass)
        parentDelta              =deltaCritical
        call Compute_Common_Factors
        massMinimum=massResolution
@@ -299,23 +306,26 @@ contains
     use ISO_Varying_String
     use Galacticus_Display
     implicit none
-    double precision                            , intent(in   ) :: deltaCritical                                 , haloMass       , &
-         &                                                         massResolution
-    double precision                            , save          :: massResolutionPrevious                 =-1.0d0, resolutionSigma
+    double precision                               , intent(in   ) :: deltaCritical                                 , haloMass       , &
+         &                                                            massResolution
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    double precision                               , save          :: massResolutionPrevious                 =-1.0d0, resolutionSigma
     !$omp threadprivate(resolutionSigma,massResolutionPrevious)
-    double precision                            , parameter     :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
-    double precision                                            :: massMaximum                                   , massMinimum    , &
-         &                                                         resolutionSigmaOverParentSigma
-    type            (c_ptr                     )                :: parameterPointer
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    integer                                                     :: errorStatus
-    type            (varying_string            )                :: message
+    double precision                               , parameter     :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
+    double precision                                               :: massMaximum                                   , massMinimum    , &
+         &                                                            resolutionSigmaOverParentSigma
+    type            (c_ptr                        )                :: parameterPointer
+    type            (fgsl_function                )                :: integrandFunction
+    type            (fgsl_integration_workspace   )                :: integrationWorkspace
+    integer                                                        :: errorStatus
+    type            (varying_string               )                :: message
 
     call Excursion_Sets_Maximum_Sigma_Test()
+    ! Get required objects.
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Get sigma and delta_critical for the parent halo.
-    parentHaloMass           =haloMass
-    parentSigma              =Cosmological_Mass_Root_Variance(haloMass)
+    parentHaloMass           =                                       haloMass
+    parentSigma              =cosmologicalMassVariance_%rootVariance(haloMass)
     parentDelta              =deltaCritical
     call Compute_Common_Factors
 
@@ -328,7 +338,7 @@ contains
     end if
 
     if (massResolution /= massResolutionPrevious) then
-       resolutionSigma       =Cosmological_Mass_Root_Variance(massResolution)
+       resolutionSigma       =cosmologicalMassVariance_%rootVariance(massResolution)
        massResolutionPrevious=massResolution
     end if
     resolutionSigmaOverParentSigma=resolutionSigma/parentSigma
@@ -368,12 +378,14 @@ contains
     !% Integrand for the branching probability.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(kind=c_double)        :: Branching_Probability_Integrand_Generalized
-    real(kind=c_double), value :: childHaloMass
-    type(c_ptr        ), value :: parameterPointer
-    real(kind=c_double)        :: childAlpha                                 , childSigma
+    real (kind=c_double                )         :: Branching_Probability_Integrand_Generalized
+    real (kind=c_double                ), value  :: childHaloMass
+    type (c_ptr                        ), value  :: parameterPointer
+    class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+    real (kind=c_double                )         :: childAlpha                                 , childSigma
 
-    call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
+    call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,childSigma,childAlpha)
     Branching_Probability_Integrand_Generalized=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
     return
   end function Branching_Probability_Integrand_Generalized
@@ -382,13 +394,15 @@ contains
     !% Integrand for the subresolution fraction.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(kind=c_double)        :: Subresolution_Fraction_Integrand_Generalized
-    real(kind=c_double), value :: childHaloMass
-    type(c_ptr        ), value :: parameterPointer
-    real(kind=c_double)        :: childAlpha                                  , childSigma
+    real (kind=c_double                )         :: Subresolution_Fraction_Integrand_Generalized
+    real (kind=c_double                ), value  :: childHaloMass
+    type (c_ptr                        ), value  :: parameterPointer
+    class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+    real (kind=c_double                )         :: childAlpha                                  , childSigma
 
     if (childHaloMass>0.0d0) then
-       call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
+       call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,childSigma,childAlpha)
        Subresolution_Fraction_Integrand_Generalized=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)*(childHaloMass&
             &/parentHaloMass)
     else

@@ -72,6 +72,14 @@ contains
     use Tables
     use Kind_Numbers
     use Galacticus_Error
+
+
+
+use omp_lib
+
+
+
+
     implicit none
     double precision                                      , intent(in   ) :: time
     integer                                               , intent(in   ) :: calculationType
@@ -86,7 +94,7 @@ contains
          &                                                                   epsilonPerturbationMaximum      , epsilonPerturbationMinimum       , &
          &                                                                   eta                             , normalization                    , &
          &                                                                   radiiRatio                      , radiusMaximum
-    double complex                                                         :: a,b,c,d,Delta
+    double complex                                                        :: a,b,c,d,Delta
 
     ! Get required objects.
     cosmologyFunctions_ => cosmologyFunctions()
@@ -125,9 +133,9 @@ contains
           ! Estimate a suitably negative minimum value for epsilon.
           epsilonPerturbationMinimum=-10.0d0
 
-          OmegaM               =cosmologyFunctions_%omegaMatterEpochal(expansionFactor=aExpansionNow)
-          OmegaDE              =cosmologyFunctions_%omegaDarkEnergyEpochal (expansionFactor=aExpansionNow)
-          hubbleParameterInvGyr=cosmologyFunctions_%expansionRate    (           aExpansionNow)
+          OmegaM               =cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=aExpansionNow)
+          OmegaDE              =cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)
+          hubbleParameterInvGyr=cosmologyFunctions_%expansionRate         (                aExpansionNow)
           tNow                 =deltaTable%x(iTime)
 
           ! Find the value of epsilon for which the perturbation just collapses at this time.
@@ -138,7 +146,7 @@ contains
                   &                   rangeExpandUpward          =0.5d0                        , &
                   &                   rangeExpandType            =rangeExpandMultiplicative    , &
                   &                   rangeExpandUpwardSignExpect=rangeExpandSignExpectPositive  &
-                  &)
+                  &                  )
           end if
           epsilonPerturbation=finder%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           ! Compute the corresponding critical overdensity.
