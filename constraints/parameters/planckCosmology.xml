@@ -142,7 +142,7 @@
     <define>&amp;List::Util::min((0.141469626600985+%[cosmology0]*-0.00173803310149688+%[cosmology1]*-6.31582298280827e-05+%[cosmology2]*0.000536650003272615+%[cosmology3]*0.000343814563922425)/(%[cosmologyParametersMethod-&gt;HubbleConstant]/100.0)**2,1.0)</define>
   </parameter>
   <parameter>
-    <name>sigma_8</name>
+    <name>cosmologicalMassVarianceMethod-&gt;sigma_8</name>
     <define>0.814932725148418+%[cosmology0]*0.00308430800910847+%[cosmology1]*0.00237283286795749+%[cosmology2]*0.000263608223733247+%[cosmology3]*0.00244248949877714+%[cosmology4]*0.00813397320780815</define>
   </parameter>
   <parameter>
