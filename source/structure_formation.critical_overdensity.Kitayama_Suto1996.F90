@@ -18,7 +18,7 @@
 !% Contains a module which implements a critical overdensity class based on the fitting functions of
 !% \cite{kitayama_semianalytic_1996}.
 
-  !# <criticalOverdensity name="criticalOverdensityKitayamaSuto1996">
+  !# <criticalOverdensity name="criticalOverdensityKitayamaSuto1996" defaultThreadPrivate="yes">
   !#  <description>Provides a critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}, and is therefore valid only for flat cosmological models.</description>
   !# </criticalOverdensity>
   type, extends(criticalOverdensityClass) :: criticalOverdensityKitayamaSuto1996
