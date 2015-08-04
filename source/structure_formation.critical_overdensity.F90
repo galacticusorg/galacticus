@@ -58,7 +58,7 @@ module Critical_Overdensities
   !#   <argument>double precision, intent(in   ), optional :: mass</argument>
   !#   <modules>Cosmology_Functions Root_Finder</modules>
   !#   <code>
-  !#    double precision                         , parameter :: toleranceRelative   =1.0d-6, toleranceAbsolute=0.0d0
+  !#    double precision                         , parameter :: toleranceRelative   =1.0d-12, toleranceAbsolute=0.0d0
   !#    type            (rootFinder             ), save      :: finder
   !#    !$omp threadprivate(finder)
   !#    class           (cosmologyFunctionsClass), pointer   :: cosmologyFunctions_
@@ -91,8 +91,8 @@ module Critical_Overdensities
   !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
   !#   <modules>Cosmology_Functions Root_Finder</modules>
   !#   <code>
-  !#    double precision                               , parameter :: massGuess           =1.0d13, toleranceAbsolute=0.0d0, &amp;
-  !#         &amp;                                                    toleranceRelative   =1.0d-6
+  !#    double precision                               , parameter :: massGuess           =1.0d+13, toleranceAbsolute=0.0d0, &amp;
+  !#         &amp;                                                    toleranceRelative   =1.0d-06
   !#    type            (rootFinder                   ), save      :: finder
   !#    !$omp threadprivate(finder)
   !#    class           (cosmologyFunctionsClass      ), pointer   :: cosmologyFunctions_
