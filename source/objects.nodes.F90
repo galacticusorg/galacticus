@@ -31,6 +31,7 @@ module Galacticus_Nodes
   use Histories
   use Numerical_Constants_Astronomical
   use IO_HDF5
+  use Pseudo_Random
   private
   public :: Galacticus_Nodes_Initialize, Galacticus_Nodes_Finalize, Galacticus_Nodes_Unique_ID_Set, Interrupt_Procedure_Template
   !# <workaround type="gfortran">
@@ -182,6 +183,25 @@ module Galacticus_Nodes
     return
   end subroutine Tree_Node_Unique_ID_Set
 
+  double precision function Tree_Node_Time_Step(self)
+    !% Returns the time-step last used by a {\normalfont \ttfamily treeNode}.
+    implicit none
+    class(treeNode), intent(in   ) :: self
+
+    Tree_Node_Time_Step=self%timeStepValue
+    return
+  end function Tree_Node_Time_Step
+
+  subroutine Tree_Node_Time_Step_Set(self,timeStep)
+    !% Sets the time-step used by a {\normalfont \ttfamily treeNode}.
+    implicit none
+    class           (treeNode      ), intent(inout) :: self
+    double precision                , intent(in   ) :: timeStep
+
+    self%timeStepValue=timeStep
+    return
+  end subroutine Tree_Node_Time_Step_Set
+  
   function Tree_Node_Create_Event(self) result (newEvent)
     !% Create a new event in a tree node.
     implicit none
@@ -817,6 +837,15 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Dump_Raw_Null
 
+  subroutine Node_Component_Read_Raw_Null(self,fileHandle)
+    !% Read a generic tree node component in binary.
+    implicit none
+    class  (nodeComponent), intent(inout) :: self
+    integer               , intent(in   ) :: fileHandle
+
+    return
+  end subroutine Node_Component_Read_Raw_Null
+
   subroutine Node_Component_Output_Count_Null(self,integerPropertyCount,doublePropertyCount,time,instance)
     !% Dump a generic tree node component.
     implicit none
@@ -884,15 +913,6 @@ module Galacticus_Nodes
 
     return
   end subroutine Node_Component_Serialize_Null
-
-  subroutine Node_Component_Read_Raw_Null(self,fileHandle)
-    !% Read a generic tree node component from raw file.
-    implicit none
-    class  (nodeComponent), intent(inout) :: self
-    integer               , intent(in   ) :: fileHandle
-    
-    return
-  end subroutine Node_Component_Read_Raw_Null
 
   subroutine Node_Component_Deserialize_Null(self,array)
     !% Deserialize a generic tree node component.
@@ -967,13 +987,14 @@ module Galacticus_Nodes
     return
   end function Node_Component_Surface_Density_Null
 
-  double precision function Node_Component_Potential_Null(self,radius,componentType,massType,haloLoaded)
+  double precision function Node_Component_Potential_Null(self,radius,componentType,massType,haloLoaded,status)
     !% A null implementation of the gravitational potential in a component. Always returns zero.
     implicit none
     class           (nodeComponent), intent(inout)           :: self
     integer                        , intent(in   )           :: componentType, massType
     double precision               , intent(in   )           :: radius
     logical                        , intent(in   ), optional :: haloLoaded
+    integer                        , intent(inout), optional :: status
 
     Node_Component_Potential_Null=0.0d0
     return

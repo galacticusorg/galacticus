@@ -19,12 +19,10 @@
 
 module Halo_Spin_Distributions_Bett2007
   !% Implements the \cite{bett_spin_2007} halo spin distribution.
-  use FGSL
   use Tables
   implicit none
   private
-  public :: Halo_Spin_Distribution_Bett2007_Initialize, Halo_Spin_Distribution_Bett2007_Snapshot,&
-       & Halo_Spin_Distribution_Bett2007_State_Store, Halo_Spin_Distribution_Bett2007_State_Retrieve
+  public :: Halo_Spin_Distribution_Bett2007_Initialize
 
   ! Parameters of the spin distribution.
   double precision                                        :: spinDistributionBett2007Alpha           , spinDistributionBett2007Lambda0
@@ -36,11 +34,6 @@ module Halo_Spin_Distributions_Bett2007
   double precision                                        :: spinDistributionTableMaximum
   type            (table1DLogarithmicLinear)              :: spinDistributionTable
   class           (table1D                 ), allocatable :: spinDistributionTableInverse
-
-  ! Random number objects.
-  type            (fgsl_rng                )              :: clonedPseudoSequenceObject              , randomSequenceObject
-  logical                                                 :: resetRandomSequence              =.true., resetRandomSequenceSnapshot
-  !$omp threadprivate(resetRandomSequence,randomSequenceObject,resetRandomSequenceSnapshot,clonedPseudoSequenceObject)
 
 contains
 
@@ -88,11 +81,11 @@ contains
        spinDistributionTableMaximum=(spinDistributionTableSpinMaximum/spinDistributionBett2007Lambda0)**(3.0d0/spinDistributionBett2007Alpha)
        ! Tabulate the cumulative distribution.
        call spinDistributionTable%destroy()
-       call spinDistributiontable%create(&
+       call spinDistributiontable%create(                                                                                                     &
             &                            spinDistributionBett2007Lambda0*spinDistributionTableMinimum**(spinDistributionBett2007Alpha/3.0d0), &
             &                            spinDistributionBett2007Lambda0*spinDistributionTableMaximum**(spinDistributionBett2007Alpha/3.0d0), &
             &                            spinDistributionTableNumberPoints                                                                  , &
-            &                            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                         &
+            &                            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &                           )
        ! Compute the cumulative probability distribution.
        do iSpin=1,spinDistributionTableNumberPoints
@@ -124,53 +117,11 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision                                   :: randomDeviate
 
-    randomDeviate=Pseudo_Random_Get(randomSequenceObject,resetRandomSequence)
+    randomDeviate=thisNode%hostTree%randomNumberGenerator%sample()
     !$omp critical(Halo_Spin_Distribution_Bett2007)
     Halo_Spin_Distribution_Bett2007=spinDistributionTableInverse%interpolate(randomDeviate)
     !$omp end critical(Halo_Spin_Distribution_Bett2007)
    return
   end function Halo_Spin_Distribution_Bett2007
-
-  !# <galacticusStateSnapshotTask>
-  !#  <unitName>Halo_Spin_Distribution_Bett2007_Snapshot</unitName>
-  !# </galacticusStateSnapshotTask>
-  subroutine Halo_Spin_Distribution_Bett2007_Snapshot
-    !% Store a snapshot of the random number generator internal state.
-    implicit none
-
-    if (.not.resetRandomSequence) clonedPseudoSequenceObject=FGSL_Rng_Clone(randomSequenceObject)
-    resetRandomSequenceSnapshot=resetRandomSequence
-    return
-  end subroutine Halo_Spin_Distribution_Bett2007_Snapshot
-
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Halo_Spin_Distribution_Bett2007_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Halo_Spin_Distribution_Bett2007_State_Store(stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Pseudo_Random
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-
-    write (stateFile) resetRandomSequenceSnapshot
-    if (.not.resetRandomSequenceSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
-    return
-  end subroutine Halo_Spin_Distribution_Bett2007_State_Store
-
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Halo_Spin_Distribution_Bett2007_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Halo_Spin_Distribution_Bett2007_State_Retrieve(stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Pseudo_Random
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-
-    read (stateFile) resetRandomSequence
-    if (.not.resetRandomSequence) call Pseudo_Random_Retrieve(randomSequenceObject,fgslStateFile)
-    return
-  end subroutine Halo_Spin_Distribution_Bett2007_State_Retrieve
 
 end module Halo_Spin_Distributions_Bett2007
