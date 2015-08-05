@@ -84,10 +84,14 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
     call Flush(0)
+#ifdef UNCLEANEXIT
+    call Exit(1)
+#else
     call H5Close_F(error)
     call H5Close_C()
     call Semaphore_Post_On_Error()
     call Abort()
+#endif
     return
   end subroutine Galacticus_Error_Report_Char
 
@@ -125,6 +129,9 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
     call Flush(0)
+#ifdef UNCLEANEXIT
+    call Exit(1)
+#else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
     if (flag) then
@@ -140,6 +147,7 @@ contains
     call H5Close_C()
     call Semaphore_Post_On_Error()
     call Abort()
+#endif
     return
   end subroutine Galacticus_Signal_Handler_SIGINT
 
@@ -161,6 +169,9 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
     call Flush(0)
+#ifdef UNCLEANEXIT
+    call Exit(1)
+#else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
     if (flag) then
@@ -176,6 +187,7 @@ contains
     call H5Close_C()
     call Semaphore_Post_On_Error()
     call Abort()
+#endif
     return
   end subroutine Galacticus_Signal_Handler_SIGSEGV
 
@@ -197,6 +209,9 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
     call Flush(0)
+#ifdef UNCLEANEXIT
+    call Exit(1)
+#else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
     if (flag) then
@@ -212,6 +227,7 @@ contains
     call H5Close_C()
     call Semaphore_Post_On_Error()
     call Abort()
+#endif
     return
   end subroutine Galacticus_Signal_Handler_SIGFPE
 
@@ -223,9 +239,11 @@ contains
     write (0,*) 'Galacticus exceeded available CPU time - will try to flush data before exiting.'
     call Semaphore_Post_On_Error()
     call Flush(0)
+#ifndef UNCLEANEXIT
     call H5Close_F(error)
     call H5Close_C()
     call Exit(errorStatusXCPU)
+#endif
     return
   end subroutine Galacticus_Signal_Handler_SIGXCPU
 
@@ -254,6 +272,9 @@ contains
        !$    write (0,*) " => Error occurred in master thread"
        !$ end if
        call Flush(0)
+#ifdef UNCLEANEXIT
+       call Exit(1)
+#else
 #ifdef USEMPI
        call MPI_Initialized(flag,error)
        if (flag) then
@@ -265,10 +286,11 @@ contains
           call Sleep(86400)
        end if
 #endif
-      call H5Close_F(error)
+       call H5Close_F(error)
        call H5Close_C()
        call Semaphore_Post_On_Error()
        call Abort()
+#endif
     else
        errorStatusGSL=errorNumber
     end if
