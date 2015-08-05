@@ -18,7 +18,121 @@
   !% Contains a module which implements a merger tree operator which accumulates conditional mass functions for trees.
 
   !# <mergerTreeOperator name="mergerTreeOperatorConditionalMF" defaultThreadPrivate="no">
-  !#  <description>Provides a merger tree operator which accumulates conditional mass functions for trees.</description>
+  !#  <description>
+  !#   Provides a merger tree operator which accumulates conditional mass functions for trees. In
+  !#   addition to the cumulative mass function, 1$^{\rm st}$ through $n^{\rm th}$ most-massive
+  !#   progenitor mass functions, formation rate functions, and unevolved subhalo mass functions \citep{jiang_generating_2014}
+  !#   split by hierarchy depth are computed and output. Mass functions are accumulated in
+  !#   logarithmically-spaced bins of parent halo mass, logarithmically-spaced bins of mass ratio
+  !#   (the ratio of progenitor to parent halo mass), and at pairs of parent/progenitor
+  !#   redshifts. The following parameters control the operator:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily parentMassCount}] The number of bins in parent halo mass to use;
+  !#   \item[{\normalfont \ttfamily parentMassMinimum}] The minimum parent halo mass to consider;
+  !#   \item[{\normalfont \ttfamily parentMassMaximum}] The maximum parent halo mass to consider;
+  !#   \item[{\normalfont \ttfamily massRatioCount}] The number of bins in mass ratio to use;
+  !#   \item[{\normalfont \ttfamily massRatioMinimum}] The minimum mass ratio to consider;
+  !#   \item[{\normalfont \ttfamily massRatioMaximum}] The maximum mass ratio to consider;
+  !#   \item[{\normalfont \ttfamily parentRedshifts}] A list of redshifts at which to identify parent halos;
+  !#   \item[{\normalfont \ttfamily progenitorRedshifts}] A corresponding list of redshifts at which to identify progenitor halos;
+  !#   \item[{\normalfont \ttfamily primaryProgenitorDepth}] The number of $i^{\rm th}$ most-massive progenitor mass functions to compute (starting from the 1$^{\rm st}$ most-massive);
+  !#   \item[{\normalfont \ttfamily subhaloHierarchyDepth}] The maximum depth in the subhalo hierarchy for which to compute the unevolved subhalo mass function;
+  !#   \item[{\normalfont \ttfamily formationRateTimeFraction}] The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics;
+  !#   \item[{\normalfont \ttfamily outputGroupName}] The name of the \gls{hdf5} group to which mass functions will be written.
+  !#   \end{description}  
+  !#   If the operator finds the named \gls{hdf5} group already in existance, it will accumulate its
+  !#   mass functions to those already written to the group, weighting by the inverse of the variance
+  !#   in each bin. The structure of the \gls{hdf5} group is as follows:
+  !#   \begin{verbatim}
+  !#   {
+  !#     DATASET "conditionalMassFunction" {
+  !#     COMMENT "Conditional mass functions []"
+  !#        DATATYPE  H5T_IEEE_F64LE
+  !#        DATASPACE  SIMPLE { ( Nratio, Nparent, Nz ) }
+  !#     }
+  !#     DATASET "conditionalMassFunctionError" {
+  !#     COMMENT "Conditional mass function errors []"
+  !#        DATATYPE  H5T_IEEE_F64LE
+  !#        DATASPACE  SIMPLE { ( Nratio, Nparent, Nz ) }
+  !#     }
+  !#     DATASET "formationRateFunction" {
+  !#     COMMENT "Formation rate functions []"
+  !#        DATATYPE  H5T_IEEE_F64LE
+  !#        DATASPACE  SIMPLE { ( 2, Nratio, Nparent, Nz ) }
+  !#     }
+  !#     DATASET "formationRateFunctionError" {
+  !#     COMMENT "Formation rate function errors []"
+  !#        DATATYPE  H5T_IEEE_F64LE
+  !#        DATASPACE  SIMPLE { ( 2, Nratio, Nparent, Nz ) }
+  !#     }
+  !#     DATASET "massParent" {
+  !#     COMMENT "Mass of parent node [Msolar]"
+  !#        DATATYPE  H5T_IEEE_F64LE
+  !#        DATASPACE  SIMPLE { ( Nparent ) }
+  !#        ATTRIBUTE "unitsInSI" {
+  !#           DATATYPE  H5T_IEEE_F64LE
+  !#           DATASPACE  SCALAR
+  !#           DATA {
+  !#           (0): 1.98892e+30
+  !#           }
+  !#         }
+  !#     }
+  !#     DATASET "massRatio" {
+  !#     COMMENT "Mass of ratio node [Msolar]"
+  !#        DATATYPE  H5T_IEEE_F64LE
+  !#        DATASPACE  SIMPLE { ( Nratio ) }
+  !#        ATTRIBUTE "unitsInSI" {
+  !#           DATATYPE  H5T_IEEE_F64LE
+  !#           DATASPACE  SCALAR
+  !#           DATA {
+  !#           (0): 1.98892e+30
+  !#           }
+  !#        }
+  !#     }
+  !#     DATASET "primaryProgenitorMassFunction" {
+  !#     COMMENT "Primary progenitor mass functions []"
+  !#        DATATYPE  H5T_IEEE_F64LE
+  !#        DATASPACE  SIMPLE { ( Ndepth, Nratio, Nparent, Nz ) }
+  !#     }
+  !#     DATASET "primaryProgenitorMassFunctionError" {
+  !#     COMMENT "Primary progenitor mass function errors []"
+  !#        DATATYPE  H5T_IEEE_F64LE
+  !#        DATASPACE  SIMPLE { ( Ndepth, Nratio, Nparent, Nz ) }
+  !#     }
+  !#     DATASET "redshiftParent" {
+  !#     COMMENT "Redshift of parent node []"
+  !#        DATATYPE  H5T_IEEE_F64LE
+  !#        DATASPACE  SIMPLE { ( Nz ) }
+  !#     }
+  !#     DATASET "redshiftProgenitor" {
+  !#     COMMENT "Redshift of progenitor node []"
+  !#        DATATYPE  H5T_IEEE_F64LE
+  !#        DATASPACE  SIMPLE { ( Nz ) }
+  !#     }
+  !#     DATASET "subhaloMassFunction" {
+  !#     COMMENT "Unevolved subhalo mass functions []"
+  !#        DATATYPE  H5T_IEEE_F64LE
+  !#        DATASPACE  SIMPLE { ( Nhierarchy, Nratio, Nparent ) }
+  !#     }
+  !#     DATASET "subhaloMassFunctionError" {
+  !#     COMMENT "Unevolved subhalo mass function errors []"
+  !#        DATATYPE  H5T_IEEE_F64LE
+  !#        DATASPACE  SIMPLE { ( Nhierarchy, Nratio, Nparent ) }
+  !#     }
+  !#   }
+  !#   \end{verbatim}
+  !#   Where {\normalfont \ttfamily Nratio} is the number of bins in mass ratio, {\normalfont \ttfamily
+  !#   Nparent} is the number of bins in mass ratio, {\normalfont \ttfamily Nz} is the number of
+  !#   parent/progenitor redshift pairs, {\normalfont \ttfamily Ndepth} is the maximum depth in the
+  !#   ranking of most-massive progenitor mass functions, {\normalfont \ttfamily Nhierarchy} is the
+  !#   maximum depth in the subhalo hierarchy for subhalo mass functions. The first dimension of the
+  !#   {\normalfont \ttfamily formationRateFunction} dataset stores two different versions of the
+  !#   formation rate function. The first uses the mass of the forming halo at the time of formation,
+  !#   the second uses the mass of the node immediately prior to it becoming a subhalo.
+  !#  
+  !#   Mass functions are output as ${\rm d}N/{\rm d}\log_{10}m$ where $N$ is the number of halos per
+  !#   parent halo, and $m$ is the mass ratio.  
+  !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorConditionalMF
      !% A merger tree operator class which accumulates conditional mass functions for trees.
