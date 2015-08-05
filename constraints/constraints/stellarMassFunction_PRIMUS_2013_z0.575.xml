@@ -2,7 +2,10 @@
 <constraint>
   <name>PRIMUS z~0.575 stellar mass functions</name>
   <label>primusStellarMassFunctionZ0.575</label>
-  <outputRedshift>0.575</outputRedshift>
+  <outputRedshift>0.50</outputRedshift>
+  <outputRedshift>0.55</outputRedshift>
+  <outputRedshift>0.60</outputRedshift>
+  <outputRedshift>0.65</outputRedshift>
   <haloMassResolution>5.0e9</haloMassResolution>
   <haloMassMinimum>2.0e10</haloMassMinimum>
   <haloMassMaximum>2.0e14</haloMassMaximum>
