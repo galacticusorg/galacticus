@@ -779,7 +779,7 @@ contains
              nodeChild => nodeChild%sibling
           end do
           ! Move to the next node.
-          call node%walkTree(node)
+          node => node%walkTree()
        end do
        ! Store the computed primary progenitor mass functions.
        do i=1,self%timeCount

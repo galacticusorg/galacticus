@@ -87,7 +87,7 @@ contains
     character       (len=35                       )                                    ::      message
     type            (varying_string               )                                    ::      lockType                                  , vMessage
     logical                                                                            ::      anyTreeExistsAtOutputTime
-
+    
     ! Check if this routine is initialized.
     if (.not.mergerTreeEvolveToInitialized) then
        !$omp critical (Merger_Tree_Evolve_To_Initialize)
@@ -235,7 +235,7 @@ contains
                    nodesTotalCount=nodesTotalCount+1
                    
                    ! Find the next node that we will process.
-                   call thisNode%walkTreeWithSatellites(nextNode)
+                   nextNode => thisNode%walkTreeWithSatellites()
                    
                    ! Evolve this node if it has a parent, exists before the output time, has no children
                    ! (i.e. they've already all been processed), and either exists before the final time

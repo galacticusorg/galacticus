@@ -396,7 +396,7 @@ contains
                    end do
                 end if
              end if
-             call thisNode%walkTreeWithSatellites(thisNode)
+             thisNode => thisNode%walkTreeWithSatellites()
           end do
           thisTree => thisTree%nextTree
        end do

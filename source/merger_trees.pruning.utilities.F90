@@ -45,7 +45,7 @@ contains
              mergeeNode => mergeeNode%siblingMergee
           end do
        end if
-       call workNode%walkBranchWithSatellites(node,workNode)
+       workNode => workNode%walkBranchWithSatellites(node)
     end do
     return
   end subroutine Merger_Tree_Prune_Clean_Branch

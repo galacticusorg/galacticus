@@ -162,7 +162,7 @@ contains
                 uniqueIdMatched          =currentNode          %uniqueId()
                 mostMassiveProgenitorMass=currentBasicComponent%mass    ()
              end if
-             call currentNode%walkTree(currentNode)
+             currentNode => currentNode%walkTree()
           end do
        end if
        integerProperty=integerProperty+1
