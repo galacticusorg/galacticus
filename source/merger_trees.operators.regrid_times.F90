@@ -255,19 +255,19 @@ contains
     currentTree => tree
     do while (associated(currentTree))
        ! Dump the unprocessed tree if required.
-       if (self%dumpTrees) call Merger_Tree_Dump(                              &
-            &                                    currentTree%index,            &
-            &                                    currentTree%baseNode        , &
-            &                                    backgroundColor    ='white' , &
-            &                                    nodeColor          ='black' , &
-            &                                    highlightColor     ='black' , &
-            &                                    edgeColor          ='black' , &
-            &                                    nodeStyle          ='solid' , &
-            &                                    highlightStyle     ='filled', &
-            &                                    edgeStyle          ='solid' , &
-            &                                    labelNodes         =.false. , &
-            &                                    scaleNodesByLogMass=.true.  , &
-            &                                    edgeLengthsToTimes =.true.    &
+       if (self%dumpTrees) call Merger_Tree_Dump(                               &
+            &                                    currentTree%index            , &
+            &                                    currentTree%baseNode         , &
+            &                                    backgroundColor     ='white' , &
+            &                                    nodeColor           ='black' , &
+            &                                    highlightColor      ='black' , &
+            &                                    edgeColor           ='black' , &
+            &                                    nodeStyle           ='solid' , &
+            &                                    highlightStyle      ='filled', &
+            &                                    edgeStyle           ='solid' , &
+            &                                    labelNodes          =.false. , &
+            &                                    scaleNodesByLogMass =.true.  , &
+            &                                    edgeLengthsToTimes  =.true.    &
             &                                   )
        ! Ensure interpolation accelerator gets reset.
        interpolationReset=.true.
@@ -276,7 +276,7 @@ contains
        node => currentTree%baseNode
        do while (associated(node))
           nodeIndex=max(nodeIndex,node%index())
-          call node%walkTree(node)
+          node => node%walkTree()
        end do
        firstNewNode=nodeIndex+1
        ! Walk the tree, locating branches which intersect grid times.
@@ -293,8 +293,8 @@ contains
              massNow   =basic  %mass()
              massParent=basicParent%mass()
              if (node%isPrimaryProgenitor()) then
-                ! Remove the mass in any non-primary progenitors - we don't want to include their mass in the estimated mass
-                ! growth rate of this node.
+                ! Remove the mass in any non-primary progenitors - we don't want to include
+                ! their mass in the estimated mass growth rate of this node.
                 nodeChild => node%parent%firstChild%sibling
                 do while (associated(nodeChild))
                    basicChild => nodeChild%basic()
@@ -302,15 +302,18 @@ contains
                    nodeChild           => nodeChild%sibling
                 end do
              else
-                ! Halo is not the primary progenitor of its parent. Assume that its mass does not grow further.
+                ! Halo is not the primary progenitor of its parent. Assume that its mass does
+                ! not grow further.
                 massParent=massNow
              end if
              ! Locate these times in the list of grid times.
              iNow   =Interpolate_Locate(self%timeGrid,interpolationAccelerator,timeNow   ,reset=interpolationReset)
              iParent=Interpolate_Locate(self%timeGrid,interpolationAccelerator,timeParent,reset=interpolationReset)
-             ! For nodes existing precisely at a grid time, ignore this grid point. (These are, typically, nodes which have been created at these points.)
+             ! For nodes existing precisely at a grid time, ignore this grid point. (These are,
+             ! typically, nodes which have been created at these points.)
              if (timeParent == self%timeGrid(iParent)) iParent=iParent-1
-             ! If the branch from node to parent spans one or more grid times, insert new nodes at those points.
+             ! If the branch from node to parent spans one or more grid times, insert new nodes
+             ! at those points.
              if (iParent > iNow) then
                 ! Create new nodes.
                 allocate(newNodes(iParent-iNow),stat=allocErr)
@@ -337,10 +340,12 @@ contains
                 newNodes(iParent-iNow)%node%sibling => node%sibling
                 ! Link the parent to the final node.
                 if (node%isPrimaryProgenitor()) then
-                   ! Node is the main progenitor of its parent, so simply replace it with the final node in our list.
+                   ! Node is the main progenitor of its parent, so simply replace it with the
+                   ! final node in our list.
                    node%parent%firstChild  => newNodes(iParent-iNow)%node
                 else
-                   ! Node is not the main progenitor of its parent, so find the child node that has it as a sibling.
+                   ! Node is not the main progenitor of its parent, so find the child node that
+                   ! has it as a sibling.
                    nodeChild => node%parent%firstChild
                    do while (.not.associated(nodeChild%sibling,node))
                       nodeChild => nodeChild%sibling
@@ -358,7 +363,7 @@ contains
              end if
           end if
           ! Step to the next node.
-          call node%walkTree(node)
+          node => node%walkTree()
        end do       
        ! Dump the intermediate tree if required.
        if (self%dumpTrees) then
@@ -389,7 +394,7 @@ contains
        do while (associated(node))
           basic => node%basic()
           ! Record the next node to walk to.
-          call node%walkTree(nodeNext)
+          nodeNext => node%walkTree()
           ! Get the time for this node.
           timeNow=basic%time()
           ! Find the closest time in the new time grid.
@@ -414,7 +419,8 @@ contains
                    ! Assign the current node's parent a child that is the child of the current node.
                    node%parent%firstChild => node%firstChild
                 else
-                   ! Handle primary nodes with no children - simply make the parents main progenitor the sibling of the current node.
+                   ! Handle primary nodes with no children - simply make the parents main
+                   ! progenitor the sibling of the current node.
                    node%parent%firstChild => node%sibling
                 end if
              else
@@ -432,7 +438,8 @@ contains
                          nodeChild            => nodeChild%sibling
                       end if
                    end do
-                   ! Find which sibling points the current node and link in the children of the current node.
+                   ! Find which sibling points the current node and link in the children of the
+                   ! current node.
                    nodeSibling => node%parent%firstChild
                    do while (.not.associated(nodeSibling%sibling,node))
                       nodeSibling => nodeSibling%sibling

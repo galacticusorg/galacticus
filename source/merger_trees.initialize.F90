@@ -49,7 +49,7 @@ contains
              include 'merger_trees.initialize.tasks.inc'
              !# </include>
           end if
-          call node%walkTreeWithSatellites(node)
+          node => node%walkTreeWithSatellites()
        end do
        thisTree%initializedUntil=endTime
     end if

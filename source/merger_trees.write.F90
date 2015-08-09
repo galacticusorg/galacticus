@@ -182,7 +182,7 @@ contains
           thisNode => currentTree%baseNode
           do while (associated(thisNode))
              nodeCount=nodeCount+1
-             call thisNode%walkTree(thisNode)
+             thisNode => thisNode%walkTree()
           end do
           call mergerTrees%nodeCountSet(nodeCount)
 
@@ -216,7 +216,7 @@ contains
                    end if
                    snapshotTime(snapshotCount)=thisBasicComponent%time()
                 end if
-                call thisNode%walkTree(thisNode)
+                thisNode => thisNode%walkTree()
              end do
              call Sort_Do(snapshotTime(1:snapshotCount))
           end if
@@ -240,7 +240,7 @@ contains
              if (defaultPositionComponent%velocityIsGettable()) nodeVelocity(nodeCount,:)=thisPositionComponent%velocity()
              if (needsSnapshots) nodeSnapshot(nodeCount)=Interpolate_Locate(snapshotTime(1:snapshotCount),snapshotInterpolatorAccelerator&
                      &,thisBasicComponent%time(),reset=snapshotInterpolatorReset,closest=.true.)
-             call thisNode%walkTree(thisNode)
+             thisNode => thisNode%walkTree()
           end do
           call Interpolate_Done(interpolationAccelerator=snapshotInterpolatorAccelerator,reset=snapshotInterpolatorReset)
           call mergerTrees%setProperty(propertyTypeTreeWeight     ,treeWeight     )

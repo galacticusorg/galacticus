@@ -117,7 +117,7 @@ contains
           thisNode => currentTree%baseNode
           do while (associated(thisNode))
              nodeCount=nodeCount+1
-             call thisNode%walkTree(thisNode)
+             thisNode => thisNode%walkTree()
           end do
           ! Allocate storage space.
           call Alloc_Array(nodeIndex   ,[nodeCount])
@@ -136,7 +136,7 @@ contains
           do while (associated(thisNode))
              nodeCount=nodeCount+1
              nodeIndex(nodeCount)=thisNode%index()
-             call thisNode%walkTree(thisNode)
+             thisNode => thisNode%walkTree()
           end do
           !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeIndex,'nodeIndex','Index of the node.')
@@ -148,7 +148,7 @@ contains
           do while (associated(thisNode))
              nodeCount=nodeCount+1
              nodeIndex(nodeCount)=thisNode%firstChild%index()
-             call thisNode%walkTree(thisNode)
+             thisNode => thisNode%walkTree()
           end do
           !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeIndex,'childIndex','Index of the child node.')
@@ -160,7 +160,7 @@ contains
           do while (associated(thisNode))
              nodeCount=nodeCount+1
              nodeIndex(nodeCount)=thisNode%parent%index()
-             call thisNode%walkTree(thisNode)
+             thisNode => thisNode%walkTree()
           end do
           !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeIndex,'parentIndex','Index of the parent node.')
@@ -172,7 +172,7 @@ contains
           do while (associated(thisNode))
              nodeCount=nodeCount+1
              nodeIndex(nodeCount)=thisNode%sibling%index()
-             call thisNode%walkTree(thisNode)
+             thisNode => thisNode%walkTree()
           end do
           !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeIndex,'siblingIndex','Index of the sibling node.')
@@ -185,7 +185,7 @@ contains
              thisBasicComponent => thisNode%basic()
              nodeCount=nodeCount+1
              nodeProperty(nodeCount)=thisBasicComponent%mass()
-             call thisNode%walkTree(thisNode)
+             thisNode => thisNode%walkTree()
           end do
           !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeProperty,'nodeMass','Mass of node.',datasetReturned=nodeDataset)
@@ -200,7 +200,7 @@ contains
              thisBasicComponent => thisNode%basic()
              nodeCount=nodeCount+1
              nodeProperty(nodeCount)=thisBasicComponent%time()
-             call thisNode%walkTree(thisNode)
+             thisNode => thisNode%walkTree()
           end do
           !$omp critical(HDF5_Access)
           call treeGroup%writeDataset(nodeProperty,'nodeTime','Time at node.',datasetReturned=nodeDataset)
@@ -217,7 +217,7 @@ contains
              do while (associated(thisNode))
                 nodeCount=nodeCount+1
                 nodeProperty(nodeCount)=darkMatterHaloScale_%virialRadius(thisNode)
-                call thisNode%walkTree(thisNode)
+                thisNode => thisNode%walkTree()
              end do
              !$omp critical(HDF5_Access)
              call treeGroup%writeDataset(nodeProperty,'nodeVirialRadius','Virial radius of the node [Mpc].',datasetReturned=nodeDataset)
@@ -231,7 +231,7 @@ contains
              do while (associated(thisNode))
                 nodeCount=nodeCount+1
                 nodeProperty(nodeCount)=darkMatterHaloScale_%virialVelocity(thisNode)
-                call thisNode%walkTree(thisNode)
+                thisNode => thisNode%walkTree()
              end do
              !$omp critical(HDF5_Access)
              call treeGroup%writeDataset(nodeProperty,'nodeVirialVelocity','Virial velocity of the node [km/s].',datasetReturned=nodeDataset)

@@ -166,7 +166,7 @@ contains
              end if
           end if
           ! Step to the next node.
-          call node%walkTree(node)
+          node => node%walkTree()
        end do
        ! Move to the next tree.
        currentTree => currentTree%nextTree

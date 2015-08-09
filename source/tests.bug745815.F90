@@ -74,7 +74,7 @@ program Tests_Bug745815
      do iNode=1,5
         if (nodes(iNode)%node%index() == thisNode%index()) nodeFound(iNode)=.true.
      end do
-     call thisNode%walkTreeWithSatellites(thisNode)
+     thisNode => thisNode%walkTreeWithSatellites()
   end do
   call Assert('All nodes walked to',all(nodeFound),.true.)
 

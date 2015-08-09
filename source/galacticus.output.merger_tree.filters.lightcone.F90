@@ -648,7 +648,7 @@ contains
              ! If node is in lightcone, do not prune this tree - simply return.
              if (doOutput) return
              ! Move to the next node.
-             call thisNode%walkTree(thisNode)
+             thisNode => thisNode%walkTree()
           end do
           ! Move to the next tree.
           currentTree => currentTree%nextTree

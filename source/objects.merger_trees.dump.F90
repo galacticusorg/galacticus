@@ -149,7 +149,7 @@ contains
           if (thisBasicComponent%mass() > nodeMassMaximum) nodeMassMaximum=thisBasicComponent%mass()
           if (thisBasicComponent%time() < timeMinimum    ) timeMinimum    =thisBasicComponent%time()
           if (thisBasicComponent%time() > timeMaximum    ) timeMaximum    =thisBasicComponent%time()
-          call thisNode%walkTreeWithSatellites(thisNode)
+          thisNode => thisNode%walkTreeWithSatellites()
        end do
        nodeMassMinimum=log(nodeMassMinimum)
        nodeMassMaximum=log(nodeMassMaximum)
@@ -230,7 +230,7 @@ contains
        end if
 
        ! Walk the tree, including satellite nodes.
-       call thisNode%walkTreeWithSatellites(thisNode)
+       thisNode => thisNode%walkTreeWithSatellites()
 
     end do
 

@@ -144,7 +144,7 @@ contains
                    ! Return to parent node.
                    thisNode => previousNode
                 end if
-                call thisNode%walkTree(thisNode)
+                thisNode => thisNode%walkTree()
              end do
           else
              ! Entire tree can be pruned. Destroy all but this base node. (Leaving just

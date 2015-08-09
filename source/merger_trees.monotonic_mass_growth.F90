@@ -97,7 +97,7 @@ contains
                    end if
                 end if
                 ! Walk to the next node in the tree.
-                call thisNode%walkTree(thisNode)
+                thisNode => thisNode%walkTree()
              end do
           end do
           ! Move to the next tree.
