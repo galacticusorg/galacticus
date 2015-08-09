@@ -137,7 +137,7 @@ contains
                    ! Return to parent node.
                    node => nodePrevious
                 end if
-                call node%walkTree(node)
+                node => node%walkTree()
              end do
           end if
        end do

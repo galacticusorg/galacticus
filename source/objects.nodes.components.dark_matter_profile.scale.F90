@@ -343,7 +343,7 @@ contains
              thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
              nodeCount=nodeCount+1
              nodeProperty(nodeCount)=thisDarkMatterProfileComponent%scale()
-             call thisNode%walkTree(thisNode)
+             thisNode => thisNode%walkTree()
           end do
           call treeGroup  %writeDataset  (nodeProperty,'darkMatterScaleRadius','Scale radius of the dark matter profile [Mpc].',datasetReturned=nodeDataset)
           call nodeDataset%writeAttribute(megaParsec,"unitsInSI")
