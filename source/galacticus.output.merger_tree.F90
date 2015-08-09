@@ -255,11 +255,11 @@ contains
                    include 'galacticus.output.merger_tree.tasks.extra.inc'
                    !# </include>
                 end if
-                call thisNode%walkTreeWithSatellites(thisNode)
+                thisNode => thisNode%walkTreeWithSatellites()
              end do
              ! Finished output.
              if (integerPropertyCount > 0 .and. integerBufferCount > 0) call Integer_Buffer_Dump(iOutput)
-             if (doublePropertyCount  > 0 .and. doubleBufferCount  > 0) call Double_Buffer_Dump (iOutput)
+             if (doublePropertyCount  > 0 .and. doubleBufferCount  > 0) call  Double_Buffer_Dump(iOutput)
              ! Compute the start and length of regions to reference.
              !$omp critical(HDF5_Access)
              referenceLength(1)=max(integerPropertiesWritten,doublePropertiesWritten)

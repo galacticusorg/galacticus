@@ -2154,31 +2154,30 @@ sub Generate_Tree_Node_Object {
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkBranch"                                                                                                      ,
-	     function    => "Tree_Node_Walk_Branch"                                                                                           ,
+	     function    => "treeNodeWalkBranch"                                                                                           ,
 	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, excluding satellites."  ,
 	     returnType  => "\\void"                                                       ,
-	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} startNode\\arginout, \\textcolor{red}{\\textless *type(treeNode)\\textgreater} nextNode\\arginout"
+	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} startNode\\arginout"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkBranchWithSatellites"                                                                                        ,
-	     function    => "Tree_Node_Walk_Branch_With_Satellites"                                                                           ,
+	     function    => "treeNodeWalkBranchWithSatellites"                                                                           ,
 	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, including satellites."  ,
 	     returnType  => "\\void"                                                       ,
-	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} startNode\\arginout, \\textcolor{red}{\\textless *type(treeNode)\\textgreater} nextNode\\arginout"
+	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} startNode\\arginout"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkTree"                                                                                                        ,
-	     function    => "Tree_Node_Walk_Tree"                                                                                             ,
+	     function    => "treeNodeWalkTree"                                                                                             ,
 	     description => "Return a pointer to the next node when performing a walk of the entire tree, excluding satellites."              ,
-	     returnType  => "\\void"                                                       ,
-	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} nextNode\\arginout"
+	     returnType  => "\\void"                                                       
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkTreeUnderConstruction"                                                                                       ,
-	     function    => "Tree_Node_Walk_Tree_Under_Construction"                                                                          ,
+	     function    => "treeNodeWalkTreeUnderConstruction"                                                                          ,
 	     description => "Return a pointer to the next node when performing a walk of a tree under construction."                          ,
 	     returnType  => "\\void"                                                       ,
 	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} nextNode\\arginout"
@@ -2186,10 +2185,9 @@ sub Generate_Tree_Node_Object {
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkTreeWithSatellites"                                                                                          ,
-	     function    => "Tree_Node_Walk_Tree_With_Satellites"                                                                             ,
+	     function    => "treeNodeWalkTreeWithSatellites"                                                                             ,
 	     description => "Return a pointer to the next node when performing a walk of the entire tree, including satellites."              ,
-	     returnType  => "\\void"                                                       ,
-	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} nextNode\\arginout"
+	     returnType  => "\\void" 
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,

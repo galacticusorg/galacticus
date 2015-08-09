@@ -48,14 +48,14 @@ subroutine Merger_Tree_Destroy_Branch(thisTree,thisNode)
   type (treeNode  )               , pointer :: destroyNode, nextNode
 
   ! Descend to the tip of the branch.
-  call thisNode%walkBranchWithSatellites(thisNode,nextNode)
+  nextNode => thisNode%walkBranchWithSatellites(thisNode)
   ! Loop over all tree nodes.
   do while (associated(nextNode))
      ! Keep of a record of the current node, so that we can destroy it.
      destroyNode => nextNode
 
      ! Walk to the next node in the tree.
-     call destroyNode%walkBranchWithSatellites(thisNode,nextNode)
+     nextNode => destroyNode%walkBranchWithSatellites(thisNode)
 
      ! If the node about to be destroyed is the primary progenitor of its parent we must move the child pointer of the parent to
      ! point to the node's sibling. This is necessary as parent-child pointers are used to establish satellite status and so
@@ -111,8 +111,7 @@ function Merger_Tree_Node_Get(thisTree,nodeIndex)
            Merger_Tree_Node_Get => thisNode
            return
         end if
-        ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
-        call thisNode%walkTreeWithSatellites(thisNode)
+        thisNode => thisNode%walkTreeWithSatellites()
      end do
      currentTree => currentTree%nextTree
   end do
@@ -189,7 +188,7 @@ double precision function Merger_Tree_Earliest_Time(self)
            thisBasic                 =>                               thisNode %basic()
            Merger_Tree_Earliest_Time =  min(Merger_Tree_Earliest_Time,thisBasic%time ())
         end if
-        call thisNode%walkTreeWithSatellites(thisNode)
+        thisNode => thisNode%walkTreeWithSatellites()
      end do
      currentTree => currentTree%nextTree
   end do
@@ -214,7 +213,7 @@ double precision function Merger_Tree_Earliest_Time_Evolving(self)
            thisBasic                          =>                                        thisNode %basic()
            Merger_Tree_Earliest_Time_Evolving =  min(Merger_Tree_Earliest_Time_Evolving,thisBasic%time ())
         end if
-        call thisNode%walkTreeWithSatellites(thisNode)
+        thisNode => thisNode%walkTreeWithSatellites()
      end do
      currentTree => currentTree%nextTree
   end do

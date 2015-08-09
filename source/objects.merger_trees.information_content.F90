@@ -55,7 +55,7 @@ contains
           ! Increment the number of permitted bifurcations based on this number of children.
           logPermittedBifurcations=logPermittedBifurcations+Logarithmic_Double_Factorial(2*childCount-3)
        end if
-       call thisNode%walkTree(thisNode)
+       thisNode => thisNode%walkTree()
     end do
 
     ! Compute logarithm of the possible bifurcations.

@@ -420,8 +420,7 @@ contains
           thisNode => null()
        else
           ! Walk to the next node.
-          ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
-          call thisNode%walkTreeUnderConstruction(thisNode)
+          thisNode => thisNode%walkTreeUnderConstruction()
        end if
     end do
     ! Walk the tree and convert w to time.
@@ -432,8 +431,7 @@ contains
        ! Compute the collapse time.
        collapseTime =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=thisBasic%time(),mass=thisBasic%mass())
        call thisBasic%timeSet(collapseTime)
-       ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
-       call thisNode%walkTree(thisNode)
+       thisNode => thisNode%walkTree()
     end do
     thisBasic => tree%baseNode%basic()
     call thisBasic%timeSet(baseNodeTime)
@@ -445,7 +443,7 @@ contains
           parentBasic => thisNode%parent%basic()
           if (parentBasic%time() <= thisBasic%time()) call Galacticus_Error_Report('cole2000Build','branch is not well-ordered in time')
        end if
-       call thisNode%walkTree(thisNode)
+       thisNode => thisNode%walkTree()
     end do
     return
   end subroutine cole2000Build

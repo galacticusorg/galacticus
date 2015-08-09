@@ -250,7 +250,7 @@ contains
              thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
              nodeCount=nodeCount+1
              nodeProperty(nodeCount)=thisDarkMatterProfileComponent%shape()
-             call thisNode%walkTree(thisNode)
+             thisNode => thisNode%walkTree()
           end do
           call treeGroup%writeDataset(nodeProperty,'darkMatterShapeParameter','Shape parameter of the dark matter profile.')
        end select

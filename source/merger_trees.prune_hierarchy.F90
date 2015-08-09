@@ -120,7 +120,7 @@ contains
                    ! Return to parent node.
                    thisNode => previousNode
                 end if
-                call thisNode%walkTree(thisNode)
+                thisNode => thisNode%walkTree()
              end do
           end do
           ! Move to the next tree.

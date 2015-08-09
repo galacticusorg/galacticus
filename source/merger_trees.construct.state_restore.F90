@@ -267,7 +267,7 @@ contains
           thisNode => currentNodeInTree
           currentNodeInTree => null()
        end if
-       call thisNode%walkTreeWithSatellites(thisNode)
+       thisNode => thisNode%walkTreeWithSatellites()
     end if
     return
   end subroutine Merger_Tree_State_Walk_Tree
