@@ -34,13 +34,14 @@ sub Process_Enumerations {
 	if ( $node->{'type'} eq "enumeration" && ! $node->{'directive'}->{'processed'} ) {
 	    # Assert that our parent is a module or file (for now).
 	    die("Process_Enumerations: parent node must be a module or file")
-		unless ( $node->{'parent'}->{'type'} eq "module" || $node->{'parent'}->{'type'} eq "file" );
+		unless ( $node->{'parent'}->{'type'} eq "module" || $node->{'parent'}->{'type'} eq "file" );	    
 	    # Generate source code for the enumeration.
 	    $node->{'directive'}->{'processed'} =  1;
+	    my $visbility = exists($node->{'directive'}->{'visbility'}) ? $node->{'directive'}->{'visbility'} : "public";
 	    my $enumerationSource     ;
 	    my $i                 = -1;
 	    $enumerationSource .= "  ! Auto-generated enumeration\n";
-	    $enumerationSource .= "  integer, parameter, public :: ".$node->{'directive'}->{'name'}.ucfirst($_->{'label'})."=".++$i."\n"
+	    $enumerationSource .= "  integer, parameter, ".$visbility." :: ".$node->{'directive'}->{'name'}.ucfirst($_->{'label'})."=".++$i."\n"
 		foreach ( &ExtraUtils::as_array($node->{'directive'}->{'entry'}) );
 	    $enumerationSource .= "  ! End auto-generated enumeration\n\n";
 	    # Create a new node.

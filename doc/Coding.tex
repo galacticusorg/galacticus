@@ -84,6 +84,7 @@ module Cosmology_Parameters
   !# <enumeration>
   !#  <name>hubbleUnits</name>
   !#  <description>Specifies the units for the Hubble constant.</description>
+  !#  <visibility>public</visbility> 
   !#  <encodeFunction>yes</encodeFunction>
   !#  <entry label="standard" />
   !#  <entry label="time"     />
@@ -113,7 +114,7 @@ contains
 end module Cosmology_Parameters
 \end{lstlisting}
 
-Enumerations must be defined in the declaration section of a {\normalfont \ttfamily module}. The encoding function will only be generated if the {\normalfont \ttfamily encode} element is present and has content {\normalfont \ttfamily yes}. Note that the {\normalfont \ttfamily description} element is used to generate an entry for the enumeration in the document, and so should be written in \LaTeX\ syntax.
+Enumerations must be defined in the declaration section of a {\normalfont \ttfamily module}. The encoding function will only be generated if the {\normalfont \ttfamily encode} element is present and has content {\normalfont \ttfamily yes}. The enumeration variables are given {\normlafont \ttfamily public} visibility by default---this can be overridden using the {\normalfont \ttfamily visibility} element. Note that the {\normalfont \ttfamily description} element is used to generate an entry for the enumeration in the document, and so should be written in \LaTeX\ syntax.
 
 \subsection{Input Parameters}
 
