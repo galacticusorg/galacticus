@@ -84,7 +84,8 @@ module Cosmology_Parameters
   !# <enumeration>
   !#  <name>hubbleUnits</name>
   !#  <description>Specifies the units for the Hubble constant.</description>
-  !#  <visibility>public</visbility> 
+  !#  <visibility>public</visbility>
+  !#  <validator>yes</validator>
   !#  <encodeFunction>yes</encodeFunction>
   !#  <entry label="standard" />
   !#  <entry label="time"     />
@@ -93,28 +94,31 @@ module Cosmology_Parameters
 
 contains
 
-  subroutine Test_Enumeration()
+subroutine Test_Enumeration()
+    use ISO_Varying_String
     implicit none
     class(cosmologyParametersClass), pointer :: cosmologyParameters_
     cosmologyParameters_ => cosmologyParameters()
+    write (0,*) "Enumeration contains ",hubbleUnitsCount," entries from ",hubbleUnitsMin," to ",hubbleUnitsMax
     write (0,*) "Hubble constant in little-h units is: ",cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
-    if (enumerationComponentTypeEncode('hubbleUnitsStandard') == hubbleUnitsStandard) then
+    if (enumerationHubbleUnitsEncode('hubbleUnitsStandard') == hubbleUnitsStandard) then
       write (0,*) "Enumeration decoding succeeded"
     else
       write (0,*) "Enumeration decoding failed"
     end if
-    if (enumerationComponentTypeEncode('standard',includesPrefix=.false.) == hubbleUnitsStandard) then
+    if (enumerationHubbleUnitsEncode('standard',includesPrefix=.false.) == hubbleUnitsStandard) then
       write (0,*) "Enumeration decoding succeeded"
     else
       write (0,*) "Enumeration decoding failed"
-    end if
+      end if
+      write (0,*) "Name from time value is '",char(enumerationHubbleUnitsDecode(hubbleUnitsTime,includePrefix=.true.)),"'"
     return
   end subroutine Test_Enumeration
 
 end module Cosmology_Parameters
 \end{lstlisting}
 
-Enumerations must be defined in the declaration section of a {\normalfont \ttfamily module}. The encoding function will only be generated if the {\normalfont \ttfamily encode} element is present and has content {\normalfont \ttfamily yes}. The enumeration variables are given {\normlafont \ttfamily public} visibility by default---this can be overridden using the {\normalfont \ttfamily visibility} element. Note that the {\normalfont \ttfamily description} element is used to generate an entry for the enumeration in the document, and so should be written in \LaTeX\ syntax.
+Enumerations must be defined in the declaration section of a {\normalfont \ttfamily module}. The encoding and decoding functions will only be generated if the {\normalfont \ttfamily encode} element is present and has content {\normalfont \ttfamily yes}. The enumeration variables are given {\normlafont \ttfamily public} visibility by default---this can be overridden using the {\normalfont \ttfamily visibility} element. If the {\normalfont \ttfamily validator} element is present and set to {\normalfont \ttfamily yes} then a function is created which will return true if the given value is a valid one for the enumeration. Additionally, if the {\normalfont \ttfamily validator} element is present and set to {\normalfont \ttfamily yes} variables are created giving a count of the number of entries in the enumeration, along with the minimum and maximum values in the enumeration. Note that the {\normalfont \ttfamily description} element is used to generate an entry for the enumeration in the document, and so should be written in \LaTeX\ syntax.
 
 \subsection{Input Parameters}
 
