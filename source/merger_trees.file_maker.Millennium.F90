@@ -77,34 +77,34 @@ contains
     call mergerTrees%setUnits(unitsVelocity,unitsInSI=kilo            ,hubbleExponent= 0,scaleFactorExponent=0,name="km/s"          )
 
     ! Set cosmology metadata.
-    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaMatter'               ,0.250d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaBaryon'               ,0.045d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaLambda'               ,0.750d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'HubbleParam'               ,0.730d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'sigma_8'                   ,0.900d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'powerSpectrumIndex'        ,1.000d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'transferFunction'          ,'CMBFast'                          )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'OmegaMatter'               ,0.250d0                            )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'OmegaBaryon'               ,0.045d0                            )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'OmegaLambda'               ,0.750d0                            )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'HubbleParam'               ,0.730d0                            )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'sigma_8'                   ,0.900d0                            )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'powerSpectrumIndex'        ,1.000d0                            )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'transferFunction'          ,'CMBFast'                          )
 
     ! Set simulation metadata.
-    call mergerTrees%addMetadata(metaDataSimulation ,'code'                      ,'GADGET-2'                         )
-    call mergerTrees%addMetadata(metaDataSimulation ,'boxSize'                   , 5.000d2                           )
-    call mergerTrees%addMetadata(metaDataSimulation ,'startRedshift'             , 1.270d2                           )
-    call mergerTrees%addMetadata(metaDataSimulation ,'initialConditions'         ,'glass'                            )
-    call mergerTrees%addMetadata(metaDataSimulation ,'softeningKernel'           ,'spline'                           )
-    call mergerTrees%addMetadata(metaDataSimulation ,'softeningPlummerEquivalent', 5.0d-3                            )
-    call mergerTrees%addMetadata(metaDataSimulation ,'TypeOfTimestepCriterion'   , 0                                 )
-    call mergerTrees%addMetadata(metaDataSimulation ,'ErrTolIntAccuracy'         , 0.02d0                            )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'code'                      ,'GADGET-2'                         )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'boxSize'                   , 5.000d2                           )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'startRedshift'             , 1.270d2                           )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'initialConditions'         ,'glass'                            )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'softeningKernel'           ,'spline'                           )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'softeningPlummerEquivalent', 5.0d-3                            )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'TypeOfTimestepCriterion'   , 0                                 )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'ErrTolIntAccuracy'         , 0.02d0                            )
 
     ! Set group finder metadata.
-    call mergerTrees%addMetadata(metaDataGroupFinder,'code'                      ,'SUBFIND'                          )
-    call mergerTrees%addMetadata(metaDataGroupFinder,'minimumParticleNumber'     ,20                                 )
-    call mergerTrees%addMetadata(metaDataGroupFinder,'linkingLength'             , 0.2d0                             )
+    call mergerTrees%addMetadata(metaDataTypeGroupFinder,'code'                      ,'SUBFIND'                          )
+    call mergerTrees%addMetadata(metaDataTypeGroupFinder,'minimumParticleNumber'     ,20                                 )
+    call mergerTrees%addMetadata(metaDataTypeGroupFinder,'linkingLength'             , 0.2d0                             )
 
     ! Set provenance metadata.
-    call mergerTrees%addMetadata(metaDataProvenance ,'fileBuiltBy'               ,'Galacticus'                       )
-    call mergerTrees%addMetadata(metaDataProvenance ,'fileTimestamp'             ,char(Formatted_Date_and_Time())    )
-    call mergerTrees%addMetadata(metaDataProvenance ,'source'                    ,'http://www.g-vo.org/MyMillennium3')
-    call mergerTrees%addMetadata(metaDataProvenance ,'sqlQuery'                  ,sqlQuery(7:len_trim(sqlQuery))     )
+    call mergerTrees%addMetadata(metaDataTypeProvenance ,'fileBuiltBy'               ,'Galacticus'                       )
+    call mergerTrees%addMetadata(metaDataTypeProvenance ,'fileTimestamp'             ,char(Formatted_Date_and_Time())    )
+    call mergerTrees%addMetadata(metaDataTypeProvenance ,'source'                    ,'http://www.g-vo.org/MyMillennium3')
+    call mergerTrees%addMetadata(metaDataTypeProvenance ,'sqlQuery'                  ,sqlQuery(7:len_trim(sqlQuery))     )
 
     ! Determine if particles are being traced.
     traceParticles=(trim(particlesFile) /= "none")

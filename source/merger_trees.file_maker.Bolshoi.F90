@@ -78,32 +78,32 @@ contains
     call mergerTrees%setUnits(unitsVelocity,unitsInSI=kilo      ,hubbleExponent= 0,scaleFactorExponent=0, name = "km/s"          )
 
     ! Set cosmology metadata.
-    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaMatter'               , 0.2700d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaBaryon'               , 0.0469d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaLambda'               , 0.7300d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'HubbleParam'               , 0.7000d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'sigma_8'                   , 0.8200d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'powerSpectrumIndex'        , 0.9500d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'transferFunction'          ,'CAMB'                               )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'OmegaMatter'               , 0.2700d0                            )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'OmegaBaryon'               , 0.0469d0                            )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'OmegaLambda'               , 0.7300d0                            )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'HubbleParam'               , 0.7000d0                            )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'sigma_8'                   , 0.8200d0                            )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'powerSpectrumIndex'        , 0.9500d0                            )
+    call mergerTrees%addMetadata(metaDataTypeCosmology  ,'transferFunction'          ,'CAMB'                               )
 
     ! Set simulation metadata.
-    call mergerTrees%addMetadata(metaDataSimulation ,'code'                      ,'ART (Kravtsov et al. 1997, Kravtsov 1999)')
-    call mergerTrees%addMetadata(metaDataSimulation ,'boxSize'                   , 2.5000d2                           )
-    call mergerTrees%addMetadata(metaDataSimulation ,'startRedshift'             , 8.0000d1                           )
-    call mergerTrees%addMetadata(metaDataSimulation ,'initialConditions'         ,"Zel\'dovich approximation"         )
-    call mergerTrees%addMetadata(metaDataSimulation ,'softeningKernel'           ,'n/a'                               )
-    call mergerTrees%addMetadata(metaDataSimulation ,'softeningPlummerEquivalent', 1.0d-3                             )
-    call mergerTrees%addMetadata(metaDataSimulation ,'TypeOfTimestepCriterion'   ,'a'                                 )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'code'                      ,'ART (Kravtsov et al. 1997, Kravtsov 1999)')
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'boxSize'                   , 2.5000d2                           )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'startRedshift'             , 8.0000d1                           )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'initialConditions'         ,"Zel\'dovich approximation"         )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'softeningKernel'           ,'n/a'                               )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'softeningPlummerEquivalent', 1.0d-3                             )
+    call mergerTrees%addMetadata(metaDataTypeSimulation ,'TypeOfTimestepCriterion'   ,'a'                                 )
 
     ! Set group finder metadata.
-    call mergerTrees%addMetadata(metaDataGroupFinder,'code'                      ,'ROCKSTAR'                          )
-    call mergerTrees%addMetadata(metaDataGroupFinder,'minimumParticleNumber'     , 20                                 )
-    call mergerTrees%addMetadata(metaDataGroupFinder,'linkingLength'             , 0.2800d0                           )
+    call mergerTrees%addMetadata(metaDataTypeGroupFinder,'code'                      ,'ROCKSTAR'                          )
+    call mergerTrees%addMetadata(metaDataTypeGroupFinder,'minimumParticleNumber'     , 20                                 )
+    call mergerTrees%addMetadata(metaDataTypeGroupFinder,'linkingLength'             , 0.2800d0                           )
 
     ! Set provenance metadata.
-    call mergerTrees%addMetadata(metaDataProvenance ,'fileBuiltBy'               ,'Galacticus'                        )
-    call mergerTrees%addMetadata(metaDataProvenance ,'fileTimestamp'             ,char(Formatted_Date_and_Time())     )
-    call mergerTrees%addMetadata(metaDataProvenance ,'source'                    ,'http://hipacc.ucsc.edu/Bolshoi/MergerTrees.html')
+    call mergerTrees%addMetadata(metaDataTypeProvenance ,'fileBuiltBy'               ,'Galacticus'                        )
+    call mergerTrees%addMetadata(metaDataTypeProvenance ,'fileTimestamp'             ,char(Formatted_Date_and_Time())     )
+    call mergerTrees%addMetadata(metaDataTypeProvenance ,'source'                    ,'http://hipacc.ucsc.edu/Bolshoi/MergerTrees.html')
 
     ! Set columns to read. 
     call mergerTrees%setPropertyColumn(propertyTypeTreeIndex         , 1)

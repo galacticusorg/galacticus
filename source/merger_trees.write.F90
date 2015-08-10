@@ -164,16 +164,16 @@ contains
           ! Get the default cosmology.
           thisCosmologyParameters => cosmologyParameters()
           ! Set cosmology metadata.
-          call mergerTrees%addMetadata(metaDataCosmology ,'OmegaMatter'       ,thisCosmologyParameters%OmegaMatter    (                  ))
-          call mergerTrees%addMetadata(metaDataCosmology ,'OmegaBaryon'       ,thisCosmologyParameters%OmegaBaryon    (                  ))
-          call mergerTrees%addMetadata(metaDataCosmology ,'OmegaLambda'       ,thisCosmologyParameters%OmegaDarkEnergy(                  ))
-          call mergerTrees%addMetadata(metaDataCosmology ,'HubbleParam'       ,thisCosmologyParameters%HubbleConstant (hubbleUnitsLittleH))
-          call mergerTrees%addMetadata(metaDataCosmology ,'sigma_8'           ,sigma_8                                (                  ))
-          call mergerTrees%addMetadata(metaDataCosmology ,'powerSpectrumIndex',"not specified"                                            )
+          call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaMatter'       ,thisCosmologyParameters%OmegaMatter    (                  ))
+          call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaBaryon'       ,thisCosmologyParameters%OmegaBaryon    (                  ))
+          call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaLambda'       ,thisCosmologyParameters%OmegaDarkEnergy(                  ))
+          call mergerTrees%addMetadata(metaDataTypeCosmology ,'HubbleParam'       ,thisCosmologyParameters%HubbleConstant (hubbleUnitsLittleH))
+          call mergerTrees%addMetadata(metaDataTypeCosmology ,'sigma_8'           ,sigma_8                                (                  ))
+          call mergerTrees%addMetadata(metaDataTypeCosmology ,'powerSpectrumIndex',"not specified"                                            )
 
           ! Set provenance metadata.
-          call mergerTrees%addMetadata(metaDataProvenance,'fileBuiltBy'       ,'Galacticus'                   )
-          call mergerTrees%addMetadata(metaDataProvenance,'fileTimestamp'     ,char(Formatted_Date_and_Time()))
+          call mergerTrees%addMetadata(metaDataTypeProvenance,'fileBuiltBy'       ,'Galacticus'                   )
+          call mergerTrees%addMetadata(metaDataTypeProvenance,'fileTimestamp'     ,char(Formatted_Date_and_Time()))
 
           ! Count nodes in the tree.
           nodeCount=0
