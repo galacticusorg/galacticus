@@ -132,6 +132,7 @@ sub Process_Enumerations {
 		$function .= "  end function ".$encodeFunctionName."\n\n";
 		$function .= "  function ".$decodeFunctionName."(enumerationValue,includePrefix)\n";
 		$function .= "    !% Decode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration to a string.\n";
+		$function .= "    use ISO_Varying_String\n";
 		$function .= "    use Galacticus_Error\n";
 		$function .= "    implicit none\n\n";
 		$function .= "    type   (varying_string)                          :: ".$decodeFunctionName."\n";
