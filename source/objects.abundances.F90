@@ -234,7 +234,7 @@ module Abundances_Structure
   end type abundances
 
   ! Count of the number of elements being tracked.
-  integer                                                                    :: elementsCount           =0
+  integer                                                                    :: elementsCount        =0
   integer                                                                    :: propertyCount
 
   ! Names (two-letter labels) of elements to track.
@@ -243,44 +243,37 @@ module Abundances_Structure
   ! Indices of elements as used in the Atomic_Data module.
   integer                                        , allocatable, dimension(:) :: elementsIndices
 
-  ! Type of metallicity/abundance measure required.
-  !@ <enumeration>
-  !@  <name>metallicityScale</name>
-  !@  <description>Used to specify the metallicity scale when working with {\normalfont \ttfamily abundances} objects.</description>
-  !@  <entry label="linearByMass"             />
-  !@  <entry label="linearByNumber"           />
-  !@  <entry label="logarithmicByMassSolar"   />
-  !@  <entry label="logarithmicByNumberSolar" />
-  !@  <entry label="linearByMassSolar"        />
-  !@  <entry label="linearByNumberSolar"      />
-  !@ </enumeration>
-  integer                     , parameter, public                            :: linearByMass            =0
-  integer                     , parameter, public                            :: linearByNumber          =1
-  integer                     , parameter, public                            :: logarithmicByMassSolar  =2
-  integer                     , parameter, public                            :: logarithmicByNumberSolar=3
-  integer                     , parameter, public                            :: linearByMassSolar       =4
-  integer                     , parameter, public                            :: linearByNumberSolar     =5
-
   ! Value used to indicate a zero metallicity on logarithmic scales.
-  double precision            , parameter, public                            :: logMetallicityZero      =-99.0d0
+  double precision            , parameter, public                            :: logMetallicityZero   =-99.0d0
 
   ! Flag indicating if this module has been initialized.
-  logical                                                                    :: abundancesInitialized   =.false.
-
-  ! Labels used in determining how to update elemental abundances when metallicity is adjusted.
-  !@ <enumeration>
-  !@  <name>adjustElements</name>
-  !@  <description>Used to specify how elements should be adjusted when the metallicity of an {\normalfont \ttfamily abundances} object is changed.</description>
-  !@  <entry label="adjustElementsNone"   />
-  !@  <entry label="adjustElementsReset"  />
-  !@  <entry label="adjustElementsUpdate" />
-  !@ </enumeration>
-  integer                     , parameter, public                            :: adjustElementsNone      =0
-  integer                     , parameter, public                            :: adjustElementsReset     =1
-  integer                     , parameter, public                            :: adjustElementsUpdate    =2
+  logical                                                                    :: abundancesInitialized=.false.
 
   ! Unit and zero abundances objects.
-  type            (abundances)           , public                            :: unitAbundances                  , zeroAbundances
+  type            (abundances)           , public                            :: unitAbundances               , zeroAbundances
+
+  ! Enumeration specifying type of metallicity/abundance measure required.
+  !# <enumeration>
+  !#  <name>metallicityType</name>
+  !#  <description>Used to specify the metallicity scale when working with {\normalfont \ttfamily abundances} objects.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="linearByMass"             />
+  !#  <entry label="linearByNumber"           />
+  !#  <entry label="logarithmicByMassSolar"   />
+  !#  <entry label="logarithmicByNumberSolar" />
+  !#  <entry label="linearByMassSolar"        />
+  !#  <entry label="linearByNumberSolar"      />
+  !# </enumeration>
+
+  ! Enumeration used in determining how to update elemental abundances when metallicity is adjusted.
+  !# <enumeration>
+  !#  <name>adjustElements</name>
+  !#  <description>Used to specify how elements should be adjusted when the metallicity of an {\normalfont \ttfamily abundances} object is changed.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="none"   />
+  !#  <entry label="reset"  />
+  !#  <entry label="update" />
+  !# </enumeration>
 
 contains
 
@@ -709,20 +702,20 @@ contains
        if (present(metallicityType)) then
           metallicityTypeActual=metallicityType
        else
-          metallicityTypeActual=linearByMass
+          metallicityTypeActual=metallicityTypeLinearByMass
        end if
 
        select case (metallicityTypeActual)
-       case (linearByMass)
+       case (metallicityTypeLinearByMass)
           ! Do nothing, this is what we compute by default.
-       case (logarithmicByMassSolar)
+       case (metallicityTypeLogarithmicByMassSolar)
           ! Convert to a logarithmic metallicity by mass relative to Solar.
           if (Abundances_Get_Metallicity > 0.0d0) then
              Abundances_Get_Metallicity=log10(Abundances_Get_Metallicity/metallicitySolar)
           else
              Abundances_Get_Metallicity=logMetallicityZero
           end if
-       case (linearByMassSolar)
+       case (metallicityTypeLinearByMassSolar)
           ! Convert to metallicity by mass relative to Solar.
           Abundances_Get_Metallicity=Abundances_Get_Metallicity/metallicitySolar
        case default
@@ -766,11 +759,11 @@ contains
     self%metallicityValue=metallicity
     if (present(metallicityType)) then
        select case (metallicityType)
-       case (linearByMass)
+       case (metallicityTypeLinearByMass          )
           ! Do nothing, this is how we store metallicity.
-       case (linearByMassSolar)
+       case (metallicityTypeLinearByMassSolar     )
           self%metallicityValue=         self%metallicityValue *metallicitySolar
-       case (logarithmicByMassSolar)
+       case (metallicityTypeLogarithmicByMassSolar)
           self%metallicityValue=(10.0d0**self%metallicityValue)*metallicitySolar
        case default
           call Galacticus_Error_Report('Abundances_Set_Metallicity','type not supported')

@@ -158,7 +158,7 @@ contains
        call fuelAbundances%massToMassFraction(gasMass)
        hydrogenMassFraction=fuelAbundances%hydrogenMassFraction()
        ! Get the metallicity in Solar units, and related quantities.
-       metallicityRelativeToSolar=fuelAbundances%metallicity(linearByMassSolar)
+       metallicityRelativeToSolar=fuelAbundances%metallicity(metallicityTypeLinearByMassSolar)
        if (metallicityRelativeToSolar > 0.0d0) then
           chi                               =0.77d0*(1.0d0+3.1d0*metallicityRelativeToSolar**0.365d0)
           sigmaMolecularComplexNormalization=hydrogenMassFraction*molecularComplexClumpingFactorKMT09/mega**2
