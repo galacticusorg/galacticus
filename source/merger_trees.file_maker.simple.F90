@@ -79,10 +79,10 @@ contains
     thisCosmologyParameters => cosmologyParameters()
 
     ! Set cosmology metadata.
-    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaMatter'               ,thisCosmologyParameters%OmegaMatter    (           ))
-    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaBaryon'               ,thisCosmologyParameters%OmegaBaryon    (           ))
-    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaLambda'               ,thisCosmologyParameters%OmegaDarkEnergy(           ))
-    call    mergerTrees%addMetadata(metaDataCosmology  ,'HubbleParam'               ,thisCosmologyParameters%HubbleConstant (hubbleUnitsLittleH))
+    call    mergerTrees%addMetadata(metaDataTypeCosmology  ,'OmegaMatter'               ,thisCosmologyParameters%OmegaMatter    (           ))
+    call    mergerTrees%addMetadata(metaDataTypeCosmology  ,'OmegaBaryon'               ,thisCosmologyParameters%OmegaBaryon    (           ))
+    call    mergerTrees%addMetadata(metaDataTypeCosmology  ,'OmegaLambda'               ,thisCosmologyParameters%OmegaDarkEnergy(           ))
+    call    mergerTrees%addMetadata(metaDataTypeCosmology  ,'HubbleParam'               ,thisCosmologyParameters%HubbleConstant (hubbleUnitsLittleH))
     if (Input_Parameter_Is_Present("sigma_8"           )) then
        !@ <inputParameter>
        !@   <name>sigma_8</name>
@@ -94,8 +94,8 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>cosmology</group>
        !@ </inputParameter>
-       call Get_Input_Parameter    (                    'sigma_8'                   ,sigma_8                            )
-       call mergerTrees%addMetadata(metaDataCosmology  ,'sigma_8'                   ,sigma_8                            )
+       call Get_Input_Parameter    (                        'sigma_8'                   ,sigma_8                            )
+       call mergerTrees%addMetadata(metaDataTypeCosmology  ,'sigma_8'                   ,sigma_8                            )
     end if
     if (Input_Parameter_Is_Present("powerSpectrumIndex")) then
        !@ <inputParameter>
@@ -108,8 +108,8 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>cosmology</group>
        !@ </inputParameter>
-       call Get_Input_Parameter    (                    'powerSpectrumIndex'        ,powerSpectrumIndex                 )
-       call mergerTrees%addMetadata(metaDataCosmology  ,'powerSpectrumIndex'        ,powerSpectrumIndex                 )
+       call Get_Input_Parameter    (                        'powerSpectrumIndex'        ,powerSpectrumIndex                 )
+       call mergerTrees%addMetadata(metaDataTypeCosmology  ,'powerSpectrumIndex'        ,powerSpectrumIndex                 )
     end if
     if (Input_Parameter_Is_Present("transferFunction"  )) then
        !@ <inputParameter>
@@ -122,13 +122,13 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>cosmology</group>
        !@ </inputParameter>
-       call Get_Input_Parameter    (                    'transferFunction'          ,     transferFunction              )
-       call mergerTrees%addMetadata(metaDataCosmology  ,'transferFunction'          ,char(transferFunction)             )
+       call Get_Input_Parameter    (                        'transferFunction'          ,     transferFunction              )
+       call mergerTrees%addMetadata(metaDataTypeCosmology  ,'transferFunction'          ,char(transferFunction)             )
     end if
 
     ! Set provenance metadata.
-    call    mergerTrees%addMetadata(metaDataProvenance ,'fileBuiltBy'               ,'Galacticus'                       )
-    call    mergerTrees%addMetadata(metaDataProvenance ,'fileTimestamp'             ,char(Formatted_Date_and_Time())    )
+    call    mergerTrees%addMetadata(metaDataTypeProvenance ,'fileBuiltBy'               ,'Galacticus'                       )
+    call    mergerTrees%addMetadata(metaDataTypeProvenance ,'fileTimestamp'             ,char(Formatted_Date_and_Time())    )
     if (Input_Parameter_Is_Present("source"            )) then
        !@ <inputParameter>
        !@   <name>source</name>
@@ -140,8 +140,8 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>cosmology</group>
        !@ </inputParameter>
-       call Get_Input_Parameter    (                    'source'                    ,     source                        )
-       call mergerTrees%addMetadata(metaDataProvenance ,'source'                    ,char(source)                       )
+       call Get_Input_Parameter    (                        'source'                    ,     source                        )
+       call mergerTrees%addMetadata(metaDataTypeProvenance ,'source'                    ,char(source)                       )
     end if
 
     ! Set simulation metadata.
@@ -156,8 +156,8 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>cosmology</group>
        !@ </inputParameter>
-       call Get_Input_Parameter    (                    'boxSize'                   ,boxSize                            )
-       call mergerTrees%addMetadata(metaDataSimulation ,'boxSize'                   ,boxSize                            )
+       call Get_Input_Parameter    (                        'boxSize'                   ,boxSize                            )
+       call mergerTrees%addMetadata(metaDataTypeSimulation ,'boxSize'                   ,boxSize                            )
     end if
 
     ! Set halo properties.
