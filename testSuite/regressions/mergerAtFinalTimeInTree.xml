@@ -128,7 +128,7 @@
   <randomSeed value="828"/>
   <conditionalMassFunctionBehrooziBCut value="87.509076382"/>
   <mergerTreeOperatorMethod value="pruneByMass">
-  <massThreshold value="23578789000"/>
+    <massThreshold value="23578789000"/>
   </mergerTreeOperatorMethod>
   <haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum value="7.5857758e11"/>
   <starFormationFeedbackDisksMethod value="haloScaling"/>
