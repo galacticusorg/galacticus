@@ -31,7 +31,7 @@ module Node_Component_Position_Preset
   !#  <properties>
   !#   <property>
   !#     <name>position</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <getFunction bindsTo="component">PositionPresetPosition</getFunction>
@@ -40,7 +40,7 @@ module Node_Component_Position_Preset
   !#   </property>
   !#   <property>
   !#     <name>velocity</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <getFunction bindsTo="component">PositionPresetVelocity</getFunction>

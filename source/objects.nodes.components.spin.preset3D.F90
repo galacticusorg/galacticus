@@ -36,7 +36,7 @@ module Node_Component_Spin_Preset3D
   !#  <properties>
   !#   <property>
   !#     <name>spinVector</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output labels="[X,Y,Z]" unitsInSI="0.0d0" comment="Spin vector of the node."/>
@@ -44,7 +44,7 @@ module Node_Component_Spin_Preset3D
   !#   </property>
   !#   <property>
   !#     <name>spinVectorGrowthRate</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>

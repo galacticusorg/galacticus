@@ -50,6 +50,16 @@ my $propertyNameLengthMax               = 0;
 my $linkedDataNameLengthMax             = 0;
 my $implementationPropertyNameLengthMax = 0;
 
+# Intrinsic types.
+my %intrinsicTypes =
+    (
+     "integer"     => "integer"                ,
+     "longInteger" => "integer(kind=kind_int8)",
+     "logical"     => "logical"                ,
+     "double"      => "double precision"       ,
+     "void"        => "void"
+    );
+
 sub Components_Validate {
     # Validate a component document.
     my $document  = shift;
@@ -252,71 +262,19 @@ sub Get_Type {
     return $type;
 }
 
-sub Get_Suffix {
-    # Returns the suffix for a property.
-    my $propertyType = shift;
-    # Determine the suffix to use.
-    my $suffix = "";
-    if    ( $propertyType eq "scalar"              ) {
-	$suffix = ""                     ;
-    }
-    elsif ( $propertyType eq "array"               ) {
-	$suffix = "_Array"               ;
-    }
-    elsif ( $propertyType eq "history"             ) {
-	$suffix = "_History"             ;
-    }
-    elsif ( $propertyType eq "longIntegerHistory"  ) {
-	$suffix = "_History_Long_Integer";
-    }
-    elsif ( $propertyType eq "abundances"          ) {
-	$suffix = "_Abundances"          ;
-    }
-    elsif ( $propertyType eq "chemicalAbundances"  ) {
-	$suffix = "_Chemical_Abundances" ;
-    }
-    elsif ( $propertyType eq "keplerOrbit"         ) {
-	$suffix = "_Kepler_Orbit"        ;
-    }
-    elsif ( $propertyType eq "tensorRank2Dimension3Symmetric" ) {
-	$suffix = "_Tensor_Rank2_Dimension3_Symmetric";
-    }
-    elsif ( $propertyType eq "stellarLuminosities" ) {
-	$suffix = "_Stellar_Luminosities";
-    }
-    else {
-	die("Build_Include_File.pl: unrecognized property type");
-    }
-    return $suffix;
-}
-
 sub dataObjectDocName {
     # Construct and return the name of the object to use in documentation for data of given type and rank.
     my $dataObject = shift;
-    # Variable to store the object name.
+    # Construct the documentation.
     my $name = "\\textcolor{red}{\\textless ";
-    # Extract the type.
-    if ( exists($dataObject->{'type'}) ) {
-	if    ( $dataObject->{'type'} eq "integer"             ) {$name .= "integer"                  }
-	elsif ( $dataObject->{'type'} eq "longInteger"         ) {$name .= "integer(kind=kind\\_int8)"}
-	elsif ( $dataObject->{'type'} eq "logical"             ) {$name .= "logical"                  }
-	elsif ( $dataObject->{'type'} eq "real"                ) {$name .= "double"                   }
-	elsif ( $dataObject->{'type'} eq "chemicals"           ) {$name .= "type(chemicalAbundances)" }
-	elsif ( $dataObject->{'type'} eq "abundances"          ) {$name .= "type(abundances)"         }
-	elsif ( $dataObject->{'type'} eq "history"             ) {$name .= "type(history)"            }
-	elsif ( $dataObject->{'type'} eq "longIntegerHistory"  ) {$name .= "type(longIntegerHistory)" }
-	elsif ( $dataObject->{'type'} eq "keplerOrbit"         ) {$name .= "type(keplerOrbit)"        }
-	elsif ( $dataObject->{'type'} eq "stellarLuminosities" ) {$name .= "type(stellarLuminosities)"}
-	elsif ( $dataObject->{'type'} eq "tensorRank2Dimension3Symmetric" ) {$name .= "type(tensorRank2Dimension3Symmetric)" }
-	elsif ( $dataObject->{'type'} eq "void"                ) {$name .= "void"                     }
-	else {die "Build_Include_File.pl::dataObjectDocName: 'type' specifier '".$dataObject->{'type'}."' is unknown"}
+    if ( exists($intrinsicTypes{$dataObject->{'type'}}) ) {
+	$name .= latex_encode($intrinsicTypes{$dataObject->{'type'}});
     } else {
-	die "Build_Include_File.pl::dataObjectDocName: no 'type' specifier present";
+	$name .= "type(".latex_encode($dataObject->{'type'}).")";
     }
     if ( exists($dataObject->{'rank'}) ) {
-	if    ( $dataObject->{'rank'} == 0 ) {$name .= ""   }
-	elsif ( $dataObject->{'rank'} == 1 ) {$name .= "(:)"}
-	else {die "Build_Include_File.pl::dataObjectName: 'rank' specifier is unknown"}
+	$name .= "[".join(",",(":") x $dataObject->{'rank'})."]"
+	    if ( $dataObject->{'rank'} > 0 );
     } elsif ( $dataObject->{'type'} ne "void" ) {
 	die "Build_Include_File.pl::dataObjectDocName: no 'rank' specifier present";
     }
@@ -327,33 +285,21 @@ sub dataObjectDocName {
 sub dataObjectName {
     # Construct and return the name of the object to use for data of given type and rank.
     my $dataObject = shift;
-    # Variable to store the object name.
+    # Create the object name.
     my $name = "nodeData";
-    # Extract the type.
-    if ( exists($dataObject->{'type'}) ) {
-	if    ( $dataObject->{'type'} eq "integer"             ) {$name .= "Integer"            }
-	elsif ( $dataObject->{'type'} eq "longInteger"         ) {$name .= "LongInteger"        }
-	elsif ( $dataObject->{'type'} eq "logical"             ) {$name .= "Logical"            }
-	elsif ( $dataObject->{'type'} eq "real"                ) {$name .= "Double"             }
-	elsif ( $dataObject->{'type'} eq "chemicals"           ) {$name .= "ChemicalAbundances" }
-	elsif ( $dataObject->{'type'} eq "abundances"          ) {$name .= "Abundances"         }
-	elsif ( $dataObject->{'type'} eq "history"             ) {$name .= "History"            }
-	elsif ( $dataObject->{'type'} eq "longIntegerHistory"  ) {$name .= "LongIntegerHistory" }
-	elsif ( $dataObject->{'type'} eq "keplerOrbit"         ) {$name .= "KeplerOrbit"        }
-	elsif ( $dataObject->{'type'} eq "stellarLuminosities" ) {$name .= "StellarLuminosities"}
-	elsif ( $dataObject->{'type'} eq "tensorRank2Dimension3Symmetric" ) {$name .= "TensorRank2Dimension3Symmetric" }
-	else {die "Build_Include_File.pl::dataObjectName: 'type' specifier is unknown"}
+    if ( exists($intrinsicTypes{$dataObject->{'type'}}) ) {
+	$name .= join("",map {ucfirst($_)} split(" ",$intrinsicTypes{$dataObject->{'type'}}));
     } else {
-	die "Build_Include_File.pl::dataObjectName: no 'type' specifier present";
+	$name .= ucfirst($dataObject->{'type'});
     }
     if ( exists($dataObject->{'rank'}) ) {
-	if    ( $dataObject->{'rank'} == 0 ) {$name .= "Scalar"}
-	elsif ( $dataObject->{'rank'} == 1 ) {$name .= "1d"}
-	else {die "Build_Include_File.pl::dataObjectName: 'rank' specifier is unknown"}
-    } else {
-	die "Build_Include_File.pl::dataObjectName: no 'rank' specifier present";
+	$name .= "Scalar";
+    } elsif ( $dataObject->{'type'} ne "void" ) {	
+	$name .= $dataObject->{'rank'}."D";
     }
-    $name .= "Evolvable" if ( $dataObject->{'isEvolvable'} eq "true" );
+    $name .= "Evolvable"
+	if ( $dataObject->{'isEvolvable'} eq "true" );
+    $name =~ s/\s//g;
     return $name;
 }
 
@@ -361,74 +307,35 @@ sub dataObjectPrimitiveName {
     # Construct and return the name and attributes of the primitive data class to use for data of given type and rank.
     my $dataObject = shift;
     my %options;
-    if ( $#_ >= 1 ) {(%options) = @_};
-
+    (%options) = @_
+	if ( $#_ >= 1 );
     # Variables to store the object name and attributes.
-    my $name;
-    my $type;
     my @attributes;
-    # Extract the type.
-    if ( exists($dataObject->{'type'}) ) {
-	if    ( $dataObject->{'type'} eq "integer"             ) {
-	    $name = "integer"                  ;
-	    $type = "Integer"                  ;
-	}
-	elsif ( $dataObject->{'type'} eq "longInteger"         ) {
-	    $name = "integer(kind=kind_int8)"  ;
-	    $type = "LongInteger"              ;
-	}
-	elsif ( $dataObject->{'type'} eq "logical"             ) {
-	    $name = "logical"                  ;
-	    $type = "Logical"                  ;
-	}
-	elsif ( $dataObject->{'type'} eq "real"                ) {
-	    $name = "double precision"         ;
-	    $type = "Double"                   ;
-	}
-	elsif ( $dataObject->{'type'} eq "abundances"          ) {
-	    $name = "type(abundances)"         ;
-	    $type = "Abundances"               ;
-	}
-	elsif ( $dataObject->{'type'} eq "history"             ) {
-	    $name = "type(history)"            ;
-	    $type = "History"                  ;
-	}
-	elsif ( $dataObject->{'type'} eq "longIntegerHistory"  ) {
-	    $name = "type(longIntegerHistory)" ;
-	    $type = "LongIntegerHistory"       ;
-	}
-	elsif ( $dataObject->{'type'} eq "chemicals"           ) {
-	    $name = "type(chemicalAbundances)" ;
-	    $type = "ChemicalAbundances"       ;
-	}
-	elsif ( $dataObject->{'type'} eq "keplerOrbit"         ) {
-	    $name = "type(keplerOrbit)"        ;
-	    $type = "KeplerOrbit"              ;
-	}
-	elsif ( $dataObject->{'type'} eq "tensorRank2Dimension3Symmetric" ) {
-	    $name = "type(tensorRank2Dimension3Symmetric)";
-	    $type = "TensorRank2Dimension3Symmetric"      ;
-	}
-	elsif  ( $dataObject->{'type'} eq "stellarLuminosities" ) {
-	    $name = "type(stellarLuminosities)";
-	    $type = "StellarLuminosities"      ;
-	}
-	else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'type' specifier [".$dataObject->{'type'}."] is unknown"}
+    # Validate input.
+    die "Build_Include_File.pl::dataObjectPrimitiveName: no 'type' specifier present"
+	unless ( exists($dataObject->{'type'}) );
+    die "Build_Include_File.pl::dataObjectPrimitveName: no 'rank' specifier present"
+	unless ( exists($dataObject->{'rank'}) );
+    # Construct name, type, and attributes.
+    my $name;
+    if ( exists($intrinsicTypes{$dataObject->{'type'}}) ) {
+	$name = $intrinsicTypes{$dataObject->{'type'}};
     } else {
-	die "Build_Include_File.pl::dataObjectPrimitiveName: no 'type' specifier present";
+	$name = "type(".$dataObject->{'type'}.")";
     }
+    my $type = join("",map {ucfirst($_)} split(" ",$dataObject->{'type'}));
     if ( exists($dataObject->{'rank'}) ) {
-	if    ( $dataObject->{'rank'} == 0 ) {} # Nothing to do.
-	elsif ( $dataObject->{'rank'} == 1 ) {
-	    push(@attributes,"dimension(:)");
-	    push(@attributes,"allocatable" ) unless ( exists($options{'matchOnly'}) && $options{'matchOnly'} == 1 );
+	if ( $dataObject->{'rank'} > 0 ) {
+	    push(@attributes,"dimension(".join(",",(":") x $dataObject->{'rank'}).")");
+	    push(@attributes,"allocatable" )
+		unless ( exists($options{'matchOnly'}) && $options{'matchOnly'} == 1 );
 	}
-	else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'rank' specifier is unknown"}
     } else {
 	die "Build_Include_File.pl::dataObjectPrimitveName: no 'rank' specifier present";
     }
     my $attributeList = "";
-    $attributeList = ", ".join(", ",@attributes) if ( scalar(@attributes) > 0 );
+    $attributeList = ", ".join(", ",@attributes)
+	if ( scalar(@attributes) > 0 );
     return ($name,$type,$attributeList);
 }
 
@@ -436,80 +343,32 @@ sub Data_Object_Definition {
     # Construct and return the name and attributes of the primitive data class to use for data of given type and rank.
     my $dataObject = shift;
     my %options;
-    if ( $#_ >= 1 ) {(%options) = @_};
-
+    (%options) = @_
+	if ( $#_ >= 1 );
     # Variables to store the object name and attributes.
     my $intrinsicName;
     my $type         ;
     my $label        ;
     my @attributes   ;
-    # Extract the type.
-    if ( exists($dataObject->{'type'}) ) {
-	if    ( $dataObject->{'type'} eq "integer"             ) {
-	    $intrinsicName = "integer"                ;
-	    $label         = "Integer"                ;
-	}
-	elsif ( $dataObject->{'type'} eq "longInteger"         ) {
-	    $intrinsicName = "integer(kind=kind_int8)";
-	    $label         = "LongInteger"            ;
-	}
-	elsif ( $dataObject->{'type'} eq "logical"             ) {
-	    $intrinsicName = "logical"                ;
-	    $label         = "Logical"                ;
-	}
-	elsif ( $dataObject->{'type'} eq "real"                ) {
-	    $intrinsicName = "double precision"       ;
-	    $label         = "Double"                 ;
-	}
-	elsif ( $dataObject->{'type'} eq "abundances"          ) {
-	    $intrinsicName = "type"                   ;
-	    $type          = "abundances"             ;
-	    $label         = "Abundances"             ;
-	}
-	elsif ( $dataObject->{'type'} eq "history"             ) {
-	    $intrinsicName = "type"                   ;
-	    $type          = "history"                ;
-	    $label         = "History"                ;
-	}
-	elsif ( $dataObject->{'type'} eq "longIntegerHistory"  ) {
-	    $intrinsicName = "type"                   ;
-	    $type          = "longIntegerHistory"     ;
-	    $label         = "LongIntegerHistory"     ;
-	}
-	elsif ( $dataObject->{'type'} eq "chemicals"           ) {
-	    $intrinsicName = "type"                   ;
-	    $type          = "chemicalAbundances"     ;
-	    $label         = "ChemicalAbundances"     ;
-	}
-	elsif ( $dataObject->{'type'} eq "keplerOrbit"         ) {
-	    $intrinsicName = "type"                   ;
-	    $type          = "keplerOrbit"            ;
-	    $label         = "KeplerOrbit"            ;
-	    }
-	elsif ( $dataObject->{'type'} eq "tensorRank2Dimension3Symmetric" ) {
-		$intrinsicName = "type"                          ;
-		$type          = "tensorRank2Dimension3Symmetric";
-		$label         = "TensorRank2Dimension3Symmetric";
-	}
-	elsif ( $dataObject->{'type'} eq "stellarLuminosities" ) {
-	    $intrinsicName = "type"                   ;
-	    $type          = "stellarLuminosities"    ;
-	    $label         = "StellarLuminosities"    ;
-	}
-	else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'type' specifier [".$dataObject->{'type'}."] is unknown"}
+    # Validate.
+    die "Build_Include_File.pl::dataObjectPrimitiveName: no 'type' specifier present"
+	unless ( exists($dataObject->{'type'}) );
+    # Construct properties.
+    if ( exists($intrinsicTypes{$dataObject->{'type'}}) ) {
+	$intrinsicName = $intrinsicTypes{$dataObject->{'type'}};
     } else {
-	die "Build_Include_File.pl::dataObjectPrimitiveName: no 'type' specifier present";
+	$intrinsicName =                               "type"  ;
+	$type          =                 $dataObject->{'type'} ;
     }
+    $label =ucfirst($dataObject->{'type'});
     if ( exists($dataObject->{'rank'}) ) {
-	if    ( $dataObject->{'rank'} == 0 ) {} # Nothing to do.
-	elsif ( $dataObject->{'rank'} == 1 ) {
-	    push(@attributes,"dimension(:)");
+	if ( $dataObject->{'rank'} > 0 ) {
+	    push(@attributes,"dimension(".join(",",(":") x $dataObject->{'rank'}).")");
 	    push(@attributes,"allocatable" )
 		unless ( exists($options{'matchOnly'}) && $options{'matchOnly'} == 1 );
 	}
-	else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'rank' specifier is unknown"}
     } else {
-	die "Build_Include_File.pl::dataObjectPrimitveName: no 'rank' specifier present";
+	die "Build_Include_File.pl::dataObjectDefinition: no 'rank' specifier present";
     }
     # Construct the definitions.
     my $dataDefinition;
@@ -1403,7 +1262,6 @@ sub Generate_Implementations {
 	my @dataContent;
     	foreach ( keys(%{$component->{'content'}->{'data'}}) ) {
     	    my $type = &dataObjectName($component->{'content'}->{'data'}->{$_});
-
 	    (my $typeDefinition, my $typeLabel) = &Data_Object_Definition($component->{'content'}->{'data'}->{$_});
 	    $typeDefinition->{'variables'} = [ $_ ];
 	    push(
@@ -1979,7 +1837,7 @@ sub Generate_Tree_Node_Object {
 	     name        => "type"                                                                                                            ,
 	     function    => "Tree_Node_Type"                                                                                                  ,
 	     description => "Return the type of this node."                                                                                   ,
-	     returnType  => "\\textcolor{red}{\\textless type(varying\\_string)\\textgreater}"                                                 ,
+	     returnType  => "\\textcolor{red}{\\textless type(varying\\_string)\\textgreater}"                                                ,
 	     arguments   => ""
 
 	 },
@@ -1988,7 +1846,7 @@ sub Generate_Tree_Node_Object {
 	     name        => "index"                                                                                                           ,
 	     function    => "Tree_Node_Index"                                                                                                 ,
 	     description => "Return the index of this node."                                                                                  ,
-	     returnType  => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater}"                                                    ,
+	     returnType  => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater}"                                                  ,
 	     arguments   => ""
 	 },
 	 {
@@ -2020,7 +1878,7 @@ sub Generate_Tree_Node_Object {
 	     name        => "uniqueID"                                                                                                        ,
 	     function    => "Tree_Node_Unique_ID"                                                                                             ,
 	     description => "Return the unique identifier for this node."                                                                     ,
-	     returnType  => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater}"                                                    ,
+	     returnType  => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater}"                                                  ,
 	     arguments   => ""
 	 },
 	 {
@@ -2105,9 +1963,9 @@ sub Generate_Tree_Node_Object {
 	 },
 	 {
 	     type        => "generic"                                                                                                         ,
-	     name        => "isProgenitorOf"                                                                                           ,
-	     function    => ["Tree_Node_Is_Progenitor_Of_Index","Tree_Node_Is_Progenitor_Of_Node"]                            ,
-	     description => "Return true is this node is a progenitor of the specified (by index or pointer) node, false otherwise.",
+	     name        => "isProgenitorOf"                                                                                                  ,
+	     function    => ["Tree_Node_Is_Progenitor_Of_Index","Tree_Node_Is_Progenitor_Of_Node"]                                            ,
+	     description => "Return true is this node is a progenitor of the specified (by index or pointer) node, false otherwise."          ,
 	     returnType  => "\\logicalzero"                                                                                                   ,
 	     arguments   => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater} targetNodeIndex\\argin|\\textcolor{red}{\\textless *type(treeNode)\\textgreater} targetNode\\argin"
 	 },
@@ -2154,38 +2012,38 @@ sub Generate_Tree_Node_Object {
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkBranch"                                                                                                      ,
-	     function    => "treeNodeWalkBranch"                                                                                           ,
+	     function    => "treeNodeWalkBranch"                                                                                              ,
 	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, excluding satellites."  ,
-	     returnType  => "\\void"                                                       ,
+	     returnType  => "\\void"                                                                                                          ,
 	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} startNode\\arginout"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkBranchWithSatellites"                                                                                        ,
-	     function    => "treeNodeWalkBranchWithSatellites"                                                                           ,
+	     function    => "treeNodeWalkBranchWithSatellites"                                                                                ,
 	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, including satellites."  ,
-	     returnType  => "\\void"                                                       ,
+	     returnType  => "\\void"                                                                                                          ,
 	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} startNode\\arginout"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkTree"                                                                                                        ,
-	     function    => "treeNodeWalkTree"                                                                                             ,
+	     function    => "treeNodeWalkTree"                                                                                                ,
 	     description => "Return a pointer to the next node when performing a walk of the entire tree, excluding satellites."              ,
 	     returnType  => "\\void"                                                       
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkTreeUnderConstruction"                                                                                       ,
-	     function    => "treeNodeWalkTreeUnderConstruction"                                                                          ,
+	     function    => "treeNodeWalkTreeUnderConstruction"                                                                               ,
 	     description => "Return a pointer to the next node when performing a walk of a tree under construction."                          ,
-	     returnType  => "\\void"                                                       ,
+	     returnType  => "\\void"                                                                                                          ,
 	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} nextNode\\arginout"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkTreeWithSatellites"                                                                                          ,
-	     function    => "treeNodeWalkTreeWithSatellites"                                                                             ,
+	     function    => "treeNodeWalkTreeWithSatellites"                                                                                  ,
 	     description => "Return a pointer to the next node when performing a walk of the entire tree, including satellites."              ,
 	     returnType  => "\\void" 
 	 },
@@ -2193,7 +2051,7 @@ sub Generate_Tree_Node_Object {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "createEvent"                                                                                                     ,
 	     function    => "Tree_Node_Create_Event"                                                                                          ,
-	     description => "Create a {\\normalfont \\ttfamily nodeEvent} object in this node."                                                                  ,
+	     description => "Create a {\\normalfont \\ttfamily nodeEvent} object in this node."                                               ,
 	     returnType  => "\\textcolor{red}{\\textless *type(nodeEvent)\\textgreater}"                                                      ,
 	     arguments   => ""
 	 },
@@ -2201,7 +2059,7 @@ sub Generate_Tree_Node_Object {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "removePairedEvent"                                                                                               ,
 	     function    => "Tree_Node_Remove_Paired_Event"                                                                                   ,
-	     description => "Remove a paired {\\normalfont \\ttfamily nodeEvent} from this node."                                                                ,
+	     description => "Remove a paired {\\normalfont \\ttfamily nodeEvent} from this node."                                             ,
 	     returnType  => "\\void"                                                                                                          ,
 	     arguments   => "\\textcolor{red}{\\textless type(nodeEvent)\\textgreater} event\\argin"
 	 }
@@ -3434,10 +3292,10 @@ sub Generate_Implementation_Dump_Functions {
 	# Format labels for different data types.
 	my %formatLabel = 
 	    (
-	     real        => "'(e12.6)'",
-	     integer     => "'(i8)'",
-	     longInteger => "'(i16)'",
-	     logical     => "'(l1)'"
+	     "double" => "'(e12.6)'",
+	     "integer"         => "'(i8)'"   ,
+	     "longInteger"     => "'(i16)'"  ,
+	     "logical"         => "'(l1)'"
 	    );
 	# Generate dump function.
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Dump(self)\n";
@@ -3460,7 +3318,7 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if (
-			    $linkedData->{'type'} eq "real"
+			    $linkedData->{'type'} eq "double"
 			    ||
 			    $linkedData->{'type'} eq "integer"
 			    ||
@@ -3480,7 +3338,7 @@ sub Generate_Implementation_Dump_Functions {
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			if (
-			    $linkedData->{'type'} eq "real"
+			    $linkedData->{'type'} eq "double"
 			    ||
 			    $linkedData->{'type'} eq "integer"
 			    ||
@@ -3563,7 +3421,7 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if (
-			    $linkedData->{'type'} eq "real"
+			    $linkedData->{'type'} eq "double"
 			    ||
 			    $linkedData->{'type'} eq "integer"
 			    ||
@@ -3580,7 +3438,7 @@ sub Generate_Implementation_Dump_Functions {
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			if ( 
-			    $linkedData->{'type'} eq "real"
+			    $linkedData->{'type'} eq "double"
 			    ||
 			    $linkedData->{'type'} eq "integer"
 			    ||
@@ -3602,7 +3460,7 @@ sub Generate_Implementation_Dump_Functions {
 		    }
 		} elsif ( $property->{'isVirtual'} eq "true" && $property->{'rank'} == 0 ) {
 		    if (
-			$property->{'type'} eq "real"
+			$property->{'type'} eq "double"
 			||
 			$property->{'type'} eq "integer"
 			||
@@ -3654,7 +3512,7 @@ sub Generate_Implementation_Dump_Functions {
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'rank'} == 1 && $counterAdded == 0) {
 		    if (
-			$linkedData->{'type'} eq "real"
+			$linkedData->{'type'} eq "double"
 			||
 			$linkedData->{'type'} eq "integer"
 			||
@@ -3694,7 +3552,7 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if (
-			    $linkedData->{'type'} eq "real"
+			    $linkedData->{'type'} eq "double"
 			    ||
 			    $linkedData->{'type'} eq "integer"
 			    ||
@@ -3712,7 +3570,7 @@ sub Generate_Implementation_Dump_Functions {
 			$functionCode .= "    if (allocated(self%".$linkedDataName.")) then\n";
 			$functionCode .= "       write (fileHandle) size(self%".$linkedDataName.")\n";
 			if (
-			    $linkedData->{'type'} eq "real"
+			    $linkedData->{'type'} eq "double"
 			    ||
 			    $linkedData->{'type'} eq "integer"
 			    ||
@@ -3785,7 +3643,7 @@ sub Generate_Implementation_Dump_Functions {
 		    }
 		    if ( $readCounterAdded == 0 ) {
 			if (
-			    $linkedData->{'type'} eq "real"
+			    $linkedData->{'type'} eq "double"
 			    ||
 			    $linkedData->{'type'} eq "integer"
 			    ||
@@ -3826,7 +3684,7 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			if (
-			    $linkedData->{'type'} eq "real"
+			    $linkedData->{'type'} eq "double"
 			    ||
 			    $linkedData->{'type'} eq "integer"
 			    ||
@@ -3844,7 +3702,7 @@ sub Generate_Implementation_Dump_Functions {
 			$functionCode .= "    if (isAllocated) then\n";
 			$functionCode .= "       read (fileHandle) arraySize\n";
 			if (
-			    $linkedData->{'type'} eq "real"
+			    $linkedData->{'type'} eq "double"
 			    ||
 			    $linkedData->{'type'} eq "integer"
 			    ||
@@ -3922,7 +3780,7 @@ sub Generate_Implementation_Initializor_Functions {
 		    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."=".$default."\n";
 		} else {
 		    # Set to null.
-		    if    ( $linkedData->{'type'} eq"real"        ) {
+		    if    ( $linkedData->{'type'} eq"double" ) {
 			if ( $linkedData->{'rank'} == 0 ) {
 			    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."=0.0d0\n";
 			} else {
@@ -4087,7 +3945,7 @@ sub Generate_Implementation_Builder_Functions {
 			$functionCode .= "    if (getLength(propertyList) == 1) then\n";
 			$functionCode .= "      property => item(propertyList,0)\n";
 			if (
-			    $linkedData->{'type'} eq "real"
+			    $linkedData->{'type'} eq "double"
 			    ||
 			    $linkedData->{'type'} eq "integer"
 			    ||
@@ -4104,7 +3962,7 @@ sub Generate_Implementation_Builder_Functions {
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			$functionCode .= "    if (getLength(propertyList) >= 1) then\n";
 			if (
-			    $linkedData->{'type'} eq "real"
+			    $linkedData->{'type'} eq "double"
 			    ||
 			    $linkedData->{'type'} eq "integer"
 			    ||
@@ -4220,7 +4078,7 @@ sub Generate_Implementation_Output_Functions {
 		}
 		# Increment the counters.
 		if (
-		    $type eq "real"
+		    $type eq "double"
 		    ||
 		    $type eq "integer"
 		    ||
@@ -4255,7 +4113,7 @@ sub Generate_Implementation_Output_Functions {
 		    $type = $property->{'type'};		
 		}
 		$outputTypes{$type} = 1
-		    unless ( $type eq "real" || $type eq "integer" || $type eq "longInteger" );
+		    unless ( $type eq "double" || $type eq "integer" || $type eq "longInteger" );
 	    }
 	}
 	my @outputTypes;
@@ -4295,14 +4153,14 @@ sub Generate_Implementation_Output_Functions {
 	    # Initialize counts.
 	    my %typeCount =
 		(
-		 double  => 0,
-		 integer => 0
+		 double => 0,
+		 integer         => 0
 		);
 	    my %typeMap =
 		(
-		 real        => "double" ,
-		 integer     => "integer",
-		 longInteger => "integer"
+		 double => "double" ,
+		 integer         => "integer",
+		 longInteger     => "integer"
 		);
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
@@ -4346,7 +4204,7 @@ sub Generate_Implementation_Output_Functions {
 		    }
 		    # Increment the counters.
 		    if (
-			$type eq "real"
+			$type eq "double"
 			||
 			$type eq "integer"
 			||
@@ -4472,9 +4330,9 @@ sub Generate_Implementation_Output_Functions {
 	    }
 	    my %typeMap =
 		(
-		 real        => "double" ,
-		 integer     => "integer",
-		 longInteger => "integer"
+		 double => "double" ,
+		 integer         => "integer",
+		 longInteger     => "integer"
 		);
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
@@ -4499,7 +4357,7 @@ sub Generate_Implementation_Output_Functions {
 		    }		   
 		    # Increment the counters.
 		    if (
-			$type eq "real"
+			$type eq "double"
 			||
 			$type eq "integer"
 			||
@@ -4664,7 +4522,7 @@ sub Generate_Implementation_Name_From_Index_Functions {
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'isEvolvable'} eq "true" ) {
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if ( $linkedData->{'type'} eq "real" ) {
+			if ( $linkedData->{'type'} eq "double" ) {
 			    $functionCode .= "    count=count-1\n";
 			}
 			else {
@@ -4780,7 +4638,7 @@ sub Generate_Implementation_Serialization_Functions {
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'isEvolvable'} eq "true" ) {
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if ( $linkedData->{'type'} eq "real" ) {
+			if ( $linkedData->{'type'} eq "double" ) {
 			    ++$scalarPropertyCount;
 			}
 			else {
@@ -4846,7 +4704,7 @@ sub Generate_Implementation_Serialization_Functions {
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'isEvolvable'} eq "true" ) {
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if ( $linkedData->{'type'} eq "real" ) {
+			if ( $linkedData->{'type'} eq "double" ) {
 			    $serializationCode .= "    write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_Values -> ".$linkedDataName."',offset,size(array)\n"
 				if ( $debugging == 1 );
 			    $serializationCode .= "    array(offset)=self%".padLinkedData($linkedDataName,[0,0])."\n";
@@ -4941,7 +4799,7 @@ sub Generate_Implementation_Serialization_Functions {
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'isEvolvable'} eq "true" ) {
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if ( $linkedData->{'type'} eq  "real" ) {
+			if ( $linkedData->{'type'} eq  "double" ) {
 			    $deserializationCode .= "    self%".padLinkedData($linkedDataName,[0,0])."=array(offset)\n";
 			    $deserializationCode .= "    offset=offset+1\n";
 			}
@@ -5161,7 +5019,7 @@ sub Generate_Implementation_Offset_Functions {
 		    my $offsetName = &offsetName($componentID,$propertyName);
 		    $functionCode .= "    ".$offsetName."=count+1\n";
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if ( $linkedData->{'type'} eq "real" ) {
+			if ( $linkedData->{'type'} eq "double" ) {
 			    $functionCode .= "    count=count+1\n";
 			}
 			else {
@@ -6153,13 +6011,13 @@ sub Generate_GSR_Functions {
 			}
 			);
 		    push(@dataContent,$currentDefinition)
-			unless ( $linkedData->{'type'} eq "real" );
+			unless ( $linkedData->{'type'} eq "double" );
 		    # Generate the rate function code.
 		    $functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Rate".ucfirst($rateSuffix)."(self,setValue,interrupt,interruptProcedure)\n";
 		    $functionCode .= "    !% Accumulate to the {\\normalfont \\ttfamily ".$propertyName."} property rate of change of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-		    if ( $linkedData->{'type'} eq "real" ) {
+		    if ( $linkedData->{'type'} eq "double" ) {
 			if ( $linkedData->{'rank'} == 0 ) {
 			    $functionCode .= "    nodeRates(".&offsetName($componentID,$propertyName).")=nodeRates(".&offsetName($componentID,$propertyName).")+setValue\n";
 			} else {
@@ -6247,7 +6105,7 @@ sub Generate_GSR_Functions {
 			    $functionCode .= "    type is (nodeComponent".ucfirst($componentClassName).")\n";
 			    $functionCode .= "      ! No specific component exists, we must interrupt and create one.\n";
 			    if ( $linkedData->{'rank'} == 0 ) {
-				if    ( $linkedData->{'type'} eq"real"        ) {
+				if    ( $linkedData->{'type'} eq"double" ) {
 				    $functionCode .= "   if (setValue == 0.0d0) return\n";
 				}
 				elsif ( $linkedData->{'type'} eq"integer"     ) {
@@ -6263,7 +6121,7 @@ sub Generate_GSR_Functions {
 				    $functionCode .= "   if (setValue%isZero()) return\n";
 				}
 			    } else {
-				if    ( $linkedData->{'type'} eq"real"        ) {
+				if    ( $linkedData->{'type'} eq"double" ) {
 				    $functionCode .= "   if (all(setValue == 0.0d0)) return\n";
 				}
 				elsif ( $linkedData->{'type'} eq"integer"     ) {
@@ -6328,7 +6186,7 @@ sub Generate_GSR_Functions {
 			    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			    $functionCode .= "    ! No specific component exists, so we must interrupt and create one unless the rate is zero.\n";
 			    if ( $linkedData->{'rank'} == 0 ) {
-				if    ( $linkedData->{'type'} eq"real"        ) {
+				if    ( $linkedData->{'type'} eq"double" ) {
 				    $functionCode .= "   if (setValue == 0.0d0) return\n";
 				}
 				elsif ( $linkedData->{'type'} eq"integer"     ) {
@@ -6344,7 +6202,7 @@ sub Generate_GSR_Functions {
 				    $functionCode .= "   if (setValue%isZero()) return\n";
 				}
 			    } else {
-				if    ( $linkedData->{'type'} eq"real"        ) {
+				if    ( $linkedData->{'type'} eq"double" ) {
 				    $functionCode .= "   if (all(setValue == 0.0d0)) return\n";
 				}
 				elsif ( $linkedData->{'type'} eq"integer"     ) {
@@ -6391,7 +6249,7 @@ sub Generate_GSR_Functions {
 		    $functionCode .= "    !% Set the {\\normalfont \\ttfamily ".$propertyName."} property scale of the {\\normalfont \\ttfamily ".$componentID."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-		    if ( $linkedData->{'type'} eq "real" ) {
+		    if ( $linkedData->{'type'} eq "double" ) {
 			if ( $linkedData->{'rank'} == 0 ) {
 			    $functionCode .= "    nodeScales(".&offsetName($componentID,$propertyName).")=setValue\n";
 			} else {
@@ -6861,7 +6719,7 @@ sub Generate_Component_Assignment_Function {
 	    if ( exists($property->{'linkedData'}) ) {
 		my $linkedDataName = $property->{'linkedData'};		
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if ( $linkedData->{'type'} eq"real"        ) {
+		if ( $linkedData->{'type'} eq"double" ) {
 		    # Deallocate if necessary.
 		    $functionCode .= "   if (allocated(to%".padLinkedData($linkedDataName,[0,0]).")) call Dealloc_Array(to%".padLinkedData($linkedDataName,[0,0]).") \n"
 			if ( $linkedData->{'rank'} > 0 );
@@ -7386,9 +7244,9 @@ sub Generate_Component_Class_Output_Functions {
 	# Create output function.
 	my %typeMap =
 	    (
-	     real        => "double" ,
-	     integer     => "integer",
-	     longInteger => "integer"
+	     double => "double" ,
+	     integer         => "integer",
+	     longInteger     => "integer"
 	    );
 	@dataContent =
 	    (
@@ -7446,8 +7304,8 @@ sub Generate_Component_Class_Output_Functions {
 			$type = $property->{'type'};		
 		    }
 		    $outputTypes{$type} = 1
-			unless ( $type eq "real" || $type eq "integer" || $type eq "longInteger" );
-		    if ( ( $type eq "real" || $type eq "integer" || $type eq "longInteger" ) && $property->{'rank'} == 1 && exists($property->{'output'}->{'condition'}) ) {
+			unless ( $type eq "double" || $type eq "integer" || $type eq "longInteger" );
+		    if ( ( $type eq "double" || $type eq "integer" || $type eq "longInteger" ) && $property->{'rank'} == 1 && exists($property->{'output'}->{'condition'}) ) {
 			$rank1OutputTypes{$type} = 1;
 		    }
 		}
@@ -7455,9 +7313,9 @@ sub Generate_Component_Class_Output_Functions {
 	}
 	my %intrinsicMap = 
 	    (
-	     integer     => "integer(kind=kind_int8)",
-	     longInteger => "integer(kind=kind_int8)",
-	     real        => "double precision"
+	     integer         => "integer(kind=kind_int8)",
+	     longInteger     => "integer(kind=kind_int8)",
+	     double => "double precision"
 	    );
 	foreach ( keys(%rank1OutputTypes) ) {
 	    push(
@@ -7578,7 +7436,7 @@ sub Generate_Component_Class_Output_Functions {
 		    }
 		    # Increment the counters.
 		    if (
-			$type eq "real"
+			$type eq "double"
 			||
 			$type eq "integer"
 			||
@@ -7705,7 +7563,7 @@ sub Generate_Component_Implementation_Destruction_Functions {
 		# For each linked datum deallocate if necessary.
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		if    ( $linkedData->{'type'} eq"real"        ) {
+		if    ( $linkedData->{'type'} eq"double" ) {
 		    # Nothing to do in this case.
 		}
 		elsif ( $linkedData->{'type'} eq"integer"     ) {
@@ -7986,7 +7844,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    $functionCode .= $defaultLines;
 		    # Insert code to return zero values by default.
 		    if ( $linkedData->{'rank'} == 0 ) {
-			if    ( $linkedData->{'type'} eq"real"        ) {
+			if    ( $linkedData->{'type'} eq"double" ) {
 			    $functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0.0d0\n";
 			}
 			elsif ( $linkedData->{'type'} eq"integer"     ) {

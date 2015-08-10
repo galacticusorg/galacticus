@@ -43,7 +43,7 @@ module Node_Component_Hot_Halo_Cold_Mode
   !#  <properties>
   !#   <property>
   !#     <name>massCold</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of cold-mode gas in the hot halo."/>
@@ -57,7 +57,7 @@ module Node_Component_Hot_Halo_Cold_Mode
   !#   </property>
   !#   <property>
   !#     <name>angularMomentumCold</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of cold-mode gas in the hot halo."/>
@@ -114,7 +114,7 @@ contains
        !@   <description>
        !@    The type of mass distribution to use for the cold mode component.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('coldModeMassDistribution',coldModeMassDistributionName,defaultValue="betaProfile")
