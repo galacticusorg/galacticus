@@ -1,0 +1,67 @@
+<constrain>
+  <!-- Configuration file for fitting of CSMF to Tomczak et al. mass functions -->
+  <!-- Andrew Benson                                                           -->
+  <!-- 11-August-2014                                                          -->
+
+  <observedDataFile>data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014.xml</observedDataFile>
+
+  <baseDirectory>constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/</baseDirectory>
+
+  <mcmcConfigFile>constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/mcmcConfig.xml</mcmcConfigFile>
+
+  <constraintFile>constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/covarianceMatrix.hdf5</constraintFile>
+
+  <parameterFile>constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/covarianceMatrix.xml</parameterFile>
+
+  <!-- Label for PBS jobs -->
+  <pbsLabel>smfZFOURGE</pbsLabel>
+
+  <!-- Number of stages (iterations) to carry out -->
+  <stageCount>4</stageCount>
+
+  <!-- Source for mass function -->
+  <sourceLabel>Tomczak et al. (2014)</sourceLabel>
+
+  <!-- Label for mass type -->
+  <massType>stellar</massType>
+  <massVariable>M_\star</massVariable>
+
+  <!-- Redshift ranges -->
+  <redshift>
+    <minimum>0.20</minimum>
+    <maximum>0.50</maximum>
+  </redshift>
+  <redshift>
+    <minimum>0.50</minimum>
+    <maximum>0.75</maximum>
+  </redshift>
+  <redshift>
+    <minimum>0.75</minimum>
+    <maximum>1.00</maximum>
+  </redshift>
+  <redshift>
+    <minimum>1.00</minimum>
+    <maximum>1.25</maximum>
+  </redshift>
+  <redshift>
+    <minimum>1.25</minimum>
+    <maximum>1.50</maximum>
+  </redshift>
+  <redshift>
+    <minimum>1.50</minimum>
+    <maximum>2.00</maximum>
+  </redshift>
+  <redshift>
+    <minimum>2.00</minimum>
+    <maximum>2.50</maximum>
+  </redshift>
+  <redshift>
+    <minimum>2.50</minimum>
+    <maximum>3.00</maximum>
+  </redshift>
+
+  <!-- Thread control -->
+  <nodeCount>1</nodeCount>
+  <threadsPerNode>12</threadsPerNode>
+
+</constrain>

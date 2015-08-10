@@ -242,7 +242,7 @@ contains
   
   double precision function prada2011Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{prada_halo_2011} algorithm.
-    use Power_Spectra
+    use Cosmological_Mass_Variance
     use Cosmology_Functions
     use Cosmology_Parameters
     use Linear_Growth
@@ -252,18 +252,22 @@ contains
     class           (nodeComponentBasic                     )               , pointer :: basic
     class           (cosmologyParametersClass               )               , pointer :: cosmologyParameters_
     class           (cosmologyFunctionsClass                )               , pointer :: cosmologyFunctions_
+    class           (linearGrowthClass                      )               , pointer :: linearGrowth_
+    class           (cosmologicalMassVarianceClass          )               , pointer :: cosmologicalMassVariance_
     double precision                                                                  :: massNode            , sigmaPrime, &
          &                                                                               timeNode            , x
     
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_   => cosmologyFunctions ()
-    ! Get the default cosmology.
-    cosmologyParameters_  => cosmologyParameters()
+    ! Get required objects.
+    cosmologyFunctions_       => cosmologyFunctions      ()
+    cosmologyParameters_      => cosmologyParameters     ()
+    linearGrowth_             => linearGrowth            ()
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
+    ! Compute concentration.
     basic                 => node %basic()
     massNode              =  basic%mass ()
     timeNode              =  basic%time ()
     x                     =  (cosmologyParameters_%OmegaDarkEnergy()/cosmologyParameters_%OmegaMatter())**(1.0d0/3.0d0)*cosmologyFunctions_%expansionFactor(timeNode)
-    sigmaPrime            =  prada2011B1(self,x)*Cosmological_Mass_Root_Variance(massNode)*Linear_Growth_Factor(timeNode)
+    sigmaPrime            =  prada2011B1(self,x)*cosmologicalMassVariance_%rootVariance(massNode)*linearGrowth_%value(timeNode)
     prada2011Concentration=  prada2011B0(self,x)*prada2011C(self,sigmaPrime)
     return
   end function prada2011Concentration
