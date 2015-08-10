@@ -28,7 +28,8 @@
      !% A halo accretion class using filtering mass of the \gls{igm} calculated from an equation from \cite{naoz_formation_2007}.
      private
    contains
-     procedure :: failedFraction => naozBarkana2007FailedFraction
+     procedure :: branchHasBaryons => naozBarkana2007BranchHasBaryons
+     procedure :: failedFraction   => naozBarkana2007FailedFraction
   end type accretionHaloNaozBarkana2007
 
   interface accretionHaloNaozBarkana2007
@@ -76,6 +77,17 @@ contains
     naozBarkana2007Constructor=accretionHaloSimple(reionizationSuppressionTime,reionizationSuppressionVelocity,negativeAccretionAllowed,accreteNewGrowthOnly)
     return
   end function naozBarkana2007Constructor
+
+  logical function naozBarkana2007BranchHasBaryons(self,node)
+    !% Returns true if this branch can accrete any baryons.
+    use Galacticus_Nodes
+    implicit none
+    class(accretionHaloNaozBarkana2007), intent(inout)          :: self
+    type (treeNode                    ), intent(inout), pointer :: node
+    
+    naozBarkana2007BranchHasBaryons=.true.
+    return
+  end function naozBarkana2007BranchHasBaryons
 
   double precision function naozBarkana2007FailedFraction(self,node)
     !% Returns the velocity scale to use for {\normalfont \ttfamily node}. Use the virial velocity.

@@ -23,6 +23,7 @@ module Merger_Tree_Read_Importers
   use               ISO_Varying_String
   use               Kind_Numbers
   use               Galacticus_Nodes
+  use               Pseudo_Random
   !# <include directive="mergerTreeImporter" type="functionModules" >
   include 'mergerTreeImporter.functionModules.inc'
   !# </include>

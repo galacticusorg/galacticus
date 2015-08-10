@@ -15,3 +15,12 @@ If peculiar velocities are stored it is important to use the same definition of 
 {\mathbf v}_{\mathrm pec} \equiv {{\mathrm d} {\mathbf r} \over {\mathrm d} t} - H {\mathbf r} = a {{\mathrm d} {\mathbf x}\over{\mathrm d} t} = {{\mathrm d}{\mathbf x}\over{\mathrm d}\eta},
 \end{equation}
 where ${\mathrm d}\eta = {\mathrm d}t/a$ is conformal time. 
+
+\section{Gravitational Potentials}\index{potential!gravitational}\index{gravitational potential}
+
+Gravitational potentials are measured in velocity units (i.e. km$^2$/s$^2$), and the arbitrary constant offset is chosen such that the total gravitational potential in any halo at the virial radius is $\Phi(r_{\rm virial})=-V_{\rm virial}^2$. This choice is made for two reasons:
+\begin{enumerate}
+\item some mass distributions used have potentials which diverge as $r\rightarrow\infty$, so the usual choice of $\Phi(r) \rightarrow 0$ as $r \rightarrow \infty$ is not applicable;
+\item this choice is consistent with the potential at the virial radius of the halo considered as a point mass as is used in Keplerian orbit calculations.
+\end{enumerate}
+Note that the choice constant offset for the potential of any mass distribution or galactic component is irrelevant---the galactic structure function which computes potential will ensure that the potential is always offset to match the definition given above.

@@ -31,25 +31,27 @@ program Tests_Excursion_Sets
   use Galacticus_Error
   use Numerical_Ranges
   use Power_Spectra
+  use Cosmological_Mass_Variance
   use Numerical_Constants_Math
   use IO_HDF5
   implicit none
-  integer                                                                          , parameter :: massCount                =200
-  double precision                                                                 , parameter :: massMaximum              =1.0d16, massMinimum             =1.0d6
-  integer                                                                          , parameter :: fileNameLengthMaximum    =1024
-  double precision                                    , allocatable, dimension(:  )            :: barrier                         , firstCrossingProbability      , &
-       &                                                                                          haloMass                        , haloMassFunction              , &
-       &                                                                                          powerSpectrum                   , variance                      , &
-       &                                                                                          wavenumber
-  double precision                                    , allocatable, dimension(:,:)            :: firstCrossingRate
-  integer                                                                                      :: iMass                       , jMass                          , &
-       &                                                                                          verbosityLevel
-  class           (cosmologyParametersClass ), pointer                                         :: thisCosmologyParameters
-  class           (cosmologyFunctionsClass  ), pointer                                         :: cosmologyFunctionsDefault
-  double precision                                                                             :: time                            , varianceProgenitor
-  character       (len=fileNameLengthMaximum)                                                  :: fileCharacter
-  type            (varying_string           )                                                  :: outputFileName                  , parameterFile
-  type            (hdf5Object               )                                                  :: outputFile
+  integer                                                                              , parameter :: massCount                =200
+  double precision                                                                     , parameter :: massMaximum              =1.0d16, massMinimum             =1.0d6
+  integer                                                                              , parameter :: fileNameLengthMaximum    =1024
+  double precision                                        , allocatable, dimension(:  )            :: barrier                         , firstCrossingProbability      , &
+       &                                                                                              haloMass                        , haloMassFunction              , &
+       &                                                                                              powerSpectrum                   , variance                      , &
+       &                                                                                              wavenumber
+  double precision                                        , allocatable, dimension(:,:)            :: firstCrossingRate
+  integer                                                                                          :: iMass                       , jMass                          , &
+       &                                                                                              verbosityLevel
+  class           (cosmologyParametersClass     ), pointer                                         :: cosmologyParameters_
+  class           (cosmologyFunctionsClass      ), pointer                                         :: cosmologyFunctions_
+  class           (cosmologicalMassVarianceClass), pointer                                         :: cosmologicalMassVariance_
+  double precision                                                                                 :: time                            , varianceProgenitor
+  character       (len=fileNameLengthMaximum    )                                                  :: fileCharacter
+  type            (varying_string               )                                                  :: outputFileName                  , parameterFile
+  type            (hdf5Object                   )                                                  :: outputFile
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Excursion_Sets.size')
@@ -72,11 +74,12 @@ program Tests_Excursion_Sets
   call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
   call Galacticus_Verbosity_Level_Set(verbosityLevel)
 
-  ! Get the default cosmology functions object.
-  cosmologyFunctionsDefault => cosmologyFunctions()
+  ! Get required objects.
+  cosmologyFunctions_       => cosmologyFunctions      ()
+  cosmologicalMassVariance_ => cosmologicalMassVariance()
 
   ! Get the current time.
-  time=cosmologyFunctionsDefault%cosmicTime(1.0d0)
+  time=cosmologyFunctions_%cosmicTime(1.0d0)
 
   ! Allocate arrays.
   call Alloc_Array(haloMass                ,[massCount          ])
@@ -95,20 +98,20 @@ program Tests_Excursion_Sets
   firstCrossingRate=-1.0d0
 
   ! Get the default cosmology.
-  thisCosmologyParameters => cosmologyParameters()
+  cosmologyParameters_ => cosmologyParameters()
 
   ! Loop over masses.
   do iMass=1,massCount
-     wavenumber              (iMass)=(3.0d0*haloMass(iMass)/4.0d0/Pi/thisCosmologyParameters%densityCritical()/thisCosmologyParameters%OmegaMatter())**(-1.0d0/3.0d0)
+     wavenumber              (iMass)=(3.0d0*haloMass(iMass)/4.0d0/Pi/cosmologyParameters_%densityCritical()/cosmologyParameters_%OmegaMatter())**(-1.0d0/3.0d0)
      powerSpectrum           (iMass)=Power_Spectrum                           (wavenumber(iMass)                     )
-     variance                (iMass)=Cosmological_Mass_Root_Variance          (                       haloMass(iMass))**2
+     variance                (iMass)=cosmologicalMassVariance_%rootVariance   (                       haloMass(iMass))**2
      barrier                 (iMass)=Excursion_Sets_Barrier                   (variance  (iMass),time                )
      firstCrossingProbability(iMass)=Excursion_Sets_First_Crossing_Probability(variance  (iMass),time                )
      haloMassFunction        (iMass)=Halo_Mass_Function_Differential          (                  time,haloMass(iMass))
 
      ! Compute halo branching rates.
      do jMass=1,iMass-1
-        varianceProgenitor=Cosmological_Mass_Root_Variance(haloMass(jMass))**2
+        varianceProgenitor=cosmologicalMassVariance_%rootVariance(haloMass(jMass))**2
         firstCrossingRate(iMass,jMass)=Excursion_Sets_First_Crossing_Rate(variance(iMass),varianceProgenitor,time)
      end do
 

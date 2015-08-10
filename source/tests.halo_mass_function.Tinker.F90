@@ -29,7 +29,7 @@ program Tests_Halo_Mass_Function_Tinker
   use Cosmology_Functions
   use Cosmology_Parameters
   use File_Utilities
-  use Critical_Overdensity
+  use Critical_Overdensities
   implicit none
   type            (varying_string          )                                     :: parameterFile
   integer                                                                        :: fUnit                    , i           , &
@@ -40,6 +40,7 @@ program Tests_Halo_Mass_Function_Tinker
   logical                                            , allocatable, dimension(:) :: success
   class           (cosmologyParametersClass), pointer                            :: thisCosmologyParameters
   class           (cosmologyFunctionsClass ), pointer                            :: cosmologyFunctionsDefault
+  class           (criticalOverdensityClass), pointer                            :: criticalOverdensity_
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.halo_mass_function.Tinker.size')
@@ -53,7 +54,8 @@ program Tests_Halo_Mass_Function_Tinker
   ! Get the default cosmology.
   thisCosmologyParameters => cosmologyParameters()
   ! Get the default cosmology functions object.
-  cosmologyFunctionsDefault => cosmologyFunctions()
+  cosmologyFunctionsDefault => cosmologyFunctions ()
+  criticalOverdensity_      => criticalOverdensity()
 
   time=cosmologyFunctionsDefault%cosmicTime(1.0d0)
 
@@ -66,8 +68,8 @@ program Tests_Halo_Mass_Function_Tinker
 
   ! Ensure that critical density and critical overdensity for collapse are consistent with values used in our input file to
   ! Tinker's code.
-  call Assert('critical density consistency'                 ,thisCosmologyParameters%densityCritical()/thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)**2     ,2.7751950000000000d11,relTol=1.0d-6)
-  call Assert('critical overdensity for collapse consistency',Critical_Overdensity_for_Collapse(time),1.6755779626281502d00,relTol=1.0d-6)
+  call Assert('critical density consistency'                 ,thisCosmologyParameters%densityCritical(    )/thisCosmologyParameters%HubbleConstant(hubbleUnitsLittleH)**2     ,2.7751950000000000d11,relTol=1.0d-6)
+  call Assert('critical overdensity for collapse consistency',criticalOverdensity_   %value          (time),1.6755779626281502d00,relTol=1.0d-6)
 
   ! Compute mass function for each reference mass.
   open(newUnit=fUnit,file='testSuite/data/haloMassFunction/tinker.txt',status='old',form='formatted')
