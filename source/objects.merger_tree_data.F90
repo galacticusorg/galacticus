@@ -29,119 +29,48 @@ module Merger_Tree_Data_Structure
   public :: mergerTreeData
 
   ! Property labels.
-  !@ <enumeration>
-  !@  <name>propertyType</name>
-  !@  <description>Used to specify properties in a {\normalfont \ttfamily mergerTreeData} structure.</description>
-  !@  <entry label="propertyTypeTreeIndex"              />
-  !@  <entry label="propertyTypeNodeIndex"              />
-  !@  <entry label="propertyTypeDescendentIndex"        />
-  !@  <entry label="propertyTypeHostIndex"              />
-  !@  <entry label="propertyTypeRedshift"               />
-  !@  <entry label="propertyTypeScaleFactor"            />
-  !@  <entry label="propertyTypeNodeMass"               />
-  !@  <entry label="propertyTypeParticleCount"          />
-  !@  <entry label="propertyTypePositionX"              />
-  !@  <entry label="propertyTypePositionY"              />
-  !@  <entry label="propertyTypePositionZ"              />
-  !@  <entry label="propertyTypeVelocityX"              />
-  !@  <entry label="propertyTypeVelocityY"              />
-  !@  <entry label="propertyTypeVelocityZ"              />
-  !@  <entry label="propertyTypeSpinX"                  />
-  !@  <entry label="propertyTypeSpinY"                  />
-  !@  <entry label="propertyTypeSpinZ"                  />
-  !@  <entry label="propertyTypeSpin"                   />
-  !@  <entry label="propertyTypeAngularMomentumX"       />
-  !@  <entry label="propertyTypeAngularMomentumY"       />
-  !@  <entry label="propertyTypeAngularMomentumZ"       />
-  !@  <entry label="propertyTypeAngularMomentum"        />
-  !@  <entry label="propertyTypeSpecificAngularMomentumX"/>
-  !@  <entry label="propertyTypeSpecificAngularMomentumY"/>
-  !@  <entry label="propertyTypeSpecificAngularMomentumZ"/>
-  !@  <entry label="propertyTypeSpecificAngularMomentum" />
-  !@  <entry label="propertyTypeHalfMassRadius"          />
-  !@  <entry label="propertyTypeScaleRadius"             />
-  !@  <entry label="propertyTypeParticleIndex"           />
-  !@  <entry label="propertyTypeMostBoundParticleIndex"  />
-  !@  <entry label="propertyTypeSnapshot"                />
-  !@  <entry label="propertyTypeTreeWeight"              />
-  !@  <entry label="propertyTypeVelocityMaximum"         />
-  !@  <entry label="propertyTypeVelocityDispersion"      />
-  !@ </enumeration>
-  integer, parameter         :: propertyTypeCount                   =35
-  integer, parameter         :: propertyTypeNull                    = 1
-  integer, parameter, public :: propertyTypeTreeIndex               = 2
-  integer, parameter, public :: propertyTypeNodeIndex               = 3
-  integer, parameter, public :: propertyTypeDescendentIndex         = 4
-  integer, parameter, public :: propertyTypeHostIndex               = 5
-  integer, parameter, public :: propertyTypeRedshift                = 6
-  integer, parameter, public :: propertyTypeScaleFactor             = 7
-  integer, parameter, public :: propertyTypeNodeMass                = 8
-  integer, parameter, public :: propertyTypeParticleCount           = 9
-  integer, parameter, public :: propertyTypePositionX               =10
-  integer, parameter, public :: propertyTypePositionY               =11
-  integer, parameter, public :: propertyTypePositionZ               =12
-  integer, parameter, public :: propertyTypeVelocityX               =13
-  integer, parameter, public :: propertyTypeVelocityY               =14
-  integer, parameter, public :: propertyTypeVelocityZ               =15
-  integer, parameter, public :: propertyTypeSpinX                   =16
-  integer, parameter, public :: propertyTypeSpinY                   =17
-  integer, parameter, public :: propertyTypeSpinZ                   =18
-  integer, parameter, public :: propertyTypeSpin                    =19
-  integer, parameter, public :: propertyTypeAngularMomentumX        =20
-  integer, parameter, public :: propertyTypeAngularMomentumY        =21
-  integer, parameter, public :: propertyTypeAngularMomentumZ        =22
-  integer, parameter, public :: propertyTypeAngularMomentum         =23
-  integer, parameter, public :: propertyTypeSpecificAngularMomentumX=24
-  integer, parameter, public :: propertyTypeSpecificAngularMomentumY=25
-  integer, parameter, public :: propertyTypeSpecificAngularMomentumZ=26
-  integer, parameter, public :: propertyTypeSpecificAngularMomentum =27
-  integer, parameter, public :: propertyTypeHalfMassRadius          =28
-  integer, parameter, public :: propertyTypeScaleRadius             =29
-  integer, parameter, public :: propertyTypeParticleIndex           =30
-  integer, parameter, public :: propertyTypeMostBoundParticleIndex  =31
-  integer, parameter, public :: propertyTypeSnapshot                =32
-  integer, parameter, public :: propertyTypeTreeWeight              =33
-  integer, parameter, public :: propertyTypeVelocityMaximum         =34
-  integer, parameter, public :: propertyTypeVelocityDispersion      =35
-
-  ! Property names.
-  character(len=*), parameter :: propertyNames(35)=[   &
-       & 'null                    ',                   &
-       & 'treeIndex               ',                   &
-       & 'nodeIndex               ',                   &
-       & 'descendentIndex         ',                   &
-       & 'hostIndex               ',                   &
-       & 'redshift                ',                   &
-       & 'scaleFactor             ',                   &
-       & 'nodeMass                ',                   &
-       & 'particleCount           ',                   &
-       & 'positionX               ',                   &
-       & 'positionY               ',                   &
-       & 'positionZ               ',                   &
-       & 'velocityX               ',                   &
-       & 'velocityY               ',                   &
-       & 'velocityZ               ',                   &
-       & 'spinX                   ',                   &
-       & 'spinY                   ',                   &
-       & 'spinZ                   ',                   &
-       & 'spin                    ',                   &
-       & 'angularMomentumX        ',                   &
-       & 'angularMomentumY        ',                   &
-       & 'angularMomentumZ        ',                   &
-       & 'angularMomentum         ',                   &
-       & 'specificAngularMomentumX',                   &
-       & 'specificAngularMomentumY',                   &
-       & 'specificAngularMomentumZ',                   &
-       & 'specificAngularMomentum ',                   &
-       & 'halfMassRadius          ',                   &
-       & 'scaleRadius             ',                   &
-       & 'particleIndex           ',                   &
-       & 'mostBoundParticleIndex  ',                   &
-       & 'snapshot                ',                   &
-       & 'treeWeight              ',                   &
-       & 'velocityMaximum         ',                   &
-       & 'velocityDispersion      '                    &
-       &                                           ]
+  !# <enumeration>
+  !#  <name>propertyType</name>
+  !#  <description>Used to specify properties in a {\normalfont \ttfamily mergerTreeData} structure.</description>
+  !#  <visibility>public</visibility>
+  !#  <validator>yes</validator>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="null"                    />
+  !#  <entry label="treeIndex"               />
+  !#  <entry label="nodeIndex"               />
+  !#  <entry label="descendentIndex"         />
+  !#  <entry label="hostIndex"               />
+  !#  <entry label="redshift"                />
+  !#  <entry label="scaleFactor"             />
+  !#  <entry label="nodeMass"                />
+  !#  <entry label="particleCount"           />
+  !#  <entry label="positionX"               />
+  !#  <entry label="positionY"               />
+  !#  <entry label="positionZ"               />
+  !#  <entry label="velocityX"               />
+  !#  <entry label="velocityY"               />
+  !#  <entry label="velocityZ"               />
+  !#  <entry label="spinX"                   />
+  !#  <entry label="spinY"                   />
+  !#  <entry label="spinZ"                   />
+  !#  <entry label="spin"                    />
+  !#  <entry label="angularMomentumX"        />
+  !#  <entry label="angularMomentumY"        />
+  !#  <entry label="angularMomentumZ"        />
+  !#  <entry label="angularMomentum"         />
+  !#  <entry label="specificAngularMomentumX"/>
+  !#  <entry label="specificAngularMomentumY"/>
+  !#  <entry label="specificAngularMomentumZ"/>
+  !#  <entry label="specificAngularMomentum" />
+  !#  <entry label="halfMassRadius"          />
+  !#  <entry label="scaleRadius"             />
+  !#  <entry label="particleIndex"           />
+  !#  <entry label="mostBoundParticleIndex"  />
+  !#  <entry label="snapshot"                />
+  !#  <entry label="treeWeight"              />
+  !#  <entry label="velocityMaximum"         />
+  !#  <entry label="velocityDispersion"      />
+  !# </enumeration>
 
   ! Names of 3-D datasets (i.e. those which give properties in 3-D space).
   character(len=*), parameter :: propertyNames3D(5)=[ &
@@ -153,19 +82,16 @@ module Merger_Tree_Data_Structure
        &                                            ]
 
   ! Units labels.
-  !@ <enumeration>
-  !@  <name>units</name>
-  !@  <description>Used to specify the type of units being stored in a {\normalfont \ttfamily mergerTreeData} structure.</description>
-  !@  <entry label="unitsMass"     />
-  !@  <entry label="unitsLength"   />
-  !@  <entry label="unitsTime"     />
-  !@  <entry label="unitsVelocity" />
-  !@ </enumeration>
-  integer, parameter         :: unitTypeCount=4
-  integer, parameter, public :: unitsMass    =1
-  integer, parameter, public :: unitsLength  =2
-  integer, parameter, public :: unitsTime    =3
-  integer, parameter, public :: unitsVelocity=4
+  !# <enumeration>
+  !#  <name>units</name>
+  !#  <description>Used to specify the type of units being stored in a {\normalfont \ttfamily mergerTreeData} structure.</description>
+  !#  <visibility>public</visibility>
+  !#  <validator>yes</validator>
+  !#  <entry label="mass"     />
+  !#  <entry label="length"   />
+  !#  <entry label="time"     />
+  !#  <entry label="velocity" />
+  !# </enumeration>
 
   type unitsMetaData
      !% A structure that holds metadata on units used.
@@ -175,36 +101,29 @@ module Merger_Tree_Data_Structure
   end type unitsMetaData
 
   ! Metadata labels.
-  !@ <enumeration>
-  !@  <name>metaDataType</name>
-  !@  <description>Used to specify the type of metadata being stored in a {\normalfont \ttfamily mergerTreeData} structure.</description>
-  !@  <entry label="metaDataGeneric"     />
-  !@  <entry label="metaDataCosmology"   />
-  !@  <entry label="metaDataSimulation"  />
-  !@  <entry label="metaDataGroupFinder" />
-  !@  <entry label="metaDataTreeBuilder" />
-  !@  <entry label="metaDataProvenance"  />
-  !@ </enumeration>
-  integer, parameter         :: metaDataTypeCount  =6
-  integer, parameter, public :: metaDataGeneric    =1
-  integer, parameter, public :: metaDataCosmology  =2
-  integer, parameter, public :: metaDataSimulation =3
-  integer, parameter, public :: metaDataGroupFinder=4
-  integer, parameter, public :: metaDataTreeBuilder=5
-  integer, parameter, public :: metaDataProvenance =6
+  !# <enumeration>
+  !#  <name>metaDataType</name>
+  !#  <description>Used to specify the type of metadata being stored in a {\normalfont \ttfamily mergerTreeData} structure.</description>
+  !#  <visibility>public</visibility>
+  !#  <validator>yes</validator>
+  !#  <entry label="generic"     />
+  !#  <entry label="cosmology"   />
+  !#  <entry label="simulation"  />
+  !#  <entry label="groupFinder" />
+  !#  <entry label="treeBuilder" />
+  !#  <entry label="provenance"  />
+  !# </enumeration>
 
   ! Data types for metadata.
-  !@ <enumeration>
-  !@  <name>dataType</name>
-  !@  <description>Used to specify the type of data being stored in a {\normalfont \ttfamily mergerTreeData} structure metadata entry.</description>
-  !@  <entry label="dataTypeInteger" />
-  !@  <entry label="dataTypeDouble"  />
-  !@  <entry label="dataTypeText"    />
-  !@ </enumeration>
-  integer, parameter         :: dataTypeNull       =0
-  integer, parameter         :: dataTypeInteger    =1
-  integer, parameter         :: dataTypeDouble     =2
-  integer, parameter         :: dataTypeText       =3
+  !# <enumeration>
+  !#  <name>dataType</name>
+  !#  <description>Used to specify the type of data being stored in a {\normalfont \ttfamily mergerTreeData} structure metadata entry.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="null"    />
+  !#  <entry label="integer" />
+  !#  <entry label="double"  />
+  !#  <entry label="text"    />
+  !# </enumeration>
 
   type treeMetaData
      !% Structure that holds metadata for the trees.
@@ -242,7 +161,7 @@ module Merger_Tree_Data_Structure
           &                                                                     particleVelocity                   , position                         , &
           &                                                                     spin                               , velocity                         , &
           &                                                                     specificAngularMomentum
-     double precision                , dimension(propertyTypeCount)          :: convertProperty            =1.0d0
+     double precision                , dimension(propertyTypeMin:propertyTypeMax)          :: convertProperty            =1.0d0
      logical                                                                 :: hasAngularMomentumMagnitude        , hasAngularMomentumX              , &
           &                                                                     hasAngularMomentumY                , hasAngularMomentumZ              , &
           &                                                                     hasSpecificAngularMomentumMagnitude, hasSpecificAngularMomentumX      , &
@@ -270,8 +189,8 @@ module Merger_Tree_Data_Structure
      logical                                                                 :: areSelfContained           =.true. , doMakeReferences         =.true. , &
           &                                                                     includesHubbleFlow         =.false., includesSubhaloMasses    =.false., &
           &                                                                     isPeriodic                 =.false.
-     type            (unitsMetaData )             , dimension(unitTypeCount) :: units
-     logical                                      , dimension(unitTypeCount) :: unitsSet                   =.false.
+     type            (unitsMetaData )             , dimension(unitsMin:unitsMax) :: units
+     logical                                      , dimension(unitsMin:unitsMax) :: unitsSet                   =.false.
      integer                                                                 :: metaDataCount              =0
      type            (treeMetaData  ), allocatable, dimension(:)             :: metaData
    contains
@@ -516,7 +435,7 @@ contains
 
     call Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,doubleValue=doubleValue)
     ! Check if this is box size.
-    if (metadataType == metaDataSimulation .and. trim(label) == "boxSize") mergerTrees%hasBoxSize=.true.
+    if (metadataType == metaDataTypeSimulation .and. trim(label) == "boxSize") mergerTrees%hasBoxSize=.true.
     return
   end subroutine Merger_Tree_Data_Structure_Add_Metadata_Double
 
@@ -559,7 +478,7 @@ contains
     type            (treeMetaData  ), allocatable  , dimension(:) :: metaDataTemporary
 
     ! Validate the metadata type.
-    if (metadataType < 1 .or. metadataType > metaDataTypeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Add_Metadata','invalid metadata type')
+    if (.not.enumerationMetadataTypeIsValid(metadataType)) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Add_Metadata','invalid metadata type')
 
     ! Ensure we have enough space in the metadata properties array.
     if (mergerTrees%metaDataCount == 0) then
@@ -720,7 +639,7 @@ contains
     double precision       , intent(in   ) :: conversionFactor
 
     ! Ensure the property type is valid.
-    if (propertyType < 1 .or. propertyType > propertyTypeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Conversion_Factor','invalid property type')
+    if (.not.enumerationPropertyTypeIsValid(propertyType)) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Conversion_Factor','invalid property type')
 
     ! Store conversion factor into array.
     mergerTrees%convertProperty(propertyType)=conversionFactor
@@ -738,7 +657,7 @@ contains
     character       (len=*         ), intent(in   ), optional :: name
 
     ! Ensure the unit type is valid.
-    if (unitType < 1 .or. unitType > unitTypeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Units','invalid unit type')
+    if (.not.enumerationUnitsIsValid(unitType)) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Units','invalid unit type')
 
     ! Flag the units as set.
     mergerTrees%unitsSet(unitType)=.true.
@@ -1320,7 +1239,7 @@ contains
     end if
 
     ! Convert properties with inconsistent units.
-    do i=1,propertyTypeCount
+    do i=propertyTypeMin,propertyTypeMax
        if (mergerTrees%convertProperty(i) /= 1.0d0) then
            call Merger_Tree_Data_Structure_Convert_Property_Units(mergerTrees,i,mergerTrees%convertProperty(i))
        end if
@@ -1678,13 +1597,19 @@ contains
           ! Standard datasets.
           hyperslabStart(1)=mergerTrees%treeBeginsAt (iTree)
           hyperslabCount(1)=mergerTrees%treeNodeCount(iTree)
-          do iProperty=3,size(propertyNames)
+          do iProperty=propertyTypeMin,propertyTypeMax
+             ! Skip null and tree indxe cases.
+             if     (                                    &
+                  &   iProperty == propertyTypeNull      &
+                  &  .or.                                &
+                  &   iProperty == propertyTypeTreeIndex &
+                  & ) cycle
              ! Skip cases where we have the corresponding 3-D dataset.
-             if (trim(propertyNames(iProperty)) == "spin"            .and. .not.mergerTrees%hasSpinMagnitude           ) cycle
-             if (trim(propertyNames(iProperty)) == "angularMomentum" .and. .not.mergerTrees%hasAngularMomentumMagnitude) cycle
-             if (forestHalos%hasDataset(trim(propertyNames(iProperty)))) then
-                treeDataset=forestHalos%openDataset(propertyNames(iProperty))
-                call treeGroup%createReference1D(treeDataset,trim(propertyNames(iProperty)),hyperslabStart,hyperslabCount)
+             if (iProperty == propertyTypeSpin            .and. .not.mergerTrees%hasSpinMagnitude           ) cycle
+             if (iProperty == propertyTypeAngularMomentum .and. .not.mergerTrees%hasAngularMomentumMagnitude) cycle
+             if (forestHalos%hasDataset(char(enumerationPropertyTypeDecode(iProperty)))) then
+                treeDataset=forestHalos%openDataset(char(enumerationPropertyTypeDecode(iProperty)))
+                call treeGroup%createReference1D(treeDataset,char(enumerationPropertyTypeDecode(iProperty)),hyperslabStart,hyperslabCount)
                 call treeDataset%close()
              end if
           end do
@@ -1795,29 +1720,29 @@ contains
        call unitsGroup%close()
 
        ! Create groups for attributes.
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGeneric    )) genericGroup    =outputFile%openGroup("metaData"   ,"Generic metadata."                  )
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) cosmologyGroup  =outputFile%openGroup("cosmology"  ,"Cosmological parameters."           )
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataSimulation )) simulationGroup =outputFile%openGroup("simulation" ,"Simulation parameters."             )
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGroupFinder)) groupFinderGroup=outputFile%openGroup("groupFinder","Group finder parameters."           )
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTreeBuilder)) treeBuilderGroup=outputFile%openGroup("treeBuilder","Tree building algorithm parameters.")
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataProvenance )) provenanceGroup =outputFile%openGroup("provenance" ,"Data provenance."                   )
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeGeneric    )) genericGroup    =outputFile%openGroup("metaData"   ,"Generic metadata."                  )
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeCosmology  )) cosmologyGroup  =outputFile%openGroup("cosmology"  ,"Cosmological parameters."           )
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeSimulation )) simulationGroup =outputFile%openGroup("simulation" ,"Simulation parameters."             )
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeGroupFinder)) groupFinderGroup=outputFile%openGroup("groupFinder","Group finder parameters."           )
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeTreeBuilder)) treeBuilderGroup=outputFile%openGroup("treeBuilder","Tree building algorithm parameters.")
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeProvenance )) provenanceGroup =outputFile%openGroup("provenance" ,"Data provenance."                   )
 
        ! Write attributes.
        do iAttribute=1,mergerTrees%metaDataCount
 
           ! Determine which group to write to.
           select case (mergerTrees%metaData(iAttribute)%metadataType)
-          case (metaDataGeneric    )
+          case (metaDataTypeGeneric    )
              attributeGroup => genericGroup
-          case (metaDataCosmology  )
+          case (metaDataTypeCosmology  )
              attributeGroup => cosmologyGroup
-          case (metaDataSimulation )
+          case (metaDataTypeSimulation )
              attributeGroup => simulationGroup
-          case (metaDataGroupFinder)
+          case (metaDataTypeGroupFinder)
              attributeGroup => groupFinderGroup
-          case (metaDataTreeBuilder)
+          case (metaDataTypeTreeBuilder)
              attributeGroup => treeBuilderGroup
-          case (metaDataProvenance )
+          case (metaDataTypeProvenance )
              attributeGroup => provenanceGroup
           end select
 
@@ -1833,12 +1758,12 @@ contains
        end do
 
        ! Close attribute groups.
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGeneric    )) call genericGroup    %close()
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) call cosmologyGroup  %close()
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataSimulation )) call simulationGroup %close()
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGroupFinder)) call groupFinderGroup%close()
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTreeBuilder)) call treeBuilderGroup%close()
-       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataProvenance )) call provenanceGroup %close()
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeGeneric    )) call genericGroup    %close()
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeCosmology  )) call cosmologyGroup  %close()
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeSimulation )) call simulationGroup %close()
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeGroupFinder)) call groupFinderGroup%close()
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeTreeBuilder)) call treeBuilderGroup%close()
+       if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTypeProvenance )) call provenanceGroup %close()
 
     end if
 
@@ -2091,9 +2016,9 @@ contains
           ! Determine which group to write to.
           attributeGroup => null()
           select case (mergerTrees%metaData(iAttribute)%metadataType)
-          case (metaDataCosmology  )
+          case (metaDataTypeCosmology  )
              attributeGroup => cosmologyGroup
-          case (metaDataSimulation )
+          case (metaDataTypeSimulation )
              attributeGroup => simulationGroup
           end select
 
@@ -2102,7 +2027,7 @@ contains
 
              ! Perform dictionary mapping from our internal names (which follow Galacticus format) to IRATE names.
              select case (mergerTrees%metaData(iAttribute)%metadataType)
-             case (metaDataCosmology  )
+             case (metaDataTypeCosmology  )
                 select case (char(mergerTrees%metaData(iAttribute)%label))
                 case ("powerSpectrumIndex")
                    mergerTrees%metaData(iAttribute)%label="PowerSpectrumIndex"
