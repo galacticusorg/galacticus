@@ -186,7 +186,7 @@ contains
     thisNode => null()
 
     ! The tree was changed, so mark that it is not deadlocked.
-    deadlockStatus=isNotDeadlocked
+    deadlockStatus=deadlockStatusIsNotDeadlocked
     return
   end subroutine Satellite_Merger_Process
 

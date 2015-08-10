@@ -62,7 +62,7 @@ contains
     ! Promote the halo.
     call Tree_Node_Promote(thisTree,thisNode)
     ! Since we changed the tree, record that the tree is not deadlocked.
-    deadlockStatus=isNotDeadlocked
+    deadlockStatus=deadlockStatusIsNotDeadlocked
     ! Record that the task was performed.
     Node_Subhalo_Promotion=.true.
     return
