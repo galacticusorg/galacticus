@@ -34,14 +34,14 @@ module Node_Component_Disk_Very_Simple
   !#  <properties>
   !#   <property>
   !#     <name>massStellar</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the very simple disk."/>
   !#   </property>
   !#   <property>
   !#     <name>massGas</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the very simple disk."/>
@@ -82,7 +82,7 @@ contains
        !@   <description>
        !@    The minimum timescale (in units of the halo dynamical time) on which outflows may deplete gas in the disk.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskOutflowTimescaleMinimum',diskOutflowTimescaleMinimum,defaultValue=1.0d-3)
@@ -93,7 +93,7 @@ contains
        !@   <description>
        !@    The minimum timescale (in units of the halo dynamical time) on which star formation may occur in the disk.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskStarFormationTimescaleMinimum',diskStarFormationTimescaleMinimum,defaultValue=1.0d-3)

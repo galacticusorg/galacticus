@@ -36,7 +36,7 @@ module Node_Component_Satellite_Orbiting
   !#  <properties>
   !#   <property>
   !#     <name>position</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Orbital position of the node."/> 
@@ -44,7 +44,7 @@ module Node_Component_Satellite_Orbiting
   !#   </property>
   !#   <property>
   !#     <name>velocity</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Orbital velocity of the node."/>
@@ -52,14 +52,14 @@ module Node_Component_Satellite_Orbiting
   !#   </property>
   !#   <property>
   !#     <name>mergeTime</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>timeOfMerging</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
@@ -68,7 +68,7 @@ module Node_Component_Satellite_Orbiting
   !#   </property>
   !#   <property>
   !#     <name>boundMass</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault>selfBasicComponent%mass()</classDefault>
@@ -88,7 +88,7 @@ module Node_Component_Satellite_Orbiting
   !#   </property>
   !#   <property>
   !#     <name>tidalHeatingNormalized</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="kilo**2/megaParsec**2" comment="Energy/radius^2 of satellite."/>
@@ -128,7 +128,7 @@ contains
        !@   <description>
        !@    The fraction of the satellite's initial mass below which the satellite is considered to be tidally destroyed and merged with the central halo.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('satelliteOrbitingDestructionMassFraction',satelliteOrbitingDestructionMassFraction,defaultValue=0.01d0)

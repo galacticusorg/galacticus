@@ -34,7 +34,7 @@ module Node_Component_Black_Hole_Simple
   !#  <properties>
   !#   <property>
   !#     <name>mass</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault>defaultBlackHoleComponent%massSeed()</classDefault>
@@ -42,7 +42,7 @@ module Node_Component_Black_Hole_Simple
   !#   </property>
   !#   <property>
   !#     <name>massSeed</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <getFunction>Node_Component_Black_Hole_Simple_Seed_Mass</getFunction>
@@ -90,7 +90,7 @@ contains
        !@   <description>
        !@     The ratio of the rates of black hole growth and spheroid stellar mass growth.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
@@ -118,7 +118,7 @@ contains
           !@     Controls whether the black hole additionally grows via accretion from the hot halo. If it does,
           !@     this accretion rate is used to determine AGN feedback power.
           !@   </description>
-          !@   <type>real</type>
+          !@   <type>double</type>
           !@   <cardinality>1</cardinality>
           !@   <group>blackHoles</group>
           !@ </inputParameter>
@@ -130,7 +130,7 @@ contains
           !@   <description>
           !@     The efficiency with which accretion onto a black hole heats the hot halo.
           !@   </description>
-          !@   <type>real</type>
+          !@   <type>double</type>
           !@   <cardinality>1</cardinality>
           !@   <group>blackHoles</group>
           !@ </inputParameter>
@@ -142,7 +142,7 @@ contains
           !@   <description>
           !@     The efficiency with which accretion power onto a black hole is converted into jets.
           !@   </description>
-          !@   <type>real</type>
+          !@   <type>double</type>
           !@   <cardinality>1</cardinality>
           !@   <group>blackHoles</group>
           !@ </inputParameter>
@@ -159,7 +159,7 @@ contains
        !@   <description>
        !@     The efficiency of the black hole accretion-driven wind.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
@@ -370,7 +370,7 @@ contains
           doubleProperty=doubleProperty+1
           !@ <outputProperty>
           !@   <name>blackHoleAccretionRate</name>
-          !@   <datatype>real</datatype>
+          !@   <datatype>double</datatype>
           !@   <cardinality>0..1</cardinality>
           !@   <description>Rest-mass accretion rate onto the black hole.</description>
           !@   <label>???</label>

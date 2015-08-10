@@ -143,8 +143,8 @@ sub CTemplate_Generate_Output {
 	foreach my $propertyName ( keys(%{$componentClass->{'properties'}->{'property'}}) ) {
 	    my $property = $componentClass->{'properties'}->{'property'}->{$propertyName};
 	    if (
-		$property->{'type'      }                 eq "real" &&
-		$property->{'rank'      }                 ==      0 &&
+		$property->{'type'      }                 eq "double" &&
+		$property->{'rank'      }                 ==        0 &&
 		$property->{'attributes'}->{'isGettable'} eq "true"
 		) {
 		$classDefinitions .= "  double ".$propertyName."() {return Node_Component_".ucfirst($componentClassName)."_".ucfirst($propertyName)."(selfNode);}\n";
@@ -215,8 +215,8 @@ sub CInterface_Generate_Output {
 	foreach my $propertyName ( keys(%{$componentClass->{'properties'}->{'property'}}) ) {
 	    my $property = $componentClass->{'properties'}->{'property'}->{$propertyName};
 	    if (
-		$property->{'type'      }                 eq "real" &&
-		$property->{'rank'      }                 ==      0 &&
+		$property->{'type'      }                 eq "double" &&
+		$property->{'rank'      }                 ==        0 &&
 		$property->{'attributes'}->{'isGettable'} eq "true"
 		) {
 		$buildData->{'content'} .= "function cNode_Component_".ucfirst($componentClassName)."_".ucfirst($propertyName)."(cSelfNode) bind(c,name='Node_Component_".ucfirst($componentClassName)."_".ucfirst($propertyName)."')\n";

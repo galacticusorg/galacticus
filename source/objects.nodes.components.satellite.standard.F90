@@ -33,7 +33,7 @@ module Node_Component_Satellite_Standard
   !#  <properties>
   !#   <property>
   !#     <name>mergeTime</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault>-1.0d0</classDefault>
@@ -42,7 +42,7 @@ module Node_Component_Satellite_Standard
   !#   </property>
   !#   <property>
   !#     <name>timeOfMerging</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
@@ -51,7 +51,7 @@ module Node_Component_Satellite_Standard
   !#   </property>
   !#   <property>
   !#     <name>boundMass</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault>selfBasicComponent%mass()</classDefault>

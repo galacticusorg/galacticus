@@ -31,14 +31,14 @@ module Node_Component_NBody_Standard
   !#  <properties>
   !#   <property>
   !#     <name>velocityMaximum</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="kilo" comment="Maximum velocity of the halo rotation curve."/>
   !#   </property>
   !#   <property>
   !#     <name>velocityDispersion</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="kilo" comment="Velocity dispersion of the dark matter halo."/>
