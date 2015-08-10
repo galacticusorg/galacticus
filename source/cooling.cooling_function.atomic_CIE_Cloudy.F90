@@ -128,10 +128,10 @@ contains
     if (.not.self%initialized) then
        makeFile=.true.
     else
-       if (Abundances_Get_Metallicity(gasAbundances,linearByMassSolar) > 0.0d0) then
+       if (Abundances_Get_Metallicity(gasAbundances,metallicityTypeLinearByMassSolar) > 0.0d0) then
           makeFile=(                                                                      &
                &     min(                                                                 &
-               &         Abundances_Get_Metallicity(gasAbundances,linearByMassSolar)    , &
+               &         Abundances_Get_Metallicity(gasAbundances,metallicityTypeLinearByMassSolar)    , &
                &         atomicCIECloudyMetallicityMaximumLimit                           &
                &        )                                                                 &
                &    >                                                                     &
@@ -149,12 +149,12 @@ contains
     ! Read the file if this module has not been initialized or if the metallicity is out of range.
     if (makeFile) then
        ! Determine maximum metallicity to which we should tabulate.
-       if (Abundances_Get_Metallicity(gasAbundances,linearByMassSolar) > 0.0d0) then
+       if (Abundances_Get_Metallicity(gasAbundances,metallicityTypeLinearByMassSolar) > 0.0d0) then
           self%metallicityMaximum=min(                                                                 &
                &                      max(                                                             &
                &                           atomicCIECloudyMetallicityMaximumDefault                  , &
                &                          +3.0d0                                                       &
-               &                          *Abundances_Get_Metallicity(gasAbundances,linearByMassSolar) &
+               &                          *Abundances_Get_Metallicity(gasAbundances,metallicityTypeLinearByMassSolar) &
                &                         )                                                           , &
                &                           atomicCIECloudyMetallicityMaximumLimit                      &
                &                     )

@@ -263,7 +263,7 @@ contains
        end select
     end if
     ! Handle out of range metallicities.
-    metallicityUse=Abundances_Get_Metallicity(gasAbundances,metallicityType=linearByMassSolar)
+    metallicityUse=Abundances_Get_Metallicity(gasAbundances,metallicityType=metallicityTypeLinearByMassSolar)
     if (metallicityUse < self%metallicityMinimum) then
        select case (self%extrapolateMetallicityLow)
        case (extrapolationTypeZero)
@@ -344,7 +344,7 @@ contains
        end select
     end if
     ! Handle out of range metallicities.
-    metallicityUse=Abundances_Get_Metallicity(gasAbundances,metallicityType=linearByMassSolar)
+    metallicityUse=Abundances_Get_Metallicity(gasAbundances,metallicityType=metallicityTypeLinearByMassSolar)
     if (metallicityUse < self%metallicityMinimum) then
        select case (self%extrapolateMetallicityLow)
        case (extrapolationTypeZero)

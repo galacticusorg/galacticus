@@ -321,7 +321,7 @@ contains
                    loopCount=loopCount+1
                    call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountMaximum)),.false.,verbosityWorking)
                    call abundancesTabulate%metallicitySet(luminosityTables(imfIndex)%metallicity(iMetallicity) &
-                        &,metallicityType=logarithmicByMassSolar)
+                        &,metallicityType=metallicityTypeLogarithmicByMassSolar)
                    toleranceRelative=stellarPopulationLuminosityIntegrationToleranceRelative
                    errorStatus      =errorStatusFail
                    do while (errorStatus /= errorStatusSuccess)
@@ -466,7 +466,7 @@ contains
     ! Tabulate the luminosities.
     call Stellar_Population_Luminosity_Tabulate(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,redshift)
     ! Get interpolation in metallicity.
-    metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=logarithmicByMassSolar)
+    metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=metallicityTypeLogarithmicByMassSolar)
     if (metallicity == logMetallicityZero .or. metallicity < luminosityTables(imfIndex)%metallicity(1)) then
        iMetallicity=1
        hMetallicity=[1.0d0,0.0d0]
