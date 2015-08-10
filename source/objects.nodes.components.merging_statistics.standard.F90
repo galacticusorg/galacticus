@@ -32,7 +32,7 @@ module Node_Component_Merging_Statistics_Standard
   !#  <properties>
   !#   <property>
   !#     <name>galaxyMajorMergerTime</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
@@ -40,7 +40,7 @@ module Node_Component_Merging_Statistics_Standard
   !#   </property>
   !#   <property>
   !#     <name>nodeMajorMergerTime</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
@@ -48,7 +48,7 @@ module Node_Component_Merging_Statistics_Standard
   !#   </property>
   !#   <property>
   !#     <name>nodeFormationTime</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
@@ -87,7 +87,7 @@ contains
        !@   <description>
        !@     The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('nodeMajorMergerFraction',nodeMajorMergerFraction,defaultValue=0.25d0)
@@ -98,7 +98,7 @@ contains
        !@   <description>
        !@     The mass fraction in the main branch progenitor used to define the formation time of each halo.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('nodeFormationMassFraction',nodeFormationMassFraction,defaultValue=0.5d0)

@@ -42,7 +42,7 @@ module Node_Component_Disk_Standard
   !#   </property>
   !#   <property>
   !#     <name>massStellar</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the standard disk."/>
@@ -56,7 +56,7 @@ module Node_Component_Disk_Standard
   !#   </property>
   !#   <property>
   !#     <name>massGas</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the standard disk."/>
@@ -70,14 +70,14 @@ module Node_Component_Disk_Standard
   !#   </property>
   !#   <property>
   !#     <name>angularMomentum</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard disk."/>
   !#   </property>
   !#   <property>
   !#     <name>radius</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="megaparsec" comment="Radial scale length in the standard disk."/>
@@ -85,14 +85,14 @@ module Node_Component_Disk_Standard
   !#   <property>
   !#     <name>halfMassRadius</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#     <getFunction>Node_Component_Disk_Standard_Half_Mass_Radius</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>velocity</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="kilo" comment="Circular velocity of the standard disk at scale length."/>
@@ -100,7 +100,7 @@ module Node_Component_Disk_Standard
   !#   <property>
   !#     <name>starFormationRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#     <output condition="[[diskOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Disk star formation rate."/>
@@ -202,7 +202,7 @@ contains
        !@   <description>
        !@    The mass tolerance used to judge whether the disk is physically plausible.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskMassToleranceAbsolute',diskMassToleranceAbsolute,defaultValue=1.0d-6)
@@ -213,7 +213,7 @@ contains
        !@   <description>
        !@    The minimum timescale (in units of the disk dynamical time) on which outflows may deplete gas in the disk.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskOutflowTimescaleMinimum',diskOutflowTimescaleMinimum,defaultValue=1.0d-3)
@@ -224,7 +224,7 @@ contains
        !@   <description>
        !@    The radius (in units of the standard scale length) to use in solving for the size of the disk.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskStructureSolverRadius',diskStructureSolverRadius,defaultValue=1.0d0)
@@ -246,7 +246,7 @@ contains
        !@   <description>
        !@     The ratio of scale height to scale radius for standard disks.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('heightToRadialScaleDisk',heightToRadialScaleDisk,defaultValue=0.137d0)
@@ -257,7 +257,7 @@ contains
        !@   <description>
        !@     Specifies whether or not negative angular momentum is allowed for the disk.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskNegativeAngularMomentumAllowed',diskNegativeAngularMomentumAllowed,defaultValue=.true.)

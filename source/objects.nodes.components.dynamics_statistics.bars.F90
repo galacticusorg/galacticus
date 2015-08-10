@@ -31,19 +31,19 @@ module Node_Component_Dynamics_Statistics_Bars
   !#  <properties>
   !#   <property>
   !#     <name>time</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>barInstabilityTimescale</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>adiabaticRatio</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
@@ -98,7 +98,7 @@ contains
           !@   <description>
           !@     The frequency (in fractions of the host halo dynamical time) at which to record the bar dynamical status of satellite galaxies.
           !@   </description>
-          !@   <type>real</type>
+          !@   <type>double</type>
           !@   <cardinality>1</cardinality>
           !@   <group>timeStepping</group>
           !@ </inputParameter>
@@ -226,7 +226,7 @@ contains
           tree    =dynamics            %openGroup(char(treeGroupName)  ,"Group containing statistics of satellite galaxy bar dynamical state")
           !@ <outputProperty>
           !@   <name>time</name>
-          !@   <datatype>real</datatype>
+          !@   <datatype>double</datatype>
           !@   <cardinality>0..</cardinality>
           !@   <description>The times at which bar dynamical state data are stored.</description>
           !@   <label>???</label>
@@ -234,7 +234,7 @@ contains
           !@ </outputProperty>
           !@ <outputProperty>
           !@   <name>timeScale</name>
-          !@   <datatype>real</datatype>
+          !@   <datatype>double</datatype>
           !@   <cardinality>0..</cardinality>
           !@   <description>The bar instability timescale.</description>
           !@   <label>???</label>
@@ -242,7 +242,7 @@ contains
           !@ </outputProperty>
           !@ <outputProperty>
           !@   <name>adiabaticRatio</name>
-          !@   <datatype>real</datatype>
+          !@   <datatype>double</datatype>
           !@   <cardinality>0..</cardinality>
           !@   <description>The adiabatic ratio.</description>
           !@   <label>???</label>

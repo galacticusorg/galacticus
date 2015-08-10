@@ -36,7 +36,7 @@ module Node_Component_Black_Hole_Standard
   !#  <properties>
   !#   <property>
   !#     <name>mass</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault>defaultBlackHoleComponent%massSeed()</classDefault>
@@ -44,7 +44,7 @@ module Node_Component_Black_Hole_Standard
   !#   </property>
   !#   <property>
   !#     <name>spin</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <getFunction>Node_Component_Black_Hole_Standard_Spin</getFunction>
@@ -53,19 +53,19 @@ module Node_Component_Black_Hole_Standard
   !#   </property>
   !#   <property>
   !#     <name>radialPosition</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#   </property>
   !#   <property>
   !#     <name>tripleInteractionTime</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>massSeed</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <isVirtual>true</isVirtual>
@@ -73,7 +73,7 @@ module Node_Component_Black_Hole_Standard
   !#   </property>
   !#   <property>
   !#     <name>spinSeed</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <isVirtual>true</isVirtual>
@@ -82,14 +82,14 @@ module Node_Component_Black_Hole_Standard
   !#   <property>
   !#     <name>accretionRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>radiativeEfficiency</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#   </property>
@@ -154,7 +154,7 @@ contains
        !@   <description>
        !@     The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
@@ -167,7 +167,7 @@ contains
        !@   <description>
        !@     The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
@@ -179,7 +179,7 @@ contains
        !@   <description>
        !@     Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
@@ -193,7 +193,7 @@ contains
        !@   <description>
        !@     The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
@@ -208,7 +208,7 @@ contains
        !@   <description>
        !@     The efficiency of the black hole-driven wind: $L_{\mathrm wind} = \epsilon_{\mathrm wind} \dot{M}_\bullet \clight^2$.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
@@ -220,7 +220,7 @@ contains
        !@   <description>
        !@     Specifies whether the black hole wind effiency should scale with the radiative effiency of the accretion disk.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
@@ -246,7 +246,7 @@ contains
        !@   <description>
        !@     Efficiency with which radio-mode feedback is coupled to the hot halo.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
@@ -1072,7 +1072,7 @@ contains
           doubleProperty=doubleProperty+1
           !@ <outputProperty>
           !@   <name>blackHoleAccretionRate</name>
-          !@   <datatype>real</datatype>
+          !@   <datatype>double</datatype>
           !@   <cardinality>0..1</cardinality>
           !@   <description>Rest-mass accretion rate onto the black hole.</description>
           !@   <label>???</label>
@@ -1085,7 +1085,7 @@ contains
           doubleProperty=doubleProperty+1
           !@ <outputProperty>
           !@   <name>blackHoleJetPower</name>
-          !@   <datatype>real</datatype>
+          !@   <datatype>double</datatype>
           !@   <cardinality>0..1</cardinality>
           !@   <description>Power of the black hole-driven jet.</description>
           !@   <label>???</label>
@@ -1098,7 +1098,7 @@ contains
           doubleProperty=doubleProperty+1
           !@ <outputProperty>
           !@   <name>blackHoleRadiativeEfficiency</name>
-          !@   <datatype>real</datatype>
+          !@   <datatype>double</datatype>
           !@   <cardinality>0..1</cardinality>
           !@   <description>The radiative efficiency of the black hole accretion system.</description>
           !@   <label>???</label>
