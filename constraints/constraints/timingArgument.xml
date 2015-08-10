@@ -1,0 +1,6 @@
+<!-- Defines the timing argument constraint on the sum of M31 and Milky Way masses from Li and White (2008; http://adsabs.harvard.edu/abs/2008MNRAS.384.1459L). -->
+<constraint>
+  <name>Timing argument constraint on Local Group mass</name>
+  <label>timingArgument</label>
+  <analysis>constraints/scripts/timingArgument.pl</analysis>
+</constraint>

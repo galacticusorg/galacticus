@@ -567,11 +567,14 @@ contains
           ! Get the black hole.
           thisBlackHoleComponent => thisNode%blackHole(instance=instance)
           ! Set scale for mass.
-          call thisBlackHoleComponent%massScale(                                                            &
-               &                                max(                                                        &
-               &                                    scaleMassRelative*thisSpheroidComponent %massStellar(), &
-               &                                                      thisBlackHoleComponent%mass       ()  &
-               &                                   )                                                        &
+          call thisBlackHoleComponent%massScale(                                                                &
+               &                                max(                                                            &
+               &                                                          thisBlackHoleComponent%massSeed   (), &
+               &                                    max(                                                        &
+               &                                        scaleMassRelative*thisSpheroidComponent %massStellar(), &
+               &                                                          thisBlackHoleComponent%mass       ()  &
+               &                                       )                                                        &
+               &                                   )                                                            &
                &                               )
           ! Set scale for spin.
           call thisBlackHoleComponent%spinScale(1.0d0)
@@ -601,9 +604,7 @@ contains
     use Black_Hole_Binary_Mergers
     use Black_Hole_Binary_Initial_Radii
     use Black_Hole_Binary_Recoil_Velocities
-    use Galactic_Structure_Potentials
-    use Galactic_Structure_Options
-    implicit none
+   implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     type            (treeNode              )               , pointer :: hostNode
     class           (nodeComponentBlackHole)               , pointer :: hostCentralBlackHoleComponent, thisBlackHoleComponent
@@ -648,15 +649,11 @@ contains
                 spinBlackHole2=hostCentralBlackHoleComponent%spin()
                 spinBlackHole1=       thisBlackHoleComponent%spin()
              end if
-             ! Now calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy. (Note that
-             ! we subtract the black hole's own contribution to the potential here.)
+             ! Now calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy.
              recoilVelocity=Black_Hole_Binary_Recoil_Velocity(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
-             if (recoilVelocity > 0.0d0) then
-                if (0.5d0*recoilVelocity**2+Galactic_Structure_Potential(thisNode,0.0d0)-Galactic_Structure_Potential(thisNode&
-                     &,0.0d0,componentType=componentTypeBlackHole) > 0.0d0) then
-                   blackHoleMassNew=0.0d0
-                   blackHoleSpinNew=0.0d0
-                end if
+             if (Node_Component_Black_Hole_Standard_Recoil_Escapes(thisNode,recoilVelocity,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
+                blackHoleMassNew=0.0d0
+                blackHoleSpinNew=0.0d0
              end if
              ! Move the black hole to the host.
              call Node_Component_Black_Hole_Standard_Output_Merger(thisNode,massBlackHole1,massBlackHole2)
@@ -683,12 +680,47 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Standard_Satellite_Merging
 
+  logical function Node_Component_Black_Hole_Standard_Recoil_Escapes(node,recoilVelocity,radius,ignoreCentralBlackHole)
+    !% Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
+    use Galactic_Structure_Potentials
+    use Galactic_Structure_Options
+    use Dark_Matter_Halo_Scales
+    implicit none
+    type            (treeNode                ), intent(inout), pointer :: node
+    double precision                          , intent(in   )          :: recoilVelocity        , radius
+    logical                                   , intent(in   )          :: ignoreCentralBlackHole
+    class           (darkMatterHaloScaleClass), pointer                :: darkMatterHaloScale_
+    double precision                                                   :: potentialCentral      , potentialCentralSelf, &
+         &                                                                potentialHalo         , potentialHaloSelf
+
+    ! Compute relevant potentials.
+    darkMatterHaloScale_   => darkMatterHaloScale()
+    potentialCentral       =Galactic_Structure_Potential(node,radius                                                                      )
+    potentialHalo          =Galactic_Structure_Potential(node,darkMatterHaloScale_%virialRadius(node)                                     )
+    if (ignoreCentralBlackHole) then
+       ! Compute potential of central black hole to be subtracted off of total value.
+       potentialCentralSelf=Galactic_Structure_Potential(node,radius                                 ,componentType=componentTypeBlackHole)
+       potentialHaloSelf   =Galactic_Structure_Potential(node,darkMatterHaloScale_%virialRadius(node),componentType=componentTypeBlackHole)
+    else
+       ! No correction for central black hole as it is to be included.
+       potentialCentralSelf=0.0d0
+       potentialHaloSelf   =0.0d0
+    end if
+    ! Evaluate the escape condition.
+    Node_Component_Black_Hole_Standard_Recoil_Escapes= &
+         &  +0.5d0*recoilVelocity      **2             &
+         &  +      potentialCentral                    &
+         &  -      potentialCentralSelf                &
+         & >                                           &
+         &  +      potentialHalo                       &
+         &  -      potentialHaloSelf
+    return
+  end function Node_Component_Black_Hole_Standard_Recoil_Escapes
+  
   subroutine Node_Component_Black_Hole_Standard_Merge_Black_Holes(thisNode)
     !% Merge two black holes.
     use Black_Hole_Binary_Recoil_Velocities
     use Black_Hole_Binary_Mergers
-    use Galactic_Structure_Options
-    use Galactic_Structure_Potentials
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     class           (nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent1, thisBlackHoleComponent2
@@ -723,8 +755,7 @@ contains
     ! Calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy
     recoilVelocity=Black_Hole_Binary_Recoil_Velocity(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
     ! Compare the recoil velocity to the potential and determine wether the binary is ejected or stays in the galaxy.
-    if (0.5d0*recoilVelocity**2+Galactic_Structure_Potential(thisNode,0.0d0)-Galactic_Structure_Potential(thisNode&
-         &,0.0d0,componentType=componentTypeBlackHole) > 0.0d0) then
+    if (Node_Component_Black_Hole_Standard_Recoil_Escapes(thisNode,recoilVelocity,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
        blackHoleMassNew=thisBlackHoleComponent1%massSeed()
        blackHoleSpinNew=thisBlackHoleComponent1%spinSeed()
     end if
@@ -740,8 +771,6 @@ contains
   subroutine Node_Component_Black_Hole_Standard_Triple_Interaction(thisNode)
     !% Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
     use Numerical_Constants_Physical
-    use Galactic_Structure_Options
-    use Galactic_Structure_Potentials
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     class           (nodeComponentBasic    )               , pointer :: thisBasicComponent
@@ -817,12 +846,9 @@ contains
     velocityEjected=sqrt(kineticEnergyChange/(1.0d0+massEjected/massBinary )/massEjected*2.0d0)
     velocityBinary =sqrt(kineticEnergyChange/(1.0d0+massBinary /massEjected)/massBinary *2.0d0)
     ! Determine whether the ejected black hole is actualy ejected.
-    removeEjected=(0.5d0*velocityEjected**2+Galactic_Structure_Potential(thisNode,ejectedBlackHoleComponent%radialPosition()) >&
-         & 0.0d0)
+    removeEjected=Node_Component_Black_Hole_Standard_Recoil_Escapes(thisNode,velocityEjected,ejectedBlackHoleComponent%radialPosition(),ignoreCentralBlackHole=.false.)    
     ! Determine whether the binary black hole is ejected.
-    removeBinary=(0.5d0*velocityBinary**2+Galactic_Structure_Potential(thisNode,newBinaryBlackHoleComponent%radialPosition())&
-         &-Galactic_Structure_Potential(thisNode,newBinaryBlackHoleComponent%radialPosition(),componentType&
-         &=componentTypeBlackHole) > 0.0d0)
+    removeBinary=Node_Component_Black_Hole_Standard_Recoil_Escapes(thisNode,velocityBinary,newBinaryBlackHoleComponent%radialPosition(),ignoreCentralBlackHole=.true.)
     ! Remove the binary black hole from the list if required.
     if (removeBinary) then
        ! Set the central black hole as a zero mass component.
@@ -848,25 +874,25 @@ contains
     use Black_Hole_Fundamentals
     use Numerical_Constants_Astronomical
     use Accretion_Disks
-    use Hot_Halo_Temperature_Profile
+    use Hot_Halo_Temperature_Profiles
     use Black_Hole_Binary_Separations
     implicit none
-    class           (nodeComponentBlackHole), intent(inout)          :: thisBlackHoleComponent
-    double precision                        , intent(  out)          :: accretionRateHotHalo        , accretionRateSpheroid
-    type            (treeNode              )               , pointer :: thisNode
-    class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
-    class           (nodeComponentHotHalo  )               , pointer :: thisHotHaloComponent
-    double precision                        , parameter              :: gasDensityMinimum     =1.0d0                        !    Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
-    double precision                                                 :: accretionRadius             , accretionRateMaximum                                                                                                                   , &
-         &                                                              blackHoleMass               , gasDensity                                                                                                                             , &
-         &                                                              hotHaloTemperature          , hotModeFraction                                                                                                                        , &
-         &                                                              jeansLength                 , position             (                                                                                                               3), &
-         &                                                              radiativeEfficiency         , relativeVelocity                                                                                                                      , &
-         &                                                              coldModeFraction
+    class           (nodeComponentBlackHole        ), intent(inout)          :: thisBlackHoleComponent
+    double precision                                , intent(  out)          :: accretionRateHotHalo        , accretionRateSpheroid
+    type            (treeNode                      )               , pointer :: thisNode
+    class           (nodeComponentSpheroid         )               , pointer :: thisSpheroidComponent
+    class           (nodeComponentHotHalo          )               , pointer :: thisHotHaloComponent
+    class           (hotHaloTemperatureProfileClass)               , pointer :: hotHaloTemperatureProfile_
+    double precision                                , parameter              :: gasDensityMinimum     =1.0d0                        !    Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
+    double precision                                                         :: accretionRadius             , accretionRateMaximum                                                                                                                   , &
+         &                                                                      blackHoleMass               , gasDensity                                                                                                                             , &
+         &                                                                      hotHaloTemperature          , hotModeFraction                                                                                                                        , &
+         &                                                                      jeansLength                 , position             (                                                                                                               3), &
+         &                                                                      radiativeEfficiency         , relativeVelocity                                                                                                                      , &
+         &                                                                      coldModeFraction
 
     ! Get the host node.
     thisNode => thisBlackHoleComponent%host()
-
     ! Get black hole mass.
     blackHoleMass=thisBlackHoleComponent%mass()
     ! Check black hole mass is positive.
@@ -918,8 +944,10 @@ contains
        ! Contribution from hot halo:
        ! Get the hot halo component.
        thisHotHaloComponent => thisNode%hotHalo()
+       ! Get the hot halo temperature profile.
+       hotHaloTemperatureProfile_ => hotHaloTemperatureProfile()
        ! Get halo gas temperature.
-       hotHaloTemperature=Hot_Halo_Temperature(thisNode,radius=0.0d0)
+       hotHaloTemperature=hotHaloTemperatureProfile_%temperature(thisNode,radius=0.0d0)
        ! Get the accretion radius.
        accretionRadius=Bondi_Hoyle_Lyttleton_Accretion_Radius(blackHoleMass,hotHaloTemperature)
        accretionRadius=min(accretionRadius,thisHotHaloComponent%outerRadius())
