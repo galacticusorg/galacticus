@@ -26,28 +26,23 @@ module Root_Finder
   public :: rootFinder
 
   ! Enumeration of range expansion types.
-  !@ <enumeration>
-  !@  <name>rangeExpand</name>
-  !@  <description>Used to specify the way in which the bracketing range should be expanded when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
-  !@  <entry label="rangeExpandNull"           />
-  !@  <entry label="rangeExpandAdditive"       />
-  !@  <entry label="rangeExpandMultiplicative" />
-  !@ </enumeration>
-  integer, parameter, public :: rangeExpandNull              =0
-  integer, parameter, public :: rangeExpandAdditive          =1
-  integer, parameter, public :: rangeExpandMultiplicative    =2
+  !# <enumeration>
+  !#  <name>rangeExpand</name>
+  !#  <description>Used to specify the way in which the bracketing range should be expanded when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="null"           />
+  !#  <entry label="additive"       />
+  !#  <entry label="multiplicative" />
+  !# </enumeration>
 
   ! Enumeration of sign expectations.
-  !@ <enumeration>
-  !@  <name>rangeExpandSignExpect</name>
-  !@  <description>Used to specify the expected sign of the root function when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
-  !@  <entry label="rangeExpandSignExpectNegative" />
-  !@  <entry label="rangeExpandSignExpectNone"     />
-  !@  <entry label="rangeExpandSignExpectPositive" />
-  !@ </enumeration>
-  integer, parameter, public :: rangeExpandSignExpectNegative=-1
-  integer, parameter, public :: rangeExpandSignExpectNone    =0
-  integer, parameter, public :: rangeExpandSignExpectPositive=+1
+  !# <enumeration>
+  !#  <name>rangeExpandSignExpect</name>
+  !#  <description>Used to specify the expected sign of the root function when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+  !#  <entry label="negative" />
+  !#  <entry label="none"     />
+  !#  <entry label="positive" />
+  !# </enumeration>
 
   type :: rootFinder
      !% Type containing all objects required when calling the FGSL root solver function.
