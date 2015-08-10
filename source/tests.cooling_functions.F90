@@ -58,7 +58,7 @@ program Test_Cooling_Functions
   chemicalDensities    =zeroChemicals
   call radiation    %        define(                      [radiationTypeCMB ])
   call radiation    %           set(1.0d0                                    )
-  call gasAbundances%metallicitySet(1.0d0,metallicityType= linearByMassSolar )
+  call gasAbundances%metallicitySet(1.0d0,metallicityType= metallicityTypeLinearByMassSolar )
   ! Get the cooling functions.
   coolingFunction_                => coolingFunction               ()
   coolingFunctionCMBCompton_      =  coolingFunctionCMBCompton     ()

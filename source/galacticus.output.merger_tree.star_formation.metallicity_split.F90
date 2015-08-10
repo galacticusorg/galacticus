@@ -370,7 +370,7 @@ contains
     iHistory=Search_Array(thisHistory%time,timeNode)+1
 
     ! Find the metallicity bin to accumulate to.
-    fuelMetallicity=fuelAbundances%metallicity(metallicityType=linearByMassSolar)
+    fuelMetallicity=fuelAbundances%metallicity(metallicityType=metallicityTypeLinearByMassSolar)
     if (fuelMetallicity < metallicityTable(1) .or. starFormationHistoryMetallicityCount == 0) then
        iMetallicity=1
     else
