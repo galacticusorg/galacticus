@@ -37,12 +37,19 @@ sub Process_Enumerations {
 		unless ( $node->{'parent'}->{'type'} eq "module" || $node->{'parent'}->{'type'} eq "file" );	    
 	    # Generate source code for the enumeration.
 	    $node->{'directive'}->{'processed'} =  1;
-	    my $visibility = exists($node->{'directive'}->{'visbility'}) ? $node->{'directive'}->{'visbility'} : "public";
-	    my $enumerationSource     ;
+	    my $visibility = exists($node->{'directive'}->{'visibility'}) ? $node->{'directive'}->{'visibility'} : "public";
+	    my $validator  = exists($node->{'directive'}->{'validator' }) ? $node->{'directive'}->{'validator' } : "no"    ;
+	    my $enumerationSource     ;	    
 	    my $i                 = -1;
 	    $enumerationSource .= "  ! Auto-generated enumeration\n";
 	    $enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}.ucfirst($_->{'label'})."=".++$i."\n"
 		foreach ( &ExtraUtils::as_array($node->{'directive'}->{'entry'}) );
+	    my $enumerationCount   = $i+1;
+	    if ( $validator eq "yes" ) {
+		$enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}."Min  =0\n";
+		$enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}."Max  =".$i."\n";
+		$enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}."Count=".$enumerationCount."\n";
+	    }
 	    $enumerationSource .= "  ! End auto-generated enumeration\n\n";
 	    # Create a new node.
 	    my $newNode =
@@ -53,45 +60,18 @@ sub Process_Enumerations {
 	    };
 	    # Insert the node.
 	    &SourceTree::InsertAfterNode($node,[$newNode]);
-	    # Construct encode functions as necessary.
-	    if ( exists($node->{'directive'}->{'encodeFunction'}) && $node->{'directive'}->{'encodeFunction'} eq "yes" ) {
+	    # Construct validator function as necessary.
+	    if ( $validator eq "yes" ) {
 		# Generate function code.
-		my $functionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."Encode";
+		my $functionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."IsValid";
 		my $encodeFunction;
 		$encodeFunction .= "\n";
 		$encodeFunction .= "  ! Auto-generated enumeration function\n";
-		$encodeFunction .= "  integer function ".$functionName."(name,includesPrefix)\n";
-		$encodeFunction .= "    !% Decode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
-		$encodeFunction .= "    use Galacticus_Error\n";
+		$encodeFunction .= "  logical function ".$functionName."(enumerationValue)\n";
+		$encodeFunction .= "    !% Validate a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
 		$encodeFunction .= "    implicit none\n\n";
-		$encodeFunction .= "    character(len=*), intent(in   )           :: name\n";
-		$encodeFunction .= "    logical         , intent(in   ), optional :: includesPrefix\n";
-		$encodeFunction .= "    logical                                   :: includesPrefix_\n\n";
-		$encodeFunction .= "    includesPrefix_=.true.\n";
-		$encodeFunction .= "    if (present(includesPrefix)) includesPrefix_=includesPrefix\n";
-		for(my $j=0;$j<2;++$j) {
-		    if ( $j == 0 ) {
-			$encodeFunction .= "    if (includesPrefix_) then\n";
-		    } else {
-			$encodeFunction .= "    else\n";
-		    }
-		    $encodeFunction .= "      select case (trim(name))\n";
-		    my $i = -1;
-		    foreach ( &ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
-			$encodeFunction .= "      case ('";
-			if ( $j == 0 ) {
-			    $encodeFunction .= $node->{'directive'}->{'name'}.ucfirst($_->{'label'});
-			} else {
-			    $encodeFunction .=                                        $_->{'label'} ;
-			}
-			$encodeFunction .= "')\n";
-			$encodeFunction .= "  	".$functionName."=".++$i."\n";
-		    }
-		    $encodeFunction .= "      case default\n";
-		    $encodeFunction .= "      call Galacticus_Error_Report('".$functionName."','unrecognized mass specifier ['//trim(name)//']')\n";
-		    $encodeFunction .= "      end select\n";
-		}
-		$encodeFunction .= "    end if\n";
+		$encodeFunction .= "    integer, intent(in   ) :: enumerationValue\n";
+		$encodeFunction .= "    ".$functionName."=(enumerationValue >= 0 .and. enumerationValue < ".$node->{'directive'}->{'name'}."Count)\n";
 		$encodeFunction .= "    return\n";
 		$encodeFunction .= "  end function ".$functionName."\n";
 		$encodeFunction .= "  ! End auto-generated enumeration function\n";
@@ -107,6 +87,97 @@ sub Process_Enumerations {
 		&SourceTree::InsertPostContains($node->{'parent'},[$newNode]);
 		# Set the visibility.
 		&SourceTree::SetVisibility($node->{'parent'},$functionName,$visibility);
+	    }
+	    # Construct encode functions as necessary.
+	    if ( exists($node->{'directive'}->{'encodeFunction'}) && $node->{'directive'}->{'encodeFunction'} eq "yes" ) {
+		# Generate function code.
+		my $encodeFunctionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."Encode";
+		my $decodeFunctionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."Decode";
+		my $function;
+		$function .= "\n";
+		$function .= "  ! Auto-generated enumeration function\n";
+		$function .= "  integer function ".$encodeFunctionName."(name,includesPrefix)\n";
+		$function .= "    !% Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
+		$function .= "    use Galacticus_Error\n";
+		$function .= "    implicit none\n\n";
+		$function .= "    character(len=*), intent(in   )           :: name\n";
+		$function .= "    logical         , intent(in   ), optional :: includesPrefix\n";
+		$function .= "    logical                                   :: includesPrefix_\n\n";
+		$function .= "    includesPrefix_=.true.\n";
+		$function .= "    if (present(includesPrefix)) includesPrefix_=includesPrefix\n";
+		for(my $j=0;$j<2;++$j) {
+		    if ( $j == 0 ) {
+			$function .= "    if (includesPrefix_) then\n";
+		    } else {
+			$function .= "    else\n";
+		    }
+		    $function .= "      select case (trim(name))\n";
+		    my $i = -1;
+		    foreach ( &ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
+			$function .= "      case ('";
+			if ( $j == 0 ) {
+			    $function .= $node->{'directive'}->{'name'}.ucfirst($_->{'label'});
+			} else {
+			    $function .=                                        $_->{'label'} ;
+			}
+			$function .= "')\n";
+			$function .= "        ".$encodeFunctionName."=".++$i."\n";
+		    }
+		    $function .= "      case default\n";
+		    $function .= "      call Galacticus_Error_Report('".$encodeFunctionName."','unrecognized mass specifier ['//trim(name)//']')\n";
+		    $function .= "      end select\n";
+		}
+		$function .= "    end if\n";
+		$function .= "    return\n";
+		$function .= "  end function ".$encodeFunctionName."\n\n";
+		$function .= "  function ".$decodeFunctionName."(enumerationValue,includePrefix)\n";
+		$function .= "    !% Decode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration to a string.\n";
+		$function .= "    use Galacticus_Error\n";
+		$function .= "    implicit none\n\n";
+		$function .= "    type   (varying_string)                          :: ".$decodeFunctionName."\n";
+		$function .= "    integer                , intent(in   )           :: enumerationValue\n";
+		$function .= "    logical                , intent(in   ), optional :: includePrefix\n";
+		for(my $j=0;$j<2;++$j) {
+		    if ( $j == 0 ) {
+			$function .= "    if (present(includePrefix).and.includePrefix) then\n";
+			$function .= "      ".$decodeFunctionName."='".$node->{'directive'}->{'name'}."'\n";
+		    } else {
+			$function .= "    else\n";
+			$function .= "      ".$decodeFunctionName."=''\n";
+		    }
+		    my $i = -1;
+		    $function .= "    select case(enumerationValue)\n";
+		    foreach ( &ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
+			$function .= "    case (".++$i.")\n";
+			$function .= "       ".$decodeFunctionName."=".$decodeFunctionName."//'";
+			if ( $j == 0 ) {
+			    $function .= ucfirst($_->{'label'});
+			} else {
+			    $function .=         $_->{'label'} ;
+			}
+			$function .= "'\n";
+		    }
+		    $function .= "    case default\n";
+		    $function .= "      call Galacticus_Error_Report('".$decodeFunctionName."','invalid enumeration value')\n";
+		    $function .= "    end select\n";
+		}
+		$function .= "    end if\n";
+		$function .= "    return\n";
+		$function .= "  end function ".$decodeFunctionName."\n";
+		$function .= "  ! End auto-generated enumeration function\n";
+		# Create a new node.
+		my $newNode =
+		{
+		    type       => "block"  ,
+		    content    => $function,
+		    firstChild => undef()
+		};
+		&SourceTree::BuildTree($newNode);
+		# Insert into the module.
+		&SourceTree::InsertPostContains($node->{'parent'},[$newNode]);
+		# Set the visibility.
+		&SourceTree::SetVisibility($node->{'parent'},$encodeFunctionName,$visibility);
+		&SourceTree::SetVisibility($node->{'parent'},$decodeFunctionName,$visibility);
 	    }
 	    # Create documentation.
 	    system("mkdir -p doc/enumerations/definitions");
