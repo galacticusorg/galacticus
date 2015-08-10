@@ -45,7 +45,7 @@ module Node_Component_Spheroid_Standard
   !#   </property>
   !#   <property>
   !#     <name>massStellar</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the standard spheroid."/>
@@ -59,7 +59,7 @@ module Node_Component_Spheroid_Standard
   !#   </property>
   !#   <property>
   !#     <name>massGas</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the standard spheroid."/>
@@ -73,14 +73,14 @@ module Node_Component_Spheroid_Standard
   !#   </property>
   !#   <property>
   !#     <name>angularMomentum</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard spheroid."/>
   !#   </property>
   !#   <property>
   !#     <name>radius</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="megaParsec" comment="Scale length of the standard spheroid."/>
@@ -88,14 +88,14 @@ module Node_Component_Spheroid_Standard
   !#   <property>
   !#     <name>halfMassRadius</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#     <getFunction>Node_Component_Spheroid_Standard_Half_Mass_Radius</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>velocity</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="kilo" comment="Circular velocity at the scale length of the standard spheroid."/>
@@ -103,7 +103,7 @@ module Node_Component_Spheroid_Standard
   !#   <property>
   !#     <name>starFormationRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" createIfNeeded="true" makeGeneric="true" />
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#     <output condition="[[spheroidOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Star formation rate of the standard spheroid."/>
@@ -129,14 +129,14 @@ module Node_Component_Spheroid_Standard
   !#   </property>
   !#   <property>
   !#     <name>massGasSink</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#   </property>
   !#   <property>
   !#     <name>energyGasInput</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
@@ -200,7 +200,7 @@ contains
        !@   <description>
        !@    The type of mass distribution to use for the standard spheroid component.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidMassDistribution',spheroidMassDistributionName,defaultValue="hernquist")
@@ -216,7 +216,7 @@ contains
           !@   <description>
           !@    The S\'ersic index to use for the spheroid component mass distribution.
           !@   </description>
-          !@   <type>real</type>
+          !@   <type>double</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('spheroidSersicIndex',spheroidSersicIndex,defaultValue=4.0d0)
@@ -255,7 +255,7 @@ contains
        !@   <description>
        !@    The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of the standard spheroid component.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidAngularMomentumAtScaleRadius',spheroidAngularMomentumAtScaleRadius,defaultValue=spheroidAngularMomentumAtScaleRadiusDefault)
@@ -266,7 +266,7 @@ contains
        !@   <description>
        !@    The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_{\mathrm spheroid}^2$.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidEnergeticOutflowMassRate',spheroidEnergeticOutflowMassRate,defaultValue=1.0d-2)
@@ -277,7 +277,7 @@ contains
        !@   <description>
        !@    The mass tolerance used to judge whether the spheroid is physically plausible.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidMassToleranceAbsolute',spheroidMassToleranceAbsolute,defaultValue=1.0d-6)
@@ -288,7 +288,7 @@ contains
        !@   <description>
        !@    The minimum timescale (in units of the spheroid dynamical time) on which outflows may deplete gas in the spheroid.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spheroidOutflowTimescaleMinimum',spheroidOutflowTimescaleMinimum,defaultValue=1.0d-3)

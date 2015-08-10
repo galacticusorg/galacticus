@@ -32,7 +32,7 @@ module Node_Component_Spin_Random
   !#  <properties>
   !#   <property>
   !#     <name>spin</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="0.0d0" comment="Spin parameter of the node."/>
@@ -40,7 +40,7 @@ module Node_Component_Spin_Random
   !#   <property>
   !#     <name>spinGrowthRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#     <getFunction bindsTo="component">SpinRandomSpinGrowthRate</getFunction>
@@ -73,7 +73,7 @@ contains
        !@   <description>
        !@     The factor by which a node must increase in mass before its spin parameter is reset.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('randomSpinResetMassFactor',randomSpinResetMassFactor,defaultValue=2.0d0)
