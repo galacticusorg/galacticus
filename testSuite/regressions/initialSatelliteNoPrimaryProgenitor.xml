@@ -52,7 +52,6 @@
   <treeNodeMethodBasic value="standard"/>
   <mergerTreeBuildHaloMassMaximum value="2.0e14"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
-  <mergerTreePruningMassThreshold value="23578789000"/>
   <hotHaloAngularMomentumLossFraction value="0.0"/>
   <diskOutflowRedshiftExponent value="0.0"/>
   <coolingTimeAvailableMethod value="White-Frenk1991"/>
@@ -127,7 +126,9 @@
   <coolingRotationVelocityFrom value="hotGas"/>
   <randomSeed value="828"/>
   <conditionalMassFunctionBehrooziBCut value="87.509076382"/>
-  <mergerTreePruneBranches value="false"/>
+  <mergerTreeOperatorMethod value="pruneByMass">
+    <massThreshold value="23578789000"/>
+  </mergerTreeOperatorMethod>
   <haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum value="7.5857758e11"/>
   <starFormationFeedbackDisksMethod value="haloScaling"/>
   <coolingRateMethod value="simpleScaling"/>
