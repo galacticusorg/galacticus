@@ -23,7 +23,7 @@ require File::Changes;
 my $xml = new XML::Simple;
 
 # Load the data structure describing what types of allocatable array are needed.
-my $allocatables = $xml->XMLin("./work/build/Allocatable_Arrays.xml");
+my $allocatables = $xml->XMLin($ENV{'BUILDPATH'}."/Allocatable_Arrays.xml");
 
 # Find the longest name length.
 my $long_name = 0;
@@ -37,8 +37,8 @@ my %preBlocks;
 my %postBlocks;
 
 # Open files for pre and post "contains" code that will be included into the Memory_Management module.
-open(preContainHandle ,">./work/build/utility.memory_management.precontain.inc.tmp" );
-open(postContainHandle,">./work/build/utility.memory_management.postcontain.inc.tmp");
+open(preContainHandle ,">".$ENV{'BUILDPATH'}."/utility.memory_management.precontain.inc.tmp" );
+open(postContainHandle,">".$ENV{'BUILDPATH'}."/utility.memory_management.postcontain.inc.tmp");
 
 # Write some header information to these files.
 print preContainHandle  "!% Contains interface and type definitions for memory management routines along with storage space for pointers and sizes.\n";
@@ -197,8 +197,8 @@ foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
 }
 
 # Add closing statements to the various interface blocks.
-$preBlocks{"allocInterfaceCode"}    .= "end interface\n\n";
-$preBlocks{"deallocInterfaceCode"}  .= "end interface\n\n";
+$preBlocks{"allocInterfaceCode"  } .= "end interface\n\n";
+$preBlocks{"deallocInterfaceCode"} .= "end interface\n\n";
 
 # Output code blocks to files.
 foreach my $preBlockKey ( sort keys %preBlocks ) {
@@ -214,8 +214,8 @@ close(postContainHandle);
 
 # Truncate lines and update old files..
 foreach my $file ( "utility.memory_management.precontain.inc", "utility.memory_management.postcontain.inc", "utility.memory_management.use.inc" ) {
-    &Fortran_Utils::Truncate_Fortran_Lines("./work/build/".$file.".tmp");
-    &File_Changes::Update("./work/build/".$file ,"./work/build/".$file.".tmp" );
+    &Fortran_Utils::Truncate_Fortran_Lines("".$ENV{'BUILDPATH'}."/".$file.".tmp");
+    &File_Changes::Update($ENV{'BUILDPATH'}."/".$file ,$ENV{'BUILDPATH'}."/".$file.".tmp" );
 }
 
 exit;

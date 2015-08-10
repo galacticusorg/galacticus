@@ -20,24 +20,11 @@ my $sourcedir = $ARGV[0];
 
 #
 # Open an output file
-open(my $outfile,">$sourcedir/work/build/Makefile_Include_Deps");
+open(my $outfile,">".$sourcedir."/".$ENV{'BUILDPATH'}."/Makefile_Include_Deps");
 #
 # Build a list of source directories.
 my @sourcedirs = ( $sourcedir."/source" );
 my @bases      = ( ""                   );
-if ( -e $sourcedir."/Source_Codes" ) {
-    opendir(my $sdir,"$sourcedir/Source_Codes");
-    while ( my $line = readdir $sdir ) {
-	$line =~ s/\n//;
-	if ( -d $sourcedir."/Source_Codes/".$line ) {
-	    unless ( $line =~ m/^\.+$/ ) {
-		push(@sourcedirs,$sourcedir."/Source_Codes/".$line    );
-		push(@bases     ,            "Source_Codes/".$line."/");
-	    }
-	}
-    }
-    closedir($sdir);
-}
 
 # Array of all auto-generated include files.
 my @All_Auto_Includes;
@@ -87,7 +74,7 @@ foreach my $srcdir ( @sourcedirs ) {
 		# Remove any duplicate entries
 		@sortedinc = uniq(@sortedinc);
 		# Output the dependencies
-		print $outfile "./work/build/".$base,$oname,":";
+		print $outfile $ENV{'BUILDPATH'}."/".$base,$oname,":";
 		foreach my $inc ( @sortedinc ) {
 		    $inc =~ s/\s*$//;
 		    (my $Iinc = $inc) =~ s/\.inc$/\.Inc/;
@@ -95,22 +82,22 @@ foreach my $srcdir ( @sourcedirs ) {
 		    my $ext_Iinc = $srcdir."/".$Iinc;
 		    if ( -e $ext_Iinc ) {
 			if ( $ibase == 0 ) {
-			    print $outfile " ./work/build/$inc";
+			    print $outfile " ".$ENV{'BUILDPATH'}."/$inc";
 			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {push(@All_Auto_Includes,$Iinc)};
 			} else {
-			    print $outfile " ./work/build/$srcdir/$inc";
+			    print $outfile " ".$ENV{'BUILDPATH'}."/$srcdir/$inc";
 			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {push(@All_Auto_Includes,$srcdir."/".$Iinc)};
 			}
 		    } elsif ( -e $ext_inc ) {
 			if ( $ibase == 0 ) {
-			    print $outfile " ./work/build/$inc";
+			    print $outfile " ".$ENV{'BUILDPATH'}."/$inc";
 			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {push(@All_Auto_Includes,$inc)};
 			} else {
-			    print $outfile " ./work/build/$srcdir/$inc";
+			    print $outfile " ".$ENV{'BUILDPATH'}."/$srcdir/$inc";
 			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {push(@All_Auto_Includes,$srcdir."/".$inc)};
 			}
 		    } else {
-			print $outfile " ./work/build/$inc";
+			print $outfile " ".$ENV{'BUILDPATH'}."/$inc";
 			if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {push(@All_Auto_Includes,$inc)};
 		    }
 		}
@@ -121,5 +108,5 @@ foreach my $srcdir ( @sourcedirs ) {
     }
     closedir($indir);
 }
-print $outfile "\n./work/build/Makefile_Use_Deps: ./work/build/".join(" ./work/build/",@All_Auto_Includes)."\n";
+print $outfile "\n".$ENV{'BUILDPATH'}."/Makefile_Use_Deps: ".$ENV{'BUILDPATH'}."/".join(" ".$ENV{'BUILDPATH'}."/",@All_Auto_Includes)."\n";
 close($outfile);
