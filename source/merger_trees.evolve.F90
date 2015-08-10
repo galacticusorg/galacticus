@@ -186,12 +186,12 @@ contains
        earliestTimeInTree=largeTime
 
        ! Set the deadlock status to deadlocked initially.
-       deadlockStatus=isDeadlocked
+       deadlockStatus=deadlockStatusIsDeadlocked
        ! Enter loop for deadlock reporting.
-       deadlock : do while (deadlockStatus /= isNotDeadlocked)
+       deadlock : do while (deadlockStatus /= deadlockStatusIsNotDeadlocked)
 
           ! Post a deadlocking message.
-          if (deadlockStatus == isReporting) call Galacticus_Display_Indent("Deadlock report follows")
+          if (deadlockStatus == deadlockStatusIsReporting) call Galacticus_Display_Indent("Deadlock report follows")
 
           ! Find the final time across all trees in this forest.
           finalTimeInTree=-1.0d0
@@ -213,7 +213,7 @@ contains
              if (associated(currentTree%baseNode)) then
                 
                 ! Report on current tree if deadlocked.
-                if (deadlockStatus == isReporting) then
+                if (deadlockStatus == deadlockStatusIsReporting) then
                    vMessage="tree "
                    vMessage=vMessage//currentTree%index
                    call Galacticus_Display_Indent(vMessage)
@@ -278,7 +278,7 @@ contains
                          interrupted=.false.
                          
                          ! Find maximum allowed end time for this particular node.
-                         if (deadlockStatus == isReporting) then
+                         if (deadlockStatus == deadlockStatusIsReporting) then
                             vMessage="node "
                             write (label,'(e12.6)') thisBasicComponent%time()
                             vMessage=vMessage//thisNode%index()//" (current:target times = "//label
@@ -293,7 +293,7 @@ contains
                             endTimeThisNode=Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task,report=.false.)
                          end if
                          ! If this node is able to evolve by a finite amount, the tree is not deadlocked.
-                         if (endTimeThisNode > thisBasicComponent%time()) deadlockStatus=isNotDeadlocked
+                         if (endTimeThisNode > thisBasicComponent%time()) deadlockStatus=deadlockStatusIsNotDeadlocked
                          
                          ! Update record of earliest time in the tree.
                          earliestTimeInTree=min(earliestTimeInTree,endTimeThisNode)
@@ -304,7 +304,7 @@ contains
                             ! If an interrupt occured call the specified procedure to handle it.
                             call interruptProcedure(thisNode)
                             ! Something happened so the tree is not deadlocked.
-                            deadlockStatus=isNotDeadlocked
+                            deadlockStatus=deadlockStatusIsNotDeadlocked
                          else
                             ! Call routine to handle end of timestep processing.
                             if (associated(End_Of_Timestep_Task).and.associated(thisNode)) call End_Of_Timestep_Task(currentTree,thisNode,deadlockStatus)
@@ -323,7 +323,7 @@ contains
                                ! satellite. Check for satellite status and, if it's not a satellite, process this halo merging
                                ! event. Also record that the tree is not deadlocked, as we are changing the tree state.
                                if (.not.thisNode%isSatellite()) then
-                                  deadlockStatus=isNotDeadlocked
+                                  deadlockStatus=deadlockStatusIsNotDeadlocked
                                   call Events_Node_Merger(currentTree,thisNode)
                                end if
                             case (.true.)
@@ -332,7 +332,7 @@ contains
                                ! and become satellites of the parent halo. Also record that the tree is not deadlock, as we are
                                ! changing the tree state.
                                if (.not.associated(thisNode%sibling)) then
-                                  deadlockStatus=isNotDeadlocked
+                                  deadlockStatus=deadlockStatusIsNotDeadlocked
                                   call Tree_Node_Promote(currentTree,thisNode)
                                end if
                             end select
@@ -362,7 +362,7 @@ contains
                 end if
                 
                 ! Report on current tree if deadlocked.
-                if (deadlockStatus == isReporting) call Galacticus_Display_Unindent('end tree')
+                if (deadlockStatus == deadlockStatusIsReporting) call Galacticus_Display_Unindent('end tree')
              end if
              
              ! Move to the next tree.
@@ -373,18 +373,18 @@ contains
           call Perform_Tree_Events(thisTree,deadlockStatus)
           
           ! Check deadlocking.
-          if (didEvolve .and. deadlockStatus /= isNotDeadlocked) then
-             if (deadlockStatus == isReporting) then
+          if (didEvolve .and. deadlockStatus /= deadlockStatusIsNotDeadlocked) then
+             if (deadlockStatus == deadlockStatusIsReporting) then
                 call Galacticus_Display_Unindent("report done")
                 call Deadlock_Tree_Output(endTime)
                 call Galacticus_Error_Report('Merger_Tree_Evolve_To','merger tree appears to be deadlocked (see preceding report) - check timestep criteria')
              else
                 ! Tree is deadlocked. Switch to reporting mode and do one more pass through the tree.
-                deadlockStatus=isReporting
+                deadlockStatus=deadlockStatusIsReporting
              end if
           else
              ! No evolution could occur, so the tree is not deadlocked.
-             deadlockStatus=isNotDeadlocked
+             deadlockStatus=deadlockStatusIsNotDeadlocked
           end if
        end do deadlock
     end do outerLoop
