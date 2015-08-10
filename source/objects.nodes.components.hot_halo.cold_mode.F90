@@ -28,7 +28,7 @@ module Node_Component_Hot_Halo_Cold_Mode
   private
   public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute       , &
        &    Node_Component_Hot_Halo_Cold_Mode_Scale_Set        , Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize    , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger      , Node_Component_Hot_Halo_Cold_Mode_Satellite_Merger   , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger      , Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging  , &
        &    Node_Component_Hot_Halo_Cold_Mode_Promote          , Node_Component_Hot_Halo_Cold_Mode_Formation          , &
        &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize
 
@@ -555,9 +555,9 @@ contains
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Node_Merger
 
   !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Satellite_Merger</unitName>
+  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging</unitName>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Satellite_Merger(thisNode)
+  subroutine Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging(thisNode)
     !% Remove any cold mode gas associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
     use Abundances_Structure
     use Dark_Matter_Halo_Scales
@@ -609,7 +609,7 @@ contains
             &                                 )
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Cold_Mode_Satellite_Merger
+  end subroutine Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging
 
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Promote</unitName>
