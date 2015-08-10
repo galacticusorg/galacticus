@@ -151,17 +151,15 @@ module Mass_Distributions
   include 'objects.mass_distributions.exponential_disk.type.inc'
   include 'objects.mass_distributions.Miyamoto_Nagai.type.inc'
 
-  ! Labels for mass distribution symmetries.
-  !@ <enumeration>
-  !@  <name>massDistributionSymmetry</name>
-  !@  <description>Used to specify the symmetry of {\normalfont \ttfamily massDistribution} objects.</description>
-  !@  <entry label="massDistributionSymmetryNone"        />
-  !@  <entry label="massDistributionSymmetryCylindrical" />
-  !@  <entry label="massDistributionSymmetrySpherical"   />
-  !@ </enumeration>
-  integer                                 , parameter, public :: massDistributionSymmetryNone       =0
-  integer                                 , parameter, public :: massDistributionSymmetryCylindrical=1
-  integer                                 , parameter, public :: massDistributionSymmetrySpherical  =2
+  ! Enumeration of mass distribution symmetries.
+  !# <enumeration>
+  !#  <name>massDistributionSymmetry</name>
+  !#  <description>Specifies the symmetry of {\normalfont \ttfamily massDistribution} objects.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="none"        />
+  !#  <entry label="cylindrical" />
+  !#  <entry label="spherical"   />
+  !# </enumeration>
 
   ! Template distributions.
   type   (massDistributionNFW            )                    :: massDistributionTemplateNFW
