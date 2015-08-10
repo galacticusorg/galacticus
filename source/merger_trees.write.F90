@@ -50,7 +50,6 @@ contains
     use Cosmology_Parameters
     use Cosmology_Functions
     use Dates_and_Times
-    use Power_Spectra
     use Numerical_Constants_Astronomical
     use Numerical_Interpolation
     use Merger_Tree_Data_Structure
@@ -60,27 +59,29 @@ contains
     use Sort
     use File_Utilities
     use System_Command
+    use Cosmological_Mass_Variance
     implicit none
-    type            (mergerTree              ), intent(in   ), target                                 :: thisTree
-    integer         (kind=size_t             )                                            , parameter :: hdfChunkSize       =1024
-    integer                                                                               , parameter :: hdfCompressionLevel=9
-    double precision                                         , allocatable, dimension(:  )            :: nodeMass                            , nodeRedshift         , &
-         &                                                                                               snapshotTime                        , snapshotTimeTemp     , &
-         &                                                                                               treeWeight
-    double precision                                         , allocatable, dimension(:,:)            :: nodePosition                        , nodeVelocity
-    integer         (kind=kind_int8          )               , allocatable, dimension(:  )            :: descendentIndex                     , nodeIndex            , &
-         &                                                                                               nodeSnapshot                        , treeIndex
-    type            (treeNode                ), pointer                                               :: thisNode
-    class           (nodeComponentBasic      ), pointer                                               :: thisBasicComponent
-    class           (nodeComponentPosition   ), pointer                                               :: thisPositionComponent
-    type            (mergerTree              ), pointer                                               :: currentTree
-    class           (cosmologyParametersClass), pointer                                               :: thisCosmologyParameters
-    class           (cosmologyFunctionsClass ), pointer                                               :: cosmologyFunctionsDefault
-    integer                                                                               , parameter :: snapshotCountIncrement         =100
-    integer                                                                                           :: nodeCount                           , snapshotCount
-    type            (mergerTreeData          )                                                        :: mergerTrees
-    logical                                                                                           :: snapshotInterpolatorReset
-    type            (fgsl_interp_accel       )                                                        :: snapshotInterpolatorAccelerator
+    type            (mergerTree                   ), intent(in   ), target                                 :: thisTree
+    integer         (kind=size_t                  )                                            , parameter :: hdfChunkSize       =1024
+    integer                                                                                    , parameter :: hdfCompressionLevel=9
+    double precision                                              , allocatable, dimension(:  )            :: nodeMass                            , nodeRedshift         , &
+         &                                                                                                    snapshotTime                        , snapshotTimeTemp     , &
+         &                                                                                                    treeWeight
+    double precision                                              , allocatable, dimension(:,:)            :: nodePosition                        , nodeVelocity
+    integer         (kind=kind_int8               )               , allocatable, dimension(:  )            :: descendentIndex                     , nodeIndex            , &
+         &                                                                                                    nodeSnapshot                        , treeIndex
+    type            (treeNode                     ), pointer                                               :: thisNode
+    class           (nodeComponentBasic           ), pointer                                               :: thisBasicComponent
+    class           (nodeComponentPosition        ), pointer                                               :: thisPositionComponent
+    type            (mergerTree                   ), pointer                                               :: currentTree
+    class           (cosmologyParametersClass     ), pointer                                               :: cosmologyParameters_
+    class           (cosmologyFunctionsClass      ), pointer                                               :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass), pointer                                               :: cosmologicalMassVariance_
+    integer                                                                                    , parameter :: snapshotCountIncrement         =100
+    integer                                                                                                :: nodeCount                           , snapshotCount
+    type            (mergerTreeData               )                                                        :: mergerTrees
+    logical                                                                                                :: snapshotInterpolatorReset
+    type            (fgsl_interp_accel            )                                                        :: snapshotInterpolatorAccelerator
 
     ! Check if module is initialized.
     if (.not.moduleInitialized) then
@@ -162,14 +163,15 @@ contains
           call mergerTrees%setUnits(unitsVelocity,unitsInSI=kilo      ,hubbleExponent=0,scaleFactorExponent=0,name="km/s"  )
 
           ! Get the default cosmology.
-          thisCosmologyParameters => cosmologyParameters()
+          cosmologyParameters_      => cosmologyParameters     ()
+          cosmologicalMassVariance_ => cosmologicalMassVariance()
           ! Set cosmology metadata.
-          call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaMatter'       ,thisCosmologyParameters%OmegaMatter    (                  ))
-          call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaBaryon'       ,thisCosmologyParameters%OmegaBaryon    (                  ))
-          call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaLambda'       ,thisCosmologyParameters%OmegaDarkEnergy(                  ))
-          call mergerTrees%addMetadata(metaDataTypeCosmology ,'HubbleParam'       ,thisCosmologyParameters%HubbleConstant (hubbleUnitsLittleH))
-          call mergerTrees%addMetadata(metaDataTypeCosmology ,'sigma_8'           ,sigma_8                                (                  ))
-          call mergerTrees%addMetadata(metaDataTypeCosmology ,'powerSpectrumIndex',"not specified"                                            )
+          call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaMatter'       ,cosmologyParameters_     %OmegaMatter    (                  ))
+          call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaBaryon'       ,cosmologyParameters_     %OmegaBaryon    (                  ))
+          call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaLambda'       ,cosmologyParameters_     %OmegaDarkEnergy(                  ))
+          call mergerTrees%addMetadata(metaDataTypeCosmology ,'HubbleParam'       ,cosmologyParameters_     %HubbleConstant (hubbleUnitsLittleH))
+          call mergerTrees%addMetadata(metaDataTypeCosmology ,'sigma_8'           ,cosmologicalMassVariance_%sigma8         (                  ))
+          call mergerTrees%addMetadata(metaDataTypeCosmology ,'powerSpectrumIndex',"not specified"                                              )
 
           ! Set provenance metadata.
           call mergerTrees%addMetadata(metaDataTypeProvenance,'fileBuiltBy'       ,'Galacticus'                   )
@@ -219,7 +221,7 @@ contains
              call Sort_Do(snapshotTime(1:snapshotCount))
           end if
           ! Get the default cosmology functions object.
-          cosmologyFunctionsDefault => cosmologyFunctions()
+          cosmologyFunctions_ => cosmologyFunctions()
           ! Serialize node data to arrays and write to merger tree data structure.
           treeIndex =currentTree%index
           treeWeight=currentTree%volumeWeight
@@ -233,7 +235,7 @@ contains
              thisBasicComponent    => thisNode%basic   ()
              thisPositionComponent => thisNode%position()
              nodeMass       (nodeCount)=                                                thisBasicComponent%mass()
-             nodeRedshift   (nodeCount)=cosmologyFunctionsDefault%redshiftFromExpansionFactor(cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time()))
+             nodeRedshift   (nodeCount)=cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(thisBasicComponent%time()))
              if (defaultPositionComponent%positionIsGettable()) nodePosition(nodeCount,:)=thisPositionComponent%position()
              if (defaultPositionComponent%velocityIsGettable()) nodeVelocity(nodeCount,:)=thisPositionComponent%velocity()
              if (needsSnapshots) nodeSnapshot(nodeCount)=Interpolate_Locate(snapshotTime(1:snapshotCount),snapshotInterpolatorAccelerator&
