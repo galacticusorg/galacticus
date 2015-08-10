@@ -268,7 +268,7 @@ contains
     if (self%forceZeroMetallicity) then
        metallicity=logMetallicityZero
     else
-       metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=logarithmicByMassSolar)
+       metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=metallicityTypeLogarithmicByMassSolar)
     end if
     if (metallicity > self%spectra(imfLookupIndex)%metallicities(self%spectra(imfLookupIndex)%metallicityCount)+metallicityTolerance) then
        if (present(status)) then
