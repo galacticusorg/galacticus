@@ -288,6 +288,7 @@ my @translations =
 	     "mergerTreeRegridSpacing"                                        => "mergerTreeOperatorMethod.regridTimes.--snapshotSpacing"            ,
 	     "mergerTreePruneBranches"                                        => "mergerTreeOperatorMethod.pruneByMass."                             ,
 	     "mergerTreePruningMassThreshold"                                 => "mergerTreeOperatorMethod.pruneByMass.--massThreshold"              ,
+	     "mergerTreePruneHierarchyAtDepth"                                => "mergerTreeOperatorMethod.pruneHierarchy.--hierarchyDepth"          ,
 	     "mergerTreeComputeConditionalMassFunction"                       => "mergerTreeOperatorMethod.conditionalMF."                           ,
 	     "mergerTreeComputeConditionalMassFunctionParentMassCount"        => "mergerTreeOperatorMethod.conditionalMF.--parentMassCount"          ,
 	     "mergerTreeComputeConditionalMassFunctionParentMassMinimum"      => "mergerTreeOperatorMethod.conditionalMF.--parentMassMinimum"        ,
