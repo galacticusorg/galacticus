@@ -36,7 +36,9 @@
 	<OmegaBaryon value="0.045"/>
 	<HubbleConstant value="73.0"/>
       </cosmologyParametersMethod>
-      <sigma_8 value="0.9"/>
+      <cosmologicalMassVarianceMethod value="filteredPower">
+	<sigma_8 value="0.9"/>
+      </cosmologicalMassVarianceMethod>
       <treeNodeMethodPosition value="preset"/>
       <mergerTreesWrite value="true"/>
       <mergerTreeExportFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesIRATE.hdf5"/>
