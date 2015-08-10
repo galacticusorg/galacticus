@@ -67,7 +67,7 @@ contains
     ! Locate the paired event in the host and remove it.
     call newHost%removePairedEvent(thisEvent)
     ! Since we changed the tree, record that the tree is not deadlocked.
-    deadlockStatus=isNotDeadlocked
+    deadlockStatus=deadlockStatusIsNotDeadlocked
     return
   end function Node_Branch_Jump
 
