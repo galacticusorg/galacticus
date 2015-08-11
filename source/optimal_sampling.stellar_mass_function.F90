@@ -178,16 +178,18 @@ contains
     !% The integrand (as a function of halo mass) giving the stellar mass function.
     use Conditional_Mass_Functions
     implicit none
-    real            (kind=c_double)            :: Stellar_Mass_Function_Integrand
-    real            (kind=c_double), value     :: mass
-    type            (c_ptr        ), value     :: parameterPointer
-    double precision               , parameter :: deltaLogMass=0.097d0
-    double precision                           :: conditionalStellarMassFunction
+    real            (kind=c_double               )            :: Stellar_Mass_Function_Integrand
+    real            (kind=c_double               ), value     :: mass
+    type            (c_ptr                       ), value     :: parameterPointer
+    class           (conditionalMassFunctionClass), pointer   :: conditionalMassFunction_
+    double precision                              , parameter :: deltaLogMass=0.097d0
+    double precision                                          :: conditionalStellarMassFunction
 
+    conditionalMassFunction_        => conditionalMassFunction()
     conditionalStellarMassFunction=                                                                                       &
          & (                                                                                                              &
-         &   Cumulative_Conditional_Mass_Function(mass,stellarMass*(10.0d0**(-0.5d0*optimalSamplingLogarithmicBinWidth))) &
-         &  -Cumulative_Conditional_Mass_Function(mass,stellarMass*(10.0d0**(+0.5d0*optimalSamplingLogarithmicBinWidth))) &
+         &   conditionalMassFunction_%massFunction(mass,stellarMass*(10.0d0**(-0.5d0*optimalSamplingLogarithmicBinWidth))) &
+         &  -conditionalMassFunction_%massFunction(mass,stellarMass*(10.0d0**(+0.5d0*optimalSamplingLogarithmicBinWidth))) &
          & )                                                                                                              &
          & /(10.0d0**(+0.5d0*optimalSamplingLogarithmicBinWidth)-10.0d0**(-0.5d0*optimalSamplingLogarithmicBinWidth))
 

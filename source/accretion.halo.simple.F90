@@ -58,6 +58,7 @@
      !@     <description>Returns the total node mass.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     procedure :: branchHasBaryons       => simpleBranchHasBaryons
      procedure :: accretionRate          => simpleAccretionRate
      procedure :: accretedMass           => simpleAccretedMass
      procedure :: failedAccretionRate    => simpleFailedAccretionRate
@@ -79,7 +80,7 @@
   end interface accretionHaloSimple
 
   ! Parameters controlling when accretion is suppressed.
-  double precision                     :: simpleReionizationSuppressionRedshift, simpleReionizationSuppressionTime, &
+  double precision                     :: simpleReionizationSuppressionRedshift  , simpleReionizationSuppressionTime, &
        &                                  simpleReionizationSuppressionVelocity
 
   ! Options controlling accretion.
@@ -231,6 +232,26 @@ contains
     end if
     return
   end function simpleConstructor
+
+  logical function simpleBranchHasBaryons(self,node)
+    !% Returns true if this branch can accrete any baryons.
+    use Galacticus_Nodes
+    implicit none
+    class(accretionHaloSimple), intent(inout)          :: self
+    type (treeNode           ), intent(inout), pointer :: node
+    type (treeNode           )               , pointer :: branchNode
+
+    simpleBranchHasBaryons=.false.
+    branchNode => node
+    do while (associated(branchNode))
+       if (self%failedFraction(branchNode) < 1.0d0) then
+          simpleBranchHasBaryons=.true.
+          exit
+       end if
+       call branchNode%walkBranch(node,branchNode)
+    end do
+    return
+  end function simpleBranchHasBaryons
 
   double precision function simpleAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.

@@ -21,32 +21,74 @@
 
 module Galactic_Structure_Potentials
   !% Implements calculations of the gravitational potential.
+  use Kind_Numbers
   use Galacticus_Nodes
   use Galactic_Structure_Options
   implicit none
   private
-  public :: Galactic_Structure_Potential
+  public :: Galactic_Structure_Potential, Galactic_Structure_Potential_Standard_Reset
 
   ! Module scope variables used in mapping over components.
-  integer          :: componentTypeShared, massTypeShared
-  logical          :: haloLoadedShared
-  double precision :: radiusShared
+  integer                          :: componentTypeShared             , massTypeShared, statusShared
+  logical                          :: haloLoadedShared
+  double precision                 :: radiusShared
   !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,radiusShared)
+
+  ! Precomputed values.
+  integer         (kind=kind_int8) :: lastUniqueID           =-1_kind_int8
+  logical                          :: potentialOffsetComputed=.false.
+  double precision                 :: potentialOffset
+    !$omp threadprivate(lastUniqueID,potentialOffsetComputed,potentialOffset)
+
 contains
 
-  double precision function Galactic_Structure_Potential(thisNode,radius,componentType,massType,haloLoaded)
+  double precision function Galactic_Structure_Potential(thisNode,radius,componentType,massType,haloLoaded,status)
     !% Solve for the gravitational potential at a given radius. Assumes the galactic structure has already been computed.
+    use Dark_Matter_Halo_Scales
     !# <include directive="potentialTask" type="moduleUse">
     include 'galactic_structure.potential.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode           ), intent(inout)          , pointer :: thisNode
-    integer                              , intent(in   ), optional          :: componentType             , massType
-    logical                              , intent(in   ), optional          :: haloLoaded
-    double precision                     , intent(in   )                    :: radius
-    procedure       (Component_Potential)                         , pointer :: componentPotentialFunction
-    double precision                                                        :: componentPotential
+    type            (treeNode                ), intent(inout)          , pointer :: thisNode
+    integer                                   , intent(in   ), optional          :: componentType             , massType
+    logical                                   , intent(in   ), optional          :: haloLoaded
+    double precision                          , intent(in   )                    :: radius
+    integer                                   , intent(  out), optional          :: status
+    procedure       (Component_Potential     )                         , pointer :: componentPotentialFunction
+    class           (darkMatterHaloScaleClass)                         , pointer :: darkMatterHaloScale_
+    double precision                                                             :: componentPotential
 
+    ! Determine whether halo loading is to be used.
+    if (present(haloLoaded)) then
+       haloLoadedShared=haloLoaded
+    else
+       ! Note that the default option is currently false, as adiabatic contraction effects on the dark matter potential are not
+       ! accounted for.
+       haloLoadedShared=.false.
+    end if
+    ! Initialize status.
+    if (present(status)) status=structureErrorCodeSuccess
+    ! Initialize pointer to function that supplies the potential for all components.
+    componentPotentialFunction => Component_Potential
+    ! Reset calculations if this is a new node.
+    if (thisNode%uniqueID() /= lastUniqueID) call Galactic_Structure_Potential_Standard_Reset(thisNode)
+    ! Evaluate the potential at the halo virial radius.
+    if (.not.potentialOffsetComputed) then
+       componentTypeShared  =  componentTypeAll
+       massTypeShared       =  massTypeAll
+       darkMatterHaloScale_ => darkMatterHaloScale()
+       radiusShared         =  darkMatterHaloScale_%virialRadius(thisNode)
+       statusShared         =  structureErrorCodeSuccess
+       Galactic_Structure_Potential=thisNode%mapDouble0(componentPotentialFunction,reductionSummation)
+       if (statusShared /= structureErrorCodeSuccess) status=statusShared
+       !# <include directive="potentialTask" type="functionCall" functionType="function" returnParameter="componentPotential">
+       !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared,haloLoadedShared,status</functionArgs>
+       !#  <onReturn>Galactic_Structure_Potential=Galactic_Structure_Potential+componentPotential</onReturn>
+       include 'galactic_structure.potential.tasks.inc'
+       !# </include>
+       potentialOffset        =-Galactic_Structure_Potential-darkMatterHaloScale_%virialVelocity(thisNode)**2
+       potentialOffsetComputed=.true.
+    end if
     ! Determine which component type to use.
     if (present(componentType)) then
        componentTypeShared=componentType
@@ -59,24 +101,15 @@ contains
     else
        massTypeShared     =massTypeAll
     end if
-    ! Determine whether halo loading is to be used.
-    if (present(haloLoaded)) then
-       haloLoadedShared=haloLoaded
-    else
-       ! Note that the default option is currently false, as adiabatic contraction effects on the dark matter potential are not
-       ! accounted for.
-       haloLoadedShared=.false.
-    end if
     ! Store the radius.
     radiusShared=radius
-    ! Call routines to supply the potential for all components.
-    componentPotentialFunction => Component_Potential
-    Galactic_Structure_Potential=thisNode%mapDouble0(componentPotentialFunction,reductionSummation)
-    !# <include directive="potentialTask" type="functionCall" functionType="function" returnParameter="componentPotential">
-    !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared,haloLoadedShared</functionArgs>
-    !#  <onReturn>Galactic_Structure_Potential=Galactic_Structure_Potential+componentPotential</onReturn>
-    include 'galactic_structure.potential.tasks.inc'
-    !# </include>
+    ! Compute the potential offset such that the total gravitational potential at the virial radius is -V^2 where V is the virial
+    ! velocity.
+    statusShared=structureErrorCodeSuccess
+    Galactic_Structure_Potential=+thisNode%mapDouble0(componentPotentialFunction,reductionSummation) &
+         &                       +potentialOffset
+    if (statusShared /= structureErrorCodeSuccess) status=statusShared
+    include 'galactic_structure.potential.tasks.inc'    
     return
   end function Galactic_Structure_Potential
 
@@ -85,9 +118,22 @@ contains
     implicit none
     class(nodeComponent), intent(inout) :: component
 
-    Component_Potential=component%potential(radiusShared,componentTypeShared,massTypeShared,haloLoadedShared)
+    Component_Potential=component%potential(radiusShared,componentTypeShared,massTypeShared,haloLoadedShared,statusShared)
     return
   end function Component_Potential
+
+  !# <calculationResetTask>
+  !# <unitName>Galactic_Structure_Potential_Standard_Reset</unitName>
+  !# </calculationResetTask>
+  subroutine Galactic_Structure_Potential_Standard_Reset(node)
+    !% Reset calculations for galactic structure potentials.
+    implicit none
+    type(treeNode), intent(in   ) :: node
+
+    potentialOffsetComputed=.false.
+    lastUniqueID           =node%uniqueID()
+    return
+  end subroutine Galactic_Structure_Potential_Standard_Reset
 
 end module Galactic_Structure_Potentials
 
