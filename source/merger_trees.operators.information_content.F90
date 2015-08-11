@@ -39,61 +39,61 @@
      integer         (kind=kind_int8), dimension(:), allocatable :: treeIndex
      double precision                , dimension(:), allocatable :: informationContent
    contains
-     final     ::             informtionContentDestructor
-     procedure :: operate  => informtionContentOperate
+     final     ::             informationContentDestructor
+     procedure :: operate  => informationContentOperate
      procedure :: finalize => informationContentFinalize
   end type mergerTreeOperatorInformationContent
   
   interface mergerTreeOperatorInformationContent
      !% Constructors for the prune-hierarchy merger tree operator class.
-     module procedure informtionContentConstructorParameters
-     module procedure informtionContentConstructorInternal
+     module procedure informationContentConstructorParameters
+     module procedure informationContentConstructorInternal
   end interface mergerTreeOperatorInformationContent
 
 contains
 
-  function informtionContentConstructorParameters(parameters)
+  function informationContentConstructorParameters(parameters)
     !% Constructor for the information content merger tree operator class which takes a parameter set as input.
     implicit none
-    type   (mergerTreeOperatorInformationContent)                :: informtionContentConstructorParameters
+    type   (mergerTreeOperatorInformationContent)                :: informationContentConstructorParameters
     type   (inputParameters                     ), intent(in   ) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
         
     !# <inputParameter>
     !#   <name>outputGroupName</name>
     !#   <source>parameters</source>
-    !#   <variable>informtionContentConstructorParameters%outputGroupName</variable>
+    !#   <variable>informationContentConstructorParameters%outputGroupName</variable>
     !#   <defaultValue>var_str('treeInformationContent')</defaultValue>
     !#   <description>The name of an \gls{hdf5} group to which tree information content should be written.</description>
     !#   <type>string</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    informtionContentConstructorParameters%treeCount=0_c_size_t
+    informationContentConstructorParameters%treeCount=0_c_size_t
     return
-  end function informtionContentConstructorParameters
+  end function informationContentConstructorParameters
 
-  function informtionContentConstructorInternal(outputGroupName)
+  function informationContentConstructorInternal(outputGroupName)
     !% Internal constructor for the information content merger tree operator class.
     use Galacticus_Error
     implicit none
-    type(mergerTreeOperatorInformationContent)                :: informtionContentConstructorInternal
+    type(mergerTreeOperatorInformationContent)                :: informationContentConstructorInternal
     type(varying_string                      ), intent(in   ) :: outputGroupName
 
-    informtionContentConstructorInternal%outputGroupName=outputGroupName
-    informtionContentConstructorInternal%treeCount      =0_c_size_t
+    informationContentConstructorInternal%outputGroupName=outputGroupName
+    informationContentConstructorInternal%treeCount      =0_c_size_t
    return
-  end function informtionContentConstructorInternal
+  end function informationContentConstructorInternal
 
-  elemental subroutine informtionContentDestructor(self)
+  elemental subroutine informationContentDestructor(self)
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorInformationContent), intent(inout) :: self
 
     ! Nothing to do.
     return
-  end subroutine informtionContentDestructor
+  end subroutine informationContentDestructor
 
-  subroutine informtionContentOperate(self,tree)
+  subroutine informationContentOperate(self,tree)
     !% Perform a information content operation on a merger tree.
     use Factorials
     use Merger_Trees_Pruning_Utilities
@@ -161,7 +161,7 @@ contains
        treeCurrent => treeCurrent%nextTree
     end do
     return
-  end subroutine informtionContentOperate
+  end subroutine informationContentOperate
 
   subroutine informationContentFinalize(self)
     !% Outputs tree information content function.
