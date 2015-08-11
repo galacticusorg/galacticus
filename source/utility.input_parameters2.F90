@@ -17,7 +17,7 @@
 
 !% Contains a module which implements reading of parameters from an XML data file.
 
-!: ./work/build/utility.input_parameters2.C.o
+!: $(BUILDPATH)/utility.input_parameters2.C.o
 
 module Input_Parameters2
   !% Implements reading of parameters from an XML file.
@@ -351,10 +351,10 @@ contains
     allowedParameterFromFileCount=0
     if (present(allowedParametersFile)) then
        ! Check if the file exists.
-       if (File_Exists(char(Galacticus_Input_Path())//'work/build/'//allowedParametersFile)) then
+       if (File_Exists(char(Galacticus_Input_Path())//BUILDPATH//'/'//allowedParametersFile)) then
           !$omp critical (FoX_DOM_Access)
           ! Parse the file.
-          allowedParameterDoc => parseFile(char(Galacticus_Input_Path())//'work/build/'//allowedParametersFile,iostat=errorStatus)
+          allowedParameterDoc => parseFile(char(Galacticus_Input_Path())//BUILDPATH//'/'//allowedParametersFile,iostat=errorStatus)
           if (errorStatus /= 0) call Galacticus_Error_Report('inputParametersConstructorNode','Unable to parse allowed parameters file')
           ! Extract allowed parameter names to array.
           allowedParameterList => getElementsByTagname(allowedParameterDoc,"parameter")
