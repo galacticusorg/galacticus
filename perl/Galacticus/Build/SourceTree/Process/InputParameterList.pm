@@ -36,7 +36,7 @@ sub Process_InputParameterList {
     $fileName = $tree->{'name'}
         if ( $tree->{'type'} eq "file" );
     # Get code directive locations.
-    my $directiveLocations = $xml->XMLin($galacticusPath."work/build/Code_Directive_Locations.xml");
+    my $directiveLocations = $xml->XMLin($galacticusPath.$ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
     # Initialize list of unlisted parameters.
     my @unlistedInputParameters;
     # Walk the tree, looking for input parameter list directives.
@@ -128,7 +128,7 @@ sub Process_InputParameterList {
     # Output file of unlisted parameters.
     if ( @unlistedInputParameters ) {
 	$fileName =~ s/\.F90$/.p/;
-	open(my $parametersFile,">>work/build/".$fileName);
+	open(my $parametersFile,">>".$ENV{'BUILDPATH'}."/".$fileName);
 	print $parametersFile $_."\n"
 	    foreach ( @unlistedInputParameters );
 	close($parametersFile);
