@@ -12,6 +12,7 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
 }
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
+use PDL::NiceSlice;
 require Galacticus::HDF5;
 require Stats::Histograms;
 
