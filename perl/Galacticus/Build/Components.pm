@@ -2030,7 +2030,8 @@ sub Generate_Tree_Node_Object {
 	     name        => "walkTree"                                                                                                        ,
 	     function    => "treeNodeWalkTree"                                                                                                ,
 	     description => "Return a pointer to the next node when performing a walk of the entire tree, excluding satellites."              ,
-	     returnType  => "\\void"                                                       
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => ""                                                       
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
@@ -2045,7 +2046,8 @@ sub Generate_Tree_Node_Object {
 	     name        => "walkTreeWithSatellites"                                                                                          ,
 	     function    => "treeNodeWalkTreeWithSatellites"                                                                                  ,
 	     description => "Return a pointer to the next node when performing a walk of the entire tree, including satellites."              ,
-	     returnType  => "\\void" 
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
