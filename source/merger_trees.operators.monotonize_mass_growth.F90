@@ -32,7 +32,7 @@
   end type mergerTreeOperatorMonotonizeMassGrowth
   
   interface mergerTreeOperatorMonotonizeMassGrowth
-     !% Constructors for the prune-hierarchy merger tree operator class.
+     !% Constructors for the mass growth monotonizing merger tree operator class.
      module procedure monotonizeMassGrowthConstructorParameters
      module procedure monotonizeMassGrowthConstructorInternal
   end interface mergerTreeOperatorMonotonizeMassGrowth
