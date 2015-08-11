@@ -167,5 +167,7 @@ contains
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do
+       ! Uniqueify nodes.
+       call Merger_Tree_Prune_Uniqueify_IDs(thisTree)
     return
   end subroutine pruneNonEssentialOperate

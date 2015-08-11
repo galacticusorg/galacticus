@@ -147,8 +147,9 @@ contains
     implicit none
     class           (transferFunctionCAMB), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
-    integer         (c_int               )                :: lockFileDescriptor
+    type            (lockDescriptor    )                                           :: fileLock
     character       (len=32              )                :: wavenumberLabel
+    character       (len=255           )                                           :: hostName
     type            (varying_string      )                :: command             , parameterFile
     logical                                               :: makeTransferFunction
     double precision                                      :: wavenumberCAMB
@@ -161,19 +162,21 @@ contains
             &  .and.                                  &
             &   .not.self%wavenumberMaximumReached    &
             & ) makeTransferFunction=.true.
+    call Get_Environment_Variable('HOSTNAME',hostName)
+    parameterFile=parameterFile//'_'//trim(hostName)//'_'//GetPID()//'.xml'
     else
        makeTransferFunction=.true.
     end if    
     if (.not.makeTransferFunction) return
     ! If the file exists but has not yet been read, read it now.
     if (.not.self%initialized.and.File_Exists(self%fileName)) then
-       lockFileDescriptor=File_Lock(char(self%fileName//".lock"))
+       call File_Lock(char(self%fileName//".lock"),fileLock)
        call self%readFile(char(self%fileName))
-       call File_Unlock(lockFileDescriptor)
+       call File_Unlock(fileLock)
     else if (.not.self%initialized .or. wavenumber > self%transfer%x(-1)) then
        ! If the wavenumber if out of range, recompute the CAMB transfer function.
        ! Get a lock on the relevant lock file.
-       lockFileDescriptor=File_Lock(char(self%fileName//".lock"))
+       call File_Lock(char(self%fileName//".lock"),fileLock)
        ! Remove the transfer function file so that a new one will be created.
        command='rm -f '//self%fileName
        call System_Command_Do(command)
@@ -200,7 +203,7 @@ contains
        ! Read the newly created file.
        call self%readFile(char(self%fileName))
        ! Unlock the lock file.
-       call File_Unlock(lockFileDescriptor)
+    call File_Unlock(fileLock)
     end if
     ! Check the maximum wavenumber.
     if (self%transfer%x(-1) > log(self%wavenumberMaximum)-0.01d0) self%wavenumberMaximumReached=.true.
