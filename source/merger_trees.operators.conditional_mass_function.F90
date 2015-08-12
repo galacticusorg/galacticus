@@ -182,6 +182,7 @@ contains
     type            (varying_string                 )                            :: outputGroupName
     !# <inputParameterList label="allowedParameterNames" />
 
+    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>parentMassCount</name>
     !#   <source>parameters</source>

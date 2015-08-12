@@ -55,6 +55,7 @@ contains
     integer                                                  :: hierarchyDepth
     !# <inputParameterList label="allowedParameterNames" />
         
+    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>hierarchyDepth</name>
     !#   <source>parameters</source>

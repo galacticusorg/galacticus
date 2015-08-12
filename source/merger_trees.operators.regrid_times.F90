@@ -66,6 +66,7 @@ contains
     type            (varying_string               )                              :: snapshotSpacingText
     !# <inputParameterList label="allowedParameterNames" />
         
+    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>dumpTrees</name>
     !#   <source>parameters</source>
