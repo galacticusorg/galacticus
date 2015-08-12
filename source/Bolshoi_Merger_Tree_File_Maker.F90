@@ -48,6 +48,6 @@ program Bolshoi_Merger_Tree_File_Maker
   call Merger_Trees_Bolshoi_Process(nodesFile,mergerTrees)
 
   ! Output HDF5 file.
-  call mergerTrees%export(outputFile,outputFormat,int(hdfChunkSize,kind=hsize_t),hdfCompressionLevel)
+  call mergerTrees%export(outputFile,enumerationMergerTreeFormatEncode(trim(outputFormat)),int(hdfChunkSize,kind=hsize_t),hdfCompressionLevel)
 
 end program Bolshoi_Merger_Tree_File_Maker

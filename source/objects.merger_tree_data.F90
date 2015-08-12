@@ -28,6 +28,17 @@ module Merger_Tree_Data_Structure
   private
   public :: mergerTreeData
 
+  ! Output formats.
+  !# <enumeration>
+  !#  <name>mergerTreeFormat</name>
+  !#  <description>Used to specify which output format to use for merger tree data.</description>
+  !#  <visibility>public</visibility>
+  !#  <validator>yes</validator>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="galacticus" />
+  !#  <entry label="irate"      />
+  !# </enumeration>
+
   ! Property labels.
   !# <enumeration>
   !#  <name>propertyType</name>
@@ -314,7 +325,7 @@ module Merger_Tree_Data_Structure
      !@     <method>export</method>
      !@     <description>Export the tree data to an output file.</description>
      !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} outputFileName\argin, \textcolor{red}{\textless character(len=*)\textgreater} outputFormat\argin, \intzero\ hdfChunkSize\argin, \intzero\ hdfCompressionLevel\argin, \logicalzero\ [append]\argin</arguments>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} outputFileName\argin, \enumMergerTreeFormat\ outputFormat\argin, \intzero\ hdfChunkSize\argin, \intzero\ hdfCompressionLevel\argin, \logicalzero\ [append]\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: reset                                           =>Merger_Tree_Data_Structure_Reset
@@ -1493,9 +1504,9 @@ contains
     use String_Handling
     implicit none
     integer  (kind=size_t   ), intent(in   )           :: hdfChunkSize
-    integer                  , intent(in   )           :: hdfCompressionLevel
+    integer                  , intent(in   )           :: hdfCompressionLevel, outputFormat
     class    (mergerTreeData), intent(inout)           :: mergerTrees
-    character(len=*         ), intent(in   )           :: outputFileName, outputFormat
+    character(len=*         ), intent(in   )           :: outputFileName
     logical                  , intent(in   ), optional :: append
 
     ! Validate the merger tree.
@@ -1504,10 +1515,10 @@ contains
     ! If we have most-bound particle indices and particle data has been read, construct arrays giving position of particle data for each node.
     call Merger_Tree_Data_Construct_Particle_Indices(mergerTrees)
 
-    select case (String_Lower_Case(trim(outputFormat)))
-    case ("galacticus")
+    select case (outputFormat)
+    case (mergerTreeFormatGalacticus)
        call Merger_Tree_Data_Structure_Export_Galacticus(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
-    case ("irate")
+    case (mergerTreeFormatIrate     )
        call Merger_Tree_Data_Structure_Export_IRATE     (mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
     case default
        call Galacticus_Error_Report('Merger_Tree_Data_Structure_Export','output format is not recognized')
