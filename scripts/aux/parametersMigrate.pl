@@ -301,7 +301,9 @@ my @translations =
 	     "mergerTreeComputeConditionalMassFunctionParentRedshifts"        => "mergerTreeOperatorMethod.conditionalMF.--parentRedshifts"          ,
 	     "mergerTreeComputeConditionalMassFunctionProgenitorRedshifts"    => "mergerTreeOperatorMethod.conditionalMF.--progenitorRedshifts"      ,
 	     "mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth" => "mergerTreeOperatorMethod.conditionalMF.--primaryProgenitorDepth"   ,
-	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"     => "mergerTreeOperatorMethod.conditionalMF.--formationRateTimeFraction"
+	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"     => "mergerTreeOperatorMethod.conditionalMF.--formationRateTimeFraction",
+	     "mergerTreeExportFileName"                                       => "mergerTreeOperatorMethod.write.--outputFileName"                   ,
+	     "mergerTreeExportOutputFormat"                                   => "mergerTreeOperatorMethod.write.--exportFormat"
 	 },
  	 values        =>
          {
