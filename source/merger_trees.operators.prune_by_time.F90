@@ -46,6 +46,7 @@ contains
     class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     !# <inputParameterList label="allowedParameterNames" />
         
+    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>redshiftEarliest</name>
     !#   <source>parameters</source>

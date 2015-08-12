@@ -46,6 +46,7 @@ contains
     type(inputParameters                 ), intent(in   ) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
     
+    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>path</name>
     !#   <defaultValue>var_str('.')</defaultValue>
