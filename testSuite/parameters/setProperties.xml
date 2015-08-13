@@ -55,8 +55,7 @@
   <mergerTreeBuilderMethod value="cole2000">
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
-  </mergerTreeBuilderMethod>
-  </mergerTreeBuildMethod><treeBranchingMethod value="modifiedPress-Schechter"/>
+  </mergerTreeBuilderMethod><treeBranchingMethod value="modifiedPress-Schechter"/>
   <modifiedPressSchechterG0 value="0.57"/>
   <modifiedPressSchechterGamma1 value="0.38"/>
   <modifiedPressSchechterGamma2 value="-0.01"/>

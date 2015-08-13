@@ -157,9 +157,10 @@
   <diskOutflowExponent value="3.0"/>
   <conditionalMassFunctionBehrooziLog10Mstar0 value="10.5980300058"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorPhi0 value="2.0e-4"/>
+  <mergerTreeBuilderMethod value="cole2000">
     <mergeProbability value="0.1"/>
     <accretionLimit value="1.00059263316574"/>
-  </mergerTreeBuildMethod><outputRedshifts value="0.0700"/>
+  </mergerTreeBuilderMethod><outputRedshifts value="0.0700"/>
   <hotHaloTrackStrippedGas value="true"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth value="0.097"/>
   <randomSpinResetMassFactor value="2.0"/>
