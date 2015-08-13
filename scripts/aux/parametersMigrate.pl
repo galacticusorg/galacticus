@@ -246,64 +246,89 @@ my @translations =
 	 outputVersion => "0.9.4",
 	 names         =>
 	 {
-	     "mergerTreeBuildMethod"                                          => "mergerTreeBuilderMethod"                                           ,
-	     "darkMatterShapeMethod"                                          => "darkMatterProfileShapeMethod"                                      ,
-	     "H_0"                                                            => "cosmologyParametersMethod--HubbleConstant"                         ,
-	     "Omega_Matter"                                                   => "cosmologyParametersMethod--OmegaMatter"                            ,
-	     "Omega_DE"                                                       => "cosmologyParametersMethod--OmegaDarkEnergy"                        ,
-	     "Omega_b"                                                        => "cosmologyParametersMethod--OmegaBaryon"                            ,
-	     "T_CMB"                                                          => "cosmologyParametersMethod--temperatureCMB"                         ,
-	     "effectiveNumberNeutrinos"                                       => "transferFunctionMethod--neutrinoNumberEffective"                   ,
-	     "summedNeutrinoMasses"                                           => "transferFunctionMethod--neutrinoMassSummed"                        ,
-	     "transferFunctionWDMFreeStreamingLength"                         => "transferFunctionMethod--freeStreamingLength"                       ,
-	     "transferFunctionWdmCutOffScale"                                 => "transferFunctionMethod--scaleCutOff"                               ,
-	     "transferFunctionWdmEpsilon"                                     => "transferFunctionMethod--epsilon"                                   ,
-	     "transferFunctionWdmEta"                                         => "transferFunctionMethod--eta"                                       ,
-	     "transferFunctionWdmNu"                                          => "transferFunctionMethod--nu"                                        ,
-	     "stellarPopulationSpectraFileForceZeroMetallicity"               => "stellarPopulationSpectraMethod--forceZeroMetallicity"              ,
-	     "stellarPopulationSpectraForChabrierIMF"                         => "stellarPopulationSpectraMethod--fileNameForChabrierIMF"            ,
-	     "stellarPopulationSpectraForBaugh2005TopHeavyIMF"                => "stellarPopulationSpectraMethod--fileNameForBaugh2005TopHeavyIMF"   ,
-	     "stellarPopulationSpectraForKroupaIMF"                           => "stellarPopulationSpectraMethod--fileNameForKroupaIMF"              ,
-	     "stellarPopulationSpectraForMiller-ScaloIMF"                     => "stellarPopulationSpectraMethod--fileNameForMiller-ScaloIMF"        ,
-	     "stellarPopulationSpectraForSalpeterIMF"                         => "stellarPopulationSpectraMethod--fileNameForSalpeterIMF"            ,
-	     "stellarPopulationSpectraForScaloIMF"                            => "stellarPopulationSpectraMethod--fileNameForScaloIMF"               ,
-	     "stellarPopulationSpectraForKennicuttIMF"                        => "stellarPopulationSpectraMethod--fileNameForKennicuttIMF"           ,
-	     "accretionDiskSpectraFileName"                                   => "accretionDiskSpectraMethod--fileName"                              ,
-	     "chemicalStateFile"                                              => "chemicalStateMethod--fileName"                                     ,
-	     "coolingFunctionsMethod"                                         => "coolingFunctionMethod"                                             ,
-	     "powerSpectrumMethod"                                            => "powerSpectrumPrimordialMethod"                                     ,
-	     "powerSpectrumIndex"                                             => "powerSpectrumPrimordialMethod--index"                              ,
-	     "powerSpectrumRunning"                                           => "powerSpectrumPrimordialMethod--running"                            ,
-	     "powerSpectrumReferenceWavenumber"                               => "powerSpectrumPrimordialMethod--wavenumberReference"                ,
-	     "mergerTreeBuildCole2000AccretionLimit"                          => "mergerTreeBuildMethod--accretionLimit"                             ,
-	     "mergerTreeBuildCole2000MergeProbability"                        => "mergerTreeBuildMethod--mergeProbability"                           ,
-	     "mergerTreeBuildCole2000HighestRedshift"                         => "mergerTreeBuildMethod--redshiftMaximum"                            ,
-	     "mergerTreeBuildCole2000FixedRandomSeeds"                        => "mergerTreeBuildMethod--randomSeedsFixed"                           ,
-	     "mergerTreeRegridTimes"                                          => "mergerTreeOperatorMethod.regridTimes."                             ,
-	     "mergerTreeRegridDumpTrees"                                      => "mergerTreeOperatorMethod.regridTimes.--dumpTrees"                  ,
-	     "mergerTreeRegridCount"                                          => "mergerTreeOperatorMethod.regridTimes.--regridCount"                ,
-	     "mergerTreeRegridStartExpansionFactor"                           => "mergerTreeOperatorMethod.regridTimes.--expansionFactorStart"       ,
-	     "mergerTreeRegridEndExpansionFactor"                             => "mergerTreeOperatorMethod.regridTimes.--expansionFactorEnd"         ,
-	     "mergerTreeRegridSpacing"                                        => "mergerTreeOperatorMethod.regridTimes.--snapshotSpacing"            ,
-	     "mergerTreePruneBranches"                                        => "mergerTreeOperatorMethod.pruneByMass."                             ,
-	     "mergerTreePruningMassThreshold"                                 => "mergerTreeOperatorMethod.pruneByMass.--massThreshold"              ,
-	     "mergerTreePruneHierarchyAtDepth"                                => "mergerTreeOperatorMethod.pruneHierarchy.--hierarchyDepth"          ,
-	     "mergerTreePruneNonEssential"                                    => "mergerTreeOperatorMethod.pruneNonEssential"                        ,
-	     "mergerTreePruningNonEssentialID"                                => "mergerTreeOperatorMethod.pruneNonEssential.--essentialNodeID"      ,
-	     "mergerTreePruningNonEssentialTime"                              => "mergerTreeOperatorMethod.pruneNonEssential.--essentialNodeTime"    ,
-	     "mergerTreeComputeConditionalMassFunction"                       => "mergerTreeOperatorMethod.conditionalMF."                           ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassCount"        => "mergerTreeOperatorMethod.conditionalMF.--parentMassCount"          ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassMinimum"      => "mergerTreeOperatorMethod.conditionalMF.--parentMassMinimum"        ,
-	     "mergerTreeComputeConditionalMassFunctionParentMassMaximum"      => "mergerTreeOperatorMethod.conditionalMF.--parentMassMaximum"        ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioCount"         => "mergerTreeOperatorMethod.conditionalMF.--massRatioCount"           ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioMinimum"       => "mergerTreeOperatorMethod.conditionalMF.--massRatioMinimum"         ,
-	     "mergerTreeComputeConditionalMassFunctionMassRatioMaximum"       => "mergerTreeOperatorMethod.conditionalMF.--massRatioMaximum"         ,
-	     "mergerTreeComputeConditionalMassFunctionParentRedshifts"        => "mergerTreeOperatorMethod.conditionalMF.--parentRedshifts"          ,
-	     "mergerTreeComputeConditionalMassFunctionProgenitorRedshifts"    => "mergerTreeOperatorMethod.conditionalMF.--progenitorRedshifts"      ,
-	     "mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth" => "mergerTreeOperatorMethod.conditionalMF.--primaryProgenitorDepth"   ,
-	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"     => "mergerTreeOperatorMethod.conditionalMF.--formationRateTimeFraction",
-	     "mergerTreeExportFileName"                                       => "mergerTreeOperatorMethod.write.--outputFileName"                   ,
-	     "mergerTreeExportOutputFormat"                                   => "mergerTreeOperatorMethod.write.--exportFormat"
+	     "mergerTreeBuildMethod"                                          => "mergerTreeBuilderMethod"                                                        ,
+	     "darkMatterShapeMethod"                                          => "darkMatterProfileShapeMethod"                                                   ,
+	     "H_0"                                                            => "cosmologyParametersMethod--HubbleConstant"                                      ,
+	     "Omega_Matter"                                                   => "cosmologyParametersMethod--OmegaMatter"                                         ,
+	     "Omega_DE"                                                       => "cosmologyParametersMethod--OmegaDarkEnergy"                                     ,
+	     "Omega_b"                                                        => "cosmologyParametersMethod--OmegaBaryon"                                         ,
+	     "T_CMB"                                                          => "cosmologyParametersMethod--temperatureCMB"                                      ,
+	     "effectiveNumberNeutrinos"                                       => "transferFunctionMethod--neutrinoNumberEffective"                                ,
+	     "summedNeutrinoMasses"                                           => "transferFunctionMethod--neutrinoMassSummed"                                     ,
+	     "transferFunctionWDMFreeStreamingLength"                         => "transferFunctionMethod--freeStreamingLength"                                    ,
+	     "transferFunctionWdmCutOffScale"                                 => "transferFunctionMethod--scaleCutOff"                                            ,
+	     "transferFunctionWdmEpsilon"                                     => "transferFunctionMethod--epsilon"                                                ,
+	     "transferFunctionWdmEta"                                         => "transferFunctionMethod--eta"                                                    ,
+	     "transferFunctionWdmNu"                                          => "transferFunctionMethod--nu"                                                     ,
+	     "stellarPopulationSpectraFileForceZeroMetallicity"               => "stellarPopulationSpectraMethod--forceZeroMetallicity"                           ,
+	     "stellarPopulationSpectraForChabrierIMF"                         => "stellarPopulationSpectraMethod--fileNameForChabrierIMF"                         ,
+	     "stellarPopulationSpectraForBaugh2005TopHeavyIMF"                => "stellarPopulationSpectraMethod--fileNameForBaugh2005TopHeavyIMF"                ,
+	     "stellarPopulationSpectraForKroupaIMF"                           => "stellarPopulationSpectraMethod--fileNameForKroupaIMF"                           ,
+	     "stellarPopulationSpectraForMiller-ScaloIMF"                     => "stellarPopulationSpectraMethod--fileNameForMiller-ScaloIMF"                     ,
+	     "stellarPopulationSpectraForSalpeterIMF"                         => "stellarPopulationSpectraMethod--fileNameForSalpeterIMF"                         ,
+	     "stellarPopulationSpectraForScaloIMF"                            => "stellarPopulationSpectraMethod--fileNameForScaloIMF"                            ,
+	     "stellarPopulationSpectraForKennicuttIMF"                        => "stellarPopulationSpectraMethod--fileNameForKennicuttIMF"                        ,
+	     "accretionDiskSpectraFileName"                                   => "accretionDiskSpectraMethod--fileName"                                           ,
+	     "chemicalStateFile"                                              => "chemicalStateMethod--fileName"                                                  ,
+	     "coolingFunctionsMethod"                                         => "coolingFunctionMethod"                                                          ,
+	     "powerSpectrumMethod"                                            => "powerSpectrumPrimordialMethod"                                                  ,
+	     "powerSpectrumIndex"                                             => "powerSpectrumPrimordialMethod--index"                                           ,
+	     "powerSpectrumRunning"                                           => "powerSpectrumPrimordialMethod--running"                                         ,
+	     "powerSpectrumReferenceWavenumber"                               => "powerSpectrumPrimordialMethod--wavenumberReference"                             ,
+	     "mergerTreeBuildCole2000AccretionLimit"                          => "mergerTreeBuildMethod--accretionLimit"                                          ,
+	     "mergerTreeBuildCole2000MergeProbability"                        => "mergerTreeBuildMethod--mergeProbability"                                        ,
+	     "mergerTreeBuildCole2000HighestRedshift"                         => "mergerTreeBuildMethod--redshiftMaximum"                                         ,
+	     "mergerTreeBuildCole2000FixedRandomSeeds"                        => "mergerTreeBuildMethod--randomSeedsFixed"                                        ,
+	     "mergerTreeRegridTimes"                                          => "mergerTreeOperatorMethod.regridTimes."                                          ,
+	     "mergerTreeRegridDumpTrees"                                      => "mergerTreeOperatorMethod.regridTimes.--dumpTrees"                               ,
+	     "mergerTreeRegridCount"                                          => "mergerTreeOperatorMethod.regridTimes.--regridCount"                             ,
+	     "mergerTreeRegridStartExpansionFactor"                           => "mergerTreeOperatorMethod.regridTimes.--expansionFactorStart"                    ,
+	     "mergerTreeRegridEndExpansionFactor"                             => "mergerTreeOperatorMethod.regridTimes.--expansionFactorEnd"                      ,
+	     "mergerTreeRegridSpacing"                                        => "mergerTreeOperatorMethod.regridTimes.--snapshotSpacing"                         ,
+	     "mergerTreePruneBranches"                                        => "mergerTreeOperatorMethod.pruneByMass."                                          ,
+	     "mergerTreePruningMassThreshold"                                 => "mergerTreeOperatorMethod.pruneByMass.--massThreshold"                           ,
+	     "mergerTreePruneHierarchyAtDepth"                                => "mergerTreeOperatorMethod.pruneHierarchy.--hierarchyDepth"                       ,
+	     "mergerTreePruneNonEssential"                                    => "mergerTreeOperatorMethod.pruneNonEssential"                                     ,
+	     "mergerTreePruningNonEssentialID"                                => "mergerTreeOperatorMethod.pruneNonEssential.--essentialNodeID"                   ,
+	     "mergerTreePruningNonEssentialTime"                              => "mergerTreeOperatorMethod.pruneNonEssential.--essentialNodeTime"                 ,
+	     "mergerTreeComputeConditionalMassFunction"                       => "mergerTreeOperatorMethod.conditionalMF."                                        ,
+	     "mergerTreeComputeConditionalMassFunctionParentMassCount"        => "mergerTreeOperatorMethod.conditionalMF.--parentMassCount"                       ,
+	     "mergerTreeComputeConditionalMassFunctionParentMassMinimum"      => "mergerTreeOperatorMethod.conditionalMF.--parentMassMinimum"                     ,
+	     "mergerTreeComputeConditionalMassFunctionParentMassMaximum"      => "mergerTreeOperatorMethod.conditionalMF.--parentMassMaximum"                     ,
+	     "mergerTreeComputeConditionalMassFunctionMassRatioCount"         => "mergerTreeOperatorMethod.conditionalMF.--massRatioCount"                        ,
+	     "mergerTreeComputeConditionalMassFunctionMassRatioMinimum"       => "mergerTreeOperatorMethod.conditionalMF.--massRatioMinimum"                      ,
+	     "mergerTreeComputeConditionalMassFunctionMassRatioMaximum"       => "mergerTreeOperatorMethod.conditionalMF.--massRatioMaximum"                      ,
+	     "mergerTreeComputeConditionalMassFunctionParentRedshifts"        => "mergerTreeOperatorMethod.conditionalMF.--parentRedshifts"                       ,
+	     "mergerTreeComputeConditionalMassFunctionProgenitorRedshifts"    => "mergerTreeOperatorMethod.conditionalMF.--progenitorRedshifts"                   ,
+	     "mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth" => "mergerTreeOperatorMethod.conditionalMF.--primaryProgenitorDepth"                ,
+	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"     => "mergerTreeOperatorMethod.conditionalMF.--formationRateTimeFraction"             ,
+	     "mergerTreeExportFileName"                                       => "mergerTreeOperatorMethod.write.--outputFileName"                                ,
+	     "mergerTreeExportOutputFormat"                                   => "mergerTreeOperatorMethod.write.--exportFormat"                                  ,
+	     "darkMatterHaloConcentrationCorrea2015AScaling"                  => "darkMatterProfileConcentrationMethod.correa2015.--A"                            ,
+	     "darkMatterProfileConcentrationDiemerKravtsov2014Kappa"          => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--kappa"                ,
+	     "darkMatterProfileConcentrationDiemerKravtsov2014Phi0"           => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--phi0"                 ,
+	     "darkMatterProfileConcentrationDiemerKravtsov2014Phi1"           => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--phi1"                 ,
+	     "darkMatterProfileConcentrationDiemerKravtsov2014Eta0"           => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--eta0"                 ,
+	     "darkMatterProfileConcentrationDiemerKravtsov2014Eta1"           => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--eta1"                 ,
+	     "darkMatterProfileConcentrationDiemerKravtsov2014Alpha"          => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--alpha"                ,
+	     "darkMatterProfileConcentrationDiemerKravtsov2014Beta"           => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--beta"                 ,
+	     "duttonMaccio2014FitType"                                        => "darkMatterProfileConcentrationMethod.duttonMaccio2014.--fitType"                ,
+	     "klypin2015ConcentrationSample"                                  => "darkMatterProfileConcentrationMethod.klypin2015.--sample"                       ,
+	     "nfw1996ConcentrationF"                                          => "darkMatterProfileConcentrationMethod.nfw1996.--f"                               ,
+	     "nfw1996ConcentrationC"                                          => "darkMatterProfileConcentrationMethod.nfw1996.--C"                               ,
+	     "prada2011ConcentrationA"                                        => "darkMatterProfileConcentrationMethod.prada2011.--A"                             ,
+	     "prada2011ConcentrationB"                                        => "darkMatterProfileConcentrationMethod.prada2011.--B"                             ,
+	     "prada2011ConcentrationC"                                        => "darkMatterProfileConcentrationMethod.prada2011.--C"                             ,
+	     "prada2011ConcentrationD"                                        => "darkMatterProfileConcentrationMethod.prada2011.--D"                             ,
+	     "prada2011ConcentrationC0"                                       => "darkMatterProfileConcentrationMethod.prada2011.--C0"                            ,
+	     "prada2011ConcentrationC1"                                       => "darkMatterProfileConcentrationMethod.prada2011.--C1"                            ,
+	     "prada2011ConcentrationX0"                                       => "darkMatterProfileConcentrationMethod.prada2011.--X0"                            ,
+	     "prada2011ConcentrationX1"                                       => "darkMatterProfileConcentrationMethod.prada2011.--X1"                            ,
+	     "prada2011ConcentrationInverseSigma0"                            => "darkMatterProfileConcentrationMethod.prada2011.--inverseSigma0"                 ,
+	     "prada2011ConcentrationInverseSigma1"                            => "darkMatterProfileConcentrationMethod.prada2011.--inverseSigma1"                 ,
+	     "prada2011ConcentrationAlpha"                                    => "darkMatterProfileConcentrationMethod.prada2011.--alpha"                         ,
+	     "prada2011ConcentrationBeta"                                     => "darkMatterProfileConcentrationMethod.prada2011.--beta"                          ,
+	     "darkMatterProfileConcentrationCDMMethod"                        => "darkMatterProfileConcentrationMethod.wdm.--darkMatterProfileConcentrationMethod"
 	 },
  	 values        =>
          {
@@ -331,8 +356,10 @@ my @translations =
 # Define known defaults.
 my %knownDefaults =
     (
-     "cosmologyParametersMethod" => "simple"
-    );
+     "cosmologyParametersMethod"            => "simple"  ,
+     "mergerTreeBuildMethod"                => "cole2000",
+     "darkMatterProfileConcentrationMethod" => "gao2008"
+  );
 
 # Parse the input file.
 my $parser     = XML::LibXML->new();
@@ -601,13 +628,14 @@ sub Translate {
     for my $parameter ( $parameters->getChildrenByTagName("*") ) {
 	if ( $parameter->nodeName() =~ m/(.+)\-\-(.+)/ ) {
 	    my $hostName = $1;
-	    my $subName  = $2;	    
+	    my $subName  = $2;
+	    (my $hostNameTrimmed = $hostName) =~ s/\..+\.//;	    
 	    $parameters->removeChild($parameter->nextSibling());
 	    my $sibling = $parameter->nextSibling();
 	    my $hostFound;
 	    $parameter->setNodeName($subName);
 	    for my $hostParameter ( $parameters->getChildrenByTagName("*") ) {
-		if ( $hostParameter->nodeName() eq $hostName ) {
+		if ( $hostParameter->nodeName() eq $hostNameTrimmed ) {
 		    my $hostChildren = $hostParameter->getChildrenByTagName("*");
 		    $hostParameter->addChild($input     ->createTextNode("\n"      ))
 			if ( $hostChildren->size() == 0 );

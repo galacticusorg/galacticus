@@ -24,85 +24,89 @@ module Merger_Tree_Read
   use ISO_Varying_String
   use Kind_Numbers
   use Merger_Tree_Read_Importers
+  use Dark_Matter_Profiles_Concentration
   implicit none
   private
   public :: Merger_Tree_Read_Initialize, Merger_Tree_Read_Close
 
   ! The name of the file from which to read merger trees and its internal object.
-  type            (varying_string                )                                                :: mergerTreeReadFileName                                                                       
-  class           (mergerTreeImporterClass       )                                      , pointer :: defaultImporter                                                                              
-  logical                                                                                         :: importerOpen                             =.false.
+  type            (varying_string                )                                                     :: mergerTreeReadFileName                                                                       
+  class           (mergerTreeImporterClass       )                                           , pointer :: defaultImporter                                                                              
+  logical                                                                                              :: importerOpen                             =.false.
   
   ! Index of the next merger tree to read.
-  integer                                                                                         :: nextTreeToRead                           =0                                                  
+  integer                                                                                              :: nextTreeToRead                           =0                                                  
   
   ! Index of the first tree to process.
-  integer         (kind=kind_int8                )                                                :: mergerTreeReadBeginAt                                                                        
+  integer         (kind=kind_int8                )                                                     :: mergerTreeReadBeginAt                                                                        
   
   ! Volume weight factor for trees.
-  double precision                                                                                :: treeVolumeWeightCurrent                                                                      
+  double precision                                                                                     :: treeVolumeWeightCurrent                                                                      
   !$omp threadprivate(treeVolumeWeightCurrent)
 
   ! Flag indicating whether branch jumps are allowed.
-  logical                                                                                         :: mergerTreeReadAllowBranchJumps                                                               
+  logical                                                                                              :: mergerTreeReadAllowBranchJumps                                                               
   
   ! Flag indicating whether subhalo promotions are allowed.
-  logical                                                                                         :: mergerTreeReadAllowSubhaloPromotions                                                         
+  logical                                                                                              :: mergerTreeReadAllowSubhaloPromotions                                                         
   
   ! Flags indicating whether or not to preset subhalo properties.
-  logical                                                                                         :: mergerTreeReadPresetMergerTimes                                                              
-  logical                                                                                         :: mergerTreeReadPresetMergerNodes                                                              
-  logical                                                                                         :: mergerTreeReadPresetSubhaloMasses                                                            
-  logical                                                                                         :: mergerTreeReadPresetSubhaloIndices
-  logical                                                                                         :: mergerTreeReadPresetPositions                                                                
-  logical                                                                                         :: mergerTreeReadPresetScaleRadii                    , mergerTreeReadPresetScaleRadiiFailureIsFatal
-  double precision                                                                                :: mergerTreeReadPresetScaleRadiiMinimumMass         , mergerTreeReadPresetScaleRadiiConcentrationMinimum, &
-       &                                                                                             mergerTreeReadPresetScaleRadiiConcentrationMaximum
-  logical                                                                                         :: mergerTreeReadPresetSpins                         , mergerTreeReadPresetSpins3D                       , &
-       &                                                                                             mergerTreeReadPresetUnphysicalSpins
-  logical                                                                                         :: mergerTreeReadPresetOrbits                        , mergerTreeReadPresetOrbitsAssertAllSet            , & 
-       &                                                                                             mergerTreeReadPresetOrbitsBoundOnly               , mergerTreeReadPresetOrbitsSetAll          
-  logical                                                                                         :: mergerTreeReadPresetParticleCounts                , mergerTreeReadPresetVelocityMaxima                , &
-       &                                                                                             mergerTreeReadPresetVelocityDispersions
-  integer                                                                                         :: mergerTreeReadSubhaloAngularMomentaMethod
-  integer                                                                    , parameter          :: mergerTreeReadSubhaloAngularMomentaScale    =0
-  integer                                                                    , parameter          :: mergerTreeReadSubhaloAngularMomentaSummation=1
+  logical                                                                                              :: mergerTreeReadPresetMergerTimes                                                              
+  logical                                                                                              :: mergerTreeReadPresetMergerNodes                                                              
+  logical                                                                                              :: mergerTreeReadPresetSubhaloMasses                                                            
+  logical                                                                                              :: mergerTreeReadPresetSubhaloIndices
+  logical                                                                                              :: mergerTreeReadPresetPositions                                                                
+  logical                                                                                              :: mergerTreeReadPresetScaleRadii                    , mergerTreeReadPresetScaleRadiiFailureIsFatal
+  double precision                                                                                     :: mergerTreeReadPresetScaleRadiiMinimumMass         , mergerTreeReadPresetScaleRadiiConcentrationMinimum, &
+       &                                                                                                  mergerTreeReadPresetScaleRadiiConcentrationMaximum
+  logical                                                                                              :: mergerTreeReadPresetSpins                         , mergerTreeReadPresetSpins3D                       , &
+       &                                                                                                  mergerTreeReadPresetUnphysicalSpins
+  logical                                                                                              :: mergerTreeReadPresetOrbits                        , mergerTreeReadPresetOrbitsAssertAllSet            , & 
+       &                                                                                                  mergerTreeReadPresetOrbitsBoundOnly               , mergerTreeReadPresetOrbitsSetAll          
+  logical                                                                                              :: mergerTreeReadPresetParticleCounts                , mergerTreeReadPresetVelocityMaxima                , &
+       &                                                                                                  mergerTreeReadPresetVelocityDispersions
+  integer                                                                                              :: mergerTreeReadSubhaloAngularMomentaMethod
+  integer                                                                         , parameter          :: mergerTreeReadSubhaloAngularMomentaScale    =0
+  integer                                                                         , parameter          :: mergerTreeReadSubhaloAngularMomentaSummation=1
 
   ! Option controlling fatality of missing host node condition.
-  logical                                                                                         :: mergerTreeReadMissingHostsAreFatal                                                           
+  logical                                                                                              :: mergerTreeReadMissingHostsAreFatal                                                           
   
   ! Option controlling whether tree indices should always be set to the corresponding node index.
-  logical                                                                                         :: mergerTreeReadTreeIndexToRootNodeIndex                                                       
+  logical                                                                                              :: mergerTreeReadTreeIndexToRootNodeIndex                                                       
   
   ! Labels used for node properties.
-  integer                                                                    , parameter          :: nodeIsUnreachable                        =-1                                                 
-  integer                                                                    , parameter          :: nodeIsReachable                          = 0                                                  
+  integer                                                                         , parameter          :: nodeIsUnreachable                        =-1                                                 
+  integer                                                                         , parameter          :: nodeIsReachable                          = 0                                                  
   
   ! Internal list of output times and the relative tolerance used to "snap" nodes to output times.
-  integer         (c_size_t                      )                                                :: outputTimesCount                                                                             
-  double precision                                                                                :: mergerTreeReadOutputTimeSnapTolerance                                                        
-  double precision                                , allocatable, dimension(:)                     :: outputTimes                                                                                  
+  integer         (c_size_t                           )                                                :: outputTimesCount                                                                             
+  double precision                                                                                     :: mergerTreeReadOutputTimeSnapTolerance                                                        
+  double precision                                     , allocatable, dimension(:)                     :: outputTimes                                                                                  
   
   ! Node used in root finding.
-  class           (nodeComponentDarkMatterProfile)                                      , pointer :: activeDarkMatterProfileComponent                                                             
-  class           (nodeComponentBasic            )                                      , pointer :: activeBasicComponent                                                                         
-  type            (treeNode                      )                                      , pointer :: activeNode                                                                                   
+  class           (nodeComponentDarkMatterProfile     )                                      , pointer :: activeDarkMatterProfileComponent                                                             
+  class           (nodeComponentBasic                 )                                      , pointer :: activeBasicComponent                                                                         
+  type            (treeNode                           )                                      , pointer :: activeNode                                                                                   
   double precision                                                                                :: halfMassRadius                                                                               
   !$omp threadprivate(activeDarkMatterProfileComponent,activeBasicComponent,activeNode,halfMassRadius)
   ! Sorted node index list.
-  integer         (c_size_t                      ), allocatable, dimension(:)                     :: descendentLocations                              , nodeLocations                             
-  integer         (kind=kind_int8                ), allocatable, dimension(:)                     :: descendentIndicesSorted                          , nodeIndicesSorted                         
+  integer         (c_size_t                           ), allocatable, dimension(:)                     :: descendentLocations                              , nodeLocations                             
+  integer         (kind=kind_int8                     ), allocatable, dimension(:)                     :: descendentIndicesSorted                          , nodeIndicesSorted                         
   !$omp threadprivate(descendentLocations,nodeLocations,descendentIndicesSorted,nodeIndicesSorted)
   
   ! Effective infinity for merging times.
-  double precision                                                           , parameter          :: timeUntilMergingInfinite                 =1.0d30                                             
+  double precision                                                                , parameter          :: timeUntilMergingInfinite                 =1.0d30                                             
+
+  ! Concentration class to use when concentration can not be constructed from imported data.
+  class           (darkMatterProfileConcentrationClass)                                      , pointer :: fallbackConcentration
   
   ! Record of warnings issued.
-  logical                                                                                         :: warningNestedHierarchyIssued             =.false.                                            
+  logical                                                                                              :: warningNestedHierarchyIssued             =.false.                                            
 
   ! Timing data.
-  real                                            , allocatable, dimension(:)                     :: timingTimes
-  type            (varying_string                ), allocatable, dimension(:)                     :: timingLabels
+  real                                                 , allocatable, dimension(:)                     :: timingTimes
+  type            (varying_string                     ), allocatable, dimension(:)                     :: timingLabels
   
   ! Iterator object for iterating over progenitor nodes.
   type :: progenitorIterator
@@ -159,6 +163,7 @@ contains
     !% Initializes the merger tree reading module.
     use, intrinsic :: ISO_C_Binding
     use Input_Parameters
+    use Input_Parameters2
     use Galacticus_Error
     use Galacticus_Display
     use Galacticus_Output_Times
@@ -493,6 +498,13 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadAllowSubhaloPromotions',mergerTreeReadAllowSubhaloPromotions,defaultValue=.true.)
 
+       ! Get fallback concentration method.
+       if (globalParameters%isPresent('mergerTreeReadConcentrationFallbackMethod')) then
+          fallbackConcentration => darkMatterProfileConcentration(globalParameters%subParameters('mergerTreeReadConcentrationFallbackMethod'))
+       else
+          fallbackConcentration => darkMatterProfileConcentration(                                                                           )
+       end if
+              
        ! Get array of output times.
        outputTimesCount=Galacticus_Output_Time_Count()
        call Alloc_Array(outputTimes,[outputTimesCount])
@@ -1606,58 +1618,30 @@ contains
     use Root_Finder
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profile_Scales
-    use Dark_Matter_Profiles_Concentration
     use Galacticus_Display
     use Galacticus_Error
     use Input_Parameters
     implicit none
     class           (nodeData                           )                 , dimension(:), intent(inout) :: nodes                                                                 
     type            (treeNodeList                       )                 , dimension(:), intent(inout) :: nodeList                                                              
-    double precision                                     , parameter                                    :: scaleRadiusMaximumAllowed                =100.0d0, toleranceAbsolute  =1.0d-9, & 
-         &                                                                                                 toleranceRelative                        =1.0d-9                                 
-    logical                                                         , save                              :: excessiveScaleRadiiReported              =.false.                                
-    class           (nodeComponentBasic                 ), pointer                                      :: thisBasicComponent                                                    
-    class           (nodeComponentDarkMatterProfile     ), pointer                                      :: thisDarkMatterProfileComponent                                        
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    integer                                                                                             :: iNode                                            , status                     , &
+    double precision                                     , parameter                                    :: scaleRadiusMaximumAllowed     =100.0d0, toleranceAbsolute  =1.0d-9, & 
+         &                                                                                                 toleranceRelative             =1.0d-9                                 
+    logical                                                         , save                              :: excessiveScaleRadiiReported   =.false.                                
+    class           (nodeComponentBasic                 ), pointer                                      :: thisBasicComponent                                         
+    class           (nodeComponentDarkMatterProfile     ), pointer                                      :: thisDarkMatterProfileComponent                             
+    class           (darkMatterHaloScaleClass           ), pointer                                      :: darkMatterHaloScale_
+    integer                                                                                             :: iNode                                 , status                     , &
          &                                                                                                 messageVerbosity
-    integer         (c_size_t                           )                                               :: iIsolatedNode                                                         
-    double precision                                                                                    :: radiusScale                                                           
-    logical                                                                                             :: excessiveHalfMassRadii                           , excessiveScaleRadii        , &
+    integer         (c_size_t                           )                                               :: iIsolatedNode                                              
+    double precision                                                                                    :: radiusScale                                                
+    logical                                                                                             :: excessiveHalfMassRadii                , excessiveScaleRadii        , &
          &                                                                                                 useFallbackScaleMethod
-    type            (rootFinder                         )           , save                              :: finder                                                                
+    type            (rootFinder                         )           , save                              :: finder                                                     
     !$omp threadprivate(finder)
-    class           (darkMatterProfileConcentrationClass), pointer  , save                              :: fallbackConcentration
-    logical                                                         , save                              :: functionInitialized                      =.false.
-    type            (varying_string                     )                                               :: mergerTreeReadConcentrationFallbackMethod        , message
+    logical                                                         , save                              :: functionInitialized           =.false.
+    type            (varying_string                     )                                               :: message
     character       (len=16                             )                                               :: label
 
-    ! Initialize if necessary.
-    if (.not.functionInitialized) then
-       !$omp critical(Assign_Scale_Radii_Initialize)
-       if (.not.functionInitialized) then
-          ! Construct the fallback concentration method.
-          if (Input_Parameter_Is_Present('mergerTreeReadConcentrationFallbackMethod')) then
-             !@ <inputParameter>
-             !@   <name>mergerTreeReadConcentrationFallbackMethod</name>
-             !@   <defaultValue>{\normalfont \ttfamily [darkMatterProfileConcentrationMethod]}</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The method to be used for setting node scale radii when reading merger trees from file and the node mass falls below the reliability threshold.
-             !@   </description>
-             !@   <type>string</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('mergerTreeReadConcentrationFallbackMethod',mergerTreeReadConcentrationFallbackMethod)
-             fallbackConcentration => darkMatterProfileConcentration(char(mergerTreeReadConcentrationFallbackMethod))
-          else
-             fallbackConcentration => darkMatterProfileConcentration()
-          end if
-          ! Record that we are now initialized.
-          functionInitialized=.true.
-       end if
-       !$omp end critical(Assign_Scale_Radii_Initialize)
-    end if
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(Half_Mass_Radius_Root              )

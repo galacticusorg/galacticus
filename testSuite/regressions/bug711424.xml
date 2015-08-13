@@ -25,9 +25,9 @@
   <coolingTimeAvailableAgeFactor value="0"/>
   <stellarPopulationSpectraMethod value="FSPS"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="0.961"/>
+    <index value="0.961"/>
     <wavenumberReference value="1.000"/>
-    <running             value="0.000"/>
+    <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
   <diskMassToleranceAbsolute value="1e-06"/>
   <haloSpinDistributionMethod value="Bett2007"/>
@@ -128,14 +128,15 @@
   <treeNodeMethodSpin value="random"/>
   <diskOutflowExponent value="2"/>
   <massAccretionHistoryOutput value="false"/>
-  <mergerTreeBuildCole2000MergeProbability value="0.1"/>
-  <outputRedshifts value="0"/>
+  <mergerTreeBuildMethod value="cole2000">
+    <mergeProbability value="0.1"/>
+    <accretionLimit value="0.1"/>
+  </mergerTreeBuildMethod><outputRedshifts value="0"/>
   <coolingRadiusMethod value="simple"/>
   <randomSpinResetMassFactor value="2"/>
   <blackHoleBinaryMergersMethod value="Rezzolla2008"/>
   <timestepHostAbsolute value="1"/>
   <starFormationSpheroidEfficiency value="0.1"/>
-  <mergerTreeBuildCole2000AccretionLimit value="0.1"/>
   <galacticStructureRadiusSolverMethod value="adiabatic"/>
   <mergerTreeConstructMethod value="build"/>
   <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>

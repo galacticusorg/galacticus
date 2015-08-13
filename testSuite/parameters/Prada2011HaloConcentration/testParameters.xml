@@ -12,23 +12,24 @@
   </cosmologyParametersMethod><sigma_8 value="0.82"/>
   <transferFunctionMethod value="eisensteinHu1999"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="0.95"/>
+    <index value="0.95"/>
     <wavenumberReference value="1.00"/>
-    <running             value="0.00"/>
+    <running value="0.00"/>
   </powerSpectrumPrimordialMethod>
-  <darkMatterProfileConcentrationMethod value="prada2011"/>
-  <prada2011ConcentrationA value="2.881"/>
-  <prada2011ConcentrationB value="1.257"/>
-  <prada2011ConcentrationC value="1.022"/>
-  <prada2011ConcentrationD value="0.060"/>
-  <prada2011ConcentrationC0 value="3.681"/>
-  <prada2011ConcentrationC1 value="5.033"/>
-  <prada2011ConcentrationX0 value="0.424"/>
-  <prada2011ConcentrationX1 value="0.526"/>
-  <prada2011ConcentrationInverseSigma0 value="1.047"/>
-  <prada2011ConcentrationInverseSigma1 value="1.646"/>
-  <prada2011ConcentrationAlpha value="6.948"/>
-  <prada2011ConcentrationBeta value="7.386"/>
+  <darkMatterProfileConcentrationMethod value="prada2011">
+  <A value="2.881"/>
+    <B value="1.257"/>
+    <C value="1.022"/>
+    <D value="0.060"/>
+    <C0 value="3.681"/>
+    <C1 value="5.033"/>
+    <X0 value="0.424"/>
+    <X1 value="0.526"/>
+    <inverseSigma0 value="1.047"/>
+    <inverseSigma1 value="1.646"/>
+    <alpha value="6.948"/>
+    <beta value="7.386"/>
+  </darkMatterProfileConcentrationMethod>
   <virialDensityConstrastFixed value="200.0"/>
   <virialDensityConstrastFixedType value="criticalDensity"/>
 </parameters>

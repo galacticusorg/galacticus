@@ -15,17 +15,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo profile concentrations using the \cite{diemer_universal_2014} algorithm.
+  !% An implementation of dark matter halo profile concentrations using the
+  !% \cite{diemer_universal_2014} algorithm.
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerKravtsov2014">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{diemer_universal_2014}.</description>
   !# </darkMatterProfileConcentration>
-
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationDiemerKravtsov2014
-     !% A dark matter halo profile concentration class implementing the algorithm of \cite{diemer_universal_2014}.
+     !% A dark matter halo profile concentration class implementing the algorithm of
+     !% \cite{diemer_universal_2014}.
      private
      double precision :: kappa, phi0, phi1, eta0, eta1, alpha, beta
    contains
+     final     ::                                diemerKravtsov2014Destructor
      procedure :: concentration               => diemerKravtsov2014Concentration
      procedure :: densityContrastDefinition   => diemerKravtsov2014DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => diemerKravtsov2014DarkMatterProfileDefinition
@@ -33,146 +35,120 @@
 
   interface darkMatterProfileConcentrationDiemerKravtsov2014
      !% Constructors for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile concentration class.
-     module procedure diemerKravtsov2014DefaultConstructor
-     module procedure diemerKravtsov2014Constructor
+     module procedure diemerKravtsov2014ConstructorParameters
+     module procedure diemerKravtsov2014ConstructorInternal
   end interface darkMatterProfileConcentrationDiemerKravtsov2014
-
-  ! Initialization status.
-  logical          :: diemerKravtsov2014Initialized=.false.
-
-  ! Default parameters.
-  double precision :: darkMatterProfileConcentrationDiemerKravtsov2014Kappa, darkMatterProfileConcentrationDiemerKravtsov2014Phi0 , &
-       &              darkMatterProfileConcentrationDiemerKravtsov2014Phi1 , darkMatterProfileConcentrationDiemerKravtsov2014Eta0 , &
-       &              darkMatterProfileConcentrationDiemerKravtsov2014Eta1 , darkMatterProfileConcentrationDiemerKravtsov2014Alpha, &
-       &              darkMatterProfileConcentrationDiemerKravtsov2014Beta
 
 contains
 
-  function diemerKravtsov2014DefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile concentration class.
-    use Input_Parameters
+  function diemerKravtsov2014ConstructorParameters(parameters)
+    !% Default constructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo
+    !% profile concentration class.
     implicit none
-    type(darkMatterProfileConcentrationDiemerKravtsov2014), target :: diemerKravtsov2014DefaultConstructor
+    type(darkMatterProfileConcentrationDiemerKravtsov2014)                :: diemerKravtsov2014ConstructorParameters
+    type(inputParameters                                 ), intent(in   ) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (.not.diemerKravtsov2014Initialized) then
-       !$omp critical(diemerKravtsov2014DefaultInitialize)
-       if (.not.diemerKravtsov2014Initialized) then
-          ! Get parameters of the model.
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileConcentrationDiemerKravtsov2014Kappa</name>
-          !@   <defaultValue>0.69</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\kappa$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("darkMatterProfileConcentrationDiemerKravtsov2014Kappa",darkMatterProfileConcentrationDiemerKravtsov2014Kappa,defaultValue=0.69d0)
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileConcentrationDiemerKravtsov2014Phi0</name>
-          !@   <defaultValue>6.58</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\phi_0$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("darkMatterProfileConcentrationDiemerKravtsov2014Phi0",darkMatterProfileConcentrationDiemerKravtsov2014Phi0,defaultValue=6.58d0)
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileConcentrationDiemerKravtsov2014Phi1</name>
-          !@   <defaultValue>1.37</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\phi_1$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("darkMatterProfileConcentrationDiemerKravtsov2014Phi1",darkMatterProfileConcentrationDiemerKravtsov2014Phi1,defaultValue=1.37d0)
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileConcentrationDiemerKravtsov2014Eta0</name>
-          !@   <defaultValue>6.82</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\eta_0$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("darkMatterProfileConcentrationDiemerKravtsov2014Eta0",darkMatterProfileConcentrationDiemerKravtsov2014Eta0,defaultValue=6.82d0)
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileConcentrationDiemerKravtsov2014Eta1</name>
-          !@   <defaultValue>1.42</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\eta_1$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("darkMatterProfileConcentrationDiemerKravtsov2014Eta1",darkMatterProfileConcentrationDiemerKravtsov2014Eta1,defaultValue=1.42d0)
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileConcentrationDiemerKravtsov2014Alpha</name>
-          !@   <defaultValue>1.12</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\alpha$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("darkMatterProfileConcentrationDiemerKravtsov2014Alpha",darkMatterProfileConcentrationDiemerKravtsov2014Alpha,defaultValue=1.12d0)
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileConcentrationDiemerKravtsov2014Beta</name>
-          !@   <defaultValue>1.69</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\beta$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("darkMatterProfileConcentrationDiemerKravtsov2014Beta",darkMatterProfileConcentrationDiemerKravtsov2014Beta,defaultValue=1.69d0)
-          ! Record that method is now initialized.
-          diemerKravtsov2014Initialized=.true.
-       end if
-       !$omp end critical(diemerKravtsov2014DefaultInitialize)
-    end if
-    ! Construct the object.
-    diemerKravtsov2014DefaultConstructor                                                         &
-         & =diemerKravtsov2014Constructor(                                                       &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Kappa, &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Phi0 , &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Phi1 , &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Eta0 , &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Eta1 , &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Alpha, &
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Beta   &
-         &                               )
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>kappa</name>
+    !#   <source>parameters</source>
+    !#   <variable>diemerKravtsov2014ConstructorParameters%kappa</variable>
+    !#   <defaultValue>0.69d0</defaultValue>
+    !#   <description>The parameter $\kappa$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>phi0</name>
+    !#   <source>parameters</source>
+    !#   <variable>diemerKravtsov2014ConstructorParameters%phi0</variable>
+    !#   <defaultValue>6.58d0</defaultValue>
+    !#   <description>The parameter $\phi_0$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>phi1</name>
+    !#   <source>parameters</source>
+    !#   <variable>diemerKravtsov2014ConstructorParameters%phi1</variable>
+    !#   <defaultValue>1.37d0</defaultValue>
+    !#   <description>The parameter $\phi_1$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>eta0</name>
+    !#   <source>parameters</source>
+    !#   <variable>diemerKravtsov2014ConstructorParameters%eta0</variable>
+    !#   <defaultValue>6.82d0</defaultValue>
+    !#   <description>The parameter $\eta_0$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>eta1</name>
+    !#   <source>parameters</source>
+    !#   <variable>diemerKravtsov2014ConstructorParameters%eta1</variable>
+    !#   <defaultValue>1.42d0</defaultValue>
+    !#   <description>The parameter $\eta_1$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>alpha</name>
+    !#   <source>parameters</source>
+    !#   <variable>diemerKravtsov2014ConstructorParameters%alpha</variable>
+    !#   <defaultValue>1.12d0</defaultValue>
+    !#   <attachedTo>module</attachedTo>
+    !#   <description>The parameter $\alpha$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>beta</name>
+    !#   <source>parameters</source>
+    !#   <variable>diemerKravtsov2014ConstructorParameters%beta</variable>
+    !#   <defaultValue>1.69d0</defaultValue>
+    !#   <description>The parameter $\beta$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     return
-  end function diemerKravtsov2014DefaultConstructor
+  end function diemerKravtsov2014ConstructorParameters
 
-  function diemerKravtsov2014Constructor(kappa,phi0,phi1,eta0,eta1,alpha,beta)
-    !% Constructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile concentration class.
+  function diemerKravtsov2014ConstructorInternal(kappa,phi0,phi1,eta0,eta1,alpha,beta)
+    !% Constructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile
+    !% concentration class.
     use Galacticus_Error
     implicit none
-    type            (darkMatterProfileConcentrationDiemerKravtsov2014)                :: diemerKravtsov2014Constructor
+    type            (darkMatterProfileConcentrationDiemerKravtsov2014)                :: diemerKravtsov2014ConstructorInternal
     double precision                                                  , intent(in   ) :: kappa, phi0, phi1, eta0, eta1, alpha, beta
     
-    diemerKravtsov2014Constructor%kappa=kappa
-    diemerKravtsov2014Constructor%phi0 =phi0
-    diemerKravtsov2014Constructor%phi1 =phi1
-    diemerKravtsov2014Constructor%eta0 =eta0
-    diemerKravtsov2014Constructor%eta1 =eta1
-    diemerKravtsov2014Constructor%alpha=alpha
-    diemerKravtsov2014Constructor%beta =beta
+    diemerKravtsov2014ConstructorInternal%kappa=kappa
+    diemerKravtsov2014ConstructorInternal%phi0 =phi0
+    diemerKravtsov2014ConstructorInternal%phi1 =phi1
+    diemerKravtsov2014ConstructorInternal%eta0 =eta0
+    diemerKravtsov2014ConstructorInternal%eta1 =eta1
+    diemerKravtsov2014ConstructorInternal%alpha=alpha
+    diemerKravtsov2014ConstructorInternal%beta =beta
     return
-  end function diemerKravtsov2014Constructor
+  end function diemerKravtsov2014ConstructorInternal
   
+  subroutine diemerKravtsov2014Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile
+    !% concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
+
+    ! Nothing to do.
+    return
+  end subroutine diemerKravtsov2014Destructor
+
   double precision function diemerKravtsov2014Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{diemer_universal_2014} algorithm.
+    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    !% using the \cite{diemer_universal_2014} algorithm.
     use Numerical_Constants_Math
     use Power_Spectra
     use Critical_Overdensity
