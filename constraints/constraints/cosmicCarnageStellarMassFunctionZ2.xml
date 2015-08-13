@@ -1,0 +1,10 @@
+<!-- Defines a constraint to match to the z=2 stellar mass function used in the Cosmic CARnage workshop. -->
+<constraint>
+  <name>Cosmic CARnage z=2 stellar mass function</name>
+  <label>cosmicCarnageStellarMassFunctionZ2</label>
+  <outputRedshift>2.0</outputRedshift>
+  <haloMassResolution>1.0e9</haloMassResolution>
+  <haloMassMinimum>2.0e9</haloMassMinimum>
+  <haloMassMaximum>2.0e14</haloMassMaximum>
+  <analysis>constraints/scripts/cosmicCarnageStellarMassFunctionZ2.pl</analysis>
+</constraint>
