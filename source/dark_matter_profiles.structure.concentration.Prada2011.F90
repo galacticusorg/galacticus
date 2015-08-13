@@ -20,21 +20,12 @@
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationPrada2011">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{prada_halo_2011}.</description>
   !# </darkMatterProfileConcentration>
-  
-  ! Parameters of the fit.
-  logical          :: prada2011Initialized               =.false.
-  double precision :: prada2011ConcentrationA                    , prada2011ConcentrationB            , &
-       &              prada2011ConcentrationC                    , prada2011ConcentrationD            , &
-       &              prada2011ConcentrationC0                   , prada2011ConcentrationC1           , &
-       &              prada2011ConcentrationX0                   , prada2011ConcentrationInverseSigma0, &
-       &              prada2011ConcentrationInverseSigma1        , prada2011ConcentrationAlpha        , &
-       &              prada2011ConcentrationBeta                 , prada2011ConcentrationX1
-
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationPrada2011
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{prada_halo_2011}.
      private
-     double precision :: A, B, C, D, C0, C1, X0, X1, InverseSigma0, InverseSigma1, Alpha, Beta
+     double precision :: A, B, C, D, C0, C1, X0, X1, inverseSigma0, inverseSigma1, alpha, beta
    contains
+     final     ::                                prada2011Destructor
      procedure :: concentration               => prada2011Concentration
      procedure :: densityContrastDefinition   => prada2011DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => prada2011DarkMatterProfileDefinition
@@ -42,204 +33,181 @@
   
   interface darkMatterProfileConcentrationPrada2011
      !% Constructors for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
-     module procedure prada2011DefaultConstructor
-     module procedure prada2011Constructor
+     module procedure prada2011ConstructorParameters
+     module procedure prada2011ConstructorInternal
   end interface darkMatterProfileConcentrationPrada2011
   
 contains
   
-  function prada2011DefaultConstructor()
+  function prada2011ConstructorParameters(parameters)
     !% Default constructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
     use Input_Parameters
     implicit none
-    type(darkMatterProfileConcentrationPrada2011), target  :: prada2011DefaultConstructor
-    
-    if (.not.prada2011Initialized) then
-       !$omp critical(prada2011DefaultInitialize)
-       if (.not.prada2011Initialized) then
-          ! Get parameters of the model.
-          !@ <inputParameter>
-          !@   <name>prada2011ConcentrationA</name>
-          !@   <defaultValue>2.881 \cite{prada_halo_2011}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $A$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("prada2011ConcentrationA",prada2011ConcentrationA,defaultValue=2.881d0)
-          !@ <inputParameter>
-          !@   <name>prada2011ConcentrationB</name>
-          !@   <defaultValue>1.257 \cite{prada_halo_2011}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $b$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("prada2011ConcentrationB",prada2011ConcentrationB,defaultValue=1.257d0)
-          !@ <inputParameter>
-          !@   <name>prada2011ConcentrationC</name>
-          !@   <defaultValue>1.022 \cite{prada_halo_2011}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $c$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("prada2011ConcentrationC",prada2011ConcentrationC,defaultValue=1.022d0)
-          !@ <inputParameter>
-          !@   <name>prada2011ConcentrationD</name>
-          !@   <defaultValue>0.060 \cite{prada_halo_2011}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $d$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("prada2011ConcentrationD",prada2011ConcentrationD,defaultValue=0.060d0)
-          !@ <inputParameter>
-          !@   <name>prada2011ConcentrationC0</name>
-          !@   <defaultValue>3.681 \cite{prada_halo_2011}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $c_0$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("prada2011ConcentrationC0",prada2011ConcentrationC0,defaultValue=3.681d0)
-          !@ <inputParameter>
-          !@   <name>prada2011ConcentrationC1</name>
-          !@   <defaultValue>5.033 \cite{prada_halo_2011}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $c_1$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("prada2011ConcentrationC1",prada2011ConcentrationC1,defaultValue=5.033d0)
-          !@ <inputParameter>
-          !@   <name>prada2011ConcentrationX0</name>
-          !@   <defaultValue>0.424 \cite{prada_halo_2011}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $x_0$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("prada2011ConcentrationX0",prada2011ConcentrationX0,defaultValue=0.424d0)
-          !@ <inputParameter>
-          !@   <name>prada2011ConcentrationX1</name>
-          !@   <defaultValue>0.526 \cite{prada_halo_2011}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $x_1$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("prada2011ConcentrationX1",prada2011ConcentrationX1,defaultValue=0.526d0)
-          !@ <inputParameter>
-          !@   <name>prada2011ConcentrationInverseSigma0</name>
-          !@   <defaultValue>1.047 \cite{prada_halo_2011}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\sigma^{-1}_0$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("prada2011ConcentrationInverseSigma0",prada2011ConcentrationInverseSigma0,defaultValue=1.047d0)
-          !@ <inputParameter>
-          !@   <name>prada2011ConcentrationInverseSigma1</name>
-          !@   <defaultValue>1.646 \cite{prada_halo_2011}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\sigma^{-1}_1$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("prada2011ConcentrationInverseSigma1",prada2011ConcentrationInverseSigma1,defaultValue=1.646d0)
-          !@ <inputParameter>
-          !@   <name>prada2011ConcentrationAlpha</name>
-          !@   <defaultValue>6.948 \cite{prada_halo_2011}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\alpha$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("prada2011ConcentrationAlpha",prada2011ConcentrationAlpha,defaultValue=6.948d0)
-          !@ <inputParameter>
-          !@   <name>prada2011ConcentrationBeta</name>
-          !@   <defaultValue>7.386 \cite{prada_halo_2011}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\beta$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("prada2011ConcentrationBeta",prada2011ConcentrationBeta,defaultValue=7.386d0)
-          ! Record that method is now initialized.
-          prada2011Initialized=.true.
-       end if
-       !$omp end critical(prada2011DefaultInitialize)
-    end if
-    ! Construct the object.
-    prada2011DefaultConstructor=&
-         & prada2011Constructor(&
-         &                      prada2011ConcentrationA            , &
-         &                      prada2011ConcentrationB            , &
-         &                      prada2011ConcentrationC            , &
-         &                      prada2011ConcentrationD            , &
-         &                      prada2011ConcentrationC0           , &
-         &                      prada2011ConcentrationC1           , &
-         &                      prada2011ConcentrationX0           , &
-         &                      prada2011ConcentrationX1           , &
-         &                      prada2011ConcentrationInverseSigma0, &
-         &                      prada2011ConcentrationInverseSigma1, &
-         &                      prada2011ConcentrationAlpha        , &
-         &                      prada2011ConcentrationBeta           &
-         &                     )
+    type(darkMatterProfileConcentrationPrada2011)                :: prada2011ConstructorParameters
+    type(inputParameters                        ), intent(in   ) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
+
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>A</name>
+    !#   <source>parameters</source>
+    !#   <variable>prada2011ConstructorParameters%A</variable>
+    !#   <defaultValue>2.881d0</defaultValue>
+    !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
+    !#   <description>The parameter $A$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>B</name>
+    !#   <source>parameters</source>
+    !#   <variable>prada2011ConstructorParameters%B</variable>
+    !#   <defaultValue>1.257d0</defaultValue>
+    !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
+    !#   <description>The parameter $b$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>C</name>
+    !#   <source>parameters</source>
+    !#   <variable>prada2011ConstructorParameters%C</variable>
+    !#   <defaultValue>1.022d0</defaultValue>
+    !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
+    !#   <description>The parameter $c$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>D</name>
+    !#   <source>parameters</source>
+    !#   <variable>prada2011ConstructorParameters%D</variable>
+    !#   <defaultValue>0.060d0</defaultValue>
+    !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
+    !#   <description>The parameter $d$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>C0</name>
+    !#   <source>parameters</source>
+    !#   <variable>prada2011ConstructorParameters%C0</variable>
+    !#   <defaultValue>3.681d0</defaultValue>
+    !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
+    !#   <description>The parameter $c_0$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>C1</name>
+    !#   <source>parameters</source>
+    !#   <variable>prada2011ConstructorParameters%C1</variable>
+    !#   <defaultValue>5.033d0</defaultValue>
+    !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
+    !#   <description>The parameter $c_1$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>X0</name>
+    !#   <source>parameters</source>
+    !#   <variable>prada2011ConstructorParameters%X0</variable>
+    !#   <defaultValue>0.424d0</defaultValue>
+    !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
+    !#   <description>The parameter $x_0$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>X1</name>
+    !#   <source>parameters</source>
+    !#   <variable>prada2011ConstructorParameters%X1</variable>
+    !#   <defaultValue>0.526d0</defaultValue>
+    !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
+    !#   <description>The parameter $x_1$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>inverseSigma0</name>
+    !#   <source>parameters</source>
+    !#   <variable>prada2011ConstructorParameters%inverseSigma0</variable>
+    !#   <defaultValue>1.047d0</defaultValue>
+    !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
+    !#   <description>The parameter $\sigma^{-1}_0$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>inverseSigma1</name>
+    !#   <source>parameters</source>
+    !#   <variable>prada2011ConstructorParameters%inverseSigma1</variable>
+    !#   <defaultValue>1.646d0</defaultValue>
+    !#   <attachedTo>module</attachedTo>
+    !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
+    !#   <description>The parameter $\sigma^{-1}_1$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>alpha</name>
+    !#   <source>parameters</source>
+    !#   <variable>prada2011ConstructorParameters%alpha</variable>
+    !#   <defaultValue>6.948d0</defaultValue>
+    !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
+    !#   <description>The parameter $\alpha$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>beta</name>
+    !#   <source>parameters</source>
+    !#   <variable>prada2011ConstructorParameters%beta</variable>
+    !#   <defaultValue>7.386d0</defaultValue>
+    !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
+    !#   <description>The parameter $\beta$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     return
-  end function prada2011DefaultConstructor
+  end function prada2011ConstructorParameters
   
-  function prada2011Constructor(A,B,C,D,C0,C1,X0,X1,InverseSigma0,InverseSigma1,Alpha,Beta)
+  function prada2011ConstructorInternal(A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta)
     !% Constructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
     implicit none
-    type            (darkMatterProfileConcentrationPrada2011)                :: prada2011Constructor
-    double precision                                         , intent(in   ) :: A                   , B            , &
-         &                                                                      C                   , D            , &
-         &                                                                      C0                  , C1           , &
-         &                                                                      X0                  , InverseSigma0, &
-         &                                                                      InverseSigma1       , Alpha        , &
-         &                                                                      Beta                , X1
+    type            (darkMatterProfileConcentrationPrada2011)                :: prada2011ConstructorInternal
+    double precision                                         , intent(in   ) :: A                           , B            , &
+         &                                                                      C                           , D            , &
+         &                                                                      C0                          , C1           , &
+         &                                                                      X0                          , inverseSigma0, &
+         &                                                                      inverseSigma1               , alpha        , &
+         &                                                                      beta                        , X1
     
-    prada2011Constructor%A            =A
-    prada2011Constructor%B            =B
-    prada2011Constructor%C            =C
-    prada2011Constructor%D            =D
-    prada2011Constructor%C0           =C0
-    prada2011Constructor%C1           =C1
-    prada2011Constructor%X0           =X0
-    prada2011Constructor%X1           =X1
-    prada2011Constructor%InverseSigma0=InverseSigma0
-    prada2011Constructor%InverseSigma1=InverseSigma1
-    prada2011Constructor%Alpha        =Alpha
-    prada2011Constructor%Beta         =Beta
+    prada2011ConstructorInternal%A            =A
+    prada2011ConstructorInternal%B            =B
+    prada2011ConstructorInternal%C            =C
+    prada2011ConstructorInternal%D            =D
+    prada2011ConstructorInternal%C0           =C0
+    prada2011ConstructorInternal%C1           =C1
+    prada2011ConstructorInternal%X0           =X0
+    prada2011ConstructorInternal%X1           =X1
+    prada2011ConstructorInternal%inverseSigma0=inverseSigma0
+    prada2011ConstructorInternal%inverseSigma1=inverseSigma1
+    prada2011ConstructorInternal%alpha        =alpha
+    prada2011ConstructorInternal%beta         =beta
     return
-  end function prada2011Constructor
+  end function prada2011ConstructorInternal
   
+  subroutine prada2011Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationPrada2011), intent(inout) :: self
+
+    ! Nothing to do.
+    return
+  end subroutine prada2011Destructor
+
   double precision function prada2011Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{prada_halo_2011} algorithm.
     use Power_Spectra
@@ -283,7 +251,7 @@ contains
     class           (darkMatterProfileConcentrationPrada2011), intent(inout) :: self
     double precision                                         , intent(in   ) :: x
     
-    prada2011B1=prada2011InverseSigmaMin(self,x)/prada2011InverseSigmaMin(self,1.393d0)
+    prada2011B1=prada2011inverseSigmaMin(self,x)/prada2011inverseSigmaMin(self,1.393d0)
   end function prada2011B1
   
   double precision function prada2011cMin(self,x)
@@ -293,18 +261,18 @@ contains
     class           (darkMatterProfileConcentrationPrada2011), intent(inout) :: self
     double precision                                         , intent(in   ) :: x
     
-    prada2011cMin=self%C0+(self%C1-self%C0)*(atan(self%Alpha*(x-self%X0))/Pi+0.5d0)
+    prada2011cMin=self%C0+(self%C1-self%C0)*(atan(self%alpha*(x-self%X0))/Pi+0.5d0)
   end function prada2011cMin
   
-  double precision function prada2011InverseSigmaMin(self,x)
+  double precision function prada2011inverseSigmaMin(self,x)
     !% The function $\sigma^{-1}_{\mathrm min}(x)$ as defined in eqn.~(20) of \cite{prada_halo_2011}.
     use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileConcentrationPrada2011), intent(inout) :: self
     double precision                                         , intent(in   ) :: x
     
-    prada2011InverseSigmaMin=self%InverseSigma0+(self%InverseSigma1-self%InverseSigma0)*(atan(self%Beta*(x-self%X1))/Pi+0.5d0)
-  end function prada2011InverseSigmaMin
+    prada2011inverseSigmaMin=self%inverseSigma0+(self%inverseSigma1-self%inverseSigma0)*(atan(self%beta*(x-self%X1))/Pi+0.5d0)
+  end function prada2011inverseSigmaMin
   
   double precision function prada2011C(self,sigmaPrime)
     !% The function $\mathcal{C}(\sigma^\prime)$ as defined in eqn.~(17) of \cite{prada_halo_2011}.

@@ -33,9 +33,9 @@
   <sigma_8 value="0.82"/>
   <transferFunctionMethod value="CAMB"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="0.95"/>
+    <index value="0.95"/>
     <wavenumberReference value="1.00"/>
-    <running             value="0.00"/>
+    <running value="0.00"/>
   </powerSpectrumPrimordialMethod>
 
   <!-- Structure formation options -->

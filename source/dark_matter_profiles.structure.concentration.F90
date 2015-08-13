@@ -18,19 +18,14 @@
 !% Contains a module which provides an object that implements concentrations of dark matter halo profiles.
 
 module Dark_Matter_Profiles_Concentration
-  !% Provides an object that implements concentrations of dark matter halo profiles.
-  use, intrinsic :: ISO_C_Binding
-  use               ISO_Varying_String
-  use               Galacticus_Nodes
-  use               Virial_Density_Contrast
-  use               Dark_Matter_Profiles
-  use               Tables
-  !# <include directive="darkMatterProfileConcentration" type="functionModules" >
-  include 'darkMatterProfileConcentration.functionModules.inc'
-  !# </include>
+  !% Provides a class that implements concentrations of dark matter halo profiles.
+  use Galacticus_Nodes
+  use Virial_Density_Contrast
+  use Dark_Matter_Profiles
   private
 
-  !# <include directive="darkMatterProfileConcentration" type="function" >
+  !# <functionClass>
+  !#  <name>darkMatterProfileConcentration</name>
   !#  <descriptiveName>Dark Matter Profile Concentrations</descriptiveName>
   !#  <description>Object providing dark matter profile concentrations.</description>
   !#  <default>gao2008</default>
@@ -52,7 +47,6 @@ module Dark_Matter_Profiles_Concentration
   !#   <type>class(darkMatterProfileClass)</type>
   !#   <pass>yes</pass>
   !#  </method>
-  include 'darkMatterProfileConcentration.type.inc'
-  !# </include>
+  !# </functionClass>
   
 end module Dark_Matter_Profiles_Concentration

@@ -20,13 +20,15 @@
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDuttonMaccio2014">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{dutton_cold_2014}.</description>
   !# </darkMatterProfileConcentration>
-
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationDuttonMaccio2014
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{dutton_cold_2014}.
      private
-     double precision :: a1,a2,a3,a4,b1,b2
+     double precision :: a1                   , a2                  , &
+          &              a3                   , a4                  , &
+          &              b1                   , b2
      integer          :: densityContrastMethod, densityProfileMethod
    contains
+     final     ::                                duttonMaccio2014Destructor
      procedure :: concentration               => duttonMaccio2014Concentration
      procedure :: densityContrastDefinition   => duttonMaccio2014DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => duttonMaccio2014DarkMatterProfileDefinition
@@ -34,100 +36,106 @@
 
   interface darkMatterProfileConcentrationDuttonMaccio2014
      !% Constructors for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
-     module procedure duttonMaccio2014DefaultConstructor
-     module procedure duttonMaccio2014Constructor
+     module procedure duttonMaccio2014ConstructorParameters
+     module procedure duttonMaccio2014ConstructorInternal
   end interface darkMatterProfileConcentrationDuttonMaccio2014
-
-  ! Initialization status.
-  logical                            :: duttonMaccio2014Initialized=.false.
-
-  ! Type of fit used for the concentration-mass relation.
-  type   (varying_string)            :: duttonMaccio2014FitType
-
+  
   ! Density contrast methods.
-  integer                , parameter :: duttonMaccio2014DensityContrastMethod200   =0
-  integer                , parameter :: duttonMaccio2014DensityContrastMethodVirial=1
+  !# <enumeration>
+  !#  <name>duttonMaccio2014DensityContrastMethod</name>
+  !#  <description>Enumeration of density contrast methods available in the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.</description>
+  !#  <visibility>private</visibility>
+  !#  <entry label="virial" />
+  !#  <entry label="mean200"/>
+  !# </enumeration>
 
   ! Density profile methods.
-  integer                , parameter :: duttonMaccio2014DensityProfileMethodNFW    =0
-  integer                , parameter :: duttonMaccio2014DensityProfileMethodEinasto=1
-
+  !# <enumeration>
+  !#  <name>duttonMaccio2014DensityProfileMethod</name>
+  !#  <description>Enumeration of density profile methods available in the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.</description>
+  !#  <visibility>private</visibility>
+  !#  <entry label="NFW"    />
+  !#  <entry label="einasto"/>
+  !# </enumeration>
+  
 contains
 
-  function duttonMaccio2014DefaultConstructor()
+  function duttonMaccio2014ConstructorParameters(parameters)
     !% Default constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
-    use Input_Parameters
     implicit none
-    type(darkMatterProfileConcentrationDuttonMaccio2014), target :: duttonMaccio2014DefaultConstructor
+    type(darkMatterProfileConcentrationDuttonMaccio2014)                :: duttonMaccio2014ConstructorParameters
+    type(inputParameters                               ), intent(in   ) :: parameters
+    type(varying_string                                )                :: fitType
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (.not.duttonMaccio2014Initialized) then
-       !$omp critical(duttonMaccio2014DefaultInitialize)
-       if (.not.duttonMaccio2014Initialized) then
-          ! Get parameters of the model.
-          !@ <inputParameter>
-          !@   <name>duttonMaccio2014FitType</name>
-          !@   <defaultValue>nfwVirial</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $A$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("duttonMaccio2014FitType",duttonMaccio2014FitType,defaultValue="nfwVirial")
-          ! Record that method is now initialized.
-          duttonMaccio2014Initialized=.true.
-       end if
-       !$omp end critical(duttonMaccio2014DefaultInitialize)
-    end if
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>fitType</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>var_str('nfwVirial')</defaultValue>
+    !#   <description>The type of halo definition for which the concentration-mass relation should be computed. Allowed values are {\normalfont \ttfamily nfwVirial}, {\normalfont \ttfamily nfwMean200}, and {\normalfont \ttfamily einastoMean200}.</description>
+    !#   <type>string</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     ! Construct the object.
-    duttonMaccio2014DefaultConstructor=duttonMaccio2014Constructor(char(duttonMaccio2014FitType))
+    duttonMaccio2014ConstructorParameters=duttonMaccio2014ConstructorInternal(char(fitType))
     return
-  end function duttonMaccio2014DefaultConstructor
+  end function duttonMaccio2014ConstructorParameters
 
-  function duttonMaccio2014Constructor(fitType)
+  function duttonMaccio2014ConstructorInternal(fitType)
     !% Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
     use Galacticus_Error
     implicit none
-    type     (darkMatterProfileConcentrationDuttonMaccio2014)                :: duttonMaccio2014Constructor
+    type     (darkMatterProfileConcentrationDuttonMaccio2014)                :: duttonMaccio2014ConstructorInternal
     character(len=*                                         ), intent(in   ) :: fitType
 
     select case (fitType)
-    case ('nfwVirial' )
-       duttonMaccio2014Constructor%a1                   =+0.537d0
-       duttonMaccio2014Constructor%a2                   =+1.025d0
-       duttonMaccio2014Constructor%a3                   =-0.718d0
-       duttonMaccio2014Constructor%a4                   =+1.080d0
-       duttonMaccio2014Constructor%b1                   =-0.097d0
-       duttonMaccio2014Constructor%b2                   =+0.024d0
-       duttonMaccio2014Constructor%densityContrastMethod=duttonMaccio2014DensityContrastMethodVirial
-       duttonMaccio2014Constructor%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
-    case ('nfw200'    )
-       duttonMaccio2014Constructor%a1                   =+0.520d0
-       duttonMaccio2014Constructor%a2                   =+0.905d0
-       duttonMaccio2014Constructor%a3                   =-0.617d0
-       duttonMaccio2014Constructor%a4                   =+1.210d0
-       duttonMaccio2014Constructor%b1                   =-0.101d0
-       duttonMaccio2014Constructor%b2                   =+0.026d0
-       duttonMaccio2014Constructor%densityContrastMethod=duttonMaccio2014DensityContrastMethod200
-       duttonMaccio2014Constructor%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
-    case ('einasto200')
-       duttonMaccio2014Constructor%a1                   =+0.459d0
-       duttonMaccio2014Constructor%a2                   =+0.977d0
-       duttonMaccio2014Constructor%a3                   =-0.490d0
-       duttonMaccio2014Constructor%a4                   =+1.303d0
-       duttonMaccio2014Constructor%b1                   =-0.130d0
-       duttonMaccio2014Constructor%b2                   =+0.029d0
-       duttonMaccio2014Constructor%densityContrastMethod=duttonMaccio2014DensityContrastMethod200
-       duttonMaccio2014Constructor%densityProfileMethod =duttonMaccio2014DensityProfileMethodEinasto
+    case ('nfwVirial'     )
+       duttonMaccio2014ConstructorInternal%a1                   =+0.537d0
+       duttonMaccio2014ConstructorInternal%a2                   =+1.025d0
+       duttonMaccio2014ConstructorInternal%a3                   =-0.718d0
+       duttonMaccio2014ConstructorInternal%a4                   =+1.080d0
+       duttonMaccio2014ConstructorInternal%b1                   =-0.097d0
+       duttonMaccio2014ConstructorInternal%b2                   =+0.024d0
+       duttonMaccio2014ConstructorInternal%densityContrastMethod=duttonMaccio2014DensityContrastMethodVirial
+       duttonMaccio2014ConstructorInternal%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
+    case ('nfwMean200'    )
+       duttonMaccio2014ConstructorInternal%a1                   =+0.520d0
+       duttonMaccio2014ConstructorInternal%a2                   =+0.905d0
+       duttonMaccio2014ConstructorInternal%a3                   =-0.617d0
+       duttonMaccio2014ConstructorInternal%a4                   =+1.210d0
+       duttonMaccio2014ConstructorInternal%b1                   =-0.101d0
+       duttonMaccio2014ConstructorInternal%b2                   =+0.026d0
+       duttonMaccio2014ConstructorInternal%densityContrastMethod=duttonMaccio2014DensityContrastMethodMean200
+       duttonMaccio2014ConstructorInternal%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
+    case ('einastoMean200')
+       duttonMaccio2014ConstructorInternal%a1                   =+0.459d0
+       duttonMaccio2014ConstructorInternal%a2                   =+0.977d0
+       duttonMaccio2014ConstructorInternal%a3                   =-0.490d0
+       duttonMaccio2014ConstructorInternal%a4                   =+1.303d0
+       duttonMaccio2014ConstructorInternal%b1                   =-0.130d0
+       duttonMaccio2014ConstructorInternal%b2                   =+0.029d0
+       duttonMaccio2014ConstructorInternal%densityContrastMethod=duttonMaccio2014DensityContrastMethodMean200
+       duttonMaccio2014ConstructorInternal%densityProfileMethod =duttonMaccio2014DensityProfileMethodEinasto
     case default
-       call Galacticus_Error_Report('duttonMaccio2014Constructor','unrecognized fit type [available types are: nfwVirial, nfw200, einasto200]')
+       call Galacticus_Error_Report('duttonMaccio2014ConstructorInternal','unrecognized fit type [available types are: nfwVirial, nfwMean200, einastoMean200]')
     end select
     return
-  end function duttonMaccio2014Constructor
+  end function duttonMaccio2014ConstructorInternal
   
+  subroutine duttonMaccio2014Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
+
+    ! Nothing to do.
+    return
+  end subroutine duttonMaccio2014Destructor
+
   double precision function duttonMaccio2014Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{dutton_cold_2014} algorithm.
+    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{dutton_cold_2014}
+    !% algorithm.
     use Cosmology_Functions
     implicit none
     class           (darkMatterProfileConcentrationDuttonMaccio2014), intent(inout)          :: self
@@ -167,7 +175,7 @@ contains
     class(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
     
     select case (self%densityContrastMethod)
-    case (duttonMaccio2014DensityContrastMethod200   )
+    case (duttonMaccio2014DensityContrastMethodMean200   )
        allocate(virialDensityContrastFixed                         :: duttonMaccio2014DensityContrastDefinition)
        select type (duttonMaccio2014DensityContrastDefinition)
        type is (virialDensityContrastFixed)

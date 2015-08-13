@@ -12,12 +12,13 @@
   </cosmologyParametersMethod><sigma_8 value="0.9"/>
   <transferFunctionMethod value="BBKS"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="1.000"/>
+    <index value="1.000"/>
     <wavenumberReference value="1.000"/>
-    <running             value="0.000"/>
+    <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
-  <darkMatterProfileConcentrationMethod value="NFW1996"/>
-  <nfw1996ConcentrationC value="3000.0"/>
+  <darkMatterProfileConcentrationMethod value="NFW1996">
+    <C value="3000.0"/>
+  </darkMatterProfileConcentrationMethod>
   <virialDensityContrastMethod value="fixed"/>
   <virialDensityConstrastFixed value="200.0"/>
   <virialDensityConstrastFixedType value="criticalDensity"/>

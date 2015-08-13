@@ -31,9 +31,9 @@
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
   <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="0.961"/>
+    <index value="0.961"/>
     <wavenumberReference value="1.000"/>
-    <running             value="0.000"/>
+    <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
   <!-- Structure formation options -->
   <linearGrowthMethod value="simple"/>
@@ -44,9 +44,10 @@
   <!-- Merger tree building options -->
   <mergerTreeConstructMethod value="build"/>
   <mergerTreeBuilderMethod value="cole2000"/>
-  <mergerTreeBuildCole2000AccretionLimit value="0.1"/>
-  <mergerTreeBuildCole2000MergeProbability value="0.1"/>
-  <treeBranchingMethod value="modifiedPress-Schechter"/>
+  <mergerTreeBuildMethod value="cole2000">
+    <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
+  </mergerTreeBuildMethod><treeBranchingMethod value="modifiedPress-Schechter"/>
   <modifiedPressSchechterG0 value="0.57"/>
   <modifiedPressSchechterGamma1 value="0.38"/>
   <modifiedPressSchechterGamma2 value="-0.01"/>
