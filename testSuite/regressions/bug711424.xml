@@ -132,7 +132,9 @@
   <treeNodeMethodSpin value="random"/>
   <diskOutflowExponent value="2"/>
   <massAccretionHistoryOutput value="false"/>
-  <outputRedshifts value="0"/>
+    <mergeProbability value="0.1"/>
+    <accretionLimit value="0.1"/>
+  </mergerTreeBuildMethod><outputRedshifts value="0"/>
   <coolingRadiusMethod value="simple"/>
   <randomSpinResetMassFactor value="2"/>
   <blackHoleBinaryMergersMethod value="Rezzolla2008"/>
