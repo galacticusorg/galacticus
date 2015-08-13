@@ -275,10 +275,10 @@ my @translations =
 	     "powerSpectrumIndex"                                             => "powerSpectrumPrimordialMethod--index"                                           ,
 	     "powerSpectrumRunning"                                           => "powerSpectrumPrimordialMethod--running"                                         ,
 	     "powerSpectrumReferenceWavenumber"                               => "powerSpectrumPrimordialMethod--wavenumberReference"                             ,
-	     "mergerTreeBuildCole2000AccretionLimit"                          => "mergerTreeBuildMethod--accretionLimit"                                          ,
-	     "mergerTreeBuildCole2000MergeProbability"                        => "mergerTreeBuildMethod--mergeProbability"                                        ,
-	     "mergerTreeBuildCole2000HighestRedshift"                         => "mergerTreeBuildMethod--redshiftMaximum"                                         ,
-	     "mergerTreeBuildCole2000FixedRandomSeeds"                        => "mergerTreeBuildMethod--randomSeedsFixed"                                        ,
+	     "mergerTreeBuildCole2000AccretionLimit"                          => "mergerTreeBuilderMethod--accretionLimit"                                        ,
+	     "mergerTreeBuildCole2000MergeProbability"                        => "mergerTreeBuilderMethod--mergeProbability"                                      ,
+	     "mergerTreeBuildCole2000HighestRedshift"                         => "mergerTreeBuilderMethod--redshiftMaximum"                                       ,
+	     "mergerTreeBuildCole2000FixedRandomSeeds"                        => "mergerTreeBuilderMethod--randomSeedsFixed"                                      ,
 	     "mergerTreeRegridTimes"                                          => "mergerTreeOperatorMethod.regridTimes."                                          ,
 	     "mergerTreeRegridDumpTrees"                                      => "mergerTreeOperatorMethod.regridTimes.--dumpTrees"                               ,
 	     "mergerTreeRegridCount"                                          => "mergerTreeOperatorMethod.regridTimes.--regridCount"                             ,
@@ -357,7 +357,7 @@ my @translations =
 my %knownDefaults =
     (
      "cosmologyParametersMethod"            => "simple"  ,
-     "mergerTreeBuildMethod"                => "cole2000",
+     "mergerTreeBuilderMethod"              => "cole2000",
      "darkMatterProfileConcentrationMethod" => "gao2008"
   );
 
