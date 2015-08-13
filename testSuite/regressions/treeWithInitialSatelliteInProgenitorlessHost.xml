@@ -12,13 +12,14 @@
   <treeNodeMethodBasic value="standard"/>
   <treeNodeMethodBlackHole value="standard"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
-  <treeNodeMethodDisk value="exponential"/>
+  <treeNodeMethodDisk value="standard"/>
   <treeNodeMethodHotHalo value="standard"/>
   <treeNodeMethodSatellite value="preset"/>
   <treeNodeMethodSpheroid value="standard"/>
   <spheroidMassDistribution value="hernquist"/>
   <treeNodeMethodSpin value="random"/>
   <treeNodeMethodPosition value="preset"/>
+  <diskMassDistribution value="exponentialDisk"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctionsMethod value="matterLambda"/>
@@ -29,8 +30,9 @@
     <OmegaBaryon value="0.0455"/>
     <temperatureCMB value="2.72548"/>
   </cosmologyParametersMethod><!-- Power spectrum options -->
-  <sigma_8 value="0.9"/>
-  <transferFunctionMethod value="eisensteinHu1999">
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.9"/>
+  </cosmologicalMassVarianceMethod><transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
@@ -43,7 +45,7 @@
   <!-- Structure formation options -->
   <linearGrowthMethod value="simple"/>
   <haloMassFunctionMethod value="Tinker2008"/>
-  <criticalOverdensityMethod value="sphericalTopHat"/>
+  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
 
   <!-- Merger tree building options -->
@@ -59,7 +61,6 @@
   <mergerTreeReadPresetMergerNodes value="true"/>
   <mergerTreeReadPresetScaleRadii value="false"/>
   <mergerTreeReadPresetSubhaloMasses value="false"/>
-  <mergerTreeBuilderMethod value="cole2000"/>
   <mergerTreeBuilderMethod value="cole2000">
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
@@ -88,7 +89,7 @@
 
   <!-- Hot halo gas cooling model options -->
   <hotHaloMassDistributionMethod value="betaProfile"/>
-  <hotHaloTemperatureMethod value="virial"/>
+  <hotHaloTemperatureProfileMethod value="virial"/>
   <hotHaloCoreRadiusOverVirialRadius value="0.4123"/>
   <hotHaloAngularMomentumLossFraction value="0.3"/>
   <hotHaloOutflowReturnRate value="5.0"/>
@@ -172,7 +173,7 @@
   <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Galaxy merger options -->
-  <virialOrbitsMethod value="Benson2005"/>
+  <virialOrbitMethod value="benson2005"/>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <mergingTimescaleMultiplier value="1.0"/>
   <satelliteMergingMassMovementsMethod value="simple"/>
