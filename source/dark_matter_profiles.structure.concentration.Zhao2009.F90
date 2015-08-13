@@ -15,38 +15,64 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo profile concentrations using the \cite{zhao_accurate_2009} algorithm.
+  !% An implementation of dark matter halo profile concentrations using the
+  !% \cite{zhao_accurate_2009} algorithm.
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationZhao2009">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{zhao_accurate_2009}.</description>
   !# </darkMatterProfileConcentration>
-
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationZhao2009
-     !% A dark matter halo profile concentration class implementing the algorithm of \cite{zhao_accurate_2009}.
+     !% A dark matter halo profile concentration class implementing the algorithm of
+     !% \cite{zhao_accurate_2009}.
      private
    contains
+     final     ::                                zhao2009Destructor
      procedure :: concentration               => zhao2009Concentration
      procedure :: densityContrastDefinition   => zhao2009DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => zhao2009DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationZhao2009
 
   interface darkMatterProfileConcentrationZhao2009
-     !% Constructors for the {\normalfont \ttfamily zhao2009} dark matter halo profile concentration class.
-     module procedure zhao2009DefaultConstructor
+     !% Constructors for the {\normalfont \ttfamily zhao2009} dark matter halo profile
+     !% concentration class.
+     module procedure zhao2009ConstructorParameters
+     module procedure zhao2009ConstructorInternal
   end interface darkMatterProfileConcentrationZhao2009
 
 contains
 
-  function zhao2009DefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile concentration class.
-    use Input_Parameters
+  function zhao2009ConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile
+    !% concentration class which takes an input parameter list.
+    use Input_Parameters2
     implicit none
-    type(darkMatterProfileConcentrationZhao2009), target  :: zhao2009DefaultConstructor
+    type(darkMatterProfileConcentrationZhao2009)                :: zhao2009ConstructorParameters
+    type(inputParameters                       ), intent(in   ) :: parameters
+
     return
-  end function zhao2009DefaultConstructor
+  end function zhao2009ConstructorParameters
+
+  function zhao2009ConstructorInternal()
+    !% Internal constructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile
+    !% concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationZhao2009) :: zhao2009ConstructorInternal
+
+    return
+  end function zhao2009ConstructorInternal
+
+  subroutine zhao2009Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationZhao2009), intent(inout) :: self
+
+    ! Nothing to do.
+    return
+  end subroutine zhao2009Destructor
 
   double precision function zhao2009Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{zhao_accurate_2009} algorithm.
+    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    !% using the \cite{zhao_accurate_2009} algorithm.
     use Dark_Matter_Halo_Formation_Times
     implicit none
     class           (darkMatterProfileConcentrationZhao2009), intent(inout)          :: self
@@ -67,7 +93,8 @@ contains
   end function zhao2009Concentration
 
   function zhao2009DensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of concentration in the \cite{zhao_accurate_2009} algorithm.
+    !% Return a virial density contrast object defining that used in the definition of
+    !% concentration in the \cite{zhao_accurate_2009} algorithm.
     implicit none
     class(virialDensityContrastClass            ), pointer       :: zhao2009DensityContrastDefinition
     class(darkMatterProfileConcentrationZhao2009), intent(inout) :: self
@@ -81,8 +108,8 @@ contains
   end function zhao2009DensityContrastDefinition
   
   function zhao2009DarkMatterProfileDefinition(self)
-    !% Return a dark matter density profile object defining that used in the definition of concentration in the
-    !% \cite{zhao_accurate_2009} algorithm.
+    !% Return a dark matter density profile object defining that used in the definition of
+    !% concentration in the \cite{zhao_accurate_2009} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
     class(darkMatterProfileClass                            ), pointer       :: zhao2009DarkMatterProfileDefinition

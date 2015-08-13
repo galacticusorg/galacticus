@@ -126,10 +126,10 @@
   <virialOrbitMethod value="benson2005"/>
   <zeroCoolingRateAboveVelocity value="10000"/>
   <mergerTreeBuilderMethod value="cole2000">
-  <mergeProbability value="0.1"/>
+    <mergeProbability value="0.1"/>
     <accretionLimit value="0.1"/>
   </mergerTreeBuilderMethod>
-  <treeBranchingMethod value="modified Press-Schechter"/>
+  </mergerTreeBuildMethod><treeBranchingMethod value="modified Press-Schechter"/>
   <modifiedPressSchechterGamma2 value="-0.01"/>
   <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
   <modifiedPressSchechterG0 value="0.57"/>

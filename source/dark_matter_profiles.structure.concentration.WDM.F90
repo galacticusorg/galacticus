@@ -17,80 +17,67 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-  !% An implementation of warm dark matter halo profile concentrations using the \cite{schneider_non-linear_2012} modifier.
+  !% An implementation of warm dark matter halo profile concentrations using the
+  !% \cite{schneider_non-linear_2012} modifier.
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationWDM">
   !#  <description>Dark matter halo concentrations are computed using the modifier of \cite{schneider_non-linear_2012}.</description>
   !# </darkMatterProfileConcentration>
-
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationWDM
-     !% A dark matter halo profile concentration class implementing the modifier of \cite{schneider_non-linear_2012}.
+     !% A dark matter halo profile concentration class implementing the modifier of
+     !% \cite{schneider_non-linear_2012}.
      private
      class(darkMatterProfileConcentrationClass), pointer :: cdmConcentration
    contains
-     procedure :: concentration => wdmConcentration
+     final     ::                                wdmDestructor
+     procedure :: concentration               => wdmConcentration
+     procedure :: densityContrastDefinition   => wdmDensityContrastDefinition
+     procedure :: darkMatterProfileDefinition => wdmDarkMatterProfileDefinition
   end type darkMatterProfileConcentrationWDM
 
   interface darkMatterProfileConcentrationWDM
-     !% Constructors for the {\normalfont \ttfamily WDM} dark matter halo profile concentration class.
-     module procedure wdmDefaultConstructor
-     module procedure wdmGenericConstructor
+     !% Constructors for the {\normalfont \ttfamily WDM} dark matter halo profile concentration
+     !% class.
+     module procedure wdmConstructorParameters
+     module procedure wdmConstructorInternal
   end interface darkMatterProfileConcentrationWDM
-
-  ! Record of whether method is initialized.
-  logical                 :: wdmInitialized=.false.
-
-  ! Record of CDM concentration method to use.
-  type   (varying_string) :: wdmDarkMatterProfileConcentrationCDMMethod
 
 contains
 
-  function wdmDefaultConstructor()
+  function wdmConstructorParameters(parameters)
     !% Default constructor for the {\normalfont \ttfamily wdm} dark matter halo profile concentration class.
-    use Input_Parameters
+    use Input_Parameters2
     implicit none
-    type(darkMatterProfileConcentrationWDM), target :: wdmDefaultConstructor
+    type(darkMatterProfileConcentrationWDM)                :: wdmConstructorParameters
+    type(inputParameters                  ), intent(in   ) :: parameters
 
-    ! Initialize if necessary.
-    if (.not.wdmInitialized) then
-       !$omp critical(wdmInitialization)
-       if (.not.wdmInitialized) then
-          ! Read parameter controlling the CDM base method.
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileConcentrationCDMMethod</name>
-          !@   <defaultValue>gao2008</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The {\normalfont \ttfamily darkMatterProfileConcentration} method to which the \cite{schneider_non-linear_2012} modifier for WDM halo concentrations should be applied.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkMatterProfileConcentrationCDMMethod',wdmDarkMatterProfileConcentrationCDMMethod,defaultValue="gao2008")
-          ! Record that this method is now initialized
-          wdmInitialized=.true.
-       end if
-       !$omp end critical(wdmInitialization)
-    end if
-    ! Construct the default object.
-    wdmDefaultConstructor%cdmConcentration => darkMatterProfileConcentration(char(wdmDarkMatterProfileConcentrationCDMMethod))
+    !# <objectBuilder class="darkMatterProfileConcentration" name="wdmConstructorParameters%cdmConcentration" source="parameters"/>
     return
-  end function wdmDefaultConstructor
+  end function wdmConstructorParameters
 
-  function wdmGenericConstructor(cdmMethod)
+  function wdmConstructorInternal(cdmMethod)
     !% Generic constructor for the \gls{wdm} dark matter halo concentration class.
     implicit none
-    type (darkMatterProfileConcentrationWDM  )                        :: wdmGenericConstructor
+    type (darkMatterProfileConcentrationWDM  )                        :: wdmConstructorInternal
     class(darkMatterProfileConcentrationClass), intent(in   ), target :: cdmMethod
 
     ! Construct the object.
-    wdmGenericConstructor%cdmConcentration => cdmMethod
+    wdmConstructorInternal%cdmConcentration => cdmMethod
     return
-  end function wdmGenericConstructor
+  end function wdmConstructorInternal
+
+  subroutine wdmDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily wdm} dark matter halo profile concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationWDM), intent(inout) :: self
+
+    !# <objectDestructor name="self%cdmConcentration"/>
+    return
+  end subroutine wdmDestructor
 
   double precision function wdmConcentration(self,node)
-    !% Return  the  concentration of  the  dark  matter halo  profile  of  {\normalfont \ttfamily  node} using  the  warm  dark matter  modifier  of
-    !% \cite{schneider_non-linear_2012}.
+    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    !% using the warm dark matter modifier of \cite{schneider_non-linear_2012}.
     use Transfer_Functions
     implicit none
     class           (darkMatterProfileConcentrationWDM), intent(inout)          :: self
@@ -98,7 +85,7 @@ contains
     class           (nodeComponentBasic               )               , pointer :: basic
     class           (transferFunctionClass            )               , pointer :: transferFunction_
     ! Parameters of Schneider et al. (2012)'s fitting formula.
-    double precision                                   , parameter              :: gamma1=15.0d0, gamma2=0.3d0
+    double precision                                   , parameter              :: gamma1           =15.0d0, gamma2=0.3d0
 
     ! Get required objects.
     basic             => node            %basic()
@@ -113,3 +100,25 @@ contains
          &  )**gamma2
     return
   end function wdmConcentration
+
+  function wdmDensityContrastDefinition(self)
+    !% Return a virial density contrast object defining that used in the definition of
+    !% concentration in the warm dark matter modifier of \cite{schneider_non-linear_2012}.
+    implicit none
+    class(virialDensityContrastClass       ), pointer       :: wdmDensityContrastDefinition
+    class(darkMatterProfileConcentrationWDM), intent(inout) :: self
+
+    wdmDensityContrastDefinition => self%cdmConcentration%densityContrastDefinition()
+    return
+  end function wdmDensityContrastDefinition
+
+  function wdmDarkMatterProfileDefinition(self)
+    !% Return a dark matter density profile object defining that used in the definition of concentration in the
+    !% warm dark matter modifier of \cite{schneider_non-linear_2012}.
+    implicit none
+    class(darkMatterProfileClass           ), pointer       :: wdmDarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationWDM), intent(inout) :: self
+
+    wdmDarkMatterProfileDefinition => self%cdmConcentration%darkMatterProfileDefinition()
+    return
+  end function wdmDarkMatterProfileDefinition
