@@ -33,6 +33,9 @@
      procedure :: concentration               => diemerKravtsov2014Concentration
      procedure :: densityContrastDefinition   => diemerKravtsov2014DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => diemerKravtsov2014DarkMatterProfileDefinition
+     procedure :: stateStore                  => diemerKravtsov2014StateStore
+     procedure :: stateRestore                => diemerKravtsov2014StateRestore
+     procedure :: stateSnapshot               => diemerKravtsov2014StateSnapshot
   end type darkMatterProfileConcentrationDiemerKravtsov2014
 
   interface darkMatterProfileConcentrationDiemerKravtsov2014
@@ -126,7 +129,6 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-         &                                darkMatterProfileConcentrationDiemerKravtsov2014Scatter  &
     return
   end function diemerKravtsov2014ConstructorParameters
 
