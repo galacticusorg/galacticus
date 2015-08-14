@@ -80,10 +80,22 @@ module Root_Finder
      !@     <arguments>\textcolor{red}{\textless function(\textless double\textgreater} x\argin\textcolor{red}{)\textgreater} rootFunction</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>rootFunctionDerivative</method>
+     !@     <description>Set the functions that evaluate $f(x)$ and derivatives to use in a {\normalfont \ttfamily rootFinder} object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless function(\textless double\textgreater} x\argin\textcolor{red}{)\textgreater} rootFunction, \textcolor{red}{\textless function(\textless double\textgreater} x\argin\textcolor{red}{)\textgreater} rootFunctionDerivative, \textcolor{red}{\textless void(\textless double\textgreater} x\argin, \textcolor{red}{\textless double\textgreater} f\argin, \textcolor{red}{\textless double\textgreater} fdf\argin\textcolor{red}{)\textgreater} rootFunctionBoth</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>type</method>
      !@     <description>Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object.</description>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless type(fgsl\_root\_fsolver\_type)\textgreater} solverType\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>typeDerivative</method>
+     !@     <description>Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object in cases where the derivative of the function is available.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(fgsl\_root\_fdfsolver\_type)\textgreater} solverDerivativeType\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>tolerance</method>

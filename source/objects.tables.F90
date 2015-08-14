@@ -422,6 +422,18 @@ module Tables
      !@     <arguments></arguments>
      !@     <description>Return true if the table is initialized (this means the table is created, it may not yet have been populated).</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>populate</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero|\doubletwo\ z,\intzero\ [i],\intzero\ [j],\intzero\ [table]</arguments>
+     !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
+     !@   </objectMethod>  
+     !@   <objectMethod>
+     !@     <method>create</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ xMinimum,\doublezero\ xMaximum,\doublezero\ yMinimum,\doublezero\ yMaximum,\intzero yCount,\intzero [tableCount],\enumExtrapolationType [extrapolationTypeX],\enumExtrapolationType [extrapolationTypeY]</arguments>
+     !@     <description>Create the object with $x$-values spanning the range {\normalfont \ttfamily xMinimum} to {\normalfont \ttfamily xMaximum} in {\normalfont \ttfamily xCount} steps, and with {\normalfont \ttfamily tableCount} tables.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: create                            => Table_2DLogLogLin_Create
      procedure :: Table_2DLogLogLin_Populate

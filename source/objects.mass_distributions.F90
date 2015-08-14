@@ -134,6 +134,24 @@ module Mass_Distributions
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ moment\argin, \doublezero\ radiusMinimum\argin, \doublezero\ radiusMaximum\argin, \logicalzero\ [isInfinite]\argout</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>rotationCurve</method>
+     !@     <description>Returns the circular velocity at the given {\normalfont \ttfamily radius}.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>rotationCurveGradient</method>
+     !@     <description>Returns the gradient of the circular velocity at the given {\normalfont \ttfamily radius}.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>surfaceDensity</method>
+     !@     <description>Returns the surface density at the given {\normalfont \ttfamily coordinates}.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin</arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure, nopass :: symmetry                   => Mass_Distribution_Symmetry_Cylindrical
      procedure         :: halfMassRadius             => Mass_Distribution_Half_Mass_Radius_Cylindrical

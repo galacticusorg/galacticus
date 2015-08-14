@@ -65,11 +65,13 @@ module Statistics_Distributions
      !@   <objectMethod>
      !@     <method>minimum</method>
      !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@     <description>Returns the minimum possible value in the distribution.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>maximum</method>
      !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@     <description>Returns the maximum possible value in the distribution.</description>
      !@   </objectMethod>
      !@ </objectMethods>

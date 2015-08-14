@@ -24,6 +24,15 @@
      !% An implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.
      private
    contains
+     !@ <objectMethods>
+     !@   <object>hotHaloMassDistributionEnzoHydrostatic</object>
+     !@   <objectMethod>
+     !@     <method>densityNormalization</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\arginout</arguments>
+     !@     <description>Return the normalization of the density profile.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: densityNormalization  => enzoHydrostaticDensityNormalization
      procedure :: density               => enzoHydrostaticDensity
      procedure :: densityLogSlope       => enzoHydrostaticDensityLogSlope
