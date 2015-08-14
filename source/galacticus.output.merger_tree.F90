@@ -171,7 +171,7 @@ contains
        nodeStatus =  nodeStatusFirst       
        do while (associated(thisNode))
           ! Find the next node.
-          call thisNode%walkTreeWithSatellites(nextNode)
+          nextNode => thisNode%walkTreeWithSatellites()
           ! Check for final node.
           if (.not.associated(nextNode)) nodeStatus=nodeStatusLast
           ! Get the basic component.
