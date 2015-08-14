@@ -124,7 +124,7 @@ sub Process_Enumerations {
 			$function .= "        ".$encodeFunctionName."=".++$i."\n";
 		    }
 		    $function .= "      case default\n";
-		    $function .= "      call Galacticus_Error_Report('".$encodeFunctionName."','unrecognized mass specifier ['//trim(name)//']')\n";
+		    $function .= "      call Galacticus_Error_Report('".$encodeFunctionName."','unrecognized enumeration member ['//trim(name)//']')\n";
 		    $function .= "      end select\n";
 		}
 		$function .= "    end if\n";
