@@ -248,7 +248,7 @@ contains
           simpleBranchHasBaryons=.true.
           exit
        end if
-       call branchNode%walkBranch(node,branchNode)
+       branchNode => branchNode%walkBranch(node)
     end do
     return
   end function simpleBranchHasBaryons
