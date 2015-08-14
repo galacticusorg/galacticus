@@ -110,7 +110,7 @@ contains
                       ! Return to parent node.
                       thisNode => previousNode
                    end if
-                   call thisNode%walkTree(thisNode)
+                   thisNode => thisNode%walkTree()
                 end do
              end if
           end do

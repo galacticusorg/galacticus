@@ -15,10 +15,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements the geometry of the GAMAnear survey used by \cite{kelvin_galaxy_2014a}.
+!% Implements the geometry of the GAMAnear survey used by \cite{kelvin_galaxy_2014-1}.
   
   !# <surveyGeometry name="surveyGeometryKelvin2014GAMAnear">
-  !#  <description>Implements the geometry of the GAMAnear survey of \cite{kelvin_galaxy_2014a}.</description>
+  !#  <description>Implements the geometry of the GAMAnear survey of \cite{kelvin_galaxy_2014-1}.</description>
   !# </surveyGeometry>
 
   use Galacticus_Input_Paths
@@ -31,14 +31,14 @@
   end type surveyGeometryKelvin2014GAMAnear
 
   interface surveyGeometryKelvin2014GAMAnear
-     !% Constructors for the \cite{kelvin_galaxy_2014a} survey geometry class.
+     !% Constructors for the \cite{kelvin_galaxy_2014-1} survey geometry class.
      module procedure kelvin2014GAMAnearDefaultConstructor
   end interface surveyGeometryKelvin2014GAMAnear
 
 contains
 
   function kelvin2014GAMAnearDefaultConstructor()
-    !% Default constructor for the \cite{kelvin_galaxy_2014a} conditional mass function class.
+    !% Default constructor for the \cite{kelvin_galaxy_2014-1} conditional mass function class.
     use Cosmology_Functions
     use Cosmology_Functions_Options
     implicit none

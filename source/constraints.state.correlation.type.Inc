@@ -27,6 +27,21 @@
      !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
      !# final     ::             stateCorrelationDestroy
      !# </workaround>
+     !@ <objectMethods>
+     !@   <object>stateCorrelation</object>
+     !@   <objectMethod>
+     !@     <method>correlationLength</method>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the current correlation length in the chains.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>postConvergenceCorrelationCount</method>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the number of post-convergence correlation lengths that have accrued.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: update                          => stateCorrelationUpdate
      procedure :: reset                           => stateCorrelationReset
      procedure :: postConvergenceCorrelationCount => stateCorrelationPostConvergenceCorrelationCount

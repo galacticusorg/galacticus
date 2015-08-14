@@ -37,6 +37,7 @@ module Constraints_Convergence
      !@   <objectMethod>
      !@     <method>convergedAtStep</method>
      !@     <type>\intzero</type>
+     !@     <arguments></arguments>
      !@     <description>Return the step at which the simulation converged.</description>
      !@   </objectMethod>
      !@   <objectMethod>

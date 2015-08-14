@@ -37,6 +37,15 @@
      logical                                     :: densityContrastTableInitialized                      
      type            (table2DLogLogLin)          :: densityContrastTable
    contains
+     !@ <objectMethods>
+     !@   <object>virialDensityContrastPercolation</object>
+     !@   <objectMethod>
+     !@     <method>tabulate</method>
+     !@     <description>Tabulate the virial density contrast as a function of mass and time.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ mass\argin, \doublezero\ time\argin</arguments>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final     ::                                percolationDestructor
      procedure :: densityContrast             => percolationDensityContrast
      procedure :: densityContrastRateOfChange => percolationDensityContrastRateOfChange

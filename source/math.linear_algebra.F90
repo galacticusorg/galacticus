@@ -99,6 +99,18 @@ module Linear_Algebra
      !@     <arguments></arguments>
      !@     <description>Make a matrix semi-positive definite by setting any negative eigenvalues to zero.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>eigenSystem</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(matrix)\textgreater} eigenVectors\argout, \textcolor{red}{\textless type(vector)\textgreater} eigenValues\argout</arguments>
+     !@     <description>Compute eigenvectors and eigenvalues of the matrix.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>symmetrize</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Make the matrix symmetric using $A_{ij} \rightarrow (A_{ij}+A_{ji})/2$.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: invert                   => matrixInvert
      procedure :: logarithmicDeterminant   => matrixLogarithmicDeterminant

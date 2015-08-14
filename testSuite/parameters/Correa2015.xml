@@ -18,6 +18,7 @@
     <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
   <darkMatterHaloMassAccretionHistoryMethod value="correa2015"/>
-  <darkMatterProfileConcentrationMethod value="correa2015"/>
-  <darkMatterHaloConcentrationCorrea2015AScaling value="950.0"/>
-</parameters>
+  <darkMatterProfileConcentrationMethod value="correa2015">
+    <A value="950.0"/>
+  </darkMatterProfileConcentrationMethod>
+  </parameters>

@@ -356,7 +356,7 @@ sub Get_Fortran_Line {
 	$processedLine .= $tmpLine;
 	if ( $processedLine =~ m/&\s*$/ ) {
 	    $processedLine =~ s/\s*&\s*$//;
-	} elsif ( $firstLine == 0 && ( $line =~ m/^\#/ || $line =~ m/^\s*![^\$]/ ) ) {
+	} elsif ( $firstLine == 0 && ( $line =~ m/^\#/ || $line =~ m/^\s*!\$\s+&/ || $line =~ m/^\s*![^\$]/ ) ) {
 	    # This is a preprocessor directive or comment in the middle of continuation lines. Just concatenate it.
 	} else {
 	    $processedFullLine = 1;
