@@ -71,7 +71,16 @@ program Test_DiemerKravtsov2014_Concentration
   ! Get required objects.
   cosmologyFunctions_             => cosmologyFunctions                              (                 )
   cosmologyParameters_            => cosmologyParameters                             (                 )  
-  darkMatterProfileConcentration_ =  darkMatterProfileConcentrationDiemerKravtsov2014(                 )
+  darkMatterProfileConcentration_ =  darkMatterProfileConcentrationDiemerKravtsov2014(        &
+       &                                                                              0.69d0, &
+       &                                                                              6.58d0, &
+       &                                                                              1.37d0, &
+       &                                                                              6.82d0, &
+       &                                                                              1.42d0, &
+       &                                                                              1.12d0, &
+       &                                                                              1.69d0, &
+       &                                                                              0.0d0   &
+       &                                                                             )
   ! Read the reference file.
   differenceFractionalMaximum=0.0d0
   open(newUnit=referenceUnit,file=char(Galacticus_Input_Path()//"testSuite/data/diemerKravtsov2014Concentration.txt"),status='old',form='formatted',iostat=ioStatus)
