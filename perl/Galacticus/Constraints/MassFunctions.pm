@@ -144,7 +144,7 @@ sub Construct {
 	}
 	# Add random Gaussian errors to the masses.
 	my $sigma = pdl ones(nelem($logarithmicMass));
-	if ( reftype($config->{'massErrorRandomDex'}) eq "CODE" ) {
+	if ( reftype($config->{'massErrorRandomDex'}) && reftype($config->{'massErrorRandomDex'}) eq "CODE" ) {
 	    $sigma .= &{$config->{'massErrorRandomDex'}}($logarithmicMass,$galacticus);
 	} else {
 	    $sigma *= $config->{'massErrorRandomDex'};
