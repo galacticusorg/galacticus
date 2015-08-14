@@ -71,13 +71,13 @@ module Abundances_Structure
      !@   <objectMethod>
      !@     <method>metallicity</method>
      !@     <type>\doublezero</type>
-     !@     <arguments>\enumMetallicityScale\ [metallicityType]\argin</arguments>
+     !@     <arguments>\enumMetallicityType\ [metallicityType]\argin</arguments>
      !@     <description>Returns the metallicity.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>metallicitySet</method>
      !@     <type>\void</type>
-     !@     <arguments>\doublezero\ metallicity\argin, \enumMetallicityScale\ [metallicityType]\argin, \enumAdjustElements\ [adjustElements]\argin, \intzero\ [abundanceIndex]\argin</arguments>
+     !@     <arguments>\doublezero\ metallicity\argin, \enumMetallicityType\ [metallicityType]\argin, \enumAdjustElements\ [adjustElements]\argin, \intzero\ [abundanceIndex]\argin</arguments>
      !@     <description>Sets the metallicity to {\normalfont \ttfamily metallicity}.</description>
      !@   </objectMethod>
      !@   <objectMethod>

@@ -55,11 +55,13 @@ module Constraints_Priors
      !@   <objectMethod>
      !@     <method>minimum</method>
      !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@     <description>Returns the minimum possible value of the parameter.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>maximum</method>
      !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@     <description>Returns the maximum possible value of the parameter.</description>
      !@   </objectMethod>
      !@ </objectMethods>

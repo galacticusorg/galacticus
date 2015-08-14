@@ -30,6 +30,21 @@ module Nearest_Neighbors
      !% Wrapper object for nearest neighbor searching.
      type(c_ptr) :: ANNkd_tree
    contains
+     !@ <objectMethods>
+     !@   <object>nearestNeighbors</object>
+     !@   <objectMethod>
+     !@     <method>search</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ point\argin, \intzero\ neighborCount\argin, \doublezero\ tolerance\argin, \intone\ neighborIndex\argout, \doubleone\ neighborDistance\argout</arguments>
+     !@     <description>Compute indices and distances to the approximate nearest neighbors.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>searchFixedRadius</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ point\argin, \doublezero\ radius\argin, \intzero\ neighborCount\argin, \doublezero\ tolerance\argin, \intone\ neighborIndex\argout, \doubleone\ neighborDistance\argout</arguments>
+     !@     <description>Compute indices and distances to the approximate nearest neighbors.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final     ::                      nearestNeighborsDestructor
      procedure :: search            => nearestNeighborsSearch
      procedure :: searchFixedRadius => nearestNeighborsSearchFixedRadius
