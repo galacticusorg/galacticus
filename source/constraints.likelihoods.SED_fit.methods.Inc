@@ -274,7 +274,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   ! Set redshift.
   self%redshift=redshift
   ! Construct the abundances object.
-  call abundancesStars%metallicitySet(metallicity,metallicityType=linearByMassSolar)
+  call abundancesStars%metallicitySet(metallicity,metallicityType=metallicityTypeLinearByMassSolar)
   ! Determine if we can use a rapid summation over tabulated mass-to-light ratios.
   useRapidEvaluation= self%burstCount == 0                        &
        &             .and.                                        &
