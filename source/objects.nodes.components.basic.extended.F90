@@ -39,27 +39,27 @@ module Node_Component_Basic_Standard_Extended
   !#  <properties>
   !#   <property>
   !#     <name>massBertschinger</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" /> 
   !#     <classDefault>-1.0d0</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>accretionRateBertschinger</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>radiusTurnaround</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault>-1.0d0</classDefault>
   !#   </property>
   !#   <property>
   !#     <name>radiusTurnaroundGrowthRate</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
@@ -182,7 +182,7 @@ contains
                 call thisBasic%radiusTurnaroundSet(virialDensityContrast_%turnAroundOverVirialRadii(time=thisBasic%time())*radiusVirial)
              end if
              ! Move to next node.
-             call thisNode%walkTree(thisNode)
+             thisNode => thisNode%walkTree()
           end do
        end if
         ! Determine if this node has a descendent.

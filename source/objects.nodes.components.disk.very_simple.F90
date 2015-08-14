@@ -56,7 +56,7 @@ module Node_Component_Disk_Very_Simple
   !#   <property>
   !#     <name>starFormationRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#     <output condition="[[diskOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Disk star formation rate."/>
@@ -111,7 +111,7 @@ contains
        !@   <description>
        !@    The absolute mass scale below which calculations in the very simple disk component are allowed to become inaccurate.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskVerySimpleMassScaleAbsolute',diskVerySimpleMassScaleAbsolute,defaultValue=100.0d0)
@@ -155,7 +155,7 @@ contains
        !@   <description>
        !@    Gas mass below which the analytic solver will prune a galaxy.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskVerySimpleAnalyticSolverPruneMassGas',diskVerySimpleAnalyticSolverPruneMassGas,defaultValue=0.0d0)
@@ -166,7 +166,7 @@ contains
        !@   <description>
        !@    Stellar mass below which the analytic solver will prune a galaxy.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('diskVerySimpleAnalyticSolverPruneMassStars',diskVerySimpleAnalyticSolverPruneMassStars,defaultValue=0.0d0)
