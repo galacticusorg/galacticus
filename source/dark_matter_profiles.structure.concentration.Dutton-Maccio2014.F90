@@ -84,6 +84,7 @@ contains
     !#   <description>The type of halo definition for which the concentration-mass relation should be computed. Allowed values are {\normalfont \ttfamily nfwVirial}, {\normalfont \ttfamily nfwMean200}, {\normalfont \ttfamily einastoMean200}, and {\normalfont \ttfamily userDefined}.</description>
     !#   <type>string</type>
     !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     if (fitType == "userDefined") then
        !# <inputParameter>
        !#   <name>a1</name>
@@ -127,9 +128,9 @@ contains
        !#   <type>real</type>
        !#   <cardinality>1</cardinality>
        !# </inputParameter>
-       duttonMaccio2014DefaultConstructor=duttonMaccio2014(a1,a2,a3,a4,b1,b2)
+       duttonMaccio2014ConstructorParameters=duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2)
     else
-       duttonMaccio2014DefaultConstructor=duttonMaccio201 (char(fitType))
+       duttonMaccio2014ConstructorParameters=duttonMaccio2014ConstructorInternalType   (char(fitType))
     end if
     return
   end function duttonMaccio2014ConstructorParameters
@@ -138,7 +139,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
     use Galacticus_Error
     implicit none
-    type     (darkMatterProfileConcentrationDuttonMaccio2014)                :: duttonMaccio2014ConstructorInternal
+    type     (darkMatterProfileConcentrationDuttonMaccio2014)                :: duttonMaccio2014ConstructorInternalType
     character(len=*                                         ), intent(in   ) :: fitType
 
     select case (fitType)
@@ -191,6 +192,15 @@ contains
     duttonMaccio2014ConstructorInternalDefined%b2=b2
     return
   end function duttonMaccio2014ConstructorInternalDefined
+
+  subroutine duttonMaccio2014Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
+
+    ! Nothing to do.
+    return
+  end subroutine duttonMaccio2014Destructor
 
   double precision function duttonMaccio2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{dutton_cold_2014}
