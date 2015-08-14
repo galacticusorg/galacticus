@@ -27,6 +27,39 @@ module IO_IRATE
      !% A class for interacting with \gls{irate} format files.
      type(varying_string) :: fileName
    contains
+     !@ <objectMethods>
+     !@   <object>irate</object>
+     !@   <objectMethod>
+     !@     <method>readHalos</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ snapshot\argin, \doublezero\ [redshift]\argout, \doubletwo\ [center]\argout, \doubletwo\ [velocity]\argout, \doubleone\ [mass]\argout</arguments>
+     !@     <description>Read a snapshot from the \gls{irate} format file.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>readSimulation</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ [boxSize]\argout</arguments>
+     !@     <description>Read the request properties of the simulation from an \gls{irate} format file.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>copySimulation</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(irate)\textgreater} targetFile\arginout</arguments>
+     !@     <description>Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>copyCosmology</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(irate)\textgreater} targetFile\arginout</arguments>
+     !@     <description>Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>writeHalos</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ snapshot\argin, \doublezero\ redshift\argin, \doubletwo\ [center]\argin, \doubletwo\ [velocity]\argin, \doubleone\ [mass]\argin</arguments>
+     !@     <description></description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: readHalos      => irateReadHalos
      procedure :: readSimulation => irateReadSimulation
      procedure :: copySimulation => irateCopySimulation
@@ -142,7 +175,7 @@ contains
   end subroutine irateCopySimulation
   
   subroutine irateCopyCosmology(self,targetFile)
-    !% Copy ``{\normalfont \ttfamily Cosmolgoy}'' group from one \gls{irate} file to another.
+    !% Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another.
     use IO_HDF5
     implicit none
     class(irate     ), intent(inout) :: self

@@ -30,6 +30,15 @@
      double precision                                                :: tolerance                , logPriorNormalization
      logical                                                         :: initialized
    contains
+     !@ <objectMethods>
+     !@   <object>likelihoodPosteriorPrior</object>
+     !@   <objectMethod>
+     !@     <method>initialize</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(mappingList)[:]\textgreater} parameterMappings\argin</arguments>
+     !@     <description>Initialize the posterior-as-prior likelihood.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final     ::                    likelihoodPosteriorPriorDestructor
      procedure :: evaluate        => likelihoodPosteriorPriorEvaluate
      procedure :: functionChanged => likelihoodPosteriorPriorFunctionChanged

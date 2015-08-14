@@ -28,7 +28,7 @@
      logical                                :: unimplementedFatal
    contains
      !@ <objectMethods>
-     !@   <object>darkMatterProfileEinasto</object>
+     !@   <object>darkMatterProfileTidallyHeated</object>
      !@   <objectMethod>
      !@     <method>radiusInitial</method>
      !@     <type>\doublezero</type>

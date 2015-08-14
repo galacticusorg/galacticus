@@ -39,6 +39,12 @@ type, public, extends(massDistributionCylindrical) :: massDistributionMiyamotoNa
    !@     <type>\void</type>
    !@     <arguments></arguments>
    !@   </objectMethod>
+   !@   <objectMethod>
+   !@     <method>massEnclosedInitialize</method>
+   !@     <description>Initialize the enclosed mass tabulation.</description>
+   !@     <type>\void</type>
+   !@     <arguments></arguments>
+   !@   </objectMethod>
    !@ </objectMethods>
    procedure :: initialize                 => Mass_Distribution_Miyamoto_Nagai_Initialize
    procedure :: density                    => Mass_Distribution_Miyamoto_Nagai_Density

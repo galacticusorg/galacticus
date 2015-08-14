@@ -48,7 +48,7 @@ module Node_Component_Hot_Halo_Very_Simple
   !#   </property>
   !#   <property>
   !#     <name>unaccretedMass</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas that failed to accrete into the hot halo."/>

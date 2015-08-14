@@ -49,6 +49,6 @@ program Millennium_Merger_Tree_File_Maker
   call Merger_Trees_Millennium_Process(nodesFile,particlesFile,mergerTrees,generation)
 
   ! Output HDF5 file.
-  call mergerTrees%export(outputFile,enumerationMergerTreeFormatEncode(trim(outputFormat)),int(hdfChunkSize,kind=hsize_t),hdfCompressionLevel)
+  call mergerTrees%export(outputFile,enumerationMergerTreeFormatEncode(trim(outputFormat),includesPrefix=.false.),int(hdfChunkSize,kind=hsize_t),hdfCompressionLevel)
 
 end program Millennium_Merger_Tree_File_Maker

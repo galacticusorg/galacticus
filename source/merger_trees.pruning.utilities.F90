@@ -108,7 +108,7 @@ contains
        node => currentTree%baseNode
        do while (associated(node))
           if (node%uniqueID() == node%parent%uniqueID()) call node%uniqueIDSet()
-          call node%walkTree(node)
+          node => node%walkTree()
        end do
        ! Move to the next tree.
        currentTree => currentTree%nextTree

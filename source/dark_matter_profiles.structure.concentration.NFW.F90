@@ -20,19 +20,12 @@
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationNFW1996">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{navarro_structure_1996}.</description>
   !# </darkMatterProfileConcentration>
-
-  ! Module global variable used in root finding.
-  double precision :: nfw1996TargetValue
-  !$omp threadprivate(nfw1996TargetValue)
-  ! Parameters of the fit.
-  logical          :: nfw1996Initialized=.false.
-  double precision :: nfw1996ConcentrationC     , nfw1996ConcentrationF
-
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationNFW1996
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{navarro_structure_1996}.
      private
-     double precision :: F, C
+     double precision :: f, C
    contains
+     final     ::                                nfw1996Destructor
      procedure :: concentration               => nfw1996Concentration
      procedure :: densityContrastDefinition   => nfw1996DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => nfw1996DarkMatterProfileDefinition
@@ -40,67 +33,71 @@
 
   interface darkMatterProfileConcentrationNFW1996
      !% Constructors for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
-     module procedure nfw1996DefaultConstructor
-     module procedure nfw1996Constructor
+     module procedure nfw1996ConstructorParameters
+     module procedure nfw1996ConstructorInternal
   end interface darkMatterProfileConcentrationNFW1996
 
 contains
 
-  function nfw1996DefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
+  function nfw1996ConstructorParameters(parameters)
+    !% Default constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile
+    !% concentration class.
     use Input_Parameters
     implicit none
-    type(darkMatterProfileConcentrationNFW1996), target :: nfw1996DefaultConstructor
+    type(darkMatterProfileConcentrationNFW1996)                :: nfw1996ConstructorParameters
+    type(inputParameters                      ), intent(in   ) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (.not.nfw1996Initialized) then
-       !$omp critical(nfw1996DefaultInitialize)
-       if (.not.nfw1996Initialized) then
-          ! Get parameters of the model.
-          !@ <inputParameter>
-          !@   <name>nfw1996ConcentrationF</name>
-          !@   <defaultValue>0.01 \cite{navarro_structure_1996}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $C$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("nfw1996ConcentrationF",nfw1996ConcentrationF,defaultValue=   0.01d0)
-          !@ <inputParameter>
-          !@   <name>nfw1996ConcentrationC</name>
-          !@   <defaultValue>2000 \cite{navarro_structure_1996}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $f$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("nfw1996ConcentrationC",nfw1996ConcentrationC,defaultValue=2000.0d0)
-          ! Record that method is now initialized.
-          nfw1996Initialized=.true.
-       end if
-       !$omp end critical(nfw1996DefaultInitialize)
-    end if
-    ! Construct the object.
-    nfw1996DefaultConstructor=nfw1996Constructor(nfw1996ConcentrationF,nfw1996ConcentrationC)
+    ! Check and read parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>f</name>
+    !#   <source>parameters</source>
+    !#   <variable>nfw1996ConstructorParameters%f</variable>
+    !#   <defaultValue>0.01d0</defaultValue>
+    !#   <defaultSource>\cite{navarro_structure_1996}</defaultSource>
+    !#   <description>The parameter $f$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>C</name>
+    !#   <source>parameters</source>
+    !#   <variable>nfw1996ConstructorParameters%C</variable>
+    !#   <defaultValue>2000.0d0</defaultValue>
+    !#   <defaultSource>\cite{navarro_structure_1996}</defaultSource>
+    !#   <description>The parameter $C$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     return
-  end function nfw1996DefaultConstructor
+  end function nfw1996ConstructorParameters
 
-  function nfw1996Constructor(F,C)
-    !% Constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
+  function nfw1996ConstructorInternal(f,C)
+    !% Constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile
+    !% concentration class.
     implicit none
-    type            (darkMatterProfileConcentrationNFW1996)                :: nfw1996Constructor
-    double precision                                       , intent(in   ) :: F                 , C
+    type            (darkMatterProfileConcentrationNFW1996)                :: nfw1996ConstructorInternal
+    double precision                                       , intent(in   ) :: f                         , C
 
-    nfw1996Constructor%F=F
-    nfw1996Constructor%C=C
+    nfw1996ConstructorInternal%f=f
+    nfw1996ConstructorInternal%C=C
     return
-  end function nfw1996Constructor
+  end function nfw1996ConstructorInternal
+
+  subroutine nfw1996Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration
+    !% class.
+    implicit none
+    type(darkMatterProfileConcentrationNFW1996), intent(inout) :: self
+
+    ! Nothing to do.
+    return
+  end subroutine nfw1996Destructor
 
   double precision function nfw1996Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{navarro_structure_1996} algorithm.
+    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    !% using the \cite{navarro_structure_1996} algorithm.
     use Cosmology_Functions
     use Cosmological_Mass_Variance
     use Critical_Overdensities
@@ -121,19 +118,20 @@ contains
     double precision                                                                :: collapseCriticalOverdensity             , collapseExpansionFactor       , &
          &                                                                             collapseMass                            , collapseOverdensity           , &
          &                                                                             collapseTime                            , expansionFactor               , &
-         &                                                                             nodeMass                                , nodeTime
+         &                                                                             nodeMass                                , nodeTime                      , &
+         &                                                                             rootTarget
 
-    ! Get default objects.
+    ! Get required objects.
     cosmologyFunctions_       => cosmologyFunctions      ()
     virialDensityContrast_    => virialDensityContrast   ()
     cosmologicalMassVariance_ => cosmologicalMassVariance()
     criticalOverdensity_      => criticalOverdensity     ()
     ! Get the basic component.
-    basic               => node%basic()
+    basic                      => node                 %basic          (        )
     ! Get the properties of the node.
-    nodeMass                   =basic%mass()
-    nodeTime                   =basic%time()
-    expansionFactor            =cosmologyFunctions_%expansionFactor(nodeTime)
+    nodeMass                   =  basic                %mass           (        )
+    nodeTime                   =  basic                %time           (        )
+    expansionFactor            =  cosmologyFunctions_  %expansionFactor(nodeTime)
     ! Compute the mass of a progenitor as defined by NFW.
     collapseMass               =self%F*nodeMass
     ! Find the time of collapse for this progenitor.
@@ -143,7 +141,7 @@ contains
     ! Compute the overdensity of the progenitor at collapse using the scaling given by NFW.
     collapseOverdensity        =self%C*(expansionFactor/collapseExpansionFactor)**3
     ! Find the ratio of this overdensity to that at for the present node.
-    nfw1996TargetValue         =collapseOverdensity/virialDensityContrast_%densityContrast(nodeMass,nodeTime)
+    rootTarget                 =collapseOverdensity/virialDensityContrast_%densityContrast(nodeMass,nodeTime)
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rangeExpand (                                               &
@@ -151,25 +149,29 @@ contains
             &                   rangeExpandUpward  =2.0d0                    , &
             &                   rangeExpandType    =rangeExpandMultiplicative  &
             &                  )
-       call finder%rootFunction(nfw1996RootFunction                )
+       call finder%rootFunction(concentrationRoot                  )
        call finder%tolerance   (toleranceAbsolute,toleranceRelative)
     end if
     ! Find the concentration.
     nfw1996Concentration=finder%find(rootRange=[1.0d0,20.0d0])
     return
+
+  contains
+    
+    double precision function concentrationRoot(concentration)
+      !% Root function used in finding concentrations in the \cite{navarro_structure_1996} method.
+      implicit none
+      double precision, intent(in   ) :: concentration
+      
+      concentrationRoot=concentration**3/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-rootTarget
+      return
+    end function concentrationRoot
+    
   end function nfw1996Concentration
 
-  double precision function nfw1996RootFunction(concentration)
-    !% Root function used in finding concentrations in the \cite{navarro_structure_1996} method.
-    implicit none
-    double precision, intent(in   ) :: concentration
-
-    nfw1996RootFunction=concentration**3/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-nfw1996TargetValue
-    return
-  end function nfw1996RootFunction
-
   function nfw1996DensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of concentration in the \cite{navarro_structure_1996} algorithm.
+    !% Return a virial density contrast object defining that used in the definition of
+    !% concentration in the \cite{navarro_structure_1996} algorithm.
     implicit none
     class(virialDensityContrastClass           ), pointer       :: nfw1996DensityContrastDefinition
     class(darkMatterProfileConcentrationNfw1996), intent(inout) :: self
