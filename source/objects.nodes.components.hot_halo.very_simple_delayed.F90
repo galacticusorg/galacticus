@@ -40,7 +40,7 @@ module Node_Component_Hot_Halo_VS_Delayed
   !#  <properties>
   !#   <property>
   !#     <name>outflowedMass</name>
-  !#     <type>real</type>
+  !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the hot halo."/>
@@ -75,7 +75,7 @@ contains
        !@   <description>
        !@    The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.
        !@   </description>
-       !@   <type>real</type>
+       !@   <type>double</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloVerySimpleDelayedMassScaleRelative',hotHaloVerySimpleDelayedMassScaleRelative,defaultValue=1.0d-2)
