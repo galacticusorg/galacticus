@@ -8,7 +8,7 @@ require Galacticus::HDF5;
 use Data::Dumper;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "stellarMass"       => \&StellarMass::Get_StellarMass      ,
+    "massStellar"       => \&StellarMass::Get_StellarMass      ,
     "starFormationRate" => \&StellarMass::Get_StarFormationRate
     );
 
@@ -20,7 +20,7 @@ sub Get_StellarMass {
     &HDF5::Get_Datasets_Available($model);
 
     # Decide which datasets to get.
-    my @dataSetsRequired = ( "nodeIndex" );
+    my @dataSetsRequired = ( "mergerTreeWeight" );
     my @stellarMassComponents;
     push(@stellarMassComponents,"diskMassStellar"    )
 	if ( exists($model->{'dataSetsAvailable'}->{'diskMassStellar'    }) );
@@ -32,7 +32,7 @@ sub Get_StellarMass {
     &HDF5::Get_Dataset($model,\@dataSetsRequired);
 
     # Sum the stellar masses.
-    $model->{'dataSets'}->{$dataSetName} = pdl zeroes(nelem($model->{'dataSets'}->{'nodeIndex'}));
+    $model->{'dataSets'}->{$dataSetName} = pdl zeroes(nelem($model->{'dataSets'}->{'mergerTreeWeight'}));
     foreach my $component ( @stellarMassComponents ) {
 	$model->{'dataSets'}->{$dataSetName} += $model->{'dataSets'}->{$component};
     }
@@ -47,7 +47,7 @@ sub Get_StarFormationRate {
     &HDF5::Get_Datasets_Available($model);
 
     # Decide which datasets to get.
-    my @dataSetsRequired = ( "nodeIndex" );
+    my @dataSetsRequired = ( "mergerTreeWeight" );
     my @starFormationRateComponents;
     push(@starFormationRateComponents,"diskStarFormationRate"    )
 	if ( exists($model->{'dataSetsAvailable'}->{'diskStarFormationRate'    }) );
@@ -59,7 +59,7 @@ sub Get_StarFormationRate {
     &HDF5::Get_Dataset($model,\@dataSetsRequired);
 
     # Sum the stellar masses.
-    $model->{'dataSets'}->{$dataSetName} = pdl zeroes(nelem($model->{'dataSets'}->{'nodeIndex'}));
+    $model->{'dataSets'}->{$dataSetName} = pdl zeroes(nelem($model->{'dataSets'}->{'mergerTreeWeight'}));
     foreach my $component ( @starFormationRateComponents ) {
 	$model->{'dataSets'}->{$dataSetName} += $model->{'dataSets'}->{$component};
     }

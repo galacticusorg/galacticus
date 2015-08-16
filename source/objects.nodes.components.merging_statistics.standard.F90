@@ -23,7 +23,7 @@ module Node_Component_Merging_Statistics_Standard
   implicit none
   private
   public :: Node_Component_Merging_Statistics_Standard_Merger_Tree_Init, Node_Component_Merging_Statistics_Standard_Node_Merger, &
-       &    Node_Component_Merging_Statistics_Standard_Node_Promotion  , Node_Component_Merging_Statistics_Standard_Satellite_Merger
+       &    Node_Component_Merging_Statistics_Standard_Node_Promotion  , Node_Component_Merging_Statistics_Standard_Satellite_Merging
 
   !# <component>
   !#  <class>mergingStatistics</class>
@@ -223,10 +223,10 @@ contains
   end subroutine Node_Component_Merging_Statistics_Standard_Node_Promotion
 
   !# <satelliteMergerTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Standard_Satellite_Merger</unitName>
+  !#  <unitName>Node_Component_Merging_Statistics_Standard_Satellite_Merging</unitName>
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !# </satelliteMergerTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Satellite_Merger(thisNode)
+  subroutine Node_Component_Merging_Statistics_Standard_Satellite_Merging(thisNode)
     !% Record properties of a merging event for {\normalfont \ttfamily thisNode}.
     use Satellite_Merging_Mass_Movements_Descriptors
     implicit none
@@ -248,6 +248,6 @@ contains
        call hostMergingStatisticsComponent%galaxyMajorMergerTimeSet(hostBasicComponent%time())
     end if
     return
-  end subroutine Node_Component_Merging_Statistics_Standard_Satellite_Merger
+  end subroutine Node_Component_Merging_Statistics_Standard_Satellite_Merging
 
 end module Node_Component_Merging_Statistics_Standard
