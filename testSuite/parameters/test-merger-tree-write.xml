@@ -12,7 +12,7 @@
     <version>0.9.4</version>
     <mergerTreeConstructMethod>
       <value>build
-      <mergerTreeOperatorMethod value="write">
+      <mergerTreeOperatorMethod value="export">
 	<outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>
 	<exportFormat   value="galacticus"                                                    />
       </mergerTreeOperatorMethod>
@@ -41,7 +41,7 @@
 	<sigma_8 value="0.9"/>
       </cosmologicalMassVarianceMethod>
       <treeNodeMethodPosition value="preset"/>
-      <mergerTreeOperatorMethod value="write">
+      <mergerTreeOperatorMethod value="export">
 	<outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesIRATE.hdf5"/>
 	<exportFormat   value="irate"                                                           />
       </mergerTreeOperatorMethod>
