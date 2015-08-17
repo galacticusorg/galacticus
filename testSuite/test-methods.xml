@@ -154,8 +154,9 @@
       <wavenumberReference value="1.000"/>
       <running value="0.000"/>
     </powerSpectrumPrimordialMethod>
+    <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.9"/>
-  </parameters>
+  </cosmologicalMassVarianceMethod></parameters>
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
@@ -220,7 +221,9 @@
       <value>BBKS</value>
       <value>CAMB</value>
       <value>eisensteinHu1999</value>
-      <fileName value="data/largeScaleStructure/transferFunctionMillenniumSimulation.xml"/>
+      <fileName        value="data/largeScaleStructure/transferFunctionMillenniumSimulation.xml"/>
+      <tolerance       value="3.0e-4"/>
+      <toleranceTopHat value="3.0e-4"/>
     </transferFunctionMethod>
   </parameters>
   <parameters>
@@ -236,10 +239,10 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <virialOrbitsMethod>
-      <value>Wetzel2010</value>
-      <value>Benson2005</value>
-    </virialOrbitsMethod>
+    <virialOrbitMethod>
+      <value>benson2005</value>
+      <value>wetzel2010</value>
+    </virialOrbitMethod>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
@@ -695,7 +698,7 @@
     <cosmologyFunctionsMethod value="matterDarkEnergy"/>
     <darkEnergyEquationOfStateW0 value="-0.8"/>
     <darkEnergyEquationOfStateW1 value="0.0"/>
-    <criticalOverdensityMethod value="sphericalTopHatDarkEnergy"/>
+    <criticalOverdensityMethod value="sphericalCollapseMatterDE"/>
     <virialDensityContrastMethod value="sphericalCollapseMatterDE"/>
     <virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt value="turnaround"/>
   </parameters>
@@ -714,6 +717,36 @@
     </intergalacticMediumStateMethod>
   </parameters>
 
+  <!-- Hot halo options -->
+  <parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <parameter>
+      <name>treeNodeMethodHotHalo</name>
+      <value>standard</value>
+      <value>verySimple
+      <parameter>
+	<name>coolingRateMethod</name>
+	<value>simple</value>
+      </parameter>
+      <parameter>
+	<name>treeNodeMethodBlackHole</name>
+	<value>null</value>
+      </parameter>
+      </value>
+      <value>verySimpleDelayed
+      <parameter>
+	<name>coolingRateMethod</name>
+	<value>simple</value>
+      </parameter>
+      <parameter>
+	<name>treeNodeMethodBlackHole</name>
+	<value>null</value>
+      </parameter>
+      </value>
+    </parameter>
+  </parameters>
+  
   <!-- Internal IGM evolution -->
   <parameters>
     <formatVersion>2</formatVersion>
@@ -760,8 +793,9 @@
       <OmegaBaryon value="0.0455"/>
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
+    <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.807"/>
-    <transferFunctionMethod value="eisensteinHu1999">
+  </cosmologicalMassVarianceMethod><transferFunctionMethod value="eisensteinHu1999">
       <neutrinoNumberEffective value="3.04"/>
       <neutrinoMassSummed value="0.0"/>
     </transferFunctionMethod>
@@ -772,10 +806,9 @@
     </powerSpectrumPrimordialMethod>
     <linearGrowthMethod value="simple"/>
     <haloMassFunctionMethod value="Tinker2008"/>
-    <criticalOverdensityMethod value="sphericalTopHat"/>
+    <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
     <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
     <mergerTreeConstructMethod value="build"/>
-    <mergerTreeBuilderMethod value="cole2000"/>
     <mergerTreeBuilderMethod value="cole2000">
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
@@ -785,7 +818,9 @@
     <modifiedPressSchechterGamma2 value="-0.01"/>
     <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
     <nodeMergersMethod value="singleLevelHierarchy"/>
-    <darkMatterProfileMethod value="NFW"/>
+    <darkMatterProfileMethod value="tidallyHeated">
+      <darkMatterProfileTidallyHeatedUnheatedProfile value="NFW"/>
+    </darkMatterProfileMethod>
     <darkMatterProfileConcentrationMethod value="gao2008"/>
     <darkMatterProfileMinimumConcentration value="4"/>
     <haloSpinDistributionMethod value="Bett2007"/>
