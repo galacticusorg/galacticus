@@ -84,7 +84,7 @@ foreach my $outputGroup ( @outputGroups ) {
     my @datasets = $nodeDataGroup->datasets;
     # Loop over datasets.
     foreach my $dataset ( @datasets ) {
-	my $newDatasetValues = pdl [];
+	my $newDatasetValues = pdl->null();
 	# Loop over merge files.
 	my $iFile = -1;
 	foreach my $mergeFile ( @mergeFiles ) {
