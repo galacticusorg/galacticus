@@ -384,7 +384,7 @@ my %knownDefaults =
      "mergerTreeBuilderMethod"              => "cole2000"     ,
      "cosmologicalMassVarianceMethod"       => "filteredPower",
      "cosmologyParametersMethod"            => "simple"       ,
-     "darkMatterProfileConcentrationMethod" => "gao2008"
+     "darkMatterProfileConcentrationMethod" => "gao2008"      ,
      "powerSpectrumPrimordialMethod"        => "powerLaw"
   );
 
