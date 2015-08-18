@@ -131,7 +131,6 @@ if ( exists($arguments{"indexTable"}) ) {
     $indexNode = "node";
     $indexTable = $table;
 }
-my $indexNode = "indexNode";
 $indexNode = "node"
     if ( $indexTable eq $table );
 
