@@ -319,7 +319,21 @@ $coreDumpSize = 0
     if ( $coredump eq "NO" );
 $coreDumpSize = $config->{'likelihood'}->{'coredumpsize'}
     if ( exists($config->{'likelihood'}->{'coredumpsize'}) );
-$glcCommand .= "ulimit -c ".$coreDumpSize."; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date; ./Galacticus.exe ".$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml";
+$glcCommand .= "ulimit -c ".$coreDumpSize."; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date;";
+# Determine if walltime should be limited using the "timelimit" tool (http://devel.ringlet.net/sysutils/timelimit/).
+if (
+    exists($config->{'likelihood'}->{'wallTimeLimit'}) 
+    && 
+    $config->{'likelihood'}->{'wallTimeLimit'} eq "yes"
+    &&
+    &File::Which::which('timelimit')
+    &&
+    defined($cpuLimit)
+    ) {
+    my $wallTimeLimit = int(1.1*$cpuLimit);
+    $glcCommand .= " timelimit -t ".$wallTimeLimit." -T 30";
+}
+$glcCommand .= " ./Galacticus.exe ".$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml";
 my $logFile = $scratchDirectory."/constrainGalacticusParameters".$mpiRank.".log";
 push(@temporaryFiles,$logFile);
 # my $timeGalacticusStart = [gettimeofday];
