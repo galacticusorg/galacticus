@@ -10,8 +10,9 @@
   <outputRedshifts value="0.0 0.5 1.0 2.0 4.0"/>
   <mergerTreeBuilderMethod value="cole2000">
     <mergeProbability value="0.1"/>
-    <accretionLimit value="0.1"/>
-  </mergerTreeBuilderMethod><transferFunctionMethod value="BBKS"/>
+    <accretionLimit   value="0.1"/>
+  </mergerTreeBuilderMethod>
+  <transferFunctionMethod value="BBKS"/>
   <cosmologyParametersMethod value="simple">
     <OmegaMatter value="0.25"/>
     <OmegaDarkEnergy value="0.75"/>
