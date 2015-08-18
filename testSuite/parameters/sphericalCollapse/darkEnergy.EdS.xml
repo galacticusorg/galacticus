@@ -3,8 +3,9 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <cosmologyFunctionsMethod value="matterDarkEnergy"/>
-  <darkEnergyEquationOfStateW0 value="-1.0"/>
+  <cosmologyFunctionsMethod value="matterDarkEnergy">
+    <darkEnergyEquationOfStateW0 value="-1.0"/>
+  </cosmologyFunctionsMethod>
   <cosmologyParametersMethod value="simple">
     <OmegaMatter value="1.0"/>
     <OmegaDarkEnergy value="0.0"/>

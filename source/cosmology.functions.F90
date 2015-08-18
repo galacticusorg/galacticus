@@ -19,14 +19,9 @@
 
 module Cosmology_Functions
   !% Provides an object that implements cosmological functions.
-  use, intrinsic :: ISO_C_Binding
-  use               ISO_Varying_String
-  !# <include directive="cosmologyFunctions" type="functionModules" >
-  include 'cosmologyFunctions.functionModules.inc'
-  !# </include>
-  private
-  
-  !# <include directive="cosmologyFunctions" type="function" >
+ 
+  !# <functionClass>
+  !#  <name>cosmologyFunctions</name>
   !#  <descriptiveName>Cosmology Functions</descriptiveName>
   !#  <description>Object providing various cosmological functions.</description>
   !#  <default>matterLambda</default>
@@ -228,7 +223,6 @@ module Cosmology_Functions
   !#   <argument>double precision, intent(in   ), optional :: time           , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
   !#  </method>
-  include 'cosmologyFunctions.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Cosmology_Functions

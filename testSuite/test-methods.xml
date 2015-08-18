@@ -211,19 +211,27 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <transferFunctionMethod>
-      <value>file<cosmologyParametersMethod value="simple">
-	<HubbleConstant value="73.0"/>
-	<OmegaMatter value="0.25"/>
-	<OmegaDarkEnergy value="0.75"/>
-	<OmegaBaryon value="0.0455"/>
+      <value>file
+      <cosmologyParametersMethod value="simple">
+	<HubbleConstant  value="73.0"  />
+	<OmegaMatter     value="0.25"  />
+	<OmegaDarkEnergy value="0.75"  />
+	<OmegaBaryon     value="0.0455"/>
       </cosmologyParametersMethod>
+      <cosmologicalMassVarianceMethod value="filteredPower">
+	<tolerance       value="3.0e-4"/>
+	<toleranceTopHat value="3.0e-4"/>
+      </cosmologicalMassVarianceMethod>
       </value>
       <value>BBKS</value>
-      <value>CAMB</value>
+      <value>CAMB
+      <cosmologicalMassVarianceMethod value="filteredPower">
+	<tolerance       value="3.0e-4"/>
+	<toleranceTopHat value="3.0e-4"/>
+      </cosmologicalMassVarianceMethod>
+      </value>
       <value>eisensteinHu1999</value>
       <fileName        value="data/largeScaleStructure/transferFunctionMillenniumSimulation.xml"/>
-      <tolerance       value="3.0e-4"/>
-      <toleranceTopHat value="3.0e-4"/>
     </transferFunctionMethod>
   </parameters>
   <parameters>
@@ -695,10 +703,11 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <cosmologyFunctionsMethod value="matterDarkEnergy"/>
-    <darkEnergyEquationOfStateW0 value="-0.8"/>
-    <darkEnergyEquationOfStateW1 value="0.0"/>
-    <criticalOverdensityMethod value="sphericalCollapseMatterDE"/>
+    <cosmologyFunctionsMethod value="matterDarkEnergy">
+      <darkEnergyEquationOfStateW0 value="-0.8"/>
+      <darkEnergyEquationOfStateW1 value="0.0"/>
+      </cosmologyFunctionsMethod>
+      <criticalOverdensityMethod value="sphericalCollapseMatterDE"/>
     <virialDensityContrastMethod value="sphericalCollapseMatterDE"/>
     <virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt value="turnaround"/>
   </parameters>
