@@ -65,8 +65,8 @@
   <linearGrowthMethod value="simple"/>
   <treeNodeMethodDisk value="verySimple"/>
   <mergerTreeBuilderMethod value="cole2000">
-  <mergeProbability value="0.1"/>
     <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
   </mergerTreeBuilderMethod>
   <mergerTreeBuildMassResolutionFixed value="5.0e9"/>
   <mergerTreeBuildHaloMassMinimum value="2.0e10"/>
