@@ -30,7 +30,7 @@
   <outputDescendentIndices value="true"/>
   <diskOutputStarFormationRate value="true"/>
   <spheroidOutputStarFormationRate value="true"/>
-  <massAccretionHistoryOutput value="true"/>
+  <mergerTreeOperatorMethod value="massAccretionHistory"/>
   <hotHaloAngularMomentumAlwaysGrows value="true"/>
   <verbosityLevel value="1"/>
   <nodePromotionIndexShift value="false"/>
