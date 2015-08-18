@@ -631,23 +631,25 @@ contains
     return
   end function inputParametersIsParameter
 
-  function inputParametersNode(self,parameterName)
+  function inputParametersNode(self,parameterName,requireValue)
     !% Return the node containing the parameter.
     use Galacticus_Error
     implicit none
-    type     (node           ), pointer       :: inputParametersNode
-    class    (inputParameters), intent(in   ) :: self
-    character(len=*          ), intent(in   ) :: parameterName
-    type     (node           ), pointer       :: thisNode
-    integer                                   :: i
-    
+    type     (node           ), pointer                 :: inputParametersNode
+    class    (inputParameters), intent(in   )           :: self
+    character(len=*          ), intent(in   )           :: parameterName
+    logical                   , intent(in   ), optional :: requireValue
+    type     (node           ), pointer                 :: thisNode
+    integer                                             :: i
+    !# <optionalArgument name="requireValue" defaultsTo=".true." />
+
     call self%validateName(parameterName)
     inputParametersNode => null()
     !$omp critical (FoX_DOM_Access)
     do i=0,getLength(self%parameters)-1
        thisNode => item(self%parameters,i)
        if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-          if (hasAttribute(thisNode,'value') .or. XML_Path_Exists(thisNode,"value")) then
+          if (.not.requireValue_ .or. hasAttribute(thisNode,'value') .or. XML_Path_Exists(thisNode,"value")) then
              inputParametersNode => thisNode
              exit
           end if
@@ -658,13 +660,15 @@ contains
     return
   end function inputParametersNode
   
-  logical function inputParametersIsPresent(self,parameterName)
+  logical function inputParametersIsPresent(self,parameterName,requireValue)
     !% Return true if the specified parameter is present.
     implicit none
-    class    (inputParameters), intent(in   ) :: self
-    character(len=*          ), intent(in   ) :: parameterName
-    type     (node           ), pointer       :: thisNode
-    integer                                   :: i
+    class    (inputParameters), intent(in   )           :: self
+    character(len=*          ), intent(in   )           :: parameterName
+    logical                   , intent(in   ), optional :: requireValue
+    type     (node           ), pointer                 :: thisNode
+    integer                                             :: i
+    !# <optionalArgument name="requireValue" defaultsTo=".true." />
 
     call self%validateName(parameterName)
     inputParametersIsPresent=.false.
@@ -673,7 +677,7 @@ contains
     do i=0,getLength(self%parameters)-1
        thisNode => item(self%parameters,i)
        if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-          if (hasAttribute(thisNode,'value') .or. XML_Path_Exists(thisNode,"value")) then
+          if (.not.requireValue_ .or. hasAttribute(thisNode,'value') .or. XML_Path_Exists(thisNode,"value")) then
              inputParametersIsPresent=.true.
              exit
           end if
@@ -737,18 +741,19 @@ contains
     return
   end function inputParametersCount
   
-  function inputParametersSubParameters(self,parameterName)
+  function inputParametersSubParameters(self,parameterName,requireValue)
     !% Return sub-parameters of the specified parameter.
     use Galacticus_Error
     implicit none
-    type     (inputParameters)                :: inputParametersSubParameters
-    class    (inputParameters), intent(in   ) :: self
-    character(len=*          ), intent(in   ) :: parameterName
-    type     (node           ), pointer       :: parameterNode
+    type     (inputParameters)                          :: inputParametersSubParameters
+    class    (inputParameters), intent(in   )           :: self
+    character(len=*          ), intent(in   )           :: parameterName
+    logical                   , intent(in   ), optional :: requireValue
+    type     (node           ), pointer                 :: parameterNode
 
-    if (.not.self%isPresent(parameterName)) call Galacticus_Error_Report('inputParametersSubParameters','parameter not found')
-    parameterNode                => self%node      (parameterName)
-    inputParametersSubParameters =  inputParameters(parameterNode)
+    if (.not.self%isPresent(parameterName,requireValue)) call Galacticus_Error_Report('inputParametersSubParameters','parameter not found')
+    parameterNode                => self%node      (parameterName,requireValue)
+    inputParametersSubParameters =  inputParameters(parameterNode             )
     return
   end function inputParametersSubParameters
 
