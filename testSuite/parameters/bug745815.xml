@@ -53,7 +53,6 @@
   <hotHaloCoreRadiusOverVirialRadius value="0.1"/>
   <linearGrowthMethod value="simple"/>
   <majorMergerMassRatio value="0.1"/>
-  <massAccretionHistoryOutput value="false"/>
   <mergerRemnantSizeOrbitalEnergy value="1"/>
   <mergerTreeBuilderMethod value="cole2000">
     <accretionLimit value="0.1"/>

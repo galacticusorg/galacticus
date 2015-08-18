@@ -107,10 +107,12 @@
   <treeNodeMethodDisk value="verySimple"/>
   <conditionalMassFunctionBehrooziLog10Mstar0 value="10.5980300058"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorPhi0 value="2.0e-4"/>
-  <mergerTreeBuilderMethod value="cole2000"/>
+  <mergerTreeBuilderMethod value="cole2000">
+    <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
+  </mergerTreeBuilderMethod>
   <mergerTreeBuildMassResolutionFixed value="5.0e9"/>
   <mergerTreeBuildHaloMassMinimum value="2.0e10"/>
-  <mergerTreeBuildCole2000MergeProbability value="0.1"/>
   <outputRedshifts value="0.0700"/>
   <conditionalMassFunctionBehrooziBetaSatellite value="1.46136840213"/>
   <mergerTreeReadFileName value="testSuite/data/mergerTrees/finalTimeBeforeOutputTime.hdf5"/>
@@ -127,7 +129,6 @@
   <mergerTreeReadPresetSpins value="false"/>
   <timestepHostAbsolute value="1.0"/>
   <galacticStructureRadiusSolverMethod value="fixed"/>
-  <mergerTreeBuildCole2000AccretionLimit value="0.1"/>
   <virialOrbitsFixedRadialVelocity value="0.90"/>
   <virialOrbitsMethod value="fixed"/>
   <mergerTreeReadPresetPositions value="false"/>

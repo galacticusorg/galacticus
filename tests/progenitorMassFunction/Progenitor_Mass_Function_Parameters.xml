@@ -8,8 +8,10 @@
   <mergerTreesBuildMassResolutionMethod value="fixed"/>
   <mergerTreeBuildMassResolutionFixed value="2.3561d10"/>
   <outputRedshifts value="0.0 0.5 1.0 2.0 4.0"/>
-  <mergerTreeBuildCole2000MergeProbability value="0.1"/>
-  <mergerTreeBuildCole2000AccretionLimit value="0.1"/>
+  <mergerTreeBuilderMethod value="cole2000">
+    <mergeProbability value="0.1"/>
+    <accretionLimit   value="0.1"/>
+  </mergerTreeBuilderMethod>
   <transferFunctionMethod value="BBKS"/>
   <cosmologyParametersMethod value="simple">
     <OmegaMatter value="0.25"/>

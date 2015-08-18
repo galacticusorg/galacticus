@@ -27,7 +27,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <massAccretionHistoryOutput value="true"/>
+    <mergerTreeOperatorMethod value="massAccretionHistory"/>
   </parameters>
 
   <!-- Cooling rates and radii -->
