@@ -676,6 +676,7 @@ sub Process_FunctionClass {
 		# object. This wrapper is then passed back to the calling C++ function so that it can be stored in the appropriate C++
 		# class.
 		$postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."_C() bind(c,name='".$directive->{'name'}."')\n";
+		$postContains->[0]->{'content'} .= "     use, intrinsic :: ISO_C_Binding\n";
 		$postContains->[0]->{'content'} .= "     implicit none\n";
 		$postContains->[0]->{'content'} .= "     type(c_ptr) :: ".$directive->{'name'}."_C\n";
 		$postContains->[0]->{'content'} .= "     type(".$directive->{'name'}."Wrapper), pointer :: wrapper\n";
@@ -688,6 +689,7 @@ sub Process_FunctionClass {
 		# C-bound destructor. We simply deallocate the wrapper object, letting the associated finalizor clean up the Fortran
 		# object.
 		$postContains->[0]->{'content'} .= "   subroutine ".$directive->{'name'}."Destructor_C(wrapperC) bind(c,name='".$directive->{'name'}."Destructor')\n";
+		$postContains->[0]->{'content'} .= "     use, intrinsic :: ISO_C_Binding\n";
 		$postContains->[0]->{'content'} .= "     implicit none\n";
 		$postContains->[0]->{'content'} .= "     type(c_ptr), intent(in   ), value :: wrapperC\n";
 		$postContains->[0]->{'content'} .= "     type(".$directive->{'name'}."Wrapper), pointer :: wrapper\n\n";
@@ -711,9 +713,9 @@ sub Process_FunctionClass {
 			foreach my $intrinsic ( keys(%Fortran_Utils::intrinsicDeclarations) ) {
 			    my $declarator = $Fortran_Utils::intrinsicDeclarations{$intrinsic};
 			    if ( my @matches = $argument =~ m/$declarator->{'regEx'}/ ) {
-				my $intrinsicName =                          $declarator->{'intrinsic' }    ;
-				my $type          =                 $matches[$declarator->{'type'      }-1] ;
-				my $attributeList =                 $matches[$declarator->{'attributes'}-1] ;
+				my $intrinsicName =                          $declarator->{'intrinsic' }  ;
+				my $type          =                 $matches[$declarator->{'type'      }] ;
+				my $attributeList =                 $matches[$declarator->{'attributes'}] ;
 				$attributeList =~ s/^\s*,?\s*//;
 				$attributeList =~ s/\s*$//;
 				my @attributes = &Fortran_Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
@@ -721,7 +723,7 @@ sub Process_FunctionClass {
 				    die("Galacticus::Build::Functions::Functions_Generate_Output:  attribute not supported for C++-binding")
 					unless ( $attribute eq "intent(in)" );
 				}
-				my @variables     = split(/\s*,\s*/,$matches[$declarator->{'variables' }-1]);
+				my @variables     = split(/\s*,\s*/,$matches[$declarator->{'variables' }]);
 				die("Galacticus::Build::Functions::Functions_Generate_Output: non-standard kinds are not supported for C++-binding")
 				    if ( defined($type) );
 				$argumentList .= $separator.join(",",@variables);
@@ -733,6 +735,7 @@ sub Process_FunctionClass {
 		    $postContains->[0]->{'content'} .= "wrapperC".$separator
 			if ( $methodsCBound{$methodName}->{'pass'} eq "yes" );
 		    $postContains->[0]->{'content'} .= $argumentList.") bind(c,name='".$methodName."_C')\n";
+		    $postContains->[0]->{'content'} .= "     use, intrinsic :: ISO_C_Binding\n";
 		    $postContains->[0]->{'content'} .= "     implicit none\n";
 		    $postContains->[0]->{'content'} .= "     type(c_ptr), intent(in   ), value :: wrapperC\n";
 		    foreach my $argument( @arguments ) {
@@ -778,9 +781,9 @@ sub Process_FunctionClass {
 			foreach my $intrinsic ( keys(%Fortran_Utils::intrinsicDeclarations) ) {
 			    my $declarator = $Fortran_Utils::intrinsicDeclarations{$intrinsic};
 			    if ( my @matches = $argument =~ m/$declarator->{'regEx'}/ ) {
-				my $intrinsicName =                          $declarator->{'intrinsic' }    ;
-				my $type          =                 $matches[$declarator->{'type'      }-1] ;
-				my $attributeList =                 $matches[$declarator->{'attributes'}-1] ;
+				my $intrinsicName =                          $declarator->{'intrinsic' }  ;
+				my $type          =                 $matches[$declarator->{'type'      }] ;
+				my $attributeList =                 $matches[$declarator->{'attributes'}] ;
 				$attributeList =~ s/^\s*,?\s*//;
 				$attributeList =~ s/\s*$//;
 				my @attributes = &Fortran_Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
@@ -788,7 +791,7 @@ sub Process_FunctionClass {
 				    die("Galacticus::Build::Functions::Functions_Generate_Output:  attribute not supported for C++-binding")
 					unless ( $attribute eq "intent(in)" );
 				}
-				my @variables     = split(/\s*,\s*/,$matches[$declarator->{'variables' }-1]);
+				my @variables     = split(/\s*,\s*/,$matches[$declarator->{'variables' }]);
 				die("Galacticus::Build::Functions::Functions_Generate_Output: non-standard kinds are not supported for C++-binding")
 				    if ( defined($type) );
 				my $cType;
@@ -799,26 +802,27 @@ sub Process_FunctionClass {
 				}
 				$argumentList .=     $separator.join(",",map($cType       ,1..scalar(@variables)));
 				$variableList .=     $separator.join(",",                            @variables  );
-				$fullList     .= $fullSeparator.join(",",map($cType." ".$methodsCBound{$methodName},          @variables ));
+				$fullList     .= $fullSeparator.join(",",map($cType." ".$_,          @variables ));
 				$separator     = ",";
 				$fullSeparator = ",";
 			    }
 			}
 		    }
 		    # Build extern and class declarations.
-		    $externCode .= " ".$type." ".$methodsCBound{$methodName}->{'name'}."_C(".$argumentList.");\n";
+		    $externCode .= " ".$type." ".$methodName."_C(".$argumentList.");\n";
 		    my $classArgumentList = $argumentList;
 		    $classArgumentList =~ s/^void\*,?//
 			if ( $methodsCBound{$methodName}->{'pass'} eq "yes" );
-		    $classCode  .= " ".$type." ".$methodsCBound{$methodName}->{'name'}."(".$classArgumentList.");\n";
+		    $classCode  .= " ".$type." ".$methodName."(".$classArgumentList.");\n";
 		    # Build the method.
-		    $methodCode .= $type." ".$directive->{'name'}."Class::".$methodsCBound{$methodName}->{'name'}." (".$fullList.") {\n";
-		    $methodCode .= " return ".$methodsCBound{$methodName}->{'name'}."_C(".$variableList.");\n";
+		    $methodCode .= $type." ".$directive->{'name'}."Class::".$methodName." (".$fullList.") {\n";
+		    $methodCode .= " return ".$methodName."_C(".$variableList.");\n";
 		    $methodCode .= "}\n\n";
 		}
 		my $cBindings;
 		$cBindings  = "// Generated automatically by Galacticus::Build::SourceTree::Process::FunctionClass\n";
-		$cBindings .= "//  From: ".$directive->{'fileName'}."\n";
+		$cBindings .= "//  From: ".$tree->{'name'}."\n"
+		    if ( $tree->{'type'} eq "file" );
 		# Generate external linkage for creator, destructor, and method functions.
 		$cBindings .= "extern \"C\"\n";
 		$cBindings .= "{\n";
@@ -826,7 +830,7 @@ sub Process_FunctionClass {
 		$cBindings .= " void ".$directive->{'name'}."Destructor(void*);\n";
 		$cBindings .= $externCode;
 		$cBindings .= "}\n\n";
-		# Create a class for this object.
+		# Create a class for this object.		
 		$cBindings .= "class ".$directive->{'name'}."Class {\n";
 		$cBindings .= "  void *fortranSelf;\n";
 		$cBindings .= " public:\n";
