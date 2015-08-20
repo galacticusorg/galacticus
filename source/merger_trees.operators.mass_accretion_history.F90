@@ -32,6 +32,7 @@
    contains
      final     ::             massAccretionHistoryDestructor
      procedure :: operate  => massAccretionHistoryOperate
+     procedure :: finalize => massAccretionHistoryFinalize
   end type mergerTreeOperatorMassAccretionHistory
   
   interface mergerTreeOperatorMassAccretionHistory
@@ -165,6 +166,8 @@ contains
     implicit none
     class(mergerTreeOperatorMassAccretionHistory), intent(inout) :: self
 
-    call self%outputGroup%close()
+    !$omp critical (HDF5_Access)
+    if (self%outputGroup%isOpen()) call self%outputGroup%close()
+    !$omp end critical (HDF5_Access)
     return
   end subroutine massAccretionHistoryFinalize
