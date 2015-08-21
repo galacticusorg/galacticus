@@ -16,7 +16,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a critical overdensity for collapse the \gls{wdm} modifier of \cite{barkana_constraints_2001}.
-
+  use Cosmology_Parameters
+  
   !# <criticalOverdensity name="criticalOverdensityBarkana2001WDM" defaultThreaedPrivate="yes">
   !#  <description>Provides a critical overdensity for collapse based on the \gls{wdm} modifier of \cite{barkana_constraints_2001} applied to some other critical overdensity class.</description>
   !# </criticalOverdensity>
@@ -24,6 +25,7 @@
      !% A critical overdensity for collapse class which modifies another transfer function using the \gls{wdm} modifier of \cite{barkana_constraints_2001}.
      private
      class           (criticalOverdensityClass), pointer                   :: criticalOverdensityCDM
+     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_
      logical                                                               :: useFittingFunction
      double precision                                                      :: mx                             , gX            , &
           &                                                                   jeansMass
@@ -62,6 +64,7 @@ contains
     type            (criticalOverdensityBarkana2001WDM)                :: barkana2001WDMConstructorParameters
     type            (inputParameters                  ), intent(in   ) :: parameters
     class           (criticalOverdensityClass         ), pointer       :: criticalOverdensityCDM
+    class           (cosmologyParametersClass         ), pointer       :: cosmologyParameters_
     double precision                                                   :: gX                                 , mX
     logical                                                            :: useFittingFunction
     !# <inputParameterList label="allowedParameterNames" />
@@ -91,14 +94,14 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="criticalOverdensity" name="criticalOverdensityCDM" source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"   source="parameters"/>
     ! Call the internal constructor
-    barkana2001WDMConstructorParameters=barkana2001WDMConstructorInternal(criticalOverdensityCDM,gX,mX,useFittingFunction)
+    barkana2001WDMConstructorParameters=barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,gX,mX,useFittingFunction)
     return
   end function barkana2001WDMConstructorParameters
 
-  function barkana2001WDMConstructorInternal(criticalOverdensityCDM,gX,mX,useFittingFunction)
+  function barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,gX,mX,useFittingFunction)
     !% Internal constructor for the ``{\normalfont \ttfamily barkana2001WDM}'' critical overdensity for collapse class.
-    use Cosmology_Parameters
     use FoX_DOM
     use IO_XML
     use Galacticus_Input_Paths
@@ -107,36 +110,35 @@ contains
     implicit none
     type            (criticalOverdensityBarkana2001WDM)                        :: barkana2001WDMConstructorInternal
     class           (criticalOverdensityClass         ), target, intent(in   ) :: criticalOverdensityCDM
+    class           (cosmologyParametersClass         ), target, intent(in   ) :: cosmologyParameters_
     double precision                                           , intent(in   ) :: gX                               , mX
     logical                                                    , intent(in   ) :: useFittingFunction
-    class           (cosmologyParametersClass         ), pointer               :: cosmologyParameters_
     type            (node                             ), pointer               :: doc                              , element
     double precision                                                           :: matterRadiationEqualityRedshift
     integer                                                                    :: ioStatus
 
     barkana2001WDMConstructorInternal%criticalOverdensityCDM => criticalOverdensityCDM
+    barkana2001WDMConstructorInternal%cosmologyParameters_   => cosmologyParameters_
     barkana2001WDMConstructorInternal%useFittingFunction     =  useFittingFunction
     barkana2001WDMConstructorInternal%gX                     =  mX
     barkana2001WDMConstructorInternal%mX                     =  gX
-    ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters()
     ! Compute corresponding Jeans mass.
-    matterRadiationEqualityRedshift            =+3600.0d0                                                     &
-         &                                      *(                                                            &
-         &                                        +cosmologyParameters_%OmegaMatter   (                  )    &
-         &                                        *cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
-         &                                        /0.15d0                                                     &
-         &                                      )                                                             &
+    matterRadiationEqualityRedshift            =+3600.0d0                                                                                       &
+         &                                      *(                                                                                              &
+         &                                        +barkana2001WDMConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                                        *barkana2001WDMConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                                        /0.15d0                                                                                       &
+         &                                      )                                                                                               &
          &                                      -1.0d0
-    barkana2001WDMConstructorInternal%jeansMass=+3.06d8                                                               &
-         &                                      *((1.0d0+matterRadiationEqualityRedshift)/3000.0d0)           **1.5d0 &
-         &                                      *sqrt(                                                                &
-         &                                            +cosmologyParameters_%OmegaMatter   (                  )        &
-         &                                            *cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2     &
-         &                                            /0.15d0                                                         &
-         &                                           )                                                                &
-         &                                      /(gX/1.5d0)                                                           &
-         &                                      /(mX/1.0d0)                                                   **4    
+    barkana2001WDMConstructorInternal%jeansMass=+3.06d8                                                                                                 &
+         &                                      *((1.0d0+matterRadiationEqualityRedshift)/3000.0d0)                                             **1.5d0 &
+         &                                      *sqrt(                                                                                                  &
+         &                                            +barkana2001WDMConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )        &
+         &                                            *barkana2001WDMConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2     &
+         &                                            /0.15d0                                                                                           &
+         &                                           )                                                                                                  &
+         &                                      /(gX/1.5d0)                                                                                             &
+         &                                      /(mX/1.0d0)                                                                                     **4    
     ! Read in the tabulated critical overdensity scaling.
     doc => parseFile(char(Galacticus_Input_Path())//"data/darkMatter/criticalOverdensityWarmDarkMatterBarkana.xml",iostat=ioStatus)
     if (ioStatus /= 0) call Galacticus_Error_Report('barkana2001WDMConstructorInternal','unable to find or parse the tabulated data')
@@ -154,12 +156,13 @@ contains
     return
   end function barkana2001WDMConstructorInternal
 
-  elemental subroutine barkana2001WDMDestructor(self)
+  subroutine barkana2001WDMDestructor(self)
     !% Destructor for the barkana2001WDM critical overdensity for collapse class.
     implicit none
     type(criticalOverdensityBarkana2001WDM), intent(inout) :: self
 
-    if (associated(self%criticalOverdensityCDM)) deallocate(self%criticalOverdensityCDM)
+    !# <objectDestructor name="self%cosmologyParameters_"  />
+    !# <objectDestructor name="self%criticalOverdensityCDM"/>
     return
   end subroutine barkana2001WDMDestructor
 
