@@ -42,14 +42,18 @@ module Spherical_Collapse_Matter_Lambda
 
 contains
 
-  subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,deltaCritTable)
+  subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,deltaCritTable,linearGrowth_,cosmologyFunctions_)
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
     use Tables
+    use Cosmology_Functions
+    use Linear_Growth
     implicit none
-    double precision                      , intent(in   ) :: time
-    class           (table1D), allocatable, intent(inout) :: deltaCritTable
+    double precision                                      , intent(in   ) :: time
+    class           (table1D                ), allocatable, intent(inout) :: deltaCritTable
+    class           (cosmologyFunctionsClass), target     , intent(in   ) :: cosmologyFunctions_    
+    class           (linearGrowthClass      ), target     , intent(in   ) :: linearGrowth_    
 
-    call Make_Table(time,deltaCritTable,calculationDeltaCrit)
+    call Make_Table(time,deltaCritTable,calculationDeltaCrit,linearGrowth_,cosmologyFunctions_)
     return
   end subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate
 
@@ -64,7 +68,7 @@ contains
     return
   end subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate
 
-  subroutine Make_Table(time,deltaTable,calculationType)
+  subroutine Make_Table(time,deltaTable,calculationType,linearGrowth_,cosmologyFunctions_)
     !% Tabulate $\delta_{\mathrm crit}$ or $\Delta_{\mathrm vir}$ vs. time.
     use Linear_Growth
     use Cosmology_Functions
@@ -72,33 +76,35 @@ contains
     use Tables
     use Kind_Numbers
     use Galacticus_Error
-
-
-
-use omp_lib
-
-
-
-
     implicit none
-    double precision                                      , intent(in   ) :: time
-    integer                                               , intent(in   ) :: calculationType
-    class           (table1D                ), allocatable, intent(inout) :: deltaTable
-    double precision                         , parameter                  :: toleranceAbsolute         =0.0d0, toleranceRelative         =1.0d-9
-    type            (rootFinder             ), save                       :: finder
+    double precision                                      , intent(in   )           :: time
+    integer                                               , intent(in   )           :: calculationType
+    class           (table1D                ), allocatable, intent(inout)           :: deltaTable
+    class           (cosmologyFunctionsClass), target     , intent(in   ), optional :: cosmologyFunctions_    
+    class           (linearGrowthClass      ), target     , intent(in   ), optional :: linearGrowth_    
+    double precision                         , parameter                            :: toleranceAbsolute         =0.0d0, toleranceRelative         =1.0d-9
+    type            (rootFinder             ), save                                 :: finder
     !$omp threadprivate(finder)
-    class           (cosmologyFunctionsClass), pointer                    :: cosmologyFunctions_
-    class           (linearGrowthClass      ), pointer                    :: linearGrowth_
-    integer                                                               :: deltaTableNumberPoints          , iTime
-    double precision                                                      :: aExpansionNow                   , epsilonPerturbation              , &
-         &                                                                   epsilonPerturbationMaximum      , epsilonPerturbationMinimum       , &
-         &                                                                   eta                             , normalization                    , &
-         &                                                                   radiiRatio                      , radiusMaximum
-    double complex                                                        :: a,b,c,d,Delta
+    class           (cosmologyFunctionsClass), pointer                              :: cosmologyFunctions__
+    class           (linearGrowthClass      ), pointer                              :: linearGrowth__
+    integer                                                                         :: deltaTableNumberPoints          , iTime
+    double precision                                                                :: aExpansionNow                   , epsilonPerturbation              , &
+         &                                                                             epsilonPerturbationMaximum      , epsilonPerturbationMinimum       , &
+         &                                                                             eta                             , normalization                    , &
+         &                                                                             radiiRatio                      , radiusMaximum
+    double complex                                                                  :: a,b,c,d,Delta
 
     ! Get required objects.
-    cosmologyFunctions_ => cosmologyFunctions()
-    linearGrowth_       => linearGrowth      ()
+    if (present(cosmologyFunctions_)) then
+       cosmologyFunctions__ => cosmologyFunctions_
+    else
+       cosmologyFunctions__ => cosmologyFunctions()
+    end if
+    if (present(linearGrowth_      )) then
+       linearGrowth__       => linearGrowth_      
+    else
+       linearGrowth__       => linearGrowth      ()
+    end if
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
@@ -121,10 +127,10 @@ use omp_lib
        do iTime=1,deltaTableNumberPoints
 
           ! Get the current expansion factor.
-          aExpansionNow=cosmologyFunctions_%expansionFactor(deltaTable%x(iTime))
+          aExpansionNow=cosmologyFunctions__%expansionFactor(deltaTable%x(iTime))
           ! Determine the largest (i.e. least negative) value of epsilonPerturbation for which a perturbation can collapse.
-          if (cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)>0.0d0) then
-             epsilonPerturbationMaximum=-(27.0d0*cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)*(cosmologyFunctions_%omegaMatterEpochal(expansionFactor=aExpansionNow)&
+          if (cosmologyFunctions__%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)>0.0d0) then
+             epsilonPerturbationMaximum=-(27.0d0*cosmologyFunctions__%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)*(cosmologyFunctions__%omegaMatterEpochal(expansionFactor=aExpansionNow)&
                   & **2)/4.0d0)**(1.0d0/3.0d0)
           else
              epsilonPerturbationMaximum=-1.0d-6
@@ -133,9 +139,9 @@ use omp_lib
           ! Estimate a suitably negative minimum value for epsilon.
           epsilonPerturbationMinimum=-10.0d0
 
-          OmegaM               =cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=aExpansionNow)
-          OmegaDE              =cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)
-          hubbleParameterInvGyr=cosmologyFunctions_%expansionRate         (                aExpansionNow)
+          OmegaM               =cosmologyFunctions__%omegaMatterEpochal    (expansionFactor=aExpansionNow)
+          OmegaDE              =cosmologyFunctions__%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)
+          hubbleParameterInvGyr=cosmologyFunctions__%expansionRate         (                aExpansionNow)
           tNow                 =deltaTable%x(iTime)
 
           ! Find the value of epsilon for which the perturbation just collapses at this time.
@@ -150,7 +156,7 @@ use omp_lib
           end if
           epsilonPerturbation=finder%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           ! Compute the corresponding critical overdensity.
-          normalization=linearGrowth_%value(tNow,normalize=normalizeMatterDominated)/linearGrowth_%value(tNow)/aExpansionNow
+          normalization=linearGrowth__%value(tNow,normalize=normalizeMatterDominated)/linearGrowth__%value(tNow)/aExpansionNow
           select case (calculationType)
           case (calculationDeltaCrit)
              ! Critical linear overdensity.
