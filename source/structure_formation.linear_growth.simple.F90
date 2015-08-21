@@ -22,14 +22,18 @@
   !#  <description>Linear growth of cosmological structure in simple cosomologies. Ignores pressure terms for the growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.</description>
   !# </linearGrowth>
   use Tables
+  use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass, hubbleUnitsTime
+  use Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
 
   type, extends(linearGrowthClass) :: linearGrowthSimple
      !% A linear growth of cosmological structure contrast class in simple cosomologies.
      private
-     logical                                :: tableInitialized
-     double precision                       :: tableTimeMinimum            , tableTimeMaximum, &
-          &                                    normalizationMatterDominated
-     class           (table1D), allocatable :: growthFactor
+     logical                                                 :: tableInitialized
+     double precision                                        :: tableTimeMinimum            , tableTimeMaximum, &
+          &                                                     normalizationMatterDominated
+     class           (table1D                 ), allocatable :: growthFactor
+     class           (cosmologyParametersClass), pointer     :: cosmologyParameters_
+     class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_
    contains
      !@ <objectMethods>
      !@   <object>linearGrowthSimple</object>
@@ -60,21 +64,29 @@ contains
     !% Constructor for the {\normalfont \ttfamily simple} linear growth class which takes a parameter set as input.
     use Input_Parameters2
     implicit none
-    type(linearGrowthSimple)                :: simpleConstructorParameters
-    type(inputParameters   ), intent(in   ) :: parameters
+    type (linearGrowthSimple      )                :: simpleConstructorParameters
+    type (inputParameters         ), intent(in   ) :: parameters
+    class(cosmologyParametersClass), pointer       :: cosmologyParameters_    
+    class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_    
 
-    simpleConstructorParameters=simpleConstructorInternal()
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    simpleConstructorParameters=simpleConstructorInternal(cosmologyParameters_,cosmologyFunctions_)
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal()
+  function simpleConstructorInternal(cosmologyParameters_,cosmologyFunctions_)
     !% Internal constructor for the {\normalfont \ttfamily simple} linear growth class.
     implicit none
-    type(linearGrowthSimple) :: simpleConstructorInternal
+    type (linearGrowthSimple      )                        :: simpleConstructorInternal
+    class(cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_    
+    class(cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_    
 
-    simpleConstructorInternal%tableInitialized=.false.
-    simpleConstructorInternal%tableTimeMinimum= 1.0d0
-    simpleConstructorInternal%tableTimeMaximum=20.0d0
+    simpleConstructorInternal%cosmologyParameters_ => cosmologyParameters_
+    simpleConstructorInternal%cosmologyFunctions_  => cosmologyFunctions_
+    simpleConstructorInternal%tableInitialized     =  .false.
+    simpleConstructorInternal%tableTimeMinimum     =   1.0d0
+    simpleConstructorInternal%tableTimeMaximum     =  20.0d0
     return
   end function simpleConstructorInternal
 
@@ -83,6 +95,8 @@ contains
     implicit none
     type (linearGrowthSimple), intent(inout) :: self
     
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
     if (self%tableInitialized) then
        call self%growthFactor%destroy()
        deallocate(self%growthFactor)
@@ -91,19 +105,15 @@ contains
   end subroutine simpleDestructor
 
   subroutine simpleRetabulate(self,time)
-    !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that $D(1)=1$ for a simple
-    !% matter plus cosmological constant cosmology.
+    !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
+    !% $D(1)=1$ for a simple matter plus cosmological constant cosmology.
     use, intrinsic :: ISO_C_Binding
     use Tables
     use Table_Labels
     use ODE_Solver
-    use Cosmology_Functions
-    use Cosmology_Parameters
     implicit none
     class           (linearGrowthSimple      ), intent(inout) :: self
     double precision                          , intent(in   ) :: time
-    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
-    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     double precision                          , parameter     :: dominateFactor               =   1.0d+04
     double precision                          , parameter     :: odeToleranceAbsolute         =   1.0d-10, odeToleranceRelative     =1.0d-10
     integer                                   , parameter     :: growthTablePointsPerDecade   =1000
@@ -132,17 +142,14 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       ! Get required objects.
-       cosmologyParameters_ => cosmologyParameters()
-       cosmologyFunctions_  => cosmologyFunctions ()     
        ! Find the present-day epoch.
-       timePresent                 =     cosmologyFunctions_%cosmicTime           (                        1.0d0)
+       timePresent                 =     self%cosmologyFunctions_%cosmicTime           (                        1.0d0)
        ! Find epoch of matter-dark energy equality.
-       expansionFactorMatterDominant=min(                                                                          &
-            &                            cosmologyFunctions_%expansionFactor      (        self%tableTimeMinimum), &
-            &                            cosmologyFunctions_%dominationEpochMatter(               dominateFactor)  &
+       expansionFactorMatterDominant=min(                                                                               &
+            &                            self%cosmologyFunctions_%expansionFactor      (        self%tableTimeMinimum), &
+            &                            self%cosmologyFunctions_%dominationEpochMatter(               dominateFactor)  &
             &                           )
-       timeMatterDominant           =    cosmologyFunctions_%cosmicTime           (expansionFactorMatterDominant)       
+       timeMatterDominant           =    self%cosmologyFunctions_%cosmicTime           (expansionFactorMatterDominant)       
        ! Find minimum and maximum times to tabulate.
        self%tableTimeMinimum=min(self%tableTimeMinimum,min(timePresent,min(time/2.0,timeMatterDominant)      ))
        self%tableTimeMaximum=max(self%tableTimeMaximum,max(timePresent,max(time    ,timeMatterDominant)*2.0d0))
@@ -160,11 +167,11 @@ contains
           call growthFactor%create(self%tableTimeMinimum,self%tableTimeMaximum,growthTableNumberPoints)
           ! Solve ODE to get corresponding expansion factors. Initialize with solution for matter dominated phase.
           call growthFactor%populate(1.0d0,1)
-          growthFactorDerivative=cosmologyFunctions_ %expansionRate  (                   &
-               &                  cosmologyFunctions_%expansionFactor (                  &
-               &                                                       growthFactor%x(1) &
-               &                                                      )                  &
-               &                                                     )
+          growthFactorDerivative=self%cosmologyFunctions_ %expansionRate  (                   &
+               &                  self%cosmologyFunctions_%expansionFactor (                  &
+               &                                                            growthFactor%x(1) &
+               &                                                           )                  &
+               &                                                          )
           do i=2,growthTableNumberPoints
              timeNow                    =growthFactor          %x(i-1)
              growthFactorODEVariables(1)=growthFactor          %y(i-1)
@@ -191,16 +198,16 @@ contains
           linearGrowthFactorPresent=growthFactor%interpolate(timePresent)
           call growthFactor%populate(reshape(growthFactor%ys(),[growthTableNumberPoints])/linearGrowthFactorPresent)
           ! Compute relative normalization factor such that growth factor behaves as expansion factor at early times.
-          self%normalizationMatterDominated=+(                                                      &
-               &                              +9.0d0                                                &
-               &                              *cosmologyParameters_%OmegaMatter   (               ) &
-               &                              /4.0d0                                                &
-               &                             )**(1.0d0/3.0d0)                                       &
-               &                            *(                                                      &
-               &                              +cosmologyParameters_%HubbleConstant(hubbleUnitsTime) &
-               &                              *growthFactor        %x             (              1) &
-               &                             )**(2.0d0/3.0d0)                                       &
-               &                            /  growthFactor        %y             (              1)
+          self%normalizationMatterDominated=+(                                                           &
+               &                              +9.0d0                                                     &
+               &                              *self%cosmologyParameters_%OmegaMatter   (               ) &
+               &                              /4.0d0                                                     &
+               &                             )**(1.0d0/3.0d0)                                            &
+               &                            *(                                                           &
+               &                              +self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime) &
+               &                              *growthFactor             %x             (              1) &
+               &                             )**(2.0d0/3.0d0)                                            &
+               &                            /  growthFactor             %y             (              1)
           self%tableInitialized=.true.
        end select
     end if
@@ -217,15 +224,15 @@ contains
       type   (     c_ptr   )              , value         :: parameterPointer
       real   (kind=c_double)                              :: expansionFactor
       
-      expansionFactor   =+cosmologyFunctions_%expansionFactor   (                           time)
-      derivatives    (1)=+values                                (                              2)
-      derivatives    (2)=+1.5d0                                                                      &
-           &             *cosmologyFunctions_%expansionRate     (                expansionFactor)**2 &
-           &             *cosmologyFunctions_%omegaMatterEpochal(expansionFactor=expansionFactor)    &
-           &             *values                                (                              1)    &
-           &             -2.0d0                                                                      &
-           &             *cosmologyFunctions_%expansionRate     (                expansionFactor)    &
-           &             *values                                (                              2)
+      expansionFactor   =+self%cosmologyFunctions_%expansionFactor   (                           time)
+      derivatives    (1)=+values                                     (                              2)
+      derivatives    (2)=+1.5d0                                                                           &
+           &             *self%cosmologyFunctions_%expansionRate     (                expansionFactor)**2 &
+           &             *self%cosmologyFunctions_%omegaMatterEpochal(expansionFactor=expansionFactor)    &
+           &             *values                                     (                              1)    &
+           &             -2.0d0                                                                           &
+           &             *self%cosmologyFunctions_%expansionRate     (                expansionFactor)    &
+           &             *values                                     (                              2)
       growthFactorODEs  = FGSL_Success
     end function growthFactorODEs
 
@@ -233,20 +240,17 @@ contains
 
   double precision function simpleValue(self,time,expansionFactor,collapsing,normalize,component,wavenumber)
     !% Return the linear growth factor at the given epoch.
-    use Cosmology_Functions
     implicit none
     class           (linearGrowthSimple     ), intent(inout)           :: self
     double precision                         , intent(in   ), optional :: time               , expansionFactor
     logical                                  , intent(in   ), optional :: collapsing
     integer                                  , intent(in   ), optional :: normalize          , component
-    class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctions_
     double precision                         , intent(in   ), optional :: wavenumber
     double precision                                                   :: time_
     !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
     
     ! Determine cosmological time.
-    cosmologyFunctions_ => cosmologyFunctions()
-    call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
+    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
     call self%retabulate(time_)
     ! Interpolate to get the expansion factor.
@@ -262,25 +266,22 @@ contains
   double precision function simpleLogarithmicDerivativeExpansionFactor(self,time,expansionFactor,collapsing,component,wavenumber)
     !% Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
     use Galacticus_Error
-    use Cosmology_Functions
     implicit none
     class           (linearGrowthSimple     ), intent(inout)           :: self
     double precision                         , intent(in   ), optional :: time               , expansionFactor
     logical                                  , intent(in   ), optional :: collapsing
     integer                                  , intent(in   ), optional :: component 
     double precision                         , intent(in   ), optional :: wavenumber 
-    class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctions_
     double precision                                                   :: time_              , expansionFactor_
     
     ! Determine cosmological time.
-    cosmologyFunctions_ => cosmologyFunctions()
-    call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
+    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
     ! Remake the table if necessary.
     call self%retabulate(time_)
     ! Interpolate to get the expansion factor.
-    simpleLogarithmicDerivativeExpansionFactor=+self               %growthFactor %interpolateGradient(time_           ) &
-         &                                     /self               %growthFactor %interpolate        (time_           ) &
-         &                                     /cosmologyFunctions_%expansionRate                    (expansionFactor_)
+    simpleLogarithmicDerivativeExpansionFactor=+self%growthFactor       %interpolateGradient(time_           ) &
+         &                                     /self%growthFactor       %interpolate        (time_           ) &
+         &                                     /self%cosmologyFunctions_%expansionRate      (expansionFactor_)
     return
   end function simpleLogarithmicDerivativeExpansionFactor
 
