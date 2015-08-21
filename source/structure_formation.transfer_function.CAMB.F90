@@ -125,11 +125,7 @@ contains
     implicit none
     type(transferFunctionCAMB), intent(inout) :: self
     
-    if     (                                                       &
-         &   associated(self%cosmologyParameters_                ) &
-         &  .and.                                                  &
-         &              self%cosmologyParameters_%isFinalizable()  &
-         & ) deallocate(self%cosmologyParameters_                )
+    !# <objectDestructor name="self%cosmologyParameters_"/>
     return
   end subroutine cambDestructor
   
@@ -147,9 +143,9 @@ contains
     implicit none
     class           (transferFunctionCAMB), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
-    type            (lockDescriptor    )                                           :: fileLock
+    type            (lockDescriptor      )                :: fileLock
     character       (len=32              )                :: wavenumberLabel
-    character       (len=255           )                                           :: hostName
+    character       (len=255             )                :: hostName
     type            (varying_string      )                :: command             , parameterFile
     logical                                               :: makeTransferFunction
     double precision                                      :: wavenumberCAMB
