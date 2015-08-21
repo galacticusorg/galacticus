@@ -21,15 +21,22 @@
   !#  <description>Mass variance of cosmological density fields computed from a filtered power spectrum.</description>
   !# </cosmologicalMassVariance>
   use Tables
+  use Cosmology_Parameters
+  use Power_Spectra_Primordial_Transferred
+  use Power_Spectrum_Window_Functions
 
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceFilteredPower
      !% A cosmological mass variance class computing variance from a filtered power spectrum.
      private
-     logical                                     :: initialized
-     double precision                            :: tolerance        , toleranceTopHat   , &
-          &                                         sigma8Value      , sigmaNormalization, &
-          &                                         massMinimum      , massMaximum
-     type            (table1DLogarithmicCSpline) :: rootVarianceTable
+     class           (cosmologyParametersClass               ), pointer :: cosmologyParameters_
+     class           (powerSpectrumPrimordialTransferredClass), pointer :: powerSpectrumPrimordialTransferred_
+     class           (powerSpectrumWindowFunctionClass       ), pointer :: powerSpectrumWindowFunction_
+     type            (powerSpectrumWindowFunctionTopHat      )          :: powerSpectrumWindowFunctionTopHat_
+     logical                                                            :: initialized
+     double precision                                                   :: tolerance                          , toleranceTopHat   , &
+          &                                                                sigma8Value                        , sigmaNormalization, &
+          &                                                                massMinimum                        , massMaximum
+     type            (table1DLogarithmicCSpline              )          :: rootVarianceTable
    contains
      !@ <objectMethods>
      !@   <object>cosmologicalMassVarianceFilteredPower</object>
@@ -67,10 +74,13 @@ contains
     !% Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
     use Input_Parameters2
     implicit none
-    type            (cosmologicalMassVarianceFilteredPower)                :: filteredPowerConstructorParameters
-    type            (inputParameters                      ), intent(in   ) :: parameters
-    double precision                                                       :: sigma_8                           , tolerance, &
-         &                                                                    toleranceTopHat
+    type            (cosmologicalMassVarianceFilteredPower  )                :: filteredPowerConstructorParameters
+    type            (inputParameters                        ), intent(in   ) :: parameters
+    class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
+    class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
+    class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_
+    double precision                                                         :: sigma_8                            , tolerance, &
+         &                                                                      toleranceTopHat
     !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
@@ -100,24 +110,34 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
+    !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
+    !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>    
     ! Construct the instance.
-    filteredPowerConstructorParameters=filteredPowerConstructorInternal(sigma_8,tolerance,toleranceTopHat)
+    filteredPowerConstructorParameters=filteredPowerConstructorInternal(sigma_8,tolerance,toleranceTopHat,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
     return
   end function filteredPowerConstructorParameters
 
-  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat)
+  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
     !% Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     implicit none
-    type            (cosmologicalMassVarianceFilteredPower)                :: filteredPowerConstructorInternal
-    double precision                                       , intent(in   ) :: tolerance                       , toleranceTopHat, &
-         &                                                                    sigma8
+    type            (cosmologicalMassVarianceFilteredPower  )                        :: filteredPowerConstructorInternal
+    double precision                                         , intent(in   )         :: tolerance                          , toleranceTopHat, &
+         &                                                                              sigma8
+    class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
+    class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
+    class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target :: powerSpectrumWindowFunction_
 
-    filteredPowerConstructorInternal%sigma8Value    =sigma8
-    filteredPowerConstructorInternal%tolerance      =tolerance
-    filteredPowerConstructorInternal%toleranceTopHat=toleranceTopHat
-    filteredPowerConstructorInternal%initialized    =.false.
-    filteredPowerConstructorInternal%massMinimum    =1.0d06
-    filteredPowerConstructorInternal%massMaximum    =1.0d15
+    filteredPowerConstructorInternal%sigma8Value                         =  sigma8
+    filteredPowerConstructorInternal%tolerance                           =  tolerance
+    filteredPowerConstructorInternal%toleranceTopHat                     =  toleranceTopHat
+    filteredPowerConstructorInternal%cosmologyParameters_                => cosmologyParameters_
+    filteredPowerConstructorInternal%powerSpectrumPrimordialTransferred_ => powerSpectrumPrimordialTransferred_
+    filteredPowerConstructorInternal%powerSpectrumWindowFunction_        => powerSpectrumWindowFunction_
+    filteredPowerConstructorInternal%powerSpectrumWindowFunctionTopHat_  =  powerSpectrumWindowFunctionTopHat  (cosmologyParameters_)
+    filteredPowerConstructorInternal%initialized                         =  .false.
+    filteredPowerConstructorInternal%massMinimum                         =  1.0d06
+    filteredPowerConstructorInternal%massMaximum                         =  1.0d15
     return
   end function filteredPowerConstructorInternal
 
@@ -126,6 +146,9 @@ contains
     implicit none
     type (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     
+    !# <objectDestructor name="self%cosmologyParameters_"               />
+    !# <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
+    !# <objectDestructor name="self%powerSpectrumWindowFunction_"       />
     if (self%initialized) call self%rootVarianceTable%destroy()
     return
   end subroutine filteredPowerDestructor
@@ -227,13 +250,9 @@ contains
   subroutine filteredPowerRetabulate(self,mass)
     !% Tabulate the cosmological mass variance.
     use Numerical_Constants_Math
-    use Cosmology_Parameters
-    use Power_Spectra_Primordial_Transferred
     implicit none
     class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)           :: self
     double precision                                         , intent(in   ), optional :: mass
-    class           (cosmologyParametersClass               ), pointer                 :: cosmologyParameters_
-    class           (powerSpectrumPrimordialTransferredClass), pointer                 :: powerSpectrumPrimordialTransferred_
     ! Radius for σ(M) normalization in Mpc/h.
     double precision                                         , parameter               :: radiusNormalization                =8.0d0
     integer                                                                            :: i                                        , rootVarianceTableCount
@@ -255,20 +274,17 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       ! Get required objects.
-       cosmologyParameters_                => cosmologyParameters               ()
-       powerSpectrumPrimordialTransferred_ => powerSpectrumPrimordialTransferred()
        ! Compute the mass at which the mass variance is normalized.
-       smoothingMass=+(                                                          &
-            &          +4.0d0                                                    &
-            &          /3.0d0                                                    &
-            &          *Pi                                                       &
-            &         )                                                          &
-            &        *  cosmologyParameters_%OmegaMatter    (                  ) &
-            &        *  cosmologyParameters_%densityCritical(                  ) &
-            &        *(                                                          &
-            &          +radiusNormalization                                      &
-            &          /cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH) &
+       smoothingMass=+(                                                               &
+            &          +4.0d0                                                         &
+            &          /3.0d0                                                         &
+            &          *Pi                                                            &
+            &         )                                                               &
+            &        *  self%cosmologyParameters_%OmegaMatter    (                  ) &
+            &        *  self%cosmologyParameters_%densityCritical(                  ) &
+            &        *(                                                               &
+            &          +radiusNormalization                                           &
+            &          /self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH) &
             &         )**3
        ! Determine the normalization of the power spectrum.
        self%sigmaNormalization=+self%sigma8Value               &
@@ -310,7 +326,6 @@ contains
       use, intrinsic :: ISO_C_Binding
       use               Numerical_Constants_Math
       use               Numerical_Integration
-      use               Power_Spectrum_Window_Functions
       implicit none
       logical                                     , intent(in   ) :: useTopHat
       double precision                                            :: topHatRadius        , wavenumberMaximum, &
@@ -319,18 +334,18 @@ contains
       type            (fgsl_function             )                :: integrandFunction
       type            (fgsl_integration_workspace)                :: integrationWorkspace
       
-      topHatRadius     =(                                        &
-           &             +(                                      &
-           &               +3.0d0                                &
-           &               /4.0d0                                &
-           &               /Pi                                   &
-           &              )                                      &
-           &             *smoothingMass                          &
-           &             /cosmologyParameters_%OmegaMatter    () &
-           &             /cosmologyParameters_%densityCritical() &
+      topHatRadius     =(                                             &
+           &             +(                                           &
+           &               +3.0d0                                     &
+           &               /4.0d0                                     &
+           &               /Pi                                        &
+           &              )                                           &
+           &             *smoothingMass                               &
+           &             /self%cosmologyParameters_%OmegaMatter    () &
+           &             /self%cosmologyParameters_%densityCritical() &
            &            )**(1.0d0/3.0d0)
       wavenumberMinimum=    0.0d0/topHatRadius
-      wavenumberMaximum=min(1.0d3/topHatRadius,Power_Spectrum_Window_Function_Wavenumber_Maximum(smoothingMass))
+      wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_%wavenumberMaximum(smoothingMass))
       if (useTopHat) then
          rootVariance=+Integrate(                                              &
               &                  wavenumberMinimum                           , &
@@ -368,7 +383,6 @@ contains
     function varianceIntegrand(wavenumber,parameterPointer) bind(c)
       !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
       use, intrinsic :: ISO_C_Binding
-      use               Power_Spectrum_Window_Functions
       implicit none
       real(kind=c_double)        :: varianceIntegrand
       real(kind=c_double), value :: wavenumber
@@ -376,10 +390,10 @@ contains
 
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
       ! elsewhere.
-      varianceIntegrand=+  powerSpectrumPrimordialTransferred_%power(wavenumber              ) &
-           &            *(                                                                     &
-           &              +Power_Spectrum_Window_Function           (wavenumber,smoothingMass) &
-           &              *                                          wavenumber                &
+      varianceIntegrand=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ) &
+           &            *(                                                                          &
+           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass) &
+           &              *                                               wavenumber                &
            &             )**2
       return
     end function varianceIntegrand
@@ -387,7 +401,6 @@ contains
     function varianceIntegrandTopHat(wavenumber,parameterPointer) bind(c)
       !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
       use, intrinsic :: ISO_C_Binding
-      use               Power_Spectrum_Window_Functions_Top_Hat
       implicit none
       real(kind=c_double)        :: varianceIntegrandTopHat
       real(kind=c_double), value :: wavenumber
@@ -395,10 +408,10 @@ contains
       
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
       ! elsewhere.
-      varianceIntegrandTopHat=+  powerSpectrumPrimordialTransferred_   %power(wavenumber              ) &
-           &                  *(                                                                        &
-           &                    +Power_Spectrum_Window_Function_Top_Hat      (wavenumber,smoothingMass) &
-           &                    *                                             wavenumber                &
+      varianceIntegrandTopHat=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ) &
+           &                  *(                                                                          &
+           &                    +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass) &
+           &                    *                                               wavenumber                &
            &                   )**2
       return
     end function varianceIntegrandTopHat

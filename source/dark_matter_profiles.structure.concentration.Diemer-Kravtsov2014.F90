@@ -129,6 +129,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    diemerKravtsov2014ConstructorParameters%resetSequence=.true.
     return
   end function diemerKravtsov2014ConstructorParameters
 

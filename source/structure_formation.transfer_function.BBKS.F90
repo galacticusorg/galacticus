@@ -98,11 +98,7 @@ contains
     implicit none
     type(transferFunctionBBKS), intent(inout) :: self
     
-    if     (                                                       &
-         &   associated(self%cosmologyParameters_                ) &
-         &  .and.                                                  &
-         &              self%cosmologyParameters_%isFinalizable()  &
-         & ) deallocate(self%cosmologyParameters_                )
+    !# <objectDestructor name="self%cosmologyParameters_"/>
     return
   end subroutine bbksDestructor
 
