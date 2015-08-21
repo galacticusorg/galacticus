@@ -309,6 +309,7 @@ contains
     use Galacticus_Input_Paths
     use IO_HDF5
     use File_Utilities
+    use Table_Labels
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout)               :: self
     double precision                                   , intent(in   )               :: redshift                                 , scaleSource
@@ -447,11 +448,14 @@ contains
           call parametersFile%close()
           !$omp end critical(HDF5_Access)
        end if
-       ! Create a table.
-       call self%convergencePDF%create  (tableConvergenceVariance,tableCount=3)
-       call self%convergencePDF%populate(tableNKappa             ,           1)
-       call self%convergencePDF%populate(tableAKappa             ,           2)
-       call self%convergencePDF%populate(tableOmegaKappa         ,           3)
+       ! Create a table. We fix the extrapolation for large scaled variances. In these cases, the convergence distribution is
+       ! extremely narrow (effectively a delta-function) so it doesn't matter much what we do. If we do allow extrapolation, the
+       ! values obtained for the parameter result in convergence distributions which have secondary peaks at κ≅2, which results in
+       ! unrealistic magnification distributions.
+       call self%convergencePDF%create  (tableConvergenceVariance,tableCount=3,extrapolationType=[extrapolationTypeExtrapolate,extrapolationTypeFix])
+       call self%convergencePDF%populate(tableNKappa             ,           1                                                                      )
+       call self%convergencePDF%populate(tableAKappa             ,           2                                                                      )
+       call self%convergencePDF%populate(tableOmegaKappa         ,           3                                                                      )
        deallocate(tableConvergenceVariance)
        deallocate(tableNKappa             )
        deallocate(tableAKappa             )
