@@ -21,8 +21,6 @@
   !# <criticalOverdensity name="criticalOverdensitySphericalCollapseMatterDE" defaultThreadPrivate="yes">
   !#  <description>Critical overdensity for collapse based on the spherical collapse in a matter plus dark energy universe.</description>
   !# </criticalOverdensity>
-  use Tables
-
   type, extends(criticalOverdensitySphericalCollapseMatterLambda) :: criticalOverdensitySphericalCollapseMatterDE
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark energy universe.
      private
@@ -47,16 +45,22 @@ contains
     type(criticalOverdensitySphericalCollapseMatterDE)                :: sphericalCollapseMatterDEConstructorParameters
     type(inputParameters                             ), intent(in   ) :: parameters
 
+    !# <objectBuilder class="linearGrowth"       name="sphericalCollapseMatterDEConstructorParameters%linearGrowth_"       source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions" name="sphericalCollapseMatterDEConstructorParameters%cosmologyFunctions_" source="parameters"/>
     sphericalCollapseMatterDEConstructorParameters%tableInitialized=.false.
     return
   end function sphericalCollapseMatterDEConstructorParameters
 
-  function sphericalCollapseMatterDEConstructorInternal()
+  function sphericalCollapseMatterDEConstructorInternal(linearGrowth_,cosmologyFunctions_)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} critical overdensity class.
     implicit none
-    type(criticalOverdensitySphericalCollapseMatterDE) :: sphericalCollapseMatterDEConstructorInternal
+    type (criticalOverdensitySphericalCollapseMatterDE)                        :: sphericalCollapseMatterDEConstructorInternal
+    class(cosmologyFunctionsClass                     ), target, intent(in   ) :: cosmologyFunctions_    
+    class(linearGrowthClass                           ), target, intent(in   ) :: linearGrowth_    
 
-    sphericalCollapseMatterDEConstructorInternal%tableInitialized=.false.
+    sphericalCollapseMatterDEConstructorInternal%tableInitialized    =  .false.
+    sphericalCollapseMatterDEConstructorInternal%cosmologyFunctions_ => cosmologyFunctions_
+    sphericalCollapseMatterDEConstructorInternal%linearGrowth_       => linearGrowth_
     return
   end function sphericalCollapseMatterDEConstructorInternal
 
@@ -65,6 +69,8 @@ contains
     implicit none
     type (criticalOverdensitySphericalCollapseMatterDE), intent(inout) :: self
     
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%linearGrowth_"      />
     if (self%tableInitialized) then
        call self%overdensityCritical%destroy()
        deallocate(self%overdensityCritical)
@@ -87,7 +93,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate(time,self%overdensityCritical)
+       call Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate(time,self%overdensityCritical,self%linearGrowth_,self%cosmologyFunctions_)
        self%tableInitialized=.true.
        self%tableTimeMinimum=self%overdensityCritical%x(+1)
        self%tableTimeMaximum=self%overdensityCritical%x(-1)

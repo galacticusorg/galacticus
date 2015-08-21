@@ -57,7 +57,7 @@ our %intrinsicDeclarations = (
     logical       => { intrinsic => "logical"         , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)logical(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     character     => { intrinsic => "character"       , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)character(?-i)\s*(\(\s*[a-zA-Z0-9_=,\+\-\*\(\)]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     type          => { intrinsic => "type"            , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)type(?-i)\s*(\(\s*[a-zA-Z0-9_]+\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    class         => { intrinsic => "class"           , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)class(?-i)\s*(\(\s*[a-zA-Z0-9_]+\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    class         => { intrinsic => "class"           , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)class(?-i)\s*(\(\s*[a-zA-Z0-9_\*]+\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     procedure     => { intrinsic => "procedure"       , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)procedure(?-i)\s*(\([a-zA-Z0-9_\s]*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)]+)\s*$/ },
     );
 

@@ -18,17 +18,21 @@
   !% An implementation of critical overdensity for collapse based on spherical collapse in a
   !% matter plus cosmological constant universe.
 
+  use Tables
+  use Linear_Growth
+  use Cosmology_Functions
+
   !# <criticalOverdensity name="criticalOverdensitySphericalCollapseMatterLambda" defaultThreadPrivate="yes">
   !#  <description>Critical overdensity for collapse based on the spherical collapse in a matter plus cosmological constant universe (see, for example, \citealt{percival_cosmological_2005}).</description>
   !# </criticalOverdensity>
-  use Tables
-
   type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseMatterLambda
      !% A critical overdensity class based on spherical collapse in a matter plus cosmological constant universe.
      private
-     logical                                :: tableInitialized
-     double precision                       :: tableTimeMinimum   , tableTimeMaximum
-     class           (table1D), allocatable :: overdensityCritical
+     logical                                                :: tableInitialized
+     double precision                                       :: tableTimeMinimum   , tableTimeMaximum
+     class           (table1D                ), allocatable :: overdensityCritical
+     class           (linearGrowthClass      ), pointer     :: linearGrowth_
+     class           (cosmologyFunctionsClass), pointer     :: cosmologyFunctions_
    contains
      !@ <objectMethods>
      !@   <object>criticalOverdensitySphericalCollapseMatterLambda</object>
@@ -64,24 +68,32 @@ contains
     type(criticalOverdensitySphericalCollapseMatterLambda)                :: sphericalCollapseMatterLambdaConstructorParameters
     type(inputParameters                                 ), intent(in   ) :: parameters
 
+    !# <objectBuilder class="linearGrowth"       name="sphericalCollapseMatterLambdaConstructorParameters%linearGrowth_"       source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions" name="sphericalCollapseMatterLambdaConstructorParameters%cosmologyFunctions_" source="parameters"/>
     sphericalCollapseMatterLambdaConstructorParameters%tableInitialized=.false.
     return
   end function sphericalCollapseMatterLambdaConstructorParameters
 
-  function sphericalCollapseMatterLambdaConstructorInternal()
+  function sphericalCollapseMatterLambdaConstructorInternal(linearGrowth_,cosmologyFunctions_)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} critical overdensity class.
     implicit none
-    type(criticalOverdensitySphericalCollapseMatterLambda) :: sphericalCollapseMatterLambdaConstructorInternal
+    type (criticalOverdensitySphericalCollapseMatterLambda)                        :: sphericalCollapseMatterLambdaConstructorInternal
+    class(cosmologyFunctionsClass                         ), target, intent(in   ) :: cosmologyFunctions_    
+    class(linearGrowthClass                               ), target, intent(in   ) :: linearGrowth_    
 
-    sphericalCollapseMatterLambdaConstructorInternal%tableInitialized=.false.
+    sphericalCollapseMatterLambdaConstructorInternal%tableInitialized    =  .false.
+    sphericalCollapseMatterLambdaConstructorInternal%cosmologyFunctions_ => cosmologyFunctions_
+    sphericalCollapseMatterLambdaConstructorInternal%linearGrowth_       => linearGrowth_
     return
   end function sphericalCollapseMatterLambdaConstructorInternal
 
   subroutine sphericalCollapseMatterLambdaDestructor(self)
     !% Destructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} critical overdensity for collapse class.
     implicit none
-    type (criticalOverdensitySphericalCollapseMatterLambda), intent(inout) :: self
-    
+    type(criticalOverdensitySphericalCollapseMatterLambda), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%linearGrowth_"      />
     if (self%tableInitialized) then
        call self%overdensityCritical%destroy()
        deallocate(self%overdensityCritical)
@@ -104,7 +116,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,self%overdensityCritical)
+       call Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,self%overdensityCritical,self%linearGrowth_,self%cosmologyFunctions_)
        self%tableInitialized=.true.
        self%tableTimeMinimum=self%overdensityCritical%x(+1)
        self%tableTimeMaximum=self%overdensityCritical%x(-1)
@@ -115,19 +127,16 @@ contains
   double precision function sphericalCollapseMatterLambdaValue(self,time,expansionFactor,collapsing,mass)
     !% Return the critical overdensity at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     use Galacticus_Error
-    use Cosmology_Functions
     implicit none
     class           (criticalOverdensitySphericalCollapseMatterLambda), intent(inout)           :: self
     double precision                                                  , intent(in   ), optional :: time               , expansionFactor, &
          &                                                                                         mass
     logical                                                           , intent(in   ), optional :: collapsing
-    class           (cosmologyFunctionsClass                         ), pointer                 :: cosmologyFunctions_
     logical                                                                                     :: collapsingActual
     double precision                                                                            :: time_
 
     ! Determine cosmological time.
-    cosmologyFunctions_ => cosmologyFunctions()
-    call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
+    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
     call self%retabulate(time_)
     ! Interpolate to get the expansion factor.
@@ -138,19 +147,16 @@ contains
   double precision function sphericalCollapseMatterLambdaGradientTime(self,time,expansionFactor,collapsing,mass)
     !% Return the time derivative of the critical overdensity at the given epoch, based spherical collapse in a matter plus
     !% cosmological constant universe.
-    use Cosmology_Functions
     implicit none
     class           (criticalOverdensitySphericalCollapseMatterLambda), intent(inout)           :: self
     double precision                                                  , intent(in   ), optional :: time               , expansionFactor, &
          &                                                                                         mass
     logical                                                           , intent(in   ), optional :: collapsing
-    class           (cosmologyFunctionsClass                         ), pointer                 :: cosmologyFunctions_
     logical                                                                                     :: collapsingActual
     double precision                                                                            :: time_
 
     ! Determine cosmological time.
-    cosmologyFunctions_ => cosmologyFunctions()
-    call cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
+    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
     call self%retabulate(time_)
     ! Interpolate to get the expansion factor.

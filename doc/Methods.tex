@@ -1158,7 +1158,7 @@ The function should allocate {\normalfont \ttfamily sigmaTable} to a suitable ty
 
 Currently defined cosmological mass root variance methods are:
 \begin{description}
- \item [{\normalfont \ttfamily filteredPowerSpectrum}] The mass root variance is found by integrating over the transferred linear power spectrum multiplied by the selected window function (see \S\ref{sec:PowerSpectrumWindowFunction}).
+ \item [{\normalfont \ttfamily filteredPowerSpectrum}] The mass root variance is found by integrating over the transferred linear power spectrum multiplied by the selected window function (see \S\ref{sec:methodsPowerSpectrumWindowFunction}).
 \end{description}
 
 \subsubsection{Dark Matter Halo Spin Distribution}\label{sec:HaloSpinDistribution}\index{dark matter halo!spin!distribution}\index{spin!dark matter halo}
@@ -2457,67 +2457,6 @@ This function must return the cumulative energy (in $M_\odot$ (km/s)$^2$) from P
 Currently defined population III supernovae methods are:
 \begin{description}
  \item [{\normalfont \ttfamily Heger-Woosley2002}] Computes the energy input from the pair-instability results of \cite{heger_nucleosynthetic_2002}.
-\end{description}
-
-\subsubsection{Power Spectrum Variance Window Function}\label{sec:PowerSpectrumWindowFunction}
-
-Additional methods for the window function used to compute variance from the power spectrum can be added using the {\normalfont \ttfamily powerSpectrumWindowFunctionMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily topHat} method is described by a directive:
-\begin{verbatim}
-  !# <powerSpectrumWindowFunctionMethod>
-  !#  <unitName>Power_Spectrum_Window_Functions_Top_Hat_Initialize</unitName>
-  !# </powerSpectrumWindowFunctionMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Power\_Spectrum\_Window\_Functions\_Top\_Hat\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(powerSpectrumWindowFunctionMethod,Power_Spectrum_Window_Function_Get)
-    implicit none
-    type     (varying_string  ),          intent(in   ) :: powerSpectrumWindowFunctionMethod
-    procedure(double precision), pointer, intent(inout) :: Power_Spectrum_Window_Function_Get
-    procedure(double precision), pointer, intent(inout) :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get
-    
-    if (powerSpectrumWindowFunctionMethod == 'myMethod') then
-       Power_Spectrum_Window_Function_Get                    => My_Window_Function
-       Power_Spectrum_Window_Function_Wavenumber_Maximum_Get => My_Window_Function_Maximum_Wavelength
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily powerSpectrumWindowFunctionMethod} input parameter. The procedure pointers {\normalfont \ttfamily Power\_Spectrum\_Window\_Function\_Get}, and {\normalfont \ttfamily Power\_Spectrum\_Window\_Function\_Wavenumber\_Maximum\_Get} must be set to point to functions which return the window function for a given wavenumber and mass, and the maximum wavenumber for which that window function is non-zero respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The window function function must have the form:
-\begin{verbatim}
-   subroutine Power_Spectrum_Window_Function(wavenumber,smoothingMass)
-    implicit none
-    double precision, intent(in   ) :: wavenumber,smoothingMass
-     .
-    .
-    .
-    return
-   end subroutine Power_Spectrum_Window_Function
-\end{verbatim}
-The function should return the window function for the specified {\normalfont \ttfamily wavenumber} (given in Mpc$^{-1}$) and the given {\normalfont \ttfamily smoothingMass} (given in $M_\odot$).
-
-The window function maximum wavenumber function must have the form:
-\begin{verbatim}
-   subroutine Power_Spectrum_Window_Function_Wavenumber_Maximum(smoothingMass)
-    implicit none
-    double precision, intent(in   ) :: smoothingMass
-     .
-    .
-    .
-    return
-   end subroutine Power_Spectrum_Window_Function_Wavenumber_Maximum
-\end{verbatim}
-The function should return the largest wavenumber for which the window function is non-zero for the given {\normalfont \ttfamily smoothingMass} (given in $M_\odot$). If the window function is non-zero as $k\rightarrow\infty$ then a suitably large value (e.g. $10^{30}$Mpc$^{-1}$) should be returned.
-
-Currently defined power spectrum variance window function methods are:
-\begin{description}
- \item [{\normalfont \ttfamily topHat}] The window function is a top-hat in real-space.
- \item [{\normalfont \ttfamily kSpaceSharp}] The window function is a top-hat in $k$-space.
- \item [{\normalfont \ttfamily topHatKSpaceSharpHybrid}] A convolution of top-hat in real space and top-hat in $k$-space window functions.
 \end{description}
 
 \subsubsection{Radiation Components}\index{radiation}\label{sec:radiationComponents}
