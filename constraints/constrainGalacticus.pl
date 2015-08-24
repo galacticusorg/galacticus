@@ -365,16 +365,27 @@ unless ( $? == 0 ) {
 	print "ERROR: Galacticus model failed to complete - retrying\n";
 	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,$cpuTimeExceeded);
 	# Try running the model again - in case this was a random error.
-	SystemRedirect::tofile($glcCommand,$logFile);
-	unless ( $? == 0 ) {
-	    # Since a failure occurred, post to the semaphore to avoid blocking other jobs.
-	    &semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
-	    # Display the final likelihood.
-	    &outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
-	    print "constrainGalacticus.pl: Galacticus model failed to complete - second attempt";
-	    unlink(@temporaryFiles)
-		if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
-	    exit;
+	if ( exists($config->{'likelihood'}->{'rerunOnError'}) && $config->{'likelihood'}->{'rerunOnError'} eq "yes" ) {
+	    SystemRedirect::tofile($glcCommand,$logFile);
+	    unless ( $? == 0 ) {
+		# Since a failure occurred, post to the semaphore to avoid blocking other jobs.
+		&semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
+		# Display the final likelihood.
+		&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
+		print "constrainGalacticus.pl: Galacticus model failed to complete - second attempt";
+		unlink(@temporaryFiles)
+		    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
+		exit;
+	    }
+	} else {
+		# Since a failure occurred, post to the semaphore to avoid blocking other jobs.
+		&semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
+		# Display the final likelihood.
+		&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
+		print "constrainGalacticus.pl: Galacticus model failed to complete - second attempt";
+		unlink(@temporaryFiles)
+		    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
+		exit;
 	}
     }
 }
