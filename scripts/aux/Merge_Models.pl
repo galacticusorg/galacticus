@@ -130,7 +130,7 @@ foreach my $outputGroup ( @outputGroups ) {
     # Loop over the tree datasets.
     foreach my $dataset ( "mergerTreeIndex", "mergerTreeCount", "mergerTreeStartIndex", "mergerTreeWeight" ) {
 	# Reset values.
-	my $newDatasetValues = pdl [];
+	my $newDatasetValues = pdl->null();
 	# Loop over merge files.
 	my $iFile = -1;
 	my $offset = 0;
