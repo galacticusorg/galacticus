@@ -65,8 +65,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    ! Construct the CDM transfer function.
-    transferFunctionCDM          => transferFunction(parameters)
+    !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     ! Call the internal constructor
     bbksWDMConstructorParameters =  bbksWDMConstructorInternal(transferFunctionCDM,freeStreamingLength,cosmologyParameters_)
     return
@@ -90,13 +89,14 @@ contains
     end if
     return
   end function bbksWDMConstructorInternal
-
-  elemental subroutine bbksWDMDestructor(self)
+  
+  subroutine bbksWDMDestructor(self)
     !% Destructor for the bbksWDM transfer function class.
     implicit none
     type(transferFunctionBBKSWDM), intent(inout) :: self
 
-    if (associated(self%transferFunctionCDM)) deallocate(self%transferFunctionCDM)
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%transferFunctionCDM" />
     return
   end subroutine bbksWDMDestructor
 

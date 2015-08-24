@@ -1,14 +1,31 @@
 \chapter{Physical Implementations}
 
+\section{Analytic Solvers}
+
+\glc\ typically solves the system of \glspl{ode} which describe the evolution of a galaxy using a numerical solver. However, in some situations analytic solutions may be available. \glc\ allows for the use of analytic solvers in such cases. Currently available analytic solvers are described below.
+
+\subsection{Simple Disk Satellites}
+
+This solver, which can be activated by setting {\normalfont \ttfamily [diskVerySimpleUseAnalyticSolver]}$=${\normalfont \ttfamily true} is applicable to satellite systems in the very simple disk component. In particular, the following conditions must be met for it to be valid:
+\begin{itemize}
+\item The hot halo component must be of type {\normalfont \ttfamily verySimple} or {\normalfont \ttfamily verySimpleDelayed};
+\item The satellite component must be of type {\normalfont \ttfamily verySimple};
+\item The disk component must be of type {\normalfont \ttfamily verySimple};
+\item Properties of all other components must not change for satellite galaxies (with the exception of the {\normalfont \ttfamily time} property of the basic component), or else the component must be {\normalfont \ttfamily null};
+  \item Disk star formation and outflow rates must scale as $M_{\rm gas}/\tau$ where $M_{\rm gas}$ is the instantaneous mass of gas in the galaxy disk, and $\tau$ is a fixed timescale for any given satellite galaxy.
+\end{itemize}
+Under these conditions, the flow of mass between gas, stellar, and outflowed phases is analytically solvable.
+
 \section{Accretion of Gas into Halos}\label{sec:AccretionBaryonic}\index{accretion!baryonic}
 
-The accretion rate of gas from the \gls{igm} into a dark matter halo is expected to depend on (at least) the rate at which that halo mass is growing, the depth of its potential well and the thermodynamical properties of the accreting gas. \glc\ implements the following calculations of gas accretion from the \gls{igm}, which can be selected via the {\normalfont \ttfamily accretionHalosMethod} input parameter.
+The accretion rate of gas from the \gls{igm} into a dark matter halo is expected to depend on (at least) the rate at which that halo mass is growing, the depth of its potential well and the thermodynamical properties of the accreting gas. \glc\ implements the following calculations of gas accretion from the \gls{igm}, which can be selected via the {\normalfont \ttfamily accretionHaloMethod} input parameter.
 
-\subsection{Simple Method}
+\subsection{Simple}\label{phys:accretionHalo:accretionHaloSimple}
 
-Selected using {\normalfont \ttfamily accretionHalosMethod}$=${\normalfont \ttfamily simple}, this method sets the accretion rate of baryons into a halo to be:
+Selected using {\normalfont \ttfamily accretionHaloMethod}$=${\normalfont \ttfamily simple}, this method sets the accretion rate of baryons into a halo to be:
 \begin{equation}
  \dot{M}_{\mathrm accretion} = \left\{ \begin{array}{ll} (\Omega_{\mathrm b}/\Omega_{\mathrm M}) \dot{M}_{\mathrm halo} & \hbox{ if } V_{\mathrm virial} > V_{\mathrm reionization} \hbox{ or } z > z_{\mathrm reionization} \\ 0 & \hbox{ otherwise,}\end{array} \right.
+\label{eq:accretionHalo:truncation}
 \end{equation}
 where $z_{\mathrm reionization}=${\normalfont \ttfamily [reionizationSuppressionRedshift]} is the redshift at which the Universe is reionized and $V_{\mathrm reionization}=${\normalfont \ttfamily [reionizationSuppressionVelocity]} is the virial velocity below which accretion is suppressed after reionization. Setting $V_{\mathrm reionization}$ to zero will effectively switch off the effects of reionization on the accretion of baryonics. This algorithm attempts to offer a simple prescription for the effects of reionization and has been explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2010} show that it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion threshold, any accretion rate that would have otherwise occurred is instead placed into the ``failed'' accretion rate. For halos which can accrete, and which have some mass in their ``failed'' reservoir, that mass will be added to the regular accretion rate at a rate equal to the mass of the 
 ``failed'' reservoir times the specific growth rate of the halo. The gas accreted is assumed to be from a pristine \gls{igm} and so has zero abundances. Chemical abundances are computed from the chemical state functions (see \S\ref{sec:ChemicalStateMethod}).
@@ -17,9 +34,29 @@ Note that, if $\dot{M}_{\mathrm halo} < 0$ then negative accretion rates of gas 
 
 By default, gas is accreted whenever the halo is growing in total mass. However, setting {\normalfont \ttfamily [accretionHalosSimpleAccreteNewGrowthOnly]}$=${\normalfont \ttfamily true} causes accretion to occur only if the node mass is growing and exceeds the previous maximum node mass achieved along this branch of the merger tree. This requires use of a basic component which tracks the maximum mass along the branch (i.e. the {\normalfont \ttfamily massMaximum} property).
 
-\subsection{Null Method}
+\subsection{Null}\label{phys:accretionHalo:accretionHaloNull}
 
-Selected using {\normalfont \ttfamily accretionHalosMethod}$=${\normalfont \ttfamily null}, this method sets the accretion rate of baryons into a halo to be zero always.
+Selected using {\normalfont \ttfamily accretionHaloMethod}$=${\normalfont \ttfamily null}, this method sets the accretion rate of baryons into a halo to be zero always.
+
+\subsection{Cold Mode}\label{phys:accretionHalo:accretionHaloColdMode}
+
+Selected using {\normalfont \ttfamily accretionHaloMethod}$=${\normalfont \ttfamily coldMode}, this class extends the {\normalfont \ttfamily simple} class by dividing the accretion into hot and cold mode components. The cold mode fraction follows the approximation introduced by \cite{benson_cold_2010}, namely:
+\begin{equation}
+f_{\mathrm cold}=(1+r^{1/\delta})^{-1},
+\end{equation}
+where $\delta=${\normalfont \ttfamily [accretionColdModeShockStabilityTransitionWidth]}, $r = \epsilon_{\mathrm crit}/\epsilon$, and
+\begin{equation}
+\epsilon = r_{\mathrm s} \Lambda / \rho_{\mathrm s} v_{\mathrm s}^3,
+\end{equation}
+where $r_{\mathrm s}$ is the accretion shock radius, $\Lambda$ is the post-shock cooling function, $\rho_{\mathrm s}$ is the pre-shock density, $v_{\mathrm s}$ is the pre-shock velocity, and $\epsilon_{\mathrm crit}=${\normalfont \ttfamily [accretionColdModeShockStabilityThreshold]}. The pre-shock radius is set equal to the halo virial radius, the pre-shock velocity is set equal to the halo virial velocity, while the pre-shock density is given by
+\begin{equation}
+\rho_{\mathrm s} = {\gamma - 1 \over \gamma + 1} { 3 \over 4 \pi } { \Omega_{\mathrm b} \over \Omega_{\mathrm m} } {M \over r_{\mathrm s}^3} \left[ 1 + {(\alpha + 3) (10 + 9 \pi) \over 4} \right]^{-1},
+\end{equation}
+where $M$ is the total halo mass, $\gamma(=5/3)$ is the adiabatic index of the gas, and $\alpha$ is the exponent of the initial power-law density perturbation ($\alpha=0$ is assumed). The post-shock density and temperature are found assuming the strong-shock limit.
+
+\subsection{Bertschinger}\label{phys:accretionHalo:accretionHaloBertschinger}
+
+Selected using {\normalfont \ttfamily accretionHaloMethod}$=${\normalfont \ttfamily bertschinger}, this class extends the {\normalfont \ttfamily simple} class by replacing the total halo mass and accretion rate with the Bertschinger (i.e. turnaround) mass and its rate of increase respectively. Additionally, truncation of accretion (eqn.~\ref{eq:accretionHalo:truncation}) is determined by the maximum circular velocity of the node rather than by the virial velocity.
 
 \section{Cosmology Functions}\index{cosmology}
 
@@ -218,6 +255,10 @@ Selected with {\normalfont \ttfamily criticalOverdensityMethod}$=${\normalfont \
  \delta_{\mathrm crit} (t) = {3 (12 \pi)^{2/3} \over 20} [1 + 0.0123 \log_{10}\left\{\Omega_{\mathrm matter}(t)\right\}]/D(t).
 \end{equation}
 
+\subsubsection{Fixed}
+
+Selected with {\normalfont \ttfamily criticalOverdensityMethod}$=${\normalfont \ttfamily fixed} this method sets the critical overdensity equal to a fixed value (set via the parameter {\normalfont \ttfamily [criticalOverdensityFixed]}) divided by the linear growth factor.
+
 \subsection{Critical Overdensity Mass Scaling}\index{critical density!mass scaling}
 
 The method used to compute the scaling with mass of the critical linear overdensity at which overdense regions virialize is selected via the {\normalfont \ttfamily criticalOverdensityMassScalingMethod} parameter.
@@ -267,7 +308,7 @@ Selected with {\normalfont \ttfamily virialDensityContrastMethod}$=${\normalfont
 
 \subsubsection{Friends-of-Friends}
 
-Selected with {\normalfont \ttfamily virialDensityContrastMethod}$=${\normalfont \ttfamily friendsofFriends} this method computes the virial density contrast consistent with a given friends-of-friends algorithm linking length. According to \cite{lacey_merger_1994}, the friends-of-friends algorithm selects objects bounded by an isodensity contour of density contrast
+Selected with {\normalfont \ttfamily virialDensityContrastMethod}$=${\normalfont \ttfamily friendsOfFriends} this method computes the virial density contrast consistent with a given friends-of-friends algorithm linking length. According to \cite{lacey_merger_1994}, the friends-of-friends algorithm selects objects bounded by an isodensity contour of density contrast
 \begin{equation}
 \Delta_{\mathrm iso} = {3 \over 2 \pi b^3},
 \end{equation}
@@ -276,6 +317,10 @@ where $b=${\normalfont \ttfamily [virialDensityContrastFoFLinkingLength]} is the
 \Delta_{\mathrm vir} = {\bar{\rho}_{\mathrm vir} \over \rho(r_{\mathrm vir})} \Delta_{\mathrm iso},
 \end{equation}
 where $\bar{\rho}_{\mathrm vir}$ is the mean density inside the virial radius and $\rho(r_{\mathrm vir})$ is the density at the virial radius. The ratio $\bar{\rho}_{\mathrm vir} / \rho(r_{\mathrm vir})$ is specified via the parameter {\normalfont \ttfamily [virialDensityContrastFoFDensityRatio]}. Its default value of $4.688$ is appropriate for an \gls{nfw} halo of concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is the approximate critical overdensity for collapse).
+
+\subsubsection{Percolation}
+
+Selected with {\normalfont \ttfamily virialDensityContrastMethod}$=${\normalfont \ttfamily percolation} this method computes the virial density contrast consistent with a given friends-of-friends algorithm linking length using the percolation-theory-motivated calibration of \cite{more_overdensity_2011}. Specifically, the friends-of-friends algorithm is assumed to link together particles forming an isodensity surface of density $\rho = \bar{\rho} n_{\mathrm c}/b^3$, where $\bar{\rho}$ is the mean density of the universe, $n_{\mathrm c}=0.652960$ is a critical density for percolation as given by \cite{more_overdensity_2011}, and $b$ is the linking length. Given this bounding density, the virial density contrast is found by requiring that the halo contain the required mass within such a bounding density, given the halo density profile. 
 
 \subsection{Halo Bias}\index{halo bias}\index{dark matter halos!bias}\index{bias!halo}
 
@@ -317,7 +362,7 @@ Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttf
 
 The method to be used for computing the conditional mass function (for use in data modelling) is specified by the {\normalfont \ttfamily conditionalMassFunctionMethod} parameter.
 
-\subsection{Behroozi et al. (2010)}
+\subsection{Behroozi et al. (2010)}\label{phys:conditionalMassFunction:conditionalMassFunctionBehroozi2010}
 
 Selected with {\normalfont \ttfamily conditionalMassFunctionMethod}$=${\normalfont \ttfamily Behroozi2010}, this method uses the functional form given by \citeauthor{behroozi_comprehensive_2010}~(\citeyear{behroozi_comprehensive_2010}; see also \citealt{leauthaud_new_2011}). The mean number of central galaxies of stellar mass, $M_\star$, in halos of mass $M_{\mathrm h}$ is given by:
 \begin{equation}
@@ -618,7 +663,7 @@ This differential equation is then solved numerically to find the mass accretion
 
 The method uses to compute density profiles of dark matter halos is selected via the {\normalfont \ttfamily darkMatterProfileMethod} parameter.
 
-\subsubsection{Isothermal}
+\subsubsection{Isothermal}\label{phys:darkMatterProfile:darkMatterProfileIsothermal}
 
 Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily isothermal}, under this method the density profile is given by:
 \begin{equation}
@@ -626,7 +671,7 @@ Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \tt
 \end{equation}
 normalized such that the total mass of the \gls{node} is enclosed with the virial radius.
 
-\subsubsection{NFW}\index{Navarro-Frenk-White profile}\index{density profile!Navarro-Frenk-White}
+\subsubsection{NFW}\index{Navarro-Frenk-White profile}\index{density profile!Navarro-Frenk-White}\label{phys:darkMatterProfile:darkMatterProfileNFW}
 
 Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily NFW}, under this method the \gls{nfw} density profile \citep{navarro_universal_1997} is used
 \begin{equation}
@@ -634,13 +679,44 @@ Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \tt
 \end{equation}
 normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length $r_{\mathrm s} = r_{\mathrm virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}).
 
-\subsubsection{Einasto}\index{Einasto profile}\index{density profile!Einasto}
+\subsubsection{Einasto}\index{Einasto profile}\index{density profile!Einasto}\label{phys:darkMatterProfile:darkMatterProfileEinasto}
 
 Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily Einasto}, under this method the Einasto density profile (e.g. \citealt{cardone_spherical_2005}) is used
 \begin{equation}
   \rho_{\mathrm dark matter}(r) = \rho_{-2} \exp \left( - {2 \over \alpha} \left[ \left( {r \over r_{-2}} \right)^\alpha - 1 \right] \right),
 \end{equation}
 normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the characteristic length $r_{-2} = r_{\mathrm virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}). The shape parameter, $\alpha$, is set using the density profile shape method (see \S\ref{sec:DarkMatterProfileShape}).
+
+\subsubsection{Burkert}\index{Burkert profile}\index{density profile!Burkert}\label{phys:darkMatterProfile:darkMatterProfileBurkert}
+
+Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily Burkert}, under this method the \gls{nfw} density profile \citep{burkert_structure_1995} is used
+\begin{equation}
+  \rho_{\rm dark matter}(r) \propto \left(1+{r\over r_{\mathrm s}}\right)^{-1} \left(1+[{r\over r_{\mathrm s}}]^2\right)^{-1},
+\end{equation}
+normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length $r_{\mathrm s} = r_{\mathrm virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}). The mass enclosed within radius $r$ is given by
+\begin{equation}
+M(<r) = M_{\rm virial} {2 \log(1 + R) + \log(1 + R^2) -2 \tan^{-1}(R) \over 2 \log(1 + c) + \log(1 + c^2) -2 \tan^{-1}(c)},
+\end{equation}
+where $R=r/r_{\rm s}$. The associated gravitational potential is
+\begin{equation}
+\Phi(r) = -{\rm G} \left(1+{1 \over R}\right) { 2 \tan^{-1}(R) - 2 \log(1 + R) + \log(1 + R^2) \over -2 \tan^{-1}(c) + 2 \log(1 + c) + \log(1 + c^2) }.
+\end{equation}
+The peak of the rotation curve occurs at $R=3.2446257246042642$ (found by numerical solution), and the Fourier transform of the profile, $F(k) = \int_0^c 4 \pi r^2 \exp(-i k r) \rho(r) {\rm d} r / k r$ (needed in calculations of clustering using the halo model) is given by
+\begin{eqnarray}
+  F(k) &=& \left\{2 \exp(-i k) {\rm C}_{\rm i}(k) - 2 \exp(-i k) {\rm C}_{\rm i}(k[1 + c]) + (1 + i) \left[-i \exp(k) \pi - \exp(k) {\rm E}_{\rm i}(-k) \right. \right. \nonumber \\
+    & & +i \exp(-k) {\rm E}_{\rm i}(k) + \exp(k) {\rm E}_{\rm i}(i [i + c] k) - i \exp(-k) {\rm E}_{\rm i}(k [1 + i c ]) + (1 + i) \exp(-i k) {\rm S}_{\rm i}(k) \nonumber \\
+    & & \left. \left. - (1 + i) \exp(-i k) {\rm S}_{\rm i}(k[1 + c])\right]\right\}/\left[k \left\{-2 \tan^{-1}(c) + 2 \log(1 + c) + \log(1 + c^2)\right\}\right].
+\end{eqnarray}
+
+\subsubsection{Tidally-heated}\index{tidally-heated dark matter density profile}\index{dark matter density profile!tidally-heated}\label{phys:darkMatterProfile:darkMatterProfileTidallyHeated}
+
+Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily tidallyHeated}, this method assumes that dark matter halos start out with a density profile defined by another {\normalfont \ttfamily darkMatterProfileMethod} (specified via {\normalfont \ttfamily [darkMatterProfileTidallyHeatedUnheatedProfile]}). For subhalos, this profile is modified by tidal heating, under the assumption that the energy of a shell of mass before and after heating are related by
+\begin{equation}
+{ {\mathrm G} M^\prime(r^\prime) \over r^\prime } = { {\mathrm G} M(r) \over r } + Q r^2,
+\end{equation}
+where $M(r)$ is the mass enclosed within a radius $r$, and $Q$ represents a normalized tidal heating (see \S\ref{sec:ComponentSatelliteOrbiting} for example). Primes indicate values after heating, while unprimed variables indicate quantities prior to heating. With the assumption of no shell crossing, $M^\prime(r^\prime)=M(r)$ and this equation can be solved for $r$ given $r^\prime$.
+
+Not all methods are implemented for this profile. If {\normalfont \ttfamily [darkMatterProfileTidallyHeatedUnimplementedIsFatal]}$=${\normalfont \ttfamily true} then attempts to call these methods in heated profiles aborts, otherwise, a warning is issued and the result for the unheated profile is used instead.
 
 \subsection{Dark Matter Halo Profile Concentration}\label{sec:DarkMatterProfileConcentration}\index{dark matter profile!concentration}
 
@@ -807,7 +883,11 @@ Here, $x_i$ is a number between 0 and 1 and $\alpha=${\normalfont \ttfamily merg
 
 \subsubsection{Halo Mass Function}
 
-Selected with {\normalfont \ttfamily haloMassFunctionSamplingMethod}$=${\normalfont \ttfamily haloMassFunction}, this method sets the sampling density function equal to the halo mass function, $\gamma(M) = \hbox{minmax}(\phi_{\mathrm min},\phi_{\mathrm max},{\mathrm d} n(M)/{\mathrm d}\log M)$, where $\phi_{\mathrm min}=${\normalfont \ttfamily [haloMassFunctionSamplingAbundanceMinimum]}, $\phi_{\mathrm max}=${\normalfont \ttfamily [haloMassFunctionSamplingAbundanceMaximum]}, and
+Selected with {\normalfont \ttfamily haloMassFunctionSamplingMethod}$=${\normalfont \ttfamily haloMassFunction}, this method sets the sampling density function equal to the halo mass function,
+\begin{equation}
+\gamma(M) = \hbox{minmax}(\phi_{\mathrm min},\phi_{\mathrm max},{\mathrm d} n(M)/{\mathrm d}\log M [1 + p_1 \log_{10}(M/10^{13}M_\odot) + p_2 \log_{10}^2(M/10^{13}M_\odot)),
+\end{equation}
+ where $\phi_{\mathrm min}=${\normalfont \ttfamily [haloMassFunctionSamplingAbundanceMinimum]}, $\phi_{\mathrm max}=${\normalfont \ttfamily [haloMassFunctionSamplingAbundanceMaximum]}, $p_1=${\normalfont \ttfamily [haloMassFunctionSamplingModifier1]}, $p_2=${\normalfont \ttfamily [haloMassFunctionSamplingModifier2]}, and
 \begin{equation}
  \hbox{minmax}(a,b,x) = \left\{\begin{array}{ll}a & \hbox{ if } x < a \\ x & \hbox{ if } a \leq x \leq b\\ b & \hbox{ if } x > b,\end{array}\right.
 \end{equation}
@@ -1092,9 +1172,9 @@ The algorithm to be used when solving for galactic structure (specifically, find
 
 Selected with {\normalfont \ttfamily galacticStructureRadiusSolverMethod}$=${\normalfont \ttfamily fixed} this method determines the sizes of galactic components by assuming that radius equals
 \begin{equation}
- r = f_{\mathrm r} \lambda r_{\mathrm vir}
+ r = f_{\mathrm r} \lambda r_0
 \end{equation}
-where $r_{\mathrm vir}$ is the virial radius of the \gls{node}, $\lambda$ is its spin parameter and $f_{\mathrm r}=${\normalfont \ttfamily [galacticStructureRadiiFixedFactor]} is a parameter.
+where $r_0$ is the virial or turnaround radius of the \gls{node} if {\normalfont \ttfamily [galacticStructureRadiiFixedRadius]}$=${\normalfont \ttfamily virialRadius} or {\normalfont \ttfamily turnaround} respectively, $\lambda$ is its spin parameter and $f_{\mathrm r}=${\normalfont \ttfamily [galacticStructureRadiiFixedFactor]} is a parameter.
 
 \subsection{Linear}
 
@@ -1277,6 +1357,34 @@ Finally, the angular momentum factor is set to
 \end{equation}
 where $J_{i,j}$ is the angular momentum or pseudo-angular momentum of mass type $j$ in \gls{component} $i$.
 
+\section{Gravitational Lensing}\label{phys:gravitationalLensing}\index{gravitational lensing}
+
+The method to be used for computing the effects of gravitational lensing by large-scale structure is specified by the {\normalfont \ttfamily gravitationalLensingMethod} parameter.
+
+\subsection{Takahashi et al. (2011)}\label{phys:gravitationalLensing:gravitationalLensingTakahashi2011}
+
+Selected with {\normalfont \ttfamily gravitationalLensingMethod}$=${\normalfont \ttfamily takahashi2011}, this method utilizes the fitting functions of \cite{takahashi_probability_2011} to compute the effects of gravitational lensing. Specifically, eqn.~11 of \cite{takahashi_probability_2011} is used. The parameters $\kappa_{\mathrm empty}$ and $\langle \kappa^2 \rangle$ are computed from the assumed cosmology and non-linear power spectrum as described by \cite[][eqns.~5 and 2 respectively]{takahashi_probability_2011}. The parameters, $N_\kappa$, $A_\kappa$, and $\omega_\kappa$ of the lensing convergence distribution are determined using the conditions given by \cite[][eqn.~9]{takahashi_probability_2011}.
+
+\subsection{Baryonic Modifier}\label{phys:gravitationalLensing:gravitationalLensingBaryonicModifer}
+
+Selected with {\normalfont \ttfamily gravitationalLensingMethod}$=${\normalfont \ttfamily baryonicModifier}, this method modifies another gravitational lensing class to approximately account for the effects of baryons on the magnification distribution. The distribution to modify is specified via the {\normalfont \ttfamily [gravitationalLensingBaryonicModifierOriginalDistribution]} parameter. The modification takes the form:
+\begin{equation}
+P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]
+\end{equation}
+where $\alpha=${\normalfont \ttfamily [gravitationalLensingBaryonicModifierAlpha]} and $\beta=${\normalfont \ttfamily [gravitationalLensingBaryonicModifierBeta]}. The distribution is then renormalized to ensure that the cumulative probability reaches unity for infinite magnification. As an example, values of $\alpha=2.05\times 10^{-3}$ and $\beta=0.62$ approximately reproduce the results of \cite[][their Fig.~1]{hilbert_strong-lensing_2008}.
+
+\section{Halo Model Power Spectra Modifiers}\index{halo model}\index{power spectrum}
+
+The method to be used for modifying power spectra in halo model clustering calculations is specified by the {\normalfont \ttfamily haloModelPowerSpectrumModifierMethod} parameter.
+
+\subsection{Null}\label{phys:haloModelPowerSpectrumModifier:haloModelPowerSpectrumModifierNull}
+
+Selected with {\normalfont \ttfamily haloModelPowerSpectrumModifierMethod}$=${\normalfont \ttfamily null}, this method provides no modification.
+
+\subsection{Traxiality}\label{phys:haloModelPowerSpectrumModifier:haloModelPowerSpectrumModifierTriaxiality}
+
+Selected with {\normalfont \ttfamily haloModelPowerSpectrumModifierMethod}$=${\normalfont \ttfamily triaxiality}, this method provides attempts to modify power spectra to approximately account for the effects of halo triaxiality using the results of \cite{smith_triaxial_2005}. Specifically, the one- and two-halo power spectra are multiplied by a correction factor, $\Delta^2_{\mathrm triax}/\Delta^2_{\mathrm sphere}$, derived from the lower panels of Figures 3 and 2 of \cite{smith_triaxial_2005} respectively for their ``JS02'' profile model. Given the uncertainty in this correction, the power spectrum covariance (if provided) is incremented by $\epsilon^2 ( [\Delta^2_{\mathrm triax}/\Delta^2_{\mathrm sphere}-1] \otimes [\Delta^2_{\mathrm triax}/\Delta^2_{\mathrm sphere}-1)$ where $\epsilon=0.4$ is chosen to approximate the difference between ``continuity'' and ``JS02'' profiles in \cite{smith_triaxial_2005}.
+
 \section{Hot Halo Mass Distribution}\index{hot halo!mass distribution}\index{mass distribution profile!hot halo}
 
 The algorithm to be used when determining the hot halo mass distribution is selected via the {\normalfont \ttfamily hotHaloMassDistributionMethod} parameter.
@@ -1300,6 +1408,14 @@ $c$ is the concentration parameter of the dark matter halo, and $\Gamma$ is the 
 \subsection{Null}\label{phys:hotHaloMassDistribution:hotHaloMassDistributionNull}
 
 Selected with {\normalfont \ttfamily hotHaloMassDistributionMethod}$=${\normalfont \ttfamily null} this method assumes no hot halo mass distribution. It is useful, for example, when performing dark matter-only calculations.
+
+\subsection{Enzo ``hydrostatic''}\label{phys:hotHaloMassDistribution:hotHaloMassDistributionEnzoHydrostatic}
+
+Selected with {\normalfont \ttfamily hotHaloMassDistributionMethod}$=${\normalfont \ttfamily enzoHydrostatic} this method adopts a spherically symmetric density profile for the hot halo motivated by the ``hydrostatic'' profile available in the \gls{enzo} code. Specifically,
+\begin{equation}
+ \rho_{\mathrm hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} & \hbox{ if } r > r_{\mathrm core} \\ T^{-1} r_{\mathrm core}^{-1} & \hbox{ if } r \le r_{\mathrm core}, \end{array} \right. 
+\end{equation}
+where the core radius, $r_{\mathrm core}$, is set using the selected cored profile core radius method (see \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}). The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, $r_{\mathrm hot, outer}$. Note that the \gls{enzo} hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small radii.
 
 \section{Hot Halo Mass Distribution Profile: Cored Profile Core Radius}\label{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}\index{hot halo!density profile!core radius}\index{density profile!hot halo!core radius}
 
@@ -1345,7 +1461,6 @@ Selected with {\normalfont \ttfamily hotHaloRamPressureStrippingMethod}$=${\norm
 \end{equation}
 where $M_{\mathrm satellite}(r)$ is the total mass of the satellite within radius $r$, $\mathcal{F}_{\mathrm ram, hot, host}$ is the ram pressure force due to the hot halo (computed using the selected hot halo ram pressure force method; see \S\ref{sec:HotHaloRamPressureForce}). The parameter $\alpha_{\mathrm rp}=${\normalfont \ttfamily [ramPressureStrippingFormFactor]} is a geometric factor of order unity.
 
-
 \section{Hot Halo Ram Pressure Stripping Timescale}\index{hot halo!ram pressure stripping!timescale}
 
 The algorithm to be used when determining the timescale on which the hot halo is stripped by ram pressure forces is selected via the {\normalfont \ttfamily hotHaloRamPressureStrippingTimescaleMethod} parameter.
@@ -1365,13 +1480,37 @@ where $P_{\mathrm ram pressure}$ is the ram pressure force per unit area, and $\
  \tau_{\mathrm ram pressure} = \sqrt{2 r_{\mathrm outer} \Sigma_{\mathrm outer} / P_{\mathrm ram pressure}}.
 \end{equation}
 
+\section{Hot Halo Outflow Reincorporation}\label{phys:hotHaloOutflowReincorporation}\index{hot halo!reincorporation}\index{hot halo!outflows}\index{outflows!reincorporation}
+
+The algorithm to be used when determining the rate at which outflowed gas is reincorporated into the hot halo is selected via the {\normalfont \ttfamily hotHaloOutflowReincorporationMethod} parameter.
+
+\subsection{Velocity Maximum Scaling}\label{phys:hotHaloOutflowReincorporation:hotHaloOutflowReincorporationVelocityMaximumScaling}
+
+Selected with {\normalfont \ttfamily hotHaloOutflowReincorporationMethod}$=${\normalfont \ttfamily hotHaloOutflowReincorporationVelocityMaximumScaling} this method assumes a reincorporation rate of:
+\begin{equation}
+ \dot{M}_{\mathrm reincorporation} = M_{\mathrm outflowed} / t_{\mathrm reincorporation},
+\end{equation}
+where
+\begin{equation}
+ t_{\mathrm reincorporation} = \tau_{\mathrm reincorporation} \left( { V_{\mathrm max} \over 200 \hbox{km/s}} \right)^{\alpha_{\mathrm reincorporation}} (1+z)^{\beta_{\mathrm reincorporation}},
+\end{equation}
+where $\tau_{\mathrm reincorporation}=${\normalfont \ttfamily [hotHaloOutflowReincorporationVlctyMxSclngTimeScale]}, $\alpha_{\mathrm reincorporation}=${\normalfont \ttfamily [hotHaloOutflowReincorporationVlctyMxSclngVelocityExponent]}, and $\beta_{\mathrm reincorporation}=${\normalfont \ttfamily [hotHaloOutflowReincorporationVlctyMxSclngRedshiftExponent]}.
+
 \section{Hot Halo Temperature Profile}\label{sec:HotHaloTemperature}\index{hot halo!temperature profile}\index{temperature profile!hot halo}
 
 The algorithm to be used when determining the hot halo temperature profile is selected via the {\normalfont \ttfamily hotHaloTemperatureMethod} parameter.
 
-\subsection{Virial Temperature}
+\subsection{Virial Temperature}\label{phys:hotHaloTemperatureProfile:hotHaloTemperatureProfileVirial}
 
 Selected with {\normalfont \ttfamily hotHaloTemperatureMethod}$=${\normalfont \ttfamily virial} this method assumes an isothermal halo with a temperature equal to the virial temperature of the halo.
+
+\subsection{Enzo ``Hydrostatic''}\label{phys:hotHaloTemperatureProfile:hotHaloTemperatureProfileEnzoHydrostatic}
+
+Selected with {\normalfont \ttfamily hotHaloTemperatureMethod}$=${\normalfont \ttfamily enzoHydrostatic} this method assumes the ``hydrostatic'' temperature profile available in the \gls{enzo} code. Specifically,
+\begin{equation}
+  T(r) = \hbox{max}\left( {{\mathrm G} M(<r) \mu m_{\mathrm H} \over 3 {\mathrm k_B} r} , T_{\mathrm min} \right),
+\end{equation}
+where $M(<r)$ is the total mass enclosed within radius $r$, $\mu$ is the primordial mean atomic mass, and $T_{\mathrm min}=${\normalfont \ttfamily [enzoHydrostaticTemperatureMinimum]} is a temperature floor introduced so as to avoid the temperature reaching abitrarily low masses. 
 
 \section{Initial Mass Functions}\index{initial mass function}
 
@@ -1399,6 +1538,16 @@ The {\normalfont \ttfamily Baugh2005TopHeavy} \gls{imf} is defined by \citep{bau
 \begin{equation}
  \phi(M) \propto 
  M^{-1} \hbox{ for } 0.15M_\odot < M < 125M_\odot
+\end{equation}
+
+\subsubsection{BPASS}
+
+The \href{http://www.bpass.org.uk/}{\normalfont \ttfamily BPASS} \gls{imf} is defined by:
+\begin{equation}
+ \phi(M) \propto \left\{ \begin{array}{ll}
+ M^{-1.30} & \hbox{ for } 0.1M_\odot < M < 0.5M_\odot \\ 
+ M^{-2.35} & \hbox{ for } 1M_\odot < M < 120M_\odot \\ 
+0 & \hbox {otherwise.} \end{array} \right.
 \end{equation}
 
 \subsubsection{Chabrier}
@@ -1543,6 +1692,18 @@ Selected using {\normalfont \ttfamily ionizatonStateMethod}$=${\normalfont \ttfa
 \subsection{Collisional Ionization Equilibruim From File}
 
 Selected using {\normalfont \ttfamily ionizatonStateMethod}$=${\normalfont \ttfamily CIE\_from\_file}, in this method the chemical state is read from a file specified by the {\normalfont \ttfamily chemicalStateFile} parameter. The format of this file is specified in \S\ref{sec:methodsChemicalState}. The chemical state is assumed to be computed under conditions of collisional ionization equilibrium and therefore densities scale as $\rho$. Optional H{\normalfont \scshape i} and H{\normalfont \scshape ii} densities, if present in the file, will be read and used when returning the densities of ``chemical'' species.
+
+\section{Mass Function Incompleteness}\index{mass functions!incompleteness}
+
+The incompleteness of observed mass functions is modeled using the method specified by the {\normalfont \ttfamily massFunctionIncompletenessMethod} parameter.
+
+\subsection{Complete}\label{phys:massFunctionIncompleteness:massFunctionIncompletenessComplete}
+
+Selected with {\normalfont \ttfamily massFunctionIncompletenessMethod}$=${\normalfont \ttfamily complete}, this method assumes a fully complete mass function.
+
+\subsection{Surface brightness}\label{phys:massFunctionIncompleteness:massFunctionIncompletenessSurfaceBrightness}
+
+Selected with {\normalfont \ttfamily massFunctionIncompletenessMethod}$=${\normalfont \ttfamily surfaceBrightness}, this method models the surface brightness distribution of galaxies as a normal distribution with mean $\langle \mu \rangle (M) = \alpha \log_{10}(M/M_0)+\beta$, with root-variance $\sigma$, where $\alpha=${\normalfont \ttfamily [massFunctionIncompletenessSurfaceBrightnessModelSlope]}, $\beta=${\normalfont \ttfamily [massFunctionIncompletenessSurfaceBrightnessZeroPoint]}, and $\sigma=${\normalfont \ttfamily [massFunctionIncompletenessSurfaceBrightnessModelScatter]}. The completeness is the fraction of this distribution above the surface brightness limit given by {\normalfont \ttfamily [massFunctionIncompletenessSurfaceBrightnessLimit]}.
 
 \section{Merger Tree Construction}\index{merger trees}
 
@@ -1708,7 +1869,13 @@ The method to be used for computing branching probabilities in merger trees is s
 
 \subsection{Modified Press-Schechter}
 
-Selected with {\normalfont \ttfamily treeBranchingMethod}$=${\normalfont \ttfamily modifiedPress-Schechter}, this method uses the algorithm of \cite{parkinson_generating_2008} to compute branching ratios. The parameters $G_0$, $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters {\normalfont \ttfamily modifiedPressSchechterG0}, {\normalfont \ttfamily modifiedPressSchechterGamma1} and {\normalfont \ttfamily modifiedPressSchechterGamma2} respectively. Additionally, the parameter {\normalfont \ttfamily modifiedPressSchechterFirstOrderAccuracy} limits the step in $\delta_{\mathrm crit}$ so that it never exceeds {\normalfont \ttfamily modifiedPressSchechterFirstOrderAccuracy}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures the the first order expansion of the merging rate that is assumed is accurate.
+Selected with {\normalfont \ttfamily treeBranchingMethod}$=${\normalfont \ttfamily modifiedPress-Schechter}, this method uses the algorithm of \cite{parkinson_generating_2008} to compute branching ratios. The parameters $G_0$, $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters {\normalfont \ttfamily modifiedPressSchechterG0}, {\normalfont \ttfamily modifiedPressSchechterGamma1} and {\normalfont \ttfamily modifiedPressSchechterGamma2} respectively. Additionally, the parameter {\normalfont \ttfamily modifiedPressSchechterFirstOrderAccuracy} limits the step in $\delta_{\mathrm crit}$ so that it never exceeds {\normalfont \ttfamily modifiedPressSchechterFirstOrderAccuracy}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures the the first order expansion of the merging rate that is assumed is accurate. To find bounds on the branching probability, we make use of the fact that eqn.~(4) of \cite{parkinson_generating_2008} can be written as
+\begin{equation}
+ {\d f \over \d t} = {{\mathrm d} t \over {\mathrm d}\omega} \int_{M_{\mathrm min}}^{M/2} {M \over M^\prime} {\d f \over \d t} {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
+\end{equation}
+By holding the $M^\prime$ in the denominator of the first term in the integrand fixed, we obtain an analytic solution to the integral in terms of hypergeometric functions. If we fix this $M^\prime$ at $M_{\mathrm min}$ we obtain an upper limit on the branching probability, while if we fix it to $M/2$ a lower limit is obtained.
+
+Calculation of branching probabilities involves computation of several hypergeometric functions which are numerically slow. Two parameters control the accuracy and application of these functions. First, {\normalfont \ttfamily [modifiedPressSchechterHypergeometricPrecision]}($=10^{-6}$) specifies the fractional tolerance to which these functions should be computed. Second, if {\normalfont \ttfamily [modifiedPressSchechterTabulateHypergeometricFactors]}$=${\normalfont \ttfamily true} then these functions will be tabulated for rapid lookup (at some loss of precision).
 
 \subsection{Generalized Press-Schechter}
 
@@ -1754,6 +1921,8 @@ Selected with {\normalfont \ttfamily mergerTreeBuildMethod}$=${\normalfont \ttfa
  \item [{\normalfont \ttfamily mergerTreeBuildCole2000MergeProbability}] The maximum probability for a binary merger allowed in a single timestep. This allows the probability to be kept small, such the the probability for multiple mergers within a single timestep is small.
  \item [{\normalfont \ttfamily mergerTreeBuildCole2000AccretionLimit}] The maximum fractional change in mass due to sub-esolution accretion allowed in any given timestep when building the tree.
  \item [{\normalfont \ttfamily mergerTreeBuildCole2000HighestRedshift}] The highest redshift to which the tree should be built. Any branch reaching this redshift will be terminated. Typically this should be set to a high value such that branches terminate when the resolution limit it reached, but specifying a maximum redshift can be useful in some situations.
+ \item [{\normalfont \ttfamily modifiedPressSchechterUseCDMAssumptions}] Stronger bounds on the branching probability can be found if certain assumptions\footnote{Specifically, $\alpha(=-{\mathrm d}\log \sigma/{\mathrm d}\log M)>0$ and ${\mathrm d}\alpha/{\mathrm d}M>0$ \protect\citep{parkinson_generating_2008}.}, which are valid for \gls{cdm} but not necessarily for other models, are made. Setting this option to {\normalfont \ttfamily true} allows these assumptions to be used (and will speed up the algorithm).
+ \item [{\normalfont \ttfamily mmergerTreeBuildCole2000BranchIntervalStep}] If {\normalfont \ttfamily true}, instead of limiting each time step such that the probability of branching is less than {\normalfont \ttfamily mergerTreeBuildCole2000MergeProbability}, the interval to the next branching event will be drawn from a negative exponential with the appropriate rate. If this exceeds the maximum allowed timestep based on other considerations (e.g. the accretion limit), no branching occurs, and the timestep proceeds\footnote{Note that we do not have to concern ourselves in the subsequent timestep with the fact that no branching occurred in the previous timestep because of the memorylessness nature of the negative exponential distribution. That is, the distribution of branching intervals conditioned on the fact that no branching occurred in the previous timestep, is just the same negative exponential distribution.}. If the interval is less than the maximum allowed timestep, branching occurs at that point. In the regime of high branching rates (which occur when the branch being grown is far above the mass resolution), this approach allows for larger timesteps to be taken.
 \end{description}
 The minimum halo mass that the algorithm will follow is determined by the selection merger tree building mass resolution method (see \S\ref{sec:MergerTreeBuildingMassResolution}). Mass accretion below this scale is treated as smooth accretion and branches are truncated once they fall below this mass.
 
@@ -1831,7 +2000,7 @@ This task enforces monotonic growth a halo mass along each branch of each merger
 
 This task will interpolate the merger tree structure onto a new array of timesteps if {\normalfont \ttfamily [mergerTreeRegridTimes]}$=${\normalfont \ttfamily true}. The timestep array is specified via the parameters:
 \begin{description}
-\item[{\normalfont \ttfamily [mergerTreeRegridSpacing]}] The spacing of the timesteps. Five options are available: {\normalfont \ttfamily linear} will space timesteps uniformly in expansion factor, {\normalfont \ttfamily logarithmic} will space timesteps uniformly in the logarithm of expansion factor, {\normalfont \ttfamily log critical density} will space timesteps uniformly in the logarithm of critical density, $\delta_{\mathrm c}$, {\normalfont \ttfamily millennium} will use times corresponding to the redshifts of snapshots in the Millennium Simulation database, while {\normalfont \ttfamily read} will use times corresponding to the redshifts specified in the {\normalfont \ttfamily mergerTreeRegridRedshifts} parameter;
+\item[{\normalfont \ttfamily [mergerTreeRegridSpacing]}] The spacing of the timesteps. Five options are available: {\normalfont \ttfamily linear} will space timesteps uniformly in expansion factor, {\normalfont \ttfamily logarithmic} will space timesteps uniformly in the logarithm of expansion factor, {\normalfont \ttfamily logCriticalDensity} will space timesteps uniformly in the logarithm of critical density, $\delta_{\mathrm c}$, {\normalfont \ttfamily millennium} will use times corresponding to the redshifts of snapshots in the Millennium Simulation database, while {\normalfont \ttfamily read} will use times corresponding to the redshifts specified in the {\normalfont \ttfamily mergerTreeRegridRedshifts} parameter;
 \item[{\normalfont \ttfamily [mergerTreeRegridStartExpansionFactor]}] The smallest expansion factor in the array (ignored for {\normalfont \ttfamily millennium} and {\normalfont \ttfamily read} spacings);
 \item[{\normalfont \ttfamily [mergerTreeRegridEndExpansionFactor]}] The largest expansion factor in the array (ignored for {\normalfont \ttfamily millennium} and {\normalfont \ttfamily read} spacings);
 \item[{\normalfont \ttfamily [mergerTreeRegridCount]}] The number of timesteps in the array;
@@ -1941,7 +2110,11 @@ Selected by default with {\normalfont \ttfamily satelliteTidalStrippingMethod}$=
 \begin{equation}
 \dot{M}_{\mathrm sat}=-\alpha \frac{M_{\mathrm sat}(>r_{\mathrm tidal})}{T_{\mathrm orb}},
 \end{equation}
-where $\alpha=${\normalfont \ttfamily [satelliteTidalStrippingZentnerRate]}, $T_{\mathrm orb}$ is the orbital period of the satellite, and $r_{\mathrm tidal}$ is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
+where $\alpha=${\normalfont \ttfamily [satelliteTidalStrippingZentnerRate]},
+\begin{equation}
+T_{\mathrm orb} = {1 \over \hbox{max}(\omega/2\pi,v_{\rm r}/r)},
+\end{equation}
+where $\omega$ is the angular velocity of the satellite, $v_{\rm r}$ is the radial velocity, $r$ is the orbital radius, and $r_{\mathrm tidal}$ is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
 \begin{equation}
 r_{\mathrm tidal}=\left(\frac{GM_{\mathrm sat}}{\omega^2-d^2\Phi/dr^2}\right)^{1/3},
 \end{equation}
@@ -2297,21 +2470,25 @@ Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\norma
 
 Selected with {\normalfont \ttfamily satelliteMergingTimescalesMethod}$=${\normalfont \ttfamily infinite}, this method returns an infinite merging timescale (technically, it returns $10^{30}$~Gyr which should be sufficiently close to infinity for practical purposes).
 
-\subsection{Virial Orbits}
+\subsection{Virial Orbits}\label{sec:SatelliteVirialOrbits}
 
-The algorithm to be used to determine orbital parameters of substructures when they first enter the virial radius of their host is specified via the {\normalfont \ttfamily virialOrbitsMethod} parameter.
+The algorithm to be used to determine orbital parameters of substructures when they first enter the virial radius of their host is specified via the {\normalfont \ttfamily virialOrbitMethod} parameter.
 
-\subsubsection{Benson (2005)}\label{sec:VirialOrbitsBenson2005}
+\subsubsection{Benson (2005)}\label{phys:virialOrbit:virialOrbitBenson2005}
 
-Selected with {\normalfont \ttfamily virialOrbitsMethod}$=${\normalfont \ttfamily Benson2005}, this method selects orbital parameters randomly from the distribution given by \cite{benson_orbital_2005}.
+Selected with {\normalfont \ttfamily virialOrbitMethod}$=${\normalfont \ttfamily benson2005}, this method selects orbital parameters randomly from the distribution given by \cite{benson_orbital_2005}. If the virial density contrast definition differs from that used by \cite{benson_orbital_2005} then the orbit is assigned based on \cite{benson_orbital_2005}'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
 
-\subsubsection{Fixed}
+\subsubsection{Fixed}\label{phys:virialOrbit:virialOrbitFixed}
 
-Selected with {\normalfont \ttfamily virialOrbitsMethod}$=${\normalfont \ttfamily fixed}, this method sets all orbital parameters to fixed values, with $v_{\mathrm r}=${\normalfont \ttfamily [virialOrbitsFixedRadialVelocity]}$V_{\mathrm virial}$ and  $v_\phi=${\normalfont \ttfamily [virialOrbitsFixedTangentialVelocity]}$V_{\mathrm virial}$.
+Selected with {\normalfont \ttfamily virialOrbitMethod}$=${\normalfont \ttfamily fixed}, this method sets all orbital parameters to fixed values, with $v_{\mathrm r}=${\normalfont \ttfamily [virialOrbitsFixedRadialVelocity]}$V_{\mathrm virial}$ and  $v_\phi=${\normalfont \ttfamily [virialOrbitsFixedTangentialVelocity]}$V_{\mathrm virial}$.
 
-\subsubsection{Wetzel (2010)}
+\subsubsection{Wetzel (2010)}\label{phys:virialOrbit:virialOrbitWetzel2010}
 
-Selected with {\normalfont \ttfamily virialOrbitsMethod}$=${\normalfont \ttfamily Wetzel2010}, this method selects orbital parameters randomly from the distribution given by \cite{wetzel_orbits_2010}, including the redshift and mass dependence of the distributions. Note that the parameter $R_1$ can be come negative (which is unphysical) for certain regimes of mass and redshift according to the fitting function for $R_1$ given by \cite{wetzel_orbits_2010}. Therefore, we enforce $R_1>0.05$. Similarly, the parameter $C_1$ can become very large in some regimes which is probably an artifact of the fitting function used rather than physically meaningful (and which causes numerical difficulties in evaluating the distribution). We therefore prevent $C_1$ from exceeding $9.999999$\footnote{We use this value rather than $10$ since the GSL $_2F_1$ hypergeomtric function fails in some cases when $C_1\ge 10$.}
+Selected with {\normalfont \ttfamily virialOrbitMethod}$=${\normalfont \ttfamily wetzel2010}, this method selects orbital parameters randomly from the distribution given by \cite{wetzel_orbits_2010}, including the redshift and mass dependence of the distributions. Note that the parameter $R_1$ can become negative (which is unphysical) for certain regimes of mass and redshift according to the fitting function for $R_1$ given by \cite{wetzel_orbits_2010}. Therefore, we enforce $R_1>0.05$. Similarly, the parameter $C_1$ can become very large in some regimes which is probably an artifact of the fitting function used rather than physically meaningful (and which causes numerical difficulties in evaluating the distribution). We therefore prevent $C_1$ from exceeding $9.999999$\footnote{We use this value rather than $10$ since the GSL $_2F_1$ hypergeomtric function fails in some cases when $C_1\ge 10$.} If the virial density contrast definition differs from that used by \cite{wetzel_orbits_2010} then the orbit is assigned based on \cite{wetzel_orbits_2010}'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
+
+\subsubsection{Jiang et al. (2014)}\label{phys:virialOrbit:virialOrbitJiang2014}
+
+Selected with {\normalfont \ttfamily virialOrbitMethod}$=${\normalfont \ttfamily jiang2014}, this method selects orbital parameters randomly from the distribution given by \cite{jiang_orbital_2014}, including the mass and mass-ratio dependence of the distributions. If the virial density contrast definition differs from that used by \cite{jiang_orbital_2014} then the orbit is assigned based on \cite{jiang_orbital_2014}'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
 
 \subsection{Node Merging}
 
@@ -2491,13 +2668,13 @@ is the gravitational restoring force in the disk/spheroid at the half-mass radiu
 
 Selected with {\normalfont \ttfamily tidalStrippingMassLossRate(Disks|Spheroids)Method}$=${\normalfont \ttfamily null} this method assumes zero mass loss rate always.
 
-\section{Survey Geometry}\index{surveys!geometry}
+\section{Survey Geometry}\label{phys:surveyGeometry}\index{surveys!geometry}
 
 The method to be used for computing the geometry of surveys for data analysis is specified by the {\normalfont \ttfamily surveyGeometryMethod} parameter.
 
-\subsection{Li \& White (2009)}
+\subsection{Li \& White (2009)}\label{phys:surveyGeometry:surveyGeometryLiWhite2009SDSS}
 
-Selected with {\normalfont \ttfamily surveyGeometryMethod}$=${\normalfont \ttfamily Li-White-2009-SDSS}, this method describes the survey geometry of \cite{li_distribution_2009}. 
+Selected with {\normalfont \ttfamily surveyGeometryMethod}$=${\normalfont \ttfamily liWhite2009SDSS}, this method describes the survey geometry of \cite{li_distribution_2009}. 
 
 For the angular mask, we make use of the catalog of random points within the survey footprint provided by the NYU-VAGC\footnote{Specifically, \href{http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat}{http://sdss.physics.nyu.edu/lss/dr72/random/lss\_random-0.dr72.dat}.} (\citealt{blanton_new_2005}; see also \citealt{adelman-mccarthy_sixth_2008,padmanabhan_improved_2008}). \cite{li_distribution_2009} consider only the main, contiguous region and so we keep only those points which satisfy RA$>100^\circ$, RA$<300^\circ$, and RA$<247^\circ$ or $\delta< 51^\circ$. When the survey window function is needed, these points are used to determine which elements of a 3D grid fall within the window function.
 
@@ -2512,14 +2689,146 @@ The end result of this procedure is the limiting stellar mass as a function of r
 where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass. We adopt a solid angle of $2.1901993$~sr \citep{percival_shape_2007} for the sample.
 
 \begin{figure}
+ \begin{center}
  \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/SDSSMassLuminosityRelation.pdf}
+ \end{center}
  \caption{The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{li_distribution_2009}. Points show the results obtained using the \protect\cite{de_lucia_hierarchical_2007} model from the Millennium Database, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:DepthPolynomial}).}
  \label{fig:SDSSDepthFit}
 \end{figure}
 
-\subsection{Martin et al. (2010)}
+\subsection{Bernardi et al. (2013)}\label{phys:surveyGeometry:surveyGeometryBernardi2013SDSS}
 
-Selected with {\normalfont \ttfamily surveyGeometryMethod}$=${\normalfont \ttfamily Martin-2010-ALFALFA}, this method describes the survey geometry of \cite{martin_arecibo_2010}. 
+Selected with {\normalfont \ttfamily surveyGeometryMethod}$=${\normalfont \ttfamily bernardi2013SDSS}, this method describes the survey geometry of \cite{bernardi_massive_2013}. 
+
+For the angular mask, we make use of the \gls{mangle} polygon file provided by the \gls{mangle} project\footnote{Specifically, \href{http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz}{http://space.mit.edu/~molly/mangle/download/data/sdss\_dr72safe0\_res6d.pol.gz}.} The solid angle of this mask, computed using the \gls{mangle} {\normalfont \ttfamily harmonize} command is 2.232262776405~sr.
+
+To determine the depth as a function of stellar mass, we make use of results provided by M. Bernardi (private communication), giving the mean maximum volume, $V_{\mathrm max}$, as a function of stellar mass for galaxies in this sample. These maximum volumes are converted to maximum distances using the solid angle quoted above. The results mass vs. distance relation is fit with a $5^{\mathrm th}$-order polynomial. Figure~\ref{fig:BernardiSDSSDepthFit} shows the resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the sample. Points indicate results from Bernardi, while the line shows a polynomial fit:
+\begin{equation}
+ \log_{10} \left[ {D_{\mathrm max}(M_\star) \over \hbox{Mpc}}\right] = 1282.11+m (-626.644+m (122.091+m (-11.8431+m (0.572399+m (-0.0110301)))))
+ \label{eq:BernardiDepthPolynomial}
+\end{equation}
+where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/BernardiSDSSMassLuminosityRelation.pdf}
+ \end{center}
+ \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{bernardi_massive_2013}. Points show the results obtained from data provided by Bernardi, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:BernardiDepthPolynomial}).}
+ \label{fig:BernardiSDSSDepthFit}
+\end{figure}
+
+\subsection{Davidzon et al. (2013)}\label{phys:surveyGeometry:surveyGeometryDavidzon2013VIPERS}
+
+Selected with {\normalfont \ttfamily surveyGeometryMethod}$=${\normalfont \ttfamily davidzon2013VIPERS}, this method describes the survey geometry of \cite{davidzon_vimos_2013}. 
+
+For the angular mask, we make use of {\normalfont \ttfamily mangle} polygon files provided by I.~Davidzon (private communication) corresponding to the VIPERS fields. The solid angle of each mask is computed using the {\normalfont \ttfamily mangle} {\normalfont \ttfamily harmonize} command.
+
+To determine the depth as a function of stellar mass, we make use of the tabulated mass function, $\phi$, and number of galaxies per bin, $N$, supplied by I.~Davidzon (private communication). The effective volume of each bin is found as $V_i = N_i/f_{\mathrm complete}\phi_i\Delta\log_{10}M_\star$, where $\Delta\log_{10}M_\star$ is the width of the bin, and $f_{\mathrm complete}$ is the completeness of the survey, estimated to be approximately 40\% \citep{guzzo_vimos_2013}. These volumes are converted to maximum distances in each field using the survey solid angle. The resulting mass vs. distance relation in each field is fit with a $1^{\mathrm st}$-order polynomial in log-log space over the range where the maximum volume is limited by the survey depth and not by the imposed upper limit to redshift. Figure~\ref{fig:Davidzon2013DepthFit} shows the resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the sample. Points indicate results from VIPERS, while the lines show polynomial fits:
+\begin{equation}
+ \log_{10} \left[ {D_{\mathrm max}(M_\star) \over \hbox{Mpc}}\right] = \left\{ \begin{array}{ll} 3.207 + 0.0124m & 0.5 < z < 0.6 \\ 3.148 + 0.0268m & 0.6 < z < 0.8  \\ 3.207 + 0.0273m & 0.8 < z < 1.0 \end{array} \right.
+ \label{eq:DavidzonDepthPolynomial}
+\end{equation}
+where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/DavidzonVIPERSMassDistanceRelation.pdf}
+ \end{center}
+ \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{davidzon_vimos_2013}. Points show the results obtained from data provided by Davidzon, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:DavidzonDepthPolynomial}). Note that at high masses the distance is limited by the imposed upper limit---the polynomial fit does not consider these points.}
+ \label{fig:Davidzon2013DepthFit}
+\end{figure}
+
+\subsection{Tomczak et al. (2014)}\label{phys:surveyGeometry:surveyGeometryTomczak2014ZFOURGE}
+
+Selected with {\normalfont \ttfamily surveyGeometryMethod}$=${\normalfont \ttfamily tomczak2014ZFOURGE}, this method describes the survey geometry of \cite{tomczak_galaxy_2014}. 
+
+For the angular mask, we make use of {\normalfont \ttfamily mangle} polygon files constructed by hand using vertices matched approximately to the distribution of galaxies in the survey (positions of which were provided by R.~Quadri; private communication). The solid angle of each mask is computed using the {\normalfont \ttfamily mangle} {\normalfont \ttfamily harmonize} command.
+
+To determine the depth as a function of stellar mass, we make use of the tabulated mass completeness limits as a function of redshift for ZFOURGE and NMBS fields provided by R.~Quadri (private communication). These are fit with fourth-order polynomials. Figure~\ref{fig:Tomczak2014DepthFit} shows the resulting relation between stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Dotted lines indicate the tabulated result from ZFOURGE, while the lines show polynomial fits:
+\begin{equation}
+ z_{\mathrm max}(M_\star) = \left\{ \begin{array}{ll} -114.66+m*(45.901+m*(-6.1617+m*(0.27822))) & \hbox{ZFOURGE fields} \\ -58.483+m*(20.250+m*(-2.3563+m*(0.092705))) & \hbox{NMBS fields} \end{array} \right.
+ \label{eq:TomczakDepthPolynomial}
+\end{equation}
+where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/TomczakZFOURGEMassRedshiftRelation.pdf}
+ \end{center}
+ \caption{The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{tomczak_galaxy_2014}. Points show the results obtained from data provided by Davidzon, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:TomczakDepthPolynomial}).}
+ \label{fig:Tomczak2014DepthFit}
+\end{figure}
+
+\subsection{Baldry et al. (2012)}\label{phys:surveyGeometry:surveyGeometryBaldry2012GAMA}
+
+Selected with {\normalfont \ttfamily surveyGeometryMethod}$=${\normalfont \ttfamily baldry2012GAMA}, this method describes the survey geometry of \cite{baldry_galaxy_2012}. 
+
+For the angular mask we use the specifications of the G09, G12, and G15 fields given by \cite{driver_galaxy_2011} to construct {\normalfont \scshape mangle} polygon files.
+
+To determine the depth as a function of stellar mass, we make use of the publicly available tabulated mass function, $\phi$, and number of galaxies per bin, $N$. The effective volume of each bin is found as $V_i = N_i/\phi_i\Delta\log_{10}M_\star$, where $\Delta\log_{10}M_\star$ is the width of the bin. The GAMA survey consists of three fields, each of the same solid angle, but with differing depths. We assume that the relative depths in terms of stellar mass scale with the depth in terms of flux. Given this assumption, these volumes are converted to maximum distances in each field using the solid angle quoted above. The resulting mass vs. distance relation in each field is fit with a $1^{\mathrm st}$-order polynomial in log-log space over the range where the maximum volume is limited by the survey depth and not by the imposed $z=0.06$ upper limit to redshift. Figure~\ref{fig:BaldryGAMADepthFit} shows the resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the sample. Points indicate results from GAMA, while the line shows a polynomial fit:
+\begin{equation}
+ \log_{10} \left[ {D_{\mathrm max}(M_\star) \over \hbox{Mpc}}\right] = \left\{ \begin{array}{ll} -0.521 + 0.319m & \hbox{fields G09/G15} \\ -0.361 + 0.319m & \hbox{field G12} \end{array} \right.
+ \label{eq:BaldryDepthPolynomial}
+\end{equation}
+where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/BaldryGAMAMassDistanceRelation.pdf}
+ \end{center}
+ \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{baldry_galaxy_2012}. Points show the results obtained from data provided by Baldry, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:BaldryDepthPolynomial}). Note that above $10^9M_\odot$ the distance is limited by the imposed upper limit of $z=0.06$ in the GAMA sample---the polynomial fit does not consider these points.}
+ \label{fig:BaldryGAMADepthFit}
+\end{figure}
+
+\subsection{Moustakas et al. (2013)}\label{phys:surveyGeometry:surveyGeometryMoustakas2013PRIMUS}
+
+Selected with {\normalfont \ttfamily surveyGeometryMethod}$=${\normalfont \ttfamily moustakas2013PRIMUS}, this method describes the survey geometry of \cite{moustakas_primus:_2013}. 
+
+For the angular mask, we make use of \gls{mangle} polygon files provided by J.~Moustakas (private communication)  corresponding to the give PRIMUS fields. The solid angle of each mask is computed using the \gls{mangle} {\normalfont \ttfamily harmonize} command.
+
+To determine the depth as a function of stellar mass, we make use of completeness limits for ``All'' galaxies given in Table~2 of \cite{moustakas_primus:_2013}. These are fit, for each field with a second order polynomial to give the limiting redshift as a function of stellar mass. Figure~\ref{fig:MoustakasPRIMUSDepthFit} shows the resulting relation between stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Points indicate results from \cite{moustakas_primus:_2013}, while the line shows a polynomial fits:
+\begin{eqnarray}
+z_{\mathrm max}(M_\star) = +3.51+m(-0.941+m(+0.0651)) & & \hbox{COSMOS} \\
+z_{\mathrm max}(M_\star) = +2.46+m(-0.730+m(+0.0542)) & & \hbox{XMM-SXDS} \\
+z_{\mathrm max}(M_\star) = -3.60+m(+0.500+m(-0.0078)) & & \hbox{XMM-CFHTLS} \\
+z_{\mathrm max}(M_\star) = +5.87+m(-1.528+m(+0.0982)) & & \hbox{CDFS} \\
+z_{\mathrm max}(M_\star) = +6.87+m(-1.656+m(+0.1003)) & & \hbox{ELAIS-S1}
+ \label{eq:MoustakasDepthPolynomial}
+\end{eqnarray}
+where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/MoustakasPRIMUSMassRedshiftRelation.pdf}
+ \end{center}
+ \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{moustakas_primus:_2013}. Points show the results obtained from completeness limit data taken from Table~2 of \protect\cite{moustakas_primus:_2013}, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:MoustakasDepthPolynomial}).}
+ \label{fig:MoustakasPRIMUSDepthFit}
+\end{figure}
+
+\subsection{Muzzin et al. (2013)}\label{phys:surveyGeometry:surveyGeometryMuzzin2014ULTRAVISTA}
+
+Selected with {\normalfont \ttfamily surveyGeometryMethod}$=${\normalfont \ttfamily muzzin2013ULTRAVISTA}, this method describes the survey geometry of \cite{muzzin_evolution_2013}. 
+
+For the angular mask, we generate a \gls{mangle} polygon file, by first defining a rectangle encompassing the bounds of the ULTAVISTA field ($149.373^\circ < \alpha < 150.779^\circ$ and $1.604^\circ < \delta < 2.81^\circ$). From this rectangle, we then remove circles of radii $75^{\prime\prime}$ around bright stars (i.e. those bright than 10$^{\mathrm th}$ and $8^{\mathrm th}$ magnitudes in the USNO and 2MASS star lists respectively) and radii $30^{\prime\prime}$ around medium stars (i.e. those bright than $13^{\mathrm th}$ and $10.5^{\mathrm th}$ magnitudes in the USNO and 2MASS star lists respectively). Finally, we mask regions of one detector for which 75\% of pixels are dead by clipping pixels with weights below $0.02$ in the K$_{\mathrm s}$-band weight map. These choices match those made in the ULTRAVISTA survey (A.~Muzzin, private communication). The solid angle of each mask is computed using the \gls{mangle} {\normalfont \ttfamily harmonize} command.
+
+To determine the depth as a function of stellar mass, we simply fit the \href{http://www.strw.leidenuniv.nl/galaxyevolution/ULTRAVISTA/Mstar_redshift_completeness_emp_uvista_v4.1_100.dat}{tabulated relations} provided by the ULTRAVISTA survey:
+\begin{equation}
+z_{\mathrm max}(M_\star) = {-8364.45 + m (4331.82 + m (-896.596 + m (92.6999 + m (-4.78750 + m (0.0988215))))) \over 1 - \exp[(m-11.24)/0.02] }
+ \label{eq:MuzzinDepthPolynomial}
+\end{equation}
+where $m= \log_{10}(M_\star/M_\odot)$.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/MuzzinULTRAVISTAMassRedshiftRelation.pdf}
+ \end{center}
+ \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{muzzin_evolution_2013}. The dotted line shows the results obtained from the ULTRAVISTA survey \protect\citep{muzzin_evolution_2013}, while the solid line shows the polynomial fit to these results (given in eqn.~\ref{eq:MuzzinDepthPolynomial}).}
+ \label{fig:MuzzinULTRAVISTADepthFit}
+\end{figure}
+
+\subsection{Martin et al. (2010)}\label{phys:surveyGeometry:surveyGeometryMartin2010ALFALFA}
+
+Selected with {\normalfont \ttfamily surveyGeometryMethod}$=${\normalfont \ttfamily martin2010ALFALFA}, this method describes the survey geometry of \cite{martin_arecibo_2010}. 
 
 For the angular mask we use the three disjoint regions defined by 07$^{\mathrm h}$30$^{\mathrm m}$ $<$ R.A. $<$ 16$^{\mathrm h}$30$^{\mathrm m}$, +04$^\circ$ $<$ decl. $<$ +16$^\circ$, and +24$^\circ$ $<$ decl. $<$ +28$^\circ$ and 22$^{\mathrm h}$ $<$ R.A. $<$ 03$^{\mathrm h}$, +14$^\circ$ $<$ decl. $<$ +16$^\circ$, and +24$^\circ$ $<$ decl. $<$ +32$^\circ$ corresponding to the sample of \cite{martin_arecibo_2010}. When the survey window function is needed we generate randomly distributed points within this angular mask and out to the survey depth. These points are used to determine which elements of a 3D grid fall within the window function.
 
@@ -2534,7 +2843,53 @@ with $c_0=-0.770$ and $c_1=0.315$. Given the line width, the corresponding integ
 \end{equation}
 
 \begin{figure}
- \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/alfalfaHILineWidthMassRelation.pdf}
+ \begin{center}
+  \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/alfalfaHILineWidthMassRelation.pdf}
+ \end{center}
  \caption{HI line width vs. HI mass as measured from the $\alpha.40$ survey of \protect\cite{martin_arecibo_2010}. Red points with error bars show individual measurements, while the larger circles indicate the running median of these data. The green line is a power-law fit to the running median as described in eqn.~(\protect\ref{eq:ALFALFALineWidthMassRelation}).}
  \label{fig:ALFALFALineWidthMassRelation}
+\end{figure}
+
+\subsection{Caputi et al. (2011)}\label{phys:surveyGeometry:surveyGeometryCaputi2011UKIDSSUDS}
+
+Selected with {\normalfont \ttfamily surveyGeometryMethod}$=${\normalfont \ttfamily caputi2011UKIDSSUDS}, this method describes the survey geometry of \cite{caputi_stellar_2011}. 
+
+The angular mask is defined by the boundaries given in Table~\ref{tb:CaputiSurveyBoundaries} together with a set of rectangular holes fitted to gaps in the galaxy distribution provided by Karina Caputi (private communication). In particular, a set of points randomly distributed in the survey mask is constructed by the script {\normalfont \ttfamily constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.pl}. These points are used to determine which elements of a 3D grid fall within the window function. We compute a solid angle of $1.592\times 10^{-4}$~sr for the sample from this window function.
+
+\begin{table}
+\caption{Boundaries of the angular mask for the survey of \protect\cite{caputi_stellar_2011}. Each boundary consists of a great circle segment defined by start and end coordinates (given in tuples of right acesension and declination in units of degrees), together with a ``type'' which specifies whether points above, below, to the right or left of the boundary are part of the survey (where ``above'' and ``below'' refer to declination, and ``left'' and ``right'' refer to right acsension).}
+\label{tb:CaputiSurveyBoundaries}
+\begin{center}
+\begin{tabular}{@{(}r@{,}l@{)\,(}r@{,}l@{)\,}l}
+\hline
+\multicolumn{2}{c}{\normalfont \bfseries Start} & \multicolumn{2}{c}{\normalfont \bfseries End} & {\normalfont \bfseries Type} \\
+\hline
+ 34.460 & -4.648 & 34.750 & -4.648 & above \\
+ 34.000 & -4.908 & 34.460 & -4.648 & above \\
+ 34.900 & -4.920 & 34.750 & -4.648 & above \\
+ 34.440 & -5.518 & 34.905 & -5.255 & below \\
+ 34.210 & -5.518 & 34.440 & -5.518 & below \\
+ 34.210 & -5.518 & 34.000 & -5.150 & below \\
+ 34.000 & -4.908 & 34.000 & -5.150 & left  \\
+ 34.900 & -4.920 & 34.905 & -5.255 & right \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+To estimate the depth of the \cite{caputi_stellar_2011} sample as a function of galaxy stellar mass we make use of semi-analytic models in the Millennium Database. Specifically, we use the \glspl{sam} of \cite{henriques_confronting_2012} and \citeauthor{guo_dwarf_2011}~(\citeyear{guo_dwarf_2011}; specifically the {\normalfont \ttfamily Henriques2012a.wmap1.BC03\_001} and {\normalfont \ttfamily Guo2010a..MR} tables in the Millennium Database). For each snapshot in the database, we extract the stellar masses and observed-frame IRAC $4.5\mu$m apparent magnitudes (including dust extinction), and determine the median apparent magnitude as a function of stellar mass. Using the limiting apparent magnitude of the \cite{caputi_stellar_2011} sample, $24.0$, we infer the corresponding stellar mass.
+
+The end result of this procedure is the limiting stellar mass as a function of redshift, accounting for k-corrections, evolution, and the effects of dust. Figure~\ref{fig:UKIDSSUDSDepthFit} shows the resulting relation between stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Points indicate measurements from the \gls{sam}, while the line shows a polynomial fit:
+\begin{eqnarray}
+ z(M_\star) &=& -56.247 + 5.881 \log_{10}(M_\star/M_\odot).
+ \label{eq:UKIDSSDepthPolynomial}
+\end{eqnarray}
+We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+
+\begin{figure}
+ \begin{center}
+ \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/UKIDSSUDSMassLuminosityRelation.pdf}
+ \end{center}
+ \caption{The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of \protect\cite{caputi_stellar_2011}. Points show the results obtained using the \protect\cite{henriques_confronting_2012} and \protect\cite{guo_dwarf_2011} models from the Millennium Database, while the lines shows a polynomial fit to these results (given in eqn.~\ref{eq:UKIDSSDepthPolynomial}).}
+ \label{fig:UKIDSSUDSDepthFit}
 \end{figure}

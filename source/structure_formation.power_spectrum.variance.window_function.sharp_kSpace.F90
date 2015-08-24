@@ -15,100 +15,137 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements sharp in $k$-space window function for power spectrum variance computation.
+!% Contains a module which implements a sharp $k$-space power spectrum window function class.
+  use Cosmology_Parameters
 
-module Power_Spectrum_Window_Functions_Sharp_kSpace
-  !% Implements a sharp in $k$-space window function for power spectrum variance computation.
-  implicit none
-  private
-  public :: Power_Spectrum_Window_Functions_Sharp_kSpace_Initialize
+  !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionSharpKSpace">
+  !#  <description>A sharp $k$-space window function for filtering of power spectra.</description>
+  !# </powerSpectrumWindowFunction>
+  type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionSharpKSpace
+     !% A sharp $k$-space power spectrum window function class.
+     private
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     double precision                                    :: cutOffNormalization
+   contains
+     final     ::                      sharpKSpaceDestructor
+     procedure :: value             => sharpKSpaceValue
+     procedure :: wavenumberMaximum => sharpKSpaceWavenumberMaximum
+  end type powerSpectrumWindowFunctionSharpKSpace
 
-  ! Parameter controlling the normalization between mass and cut-off wavenumber.
-  double precision :: cutOffNormalization
+  interface powerSpectrumWindowFunctionSharpKSpace
+     !% Constructors for the {\normalfont \ttfamily sharpKSpace} power spectrum window function class.
+     module procedure sharpKSpaceConstructorParameters
+     module procedure sharpKSpaceConstructorInternal
+  end interface powerSpectrumWindowFunctionSharpKSpace
 
 contains
 
-  !# <powerSpectrumWindowFunctionMethod>
-  !#  <unitName>Power_Spectrum_Window_Functions_Sharp_kSpace_Initialize</unitName>
-  !# </powerSpectrumWindowFunctionMethod>
-  subroutine Power_Spectrum_Window_Functions_Sharp_kSpace_Initialize(powerSpectrumWindowFunctionMethod&
-       &,Power_Spectrum_Window_Function_Get,Power_Spectrum_Window_Function_Wavenumber_Maximum_Get)
-    !% Initializes the ``kSpaceSharp'' power spectrum variance window function module.
-    use Numerical_Constants_Math
-    use Cosmology_Parameters
-    use ISO_Varying_String
-    use Input_Parameters
+  function sharpKSpaceConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily sharpKSpace} power spectrum window function class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type            (varying_string                                                ), intent(in   )          :: powerSpectrumWindowFunctionMethod
-    procedure       (Power_Spectrum_Window_Function_Sharp_kSpace                   ), intent(inout), pointer :: Power_Spectrum_Window_Function_Get
-    procedure       (Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace), intent(inout), pointer :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get
-    character       (len=32                                                        )                         :: powerSpectrumWindowFunctionSharpKSpaceNormalizationText
-    class           (cosmologyParametersClass                                      )               , pointer :: thisCosmologyParameters
-    double precision                                                                                         :: powerSpectrumWindowFunctionSharpKSpaceNormalization
-
-    if (powerSpectrumWindowFunctionMethod == 'kSpaceSharp') then
-       ! Assign function pointer.
-       Power_Spectrum_Window_Function_Get                    => Power_Spectrum_Window_Function_Sharp_kSpace
-       Power_Spectrum_Window_Function_Wavenumber_Maximum_Get => Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace
-       ! Get parameters.
-       !@ <inputParameter>
-       !@   <name>powerSpectrumWindowFunctionSharpKSpaceNormalization</name>
-       !@   <defaultValue>natural</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The parameter $a$ in the relation $k_{\mathrm s} = a/r_{\mathrm s}$, where $k_{\mathrm s}$ is the cut-off wavenumber for
-       !@     the sharp $k$-space window function and $r_{\mathrm s}$ is the radius of a sphere (in real-space) enclosing the
-       !@     requested smoothing mass. Alternatively, a value of {\normalfont \ttfamily natural} will be supplied in which case the normalization
-       !@     is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass
-       !@     of $M=6 \pi^2 \bar{\rho} k_{\mathrm s}^{-3}$.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('powerSpectrumWindowFunctionSharpKSpaceNormalization'&
-            &,powerSpectrumWindowFunctionSharpKSpaceNormalizationText,defaultValue="natural")
-       ! Get the default cosmology.
-       thisCosmologyParameters => cosmologyParameters()
-       if (powerSpectrumWindowFunctionSharpKSpaceNormalizationText == "natural") then
-          cutOffNormalization=(6.0d0*Pi**2*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical())**(1.0d0/3.0d0)
-       else
-          read (powerSpectrumWindowFunctionSharpKSpaceNormalizationText,*) powerSpectrumWindowFunctionSharpKSpaceNormalization
-          cutOffNormalization=powerSpectrumWindowFunctionSharpKSpaceNormalization*(4.0d0*Pi*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()&
-               &/3.0d0)**(1.0d0/3.0d0)
-       end if
-    end if
-    return
-  end subroutine Power_Spectrum_Window_Functions_Sharp_kSpace_Initialize
-
-  double precision function Power_Spectrum_Window_Function_Sharp_kSpace(wavenumber,smoothingMass)
-    !% Top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the power
-    !% spectrum. The normalization of the filter is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass
-    !% of $M=6 \pi^2 \bar{\rho} k_{\mathrm s}^{-3}$ if $k_{\mathrm s}$ is the cut-off wavelength for the filter.
-    implicit none
-    double precision, intent(in   ) :: smoothingMass   , wavenumber
-    double precision                :: wavenumberCutOff
-
-    wavenumberCutOff=Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace(smoothingMass)
-    if      (wavenumber <=            0.0d0) then
-       Power_Spectrum_Window_Function_Sharp_kSpace=0.0d0
-    else if (wavenumber <= wavenumberCutOff) then
-       Power_Spectrum_Window_Function_Sharp_kSpace=1.0d0
+    type            (powerSpectrumWindowFunctionSharpKSpace)                :: sharpKSpaceConstructorParameters
+    type            (inputParameters                       ), intent(in   ) :: parameters
+    class           (cosmologyParametersClass              ), pointer       :: cosmologyParameters_
+    type            (varying_string                        )                :: normalizationText
+    character       (len=32                                )                :: normalizationChar
+    double precision                                                        :: normalization
+    !# <inputParameterList label="allowedParameterNames" />
+    
+    ! Check parameters.
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>normalization</name>
+    !#   <source>parameters</source>
+    !#   <variable>normalizationText</variable>
+    !#   <defaultValue>var_str('natural')</defaultValue>
+    !#   <description>
+    !#     The parameter $a$ in the relation $k_{\mathrm s} = a/r_{\mathrm s}$, where $k_{\mathrm s}$ is the cut-off wavenumber for
+    !#     the sharp $k$-space window function and $r_{\mathrm s}$ is the radius of a sphere (in real-space) enclosing the
+    !#     requested smoothing mass. Alternatively, a value of {\normalfont \ttfamily natural} will be supplied in which case the normalization
+    !#     is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass of $M=6 \pi^2 \bar{\rho} k_{\mathrm s}^{-3}$.
+    !#   </description>
+    !#   <type>string</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    if (normalizationText == 'natural') then
+       normalization=0.0d0
     else
-       Power_Spectrum_Window_Function_Sharp_kSpace=0.0d0
+       normalizationChar=normalizationText
+       read (normalizationChar,*) normalization
+    end if
+    sharpKSpaceConstructorParameters=sharpKSpaceConstructorInternal(cosmologyParameters_,normalization)
+    return
+  end function sharpKSpaceConstructorParameters
+
+  function sharpKSpaceConstructorInternal(cosmologyParameters_,normalization)
+    !% Internal constructor for the {\normalfont \ttfamily sharpKSpace} power spectrum window function class.
+    use Numerical_Constants_Math
+    implicit none
+    type            (powerSpectrumWindowFunctionSharpKSpace)                        :: sharpKSpaceConstructorInternal
+    class           (cosmologyParametersClass              ), target, intent(in   ) :: cosmologyParameters_    
+    double precision                                                                :: normalization
+    
+    sharpKSpaceConstructorInternal%cosmologyParameters_ => cosmologyParameters_
+    ! Compute normalization.
+    if (normalization <= 0.0d0) then
+       ! Compute the "natural" normalization.
+       sharpKSpaceConstructorInternal%cutOffNormalization=                                &
+            & +(                                                                          &
+            &   +6.0d0                                                                    &
+            &   *Pi                                                                   **2 &
+            &   *sharpKSpaceConstructorInternal%cosmologyParameters_%OmegaMatter    ()    &
+            &   *sharpKSpaceConstructorInternal%cosmologyParameters_%densityCritical()    &
+            &  )**(1.0d0/3.0d0)
+    else
+       ! Use provided normalization.
+       sharpKSpaceConstructorInternal%cutOffNormalization=                                &
+            & +normalization                                                              &
+            & *(                                                                          &
+            &   +4.0d0                                                                    &
+            &   *Pi                                                                       &
+            &   *sharpKSpaceConstructorInternal%cosmologyParameters_%OmegaMatter    ()    &
+            &   *sharpKSpaceConstructorInternal%cosmologyParameters_%densityCritical()    &
+            &   /3.0d0                                                                    &
+            &  )**(1.0d0/3.0d0)
     end if
     return
-  end function Power_Spectrum_Window_Function_Sharp_kSpace
+  end function sharpKSpaceConstructorInternal
 
-  double precision function Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace(smoothingMass)
-    !% Top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the power
-    !% spectrum. The normalization of the filter is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass
-    !% of $M=6 \pi^2 \bar{\rho} k_{\mathrm s}^{-3}$ if $k_{\mathrm s}$ is the cut-off wavelength for the filter.
+  subroutine sharpKSpaceDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily sharpKSpace} power spectrum window function class.
     implicit none
-    double precision, intent(in   ) :: smoothingMass
+    type(powerSpectrumWindowFunctionSharpKSpace), intent(inout) :: self
 
-    Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace=cutOffNormalization/smoothingMass**(1.0d0/3.0d0)
+    !# <objectDestructor name="self%cosmologyParameters_"/>
     return
-  end function Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace
+  end subroutine sharpKSpaceDestructor
 
-end module Power_Spectrum_Window_Functions_Sharp_kSpace
+  double precision function sharpKSpaceValue(self,wavenumber,smoothingMass)
+    !% Sharp $k$-space window function used in computing the variance of the power spectrum.
+    implicit none
+    class           (powerSpectrumWindowFunctionSharpKSpace), intent(inout) :: self
+    double precision                                        , intent(in   ) :: smoothingMass   , wavenumber
+    double precision                                                        :: wavenumberCutOff
 
+    wavenumberCutOff=self%wavenumberMaximum(smoothingMass)
+    if      (wavenumber <=            0.0d0) then
+       sharpKSpaceValue=0.0d0
+    else if (wavenumber <= wavenumberCutOff) then
+       sharpKSpaceValue=1.0d0
+    else
+       sharpKSpaceValue=0.0d0
+    end if
+    return
+  end function sharpKSpaceValue
+
+  double precision function sharpKSpaceWavenumberMaximum(self,smoothingMass)
+    !% Sharp $k$-space window function used in computing the variance of the power spectrum.
+    implicit none
+    class           (powerSpectrumWindowFunctionSharpKSpace), intent(inout) :: self
+    double precision                                        , intent(in   ) :: smoothingMass
+
+    sharpKSpaceWavenumberMaximum=self%cutOffNormalization/smoothingMass**(1.0d0/3.0d0)
+    return
+  end function sharpKSpaceWavenumberMaximum

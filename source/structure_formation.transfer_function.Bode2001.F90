@@ -93,10 +93,9 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    ! Construct the CDM transfer function.
-    transferFunctionCDM           => transferFunction(parameters)
+    !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     ! Call the internal constructor
-    bode2001ConstructorParameters =  bode2001ConstructorInternal(transferFunctionCDM,scaleCutOff,epsilon,eta,nu,cosmologyParameters_)
+    bode2001ConstructorParameters=bode2001ConstructorInternal(transferFunctionCDM,scaleCutOff,epsilon,eta,nu,cosmologyParameters_)
     return
   end function bode2001ConstructorParameters
 
@@ -123,12 +122,13 @@ contains
     return
   end function bode2001ConstructorInternal
 
-  elemental subroutine bode2001Destructor(self)
+  subroutine bode2001Destructor(self)
     !% Destructor for the bode2001 transfer function class.
     implicit none
     type(transferFunctionBode2001), intent(inout) :: self
 
-    if (associated(self%transferFunctionCDM)) deallocate(self%transferFunctionCDM)
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%transferFunctionCDM" />
     return
   end subroutine bode2001Destructor
 

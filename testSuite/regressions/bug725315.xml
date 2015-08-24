@@ -18,8 +18,9 @@
   <coolingTimeMethod value="simple"/>
   <adiabaticContractionGnedinOmega value="0.77"/>
   <starFormationDiskEfficiency value="0.01"/>
-  <sigma_8 value="0.807"/>
-  <timestepSimpleAbsolute value="1"/>
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVarianceMethod><timestepSimpleAbsolute value="1"/>
   <bondiHoyleAccretionTemperatureSpheroid value="100"/>
   <starFormationDiskMinimumTimescale value="0.001"/>
   <darkMatterProfileMethod value="NFW"/>
@@ -37,7 +38,7 @@
   <modifiedPressSchechterG0 value="0.57"/>
   <mergerTreeBuildTreesPerDecade value="4"/>
   <cosmologyFunctionsMethod value="matterLambda"/>
-  <criticalOverdensityMethod value="sphericalTopHat"/>
+  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
   <adafRadiativeEfficiency value="0.01"/>
   <bondiHoyleAccretionEnhancementHotHalo value="1"/>
   <modifiedPressSchechterGamma2 value="-0.01"/>
@@ -60,11 +61,15 @@
   <hotHaloCoreRadiusOverVirialRadius value="0.1"/>
   <stabilityThresholdGaseous value="0.9"/>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
-  <treeNodeMethodDisk value="exponential"/>
+  <treeNodeMethodDisk value="standard"/>
+  <diskMassDistribution value="exponentialDisk"/>
   <linearGrowthMethod value="simple"/>
   <starFormationDiskVelocityExponent value="-1.5"/>
   <mergerTreeBuildMassResolutionFixed value="5.0e10"/>
-  <mergerTreeBuilderMethod value="cole2000"/>
+  <mergerTreeBuilderMethod value="cole2000">
+  <mergeProbability value="0.1"/>
+    <accretionLimit value="0.1"/>
+  </mergerTreeBuilderMethod>
   <mergerTreeBuildTreesBeginAtTree value="1"/>
   <mergerTreeBuildHaloMassMinimum value="1.0e12"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
@@ -75,12 +80,12 @@
   <modifiedPressSchechterGamma1 value="0.38"/>
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <spheroidMassToleranceAbsolute value="1e-06"/>
-  <hotHaloTemperatureMethod value="virial"/>
+  <hotHaloTemperatureProfileMethod value="virial"/>
   <starFormationHistoryTimeStep value="1.0"/>
   <verbosityLevel value="1"/>
   <spinDistributionBett2007Lambda0 value="0.04326"/>
   <imfSalpeterYieldInstantaneous value="0.02"/>
-  <virialOrbitsMethod value="Benson2005"/>
+  <virialOrbitMethod value="benson2005"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
   <starFormationSpheroidMinimumTimescale value="0.001"/>

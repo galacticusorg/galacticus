@@ -15,87 +15,119 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of critical overdensity using the fitting function of
+!% Contains a module which implements a critical overdensity class based on the fitting functions of
 !% \cite{kitayama_semianalytic_1996}.
+  use Linear_Growth
+  use Cosmology_Functions
 
-module Critical_Overdensities_Kitayama_Suto1996
-  implicit none
-  private
-  public :: Critical_Overdensity_Kitayama_Suto1996_Initialize
+  !# <criticalOverdensity name="criticalOverdensityKitayamaSuto1996" defaultThreadPrivate="yes">
+  !#  <description>Provides a critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}, and is therefore valid only for flat cosmological models.</description>
+  !# </criticalOverdensity>
+  type, extends(criticalOverdensityClass) :: criticalOverdensityKitayamaSuto1996
+     !% A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}.
+     private
+     class(linearGrowthClass       ), pointer :: linearGrowth_
+     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+    contains
+     final     ::                   kitayamaSuto1996Destructor
+     procedure :: value          => kitayamaSuto1996Value
+     procedure :: gradientTime   => kitayamaSuto1996GradientTime
+     procedure :: gradientMass   => kitayamaSuto1996GradientMass
+  end type criticalOverdensityKitayamaSuto1996
 
-  ! Variables to hold the tabulated critical overdensity data.
-  double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum=1.0d0
-  integer         , parameter :: deltaTableNPointsPerDecade=100
+  interface criticalOverdensityKitayamaSuto1996
+     !% Constructors for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
+     module procedure kitayamaSuto1996ConstructorParameters
+     module procedure kitayamaSuto1996ConstructorInternal
+  end interface criticalOverdensityKitayamaSuto1996
 
 contains
 
-  !# <criticalOverdensityMethod>
-  !#  <unitName>Critical_Overdensity_Kitayama_Suto1996_Initialize</unitName>
-  !# </criticalOverdensityMethod>
-  subroutine Critical_Overdensity_Kitayama_Suto1996_Initialize(criticalOverdensityMethod,Critical_Overdensity_Contrast_Tabulate)
-    !% Initializes the $\delta_{\mathrm c}$ calculation for the \cite{kitayama_semianalytic_1996} fitting function module.
-    use ISO_Varying_String
-    use Numerical_Comparison
-    use Galacticus_Error
-    use Cosmology_Parameters
-   implicit none
-    type     (varying_string                        ), intent(in   )          :: criticalOverdensityMethod
-    procedure(Critical_Overdensity_Kitayama_Suto1996), intent(inout), pointer :: Critical_Overdensity_Contrast_Tabulate
-    class    (cosmologyParametersClass              )               , pointer :: thisCosmologyParameters
-
-    if (criticalOverdensityMethod == 'Kitayama-Suto1996') then
-       Critical_Overdensity_Contrast_Tabulate => Critical_Overdensity_Kitayama_Suto1996
-       ! Get the default cosmology.
-       thisCosmologyParameters => cosmologyParameters()
-       ! Check that fitting formula is applicable to this cosmology.
-       if (Values_Differ(thisCosmologyParameters%OmegaMatter()+thisCosmologyParameters%OmegaDarkEnergy(),1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Critical_Overdensity_Kitayama_Suto1996_Initialize','no fitting formula available for this cosmology')
-    end if
-    return
-  end subroutine Critical_Overdensity_Kitayama_Suto1996_Initialize
-
-  subroutine Critical_Overdensity_Kitayama_Suto1996(time,deltaTable)
-    !% Tabulate the virial density contrast for the \cite{kitayama_semianalytic_1996} fitting function module.
-    use Cosmology_Functions
-    use Numerical_Constants_Math
-    use Linear_Growth
-    use Tables
+  function kitayamaSuto1996ConstructorParameters(parameters)
+    !% Constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class
+    !% which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    double precision                                      , intent(in   ) :: time
-    class           (table1D                ), allocatable, intent(inout) :: deltaTable
-    class           (cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
-    integer                                                               :: deltaTableNumberPoints   , iTime
-
-    ! Find minimum and maximum times to tabulate.
-    deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
-    deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
-
-    ! Determine number of points to tabulate.
-    deltaTableNumberPoints=int(log10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
-         &*dble(deltaTableNPointsPerDecade))
-
-    ! Create the table.
-    if (allocated(deltaTable)) then
-       call deltaTable%destroy()
-       deallocate(deltaTable)
-    end if
-    allocate(table1DLogarithmicLinear :: deltaTable)
-    select type (deltaTable)
-    type is (table1DLogarithmicLinear)
-       ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       ! Create the table.
-       call deltaTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
-       ! Evaluate the fitting formula of Kitayama & Suto at each time to get the critical overdensity.
-       do iTime=1,deltaTableNumberPoints
-          call deltaTable%populate(                                                                  &
-               &                   (3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                         &
-               &                   *(1.0d0+0.0123d0*log10(cosmologyFunctionsDefault%omegaMatterEpochal(deltaTable%x(iTime))))  &
-               &                   /Linear_Growth_Factor                    (deltaTable%x(iTime))  , &
-               &                   iTime                                                             &
-               &                  )
-       end do
-    end select
+    type(criticalOverdensityKitayamaSuto1996)                :: kitayamaSuto1996ConstructorParameters
+    type(inputParameters                    ), intent(in   ) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />
+    
+    !# <objectBuilder class="linearGrowth"       name="kitayamaSuto1996ConstructorParameters%linearGrowth_"       source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions" name="kitayamaSuto1996ConstructorParameters%cosmologyFunctions_" source="parameters"/>
     return
-  end subroutine Critical_Overdensity_Kitayama_Suto1996
+  end function kitayamaSuto1996ConstructorParameters
 
-end module Critical_Overdensities_Kitayama_Suto1996
+  function kitayamaSuto1996ConstructorInternal(linearGrowth_,cosmologyFunctions_)
+    !% Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
+    implicit none
+    type (criticalOverdensityKitayamaSuto1996)                        :: kitayamaSuto1996ConstructorInternal
+    class(cosmologyFunctionsClass            ), target, intent(in   ) :: cosmologyFunctions_    
+    class(linearGrowthClass                  ), target, intent(in   ) :: linearGrowth_    
+
+    kitayamaSuto1996ConstructorInternal%cosmologyFunctions_ => cosmologyFunctions_
+    kitayamaSuto1996ConstructorInternal%linearGrowth_       => linearGrowth_
+    return
+  end function kitayamaSuto1996ConstructorInternal
+
+  subroutine kitayamaSuto1996Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
+    implicit none
+    type(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%linearGrowth_"      />
+    return
+  end subroutine kitayamaSuto1996Destructor
+
+  double precision function kitayamaSuto1996Value(self,time,expansionFactor,collapsing,mass)
+    !% Return the critical overdensity at the given time and mass.
+    use Numerical_Constants_Math
+    implicit none
+    class           (criticalOverdensityKitayamaSuto1996), intent(inout)           :: self
+    double precision                                     , intent(in   ), optional :: time               , expansionFactor
+    logical                                              , intent(in   ), optional :: collapsing
+    double precision                                     , intent(in   ), optional :: mass
+    double precision                                                               :: time_
+    
+    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
+    kitayamaSuto1996Value=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                                  &
+         &                *(1.0d0+0.0123d0*log10(self%cosmologyFunctions_%omegaMatterEpochal(time_))) &
+         &                /                      self%linearGrowth_      %value             (time_)
+    return
+  end function kitayamaSuto1996Value
+
+  double precision function kitayamaSuto1996GradientTime(self,time,expansionFactor,collapsing,mass)
+    !% Return the gradient with respect to time of critical overdensity at the given time and mass.
+    use Numerical_Constants_Math
+    implicit none
+    class           (criticalOverdensityKitayamaSuto1996), intent(inout)           :: self
+    double precision                                     , intent(in   ), optional :: time               , expansionFactor
+    logical                                              , intent(in   ), optional :: collapsing
+    double precision                                     , intent(in   ), optional :: mass
+    double precision                                                               :: time_              , expansionFactor_
+    
+    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
+    kitayamaSuto1996GradientTime=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                                                                 &
+         &                       *(                                                                                                         &
+         &                                +0.0123d0*      self%cosmologyFunctions_%omegaMatterRateOfChange             (time_           )   &
+         &                         /                      self%cosmologyFunctions_%omegaMatterEpochal                  (time_           )   &
+         &                         /                log  (10.0d0                                                                         )  &
+         &                         -(1.0d0+0.0123d0*log10(self%cosmologyFunctions_%omegaMatterEpochal                  (time_           ))) &
+         &                         *                      self%linearGrowth_      %logarithmicDerivativeExpansionFactor(time_           )   &
+         &                         *                      self%cosmologyFunctions_%expansionRate                       (expansionFactor_)   &
+         &                        )                                                                                                         &
+         &                       /                        self%linearGrowth_      %value                               (time_           )
+    return
+  end function kitayamaSuto1996GradientTime
+
+  double precision function kitayamaSuto1996GradientMass(self,time,expansionFactor,collapsing,mass)
+    !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
+    implicit none
+    class           (criticalOverdensityKitayamaSuto1996), intent(inout)           :: self
+    double precision                                     , intent(in   ), optional :: time      , expansionFactor
+    logical                                              , intent(in   ), optional :: collapsing
+    double precision                                     , intent(in   ), optional :: mass
+
+    kitayamaSuto1996GradientMass=0.0d0
+    return
+  end function kitayamaSuto1996GradientMass
