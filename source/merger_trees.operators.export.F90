@@ -112,7 +112,6 @@ contains
     use Cosmology_Parameters
     use Cosmology_Functions
     use Dates_and_Times
-    use Power_Spectra
     use Numerical_Constants_Astronomical
     use Numerical_Interpolation
     use Merger_Tree_Data_Structure
@@ -122,6 +121,7 @@ contains
     use Sort
     use File_Utilities
     use System_Command
+    use Cosmological_Mass_Variance
     implicit none
     class           (mergerTreeOperatorExport), intent(inout)                 :: self
     type            (mergerTree              ), intent(inout), target         :: tree
@@ -139,6 +139,7 @@ contains
     type            (mergerTree              ), pointer                       :: treeCurrent
     class           (cosmologyParametersClass), pointer                       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer                       :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass), pointer                                               :: cosmologicalMassVariance_
     integer                                   , parameter                     :: snapshotCountIncrement         = 100
     integer                                                                   :: nodeCount                           , snapshotCount
     type            (mergerTreeData          )                                :: mergerTrees
@@ -163,14 +164,15 @@ contains
        call mergerTrees%setUnits(unitsLength  ,unitsInSI=megaParsec,hubbleExponent=0,scaleFactorExponent=0,name="Mpc"   )
        call mergerTrees%setUnits(unitsVelocity,unitsInSI=kilo      ,hubbleExponent=0,scaleFactorExponent=0,name="km/s"  )
        ! Get the default cosmology.
-       cosmologyParameters_ => cosmologyParameters()
+       cosmologyParameters_      => cosmologyParameters     ()
+       cosmologicalMassVariance_ => cosmologicalMassVariance()
        ! Set cosmology metadata.
-       call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaMatter'       ,cosmologyParameters_%OmegaMatter    (                  ))
-       call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaBaryon'       ,cosmologyParameters_%OmegaBaryon    (                  ))
-       call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaLambda'       ,cosmologyParameters_%OmegaDarkEnergy(                  ))
-       call mergerTrees%addMetadata(metaDataTypeCosmology ,'HubbleParam'       ,cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH))
-       call mergerTrees%addMetadata(metaDataTypeCosmology ,'sigma_8'           ,sigma_8                             (                  ))
-       call mergerTrees%addMetadata(metaDataTypeCosmology ,'powerSpectrumIndex',"not specified"                                         )
+       call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaMatter'       ,cosmologyParameters_     %OmegaMatter    (                  ))
+       call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaBaryon'       ,cosmologyParameters_     %OmegaBaryon    (                  ))
+       call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaLambda'       ,cosmologyParameters_     %OmegaDarkEnergy(                  ))
+       call mergerTrees%addMetadata(metaDataTypeCosmology ,'HubbleParam'       ,cosmologyParameters_     %HubbleConstant (hubbleUnitsLittleH))
+       call mergerTrees%addMetadata(metaDataTypeCosmology ,'sigma_8'           ,cosmologicalMassVariance_%sigma8         (                  ))
+       call mergerTrees%addMetadata(metaDataTypeCosmology ,'powerSpectrumIndex',"not specified"                                              )
        ! Set provenance metadata.
        call mergerTrees%addMetadata(metaDataTypeProvenance,'fileBuiltBy'       ,'Galacticus'                   )
        call mergerTrees%addMetadata(metaDataTypeProvenance,'fileTimestamp'     ,char(Formatted_Date_and_Time()))       

@@ -246,6 +246,7 @@ my @translations =
 	 outputVersion => "0.9.4",
 	 names         =>
 	 {
+	     "hotHaloTemperatureMethod"                                       => "hotHaloTemperatureProfileMethod"                                   ,
 	     "mergerTreeBuildMethod"                                          => "mergerTreeBuilderMethod"                                                        ,
 	     "darkMatterShapeMethod"                                          => "darkMatterProfileShapeMethod"                                                   ,
 	     "H_0"                                                            => "cosmologyParametersMethod--HubbleConstant"                                      ,
@@ -304,6 +305,11 @@ my @translations =
 	     "mergerTreeConditionalMassFunctionFormationRateTimeFraction"     => "mergerTreeOperatorMethod.conditionalMF.--formationRateTimeFraction"             ,
 	     "mergerTreeExportFileName"                                       => "mergerTreeOperatorMethod.export.--outputFileName"                               ,
 	     "mergerTreeExportOutputFormat"                                   => "mergerTreeOperatorMethod.export.--exportFormat"                                 ,
+	     "warmDarkMatterCriticalOverdensityGX"                            => "criticalDensityMethod.barkana2001WDM.--gX"                                      ,
+	     "warmDarkMatterCriticalOverdensityMX"                            => "criticalDensityMethod.barkana2001WDM.--mX"                                      ,
+	     "warmDarkMatterCriticalOverdensityUseFittingFunction"            => "criticalDensityMethod.barkana2001WDM.--useFittingFunction"                      ,
+	     "sigma_8"                                                        => "cosmologicalMassVarianceMethod.filteredPower.--sigma_8"                         ,
+	     "mergerTreeExportOutputFormat"                                   => "mergerTreeOperatorMethod.write.--exportFormat"                                  ,
 	     "darkMatterHaloConcentrationCorrea2015AScaling"                  => "darkMatterProfileConcentrationMethod.correa2015.--A"                            ,
 	     "darkMatterProfileConcentrationDiemerKravtsov2014Kappa"          => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--kappa"                ,
 	     "darkMatterProfileConcentrationDiemerKravtsov2014Phi0"           => "darkMatterProfileConcentrationMethod.diemerKravtsov2014.--phi0"                 ,
@@ -328,27 +334,47 @@ my @translations =
 	     "prada2011ConcentrationInverseSigma1"                            => "darkMatterProfileConcentrationMethod.prada2011.--inverseSigma1"                 ,
 	     "prada2011ConcentrationAlpha"                                    => "darkMatterProfileConcentrationMethod.prada2011.--alpha"                         ,
 	     "prada2011ConcentrationBeta"                                     => "darkMatterProfileConcentrationMethod.prada2011.--beta"                          ,
-	     "darkMatterProfileConcentrationCDMMethod"                        => "darkMatterProfileConcentrationMethod.wdm.--darkMatterProfileConcentrationMethod"
+	     "darkMatterProfileConcentrationCDMMethod"                        => "darkMatterProfileConcentrationMethod.wdm.--darkMatterProfileConcentrationMethod",
+	     "powerSpectrumWindowFunctionSharpKSpaceNormalization"            => "powerSpectrumWindowFunctionMethod.sharpKSpace.--normalization"                  ,
+	     "powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio"         => "powerSpectrumWindowFunctionMethod.topHatSharpKHybrid.--radiiRatio"
 	 },
  	 values        =>
          {
 	     mergerTreeBuilderMethod        =>
 	     {
-		 "Cole2000"              => "cole2000"
+		 "Cole2000"                  => "cole2000"
+	     },
+	     treeNodeMethodDisk      =>
+	     {
+		 "exponential"           => {
+		                             value => "standard",
+		                             new   => [
+				    	               {
+			                                name  => "diskMassDistribution",
+			                                value => "exponentialDisk"
+			                               }
+			                              ]
+		                            }
 	     },
 	     darkMatterProfileShapeMethod   =>
 	     {
-		 "Gao2008"               => "gao2008"
+		 "Gao2008"                   => "gao2008"
 	     },
 	     transferFunctionMethod         =>
 	     {
-		 "null"                  => "identity"        ,
-		 "Eisenstein-Hu1999"     => "eisensteinHu1999"
+		 "null"                      => "identity"        ,
+		 "Eisenstein-Hu1999"         => "eisensteinHu1999"
 	     },
 	     stellarPopulationSpectraMethod =>
 	     {
-	         "Conroy-White-Gunn2009" => "FSPS"
-             }		     
+	         "Conroy-White-Gunn2009"     => "FSPS"
+             },
+	     criticalOverdensityMethod =>
+	     {
+		 "Kitayama-Suto1996"         => "kitayamaSuto1996"             ,
+		 "sphericalTopHat"           => "sphericalCollapseMatterLambda",
+		 "sphericalTopHatDarkEnergy" => "sphericalCollapseMatterDE"
+	     }
 	 }
     }
     );
@@ -356,9 +382,12 @@ my @translations =
 # Define known defaults.
 my %knownDefaults =
     (
-     "cosmologyParametersMethod"            => "simple"  ,
-     "mergerTreeBuilderMethod"              => "cole2000",
-     "darkMatterProfileConcentrationMethod" => "gao2008"
+     "cosmologyParametersMethod"            => "simple"       ,
+     "mergerTreeBuilderMethod"              => "cole2000"     ,
+     "cosmologicalMassVarianceMethod"       => "filteredPower",
+     "cosmologyParametersMethod"            => "simple"       ,
+     "darkMatterProfileConcentrationMethod" => "gao2008"      ,
+     "powerSpectrumPrimordialMethod"        => "powerLaw"
   );
 
 # Parse the input file.
@@ -383,7 +412,7 @@ print "Translating file: ".$inputFileName."\n";
 
 # Iterate over parameter sets.
 foreach my $parameters ( @parameterSets ) {
-    &Translate($parameters,1);
+    &Translate($parameters,1,$inputFileName);
 }
 
 # Output the resulting file.
@@ -395,8 +424,9 @@ $input->toFile($outputFileName);
 exit;
 
 sub Translate {
-    my $parameters = shift();
-    my $rootLevel  = shift();
+    my $parameters    = shift();
+    my $rootLevel     = shift();
+    my $inputFileName = shift();
 
     # Set initial input/output versions.
     my $inputVersion  = $options{'inputVersion' };
@@ -458,7 +488,7 @@ sub Translate {
     # Validate the parameter file.
     if ( $options{'validate'} eq "yes" ) {
 	system($galacticusPath."scripts/aux/validateParameters.pl ".$inputFileName);
-	die('input file is not a valid Galacticus parameter file')
+	die('input file "'.$inputFileName.'"is not a valid Galacticus parameter file')
 	    unless ( $? == 0 );
     }
     
@@ -485,7 +515,7 @@ sub Translate {
 	    my @allValues;
 	    if ( $options{'inputFormatVersion'} <= 1 ) {
 		$name      = $parameter->findnodes('name' )->[0]->firstChild();
-		$nameText  = $name->data();
+		$nameText  = $name->textContent();
 		@allValues = $parameter->findnodes('value');
 	    } else {
 		$name     = $parameter;
@@ -502,7 +532,7 @@ sub Translate {
 		if ( $options{'inputFormatVersion'} <= 1 ) {
 		    $name->setData    ($translation->{'names'}->{$nameText});
 		} else {
-		    (my $leafName = $translation->{'names'}->{$nameText});# =~ s/^(.*\->)//;
+		    my $leafName = $translation->{'names'}->{$nameText};
 		    my $valueTo;
 		    unless ( $translation->{'names'}->{$nameText} =~ m/\-\-/ ) {
 			if ( $leafName =~ m/(.*)\.(.*)\./ ) {
@@ -522,7 +552,7 @@ sub Translate {
 		    if ( $value->isSameNode($name) ) {
 			$valuesText = $value->getAttribute('value');
 		    } else {
-			$valuesText = $value->firstChild()->data();
+			$valuesText = $value->firstChild()->textContent();
 		    }
 		    $valuesText =~ s/^\s*//;
 		    $valuesText =~ s/\s*$//;
@@ -610,7 +640,7 @@ sub Translate {
 		if ( $useAttribute ) {
 		    $parameterNode->setAttribute('value',$value->textContent());
 		} else {
-		    &Translate($valueNode,0)
+		    &Translate($valueNode,0,$inputFileName)
 			if ( @subParameters );
 		    $parameterNode->addChild($input->createTextNode("\n"));
 		    $parameterNode->addChild($valueNode);
@@ -647,10 +677,11 @@ sub Translate {
 	    }
 	    unless ( $hostFound ) {
 		# Create the new node.
-		die('parametersMigrate.pl: attempting to insert a "'.$hostName.'" element, but no default value is known')
-		    unless ( exists($knownDefaults{$hostName}) );
-		my $parameterNode = $input->createElement($hostName);
-		$parameterNode->setAttribute('value',$knownDefaults{$hostName});
+		(my $hostLeafName = $hostName) =~ s/\..+\.//;
+		die('parametersMigrate.pl: attempting to insert a "'.$hostLeafName.'" element, but no default value is known')
+		    unless ( exists($knownDefaults{$hostLeafName}) );
+		my $parameterNode = $input->createElement($hostLeafName);
+		$parameterNode->setAttribute('value',$knownDefaults{$hostLeafName});
 		$parameterNode->addChild($input     ->createTextNode("\n    "  ));
 		$parameterNode->addChild($parameters->removeChild   ($parameter));
 		$parameterNode->addChild($input     ->createTextNode("\n  "    ));

@@ -17,7 +17,7 @@
 
 !% Contains a module which implements reading of parameters from an XML data file.
 
-!: ./work/build/utility.input_parameters2.C.o
+!: $(BUILDPATH)/utility.input_parameters2.C.o
 
 module Input_Parameters2
   !% Implements reading of parameters from an XML file.
@@ -351,10 +351,10 @@ contains
     allowedParameterFromFileCount=0
     if (present(allowedParametersFile)) then
        ! Check if the file exists.
-       if (File_Exists(char(Galacticus_Input_Path())//'work/build/'//allowedParametersFile)) then
+       if (File_Exists(char(Galacticus_Input_Path())//BUILDPATH//'/'//allowedParametersFile)) then
           !$omp critical (FoX_DOM_Access)
           ! Parse the file.
-          allowedParameterDoc => parseFile(char(Galacticus_Input_Path())//'work/build/'//allowedParametersFile,iostat=errorStatus)
+          allowedParameterDoc => parseFile(char(Galacticus_Input_Path())//BUILDPATH//'/'//allowedParametersFile,iostat=errorStatus)
           if (errorStatus /= 0) call Galacticus_Error_Report('inputParametersConstructorNode','Unable to parse allowed parameters file')
           ! Extract allowed parameter names to array.
           allowedParameterList => getElementsByTagname(allowedParameterDoc,"parameter")
@@ -631,23 +631,25 @@ contains
     return
   end function inputParametersIsParameter
 
-  function inputParametersNode(self,parameterName)
+  function inputParametersNode(self,parameterName,requireValue)
     !% Return the node containing the parameter.
     use Galacticus_Error
     implicit none
-    type     (node           ), pointer       :: inputParametersNode
-    class    (inputParameters), intent(in   ) :: self
-    character(len=*          ), intent(in   ) :: parameterName
-    type     (node           ), pointer       :: thisNode
-    integer                                   :: i
-    
+    type     (node           ), pointer                 :: inputParametersNode
+    class    (inputParameters), intent(in   )           :: self
+    character(len=*          ), intent(in   )           :: parameterName
+    logical                   , intent(in   ), optional :: requireValue
+    type     (node           ), pointer                 :: thisNode
+    integer                                             :: i
+    !# <optionalArgument name="requireValue" defaultsTo=".true." />
+
     call self%validateName(parameterName)
     inputParametersNode => null()
     !$omp critical (FoX_DOM_Access)
     do i=0,getLength(self%parameters)-1
        thisNode => item(self%parameters,i)
        if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-          if (hasAttribute(thisNode,'value') .or. XML_Path_Exists(thisNode,"value")) then
+          if (.not.requireValue_ .or. hasAttribute(thisNode,'value') .or. XML_Path_Exists(thisNode,"value")) then
              inputParametersNode => thisNode
              exit
           end if
@@ -658,13 +660,15 @@ contains
     return
   end function inputParametersNode
   
-  logical function inputParametersIsPresent(self,parameterName)
+  logical function inputParametersIsPresent(self,parameterName,requireValue)
     !% Return true if the specified parameter is present.
     implicit none
-    class    (inputParameters), intent(in   ) :: self
-    character(len=*          ), intent(in   ) :: parameterName
-    type     (node           ), pointer       :: thisNode
-    integer                                   :: i
+    class    (inputParameters), intent(in   )           :: self
+    character(len=*          ), intent(in   )           :: parameterName
+    logical                   , intent(in   ), optional :: requireValue
+    type     (node           ), pointer                 :: thisNode
+    integer                                             :: i
+    !# <optionalArgument name="requireValue" defaultsTo=".true." />
 
     call self%validateName(parameterName)
     inputParametersIsPresent=.false.
@@ -673,7 +677,7 @@ contains
     do i=0,getLength(self%parameters)-1
        thisNode => item(self%parameters,i)
        if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-          if (hasAttribute(thisNode,'value') .or. XML_Path_Exists(thisNode,"value")) then
+          if (.not.requireValue_ .or. hasAttribute(thisNode,'value') .or. XML_Path_Exists(thisNode,"value")) then
              inputParametersIsPresent=.true.
              exit
           end if
@@ -737,18 +741,19 @@ contains
     return
   end function inputParametersCount
   
-  function inputParametersSubParameters(self,parameterName)
+  function inputParametersSubParameters(self,parameterName,requireValue)
     !% Return sub-parameters of the specified parameter.
     use Galacticus_Error
     implicit none
-    type     (inputParameters)                :: inputParametersSubParameters
-    class    (inputParameters), intent(in   ) :: self
-    character(len=*          ), intent(in   ) :: parameterName
-    type     (node           ), pointer       :: parameterNode
+    type     (inputParameters)                          :: inputParametersSubParameters
+    class    (inputParameters), intent(in   )           :: self
+    character(len=*          ), intent(in   )           :: parameterName
+    logical                   , intent(in   ), optional :: requireValue
+    type     (node           ), pointer                 :: parameterNode
 
-    if (.not.self%isPresent(parameterName)) call Galacticus_Error_Report('inputParametersSubParameters','parameter not found')
-    parameterNode                => self%node      (parameterName)
-    inputParametersSubParameters =  inputParameters(parameterNode)
+    if (.not.self%isPresent(parameterName,requireValue)) call Galacticus_Error_Report('inputParametersSubParameters','parameter not found')
+    parameterNode                => self%node      (parameterName,requireValue)
+    inputParametersSubParameters =  inputParameters(parameterNode             )
     return
   end function inputParametersSubParameters
 
