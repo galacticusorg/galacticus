@@ -36,7 +36,7 @@ sub Process_InputParameterList {
     $fileName = $tree->{'name'}
         if ( $tree->{'type'} eq "file" );
     # Get code directive locations.
-    my $directiveLocations = $xml->XMLin($galacticusPath."work/build/Code_Directive_Locations.xml");
+    my $directiveLocations = $xml->XMLin($galacticusPath.$ENV{'BUILDPATH'}."/Code_Directive_Locations.xml");
     # Initialize list of unlisted parameters.
     my @unlistedInputParameters;
     # Walk the tree, looking for input parameter list directives.
@@ -44,7 +44,7 @@ sub Process_InputParameterList {
     my $depth = 0;
     while ( $node ) {
 	# Look for inputParameterList directives and process them.
-	if ( $node->{'type'} eq "inputParameterList" && ! $node->{'directive'}->{'processed'} ) {
+	if ( $node->{'type'} eq "inputParameterList" && ! $node->{'directive'}->{'processed'} ) {	    
 	    # Record that this directive has been processed.
 	    $node->{'directive'}->{'processed'} =  1;
 	    # Step through sibling nodes looking for input parameter directives.
@@ -75,19 +75,19 @@ sub Process_InputParameterList {
 		}
 		$sibling = $sibling->{'sibling'};
 	    }
+	    # Generate the variable declaration.
+	    my $declaration =
+	    {
+		intrinsic  => "type",
+		type       => "varying_string",
+		attributes => [ "dimension(".scalar(@inputParameterNames).")" ],
+		variables  => [ $node->{'directive'}->{'label'} ]
+	    };
+	    &Declarations::AddDeclarations($node->{'parent'},[$declaration]);
+	    # Add module usage.
+	    &ModuleUses::AddUses($node->{'parent'},{moduleUse => {ISO_Varying_String => {all => 1}}});
+	    # Generate the setting code.
 	    if ( scalar(@inputParameterNames) > 0 ) {
-		# Generate the variable declaration.
-		my $declaration =
-		{
-		    intrinsic  => "type",
-		    type       => "varying_string",
-		    attributes => [ "dimension(".scalar(@inputParameterNames).")" ],
-		    variables  => [ $node->{'directive'}->{'label'} ]
-		};
-		&Declarations::AddDeclarations($node->{'parent'},[$declaration]);
-		# Add module usage.
-		&ModuleUses::AddUses($node->{'parent'},{moduleUse => {ISO_Varying_String => {all => 1}}});
-		# Generate the setting code.
 		my $setter;
 		for(my $i=1;$i<=scalar(@inputParameterNames);++$i) {
 		    $setter .= $node->{'directive'}->{'label'}."(".$i.")='".$inputParameterNames[$i-1]."'\n";
@@ -128,7 +128,7 @@ sub Process_InputParameterList {
     # Output file of unlisted parameters.
     if ( @unlistedInputParameters ) {
 	$fileName =~ s/\.F90$/.p/;
-	open(my $parametersFile,">>work/build/".$fileName);
+	open(my $parametersFile,">>".$ENV{'BUILDPATH'}."/".$fileName);
 	print $parametersFile $_."\n"
 	    foreach ( @unlistedInputParameters );
 	close($parametersFile);

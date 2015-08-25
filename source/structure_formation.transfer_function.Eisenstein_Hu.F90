@@ -271,11 +271,7 @@ contains
     implicit none
     type(transferFunctionEisensteinHu1999), intent(inout) :: self
 
-    if     (                                                       &
-         &   associated(self%cosmologyParameters_                ) &
-         &  .and.                                                  &
-         &              self%cosmologyParameters_%isFinalizable()  &
-         & ) deallocate(self%cosmologyParameters_                )
+    !# <objectDestructor name="self%cosmologyParameters_"/>
     return
   end subroutine eisensteinHu1999Destructor
 
