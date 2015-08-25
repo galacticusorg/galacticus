@@ -9,293 +9,553 @@ if ( exists($ENV{"GALACTICUS_ROOT_V094"}) ) {
  $galacticusPath = "./";
 }
 unshift(@INC,$galacticusPath."perl"); 
+use Config;
+use if $Config{'useithreads'}, 'threads';
 use XML::Simple;
 use Data::Dumper;
 use Fcntl qw(:DEFAULT :flock);
 use MIME::Lite;
+use List::Util;
+use Storable;
+use Fcntl;
+use POSIX::RT::Semaphore;
+use PDL;
 require File::Which;
 require File::NFSLock;
 require System::Redirect;
 require Galacticus::Constraints::Parameters;
+require List::ExtraUtils;
+my $useThreads = 0;
+if ( $^V gt v5.10.0 && $Config{useithreads} ) {
+    $useThreads = 1;
+    &PDL::no_clone_skip_warning;
+}
+# Script timing
+# use Time::HiRes qw(gettimeofday tv_interval);
+# my $self      = $0;
+# my $timeStart = [gettimeofday];
 
 # Finds constraints on Galacticus parameters.
 # Andrew Benson (02-September-2011)
 
-# Get command line arguments.
-die("Usage: constrainGalacticus.pl <workDirectory> <compilationFile> <parameterFile> <projectDirectory> [options]")
-    unless ( scalar(@ARGV) >= 4 );
-my $workDirectory    = $ARGV[0];
-my $compilationFile  = $ARGV[1];
-my $parameterFile    = $ARGV[2];
-my $projectDirectory = $ARGV[3];
+# Get command-line parameters.
+die("Usage: constrainGalacticus.pl <configFile> <mpiRank> <likelihoodFile> <temperature> <store> <param1> [<param2>......]") 
+    unless ( scalar(@ARGV) > 5 );
+my $configFile = $ARGV[0];
+my $config     = &Parameters::Parse_Config($configFile,useStored => 1);
 
-# Create a hash of named arguments.
-my $iArg = -1;
-my %arguments = (
-    make                => "no",
-    timing              => "no",
-    output              => "stdout",
-    galacticusFile      => "constrainGalacticus.hdf5",
-    galacticusSaveState => "no",
-    galacticusThreads   => 1,
-    reuseTrees          => "",
-    suffix              => "",
-    cleanUp             => "yes",
-    randomize           => "yes",
-    temperature         => 1.0
-    );
-while ( $iArg < $#ARGV ) {
-    ++$iArg;
-    if ( $ARGV[$iArg] =~ m/^\-\-(.*)/ ) {
-	$arguments{$1} = $ARGV[$iArg+1];
-	++$iArg;
+# Error codes.
+my $errorStatusXCPU = 1025; # CPU time limit exceeded.
+
+# Obtain a lock if we are to run models sequentially.
+my $runSequential = "no";
+$runSequential = $config->{'likelihood'}->{'sequentialModels'}
+    if ( exists($config->{'likelihood'}->{'sequentialModels'}) );
+my $modelLockFile = "/dev/shm/glcLock";
+my $modelLock = new File::NFSLock {
+    file               => $modelLockFile,
+    lock_type          => LOCK_EX
+}
+if ( $runSequential eq "yes" );
+
+# Get the MPI rank.
+my $mpiRank        = $ARGV[1];
+
+# Get the name for the likelihood file.
+my $likelihoodFile = $ARGV[2];
+
+# Get the temperature.
+my $temperature    = $ARGV[3];
+
+# Get the store status.
+my $store          = $ARGV[4];
+# Get a hash of the new parameters.
+my $newParameters = &Parameters::Convert_Parameters_To_Galacticus($config,@ARGV[5..$#ARGV]);
+
+# Find the scratch directory.
+my $scratchDirectory = $config->{'likelihood'}->{'workDirectory'}."/mcmc";
+$scratchDirectory = $config->{'likelihood'}->{'scratchDirectory'}
+    if ( exists($config->{'likelihood'}->{'scratchDirectory'}) );
+
+# Expand any environment variable names in the scratch directory.
+while ( $scratchDirectory =~ m/\$([_A-Z]+)/ ) {
+    my $environmentVariableName  = $1;
+    my $environmentVariableValue = $ENV{$environmentVariableName};
+    $scratchDirectory =~ s/\$$environmentVariableName/$environmentVariableValue/g;
+}
+
+# Ensure scratch and work directories exist.
+system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'}."/mcmc")
+    unless ( -e $config->{'likelihood'}->{'workDirectory'}."/mcmc" );
+system("mkdir -p ".$scratchDirectory)
+    unless ( -e $scratchDirectory );
+
+# Report.
+if ( exists($config->{'likelihood'}->{'report'}) ) {
+    if ( $config->{'likelihood'}->{'report'} eq "yes" ) {
+	print "Report from constrainGalacticus.pl:\n";
+	print "  MPI rank is : ".$mpiRank."\n";
+	print "  Output in   : ".$scratchDirectory."/newParameters_".$mpiRank.".xml\n";
+	print "  Parameters  : \n";
+	print Dumper($newParameters);
     }
 }
 
-# Remove any old semaphore file.
-unlink("/dev/shm/sem.galacticus")
-    if ( -e "/dev/shm/sem.galacticus" );
+# Find the set of base parameters to use.
+my $baseParameters = "parameters.xml";
+$baseParameters = $config->{'likelihood'}->{'baseParameters'}
+   if ( exists($config->{'likelihood'}->{'baseParameters'}) );
+
+# Find the CPU limit.
+my $cpuLimit;
+if ( exists($config->{'likelihood'}->{'cpulimit'}) ) {
+    $cpuLimit = $config->{'likelihood'}->{'cpulimit'};
+    if ( exists($config->{'likelihood'}->{'threads'}) ) { 
+	$cpuLimit *= $config->{'likelihood'}->{'threads'};
+    } else {
+	$cpuLimit *= Sys::CPU::cpu_count();
+    }
+}
+
+# Find the memory limit.
+my $memoryLimit;
+$memoryLimit = $config->{'likelihood'}->{'memoryLimit'}
+   if ( exists($config->{'likelihood'}->{'memoryLimit'}) );
+
+# Extract compilation file and project directories.
+my $compilationFile  = $config->{'likelihood'}->{'compilation'  };
+my $projectDirectory = $config->{'likelihood'}->{'workDirectory'};
+my $galacticusFile   = "constrainGalacticus_".$mpiRank.".hdf5";
 
 # Bad log likelihood (highly improbable) which we will return in failure conditions.
-my $badLogLikelihood = -1.0e30;
+my $badLogLikelihood         = -1.0e30;
+my $badLogLikelihoodVariance =  0.0;
+
+# Initialize a list of temporary files to remove after we're finished.
+my @temporaryFiles;
 
 # Get a hash of the parameter values.
-my $baseParametersFile = "constraints/baseParameters.xml";
-$baseParametersFile    = $arguments{'baseParameters'}
-    if ( defined($arguments{'baseParameters'}) );
-(my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$baseParametersFile);
+(my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$baseParameters);
 my @constraints = @{$constraintsRef};
 
+# Remove any old semaphore file.
+my $semaphoreName = "galacticus";
+$semaphoreName = $parameters->{'treeEvolveThreadLockName'}->{'value'}
+    if ( exists($parameters->{'treeEvolveThreadLockName'}) );
+unlink("/dev/shm/sem.".$semaphoreName)
+    if ( -e "/dev/shm/sem.".$semaphoreName );
+
 # Set an output file name.
-$parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'} = $workDirectory."/".$arguments{'galacticusFile'};
+$parameters->{'galacticusOutputFileName'}->{'value'} = $scratchDirectory."/".$galacticusFile;
+push(@temporaryFiles,$parameters->{'galacticusOutputFileName'}->{'value'});
 
 # Set state file names.
 my $stateFileRoot;
-if ( $arguments{'galacticusSaveState'} eq "yes" ) {
-    $stateFileRoot = $workDirectory."/".$arguments{'galacticusFile'};
+if ( exists($config->{'likelihood'}->{'saveState'}) && $config->{'likelihood'}->{'saveState'} eq "yes" ) {
+    $stateFileRoot = $scratchDirectory."/".$galacticusFile;
     $stateFileRoot =~ s/\.hdf5//;
-    $parameters->{'parameter'}->{'stateFileRoot'}->{'value'} = $stateFileRoot;
+    $parameters->{'stateFileRoot'}->{'value'} = $stateFileRoot;
+    push(@temporaryFiles,$stateFileRoot."*");
 }
 
 # Set a random number seed.
-$parameters->{'parameter'}->{'randomSeed'}->{'value'} = int(rand(10000))+1
-    unless ( $arguments{'randomize'} eq "no" );
+$parameters->{'randomSeed'}->{'value'} = int(rand(10000))+1
+    unless ( exists($config->{'likelihood'}->{'randomize'}) && $config->{'likelihood'}->{'randomize'} eq "no" );
 
-# Ensure that timing data is collected.
-$parameters->{'parameter'}->{'metaCollectTimingData'}->{'value'} = "true"
-    if ( $arguments{'timing'} eq "yes" );
-
-# Parse the modifications to the parameters.
-my $xml              = new XML::Simple;
-my $newParameterData = $xml->XMLin($parameterFile, KeyAttr => "");
-if ( defined($newParameterData->{'parameter'}) ) {
-    my @newParameters;
-    if ( ref($newParameterData->{'parameter'}) eq "ARRAY" ) {
-	@newParameters = @{$newParameterData->{'parameter'}};
-    } else {
-	push(@newParameters,$newParameterData->{'parameter'});
-    }
-    for my $newParameter ( @newParameters ) {
-	$parameters->{'parameter'}->{$newParameter->{'name'}}->{'value'} = $newParameter->{'value'};
-    }
+# If running at a high temperature, modify the number of merger trees per decade.
+my $temperatureEffective = 1.0;
+if ( 
+    exists($parameters->{'mergerTreeBuildTreesPerDecade'}) 
+    &&
+    $parameters->{'mergerTreeConstructMethod'}->{'value'} eq "build" 
+    ) {
+    my $treesPerDecadeEffective =
+	&List::Util::max(
+	    int(
+		$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}
+		/$temperature
+	    )
+	    ,$config->{'likelihood'}->{'treesPerDecadeMinimum'}
+	);
+    $temperatureEffective = $parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}/$treesPerDecadeEffective;
+    $parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $treesPerDecadeEffective;
 }
 
-# If trees are to be reused, create them, and store to a file.
-unless ( $arguments{'reuseTrees'} eq "" ) {
+# If fixed sets of trees are to be used, create them as necessary, and store to a file.
+if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood'}->{'useFixedTrees'} eq "yes" ) {
     # Record the required set of output redshifts.
-    my $outputRedshifts = $parameters->{'parameter'}->{'outputRedshifts'}->{'value'};
+    my $outputRedshifts = $parameters->{'outputRedshifts'   }->{'value'};
     # Record and remove any analyses.
-    my $savedAnalyses = $parameters->{'parameter'}->{'mergerTreeAnalyses'}->{'value'};
-    delete($parameters->{'parameter'}->{'mergerTreeAnalyses'});
+    my $savedAnalyses   = $parameters->{'mergerTreeAnalyses'}->{'value'};
+    delete($parameters->{'mergerTreeAnalyses'});
+    # Reset parameters.
+    my %parametersToSave =
+	(
+	 mergerTreePruneBaryons => "false"
+	);
+    my @savedParameters;
+    foreach my $parameterName ( keys(%parametersToSave) ) {
+	if ( exists($parameters->{$parameterName}) ) {
+	    push
+		(
+		 @savedParameters,
+		 {
+		     name  =>               $parameterName            ,
+		     value => $parameters->{$parameterName}->{'value'}
+		 }
+		);
+	}
+    }
     # Get a lock on the tree file.
+    my $fixedTreeDirectory;
+    if ( exists($config->{'likelihood'}->{'fixedTreesInScratch'}) && $config->{'likelihood'}->{'fixedTreesInScratch'} eq "yes" ) {
+	$fixedTreeDirectory = $config->{'likelihood'}->{'scratchDirectory'}."/";
+    } else {
+	$fixedTreeDirectory = $config->{'likelihood'}->{'workDirectory'   }."/";
+    }
+    my $fixedTreeFile      = $fixedTreeDirectory                       .       "fixedTrees".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
+    my $buildFixedTreeFile = $config->{'likelihood'}->{'workDirectory'}."/trees/fixedTrees".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
+    system("mkdir -p ".$config->{'likelihood'}->{'workDirectory'}."/trees");
     if ( 
 	my $lock = new File::NFSLock {
-	    file               => $arguments{'reuseTrees'},
+	    file               => $fixedTreeFile,
 	    lock_type          => LOCK_EX
 	}
 	)
     {
-	unless ( -e $arguments{'reuseTrees'} ) {
-	    # Create the tree file if necessary. (Set output redshift to a very large value to avoid any galaxy formation
-	    # calculation being carried out - we only want to build the trees.)
-	    $parameters->{'parameter'}->{'outputRedshifts'             }->{'value'} = "10000.0";
-	    $parameters->{'parameter'}->{'mergerTreesWrite'            }->{'value'} = "true";
-	    $parameters->{'parameter'}->{'mergerTreeExportFileName'    }->{'value'} = $arguments{'reuseTrees'};
-	    $parameters->{'parameter'}->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
-	    $parameters->{'parameter'}->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
-	    my $treeParameters;
-	    push(@{$treeParameters->{'parameter'}},{name => $_, value => $parameters->{'parameter'}->{$_}->{'value'}})
-		foreach ( keys(%{$parameters->{'parameter'}}) );
-	    my $treeXML = new XML::Simple (RootName=>"parameters", NoAttr => 1);
-	    open(pHndl,">".$workDirectory."/treeBuildParameters.xml");
-	    print pHndl $treeXML->XMLout($treeParameters);
-	    close pHndl;
-	    if ( $arguments{'make'} eq "yes" ) {
-		system("make Galacticus.exe");
-		die("constrainGalacticus.pl: failed to build Galacticus.exe") unless ( $? == 0 );
+	unless ( -e $fixedTreeFile ) {
+	    if ( 
+		my $buildLock = new File::NFSLock {
+		    file               => $buildFixedTreeFile,
+		    lock_type          => LOCK_EX
+		}
+		)
+	    {
+		unless ( -e $buildFixedTreeFile ) {
+		    # Create the tree file if necessary. (Set output redshift to a very large value to avoid any galaxy formation
+		    # calculation being carried out - we only want to build the trees.)
+		    $parameters->{'outputRedshifts'             }->{'value'} = "10000.0";
+		    $parameters->{'mergerTreesWrite'            }->{'value'} = "true";
+		    $parameters->{'mergerTreeExportFileName'    }->{'value'} = $buildFixedTreeFile;
+		    $parameters->{'mergerTreePruneBaryons'      }->{'value'} = "false";
+		    $parameters->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
+		    my $treeXML = new XML::Simple (RootName=>"parameters", NoAttr => 1);
+		    open(pHndl,">".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml");
+		    print pHndl $treeXML->XMLout($parameters);
+		    close pHndl;		  
+		    my $treeCommand;
+		    $treeCommand .= "ulimit -t ".$cpuLimit."; "
+			if ( defined($cpuLimit) );
+		    $treeCommand .= "ulimit -v ".$memoryLimit."; "
+			if ( defined($memoryLimit) );
+		    my $coredump = "YES";
+		    $coredump = $config->{'likelihood'}->{'coredump'}
+		        if ( exists($config->{'likelihood'}->{'coredump'}) );
+		    my $coreDumpSize = "unlimited";
+		    $coreDumpSize = 0
+			if ( $coredump eq "NO" );
+		    $coreDumpSize = $config->{'likelihood'}->{'coredumpsize'}
+		        if ( exists($config->{'likelihood'}->{'coredumpsize'}) );
+		    $treeCommand .= "ulimit -c ".$coreDumpSize."; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date; ./Galacticus.exe ".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml";
+		    my $treeLog = $config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".log";
+		    SystemRedirect::tofile($treeCommand,$treeLog);
+		    unless ( $? == 0 ) {
+			system("mv ".$treeLog." ".$treeLog.".failed.".$$);
+			die("constrainGalacticus.pl: Galacticus model failed");		
+		    }
+		    sleep(1)
+			until ( -e $buildFixedTreeFile );
+		}
+		$buildLock->unlock();
 	    }
-	    my $treeCommand;
-	    $treeCommand .= "ulimit -t ".$arguments{'cpulimit'}."; " if ( exists($arguments{'cpulimit'}) );
-	    $treeCommand .= "ulimit -c unlimited; GFORTRAN_ERROR_DUMPCORE=YES; ./Galacticus.exe ".$workDirectory."/treeBuildParameters.xml";
-	    my $treeLog = $workDirectory."/treeBuildParameters.log";
-	    SystemRedirect::tofile($treeCommand,$treeLog);
-	    unless ( $? == 0 ) {
-		system("mv ".$treeLog." ".$treeLog.".failed.".$$);
-		die("constrainGalacticus.pl: Galacticus model failed");
-	    }
+	    system("cp -f ".$buildFixedTreeFile." ".$fixedTreeFile);
 	}
 	$lock->unlock();
     }
     # Modify parameters to use the tree file.
-    $parameters->{'parameter'}->{'mergerTreeConstructMethod'}->{'value'} = "read";
-    $parameters->{'parameter'}->{'mergerTreeReadFileName'   }->{'value'} = $arguments{'reuseTrees'};
-    $parameters->{'parameter'}->{'outputRedshifts'          }->{'value'} = $outputRedshifts;
-    $parameters->{'parameter'}->{'mergerTreeAnalyses'       }->{'value'} = $savedAnalyses;
+    $parameters->{'mergerTreeConstructMethod'}->{'value'} = "read";
+    $parameters->{'mergerTreeReadFileName'   }->{'value'} = $fixedTreeFile;
+    $parameters->{'outputRedshifts'          }->{'value'} = $outputRedshifts;
+    $parameters->{'mergerTreeAnalyses'       }->{'value'} = $savedAnalyses;
+    $parameters->{'mergerTreesWrite'         }->{'value'} = "false";
+    # Restore parameters.
+    foreach my $parameter ( @savedParameters ) {
+	$parameters->{$parameter->{'name'}}->{'value'} = $parameter->{'value'};
+    }
+}
+
+# Extract new parameters.
+if ( defined($newParameters) ) {
+    for my $newParameterName ( keys(%{$newParameters}) ) {
+	my $parameter = $parameters;
+	foreach ( split(/\-\>/,$newParameterName) ) {
+	     $parameter->{$_}->{'value'} = undef()
+		 unless ( exists($parameter->{$_}) );
+	     $parameter = $parameter->{$_};
+    }
+	$parameter->{'value'} = $newParameters->{$newParameterName};
+    }
 }
 
 # Write the modified parameters to file.
-&Parameters::Output($parameters,$workDirectory."/constrainGalacticusParameters".$arguments{'suffix'}.".xml");
+&Parameters::Output($parameters,$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml");
+push(@temporaryFiles,$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml");
 
 # Run the Galacticus model.
-if ( $arguments{'make'} eq "yes" ) {
-    system("make Galacticus.exe");
-    die("constrainGalacticus.pl: failed to build Galacticus.exe") unless ( $? == 0 );
-}
 my $glcCommand;
-$glcCommand .= "ulimit -t ".$arguments{'cpulimit'}."; "
-    if ( exists($arguments{'cpulimit'}) );
-$glcCommand .= "export OMP_NUM_THREADS=".$arguments{'galacticusThreads'}."; "
-    if ( exists($arguments{'galacticusThreads'}) );
-$glcCommand .= "ulimit -c unlimited; GFORTRAN_ERROR_DUMPCORE=YES; ./Galacticus.exe ".$workDirectory."/constrainGalacticusParameters".$arguments{'suffix'}.".xml";
-my $logFile = $workDirectory."/constrainGalacticusParameters".$arguments{'suffix'}.".log";
+$glcCommand .= "ulimit -t ".$cpuLimit."; "
+    if ( defined($cpuLimit) );
+$glcCommand .= "ulimit -v ".$memoryLimit."; "
+    if ( defined($memoryLimit) );
+$glcCommand .= "export OMP_NUM_THREADS=".$config->{'likelihood'}->{'threads'}."; "
+    if ( exists($config->{'likelihood'}->{'threads'}) );
+$glcCommand .= "export ".$_."; "
+    foreach ( &ExtraUtils::as_array($config->{'likelihood'}->{'environment'}) );
+my $coredump = "YES";
+$coredump = $config->{'likelihood'}->{'coredump'}
+    if ( exists($config->{'likelihood'}->{'coredump'}) );
+my $coreDumpSize = "unlimited";
+$coreDumpSize = 0
+    if ( $coredump eq "NO" );
+$coreDumpSize = $config->{'likelihood'}->{'coredumpsize'}
+    if ( exists($config->{'likelihood'}->{'coredumpsize'}) );
+$glcCommand .= "ulimit -c ".$coreDumpSize."; export GFORTRAN_ERROR_DUMPCORE=".$coredump."; ulimit -a; date;";
+# Determine if walltime should be limited using the "timelimit" tool (http://devel.ringlet.net/sysutils/timelimit/).
+if (
+    exists($config->{'likelihood'}->{'wallTimeLimit'}) 
+    && 
+    $config->{'likelihood'}->{'wallTimeLimit'} eq "yes"
+    &&
+    &File::Which::which('timelimit')
+    &&
+    defined($cpuLimit)
+    ) {
+    my $wallTimeLimit = int(1.1*$cpuLimit);
+    $glcCommand .= " timelimit -t ".$wallTimeLimit." -T 30";
+}
+$glcCommand .= " ./Galacticus.exe ".$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml";
+my $logFile = $scratchDirectory."/constrainGalacticusParameters".$mpiRank.".log";
+push(@temporaryFiles,$logFile);
+# my $timeGalacticusStart = [gettimeofday];
 SystemRedirect::tofile($glcCommand,$logFile);
 unless ( $? == 0 ) {
-    # Issue a failure.
-    print "ERROR: Galacticus model failed to complete\n";
-    &reportFailure(\%arguments,$workDirectory,$logFile,$stateFileRoot);
-    # Try running the model again - in case this was a random error.
-    SystemRedirect::tofile($glcCommand,$logFile);
-    unless ( $? == 0 ) {
+    # Since a failure occurred, post to the semaphore to avoid blocking other jobs.
+    &semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
+    # Check for CPU time being exceeded.
+    my $cpuTimeExceeded = 0;
+    open(my $log,$logFile);
+    while ( my $line = <$log> ) {
+	$cpuTimeExceeded = 1
+	    if ( $line =~ m/Galacticus exceeded available CPU time/ || $line =~ m/Killed/ );
+    }
+    close($log);    
+    # Check for CPU time limit exceeded.
+    if ( $cpuTimeExceeded == 1 ) {
+	# Job died due to CPU time being exceeded. No reason to try running it again.
+	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,$cpuTimeExceeded);
 	# Display the final likelihood.
-	&outputLikelihood(\%arguments,$badLogLikelihood);
-	print "constrainGalacticus.pl: Galacticus model failed";
+	&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
+	print "constrainGalacticus.pl: Galacticus model failed to complete - second attempt";
+	unlink(@temporaryFiles)
+	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 	exit;
+    } else {
+	# Job died for some other reason, try it again.
+	# Issue a failure.
+	print "ERROR: Galacticus model failed to complete - retrying\n";
+	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,$cpuTimeExceeded);
+	# Try running the model again - in case this was a random error.
+	if ( exists($config->{'likelihood'}->{'rerunOnError'}) && $config->{'likelihood'}->{'rerunOnError'} eq "yes" ) {
+	    SystemRedirect::tofile($glcCommand,$logFile);
+	    unless ( $? == 0 ) {
+		# Since a failure occurred, post to the semaphore to avoid blocking other jobs.
+		&semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
+		# Display the final likelihood.
+		&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
+		print "constrainGalacticus.pl: Galacticus model failed to complete - second attempt";
+		unlink(@temporaryFiles)
+		    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
+		exit;
+	    }
+	} else {
+		# Since a failure occurred, post to the semaphore to avoid blocking other jobs.
+		&semaphorePost($config->{'likelihood'}->{'threads'},$semaphoreName);
+		# Display the final likelihood.
+		&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
+		print "constrainGalacticus.pl: Galacticus model failed to complete - second attempt";
+		unlink(@temporaryFiles)
+		    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
+		exit;
+	}
     }
 }
+# my $timeGalacticusElapsed = tv_interval($timeGalacticusStart,[gettimeofday]);
+# print "%% timing : Galacticus : ".$timeGalacticusElapsed."\n";
+
+# Free model lock if necessary.
+$modelLock->unlock()
+    if ( $runSequential eq "yes" );
 
 # Perform processing of the model, accumulating likelihood as we go.
-my $logLikelihood = 0.0;
+my $logLikelihood         =  0.0;
+my $logLikelihoodVariance =  0.0;
+my $i                     = -1;
+my $xml                   = new XML::Simple;
+my @threads;
 foreach my $constraint ( @constraints ) {
     # Parse the definition file.
-    my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    my $constraintDefinition;
+    if ( -e $constraint->{'definition'}.".store" ) {
+	$constraintDefinition = retrieve($constraint->{'definition'}.".store");
+    } else {
+	$constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    }
     # Run the analysis code.
+    ++$i;
     my $analysisCommand = $constraintDefinition->{'analysis'};
-    $analysisCommand   .= " ".$workDirectory."/".$arguments{'galacticusFile'}." --outputFile ".$workDirectory."/likelihood".$arguments{'suffix'}.".xml";
+    $analysisCommand   .= " ".$scratchDirectory."/".$galacticusFile." --outputFile ".$scratchDirectory."/likelihood".$mpiRank.":".$i.".xml --quiet 1";
+    $analysisCommand .= " --temperature ".$temperatureEffective;
     $analysisCommand .= " --modelDiscrepancies ".$projectDirectory."/modelDiscrepancy"
 	if ( -e $projectDirectory."/modelDiscrepancy" );
-    $analysisCommand .= " --resultFile ".$workDirectory."/results".$arguments{'suffix'}.".xml"
-	if ( exists($arguments{'storeResults'}) );
-    $analysisCommand .= " --diagonalize ".$arguments{'diagonalize'}
-    if ( exists($arguments{'diagonalize'}) );
-    system($analysisCommand);
-    unless ( $? == 0 ) {
+    unless ( $store eq "none" ) {
+	my $resultFile = $scratchDirectory."/results".$mpiRank.".xml";
+	$analysisCommand .= " --resultFile ".$resultFile;
+	push(@temporaryFiles,$resultFile);
+    }
+    $analysisCommand .= " ".$constraintDefinition->{'analysisArguments'}
+        if ( exists($constraintDefinition->{'analysisArguments'}) );
+    if ( $useThreads ) {
+	my ($thread) = threads->create(\&systemThread,$analysisCommand);
+	push(
+	    @threads,
+	    {
+		thread     => $thread,
+		constraint => $constraintDefinition
+	    }
+	    );
+    } else {
+	system($analysisCommand);
+	push(
+	    @threads,
+	    {
+		result     => $?,
+		constraint => $constraintDefinition
+	    }
+	    );
+    }
+}
+$i = -1;
+foreach my $constraint ( @constraints ) {
+    my $descriptor           = pop(@threads);
+    my $constraintDefinition = $descriptor->{'constraint'};
+    my $result;
+    if ( $useThreads ) {
+	my $thread  = $descriptor->{'thread'};
+	my @results = $thread->join();
+	$result     = $results[0];
+    } else {
+	$result = $descriptor->{'result'};
+    }
+    unless ( $result == 0 ) {
 	# Issue a failure.
-	print "ERROR: Analysis script failed to complete [".$arguments{'galacticusFile'}."]\n";
-	&reportFailure(\%arguments,$workDirectory,$logFile,$stateFileRoot);
+	print "ERROR: Analysis script failed to complete [".$constraint->{'definition'}."]\n";
+	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,0);
 	# Display the final likelihood.
-	&outputLikelihood(\%arguments,$badLogLikelihood);
+	&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
 	print "constrainGalacticus.pl: analysis code failed";
+	unlink(@temporaryFiles)
+	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 	exit;
     }
-    # Store the results.
-    if ( exists($arguments{'storeResults'}) ) {
-	my $results = $xml->XMLin($workDirectory."/results".$arguments{'suffix'}.".xml");
-	open(oHndl,">>".$arguments{'storeResults'}."/results".ucfirst($constraintDefinition->{'label'})."_".$arguments{'suffix'}.".txt");
-	for(my $i=0;$i<scalar(@{$results->{'y'}});++$i) {
-	    print oHndl "\t"
-		unless ( $i == 0 );
-	    print oHndl ${$results->{'y'}}[$i]."\t".${$results->{'error'}}[$i];
-	}
-	print oHndl "\n";
-	close(oHndl);
-	unlink($workDirectory."/results".$arguments{'suffix'}.".xml");
-    }
     # Read the likelihood.
-    my $likelihood = $xml->XMLin($workDirectory."/likelihood".$arguments{'suffix'}.".xml");
+    ++$i;
+    my $likelihood = $xml->XMLin($scratchDirectory."/likelihood".$mpiRank.":".$i.".xml");
     if ( $likelihood->{'logLikelihood'} eq "nan" ) {
 	# Issue a failure.
         print "ERROR: Likelihood is NaN\n";
-	&reportFailure(\%arguments,$workDirectory,$logFile,$stateFileRoot);
+	&reportFailure($config,$scratchDirectory,$logFile,$stateFileRoot,0);
 	# Display the final likelihood.
-	&outputLikelihood(\%arguments,$badLogLikelihood);
+	&outputLikelihood($config,$badLogLikelihood,$badLogLikelihoodVariance);
 	print "constrainGalacticus.pl: likelihood calculation failed";
+	system("rm ".join(" ",@temporaryFiles))
+	    if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 	exit;
     }
-    # Extract the likelihood and weight it.
-    my $thisLogLikelihood = $likelihood->{'logLikelihood'};
-    $thisLogLikelihood *= $constraintDefinition->{'weight'}
-        if ( defined($constraintDefinition->{'weight'}) );
-    # Accumulate the likelihood.
-    $logLikelihood += $thisLogLikelihood;
+    # Extract the likelihood (and variance) and weight it.
+    my $thisLogLikelihood         = $likelihood->{'logLikelihood'        };
+    my $thisLogLikelihoodVariance = $likelihood->{'logLikelihoodVariance'};
+    if ( defined($constraintDefinition->{'weight'}) ) {
+	$thisLogLikelihood         *= $constraintDefinition->{'weight'};
+	$thisLogLikelihoodVariance *= $constraintDefinition->{'weight'};
+    }
+    # Accumulate the likelihood and variance.
+    $logLikelihood         += $thisLogLikelihood;
+    $logLikelihoodVariance += $thisLogLikelihoodVariance;
     # Clean up.
-    unlink($workDirectory."/likelihood".$arguments{'suffix'}.".xml")
-	if ( $arguments{'cleanUp'} eq "yes" );
+    unlink($scratchDirectory."/likelihood".$mpiRank.":".$i.".xml")
+	if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} eq "yes" );
 }
 
-# Extract tree timing information.
-system("scripts/analysis/treeTiming.pl ".$workDirectory."/".$arguments{'galacticusFile'}." --maxPoints 10000 --outputFile ".$workDirectory."/constrainGalacticusTiming.xml --accumulate")
-    if ( $arguments{'timing'} eq "yes" );
-
-# Remove the model.
-unlink($workDirectory."/".$arguments{'galacticusFile'})
-    if ( $arguments{'cleanUp'} eq "yes" );
-
-# Adjust likelihood for temperature.
-$logLikelihood /= $arguments{'temperature'};
+# Remove or store the model.
+if ( $store eq "none" ) {
+    system("rm ".join(" ",@temporaryFiles))
+	if ( exists($config->{'likelihood'}->{'cleanUp'}) && $config->{'likelihood'}->{'cleanUp'} && scalar(@temporaryFiles) > 0 );
+} else {
+    my $storeDirectory = $config->{'likelihood'}->{'workDirectory'}."/mcmc/store/model_".$mpiRank."_".$store;
+    system("mkdir -p ".$storeDirectory);
+    foreach my $file ( @temporaryFiles ) {
+	system("mv ".$file." ".$storeDirectory."/");
+    }
+}
 
 # Display the final likelihood.
-&outputLikelihood(\%arguments,$logLikelihood);
+&outputLikelihood($config,$logLikelihood,$logLikelihoodVariance);
 
+# Script timing.
+# my $timeElapsed = tv_interval($timeStart,[gettimeofday]);
+# print "%% timing : ".$self." : ".$timeElapsed."\n";
 exit;
 
 sub outputLikelihood {
     # Output the log likelihood.
-    my %arguments     = %{shift()};
-    my $logLikelihood =   shift   ;
-    if ( $arguments{'output'} eq "stdout" ) {
-	print $logLikelihood."\n";
-    } else {
-	open(oHndl,">".$arguments{'output'});
-	print oHndl $logLikelihood."\n";
-	close(oHndl);
-    }
+    my $config                = shift;
+    my $logLikelihood         = shift;
+    my $logLikelihoodVariance = shift;
+    open(oHndl,">".$likelihoodFile);
+    print oHndl $logLikelihood        ."\n";
+    print oHndl $logLikelihoodVariance."\n";
+    close(oHndl);
 }
 
 sub reportFailure {
     # Handle failures of model or analysis.
-    my %arguments     = %{shift()};
-    my $workDirectory = shift;
-    my $logFile       = shift;
-    my $stateFileRoot = shift;
-    if ( exists($arguments{'failArchive'}) ) {
-	my $failArchiveName = $arguments{'failArchive'}.".tar.bz2";
+    my $config           = shift;
+    my $scratchDirectory = shift;
+    my $logFile          = shift;
+    my $stateFileRoot    = shift;
+    my $cpuTimeExceeded  = shift;
+    if ( exists($config->{'likelihood'}->{'failDirectory'}) ) {
+	system("mkdir -p ".$config->{'likelihood'}->{'failDirectory'});
+	my $failArchiveName = $config->{'likelihood'}->{'failDirectory'}."/archive.tar.bz2";
+	$failArchiveName = $config->{'likelihood'}->{'failDirectory'}."/archiveXCPU.tar.bz2"
+	    if ( $cpuTimeExceeded == 1 );
 	if ( ! -e $failArchiveName && -e "galacticusConfig.xml" ) {
 	    # Send an email if possible.
 	    my $xml     = new XML::Simple;
-	    my $config  = $xml->XMLin("galacticusConfig.xml");
-	    if ( exists($config->{'contact'}->{'email'}) && &File::Which::which('sendmail') ) {
+	    my $galacticusConfig  = $xml->XMLin("galacticusConfig.xml");
+	    if ( exists($galacticusConfig->{'contact'}->{'email'}) && &File::Which::which('sendmail') ) {
 		my $message  = "A Galacticus model failed while seeking constraints.\n";
 		$message    .= "Failed model is in: ".$failArchiveName."\n";
 		my $msg = MIME::Lite->new(
 		    From    => '',
-		    To      => $config->{'contact'}->{'email'},
+		    To      => $galacticusConfig->{'contact'}->{'email'},
 		    Subject => 'Galacticus model failed while seeking constraints',
 		    Type    => 'TEXT',
 		    Data    => $message
 		    );
 		$msg->send();
 	    } else {
-		open(my $eHndl,">constrainGalacticusError.txt");
+		open(my $eHndl,">".$config->{'likelihood'}->{'failDirectory'}."/constrainGalacticusError.txt");
 		print $eHndl "A Galacticus model failed while seeking constraints.\n";
 		print $eHndl "Failed model is in: ".$failArchiveName."\n";
 		close($eHndl);
@@ -303,7 +563,7 @@ sub reportFailure {
 	}
 	if ( ! -e $failArchiveName ) {
 	    system("touch ".$failArchiveName);
-	    my $tarCommand = "tar cvfj ".$failArchiveName." ".$workDirectory."/constrainGalacticusParameters".$arguments{'suffix'}.".xml ".$logFile." ".$workDirectory."/".$arguments{'galacticusFile'};
+	    my $tarCommand = "tar cvfj ".$failArchiveName." ".$scratchDirectory."/constrainGalacticusParameters".$mpiRank.".xml ".$logFile." ".$scratchDirectory."/".$galacticusFile;
 	    opendir(dHndl,".");
 	    while ( my $fileName = readdir(dHndl) ) {
 		$tarCommand .= " ".$fileName
@@ -311,14 +571,18 @@ sub reportFailure {
 	    }
 	    closedir(dHndl);
 	    $tarCommand .= " ".$stateFileRoot.".*state*"
-		if ( $arguments{'galacticusSaveState'} eq "yes" );
+		if ( $config->{'likelihood'}->{'saveState'} eq "yes" );
 	    system($tarCommand);
 	}
     }
-    if ( exists($arguments{'failCount'}) ) {
+    if ( exists($config->{'likelihood'}->{'failDirectory'}) ) {
+	system("mkdir -p ".$config->{'likelihood'}->{'failDirectory'});
 	my $count = 0;
-	if ( -e $arguments{'failCount'} ) {
-	    open(iHndl,$arguments{'failCount'});
+	my $failCountFileName = $config->{'likelihood'}->{'failDirectory'}."/failCount.txt";
+	$failCountFileName    = $config->{'likelihood'}->{'failDirectory'}."/failCountXCPU.txt"
+	    if ( $cpuTimeExceeded == 1 );
+	if ( -e $failCountFileName ) {
+	    open(iHndl,$failCountFileName);
 	    $count = <iHndl>;
 	    close(iHndl);
 	    if (defined($count) ) {
@@ -328,8 +592,35 @@ sub reportFailure {
 	    }
 	}
 	++$count;
-	open(oHndl,">".$arguments{'failCount'});
+	open(oHndl,">".$failCountFileName);
 	print oHndl $count."\n";
 	close(oHndl);
     }
+}
+
+sub semaphorePost {
+    # When a model fails, it may not be able to release semaphores that it was holding. Therefore, we post to the semaphore to
+    # free it.
+    my $threadCount   = shift();
+    my $semaphoreName = shift();
+
+    # Open the semaphore.
+    my $galacticusSemaphore = POSIX::RT::Semaphore->open("/".$semaphoreName, O_CREAT, 0660, $threadCount);
+    # Repeatedly post.
+    print "Posting to semaphore....\n";
+    for(my $i=0;$i<$threadCount;++$i) {
+	my $count = $galacticusSemaphore->getvalue();
+	print "Current semaphore value is: ".$count."\n";
+	$galacticusSemaphore->post();
+    }
+    my $count = $galacticusSemaphore->getvalue();
+    print "Final semaphore value is: ".$count."\n";    
+}
+
+sub systemThread {
+    # Launch a system command.
+    my $command = shift();    
+    system($command);
+    my $status = $?;
+    return $status;
 }

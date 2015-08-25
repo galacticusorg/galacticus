@@ -47,25 +47,48 @@ contains
     use Galacticus_Error
     use Linear_Growth
     implicit none
-    double precision, intent(in   ) :: time                        , waveNumber
-    integer         , parameter     :: iterationCountMaximum=1000
-    double precision, parameter     :: tolerance            =1.0d-3
-    double precision, parameter     :: updateFraction       =0.1d0
-    class(cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
-    logical                         :: converged
-    integer                         :: iterationCount
-    double precision                :: A                           , B               , &
-         &                             V                           , alpha           , &
-         &                             beta                        , fNL             , &
-         &                             fNLPrevious                 , g               , &
-         &                             n                           , waveNumberLinear, &
-         &                             x
+    double precision                         , intent(in   )       :: time                            , waveNumber
+    integer                                  , parameter           :: iterationCountMaximum    =1000
+    double precision                         , parameter           :: tolerance                =1.0d-3
+    double precision                         , parameter           :: updateFraction           =0.5d+0
+    class           (cosmologyFunctionsClass), pointer             :: cosmologyFunctions_
+    class           (linearGrowthClass      ), pointer             :: linearGrowth_
+    double precision                         , dimension(2) , save :: waveNumberPrevious       =-1.0d0, fNLPrevious        
+    double precision                                        , save :: timePrevious             =-1.0d0
+    !$omp threadprivate(waveNumberPrevious,fNLPrevious,timePrevious)
+    logical                                                        :: converged
+    integer                                                        :: iterationCount                  , i
+    double precision                                               :: A                               , B                        , &
+         &                                                            V                               , alpha                    , &
+         &                                                            beta                            , fNL                      , &
+         &                                                            fNLLastIteration                , g                        , &
+         &                                                            n                               , waveNumberLinear         , &
+         &                                                            x                               , linearGrowthFactorSquared, &
+         &                                                            omegaMatter                     , omegaDarkEnergy          , &
+         &                                                            omegaMatterFourSevenths         , logRatioBest
     
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()     
+    cosmologyFunctions_ => cosmologyFunctions()
+    linearGrowth_       => linearGrowth      ()
+    ! Pre-compute quantities which depend only on time, and so will be constant throughout this calculation.
+    linearGrowthFactorSquared=linearGrowth_      %value                 (time)**2
+    omegaMatter              =cosmologyFunctions_%omegaMatterEpochal    (time)
+    omegaDarkEnergy          =cosmologyFunctions_%omegaDarkEnergyEpochal(time)
+    omegaMatterFourSevenths  =omegaMatter                                           **(4.0d0/7.0d0)
+    ! Determine if we can use a previous estimate of fNL as our starting guess.
+    fNL         =-1.0d0
+    logRatioBest=log(2.0d0)
+    if (time == timePrevious) then
+       do i=1,2
+          if (waveNumberPrevious(i) > 0.0d0 .and. abs(log(waveNumber/waveNumberPrevious(i))) < logRatioBest) then
+             fNL         =fNLPrevious(i)
+             logRatioBest=abs(log(waveNumber/waveNumberPrevious(i)))
+          end if
+       end do
+    end if
     ! Make an initial guess that the nonlinear power spectrum equals the linear power spectrum.
-    fNL        =Power_Spectrum_Dimensionless(waveNumber)
-    fNLPrevious=fNL
+    if (fNL < 0.0d0) fNL=Power_Spectrum_Dimensionless(waveNumber)
+    fNLLastIteration=fNL
     ! Iterate until a converged solution is found.
     converged     =.false.
     iterationCount=0
@@ -73,7 +96,7 @@ contains
        ! Find the corresponding linear wavenumber.
        waveNumberLinear=waveNumber/(1.0d0+fNL)**(1.0d0/3.0d0)
        ! Get the dimensionless linear power spectrum and its logarithmic slope.
-       x=Power_Spectrum_Dimensionless         (      waveNumberLinear)*Linear_Growth_Factor(time)**2
+       x=Power_Spectrum_Dimensionless         (      waveNumberLinear)*linearGrowthFactorSquared
        n=Power_Spectrum_Logarithmic_Derivative(0.5d0*waveNumberLinear)
        ! Compute parameters of the Peacock & Dodds fitting function.
        A    = 0.482d0/(1.0d0+n/3.0d0)**0.947d0
@@ -82,8 +105,22 @@ contains
        beta = 0.862d0/(1.0d0+n/3.0d0)**0.287d0
        V    =11.550d0/(1.0d0+n/3.0d0)**0.423d0
        ! Compute growth factor using same fitting function as Peacock & Dodds (from Carroll, Press & Turner 1992).
-       g=2.5d0*cosmologyFunctionsDefault%omegaMatterEpochal(time)/(cosmologyFunctionsDefault%omegaMatterEpochal(time)**(4.0d0/7.0d0)-cosmologyFunctionsDefault%omegaDarkEnergyEpochal(time)+(1.0d0+0.5d0&
-            &*cosmologyFunctionsDefault%omegaMatterEpochal(time))*(1.0d0+cosmologyFunctionsDefault%omegaDarkEnergyEpochal(time)/70.0d0))
+       g    = +2.5d0                       &
+            & *    omegaMatter             &
+            & /(                           &
+            &   +  omegaMatterFourSevenths &
+            &   -  omegaDarkEnergy         &
+            &   +(                         &
+            &     +1.0d0                   &
+            &     +0.5d0                   &
+            &     *omegaMatter             &
+            &    )                         &
+            &   *(                         &
+            &     +1.0d0                   &
+            &     +omegaDarkEnergy         &
+            &     /70.0d0                  &
+            &    )                         &
+            &  )
        ! Compute new estimate of non-linear power-spectrum.
        fNL=    x                                             &
             & *(                                             &
@@ -92,15 +129,20 @@ contains
             &  )**(1.0d0/beta)
        ! Update our estimate using a mixture of new and old results (this avoids oscillating solutions by preventing large initial
        ! jumps in the estimate).
-       fNL=updateFraction*fNL+(1.0d0-updateFraction)*fNLPrevious
+       fNL=updateFraction*fNL+(1.0d0-updateFraction)*fNLLastIteration
        ! Test for convergence.
-       converged=(abs(fNL-fNLPrevious) < tolerance*0.5d0*(abs(fNL)+abs(fNLPrevious)))
+       converged=(abs(fNL-fNLLastIteration) < tolerance*0.5d0*(abs(fNL)+abs(fNLLastIteration)))
        ! Move to next iteration.
-       fNLPrevious=fNL
-       iterationCount=iterationCount+1
+       fNLLastIteration=fNL
+       iterationCount  =iterationCount+1
     end do
     if (.not.converged) call Galacticus_Error_Report('Power_Spectrum_Nonlinear_PeacockDodds1996','nonlinear power spectrum calculation failed to converge')
-
+    ! Store evaluations.
+    timePrevious         =time
+    waveNumberPrevious(1)=waveNumberPrevious(2)
+    fNLPrevious       (1)=fNLPrevious       (2)
+    waveNumberPrevious(2)=waveNumber
+    fNLPrevious       (2)=fNL
     ! Convert to a dimensionful power spectrum.
     Power_Spectrum_Nonlinear_PeacockDodds1996=(2.0d0*Pi)**3*fNL/4.0d0/Pi/waveNumber**3
     return
