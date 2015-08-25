@@ -227,7 +227,7 @@ contains
                 
                 ! Tree walk loop: Walk to each node in the tree and consider whether or not to evolve it.
                 treeWalkLoop: do while (associated(thisNode))
-                   
+
                    ! Get the basic component of the node.
                    thisBasicComponent => thisNode%basic()
                    
@@ -307,10 +307,9 @@ contains
                             deadlockStatus=deadlockStatusIsNotDeadlocked
                          else
                             ! Call routine to handle end of timestep processing.
-                            if (associated(End_Of_Timestep_Task)) call End_Of_Timestep_Task(currentTree,thisNode,deadlockStatus)
+                            if (associated(End_Of_Timestep_Task).and.associated(thisNode)) call End_Of_Timestep_Task(currentTree,thisNode,deadlockStatus)
                          end if
                       end do
-                      
                       ! If this halo has reached its parent halo, decide how to handle it.
                       if (associated(thisNode)) then
                          parentNode           => thisNode%parent
@@ -478,22 +477,27 @@ contains
        if (report) call Evolve_To_Time_Report("promotion limit: ",Evolve_To_Time)
     case (.true.)
        ! Do not let satellite evolve too far beyond parent.
-       ! Get the parent basic component.
-       parentBasicComponent => thisNode%parent%basic()
-       ! Get current cosmic time.
-       time=max(parentBasicComponent%time(),thisBasicComponent%time())
+       if (associated(thisNode%parent%parent)) then
+          ! The host halo has a parent, so use the host halo time to limit satellite evolution.
+          parentBasicComponent => thisNode%parent%basic()
+          time=parentBasicComponent%time()
+       else
+          ! The host halo has no parent. The satellite must therefore be evolving to some event (e.g. a merger). We have to allow
+          ! it to evolve ahead of the host halo in this case to avoid deadlocks.
+          time=thisBasicComponent  %time()
+       end if
        ! Check if the host has a child.
        select case (associated(thisNode%parent%firstChild))
        case (.true. )
-          ! Host still has a child - do not let the satellite evolve.
-          hostTimeLimit=time
+          ! Host still has a child - do not let the satellite evolve beyond the host.
+          hostTimeLimit=max(time,thisBasicComponent%time())
        case (.false.)
           ! Find current expansion timescale.
           cosmologyFunctionsDefault => cosmologyFunctions()
           expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
           expansionTimescale=1.0d0/cosmologyFunctionsDefault%expansionRate(expansionFactor)
           ! Determine suitable timestep.
-          hostTimeLimit=time+min(timestepHostRelative*expansionTimescale,timestepHostAbsolute)
+          hostTimeLimit=max(time+min(timestepHostRelative*expansionTimescale,timestepHostAbsolute),thisBasicComponent%time())
        end select
        ! Limit to this time.
        if (hostTimeLimit < Evolve_To_Time) then
