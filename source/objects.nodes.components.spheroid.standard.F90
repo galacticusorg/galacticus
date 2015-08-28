@@ -740,11 +740,9 @@ contains
        call thisSpheroidComponent%angularMomentumScale(               max(angularMomentum,angularMomentumMinimum))
 
        ! Set scale for gas mass.
-       mass           =thisDiskComponent%massGas        ()+thisSpheroidComponent%massGas        ()
+       mass           = thisDiskComponent%massGas       ()+thisSpheroidComponent%massGas        () &
+            &          +thisDiskComponent%massStellar   ()+thisSpheroidComponent%massStellar    ()
        call thisSpheroidComponent%        massGasScale(gasMassScaling*max(           mass,           massMinimum))
-
-       ! Set scale for stellar mass.
-       mass           =thisDiskComponent%massStellar    ()+thisSpheroidComponent%massStellar    ()
        call thisSpheroidComponent%    massStellarScale(               max(           mass,           massMinimum))
 
        ! Set scales for abundances if necessary.
