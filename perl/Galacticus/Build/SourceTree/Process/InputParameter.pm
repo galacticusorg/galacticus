@@ -156,6 +156,13 @@ sub Process_InputParameters {
 		if ( $tree->{'type'} eq "file" );
 	    my @influencedExecutableNames = map {exists($dependencies->{$_}->{$fileName}) ? $_ : ()} @executables
 		if ( $fileName );
+	    # Test for required properties.
+	    foreach my $property ( "cardinality" ) {
+		unless ( exists($node->{'directive'}->{$property}) ) {
+		    print Dumper($node->{'directive'});
+		    die("Process_InputParameters(): missing property '".$property."'");
+		}
+	    }
 	    # Create documentation.
 	    system("mkdir -p doc/inputParameters");
 	    open(my $defHndl,">doc/inputParameters/".$nameForFile.".tex");
