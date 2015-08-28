@@ -49,7 +49,7 @@ contains
     use Input_Parameters2
     implicit none
     type(criticalOverdensityKitayamaSuto1996)                :: kitayamaSuto1996ConstructorParameters
-    type(inputParameters                    ), intent(in   ) :: parameters
+    type(inputParameters                    ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
     
     !# <objectBuilder class="linearGrowth"       name="kitayamaSuto1996ConstructorParameters%linearGrowth_"       source="parameters"/>

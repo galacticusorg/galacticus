@@ -45,7 +45,7 @@ contains
     use Input_Parameters2
     implicit none
     type            (powerSpectrumWindowFunctionSharpKSpace)                :: sharpKSpaceConstructorParameters
-    type            (inputParameters                       ), intent(in   ) :: parameters
+    type            (inputParameters                       ), intent(inout) :: parameters
     class           (cosmologyParametersClass              ), pointer       :: cosmologyParameters_
     type            (varying_string                        )                :: normalizationText
     character       (len=32                                )                :: normalizationChar

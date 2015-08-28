@@ -181,6 +181,7 @@ contains
     procedure(Merger_Tree_Read_Do     ), intent(inout), pointer :: Merger_Tree_Construct     
     integer  (c_size_t                )                         :: iOutput                   
     type     (varying_string          )                         :: message                  ,  mergerTreeReadSubhaloAngularMomentaMethodText
+    type     (inputParameters         )                         :: subParameters
     
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'read') then
@@ -516,9 +517,10 @@ contains
 
        ! Get fallback concentration method.
        if (globalParameters%isPresent('mergerTreeReadConcentrationFallbackMethod')) then
-          fallbackConcentration => darkMatterProfileConcentration(globalParameters%subParameters('mergerTreeReadConcentrationFallbackMethod'))
+          subParameters=globalParameters%subParameters('mergerTreeReadConcentrationFallbackMethod')
+          fallbackConcentration => darkMatterProfileConcentration(subParameters)
        else
-          fallbackConcentration => darkMatterProfileConcentration(                                                                           )
+          fallbackConcentration => darkMatterProfileConcentration(             )
        end if
               
        ! Get array of output times.

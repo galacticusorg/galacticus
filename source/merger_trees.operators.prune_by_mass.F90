@@ -43,7 +43,7 @@ contains
     use Input_Parameters2
     implicit none
     type(mergerTreeOperatorPruneByMass)                :: pruneByMassConstructorParameters
-    type(inputParameters              ), intent(in   ) :: parameters
+    type(inputParameters              ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
     
     call parameters%checkParameters(allowedParameterNames)

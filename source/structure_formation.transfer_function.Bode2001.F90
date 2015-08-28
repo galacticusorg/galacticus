@@ -50,7 +50,7 @@ contains
     use Input_Parameters2
     implicit none
     type            (transferFunctionBode2001)                :: bode2001ConstructorParameters
-    type            (inputParameters         ), intent(in   ) :: parameters
+    type            (inputParameters         ), intent(inout) :: parameters
     class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_    
     double precision                                          :: scaleCutOff                  , epsilon, &
@@ -214,13 +214,11 @@ contains
     implicit none
     class    (transferFunctionBode2001), intent(inout) :: self
     type     (inputParameters         ), intent(inout) :: descriptor
-    type     (node                    ), pointer       :: parameterNode
     type     (inputParameters         )                :: subParameters
     character(len=10                  )                :: parameterLabel
 
     call descriptor%addParameter("transferFunctionMethod","bode2001")
-    parameterNode => descriptor%node("transferFunctionMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("transferFunctionMethod")
     write (parameterLabel,'(f10.6)') self%scaleCutOff
     call subParameters%addParameter("scaleCutOff",trim(adjustl(parameterLabel)))
     write (parameterLabel,'(f10.6)') self%epsilon

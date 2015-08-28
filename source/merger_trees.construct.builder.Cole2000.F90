@@ -77,7 +77,7 @@ contains
     use Cosmology_Functions
     implicit none
     type            (mergerTreeBuilderCole2000)                :: cole2000ConstructorParameters    
-    type            (inputParameters          ), intent(in   ) :: parameters
+    type            (inputParameters          ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
     double precision                                           :: redshiftMaximum
     !# <inputParameterList label="allowedParameterNames" />

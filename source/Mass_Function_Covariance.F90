@@ -201,9 +201,8 @@ program Mass_Function_Covariance
   call outputFile %writeDataset  (correlation        ,"correlation"      ,"Correlation matrix for stellar mass function; []"                            )
   
   ! Close the parameter and output files.
-  call Close_Parameters_Group     ()
-  call outputFile%close           ()
   call Input_Parameters_File_Close()
-  
+  call outputFile%close           ()
+
   ! All done, finish.
 end program Mass_Function_Covariance

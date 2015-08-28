@@ -49,7 +49,7 @@ contains
     !% Constructor for the prune-non-essential merger tree operator class which takes a parameter set as input.
     implicit none
     type   (mergerTreeOperatorPruneNonEssential)                :: pruneNonEssentialConstructorParameters
-    type   (inputParameters                    ), intent(in   ) :: parameters
+    type   (inputParameters                    ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
 
     call parameters%checkParameters(allowedParameterNames)

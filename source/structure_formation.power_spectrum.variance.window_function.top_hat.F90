@@ -44,8 +44,8 @@ contains
     use Input_Parameters2
     implicit none
     type(powerSpectrumWindowFunctionTopHat)                :: topHatConstructorParameters
-    type(inputParameters                  ), intent(in   ) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
+    type(inputParameters                  ), intent(inout) :: parameters
+    !# <inputParameterList label="allowedParameterNames" />    
     
     ! Check parameters.
     call parameters%checkParameters(allowedParameterNames)    

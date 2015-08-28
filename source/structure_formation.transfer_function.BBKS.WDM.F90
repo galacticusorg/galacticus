@@ -49,7 +49,7 @@ contains
     use Input_Parameters2
     implicit none
     type            (transferFunctionBBKSWDM )                :: bbksWDMConstructorParameters
-    type            (inputParameters         ), intent(in   ) :: parameters
+    type            (inputParameters         ), intent(inout) :: parameters
     class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_    
     double precision                                          :: freeStreamingLength    
@@ -172,13 +172,11 @@ contains
     implicit none
     class    (transferFunctionBBKSWDM), intent(inout) :: self
     type     (inputParameters        ), intent(inout) :: descriptor
-    type     (node                   ), pointer       :: parameterNode
     type     (inputParameters        )                :: subParameters
     character(len=10                 )                :: parameterLabel
 
     call descriptor%addParameter("transferFunctionMethod","BBKSWDM")
-    parameterNode => descriptor%node("transferFunctionMethod")
-    subParameters=inputParameters(parameterNode)
+    subParameters=descriptor%subparameters("transferFunctionMethod")
     write (parameterLabel,'(f10.6)') self%freeStreamingLength
     call subParameters%addParameter("freeStreamingLength",trim(adjustl(parameterLabel)))
     call self%transferFunctionCDM% descriptor(subParameters)

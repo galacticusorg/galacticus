@@ -68,7 +68,7 @@ contains
     !% Default constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
     implicit none
     type            (darkMatterProfileConcentrationDuttonMaccio2014)                :: duttonMaccio2014ConstructorParameters
-    type            (inputParameters                               ), intent(in   ) :: parameters
+    type            (inputParameters                               ), intent(inout) :: parameters
     type            (varying_string                                )                :: fitType
     double precision                                                                :: a1                                   , a2, &
          &                                                                             a3                                   , a4, &

@@ -416,19 +416,19 @@ contains
                    hostBasic       => hostNode%basic       ()
                    hostHotHalo     => hostNode%hotHalo     ()
                    hostParentBasic => hostNode%parent%basic()
-                   massOutflowed   =  +massGasInitial                                           &
-                   &                  *(                                                        &
-                   &                    +timescaleFuel                                          &
-                   &                    /timescaleOutflow                                       &
-                   &                  )                                                         &
-                   &                  *(                                                        &
-                   &                    +exp(-(hostBasic      %time()-timeStart)/timescaleFuel) &
-                   &                    -exp(-(hostParentBasic%time()-timeStart)/timescaleFuel) &
-                   &                  )                   
+                   massOutflowed   =  +massGasInitial                                                         &
+                        &                  *(                                                                 &
+                        &                    +timescaleFuel                                                   &
+                        &                    /timescaleOutflow                                                &
+                        &                  )                                                                  &
+                        &                  *(                                                                 &
+                        &                    +exp(-max(0.0d0,hostBasic      %time()-timeStart)/timescaleFuel) &
+                        &                    -exp(-max(0.0d0,hostParentBasic%time()-timeStart)/timescaleFuel) &
+                        &                  )
                    call hostHotHalo%outflowedMassSet(                             &
                         &                            +hostHotHalo%outflowedMass() &
                         &                            +            massOutflowed   &
-                        &                           )                   
+                        &                           )
                    hostNode => hostNode%parent
                 end do
                 ! Remove the node from the host and destroy it.
@@ -558,7 +558,7 @@ contains
     type (treeNode         ), intent(inout), pointer :: thisNode
     type (treeNode         )               , pointer :: hostNode
     class(nodeComponentDisk)               , pointer :: hostDiskComponent, thisDiskComponent
-
+    
     ! Check that the disk is of the verySimple class.
     thisDiskComponent => thisNode%disk()
     select type (thisDiskComponent)

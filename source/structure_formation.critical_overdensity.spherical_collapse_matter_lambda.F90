@@ -66,7 +66,7 @@ contains
     use Input_Parameters2
     implicit none
     type(criticalOverdensitySphericalCollapseMatterLambda)                :: sphericalCollapseMatterLambdaConstructorParameters
-    type(inputParameters                                 ), intent(in   ) :: parameters
+    type(inputParameters                                 ), intent(inout) :: parameters
 
     !# <objectBuilder class="linearGrowth"       name="sphericalCollapseMatterLambdaConstructorParameters%linearGrowth_"       source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions" name="sphericalCollapseMatterLambdaConstructorParameters%cosmologyFunctions_" source="parameters"/>

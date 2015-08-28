@@ -49,7 +49,7 @@ contains
     use Numerical_Constants_Math
     implicit none
     type(criticalOverdensityFixed)                :: fixedConstructorParameters
-    type(inputParameters         ), intent(in   ) :: parameters
+    type(inputParameters         ), intent(inout) :: parameters
     !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
