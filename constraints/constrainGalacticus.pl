@@ -234,11 +234,11 @@ if ( exists($config->{'likelihood'}->{'useFixedTrees'}) && $config->{'likelihood
 		unless ( -e $buildFixedTreeFile ) {
 		    # Create the tree file if necessary. (Set output redshift to a very large value to avoid any galaxy formation
 		    # calculation being carried out - we only want to build the trees.)
-		    $parameters->{'outputRedshifts'             }->{'value'} = "10000.0";
-		    $parameters->{'mergerTreesWrite'            }->{'value'} = "true";
-		    $parameters->{'mergerTreeExportFileName'    }->{'value'} = $buildFixedTreeFile;
-		    $parameters->{'mergerTreePruneBaryons'      }->{'value'} = "false";
-		    $parameters->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
+		    $parameters->{'outputRedshifts'             }                                  ->{'value'} = "10000.0";
+		    $parameters->{'mergerTreeOperatorMethod'    }                                  ->{'value'} = "export";
+		    $parameters->{'mergerTreeOperatorMethod'    }->{'outputFileName'              }->{'value'} = $buildFixedTreeFile;
+		    $parameters->{'mergerTreePruneBaryons'      }                                  ->{'value'} = "false";
+		    $parameters->{'mergerTreeOperatorMethod'    }->{'mergerTreeExportOutputFormat'}->{'value'} = "galacticus";
 		    my $treeXML = new XML::Simple (RootName=>"parameters", NoAttr => 1);
 		    open(pHndl,">".$config->{'likelihood'}->{'workDirectory'}."/trees/treeBuildParameters".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".xml");
 		    print pHndl $treeXML->XMLout($parameters);
